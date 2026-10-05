@@ -27,8 +27,19 @@ BEGIN
         END IF;
         EXECUTE format('GRANT USAGE ON SCHEMA %I TO trainflow_api', schema_name);
         EXECUTE format('GRANT USAGE, CREATE ON SCHEMA %I TO trainflow_migrator', schema_name);
-        EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE trainflow_migrator IN SCHEMA %I REVOKE ALL ON TABLES FROM PUBLIC', schema_name);
-        EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE trainflow_migrator IN SCHEMA %I REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC', schema_name);
     END LOOP;
 END $$;
 GRANT USAGE ON SCHEMA media, video_analysis TO trainflow_worker;
+
+-- Managed PostgreSQL administrators are not superusers. Set defaults as the owner.
+-- The administrator must be allowed to SET ROLE trainflow_migrator.
+SET ROLE trainflow_migrator;
+DO $$
+DECLARE schema_name text;
+BEGIN
+    FOREACH schema_name IN ARRAY ARRAY['accounts','access','exercise_catalog','training','media','video_analysis'] LOOP
+        EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I REVOKE ALL ON TABLES FROM PUBLIC', schema_name);
+        EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC', schema_name);
+    END LOOP;
+END $$;
+RESET ROLE;

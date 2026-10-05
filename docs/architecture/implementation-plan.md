@@ -27,7 +27,8 @@
 - [x] Media/analysis: private signed uploads, verified finalization, durable lease queue, cancellation, comparison and unavailable analyzer behavior.
 - [x] Local acceptance: PostgreSQL concurrency/ownership tests, module dependency checks, generated contracts and CI workflow.
 - [ ] External acceptance: real local Supabase Auth/Storage tests; see [verification](../verification.md) for missing dependencies.
-- [ ] Cloud setup: provision runtime secrets and apply reviewed migrations only after separate approval.
+- [x] Cloud database: apply and verify reviewed migrations after explicit approval; see [deployment record](cloud-deployment.md).
+- [ ] Cloud runtime: provision runtime secrets and deploy API/worker separately.
 
 Each unit starts with behavior tests where practical, then implementation and verification. Module work may proceed independently after the shared contracts are fixed; final verification runs the integrated solution.
 

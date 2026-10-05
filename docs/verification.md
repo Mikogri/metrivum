@@ -1,6 +1,6 @@
 # Verification record
 
-Verified on 2026-10-05 with .NET SDK 10.0.401 and a disposable local PostgreSQL 17.11. The cloud TrainFlow database was not migrated.
+Verified on 2026-10-05 with .NET SDK 10.0.401 and a disposable local PostgreSQL 17.11. The cloud database was subsequently migrated with explicit authorization; see the [deployment record](architecture/cloud-deployment.md).
 
 ## Executed checks
 
@@ -27,4 +27,4 @@ GitHub Actions repeats the PostgreSQL checks on Linux and rejects generated-cont
 - No local Supabase instance is available on this Windows host (Docker/WSL are not installed). Live Auth/Storage tests are opt-in and must be run against a local/test instance before deployment. No production credentials or data are used by tests.
 - Runtime PostgreSQL role passwords and the private Storage backend secret have not been provisioned for the cloud project. MCP administrative access does not replace runtime credentials.
 - No ML engine or model was supplied. The durable analysis infrastructure is tested using an adapter confined to tests. Production reports `ANALYZER_NOT_CONFIGURED`.
-- Cloud migrations and application deployment are intentionally pending the separate approval required by the supplied specification. Committed EF migrations and operational scripts are ready for review; API startup never applies them automatically.
+- Cloud database migrations are applied and verified. Application deployment remains pending; API startup never applies migrations automatically.
