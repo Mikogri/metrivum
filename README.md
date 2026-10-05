@@ -58,6 +58,7 @@ Run the explicit migration command on the base test database before integration 
 
 ## Find your way around
 
+- [API endpoint reference](docs/api-endpoints.md) and [JSON types](docs/api-types.md): every operation, input, response, status, permission and concurrency requirement.
 - [Repository structure](docs/STRUCTURE.md): project boundaries and where new code belongs.
 - [Security model](docs/architecture/security.md): identities, ownership, database roles and actual RLS scope.
 - [Feature access](docs/features/access.md): default configuration, overrides, flags, limits and admin operations.

@@ -8,5 +8,6 @@
 - `tests`: unit, real PostgreSQL integration and architecture tests.
 - `infra`: local environment, role bootstrap and operational commands.
 - `docs/architecture`: decisions and security; `docs/features`: document/CSV/formula contracts.
+- `docs/api-endpoints.md` and `docs/api-types.md`: endpoint behavior, request/response fields and client examples.
 
 Within a module, `Domain` contains framework-independent rules, `Features` contains operations, and `Infrastructure` contains persistence/adapters. `ModuleRegistration` explicitly wires services and routes. Add comments for a non-obvious invariant or security boundary; do not narrate self-explanatory code.

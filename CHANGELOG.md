@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Document every API operation, JSON type, access requirement, success response, concurrency rule and representative client workflow.
 - Apply and verify the initial TrainFlow cloud database in Super Team with explicit authorization.
 - Support managed PostgreSQL role ownership during bootstrap and add a reproducible initial SQL exporter.
 - Fix the immutable Training trigger's search path through an incremental EF migration; Supabase security advisor reports no findings.
