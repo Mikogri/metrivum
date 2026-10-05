@@ -1,0 +1,8 @@
+{
+  "name": "trainflow-contracts",
+  "private": true,
+  "scripts": {
+    "contracts": "openapi-typescript contracts/generated/openapi.json -o contracts/generated/api.d.ts"
+  },
+  "devDependencies": { "openapi-typescript": "7.13.0" }
+}

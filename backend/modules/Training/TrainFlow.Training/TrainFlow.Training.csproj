@@ -1,3 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" /></ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="CsvHelper" />
+    <PackageReference Include="PDFsharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\TrainFlow.BuildingBlocks\TrainFlow.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Accounts\TrainFlow.Accounts.Contracts\TrainFlow.Accounts.Contracts.csproj" />
+    <ProjectReference Include="..\..\Access\TrainFlow.Access.Contracts\TrainFlow.Access.Contracts.csproj" />
+    <ProjectReference Include="..\..\ExerciseCatalog\TrainFlow.ExerciseCatalog.Contracts\TrainFlow.ExerciseCatalog.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Infrastructure/Fonts/NotoSans-Regular.ttf" />
+    <None Update="Infrastructure/Fonts/OFL.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

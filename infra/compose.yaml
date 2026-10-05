@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17.11
+    environment:
+      POSTGRES_DB: trainflow
+      POSTGRES_PASSWORD: ${TRAINFLOW_LOCAL_DB_PASSWORD:?Set a local development password}
+    ports:
+      - "127.0.0.1:54322:5432"
+    volumes:
+      - trainflow-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d trainflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  trainflow-postgres:

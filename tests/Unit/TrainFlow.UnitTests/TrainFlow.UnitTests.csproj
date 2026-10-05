@@ -1,3 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup><ItemGroup><PackageReference Include="Microsoft.NET.Test.Sdk" /><PackageReference Include="xunit" /><PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" /><Using Include="Xunit" /></ItemGroup>
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\backend\modules\Accounts\TrainFlow.Accounts\TrainFlow.Accounts.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\Access\TrainFlow.Access\TrainFlow.Access.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\ExerciseCatalog\TrainFlow.ExerciseCatalog\TrainFlow.ExerciseCatalog.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\Training\TrainFlow.Training\TrainFlow.Training.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\Media\TrainFlow.Media\TrainFlow.Media.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\VideoAnalysis\TrainFlow.VideoAnalysis\TrainFlow.VideoAnalysis.csproj" />
+  </ItemGroup>
 </Project>

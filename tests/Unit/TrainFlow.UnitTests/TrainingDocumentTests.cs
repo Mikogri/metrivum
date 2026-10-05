@@ -1,0 +1,88 @@
+using TrainFlow.Training.Domain;
+
+namespace TrainFlow.UnitTests;
+
+public sealed class TrainingDocumentTests
+{
+    [Fact]
+    public void Rejects_day_outside_non_week_cycle()
+    {
+        var document = Example() with
+        {
+            Blocks = [new Block(Guid.NewGuid(), "Block", "", [new Cycle(Guid.NewGuid(), "Cycle", "", 5, [new TrainingDay(Guid.NewGuid(), 6, [])])])]
+        };
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.Validate(document, new()));
+    }
+
+    [Fact]
+    public void Rejects_conflicting_load_and_rpe_rir()
+    {
+        var set = new TrainingSet(Guid.NewGuid(), SetKind.Standard, new Prescription(Reps: new(5, 5), Load: new(new(80, Unit.Kg), new(90, Unit.Kg)), LoadPercent: 80));
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidateSet(set));
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidateSet(set with { Prescription = new(Rpe: 8, Rir: 2) }));
+    }
+
+    [Fact]
+    public void Rejects_reversed_ranges_and_non_mass_loads()
+    {
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidateSet(new(Guid.NewGuid(), SetKind.Standard, new(Reps: new(8, 5)))));
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidateSet(new(Guid.NewGuid(), SetKind.Standard, new(Load: new(new(8, Unit.Seconds), new(8, Unit.Seconds))))));
+    }
+
+    [Fact]
+    public void Rejects_segments_in_standard_set_and_missing_drop_segments()
+    {
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidateSet(new(Guid.NewGuid(), SetKind.Standard, new(), [new(Guid.NewGuid(), new(Reps: new(5, 5)))])));
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidateSet(new(Guid.NewGuid(), SetKind.DropSet, new())));
+    }
+
+    [Fact]
+    public void Clone_rewrites_internal_ids_and_group_references()
+    {
+        var original = Example();
+        var copied = DocumentRules.Copy(original);
+        Assert.NotEqual(original.Blocks[0].Id, copied.Blocks[0].Id);
+        var before = original.Blocks[0].Cycles[0].Days[0].Workouts[0];
+        var after = copied.Blocks[0].Cycles[0].Days[0].Workouts[0];
+        Assert.NotEqual(before.Exercises[0].Id, after.Exercises[0].Id);
+        Assert.Equal(before.Exercises[0].ExerciseId, after.Exercises[0].ExerciseId);
+        Assert.Equal(after.Exercises.Select(e => e.Id), after.Groups[0].ExerciseIds);
+        DocumentRules.Validate(copied, new());
+    }
+
+    [Fact]
+    public void Folder_move_rejects_descendant_cycle()
+    {
+        var a = Guid.NewGuid();
+        var b = Guid.NewGuid();
+        Assert.Throws<TrainingValidationException>(() => FolderRules.ValidateMove(a, b, new Dictionary<Guid, Guid?> { [a] = null, [b] = a }, 16));
+    }
+
+    [Fact]
+    public void Rejects_explicit_null_required_text_before_export()
+    {
+        var document = Example();
+        document.Blocks[0] = document.Blocks[0] with
+        {
+            Description = null!
+        };
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.Validate(document, new()));
+    }
+
+    [Fact]
+    public void Extremely_negative_formula_input_is_validation_error_not_numeric_overflow()
+    {
+        var prescription = new Prescription(LoadFormula: new(null, 1, "percentage-1rm", new()
+        {
+            ["base1Rm"] = new(decimal.MinValue, Unit.Kg)
+        }));
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidatePrescription(prescription));
+    }
+
+    public static TrainingDocument Example()
+    {
+        var a = new ExerciseInstance(Guid.NewGuid(), Guid.NewGuid(), "", [new(Guid.NewGuid(), SetKind.Standard, new(Reps: new(5, 5), Load: new(new(80, Unit.Kg), new(80, Unit.Kg))))]);
+        var b = new ExerciseInstance(Guid.NewGuid(), Guid.NewGuid(), "", [new(Guid.NewGuid(), SetKind.Amrap, new(LoadPercent: 50, BaseValue: new(100, Unit.Kg)))]);
+        return new(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "Cycle", "", 9, [new(Guid.NewGuid(), 2, [new(Guid.NewGuid(), "Workout", "", [a, b], [new(Guid.NewGuid(), GroupKind.Superset, [a.Id, b.Id], 3, 60)])])])])]);
+    }
+}

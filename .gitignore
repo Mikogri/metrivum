@@ -11,3 +11,4 @@ artifacts/
 **/appsettings.Local.json
 **/*.user
 *.log
+node_modules/

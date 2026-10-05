@@ -1,2 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\backend\modules\Accounts\TrainFlow.Accounts\TrainFlow.Accounts.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\Access\TrainFlow.Access\TrainFlow.Access.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\ExerciseCatalog\TrainFlow.ExerciseCatalog\TrainFlow.ExerciseCatalog.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\Training\TrainFlow.Training\TrainFlow.Training.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\Media\TrainFlow.Media\TrainFlow.Media.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\VideoAnalysis\TrainFlow.VideoAnalysis\TrainFlow.VideoAnalysis.csproj" />
+  </ItemGroup>
 </Project>

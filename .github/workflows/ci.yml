@@ -1,0 +1,55 @@
+name: Backend CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.11
+        env:
+          POSTGRES_PASSWORD: local-ci-only
+          POSTGRES_DB: trainflow_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__MigrationDatabase: Host=127.0.0.1;Port=5432;Database=trainflow_test;Username=postgres;Password=local-ci-only
+      TRAINFLOW_TEST_DATABASE: Host=127.0.0.1;Port=5432;Database=trainflow_test;Username=postgres;Password=local-ci-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: dotnet tool restore
+      - run: dotnet restore --locked-mode
+      - run: npm ci --ignore-scripts
+      - run: dotnet build --no-restore
+      - shell: pwsh
+        run: ./infra/scan-secrets.ps1
+      - run: dotnet format whitespace --no-restore --verify-no-changes
+      - run: dotnet run --no-build --project apps/api/TrainFlow.Api -- --migrate
+      - run: dotnet test --no-build --logger trx --results-directory TestResults
+      - shell: pwsh
+        run: ./infra/export-contracts.ps1 -NoBuild
+      - run: git diff --exit-code -- contracts/generated
+      - run: dotnet package list --vulnerable --include-transitive --format json > dependency-audit.json
+      - shell: pwsh
+        run: |
+          $audit = Get-Content dependency-audit.json -Raw | ConvertFrom-Json
+          if ($audit.projects.frameworks.topLevelPackages -or $audit.projects.frameworks.transitivePackages) { throw 'Vulnerable .NET dependencies detected.' }
+      - run: npm audit --audit-level=moderate
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults

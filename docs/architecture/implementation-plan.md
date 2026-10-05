@@ -19,13 +19,15 @@
 
 ## Delivery sequence
 
-- [ ] Foundation: projects, shared contracts, ADR, runtime configuration, clean PostgreSQL migration path.
-- [ ] Identity/access: JWT negative cases, idempotent onboarding, profile constraints, server-owned roles, feature graph and live DB decisions.
-- [ ] Exercise catalog: normalized uniqueness, revisions, dictionaries, favorites and tag merges.
-- [ ] Training: typed documents, units, bounded formulas, folders, private templates, ETags and immutable revisions.
-- [ ] Import/export: bounded CSV preview/map/commit with idempotency, snapshot CSV/PDF exports.
-- [ ] Media/analysis: private signed uploads, verified finalization, durable lease queue, cancellation, comparison and unavailable analyzer behavior.
-- [ ] Acceptance: PostgreSQL concurrency/ownership tests, module dependency checks, generated contracts, CI, secret scan, commit and push.
+- [x] Foundation: projects, shared contracts, ADR, runtime configuration, clean PostgreSQL migration path.
+- [x] Identity/access: JWT negative cases, idempotent onboarding, profile constraints, server-owned roles, feature graph and live DB decisions.
+- [x] Exercise catalog: normalized uniqueness, revisions, dictionaries, favorites and tag merges.
+- [x] Training: typed documents, units, bounded formulas, folders, private templates, ETags and immutable revisions.
+- [x] Import/export: bounded CSV preview/map/commit with idempotency, snapshot CSV/PDF exports.
+- [x] Media/analysis: private signed uploads, verified finalization, durable lease queue, cancellation, comparison and unavailable analyzer behavior.
+- [x] Local acceptance: PostgreSQL concurrency/ownership tests, module dependency checks, generated contracts and CI workflow.
+- [ ] External acceptance: real local Supabase Auth/Storage tests; see [verification](../verification.md) for missing dependencies.
+- [ ] Cloud setup: provision runtime secrets and apply reviewed migrations only after separate approval.
 
 Each unit starts with behavior tests where practical, then implementation and verification. Module work may proceed independently after the shared contracts are fixed; final verification runs the integrated solution.
 
