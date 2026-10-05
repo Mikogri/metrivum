@@ -1,5 +1,9 @@
 -- Run after migrations as the migration owner or database administrator.
 -- Deliberately no default runtime grants: new tables require an explicit review.
+-- Schema access is required in addition to table privileges. Apply as the schema owner.
+GRANT USAGE ON SCHEMA accounts, access, exercise_catalog, training, media, video_analysis TO trainflow_api;
+GRANT USAGE ON SCHEMA media, video_analysis TO trainflow_worker;
+
 GRANT SELECT, INSERT, UPDATE ON accounts.profiles TO trainflow_api;
 GRANT SELECT, INSERT ON accounts.workspaces TO trainflow_api;
 GRANT SELECT, INSERT ON accounts.user_roles TO trainflow_api;

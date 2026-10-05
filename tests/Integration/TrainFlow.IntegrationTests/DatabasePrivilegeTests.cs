@@ -43,7 +43,10 @@ public sealed class DatabasePrivilegeTests
                 await media.Database.MigrateAsync();
             await using (var analysis = new VideoAnalysisDbContext(Options<VideoAnalysisDbContext>(migration, "video_analysis")))
                 await analysis.Database.MigrateAsync();
-            await using (var grants = databaseAdmin.CreateCommand(await File.ReadAllTextAsync(Path.Combine(root, "infra", "runtime-grants.sql"))))
+            // Runtime grants must restore schema access even when bootstrap grants are missing.
+            await using (var revoke = migration.CreateCommand("REVOKE USAGE ON SCHEMA accounts, access, exercise_catalog, training, media, video_analysis FROM trainflow_api; REVOKE USAGE ON SCHEMA media, video_analysis FROM trainflow_worker;"))
+                await revoke.ExecuteNonQueryAsync();
+            await using (var grants = migration.CreateCommand(await File.ReadAllTextAsync(Path.Combine(root, "infra", "runtime-grants.sql"))))
                 await grants.ExecuteNonQueryAsync();
             connection.Options = "-c role=trainflow_api";
             await using var runtime = NpgsqlDataSource.Create(connection.ConnectionString);

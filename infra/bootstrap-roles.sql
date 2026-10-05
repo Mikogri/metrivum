@@ -18,6 +18,16 @@ DECLARE schema_name text;
 BEGIN
     FOREACH schema_name IN ARRAY ARRAY['accounts','access','exercise_catalog','training','media','video_analysis'] LOOP
         EXECUTE format('CREATE SCHEMA IF NOT EXISTS %I AUTHORIZATION trainflow_migrator', schema_name);
+    END LOOP;
+END $$;
+
+-- Managed PostgreSQL administrators must change to the owner to grant schema access.
+-- The administrator must be allowed to SET ROLE trainflow_migrator.
+SET ROLE trainflow_migrator;
+DO $$
+DECLARE schema_name text;
+BEGIN
+    FOREACH schema_name IN ARRAY ARRAY['accounts','access','exercise_catalog','training','media','video_analysis'] LOOP
         EXECUTE format('REVOKE ALL ON SCHEMA %I FROM PUBLIC', schema_name);
         IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'anon') THEN
             EXECUTE format('REVOKE ALL ON SCHEMA %I FROM anon', schema_name);
@@ -31,9 +41,6 @@ BEGIN
 END $$;
 GRANT USAGE ON SCHEMA media, video_analysis TO trainflow_worker;
 
--- Managed PostgreSQL administrators are not superusers. Set defaults as the owner.
--- The administrator must be allowed to SET ROLE trainflow_migrator.
-SET ROLE trainflow_migrator;
 DO $$
 DECLARE schema_name text;
 BEGIN
