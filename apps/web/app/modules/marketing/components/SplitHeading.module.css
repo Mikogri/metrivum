@@ -1,0 +1,50 @@
+.heading {
+  font-family: var(--tf-font-display);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-display);
+}
+
+/* The mask: room for descenders below and side bearings left and right. */
+.word {
+  display: inline-block;
+  overflow: clip;
+  padding: 0 0.04em 0.12em;
+  margin: 0 -0.04em -0.12em;
+  vertical-align: top;
+  white-space: pre;
+}
+
+.inner {
+  display: inline-block;
+  transform-origin: 0 100%;
+  animation: word-rise 1150ms var(--tf-ease-out) both;
+  animation-delay: calc(var(--delay) + 120ms + var(--i) * 65ms);
+}
+
+/* The closing word set in a serif italic, the one change of voice in the headline. */
+.inner[data-accent] {
+  padding-right: 0.06em;
+  font-family: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+@keyframes word-rise {
+  from {
+    transform: translateY(108%) rotate(4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inner {
+    animation-name: word-fade;
+    animation-duration: 400ms;
+  }
+}
+
+@keyframes word-fade {
+  from {
+    opacity: 0;
+  }
+}

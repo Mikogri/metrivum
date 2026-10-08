@@ -1,0 +1,140 @@
+.card {
+  display: grid;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-xl);
+  background: var(--tf-color-surface);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  height: var(--tf-control-lg);
+  padding: 0 var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-bg-sunken);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.search svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1-5);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  height: 1.625rem;
+  padding: 0 var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  transition:
+    background-color var(--tf-duration-fast) ease,
+    border-color var(--tf-duration-fast) ease,
+    color var(--tf-duration-fast) ease,
+    transform var(--tf-duration-press) var(--tf-ease-out);
+}
+
+.filter:active {
+  transform: scale(0.96);
+}
+
+.filter svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.filter[aria-pressed="true"] {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.items {
+  display: grid;
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-2);
+  border-radius: var(--tf-radius-md);
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 300ms ease,
+    transform 400ms var(--tf-ease-out),
+    filter 300ms ease;
+  transition-delay: calc(var(--i) * 50ms);
+}
+
+.card[data-inview] .item {
+  opacity: 1;
+  transform: none;
+}
+
+.card[data-inview] .item[data-hidden] {
+  opacity: 0.18;
+  filter: blur(1px);
+  transform: scale(0.98);
+  transition-delay: 0ms;
+}
+
+.thumb {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background:
+    radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--tf-color-accent) 25%, transparent), transparent 60%),
+    var(--tf-color-surface-raised);
+}
+
+.text {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.meta {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.fav {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-danger);
+  fill: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    transform: none;
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
+}

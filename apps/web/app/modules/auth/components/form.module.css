@@ -1,0 +1,42 @@
+.form {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+}
+
+.link {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.link:hover {
+  color: var(--tf-color-text);
+}
+
+.textButton {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--tf-color-border-strong);
+}
+
+.textButton:hover {
+  color: var(--tf-color-text);
+}
+
+.code input {
+  font-size: var(--tf-text-xl);
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,164 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+  gap: var(--tf-space-4);
+  align-items: start;
+}
+
+.card {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.cardTitle {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+/* Details and the start button travel together, the button right under the fields. */
+.aside {
+  position: sticky;
+  top: var(--tf-space-4);
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.startBar {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+/* The video panel always takes the full height of the screen; the picker grows inside it. */
+.videoCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  height: calc(100dvh - 15rem);
+  min-height: 34rem;
+  transition: border-color var(--tf-duration-fast) ease;
+}
+
+.videoCard[data-dragging] {
+  border-color: var(--tf-color-accent-border);
+}
+
+.pickerArea {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Nothing chosen yet: one centred invitation, the whole panel is the drop zone. */
+.empty {
+  display: grid;
+  flex: 1;
+  place-content: center;
+  justify-items: center;
+  gap: var(--tf-space-3);
+  border: 1px dashed var(--tf-color-border-strong);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-bg-sunken);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text-tertiary);
+}
+
+.emptyIcon svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.emptyTitle {
+  font-weight: var(--tf-weight-semibold);
+}
+
+/* Once a file is chosen it shrinks to one quiet line at the bottom. */
+.fileBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.fileName {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fileName svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.hint {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.progress {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.progressLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+}
+
+.bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--tf-color-surface-hover);
+}
+
+/* Width reflects real upload progress only; processing stages use a spinner, never a fake bar. */
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--tf-color-accent);
+  transform-origin: left;
+  transition: transform 300ms linear;
+}
+
+@media (max-width: 60rem) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .aside {
+    position: static;
+  }
+
+  .videoCard {
+    height: auto;
+    min-height: 24rem;
+  }
+}
+
+/* The note can grow a little, never past the details panel. */
+.note textarea {
+  min-height: 4.5rem;
+  max-height: 9rem;
+  resize: vertical;
+}

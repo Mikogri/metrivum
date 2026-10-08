@@ -1,0 +1,237 @@
+.wrap {
+  display: grid;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.grid {
+  overflow: auto;
+  outline: none;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  font-size: var(--tf-text-sm);
+}
+
+.headRow,
+.row,
+.emptyRow {
+  display: grid;
+  grid-template-columns:
+    minmax(12rem, 2.4fr) 2.5rem minmax(7rem, 1.1fr) minmax(4.5rem, 0.7fr) minmax(8rem, 1.3fr)
+    minmax(5.5rem, 0.8fr) minmax(4.5rem, 0.7fr) minmax(5rem, 0.7fr) minmax(8rem, 1.4fr);
+  min-width: 60rem;
+}
+
+.headRow {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid var(--tf-color-border);
+  background: var(--tf-color-surface-raised);
+}
+
+.head {
+  padding: var(--tf-space-2) var(--tf-space-3);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  white-space: nowrap;
+}
+
+.row {
+  position: relative;
+}
+
+.row + .row {
+  box-shadow: inset 0 1px 0 var(--tf-color-border-subtle);
+}
+
+.row[data-first] {
+  box-shadow: inset 0 1px 0 var(--tf-color-border);
+}
+
+.row[data-group]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--tf-color-info);
+}
+
+.row[data-group="Superset"]::before {
+  background: var(--tf-color-violet);
+}
+
+.row[data-drop] {
+  box-shadow: inset 0 2px 0 var(--tf-color-accent);
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 2.375rem;
+  padding: 0 var(--tf-space-3);
+  color: var(--tf-color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  cursor: cell;
+  user-select: none;
+}
+
+.cell[data-col="exercise"] {
+  color: var(--tf-color-text);
+  cursor: default;
+}
+
+.cell[data-col="set"] {
+  justify-content: center;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.cell[data-range] {
+  background: rgb(62 224 154 / 0.07);
+}
+
+/* The active cell ring moves without animation: it follows every keystroke. */
+.cell[data-active] {
+  z-index: 1;
+  box-shadow: inset 0 0 0 1.5px var(--tf-color-accent);
+  background: rgb(62 224 154 / 0.05);
+  border-radius: 3px;
+}
+
+.grid:focus-visible {
+  box-shadow: 0 0 0 2px var(--tf-color-focus-ring);
+}
+
+.grid:not(:focus-within) .cell[data-active] {
+  box-shadow: inset 0 0 0 1px var(--tf-color-border-strong);
+  background: transparent;
+}
+
+.cell[data-invalid] {
+  box-shadow: inset 0 0 0 1.5px var(--tf-color-danger);
+}
+
+.value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.input,
+.select {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tf-color-text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.select {
+  cursor: pointer;
+}
+
+.select option {
+  background: var(--tf-color-surface-raised);
+}
+
+.exercise {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  min-width: 0;
+}
+
+.exerciseName {
+  overflow: hidden;
+  font-weight: var(--tf-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exerciseName[data-missing] {
+  color: var(--tf-color-text-tertiary);
+}
+
+.handle {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1rem;
+  margin-left: calc(var(--tf-space-2) * -1);
+  color: var(--tf-color-text-disabled);
+  cursor: grab;
+}
+
+.handle svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.handle:active {
+  cursor: grabbing;
+}
+
+.kind {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.kind:not([data-kind="Standard"]) {
+  color: var(--tf-color-text);
+}
+
+.kind[data-kind="TopSet"] {
+  color: var(--tf-color-violet);
+}
+
+.kind[data-kind="BackOff"] {
+  color: var(--tf-color-info);
+}
+
+.segments {
+  padding: 0 var(--tf-space-1);
+  border-radius: var(--tf-radius-xs);
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+}
+
+.lock {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.emptyCell {
+  grid-column: 1 / -1;
+  padding: var(--tf-space-8);
+  color: var(--tf-color-text-tertiary);
+  text-align: center;
+}
+
+.message {
+  min-height: 1rem;
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1);
+}

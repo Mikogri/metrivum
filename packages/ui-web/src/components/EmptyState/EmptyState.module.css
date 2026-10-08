@@ -1,0 +1,115 @@
+/* A dashed drop-zone style box: line icon, title, one sentence and the action that fills it. */
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--tf-space-1);
+  padding: var(--tf-space-12) var(--tf-space-6);
+  border: 1px dashed var(--tf-color-border-strong);
+  border-radius: var(--tf-radius-lg);
+  background: color-mix(in srgb, var(--tf-color-surface) 55%, transparent);
+  text-align: center;
+  animation: empty-in var(--tf-duration-settle) var(--tf-ease-settle);
+}
+
+.sm {
+  padding: var(--tf-space-6) var(--tf-space-4);
+  border: 0;
+  background: transparent;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--tf-space-2);
+  color: var(--tf-color-text-secondary);
+}
+
+.sm .icon {
+  margin-bottom: var(--tf-space-1-5);
+}
+
+.icon :where(svg) {
+  width: 1.375rem;
+  height: 1.375rem;
+  stroke-width: 1.5;
+}
+
+.sm .icon :where(svg) {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+@keyframes empty-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty {
+    animation: none;
+  }
+}
+
+.title {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+  color: var(--tf-color-text);
+}
+
+.sm .title {
+  font-size: var(--tf-text-sm);
+}
+
+.description {
+  max-width: 28rem;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  text-wrap: pretty;
+}
+
+.sm .description {
+  font-size: var(--tf-text-xs);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-3);
+}
+
+.error {
+  padding: var(--tf-space-6) var(--tf-space-4);
+  border: 0;
+  background: transparent;
+}
+
+.error .icon {
+  margin-bottom: var(--tf-space-1);
+}
+
+.errorIcon {
+  background: transparent;
+  color: var(--tf-color-danger);
+  margin-bottom: var(--tf-space-1);
+  filter: drop-shadow(0 0 5px var(--tf-color-danger));
+  animation: error-pulse 3s ease-in-out infinite;
+}
+
+.reference {
+  color: var(--tf-color-text-tertiary);
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-2xs);
+}
+
+.error .title { font-size: var(--tf-text-sm); font-weight: var(--tf-weight-medium); }
+@keyframes error-pulse {
+  0%, 100% { opacity: .75; transform: scale(1); filter: drop-shadow(0 0 3px var(--tf-color-danger)); }
+  50% { opacity: 1; transform: scale(1.06); filter: drop-shadow(0 0 7px var(--tf-color-danger)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .errorIcon { animation: none; }
+}

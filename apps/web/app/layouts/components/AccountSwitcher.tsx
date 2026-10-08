@@ -1,0 +1,95 @@
+import { Check, ChevronsUpDown, LogOut, Plus } from "lucide-react";
+import { Button as AriaButton, Header, MenuSection } from "react-aria-components";
+import { useNavigate } from "react-router";
+import {
+  Avatar,
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuSection,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@trainflow/ui-web";
+import { useProfile } from "~/modules/accounts";
+import { useT } from "~/shared/i18n/AppLocale";
+import { useDiscardConfirm } from "~/shared/lib/useConfirm";
+import { useActiveAccount, useSessionState } from "~/shared/session/SessionProvider";
+import { useAccountActions } from "~/shared/session/useAccountActions";
+import type { SlotId } from "~/shared/session/storage-keys";
+import { SettingsIcon } from "./navIcons";
+import styles from "./AccountSwitcher.module.css";
+
+export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
+  const m = useT();
+  const profile = useProfile();
+  const active = useActiveAccount();
+  const state = useSessionState();
+  const navigate = useNavigate();
+  const { confirm, dialog } = useDiscardConfirm();
+  const actions = useAccountActions(confirm);
+  const name = profile.displayName || profile.username || active?.email || "";
+
+  return (
+    <>
+      <DropdownMenuTrigger>
+        <AriaButton className={styles.trigger} data-compact={compact || undefined} aria-label={m.accounts.menuLabel(name)}>
+          <Avatar name={name} size="md" decorative className={styles.avatar} />
+          {/* Kept in the DOM while the sidebar collapses so the text can fade instead of popping. */}
+          <span className={styles.who} aria-hidden={compact || undefined}>
+            <span className={styles.name}>{name}</span>
+            <span className={styles.email}>{active?.email}</span>
+          </span>
+          <ChevronsUpDown aria-hidden="true" className={styles.chevron} />
+        </AriaButton>
+        <DropdownMenu
+          placement="top start"
+          className={styles.menu}
+          onAction={(key) => {
+            const id = String(key);
+            if (id.startsWith("slot:")) void actions.switchTo(Number(id.slice(5)) as SlotId);
+            else if (id === "add") void actions.addAccount();
+            else if (id === "settings") navigate("/app/settings");
+            else if (id === "signout" && active) void actions.signOut(active.slot);
+          }}
+        >
+          {/* Who is signed in, as a card above the actions. */}
+          <MenuSection className={styles.profileSection}>
+            <Header className={styles.profile}>
+              <Avatar name={name} size="lg" decorative />
+              <span className={styles.profileText}>
+                <strong>{name}</strong>
+                <small>{active?.email}</small>
+              </span>
+            </Header>
+          </MenuSection>
+          <DropdownMenuSection title={m.accounts.signedIn}>
+            {state.accounts.map((account) => (
+              <DropdownMenuItem
+                key={`slot:${account.slot}`}
+                id={`slot:${account.slot}`}
+                textValue={account.email ?? String(account.slot)}
+                icon={<Avatar name={account.email ?? "?"} size="sm" decorative className={styles.itemAvatar} />}
+                description={account.slot === state.activeSlot ? m.accounts.current : undefined}
+              >
+                <span className={styles.accountRow}>
+                  <span className={styles.accountEmail}>{account.email}</span>
+                  {account.slot === state.activeSlot ? <Check aria-hidden="true" className={styles.current} /> : null}
+                </span>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuItem id="add" icon={<Plus />} isDisabled={!actions.canAdd} description={actions.canAdd ? undefined : m.accounts.maxReached}>
+              {m.accounts.add}
+            </DropdownMenuItem>
+          </DropdownMenuSection>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem id="settings" icon={<SettingsIcon />}>
+            {m.nav.settings}
+          </DropdownMenuItem>
+          <DropdownMenuItem id="signout" icon={<LogOut />} tone="danger">
+            {m.accounts.signOut}
+          </DropdownMenuItem>
+        </DropdownMenu>
+      </DropdownMenuTrigger>
+      {dialog}
+    </>
+  );
+}

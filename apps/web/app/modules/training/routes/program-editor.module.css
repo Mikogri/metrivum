@@ -1,0 +1,25 @@
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  height: 100%;
+  padding: var(--tf-space-2);
+}
+
+.loadingColumns {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 16rem 1fr 21rem;
+  gap: var(--tf-space-2);
+}
+
+.center {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: var(--tf-space-6);
+}
+
+.center > * {
+  width: min(32rem, 100%);
+}

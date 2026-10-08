@@ -1,0 +1,41 @@
+.link {
+  color: var(--tf-color-text);
+  border-radius: var(--tf-radius-xs);
+  outline: none;
+  cursor: pointer;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color var(--tf-duration-fast) ease;
+}
+
+.link[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.subtle {
+  color: var(--tf-color-text-secondary);
+}
+
+.accent {
+  color: var(--tf-color-accent);
+}
+
+.underline {
+  text-decoration-line: underline;
+  text-decoration-color: var(--tf-color-border-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link[data-hovered] {
+    color: var(--tf-color-text);
+  }
+
+  .accent[data-hovered] {
+    color: var(--tf-color-accent-strong);
+  }
+
+  .underline[data-hovered] {
+    text-decoration-color: currentColor;
+  }
+}

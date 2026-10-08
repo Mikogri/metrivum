@@ -1,0 +1,53 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--tf-color-bg);
+  color: var(--tf-color-text);
+}
+
+.main {
+  flex: 1;
+  outline: none;
+}
+
+/*
+ * Night palette for the public site: near-black, a bright signal green for actions and light,
+ * and glass panels (--tf-glass) that let the light streams behind them show through, blurred.
+ */
+:global([data-public-theme="night"]) {
+  color-scheme: dark;
+
+  --tf-color-bg: #050706;
+  --tf-color-bg-sunken: #030404;
+  --tf-color-surface: #0b0f0d;
+  --tf-color-surface-raised: #111614;
+  --tf-color-surface-overlay: #161c19;
+  --tf-color-field: rgb(255 255 255 / 0.05);
+  --tf-color-field-hover: rgb(255 255 255 / 0.08);
+  --tf-color-surface-hover: rgb(255 255 255 / 0.05);
+  --tf-color-surface-selected: rgb(255 255 255 / 0.08);
+
+  --tf-color-border-subtle: rgb(255 255 255 / 0.06);
+  --tf-color-border: rgb(255 255 255 / 0.1);
+  --tf-color-border-strong: rgb(255 255 255 / 0.18);
+
+  --tf-color-text: #f3f6f4;
+  --tf-color-text-secondary: #a6aeaa;
+  --tf-color-text-tertiary: #7d8682;
+
+  --tf-color-primary: #57f29f;
+  --tf-color-primary-hover: #7bf7b6;
+  --tf-color-primary-border: #57f29f;
+  --tf-color-primary-border-hover: #7bf7b6;
+  --tf-color-on-primary: #03140a;
+  --tf-color-accent: #57f29f;
+  --tf-color-accent-strong: #8ff9c4;
+  --tf-color-accent-soft: rgb(87 242 159 / 0.12);
+  --tf-color-accent-border: rgb(87 242 159 / 0.4);
+  --tf-color-focus-ring: #57f29f;
+
+  --tf-glass: rgb(16 21 19 / 0.55);
+  --tf-glass-border: rgb(255 255 255 / 0.09);
+  --tf-glass-blur: blur(18px) saturate(140%);
+}

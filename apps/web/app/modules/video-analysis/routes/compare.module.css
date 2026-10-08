@@ -1,0 +1,46 @@
+.pickers {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--tf-space-4);
+  align-items: end;
+  margin-bottom: var(--tf-space-4);
+}
+
+.pickers > :global(*:nth-child(n + 4)) {
+  grid-column: 1 / -1;
+}
+
+.picker {
+  display: grid;
+  grid-template-columns: 1fr 9rem;
+  gap: var(--tf-space-2);
+}
+
+.submit {
+  display: flex;
+  align-items: end;
+}
+
+.sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tf-space-4);
+  margin-top: var(--tf-space-4);
+}
+
+.sideTitle {
+  margin-bottom: var(--tf-space-3);
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+@media (max-width: 64rem) {
+  .pickers,
+  .sides {
+    grid-template-columns: 1fr;
+  }
+
+  .picker {
+    grid-template-columns: 1fr;
+  }
+}

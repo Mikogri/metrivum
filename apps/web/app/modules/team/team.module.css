@@ -1,0 +1,322 @@
+.page,
+.stack {
+  display: grid;
+  gap: var(--tf-space-5);
+}
+
+.grow {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.muted {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.note {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-relaxed);
+}
+
+.sectionTitle {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+/* ---- Invitations to join a Team ---- */
+
+.invites {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.invite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
+.inviteIcon,
+.linkIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.inviteIcon svg,
+.linkIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ---- The Team card: identity and seats up top, sections in tabs below ---- */
+
+.workspace {
+  overflow: hidden;
+}
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tf-color-accent) 5%, transparent), transparent);
+}
+
+.mark {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--tf-color-accent-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.teamName {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-tight);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1-5);
+  margin: var(--tf-space-1) 0;
+}
+
+.crown {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.seats {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  min-width: 11rem;
+}
+
+.seatsValue {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.seatsValue small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-regular);
+}
+
+.meter {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--tf-color-surface-hover);
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-color-accent);
+  transform-origin: left;
+  transition: transform 700ms var(--tf-ease-out);
+}
+
+.meter[data-full] span {
+  background: var(--tf-color-warning);
+}
+
+.body {
+  display: grid;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-5);
+}
+
+/* ---- Overview: where Team work lives ---- */
+
+.links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  height: 100%;
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--tf-duration-fast) ease;
+}
+
+.linkArrow {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-text-tertiary);
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link:hover {
+    border-color: var(--tf-color-border-strong);
+  }
+
+  .link:hover .linkArrow {
+    transform: translateX(2px);
+  }
+}
+
+/* A row for consequential actions: what it does on the left, the button on the right. */
+.zone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+}
+
+.zone[data-tone="danger"] {
+  border-color: color-mix(in srgb, var(--tf-color-danger) 35%, transparent);
+}
+
+/* ---- Members ---- */
+
+.inviteForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+}
+
+.roleSelect {
+  width: 10rem;
+}
+
+.ownerSelect {
+  width: 14rem;
+}
+
+.formNote {
+  flex-basis: 100%;
+  color: var(--tf-color-warning);
+  font-size: var(--tf-text-xs);
+}
+
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2-5);
+  min-width: 0;
+}
+
+.personText {
+  display: grid;
+  min-width: 0;
+}
+
+.avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-text-secondary);
+  font-size: 0.6875rem;
+  font-weight: var(--tf-weight-semibold);
+}
+
+.rowActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--tf-space-1);
+}
+
+.requestList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.requestList li {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-2-5) 0;
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  font-size: var(--tf-text-sm);
+}
+
+.requestList li:last-child {
+  border-bottom: 0;
+}
+
+.settings {
+  display: grid;
+  gap: var(--tf-space-4);
+  max-width: 32rem;
+}
+
+@media (max-width: 40rem) {
+  .seats {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .roleSelect,
+  .ownerSelect {
+    width: 100%;
+  }
+}
+
+.inline {
+  flex: 1;
+  min-width: 0;
+}

@@ -1,0 +1,244 @@
+.result {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.engine {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.warnings {
+  margin: 0;
+  padding-left: var(--tf-space-4);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--tf-space-4);
+  align-items: start;
+}
+
+.stack {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.player {
+  overflow: hidden;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  max-height: 26rem;
+  border-radius: var(--tf-radius-md);
+  background: #000;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  gap: var(--tf-space-2);
+  min-height: 14rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-bg-sunken);
+}
+
+.error {
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+}
+
+.note {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.subTitle {
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+@media (max-width: 64rem) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.metrics { overflow-x: auto; }
+.metrics table { width: 100%; border-collapse: collapse; text-align: left; font-size: var(--tf-text-sm); }
+.metrics th, .metrics td { padding: var(--tf-space-3); border-bottom: 1px solid var(--tf-color-border); white-space: nowrap; }
+.metrics thead { color: var(--tf-color-text-secondary); }
+
+/* Detail page: actions | video | measurements. The video column stays modest; the sides take the rest. */
+.stage {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.8fr) minmax(12rem, 15rem) minmax(20rem, 1.7fr);
+  align-items: start;
+  gap: var(--tf-space-5);
+}
+
+.side,
+.center {
+  display: grid;
+  gap: var(--tf-space-4);
+  min-width: 0;
+}
+
+.center {
+  position: sticky;
+  top: var(--tf-space-4);
+}
+
+.center .placeholder {
+  min-height: 0;
+  aspect-ratio: 4 / 5;
+}
+
+.center .video {
+  max-height: 18rem;
+}
+
+/* In the side column the rep table stays compact enough to fit without scrolling. */
+.side .metrics th,
+.side .metrics td {
+  padding: var(--tf-space-2);
+  white-space: normal;
+}
+
+.side .metrics thead {
+  font-size: var(--tf-text-xs);
+}
+
+.pickers {
+  display: grid;
+  justify-items: center;
+  gap: var(--tf-space-2);
+}
+
+.pickers > * {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.phaseStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--tf-space-2);
+  margin: 0;
+}
+
+.phaseStats div {
+  display: grid;
+  gap: 2px;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+}
+
+.phaseStats dt {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.phaseStats dd {
+  margin: 0;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 72rem) {
+  .stage {
+    grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+  }
+
+  .stage > .side:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .center {
+    position: static;
+  }
+}
+
+@media (max-width: 48rem) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Detail page: one sheet with everything about the analysis, the video in its own container beside it. */
+.duo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+  align-items: start;
+  gap: var(--tf-space-4);
+}
+
+.sheet {
+  display: grid;
+  min-width: 0;
+}
+
+.sheetSection {
+  display: grid;
+  gap: var(--tf-space-4);
+  min-width: 0;
+  padding: var(--tf-space-5);
+}
+
+.sheetSection + .sheetSection {
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.sheetSection .pickers {
+  justify-items: start;
+}
+
+.sheetCharts {
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  align-items: start;
+}
+
+.videoCol {
+  position: sticky;
+  top: var(--tf-space-4);
+  min-width: 0;
+}
+
+.videoCol .placeholder {
+  min-height: 0;
+  aspect-ratio: 4 / 5;
+}
+
+.videoCol .video {
+  max-height: 32rem;
+}
+
+@media (max-width: 72rem) {
+  .sheetCharts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 56rem) {
+  .duo {
+    grid-template-columns: 1fr;
+  }
+
+  .videoCol {
+    position: static;
+    order: -1;
+  }
+}

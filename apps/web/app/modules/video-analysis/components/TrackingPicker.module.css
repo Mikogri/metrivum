@@ -1,0 +1,154 @@
+/* Fills whatever height its parent gives it: the video takes the space between the two tool rails. */
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  min-height: 0;
+  height: 100%;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2) var(--tf-space-4);
+}
+
+.head h3 {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.note {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-relaxed);
+}
+
+/* One toolbar under the video: frame and point tools on the left, zoom on the right. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+
+.zoomLevel {
+  min-width: 3.25rem;
+  color: var(--tf-color-text-secondary);
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* The frame is a size container, so the video can be as large as the space allows. */
+.frame {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--tf-radius-md);
+  background: #000;
+  container-type: size;
+}
+
+.stage {
+  position: relative;
+  transform-origin: 0 0;
+  transition: transform 140ms var(--tf-ease-out);
+}
+
+.frame[data-zoomed] .stage {
+  will-change: transform;
+}
+
+.stage video {
+  display: block;
+  max-width: 100cqw;
+  max-height: 100cqh;
+  width: auto;
+  height: auto;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.frame[data-zoomed] .overlay[data-full] {
+  cursor: grab;
+}
+
+.overlay:focus-visible {
+  outline: 2px solid var(--tf-color-accent);
+  outline-offset: -2px;
+}
+
+/* A small translucent dot with an opaque ring of the same colour; it keeps its size when zoomed. */
+.marker {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid #3ee08f;
+  border-radius: 50%;
+  background: rgb(62 224 143 / 0.35);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+  transform: translate(-50%, -50%) scale(calc(1 / var(--z, 1)));
+  pointer-events: none;
+}
+
+.crosshair {
+  display: none;
+  position: absolute;
+  transform: translate(-50%, -50%) scale(calc(1 / var(--z, 1)));
+  color: white;
+  font-size: 20px;
+  text-shadow: 0 1px 3px black;
+}
+
+.overlay:focus-visible .crosshair {
+  display: block;
+}
+
+.status {
+  font-size: var(--tf-text-xs);
+  color: var(--tf-color-text-secondary);
+}
+
+/* Missing points read as a warning, so the coach sees why the analysis can't start yet. */
+.status[data-missing] {
+  color: var(--tf-color-warning);
+}
+
+.status[data-done] {
+  color: var(--tf-color-success);
+}
+
+.meta {
+  color: var(--tf-color-text-tertiary);
+}
+
+@media (max-width: 48rem) {
+  .frame {
+    height: 60vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    transition: none;
+  }
+}

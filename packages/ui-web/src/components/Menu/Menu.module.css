@@ -1,0 +1,80 @@
+.menu {
+  display: grid;
+  min-width: 12rem;
+  padding: var(--tf-space-1);
+  outline: none;
+}
+
+.section + .section {
+  margin-top: var(--tf-space-1);
+}
+
+.sectionHeader {
+  padding: var(--tf-space-1-5) var(--tf-space-2) var(--tf-space-1);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: var(--tf-control-md);
+  padding: var(--tf-space-1) var(--tf-space-2);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  outline: none;
+  cursor: default;
+}
+
+.item[data-focused] {
+  background: var(--tf-color-surface-hover);
+}
+
+.item[data-disabled] {
+  color: var(--tf-color-text-disabled);
+}
+
+.icon {
+  display: inline-flex;
+  color: var(--tf-color-text-secondary);
+}
+
+.icon :where(svg) {
+  width: 0.9375rem;
+  height: 0.9375rem;
+}
+
+.text {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+}
+
+.description {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.shortcut {
+  color: var(--tf-color-text-tertiary);
+  font-family: var(--tf-font-sans);
+  font-size: var(--tf-text-xs);
+}
+
+.danger,
+.danger .icon {
+  color: var(--tf-color-danger);
+}
+
+.danger[data-focused] {
+  background: var(--tf-color-danger-soft);
+}
+
+.separator {
+  height: 1px;
+  margin: var(--tf-space-1) calc(var(--tf-space-1) * -1);
+  background: var(--tf-color-border-subtle);
+}

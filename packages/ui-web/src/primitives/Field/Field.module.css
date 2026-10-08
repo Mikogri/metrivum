@@ -1,0 +1,204 @@
+.field {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  min-width: 0;
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.label {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.required {
+  color: var(--tf-color-text-tertiary);
+  margin-left: 2px;
+}
+
+.description {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-1);
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+}
+
+.error::before {
+  content: "";
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 1px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='none' stroke='black' stroke-width='2.4'/><path d='M12 7v6M12 16.5v.5' stroke='black' stroke-width='2.4' stroke-linecap='round'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='none' stroke='black' stroke-width='2.4'/><path d='M12 7v6M12 16.5v.5' stroke='black' stroke-width='2.4' stroke-linecap='round'/></svg>") center / contain no-repeat;
+}
+
+/* Input shell shared by text, number, search, select and combobox. */
+.control {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  height: var(--tf-control-md);
+  padding: 0 var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-field);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  transition:
+    border-color var(--tf-duration-fast) ease,
+    box-shadow var(--tf-duration-fast) ease,
+    background-color var(--tf-duration-fast) ease;
+}
+
+.control:has(:focus-visible),
+.control[data-focus-within],
+.control[data-focus-visible] {
+  border-color: var(--tf-color-accent-border);
+  box-shadow: 0 0 0 3px var(--tf-color-accent-soft);
+}
+
+.control[data-invalid],
+.field[data-invalid] .control {
+  border-color: var(--tf-color-danger-border);
+}
+
+.control[data-disabled],
+.field[data-disabled] .control {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .control:hover:not(:has(:focus-visible)) {
+    border-color: var(--tf-color-border-strong);
+  }
+}
+
+.sm {
+  height: var(--tf-control-sm);
+  font-size: var(--tf-text-xs);
+}
+
+.lg {
+  height: var(--tf-control-lg);
+  font-size: var(--tf-text-md);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--tf-color-text-tertiary);
+}
+
+.adornment {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--tf-color-text-tertiary);
+}
+
+.adornment :where(svg) {
+  width: 0.9375rem;
+  height: 0.9375rem;
+}
+
+.textarea {
+  min-height: 5.5rem;
+  padding: var(--tf-space-2) var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-field);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+  resize: vertical;
+  outline: none;
+  transition:
+    border-color var(--tf-duration-fast) ease,
+    box-shadow var(--tf-duration-fast) ease;
+}
+
+.textarea[data-focus-visible],
+.textarea:focus-visible {
+  border-color: var(--tf-color-accent-border);
+  box-shadow: 0 0 0 3px var(--tf-color-accent-soft);
+}
+
+.textarea[data-invalid] {
+  border-color: var(--tf-color-danger-border);
+}
+
+.stepper {
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--tf-radius-xs);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  outline: none;
+}
+
+.stepper[data-pressed] {
+  background: var(--tf-color-surface-hover);
+}
+
+.stepper[data-disabled] {
+  opacity: 0.35;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stepper[data-hovered] {
+    color: var(--tf-color-text);
+    background: var(--tf-color-surface-hover);
+  }
+}
+
+.stepper :where(svg) {
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+.clear {
+  composes: stepper;
+}
+
+.searchField[data-empty] .clear {
+  visibility: hidden;
+}
+
+/* Search inputs bring their own clear button; hide the browser's so there is only one "x". */
+.input::-webkit-search-cancel-button,
+.input::-webkit-search-decoration {
+  display: none;
+  -webkit-appearance: none;
+  appearance: none;
+}

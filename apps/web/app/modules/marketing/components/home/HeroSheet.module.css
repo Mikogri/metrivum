@@ -1,0 +1,476 @@
+.stage {
+  position: relative;
+  perspective: 1800px;
+  perspective-origin: 50% 0%;
+}
+
+/* Tilted while the hero is in view, flattening as the page scrolls (CSS scroll timeline). */
+.scroll {
+  transform-style: preserve-3d;
+  transform: rotateX(20deg) rotateY(-9deg) rotateZ(4deg);
+  transform-origin: 50% 0%;
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll {
+    animation: flatten linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 75vh;
+  }
+}
+
+@keyframes flatten {
+  from {
+    transform: rotateX(20deg) rotateY(-9deg) rotateZ(4deg);
+  }
+  to {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(-2rem);
+  }
+}
+
+.enter {
+  transform-style: preserve-3d;
+  animation: sheet-in 1500ms var(--tf-ease-out) 350ms backwards;
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(120px) rotateX(28deg) scale(0.94);
+  }
+}
+
+.sheet {
+  position: relative;
+  overflow: visible;
+  border: 1px solid var(--tf-color-border-strong);
+  border-radius: var(--tf-radius-xl);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--tf-color-text) 2.5%, transparent), transparent 30%),
+    var(--tf-color-surface);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--tf-color-text) 6%, transparent) inset,
+    0 50px 120px -30px rgb(0 0 0 / 0.9),
+    0 0 0 1px rgb(0 0 0 / 0.4);
+  will-change: transform;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-color-border);
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  white-space: nowrap;
+}
+
+.crumbs {
+  font-family: var(--tf-font-mono);
+  text-transform: lowercase;
+}
+
+.slash {
+  color: var(--tf-color-border-strong);
+}
+
+.crumbs svg {
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.program {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.workout {
+  color: var(--tf-color-text-secondary);
+}
+
+.saved {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  flex-shrink: 0;
+  padding: 2px var(--tf-space-2);
+  border: 1px solid var(--tf-color-accent-border);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  animation: pop-in 500ms var(--tf-ease-spring) 2500ms both;
+}
+
+.saved {
+  font-family: var(--tf-font-mono);
+  text-transform: lowercase;
+}
+
+.saved i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tf-color-accent);
+  box-shadow: 0 0 8px var(--tf-color-accent);
+}
+
+.saved svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* Tool rail on the left, the sheet beside it. */
+.workspace {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+}
+
+.rail {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: var(--tf-space-1-5);
+  padding: var(--tf-space-3) 0;
+  border-right: 1px solid var(--tf-color-border-subtle);
+}
+
+.tool {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-color-text-tertiary);
+}
+
+.tool[data-active] {
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+  box-shadow: 0 0 0 1px var(--tf-color-accent-border) inset;
+}
+
+.tool svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Recent edits, like a run log. */
+.log {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-2xs);
+}
+
+.logTitle {
+  margin-bottom: var(--tf-space-1);
+  color: var(--tf-color-text-tertiary);
+  text-transform: lowercase;
+}
+
+.logRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto 3.5rem;
+  align-items: center;
+  gap: var(--tf-space-3);
+  color: var(--tf-color-text-secondary);
+  animation: row-in 700ms var(--tf-ease-out) both;
+  animation-delay: calc(1800ms + var(--r) * 140ms);
+}
+
+.logRow i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tf-color-text-tertiary);
+}
+
+.logRow i[data-first] {
+  background: var(--tf-color-accent);
+  box-shadow: 0 0 8px var(--tf-color-accent);
+}
+
+.logWhat {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logValue {
+  color: var(--tf-color-text);
+}
+
+.logWhen {
+  color: var(--tf-color-text-tertiary);
+  text-align: right;
+}
+
+.table {
+  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-3);
+  font-size: var(--tf-text-sm);
+}
+
+.headRow,
+.row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 2.2fr) minmax(5.5rem, 1.1fr) 0.8fr 1.3fr 0.9fr 0.8fr;
+}
+
+.headCell {
+  padding: var(--tf-space-2) var(--tf-space-3);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.body {
+  position: relative;
+}
+
+.row {
+  border-top: 1px solid var(--tf-color-border-subtle);
+  /* Rows are written in one after another. */
+  animation: row-in 700ms var(--tf-ease-out) both;
+  animation-delay: calc(1000ms + var(--r) * 110ms);
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 2.5rem;
+  padding: 0 var(--tf-space-3);
+  color: var(--tf-color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cell[data-col="0"] {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+}
+
+.row[data-kind="top"] .cell[data-col="1"] .value {
+  padding: 1px var(--tf-space-1-5);
+  border-radius: var(--tf-radius-xs);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+
+.row[data-kind="backoff"] .cell[data-col="1"] .value {
+  padding: 1px var(--tf-space-1-5);
+  border-radius: var(--tf-radius-xs);
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+}
+
+.value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell[data-typed] .value {
+  animation: retype 520ms steps(8, end);
+}
+
+@keyframes retype {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Editing cursor: one element that slides between cells. */
+.ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 1.5px solid var(--tf-color-accent);
+  border-radius: var(--tf-radius-sm);
+  background: color-mix(in srgb, var(--tf-color-accent) 6%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tf-color-accent) 12%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 420ms var(--tf-ease-out),
+    width 420ms var(--tf-ease-out),
+    height 420ms var(--tf-ease-out),
+    opacity 200ms ease;
+}
+
+/* Back-off → top set reference, drawn beside the set-type badges. */
+.row[data-kind="backoff"] .cell[data-col="1"]::before {
+  content: "";
+  position: absolute;
+  left: 0.35rem;
+  bottom: 50%;
+  width: 8px;
+  height: 2.5rem;
+  border: 1.5px solid var(--tf-color-info);
+  border-right: 0;
+  border-radius: 6px 0 0 6px;
+  opacity: 0;
+  animation: fade-in 600ms ease 1900ms forwards;
+}
+
+.formula {
+  position: absolute;
+  top: 5.6rem;
+  left: 54%;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-strong);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface-overlay);
+  box-shadow: var(--tf-shadow-lg);
+  font-size: var(--tf-text-xs);
+  white-space: nowrap;
+  transform: translateZ(40px);
+  animation: pop-in 600ms var(--tf-ease-spring) 2000ms both;
+}
+
+.formula > svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-accent);
+}
+
+.expression {
+  color: var(--tf-color-text);
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-2xs);
+}
+
+.result {
+  padding-left: var(--tf-space-2);
+  border-left: 1px solid var(--tf-color-border-strong);
+  color: var(--tf-color-accent);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  animation: fade-in 400ms ease 2500ms both;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateZ(40px) translateY(8px) scale(0.92);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Flat variant: a sheet lying on the desk, with two more pages stacked under it. */
+.stage[data-flat] {
+  perspective: none;
+}
+
+.stage[data-flat] .scroll {
+  transform-style: flat;
+  transform: none;
+  animation: none;
+}
+
+/* Flat: no 3D context, which would switch off the glass blur (backdrop-filter) in Chromium. */
+.stage[data-flat] .enter {
+  transform-style: flat;
+  animation: flat-in 1100ms var(--tf-ease-out) 300ms backwards;
+}
+
+.stage[data-flat] .sheet {
+  will-change: auto;
+  border-color: var(--tf-glass-border, var(--tf-color-border-strong));
+  background: var(--tf-glass, var(--tf-color-surface));
+  -webkit-backdrop-filter: var(--tf-glass-blur, none);
+  backdrop-filter: var(--tf-glass-blur, none);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.08) inset,
+    0 0 0 1px rgb(0 0 0 / 0.4),
+    0 40px 90px -30px rgb(0 0 0 / 0.9);
+}
+
+.stage[data-flat] .formula {
+  transform: none;
+}
+
+@keyframes flat-in {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+
+@media (max-width: 56rem) {
+  .formula {
+    left: auto;
+    right: var(--tf-space-3);
+    top: auto;
+    bottom: -1.5rem;
+  }
+
+  .headRow,
+  .row {
+    grid-template-columns: minmax(8rem, 2fr) minmax(5rem, 1.1fr) 0.7fr 1.2fr;
+  }
+
+  .headCell:nth-child(n + 5),
+  .cell[data-col="4"],
+  .cell[data-col="5"] {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll {
+    animation: none;
+  }
+
+  .enter,
+  .logRow,
+  .stage[data-flat] .enter,
+  .row,
+  .saved,
+  .formula,
+  .result,
+  .row[data-kind="backoff"] .cell[data-col="1"]::before {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}

@@ -1,0 +1,205 @@
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-xl);
+  background: var(--tf-color-surface);
+}
+
+.frame {
+  position: relative;
+  min-height: 18rem;
+  background:
+    linear-gradient(color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px, transparent 1px) 0 0 / 100% 2rem,
+    linear-gradient(90deg, color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px, transparent 1px) 0 0 / 2rem 100%,
+    radial-gradient(ellipse at 50% 30%, var(--tf-color-surface-raised), var(--tf-color-bg-sunken) 70%);
+}
+
+.floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--tf-color-border-strong), transparent);
+}
+
+.path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.pathShadow {
+  fill: none;
+  stroke: color-mix(in srgb, var(--tf-color-accent) 15%, transparent);
+  stroke-width: 10;
+  stroke-linecap: round;
+  filter: blur(6px);
+  opacity: 0;
+  transition: opacity 600ms ease 1400ms;
+}
+
+.pathLine {
+  fill: none;
+  stroke: var(--tf-color-accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* Bar path draws once the analysis completes. */
+.card[data-completed][data-inview] .pathLine {
+  animation: draw 1800ms var(--tf-ease-in-out) forwards;
+}
+
+.card[data-completed][data-inview] .pathShadow {
+  opacity: 1;
+}
+
+.plate {
+  fill: var(--tf-color-text);
+  stroke: var(--tf-color-bg);
+  stroke-width: 3;
+  offset-path: path("M150 40 C 146 80, 138 130, 140 178 C 142 214, 156 222, 160 210 C 166 180, 160 120, 152 40");
+  offset-distance: 0%;
+  /* Circle centre is already on the path origin; offset-path drives it along the trajectory. */
+  transform: translate(-150px, -40px);
+}
+
+.card[data-completed][data-inview] .plate {
+  animation: ride 1800ms var(--tf-ease-in-out) forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ride {
+  to {
+    offset-distance: 100%;
+  }
+}
+
+.pathLabel {
+  position: absolute;
+  left: var(--tf-space-3);
+  top: var(--tf-space-3);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+}
+
+.panel {
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-5);
+  border-left: 1px solid var(--tf-color-border);
+}
+
+.statusRow {
+  display: flex;
+  gap: var(--tf-space-2);
+}
+
+.timeline {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.rep {
+  display: grid;
+  grid-template-columns: 4rem 1fr;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
+.repLabel {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.phases {
+  display: flex;
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-hover);
+  clip-path: inset(0 100% 0 0 round 999px);
+  transition: clip-path 900ms var(--tf-ease-out);
+  transition-delay: calc(var(--i) * 160ms);
+}
+
+.card[data-completed][data-inview] .phases {
+  clip-path: inset(0 0 0 0 round 999px);
+}
+
+.ecc {
+  width: calc(var(--w) * 100%);
+  background: var(--tf-color-info);
+}
+
+.con {
+  flex: 1;
+  background: var(--tf-color-accent);
+}
+
+.legend {
+  display: flex;
+  gap: var(--tf-space-4);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+}
+
+.eccSwatch,
+.conSwatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 2px;
+}
+
+.eccSwatch {
+  background: var(--tf-color-info);
+}
+
+.conSwatch {
+  background: var(--tf-color-accent);
+}
+
+@media (max-width: 48rem) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    border-left: 0;
+    border-top: 1px solid var(--tf-color-border);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pathLine {
+    stroke-dashoffset: 0;
+  }
+
+  .card[data-completed][data-inview] .pathLine,
+  .card[data-completed][data-inview] .plate {
+    animation: none;
+  }
+
+  .phases {
+    clip-path: none;
+  }
+}

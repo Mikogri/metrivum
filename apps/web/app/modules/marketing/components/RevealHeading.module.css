@@ -1,0 +1,55 @@
+.heading {
+  display: grid;
+  max-width: 44rem;
+  font-family: var(--tf-font-display);
+  font-size: clamp(2.25rem, 1.3rem + 3vw, 3.5rem);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-display);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.heading[data-align="center"] {
+  width: 100%;
+  max-width: 56rem;
+  justify-items: center;
+  margin-inline: auto;
+  text-align: center;
+}
+
+/* Each line is clipped by its own box; descenders get a little room below. */
+.mask {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+.line {
+  display: block;
+  color: var(--tf-color-text);
+  transition:
+    transform 1100ms var(--tf-ease-out),
+    opacity 700ms ease;
+}
+
+/* The second line answers the first in a serif italic. */
+.line[data-tone="quiet"] {
+  color: var(--tf-color-text-secondary);
+  font-family: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  transition-delay: 90ms;
+}
+
+:global(html[data-motion]) .heading:not([data-inview]) .line {
+  opacity: 0;
+  transform: translateY(105%);
+}
+
+@media (max-width: 40rem) {
+  .heading {
+    font-size: var(--tf-text-4xl);
+  }
+}

@@ -1,0 +1,105 @@
+.toolbar {
+  margin-bottom: var(--tf-space-4);
+}
+
+.search {
+  flex: 1 1 16rem;
+  max-width: 22rem;
+}
+
+.filter {
+  width: 11rem;
+}
+
+.count {
+  margin-bottom: var(--tf-space-2);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.skeleton {
+  display: grid;
+  gap: var(--tf-space-1);
+}
+
+.stale {
+  opacity: 0.6;
+  transition: opacity var(--tf-duration-base) ease;
+}
+
+@media (max-width: 40rem) {
+  .filter,
+  .search {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* Body regions: one hue each (lower body green, chest blue, back violet, shoulders teal, arms pink, core amber). */
+[data-group] {
+  --group: var(--tf-color-text-tertiary);
+}
+
+[data-group="lower"] {
+  --group: var(--tf-color-accent);
+}
+
+[data-group="chest"] {
+  --group: var(--tf-color-info);
+}
+
+[data-group="back"] {
+  --group: var(--tf-color-violet);
+}
+
+[data-group="shoulders"] {
+  --group: #4fd1c5;
+}
+
+[data-group="arms"] {
+  --group: #f472b6;
+}
+
+[data-group="core"] {
+  --group: var(--tf-color-warning);
+}
+
+.nameCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2-5);
+  min-width: 0;
+}
+
+.groupMark {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background: var(--group, var(--tf-color-border-strong));
+}
+
+.chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 var(--tf-space-2);
+  border: 1px solid color-mix(in srgb, var(--group) 30%, transparent);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--group) 12%, transparent);
+  color: color-mix(in srgb, var(--group) 55%, var(--tf-color-text));
+  font-size: var(--tf-text-2xs);
+  white-space: nowrap;
+}
+
+.more {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+}

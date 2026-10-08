@@ -1,0 +1,56 @@
+.tooltip {
+  max-width: 16rem;
+  padding: var(--tf-space-1) var(--tf-space-2);
+  border: 1px solid var(--tf-color-border-strong);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface-overlay);
+  box-shadow: var(--tf-shadow-md);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+  pointer-events: none;
+  transform-origin: var(--origin, center);
+}
+
+.tooltip[data-placement="top"] { --origin: bottom center; }
+.tooltip[data-placement="bottom"] { --origin: top center; }
+.tooltip[data-placement="left"] { --origin: center right; }
+.tooltip[data-placement="right"] { --origin: center left; }
+
+.tooltip[data-entering] {
+  animation: tooltip-in 125ms var(--tf-ease-out);
+}
+
+.tooltip[data-exiting] {
+  animation: tooltip-in 100ms var(--tf-ease-out) reverse;
+}
+
+.arrow svg {
+  display: block;
+  fill: var(--tf-color-surface-overlay);
+  stroke: var(--tf-color-border-strong);
+}
+
+.arrow[data-placement="bottom"] svg { transform: rotate(180deg); }
+.arrow[data-placement="left"] svg { transform: rotate(-90deg); }
+.arrow[data-placement="right"] svg { transform: rotate(90deg); }
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip[data-entering],
+  .tooltip[data-exiting] {
+    animation-name: tooltip-fade;
+  }
+}
+
+@keyframes tooltip-fade {
+  from {
+    opacity: 0;
+  }
+}

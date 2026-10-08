@@ -1,0 +1,49 @@
+.page {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--tf-space-6);
+  min-height: 100dvh;
+  padding: var(--tf-space-6);
+  background:
+    radial-gradient(ellipse 50% 40% at 50% 0%, color-mix(in srgb, var(--tf-color-accent) 10%, transparent), transparent),
+    var(--tf-color-bg);
+}
+
+.logo {
+  width: auto;
+  height: 1.5rem;
+}
+
+.code {
+  font-family: var(--tf-font-display);
+  font-size: clamp(5rem, 18vw, 10rem);
+  font-weight: var(--tf-weight-bold);
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  background: linear-gradient(180deg, var(--tf-color-border-strong), transparent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rise 900ms var(--tf-ease-out) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(8px);
+  }
+}
+
+.page > :last-child {
+  width: min(28rem, 100%);
+  border: 0;
+  padding-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .code {
+    animation: none;
+  }
+}

@@ -1,0 +1,68 @@
+.text {
+  font-family: var(--tf-font-sans);
+  line-height: var(--tf-leading-normal);
+}
+
+.size-2xs { font-size: var(--tf-text-2xs); }
+.size-xs { font-size: var(--tf-text-xs); }
+.size-sm { font-size: var(--tf-text-sm); }
+.size-md { font-size: var(--tf-text-md); }
+.size-lg { font-size: var(--tf-text-lg); line-height: var(--tf-leading-relaxed); }
+.size-xl { font-size: var(--tf-text-xl); line-height: var(--tf-leading-relaxed); }
+
+.tone-default { color: var(--tf-color-text); }
+.tone-secondary { color: var(--tf-color-text-secondary); }
+.tone-tertiary { color: var(--tf-color-text-tertiary); }
+.tone-accent { color: var(--tf-color-accent); }
+.tone-danger { color: var(--tf-color-danger); }
+.tone-warning { color: var(--tf-color-warning); }
+
+.weight-regular { font-weight: var(--tf-weight-regular); }
+.weight-medium { font-weight: var(--tf-weight-medium); }
+.weight-semibold { font-weight: var(--tf-weight-semibold); }
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.heading {
+  color: var(--tf-color-text);
+  font-family: var(--tf-font-sans);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-tight);
+  line-height: var(--tf-leading-snug);
+}
+
+.heading-sm { font-size: var(--tf-text-md); }
+.heading-md { font-size: var(--tf-text-lg); }
+.heading-lg { font-size: var(--tf-text-xl); }
+.heading-xl { font-size: var(--tf-text-2xl); }
+.heading-2xl { font-size: var(--tf-text-3xl); line-height: 1.2; }
+.heading-display { font-size: var(--tf-text-5xl); line-height: var(--tf-leading-tight); }
+.heading-hero { font-size: var(--tf-text-6xl); line-height: 1.02; }
+
+.display {
+  font-family: var(--tf-font-display);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-display);
+}
+
+.label {
+  display: inline-block;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  line-height: var(--tf-leading-snug);
+}
+
+.caption {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+}

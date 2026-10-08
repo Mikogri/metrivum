@@ -1,0 +1,344 @@
+.week {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Seven columns, Monday first; planned days get a green marker, rest days stay quiet. */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.day {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text-secondary);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.day[data-planned]::before {
+  content: "";
+  position: absolute;
+  top: var(--tf-space-2);
+  right: var(--tf-space-2);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tf-color-accent);
+}
+
+.day[aria-selected="true"] {
+  border-color: var(--tf-color-border-strong);
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .day:hover:not([aria-selected="true"]) {
+    background: var(--tf-color-surface-raised);
+  }
+}
+
+.day:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+.dayName {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  text-transform: capitalize;
+}
+
+.short {
+  display: none;
+}
+
+.dayMeta,
+.dayCount {
+  overflow: hidden;
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dayCount {
+  color: var(--tf-color-text-tertiary);
+}
+
+.panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4) 0;
+}
+
+.workoutName {
+  width: 18rem;
+  max-width: 100%;
+  height: var(--tf-control-md);
+  padding: 0 var(--tf-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-md);
+  background: transparent;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-lg);
+  font-weight: var(--tf-weight-medium);
+  outline: none;
+}
+
+.workoutName:hover:not(:read-only) {
+  border-color: var(--tf-color-border);
+}
+
+.workoutName:focus-visible {
+  border-color: var(--tf-color-accent-border);
+}
+
+.workoutTabs {
+  display: flex;
+  gap: var(--tf-space-1);
+}
+
+.workoutTab {
+  height: var(--tf-control-sm);
+  padding: 0 var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  cursor: pointer;
+}
+
+.workoutTab[aria-pressed="true"] {
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.editorArea {
+  flex: 1;
+  min-height: 0;
+  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-6);
+  overflow: auto;
+}
+
+.empty {
+  margin: var(--tf-space-6);
+}
+
+@media (max-width: 80rem) {
+  .long {
+    display: none;
+  }
+
+  .short {
+    display: inline;
+  }
+}
+
+/* Several cycles: pick which one to edit. Long cycles scroll sideways in the strip. */
+.cycleBar {
+  display: flex;
+  align-items: end;
+  padding: var(--tf-space-3) var(--tf-space-3) 0;
+}
+
+.cycleSelect {
+  width: min(22rem, 100%);
+}
+
+.strip {
+  overflow-x: auto;
+}
+
+.note {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  width: min(28rem, 100%);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.note textarea {
+  width: 100%;
+  padding: var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-field);
+  color: var(--tf-color-text);
+  font: inherit;
+  font-size: var(--tf-text-sm);
+  resize: vertical;
+  outline: none;
+}
+
+.note textarea:focus {
+  border-color: var(--tf-color-accent-border);
+}
+
+/* Day view: the workout on the left, its volume on the right. */
+.body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 27rem;
+  min-height: 0;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  min-height: 0;
+  padding: var(--tf-space-4);
+  overflow-y: auto;
+  border-left: 1px solid var(--tf-color-border-subtle);
+  background: var(--tf-color-bg-sunken);
+}
+
+.sideTitle {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+@media (max-width: 80rem) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) 23rem;
+  }
+}
+
+/* Exercise table: one row per exercise, cells you type into. */
+.table {
+  --cell-h: 2.375rem;
+  display: grid;
+  grid-template-columns: minmax(12rem, 2.4fr) repeat(5, minmax(4.25rem, 1fr)) minmax(8rem, 2fr) 2.5rem;
+  grid-auto-rows: var(--cell-h);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface);
+}
+
+.table > *,
+.table [role="row"] > * {
+  border-right: 0;
+}
+
+.head {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  border-bottom: 1px solid var(--tf-color-border);
+}
+
+.rowMenu {
+  justify-content: center;
+  padding: 0;
+}
+
+/* A day without workouts: one card with what it is, the action and a note. */
+.rest {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: var(--tf-space-6) var(--tf-space-4);
+}
+
+.restCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--tf-space-3) var(--tf-space-4);
+  width: min(34rem, 100%);
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.restIcon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+}
+
+.restIcon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.restTitle {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.restDay {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-transform: capitalize;
+}
+
+.restCard .note {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+/* Workout switcher and "Add workout" sit on the right of the heading. */
+.headerEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin-left: auto;
+}
+
+/* The add row spans the table and ends it: no second line under the table's own border. */
+.table > :last-child {
+  border-bottom: 0;
+}
+
+/* Editing keeps the cell's look: no extra frame, just the field's light fill. */
+.table [class*="cellInput"] {
+  box-shadow: none;
+}
+
+.table [class*="cellInput"][aria-invalid] {
+  box-shadow: inset 0 0 0 1px var(--tf-color-danger);
+}
+
+.table [class*="cell"]:focus,
+.table [class*="cell"]:focus-visible {
+  box-shadow: none;
+  background: var(--tf-color-surface-hover);
+}
+
+/* Read-only (no add row): the last exercise row ends on the table's own border. */
+.table[data-readonly] > [role="row"]:last-of-type > * {
+  border-bottom: 0;
+}

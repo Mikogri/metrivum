@@ -1,0 +1,60 @@
+.stack { display: grid; gap: var(--tf-space-5); }
+.toolbar { margin-bottom: var(--tf-space-4); flex-wrap: wrap; }
+.search { flex: 1 1 16rem; max-width: 24rem; }
+.filter { min-width: 10rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--tf-space-5); }
+.panel { padding: var(--tf-space-5); border: 1px solid var(--tf-color-border); border-radius: var(--tf-radius-lg); background: var(--tf-color-surface); display: grid; gap: var(--tf-space-4); align-content: start; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: var(--tf-space-3); flex-wrap: wrap; }
+.actions { display: flex; gap: var(--tf-space-2); align-items: center; flex-wrap: wrap; }
+.muted { color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
+.form { display: grid; gap: var(--tf-space-4); }
+.inline { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--tf-space-3); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--tf-space-3); }
+.item { padding-block: var(--tf-space-3); border-bottom: 1px solid var(--tf-color-border-subtle); }
+.tabs { display: flex; gap: var(--tf-space-4); border-bottom: 1px solid var(--tf-color-border); margin-bottom: var(--tf-space-5); overflow-x: auto; }
+.tabs a { padding-block: var(--tf-space-3); white-space: nowrap; color: var(--tf-color-text-secondary); text-decoration: none; }
+.tabs a[aria-current] { color: var(--tf-color-text); border-bottom: 2px solid currentColor; }
+/* Remaining native controls match the UI library fields (label, height, focus ring). */
+.field { display: grid; gap: var(--tf-space-1-5); color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-medium); }
+.field input, .field select, .field textarea { width: 100%; height: var(--tf-control-md); padding: 0 var(--tf-space-2-5); border: 1px solid var(--tf-color-border); border-radius: var(--tf-radius-md); background: var(--tf-color-field); color: var(--tf-color-text); font: inherit; font-size: var(--tf-text-sm); font-weight: var(--tf-weight-regular, 400); color-scheme: dark; transition: border-color 120ms ease, box-shadow 120ms ease; }
+.field textarea { height: auto; min-height: 5rem; padding: var(--tf-space-2) var(--tf-space-2-5); }
+.field input:hover:not(:focus-visible), .field select:hover:not(:focus-visible) { border-color: var(--tf-color-border-strong); }
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: none; border-color: var(--tf-color-accent-border); box-shadow: 0 0 0 3px var(--tf-color-accent-soft); }
+.field input:disabled, .field select:disabled { opacity: 0.5; }
+.summary { font-size: var(--tf-text-xl); font-weight: 600; }
+.named { display: inline-flex; align-items: center; gap: var(--tf-space-2); }
+.swatch { width: 0.625rem; height: 0.625rem; flex-shrink: 0; border-radius: 3px; }
+
+/* Long forms: each section has its heading on the left and the fields in a card on the right. */
+.page { display: grid; gap: var(--tf-space-6); max-width: 64rem; }
+.section { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: var(--tf-space-6); padding-top: var(--tf-space-6); border-top: 1px solid var(--tf-color-border-subtle); }
+.page > .section:first-of-type { padding-top: 0; border-top: 0; }
+.sectionHead h2 { font-size: var(--tf-text-md); font-weight: var(--tf-weight-semibold); }
+.sectionHead p { margin-top: var(--tf-space-1); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); line-height: var(--tf-leading-normal); text-wrap: pretty; }
+.sectionBody { display: grid; gap: var(--tf-space-4); padding: var(--tf-space-5); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-lg); background: var(--tf-color-surface); min-width: 0; }
+.columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--tf-space-3) var(--tf-space-4); align-items: start; }
+.fieldGroup { display: grid; gap: var(--tf-space-1-5); justify-items: start; }
+.fieldLabel { color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-medium); }
+.weekdays { display: flex; flex-wrap: wrap; gap: var(--tf-space-1-5); }
+.weekday { min-width: 2.75rem; height: var(--tf-control-sm); padding: 0 var(--tf-space-2); border: 1px solid var(--tf-color-border); border-radius: var(--tf-radius-full); background: transparent; color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease, transform 140ms var(--tf-ease-out); }
+.weekday[aria-pressed="true"] { border-color: var(--tf-color-border-strong); background: var(--tf-color-surface-overlay); color: var(--tf-color-text); }
+.weekday:active:not(:disabled) { transform: scale(0.96); }
+.weekday:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) { .weekday:hover:not([aria-pressed="true"]):not(:disabled) { color: var(--tf-color-text); border-color: var(--tf-color-border-strong); } }
+.formActions { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: var(--tf-space-2); padding: var(--tf-space-3) 0; border-top: 1px solid var(--tf-color-border-subtle); background: color-mix(in srgb, var(--tf-color-bg) 88%, transparent); backdrop-filter: blur(8px); }
+.spacer { flex: 1; }
+@media (max-width: 56rem) { .section { grid-template-columns: minmax(0, 1fr); gap: var(--tf-space-3); } }
+@media (max-width: 40rem) { .columns { grid-template-columns: minmax(0, 1fr); } }
+
+/* Side-panel forms: sections stacked with hairlines, actions pinned to the bottom edge. */
+.panelForm { display: flex; flex-direction: column; gap: var(--tf-space-6); }
+.panelSection { display: grid; gap: var(--tf-space-4); }
+.panelSection + .panelSection { padding-top: var(--tf-space-6); border-top: 1px solid var(--tf-color-border-subtle); }
+
+/* Billing options: one bordered block per option, its name as the heading field. */
+.options { display: grid; gap: var(--tf-space-3); }
+.option { display: grid; gap: var(--tf-space-3); padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); background: var(--tf-color-bg-sunken); }
+.optionHead { display: flex; align-items: center; gap: var(--tf-space-2); }
+.optionIndex { display: grid; place-items: center; flex-shrink: 0; width: 1.375rem; height: 1.375rem; border-radius: var(--tf-radius-sm); background: var(--tf-color-surface-overlay); color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-variant-numeric: tabular-nums; }
+.grow { flex: 1; min-width: 0; }
+.addOption { justify-self: start; }

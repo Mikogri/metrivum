@@ -1,0 +1,21 @@
+.form {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.twoCols {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: var(--tf-space-3);
+}
+
+.error {
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+}
+
+@media (max-width: 30rem) {
+  .twoCols {
+    grid-template-columns: 1fr;
+  }
+}

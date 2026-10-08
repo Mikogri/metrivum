@@ -1,0 +1,11 @@
+.workspace { display: grid; gap: 1rem; margin-block: 1.5rem; }
+.stack { display: grid; gap: 1rem; min-width: 0; }
+.panel { display: grid; gap: .85rem; border: 1px solid var(--color-border, #dedede); border-radius: 12px; padding: 1.1rem; min-width: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.grid, .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 1rem; }
+.gallery { align-items: start; }
+.plain { white-space: pre-wrap; overflow-wrap: anywhere; }
+.list { display: grid; gap: .7rem; padding-inline-start: 1.3rem; }
+.file { display: grid; gap: .5rem; }
+.file input { max-width: 100%; }
+.photo { width: 100%; max-height: 500px; object-fit: contain; border-radius: 8px; }

@@ -1,0 +1,34 @@
+/* The few global helpers components and apps are allowed to share. */
+.tf-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tf-numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.tf-skip-link {
+  position: fixed;
+  top: var(--tf-space-2);
+  left: var(--tf-space-2);
+  z-index: var(--tf-z-tooltip);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-primary);
+  color: var(--tf-color-on-primary);
+  font-weight: var(--tf-weight-medium);
+  transform: translateY(-200%);
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+}
+
+.tf-skip-link:focus-visible {
+  transform: translateY(0);
+}

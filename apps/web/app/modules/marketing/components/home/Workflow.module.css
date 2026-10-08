@@ -1,0 +1,124 @@
+.section {
+  display: grid;
+  gap: var(--tf-space-10);
+  max-width: var(--tf-content-max);
+  margin: 0 auto;
+  padding: clamp(var(--tf-space-12), 9vw, var(--tf-space-24)) var(--tf-space-5);
+}
+
+.section .title {
+  max-width: 34rem;
+  font-size: var(--tf-text-4xl);
+}
+
+.steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--tf-space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.track {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  height: 1px;
+  background: var(--tf-color-border);
+}
+
+/* The line fills as the steps scroll through the viewport. */
+.fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--tf-color-accent), color-mix(in srgb, var(--tf-color-accent) 30%, transparent));
+  transform-origin: left;
+  transform: scaleX(1);
+}
+
+@supports (animation-timeline: view()) {
+  .fill {
+    animation: fill linear both;
+    animation-timeline: view();
+    animation-range: entry 40% cover 55%;
+  }
+
+  .number {
+    animation: light linear both;
+    animation-timeline: view();
+    animation-range: entry 40% cover 55%;
+  }
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes light {
+  from {
+    border-color: var(--tf-color-border-strong);
+    color: var(--tf-color-text-tertiary);
+    box-shadow: none;
+  }
+}
+
+.step {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-2);
+}
+
+.number {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: var(--tf-space-3);
+  border: 1px solid var(--tf-color-accent-border);
+  border-radius: 50%;
+  background: var(--tf-color-bg);
+  color: var(--tf-color-accent);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  box-shadow: 0 0 0 4px var(--tf-color-bg), 0 0 16px color-mix(in srgb, var(--tf-color-accent) 25%, transparent);
+}
+
+.stepTitle {
+  font-size: var(--tf-text-lg);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.stepBody {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-relaxed);
+}
+
+@media (max-width: 56rem) {
+  .steps {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .track {
+    display: none;
+  }
+}
+
+@media (max-width: 34rem) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill,
+  .number {
+    animation: none;
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "@trainflow/ui-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TrainFlow web component library: tokens, styles and accessible React components.",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./styles.css": "./src/styles/index.css",
+    "./tokens.css": "./src/tokens/tokens.css"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@fontsource-variable/orbitron": "5.3.0",
+    "@fontsource-variable/saira": "5.3.0",
+    "@fontsource-variable/source-code-pro": "5.3.0",
+    "@internationalized/date": "3.12.4",
+    "lucide-react": "1.52.0",
+    "react-aria-components": "1.21.1"
+  },
+  "devDependencies": {
+    "@storybook/react-vite": "10.6.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  }
+}

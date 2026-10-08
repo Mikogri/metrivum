@@ -1,0 +1,16 @@
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: hsl(var(--avatar-hue) 32% 22%);
+  box-shadow: inset 0 0 0 1px hsl(var(--avatar-hue) 40% 34%);
+  color: hsl(var(--avatar-hue) 60% 82%);
+  font-weight: var(--tf-weight-semibold);
+  line-height: 1;
+  user-select: none;
+}
+
+.sm { width: 1.5rem; height: 1.5rem; font-size: 0.625rem; }
+.md { width: 2rem; height: 2rem; font-size: var(--tf-text-2xs); }
+.lg { width: 2.75rem; height: 2.75rem; font-size: var(--tf-text-sm); }

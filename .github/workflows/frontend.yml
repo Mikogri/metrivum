@@ -1,0 +1,37 @@
+name: Frontend CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    env:
+      # Public, non-secret build values. Real environments set their own.
+      VITE_SITE_URL: https://trainflow.example
+      VITE_API_URL: http://localhost:5080
+      VITE_SUPABASE_URL: https://example-project.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:hosting
+      - run: npm run build
+      - run: npm run storybook:build
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm run e2e
+      - run: npm run e2e:coaching
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: apps/web/test-results

@@ -1,0 +1,76 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-width: 0;
+  padding: var(--tf-space-2-5) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface-raised);
+}
+
+.glyph {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2.5rem;
+  padding-bottom: 5px;
+  border-radius: var(--tf-radius-xs) 10px var(--tf-radius-xs) var(--tf-radius-xs);
+  background: var(--tf-color-border-strong);
+}
+
+.fold {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-bottom-left-radius: 3px;
+  background: var(--tf-color-text-tertiary);
+}
+
+.kind {
+  color: var(--tf-color-text);
+  font-size: 0.5625rem;
+  font-weight: var(--tf-weight-bold);
+  letter-spacing: 0.02em;
+}
+
+.thumbnail {
+  flex-shrink: 0;
+  width: 4rem;
+  height: 2.5rem;
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-bg-sunken);
+}
+
+.text {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta,
+.status {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.action {
+  flex-shrink: 0;
+}

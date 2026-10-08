@@ -1,0 +1,273 @@
+/* Hero: copy on the left, the program sheet on the right running off the page edge. */
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: clamp(var(--tf-space-8), 5vw, var(--tf-space-16));
+  margin-top: calc(var(--tf-header-height) * -1);
+  padding: calc(var(--tf-header-height) + clamp(var(--tf-space-12), 8vw, 7rem)) 0 clamp(var(--tf-space-12), 7vw, var(--tf-space-24))
+    max(var(--tf-space-5), calc((100% - var(--tf-content-max)) / 2 + var(--tf-space-5)));
+  overflow: hidden;
+}
+
+.heroCopy {
+  display: grid;
+  justify-items: start;
+  gap: var(--tf-space-6);
+  min-width: 0;
+}
+
+/* A small status pill above the headline, set in mono like a terminal line. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-1) var(--tf-space-3);
+  border: 1px solid var(--tf-glass-border, var(--tf-color-border));
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-glass, var(--tf-color-surface));
+  -webkit-backdrop-filter: var(--tf-glass-blur, none);
+  backdrop-filter: var(--tf-glass-blur, none);
+  color: var(--tf-color-text-secondary);
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-xs);
+  animation: lead-in 700ms var(--tf-ease-out) 100ms backwards;
+}
+
+.badge span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tf-color-accent);
+  box-shadow: 0 0 8px var(--tf-color-accent);
+}
+
+.heroTitle {
+  max-width: 13ch;
+  color: var(--tf-color-text);
+  font-size: clamp(2.75rem, 1.4rem + 4.6vw, 5.5rem);
+  font-weight: var(--tf-weight-bold);
+  line-height: 0.95;
+}
+
+.heroLead {
+  max-width: 32rem;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-lg);
+  line-height: var(--tf-leading-relaxed);
+  animation: lead-in 800ms var(--tf-ease-out) 450ms both;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+  animation: lead-in 800ms var(--tf-ease-out) 600ms both;
+}
+
+.heroLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  margin-left: var(--tf-space-3);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  text-decoration: underline;
+  text-decoration-color: var(--tf-color-border-strong);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--tf-duration-fast) ease;
+}
+
+.heroLink svg {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .heroLink:hover {
+    text-decoration-color: var(--tf-color-accent);
+  }
+
+  .heroLink:hover svg {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes lead-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* The sheet is wider than its column and bleeds off the right edge. */
+.heroVisual {
+  position: relative;
+  min-width: 0;
+  width: calc(100% + 12rem);
+  padding-top: var(--tf-space-10);
+}
+
+.heroPreview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: lead-in 600ms var(--tf-ease-out) 1400ms both;
+}
+
+/* ---- Facts: a scoreboard of four numbers ---- */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: var(--tf-content-max);
+  margin: 0 auto;
+  padding: 0 var(--tf-space-5);
+}
+
+.facts div {
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-5) var(--tf-space-5) var(--tf-space-6) 0;
+  border-top: 2px solid var(--tf-color-text);
+  animation: lead-in 700ms var(--tf-ease-out) both;
+  animation-delay: calc(900ms + var(--i) * 90ms);
+}
+
+.facts div + div {
+  padding-left: var(--tf-space-5);
+  border-left: 1px solid var(--tf-color-border);
+}
+
+.facts dt {
+  font-family: var(--tf-font-display);
+  font-size: clamp(2rem, 1.4rem + 1.8vw, 3rem);
+  font-weight: var(--tf-weight-bold);
+  letter-spacing: var(--tf-tracking-display);
+  line-height: 1;
+}
+
+.facts dd {
+  max-width: 16rem;
+  margin: 0;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-snug);
+}
+
+/* ---- Features ---- */
+
+.features {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: var(--tf-space-10);
+  max-width: var(--tf-content-max);
+  margin: 0 auto;
+  padding: clamp(var(--tf-space-16), 10vw, 8rem) var(--tf-space-5) var(--tf-space-12);
+}
+
+/* Invisible waypoints that steer the ribbon of light running down the page. */
+.flowMark {
+  display: block;
+  height: 0;
+}
+
+.features .featuresTitle {
+  max-width: 40rem;
+}
+
+.inlineTitle {
+  color: var(--tf-color-text-secondary);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.honesty {
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-left: 2px solid var(--tf-color-warning);
+  border-radius: 0 var(--tf-radius-md) var(--tf-radius-md) 0;
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-relaxed);
+}
+
+.labelled {
+  display: grid;
+  justify-items: end;
+  gap: var(--tf-space-2);
+}
+
+.labelled > :last-child {
+  justify-self: stretch;
+}
+
+.faq {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  gap: var(--tf-space-10);
+  max-width: var(--tf-content-max);
+  margin: 0 auto;
+  padding: clamp(var(--tf-space-12), 9vw, var(--tf-space-24)) var(--tf-space-5);
+}
+
+.faq .faqTitle {
+  align-self: start;
+  font-size: var(--tf-text-4xl);
+}
+
+@media (max-width: 60rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: var(--tf-space-5);
+  }
+
+  .heroVisual {
+    width: calc(100% + var(--tf-space-5));
+  }
+
+  .heroLink {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .facts div:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .faq {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 30rem) {
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .facts div + div {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroLead,
+  .heroActions,
+  .heroPreview,
+  .facts div {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}

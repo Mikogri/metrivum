@@ -1,0 +1,148 @@
+/* Spec: 20px vertical padding, 30px round avatar, 12px name, 10px #A0A0A0 email. */
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  /* Same gap above (to the divider) and below (to the window edge); 2px centres the avatar on the rail. */
+  padding: 0.75rem 0 0.75rem 2px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  outline: none;
+}
+
+.trigger[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--tf-radius-sm);
+}
+
+.avatar {
+  width: 1.875rem;
+  height: 1.875rem;
+  flex-shrink: 0;
+}
+
+.who {
+  flex: 1;
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.who,
+.chevron {
+  transition: opacity 200ms ease;
+}
+
+.trigger[data-compact] .who,
+.trigger[data-compact] .chevron {
+  opacity: 0;
+}
+
+.name,
+.email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.name {
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 0.9375rem;
+}
+
+.email {
+  color: #a0a0a0;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 0.75rem;
+}
+
+.chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  color: #a0a0a0;
+  transition:
+    opacity 200ms ease,
+    color 120ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .trigger[data-hovered] .chevron {
+    color: var(--tf-color-text);
+  }
+}
+
+/* ---- Menu ---- */
+
+.menu {
+  min-width: 16.5rem;
+}
+
+.profileSection {
+  margin: calc(var(--tf-space-1) * -1) calc(var(--tf-space-1) * -1) var(--tf-space-1);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.profileText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profileText strong,
+.profileText small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileText strong {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.profileText small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.itemAvatar {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 0.5625rem;
+}
+
+.accountRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.accountEmail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.current {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--tf-color-accent);
+}

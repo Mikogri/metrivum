@@ -1,0 +1,138 @@
+.header {
+  display: grid;
+  gap: var(--tf-space-3);
+  padding-bottom: var(--tf-space-5);
+}
+
+.context {
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tf-space-4);
+}
+
+/* Title block; the back arrow is centred on the title and description together (not the meta row). */
+.lead {
+  display: grid;
+  gap: var(--tf-space-1);
+  min-width: 0;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+/* Meta lines up with the title, past the arrow. */
+.lead[data-back] > .meta {
+  padding-left: calc(1.75rem + var(--tf-space-2) - var(--tf-space-1));
+}
+
+/* Back: just the arrow beside the title block; it brightens and nudges left on hover. */
+.back {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-left: calc(var(--tf-space-1) * -1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  cursor: pointer;
+  outline: none;
+  transition: color 160ms ease;
+}
+
+.back svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform 200ms var(--tf-ease-out);
+}
+
+.back[data-hovered] {
+  color: var(--tf-color-text);
+}
+
+.back[data-hovered] svg {
+  transform: translateX(-3px);
+}
+
+.back[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+.lead[data-back] {
+  flex: 1;
+}
+
+.titles {
+  display: grid;
+  gap: var(--tf-space-1);
+  min-width: 0;
+  max-width: 48rem;
+}
+
+.title {
+  font-size: var(--tf-text-2xl);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-tight);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.description {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-1);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
+}
+
+.sectionTitle {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.sectionDescription {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}

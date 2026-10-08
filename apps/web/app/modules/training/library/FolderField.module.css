@@ -1,0 +1,36 @@
+.field {
+  display: grid;
+  gap: var(--tf-space-1-5);
+}
+
+.label {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.value {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  height: var(--tf-control-md);
+  padding: 0 var(--tf-space-1) 0 var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-field);
+  font-size: var(--tf-text-sm);
+}
+
+.value > svg {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.value > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

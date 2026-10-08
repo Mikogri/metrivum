@@ -1,0 +1,150 @@
+.figure {
+  display: grid;
+  gap: var(--tf-space-1);
+  margin: 0;
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-bg-sunken);
+  cursor: crosshair;
+}
+
+.square {
+  width: 100%;
+  max-width: 18rem;
+  height: auto;
+}
+
+.frame {
+  fill: var(--tf-color-bg-sunken);
+  stroke: var(--tf-color-border);
+}
+
+.grid {
+  stroke: var(--tf-color-border-subtle);
+  stroke-width: 1;
+}
+
+.tickY,
+.tickX {
+  fill: var(--tf-color-text-tertiary);
+  font-size: 7px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tickY {
+  text-anchor: end;
+  dominant-baseline: middle;
+}
+
+.tickX {
+  text-anchor: middle;
+}
+
+.line {
+  fill: none;
+  stroke: var(--tf-color-accent);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.path {
+  fill: none;
+  stroke: var(--tf-color-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dot {
+  fill: var(--tf-color-text);
+  stroke: var(--tf-color-bg);
+  stroke-width: 2;
+}
+
+.repBand {
+  fill: rgb(121 168 255 / 0.06);
+}
+
+.cursor {
+  stroke: var(--tf-color-text);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.caption {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.timeline {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline li {
+  display: grid;
+  grid-template-columns: 4rem 1fr 4rem;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
+.repName,
+.duration {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.duration {
+  text-align: right;
+}
+
+.phases {
+  display: flex;
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--tf-color-surface-hover);
+  animation: reveal 700ms var(--tf-ease-out) both;
+  animation-delay: calc(var(--i) * 80ms);
+}
+
+@keyframes reveal {
+  from {
+    clip-path: inset(0 100% 0 0 round 999px);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 999px);
+  }
+}
+
+.phase {
+  background: var(--tf-color-text-tertiary);
+}
+
+.phase[data-kind*="ecc"] {
+  background: var(--tf-color-info);
+}
+
+.phase[data-kind*="con"] {
+  background: var(--tf-color-accent);
+}
+
+.phase + .phase {
+  box-shadow: inset 1px 0 0 var(--tf-color-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phases {
+    animation: none;
+  }
+}

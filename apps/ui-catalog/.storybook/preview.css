@@ -1,0 +1,7 @@
+body {
+  background: var(--tf-color-bg);
+}
+
+.sb-show-main.sb-main-padded {
+  padding: 2rem;
+}

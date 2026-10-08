@@ -1,0 +1,24 @@
+.input {
+  gap: 0;
+}
+
+.segment {
+  padding: 0 1px;
+  border-radius: var(--tf-radius-xs);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.segment[data-placeholder] {
+  color: var(--tf-color-text-tertiary);
+}
+
+.segment[data-type="literal"] {
+  padding: 0 2px;
+  color: var(--tf-color-text-tertiary);
+}
+
+.segment[data-focused] {
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-text);
+}

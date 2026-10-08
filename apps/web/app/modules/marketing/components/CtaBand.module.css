@@ -1,0 +1,52 @@
+.wrap {
+  max-width: var(--tf-content-max);
+  margin: 0 auto;
+  padding: var(--tf-space-12) var(--tf-space-5) var(--tf-space-24);
+}
+
+/* A clear glass slab: the page ribbon runs behind it and shows through, blurred. */
+.band {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--tf-space-8);
+  padding: clamp(var(--tf-space-8), 5vw, var(--tf-space-12));
+  border: 1px solid var(--tf-glass-border, var(--tf-color-border));
+  border-radius: 10px;
+  background: var(--tf-glass, var(--tf-color-surface));
+  -webkit-backdrop-filter: var(--tf-glass-blur, none);
+  backdrop-filter: var(--tf-glass-blur, none);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.07) inset,
+    0 40px 80px -40px rgb(0 0 0 / 0.9);
+}
+
+.copy {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.band .title {
+  max-width: 36rem;
+  font-size: var(--tf-text-5xl);
+}
+
+.body {
+  max-width: 32rem;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-lg);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+@media (max-width: 48rem) {
+  .band {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}

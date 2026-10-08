@@ -1,0 +1,158 @@
+.tree {
+  min-width: 0;
+}
+
+.list,
+.children {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.children {
+  animation: expand 200ms var(--tf-ease-out);
+}
+
+@keyframes expand {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 2.125rem;
+  padding-left: calc(var(--depth) * 0.875rem);
+  border-radius: 5px;
+  transition: background-color var(--tf-duration-fast) ease;
+}
+
+.row[data-active] {
+  background: var(--tf-color-surface-selected);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover:not([data-active]) {
+    background: var(--tf-color-surface-hover);
+  }
+
+  .row:hover .menu {
+    opacity: 1;
+  }
+}
+
+.toggle,
+.menu {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  outline: none;
+}
+
+.toggle[data-focus-visible],
+.menu[data-focus-visible],
+.link[data-focus-visible],
+.link:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: -2px;
+}
+
+.toggleSpacer {
+  width: 1.5rem;
+  flex-shrink: 0;
+}
+
+.chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+}
+
+.chevron[data-open] {
+  transform: rotate(90deg);
+}
+
+.link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  height: 2.125rem;
+  padding: 0 var(--tf-space-1);
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  text-align: left;
+  outline: none;
+  cursor: pointer;
+}
+
+.row[data-active] .link {
+  color: var(--tf-color-text);
+}
+
+/* A warm folder tint is one of the small colour details; it does not change with selection. */
+.icon {
+  flex-shrink: 0;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  color: rgb(242 169 59 / 0.75);
+}
+
+.row[data-active] .icon {
+  color: var(--tf-color-warning);
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu {
+  opacity: 0;
+  margin-right: 2px;
+  transition: opacity var(--tf-duration-fast) ease;
+}
+
+.menu[data-focus-visible],
+.menu[aria-expanded="true"],
+.row[data-active] .menu {
+  opacity: 1;
+}
+
+.menu svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.loading {
+  padding: var(--tf-space-1) var(--tf-space-2) var(--tf-space-1) calc(var(--depth, 0) * 0.875rem + 1.75rem);
+}
+
+@media (hover: none) {
+  .menu {
+    opacity: 1;
+  }
+}
+
+.menu[data-hovered],
+.menu[aria-expanded="true"] {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}

@@ -1,0 +1,18 @@
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  padding: 2px var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--tf-color-bg) 70%, transparent);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  backdrop-filter: blur(6px);
+}
+
+.label svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}

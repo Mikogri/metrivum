@@ -1,0 +1,19 @@
+.lockedWrap {
+  display: inline-flex;
+  border-radius: var(--tf-radius-md);
+  cursor: default;
+}
+
+.lockedWrap:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.lockedWrap > * {
+  pointer-events: none;
+}
+
+.pending {
+  display: grid;
+  gap: var(--tf-space-4);
+}

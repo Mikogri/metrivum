@@ -1,0 +1,45 @@
+.page {
+  position: relative;
+  isolation: isolate;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  /* The light fades out before the footer instead of stopping at an edge. */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 360px), transparent);
+}
+
+/* A smoky band of light: lime at its heart, a cool teal edge, nothing saturated. */
+.wisp {
+  position: absolute;
+  width: min(68rem, 110vw);
+  aspect-ratio: 5 / 3;
+  translate: -50% -50%;
+  background:
+    radial-gradient(ellipse 46% 16% at 48% 52%, rgb(214 243 107 / 0.13), transparent 70%),
+    radial-gradient(ellipse 30% 22% at 62% 40%, rgb(116 196 207 / 0.08), transparent 70%),
+    radial-gradient(ellipse 50% 34% at 40% 58%, rgb(185 232 90 / 0.05), transparent 72%);
+}
+
+.wisp[data-flip] {
+  scale: -1 1;
+}
+
+.fibres {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Fibres fade in and out along their length, so they never start or end on a hard tip. */
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 30%, transparent 75%);
+}
+
+.fibres path {
+  fill: none;
+  stroke: #d6f36b;
+  vector-effect: non-scaling-stroke;
+}

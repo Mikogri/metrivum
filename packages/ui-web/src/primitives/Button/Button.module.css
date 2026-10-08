@@ -1,0 +1,166 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-1-5);
+  flex-shrink: 0;
+  height: var(--tf-control-md);
+  padding: 0 var(--tf-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-md);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  outline: none;
+  transition:
+    transform var(--tf-duration-press) var(--tf-ease-out),
+    background-color var(--tf-duration-fast) ease,
+    border-color var(--tf-duration-fast) ease,
+    color var(--tf-duration-fast) ease,
+    box-shadow var(--tf-duration-fast) ease;
+}
+
+/* Press feedback: the interface heard the click. */
+.button[data-pressed] {
+  transform: scale(0.97);
+}
+
+.button[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.button[data-disabled] {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.button[data-pending] {
+  cursor: progress;
+}
+
+.block {
+  display: flex;
+  width: 100%;
+}
+
+.sm {
+  height: var(--tf-control-sm);
+  padding: 0 var(--tf-space-2-5);
+  border-radius: var(--tf-radius-sm);
+  font-size: var(--tf-text-xs);
+}
+
+.lg {
+  height: var(--tf-control-lg);
+  padding: 0 var(--tf-space-4);
+  border-radius: var(--tf-radius-md);
+  font-size: var(--tf-text-md);
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  min-width: 0;
+  transition:
+    opacity var(--tf-duration-fast) ease,
+    filter var(--tf-duration-fast) ease;
+}
+
+/* Blur bridges the crossfade between label and spinner. */
+.content[data-hidden] {
+  opacity: 0;
+  filter: blur(2px);
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.icon :where(svg) {
+  width: 1em;
+  height: 1em;
+}
+
+.sm .icon :where(svg) {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.spinner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+/* Variants */
+.primary {
+  border-color: var(--tf-color-primary-border);
+  background: var(--tf-color-primary);
+  color: var(--tf-color-on-primary);
+  font-weight: var(--tf-weight-medium);
+  letter-spacing: 0.005em;
+}
+
+.accent {
+  background: var(--tf-color-accent-deep);
+  border-color: transparent;
+  color: var(--tf-color-text);
+}
+
+.secondary {
+  background: var(--tf-color-surface-raised);
+  border-color: var(--tf-color-border);
+  color: var(--tf-color-text);
+  box-shadow: var(--tf-shadow-sm);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+}
+
+/* Destructive actions are solid red, so the risky choice is never mistaken for the safe one. */
+.danger {
+  background: #c93a36;
+  border-color: #d9524d;
+  color: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primary[data-hovered] {
+    border-color: var(--tf-color-primary-border-hover);
+    background: var(--tf-color-primary-hover);
+  }
+
+  .accent[data-hovered] {
+    background: var(--tf-color-accent-deep-hover);
+  }
+
+  .secondary[data-hovered] {
+    background: var(--tf-color-surface-hover);
+    border-color: var(--tf-color-border-strong);
+  }
+
+  .ghost[data-hovered] {
+    background: var(--tf-color-surface-hover);
+    color: var(--tf-color-text);
+  }
+
+  .danger[data-hovered] {
+    background: #d6433f;
+  }
+}

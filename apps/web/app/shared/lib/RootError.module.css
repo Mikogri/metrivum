@@ -1,0 +1,10 @@
+.page {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--tf-space-6);
+}
+
+.page > * {
+  width: min(32rem, 100%);
+}

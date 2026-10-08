@@ -1,0 +1,71 @@
+.hero {
+  position: relative;
+  isolation: isolate;
+  margin-top: calc(var(--tf-header-height) * -1);
+  padding: calc(var(--tf-header-height) + clamp(var(--tf-space-12), 8vw, var(--tf-space-24))) 0 clamp(var(--tf-space-10), 6vw, var(--tf-space-16));
+  overflow: hidden;
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.inner {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: var(--tf-space-5);
+  max-width: var(--tf-content-max);
+  margin: 0 auto;
+  padding: 0 var(--tf-space-5);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  transition: color var(--tf-duration-fast) ease;
+}
+
+.back svg {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .back:hover {
+    color: var(--tf-color-text);
+  }
+
+  .back:hover svg {
+    transform: translateX(-3px);
+  }
+}
+
+.title {
+  max-width: 18ch;
+  font-size: var(--tf-text-5xl);
+  line-height: 1.02;
+}
+
+.lead {
+  max-width: 38rem;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xl);
+  line-height: var(--tf-leading-relaxed);
+  animation: lead-in 800ms var(--tf-ease-out) 350ms both;
+}
+
+@keyframes lead-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lead {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}

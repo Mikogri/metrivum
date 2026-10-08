@@ -1,0 +1,91 @@
+.trigger {
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Pressed or open: the field lightens a little (it never darkens). */
+.trigger[data-pressed],
+.trigger[aria-expanded="true"] {
+  border-color: var(--tf-color-border-strong);
+  background: color-mix(in srgb, var(--tf-color-field) 92%, white);
+}
+
+.value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value[data-placeholder] {
+  color: var(--tf-color-text-tertiary);
+}
+
+.chevron {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  color: var(--tf-color-text-tertiary);
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+}
+
+.trigger[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.listbox {
+  display: grid;
+  /* Long lists (75 muscles, 176 tags) scroll inside a short popup instead of filling the screen. */
+  max-height: 15rem;
+  overflow-y: auto;
+  padding: var(--tf-space-1);
+  outline: none;
+  overscroll-behavior: contain;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: var(--tf-control-md);
+  padding: var(--tf-space-1) var(--tf-space-2);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  outline: none;
+  cursor: default;
+}
+
+.option[data-focused] {
+  background: var(--tf-color-surface-hover);
+}
+
+.option[data-disabled] {
+  color: var(--tf-color-text-disabled);
+}
+
+.optionText {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+}
+
+.optionDescription {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.check {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  color: var(--tf-color-accent);
+}
+
+.empty {
+  padding: var(--tf-space-3);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}

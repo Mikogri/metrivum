@@ -1,0 +1,109 @@
+.flowSection {
+  display: grid;
+  gap: var(--tf-space-8);
+  max-width: var(--tf-content-max);
+  margin: 0 auto;
+  padding: clamp(var(--tf-space-10), 7vw, var(--tf-space-16)) var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.flow {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--tf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flowStep {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  transition:
+    opacity 500ms ease,
+    transform 600ms var(--tf-ease-out),
+    border-color 600ms ease;
+  transition-delay: calc(var(--i) * 120ms);
+}
+
+.flowStep h3 {
+  font-size: var(--tf-text-lg);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.flowStep p {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-relaxed);
+}
+
+/* Connector arrow between steps. */
+.flowStep:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 2.1rem;
+  right: calc(var(--tf-space-4) * -1);
+  width: var(--tf-space-4);
+  height: 1px;
+  background: var(--tf-color-accent-border);
+}
+
+:global(html[data-motion]) .flow:not([data-inview]) .flowStep {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.flow[data-inview] .flowStep {
+  border-color: var(--tf-color-border-strong);
+}
+
+.flowIndex {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-bottom: var(--tf-space-2);
+  border-radius: 50%;
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.demo {
+  display: grid;
+  justify-items: end;
+  gap: var(--tf-space-2);
+}
+
+.demo > :last-child {
+  justify-self: stretch;
+}
+
+.privacy {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+@media (max-width: 56rem) {
+  .flow {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .flowStep::after {
+    display: none;
+  }
+}
+
+@media (max-width: 34rem) {
+  .flow {
+    grid-template-columns: 1fr;
+  }
+}

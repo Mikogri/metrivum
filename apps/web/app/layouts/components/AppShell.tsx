@@ -1,0 +1,255 @@
+import { ChevronRight, Menu, PanelLeft, Search, X } from "lucide-react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { Dialog, Modal, ModalOverlay } from "react-aria-components";
+import { Link, Outlet, useLocation, useMatches, useNavigate } from "react-router";
+import { IconButton, Kbd, PageBackContext, type PageBack } from "@trainflow/ui-web";
+import { useAccessSnapshot } from "~/shared/access";
+import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
+import { MOCK_MODE } from "~/shared/dev/mockMode";
+import { useT } from "~/shared/i18n/AppLocale";
+import { NotificationBell, useNotifications } from "~/modules/messaging";
+import { SubscriptionButton } from "~/modules/subscription/SubscriptionPanel";
+import { AccountSwitcher } from "./AccountSwitcher";
+import { CommandPalette } from "./CommandPalette";
+import { appNavGroups, pathCrumbs, settingsNavItem } from "./nav";
+import type { NavIcon } from "./navIcons";
+import styles from "./AppShell.module.css";
+
+import { clientSection } from "~/shared/session/workspace-model";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+
+const COLLAPSED_KEY = "tf.sidebar.collapsed";
+
+function readCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function Brand() {
+  const m = useT();
+  return (
+    <a href="/" className={styles.brand} aria-label={m.nav.publicSite}>
+      <img src="/brand/trainflow-mark.png" alt="" width={159} height={128} />
+      <span className={styles.brandText}>TrainFlow</span>
+    </a>
+  );
+}
+
+function NavItem({ to, label, icon: Icon, count, collapsed, onNavigate }: { to: string; label: string; icon: NavIcon; count?: string; collapsed: boolean; onNavigate?: () => void }) {
+  const { pathname } = useLocation();
+  const active = pathname === to || pathname.startsWith(`${to}/`) || (to === "/app/clients" && !!clientSection(pathname)) || (to === "/app/programs" && pathname.startsWith("/app/templates"));
+  return (
+    <li>
+      {/* The active state switches in place: no highlight travelling between items. */}
+      <Link to={to} aria-current={active ? "page" : undefined} className={styles.navLink} onClick={onNavigate} title={collapsed ? label : undefined}>
+        <Icon aria-hidden="true" strokeWidth={1.5} />
+        <span className={styles.navLabel}>{label}</span>
+        {count ? <span className={styles.navCount}>{count}</span> : null}
+      </Link>
+    </li>
+  );
+}
+
+function SidebarContent({ collapsed = false, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
+  const m = useT();
+  const { mode } = useWorkspace();
+  const groups = [...appNavGroups(m, mode === "coach" ? ["Coach"] : ["Client"]), { id: "others", label: m.nav.groups.others, items: [settingsNavItem(m)] }];
+  // Running analyses, from the already-loaded access snapshot (no extra request).
+  const { unreadMessages } = useNotifications();
+  const { pathname } = useLocation();
+  const running = useAccessSnapshot().data?.limits.find((limit) => limit.key === "analysis.concurrent")?.used;
+  const counts: Record<string, string | undefined> = { "/app/messages": pathname !== "/app/messages" && unreadMessages > 0 ? String(unreadMessages > 99 ? "99+" : unreadMessages) : undefined, "/app/video-analyses": Number(running) > 0 ? String(running) : undefined };
+  return (
+    <>
+      <nav aria-label={m.nav.main} className={styles.nav}>
+        {groups.map((group) => (
+          <div key={group.id} className={styles.navGroup}>
+            <div className={styles.navGroupHead}>
+              <span className={styles.navGroupSeparator} aria-hidden="true" />
+              <p className={styles.navGroupLabel} id={`nav-${group.id}`}>
+                {group.label}
+              </p>
+            </div>
+            <ul className={styles.navList} aria-labelledby={`nav-${group.id}`}>
+              {group.items.map((item) => (
+                <NavItem key={item.to} {...item} count={counts[item.to]} collapsed={collapsed} onNavigate={onNavigate} />
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+      <div className={styles.user}>
+        <div className={styles.userInner}>
+          <AccountSwitcher compact={collapsed} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function PathCrumbs() {
+  const m = useT();
+  const { pathname } = useLocation();
+  const { mode } = useWorkspace();
+  const crumbs = pathCrumbs(m, pathname, mode);
+  if (!crumbs.length) return null;
+  return (
+    <nav aria-label={m.nav.crumbsLabel} className={styles.crumbs}>
+      <ol>
+        {crumbs.map((crumb, i) => {
+          const last = i === crumbs.length - 1;
+          return (
+            <Fragment key={`${crumb.label}-${i}`}>
+              {i > 0 ? <ChevronRight aria-hidden="true" className={styles.crumbSep} /> : null}
+              <li>
+                {last ? (
+                  <span aria-current="page" className={styles.crumbCurrent}>
+                    {crumb.label}
+                  </span>
+                ) : crumb.href ? (
+                  <Link to={crumb.href} className={styles.crumbLink}>
+                    {crumb.label}
+                  </Link>
+                ) : (
+                  <span className={styles.crumbGroup}>{crumb.label}</span>
+                )}
+              </li>
+            </Fragment>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
+/**
+ * Back for detail pages (/app/section/:id…) and for folders (?folder=). Returns to the page the
+ * person came from when that was inside the app, otherwise to the parent list.
+ */
+function useBack(pathname: string, search: string, navigate: ReturnType<typeof useNavigate>, label: string): PageBack | null {
+  const parts = pathname.split("/").filter(Boolean);
+  const inFolder = new URLSearchParams(search).has("folder");
+  if (parts.length < 3 && !inFolder) return null;
+  const parent = inFolder && parts.length < 3 ? pathname : `/${parts.slice(0, -1).join("/")}`;
+  return {
+    label,
+    onPress: () => {
+      const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+      if (idx > 0) navigate(-1);
+      else navigate(parent);
+    },
+  };
+}
+
+export function AppShell() {
+  const m = useT();
+  const [palette, setPalette] = useState<{ open: boolean; animated: boolean }>({ open: false, animated: false });
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(readCollapsed);
+  const location = useLocation();
+  const matches = useMatches();
+  const workspace = matches.some((match) => (match.handle as { workspace?: boolean } | undefined)?.workspace);
+  // `fit` pages (calendar, dashboard) size their content to the window instead of scrolling.
+  const fit = matches.some((match) => (match.handle as { fit?: boolean } | undefined)?.fit);
+  const main = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
+  const back = useBack(location.pathname, location.search, navigate, m.common.back);
+  useEffect(() => setDrawerOpen(false), [location.pathname]);
+  // The content area scrolls (not the window), so a new page starts at its top.
+  useEffect(() => {
+    main.current?.scrollTo({ top: 0 });
+  }, [location.pathname]);
+
+  const toggleCollapsed = () => {
+    setCollapsed((value) => {
+      try {
+        localStorage.setItem(COLLAPSED_KEY, value ? "0" : "1");
+      } catch {
+        // Storage can be unavailable; the toggle still works for this visit.
+      }
+      return !value;
+    });
+  };
+
+  // ⌘K / Ctrl+K: frequent and keyboard-driven, so the palette opens without animation.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPalette((state) => ({ open: !state.open, animated: false }));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <div className={styles.shell} data-collapsed={collapsed || undefined} data-workspace={workspace || undefined} data-fit={fit || undefined}>
+      <a href="#app-main" className="tf-skip-link">
+        {m.common.skipToContent}
+      </a>
+      <aside className={styles.sidebar}>
+        <div className={styles.logo}>
+          <Brand />
+        </div>
+        <SidebarContent collapsed={collapsed} />
+      </aside>
+
+      <div className={styles.column}>
+        <header className={styles.appBar}>
+          <span className={styles.desktopOnly}>
+            <IconButton
+              label={collapsed ? m.nav.expand : m.nav.collapse}
+              icon={<PanelLeft strokeWidth={1.5} />}
+              size="sm"
+              variant="ghost"
+              onPress={toggleCollapsed}
+            />
+          </span>
+          <span className={styles.mobileOnly}>
+            <IconButton label={m.nav.openMenu} icon={<Menu />} size="sm" variant="ghost" onPress={() => setDrawerOpen(true)} showTooltip={false} />
+          </span>
+          <PathCrumbs />
+          <div className={styles.appBarActions}>
+            <button type="button" className={styles.search} onClick={() => setPalette({ open: true, animated: true })} aria-label={m.nav.commandPalette}>
+              <Search aria-hidden="true" strokeWidth={1.75} />
+              <span>{m.nav.searchShort}</span>
+              <Kbd>⌘K</Kbd>
+            </button>
+            <NotificationBell />
+            <WorkspaceSwitcher />
+            <SubscriptionButton label={m.nav.subscription} />
+          </div>
+        </header>
+
+        {MOCK_MODE ? (
+          <p className={styles.mockBanner} role="note">
+            Developer mock data — not connected to the TrainFlow API (VITE_DEV_MOCKS=1).
+          </p>
+        ) : null}
+        <main id="app-main" ref={main} className={styles.main} tabIndex={-1}>
+          <div className={styles.content}>
+            <PageBackContext.Provider value={back}><WorkspaceRouteGuard><Outlet /></WorkspaceRouteGuard></PageBackContext.Provider>
+          </div>
+        </main>
+      </div>
+
+      <ModalOverlay isOpen={drawerOpen} onOpenChange={setDrawerOpen} isDismissable className={styles.drawerOverlay}>
+        <Modal className={styles.drawer}>
+          <Dialog aria-label={m.nav.main} className={styles.drawerDialog}>
+            <div className={styles.logo}>
+              <Brand />
+              <IconButton label={m.nav.closeMenu} icon={<X />} size="sm" variant="ghost" onPress={() => setDrawerOpen(false)} showTooltip={false} />
+            </div>
+            <SidebarContent onNavigate={() => setDrawerOpen(false)} />
+          </Dialog>
+        </Modal>
+      </ModalOverlay>
+
+      <CommandPalette isOpen={palette.open} animated={palette.animated} onOpenChange={(open) => setPalette((state) => ({ ...state, open }))} />
+    </div>
+  );
+}

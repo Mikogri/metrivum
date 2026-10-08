@@ -1,0 +1,141 @@
+.map {
+  display: grid;
+  gap: var(--tf-space-5);
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-xl);
+  background: var(--tf-color-surface);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+}
+
+.legend {
+  display: flex;
+  gap: var(--tf-space-4);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+}
+
+.dotOn,
+.dotOff {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.dotOn {
+  background: var(--tf-color-accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--tf-color-accent) 60%, transparent);
+}
+
+.dotOff {
+  background: var(--tf-color-border-strong);
+}
+
+.grid {
+  display: grid;
+  gap: var(--tf-space-2);
+  overflow-x: auto;
+}
+
+.dayHeader,
+.cycleRow {
+  display: grid;
+  grid-template-columns: 9rem repeat(10, minmax(1.75rem, 1fr));
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+
+.dayNumber {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  transition: opacity var(--tf-duration-base) ease;
+}
+
+.dayNumber[data-hidden] {
+  opacity: 0;
+}
+
+.cycleName {
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dot {
+  justify-self: center;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 50%;
+  background: var(--tf-color-surface-hover);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    transform 420ms var(--tf-ease-out),
+    opacity 300ms ease,
+    background-color 300ms ease,
+    box-shadow 300ms ease;
+  transition-delay: calc(var(--d) * 22ms);
+}
+
+.dot[data-exists] {
+  opacity: 0.35;
+  transform: scale(0.75);
+}
+
+/* Lights up day by day when the section is seen. */
+.map[data-inview] .dot[data-exists] {
+  opacity: 1;
+  transform: scale(1);
+  background: var(--tf-color-border-strong);
+}
+
+.map[data-inview] .dot[data-on] {
+  background: var(--tf-color-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tf-color-accent) 55%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
+}
+
+@media (max-width: 34rem) {
+  .map {
+    padding: var(--tf-space-4) var(--tf-space-3);
+  }
+
+  .dayHeader,
+  .cycleRow {
+    grid-template-columns: 5.25rem repeat(10, minmax(0.85rem, 1fr));
+    gap: 2px;
+  }
+
+  .cycleName {
+    font-size: var(--tf-text-2xs);
+  }
+
+  .dot {
+    width: 0.625rem;
+    height: 0.625rem;
+  }
+}

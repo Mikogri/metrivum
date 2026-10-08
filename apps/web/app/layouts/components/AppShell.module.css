@@ -1,0 +1,559 @@
+.shell {
+  --shell-sidebar: var(--tf-sidebar-width);
+  --shell-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  display: grid;
+  grid-template-columns: var(--shell-sidebar) minmax(0, 1fr);
+  /* The page itself never scrolls: the content area under the app bar does. */
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--tf-color-bg);
+  transition: grid-template-columns 180ms var(--shell-ease);
+}
+
+.shell[data-collapsed] {
+  /* 10px gutter + 34px square item + 10px gutter (+ border). Icons keep their x in both states. */
+  --shell-sidebar: calc(3.375rem + 1px); /* + the 1px border */
+}
+
+/* Sidebar (spec: 250px, 20px logo padding, 15px/20px section headers, 34px items) */
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  border-right: 1px solid var(--tf-color-border-subtle);
+  background: var(--tf-color-sidebar);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 4.0625rem; /* 65px */
+  /* Centres the 25px mark on the 54px rail, so collapsing never shifts it. */
+  padding: 0 1.25rem 0 0.9rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: var(--tf-radius-sm);
+  white-space: nowrap;
+}
+
+.brand img {
+  width: auto;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.brandText {
+  font-family: var(--tf-font-brand);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--tf-color-text);
+}
+
+.brandText,
+.navLabel {
+  transition: opacity 200ms ease;
+}
+
+.shell[data-collapsed] .brandText,
+.shell[data-collapsed] .navLabel {
+  opacity: 0;
+}
+
+/*
+ * Collapsed rail: section labels fold to zero height (no empty space) and a hairline separates
+ * the groups instead.
+ */
+.navGroupHead {
+  overflow: hidden;
+}
+
+.navGroupSeparator {
+  display: block;
+  height: 0;
+  margin: 0 0.625rem;
+  border-top: 1px solid transparent;
+  transition:
+    border-color 200ms ease,
+    margin 180ms var(--shell-ease);
+}
+
+.shell[data-collapsed] .navGroup + .navGroup .navGroupSeparator {
+  margin: 0 0.625rem 0.625rem;
+  border-top-color: var(--tf-color-border-subtle);
+}
+
+.shell[data-collapsed] .navGroupLabel {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+}
+
+.nav {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.navGroupLabel {
+  max-height: 3rem;
+  padding: 0.9375rem 1.25rem;
+  overflow: hidden;
+  transition: opacity 200ms ease, padding 180ms var(--shell-ease), max-height 180ms var(--shell-ease);
+  color: #a0a0a0;
+  font-family: var(--tf-font-label);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  line-height: 0.9375rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.navList {
+  display: grid;
+  /* minmax(0, …): long labels must not hold the items wider than the rail. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3125rem;
+  margin: 0;
+  padding: 0 0.625rem;
+  list-style: none;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  height: 2.125rem;
+  /* (34px - 17px icon) / 2: the icon is centred when the item becomes a square. */
+  padding: 0 0.53125rem;
+  overflow: hidden;
+  border-radius: 5px;
+  color: rgb(255 255 255 / 0.6);
+  font-size: 0.8125rem;
+  font-weight: 450;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  /* Only colour changes: the selection never travels between items. */
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.navLink svg {
+  width: 1.0625rem;
+  height: 1.0625rem;
+  flex-shrink: 0;
+}
+
+.navLabel {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Spec count badge: #163A2B pill, #2EBC75 digits. */
+.navCount {
+  display: grid;
+  place-items: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.3125rem;
+  border-radius: 200px;
+  background: color-mix(in srgb, var(--tf-color-warning) 22%, transparent);
+  color: var(--tf-color-warning);
+  font-size: 0.625rem;
+  font-weight: var(--tf-weight-semibold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: opacity 200ms ease;
+}
+
+.shell[data-collapsed] .navCount {
+  position: absolute;
+  top: 2px;
+  right: 1px;
+}
+.shell[data-collapsed] .navLink { position: relative; }
+
+.navLink[aria-current="page"] {
+  background: var(--tf-color-surface-selected);
+  color: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navLink:hover:not([aria-current="page"]) {
+    background: var(--tf-color-surface-hover);
+    color: rgb(255 255 255 / 0.85);
+  }
+}
+
+.navLink:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: -2px;
+}
+
+.user {
+  flex-shrink: 0;
+  padding: 0 0.625rem;
+}
+
+.userInner {
+  border-top: 1px solid #282828;
+}
+
+/* Content column with the app bar */
+
+.column {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * The content panel has rounded left corners against the sidebar. The corners are fixed masks in the
+ * sidebar colour with the hairline following the curve, so the page keeps scrolling the window.
+ */
+.column::before,
+.column::after {
+  --corner: 0.75rem;
+  content: "";
+  position: fixed;
+  left: calc(var(--shell-sidebar) - 1px);
+  z-index: calc(var(--tf-z-header) + 1);
+  width: var(--corner);
+  height: var(--corner);
+  pointer-events: none;
+  transition: left 180ms var(--shell-ease);
+}
+
+.column::before {
+  top: 0;
+  background: radial-gradient(
+    circle at 100% 100%,
+    transparent calc(var(--corner) - 1px),
+    var(--tf-color-border-subtle) calc(var(--corner) - 1px),
+    var(--tf-color-border-subtle) var(--corner),
+    var(--tf-color-sidebar) calc(var(--corner) + 0.5px)
+  );
+}
+
+.column::after {
+  bottom: 0;
+  background: radial-gradient(
+    circle at 100% 0%,
+    transparent calc(var(--corner) - 1px),
+    var(--tf-color-border-subtle) calc(var(--corner) - 1px),
+    var(--tf-color-border-subtle) var(--corner),
+    var(--tf-color-sidebar) calc(var(--corner) + 0.5px)
+  );
+}
+
+.appBar {
+  position: relative;
+  flex-shrink: 0;
+  z-index: var(--tf-z-header);
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  height: var(--tf-appbar-height);
+  padding: 0 clamp(var(--tf-space-3), 2vw, var(--tf-space-6)) 0 var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  background: var(--tf-color-bg);
+}
+
+.desktopOnly,
+.mobileOnly {
+  display: inline-flex;
+}
+
+.mobileOnly {
+  display: none;
+}
+
+.crumbs {
+  min-width: 0;
+  padding-left: var(--tf-space-1);
+}
+
+.crumbs ol {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--tf-text-sm);
+  white-space: nowrap;
+}
+
+.crumbGroup {
+  color: var(--tf-color-text-tertiary);
+}
+
+.crumbLink {
+  color: var(--tf-color-text-secondary);
+  transition: color 120ms ease;
+}
+
+.crumbLink:hover {
+  color: var(--tf-color-text);
+}
+
+.crumbCurrent {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+}
+
+.crumbSep {
+  width: 0.8125rem;
+  height: 0.8125rem;
+  flex-shrink: 0;
+  color: var(--tf-color-text-disabled);
+}
+
+.appBarActions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin-left: auto;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  width: clamp(13rem, 23vw, 22rem);
+  height: var(--tf-control-sm);
+  padding: 0 var(--tf-space-1) 0 var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-align: left;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.search svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.search span {
+  flex: 1;
+}
+
+.search :global(kbd) {
+  font-size: 0.625rem;
+}
+
+.search:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search:hover {
+    border-color: var(--tf-color-border-strong);
+    color: var(--tf-color-text-secondary);
+  }
+}
+
+/* `position: relative` makes the scroll area the containing block of visually hidden inputs
+   (switches, selects), so they scroll with the page instead of stretching the document. */
+.main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  outline: none;
+}
+
+.content {
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: var(--tf-space-6) clamp(var(--tf-space-4), 2.5vw, var(--tf-space-8)) var(--tf-space-16);
+  animation: page-in var(--tf-duration-settle) var(--tf-ease-settle);
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(3px);
+  }
+}
+
+/* Workspace pages (the plan editor): no page padding or width cap, the screen below the app bar is theirs. */
+.shell[data-workspace] .main {
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.shell[data-workspace] .content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  animation: none;
+}
+
+/* Fit pages: the page header and one area that takes the rest of the height; nothing scrolls the page. */
+@media (min-width: 56rem) {
+  /* Scrolls only on windows too short for the layout's minimum. */
+  .shell[data-fit] .main {
+    display: flex;
+  }
+
+  .shell[data-fit] .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+    padding-bottom: var(--tf-space-6);
+  }
+}
+
+/* Mobile drawer */
+
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tf-z-modal);
+  background: var(--tf-color-scrim);
+}
+
+.drawerOverlay[data-entering] {
+  animation: fade 200ms ease-out;
+}
+
+.drawerOverlay[data-exiting] {
+  animation: fade 160ms ease-out reverse forwards;
+}
+
+.drawer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(var(--tf-sidebar-width), 86vw);
+  border-right: 1px solid var(--tf-color-border);
+  background: var(--tf-color-sidebar);
+}
+
+.drawer[data-entering] {
+  animation: drawer-in 200ms var(--tf-ease-drawer);
+}
+
+.drawer[data-exiting] {
+  animation: drawer-in 140ms var(--tf-ease-out) reverse forwards;
+}
+
+.drawerDialog {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  outline: none;
+}
+
+.drawerDialog .logo {
+  padding-right: var(--tf-space-3);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@media (max-width: 56rem) {
+  .shell,
+  .shell[data-collapsed] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar,
+  .desktopOnly,
+  .column::before,
+  .column::after {
+    display: none;
+  }
+
+  .mobileOnly {
+    display: inline-flex;
+  }
+
+  .crumbs {
+    display: none;
+  }
+
+  .content {
+    padding-top: var(--tf-space-5);
+  }
+}
+
+@media (max-width: 40rem) {
+  .search {
+    width: 2rem;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .search span,
+  .search :global(kbd) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell,
+  .content,
+  .drawer[data-entering],
+  .drawer[data-exiting] {
+    transition: none;
+    animation: none;
+  }
+}
+
+.mockBanner {
+  flex-shrink: 0;
+  padding: var(--tf-space-1-5) var(--tf-space-4);
+  border-bottom: 1px solid rgb(242 169 59 / 0.35);
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+  font-size: var(--tf-text-xs);
+  text-align: center;
+}

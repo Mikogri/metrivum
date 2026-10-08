@@ -1,0 +1,62 @@
+/* Shared overlay surface used by Popover, Menu, Select and ComboBox. */
+.popover {
+  min-width: 10rem;
+  max-height: min(28rem, var(--visual-viewport-height, 80vh));
+  overflow: auto;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface-raised);
+  box-shadow: var(--tf-shadow-menu);
+  outline: none;
+  /* Scale from the trigger, not from the centre. */
+  transform-origin: var(--origin, top center);
+}
+
+.popover[data-placement="top"] { --origin: bottom center; --slide: translateY(4px); }
+.popover[data-placement="bottom"] { --origin: top center; --slide: translateY(-4px); }
+.popover[data-placement="left"] { --origin: center right; --slide: translateX(4px); }
+.popover[data-placement="right"] { --origin: center left; --slide: translateX(-4px); }
+
+.popover[data-entering] {
+  animation: popover-in var(--tf-duration-base) var(--tf-ease-out);
+}
+
+.popover[data-exiting] {
+  animation: popover-out 140ms var(--tf-ease-out) forwards;
+}
+
+.dialog {
+  outline: none;
+}
+
+.width-trigger { width: var(--trigger-width); }
+.width-sm { width: 16rem; }
+.width-md { width: 22rem; }
+.width-lg { width: 28rem; }
+
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: var(--slide, none) scale(0.96);
+  }
+}
+
+@keyframes popover-out {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover[data-entering],
+  .popover[data-exiting] {
+    animation-name: popover-fade;
+  }
+}
+
+@keyframes popover-fade {
+  from {
+    opacity: 0;
+  }
+}

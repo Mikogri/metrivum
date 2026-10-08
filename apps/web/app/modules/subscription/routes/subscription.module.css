@@ -1,0 +1,56 @@
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tf-space-6, 1.5rem);
+}
+.panel {
+    padding: var(--tf-space-6, 1.5rem);
+    border: 1px solid var(--tf-color-border);
+    border-radius: var(--tf-radius-lg, 12px);
+    background: var(--tf-color-surface);
+}
+.panel h2 {
+    margin: 0 0 var(--tf-space-4, 1rem);
+}
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tf-space-3, 0.75rem);
+}
+.field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tf-space-2, 0.5rem);
+    margin-block: var(--tf-space-4, 1rem);
+}
+.field span {
+    flex-basis: 100%;
+}
+.muted {
+    color: var(--tf-color-text-secondary);
+}
+.list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--tf-space-2, 0.5rem);
+}
+
+.panel {
+    min-width: 0;
+    display: grid;
+    gap: var(--tf-space-4);
+}
+.panel select,
+.panel input {
+    max-width: 100%;
+    min-height: var(--tf-control-md);
+    padding: var(--tf-space-2);
+    border: 1px solid var(--tf-color-border);
+    border-radius: var(--tf-radius-md);
+    background: var(--tf-color-field);
+    color: var(--tf-color-text);
+}

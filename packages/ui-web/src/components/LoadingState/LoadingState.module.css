@@ -1,0 +1,33 @@
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-12) var(--tf-space-4);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  /* Waits 150ms before showing: fast responses go straight to the content. */
+  animation: loading-in 200ms var(--tf-ease-out) 150ms backwards;
+}
+
+.sm {
+  padding: var(--tf-space-6) var(--tf-space-3);
+  font-size: var(--tf-text-xs);
+}
+
+/* A slightly heavier stroke than the inline spinner, so it holds an empty area. */
+.spinner :is(circle, path) {
+  stroke-width: 3.25;
+}
+
+@keyframes loading-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading {
+    animation-duration: 1ms;
+  }
+}

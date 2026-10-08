@@ -1,0 +1,129 @@
+.loading {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.alert {
+  margin-bottom: var(--tf-space-4);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: var(--tf-space-4);
+  align-items: start;
+}
+
+.main {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.side {
+  position: sticky;
+  top: var(--tf-space-6);
+}
+
+.sectionTitle {
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.prose {
+  max-width: 44rem;
+  color: var(--tf-color-text-secondary);
+  line-height: var(--tf-leading-relaxed);
+  white-space: pre-wrap;
+}
+
+.muted {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.timeline {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0 0 0 var(--tf-space-4);
+  border-left: 1px solid var(--tf-color-border);
+  list-style: none;
+}
+
+.timeline li {
+  position: relative;
+  display: grid;
+  gap: var(--tf-space-1);
+}
+
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--tf-space-4) * -1 - 4px);
+  top: 0.4rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tf-color-border-strong);
+}
+
+.timeline li:first-child::before {
+  background: var(--tf-color-accent);
+}
+
+.timelineTitle {
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.timelineBody {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  white-space: pre-wrap;
+}
+
+.facts {
+  display: grid;
+  gap: var(--tf-space-4);
+  margin: 0;
+}
+
+.facts dt {
+  margin-bottom: var(--tf-space-1);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.facts dd {
+  margin: 0;
+  font-size: var(--tf-text-sm);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1);
+}
+
+.inlineIcon {
+  display: inline;
+  width: 0.8rem;
+  height: 0.8rem;
+  vertical-align: -1px;
+}
+
+.form {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+@media (max-width: 60rem) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .side {
+    position: static;
+  }
+}

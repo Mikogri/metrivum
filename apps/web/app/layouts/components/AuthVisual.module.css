@@ -1,0 +1,62 @@
+.wrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.glow {
+  position: absolute;
+  inset: auto -20% -30% -20%;
+  height: 70%;
+  background: radial-gradient(ellipse at 50% 100%, rgb(62 224 154 / 0.14), transparent 65%);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap: 1.4rem;
+  transform: perspective(900px) rotateX(48deg) rotateZ(-18deg) scale(1.2);
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 75%);
+}
+
+.dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--tf-color-surface-hover);
+}
+
+.dot[data-on] {
+  animation: wave 4.8s var(--tf-ease-in-out) infinite;
+  animation-delay: calc(var(--d) * 160ms);
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    background: var(--tf-color-surface-hover);
+    box-shadow: none;
+  }
+  40%,
+  60% {
+    background: var(--tf-color-accent);
+    box-shadow: 0 0 14px rgb(62 224 154 / 0.6);
+  }
+}
+
+.mark {
+  position: absolute;
+  bottom: var(--tf-space-10);
+  left: var(--tf-space-10);
+  width: 2.5rem;
+  height: auto;
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot[data-on] {
+    animation: none;
+    background: var(--tf-color-accent-deep);
+  }
+}

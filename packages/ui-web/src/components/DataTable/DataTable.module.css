@@ -1,0 +1,127 @@
+.wrap {
+  overflow-x: auto;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  transition: opacity var(--tf-duration-fast) ease;
+  /* When loading ends the table settles in instead of popping. */
+  animation: table-in var(--tf-duration-settle) var(--tf-ease-settle);
+}
+
+@keyframes table-in {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap {
+    animation: none;
+  }
+}
+
+.stale {
+  opacity: 0.6;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--tf-text-sm);
+}
+
+.table th {
+  height: 2.25rem;
+  padding: 0 var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-regular);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  height: 2.75rem;
+  padding: 0 var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table [data-align="end"] {
+  text-align: right;
+}
+
+/* Block-level controls (icon buttons, menus) ignore text-align: push them to the edge too. */
+.table td[data-align="end"] > * {
+  margin-left: auto;
+}
+
+.table td[data-muted] {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.table tbody tr {
+  position: relative;
+  transition: background-color 120ms ease;
+  animation: row-in 480ms var(--tf-ease-settle) both;
+  animation-delay: calc(80ms + min(var(--i), 10) * 28ms);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .table tbody tr:hover {
+    background: var(--tf-color-surface-hover);
+  }
+}
+
+/* Stretched row link: the link's ::after covers the row; other controls sit above it. */
+.table :global([data-row-link]) {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+  outline: none;
+}
+
+.table :global([data-row-link])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.table :global([data-row-link]):focus-visible::after {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: -2px;
+  border-radius: var(--tf-radius-sm);
+}
+
+.table td :where(button, a:not([data-row-link]), [role="button"]) {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 48rem) {
+  .table [data-mobile-hidden] {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table tbody tr {
+    animation: none;
+  }
+}

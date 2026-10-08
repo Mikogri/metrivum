@@ -1,0 +1,123 @@
+.loading {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.muted {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.tag {
+  padding: 1px var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+/* Facts in a row, actions at the end of it: the first section of the analysis sheet. */
+.aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tf-space-4);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3) var(--tf-space-8);
+  margin: 0;
+}
+
+.facts div {
+  display: grid;
+  gap: 2px;
+}
+
+.facts dt {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.facts dd {
+  margin: 0;
+  font-size: var(--tf-text-sm);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1);
+}
+
+.asideActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+.waiting {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.stage {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
+.stageTitle {
+  font-weight: var(--tf-weight-semibold);
+}
+
+.indeterminate {
+  position: relative;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--tf-color-surface-hover);
+}
+
+.indeterminate span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--tf-color-accent), transparent);
+  animation: slide 1.4s var(--tf-ease-in-out) infinite;
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.section {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-4);
+}
+
+.sectionTitle {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.form {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indeterminate span {
+    animation-duration: 3s;
+  }
+}

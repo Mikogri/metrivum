@@ -1,0 +1,146 @@
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SessionManager } from "./manager";
+import { StaleAccountError } from "../http/errors";
+import { slotStorageKey, type SlotId } from "./storage-keys";
+
+function session(userId: string, email: string): Session {
+  return { access_token: `at-${userId}`, refresh_token: `rt-${userId}`, expires_in: 3600, token_type: "bearer", user: { id: userId, email, is_anonymous: false } } as unknown as Session;
+}
+
+function fakeClient(initial: Session | null) {
+  let current = initial;
+  return {
+    auth: {
+      getSession: vi.fn(async () => ({ data: { session: current } })),
+      refreshSession: vi.fn(async () => ({ data: { session: current }, error: null })),
+      signOut: vi.fn(async () => {
+        current = null;
+        return { error: null };
+      }),
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+    },
+  } as unknown as SupabaseClient;
+}
+
+describe("SessionManager (three independent accounts)", () => {
+  let clients: Map<SlotId, SupabaseClient>;
+  let manager: SessionManager;
+
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    clients = new Map<SlotId, SupabaseClient>([
+      [0, fakeClient(session("u1", "a@example.test"))],
+      [1, fakeClient(null)],
+      [2, fakeClient(null)],
+    ]);
+    localStorage.setItem(slotStorageKey(0), JSON.stringify({ refresh_token: "rt-u1" }));
+    manager = new SessionManager((slot) => clients.get(slot)!);
+  });
+
+  it("restores stored sessions and activates one", async () => {
+    await manager.start();
+    const state = manager.getState();
+    expect(state.phase).toBe("ready");
+    expect(state.accounts.map((a) => a.email)).toEqual(["a@example.test"]);
+    expect(state.activeSlot).toBe(0);
+  });
+
+  it("adds a second account in a free slot without touching the first", async () => {
+    await manager.start();
+    expect(manager.slotForNewSignIn()).toBe(1);
+    await manager.completeSignIn(1, session("u2", "b@example.test"));
+    const state = manager.getState();
+    expect(state.accounts).toHaveLength(2);
+    expect(state.activeSlot).toBe(1);
+    expect(clients.get(0)!.auth.signOut).not.toHaveBeenCalled();
+  });
+
+  it("keeps one copy when the same person signs in twice", async () => {
+    await manager.start();
+    const slot = await manager.completeSignIn(1, session("u1", "a@example.test"));
+    expect(slot).toBe(0);
+    expect(manager.getState().accounts).toHaveLength(1);
+    expect(clients.get(1)!.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("bumps the generation on every switch so late responses can be rejected", async () => {
+    await manager.start();
+    await manager.completeSignIn(1, session("u2", "b@example.test"));
+    const before = manager.getState().generation;
+    manager.activate(0);
+    expect(manager.getState().generation).toBe(before + 1);
+    expect(sessionStorage.getItem("tf.auth.active-slot")).toBe("0");
+  });
+
+  it("signing out the active account falls back to a remaining one", async () => {
+    await manager.start();
+    await manager.completeSignIn(1, session("u2", "b@example.test"));
+    await manager.signOut(1);
+    const state = manager.getState();
+    expect(state.accounts.map((a) => a.userId)).toEqual(["u1"]);
+    expect(state.activeSlot).toBe(0);
+    expect(clients.get(0)!.auth.signOut).not.toHaveBeenCalled();
+  });
+
+  it("refuses a fourth account", async () => {
+    await manager.start();
+    await manager.completeSignIn(1, session("u2", "b@example.test"));
+    await manager.completeSignIn(2, session("u3", "c@example.test"));
+    expect(manager.slotForNewSignIn()).toBeNull();
+  });
+
+  it("uses the slot's own client for tokens and refresh", async () => {
+    await manager.start();
+    await manager.accessToken(0, true);
+    expect(clients.get(0)!.auth.refreshSession).toHaveBeenCalledOnce();
+    expect(clients.get(1)!.auth.refreshSession).not.toHaveBeenCalled();
+  });
+
+  it("invalidates in-flight work when a sign-in replaces the active slot", async () => {
+    await manager.start();
+    const generation = manager.getState().generation;
+    await manager.completeSignIn(0, session("u2", "b@example.test"));
+    expect(manager.getState().generation).toBe(generation + 1);
+    expect(manager.getState().accounts[0]!.userId).toBe("u2");
+  });
+
+  it("invalidates a replaced active identity from another tab but preserves ordinary refreshes", async () => {
+    await manager.start();
+    const generation = manager.getState().generation;
+    const event = vi.mocked(clients.get(0)!.auth.onAuthStateChange).mock.calls[0]![0];
+    event("TOKEN_REFRESHED", session("u1", "a@example.test"));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(manager.getState().generation).toBe(generation);
+    event("SIGNED_IN", session("u2", "b@example.test"));
+    await vi.waitFor(() => expect(manager.getState().accounts[0]!.userId).toBe("u2"));
+    expect(manager.getState().generation).toBe(generation + 1);
+  });
+
+  it("shares concurrent refresh work within a slot without sharing tokens across slots", async () => {
+    await manager.start();
+    let release!: () => void;
+    const pending = new Promise<void>(resolve => { release = resolve; });
+    vi.mocked(clients.get(0)!.auth.refreshSession).mockImplementation(async () => {
+      await pending;
+      return { data: { session: session("u1", "a@example.test"), user: null }, error: null };
+    });
+    const first = manager.accessToken(0, true);
+    const second = manager.accessToken(0, true);
+    expect(await manager.accessToken(1, true)).toBeNull();
+    release();
+    expect(await Promise.all([first, second])).toEqual(["at-u1", "at-u1"]);
+    expect(clients.get(0)!.auth.refreshSession).toHaveBeenCalledTimes(1);
+    await manager.accessToken(0, true);
+    expect(clients.get(0)!.auth.refreshSession).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([false, true])("rejects a replacement identity before its deferred auth event (refresh: %s)", async forceRefresh => {
+    await manager.start();
+    const replacement = session("u2", "b@example.test");
+    vi.mocked(clients.get(0)!.auth.getSession).mockResolvedValue({ data: { session: replacement }, error: null });
+    vi.mocked(clients.get(0)!.auth.refreshSession).mockResolvedValue({ data: { session: replacement, user: replacement.user }, error: null });
+    await expect(manager.accessToken(0, forceRefresh, "u1")).rejects.toBeInstanceOf(StaleAccountError);
+  });
+});

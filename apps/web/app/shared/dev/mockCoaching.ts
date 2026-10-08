@@ -1,0 +1,360 @@
+// Developer mock data for coaching, calendar and messaging (VITE_DEV_MOCKS=1 only). Clearly fake.
+const uid = (): string => crypto.randomUUID();
+const now = () => new Date().toISOString();
+const ago = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
+const at = (dayOffset: number, hour: number, minute = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  d.setHours(hour, minute, 0, 0);
+  return d.toISOString();
+};
+const day = (offset: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toLocaleDateString("en-CA");
+};
+
+const COACH = "00000000-0000-4000-8000-0000000000c0";
+const people = [
+  { id: "22222222-0000-4000-8000-000000000001", displayName: "Kazik Kowalski", username: "kazik_kowal" },
+  { id: "22222222-0000-4000-8000-000000000002", displayName: "Anna Nowak", username: "anna.runs" },
+  { id: "22222222-0000-4000-8000-000000000003", displayName: "Marta Wiśniewska", username: "marta_w" },
+  { id: "22222222-0000-4000-8000-000000000004", displayName: "Piotr Zieliński", username: "pzielinski" },
+];
+
+const groups = [
+  { id: uid(), name: "Marathon block", description: "Spring marathon runners", color: "#79a8ff", archived: false, version: 1, createdAt: ago(40), updatedAt: ago(3), allowedActions: ["edit", "archive"] },
+  { id: uid(), name: "Strength beginners", description: "First 12 weeks in the gym", color: "#3ee09a", archived: false, version: 1, createdAt: ago(20), updatedAt: ago(1), allowedActions: ["edit", "archive"] },
+];
+
+const clients = people.map((client, i) => ({
+  id: uid(),
+  client,
+  status: i === 3 ? "Suspended" : "Active",
+  startedAt: ago(90 - i * 14),
+  suspendedAt: null,
+  resumedAt: null,
+  completedAt: null,
+  version: 1,
+  updatedAt: ago(i + 1),
+  groupIds: i < 2 ? [groups[0]!.id] : [groups[1]!.id],
+  statusHistory: [],
+  allowedActions: ["suspend", "complete"],
+  clientPhone: null,
+}));
+
+const section = (title: string, labels: string[]) => ({
+  key: uid(),
+  title,
+  order: 0,
+  questions: labels.map((label, order) => ({ key: uid(), label, type: "ShortText", required: false, order })),
+});
+const forms = [
+  { id: uid(), coachId: COACH, purpose: "Application", name: "Online coaching intake", description: "Goals, training history and availability.", draft: { sections: [section("About you", ["Main goal", "Training history"])] }, currentPublishedVersionId: uid(), archived: false, createdAt: ago(30), updatedAt: ago(4), version: 3 },
+  { id: uid(), coachId: COACH, purpose: "CheckIn", name: "Weekly check-in", description: "Sleep, energy, soreness and body weight.", draft: { sections: [section("This week", ["Sleep quality", "Energy", "Body weight"])] }, currentPublishedVersionId: uid(), archived: false, createdAt: ago(25), updatedAt: ago(2), version: 2 },
+];
+
+const offers: Record<string, unknown>[] = [];
+
+const schedules = [
+  {
+    id: uid(), coachId: COACH, workspaceId: uid(), formTemplateId: forms[1]!.id, name: "Monday check-in", description: "", timeZone: "Europe/Warsaw",
+    recurrence: { kind: "EveryNWeeks", interval: 1, startDate: day(-14), releaseTime: "09:00:00", weekDays: [1], dayOfMonth: null },
+    responseWindowHours: 48, relationshipIds: [], groupIds: [groups[0]!.id], status: "Active", nextAvailableAtUtc: at(3, 9), retryAtUtc: null, lastFailure: null, failureCount: 0, version: 1, createdAt: ago(14), updatedAt: ago(14),
+  },
+];
+
+const event = (kind: "Meeting" | "Event", title: string, start: string, end: string, extra: Record<string, unknown> = {}) => ({
+  id: uid(), coachId: COACH, organizerName: "Demo Coach", kind, title, description: "", timeZone: "Europe/Warsaw", startsAtUtc: start, endsAtUtc: end,
+  startDate: null, endDateExclusive: null, location: null, meetingUrl: null, cancelled: false, version: 1, response: null, responseVersion: null,
+  attendees: [{ relationshipId: clients[0]!.id, clientId: people[0]!.id, response: "Accepted", version: 1 }], ...extra,
+});
+const events = [
+  event("Meeting", "Kick-off call with Kazik", at(0, 10), at(0, 10, 45), { meetingUrl: "https://meet.example.test/kickoff" }),
+  event("Meeting", "Technique review", at(2, 17), at(2, 18)),
+  event("Event", "Club 10K race", at(5, 8), at(5, 12), { location: "City park" }),
+  event("Meeting", "Monthly progress review", at(-3, 18), at(-3, 18, 30)),
+  event("Event", "Deload week", at(9, 0), at(9, 0), { startDate: day(9), endDateExclusive: day(16) }),
+];
+const checkIns = [
+  { id: uid(), kind: "Planned", scheduleId: schedules[0]!.id, requestId: null, name: "Monday check-in", availableAtUtc: at(3, 9), dueAtUtc: at(5, 9), status: "Planned" },
+  { id: uid(), kind: "Request", scheduleId: schedules[0]!.id, requestId: uid(), name: "Monday check-in", availableAtUtc: at(-4, 9), dueAtUtc: at(-2, 9), status: "Reviewed" },
+];
+
+type Msg = { id: string; conversationId: string; senderUserId: string; type: string; body: string | null; replyToMessageId: null; createdAt: string; cursor: string; attachments: [] };
+const conversations = people.slice(0, 3).map((p, i) => ({
+  id: uid(),
+  type: "Direct",
+  title: p.displayName,
+  clientGroupId: null,
+  membershipState: "Active",
+  peer: p,
+  unread: i === 1 ? 2 : 0,
+}));
+const groupChat = { id: uid(), type: "ClientGroupLinked", title: "Marathon block", clientGroupId: groups[0]!.id, membershipState: "Active", peer: null, unread: 0 };
+const messages = new Map<string, Msg[]>();
+const script: [boolean, string, number][] = [
+  [false, "Hey, I've uploaded the new version of my week schedule.", 95],
+  [true, "Great, I'll check it after lunch and let you know.", 90],
+  [true, "Could we do a quick call today at 15:00?", 88],
+  [false, "Sure. I also went through the last changes in the plan — the new long run day works much better for me, especially with the shorter Thursday session.", 80],
+];
+const SELF = "self";
+for (const [i, c] of [...conversations, groupChat].entries()) {
+  const list: Msg[] = (i === 0 ? script : i === 1 ? [[false, "Is tomorrow's tempo run still at 4:50/km?", 30] as [boolean, string, number], [false, "Legs feel fresh after the rest day.", 28] as [boolean, string, number]] : i === 2 ? [[true, "Welcome aboard! Fill in the intake form when you have a moment.", 3000] as [boolean, string, number]] : [[true, "Long run on Sunday: 24 km easy. Bring gels.", 600] as [boolean, string, number]]).map(([mine, body, minutes], n) => ({
+    id: uid(), conversationId: c.id, senderUserId: mine ? SELF : (c.peer?.id ?? people[1]!.id), type: "Text", body, replyToMessageId: null, createdAt: new Date(Date.now() - minutes * 60_000).toISOString(), cursor: String(n), attachments: [],
+  }));
+  messages.set(c.id, list);
+}
+
+const resolve = (me: string) => (m: Msg) => (m.senderUserId === SELF ? { ...m, senderUserId: me } : m);
+const member = (userId: string, displayName: string, role = "Member") => ({ userId, displayName, role, source: "Direct", state: "Active", excluded: false, joinedAt: ago(30), removedAt: null, lastReadMessageId: null });
+function conversationDto(c: (typeof conversations)[number] | typeof groupChat, me: string) {
+  const list = messages.get(c.id) ?? [];
+  const last = list.at(-1);
+  const members = c.peer ? [member(me, "Demo Coach", "Owner"), member(c.peer.id, c.peer.displayName)] : [member(me, "Demo Coach", "Owner"), member(people[0]!.id, people[0]!.displayName), member(people[1]!.id, people[1]!.displayName)];
+  return { id: c.id, type: c.type, title: c.title, clientGroupId: c.clientGroupId, membershipState: c.membershipState, lastMessage: last ? resolve(me)(last) : null, unreadCount: c.unread, members };
+}
+
+const page = <T>(items: T[], q: URLSearchParams) => {
+  const p = Number(q.get("page") ?? 1);
+  const s = Number(q.get("pageSize") ?? 25);
+  return { items: items.slice((p - 1) * s, p * s), total: items.length, page: p, pageSize: s };
+};
+const search = <T extends { name?: string; title?: string }>(items: T[], q: URLSearchParams) => {
+  const term = q.get("search")?.toLowerCase();
+  return term ? items.filter((x) => (x.name ?? x.title ?? "").toLowerCase().includes(term)) : items;
+};
+const profileFields = { currency: "PLN", values: {}, version: 1 };
+
+const capabilities = ["Programs and templates", "Clients and groups", "Check-ins and forms", "Messages and calendar", "Offers and payments", "Video analysis", "Analyze"];
+const platformPlans = ["Free", "Pro", "Team"].map((id, i) => ({
+  id,
+  name: id,
+  amount: [0, 25, 20][i],
+  currency: "USD",
+  priceVersion: "2026-10",
+  termsVersion: "2026-10",
+  commissionRate: [0.08, 0.05, 0.03][i],
+  priceConfigured: true,
+  capabilities,
+}));
+const platformSubscription = { id: uid(), planId: "Free", status: "Active", periodStart: null, periodEnd: null, nextDueAt: null, autoRenew: false, renewalMethodEligible: false, pendingPlanId: null, version: 1, pendingDue: null, acceptedPriceVersion: null, acceptedTermsVersion: null };
+
+/** Deterministic but lively fake analytics for the requested window. */
+function analyzeOverview(q: URLSearchParams) {
+  const to = new Date(q.get("to") ?? day(0));
+  const from = new Date(q.get("from") ?? day(-29));
+  const grouping = q.get("grouping") ?? "day";
+  const step = grouping === "month" ? 30 : grouping === "week" ? 7 : 1;
+  const days = Math.max(1, Math.round((to.getTime() - from.getTime()) / 86_400_000) + 1);
+  const count = Math.max(1, Math.ceil(days / step));
+  const wave = (i: number, seed: number) => Math.abs(Math.sin(i * 0.7 + seed) + Math.sin(i * 0.23 + seed * 2)) / 2;
+  const dates = Array.from({ length: count }, (_, i) => {
+    const d = new Date(from);
+    d.setDate(d.getDate() + i * step);
+    return d.toLocaleDateString("en-CA");
+  });
+  const build = (seed: number) => {
+    const series = dates.map((date, i) => {
+      const gross = Math.round((180 + i * 9 + wave(i, seed) * 420) * step);
+      return { date, currency: "PLN", gross, fee: Math.round(gross * 0.05), net: Math.round(gross * 0.95), payments: Math.max(1, Math.round(gross / 160)) };
+    });
+    const gross = series.reduce((s, x) => s + x.gross, 0);
+    const payments = series.reduce((s, x) => s + x.payments, 0);
+    const clients = dates.map((date, i) => ({ date, active: 14 + Math.round(i * (seed ? 0.25 : 0.18) + wave(i, seed) * 3), newClients: Math.round(wave(i, seed + 1) * 2), reactivated: i % 9 === 0 ? 1 : 0, departed: i % 11 === 4 ? 1 : 0 }));
+    const checkIns = dates.map((date, i) => {
+      const issued = Math.round((6 + wave(i, seed + 3) * 8) * step);
+      const submitted = Math.round(issued * (0.72 + wave(i, seed + 5) * 0.25));
+      return { date, issued, submitted, overdue: issued - submitted };
+    });
+    const issued = checkIns.reduce((s, x) => s + x.issued, 0);
+    const submitted = checkIns.reduce((s, x) => s + x.submitted, 0);
+    const active = clients.at(-1)!.active;
+    return {
+      finance: {
+        totals: [{ currency: "PLN", gross, fee: Math.round(gross * 0.05), net: Math.round(gross * 0.95), pending: Math.round(gross * 0.12), payments, payingClients: Math.round(active * 0.8), averagePayment: Math.round(gross / payments), revenuePerPayingClient: Math.round(gross / (active * 0.8)), mrr: Math.round(active * 0.6 * 320), recurringSubscriptions: Math.round(active * 0.6), renewals: Math.round(payments * 0.4), simulatedGross: Math.round(gross * 0.7), externalGross: Math.round(gross * 0.3) }],
+        series,
+        offers: [
+          { offerRevisionId: "o1", name: "Online coaching", currency: "PLN", gross: Math.round(gross * 0.52), net: Math.round(gross * 0.49), payments: Math.round(payments * 0.5), clients: 9 },
+          { offerRevisionId: "o2", name: "Strength block", currency: "PLN", gross: Math.round(gross * 0.31), net: Math.round(gross * 0.29), payments: Math.round(payments * 0.3), clients: 6 },
+          { offerRevisionId: "o3", name: "Running plan", currency: "PLN", gross: Math.round(gross * 0.17), net: Math.round(gross * 0.16), payments: Math.round(payments * 0.2), clients: 4 },
+        ],
+      },
+      clients: {
+        active,
+        suspended: 2,
+        completed: 5,
+        newClients: clients.reduce((s, x) => s + x.newClients, 0),
+        reactivated: clients.reduce((s, x) => s + x.reactivated, 0),
+        departed: clients.reduce((s, x) => s + x.departed, 0),
+        netGrowth: active - clients[0]!.active,
+        retentionPercent: seed ? 91 : 86,
+        series: clients,
+        groups: groups.map((g, i) => ({ id: g.id, name: g.name, clients: 3 + i * 2 })),
+      },
+      acquisition: {
+        submitted: seed ? 24 : 19,
+        accepted: seed ? 15 : 11,
+        rejected: 4,
+        conversionPercent: seed ? 62.5 : 57.9,
+        invitationsSent: 12,
+        invitationsAccepted: 8,
+        invitationsDeclined: 2,
+        sources: [
+          { source: "Public offer", submitted: 12, accepted: 8, rejected: 2, pending: 2, conversionPercent: 66.7 },
+          { source: "Coach profile", submitted: 7, accepted: 4, rejected: 1, pending: 2, conversionPercent: 57.1 },
+          { source: "Direct link", submitted: 5, accepted: 3, rejected: 1, pending: 1, conversionPercent: 60 },
+        ],
+      },
+      checkIns: { issued, submitted, overdue: issued - submitted, pendingReview: Math.round(submitted * 0.15), submissionRate: Math.round((submitted / issued) * 1000) / 10, averageReviewHours: seed ? 7.4 : 9.1, series: checkIns },
+    };
+  };
+  const current = build(1);
+  const previous = build(0);
+  const iso = (d: Date) => d.toLocaleDateString("en-CA");
+  return {
+    period: { from: iso(from), to: iso(to), timeZone: q.get("timeZone") ?? "UTC", start: from.toISOString(), end: to.toISOString() },
+    comparisonPeriod: { from: iso(new Date(from.getTime() - days * 86_400_000)), to: iso(new Date(from.getTime() - 86_400_000)), timeZone: "UTC", start: "", end: "" },
+    finance: current.finance,
+    previousFinance: previous.finance,
+    clients: current.clients,
+    previousClients: previous.clients,
+    acquisition: current.acquisition,
+    previousAcquisition: previous.acquisition,
+    checkIns: current.checkIns,
+    previousCheckIns: previous.checkIns,
+    training: { available: true, reason: "", progress: mockTrainingProgress(iso(from), iso(to)) },
+    messaging: { sent: 128, received: 141, conversations: 11 },
+    filters: { groups: groups.map((g) => ({ id: g.id, name: g.name, clients: 4 })), offers: [{ id: "o1", name: "Online coaching" }, { id: "o2", name: "Strength block" }] },
+  };
+}
+
+/** Developer data for the Analyze training tab: three lifts trending up, a handful of clients. */
+function mockTrainingProgress(from: string, to: string) {
+  const day = (i: number) => new Date(Date.parse(`${to}T00:00:00Z`) - i * 7 * 86400000).toISOString().slice(0, 10);
+  const lift = (exerciseId: string, name: string, start: number, step: number) =>
+    [4, 3, 2, 1, 0].map((w, k) => ({ exerciseId, name, performedDate: day(w), loadMeaning: "absolute", sets: 4 + (k % 2), reps: 20 - k, volumeKg: (start + k * step) * (20 - k), bestLoadKg: start + k * step, averageRpe: 7.5 + k * 0.2, averageRir: 2, substitutionSets: k === 2 ? 1 : 0 }));
+  return {
+    from, to, planned: 96, due: 84, completed: 69, skipped: 5, missed: 10, inProgress: 3, completionPercentage: 82, loggedLate: 8, activeAssignments: 14,
+    actualSets: 1186, actualReps: 6420, volumeKg: 412800,
+    programs: [{ programId: "p1", programName: "Strength block A", completed: 31 }, { programId: "p2", programName: "Hypertrophy 10-day", completed: 22 }, { programId: "p3", programName: "Return to run", completed: 16 }],
+    clients: [
+      { relationshipId: "r1", due: 12, completed: 12, missed: 0, latestCompletedAt: `${day(0)}T07:30:00Z` },
+      { relationshipId: "r2", due: 12, completed: 9, missed: 2, latestCompletedAt: `${day(1)}T18:10:00Z` },
+      { relationshipId: "r3", due: 10, completed: 5, missed: 4, latestCompletedAt: `${day(2)}T06:45:00Z` },
+      { relationshipId: "r4", due: 8, completed: 8, missed: 0, latestCompletedAt: `${day(0)}T12:00:00Z` },
+    ],
+    performance: [...lift("e1", "Back squat", 120, 2.5), ...lift("e2", "Bench press", 85, 1.25), ...lift("e3", "Romanian deadlift", 110, 5)],
+    metricDefinition: "Completion counts workouts due in the period that were logged as completed. Loads come only from logged sets.",
+  };
+}
+
+/** Returns a response for the coaching, calendar and messaging endpoints, or null when the path isn't one of them. */
+export function mockCoaching(path: string, method: string, q: URLSearchParams, body: Record<string, unknown> | undefined, auth: string | null): { status: number; body: unknown } | null {
+  const me = `00000000-0000-4000-8000-00000000000${(auth ?? "").replace(/^Bearer mock-/, "") || "0"}`;
+  const ok = (value: unknown) => ({ status: 200, body: value });
+  let m: RegExpMatchArray | null;
+
+  // Team (developer data): one Team the demo coach owns, with two members.
+  const team = { id: "t1", name: "North Strength Collective", isOwner: true, isMember: true, members: 3, role: "Owner", status: "Active", description: "Strength and conditioning coaches in Gdańsk.", version: 1, purchasedSeats: 5, occupiedSeats: 3, periodEnd: null, dissolutionAt: null, allowedActions: ["teams.invite", "teams.manage", "teams.clients", "teams.analyze", "teams.settings", "teams.transfer-ownership"], pendingOwnerId: null };
+  if (path === "/api/v1/teams/mine") return ok({ teams: [team], requests: [{ id: "tr1", teamId: "t1", teamName: team.name, displayName: "Ola Zielińska", kind: "Invite", status: "Pending", canDecide: false, role: "Member", expiresAt: new Date(Date.now() + 5 * 86400000).toISOString() }] });
+  if (path === "/api/v1/teams/t1/members") return ok([
+    { userId: me, displayName: "Demo Coach", username: "demo.coach", role: "Owner", joinedAt: "2026-03-01T09:00:00Z" },
+    { userId: "u2", displayName: "Tomasz Lis", username: "tomasz.lis", role: "Admin", joinedAt: "2026-04-12T09:00:00Z" },
+    { userId: "u3", displayName: "Ewa Maj", username: "ewa.maj", role: "Member", joinedAt: "2026-07-20T09:00:00Z" },
+  ]);
+  if (path === "/api/v1/teams/t1/clients") return ok([{ id: "tc1", teamId: "t1", clientId: "c9", clientName: "Bartek Nowicki", status: "Active", assignedCoachIds: ["u2"], relationshipId: null, allowedActions: ["assign-coach"], version: 1 }]);
+  if (path === "/api/v1/teams/t1/client-transfer-requests") return ok([]);
+  if (path === "/api/v1/coaching/clients" && method === "GET") {
+    const term = q.get("search")?.toLowerCase();
+    return ok(page(clients.filter((c) => (!q.get("status") || c.status === q.get("status")) && (!term || c.client.displayName.toLowerCase().includes(term))), q));
+  }
+  if ((m = path.match(/^\/api\/v1\/coaching\/clients\/([^/]+)$/))) return ok(clients.find((c) => c.id === m![1]));
+  if (path === "/api/v1/coaching/groups" && method === "GET") return ok(page(search(groups.filter((g) => g.archived === (q.get("archived") === "true")), q), q));
+  if (path === "/api/v1/coaching/groups" && method === "POST") {
+    const group = { ...groups[0]!, id: uid(), ...body, archived: false, version: 1, createdAt: now(), updatedAt: now() } as (typeof groups)[number];
+    groups.push(group);
+    return ok(group);
+  }
+  if ((m = path.match(/^\/api\/v1\/coaching\/groups\/([^/]+)$/))) {
+    const group = groups.find((g) => g.id === m![1]);
+    if (group && method === "PATCH") Object.assign(group, body, { version: group.version + 1, updatedAt: now() });
+    return ok(group);
+  }
+  if ((m = path.match(/^\/api\/v1\/coaching\/groups\/([^/]+)\/members$/))) return ok(page(clients.filter((c) => c.groupIds.includes(m![1]!)), q));
+  if (path === "/api/v1/forms" && method === "GET") return ok(page(search(forms.filter((f) => !q.get("purpose") || f.purpose === q.get("purpose")), q), q));
+  if ((m = path.match(/^\/api\/v1\/forms\/([^/]+)$/)) && method === "GET") return ok(forms.find((f) => f.id === m![1]));
+  if (path === "/api/v1/offers" && method === "GET") return ok(page(offers, q));
+  if (path === "/api/v1/offers" && method === "POST") {
+    const offer = { id: uid(), coachId: COACH, status: "Draft", currentPublishedRevisionId: null, createdAt: now(), updatedAt: now(), version: 1, ...body };
+    offers.push(offer);
+    return ok(offer);
+  }
+  if ((m = path.match(/^\/api\/v1\/offers\/([^/]+)$/)) && m[1] !== "categories") return ok(offers.find((o) => o.id === m![1]));
+  if (path === "/api/v1/offers/categories") return ok([{ key: "online-coaching", name: "Online coaching", active: true }, { key: "running", name: "Running", active: true }, { key: "strength", name: "Strength training", active: true }]);
+  if (path === "/api/v1/me/profile-fields") return ok(profileFields);
+  if (path === "/api/v1/me/currency" && method === "PATCH") {
+    profileFields.currency = String(body?.currency ?? profileFields.currency);
+    profileFields.version++;
+    return ok(profileFields);
+  }
+  if (path === "/api/v1/check-ins/schedules" && method === "GET") return ok(page(search(schedules, q), q));
+  if (path === "/api/v1/check-ins/schedules" && method === "POST") {
+    const schedule = { ...schedules[0]!, id: uid(), ...body, status: "Active", version: 1 } as (typeof schedules)[number];
+    schedules.push(schedule);
+    return ok(schedule);
+  }
+  if ((m = path.match(/^\/api\/v1\/check-ins\/schedules\/([^/]+)$/))) return ok(schedules.find((s) => s.id === m![1]));
+  if (path === "/api/v1/check-ins/calendar") return ok(page(checkIns.filter((c) => !q.get("kind") || c.kind === q.get("kind")), q));
+  if (path === "/api/v1/calendar/events" && method === "GET") return ok(page(events, q));
+  if (path === "/api/v1/calendar/events" && method === "POST") {
+    const created = event((body?.kind as "Meeting") ?? "Meeting", String(body?.title ?? ""), String(body?.startsAtUtc ?? now()), String(body?.endsAtUtc ?? now()), { ...body, attendees: [] });
+    events.push(created);
+    return ok(created);
+  }
+  if ((m = path.match(/^\/api\/v1\/calendar\/events\/([^/]+)$/))) {
+    const found = events.find((e) => e.id === m![1]);
+    if (found && method === "PATCH") Object.assign(found, body, { version: found.version + 1 });
+    return ok(found);
+  }
+
+  if (path === "/api/v1/messaging/conversations" && method === "GET") return ok(search([...conversations, groupChat], q).map((c) => conversationDto(c, me)));
+  if ((m = path.match(/^\/api\/v1\/messaging\/conversations\/([^/]+)$/))) {
+    const c = [...conversations, groupChat].find((x) => x.id === m![1]);
+    return c ? ok(conversationDto(c, me)) : null;
+  }
+  if ((m = path.match(/^\/api\/v1\/messaging\/conversations\/([^/]+)\/messages$/))) {
+    const list = messages.get(m[1]!) ?? [];
+    if (method === "POST") {
+      const sent: Msg = { id: uid(), conversationId: m[1]!, senderUserId: SELF, type: "Text", body: (body?.body as string) ?? null, replyToMessageId: null, createdAt: now(), cursor: String(list.length), attachments: [] };
+      list.push(sent);
+      messages.set(m[1]!, list);
+      return ok(resolve(me)(sent));
+    }
+    return ok({ items: list.map(resolve(me)), olderCursor: null, newerCursor: null });
+  }
+  if ((m = path.match(/^\/api\/v1\/messaging\/conversations\/([^/]+)\/read$/))) {
+    const c = conversations.find((x) => x.id === m![1]);
+    if (c) c.unread = 0;
+    return { status: 204, body: undefined };
+  }
+  if (path === "/api/v1/messaging/requests") return ok([]);
+  if (path === "/api/v1/me/blocked-users") return ok([]);
+  if (path === "/api/v1/analyze/overview") return ok(analyzeOverview(q));
+  if (path === "/api/v1/subscriptions/plans") return ok(platformPlans);
+  if (path === "/api/v1/me/platform-subscription" && method === "GET") return ok(platformSubscription);
+  if ((m = path.match(/^\/api\/v1\/me\/platform-subscription\/(checkout|confirm-payment|change-plan)$/)) && method === "POST") {
+    const s = platformSubscription as Record<string, unknown>;
+    const plan = platformPlans.find((p) => p.id === body?.planId);
+    if (m[1] === "checkout" && plan) s.pendingDue = { id: uid(), amount: plan.amount, currency: plan.currency, status: "Pending", dueAt: now(), periodEnd: day(30), planId: plan.id };
+    if (m[1] === "confirm-payment" && s.pendingDue) Object.assign(s, { planId: (s.pendingDue as { planId: string }).planId, periodStart: now(), periodEnd: day(30), pendingDue: null });
+    if (m[1] === "change-plan") Object.assign(s, { planId: "Free", pendingDue: null, periodEnd: null });
+    s.version = (s.version as number) + 1;
+    return ok(s);
+  }
+
+  // Remaining coaching lists (leads, invitations, payments, earnings…) are empty in mock mode.
+  if (method === "GET" && /^\/api\/v1\/(coaching|check-ins|me\/(payment|orders)|coaches|offers|forms|billing)/.test(path)) return ok(page([], q));
+  return null;
+}

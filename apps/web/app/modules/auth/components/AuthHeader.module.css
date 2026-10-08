@@ -1,0 +1,27 @@
+.header {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.title {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-3xl);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-display);
+  line-height: 1.1;
+}
+
+.subtitle {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.footer {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.footer a {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+}

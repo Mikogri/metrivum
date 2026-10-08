@@ -1,0 +1,1777 @@
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  height: 2.75rem;
+  padding: 0 var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.hint {
+  margin-left: var(--tf-space-2);
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scroller {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--tf-color-bg-sunken);
+}
+
+/* The sheet keeps slim scrollbars that sit on the grid instead of the browser's default bars. */
+.scroller::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scroller::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--tf-color-border-strong);
+  background-clip: content-box;
+}
+
+.scroller::-webkit-scrollbar-track,
+.scroller::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* The sheet: lettered columns, numbered rows and cell hairlines, like a spreadsheet. */
+.board {
+  position: relative;
+  user-select: none;
+}
+
+.colHeads,
+.rowHeads {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text-tertiary);
+  font-family: var(--tf-font-label);
+  font-size: 0.625rem;
+}
+
+.colHeads {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--gutter);
+  padding-left: var(--gutter);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.colHeads span {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--cell-w);
+  border-right: 1px solid var(--tf-color-border-subtle);
+}
+
+.rowHeads {
+  position: absolute;
+  top: var(--gutter);
+  left: 0;
+  flex-direction: column;
+  width: var(--gutter);
+  border-right: 1px solid var(--tf-color-border-subtle);
+}
+
+.rowHeads span {
+  display: grid;
+  place-items: center;
+  flex: none;
+  height: var(--cell-h);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.cells {
+  position: absolute;
+  top: var(--gutter);
+  left: var(--gutter);
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: var(--cell-w) var(--cell-h);
+}
+
+.edges {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  color: rgb(62 224 154 / 0.55);
+}
+
+.edge,
+.edgeDraft {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.edgeDraft {
+  stroke-dasharray: 5 4;
+}
+
+/* Cards ------------------------------------------------------------------------------------ */
+
+.card {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px;
+  padding: var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  box-shadow: var(--tf-shadow-sm);
+  cursor: grab;
+  outline: none;
+  transition:
+    box-shadow 160ms ease,
+    border-color 120ms ease;
+}
+
+.card:focus-visible,
+.card:focus-within {
+  border-color: var(--tf-color-border-strong);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.card[data-dragging] {
+  z-index: 4;
+  cursor: grabbing;
+  box-shadow: var(--tf-shadow-lg);
+}
+
+.card[data-loose] {
+  border-style: dashed;
+}
+
+.card[data-link-target][data-kind="cycle"] {
+  border-color: rgb(62 224 154 / 0.4);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  height: 1.5rem;
+}
+
+.chip {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--tf-radius-xs);
+}
+
+.chip svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.chip[data-kind="block"] {
+  background: var(--tf-color-accent-deep);
+  color: var(--tf-color-accent);
+}
+
+.chip[data-kind="cycle"] {
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+}
+
+.kind {
+  flex: 1;
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  outline: none;
+}
+
+.menu[data-hovered],
+.menu[aria-expanded="true"] {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+
+.menu[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+}
+
+.menu svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Text sits directly on the card: write anywhere, no form chrome until focused. */
+.name,
+.description,
+.panelTitle {
+  width: 100%;
+  min-width: 0;
+  padding: 2px var(--tf-space-1);
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-xs);
+  background: transparent;
+  color: var(--tf-color-text);
+  outline: none;
+  cursor: text;
+}
+
+.name {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.description {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.name:hover:not(:read-only),
+.description:hover:not(:read-only),
+.panelTitle:hover:not(:read-only) {
+  border-color: var(--tf-color-border);
+}
+
+.name:focus,
+.description:focus,
+.panelTitle:focus {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-field);
+}
+
+.handle {
+  position: absolute;
+  top: calc(var(--cell-h) - 10px);
+  right: -7px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--tf-color-accent);
+  border-radius: 50%;
+  background: var(--tf-color-bg-sunken);
+  cursor: crosshair;
+  touch-action: none;
+  transition: transform 120ms ease;
+}
+
+.handle:hover {
+  transform: scale(1.25);
+}
+
+.loose {
+  padding: 0 var(--tf-space-1);
+  color: var(--tf-color-warning);
+  font-size: var(--tf-text-2xs);
+  line-height: var(--tf-leading-snug);
+}
+
+/* Workout side panel ------------------------------------------------------------------------ */
+
+.panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  width: min(68rem, 78%);
+  border-left: 1px solid var(--tf-color-border);
+  background: var(--tf-color-bg);
+  box-shadow: -24px 0 48px -24px rgb(0 0 0 / 0.6);
+  outline: none;
+  animation: panel-in 300ms var(--tf-ease-drawer);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  height: 3rem;
+  padding: 0 var(--tf-space-2) 0 var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.panelTitle {
+  max-width: 24rem;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-medium);
+}
+
+.panelHead > :last-child {
+  margin-left: auto;
+}
+
+.panelBody {
+  flex: 1;
+  min-height: 0;
+}
+
+@keyframes panel-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}
+
+/* Zoom, smooth arrangement ------------------------------------------------------------------ */
+
+.board {
+  transform-origin: 0 0;
+}
+
+/* Cards glide to their cells when arranged, pushed aside or reflowed; never while dragged. */
+.card {
+  transition:
+    left 320ms var(--tf-ease-in-out),
+    top 320ms var(--tf-ease-in-out),
+    box-shadow 160ms ease,
+    border-color 120ms ease;
+}
+
+.card[data-dragging] {
+  transition: box-shadow 160ms ease;
+}
+
+/* Connections: a wide invisible stroke catches the pointer; hovering brightens the line. */
+.edges .edgeHit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  pointer-events: stroke;
+  cursor: context-menu;
+}
+
+.edgeGroup .edge {
+  transition:
+    stroke-width 120ms ease,
+    color 120ms ease;
+}
+
+.edgeGroup[data-hover] {
+  color: var(--tf-color-accent);
+}
+
+.edgeGroup[data-hover] .edge {
+  stroke-width: 2.5;
+}
+
+/* Expanded cycle: the card sits exactly on the grid; its body is a grid of real cells. */
+.card[data-expanded] {
+  z-index: 2;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  cursor: default;
+  background: var(--tf-color-bg);
+}
+
+.card[data-expanded] .cardHead {
+  height: var(--cell-h);
+  padding: 0 var(--tf-space-2);
+  border-bottom: 1px solid var(--tf-color-border);
+  background: var(--tf-color-surface-raised);
+  cursor: grab;
+}
+
+.toggle {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--tf-radius-xs);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+
+.toggle svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.headName {
+  flex: 0 1 14rem;
+  min-width: 0;
+  padding: 2px var(--tf-space-1);
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-xs);
+  background: transparent;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  outline: none;
+}
+
+.headName:focus {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-field);
+}
+
+.cells2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--cell-w));
+  grid-auto-rows: var(--cell-h);
+  cursor: default;
+  animation: cells-in 260ms var(--tf-ease-out);
+}
+
+@keyframes cells-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: var(--cell-h);
+  padding: 0 var(--tf-space-2);
+  overflow: hidden;
+  border: 0;
+  border-right: 1px solid var(--tf-color-border-subtle);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  background: transparent;
+  color: var(--tf-color-text);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  outline: none;
+}
+
+.cell:focus-visible,
+.cell:focus {
+  z-index: 1;
+  box-shadow: inset 0 0 0 2px var(--tf-color-accent);
+}
+
+.editable {
+  cursor: cell;
+}
+
+.editable:hover {
+  background: var(--tf-color-surface-hover);
+}
+
+.cellInput {
+  background: var(--tf-color-field);
+  box-shadow: inset 0 0 0 2px var(--tf-color-accent);
+}
+
+.cellInput[aria-invalid] {
+  box-shadow: inset 0 0 0 2px var(--tf-color-danger);
+}
+
+.cellPlaceholder {
+  color: var(--tf-color-text-disabled);
+}
+
+.exerciseCell {
+  cursor: pointer;
+}
+
+.exerciseCell:hover:not(:disabled) {
+  background: var(--tf-color-surface-hover);
+}
+
+.exerciseCell:disabled {
+  color: var(--tf-color-text);
+  cursor: default;
+}
+
+/* A comment marks the cell's corner, like a spreadsheet note. */
+.exerciseCell[data-comment]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-top: 7px solid var(--tf-color-warning);
+  border-left: 7px solid transparent;
+}
+
+.mixedCell {
+  color: var(--tf-color-text-secondary);
+  font-style: italic;
+}
+
+/* Minimap and zoom ----------------------------------------------------------------------------- */
+
+.minimap {
+  position: absolute;
+  right: var(--tf-space-3);
+  bottom: var(--tf-space-3);
+  z-index: 5;
+  display: grid;
+  gap: var(--tf-space-1);
+  padding: var(--tf-space-1-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: rgb(20 20 20 / 0.9);
+  box-shadow: var(--tf-shadow-md);
+  backdrop-filter: blur(8px);
+}
+
+.minimapSvg {
+  display: block;
+  border-radius: var(--tf-radius-xs);
+  background: var(--tf-color-bg-sunken);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.minimapSvg rect[data-kind="block"] {
+  fill: rgb(62 224 154 / 0.55);
+}
+
+.minimapSvg rect[data-kind="cycle"] {
+  fill: rgb(121 168 255 / 0.5);
+}
+
+.minimapSvg .minimapView {
+  fill: rgb(255 255 255 / 0.06);
+  stroke: rgb(255 255 255 / 0.55);
+  stroke-width: 1;
+}
+
+.zoom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.zoom button {
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 var(--tf-space-1);
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-2xs);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.zoom button:hover {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+
+.zoom svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* Exercise context menu: comment and formula --------------------------------------------------- */
+
+.menuForm {
+  display: grid;
+  gap: var(--tf-space-2);
+  width: 18rem;
+  padding-top: var(--tf-space-1);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.menuLabel {
+  display: grid;
+  gap: var(--tf-space-1);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.menuLabel > span {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+}
+
+.menuLabel svg {
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+.menuTextarea,
+.menuSelect {
+  width: 100%;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-field);
+  color: var(--tf-color-text);
+  font: inherit;
+  font-size: var(--tf-text-sm);
+  outline: none;
+}
+
+.menuTextarea {
+  padding: var(--tf-space-2);
+  resize: vertical;
+}
+
+.menuSelect {
+  height: var(--tf-control-sm);
+  padding: 0 var(--tf-space-2);
+}
+
+.menuTextarea:focus,
+.menuSelect:focus {
+  border-color: var(--tf-color-accent-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .cells2 {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Expanded cycle v2: transparent, so the table is written straight into the sheet's own cells. ----- */
+
+.card[data-expanded] {
+  overflow: visible;
+  border-color: rgb(121 168 255 / 0.35);
+  background: transparent;
+  box-shadow: none;
+}
+
+.card[data-expanded] .cardHead {
+  background: rgb(26 26 26 / 0.92);
+}
+
+.card[data-expanded] .cell {
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+}
+
+/* Column headings stay in view while a long cycle scrolls. */
+.headRow {
+  display: contents;
+}
+
+.colHead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgb(20 20 20 / 0.95);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  box-shadow: inset 0 -1px 0 var(--tf-color-border);
+}
+
+.workoutName {
+  flex: 0 1 16rem;
+  min-width: 0;
+  height: 1.5rem;
+  padding: 0 var(--tf-space-1);
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-xs);
+  background: transparent;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  outline: none;
+}
+
+.workoutName:focus {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-field);
+}
+
+.commentCell {
+  color: var(--tf-color-text-secondary);
+}
+
+button.cell:disabled {
+  color: var(--tf-color-text);
+  cursor: default;
+}
+
+/* Connection entry point: a dot on the card where the arrow lands. */
+.edgePort {
+  fill: var(--tf-color-bg-sunken);
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.edge {
+  stroke-width: 1.75;
+}
+
+/* Cell menus (exercise search, load, day, comment) ------------------------------------------------ */
+
+.popForm {
+  display: grid;
+  gap: var(--tf-space-2);
+  width: 16rem;
+}
+
+.popInput {
+  width: 100%;
+  height: var(--tf-control-sm);
+  padding: 0 var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-field);
+  color: var(--tf-color-text);
+  font: inherit;
+  font-size: var(--tf-text-sm);
+  outline: none;
+}
+
+.popInput:focus {
+  border-color: var(--tf-color-accent-border);
+}
+
+.popInput[aria-invalid] {
+  border-color: var(--tf-color-danger);
+}
+
+.popList {
+  display: grid;
+  max-height: 15rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.popOption {
+  padding: var(--tf-space-1-5) var(--tf-space-2);
+  border-radius: var(--tf-radius-sm);
+  font-size: var(--tf-text-sm);
+  cursor: default;
+}
+
+.popOption[aria-selected="true"] {
+  background: var(--tf-color-surface-hover);
+}
+
+.popEmpty {
+  padding: var(--tf-space-2);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.unitRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-field);
+}
+
+.unit {
+  height: 1.625rem;
+  border: 0;
+  border-radius: var(--tf-radius-xs);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  cursor: pointer;
+}
+
+.unit[aria-checked="true"] {
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.popActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--tf-space-2);
+}
+
+.popGhost,
+.popPrimary {
+  height: var(--tf-control-sm);
+  padding: 0 var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-xs);
+  cursor: pointer;
+}
+
+.popPrimary {
+  border-color: var(--tf-color-primary-border);
+  background: var(--tf-color-primary);
+  color: var(--tf-color-on-primary);
+}
+
+.dayGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 2rem);
+  gap: 3px;
+}
+
+.dayButton {
+  height: 2rem;
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.dayButton:hover {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+
+.dayButton[aria-selected="true"] {
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+}
+
+/* Volume panel ------------------------------------------------------------------------------------- */
+
+.volume {
+  position: absolute;
+  top: 2.75rem;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  width: min(30rem, 92%);
+  border-left: 1px solid var(--tf-color-border);
+  background: var(--tf-color-bg);
+  box-shadow: -24px 0 48px -24px rgb(0 0 0 / 0.6);
+  animation: panel-in 300ms var(--tf-ease-drawer);
+}
+
+.volumeHead {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  height: 3rem;
+  padding: 0 var(--tf-space-2) 0 var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.volumeTitle {
+  flex: 1;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.volumeBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-6);
+}
+
+.volumeCycle + .volumeCycle {
+  margin-top: var(--tf-space-5);
+}
+
+.volumeCycleTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.volumeTotal {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-regular);
+  white-space: nowrap;
+}
+
+.volumeTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.volumeTable th,
+.volumeTable td {
+  padding: var(--tf-space-1-5) var(--tf-space-2);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.volumeTable thead th {
+  color: var(--tf-color-text-tertiary);
+  font-weight: var(--tf-weight-regular);
+}
+
+.volumeTable th[scope="row"],
+.volumeTable thead th:first-child {
+  max-width: 11rem;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  font-weight: var(--tf-weight-regular);
+}
+
+.volumeTable tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.volumeEmpty,
+.volumeNote {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.volumeNote {
+  margin-top: var(--tf-space-4);
+  line-height: var(--tf-leading-normal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .volume {
+    animation: none;
+  }
+}
+
+/* v3: workout rows, framed selection, distinct add buttons, exercise autocomplete --------------- */
+
+/* Headings are a plain row: sticky headings inside the zoomed sheet jumped around when zooming in. */
+.colHead {
+  position: static;
+}
+
+.workoutRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  height: var(--cell-h);
+  padding: 0 var(--tf-space-1) 0 var(--tf-space-1);
+  background: rgb(121 168 255 / 0.07);
+  box-shadow: inset 2px 0 0 var(--tf-color-info);
+  transition: background-color 120ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .workoutRow:hover {
+    background: rgb(121 168 255 / 0.13);
+  }
+}
+
+.workoutRow .toggle:hover {
+  background: rgb(121 168 255 / 0.18);
+  color: var(--tf-color-info);
+}
+
+.dayChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 1.375rem;
+  padding: 0 var(--tf-space-2);
+  border: 1px solid rgb(121 168 255 / 0.3);
+  border-radius: var(--tf-radius-full);
+  background: transparent;
+  color: var(--tf-color-info);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.dayChip svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.dayChip:hover:not(:disabled) {
+  border-color: rgb(121 168 255 / 0.55);
+  background: rgb(121 168 255 / 0.15);
+}
+
+.dayChip:disabled {
+  cursor: default;
+}
+
+.workoutRow .menu:hover {
+  background: rgb(121 168 255 / 0.18);
+  color: var(--tf-color-info);
+}
+
+/* The workout a menu acts on gets a light frame around its heading and rows. */
+.workoutFrame {
+  z-index: 3;
+  border: 1px solid rgb(121 168 255 / 0.65);
+  border-radius: var(--tf-radius-sm);
+  box-shadow: 0 0 0 3px rgb(121 168 255 / 0.12);
+  pointer-events: none;
+}
+
+/* "+ Exercise" lives inside a workout: one cell, quiet, indented. */
+.addExercise {
+  padding-left: var(--tf-space-4);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  cursor: pointer;
+}
+
+.addExercise:hover {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+
+.addExercise svg,
+.addWorkout svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* "+ Workout" closes the cycle: one cell, blue, with its own frame. */
+.addWorkout {
+  margin: 3px;
+  height: calc(var(--cell-h) - 6px);
+  border: 1px dashed rgb(121 168 255 / 0.45);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-color-info);
+  font-weight: var(--tf-weight-medium);
+  cursor: pointer;
+}
+
+.addWorkout:hover {
+  border-style: solid;
+  background: rgb(121 168 255 / 0.12);
+}
+
+/* Exercise autocomplete */
+.exerciseEdit {
+  position: relative;
+  z-index: 4;
+}
+
+.exerciseEdit .cellInput {
+  width: 100%;
+}
+
+.exerciseEdit .cellInput[aria-invalid] {
+  background: var(--tf-color-danger-soft);
+  color: var(--tf-color-danger);
+}
+
+.suggest {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  z-index: 10;
+  display: grid;
+  min-width: 100%;
+  max-width: 22rem;
+  max-height: 14rem;
+  margin: 0;
+  padding: var(--tf-space-1);
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-overlay);
+  box-shadow: var(--tf-shadow-md);
+  animation: menu-in 120ms var(--tf-ease-out);
+}
+
+/* Names read as text you can grab; double-click turns them into an input. */
+span.name,
+span.description,
+span.headName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: inherit;
+}
+
+span.headName {
+  flex: 0 1 14rem;
+}
+
+.nameEditing {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-field);
+  cursor: text;
+}
+
+/* Volume: one small table per workout, then the cycle total; no sideways scrolling. */
+.volumeGroup {
+  margin-top: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-3) var(--tf-space-1);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+}
+
+.volumeGroupTotal {
+  background: rgb(255 255 255 / 0.03);
+}
+
+.volumeGroupTitle {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--tf-space-1);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.volumeGroupTitle span {
+  color: var(--tf-color-info);
+  font-weight: var(--tf-weight-regular);
+}
+
+.volumeTable {
+  table-layout: fixed;
+}
+
+.volumeTable th:not(:first-child),
+.volumeTable td {
+  width: 4rem;
+}
+
+/* v4: steady cursor, plugged cables with a current, folded cycle calendar, clock segments --------- */
+
+/* Buttons on the sheet keep the normal arrow; only text you can edit shows a text cursor. */
+.sheet button,
+.editable,
+.exerciseCell {
+  cursor: default;
+}
+
+span[data-rename] {
+  border-radius: var(--tf-radius-xs);
+  cursor: text;
+  transition: background-color 120ms ease;
+}
+
+span[data-rename]:hover {
+  background: rgb(255 255 255 / 0.05);
+}
+
+/* Cables: quiet grey wires that plug into the cycle. Hovering a card, or a cable, sends a current
+   along every cable it is part of. */
+.edges {
+  color: rgb(255 255 255 / 0.24);
+}
+
+.edge {
+  stroke-width: 1.25;
+  stroke-linecap: round;
+}
+
+.edgeGroup {
+  transition: color 160ms ease;
+}
+
+.edgeGroup[data-live] {
+  color: rgb(62 224 154 / 0.5);
+}
+
+.edgeGroup .edge {
+  transition: stroke-width 160ms ease;
+}
+
+.edgeGroup[data-live] .edge {
+  stroke-width: 1.5;
+}
+
+.edgeCurrent {
+  fill: none;
+  stroke: var(--tf-color-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 2 14;
+  filter: drop-shadow(0 0 2px rgb(62 224 154 / 0.9));
+  animation: edge-current 700ms linear infinite;
+}
+
+@keyframes edge-current {
+  from {
+    stroke-dashoffset: 16;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.plug {
+  fill: currentColor;
+}
+
+.plugPins {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+}
+
+.edgeGroup[data-live] .plug {
+  fill: var(--tf-color-accent);
+}
+
+.edgeDraft {
+  stroke: var(--tf-color-accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+
+/* The block's socket: a small outlet on its edge. Dragging from it draws a new cable. */
+.handle {
+  top: calc(var(--cell-h) - 11px);
+  right: -6px;
+  width: 11px;
+  height: 14px;
+  border: 1.5px solid rgb(255 255 255 / 0.3);
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 50% 32%, rgb(255 255 255 / 0.45) 1px, transparent 1.5px),
+    radial-gradient(circle at 50% 68%, rgb(255 255 255 / 0.45) 1px, transparent 1.5px),
+    var(--tf-color-bg-sunken);
+  transition:
+    border-color 160ms ease,
+    transform 120ms ease;
+}
+
+.handle:hover:not([data-readonly]),
+.card:hover > .handle {
+  border-color: var(--tf-color-accent);
+}
+
+.handle[data-readonly] {
+  cursor: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edgeCurrent {
+    animation: none;
+    stroke-dasharray: none;
+    stroke-width: 1.5;
+  }
+}
+
+/* Folded cycle: every day of the cycle, one line each; days without a workout read as rest days. */
+
+/* Time and rest while editing: fixed hh:mm:ss parts that jump forward as you type. */
+.clockEdit {
+  padding: 0 var(--tf-space-2);
+}
+
+/* Exercise suggestions: the name and the muscles it works (the search matches both). */
+.suggest .popOption {
+  display: grid;
+  gap: 1px;
+}
+
+.suggestName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestMeta {
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* v5: hover on ⋮, blue frame on expanded cycles, green cables, floating glass toolbar, cycle tiles --- */
+
+.menu {
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.menu:hover {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+
+/* Expanded cycle: a full bluish frame; the border sits just outside the cells so nothing covers it. */
+.card[data-expanded] {
+  margin: -1px;
+  border: 1px solid rgb(121 168 255 / 0.55);
+  box-shadow: 0 0 0 3px rgb(121 168 255 / 0.08);
+}
+
+.card[data-expanded] .cardHead {
+  border-bottom-color: rgb(121 168 255 / 0.3);
+}
+
+.card[data-expanded] .addWorkout {
+  border: 1px dashed rgb(121 168 255 / 0.45);
+}
+
+.card[data-expanded] .addWorkout:hover {
+  border-style: solid;
+}
+
+/* Cables are green; the current brightens them. */
+.edges {
+  color: rgb(62 224 154 / 0.42);
+}
+
+.edgeGroup[data-live] {
+  color: rgb(62 224 154 / 0.8);
+}
+
+/* Floating toolbar over the sheet: dark glass. */
+.tools {
+  position: absolute;
+  bottom: var(--tf-space-3);
+  left: calc(var(--tf-space-3) + 24px);
+  z-index: 5;
+  height: 2.5rem;
+  max-width: calc(100% - 15rem);
+  padding: 0 var(--tf-space-1-5);
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: var(--tf-radius-lg);
+  border-bottom-width: 1px;
+  background: rgb(12 12 12 / 0.72);
+  box-shadow: 0 8px 24px -12px rgb(0 0 0 / 0.7);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+.minimap {
+  background: rgb(12 12 12 / 0.72);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+.volume {
+  top: 0;
+}
+
+/* Folded cycle: a mini calendar (blue tiles for training days, quiet ones for rest days) and a
+   legend of its workouts. */
+.tiles {
+  display: grid;
+  gap: 3px;
+  margin-top: var(--tf-space-1);
+}
+
+.tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-sm);
+  font: inherit;
+}
+
+.tile[data-kind="workout"] {
+  border-color: rgb(121 168 255 / 0.32);
+  background: rgb(121 168 255 / 0.14);
+  color: var(--tf-color-text);
+}
+
+.tile[data-kind="rest"] {
+  border-color: var(--tf-color-border-subtle);
+  background: rgb(255 255 255 / 0.02);
+  color: var(--tf-color-text-disabled);
+}
+
+button.tile[data-kind="rest"]:hover {
+  border-color: var(--tf-color-border-strong);
+  color: var(--tf-color-text-secondary);
+}
+
+.tile svg {
+  width: 0.6875rem;
+  height: 0.6875rem;
+}
+
+.tileDot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tf-color-warning);
+}
+
+.legend {
+  display: grid;
+  gap: 0;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  height: 20px;
+  min-width: 0;
+  font-size: var(--tf-text-2xs);
+}
+
+.legendName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legendDay {
+  flex: none;
+  color: var(--tf-color-text-tertiary);
+}
+
+/* Duration input: fixed hh:mm:ss / mm:ss parts. */
+.duration {
+  display: inline-flex;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.durationPart {
+  display: inline-flex;
+  align-items: center;
+}
+
+.durationSep {
+  padding: 0 1px;
+  color: var(--tf-color-text-tertiary);
+}
+
+.durationSegment {
+  padding: 1px 2px;
+  border-radius: 3px;
+  color: var(--tf-color-text);
+  outline: none;
+  cursor: default;
+}
+
+.durationSegment[data-focused] {
+  background: rgb(62 224 154 / 0.24);
+}
+
+/* Volume: variant switch and five narrow numeric columns. */
+.volumeContent {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.volumeBy {
+  justify-self: start;
+}
+
+.volumeTable th:not(:first-child),
+.volumeTable td {
+  width: 3.25rem;
+  padding-left: var(--tf-space-1);
+  padding-right: var(--tf-space-1);
+}
+
+.volumeHard {
+  color: var(--tf-color-warning);
+}
+
+.volumeKg {
+  color: var(--tf-color-info);
+}
+
+/* v6: aligned headings, plain day labels, area selection, top glass toolbar ----------------------- */
+
+/* Workout heading: laid on the cycle's own columns — name in the first two cells, the day in the
+   third, ⋮ in the last. No extra frames: the sheet's cells already draw the lines. */
+.workoutRow {
+  display: grid;
+  grid-template-columns: subgrid;
+  gap: 0;
+  padding: 0;
+}
+
+.workoutMain {
+  grid-column: 1 / span 2;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  min-width: 0;
+  padding-left: var(--tf-space-1);
+}
+
+.workoutMain .workoutName {
+  flex: 1;
+}
+
+.dayChip {
+  grid-column: 3;
+  justify-content: flex-start;
+  height: 100%;
+  padding: 0 var(--tf-space-2);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.dayChip:hover:not(:disabled) {
+  background: rgb(121 168 255 / 0.12);
+}
+
+.workoutRow > .menu {
+  grid-column: -2;
+  justify-self: end;
+  margin-right: var(--tf-space-1);
+}
+
+/* Cycle heading: name group, then the length; on an expanded cycle they sit on cell boundaries. */
+.headMain {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  min-width: 0;
+}
+
+.card[data-expanded] .cardHead {
+  display: grid;
+  grid-template-columns: calc(var(--cell-w) * 2 - var(--tf-space-2)) var(--cell-w) minmax(0, 1fr) auto;
+  gap: 0;
+  padding: 0 var(--tf-space-1) 0 var(--tf-space-2);
+}
+
+.card[data-expanded] .cardHead .kind {
+  padding-left: var(--tf-space-2);
+}
+
+.card[data-expanded] .cardHead > :last-child {
+  grid-column: 4;
+}
+
+/* Folded cycle tiles: just the day number; training days are blue and open the cycle. */
+.tile {
+  font-size: var(--tf-text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.tile[data-kind="workout"] {
+  font-weight: var(--tf-weight-medium);
+}
+
+button.tile[data-kind="workout"]:hover {
+  border-color: rgb(121 168 255 / 0.6);
+  background: rgb(121 168 255 / 0.22);
+}
+
+.tile[data-kind="rest"] {
+  color: var(--tf-color-text-tertiary);
+}
+
+.legendDot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin: 0 3px;
+  border-radius: 2px;
+  background: var(--tf-color-info);
+}
+
+/* Area selection */
+.marquee {
+  position: absolute;
+  z-index: 5;
+  border: 1px solid rgb(62 224 154 / 0.7);
+  border-radius: 2px;
+  background: rgb(62 224 154 / 0.08);
+  pointer-events: none;
+}
+
+.card[data-selected] {
+  border-color: var(--tf-color-accent-border);
+  box-shadow:
+    0 0 0 2px rgb(62 224 154 / 0.22),
+    var(--tf-shadow-sm);
+}
+
+/* Toolbar: a full-width dark glass bar on top; the sheet scrolls underneath it. */
+.tools {
+  top: 0;
+  right: 0;
+  bottom: auto;
+  left: 0;
+  height: 2.75rem;
+  max-width: none;
+  padding: 0 var(--tf-space-3);
+  border: 0;
+  border-bottom: 1px solid var(--tf-color-border);
+  border-radius: 0;
+  background: rgb(20 20 20 / 0.82);
+  box-shadow: 0 6px 18px -12px rgb(0 0 0 / 0.8);
+}
+
+.scroller {
+  padding-top: 2.75rem;
+}
+
+.volume {
+  top: 2.75rem;
+}
+
+/* v7: everything that changes on the sheet changes smoothly ------------------------------------- */
+
+/* Expanding and folding: the card grows/shrinks to its new size while neighbours glide away. */
+.card {
+  transition:
+    left 320ms var(--tf-ease-in-out),
+    top 320ms var(--tf-ease-in-out),
+    width 280ms var(--tf-ease-in-out),
+    min-height 280ms var(--tf-ease-in-out),
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.card[data-dragging] {
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+/* New content settles in: the folded calendar, the expanded cells, rows of a reopened workout. */
+.tiles,
+.legend {
+  animation: settle-in 240ms var(--tf-ease-out) both;
+}
+
+.legend {
+  animation-delay: 40ms;
+}
+
+.cells2 [data-enter] > *,
+.cells2 > [data-enter] {
+  animation: settle-in 220ms var(--tf-ease-out) both;
+}
+
+@keyframes settle-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+/* Hover and state changes fade instead of snapping. */
+.sheet :is(button, .cell, .tile, .popOption, .unit, .dayButton, .toggle, .menu, .handle, span[data-rename], .workoutRow) {
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    opacity 140ms ease,
+    box-shadow 140ms ease,
+    transform 120ms ease;
+}
+
+.edgeGroup .edge,
+.edgeGroup .plug {
+  transition:
+    stroke-width 160ms ease,
+    fill 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .tiles,
+  .legend,
+  .cells2 [data-enter] > *,
+  .cells2 > [data-enter] {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Fold arrows: one chevron that turns; the button never changes size. */
+.toggle {
+  flex: none;
+  width: 1.25rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+}
+
+.toggle svg {
+  flex: none;
+  transition: transform 200ms var(--tf-ease-out);
+}
+
+.toggle svg[data-open] {
+  transform: rotate(90deg);
+}

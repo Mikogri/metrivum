@@ -1,0 +1,31 @@
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--tf-color-surface-raised) 0%,
+    var(--tf-color-surface-hover) 40%,
+    var(--tf-color-surface-raised) 80%
+  );
+  background-size: 300% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+.sm { border-radius: var(--tf-radius-xs); }
+.md { border-radius: var(--tf-radius-md); }
+.lg { border-radius: var(--tf-radius-lg); }
+.full { border-radius: var(--tf-radius-full); }
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

@@ -1,0 +1,713 @@
+/* Tones: every mark paints with currentColor, so one attribute colours lines, fills and dots. */
+.tone,
+.spark,
+.kpi {
+  color: var(--tf-color-accent);
+}
+
+[data-tone="info"] {
+  color: var(--tf-color-info);
+}
+
+[data-tone="violet"] {
+  color: var(--tf-color-violet);
+}
+
+[data-tone="warning"] {
+  color: var(--tf-color-warning);
+}
+
+[data-tone="danger"] {
+  color: var(--tf-color-danger);
+}
+
+[data-tone="neutral"],
+[data-ghost] {
+  color: var(--tf-color-text-tertiary);
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ KPI */
+
+.kpi {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-3);
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  animation: rise 560ms var(--tf-ease-out) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+.kpi header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.kpiLabel {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.kpiValue {
+  color: var(--tf-color-text);
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-3xl);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-display);
+  line-height: 1.05;
+}
+
+.kpiCaption {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px var(--tf-space-1-5);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.delta[data-tone="up"] {
+  background: var(--tf-color-success-soft);
+  color: var(--tf-color-success);
+}
+
+.delta[data-tone="down"] {
+  background: var(--tf-color-danger-soft);
+  color: var(--tf-color-danger);
+}
+
+.delta svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.spark {
+  width: calc(100% + var(--tf-space-10));
+  height: 2.25rem;
+  margin: 0 calc(var(--tf-space-5) * -1) calc(var(--tf-space-3) * -1);
+  overflow: visible;
+}
+
+.kpi[data-tone] .spark {
+  color: inherit;
+}
+
+.sparkLine {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-dasharray: 1;
+  animation: draw 1100ms var(--tf-ease-out) both;
+  animation-delay: calc(200ms + var(--i, 0) * 60ms);
+}
+
+
+/* ------------------------------------------------------------ area chart */
+
+.area {
+  position: relative;
+  width: 100%;
+}
+
+.area svg {
+  display: block;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+.grid line {
+  stroke: var(--tf-color-border-subtle);
+  stroke-dasharray: 2 4;
+}
+
+.grid text,
+.xLabel {
+  fill: var(--tf-color-text-tertiary);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  /* Draws in once; afterwards new data morphs the same path. */
+  animation: draw 1300ms var(--tf-ease-out) both;
+  transition: d 700ms var(--tf-ease-out);
+}
+
+[data-ghost] .line {
+  stroke-width: 1.5;
+  stroke-dasharray: 3 5;
+}
+
+/* A flat, faint wash under the main line: shape without a gradient. */
+.fill {
+  fill: currentColor;
+  fill-opacity: 0.08;
+  animation: fill-in 1000ms var(--tf-ease-out) 250ms both;
+  transition: d 700ms var(--tf-ease-out);
+}
+
+.noData {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--tf-space-1);
+  padding: var(--tf-space-4);
+  border: 1px dashed var(--tf-color-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-align: center;
+}
+
+.noData strong {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.noDataIcon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: var(--tf-space-1);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-text-tertiary);
+}
+
+.noDataIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.ringArt strong[data-empty] {
+  color: var(--tf-color-text-tertiary);
+  font-family: var(--tf-font-sans);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.cursor line {
+  stroke: var(--tf-color-border-strong);
+}
+
+.cursor circle {
+  fill: var(--tf-color-bg);
+  stroke: currentColor;
+  stroke-width: 2;
+  animation: pop 180ms var(--tf-ease-out);
+}
+
+.tooltip {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  gap: 3px;
+  min-width: 10rem;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-overlay);
+  box-shadow: var(--tf-shadow-menu);
+  font-size: var(--tf-text-xs);
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: tip-in 140ms var(--tf-ease-out);
+}
+
+.tooltip strong {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.tipRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  color: var(--tf-color-text-secondary);
+}
+
+.tipRow b,
+.legend b,
+.splitLegend b {
+  margin-left: auto;
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.tipRow i,
+.legend i,
+.splitLegend i {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+/* ------------------------------------------------------------ bars */
+
+.barsWrap {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.bars {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(1px, 0.6%, 6px);
+  border-bottom: 1px solid var(--tf-color-border);
+}
+
+.column {
+  display: flex;
+  align-items: flex-end;
+  flex: 1;
+  height: 100%;
+  border-radius: 4px 4px 0 0;
+  transition: background-color 120ms ease;
+}
+
+.column[data-hover] {
+  background: var(--tf-color-surface-hover);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 3px 3px 0 0;
+  transform-origin: bottom;
+  animation: grow 760ms var(--tf-ease-out) backwards;
+  animation-delay: calc(var(--i) * min(30ms, 600ms / var(--n)));
+  transition: transform 600ms var(--tf-ease-out);
+}
+
+.stack span {
+  flex-basis: 0;
+  min-height: 0;
+  background: currentColor;
+  transition: flex-grow 600ms var(--tf-ease-out);
+}
+
+.stack span + span {
+  box-shadow: 0 -1px 0 var(--tf-color-surface);
+}
+
+.barAxis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--tf-color-text-tertiary);
+  font-size: 10.5px;
+}
+
+.flow {
+  display: flex;
+  gap: clamp(1px, 0.6%, 6px);
+  height: 140px;
+}
+
+.flowColumn {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  flex: 1;
+  border-radius: 3px;
+}
+
+.flowColumn:hover {
+  background: var(--tf-color-surface-hover);
+}
+
+.gain,
+.loss {
+  border-radius: 3px;
+  animation: grow 700ms var(--tf-ease-out) backwards;
+  animation-delay: calc(var(--i) * 25ms);
+  transition: transform 600ms var(--tf-ease-out);
+}
+
+.gain {
+  align-self: end;
+  height: 100%;
+  border-bottom: 1px solid var(--tf-color-border);
+  background: var(--tf-color-accent);
+  transform-origin: bottom;
+}
+
+.loss {
+  align-self: start;
+  height: 100%;
+  background: var(--tf-color-danger);
+  transform-origin: top;
+}
+
+/* ------------------------------------------------------------ donut, ring */
+
+.donutWrap {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--tf-space-6);
+}
+
+.donut {
+  position: relative;
+  aspect-ratio: 1;
+}
+
+.donut svg,
+.ringArt svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.track {
+  fill: none;
+  stroke: var(--tf-color-surface-overlay);
+  stroke-width: 12;
+}
+
+.segment {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 12;
+  stroke-linecap: butt;
+  animation: sweep 1100ms var(--tf-ease-out) backwards;
+  animation-delay: calc(var(--i) * 160ms);
+  transition:
+    stroke-dasharray 700ms var(--tf-ease-out),
+    stroke-dashoffset 700ms var(--tf-ease-out);
+}
+
+@keyframes sweep {
+  from {
+    stroke-dasharray: 0 400;
+  }
+}
+
+.donutCenter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.donutCenter strong {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-lg);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.donutCenter span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+}
+
+.legend {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+  animation: rise 500ms var(--tf-ease-out) both;
+  animation-delay: calc(300ms + var(--i) * 80ms);
+}
+
+.legend li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legend small {
+  grid-column: 2 / -1;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.ring {
+  display: grid;
+  justify-items: center;
+  gap: var(--tf-space-2);
+  margin: 0;
+  text-align: center;
+}
+
+.ringArt {
+  position: relative;
+  width: 6.5rem;
+  aspect-ratio: 1;
+}
+
+.ringArt strong {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.ringArt .track {
+  stroke-width: 8;
+}
+
+.ringValue {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 8;
+  stroke-linecap: round;
+  animation: sweep 1200ms var(--tf-ease-out) 150ms backwards;
+  transition: stroke-dasharray 700ms var(--tf-ease-out);
+}
+
+.ring figcaption {
+  display: grid;
+  gap: 2px;
+  font-size: var(--tf-text-sm);
+}
+
+.ring small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+/* ------------------------------------------------------------ funnel, ranking, split */
+
+.funnel,
+.rank {
+  display: grid;
+  gap: var(--tf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.funnel li,
+.rank li {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  animation: rise 500ms var(--tf-ease-out) both;
+  animation-delay: calc(var(--i) * 90ms);
+}
+
+.funnelHead,
+.rankHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+}
+
+.funnelHead strong {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-lg);
+}
+
+.funnelHead small,
+.rank small {
+  margin-left: auto;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.rankHead b {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.funnelTrack,
+.rankTrack {
+  height: 0.625rem;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-overlay);
+}
+
+.rankTrack {
+  height: 0.375rem;
+}
+
+.funnelTrack span,
+.rankTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+  transform-origin: left;
+  animation: grow-x 900ms var(--tf-ease-out) backwards;
+  animation-delay: calc(150ms + var(--i) * 110ms);
+  transition: transform 700ms var(--tf-ease-out);
+}
+
+.split {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.splitBar {
+  display: flex;
+  gap: 3px;
+  height: 0.75rem;
+}
+
+.splitBar span {
+  flex-basis: 0;
+  border-radius: var(--tf-radius-full);
+  background: currentColor;
+  transform-origin: left;
+  animation: grow-x 900ms var(--tf-ease-out) backwards;
+  transition: flex-grow 700ms var(--tf-ease-out);
+}
+
+.splitBar span + span {
+  transform-origin: right;
+  animation-delay: 120ms;
+}
+
+.splitLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2) var(--tf-space-5);
+  font-size: var(--tf-text-sm);
+}
+
+.splitLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+/* ------------------------------------------------------------ keyframes */
+
+/* Panels and rows move into place; nothing fades. */
+@keyframes rise {
+  from {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fill-in {
+  from {
+    transform: translateY(12px);
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes pop {
+  from {
+    r: 0;
+  }
+}
+
+@keyframes tip-in {
+  from {
+    transform: translateX(-50%) translateY(4px);
+  }
+}
+
+@media (max-width: 40rem) {
+  .donutWrap {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .donut {
+    width: 9rem;
+  }
+
+  .legend {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kpi,
+  .sparkLine,
+  .line,
+  .fill,
+  .stack,
+  .gain,
+  .loss,
+  .segment,
+  .ringValue,
+  .legend li,
+  .funnel li,
+  .rank li,
+  .funnelTrack span,
+  .rankTrack span,
+  .splitBar span,
+  .tooltip,
+  .cursor circle {
+    animation: none;
+    transition: none;
+  }
+
+  .line {
+    stroke-dasharray: none;
+  }
+}

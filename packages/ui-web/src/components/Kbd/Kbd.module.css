@@ -1,0 +1,16 @@
+.kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 var(--tf-space-1);
+  border: 1px solid var(--tf-color-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--tf-radius-xs);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  font-family: var(--tf-font-sans);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  line-height: 1;
+}

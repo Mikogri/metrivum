@@ -1,0 +1,341 @@
+.section {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  gap: var(--tf-space-8);
+  max-width: var(--tf-content-max);
+  margin: 0 auto;
+  padding: clamp(var(--tf-space-16), 10vw, 8rem) var(--tf-space-5) clamp(var(--tf-space-12), 8vw, var(--tf-space-24));
+}
+
+/* A faint horizon of light the plans sit under. */
+.horizon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(60rem, 100%);
+  height: 22rem;
+  display: none;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* ---- Billing switch ---- */
+
+.billing {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-overlay);
+}
+
+.billingThumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+  box-shadow:
+    0 0 0 1px var(--tf-color-border-strong) inset,
+    0 1px 0 color-mix(in srgb, var(--tf-color-text) 6%, transparent) inset;
+  transition: transform 450ms var(--tf-ease-out);
+}
+
+.billing[data-period="yearly"] .billingThumb {
+  transform: translateX(100%);
+}
+
+.billingOption {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-4);
+  border-radius: var(--tf-radius-full);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+
+.billingOption[data-selected] {
+  color: var(--tf-color-text);
+}
+
+.billingOption[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+.saving {
+  padding: 1px var(--tf-space-1-5);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+  font-size: var(--tf-text-2xs);
+}
+
+/* ---- Plans ---- */
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--tf-space-4);
+  width: 100%;
+  max-width: 66rem;
+  perspective: 1600px;
+}
+
+.plan {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto 1fr;
+  align-content: start;
+  padding: var(--tf-space-6);
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--tf-glass-border, var(--tf-color-border));
+  background: var(--tf-glass, var(--tf-color-surface));
+  -webkit-backdrop-filter: var(--tf-glass-blur, none);
+  backdrop-filter: var(--tf-glass-blur, none);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.06) inset,
+    0 30px 60px -30px rgb(0 0 0 / 0.8);
+  transition:
+    opacity 700ms ease,
+    transform 1000ms var(--tf-ease-out),
+    scale 450ms var(--tf-ease-out);
+  transition-delay: calc(var(--order) * 110ms), calc(var(--order) * 110ms), 0ms;
+}
+
+.plan[data-featured] {
+  border-color: var(--tf-color-accent-border);
+  box-shadow:
+    0 1px 0 rgb(87 242 159 / 0.35) inset,
+    0 0 0 1px rgb(87 242 159 / 0.15),
+    0 0 60px -10px rgb(87 242 159 / 0.35),
+    0 30px 60px -30px rgb(0 0 0 / 0.8);
+}
+
+/* Cards tip up from the table, the recommended one first. */
+:global(html[data-motion]) .plans:not([data-inview]) .plan {
+  opacity: 0;
+  transform: translateY(56px) rotateX(10deg) scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .plan:hover {
+    scale: 0.985;
+  }
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.dots {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(color-mix(in srgb, var(--tf-color-accent) 35%, transparent) 1px, transparent 1.2px);
+  background-size: 7px 7px;
+  mask-image: radial-gradient(ellipse 40% 30% at 100% 0%, black, transparent 75%);
+  pointer-events: none;
+}
+
+.planHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.planName {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-display);
+}
+
+.badge {
+  padding: 2px var(--tf-space-2);
+  border: 1px solid var(--tf-color-accent-border);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.description {
+  min-height: 2.8em;
+  margin-top: var(--tf-space-2);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-6);
+}
+
+.figure {
+  display: inline-block;
+  overflow: clip;
+  padding-bottom: 0.08em;
+}
+
+.amount {
+  display: inline-block;
+  font-family: var(--tf-font-display);
+  font-size: 3rem;
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tf-tracking-display);
+  line-height: 1;
+  animation: price-in 520ms var(--tf-ease-out);
+}
+
+.symbol {
+  margin-inline: 0.04em;
+  font-size: 0.55em;
+  vertical-align: 0.6em;
+  color: var(--tf-color-text-secondary);
+}
+
+/* Currencies written after the number (zł) sit on the baseline instead. */
+.symbol[data-after] {
+  margin-left: 0.12em;
+  font-size: 0.42em;
+  vertical-align: baseline;
+}
+
+@keyframes price-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(60%);
+  }
+}
+
+.per {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.billed {
+  min-height: 1.4em;
+  margin-top: var(--tf-space-1-5);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.cta {
+  margin-top: var(--tf-space-6);
+}
+
+.included {
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-6);
+  padding-top: var(--tf-space-5);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.lead {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.features {
+  display: grid;
+  gap: var(--tf-space-2-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.features li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2-5);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-snug);
+  transition:
+    opacity 500ms ease,
+    transform 600ms var(--tf-ease-out);
+  transition-delay: calc(var(--order) * 110ms + 380ms + var(--i) * 50ms);
+}
+
+:global(html[data-motion]) .plans:not([data-inview]) .features li {
+  opacity: 0;
+  transform: translateX(-6px);
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 1px;
+  border: 1px solid var(--tf-color-border-strong);
+  border-radius: 5px;
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+}
+
+.plan[data-featured] .check {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.check svg {
+  width: 0.6875rem;
+  height: 0.6875rem;
+  stroke-width: 2.75;
+}
+
+.note {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+@media (max-width: 60rem) {
+  .plans {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 30rem;
+  }
+
+  .description {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .amount {
+    animation: none;
+  }
+}

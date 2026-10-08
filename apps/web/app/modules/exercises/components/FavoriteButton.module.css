@@ -1,0 +1,17 @@
+.on {
+  color: var(--tf-color-danger);
+  fill: currentColor;
+  animation: beat 360ms var(--tf-ease-spring);
+}
+
+@keyframes beat {
+  40% {
+    transform: scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .on {
+    animation: none;
+  }
+}

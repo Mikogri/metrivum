@@ -1,0 +1,97 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--tf-space-4);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-6);
+  min-width: 0;
+  padding: var(--tf-space-6);
+  border-radius: 10px;
+  border: 1px solid var(--tf-glass-border, var(--tf-color-border));
+  background: var(--tf-glass, var(--tf-color-surface));
+  -webkit-backdrop-filter: var(--tf-glass-blur, none);
+  backdrop-filter: var(--tf-glass-blur, none);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.06) inset,
+    0 30px 60px -30px rgb(0 0 0 / 0.8);
+  transition:
+    opacity 700ms ease,
+    transform 900ms var(--tf-ease-out),
+    scale 450ms var(--tf-ease-out),
+    box-shadow 450ms var(--tf-ease-out);
+  transition-delay: calc(var(--i) * 80ms), calc(var(--i) * 80ms), 0ms, 0ms;
+}
+
+.tile[data-span="5"] {
+  grid-column: span 5;
+}
+
+.tile[data-span="6"] {
+  grid-column: span 6;
+}
+
+.tile[data-span="7"] {
+  grid-column: span 7;
+}
+
+.tile[data-span="12"] {
+  grid-column: span 12;
+}
+
+:global(html[data-motion]) .grid:not([data-inview]) .tile {
+  opacity: 0;
+  transform: translateY(32px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* The tile sinks a little into the page under the pointer; `scale` stays separate from the reveal transform. */
+  .tile:hover {
+    scale: 0.985;
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.04) inset,
+      0 12px 30px -24px rgb(0 0 0 / 0.8);
+  }
+}
+
+.copy {
+  display: grid;
+  gap: var(--tf-space-2);
+  max-width: 34rem;
+}
+
+.copy h3 {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-2xl);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-display);
+  line-height: 1.1;
+}
+
+.body {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-md);
+  line-height: var(--tf-leading-relaxed);
+}
+
+.visual {
+  display: grid;
+  align-items: end;
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 60rem) {
+  .tile[data-span] {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 40rem) {
+  .tile {
+    padding: var(--tf-space-5);
+  }
+}

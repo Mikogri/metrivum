@@ -1,0 +1,17 @@
+{
+  "name": "@trainflow/api-client-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Typed TrainFlow API contract for the web app. Types come from contracts/generated (never edited by hand).",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

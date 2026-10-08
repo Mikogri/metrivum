@@ -1,0 +1,37 @@
+.picker {
+  display: grid;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-bg-sunken);
+}
+
+.version,
+.label {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.inputs {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.evaluate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.result {
+  color: var(--tf-color-accent);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.error {
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+}
