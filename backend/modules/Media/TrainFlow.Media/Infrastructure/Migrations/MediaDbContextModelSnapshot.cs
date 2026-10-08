@@ -48,6 +48,9 @@ namespace TrainFlow.Media.Infrastructure.Migrations
                     b.Property<int>("DeleteAttempts")
                         .HasColumnType("integer");
 
+                    b.Property<long?>("DurationMs")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -63,6 +66,13 @@ namespace TrainFlow.Media.Infrastructure.Migrations
 
                     b.Property<bool>("Pinned")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Video");
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint");

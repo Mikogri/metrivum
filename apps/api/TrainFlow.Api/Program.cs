@@ -1,3 +1,11 @@
+using TrainFlow.ClientDocumentation;
+using TrainFlow.ClientDocumentation.Infrastructure;
+using TrainFlow.Notifications;
+using TrainFlow.Analytics;
+using TrainFlow.Messaging;
+using TrainFlow.Messaging.Infrastructure;
+using TrainFlow.Calendar;
+using TrainFlow.Calendar.Infrastructure;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,6 +19,16 @@ using TrainFlow.Access.Domain;
 using TrainFlow.Access.Infrastructure;
 using TrainFlow.Accounts;
 using TrainFlow.Accounts.Infrastructure;
+using TrainFlow.Coaching;
+using TrainFlow.Coaching.Infrastructure;
+using TrainFlow.Forms;
+using TrainFlow.Forms.Infrastructure;
+using TrainFlow.Offers;
+using TrainFlow.Offers.Infrastructure;
+using TrainFlow.CheckIns;
+using TrainFlow.CheckIns.Infrastructure;
+using TrainFlow.Billing;
+using TrainFlow.Billing.Infrastructure;
 using TrainFlow.Api.Errors;
 using TrainFlow.Api.Security;
 using TrainFlow.ExerciseCatalog;
@@ -23,13 +41,19 @@ using TrainFlow.VideoAnalysis;
 using TrainFlow.VideoAnalysis.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true).AddEnvironmentVariables();
+// Browser SignalR transports carry JWTs in query strings; suppress request URL logging.
+builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
+if (!builder.Environment.IsEnvironment("Testing"))
+    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
+builder.Configuration.AddEnvironmentVariables();
 var exportContracts = args.Contains("--export-contracts");
 var migrate = args.Contains("--migrate");
 var connectionString = builder.Configuration.GetConnectionString(migrate ? "MigrationDatabase" : "Database");
 if (exportContracts) connectionString ??= "Host=127.0.0.1;Database=contract_export;Username=unconfigured";
 if (string.IsNullOrWhiteSpace(connectionString)) throw new InvalidOperationException("Set ConnectionStrings__Database (or ConnectionStrings__MigrationDatabase for the explicit --migrate command).");
 var connection = new NpgsqlConnectionStringBuilder(connectionString);
+if (builder.Environment.IsEnvironment("Testing") && connection.Host is not ("localhost" or "127.0.0.1" or "::1"))
+    throw new InvalidOperationException("The isolated Testing host requires a loopback PostgreSQL database.");
 if (!exportContracts && !migrate && !builder.Environment.IsEnvironment("Testing") && connection.Username is "postgres" or "supabase_admin")
     throw new InvalidOperationException("Use the restricted trainflow_api role for normal API operation, not a database administrator.");
 if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing") && connection.SslMode != SslMode.VerifyFull)
@@ -43,11 +67,15 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAccounts(builder.Configuration).AddAccess(builder.Configuration)
     .AddExerciseCatalog(builder.Configuration).AddTraining(builder.Configuration)
-    .AddMedia(builder.Configuration).AddVideoAnalysis(builder.Configuration);
+    .AddMedia(builder.Configuration).AddVideoAnalysis(builder.Configuration).AddCoaching(builder.Configuration).AddForms(builder.Configuration)
+    .AddOffers(builder.Configuration).AddCheckIns(builder.Configuration).AddCalendar(builder.Configuration).AddMessaging(builder.Configuration).AddCoachingIntake().AddBilling(builder.Configuration).AddNotifications(builder.Configuration).AddAnalyticsModule(builder.Configuration).AddClientDocumentation();
+if (!builder.Environment.IsEnvironment("Testing") && !exportContracts && !migrate)
+    builder.Services.AddBillingWorker().AddNotificationsWorker();
 builder.Services.AddSupabaseAuthentication(builder.Configuration, builder.Environment);
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+    options.SerializerOptions.RespectNullableAnnotations = true;
     options.SerializerOptions.MaxDepth = 48;
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false));
 });
@@ -65,7 +93,18 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
     });
 });
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
-builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, context, ct) =>
+builder.Services.AddOpenApi(options => options.AddSchemaTransformer((schema, context, ct) =>
+{
+    // Strict DTO binding must not make dynamic form-answer dictionaries look like empty objects.
+    var type = context.JsonTypeInfo.Type;
+    if (type.IsGenericType && type.GetGenericArguments() is [_, var valueType] && valueType == typeof(JsonElement)
+        && (type.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>) || type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
+    {
+        schema.AdditionalPropertiesAllowed = true;
+        schema.AdditionalProperties = new OpenApiSchema();
+    }
+    return Task.CompletedTask;
+}).AddDocumentTransformer((document, context, ct) =>
 {
     document.Info.Title = "TrainFlow API";
     document.Info.Version = "v1";
@@ -82,13 +121,84 @@ builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document,
             operation.Security = [new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("Bearer", document)] = [] }];
     }
     // Contract files must not contain the ephemeral localhost port used by the export process.
+    var relationship = document.Paths["/api/v1/coaching/relationships/{id}"].Operations!.Values.Single();
+    relationship.Responses!["200"].Content!["application/json"].Schema = new OpenApiSchema
+    {
+        OneOf = [new OpenApiSchemaReference("ClientRelationshipDto", document), new OpenApiSchemaReference("CoachRelationshipDto", document)]
+    };
+    var application = document.Paths["/api/v1/coaching/applications/{id}"].Operations![HttpMethod.Get];
+    application.Responses!["200"].Content!["application/json"].Schema = new OpenApiSchema
+    {
+        OneOf = [new OpenApiSchemaReference("ApplicationDetailDto", document), new OpenApiSchemaReference("CoachApplicationDetailDto", document)]
+    };
+    foreach (var (path, item) in document.Paths.Where(x =>
+        new[] { "/api/v1/coaching/", "/api/v1/forms/", "/api/v1/offers/", "/api/v1/check-ins/" }.Any(prefix => x.Key.StartsWith(prefix, StringComparison.Ordinal))
+        && x.Key.Contains('{') && !x.Key.Contains("/billing", StringComparison.Ordinal) && !x.Key.Contains("/payment-dues/", StringComparison.Ordinal)
+        && !x.Key.EndsWith("/conversation", StringComparison.Ordinal)
+        && !x.Key.Contains("/documentation", StringComparison.Ordinal)))
+    {
+        foreach (var (method, operation) in item.Operations!)
+        {
+            if (method == HttpMethod.Get)
+                continue;
+            operation.Parameters ??= [];
+            operation.Parameters.Add(new OpenApiParameter
+            {
+                Name = "If-Match",
+                In = ParameterLocation.Header,
+                Required = true,
+                Description = "Current strong numeric ETag. Membership changes use the group ETag.",
+                Schema = new OpenApiSchema { Type = JsonSchemaType.String }
+            });
+        }
+    }
+    foreach (var (path, method, header, description) in new[]
+    {
+        ("/api/v1/messaging/conversations/{id}/messages", HttpMethod.Post, "Idempotency-Key", "Stable sender request key, at most 100 characters. Reuse only for the same message payload."),
+        ("/api/v1/messaging/uploads/{id}", HttpMethod.Delete, "If-Match", "Current strong numeric Media ETag.")
+    })
+    {
+        var operation = document.Paths[path].Operations![method];
+        operation.Parameters ??= [];
+        operation.Parameters.Add(new OpenApiParameter
+        {
+            Name = header,
+            In = ParameterLocation.Header,
+            Required = true,
+            Description = description,
+            Schema = new OpenApiSchema { Type = JsonSchemaType.String }
+        });
+    }
+    foreach (var (path, item) in document.Paths)
+        foreach (var (method, operation) in item.Operations!)
+        {
+            var versionedTraining = path.StartsWith("/api/v1/training/", StringComparison.Ordinal)
+                && (path.EndsWith("/status", StringComparison.Ordinal) || path.EndsWith("/refresh", StringComparison.Ordinal)
+                    || path.Contains("/executions/", StringComparison.Ordinal)) && method != HttpMethod.Get;
+            var versionedDocument = path.Contains("/documentation/", StringComparison.Ordinal)
+                && (method == HttpMethod.Patch || path.EndsWith("/share", StringComparison.Ordinal));
+            var idempotent = method == HttpMethod.Post && (path.EndsWith("/assignments", StringComparison.Ordinal)
+                && path.StartsWith("/api/v1/training/programs/", StringComparison.Ordinal) || path.EndsWith("/generator/save-draft", StringComparison.Ordinal));
+            if (!versionedTraining && !versionedDocument && !idempotent)
+                continue;
+            operation.Parameters ??= [];
+            operation.Parameters.Add(new OpenApiParameter
+            {
+                Name = idempotent ? "Idempotency-Key" : "If-Match",
+                In = ParameterLocation.Header,
+                Required = true,
+                Description = idempotent ? "Stable key for the same payload on retries." : "Current strong numeric ETag.",
+                Schema = new OpenApiSchema { Type = JsonSchemaType.String }
+            });
+        }
     document.Servers = [];
     return Task.CompletedTask;
 }));
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
         .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-        .WithHeaders("Authorization", "Content-Type", "If-Match", "Idempotency-Key")
+        .WithHeaders("Authorization", "Content-Type", "If-Match", "Idempotency-Key", "X-SignalR-User-Agent")
+        .AllowCredentials()
         .WithExposedHeaders("ETag", "Location", "Retry-After")));
 builder.Services.AddRateLimiter(options =>
 {
@@ -134,15 +244,29 @@ app.MapExerciseCatalog();
 app.MapTraining();
 app.MapMedia();
 app.MapVideoAnalysis();
+app.MapCoaching();
+app.MapForms();
+app.MapOffers();
+app.MapCheckIns();
+app.MapCalendar();
+app.MapMessaging();
+app.MapCoachingIntake();
+app.MapBilling();
+app.MapNotifications();
+app.MapAnalyticsModule();
+app.MapClientDocumentation();
 
 if (migrate)
 {
     await using var scope = app.Services.CreateAsyncScope();
     var dbs = new DbContext[]
     {
+        scope.ServiceProvider.GetRequiredService<NotificationsDbContext>(),
         scope.ServiceProvider.GetRequiredService<AccountsDbContext>(), scope.ServiceProvider.GetRequiredService<AccessDbContext>(),
         scope.ServiceProvider.GetRequiredService<ExerciseCatalogDbContext>(), scope.ServiceProvider.GetRequiredService<TrainingDbContext>(),
-        scope.ServiceProvider.GetRequiredService<MediaDbContext>(), scope.ServiceProvider.GetRequiredService<VideoAnalysisDbContext>()
+        scope.ServiceProvider.GetRequiredService<MediaDbContext>(), scope.ServiceProvider.GetRequiredService<VideoAnalysisDbContext>(),
+        scope.ServiceProvider.GetRequiredService<CoachingDbContext>(), scope.ServiceProvider.GetRequiredService<FormsDbContext>(),
+        scope.ServiceProvider.GetRequiredService<OffersDbContext>(), scope.ServiceProvider.GetRequiredService<BillingDbContext>(), scope.ServiceProvider.GetRequiredService<CheckInsDbContext>(), scope.ServiceProvider.GetRequiredService<CalendarDbContext>(), scope.ServiceProvider.GetRequiredService<MessagingDbContext>(), scope.ServiceProvider.GetRequiredService<DocumentationDbContext>()
     };
     foreach (var db in dbs)
         await db.Database.MigrateAsync();

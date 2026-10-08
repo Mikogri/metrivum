@@ -9,7 +9,7 @@ using TrainFlow.ExerciseCatalog.Infrastructure;
 
 namespace TrainFlow.ExerciseCatalog.Features;
 
-public sealed class CatalogService(ExerciseCatalogDbContext db, IAccountContext account, IFeatureAccessService access) : IExerciseCatalog
+public sealed partial class CatalogService(ExerciseCatalogDbContext db, IAccountContext account, IFeatureAccessService access) : IExerciseCatalog
 {
     public async Task<CatalogPage> ListAsync(CatalogQuery request, CancellationToken ct)
     {
@@ -20,8 +20,11 @@ public sealed class CatalogService(ExerciseCatalogDbContext db, IAccountContext 
         var query = db.Exercises.AsNoTracking().Where(x => !x.IsArchived);
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
+            // Matches the exercise name or any muscle it works (English/Polish label or key).
             var search = NormalizedName(request.Search, 200);
-            query = query.Where(x => x.NormalizedName.Contains(search));
+            var key = search.ToLowerInvariant().Replace(' ', '-');
+            query = query.Where(x => x.NormalizedName.Contains(search) ||
+                x.Muscles.Any(m => m.MuscleKey.Contains(key) || m.Muscle.LabelEn.ToUpper().Contains(search) || m.Muscle.LabelPl.ToUpper().Contains(search)));
         }
         if (request.TagId is { } tag)
             query = query.Where(x => x.Tags.Any(t => t.TagId == tag));
@@ -49,7 +52,8 @@ public sealed class CatalogService(ExerciseCatalogDbContext db, IAccountContext 
         var total = await query.CountAsync(ct);
         var items = await ordered.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize)
             .Select(x => new ExerciseListItemDto(x.Id, x.Name, x.Description, x.Version,
-                db.Favorites.Any(f => f.UserId == user && f.ExerciseId == x.Id), x.CreatedAt)).ToArrayAsync(ct);
+                db.Favorites.Any(f => f.UserId == user && f.ExerciseId == x.Id), x.CreatedAt,
+                x.Muscles.Where(m => m.IsPrimary).OrderBy(m => m.MuscleKey).Select(m => m.MuscleKey).ToArray())).ToArrayAsync(ct);
         return new(items, total, request.Page, request.PageSize);
     }
 
@@ -290,11 +294,13 @@ public sealed class CatalogService(ExerciseCatalogDbContext db, IAccountContext 
 
     private async Task<ExerciseDto> ReadAsync(Guid id, CancellationToken ct)
     {
-        var exercise = await db.Exercises.AsNoTracking().AsSplitQuery().Include(x => x.Tags).ThenInclude(x => x.Tag)
-            .Include(x => x.Muscles).Include(x => x.MovementPatterns).SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw ApiException.NotFound();
-        var favorite = await db.Favorites.AnyAsync(x => x.UserId == account.UserId && x.ExerciseId == id, ct);
+        var result = await db.Exercises.AsNoTracking().AsSplitQuery().Include(x => x.Tags).ThenInclude(x => x.Tag)
+            .Include(x => x.Muscles).Include(x => x.MovementPatterns).Where(x => x.Id == id)
+            .Select(x => new { Exercise = x, Favorite = db.Favorites.Any(f => f.UserId == account.UserId && f.ExerciseId == x.Id) })
+            .SingleOrDefaultAsync(ct) ?? throw ApiException.NotFound();
+        var exercise = result.Exercise;
         return new(exercise.Id, exercise.Name, exercise.Description, exercise.Instructions, exercise.DemonstrationUrl,
-            exercise.Version, exercise.IsArchived, favorite, exercise.AuthorId == account.UserId, exercise.CreatedAt, exercise.UpdatedAt,
+            exercise.Version, exercise.IsArchived, result.Favorite, exercise.AuthorId == account.UserId, exercise.CreatedAt, exercise.UpdatedAt,
             exercise.Tags.OrderBy(x => x.Tag.NormalizedName).ThenBy(x => x.TagId).Select(x => new TagDto(x.TagId, x.Tag.Name)).ToArray(),
             exercise.Muscles.Where(x => x.IsPrimary).Select(x => x.MuscleKey).Order().ToArray(),
             exercise.Muscles.Where(x => !x.IsPrimary).Select(x => x.MuscleKey).Order().ToArray(),

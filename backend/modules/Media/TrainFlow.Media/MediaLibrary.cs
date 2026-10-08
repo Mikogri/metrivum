@@ -7,20 +7,48 @@ using TrainFlow.Media.Infrastructure;
 namespace TrainFlow.Media;
 
 public sealed record UploadRequest(string Name, string ContentType, long Size);
-public sealed record MediaDto(Guid Id, string Name, string ContentType, long Size, string State, bool Pinned, DateTimeOffset CreatedAt, long Version);
+public sealed record MediaDto(Guid Id, string Name, string ContentType, long Size, string State, bool Pinned, DateTimeOffset CreatedAt, long Version, long? DurationMs = null);
 public sealed record UploadTicket(MediaDto File, string UploadUrl, DateTimeOffset ExpiresAt, string Method = "PUT");
 public sealed record MediaReadTicket(string Url, DateTimeOffset ExpiresAt);
 
-public sealed class MediaLibrary(MediaDbContext db, IPrivateObjectStorage storage, IOptions<StorageOptions> configured) : IMediaLibrary
+public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorage storage, IOptions<StorageOptions> configured) : IMediaLibrary, IDocumentMedia
 {
     private readonly StorageOptions options = configured.Value;
-    private static MediaDto Dto(MediaFile file) => new(file.Id, file.Name, file.ContentType, file.Size, file.State, file.Pinned, file.CreatedAt, file.Version);
-    public async Task<MediaDto> GetAsync(Guid id, Guid owner, CancellationToken ct) => Dto(await OwnedAsync(id, owner, ct));
-
-    public async Task<UploadTicket> CreateAsync(Guid owner, UploadRequest input, CancellationToken ct)
+    private static MediaDto Dto(MediaFile file) => new(file.Id, file.Name, file.ContentType, file.Size, file.State, file.Pinned, file.CreatedAt, file.Version, file.DurationMs);
+    public async Task<MediaDto> GetAsync(Guid id, Guid owner, CancellationToken ct)
     {
-        var extension = VideoFileValidation.Extension(input.ContentType);
-        if (string.IsNullOrWhiteSpace(input.Name) || input.Name.Length > 200 || input.Size <= 0 || input.Size > options.MaxVideoBytes)
+        var file = await OwnedAsync(id, owner, ct);
+        if (file.Purpose == "Documentation")
+            throw ApiException.NotFound();
+        return Dto(file);
+    }
+
+    public async Task<MediaDto> GetMessagingAsync(Guid id, Guid owner, CancellationToken ct)
+    {
+        var file = await OwnedAsync(id, owner, ct);
+        if (file.Purpose != "Messaging")
+            throw ApiException.NotFound();
+        return Dto(file);
+    }
+    public async Task<MediaDto> FinalizeMessagingAsync(Guid id, Guid owner, CancellationToken ct)
+    {
+        await GetMessagingAsync(id, owner, ct);
+        return await FinalizeAsync(id, owner, ct);
+    }
+    public async Task DeleteMessagingAsync(Guid id, Guid owner, long version, CancellationToken ct)
+    {
+        await GetMessagingAsync(id, owner, ct);
+        await DeleteAsync(id, owner, version, ct);
+    }
+
+    public Task<UploadTicket> CreateAsync(Guid owner, UploadRequest input, CancellationToken ct) => CreateCoreAsync(owner, input, false, ct);
+    public Task<UploadTicket> CreateMessagingAsync(Guid owner, UploadRequest input, CancellationToken ct) => CreateCoreAsync(owner, input, true, ct);
+    private async Task<UploadTicket> CreateCoreAsync(Guid owner, UploadRequest input, bool messaging, CancellationToken ct, Guid? documentationRelationship = null)
+    {
+        if (messaging && !options.AllowedAttachmentTypes.Contains(input.ContentType, StringComparer.Ordinal))
+            throw ApiException.Invalid("This attachment type is not enabled.");
+        var extension = messaging ? AttachmentValidation.Extension(input.ContentType) : VideoFileValidation.Extension(input.ContentType);
+        if (string.IsNullOrWhiteSpace(input.Name) || input.Name.Length > 200 || input.Size <= 0 || input.Size > (messaging ? options.MaxAttachmentBytes : options.MaxVideoBytes))
             throw ApiException.Invalid("Provide a name of up to 200 characters and a file within the configured size limit.");
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var lockKey = "media-upload:" + owner;
@@ -34,13 +62,14 @@ public sealed class MediaLibrary(MediaDbContext db, IPrivateObjectStorage storag
             Id = Guid.NewGuid(),
             OwnerId = owner,
             Name = input.Name.Trim(),
+            Purpose = documentationRelationship.HasValue ? "Documentation" : messaging ? "Messaging" : "Video",
             Bucket = options.Bucket,
             ContentType = input.ContentType,
             Size = input.Size,
             CreatedAt = now,
             UploadExpiresAt = now.AddHours(2).AddMinutes(5)
         };
-        file.ObjectKey = owner.ToString("N") + "/videos/" + file.Id.ToString("N") + "." + extension;
+        file.ObjectKey = owner.ToString("N") + (documentationRelationship.HasValue ? $"/documentation/{documentationRelationship:N}/" : messaging ? "/attachments/" : "/videos/") + file.Id.ToString("N") + "." + extension;
         // Persist the reservation before issuing a transport capability. A failed signer leaves a reclaimable pending reservation.
         db.Files.Add(file);
         await db.SaveChangesAsync(ct);
@@ -49,9 +78,13 @@ public sealed class MediaLibrary(MediaDbContext db, IPrivateObjectStorage storag
         return new UploadTicket(Dto(file), url, now.AddHours(2));
     }
 
-    public async Task<MediaDto> FinalizeAsync(Guid id, Guid owner, CancellationToken ct)
+    public Task<MediaDto> FinalizeAsync(Guid id, Guid owner, CancellationToken ct) => FinalizeCoreAsync(id, owner, ct);
+
+    private async Task<MediaDto> FinalizeCoreAsync(Guid id, Guid owner, CancellationToken ct, bool documentation = false)
     {
         var file = await OwnedAsync(id, owner, ct);
+        if (file.Purpose == "Documentation" && !documentation)
+            throw ApiException.NotFound();
         if (file.State == "Ready")
             return Dto(file);
         if (file.State != "Pending" || file.UploadExpiresAt < DateTimeOffset.UtcNow)
@@ -59,24 +92,33 @@ public sealed class MediaLibrary(MediaDbContext db, IPrivateObjectStorage storag
         var actual = await storage.InspectAsync(file.Bucket, file.ObjectKey, ct);
         if (actual.ContentType != file.ContentType)
             throw new ApiException(400, "MEDIA_FORMAT_INVALID", "Stored content type does not match the reservation.");
-        VideoFileValidation.Validate(file.ContentType, file.Size, actual.Size, actual.Prefix, options.MaxVideoBytes);
+        var duration = await ValidateAsync(file, actual, ct);
         var changed = await db.Files.Where(x => x.Id == id && x.OwnerId == owner && x.State == "Pending" && x.Version == file.Version)
-            .ExecuteUpdateAsync(update => update.SetProperty(x => x.State, "Ready").SetProperty(x => x.Version, x => x.Version + 1), ct);
+            .ExecuteUpdateAsync(update => update.SetProperty(x => x.State, "Ready").SetProperty(x => x.DurationMs, duration).SetProperty(x => x.Version, x => x.Version + 1), ct);
         if (changed == 0)
             throw ApiException.Conflict("The file changed during finalization.");
         return Dto(file) with
         {
             State = "Ready",
+            DurationMs = duration,
             Version = file.Version + 1
         };
     }
 
     public async Task<ReadyMedia> RequireReadyAsync(Guid id, Guid ownerId, CancellationToken cancellationToken)
     {
+        var file = await RequireReadableFileAsync(id, ownerId, cancellationToken);
+        return new ReadyMedia(file.Id, file.OwnerId, file.Bucket, file.ObjectKey, file.ContentType, file.Size, file.DurationMs);
+    }
+
+    private async Task<MediaFile> RequireReadableFileAsync(Guid id, Guid ownerId, CancellationToken cancellationToken)
+    {
         var file = await OwnedAsync(id, ownerId, cancellationToken);
+        if (file.Purpose == "Documentation")
+            throw ApiException.NotFound();
         if (file.State != "Ready")
             throw new ApiException(409, "MEDIA_NOT_READY", "The source file is not ready.");
-        return new ReadyMedia(file.Id, file.OwnerId, file.Bucket, file.ObjectKey, file.ContentType, file.Size);
+        return file;
     }
 
     public async Task PinAsync(Guid id, Guid ownerId, CancellationToken cancellationToken)
@@ -89,9 +131,9 @@ public sealed class MediaLibrary(MediaDbContext db, IPrivateObjectStorage storag
 
     public async Task<Stream> OpenReadAsync(Guid id, Guid ownerId, CancellationToken cancellationToken)
     {
-        var file = await RequireReadyAsync(id, ownerId, cancellationToken);
+        var file = await RequireReadableFileAsync(id, ownerId, cancellationToken);
         var actual = await storage.InspectAsync(file.Bucket, file.ObjectKey, cancellationToken);
-        VideoFileValidation.Validate(file.ContentType, file.Size, actual.Size, actual.Prefix, options.MaxVideoBytes);
+        await ValidateAsync(file, actual, cancellationToken);
         if (actual.ContentType != file.ContentType)
             throw new ApiException(409, "MEDIA_FORMAT_INVALID", "Stored object content type changed.");
         return await storage.OpenReadAsync(file.Bucket, file.ObjectKey, cancellationToken);
@@ -99,20 +141,34 @@ public sealed class MediaLibrary(MediaDbContext db, IPrivateObjectStorage storag
 
     public async Task<MediaReadTicket> ReadUrlAsync(Guid id, Guid owner, CancellationToken ct)
     {
-        var file = await RequireReadyAsync(id, owner, ct);
+        var file = await RequireReadableFileAsync(id, owner, ct);
         var actual = await storage.InspectAsync(file.Bucket, file.ObjectKey, ct);
-        VideoFileValidation.Validate(file.ContentType, file.Size, actual.Size, actual.Prefix, options.MaxVideoBytes);
+        await ValidateAsync(file, actual, ct);
         if (actual.ContentType != file.ContentType)
             throw new ApiException(409, "MEDIA_FORMAT_INVALID", "Stored object content type changed.");
         var expiresAt = DateTimeOffset.UtcNow.AddSeconds(options.ReadUrlSeconds);
         return new MediaReadTicket(await storage.CreateReadUrlAsync(file.Bucket, file.ObjectKey, ct), expiresAt);
     }
 
+    private async Task<long?> ValidateAsync(MediaFile file, StoredObject actual, CancellationToken ct)
+    {
+        if (file.Purpose is not ("Messaging" or "Documentation"))
+        {
+            VideoFileValidation.Validate(file.ContentType, file.Size, actual.Size, actual.Prefix, options.MaxVideoBytes);
+            return null;
+        }
+        AttachmentValidation.Validate(file.ContentType, file.Size, actual, options);
+        if (file.ContentType != "audio/wav")
+            return null;
+        await using var stream = await storage.OpenReadAsync(file.Bucket, file.ObjectKey, ct);
+        return await AttachmentValidation.WavDurationAsync(stream, actual.Size, options.MaxVoiceDurationMs, ct);
+    }
+
     public async Task DeleteAsync(Guid id, Guid owner, long version, CancellationToken ct)
     {
         var file = await OwnedAsync(id, owner, ct);
         if (file.Pinned)
-            throw new ApiException(409, "MEDIA_IN_USE", "The file is pinned by an analysis.");
+            throw new ApiException(409, "MEDIA_IN_USE", "The file is retained by an analysis or message.");
         if (file.Version != version)
             throw new ApiException(412, "VERSION_CONFLICT", "The file has changed.");
         var now = DateTimeOffset.UtcNow;
@@ -132,7 +188,7 @@ public sealed class MediaLibrary(MediaDbContext db, IPrivateObjectStorage storag
     {
         if (page < 1 || page > 100000 || pageSize is < 1 or > 100 || search?.Length > 200 || state is not (null or "Pending" or "Ready" or "Deleting"))
             throw ApiException.Invalid("Invalid list filters or pagination.");
-        var query = db.Files.AsNoTracking().Where(x => x.OwnerId == owner && x.State != "Deleted");
+        var query = db.Files.AsNoTracking().Where(x => x.OwnerId == owner && x.State != "Deleted" && x.Purpose != "Documentation");
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(x => x.Name.ToLower().Contains(search.ToLower()));
         if (state != null)

@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Linq.Expressions;
 using System.Text.Json;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,22 @@ namespace TrainFlow.VideoAnalysis;
 public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary media, IVideoAnalyzer analyzer, IOptions<AnalysisOptions> configured)
 {
     private readonly AnalysisOptions options = configured.Value;
+    private static readonly Expression<Func<AnalysisJob, AnalysisJob>> Metadata = x => new AnalysisJob
+    {
+        Id = x.Id,
+        Name = x.Name,
+        Note = x.Note,
+        Tags = x.Tags,
+        MediaId = x.MediaId,
+        Configuration = x.Configuration,
+        Status = x.Status,
+        CreatedAt = x.CreatedAt,
+        CompletedAt = x.CompletedAt,
+        FailureCode = x.FailureCode,
+        Attempts = x.Attempts,
+        Version = x.Version,
+        RequestHash = x.RequestHash
+    };
     private static AnalysisDto Dto(AnalysisJob job) => new(job.Id, job.Name, job.Note, job.Tags, job.MediaId,
         JsonSerializer.Deserialize<AnalysisConfiguration>(job.Configuration, AnalysisResults.Json)!, job.Status,
         job.CreatedAt, job.CompletedAt, job.FailureCode, job.Attempts, job.Version);
@@ -31,6 +48,14 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         if (input.Configuration == null || input.Configuration.Movement is not ("unspecified" or "squat" or "deadlift" or "bench-press")
             || (input.Configuration.MetersPerPixel.HasValue && (!double.IsFinite(input.Configuration.MetersPerPixel.Value) || input.Configuration.MetersPerPixel is <= 0 or > 100)))
             throw ApiException.Invalid("Invalid analysis configuration.");
+        if (input.Configuration.Tracking is { } tracking &&
+            (!double.IsFinite(tracking.TimestampSeconds) || tracking.TimestampSeconds < 0
+             || tracking.VideoWidth is < 1 or > 16384 || tracking.VideoHeight is < 1 or > 16384
+             || tracking.Points is not { Length: 2 }
+             || tracking.Points.Any(p => p is null || !double.IsFinite(p.X) || !double.IsFinite(p.Y)
+                 || p.X < 0 || p.Y < 0 || p.X >= tracking.VideoWidth || p.Y >= tracking.VideoHeight)
+             || tracking.Points[0] == tracking.Points[1]))
+            throw ApiException.Invalid("Select two distinct points on one video frame.");
         var hash = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(input, AnalysisResults.Json)));
 
         // All operations use the same data source and close connections between statements. Npgsql reuses the
@@ -39,7 +64,7 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
             new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted, Timeout = TimeSpan.FromSeconds(30) }, TransactionScopeAsyncFlowOption.Enabled);
         var lockKey = "analysis-create:" + owner;
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({lockKey}, 0))", ct);
-        var previous = await db.Jobs.AsNoTracking().SingleOrDefaultAsync(x => x.OwnerId == owner && x.IdempotencyKey == idempotencyKey, ct);
+        var previous = await db.Jobs.AsNoTracking().Where(x => x.OwnerId == owner && x.IdempotencyKey == idempotencyKey).Select(Metadata).SingleOrDefaultAsync(ct);
         if (previous != null)
         {
             if (previous.RequestHash != hash)
@@ -49,9 +74,12 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         }
         if (!analyzer.IsConfigured)
             throw new ApiException(503, "ANALYZER_NOT_CONFIGURED", "No video analysis engine is configured.");
-        if (await db.Jobs.CountAsync(x => x.OwnerId == owner && (x.Status == "Queued" || x.Status == "Processing"), ct) >= options.MaxConcurrentPerOwner)
+        analyzer.ValidateConfiguration(input.Configuration);
+        if (options.MaxConcurrentPerOwner > 0 && await db.Jobs.CountAsync(x => x.OwnerId == owner && (x.Status == "Queued" || x.Status == "Processing"), ct) >= options.MaxConcurrentPerOwner)
             throw new ApiException(429, "LIMIT_EXCEEDED", "The concurrent analysis limit has been reached.");
-        await media.RequireReadyAsync(input.MediaId, owner, ct);
+        var source = await media.RequireReadyAsync(input.MediaId, owner, ct);
+        if (source.ContentType is not ("video/mp4" or "video/webm" or "video/quicktime"))
+            throw ApiException.Invalid("Video analysis requires an MP4, WebM or MOV video.");
         // Verify the actual storage object before queue admission, without buffering the video in memory.
         await using (await media.OpenReadAsync(input.MediaId, owner, ct))
         {
@@ -81,7 +109,7 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
     public async Task<AnalysisDto> GetAsync(Guid id, Guid owner, CancellationToken ct) => Dto(await OwnedAsync(id, owner, ct));
 
     private async Task<AnalysisJob> OwnedAsync(Guid id, Guid owner, CancellationToken ct) =>
-        await db.Jobs.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.OwnerId == owner, ct) ?? throw ApiException.NotFound();
+        await db.Jobs.AsNoTracking().Where(x => x.Id == id && x.OwnerId == owner).Select(Metadata).SingleOrDefaultAsync(ct) ?? throw ApiException.NotFound();
 
     public async Task<IReadOnlyList<AnalysisDto>> ListAsync(Guid owner, string? search, string? status, string? tag, string? sort, int page, int pageSize, CancellationToken ct)
     {
@@ -106,21 +134,7 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
             _ => throw ApiException.Invalid("Unknown sort order.")
         };
         // The projection deliberately excludes the potentially large Result column.
-        var jobs = await ordered.Skip((page - 1) * pageSize).Take(pageSize).Select(x => new AnalysisJob
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Note = x.Note,
-            Tags = x.Tags,
-            MediaId = x.MediaId,
-            Configuration = x.Configuration,
-            Status = x.Status,
-            CreatedAt = x.CreatedAt,
-            CompletedAt = x.CompletedAt,
-            FailureCode = x.FailureCode,
-            Attempts = x.Attempts,
-            Version = x.Version
-        }).ToListAsync(ct);
+        var jobs = await ordered.Skip((page - 1) * pageSize).Take(pageSize).Select(Metadata).ToListAsync(ct);
         return jobs.Select(Dto).ToArray();
     }
 
@@ -151,19 +165,27 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
 
     public async Task<AnalysisResult> ResultAsync(Guid id, Guid owner, int? repetition, int maxPoints, CancellationToken ct)
     {
-        var job = await OwnedAsync(id, owner, ct);
-        if (job.Status != "Completed" || job.Result == null)
+        var job = await db.Jobs.AsNoTracking().Where(x => x.Id == id && x.OwnerId == owner)
+            .Select(x => new { x.Status, x.Result }).SingleOrDefaultAsync(ct) ?? throw ApiException.NotFound();
+        return SelectResult(job.Status, job.Result, repetition, maxPoints);
+    }
+
+    private static AnalysisResult SelectResult(string status, string? result, int? repetition, int maxPoints)
+    {
+        if (status != "Completed" || result == null)
             throw new ApiException(409, "ANALYSIS_NOT_COMPLETED", "The analysis has no completed result.");
-        return AnalysisResults.Select(JsonSerializer.Deserialize<AnalysisResult>(job.Result, AnalysisResults.Json)!, repetition, maxPoints);
+        return AnalysisResults.Select(JsonSerializer.Deserialize<AnalysisResult>(result, AnalysisResults.Json)!, repetition, maxPoints);
     }
 
     public async Task<AnalysisComparison> CompareAsync(Guid leftId, Guid rightId, Guid owner, int? leftRepetition, int? rightRepetition, int maxPoints, CancellationToken ct)
     {
-        // Check both owners before revealing either result's state.
-        await OwnedAsync(leftId, owner, ct);
-        await OwnedAsync(rightId, owner, ct);
-        var left = await ResultAsync(leftId, owner, leftRepetition, maxPoints, ct);
-        var right = await ResultAsync(rightId, owner, rightRepetition, maxPoints, ct);
+        var jobs = await db.Jobs.AsNoTracking().Where(x => x.OwnerId == owner && (x.Id == leftId || x.Id == rightId))
+            .Select(x => new { x.Id, x.Status, x.Result }).ToListAsync(ct);
+        // Resolve both owners before exposing completion state; each large result is fetched once.
+        var leftJob = jobs.SingleOrDefault(x => x.Id == leftId) ?? throw ApiException.NotFound();
+        var rightJob = jobs.SingleOrDefault(x => x.Id == rightId) ?? throw ApiException.NotFound();
+        var left = SelectResult(leftJob.Status, leftJob.Result, leftRepetition, maxPoints);
+        var right = SelectResult(rightJob.Status, rightJob.Result, rightRepetition, maxPoints);
         AnalysisResults.RequireCompatible(left, right);
         return new AnalysisComparison(left, right);
     }

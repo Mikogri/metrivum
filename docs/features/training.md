@@ -60,7 +60,7 @@ Programs/templates are archived rather than physically deleted. Archives and for
 }
 ```
 
-Replace the example `exerciseId` with an actual catalog ID. All internal IDs are nonempty and unique across the document. Empty containers are valid drafts. Days are unique within a cycle, between 1 and its positive `dayCount`; cycles need not contain seven days.
+Replace the example `exerciseId` with an actual catalog ID. All internal IDs are nonempty and unique across the document. Empty containers are valid drafts. Days are unique within a cycle, between 1 and its positive `dayCount`; cycles need not contain seven days. A day may carry an optional `note` (at most 2000 characters); the editor stores a rest day as a day with a note and no workouts.
 
 Prescriptions support integer repetition exact/ranges, mass exact/ranges, `loadPercent` plus `baseValue`, `rpe` (0–10) or `rir` (0–100), `workTime`, `rest`, `distance`, `tempo` and `comment`. Exact values use identical range endpoints. Mass units: `Kg`, `Lb`; time: `Seconds`, `Minutes`; distance: `Meters`, `Kilometers`; formula scalars: `Scalar`, `Percent`. Ranges are compared after unit conversion. Absolute load, percentage load and load formula are mutually exclusive. RPE and RIR are mutually exclusive. Tempo is four dash-separated numbers (0–99) or `X`, such as `3-1-X-0`.
 

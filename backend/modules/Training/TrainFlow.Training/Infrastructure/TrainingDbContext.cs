@@ -1,3 +1,4 @@
+using TrainFlow.Training.Generation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -197,6 +198,8 @@ public sealed class TrainingDbContext(DbContextOptions<TrainingDbContext> option
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.HasDefaultSchema("training");
+        TrainFlow.Training.Delivery.DeliveryModel.Configure(model);
+        model.ConfigureProgramGeneration();
         var folder = model.Entity<TrainingFolder>();
         folder.ToTable("folders", t => { t.HasCheckConstraint("ck_folder_not_self", "\"ParentId\" IS NULL OR \"ParentId\" <> \"Id\""); t.HasCheckConstraint("ck_folder_position", "\"Position\" >= 0"); });
         folder.HasKey(x => x.Id);

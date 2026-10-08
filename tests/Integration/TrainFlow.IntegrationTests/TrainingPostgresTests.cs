@@ -257,6 +257,8 @@ public sealed class TrainingPostgresTests
     private sealed class Account(Guid user) : IAccountContext
     {
         public Guid UserId => user;
+        public Task<AccountIdentity> RequireClientAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<IReadOnlyList<AccountRole>> GetRolesAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AccountRole>>([AccountRole.Coach]);
         public Task<AccountIdentity> RequireCoachAsync(CancellationToken ct) => Task.FromResult(new AccountIdentity(user, user));
         public Task RequireAdminAsync(string permission, CancellationToken ct) => Task.CompletedTask;
     }

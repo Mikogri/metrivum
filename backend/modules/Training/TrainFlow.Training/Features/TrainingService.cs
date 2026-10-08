@@ -38,6 +38,11 @@ public sealed class TrainingListQuery
     {
         get; set;
     }
+    /// <summary>Only plans outside every folder (the library's top level). Ignored when FolderId is set.</summary>
+    public bool RootOnly
+    {
+        get; set;
+    }
     public bool Archived
     {
         get; set;
@@ -67,6 +72,8 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         }
         if (request.FolderId != null)
             query = query.Where(x => x.FolderId == request.FolderId);
+        else if (request.RootOnly)
+            query = query.Where(x => x.FolderId == null);
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var text = request.Search.Trim().ToLowerInvariant();

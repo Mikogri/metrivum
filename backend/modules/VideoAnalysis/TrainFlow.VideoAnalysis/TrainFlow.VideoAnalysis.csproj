@@ -10,4 +10,4 @@
     <ProjectReference Include="..\..\Access\TrainFlow.Access.Contracts\TrainFlow.Access.Contracts.csproj" />
     <ProjectReference Include="..\..\Media\TrainFlow.Media.Contracts\TrainFlow.Media.Contracts.csproj" />
   </ItemGroup>
-</Project>
+<ItemGroup><ProjectReference Include="../../Notifications/TrainFlow.Notifications.Contracts/TrainFlow.Notifications.Contracts.csproj" /></ItemGroup></Project>

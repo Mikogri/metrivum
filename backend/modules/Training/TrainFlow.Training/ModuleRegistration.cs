@@ -1,4 +1,6 @@
-using System.Globalization;
+using TrainFlow.Training.Generation;
+using TrainFlow.Training.Delivery;
+using TrainFlow.Training.Contracts;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -20,8 +22,15 @@ public static class ModuleRegistration
 {
     public static IServiceCollection AddTraining(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddScoped<TrainFlow.Coaching.Contracts.ITeamRelationshipLifecycle, TeamTrainingLifecycle>();
         services.AddModuleDatabase<TrainingDbContext>("training");
         services.AddScoped<TrainingService>();
+        services.AddScoped<TrainingDeliveryService>();
+        services.AddScoped<TrainFlow.Notifications.Contracts.INotificationDeliveryPolicy, TrainingNotificationPolicy>();
+        services.AddScoped<ITrainingProgressReader>(p => p.GetRequiredService<TrainingDeliveryService>());
+        foreach (var key in new[] { "training.assignments.manage", "training.executions.log-own", "training.executions.review", "training.progress.view-own", "training.progress.view-clients" })
+            services.AddSingleton(new FeatureDefinition(key, "Training", key + ".title", key + ".description", [], []));
+        services.AddSingleton(new FeatureDefinition("training.generator.use", "Training", "training.generator.use.title", "training.generator.use.description", ["training.programs.read"], []));
         services.TryAddSingleton(TimeProvider.System);
         services.AddOptions<TrainingOptions>().Bind(configuration.GetSection("Training"))
             .Validate(x => x.MaximumDocuments > 0 && x.MaximumFolders > 0 && x.MaximumFolderDepth is > 0 and <= 64 && x.MaximumFormulaRules > 0 && x.MaximumRevisionsPerDocument > 0 && x.MaximumImportBytes is > 0 and <= 10_485_760 && x.MaximumImportRows is > 0 and <= 50000 && x.MaximumActiveImports > 0 && x.ImportLifetimeMinutes is > 0 and <= 1440 && x.Document.MaximumBytes is > 0 and <= 10_485_760 && x.Document.MaximumNodes is > 0 and <= 50000 && x.Document.MaximumCycleDays > 0 && x.Document.MaximumSegments is >= 2 and <= 100 && x.Formula.MaximumDepth is > 0 and <= 64 && x.Formula.MaximumLength is > 0 and <= 8192 && x.Formula.MaximumOperations is > 0 and <= 4096 && x.Formula.MaximumGraphNodes is > 0 and <= 128, "Invalid training technical limits.").ValidateOnStart();
@@ -33,7 +42,9 @@ public static class ModuleRegistration
     public static IEndpointRouteBuilder MapTraining(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/v1/training").WithTags("Training").RequireAuthorization();
-        group.MapGet("/programs", (int? page, int? pageSize, string? search, string? sort, DocumentKind? kind, Guid? folderId, bool? archived, TrainingService service, CancellationToken ct) =>
+        group.MapTrainingDelivery();
+        group.MapProgramGenerator();
+        group.MapGet("/programs", (int? page, int? pageSize, string? search, string? sort, DocumentKind? kind, Guid? folderId, bool? rootOnly, bool? archived, TrainingService service, CancellationToken ct) =>
             service.ListAsync(new()
             {
                 Page = page ?? 1,
@@ -42,6 +53,7 @@ public static class ModuleRegistration
                 Sort = sort ?? "updated",
                 Kind = kind,
                 FolderId = folderId,
+                RootOnly = rootOnly ?? false,
                 Archived = archived ?? false
             }, ct));
         group.MapPost("/programs", async (CreatePlanRequest request, TrainingService service, HttpContext http, CancellationToken ct) => Versioned(http, await service.CreateAsync(request, ct))).Produces<PlanDto>();
@@ -99,15 +111,7 @@ public static class ModuleRegistration
         return endpoints;
     }
     private static string Key(HttpContext http) => http.Request.Headers["Idempotency-Key"].ToString();
-    private static long Version(HttpContext http)
-    {
-        var header = http.Request.Headers.IfMatch.ToString();
-        if (string.IsNullOrEmpty(header))
-            throw new ApiException(428, "VERSION_REQUIRED", "If-Match with the current ETag is required.");
-        if (header.Length < 3 || header[0] != '"' || header[^1] != '"' || !long.TryParse(header[1..^1], NumberStyles.None, CultureInfo.InvariantCulture, out var version) || version < 1)
-            throw ApiException.Invalid("If-Match must contain one strong numeric ETag.");
-        return version;
-    }
+    private static long Version(HttpContext http) => RequestPreconditions.RequireVersion(http.Request);
     private static IResult Versioned(HttpContext http, PlanDto value)
     {
         http.Response.Headers.ETag = $"\"{value.Version}\"";

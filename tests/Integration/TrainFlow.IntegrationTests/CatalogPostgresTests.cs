@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Data.Common;
 using TrainFlow.Access.Contracts;
 using TrainFlow.Accounts.Contracts;
 using TrainFlow.BuildingBlocks;
@@ -9,6 +11,45 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class CatalogPostgresTests
 {
+    [CatalogPostgresFact]
+    public async Task Detail_loads_favorite_with_parent_without_multiplying_child_collections()
+    {
+        using var setup = Context();
+        var user = Guid.NewGuid();
+        var service = Service(setup, user);
+        var firstTag = await service.CreateTagAsync($"Detail A {Guid.NewGuid():N}", default);
+        var secondTag = await service.CreateTagAsync($"Detail B {Guid.NewGuid():N}", default);
+        var created = await service.CreateAsync(new($"Detail {Guid.NewGuid():N}", "Description", "Instructions",
+            TagIds: [firstTag.Id, secondTag.Id], PrimaryMuscleKeys: ["glutes", "quadriceps"],
+            SecondaryMuscleKeys: ["hamstrings"], MovementPatternKeys: ["squat", "hinge"]), default);
+        await service.SetFavoriteAsync(created.Id, true, default);
+        var commands = new CatalogQueryLog();
+        using var db = new ExerciseCatalogDbContext(new DbContextOptionsBuilder<ExerciseCatalogDbContext>()
+            .UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")).AddInterceptors(commands).Options);
+        var detail = await Service(db, user).GetAsync(created.Id, default);
+        Assert.True(detail.IsFavorite);
+        Assert.Equal(2, detail.Tags.Count);
+        Assert.Equal(new[] { "glutes", "quadriceps" }, detail.PrimaryMuscleKeys);
+        Assert.Equal(new[] { "hamstrings" }, detail.SecondaryMuscleKeys);
+        Assert.Equal(new[] { "hinge", "squat" }, detail.MovementPatternKeys);
+        Assert.Equal(4, commands.Count);
+        Assert.False((await Service(db).GetAsync(created.Id, default)).IsFavorite);
+    }
+
+    private sealed class CatalogQueryLog : DbCommandInterceptor
+    {
+        public int Count
+        {
+            get; private set;
+        }
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData,
+            InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            Count++;
+            return ValueTask.FromResult(result);
+        }
+    }
+
     [CatalogPostgresFact]
     public async Task Parallel_creation_rejects_normalized_duplicates()
     {
@@ -161,6 +202,28 @@ public sealed class CatalogPostgresTests
     }
 
     [CatalogPostgresFact]
+    public async Task Search_matches_worked_muscles_and_lists_primary_muscles()
+    {
+        using var db = Context();
+        var service = Service(db);
+        var tag = await service.CreateTagAsync($"Muscle search {Guid.NewGuid():N}", default);
+        var glutes = await db.Muscles.AsNoTracking().SingleAsync(x => x.Key == "glutes");
+        var worked = await service.CreateAsync(new($"Hip thrust {Guid.NewGuid():N}", TagIds: [tag.Id], PrimaryMuscleKeys: ["glutes"]), default);
+        await service.CreateAsync(new($"Curl {Guid.NewGuid():N}", TagIds: [tag.Id]), default);
+        foreach (var search in new[] { glutes.LabelEn.ToLowerInvariant(), glutes.LabelPl, "glut" })
+        {
+            var result = await service.ListAsync(new()
+            {
+                Search = search,
+                TagId = tag.Id
+            }, default);
+            var item = Assert.Single(result.Items);
+            Assert.Equal(worked.Id, item.Id);
+            Assert.Equal(["glutes"], item.PrimaryMuscleKeys);
+        }
+    }
+
+    [CatalogPostgresFact]
     public async Task Dictionary_deactivation_preserves_existing_links_and_blocks_new_usage()
     {
         using var db = Context();
@@ -201,6 +264,8 @@ public sealed class CatalogPostgresTests
     private sealed class Account(Guid user, bool admin = true) : IAccountContext
     {
         public Guid UserId => user;
+        public Task<AccountIdentity> RequireClientAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<IReadOnlyList<AccountRole>> GetRolesAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AccountRole>>([AccountRole.Coach]);
         public Task<AccountIdentity> RequireCoachAsync(CancellationToken cancellationToken) => Task.FromResult(new AccountIdentity(user, user));
         public Task RequireAdminAsync(string permission, CancellationToken cancellationToken) => admin && permission == "catalog.manage"
             ? Task.CompletedTask : Task.FromException(new ApiException(403, "ADMIN_PERMISSION_REQUIRED", "Catalog permission required."));

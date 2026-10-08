@@ -31,7 +31,8 @@ public sealed record TrainingSet(Guid Id, SetKind Kind, Prescription Prescriptio
 public sealed record ExerciseInstance(Guid Id, Guid ExerciseId, string Comment, TrainingSet[] Sets);
 public sealed record ExerciseGroup(Guid Id, GroupKind Kind, Guid[] ExerciseIds, int Rounds, decimal RestSeconds);
 public sealed record Workout(Guid Id, string Name, string Description, ExerciseInstance[] Exercises, ExerciseGroup[] Groups);
-public sealed record TrainingDay(Guid Id, int DayNumber, Workout[] Workouts);
+/// <summary>A day of a cycle. <c>Note</c> is free text for the day, e.g. what to do on a rest day.</summary>
+public sealed record TrainingDay(Guid Id, int DayNumber, Workout[] Workouts, string? Note = null);
 public sealed record Cycle(Guid Id, string Name, string Description, int DayCount, TrainingDay[] Days);
 public sealed record Block(Guid Id, string Name, string Description, Cycle[] Cycles);
 public sealed record TrainingDocument(int SchemaVersion, Block[] Blocks);
@@ -96,6 +97,7 @@ public static class DocumentRules
                     Id(day.Id);
                     if (day.DayNumber < 1 || day.DayNumber > cycle.DayCount || !days.Add(day.DayNumber))
                         throw new TrainingValidationException("Invalid or duplicate day number.");
+                    Text(day.Note, 2000);
                     foreach (var workout in day.Workouts)
                     {
                         if (workout?.Exercises is null || workout.Groups is null)

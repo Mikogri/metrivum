@@ -225,7 +225,16 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
       },
+      "trainflow.coaching.contracts": {
+        "type": "Project"
+      },
       "trainflow.exercisecatalog.contracts": {
+        "type": "Project"
+      },
+      "trainflow.notifications.contracts": {
+        "type": "Project"
+      },
+      "trainflow.training.contracts": {
         "type": "Project"
       },
       "Microsoft.EntityFrameworkCore": {

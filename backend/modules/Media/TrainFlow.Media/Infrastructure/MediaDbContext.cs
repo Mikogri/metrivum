@@ -12,6 +12,11 @@ public sealed class MediaFile
     {
         get; set;
     }
+    public string Purpose { get; set; } = "Video";
+    public long? DurationMs
+    {
+        get; set;
+    }
     public string Name { get; set; } = "";
     public string Bucket { get; set; } = "";
     public string ObjectKey { get; set; } = "";
@@ -57,6 +62,7 @@ public sealed class MediaDbContext(DbContextOptions<MediaDbContext> options) : D
             table.HasCheckConstraint("ck_media_state", "\"State\" IN ('Pending', 'Ready', 'Deleting', 'Deleted')");
         });
         file.HasKey(x => x.Id);
+        file.Property(x => x.Purpose).HasMaxLength(20).HasDefaultValue("Video");
         file.Property(x => x.Name).HasMaxLength(200);
         file.Property(x => x.Bucket).HasMaxLength(100);
         file.Property(x => x.ObjectKey).HasMaxLength(250);

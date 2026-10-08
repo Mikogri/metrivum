@@ -12,3 +12,11 @@ artifacts/
 **/*.user
 *.log
 node_modules/
+
+# Frontend
+apps/web/build/
+apps/web/.react-router/
+apps/web/test-results/
+apps/web/playwright-report/
+apps/ui-catalog/storybook-static/
+*.tsbuildinfo

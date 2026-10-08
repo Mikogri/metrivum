@@ -1,0 +1,294 @@
+[
+  {
+    "key": "angled-push",
+    "label": "Angled press"
+  },
+  {
+    "key": "ankle-eversion",
+    "label": "Ankle eversion"
+  },
+  {
+    "key": "ankle-inversion",
+    "label": "Ankle inversion"
+  },
+  {
+    "key": "anti-extension",
+    "label": "Trunk anti-extension"
+  },
+  {
+    "key": "anti-flexion",
+    "label": "Trunk anti-flexion"
+  },
+  {
+    "key": "anti-lateral-flexion",
+    "label": "Trunk anti-lateral flexion"
+  },
+  {
+    "key": "anti-rotation",
+    "label": "Trunk anti-rotation"
+  },
+  {
+    "key": "balance",
+    "label": "Balance"
+  },
+  {
+    "key": "breathing",
+    "label": "Breathing control"
+  },
+  {
+    "key": "carry",
+    "label": "Carry"
+  },
+  {
+    "key": "cervical-retraction",
+    "label": "Cervical retraction"
+  },
+  {
+    "key": "crawl",
+    "label": "Crawl"
+  },
+  {
+    "key": "cycling",
+    "label": "Cycling"
+  },
+  {
+    "key": "dip",
+    "label": "Dip"
+  },
+  {
+    "key": "dorsiflexion",
+    "label": "Ankle dorsiflexion"
+  },
+  {
+    "key": "elbow-extension",
+    "label": "Elbow extension"
+  },
+  {
+    "key": "elbow-flexion",
+    "label": "Elbow flexion"
+  },
+  {
+    "key": "external-rotation",
+    "label": "Shoulder external rotation"
+  },
+  {
+    "key": "finger-abduction",
+    "label": "Finger abduction"
+  },
+  {
+    "key": "finger-extension",
+    "label": "Finger extension"
+  },
+  {
+    "key": "finger-flexion",
+    "label": "Finger flexion"
+  },
+  {
+    "key": "foot-arch-control",
+    "label": "Foot arch control"
+  },
+  {
+    "key": "gait",
+    "label": "Gait / locomotion"
+  },
+  {
+    "key": "get-up",
+    "label": "Get-up"
+  },
+  {
+    "key": "grip",
+    "label": "Grip / hand force"
+  },
+  {
+    "key": "hinge",
+    "label": "Hip hinge"
+  },
+  {
+    "key": "hip-abduction",
+    "label": "Hip abduction"
+  },
+  {
+    "key": "hip-adduction",
+    "label": "Hip adduction"
+  },
+  {
+    "key": "hip-extension",
+    "label": "Hip extension"
+  },
+  {
+    "key": "hip-external-rotation",
+    "label": "Hip external rotation"
+  },
+  {
+    "key": "hip-flexion",
+    "label": "Hip flexion"
+  },
+  {
+    "key": "hip-internal-rotation",
+    "label": "Hip internal rotation"
+  },
+  {
+    "key": "horizontal-abduction",
+    "label": "Shoulder horizontal abduction"
+  },
+  {
+    "key": "horizontal-adduction",
+    "label": "Shoulder horizontal adduction"
+  },
+  {
+    "key": "horizontal-pull",
+    "label": "Horizontal pull"
+  },
+  {
+    "key": "horizontal-push",
+    "label": "Horizontal press"
+  },
+  {
+    "key": "internal-rotation",
+    "label": "Shoulder internal rotation"
+  },
+  {
+    "key": "jump",
+    "label": "Jump"
+  },
+  {
+    "key": "knee-extension",
+    "label": "Knee extension"
+  },
+  {
+    "key": "knee-flexion",
+    "label": "Knee flexion"
+  },
+  {
+    "key": "landing",
+    "label": "Landing"
+  },
+  {
+    "key": "lateral-flexion",
+    "label": "Trunk lateral flexion"
+  },
+  {
+    "key": "lunge",
+    "label": "Lunge"
+  },
+  {
+    "key": "neck-extension",
+    "label": "Neck extension"
+  },
+  {
+    "key": "neck-flexion",
+    "label": "Neck flexion"
+  },
+  {
+    "key": "neck-lateral-flexion",
+    "label": "Neck lateral flexion"
+  },
+  {
+    "key": "neck-rotation",
+    "label": "Neck rotation"
+  },
+  {
+    "key": "plantar-flexion",
+    "label": "Ankle plantar flexion"
+  },
+  {
+    "key": "pronation",
+    "label": "Forearm pronation"
+  },
+  {
+    "key": "rotation",
+    "label": "Trunk rotation"
+  },
+  {
+    "key": "scapular-depression",
+    "label": "Scapular depression"
+  },
+  {
+    "key": "scapular-elevation",
+    "label": "Scapular elevation"
+  },
+  {
+    "key": "scapular-protraction",
+    "label": "Scapular protraction"
+  },
+  {
+    "key": "scapular-retraction",
+    "label": "Scapular retraction"
+  },
+  {
+    "key": "scapular-upward-rotation",
+    "label": "Scapular upward rotation"
+  },
+  {
+    "key": "shoulder-abduction",
+    "label": "Shoulder abduction"
+  },
+  {
+    "key": "shoulder-extension",
+    "label": "Shoulder extension"
+  },
+  {
+    "key": "shoulder-flexion",
+    "label": "Shoulder flexion"
+  },
+  {
+    "key": "squat",
+    "label": "Squat"
+  },
+  {
+    "key": "supination",
+    "label": "Forearm supination"
+  },
+  {
+    "key": "throw",
+    "label": "Throw"
+  },
+  {
+    "key": "thumb-opposition",
+    "label": "Thumb opposition"
+  },
+  {
+    "key": "toe-abduction",
+    "label": "Toe abduction"
+  },
+  {
+    "key": "toe-extension",
+    "label": "Toe extension"
+  },
+  {
+    "key": "toe-flexion",
+    "label": "Toe flexion"
+  },
+  {
+    "key": "trunk-extension",
+    "label": "Trunk extension"
+  },
+  {
+    "key": "trunk-flexion",
+    "label": "Trunk flexion"
+  },
+  {
+    "key": "vertical-pull",
+    "label": "Vertical pull"
+  },
+  {
+    "key": "vertical-push",
+    "label": "Overhead press"
+  },
+  {
+    "key": "wrist-extension",
+    "label": "Wrist extension"
+  },
+  {
+    "key": "wrist-flexion",
+    "label": "Wrist flexion"
+  },
+  {
+    "key": "wrist-radial-deviation",
+    "label": "Wrist radial deviation"
+  },
+  {
+    "key": "wrist-ulnar-deviation",
+    "label": "Wrist ulnar deviation"
+  }
+]

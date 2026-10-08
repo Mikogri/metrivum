@@ -23,6 +23,400 @@ namespace TrainFlow.Training.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("TrainFlow.Training.Delivery.AssignmentBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CoachId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachId", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.ToTable("assignment_batches", "training");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.AssignmentGroupSource", b =>
+                {
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GroupAssignmentId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("AssignmentId", "GroupAssignmentId");
+
+                    b.HasIndex("GroupAssignmentId");
+
+                    b.ToTable("assignment_group_sources", "training");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.ExerciseExecution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ExecutionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsSubstitution")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("PrescribedInstanceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExecutionId");
+
+                    b.HasIndex("ExerciseId", "ExecutionId");
+
+                    b.ToTable("exercise_executions", "training");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.GroupProgramAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId", "GroupId")
+                        .IsUnique();
+
+                    b.ToTable("group_assignments", "training");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.ProgramAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CoachId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EffectiveRevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("GroupAssignmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OriginalRevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProgramName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RelationshipId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EffectiveRevisionId");
+
+                    b.HasIndex("GroupAssignmentId");
+
+                    b.HasIndex("OriginalRevisionId");
+
+                    b.HasIndex("ProgramId");
+
+                    b.HasIndex("BatchId", "RelationshipId")
+                        .IsUnique();
+
+                    b.HasIndex("RelationshipId", "Status", "CreatedAt");
+
+                    b.ToTable("assignments", "training");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.SetExecution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("DistanceMeters")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("DurationSeconds")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("ExerciseExecutionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("Load")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("LoadMeaning")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LoadUnit")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("PrescribedSegmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PrescribedSetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Reps")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("RestSeconds")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("Rir")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("Rpe")
+                        .HasColumnType("numeric");
+
+                    b.Property<bool>("Skipped")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Tempo")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("VolumeKg")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciseExecutionId");
+
+                    b.ToTable("set_executions", "training");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.WorkoutExecution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DurationSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("OccurrenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("PerformedDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Prescription")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurrenceId")
+                        .IsUnique();
+
+                    b.HasIndex("PerformedDate", "Status");
+
+                    b.ToTable("workout_executions", "training");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.WorkoutOccurrence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BlockId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CycleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DayId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Deadline")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Prescription")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("RevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("ScheduledDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("Superseded")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("WorkoutId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RevisionId");
+
+                    b.HasIndex("ScheduledDate", "AssignmentId");
+
+                    b.HasIndex("AssignmentId", "RevisionId", "WorkoutId")
+                        .IsUnique();
+
+                    b.ToTable("workout_occurrences", "training");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Generation.ProgramGenerationRecord", b =>
+                {
+                    b.Property<Guid>("ProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AssumptionsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DocumentHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("StateJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("WorkspaceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ProgramId");
+
+                    b.HasIndex("WorkspaceId", "OwnerId", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.ToTable("program_generations", "training");
+                });
+
             modelBuilder.Entity("TrainFlow.Training.Infrastructure.TrainingFolder", b =>
                 {
                     b.Property<Guid>("Id")
@@ -262,6 +656,113 @@ namespace TrainFlow.Training.Infrastructure.Migrations
                     b.ToTable("revisions", "training");
                 });
 
+            modelBuilder.Entity("TrainFlow.Training.Delivery.AssignmentGroupSource", b =>
+                {
+                    b.HasOne("TrainFlow.Training.Delivery.ProgramAssignment", null)
+                        .WithMany()
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TrainFlow.Training.Delivery.GroupProgramAssignment", null)
+                        .WithMany()
+                        .HasForeignKey("GroupAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.ExerciseExecution", b =>
+                {
+                    b.HasOne("TrainFlow.Training.Delivery.WorkoutExecution", null)
+                        .WithMany("Exercises")
+                        .HasForeignKey("ExecutionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.GroupProgramAssignment", b =>
+                {
+                    b.HasOne("TrainFlow.Training.Delivery.AssignmentBatch", null)
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.ProgramAssignment", b =>
+                {
+                    b.HasOne("TrainFlow.Training.Delivery.AssignmentBatch", null)
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TrainFlow.Training.Infrastructure.TrainingRevision", null)
+                        .WithMany()
+                        .HasForeignKey("EffectiveRevisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TrainFlow.Training.Delivery.GroupProgramAssignment", null)
+                        .WithMany()
+                        .HasForeignKey("GroupAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TrainFlow.Training.Infrastructure.TrainingRevision", null)
+                        .WithMany()
+                        .HasForeignKey("OriginalRevisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TrainFlow.Training.Infrastructure.TrainingPlan", null)
+                        .WithMany()
+                        .HasForeignKey("ProgramId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.SetExecution", b =>
+                {
+                    b.HasOne("TrainFlow.Training.Delivery.ExerciseExecution", null)
+                        .WithMany("Sets")
+                        .HasForeignKey("ExerciseExecutionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.WorkoutExecution", b =>
+                {
+                    b.HasOne("TrainFlow.Training.Delivery.WorkoutOccurrence", null)
+                        .WithMany()
+                        .HasForeignKey("OccurrenceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.WorkoutOccurrence", b =>
+                {
+                    b.HasOne("TrainFlow.Training.Delivery.ProgramAssignment", null)
+                        .WithMany()
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TrainFlow.Training.Infrastructure.TrainingRevision", null)
+                        .WithMany()
+                        .HasForeignKey("RevisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Generation.ProgramGenerationRecord", b =>
+                {
+                    b.HasOne("TrainFlow.Training.Infrastructure.TrainingPlan", null)
+                        .WithOne()
+                        .HasForeignKey("TrainFlow.Training.Generation.ProgramGenerationRecord", "ProgramId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("TrainFlow.Training.Infrastructure.TrainingFolder", b =>
                 {
                     b.HasOne("TrainFlow.Training.Infrastructure.TrainingFolder", null)
@@ -296,6 +797,16 @@ namespace TrainFlow.Training.Infrastructure.Migrations
                         .HasForeignKey("PlanId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.ExerciseExecution", b =>
+                {
+                    b.Navigation("Sets");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Delivery.WorkoutExecution", b =>
+                {
+                    b.Navigation("Exercises");
                 });
 #pragma warning restore 612, 618
         }

@@ -16,6 +16,7 @@ public static class ModuleRegistration
         services.AddModuleDatabase<AccessDbContext>("access");
         services.AddSingleton<FeatureCatalog>();
         services.AddScoped<IFeatureAccessService, FeatureAccessService>();
+        services.AddScoped<IFeatureAudience, FeatureAudience>();
         return services;
     }
     public static void MapAccess(this IEndpointRouteBuilder endpoints) => AccessEndpoints.Map(endpoints);

@@ -1,0 +1,175 @@
+using System.Diagnostics;
+using System.Globalization;
+using System.Text;
+using System.Text.Json;
+using MotionTrace.Core.Analysis;
+using MotionTrace.Core.Athletes;
+using MotionTrace.Core.Exercise;
+using MotionTrace.Core.Motion;
+using MotionTrace.Core.PoseCorrection;
+using MotionTrace.Infrastructure.AI;
+
+namespace TrainFlow.MotionTraceBridge;
+
+public static class Program
+{
+    internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+    public static async Task<int> Main(string[] args)
+    {
+        using var cancellation = new CancellationTokenSource();
+        Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+        try
+        {
+            if (args.Length != 4 || args[0] != "--request" || args[2] != "--output")
+                throw new ArgumentException("Usage: dotnet TrainFlow.MotionTraceBridge.dll --request request.json --output result.json");
+            var request = JsonSerializer.Deserialize<Request>(await File.ReadAllTextAsync(args[1], cancellation.Token), Json)
+                ?? throw new InvalidDataException("Empty request.");
+            cancellation.CancelAfter(TimeSpan.FromSeconds(request.TimeoutSeconds));
+            var result = await Run(request, Path.GetFullPath(args[3]), cancellation.Token);
+            await File.WriteAllTextAsync(args[3], JsonSerializer.Serialize(result, Json), cancellation.Token);
+            return 0;
+        }
+        catch (Exception error)
+        {
+            Console.Error.WriteLine($"MotionTrace analysis failed: {error.Message}");
+            return 1;
+        }
+    }
+
+    private static async Task<object> Run(Request request, string output, CancellationToken token)
+    {
+        var tracking = request.Configuration.Tracking;
+        if (tracking.Points.Length != 2 || tracking.Points[0] == tracking.Points[1] || tracking.VideoWidth <= 0 || tracking.VideoHeight <= 0 ||
+            !double.IsFinite(tracking.TimestampSeconds) || tracking.TimestampSeconds < 0 || tracking.Points.Any(p => !double.IsFinite(p.X) || !double.IsFinite(p.Y) || p.X < 0 || p.Y < 0 || p.X >= tracking.VideoWidth || p.Y >= tracking.VideoHeight))
+            throw new InvalidDataException("Two distinct physical points and valid source video dimensions/timestamp are required.");
+        _ = Exercise(request.Configuration.Movement);
+        if (!File.Exists(request.VideoPath)) throw new FileNotFoundException("Video does not exist.");
+        var root = Path.GetFullPath(request.MotionTraceRoot);
+        var options = PythonOptions.Load(request.SettingsPath is null ? null : Path.GetDirectoryName(Path.GetFullPath(request.SettingsPath)));
+        if (request.SettingsPath is not null && (!File.Exists(request.SettingsPath) || Path.GetFileName(request.SettingsPath) != "settings.json"))
+            throw new InvalidDataException("settingsPath must reference an existing MotionTrace settings.json.");
+        options.ScriptPath = Path.Combine(root, "ai", "pipeline.py");
+        if (request.SettingsPath is null && Directory.Exists(Path.Combine(root, ".models", "vision")))
+            options.ModelsRoot = Path.Combine(root, ".models", "vision");
+        foreach (var path in new[] { options.ComparisonScriptPath, options.ExecutablePath, options.VisionExecutablePath, options.PointsExecutablePath })
+            if (!File.Exists(path)) throw new FileNotFoundException($"Required local MotionTrace component is missing: {path}");
+        // The source decoder applies rotation exactly as the tracking pipeline does.
+        var probe = "import sys,json;sys.path.insert(0,sys.argv[1]);from motiontrace_ai.video_decode import VideoDecoder;d=VideoDecoder(sys.argv[2]);print(json.dumps(dict(width=d.width,height=d.height,duration=d.duration)));d.close()";
+        var metadata = await Process(options.VisionExecutablePath, ["-c", probe, Path.Combine(root, "ai"), request.VideoPath], root, token);
+        using (var document = JsonDocument.Parse(metadata))
+        {
+            var video = document.RootElement;
+            if (video.GetProperty("width").GetInt32() != tracking.VideoWidth || video.GetProperty("height").GetInt32() != tracking.VideoHeight)
+                throw new InvalidDataException("Selected frame dimensions do not match the decoded video.");
+            if (video.GetProperty("duration").GetDouble() is > 0 and var duration && tracking.TimestampSeconds >= duration)
+                throw new InvalidDataException("Selected timestamp is outside the video.");
+        }
+        var directory = Path.GetDirectoryName(output)!;
+        Directory.CreateDirectory(directory);
+        var target = output + ".target.json";
+        var session = output + ".session.json";
+        await File.WriteAllTextAsync(target, JsonSerializer.Serialize(new { tracking.TimestampSeconds, tracking.Points }, Json), token);
+        var arguments = new List<string> { "-u", options.ComparisonScriptPath };
+        void Add(string name, string value) { arguments.Add("--" + name); arguments.Add(value); }
+        Add("input", Path.GetFullPath(request.VideoPath)); Add("output", session); Add("target", target);
+        Add("cache", request.CacheDirectory ?? Path.Combine(directory, "motiontrace-cache"));
+        Add("pose-python", options.ExecutablePath); Add("vision-python", options.VisionExecutablePath);
+        Add("samurai-python", options.SamuraiExecutablePath); Add("points-python", options.PointsExecutablePath);
+        Add("models-root", options.ModelsRoot); Add("samurai-models-root", options.EffectiveSamuraiModelsRoot); Add("points-models-root", options.EffectivePointsModelsRoot);
+        Add("device", options.Device); Add("pose-model", options.PoseModel); Add("pose-weights", options.PoseWeights);
+        Add("crop-padding", options.CropPadding.ToString(CultureInfo.InvariantCulture)); Add("tapnext-resolution", options.TapNextResolution.ToString(CultureInfo.InvariantCulture));
+        if (!string.IsNullOrWhiteSpace(options.EffectiveTapNextCheckpoint)) Add("tapnext-checkpoint", options.EffectiveTapNextCheckpoint);
+        await Process(options.VisionExecutablePath, arguments, root, token);
+        using var manifest = JsonDocument.Parse(await File.ReadAllTextAsync(session, token));
+        var provider = manifest.RootElement.GetProperty("providers").EnumerateArray().Single(p => p.GetProperty("providerId").GetString() == "tapnextpp");
+        if (provider.GetProperty("status").GetString() is not ("TrackingReady" or "Ready"))
+            throw new InvalidDataException(provider.TryGetProperty("error", out var error) ? error.ToString() : "Point tracker did not produce a ready result.");
+        await using var stream = File.OpenRead(provider.GetProperty("resultPath").GetString()!);
+        var raw = await AnalysisJson.ReadAsync(stream, token);
+        return Convert(raw, request.Configuration.Movement, request.VideoPath, token, options.Correction);
+    }
+
+    public static object Convert(MotionTrace.Core.Analysis.AnalysisResult raw, string movement, string videoPath, CancellationToken token = default, PoseCorrectionOptions? correction = null)
+    {
+        raw = new TemporalPoseCorrector(correction ?? new(), new LightPoseSmoother()).Correct(raw, token);
+        var owners = raw.Frames.SelectMany(f => f.Objects).Where(o => o.MeasurementGroupId is not null).Select(o => o.AthleteId).Distinct().ToArray();
+        if (owners.Length != 1 || owners[0] is not { } owner) throw new InvalidDataException("Expected exactly one owned pair of tracked points.");
+        var samples = new ObjectTrajectoryProvider().Extract(raw.Frames, owner, Joint.LeftWrist, token);
+        if (samples.Count == 0) throw new InvalidDataException("No frames have two visible, usable tracked points.");
+        var exercise = Exercise(movement);
+        var prepared = ProviderPreparation.Prepare(raw, videoPath, token: token);
+        if (exercise == ExerciseType.Unknown) exercise = prepared.Exercises[owner].ExerciseType;
+        var analysis = exercise is ExerciseType.BenchPress or ExerciseType.Squat or ExerciseType.Deadlift
+            ? prepared.FindMovement(new(owner, exercise, MovementSource.Barbell, 1.5))?.Analysis : null;
+        var points = analysis?.Points.ToDictionary(p => p.FrameIndex);
+        var warnings = raw.Limitations.ToList();
+        warnings.Add("Vertical image-space velocity is measured in px/s; camera motion is not removed and no metric calibration is applied.");
+        if (analysis is null) warnings.Add("Exercise classification abstained; select a movement to calculate phases, repetitions and velocity.");
+        if (samples.Count < raw.Frames.Count) warnings.Add("Frames without two visible points are omitted; segments prevent bridging visibility gaps.");
+        return new
+        {
+            schemaVersion = 1, engineVersion = raw.Versions.EngineVersion + "/" + ProviderPreparation.Version,
+            modelVersion = raw.Versions.BarbellModelVersion, method = "tapnextpp-two-point-midpoint", positionUnit = "px", metersPerPixel = (double?)null,
+            repetitions = analysis?.Reps.Select(rep => new
+            {
+                number = rep.Number, startSeconds = rep.Start, endSeconds = rep.End, meanSpeed = rep.Lifting.MeanSpeed, peakSpeed = rep.Lifting.PeakSpeed,
+                phases = Phases(rep)
+            }).ToArray() ?? [],
+            trajectory = samples.Select(sample =>
+            {
+                MovementPoint? point = null;
+                points?.TryGetValue(sample.FrameIndex, out point);
+                return new { seconds = sample.TimestampSeconds, x = sample.Position.X, y = sample.Position.Y, velocity = point?.Velocity,
+                    quality = sample.Confidence, occluded = false, segment = point?.Segment ?? sample.ContinuityId };
+            }).ToArray(), warnings = warnings.ToArray()
+        };
+    }
+
+    private static object[] Phases(MovementRep rep)
+    {
+        var moving = new[] { rep.Lowering, rep.Lifting }.OfType<MovementPhase>().OrderBy(p => p.Start).ToArray();
+        var phases = new List<object>();
+        for (var i = 0; i < moving.Length; i++)
+        {
+            if (i > 0 && moving[i].Start > moving[i - 1].End)
+                phases.Add(new { kind = "pause", startSeconds = moving[i - 1].End, endSeconds = moving[i].Start, meanSpeed = (double?)null, peakSpeed = (double?)null });
+            var phase = moving[i];
+            phases.Add(new { kind = phase.Upward ? "concentric" : "eccentric", startSeconds = phase.Start, endSeconds = phase.End,
+                meanSpeed = (double?)phase.MeanSpeed, peakSpeed = (double?)phase.PeakSpeed });
+        }
+        return phases.ToArray();
+    }
+
+    private static ExerciseType Exercise(string movement) => movement switch
+    { "squat" => ExerciseType.Squat, "deadlift" => ExerciseType.Deadlift, "bench-press" => ExerciseType.BenchPress, "unspecified" => ExerciseType.Unknown, _ => throw new InvalidDataException("Unsupported movement.") };
+
+    private static async Task<string> Process(string executable, IEnumerable<string> arguments, string root, CancellationToken token)
+    {
+        var start = new ProcessStartInfo(executable) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = root };
+        foreach (var argument in arguments) start.ArgumentList.Add(argument);
+        start.Environment["PYTHONDONTWRITEBYTECODE"] = "1";
+        start.Environment["PYTHONIOENCODING"] = "utf-8";
+        start.Environment["HF_HUB_OFFLINE"] = "1"; start.Environment["TRANSFORMERS_OFFLINE"] = "1";
+        var pythonDirectory = Path.GetDirectoryName(executable)!;
+        start.Environment["PATH"] = pythonDirectory + Path.PathSeparator + Path.Combine(pythonDirectory, "Library", "bin") + Path.PathSeparator + start.Environment["PATH"];
+        using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("Could not start Python.");
+        using var registration = token.Register(() => { try { if (!process.HasExited) process.Kill(true); } catch (InvalidOperationException) { } });
+        var stdout = Tail(process.StandardOutput); var stderr = Tail(process.StandardError);
+        await process.WaitForExitAsync(token);
+        var output = await stdout; var errors = await stderr;
+        if (process.ExitCode != 0) throw new InvalidOperationException($"Python exited {process.ExitCode}: {errors}");
+        return output;
+    }
+
+    private static async Task<string> Tail(StreamReader reader)
+    {
+        var buffer = new char[4096]; var tail = new StringBuilder(); int count;
+        while ((count = await reader.ReadAsync(buffer)) > 0) { tail.Append(buffer, 0, count); if (tail.Length > 32768) tail.Remove(0, tail.Length - 32768); }
+        return tail.ToString();
+    }
+}
+
+public sealed record Request(string VideoPath, Configuration Configuration, string MotionTraceRoot, string? SettingsPath = null, string? CacheDirectory = null, int TimeoutSeconds = 7200);
+public sealed record Configuration(string Movement, Tracking Tracking);
+public sealed record Tracking(double TimestampSeconds, int VideoWidth, int VideoHeight, Point[] Points);
+public sealed record Point(double X, double Y);

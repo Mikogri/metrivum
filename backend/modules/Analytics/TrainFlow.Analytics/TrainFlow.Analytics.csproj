@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="../TrainFlow.Analytics.Contracts/TrainFlow.Analytics.Contracts.csproj" />
+        <ProjectReference Include="../../../BuildingBlocks/TrainFlow.BuildingBlocks/TrainFlow.BuildingBlocks.csproj" />
+        <ProjectReference Include="../../Accounts/TrainFlow.Accounts.Contracts/TrainFlow.Accounts.Contracts.csproj" />
+        <ProjectReference Include="../../Access/TrainFlow.Access.Contracts/TrainFlow.Access.Contracts.csproj" />
+    </ItemGroup>
+</Project>

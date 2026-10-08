@@ -1,0 +1,179 @@
+using System.Diagnostics;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using TrainFlow.BuildingBlocks;
+
+namespace TrainFlow.VideoAnalysis;
+
+public sealed class MotionTraceOptions
+{
+    public bool Enabled
+    {
+        get; set;
+    }
+    public string BridgePath { get; set; } = "";
+    public string MotionTraceRoot { get; set; } = "";
+    public string? SettingsPath
+    {
+        get; set;
+    }
+    public string DotnetExecutable { get; set; } = "dotnet";
+    public string WorkDirectory { get; set; } = Path.Combine(Path.GetTempPath(), "TrainFlow.MotionTrace");
+}
+
+public sealed class MotionTraceAnalyzer(IOptions<MotionTraceOptions> configured, IOptions<AnalysisOptions> limits,
+    IConfiguration configuration, ILogger<MotionTraceAnalyzer> logger) : IVideoAnalyzer
+{
+    private readonly MotionTraceOptions options = configured.Value;
+    private readonly AnalysisOptions analysis = limits.Value;
+    private readonly long maxVideoBytes = configuration.GetValue<long?>("Storage:MaxVideoBytes") ?? 268435456;
+
+    public bool IsConfigured => options.Enabled && Path.IsPathFullyQualified(options.BridgePath) && File.Exists(options.BridgePath)
+        && Path.IsPathFullyQualified(options.MotionTraceRoot) && Directory.Exists(options.MotionTraceRoot)
+        && Path.IsPathFullyQualified(options.WorkDirectory) && !string.IsNullOrWhiteSpace(options.DotnetExecutable)
+        && (string.IsNullOrEmpty(options.SettingsPath) || Path.IsPathFullyQualified(options.SettingsPath) && File.Exists(options.SettingsPath));
+
+    public void ValidateConfiguration(AnalysisConfiguration configuration)
+    {
+        if (configuration.Tracking == null || configuration.MetersPerPixel != null)
+            throw ApiException.Invalid("MotionTrace requires two tracking points and pixel units without metric calibration.");
+    }
+
+    public async Task<AnalysisResult> AnalyzeAsync(Stream source, AnalysisConfiguration configuration, CancellationToken ct)
+    {
+        if (!IsConfigured)
+            throw new ApiException(503, "ANALYZER_NOT_CONFIGURED", "No video analysis engine is configured.");
+        ValidateConfiguration(configuration);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(analysis.MaxRunSeconds));
+        var token = timeout.Token;
+        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(options.WorkDirectory));
+        var jobId = Guid.NewGuid().ToString("N");
+        var job = Path.Combine(root, jobId);
+        try
+        {
+            Directory.CreateDirectory(job);
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(job, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            var video = Path.Combine(job, "source.mp4");
+            await using (var destination = new FileStream(video, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, true))
+            {
+                var buffer = new byte[65536];
+                long total = 0;
+                int read;
+                while ((read = await source.ReadAsync(buffer, token)) != 0)
+                {
+                    total += read;
+                    if (total > maxVideoBytes)
+                        throw new ApiException(422, "MEDIA_SIZE_INVALID", "The video exceeds the configured size limit.");
+                    await destination.WriteAsync(buffer.AsMemory(0, read), token);
+                }
+                if (total == 0)
+                    throw new ApiException(422, "MEDIA_SIZE_INVALID", "The video is empty.");
+            }
+            var request = Path.Combine(job, "request.json");
+            var output = Path.Combine(job, "result.json");
+            await File.WriteAllTextAsync(request, JsonSerializer.Serialize(new
+            {
+                videoPath = video,
+                configuration,
+                cacheDirectory = job,
+                timeoutSeconds = analysis.MaxRunSeconds,
+                motionTraceRoot = options.MotionTraceRoot,
+                settingsPath = options.SettingsPath
+            }, AnalysisResults.Json), token);
+            var start = new ProcessStartInfo(options.DotnetExecutable)
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = job
+            };
+            foreach (var argument in new[] { options.BridgePath, "--request", request, "--output", output })
+                start.ArgumentList.Add(argument);
+            using var process = new Process { StartInfo = start };
+            process.Start();
+            // Drain without retaining private engine output or allowing unbounded memory growth.
+            var stdout = DrainAsync(process.StandardOutput);
+            var stderr = DrainAsync(process.StandardError);
+            try
+            {
+                await process.WaitForExitAsync(token);
+            }
+            finally
+            {
+                if (!process.HasExited)
+                {
+                    try
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
+                    catch (InvalidOperationException) when (process.HasExited) { }
+                    await process.WaitForExitAsync(CancellationToken.None);
+                }
+                await Task.WhenAll(stdout, stderr).WaitAsync(token);
+            }
+            token.ThrowIfCancellationRequested();
+            if (process.ExitCode != 0)
+            {
+                logger.LogWarning("MotionTrace job {JobId} exited with code {ExitCode}", jobId, process.ExitCode);
+                throw ExecutionFailed();
+            }
+            if (!File.Exists(output) || new FileInfo(output).Length > analysis.MaxResultBytes)
+                throw InvalidResult();
+            // Read at most the configured bound even if the file is replaced or grows after the length check.
+            await using var resultFile = new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var bytes = new MemoryStream();
+            var resultBuffer = new byte[8192];
+            int count;
+            while ((count = await resultFile.ReadAsync(resultBuffer, token)) != 0)
+            {
+                if (bytes.Length + count > analysis.MaxResultBytes)
+                    throw InvalidResult();
+                bytes.Write(resultBuffer, 0, count);
+            }
+            var result = JsonSerializer.Deserialize<AnalysisResult>(bytes.GetBuffer().AsSpan(0, (int)bytes.Length), AnalysisResults.Json)
+                ?? throw InvalidResult();
+            AnalysisResults.Validate(result, analysis);
+            return result;
+        }
+        catch (JsonException) { throw InvalidResult(); }
+        catch (ApiException) { throw; }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception error)
+        {
+            logger.LogWarning("MotionTrace job {JobId} failed with {ErrorType}", jobId, error.GetType().Name);
+            throw ExecutionFailed();
+        }
+        finally
+        {
+            // Only this invocation's generated direct child may be removed.
+            if (Path.GetDirectoryName(Path.GetFullPath(job)) == root && Path.GetFileName(job) == jobId)
+            {
+                try
+                {
+                    if (Directory.Exists(job))
+                        Directory.Delete(job, recursive: true);
+                }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                {
+                    logger.LogWarning("MotionTrace job {JobId} cleanup failed with {ErrorType}", jobId, error.GetType().Name);
+                }
+            }
+        }
+    }
+
+    private static async Task DrainAsync(StreamReader reader)
+    {
+        var buffer = new char[4096];
+        while (await reader.ReadAsync(buffer) != 0)
+        {
+        }
+    }
+
+    private static ApiException ExecutionFailed() => new(503, "ANALYSIS_EXECUTION_FAILED", "The analysis engine could not complete the video.");
+    private static ApiException InvalidResult() => new(422, "ANALYSIS_RESULT_INVALID", "The analyzer returned an invalid or oversized result.");
+}

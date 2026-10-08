@@ -21,4 +21,6 @@
     <ProjectReference Include="..\..\..\backend\modules\Media\TrainFlow.Media\TrainFlow.Media.csproj" />
     <ProjectReference Include="..\..\..\backend\modules\VideoAnalysis\TrainFlow.VideoAnalysis\TrainFlow.VideoAnalysis.csproj" />
   </ItemGroup>
+  <ItemGroup><ProjectReference Include="../../../backend/modules/Coaching/TrainFlow.Coaching/TrainFlow.Coaching.csproj" /><ProjectReference Include="..\..\..\backend\modules\Forms\TrainFlow.Forms\TrainFlow.Forms.csproj" /><ProjectReference Include="..\..\..\backend\modules\Offers\TrainFlow.Offers\TrainFlow.Offers.csproj" /><ProjectReference Include="..\..\..\backend\modules\Billing\TrainFlow.Billing\TrainFlow.Billing.csproj" /><ProjectReference Include="..\..\..\backend\modules\CheckIns\TrainFlow.CheckIns\TrainFlow.CheckIns.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../../backend/modules/ClientDocumentation/TrainFlow.ClientDocumentation/TrainFlow.ClientDocumentation.csproj" /></ItemGroup>
 </Project>

@@ -15,6 +15,14 @@ public sealed class Profile
         get; set;
     }
     public string DisplayName { get; set; } = "";
+    public string? Phone
+    {
+        get; set;
+    }
+    public bool PhoneVisibleToCoach
+    {
+        get; set;
+    }
     public DateOnly? BirthDate
     {
         get; set;
@@ -35,6 +43,8 @@ public sealed class Profile
     }
     public bool Active { get; set; } = true;
     public long Version { get; set; } = 1;
+    public string Currency { get; set; } = "EUR";
+    public string SystemValues { get; set; } = "{}";
 }
 
 public sealed class Workspace

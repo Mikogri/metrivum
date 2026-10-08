@@ -1,6 +1,6 @@
 namespace TrainFlow.Media.Contracts;
 
-public sealed record ReadyMedia(Guid Id, Guid OwnerId, string Bucket, string ObjectKey, string ContentType, long Size);
+public sealed record ReadyMedia(Guid Id, Guid OwnerId, string Bucket, string ObjectKey, string ContentType, long Size, long? DurationMs = null);
 
 public interface IMediaLibrary
 {

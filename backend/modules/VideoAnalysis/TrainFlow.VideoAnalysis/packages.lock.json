@@ -208,6 +208,9 @@
       "trainflow.media.contracts": {
         "type": "Project"
       },
+      "trainflow.notifications.contracts": {
+        "type": "Project"
+      },
       "Microsoft.EntityFrameworkCore": {
         "type": "CentralTransitive",
         "requested": "[10.0.12, )",

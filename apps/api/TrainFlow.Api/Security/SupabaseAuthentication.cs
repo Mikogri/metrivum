@@ -40,6 +40,15 @@ public static class SupabaseAuthentication
             options.TokenValidationParameters = ValidationParameters(settings);
             options.Events = new JwtBearerEvents
             {
+                OnMessageReceived = context =>
+                {
+                    // Only authenticated realtime transports accepts query credentials; REST keeps bearer headers.
+                    if ((context.Request.Path == "/api/v1/messaging/hub" || context.Request.Path == "/api/v1/notifications/hub") &&
+                        string.IsNullOrEmpty(context.Request.Headers.Authorization) &&
+                        (context.HttpContext.WebSockets.IsWebSocketRequest || context.Request.Headers.Accept.Contains("text/event-stream")))
+                        context.Token = context.Request.Query["access_token"];
+                    return Task.CompletedTask;
+                },
                 OnTokenValidated = context =>
                 {
                     var principal = context.Principal!;

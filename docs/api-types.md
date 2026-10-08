@@ -1,5 +1,7 @@
 # TrainFlow API JSON types
 
+Client-role and Coaching additions are described in [stage 01](coaching/stage-01.md) and [stage 02](coaching/stage-02.md); the complete current types are generated in `contracts/generated/api.d.ts`. Form answers and profile values are dynamic JSON dictionaries, with their values validated by the selected form/system field.
+
 Field reference for [all endpoints](api-endpoints.md), derived from the committed OpenAPI contract. Each object uses the fields below; referenced names link to another type in this file. `null` means nullable, and `Array<T>` is a JSON array. The Required column reflects OpenAPI presence metadata, not all domain validation: send the documented fields and use endpoint behavior for validation and defaults. Request and response bodies have no extra envelope unless their type explicitly contains one.
 
 The names AccessAdminOverview, UserAccessSettings, AccessAuditEntry, FeatureOverride, BuiltInFormula, ConfigurationAssignment and AccessConfiguration are readable aliases for anonymous OpenAPI schemas. FeatureFlag is documented from the handler because anonymous flag/override schemas currently collide in generated OpenAPI. A flag has `enabled`; an override has `granted`. The nullable user assignment is also corrected from the handler. Audit `change` is serialized JSON text. Numeric unions with string describe accepted quoted-number input; normal numeric responses contain JSON numbers.
@@ -305,6 +307,7 @@ For complete training examples and meaning of units/sets, see [Training](feature
 | `version` | `integer (int32) \| string (int32)` | Yes |
 | `isFavorite` | `boolean` | Yes |
 | `createdAt` | `string (date-time)` | Yes |
+| `primaryMuscleKeys` | Array<`string`> | Yes |
 
 ## ExerciseRevisionDto
 
@@ -718,6 +721,7 @@ For complete training examples and meaning of units/sets, see [Training](feature
 | `id` | `string (uuid)` | Yes |
 | `dayNumber` | `integer (int32) \| string (int32)` | Yes |
 | `workouts` | Array<[Workout](#workout)> | Yes |
+| `note` | `string` \| `null` (at most 2000 characters) | No |
 
 ## TrainingDocument
 
@@ -808,3 +812,11 @@ For complete training examples and meaning of units/sets, see [Training](feature
 | `description` | `string` | Yes |
 | `exercises` | Array<[ExerciseInstance](#exerciseinstance)> | Yes |
 | `groups` | Array<[ExerciseGroup](#exercisegroup)> | Yes |
+
+## Messaging contracts
+
+See [Messaging](coaching/messaging.md) for conversation, message, membership, request, upload and cursor behavior. REST DTOs are generated in `contracts/generated/api.d.ts`; SignalR payloads are typed in `contracts/messaging-events.ts`.
+
+### Messaging display metadata
+
+`MemberDto.username` is nullable and supports @username in direct-chat headers. `MessageDto.clientMessageId` is the normalized UUID from the send idempotency key, or null for legacy/non-UUID keys. Clients use it to reconcile local pending messages with HTTP and SignalR responses; it is not an authorization token. Direct conversation details resolve the peer's display name as their title.

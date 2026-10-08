@@ -16,6 +16,14 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class JwtTests
 {
+    [Fact]
+    public void Isolated_test_host_rejects_remote_database_before_accepting_test_identities()
+    {
+        using var factory = new ApiFactory("Host=unapproved.supabase.co;Database=postgres;Username=test");
+        var error = Assert.Throws<InvalidOperationException>(() => factory.CreateClient());
+        Assert.Contains("loopback PostgreSQL", error.Message);
+    }
+
     [Theory]
     [InlineData("signature")]
     [InlineData("audience")]
@@ -65,6 +73,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.ConfigureServices(services => services.AddSingleton<TrainFlow.Billing.Infrastructure.IPlatformCurrencyConverter>(new TestCurrencyConverter()));
         foreach (var setting in new Dictionary<string, string?>
         {
             ["ConnectionStrings:Database"] = database ?? "Host=127.0.0.1;Port=1;Database=unused;Username=test;Timeout=1",
@@ -78,6 +87,16 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             config.SigningKeys.Add(Key);
             options.ConfigurationManager = KeyManager ?? new StaticConfigurationManager<OpenIdConnectConfiguration>(config);
         }));
+    }
+
+    private sealed class TestCurrencyConverter : TrainFlow.Billing.Infrastructure.IPlatformCurrencyConverter
+    {
+        public Task<TrainFlow.Billing.Infrastructure.PlatformCurrencyQuote> ConvertAsync(decimal amount, string from, string to, CancellationToken ct)
+        {
+            var rate = from == to ? 1m : to == "PLN" ? 4m : 0.9m;
+            return Task.FromResult(new TrainFlow.Billing.Infrastructure.PlatformCurrencyQuote(decimal.Round(amount * rate, 2), to,
+                from == to ? "" : $"test-{from}-{to}", "Test fixture", "2026-10-08"));
+        }
     }
 
     public string Token(Guid userId, string? fault = null, bool metadataAdmin = false)

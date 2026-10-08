@@ -1,4 +1,7 @@
+using System.Data.Common;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,6 +17,78 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class MediaAnalysisPostgresTests
 {
+    [MediaPostgresFact]
+    public async Task Metadata_reads_exclude_results_and_comparison_loads_each_result_once()
+    {
+        await using var test = await Database.CreateAsync();
+        var left = await test.EnqueueAsync();
+        await using var db = test.Analysis();
+        await using var files = test.Media();
+        var job = await db.Jobs.SingleAsync(x => x.Id == left);
+        var right = Guid.NewGuid();
+        db.Jobs.Add(new AnalysisJob
+        {
+            Id = right,
+            OwnerId = job.OwnerId,
+            MediaId = job.MediaId,
+            Name = "Other",
+            Configuration = job.Configuration,
+            IdempotencyKey = "other",
+            RequestHash = "other",
+            CreatedAt = job.CreatedAt,
+            AvailableAt = job.AvailableAt
+        });
+        await db.SaveChangesAsync();
+        await db.Jobs.Where(x => x.OwnerId == job.OwnerId).ExecuteUpdateAsync(s => s
+            .SetProperty(x => x.Status, "Completed").SetProperty(x => x.Result, JsonSerializer.Serialize(Result(), AnalysisResults.Json)));
+        var library = test.AnalysisLibrary(db, files);
+
+        test.Counter.Commands.Clear();
+        Assert.Equal(left, (await library.GetAsync(left, job.OwnerId, default)).Id);
+        Assert.Single(test.Counter.Commands);
+        Assert.DoesNotContain("\"Result\"", test.Counter.Commands[0]);
+
+        test.Counter.Commands.Clear();
+        var comparison = await library.CompareAsync(left, right, job.OwnerId, null, null, 2, default);
+        Assert.NotNull(comparison);
+        Assert.InRange(test.Counter.Commands.Count, 1, 2);
+
+        await db.Jobs.Where(x => x.Id == left).ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "Queued").SetProperty(x => x.Result, (string?)null));
+        var foreign = await Assert.ThrowsAsync<ApiException>(() => library.CompareAsync(left, Guid.NewGuid(), job.OwnerId, null, null, 2, default));
+        Assert.Equal(404, foreign.Status);
+    }
+
+    [MediaPostgresFact]
+    public async Task Media_read_ticket_uses_one_owned_lookup_and_still_validates_stored_bytes()
+    {
+        await using var test = await Database.CreateAsync();
+        var owner = Guid.NewGuid();
+        var id = await test.ReadyAsync(owner);
+        await using var db = test.Media();
+        test.Counter.Commands.Clear();
+        Assert.NotNull(await test.Library(db).ReadUrlAsync(id, owner, default));
+        Assert.Single(test.Counter.Commands);
+        test.Storage.Bytes = new byte[24];
+        Assert.Equal("MEDIA_FORMAT_INVALID", (await Assert.ThrowsAsync<ApiException>(() => test.Library(db).ReadUrlAsync(id, owner, default))).Code);
+    }
+
+    [MediaPostgresFact]
+    public async Task Valid_mov_upload_can_enter_analysis_queue()
+    {
+        await using var test = await Database.CreateAsync();
+        var owner = Guid.NewGuid();
+        test.Storage.ContentType = "video/quicktime";
+        test.Storage.Bytes[8] = (byte)'q';
+        test.Storage.Bytes[9] = (byte)'t';
+        test.Storage.Bytes[10] = (byte)' ';
+        test.Storage.Bytes[11] = (byte)' ';
+        await using var files = test.Media();
+        var ticket = await test.Library(files).CreateAsync(owner, new("Lift.mov", "video/quicktime", 24), default);
+        await test.Library(files).FinalizeAsync(ticket.File.Id, owner, default);
+        await using var db = test.Analysis();
+        Assert.Equal("Queued", (await test.AnalysisLibrary(db, files).CreateAsync(owner, "mov", Request(ticket.File.Id), default)).Status);
+    }
+
     [MediaPostgresFact]
     public async Task ForeignFilesCannotBeFinalizedReadOrDeleted()
     {
@@ -141,6 +216,20 @@ public sealed class MediaAnalysisPostgresTests
         Assert.True((await files.Files.SingleAsync()).Pinned);
         Assert.Equal("MEDIA_IN_USE", (await Assert.ThrowsAsync<ApiException>(() => test.Library(files).DeleteAsync(id, owner, 3, default))).Code);
         Assert.Equal("IDEMPOTENCY_CONFLICT", (await Assert.ThrowsAsync<ApiException>(() => test.AnalysisLibrary(check, files).CreateAsync(owner, "same", request with { Name = "different" }, default))).Code);
+    }
+
+    [MediaPostgresFact]
+    public async Task DefaultAdmissionAllowsMoreThanTwoQueuedAnalysesWithoutFeatureQuota()
+    {
+        await using var test = await Database.CreateAsync();
+        var owner = Guid.NewGuid();
+        var id = await test.ReadyAsync(owner);
+        await using var db = test.Analysis();
+        await using var mediaDb = test.Media();
+        for (var i = 0; i < 3; i++)
+            await test.AnalysisLibrary(db, mediaDb).CreateAsync(owner, "unrestricted-" + i, Request(id), default);
+        Assert.Equal(3, await db.Jobs.CountAsync());
+        Assert.Empty(await new AnalysisLimitUsage(db, Options.Create(test.AnalysisOptions)).GetUsageAsync(owner, default));
     }
 
     [MediaPostgresFact]
@@ -297,12 +386,13 @@ public sealed class MediaAnalysisPostgresTests
     {
         public byte[] Bytes = [0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109, 0, 0, 0, 0, 105, 115, 111, 109, 0, 0, 0, 0];
         public int Inspections; public int Deletes; public bool FailDelete;
+        public string ContentType = "video/mp4";
         public Task<string> CreateUploadUrlAsync(string bucket, string key, CancellationToken ct) => Task.FromResult("https://storage.invalid/upload");
         public Task<string> CreateReadUrlAsync(string bucket, string key, CancellationToken ct) => Task.FromResult("https://storage.invalid/read");
         public Task<StoredObject> InspectAsync(string bucket, string key, CancellationToken ct)
         {
             Interlocked.Increment(ref Inspections);
-            return Task.FromResult(new StoredObject(Bytes.Length, "video/mp4", Bytes));
+            return Task.FromResult(new StoredObject(Bytes.Length, ContentType, Bytes));
         }
         public Task<Stream> OpenReadAsync(string bucket, string key, CancellationToken ct) => Task.FromResult<Stream>(new MemoryStream(Bytes));
         public Task DeleteAsync(string bucket, string key, CancellationToken ct)
@@ -319,8 +409,9 @@ public sealed class MediaAnalysisPostgresTests
         public FakeStorage Storage { get; } = new();
         public StorageOptions StorageOptions { get; } = new() { Bucket = "test-private" };
         public AnalysisOptions AnalysisOptions { get; } = new();
-        public MediaDbContext Media() => new(new DbContextOptionsBuilder<MediaDbContext>().UseNpgsql(source, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "media")).Options);
-        public VideoAnalysisDbContext Analysis() => new(new DbContextOptionsBuilder<VideoAnalysisDbContext>().UseNpgsql(source, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "video_analysis")).Options);
+        public QueryCounter Counter { get; } = new();
+        public MediaDbContext Media() => new(new DbContextOptionsBuilder<MediaDbContext>().UseNpgsql(source, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "media")).AddInterceptors(Counter).Options);
+        public VideoAnalysisDbContext Analysis() => new(new DbContextOptionsBuilder<VideoAnalysisDbContext>().UseNpgsql(source, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "video_analysis")).AddInterceptors(Counter).Options);
         public MediaLibrary Library(MediaDbContext db) => new(db, Storage, Options.Create(StorageOptions));
         public AnalysisLibrary AnalysisLibrary(VideoAnalysisDbContext db, MediaDbContext files) => new(db, Library(files), new FakeAnalyzer(), Options.Create(AnalysisOptions));
         public AnalysisQueue Queue(VideoAnalysisDbContext db) => new(db, Options.Create(AnalysisOptions));
@@ -378,6 +469,18 @@ public sealed class MediaAnalysisPostgresTests
             await connection.OpenAsync();
             await using var command = new NpgsqlCommand($"DROP DATABASE \"{name}\" WITH (FORCE)", connection);
             await command.ExecuteNonQueryAsync();
+        }
+    }
+
+    private sealed class QueryCounter : DbCommandInterceptor
+    {
+        public List<string> Commands { get; } = [];
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData,
+            InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            lock (Commands)
+                Commands.Add(command.CommandText);
+            return ValueTask.FromResult(result);
         }
     }
 }

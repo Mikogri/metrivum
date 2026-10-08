@@ -20,6 +20,8 @@ public sealed class MediaWorkerStartupTests
         Assert.NotNull(root);
         var output = new DirectoryInfo(AppContext.BaseDirectory);
         var worker = Path.Combine(root.FullName, "workers", "TrainFlow.Worker", "bin", output.Parent!.Name, output.Name, "TrainFlow.Worker.dll");
+        if (!File.Exists(worker))
+            worker = Path.GetFullPath(Path.Combine(output.FullName, "..", "..", "TrainFlow.Worker", output.Name, "TrainFlow.Worker.dll"));
         Assert.True(File.Exists(worker), "Build TrainFlow.slnx before running worker startup integration tests.");
         var start = new ProcessStartInfo("dotnet")
         {
@@ -36,7 +38,8 @@ public sealed class MediaWorkerStartupTests
         using var process = Process.Start(start)!;
         var stdout = process.StandardOutput.ReadToEndAsync();
         var stderr = process.StandardError.ReadToEndAsync();
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        // Allow the worker's 10-second connection timeout plus cold process startup on Windows.
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(45));
         try
         {
             await process.WaitForExitAsync(timeout.Token);

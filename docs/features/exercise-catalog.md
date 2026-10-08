@@ -18,7 +18,7 @@ The catalog is shared by authenticated, onboarded adult coaches. `exercises.brow
 | `PUT /api/v1/admin/exercise-dictionaries/{kind}/{key}` | Create/update a dictionary entry; kind `muscles` or `movement-patterns` |
 | `POST /api/v1/admin/exercise-tags/{id}/merge` | Merge source into `targetId` atomically |
 
-Exercise pages default to 25 records, at most 100, with page numbers 1–10000. Allowed sorts are `name`, `-name`, `createdAt`, `-createdAt`; ID always resolves ties. Search normalizes names and uses literal substring matching. Filters and pagination run in PostgreSQL. History defaults to 50 revisions, at most 100 per page. Tag search returns at most 100 matches in normalized-name/ID order.
+Exercise pages default to 25 records, at most 100, with page numbers 1–10000. Allowed sorts are `name`, `-name`, `createdAt`, `-createdAt`; ID always resolves ties. Search normalizes the text and uses literal substring matching on the exercise name and on the muscles it works (English or Polish label, or key); list items include their primary muscle keys. Filters and pagination run in PostgreSQL. History defaults to 50 revisions, at most 100 per page. Tag search returns at most 100 matches in normalized-name/ID order.
 
 Creation accepts `name`, `description`, `instructions`, optional `demonstrationUrl`, `tagIds`, `primaryMuscleKeys`, `secondaryMuscleKeys`, and `movementPatternKeys`. Tags must already exist. Primary/secondary muscle lists cannot overlap. Name, demonstration URL, muscles, patterns and tag links are immutable through the author edit API; administrative tag merges may consolidate links. Maximums: 200-character name, 10000-character description, 20000-character instructions, 30 tags, 30 muscles and 20 patterns. No equipment dictionary exists.
 

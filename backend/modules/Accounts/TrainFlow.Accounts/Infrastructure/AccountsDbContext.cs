@@ -22,8 +22,11 @@ public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> option
             e.Property(x => x.DisplayName).HasMaxLength(100);
             e.Property(x => x.Locale).HasMaxLength(2);
             e.Property(x => x.TimeZone).HasMaxLength(100);
+            e.Property(x => x.Phone).HasMaxLength(32);
             e.Property(x => x.TermsVersion).HasMaxLength(32);
             e.Property(x => x.Version).IsConcurrencyToken();
+            e.Property(x => x.Currency).HasMaxLength(3).HasDefaultValue("EUR");
+            e.Property(x => x.SystemValues).HasColumnType("jsonb").HasDefaultValueSql("'{}'::jsonb");
         });
         model.Entity<Workspace>(e =>
         {

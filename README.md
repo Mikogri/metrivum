@@ -1,8 +1,10 @@
 # TrainFlow
 
-ASP.NET Core backend for a coach's personal training workspace. PostgreSQL stores application data; Supabase provides Auth and private Storage. Business tables are never accessed through the Supabase Data API.
+ASP.NET Core backend and React web frontend for a coach's personal training workspace. PostgreSQL stores application data; Supabase provides Auth and private Storage. Business tables are never accessed through the Supabase Data API.
 
-The v1 scope covers profiles/onboarding, feature access, shared exercises, private training documents/templates/formulas, CSV/PDF, private videos and a durable analysis queue. No frontend or client-management system is included. **A real video analyzer is not bundled:** analysis requests report `ANALYZER_NOT_CONFIGURED` until an adapter is installed.
+The application includes profiles, coaching/client management, shared exercises, training programs/templates, messaging, calendar, billing, analytics, private videos and a durable analysis queue. The optional [MotionTrace integration](docs/features/motiontrace.md) provides two-point lift tracking, repetition detection and phase velocity charts in px/s. Analysis requests report `ANALYZER_NOT_CONFIGURED` until the local bridge is built and configured.
+
+[Stage 5](docs/coaching/stage-05.md) adds program assignment, client workout logs, actual progress, relationship documentation and deterministic program generation. Coaches use Programs → Generate program and Clients → client → Training/Progress/Documentation. Clients use My training and Shared documents.
 
 ## Start locally
 
@@ -40,6 +42,24 @@ dotnet run --project workers/TrainFlow.Worker
 
 See [media/analysis](docs/features/media-analysis.md) for limits, upload finalization, cleanup, leases and the analyzer adapter contract. Never use production credentials for local tests.
 
+## Web frontend
+
+`apps/web` is the React site (public pages at `/` and `/pl`, the coach app under `/app`), built on the
+component library in `packages/ui-web`. Node 22.22+ is required.
+
+```powershell
+npm.cmd ci
+Copy-Item apps/web/.env.example apps/web/.env.local   # fill in your local API and Supabase values
+npm.cmd run dev            # http://localhost:5173 (matches the API's default CORS origin)
+npm.cmd run storybook      # component catalog on http://localhost:6006
+```
+
+Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` and `npm run e2e` before pushing.
+`VITE_DEV_MOCKS=1 npm run dev` shows the app with clearly labelled in-memory data when no backend is running.
+See [frontend architecture](docs/frontend/architecture.md), [design reference](docs/frontend/design-reference.md),
+[API integration map](docs/frontend/api-integration-map.md), [API gaps and release blockers](docs/frontend/api-gaps.md)
+and [hosting](docs/frontend/hosting.md).
+
 ## Verify and regenerate contracts
 
 ```powershell
@@ -58,10 +78,14 @@ Run the explicit migration command on the base test database before integration 
 
 ## Find your way around
 
+- [Messaging stage 03A](docs/coaching/messaging.md) and [verification](docs/coaching/messaging-verification.md): durable chat, private attachments, SignalR contracts and guarded fixtures.
+
 - [API endpoint reference](docs/api-endpoints.md) and [JSON types](docs/api-types.md): every operation, input, response, status, permission and concurrency requirement.
 - [Repository structure](docs/STRUCTURE.md): project boundaries and where new code belongs.
 - [Security model](docs/architecture/security.md): identities, ownership, database roles and actual RLS scope.
 - [Feature access](docs/features/access.md): default configuration, overrides, flags, limits and admin operations.
 - [Exercise catalog](docs/features/exercise-catalog.md): normalization, dictionaries, revisions and favorites.
 - [Training](docs/features/training.md): document schema, formulas, concurrency and CSV/PDF.
+- [Frontend architecture](docs/frontend/architecture.md) and [hosting](docs/frontend/hosting.md): web app structure, sessions, routing and deployment rules.
+- [Coaching stage 02](docs/coaching/stage-02.md), [UI guide](docs/frontend/coaching.md) and [verification](docs/coaching/stage-02-verification.md): offers, forms, leads, services, check-ins and simulated billing.
 - [Change log](CHANGELOG.md) and [verification record](docs/verification.md): changes and actual validation.

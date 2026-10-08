@@ -16,6 +16,9 @@ public sealed class StorageOptions
     {
         get; set;
     }
+    public long MaxAttachmentBytes { get; set; } = 67108864;
+    public long MaxVoiceDurationMs { get; set; } = 300000;
+    public string[] AllowedAttachmentTypes { get; set; } = ["image/png", "image/jpeg", "image/gif", "image/webp", "application/pdf", "text/plain", "application/zip", "video/mp4", "video/webm", "audio/wav"];
     public long MaxVideoBytes { get; set; } = 268435456;
     public int MaxPendingUploadsPerOwner { get; set; } = 5;
     public int ReadUrlSeconds { get; set; } = 120;

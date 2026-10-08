@@ -56,6 +56,8 @@ public sealed class CatalogValidationTests
     private sealed class Account : IAccountContext
     {
         public Guid UserId { get; } = Guid.NewGuid();
+        public Task<AccountIdentity> RequireClientAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<IReadOnlyList<AccountRole>> GetRolesAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AccountRole>>([AccountRole.Coach]);
         public Task<AccountIdentity> RequireCoachAsync(CancellationToken cancellationToken) => Task.FromResult(new AccountIdentity(UserId, UserId));
         public Task RequireAdminAsync(string permission, CancellationToken cancellationToken) => throw new NotSupportedException();
     }

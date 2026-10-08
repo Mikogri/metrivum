@@ -7,6 +7,19 @@ namespace TrainFlow.UnitTests;
 public class MediaAnalysisTests
 {
     [Fact]
+    public void QuickTimeContainerIsAcceptedButDisguisedBytesAreRejected()
+    {
+        Assert.Equal("mov", VideoFileValidation.Extension("video/quicktime"));
+        var header = new byte[] { 0, 0, 0, 20 }.Concat("ftypqt  "u8.ToArray()).Concat(new byte[8]).ToArray();
+        VideoFileValidation.Validate("video/quicktime", 100, 100, header, 1000);
+        var legacy = new byte[] { 0, 0, 0, 8 }.Concat("wide"u8.ToArray()).Concat(new byte[8]).ToArray();
+        VideoFileValidation.Validate("video/quicktime", 100, 100, legacy, 1000);
+        header[0] = 255;
+        Assert.Throws<ApiException>(() => VideoFileValidation.Validate("video/quicktime", 100, 100, header, 1000));
+        Assert.Throws<ApiException>(() => VideoFileValidation.Validate("video/quicktime", 100, 100, "this is not a movie"u8.ToArray(), 1000));
+    }
+
+    [Fact]
     public void DeclaredVideoWithNonVideoBytesIsRejected()
     {
         var error = Assert.Throws<ApiException>(() => VideoFileValidation.Validate("video/mp4", 100, 100, "not video"u8.ToArray(), 1000));

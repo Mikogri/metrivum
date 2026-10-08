@@ -1,12 +1,19 @@
+using TrainFlow.Notifications;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using TrainFlow.Access.Infrastructure;
 using TrainFlow.Accounts.Infrastructure;
+using TrainFlow.Coaching.Infrastructure;
+using TrainFlow.Forms.Infrastructure;
+using TrainFlow.Offers.Infrastructure;
+using TrainFlow.Billing.Infrastructure;
+using TrainFlow.CheckIns.Infrastructure;
 using TrainFlow.Api.Security;
 using TrainFlow.ExerciseCatalog.Infrastructure;
 using TrainFlow.Media.Infrastructure;
+using TrainFlow.Messaging.Infrastructure;
 using TrainFlow.Training.Infrastructure;
 using TrainFlow.VideoAnalysis.Infrastructure;
 
@@ -31,6 +38,8 @@ public sealed class DatabasePrivilegeTests
                 await bootstrap.ExecuteNonQueryAsync();
             connection.Options = "-c role=trainflow_migrator";
             await using var migration = NpgsqlDataSource.Create(connection.ConnectionString);
+            await using (var notifications = new NotificationsDbContext(Options<NotificationsDbContext>(migration, "notifications")))
+                await notifications.Database.MigrateAsync();
             await using (var accounts = new AccountsDbContext(Options<AccountsDbContext>(migration, "accounts")))
                 await accounts.Database.MigrateAsync();
             await using (var access = new AccessDbContext(Options<AccessDbContext>(migration, "access")))
@@ -43,6 +52,18 @@ public sealed class DatabasePrivilegeTests
                 await media.Database.MigrateAsync();
             await using (var analysis = new VideoAnalysisDbContext(Options<VideoAnalysisDbContext>(migration, "video_analysis")))
                 await analysis.Database.MigrateAsync();
+            await using (var coaching = new CoachingDbContext(Options<CoachingDbContext>(migration, "coaching")))
+                await coaching.Database.MigrateAsync();
+            await using (var forms = new FormsDbContext(Options<FormsDbContext>(migration, "forms")))
+                await forms.Database.MigrateAsync();
+            await using (var offers = new OffersDbContext(Options<OffersDbContext>(migration, "offers")))
+                await offers.Database.MigrateAsync();
+            await using (var billing = new BillingDbContext(Options<BillingDbContext>(migration, "billing")))
+                await billing.Database.MigrateAsync();
+            await using (var checkins = new CheckInsDbContext(Options<CheckInsDbContext>(migration, "checkins")))
+                await checkins.Database.MigrateAsync();
+            await using (var messaging = new MessagingDbContext(Options<MessagingDbContext>(migration, "messaging")))
+                await messaging.Database.MigrateAsync();
             // Runtime grants must restore schema access even when bootstrap grants are missing.
             await using (var revoke = migration.CreateCommand("REVOKE USAGE ON SCHEMA accounts, access, exercise_catalog, training, media, video_analysis FROM trainflow_api; REVOKE USAGE ON SCHEMA media, video_analysis FROM trainflow_worker;"))
                 await revoke.ExecuteNonQueryAsync();
@@ -68,16 +89,63 @@ public sealed class DatabasePrivilegeTests
                 timeZone = "UTC"
             })).StatusCode);
             await Denied(runtime, "CREATE TABLE training.forbidden (id int)");
+            Assert.Equal(HttpStatusCode.OK, (await client.PostAsync("/api/v1/me/roles/client", null)).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await client.PostAsync("/api/v1/me/roles/client", null)).StatusCode);
             await Denied(runtime, "ALTER TABLE training.plans ADD COLUMN forbidden int");
             await Denied(runtime, "UPDATE training.revisions SET \"Number\" = 99");
             await Denied(runtime, "UPDATE access.audit SET \"Operation\" = 'tampered'");
             await Denied(runtime, $"INSERT INTO accounts.user_roles (\"UserId\",\"Role\") VALUES ('{userId}', 'AccessAdmin')");
             await Denied(runtime, "SELECT * FROM accounts.\"__EFMigrationsHistory\"");
             await Denied(runtime, "SELECT * FROM auth.users");
+            await Denied(runtime, "CREATE TABLE coaching.forbidden (id int)");
+            await Denied(runtime, "UPDATE coaching.\"StatusChanges\" SET \"InternalReason\" = 'tampered'");
+            await Denied(runtime, "SELECT * FROM coaching.\"__EFMigrationsHistory\"");
+            foreach (var schema in new[] { "forms", "offers", "billing", "checkins" })
+            {
+                await Denied(runtime, $"CREATE TABLE {schema}.forbidden (id int)");
+                await Denied(runtime, $"SELECT * FROM {schema}.\"__EFMigrationsHistory\"");
+            }
+            await Denied(runtime, "UPDATE forms.versions SET \"Number\" = 99");
+            await Denied(runtime, "DELETE FROM forms.submissions");
+            await Denied(runtime, "UPDATE offers.revisions SET \"Number\" = 99");
+            await Denied(runtime, "DELETE FROM offers.revision_billing_options");
+            await Denied(runtime, "UPDATE billing.orders SET \"Amount\" = 0");
+            await Denied(runtime, "DELETE FROM billing.payments");
+            await Denied(runtime, "UPDATE billing.transactions SET \"Amount\" = 0");
+            await using (var tombstone = runtime.CreateCommand("UPDATE messaging.\"Messages\" SET \"DeletedAt\"=now(), \"Body\"=NULL, \"ReplyToMessageId\"=NULL WHERE false"))
+                Assert.Equal(0, await tombstone.ExecuteNonQueryAsync());
+            await Denied(runtime, "UPDATE messaging.\"Messages\" SET \"Sequence\"=1 WHERE false");
+            await Denied(runtime, "DELETE FROM messaging.\"Messages\" WHERE false");
+            await using (var team = runtime.CreateCommand("""
+                BEGIN;
+                DO $$ DECLARE team_id uuid:=gen_random_uuid(); owner_id uuid:=gen_random_uuid(); price_id uuid:=gen_random_uuid(); BEGIN
+                    INSERT INTO billing.plan_prices ("Id","PlanId","Version","Amount","Currency","TermsVersion","CreatedAt")
+                    VALUES (price_id,'Team','runtime-'||price_id,20,'USD','runtime',now());
+                    INSERT INTO billing.teams ("Id","OwnerId","Name","CreatedAt","Status","Description","Version")
+                    VALUES (team_id,owner_id,'Runtime test',now(),'Active','',1);
+                    INSERT INTO billing.team_platform_subscriptions ("TeamId","AcceptedPriceId","PurchasedSeats","PeriodStart","PeriodEnd","AutoRenew","Status","Version")
+                    VALUES (team_id,price_id,1,now(),now()+interval '1 month',false,'Active',1);
+                    INSERT INTO billing.team_memberships ("TeamId","UserId","JoinedAt","Role","Status")
+                    VALUES (team_id,owner_id,now(),'Owner','Active');
+                    IF NOT EXISTS (SELECT FROM billing.teams WHERE "Id"=team_id) THEN RAISE EXCEPTION 'Runtime Team read failed'; END IF;
+                END $$;
+                SET CONSTRAINTS ALL IMMEDIATE;
+                ROLLBACK;
+                """))
+                await team.ExecuteNonQueryAsync();
+            await Denied(runtime, "UPDATE billing.proration_credits SET \"Amount\"=0 WHERE false");
+            await Denied(runtime, "UPDATE coaching.\"TeamTransferChanges\" SET \"Status\"='Accepted' WHERE false");
+            await Denied(runtime, "DELETE FROM billing.teams WHERE false");
             connection.Options = "-c role=trainflow_worker";
             await using var worker = NpgsqlDataSource.Create(connection.ConnectionString);
             await Denied(worker, "SELECT * FROM accounts.profiles");
             await Denied(worker, "SELECT * FROM training.plans");
+            await Denied(worker, "SELECT * FROM coaching.\"Relationships\"");
+            await Denied(worker, "SELECT * FROM forms.submissions");
+            await Denied(worker, "SELECT * FROM billing.payments");
+            await Denied(worker, "SELECT * FROM billing.team_platform_subscriptions");
+            await Denied(worker, "SELECT * FROM coaching.\"TeamClientCases\"");
+            await Denied(worker, "SELECT * FROM checkins.\"Requests\"");
             await using var allowed = worker.CreateCommand("SELECT count(*) FROM video_analysis.jobs");
             Assert.Equal(0L, await allowed.ExecuteScalarAsync());
         }

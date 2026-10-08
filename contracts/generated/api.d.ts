@@ -175,6 +175,138 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/subscriptions/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformPlanDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/profile-fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccountProfileFields"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ProfileFieldsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccountProfileFields"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/me/currency": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CurrencyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccountProfileFields"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -234,6 +366,80 @@ export interface paths {
         trace?: never;
     };
     "/api/v1/me/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["OnboardingRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProfileResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/roles/client": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProfileResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/roles/coach/onboarding": {
         parameters: {
             query?: never;
             header?: never;
@@ -941,6 +1147,580 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/training/programs/{programId}/assignments/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    programId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AssignProgramRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignmentRecipientDto"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/programs/{programId}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Stable key for the same payload on retries. */
+                    "Idempotency-Key": string;
+                };
+                path: {
+                    programId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AssignProgramRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignmentBatchDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    relationshipId?: string;
+                    programId?: string;
+                    groupId?: string;
+                    page?: number | string;
+                    pageSize?: number | string;
+                    view?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfAssignmentDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/assignments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignmentDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/assignments/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AssignmentStatusRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignmentDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/assignments/{id}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RefreshAssignmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignmentDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    relationshipId?: string;
+                    programId?: string;
+                    page?: number | string;
+                    pageSize?: number | string;
+                    view?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfOccurrenceDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/workouts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkoutDetailDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/workouts/{id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExecutionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/workouts/{id}/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SkipWorkoutRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExecutionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/executions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveExecutionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExecutionDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/executions/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExecutionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    relationshipId?: string;
+                    programId?: string;
+                    exerciseId?: string;
+                    groupId?: string;
+                    view?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TrainingProgressDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/programs/{id}/generation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GenerationState"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/training/programs": {
         parameters: {
             query?: never;
@@ -957,6 +1737,7 @@ export interface paths {
                     sort?: string;
                     kind?: components["schemas"]["DocumentKind"];
                     folderId?: string;
+                    rootOnly?: boolean;
                     archived?: boolean;
                 };
                 header?: never;
@@ -1870,6 +2651,200 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/training/generator/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GenerationOptions"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/generator/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GenerationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GenerationPreview"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/generator/reshuffle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GenerationEditRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GenerationPreview"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/generator/replace-exercise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GenerationReplaceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GenerationPreview"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/generator/save-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Stable key for the same payload on retries. */
+                    "Idempotency-Key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveGeneratedDraftRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlanDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/media/uploads": {
         parameters: {
             query?: never;
@@ -2075,6 +3050,120 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UploadRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UploadTicket"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/uploads/{id}/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MediaDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/uploads/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric Media ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -2321,14 +3410,6899 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teams/{teamId}/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamClientCaseDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/clients/{caseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                    caseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamClientCaseDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/clients/{caseId}/assign-coach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                    caseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AssignTeamCoach"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamClientCaseDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/clients/{caseId}/assignments/{coachId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                    caseId: string;
+                    coachId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamConsentDecision"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamClientCaseDto"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/client-transfer-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamClientTransferDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    teamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RequestTeamTransfer"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamClientTransferDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/team-client-transfer-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamClientTransferDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/team-client-transfer-requests/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamConsentDecision"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamClientTransferDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/team-client-transfer-requests/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamConsentDecision"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamClientTransferDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["RelationshipStatus"];
+                    groupIds?: string[];
+                    teamId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfCoachRelationshipDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/clients/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachRelationshipDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/my-coaches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["RelationshipStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfClientRelationshipDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ClientRelationshipDto"] | components["schemas"]["CoachRelationshipDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StatusRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachRelationshipDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StatusRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachRelationshipDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StatusRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachRelationshipDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    archived?: boolean;
+                    teamId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfGroupDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GroupRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GroupDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GroupDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GroupRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GroupDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/coaching/groups/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GroupDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/groups/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GroupDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/groups/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["RelationshipStatus"];
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfCoachRelationshipDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/groups/{groupId}/members/{relationshipId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    groupId: string;
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GroupDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    groupId: string;
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GroupDto"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    purpose: components["schemas"]["FormPurpose"];
+                    archived?: boolean;
+                    search?: string;
+                    sort?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormListDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FormTemplateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormTemplateDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormTemplateDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FormTemplateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormTemplateDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/forms/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormTemplateDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/{id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DuplicateFormRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormTemplateDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormTemplateDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormTemplateDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/versions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormVersionDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    status?: components["schemas"]["OfferStatus"];
+                    search?: string;
+                    sort?: string;
+                    teamId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferListDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["OfferRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/offers/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferCategory"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/offers/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/offers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["OfferRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/offers/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/offers/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/offers/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/offers/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaches/{coachId}/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    category?: string;
+                    sort?: string;
+                };
+                header?: never;
+                path: {
+                    coachId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicOfferListDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaches/{coachId}/offers/{offerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    coachId: string;
+                    offerId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OfferRevisionDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    role?: string;
+                    kind?: string;
+                    from: string;
+                    to: string;
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInPageOfCheckInCalendarItem"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["ScheduleStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInPageOfScheduleDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ScheduleRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScheduleDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/schedules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScheduleDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ScheduleRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScheduleDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/check-ins/schedules/{id}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScheduleDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/schedules/{id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScheduleDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/schedules/{id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScheduleDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["RequestStatus"];
+                    relationshipId?: string;
+                    scheduleId?: string;
+                    role?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInPageOfCheckInRequestDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInDetailDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/requests/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SubmitCheckInRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInDetailDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/requests/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReviewCheckInRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInDetailDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInDetailDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    role?: string;
+                    from: string;
+                    to: string;
+                    timeZone?: string;
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CalendarPageOfEventDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["EventWrite"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EventDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    role?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EventDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["EventWrite"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EventDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/calendar/events/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EventDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/events/{id}/response": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["EventResponse"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EventDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    search: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccountSearchEntry"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    limit?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConversationDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations/direct": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DirectRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConversationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations/group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GroupRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConversationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConversationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RenameRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    before?: string;
+                    after?: string;
+                    limit?: number | string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessagePage"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Stable sender request key, at most 100 characters. Reuse only for the same message payload. */
+                    "Idempotency-Key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SendMessageRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessageDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReadRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MemberDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations/{id}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations/{id}/members/{userId}/ban": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/conversations/{id}/members/{userId}/unban": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RequestDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ContactRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RequestDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/requests/by-username": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UsernameContactRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RequestDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/requests/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RequestDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/requests/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RequestDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RequestDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/messages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessageDto"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/messages/{id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReportRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReportCreatedDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/messaging/messages/{messageId}/attachments/{mediaId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    messageId: string;
+                    mediaId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/blocked-users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/blocked-users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/groups/{groupId}/conversation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConversationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConversationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["ApplicationStatus"];
+                    offerId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfApplicationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StartApplicationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationDetailDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/applications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationDetailDto"] | components["schemas"]["CoachApplicationDetailDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveApplicationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationDetailDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/applications/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SubmitApplicationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationDetailDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/applications/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/applications/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AcceptApplicationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/applications/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RejectApplicationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApplicationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["ApplicationStatus"];
+                    offerId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfApplicationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["InvitationStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfInvitationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateInvitationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvitationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/my-invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["InvitationStatus"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfInvitationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/invitations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvitationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/invitations/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvitationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/invitations/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvitationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/invitations/{id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvitationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{id}/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                    sort?: string;
+                    status?: components["schemas"]["ServiceStatus"];
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfRelationshipServiceDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/services/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RelationshipServiceDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/services/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RelationshipServiceDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/payment-methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentMethodDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/payment-methods/simulated-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SimulatedMethodRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentMethodDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/payment-methods/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/service-subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceSubscriptionDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/service-subscriptions/{id}/renewal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ServiceRenewalRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/payment-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BillingPageOfPaymentDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    sort?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BillingPageOfOrderDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/payment-dues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    status?: components["schemas"]["DueStatus"];
+                    sort?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BillingPageOfPaymentDueDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/payment-dues/{id}/confirm-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PayRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/payment-dues/{id}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PayRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/platform-subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformSubscriptionDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/platform-subscription/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PlatformCheckoutRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformSubscriptionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/platform-subscription/confirm-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PlatformConfirmRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformSubscriptionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/platform-subscription/change-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PlatformChangeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformSubscriptionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/platform-subscription/renewal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PlatformRenewalRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformSubscriptionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/platform-subscription/cancel-renewal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PlatformVersionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformSubscriptionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/platform-subscription/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformHistoryDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/team-context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamAccess"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/checkout-quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamCheckoutQuoteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamBillingQuoteDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/confirm-purchase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamPaymentConfirmRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamBillingDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamBillingDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/seats/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamSeatQuoteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamBillingQuoteDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/seats/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamPaymentConfirmRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamBillingDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/renewal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamRenewalRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamBillingDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/renewal/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamBillingQuoteDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamMemberDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamUpdateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/invitations/{requestId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    requestId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/members/{userId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamRoleRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query: {
+                    version: number | string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamVersionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/schedule-dissolution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamDissolutionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/cancel-dissolution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamCancelDissolutionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/ownership-transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamOwnershipRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/ownership-transfer/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamVersionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamHomeDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamRequest"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{id}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamInviteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamRequest"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/requests/{id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TeamDecisionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TeamRequest"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RelationshipBillingDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/payment-dues/{id}/mark-paid-externally": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ExternalSettlementRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/earnings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachEarningsDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    unread?: boolean;
+                    activeConversation?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationPage"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    activeConversation?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationCountDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PreferenceRequest"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PreferenceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/analyze/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    From?: string;
+                    To?: string;
+                    TimeZone?: string;
+                    Grouping?: string;
+                    GroupId?: string;
+                    OfferRevisionId?: string;
+                    Scope?: string;
+                    MemberId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisOverview"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyze/financial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    From?: string;
+                    To?: string;
+                    TimeZone?: string;
+                    Grouping?: string;
+                    GroupId?: string;
+                    OfferRevisionId?: string;
+                    Scope?: string;
+                    MemberId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FinancialAnalysis"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyze/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    From?: string;
+                    To?: string;
+                    TimeZone?: string;
+                    Grouping?: string;
+                    GroupId?: string;
+                    OfferRevisionId?: string;
+                    Scope?: string;
+                    MemberId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ClientsAnalysis"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyze/acquisition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    From?: string;
+                    To?: string;
+                    TimeZone?: string;
+                    Grouping?: string;
+                    GroupId?: string;
+                    OfferRevisionId?: string;
+                    Scope?: string;
+                    MemberId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AcquisitionAnalysis"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyze/check-ins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    From?: string;
+                    To?: string;
+                    TimeZone?: string;
+                    Grouping?: string;
+                    GroupId?: string;
+                    OfferRevisionId?: string;
+                    Scope?: string;
+                    MemberId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInsAnalysis"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyze/training": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    From?: string;
+                    To?: string;
+                    TimeZone?: string;
+                    Grouping?: string;
+                    GroupId?: string;
+                    OfferRevisionId?: string;
+                    Scope?: string;
+                    MemberId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TrainingAnalysis"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentationAccess"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/measurement-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MeasurementDefinition"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/measurements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentationPageOfMeasurementDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MeasurementInput"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MeasurementDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/measurements/trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    key: string;
+                    unit: string;
+                    from: string;
+                    to: string;
+                };
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MeasurementTrend"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentationPageOfNoteDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["NoteInput"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NoteDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/notes/{noteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    relationshipId: string;
+                    noteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["NoteInput"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NoteDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    category?: string;
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentationPageOfDocumentDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DocumentInput"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/documents/{documentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    relationshipId: string;
+                    documentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DocumentEdit"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/documents/{documentId}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    relationshipId: string;
+                    documentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VisibilityInput"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/documents/{documentId}/read-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                    documentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentReadUrl"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DocumentationUploadInput"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentUpload"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/uploads/{mediaId}/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                    mediaId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AcceptApplicationRequest: {
+            settlementMode?: components["schemas"]["SettlementMode"];
+        };
         AccessSnapshot: {
             version: string;
             features: components["schemas"]["FeatureDecision"][];
             limits: components["schemas"]["LimitDecision"][];
+        };
+        AccountProfileFields: {
+            currency: string;
+            values: {
+                [key: string]: unknown;
+            };
+            /** Format: int64 */
+            version: number | string;
+        };
+        /** @enum {unknown} */
+        AccountRole: "Coach" | "Client";
+        AccountSearchEntry: {
+            /** Format: uuid */
+            userId: string;
+            username: string;
+            displayName: string;
+        };
+        AcquisitionAnalysis: {
+            /** Format: int32 */
+            submitted: number | string;
+            /** Format: int32 */
+            accepted: number | string;
+            /** Format: int32 */
+            rejected: number | string;
+            /** Format: double */
+            conversionPercent: null | number | string;
+            /** Format: int32 */
+            invitationsSent: number | string;
+            /** Format: int32 */
+            invitationsAccepted: number | string;
+            /** Format: int32 */
+            invitationsDeclined: number | string;
+            sources: components["schemas"]["AcquisitionSource"][];
+        };
+        AcquisitionSource: {
+            source: string;
+            /** Format: int32 */
+            submitted: number | string;
+            /** Format: int32 */
+            accepted: number | string;
+            /** Format: int32 */
+            rejected: number | string;
+            /** Format: int32 */
+            pending: number | string;
+            /** Format: double */
+            conversionPercent: null | number | string;
+        };
+        ActualExercise: {
+            /** Format: uuid */
+            prescribedInstanceId: null | string;
+            /** Format: uuid */
+            exerciseId: string;
+            comment: null | string;
+            sets: components["schemas"]["ActualSet"][];
+        };
+        ActualSet: {
+            /** Format: uuid */
+            prescribedSetId: null | string;
+            /** Format: uuid */
+            prescribedSegmentId: null | string;
+            skipped: boolean;
+            /** Format: int32 */
+            reps: null | number | string;
+            /** Format: double */
+            load: null | number | string;
+            loadUnit: null | string;
+            loadMeaning: components["schemas"]["LoadMeaning"];
+            /** Format: double */
+            rpe: null | number | string;
+            /** Format: double */
+            rir: null | number | string;
+            /** Format: double */
+            durationSeconds: null | number | string;
+            /** Format: double */
+            distanceMeters: null | number | string;
+            /** Format: double */
+            restSeconds: null | number | string;
+            tempo: null | string;
+            comment: null | string;
+        };
+        AddMemberRequest: {
+            /** Format: uuid */
+            userId: string;
         };
         AnalysisComparison: {
             left: components["schemas"]["AnalysisResult"];
@@ -2339,6 +10313,7 @@ export interface components {
             metersPerPixel?: null | number | string;
             /** @default unspecified */
             movement: string;
+            tracking?: null | components["schemas"]["AnalysisTracking"];
         };
         AnalysisDto: {
             /** Format: uuid */
@@ -2360,12 +10335,35 @@ export interface components {
             /** Format: int64 */
             version: number | string;
         };
+        AnalysisOptions: {
+            groups: components["schemas"]["GroupAnalysis"][];
+            offers: components["schemas"]["OfferChoice"][];
+        };
+        AnalysisOverview: {
+            period: components["schemas"]["AnalysisWindow"];
+            comparisonPeriod: components["schemas"]["AnalysisWindow"];
+            finance: components["schemas"]["FinancialAnalysis"];
+            previousFinance: components["schemas"]["FinancialAnalysis"];
+            clients: components["schemas"]["ClientsAnalysis"];
+            previousClients: components["schemas"]["ClientsAnalysis"];
+            acquisition: components["schemas"]["AcquisitionAnalysis"];
+            previousAcquisition: components["schemas"]["AcquisitionAnalysis"];
+            checkIns: components["schemas"]["CheckInsAnalysis"];
+            previousCheckIns: components["schemas"]["CheckInsAnalysis"];
+            training: components["schemas"]["TrainingAnalysis"];
+            filters: components["schemas"]["AnalysisOptions"];
+            messaging: components["schemas"]["MessagingAnalysis"];
+        };
         AnalysisPhase: {
             kind: string;
             /** Format: double */
             startSeconds: number | string;
             /** Format: double */
             endSeconds: number | string;
+            /** Format: double */
+            meanSpeed?: null | number | string;
+            /** Format: double */
+            peakSpeed?: null | number | string;
         };
         AnalysisRepetition: {
             /** Format: int32 */
@@ -2375,6 +10373,10 @@ export interface components {
             /** Format: double */
             endSeconds: number | string;
             phases: components["schemas"]["AnalysisPhase"][];
+            /** Format: double */
+            meanSpeed?: null | number | string;
+            /** Format: double */
+            peakSpeed?: null | number | string;
         };
         AnalysisResult: {
             /** Format: int32 */
@@ -2388,6 +10390,32 @@ export interface components {
             repetitions: components["schemas"]["AnalysisRepetition"][];
             trajectory: components["schemas"]["TrajectoryPoint"][];
             warnings: string[];
+        };
+        AnalysisTracking: {
+            /** Format: double */
+            timestampSeconds: number | string;
+            /** Format: int32 */
+            videoWidth: number | string;
+            /** Format: int32 */
+            videoHeight: number | string;
+            points: components["schemas"]["AnalysisTrackingPoint"][];
+        };
+        AnalysisTrackingPoint: {
+            /** Format: double */
+            x: number | string;
+            /** Format: double */
+            y: number | string;
+        };
+        AnalysisWindow: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            timeZone: string;
+            /** Format: date-time */
+            start: string;
+            /** Format: date-time */
+            end: string;
         };
         AnonymousTypeOfAnonymousTypeOfstringAndlongAndAnonymousTypeOfstringAndbooleanAndlong: {
             assignment: components["schemas"]["AnonymousTypeOfstringAndlong"];
@@ -2431,6 +10459,72 @@ export interface components {
             version: number | string;
             grantedFeatures: null | string[];
         };
+        ApplicationDecisionDto: {
+            /** Format: uuid */
+            actorId: string;
+            /** Format: date-time */
+            occurredAt: string;
+            previousStatus: components["schemas"]["ApplicationStatus"];
+            newStatus: components["schemas"]["ApplicationStatus"];
+            internalReason: null | string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        ApplicationDetailDto: {
+            application: components["schemas"]["ApplicationDto"];
+            offerRevision: components["schemas"]["OfferRevisionDto"];
+            formVersion: components["schemas"]["FormVersionDto"];
+            answers: {
+                [key: string]: unknown;
+            };
+            profilePrefill: null | {
+                [key: string]: unknown;
+            };
+            /** Format: int64 */
+            profileVersion: null | number | string;
+        };
+        ApplicationDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            coachId: string;
+            /** Format: uuid */
+            applicantUserId: string;
+            applicant: components["schemas"]["PersonDto"];
+            offerName: string;
+            /** Format: uuid */
+            offerRevisionId: string;
+            /** Format: uuid */
+            billingOptionId: string;
+            /** Format: int32 */
+            selectedSessionCount: null | number | string;
+            /** Format: double */
+            amount: number | string;
+            currency: string;
+            source: components["schemas"]["ApplicationSource"];
+            /** Format: uuid */
+            invitationId: null | string;
+            status: components["schemas"]["ApplicationStatus"];
+            /** Format: date-time */
+            submittedAt: null | string;
+            /** Format: date-time */
+            decidedAt: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: uuid */
+            relationshipId: null | string;
+            /** Format: uuid */
+            serviceId: null | string;
+            allowedActions: string[];
+        };
+        /** @enum {unknown} */
+        ApplicationSource: "Direct" | "Invitation";
+        /** @enum {unknown} */
+        ApplicationStatus: "InProgress" | "Submitted" | "Accepted" | "Rejected" | "Withdrawn";
         ArchiveExerciseRequest: {
             /** Format: int32 */
             expectedVersion: number | string;
@@ -2438,10 +10532,133 @@ export interface components {
         ArchiveRequest: {
             archived: boolean;
         };
+        AssignmentBatchDto: {
+            /** Format: uuid */
+            id: string;
+            assignments: components["schemas"]["AssignmentDto"][];
+        };
+        AssignmentDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            programId: string;
+            programName: string;
+            /** Format: uuid */
+            originalRevisionId: string;
+            /** Format: uuid */
+            effectiveRevisionId: string;
+            /** Format: date */
+            startDate: string;
+            timeZone: string;
+            status: components["schemas"]["AssignmentStatus"];
+            source: string;
+            /** Format: uuid */
+            groupAssignmentId: null | string;
+            /** Format: int64 */
+            version: number | string;
+            allowedActions: string[];
+        };
+        AssignmentRecipientDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            clientId: string;
+            displayName: string;
+            username: null | string;
+        };
         AssignmentRequest: {
             /** Format: int64 */
             expectedVersion: number | string;
             configurationId: string;
+        };
+        /** @enum {unknown} */
+        AssignmentStatus: "Active" | "Paused" | "Completed" | "Cancelled";
+        AssignmentStatusRequest: {
+            status: components["schemas"]["AssignmentStatus"];
+        };
+        AssignProgramRequest: {
+            /** Format: uuid */
+            revisionId: null | string;
+            relationshipIds: string[];
+            groupIds: string[];
+            /** Format: date */
+            startDate: string;
+            timeZone: string;
+        };
+        AssignTeamCoach: {
+            /** Format: uuid */
+            coachId: string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        AttachmentDto: {
+            /** Format: uuid */
+            mediaId: string;
+            contentType: string;
+            /** Format: int64 */
+            size: number | string;
+            /** Format: int64 */
+            durationMs: null | number | string;
+        };
+        /** @enum {unknown} */
+        AttemptStatus: "Pending" | "Succeeded" | "Failed";
+        AttendeeDto: {
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            clientId: string;
+            response: string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        /** @enum {unknown} */
+        BillingModel: "PerSession" | "CustomPackage" | "FixedPackage" | "PeriodSubscription";
+        BillingOptionSnapshot: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            model: components["schemas"]["BillingModel"];
+            /** Format: double */
+            price: number | string;
+            /** Format: int32 */
+            minSessions?: null | number | string;
+            /** Format: int32 */
+            maxSessions?: null | number | string;
+            /** Format: int32 */
+            sessionCount?: null | number | string;
+            /** Format: int32 */
+            periodCount?: null | number | string;
+            periodUnit?: null | components["schemas"]["PeriodUnit"];
+            paymentTerms?: null | components["schemas"]["PaymentTerms"];
+        };
+        BillingPageOfOrderDto: {
+            items: components["schemas"]["OrderDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
+        };
+        BillingPageOfPaymentDto: {
+            items: components["schemas"]["PaymentDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
+        };
+        BillingPageOfPaymentDueDto: {
+            items: components["schemas"]["PaymentDueDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
         };
         Block: {
             /** Format: uuid */
@@ -2449,6 +10666,15 @@ export interface components {
             name: string;
             description: string;
             cycles: components["schemas"]["Cycle"][];
+        };
+        CalendarPageOfEventDto: {
+            items: components["schemas"]["EventDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
         };
         CatalogPage: {
             items: components["schemas"]["ExerciseListItemDto"][];
@@ -2458,6 +10684,193 @@ export interface components {
             page: number | string;
             /** Format: int32 */
             pageSize: number | string;
+        };
+        CheckInCalendarItem: {
+            id: string;
+            kind: string;
+            /** Format: uuid */
+            scheduleId: string;
+            /** Format: uuid */
+            requestId: null | string;
+            name: string;
+            /** Format: date-time */
+            availableAtUtc: string;
+            /** Format: date-time */
+            dueAtUtc: string;
+            status: string;
+        };
+        CheckInDetailDto: {
+            request: components["schemas"]["CheckInRequestDto"];
+            form: components["schemas"]["FormVersionDto"];
+            submission: null | components["schemas"]["FormSubmissionDto"];
+            coachPrivateNotes: null | string;
+        };
+        CheckInPageOfCheckInCalendarItem: {
+            items: components["schemas"]["CheckInCalendarItem"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        CheckInPageOfCheckInRequestDto: {
+            items: components["schemas"]["CheckInRequestDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        CheckInPageOfScheduleDto: {
+            items: components["schemas"]["ScheduleDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        CheckInPoint: {
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            issued: number | string;
+            /** Format: int32 */
+            submitted: number | string;
+            /** Format: int32 */
+            overdue: number | string;
+        };
+        CheckInRequestDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            scheduleId: string;
+            scheduleName: string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            formVersionId: string;
+            /** Format: date-time */
+            availableAtUtc: string;
+            /** Format: date-time */
+            dueAtUtc: string;
+            status: components["schemas"]["RequestStatus"];
+            /** Format: date-time */
+            submittedAt: null | string;
+            /** Format: date-time */
+            reviewedAt: null | string;
+            /** Format: date-time */
+            cancelledAt: null | string;
+            wasLate: boolean;
+            /** Format: int64 */
+            version: number | string;
+            clientReply: null | string;
+        };
+        CheckInsAnalysis: {
+            /** Format: int32 */
+            issued: number | string;
+            /** Format: int32 */
+            submitted: number | string;
+            /** Format: int32 */
+            overdue: number | string;
+            /** Format: int32 */
+            pendingReview: number | string;
+            /** Format: double */
+            submissionRate: null | number | string;
+            /** Format: double */
+            averageReviewHours: null | number | string;
+            series: components["schemas"]["CheckInPoint"][];
+        };
+        ClientPoint: {
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            active: number | string;
+            /** Format: int32 */
+            newClients: number | string;
+            /** Format: int32 */
+            reactivated: number | string;
+            /** Format: int32 */
+            departed: number | string;
+        };
+        ClientRelationshipDto: {
+            /** Format: uuid */
+            id: string;
+            coach: components["schemas"]["PersonDto"];
+            status: components["schemas"]["RelationshipStatus"];
+            allowedActions: string[];
+            /** Format: uuid */
+            teamId?: null | string;
+            /** Format: uuid */
+            teamClientCaseId?: null | string;
+        };
+        ClientsAnalysis: {
+            /** Format: int32 */
+            active: number | string;
+            /** Format: int32 */
+            suspended: number | string;
+            /** Format: int32 */
+            completed: number | string;
+            /** Format: int32 */
+            newClients: number | string;
+            /** Format: int32 */
+            reactivated: number | string;
+            /** Format: int32 */
+            departed: number | string;
+            /** Format: int32 */
+            netGrowth: number | string;
+            /** Format: double */
+            retentionPercent: null | number | string;
+            series: components["schemas"]["ClientPoint"][];
+            groups: components["schemas"]["GroupAnalysis"][];
+        };
+        CoachApplicationDetailDto: {
+            detail: components["schemas"]["ApplicationDetailDto"];
+            currentAllowedProfile: {
+                [key: string]: unknown;
+            };
+            history: components["schemas"]["ApplicationDecisionDto"][];
+        };
+        CoachEarningsDto: {
+            currency: string;
+            /** Format: double */
+            grossAmount: number | string;
+            /** Format: double */
+            feeAmount: number | string;
+            /** Format: double */
+            coachNetAmount: number | string;
+            /** Format: int32 */
+            payments: number | string;
+        };
+        /** @enum {unknown} */
+        CoachingMode: "Online" | "Offline" | "Hybrid";
+        CoachRelationshipDto: {
+            /** Format: uuid */
+            id: string;
+            client: components["schemas"]["PersonDto"];
+            status: components["schemas"]["RelationshipStatus"];
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            suspendedAt: null | string;
+            /** Format: date-time */
+            resumedAt: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: date-time */
+            updatedAt: string;
+            groupIds: string[];
+            statusHistory: components["schemas"]["StatusChangeDto"][];
+            allowedActions: string[];
+            clientPhone?: null | string;
+            /** Format: uuid */
+            teamId?: null | string;
+            /** Format: uuid */
+            teamClientCaseId?: null | string;
         };
         CommitImportRequest: {
             name: string;
@@ -2470,6 +10883,26 @@ export interface components {
             expectedVersion: number | string;
             grantedFeatures: string[];
         };
+        ContactRequest: {
+            /** Format: uuid */
+            userId: string;
+            body: string;
+        };
+        ConversationDto: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["ConversationType"];
+            title: string;
+            /** Format: uuid */
+            clientGroupId: null | string;
+            membershipState: components["schemas"]["MemberState"];
+            lastMessage: null | components["schemas"]["MessageDto"];
+            /** Format: int64 */
+            unreadCount: number | string;
+            members: components["schemas"]["MemberDto"][];
+        };
+        /** @enum {unknown} */
+        ConversationType: "Direct" | "Group" | "ClientGroupLinked";
         CopyPlanRequest: {
             name: string;
             kind: components["schemas"]["DocumentKind"];
@@ -2496,6 +10929,14 @@ export interface components {
             secondaryMuscleKeys?: null | string[];
             movementPatternKeys?: null | string[];
         };
+        CreateInvitationRequest: {
+            username: string;
+            /** Format: uuid */
+            offerId: string;
+            /** Format: uuid */
+            billingOptionId?: null | string;
+            message?: null | string;
+        };
         CreatePlanRequest: {
             name: string;
             description: string;
@@ -2506,6 +10947,9 @@ export interface components {
         };
         CreateTagRequest: {
             name: string;
+        };
+        CurrencyRequest: {
+            currency: string;
         };
         Cycle: {
             /** Format: uuid */
@@ -2536,8 +10980,192 @@ export interface components {
             /** @default true */
             isActive: boolean;
         };
+        DirectRequest: {
+            /** Format: uuid */
+            userId: string;
+        };
+        DocumentationAccess: {
+            status: string;
+            coach: boolean;
+            allowedActions: string[];
+        };
+        DocumentationPageOfDocumentDto: {
+            items: components["schemas"]["DocumentDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
+        };
+        DocumentationPageOfMeasurementDto: {
+            items: components["schemas"]["MeasurementDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
+        };
+        DocumentationPageOfNoteDto: {
+            items: components["schemas"]["NoteDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
+        };
+        DocumentationUploadInput: {
+            name: string;
+            contentType: string;
+            /** Format: int64 */
+            size: number | string;
+        };
+        DocumentDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            relationshipId: string;
+            title: string;
+            description: null | string;
+            category: string;
+            visibility: string;
+            text: null | string;
+            contentType: null | string;
+            hasFile: boolean;
+            /** Format: uuid */
+            authorId: string;
+            source: string;
+            /** Format: date-time */
+            observedAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number | string;
+            allowedActions: string[];
+        };
+        DocumentEdit: {
+            title: string;
+            description: null | string;
+            category: string;
+            text: null | string;
+            /** Format: date-time */
+            observedAt: string;
+        };
+        DocumentInput: {
+            title: string;
+            description: null | string;
+            category: string;
+            visibility: string;
+            text: null | string;
+            /** Format: uuid */
+            mediaId: null | string;
+            /** Format: date-time */
+            observedAt: string;
+        };
         /** @enum {unknown} */
         DocumentKind: "Program" | "Template";
+        DocumentReadUrl: {
+            url: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        DocumentUpload: {
+            /** Format: uuid */
+            mediaId: string;
+            uploadUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+            method: string;
+        };
+        /** @enum {unknown} */
+        DueRule: "Upfront" | "OnStart" | "EndOfServicePeriod" | "EndOfCalendarMonth" | "CustomOffsetDays";
+        /** @enum {unknown} */
+        DueStatus: "AwaitingPayment" | "Paid" | "PaidExternally" | "Free";
+        DuplicateFormRequest: {
+            idempotencyKey: string;
+        };
+        EquipmentBranch: {
+            allOf: string[];
+        };
+        EventDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            coachId: string;
+            organizerName: string;
+            kind: string;
+            title: string;
+            description: string;
+            timeZone: string;
+            /** Format: date-time */
+            startsAtUtc: string;
+            /** Format: date-time */
+            endsAtUtc: string;
+            /** Format: date */
+            startDate: null | string;
+            /** Format: date */
+            endDateExclusive: null | string;
+            location: null | string;
+            meetingUrl: null | string;
+            cancelled: boolean;
+            /** Format: int64 */
+            version: number | string;
+            response: null | string;
+            /** Format: int64 */
+            responseVersion: null | number | string;
+            attendees: null | components["schemas"]["AttendeeDto"][];
+            /** Format: uuid */
+            teamId?: null | string;
+        };
+        EventResponse: {
+            status: string;
+        };
+        EventWrite: {
+            kind: string;
+            title: string;
+            description: null | string;
+            timeZone: string;
+            /** Format: date-time */
+            startsAtUtc: null | string;
+            /** Format: date-time */
+            endsAtUtc: null | string;
+            /** Format: date */
+            startDate: null | string;
+            /** Format: date */
+            endDateExclusive: null | string;
+            location: null | string;
+            meetingUrl: null | string;
+            relationshipIds: string[];
+            groupIds: string[];
+        };
+        ExecutionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            occurrenceId: string;
+            status: components["schemas"]["ExecutionStatus"];
+            /** Format: date */
+            performedDate: string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            completedAt: null | string;
+            /** Format: date-time */
+            updatedAt: string;
+            comment: string;
+            /** Format: int32 */
+            durationSeconds: null | number | string;
+            /** Format: int64 */
+            version: number | string;
+            exercises: components["schemas"]["ExerciseExecutionDto"][];
+            allowedActions: string[];
+        };
+        /** @enum {unknown} */
+        ExecutionStatus: "InProgress" | "Completed" | "Skipped";
         ExerciseDto: {
             /** Format: uuid */
             id: string;
@@ -2558,6 +11186,17 @@ export interface components {
             primaryMuscleKeys: string[];
             secondaryMuscleKeys: string[];
             movementPatternKeys: string[];
+        };
+        ExerciseExecutionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            prescribedInstanceId: null | string;
+            /** Format: uuid */
+            exerciseId: string;
+            name: string;
+            comment: string;
+            sets: components["schemas"]["ActualSet"][];
         };
         ExerciseGroup: {
             /** Format: uuid */
@@ -2587,6 +11226,7 @@ export interface components {
             isFavorite: boolean;
             /** Format: date-time */
             createdAt: string;
+            primaryMuscleKeys: string[];
         };
         ExerciseRevisionDto: {
             /** Format: int32 */
@@ -2606,6 +11246,10 @@ export interface components {
             description: string;
             instructions: string;
         };
+        ExternalSettlementRequest: {
+            source: string;
+            idempotencyKey: string;
+        };
         FeatureDecision: {
             key: string;
             available: boolean;
@@ -2618,6 +11262,24 @@ export interface components {
             descriptionKey: string;
             dependencies: string[];
             limits: string[];
+        };
+        FinancePoint: {
+            /** Format: date */
+            date: string;
+            currency: string;
+            /** Format: double */
+            gross: number | string;
+            /** Format: double */
+            fee: number | string;
+            /** Format: double */
+            net: number | string;
+            /** Format: int32 */
+            payments: number | string;
+        };
+        FinancialAnalysis: {
+            totals: components["schemas"]["MoneyMetric"][];
+            series: components["schemas"]["FinancePoint"][];
+            offers: components["schemas"]["OfferRevenue"][];
         };
         FlagRequest: {
             /** Format: int64 */
@@ -2641,6 +11303,99 @@ export interface components {
             parentId: null | string;
             /** Format: int32 */
             position: number | string;
+        };
+        FormChoice: {
+            key: string;
+            label: string;
+        };
+        FormDefinition: {
+            sections: components["schemas"]["FormSection"][];
+        };
+        FormListDto: {
+            items: components["schemas"]["FormTemplateDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
+        };
+        /** @enum {unknown} */
+        FormPurpose: "Application" | "CheckIn";
+        FormQuestion: {
+            key: string;
+            label: string;
+            type: components["schemas"]["QuestionType"];
+            /** @default false */
+            required: boolean;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            order: number | string;
+            helpText?: null | string;
+            /** Format: double */
+            min?: null | number | string;
+            /** Format: double */
+            max?: null | number | string;
+            unit?: null | string;
+            /** Format: int32 */
+            maxLength?: null | number | string;
+            /** Format: int32 */
+            minSelections?: null | number | string;
+            /** Format: int32 */
+            maxSelections?: null | number | string;
+            minLabel?: null | string;
+            maxLabel?: null | string;
+            choices?: null | components["schemas"]["FormChoice"][];
+            systemField?: null | components["schemas"]["SystemFieldKey"];
+        };
+        FormSection: {
+            key: string;
+            title: string;
+            /** Format: int32 */
+            order: number | string;
+            questions: components["schemas"]["FormQuestion"][];
+            description?: null | string;
+        };
+        FormSubmissionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            formVersionId: string;
+            /** Format: uuid */
+            respondentId: string;
+            sourceKey: string;
+            answers: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            submittedAt: string;
+        };
+        FormTemplateDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            coachId: string;
+            purpose: components["schemas"]["FormPurpose"];
+            name: string;
+            description: string;
+            draft: components["schemas"]["FormDefinition"];
+            /** Format: uuid */
+            currentPublishedVersionId: null | string;
+            archived: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        FormTemplateRequest: {
+            purpose: components["schemas"]["FormPurpose"];
+            name: string;
+            description: string;
+            draft: components["schemas"]["FormDefinition"];
         };
         FormulaCopyRequest: {
             name: string;
@@ -2692,8 +11447,184 @@ export interface components {
                 [key: string]: components["schemas"]["Quantity"];
             };
         };
+        FormVersionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            templateId: string;
+            /** Format: uuid */
+            coachId: string;
+            purpose: components["schemas"]["FormPurpose"];
+            name: string;
+            description: string;
+            definition: components["schemas"]["FormDefinition"];
+            /** Format: int32 */
+            number: number | string;
+            /** Format: date-time */
+            publishedAt: string;
+        };
+        GenerationDuration: {
+            /** Format: int32 */
+            dayNumber: number | string;
+            /** Format: int32 */
+            generalWarmupSeconds: number | string;
+            /** Format: int32 */
+            specificWarmupSeconds: number | string;
+            /** Format: int32 */
+            workSeconds: number | string;
+            /** Format: int32 */
+            restSeconds: number | string;
+            /** Format: int32 */
+            setupSeconds: number | string;
+            /** Format: int32 */
+            bufferSeconds: number | string;
+            /** Format: int32 */
+            totalSeconds: number | string;
+        };
+        GenerationEditRequest: {
+            state: components["schemas"]["GenerationState"];
+            /** Format: int32 */
+            seed: number | string;
+        };
+        GenerationIssue: {
+            code: string;
+            target: string;
+            message: string;
+        };
+        /** @enum {unknown} */
+        GenerationLevel: "Beginner" | "Intermediate" | "Advanced";
+        /** @enum {unknown} */
+        GenerationMode: "Strength" | "Hypertrophy" | "Cardio" | "Mixed";
+        GenerationOptions: {
+            recipeVersion: string;
+            metadataVersion: string;
+            datasetVersion: string;
+            equipment: string[];
+            skills: string[];
+            muscles: string[];
+            families: string[];
+            exercises: components["schemas"]["GeneratorExercise"][];
+        };
+        GenerationPreview: {
+            feasible: boolean;
+            state: null | components["schemas"]["GenerationState"];
+            document: null | components["schemas"]["TrainingDocument"];
+            slots: components["schemas"]["GenerationSlot"][];
+            durations: components["schemas"]["GenerationDuration"][];
+            issues: components["schemas"]["GenerationIssue"][];
+            assumptions: string[];
+        };
+        GenerationReplaceRequest: {
+            state: components["schemas"]["GenerationState"];
+            slot: string;
+            /** Format: uuid */
+            exerciseId: null | string;
+            /** Format: int32 */
+            seed: number | string;
+        };
+        GenerationRequest: {
+            mode: components["schemas"]["GenerationMode"];
+            level: components["schemas"]["GenerationLevel"];
+            /** Format: int32 */
+            sessionMinutes: number | string;
+            /** Format: int32 */
+            cycleDays: number | string;
+            daySlots: (number | string)[];
+            /** Format: int32 */
+            cycles: number | string;
+            /** Format: int32 */
+            seed: number | string;
+            equipment: string[];
+            skills: string[];
+            excludedExercises: string[];
+            priorityMuscles: string[];
+            preferredFamilies: string[];
+            /** @default false */
+            progressRepetitions: boolean;
+        };
+        GenerationSlot: {
+            key: string;
+            role: string;
+            /** Format: uuid */
+            exerciseId: string;
+            name: string;
+            family: string;
+            muscles: string[];
+            equipment: string[];
+            locked: boolean;
+            prescription: string;
+            repetitionCounting: string;
+        };
+        GenerationState: {
+            input: components["schemas"]["GenerationRequest"];
+            recipeVersion: string;
+            metadataVersion: string;
+            datasetVersion: string;
+            /** Format: int32 */
+            selectionSeed: number | string;
+            /** Format: int32 */
+            setsPerExercise: number | string;
+            includeAccessory: boolean;
+            /** Format: int32 */
+            cardioSeconds: number | string;
+            selections: {
+                [key: string]: string;
+            };
+            lockedSlots: string[];
+        };
+        GeneratorExercise: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            catalogVersion: number | string;
+            family: string;
+            role: string;
+            muscles: string[];
+            equipmentAnyOf: components["schemas"]["EquipmentBranch"][];
+            /** Format: int32 */
+            minimumLevel: number | string;
+            requiredSkills: string[];
+            status: string;
+            reviewed: boolean;
+            prescriptionMode: string;
+            /** Format: int32 */
+            setupSeconds: number | string;
+            repetitionCounting: string;
+        };
+        GroupAnalysis: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            clients: number | string;
+        };
+        GroupDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: string;
+            color: string;
+            archived: boolean;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            allowedActions: string[];
+            /** Format: uuid */
+            teamId?: null | string;
+        };
         /** @enum {unknown} */
         GroupKind: "Superset" | "Circuit";
+        GroupRequest: {
+            name: string;
+            description: string;
+            color: string;
+            /** Format: uuid */
+            teamId?: null | string;
+        };
         ImportPreview: {
             /** Format: uuid */
             id: string;
@@ -2732,6 +11663,32 @@ export interface components {
             /** Format: int32 */
             maximum: number | string;
         };
+        InvitationDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            coachId: string;
+            coach: components["schemas"]["PersonDto"];
+            /** Format: uuid */
+            targetUserId: string;
+            target: components["schemas"]["PersonDto"];
+            offerRevision: components["schemas"]["OfferRevisionDto"];
+            /** Format: uuid */
+            billingOptionId: null | string;
+            message: null | string;
+            status: components["schemas"]["InvitationStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            respondedAt: null | string;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: uuid */
+            applicationId: null | string;
+            allowedActions: string[];
+        };
+        /** @enum {unknown} */
+        InvitationStatus: "Pending" | "Accepted" | "Declined" | "Revoked";
         LimitDecision: {
             key: string;
             /** Format: int64 */
@@ -2739,10 +11696,55 @@ export interface components {
             /** Format: int64 */
             used: number | string;
         };
+        /** @enum {unknown} */
+        LoadMeaning: "TotalExternal" | "PerHand" | "Bodyweight" | "Assisted";
         MapImportRequest: {
             exercises: {
                 [key: string]: string;
             };
+        };
+        MeasurementDefinition: {
+            key: string;
+            label: string;
+            units: string[];
+        };
+        MeasurementDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            relationshipId: string;
+            key: string;
+            unit: string;
+            /** Format: double */
+            value: number | string;
+            /** Format: date-time */
+            observedAt: string;
+            comment: null | string;
+            /** Format: uuid */
+            authorId: string;
+            source: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        MeasurementInput: {
+            key: string;
+            unit: string;
+            /** Format: double */
+            value: number | string;
+            /** Format: date-time */
+            observedAt: string;
+            comment: null | string;
+        };
+        MeasurementPoint: {
+            /** Format: date-time */
+            observedAt: string;
+            /** Format: double */
+            value: number | string;
+        };
+        MeasurementTrend: {
+            key: string;
+            unit: string;
+            points: components["schemas"]["MeasurementPoint"][];
         };
         MediaDto: {
             /** Format: uuid */
@@ -2757,16 +11759,272 @@ export interface components {
             createdAt: string;
             /** Format: int64 */
             version: number | string;
+            /** Format: int64 */
+            durationMs?: null | number | string;
         };
         MediaReadTicket: {
             url: string;
             /** Format: date-time */
             expiresAt: string;
         };
+        MemberDto: {
+            /** Format: uuid */
+            userId: string;
+            displayName: string;
+            role: components["schemas"]["MemberRole"];
+            source: components["schemas"]["MemberSource"];
+            state: components["schemas"]["MemberState"];
+            excluded: boolean;
+            /** Format: date-time */
+            joinedAt: string;
+            /** Format: date-time */
+            removedAt: null | string;
+            /** Format: uuid */
+            lastReadMessageId: null | string;
+            username?: null | string;
+        };
+        /** @enum {unknown} */
+        MemberRole: "Owner" | "Admin" | "Member";
+        /** @enum {unknown} */
+        MemberSource: "Direct" | "Manual" | "ClientGroupSync";
+        /** @enum {unknown} */
+        MemberState: "Active" | "Removed" | "Left" | "Banned";
         MergeTagRequest: {
             /** Format: uuid */
             targetId: string;
         };
+        MessageDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            conversationId: string;
+            /** Format: uuid */
+            senderUserId: string;
+            type: components["schemas"]["MessageType"];
+            body: null | string;
+            /** Format: uuid */
+            replyToMessageId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            cursor: string;
+            attachments: components["schemas"]["AttachmentDto"][];
+            clientMessageId?: null | string;
+            /** Format: date-time */
+            deletedAt?: null | string;
+        };
+        MessagePage: {
+            items: components["schemas"]["MessageDto"][];
+            olderCursor: null | string;
+            newerCursor: null | string;
+        };
+        /** @enum {unknown} */
+        MessageType: "Text" | "Image" | "File" | "Video" | "VoiceMessage" | "System";
+        MessagingAnalysis: {
+            /** Format: int32 */
+            sent: number | string;
+            /** Format: int32 */
+            received: number | string;
+            /** Format: int32 */
+            conversations: number | string;
+        };
+        MoneyMetric: {
+            currency: string;
+            /** Format: double */
+            gross: number | string;
+            /** Format: double */
+            fee: number | string;
+            /** Format: double */
+            net: number | string;
+            /** Format: double */
+            pending: number | string;
+            /** Format: int32 */
+            payments: number | string;
+            /** Format: int32 */
+            payingClients: number | string;
+            /** Format: double */
+            averagePayment: number | string;
+            /** Format: double */
+            revenuePerPayingClient: number | string;
+            /** Format: double */
+            mrr: number | string;
+            /** Format: int32 */
+            recurringSubscriptions: number | string;
+            /** Format: int32 */
+            renewals: number | string;
+            /** Format: double */
+            simulatedGross: number | string;
+            /** Format: double */
+            externalGross: number | string;
+        };
+        NoteDto: {
+            /** Format: uuid */
+            id: string;
+            text: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        NoteInput: {
+            text: string;
+        };
+        NotificationCountDto: {
+            /** Format: int32 */
+            count: number | string;
+        };
+        NotificationDto: {
+            /** Format: uuid */
+            id: string;
+            type: string;
+            category: string;
+            sourceModule: string;
+            /** Format: uuid */
+            sourceId: string;
+            deepLink: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            readAt: null | string;
+        };
+        NotificationPage: {
+            items: components["schemas"]["NotificationDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        OccurrenceDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            assignmentId: string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            programId: string;
+            programName: string;
+            /** Format: uuid */
+            revisionId: string;
+            /** Format: uuid */
+            blockId: string;
+            /** Format: uuid */
+            cycleId: string;
+            /** Format: uuid */
+            dayId: string;
+            /** Format: uuid */
+            workoutId: string;
+            name: string;
+            /** Format: date */
+            scheduledDate: string;
+            /** Format: date-time */
+            deadline: string;
+            status: string;
+            /** Format: uuid */
+            executionId: null | string;
+            loggedLate: boolean;
+            allowedActions: string[];
+        };
+        OfferCategory: {
+            key?: string;
+            name?: string;
+            active?: boolean;
+        };
+        OfferChoice: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        OfferDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            coachId: string;
+            name: string;
+            description: string;
+            category: string;
+            coachingMode: components["schemas"]["CoachingMode"];
+            /** Format: uuid */
+            applicationFormVersionId: string;
+            tags: string[];
+            billingOptions: components["schemas"]["BillingOptionSnapshot"][];
+            status: components["schemas"]["OfferStatus"];
+            /** Format: uuid */
+            currentPublishedRevisionId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: uuid */
+            teamId?: null | string;
+            teamName?: null | string;
+        };
+        OfferListDto: {
+            items: components["schemas"]["OfferDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
+        };
+        OfferRequest: {
+            name: string;
+            description: string;
+            category: string;
+            coachingMode: components["schemas"]["CoachingMode"];
+            /** Format: uuid */
+            applicationFormVersionId: string;
+            tags: string[];
+            billingOptions: components["schemas"]["BillingOptionSnapshot"][];
+            /** Format: uuid */
+            teamId?: null | string;
+        };
+        OfferRevenue: {
+            /** Format: uuid */
+            offerRevisionId: string;
+            name: string;
+            currency: string;
+            /** Format: double */
+            gross: number | string;
+            /** Format: double */
+            net: number | string;
+            /** Format: int32 */
+            payments: number | string;
+            /** Format: int32 */
+            clients: number | string;
+        };
+        OfferRevisionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            offerId: string;
+            /** Format: uuid */
+            coachId: string;
+            /** Format: int32 */
+            number: number | string;
+            name: string;
+            description: string;
+            category: string;
+            coachingMode: components["schemas"]["CoachingMode"];
+            tags: string[];
+            /** Format: uuid */
+            applicationFormVersionId: string;
+            currency: string;
+            billingOptions: components["schemas"]["BillingOptionSnapshot"][];
+            /** Format: date-time */
+            publishedAt: string;
+            /** Format: uuid */
+            teamId?: null | string;
+            teamName?: null | string;
+        };
+        /** @enum {unknown} */
+        OfferStatus: "Draft" | "Active" | "Inactive" | "Archived";
         OnboardingRequest: {
             username: string;
             displayName: string;
@@ -2775,11 +12033,87 @@ export interface components {
             acceptedTerms: boolean;
             locale: string;
             timeZone: string;
+            role?: components["schemas"]["AccountRole"];
+            phone?: null | string;
+            phoneVisibleToCoach?: null | boolean;
+        };
+        OrderDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            serviceId: string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            coachId: string;
+            /** Format: uuid */
+            clientId: string;
+            name: string;
+            /** Format: uuid */
+            offerRevisionId: string;
+            /** Format: uuid */
+            billingOptionId: string;
+            /** Format: int32 */
+            selectedSessionCount: null | number | string;
+            /** Format: double */
+            amount: number | string;
+            currency: string;
+            /** Format: double */
+            feeRate: number | string;
+            /** Format: double */
+            feeAmount: number | string;
+            /** Format: double */
+            coachNetAmount: number | string;
+            settlementMode: components["schemas"]["SettlementMode"];
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            teamId?: null | string;
+            /** Format: uuid */
+            teamClientCaseId?: null | string;
         };
         OverrideRequest: {
             /** Format: int64 */
             expectedVersion: number | string;
             granted: boolean;
+        };
+        PagedOfApplicationDto: {
+            items: components["schemas"]["ApplicationDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        PagedOfAssignmentDto: {
+            items: components["schemas"]["AssignmentDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        PagedOfClientRelationshipDto: {
+            items: components["schemas"]["ClientRelationshipDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        PagedOfCoachRelationshipDto: {
+            items: components["schemas"]["CoachRelationshipDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
         };
         PagedOfFolderDto: {
             items: components["schemas"]["FolderDto"][];
@@ -2799,8 +12133,44 @@ export interface components {
             /** Format: int64 */
             total: number | string;
         };
+        PagedOfGroupDto: {
+            items: components["schemas"]["GroupDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        PagedOfInvitationDto: {
+            items: components["schemas"]["InvitationDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        PagedOfOccurrenceDto: {
+            items: components["schemas"]["OccurrenceDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
         PagedOfPlanListItem: {
             items: components["schemas"]["PlanListItem"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
+        PagedOfRelationshipServiceDto: {
+            items: components["schemas"]["RelationshipServiceDto"][];
             /** Format: int32 */
             page: number | string;
             /** Format: int32 */
@@ -2816,6 +12186,148 @@ export interface components {
             pageSize: number | string;
             /** Format: int64 */
             total: number | string;
+        };
+        PaymentAttemptDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            dueId: string;
+            /** Format: uuid */
+            paymentMethodId: null | string;
+            status: components["schemas"]["AttemptStatus"];
+            failureCode: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            completedAt: null | string;
+        };
+        PaymentDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            dueId: string;
+            /** Format: uuid */
+            attemptId: null | string;
+            /** Format: double */
+            grossAmount: number | string;
+            /** Format: double */
+            feeRate: number | string;
+            /** Format: double */
+            feeAmount: number | string;
+            /** Format: double */
+            coachNetAmount: number | string;
+            currency: string;
+            mode: components["schemas"]["SettlementMode"];
+            source: string;
+            /** Format: uuid */
+            actorId: null | string;
+            /** Format: date-time */
+            settledAt: string;
+            /** Format: uuid */
+            teamId?: null | string;
+            /** Format: uuid */
+            teamClientCaseId?: null | string;
+        };
+        PaymentDueDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            orderId: string;
+            /** Format: uuid */
+            serviceId: string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            coachId: string;
+            /** Format: uuid */
+            clientId: string;
+            /** Format: int32 */
+            sequence: number | string;
+            /** Format: date-time */
+            periodStart: string;
+            /** Format: date-time */
+            periodEnd: null | string;
+            /** Format: date-time */
+            dueAt: string;
+            status: components["schemas"]["DueStatus"];
+            /** Format: double */
+            amount: number | string;
+            currency: string;
+            /** Format: double */
+            feeRate: number | string;
+            /** Format: double */
+            feeAmount: number | string;
+            /** Format: double */
+            coachNetAmount: number | string;
+            settlementMode: components["schemas"]["SettlementMode"];
+            /** Format: date-time */
+            settledAt: null | string;
+            /** Format: uuid */
+            settledBy: null | string;
+            settlementSource: null | string;
+            overdue: boolean;
+            /** Format: uuid */
+            teamId?: null | string;
+            /** Format: uuid */
+            teamClientCaseId?: null | string;
+        };
+        PaymentMethodDto: {
+            /** Format: uuid */
+            id: string;
+            label: string;
+            active: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PaymentResultDto: {
+            due: components["schemas"]["PaymentDueDto"];
+            attempt: null | components["schemas"]["PaymentAttemptDto"];
+            payment: null | components["schemas"]["PaymentDto"];
+        };
+        PaymentTerms: {
+            rule: components["schemas"]["DueRule"];
+            /** Format: int32 */
+            offsetDays?: null | number | string;
+        };
+        PaymentTransactionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            paymentId: string;
+            provider: string;
+            providerReference: string;
+            /** Format: double */
+            amount: number | string;
+            currency: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PayRequest: {
+            /** Format: uuid */
+            paymentMethodId: null | string;
+            idempotencyKey: string;
+        };
+        /** @enum {unknown} */
+        PeriodUnit: "Week" | "Month" | "Year" | null;
+        PersonDto: {
+            /** Format: uuid */
+            id: string;
+            displayName: string;
+            username: null | string;
+        };
+        PlanChange: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            subscriptionId?: string;
+            type?: string;
+            planId?: string;
+            /** Format: uuid */
+            dueId?: null | string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            effectiveAt?: null | string;
         };
         PlanDto: {
             /** Format: uuid */
@@ -2846,6 +12358,82 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        PlatformChangeRequest: {
+            planId: string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        PlatformCheckoutRequest: {
+            planId: string;
+            priceVersion: string;
+            /** @default false */
+            autoRenew: boolean;
+            /** Format: uuid */
+            paymentMethodId?: null | string;
+            teamName?: null | string;
+        };
+        PlatformConfirmRequest: {
+            /** Format: uuid */
+            dueId: string;
+            idempotencyKey: string;
+            /** Format: uuid */
+            paymentMethodId?: null | string;
+        };
+        PlatformHistoryDto: {
+            changes: components["schemas"]["PlanChange"][];
+            payments: components["schemas"]["PaymentDto"][];
+        };
+        PlatformPlanDto: {
+            id: string;
+            name: string;
+            /** Format: double */
+            amount: null | number | string;
+            currency: string;
+            billingInterval: string;
+            priceVersion: null | string;
+            termsVersion: string;
+            /** Format: double */
+            commissionRate: number | string;
+            priceConfigured: boolean;
+            capabilities: string[];
+        };
+        PlatformRenewalRequest: {
+            /** Format: int64 */
+            version: number | string;
+            autoRenew: boolean;
+            /** Format: uuid */
+            paymentMethodId?: null | string;
+        };
+        PlatformSubscriptionDto: {
+            /** Format: uuid */
+            id: string;
+            planId: string;
+            status: string;
+            /** Format: date-time */
+            periodStart: null | string;
+            /** Format: date-time */
+            periodEnd: null | string;
+            /** Format: date-time */
+            nextDueAt: null | string;
+            autoRenew: boolean;
+            pendingPlanId: null | string;
+            /** Format: int64 */
+            version: number | string;
+            pendingDue: null | components["schemas"]["PaymentDueDto"];
+            acceptedPriceVersion: null | string;
+            acceptedTermsVersion: null | string;
+            renewalMethodEligible: boolean;
+        };
+        PlatformVersionRequest: {
+            /** Format: int64 */
+            version: number | string;
+        };
+        PreferenceRequest: {
+            messaging: boolean;
+            checkIns: boolean;
+            coaching: boolean;
+            system: boolean;
+        };
         Prescription: {
             reps?: null | components["schemas"]["IntRange"];
             load?: null | components["schemas"]["QuantityRange"];
@@ -2863,6 +12451,11 @@ export interface components {
             comment?: null | string;
             loadFormula?: null | components["schemas"]["FormulaUse"];
         };
+        ProfileFieldsRequest: {
+            values: {
+                [key: string]: unknown;
+            };
+        };
         ProfileResponse: {
             /** Format: uuid */
             id: string;
@@ -2877,6 +12470,19 @@ export interface components {
             onboarded: boolean;
             /** Format: int64 */
             version: number | string;
+            roles: components["schemas"]["AccountRole"][];
+            contexts: components["schemas"]["AccountRole"][];
+            phone: null | string;
+            phoneVisibleToCoach: boolean;
+        };
+        PublicOfferListDto: {
+            items: components["schemas"]["OfferRevisionDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
         };
         Quantity: {
             /** Format: double */
@@ -2886,6 +12492,110 @@ export interface components {
         QuantityRange: {
             minimum: components["schemas"]["Quantity"];
             maximum: components["schemas"]["Quantity"];
+        };
+        /** @enum {unknown} */
+        QuestionType: "ShortText" | "LongText" | "Number" | "YesNo" | "SingleChoice" | "MultiChoice" | "Scale" | "Date" | "FileAttachment";
+        ReadRequest: {
+            /** Format: uuid */
+            messageId: string;
+        };
+        Recurrence: {
+            kind: components["schemas"]["RecurrenceKind"];
+            /** Format: int32 */
+            interval: number | string;
+            /** Format: date */
+            startDate: string;
+            /** Format: time */
+            releaseTime: string;
+            weekDays?: null | (number | string)[];
+            /** Format: int32 */
+            dayOfMonth?: null | number | string;
+        };
+        /** @enum {unknown} */
+        RecurrenceKind: "OneTime" | "EveryNDays" | "EveryNWeeks" | "Monthly";
+        RefreshAssignmentRequest: {
+            /** Format: uuid */
+            revisionId: string;
+        };
+        RejectApplicationRequest: {
+            internalReason?: null | string;
+        };
+        RelationshipBillingDto: {
+            dues: components["schemas"]["BillingPageOfPaymentDueDto"];
+            orders: components["schemas"]["OrderDto"][];
+            attempts: components["schemas"]["PaymentAttemptDto"][];
+            payments: components["schemas"]["PaymentDto"][];
+            transactions: components["schemas"]["PaymentTransactionDto"][];
+        };
+        RelationshipServiceDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            applicationId: string;
+            offerName: string;
+            offerRevision: components["schemas"]["OfferRevisionDto"];
+            /** Format: uuid */
+            billingOptionId: string;
+            /** Format: int32 */
+            selectedSessionCount: null | number | string;
+            /** Format: double */
+            amount: number | string;
+            currency: string;
+            /** Format: uuid */
+            orderId: string;
+            status: components["schemas"]["ServiceStatus"];
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            completedAt: null | string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number | string;
+            allowedActions: string[];
+        };
+        /** @enum {unknown} */
+        RelationshipStatus: "Active" | "Suspended" | "Completed";
+        RenameRequest: {
+            title: string;
+        };
+        ReportCreatedDto: {
+            /** Format: uuid */
+            reportId: string;
+        };
+        ReportRequest: {
+            category: string;
+            details: null | string;
+        };
+        RequestDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            senderUserId: string;
+            /** Format: uuid */
+            recipientUserId: string;
+            body: string;
+            state: components["schemas"]["RequestState"];
+            /** Format: uuid */
+            conversationId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            senderDisplayName?: null | string;
+            recipientDisplayName?: null | string;
+        };
+        /** @enum {unknown} */
+        RequestState: "Pending" | "Accepted" | "Declined" | "Cancelled";
+        /** @enum {unknown} */
+        RequestStatus: "Scheduled" | "Available" | "Overdue" | "Submitted" | "Reviewed" | "Cancelled";
+        RequestTeamTransfer: {
+            /** Format: uuid */
+            relationshipId: string;
+        };
+        ReviewCheckInRequest: {
+            clientReply?: null | string;
+            coachPrivateNotes?: null | string;
         };
         RevisionDto: {
             /** Format: uuid */
@@ -2922,12 +12632,108 @@ export interface components {
                 [key: string]: components["schemas"]["FormulaEvaluation"];
             };
         };
+        SaveApplicationRequest: {
+            answers: {
+                [key: string]: unknown;
+            };
+            /** Format: uuid */
+            billingOptionId?: null | string;
+            /** Format: int32 */
+            selectedSessionCount?: null | number | string;
+        };
+        SaveExecutionRequest: {
+            /** Format: date */
+            performedDate: string;
+            comment: null | string;
+            /** Format: int32 */
+            durationSeconds: null | number | string;
+            exercises: components["schemas"]["ActualExercise"][];
+        };
+        SaveGeneratedDraftRequest: {
+            name: string;
+            description: string;
+            /** Format: uuid */
+            folderId: null | string;
+            state: components["schemas"]["GenerationState"];
+        };
         SavePlanRequest: {
             name: string;
             description: string;
             /** Format: uuid */
             folderId: null | string;
             document: components["schemas"]["TrainingDocument"];
+        };
+        ScheduleDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            coachId: string;
+            /** Format: uuid */
+            workspaceId: string;
+            /** Format: uuid */
+            formTemplateId: string;
+            name: string;
+            description: string;
+            timeZone: string;
+            recurrence: components["schemas"]["Recurrence"];
+            /** Format: int32 */
+            responseWindowHours: number | string;
+            relationshipIds: string[];
+            groupIds: string[];
+            status: components["schemas"]["ScheduleStatus"];
+            /** Format: date-time */
+            nextAvailableAtUtc: null | string;
+            /** Format: date-time */
+            retryAtUtc: null | string;
+            lastFailure: null | string;
+            /** Format: int32 */
+            failureCount: number | string;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ScheduleRequest: {
+            /** Format: uuid */
+            formTemplateId: string;
+            name: string;
+            description: string;
+            timeZone: string;
+            recurrence: components["schemas"]["Recurrence"];
+            /** Format: int32 */
+            responseWindowHours: number | string;
+            relationshipIds: string[];
+            groupIds: string[];
+        };
+        /** @enum {unknown} */
+        ScheduleStatus: "Active" | "Paused" | "Ended";
+        SendMessageRequest: {
+            type: components["schemas"]["MessageType"];
+            body: null | string;
+            /** Format: uuid */
+            replyToMessageId: null | string;
+            mediaIds: null | string[];
+        };
+        ServiceRenewalRequest: {
+            autoRenew: boolean;
+            /** Format: uuid */
+            paymentMethodId?: null | string;
+        };
+        /** @enum {unknown} */
+        ServiceStatus: "Active" | "Completed";
+        ServiceSubscriptionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            serviceId: string;
+            autoRenew: boolean;
+            /** Format: uuid */
+            paymentMethodId: null | string;
+            /** Format: date-time */
+            nextPeriodAt: string;
+            active: boolean;
         };
         /** @enum {unknown} */
         SetKind: "Standard" | "Amrap" | "Ramp" | "TopSet" | "BackOff" | "DropSet" | "RestPause" | "Cluster";
@@ -2936,10 +12742,336 @@ export interface components {
             id: string;
             prescription: components["schemas"]["Prescription"];
         };
+        /**
+         * @default Simulated
+         * @enum {unknown}
+         */
+        SettlementMode: "Simulated" | "External";
+        SimulatedMethodRequest: {
+            label: string;
+            outcome?: components["schemas"]["SimulatedOutcome"];
+        };
+        /**
+         * @default Success
+         * @enum {unknown}
+         */
+        SimulatedOutcome: "Success" | "Decline";
+        SkipWorkoutRequest: {
+            reason: null | string;
+        };
+        StartApplicationRequest: {
+            /** Format: uuid */
+            offerId: string;
+            /** Format: uuid */
+            billingOptionId: string;
+            /** Format: int32 */
+            selectedSessionCount?: null | number | string;
+            /** Format: uuid */
+            invitationId?: null | string;
+        };
+        StatusChangeDto: {
+            /** Format: uuid */
+            actorId: string;
+            /** Format: date-time */
+            occurredAt: string;
+            previousStatus: components["schemas"]["RelationshipStatus"];
+            newStatus: components["schemas"]["RelationshipStatus"];
+            internalReason: null | string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        StatusRequest: {
+            internalReason: null | string;
+        };
+        SubmitApplicationRequest: {
+            answers: {
+                [key: string]: unknown;
+            };
+            saveProfileFields?: null | components["schemas"]["SystemFieldKey"][];
+            /** Format: int64 */
+            profileVersion?: null | number | string;
+            /** @default false */
+            acceptTeamScope: boolean;
+        };
+        SubmitCheckInRequest: {
+            answers: {
+                [key: string]: unknown;
+            };
+        };
+        /** @enum {unknown} */
+        SystemFieldKey: "Height" | "Weight" | "BodyFat" | "HrMax" | "TrainingExperience" | "ActivityLevel" | "AvailableEquipment" | "PreferredTrainingDays" | "SessionsPerWeek" | "AvailableSessionDuration" | "Sleep" | "Stress" | "InjuriesLimitationsPainNotes" | "AdditionalNotes" | null;
         TagDto: {
             /** Format: uuid */
             id: string;
             name: string;
+        };
+        TeamAccess: {
+            /** Format: uuid */
+            teamId: string;
+            /** Format: uuid */
+            ownerId: string;
+            role: string;
+            status: string;
+            isActive: boolean;
+            /** @default  */
+            name: string;
+        };
+        TeamBillingDto: {
+            /** Format: uuid */
+            teamId: string;
+            status: string;
+            /** Format: int32 */
+            purchasedSeats: number | string;
+            /** Format: int32 */
+            occupiedSeats: number | string;
+            /** Format: int32 */
+            pendingSeats: null | number | string;
+            /** Format: date-time */
+            periodStart: string;
+            /** Format: date-time */
+            periodEnd: string;
+            autoRenew: boolean;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: double */
+            unitPrice: number | string;
+            currency: string;
+            renewalMethodEligible: boolean;
+            history: components["schemas"]["TeamBillingQuoteDto"][];
+        };
+        TeamBillingQuoteDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            teamId: string;
+            teamName: string;
+            kind: string;
+            status: string;
+            /** Format: int32 */
+            purchasedSeats: number | string;
+            /** Format: double */
+            unitPrice: number | string;
+            /** Format: double */
+            grossAmount: number | string;
+            /** Format: double */
+            creditAmount: number | string;
+            /** Format: double */
+            amountDue: number | string;
+            currency: string;
+            priceVersion: string;
+            termsVersion: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uuid */
+            dueId: null | string;
+            /** Format: date-time */
+            confirmedAt: null | string;
+        };
+        TeamCancelDissolutionRequest: {
+            /** Format: int64 */
+            version: number | string;
+            /** @default false */
+            resumeRenewal: boolean;
+        };
+        TeamCheckoutQuoteRequest: {
+            teamName: string;
+            /** Format: int32 */
+            purchasedSeats: number | string;
+            priceVersion: string;
+            /** @default false */
+            autoRenew: boolean;
+            /** Format: uuid */
+            paymentMethodId?: null | string;
+        };
+        TeamClientCaseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            teamId: string;
+            /** Format: uuid */
+            clientId: string;
+            clientName: string;
+            status: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: int64 */
+            version: number | string;
+            assignedCoachIds: string[];
+            allowedActions: string[];
+            /** Format: uuid */
+            relationshipId?: null | string;
+        };
+        TeamClientTransferDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            teamId: string;
+            teamName: string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            clientId: string;
+            /** Format: uuid */
+            proposedBy: string;
+            proposerName: string;
+            status: string;
+            consentVersion: string;
+            consentText: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: int64 */
+            version: number | string;
+            allowedActions: string[];
+        };
+        TeamConsentDecision: {
+            /** Format: int64 */
+            version: number | string;
+        };
+        TeamDecisionRequest: {
+            accept: boolean;
+        };
+        TeamDissolutionRequest: {
+            /** Format: int64 */
+            version: number | string;
+            confirmed: boolean;
+        };
+        TeamDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            isOwner: boolean;
+            isMember: boolean;
+            /** Format: int32 */
+            members: number | string;
+            role: string;
+            status: string;
+            description: string;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: int32 */
+            purchasedSeats: number | string;
+            /** Format: int32 */
+            occupiedSeats: number | string;
+            /** Format: date-time */
+            periodEnd: null | string;
+            /** Format: date-time */
+            dissolutionAt: null | string;
+            allowedActions: string[];
+            /** Format: uuid */
+            pendingOwnerId: null | string;
+        };
+        TeamHomeDto: {
+            teams: components["schemas"]["TeamDto"][];
+            requests: components["schemas"]["TeamRequestDto"][];
+        };
+        TeamInviteRequest: {
+            username: string;
+            /** @default Member */
+            role: string;
+        };
+        TeamMemberDto: {
+            /** Format: uuid */
+            userId: string;
+            displayName: string;
+            username: null | string;
+            role: string;
+            /** Format: date-time */
+            joinedAt: string;
+        };
+        TeamOwnershipRequest: {
+            /** Format: uuid */
+            recipientUserId: string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        TeamPaymentConfirmRequest: {
+            /** Format: uuid */
+            quoteId: string;
+            idempotencyKey: string;
+            /** Format: uuid */
+            paymentMethodId?: null | string;
+        };
+        TeamRenewalRequest: {
+            /** Format: int64 */
+            version: number | string;
+            autoRenew: boolean;
+            /** Format: uuid */
+            paymentMethodId?: null | string;
+        };
+        TeamRequest: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            teamId?: string;
+            /** Format: uuid */
+            userId?: string;
+            kind?: string;
+            status?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: uuid */
+            inviterId?: string;
+            role?: string;
+            /** Format: date-time */
+            expiresAt?: null | string;
+            /** Format: date-time */
+            decidedAt?: null | string;
+        };
+        TeamRequestDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            teamId: string;
+            teamName: string;
+            displayName: string;
+            kind: string;
+            status: string;
+            canDecide: boolean;
+            role: string;
+            /** Format: date-time */
+            expiresAt: null | string;
+        };
+        TeamRoleRequest: {
+            role: string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        TeamSeatQuoteRequest: {
+            /** Format: int32 */
+            purchasedSeats: number | string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        TeamUpdateRequest: {
+            name: string;
+            description: string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        TeamVersionRequest: {
+            /** Format: int64 */
+            version: number | string;
+        };
+        TrainingAnalysis: {
+            available: boolean;
+            reason: string;
+            progress?: null | components["schemas"]["TrainingProgressDto"];
+        };
+        TrainingClientProgress: {
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: int32 */
+            due: number | string;
+            /** Format: int32 */
+            completed: number | string;
+            /** Format: int32 */
+            missed: number | string;
+            /** Format: date-time */
+            latestCompletedAt: null | string;
         };
         TrainingDay: {
             /** Format: uuid */
@@ -2947,11 +13079,75 @@ export interface components {
             /** Format: int32 */
             dayNumber: number | string;
             workouts: components["schemas"]["Workout"][];
+            note?: null | string;
         };
         TrainingDocument: {
             /** Format: int32 */
             schemaVersion: number | string;
             blocks: components["schemas"]["Block"][];
+        };
+        TrainingPerformancePoint: {
+            /** Format: uuid */
+            exerciseId: string;
+            name: string;
+            /** Format: date */
+            performedDate: string;
+            loadMeaning: string;
+            /** Format: int32 */
+            sets: number | string;
+            /** Format: int32 */
+            reps: number | string;
+            /** Format: double */
+            volumeKg: null | number | string;
+            /** Format: double */
+            bestLoadKg: null | number | string;
+            /** Format: double */
+            averageRpe: null | number | string;
+            /** Format: double */
+            averageRir: null | number | string;
+            /** Format: int32 */
+            substitutionSets: number | string;
+        };
+        TrainingProgramProgress: {
+            /** Format: uuid */
+            programId: string;
+            programName: string;
+            /** Format: int32 */
+            completed: number | string;
+        };
+        TrainingProgressDto: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            /** Format: int32 */
+            planned: number | string;
+            /** Format: int32 */
+            due: number | string;
+            /** Format: int32 */
+            completed: number | string;
+            /** Format: int32 */
+            skipped: number | string;
+            /** Format: int32 */
+            missed: number | string;
+            /** Format: int32 */
+            inProgress: number | string;
+            /** Format: double */
+            completionPercentage: null | number | string;
+            /** Format: int32 */
+            loggedLate: number | string;
+            /** Format: int32 */
+            activeAssignments: number | string;
+            /** Format: int32 */
+            actualSets: number | string;
+            /** Format: int32 */
+            actualReps: number | string;
+            /** Format: double */
+            volumeKg: null | number | string;
+            programs: components["schemas"]["TrainingProgramProgress"][];
+            clients: components["schemas"]["TrainingClientProgress"][];
+            performance: components["schemas"]["TrainingPerformancePoint"][];
+            metricDefinition: string;
         };
         TrainingSet: {
             /** Format: uuid */
@@ -2974,6 +13170,8 @@ export interface components {
             /** Format: double */
             quality: number | string;
             occluded: boolean;
+            /** Format: int32 */
+            segment?: null | number | string;
         };
         /** @enum {unknown} */
         Unit: "Scalar" | "Kg" | "Lb" | "Seconds" | "Minutes" | "Meters" | "Kilometers" | "Percent";
@@ -2992,6 +13190,8 @@ export interface components {
             displayName: string;
             locale: string;
             timeZone: string;
+            phone?: null | string;
+            phoneVisibleToCoach?: null | boolean;
         };
         UploadRequest: {
             name: string;
@@ -3007,6 +13207,13 @@ export interface components {
             /** @default PUT */
             method: string;
         };
+        UsernameContactRequest: {
+            username: string;
+            body: string;
+        };
+        VisibilityInput: {
+            visibility: string;
+        };
         Workout: {
             /** Format: uuid */
             id: string;
@@ -3014,6 +13221,23 @@ export interface components {
             description: string;
             exercises: components["schemas"]["ExerciseInstance"][];
             groups: components["schemas"]["ExerciseGroup"][];
+        };
+        WorkoutDetailDto: {
+            occurrence: components["schemas"]["OccurrenceDto"];
+            prescription: components["schemas"]["WorkoutPrescription"];
+            execution: null | components["schemas"]["ExecutionDto"];
+        };
+        WorkoutPrescription: {
+            /** Format: uuid */
+            revisionId: string;
+            programName: string;
+            workout: components["schemas"]["Workout"];
+            exercises: {
+                [key: string]: components["schemas"]["ExerciseSnapshot"];
+            };
+            formulas: {
+                [key: string]: components["schemas"]["FormulaEvaluation"];
+            };
         };
     };
     responses: never;

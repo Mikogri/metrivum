@@ -16,11 +16,17 @@ public static class VideoAnalysisModule
     public static IServiceCollection AddVideoAnalysis(this IServiceCollection services, IConfiguration config)
     {
         services.AddModuleDatabase<VideoAnalysisDbContext>("video_analysis");
-        services.AddOptions<AnalysisOptions>().Bind(config.GetSection("Analysis")).Validate(x => x.MaxConcurrentPerOwner is >= 1 and <= 100
+        services.AddOptions<AnalysisOptions>().Bind(config.GetSection("Analysis")).Validate(x => x.MaxConcurrentPerOwner is >= 0 and <= 100
             && x.MaxAttempts is >= 1 and <= 10 && x.LeaseSeconds is >= 15 and <= 600 && x.HeartbeatSeconds >= 1 && x.HeartbeatSeconds * 3 <= x.LeaseSeconds
             && x.PollSeconds is >= 1 and <= 60 && x.MaxRunSeconds is >= 10 and <= 14400 && x.MaxResultPoints is >= 2 and <= 100000
             && x.MaxResultBytes is >= 1024 and <= 16777216, "Invalid analysis limits.").ValidateOnStart();
-        services.TryAddSingleton<IVideoAnalyzer, UnavailableVideoAnalyzer>();
+        services.AddOptions<MotionTraceOptions>().Bind(config.GetSection("Analysis:MotionTrace"));
+        services.TryAddSingleton<MotionTraceAnalyzer>();
+        services.TryAddSingleton<IVideoAnalyzer>(provider =>
+        {
+            var analyzer = provider.GetRequiredService<MotionTraceAnalyzer>();
+            return analyzer.IsConfigured ? analyzer : new UnavailableVideoAnalyzer();
+        });
         services.AddScoped<AnalysisLibrary>();
         services.AddScoped<AnalysisQueue>();
         services.AddScoped<ILimitUsageProvider, AnalysisLimitUsage>();
@@ -75,6 +81,5 @@ public static class VideoAnalysisModule
         return endpoints;
     }
 
-    private static long Version(HttpRequest request) => long.TryParse(request.Headers.IfMatch.ToString().Trim('"'), out var version)
-        ? version : throw new ApiException(428, "IF_MATCH_REQUIRED", "Supply the current version in If-Match.");
+    private static long Version(HttpRequest request) => RequestPreconditions.RequireMediaVersion(request);
 }

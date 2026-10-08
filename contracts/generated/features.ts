@@ -1,6 +1,184 @@
 // Generated from module feature definitions. Do not edit.
 export const features = [
   {
+    "key": "analytics.view",
+    "module": "Analytics",
+    "titleKey": "analytics.view.title",
+    "descriptionKey": "analytics.view.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "billing.manage",
+    "module": "Billing",
+    "titleKey": "billing.manage.title",
+    "descriptionKey": "billing.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "billing.pay-own",
+    "module": "Billing",
+    "titleKey": "billing.pay-own.title",
+    "descriptionKey": "billing.pay-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "billing.read-own",
+    "module": "Billing",
+    "titleKey": "billing.read-own.title",
+    "descriptionKey": "billing.read-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "calendar.events.manage",
+    "module": "Calendar",
+    "titleKey": "calendar.events.manage.title",
+    "descriptionKey": "calendar.events.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "calendar.events.read-own",
+    "module": "Calendar",
+    "titleKey": "calendar.events.read-own.title",
+    "descriptionKey": "calendar.events.read-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "calendar.invitations.respond-own",
+    "module": "Calendar",
+    "titleKey": "calendar.invitations.respond-own.title",
+    "descriptionKey": "calendar.invitations.respond-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "checkins.respond-own",
+    "module": "CheckIns",
+    "titleKey": "checkins.respond-own.title",
+    "descriptionKey": "checkins.respond-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "checkins.review",
+    "module": "CheckIns",
+    "titleKey": "checkins.review.title",
+    "descriptionKey": "checkins.review.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "checkins.schedules.manage",
+    "module": "CheckIns",
+    "titleKey": "checkins.schedules.manage.title",
+    "descriptionKey": "checkins.schedules.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.applications.manage",
+    "module": "Coaching",
+    "titleKey": "coaching.applications.manage.title",
+    "descriptionKey": "coaching.applications.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.applications.submit-own",
+    "module": "Coaching",
+    "titleKey": "coaching.applications.submit-own.title",
+    "descriptionKey": "coaching.applications.submit-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.clients.manage",
+    "module": "Coaching",
+    "titleKey": "coaching.clients.manage.title",
+    "descriptionKey": "coaching.clients.manage.description",
+    "dependencies": [
+      "coaching.clients.view"
+    ],
+    "limits": []
+  },
+  {
+    "key": "coaching.clients.view",
+    "module": "Coaching",
+    "titleKey": "coaching.clients.view.title",
+    "descriptionKey": "coaching.clients.view.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.documentation.manage",
+    "module": "ClientDocumentation",
+    "titleKey": "features.coaching.documentation.manage.title",
+    "descriptionKey": "features.coaching.documentation.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.documentation.view-shared",
+    "module": "ClientDocumentation",
+    "titleKey": "features.coaching.documentation.view-shared.title",
+    "descriptionKey": "features.coaching.documentation.view-shared.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.groups.manage",
+    "module": "Coaching",
+    "titleKey": "coaching.groups.manage.title",
+    "descriptionKey": "coaching.groups.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.invitations.respond-own",
+    "module": "Coaching",
+    "titleKey": "coaching.invitations.respond-own.title",
+    "descriptionKey": "coaching.invitations.respond-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.invitations.send",
+    "module": "Coaching",
+    "titleKey": "coaching.invitations.send.title",
+    "descriptionKey": "coaching.invitations.send.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.relationships.read-own",
+    "module": "Coaching",
+    "titleKey": "coaching.relationships.read-own.title",
+    "descriptionKey": "coaching.relationships.read-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.services.manage",
+    "module": "Coaching",
+    "titleKey": "coaching.services.manage.title",
+    "descriptionKey": "coaching.services.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "coaching.services.read-own",
+    "module": "Coaching",
+    "titleKey": "coaching.services.read-own.title",
+    "descriptionKey": "coaching.services.read-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
     "key": "exercises.browse",
     "module": "ExerciseCatalog",
     "titleKey": "features.exercises.browse.title",
@@ -26,6 +204,110 @@ export const features = [
     "dependencies": [
       "exercises.browse"
     ],
+    "limits": []
+  },
+  {
+    "key": "forms.application.manage",
+    "module": "Forms",
+    "titleKey": "forms.application.manage.title",
+    "descriptionKey": "forms.application.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "forms.checkin.manage",
+    "module": "Forms",
+    "titleKey": "forms.checkin.manage.title",
+    "descriptionKey": "forms.checkin.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "messaging.attachments",
+    "module": "Messaging",
+    "titleKey": "messaging.attachments.title",
+    "descriptionKey": "messaging.attachments.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "messaging.direct",
+    "module": "Messaging",
+    "titleKey": "messaging.direct.title",
+    "descriptionKey": "messaging.direct.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "messaging.group.manage",
+    "module": "Messaging",
+    "titleKey": "messaging.group.manage.title",
+    "descriptionKey": "messaging.group.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "messaging.groups",
+    "module": "Messaging",
+    "titleKey": "messaging.groups.title",
+    "descriptionKey": "messaging.groups.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "messaging.report",
+    "module": "Messaging",
+    "titleKey": "messaging.report.title",
+    "descriptionKey": "messaging.report.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "messaging.voice",
+    "module": "Messaging",
+    "titleKey": "messaging.voice.title",
+    "descriptionKey": "messaging.voice.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "offers.manage",
+    "module": "Offers",
+    "titleKey": "offers.manage.title",
+    "descriptionKey": "offers.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "offers.view-public",
+    "module": "Offers",
+    "titleKey": "offers.view-public.title",
+    "descriptionKey": "offers.view-public.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "training.assignments.manage",
+    "module": "Training",
+    "titleKey": "training.assignments.manage.title",
+    "descriptionKey": "training.assignments.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "training.executions.log-own",
+    "module": "Training",
+    "titleKey": "training.executions.log-own.title",
+    "descriptionKey": "training.executions.log-own.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "training.executions.review",
+    "module": "Training",
+    "titleKey": "training.executions.review.title",
+    "descriptionKey": "training.executions.review.description",
+    "dependencies": [],
     "limits": []
   },
   {
@@ -73,6 +355,16 @@ export const features = [
     ]
   },
   {
+    "key": "training.generator.use",
+    "module": "Training",
+    "titleKey": "training.generator.use.title",
+    "descriptionKey": "training.generator.use.description",
+    "dependencies": [
+      "training.programs.read"
+    ],
+    "limits": []
+  },
+  {
     "key": "training.import.csv",
     "module": "Training",
     "titleKey": "training.import.csv.title",
@@ -109,6 +401,22 @@ export const features = [
     "module": "Training",
     "titleKey": "training.programs.read.title",
     "descriptionKey": "training.programs.read.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "training.progress.view-clients",
+    "module": "Training",
+    "titleKey": "training.progress.view-clients.title",
+    "descriptionKey": "training.progress.view-clients.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "training.progress.view-own",
+    "module": "Training",
+    "titleKey": "training.progress.view-own.title",
+    "descriptionKey": "training.progress.view-own.description",
     "dependencies": [],
     "limits": []
   },

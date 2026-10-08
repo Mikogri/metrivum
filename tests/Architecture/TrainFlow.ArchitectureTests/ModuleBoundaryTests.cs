@@ -1,4 +1,13 @@
+using TrainFlow.Notifications;
+using TrainFlow.Analytics;
+using TrainFlow.Messaging.Infrastructure;
+using TrainFlow.Calendar.Infrastructure;
 using System.Reflection;
+using TrainFlow.Coaching.Infrastructure;
+using TrainFlow.Forms.Infrastructure;
+using TrainFlow.Offers.Infrastructure;
+using TrainFlow.Billing.Infrastructure;
+using TrainFlow.CheckIns.Infrastructure;
 using TrainFlow.Access.Infrastructure;
 using TrainFlow.Accounts.Infrastructure;
 using TrainFlow.ExerciseCatalog.Infrastructure;
@@ -15,7 +24,7 @@ public class ModuleBoundaryTests
     {
         Assembly[] modules = [typeof(AccountsDbContext).Assembly, typeof(AccessDbContext).Assembly,
             typeof(ExerciseCatalogDbContext).Assembly, typeof(TrainingDbContext).Assembly,
-            typeof(MediaDbContext).Assembly, typeof(VideoAnalysisDbContext).Assembly];
+            typeof(MediaDbContext).Assembly, typeof(VideoAnalysisDbContext).Assembly, typeof(CoachingDbContext).Assembly, typeof(FormsDbContext).Assembly, typeof(OffersDbContext).Assembly, typeof(BillingDbContext).Assembly, typeof(CheckInsDbContext).Assembly, typeof(CalendarDbContext).Assembly, typeof(MessagingDbContext).Assembly, typeof(NotificationsDbContext).Assembly, typeof(TrainFlow.Analytics.ModuleRegistration).Assembly, typeof(TrainFlow.ClientDocumentation.Infrastructure.DocumentationDbContext).Assembly];
         var names = modules.Select(x => x.GetName().Name).ToHashSet();
         foreach (var module in modules)
             Assert.DoesNotContain(module.GetReferencedAssemblies(), reference => names.Contains(reference.Name));
@@ -26,7 +35,7 @@ public class ModuleBoundaryTests
     {
         Assembly[] modules = [typeof(AccountsDbContext).Assembly, typeof(AccessDbContext).Assembly,
             typeof(ExerciseCatalogDbContext).Assembly, typeof(TrainingDbContext).Assembly,
-            typeof(MediaDbContext).Assembly, typeof(VideoAnalysisDbContext).Assembly];
+            typeof(MediaDbContext).Assembly, typeof(VideoAnalysisDbContext).Assembly, typeof(CoachingDbContext).Assembly, typeof(FormsDbContext).Assembly, typeof(OffersDbContext).Assembly, typeof(BillingDbContext).Assembly, typeof(CheckInsDbContext).Assembly, typeof(CalendarDbContext).Assembly, typeof(MessagingDbContext).Assembly, typeof(NotificationsDbContext).Assembly, typeof(TrainFlow.Analytics.ModuleRegistration).Assembly, typeof(TrainFlow.ClientDocumentation.Infrastructure.DocumentationDbContext).Assembly];
         foreach (var type in modules.SelectMany(x => x.GetTypes()).Where(x => x.Namespace?.Contains(".Domain") == true))
         {
             var exposed = type.GetProperties().Select(x => x.PropertyType)

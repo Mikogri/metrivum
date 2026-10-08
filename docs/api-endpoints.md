@@ -1,6 +1,10 @@
 # TrainFlow API endpoint reference
 
-This guide describes every registered endpoint: purpose, inputs, access requirements and actual success response. It covers 66 operations in OpenAPI plus the OpenAPI document endpoint. Every JSON field and enum is listed in [API types](api-types.md); nested training semantics are in [Training](features/training.md) and [formulas and CSV](features/training-formulas-csv.md).
+Training assignments, schedules, actual execution and progress are described in [Stage 5 training](coaching/stage-05-training.md). See [generator](coaching/stage-05-generator.md) for preview/replace/reshuffle/draft endpoints and [documentation](coaching/stage-05-documentation.md) for relationship records and private files. Generated OpenAPI includes current DTOs, `view=coach|client`, numeric ETags and idempotency headers.
+
+Messaging endpoints, request/response behavior, attachments and SignalR are documented in the [Stage 03A reference](coaching/messaging.md#rest-reference). The generated OpenAPI includes all Messaging REST operations; realtime payloads are in `contracts/messaging-events.ts`.
+
+This guide describes the original API operations. Client accounts and relationships are documented in [Coaching stage 01](coaching/stage-01.md#api). Offers, forms, applications, invitations, services, check-ins and simulated billing are described in [stage 02](coaching/stage-02.md); exact current request/response schemas are in `contracts/generated/openapi.json`. Nested training semantics are in [Training](features/training.md) and [formulas and CSV](features/training-formulas-csv.md).
 
 Jump to [Accounts](#accounts), [Access](#access), [access administration](#access-administration), [Exercises](#exercises), [tags](#exercise-tags), [dictionaries](#exercise-dictionaries), [catalog administration](#catalog-administration), [Training](#training), [Media](#media), [VideoAnalysis](#videoanalysis), [Health](#health) or [OpenAPI](#openapi-document).
 
@@ -821,3 +825,29 @@ Returns two owned completed results after checking compatibility.
 ### `GET /openapi/v1.json`
 
 Returns **200 application/json**, the complete OpenAPI document. Requires a valid bearer token in normal API operation; the local contract-export process explicitly allows anonymous access. No body or query parameters. This route is intentionally not listed inside its own document.
+
+## Calendar
+
+Calendar event CRUD, cancellation, invitation responses and check-in range projections are documented in [Calendar API](coaching/calendar.md#api). Generated OpenAPI/types include these endpoints. Event updates use the event ETag; client responses use the attendee responseVersion.
+
+### Messaging people autocomplete
+
+`GET /api/v1/messaging/people?search=alex` returns up to 20 active, onboarded accounts matching a username prefix (minimum two characters), projected as `{ userId, username, displayName }`. Requires `messaging.direct`; excludes the caller and either-direction blocks. No private contact details are exposed. Accepting a message request atomically inserts its introduction into the resulting direct conversation exactly once.
+
+## Stage 04
+
+- [Notifications](coaching/notifications.md): authenticated list/count/read/read-all/preferences APIs and the user-scoped SignalR hub. `activeConversation` excludes the open chat from list/count without marking unrelated notifications read.
+- [Platform subscriptions](coaching/platform-subscriptions.md): Free/Pro/Team plans, authoritative checkout, simulated payment confirmation, renewal preference and immutable history. Service payments retain their own context and endpoints.
+- [Analyze](coaching/analytics.md): coach-owned overview, financial, clients, acquisition, check-ins and training availability. Date range, timezone, grouping, client group and offer revision are validated server-side; currencies are never summed together.
+
+Generated OpenAPI and `contracts/generated/api.d.ts` define the exact request/response fields.
+
+## Client documentation (Stage 05)
+
+Relationship-scoped measurements, private coach notes, text documents and private upload/download endpoints are documented in [Client documentation API](coaching/stage-05-documentation.md#api). Every route authorizes current relationship status and document visibility. Client history remains readable when completed and is blocked when suspended; coach-private note/document metadata never enters client list/search responses. Document/note updates and visibility transitions require `If-Match`.
+
+## Team and message deletion
+
+[Team organizations](coaching/team-organizations.md#api-map) documents paid seats, roles, invitations, explicit client consent, ownership and scheduled dissolution. Team navigation remains visible in both account modes, including Free; nonmembers see invitations rather than a Team directory. [Individual subscriptions](coaching/platform-subscriptions.md#apis) retain separate checkout and renewal routes.
+
+`DELETE /api/v1/messaging/messages/{id}` returns **200 MessageDto** with `deletedAt` set, `body=null` and an empty `attachments` array. Only the sender with access to the conversation can delete; foreign IDs return 404. Repeating deletion preserves the tombstone timestamp. Clients receive `MessageDeleted`; see [chat behavior](frontend/messaging.md#message-deletion-and-voice-recording).

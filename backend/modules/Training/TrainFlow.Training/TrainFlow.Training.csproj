@@ -8,6 +8,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\TrainFlow.BuildingBlocks\TrainFlow.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Coaching\TrainFlow.Coaching.Contracts\TrainFlow.Coaching.Contracts.csproj" />
+    <ProjectReference Include="..\..\Notifications\TrainFlow.Notifications.Contracts\TrainFlow.Notifications.Contracts.csproj" />
+    <ProjectReference Include="..\TrainFlow.Training.Contracts\TrainFlow.Training.Contracts.csproj" />
     <ProjectReference Include="..\..\Accounts\TrainFlow.Accounts.Contracts\TrainFlow.Accounts.Contracts.csproj" />
     <ProjectReference Include="..\..\Access\TrainFlow.Access.Contracts\TrainFlow.Access.Contracts.csproj" />
     <ProjectReference Include="..\..\ExerciseCatalog\TrainFlow.ExerciseCatalog.Contracts\TrainFlow.ExerciseCatalog.Contracts.csproj" />

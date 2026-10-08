@@ -1,3 +1,5 @@
+using TrainFlow.BuildingBlocks;
+using TrainFlow.Notifications.Contracts;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -5,7 +7,7 @@ using TrainFlow.VideoAnalysis.Infrastructure;
 
 namespace TrainFlow.VideoAnalysis;
 
-public sealed class AnalysisQueue(VideoAnalysisDbContext db, IOptions<AnalysisOptions> configured)
+public sealed class AnalysisQueue(VideoAnalysisDbContext db, IOptions<AnalysisOptions> configured, ModuleTransaction? transaction = null, INotificationPublisher? notifications = null)
 {
     private readonly AnalysisOptions options = configured.Value;
 
@@ -40,11 +42,21 @@ public sealed class AnalysisQueue(VideoAnalysisDbContext db, IOptions<AnalysisOp
     {
         AnalysisResults.Validate(result, options);
         var json = JsonSerializer.Serialize(result, AnalysisResults.Json);
-        return await db.Database.ExecuteSqlInterpolatedAsync($"""
+        async Task<bool> Complete(CancellationToken tokenCt)
+        {
+            var completed = await db.Database.ExecuteSqlInterpolatedAsync($"""
             UPDATE video_analysis.jobs SET "Status"='Completed', "Result"=CAST({json} AS jsonb), "FailureCode"=NULL,
                 "CompletedAt"=clock_timestamp(), "LeaseToken"=NULL, "LeaseExpiresAt"=NULL, "Version"="Version"+1
             WHERE "Id"={id} AND "Status"='Processing' AND "LeaseToken"={token} AND "LeaseExpiresAt">clock_timestamp()
-            """, ct) == 1;
+            """, tokenCt) == 1;
+            if (completed && notifications != null)
+            {
+                var owner = await db.Jobs.AsNoTracking().Where(x => x.Id == id).Select(x => x.OwnerId).SingleAsync(tokenCt);
+                await notifications.PublishAsync(new(owner, "analysis:" + id + ":completed", "VideoAnalysisCompleted", "System", "VideoAnalysis", id, "/app/video-analyses/" + id), tokenCt);
+            }
+            return completed;
+        }
+        return transaction == null ? await Complete(ct) : await transaction.RunAsync(Complete, ct);
     }
 
     public async Task<bool> FailAsync(Guid id, Guid token, string failureCode, bool retryable, CancellationToken ct)

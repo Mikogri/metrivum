@@ -1,11 +1,13 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using TrainFlow.BuildingBlocks;
 
 namespace TrainFlow.VideoAnalysis;
 
 public sealed class AnalysisOptions
 {
-    public int MaxConcurrentPerOwner { get; set; } = 2;
+    // Zero leaves admission unrestricted; operators can opt into a capacity guard.
+    public int MaxConcurrentPerOwner { get; set; } = 0;
     public int MaxAttempts { get; set; } = 3;
     public int LeaseSeconds { get; set; } = 60;
     public int HeartbeatSeconds { get; set; } = 15;
@@ -15,12 +17,20 @@ public sealed class AnalysisOptions
     public int MaxResultBytes { get; set; } = 8388608;
 }
 
-public sealed record AnalysisConfiguration(double? MetersPerPixel = null, string Movement = "unspecified");
+public sealed record AnalysisTrackingPoint(double X, double Y);
+public sealed record AnalysisTracking(double TimestampSeconds, int VideoWidth, int VideoHeight, AnalysisTrackingPoint[] Points);
+public sealed record AnalysisConfiguration(double? MetersPerPixel = null, string Movement = "unspecified",
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] AnalysisTracking? Tracking = null);
 public sealed record CreateAnalysisRequest(string Name, string? Note, string[] Tags, Guid MediaId, AnalysisConfiguration Configuration);
 public sealed record UpdateAnalysisRequest(string Name, string? Note, string[] Tags);
-public sealed record AnalysisPhase(string Kind, double StartSeconds, double EndSeconds);
-public sealed record AnalysisRepetition(int Number, double StartSeconds, double EndSeconds, AnalysisPhase[] Phases);
-public sealed record TrajectoryPoint(double Seconds, double X, double Y, double? Velocity, double Quality, bool Occluded);
+public sealed record AnalysisPhase(string Kind, double StartSeconds, double EndSeconds,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] double? MeanSpeed = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] double? PeakSpeed = null);
+public sealed record AnalysisRepetition(int Number, double StartSeconds, double EndSeconds, AnalysisPhase[] Phases,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] double? MeanSpeed = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] double? PeakSpeed = null);
+public sealed record TrajectoryPoint(double Seconds, double X, double Y, double? Velocity, double Quality, bool Occluded,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Segment = null);
 public sealed record AnalysisResult(int SchemaVersion, string EngineVersion, string ModelVersion, string Method,
     string PositionUnit, double? MetersPerPixel, AnalysisRepetition[] Repetitions, TrajectoryPoint[] Trajectory, string[] Warnings);
 public sealed record AnalysisDto(Guid Id, string Name, string? Note, string[] Tags, Guid MediaId, AnalysisConfiguration Configuration,
@@ -34,6 +44,9 @@ public interface IVideoAnalyzer
         get;
     }
     Task<AnalysisResult> AnalyzeAsync(Stream source, AnalysisConfiguration configuration, CancellationToken ct);
+    void ValidateConfiguration(AnalysisConfiguration configuration)
+    {
+    }
 }
 
 public sealed class UnavailableVideoAnalyzer : IVideoAnalyzer
@@ -51,6 +64,7 @@ public static class AnalysisResults
     {
         static bool Text(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 200;
         static bool Time(double value) => double.IsFinite(value) && value >= 0;
+        static bool Speed(double? value) => value is null || (double.IsFinite(value.Value) && value >= 0);
         var invalid = result.SchemaVersion != 1 || !Text(result.EngineVersion) || !Text(result.ModelVersion) || !Text(result.Method)
             || result.PositionUnit is not ("px" or "m") || result.Repetitions == null || result.Trajectory == null || result.Warnings == null
             || (result.PositionUnit == "m" && (result.MetersPerPixel is not > 0 || !double.IsFinite(result.MetersPerPixel.Value)))
@@ -63,19 +77,19 @@ public static class AnalysisResults
         foreach (var point in result.Trajectory)
         {
             if (!Time(point.Seconds) || point.Seconds < previous || !double.IsFinite(point.X) || !double.IsFinite(point.Y)
-                || (point.Velocity.HasValue && !double.IsFinite(point.Velocity.Value)) || !double.IsFinite(point.Quality) || point.Quality is < 0 or > 1)
+                || (point.Velocity.HasValue && !double.IsFinite(point.Velocity.Value)) || !double.IsFinite(point.Quality) || point.Quality is < 0 or > 1 || point.Segment is < 0)
                 throw Invalid();
             previous = point.Seconds;
         }
         var numbers = new HashSet<int>();
         foreach (var rep in result.Repetitions)
         {
-            if (rep.Number < 1 || !numbers.Add(rep.Number) || !Time(rep.StartSeconds) || !Time(rep.EndSeconds) || rep.EndSeconds <= rep.StartSeconds || rep.Phases == null || rep.Phases.Length > 20)
+            if (rep.Number < 1 || !numbers.Add(rep.Number) || !Time(rep.StartSeconds) || !Time(rep.EndSeconds) || rep.EndSeconds <= rep.StartSeconds || rep.Phases == null || rep.Phases.Length > 20 || !Speed(rep.MeanSpeed) || !Speed(rep.PeakSpeed))
                 throw Invalid();
             var phaseEnd = rep.StartSeconds;
             foreach (var phase in rep.Phases)
             {
-                if (!Text(phase.Kind) || !Time(phase.StartSeconds) || !Time(phase.EndSeconds) || phase.StartSeconds < phaseEnd || phase.EndSeconds <= phase.StartSeconds || phase.EndSeconds > rep.EndSeconds)
+                if (!Text(phase.Kind) || !Time(phase.StartSeconds) || !Time(phase.EndSeconds) || phase.StartSeconds < phaseEnd || phase.EndSeconds <= phase.StartSeconds || phase.EndSeconds > rep.EndSeconds || !Speed(phase.MeanSpeed) || !Speed(phase.PeakSpeed))
                     throw Invalid();
                 phaseEnd = phase.EndSeconds;
             }

@@ -14,6 +14,8 @@ public static class ModuleRegistration
     {
         services.AddModuleDatabase<AccountsDbContext>("accounts");
         services.AddScoped<AccountContext>();
+        services.AddScoped<IAccountDirectory, AccountDirectory>();
+        services.AddScoped<IAccountProfileFields, AccountProfileFieldsService>();
         services.AddScoped<IAccountContext>(provider => provider.GetRequiredService<AccountContext>());
         return services;
     }

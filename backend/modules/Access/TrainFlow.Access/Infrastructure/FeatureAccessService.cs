@@ -9,9 +9,25 @@ using TrainFlow.BuildingBlocks;
 
 namespace TrainFlow.Access.Infrastructure;
 
-public sealed class FeatureAccessService(AccessDbContext db, FeatureCatalog catalog, IAccountContext account,
-    IEnumerable<ILimitUsageProvider> usageProviders) : IFeatureAccessService
+public sealed class FeatureAccessService : IFeatureAccessService
 {
+    private readonly AccessDbContext db;
+    private readonly FeatureCatalog catalog;
+    private readonly IAccountContext account;
+    private readonly IEnumerable<ILimitUsageProvider> usageProviders;
+    private Policy? policy;
+
+    public FeatureAccessService(AccessDbContext db, FeatureCatalog catalog, IAccountContext account,
+        IEnumerable<ILimitUsageProvider> usageProviders)
+    {
+        this.db = db;
+        this.catalog = catalog;
+        this.account = account;
+        this.usageProviders = usageProviders;
+        // Request-local only: configuration changes take effect on the next request or after a local write.
+        db.SavedChanges += (_, _) => policy = null;
+    }
+
     public async Task RequireAsync(string key, CancellationToken cancellationToken)
     {
         var snapshot = await EvaluateAsync(false, cancellationToken);
@@ -23,30 +39,44 @@ public sealed class FeatureAccessService(AccessDbContext db, FeatureCatalog cata
 
     public Task<AccessSnapshot> GetAsync(CancellationToken cancellationToken) => EvaluateAsync(true, cancellationToken);
 
+    internal static bool RoleAllows(string key, IReadOnlyList<AccountRole> roles) => key switch
+    {
+        "exercises.browse" or "messaging.direct" or "messaging.groups" or "messaging.attachments" or "messaging.voice" or "messaging.report" or "messaging.group.manage" or "offers.view-public" => roles.Contains(AccountRole.Client) || roles.Contains(AccountRole.Coach),
+        "coaching.relationships.read-own" or "coaching.applications.submit-own" or
+        "coaching.invitations.respond-own" or "coaching.services.read-own" or
+        "calendar.events.read-own" or "calendar.invitations.respond-own" or "checkins.respond-own" or "billing.read-own" or "billing.pay-own" or
+        "training.executions.log-own" or "training.progress.view-own" or "coaching.documentation.view-shared" => roles.Contains(AccountRole.Client),
+        _ => roles.Contains(AccountRole.Coach)
+    };
+
     private async Task<AccessSnapshot> EvaluateAsync(bool includeUsage, CancellationToken cancellationToken)
     {
-        var identity = await account.RequireCoachAsync(cancellationToken);
-        var assignment = await db.Assignments.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == identity.UserId, cancellationToken);
-        var configuration = await db.Configurations.AsNoTracking().SingleOrDefaultAsync(x => x.Id == (assignment == null ? "v1-default" : assignment.ConfigurationId), cancellationToken);
-        var overrides = await db.Overrides.AsNoTracking().Where(x => x.UserId == identity.UserId).OrderBy(x => x.Key).ToArrayAsync(cancellationToken);
-        var flags = await db.Flags.AsNoTracking().OrderBy(x => x.Key).ToArrayAsync(cancellationToken);
+        var roles = await account.GetRolesAsync(cancellationToken);
+        var userId = account.UserId;
+        var current = await GetPolicyAsync(userId, cancellationToken);
+        var assignment = current.Assignment;
+        var configuration = current.Configuration;
+        var overrides = current.Overrides;
+        var flags = current.Flags;
         var grants = (configuration?.GrantedFeatures ?? []).Concat(overrides.Where(x => x.Granted).Select(x => x.Key)).ToHashSet(StringComparer.Ordinal);
         var denies = overrides.Where(x => !x.Granted).Select(x => x.Key).ToArray();
         var disabled = flags.Where(x => !x.Enabled).Select(x => x.Key).ToArray();
-        var features = catalog.Definitions.Keys.Order(StringComparer.Ordinal).Select(key => catalog.Decide(key, grants, denies, disabled)).ToArray();
+        var features = catalog.Definitions.Keys.Order(StringComparer.Ordinal).Select(key => RoleAllows(key, roles) ? catalog.Decide(key, grants, denies, disabled) : new FeatureDecision(key, false, "role_required")).ToArray();
         var limits = new List<LimitDecision>();
-        if (includeUsage)
+        if (includeUsage && roles.Contains(AccountRole.Coach))
         {
             foreach (var provider in usageProviders)
-                limits.AddRange(await provider.GetUsageAsync(identity.UserId, cancellationToken));
+                limits.AddRange(await provider.GetUsageAsync(userId, cancellationToken));
             features = features.Select(decision => decision.Available && catalog.Definitions[decision.Key].Limits.Any(key =>
                 limits.Any(limit => limit.Key == key && limit.Used >= limit.Maximum))
                 ? new FeatureDecision(decision.Key, false, "limit_reached") : decision).ToArray();
         }
+        if (!includeUsage)
+            return new("", features, limits);
         var versionInput = JsonSerializer.Serialize(new
         {
-            identity.UserId,
-            identity.WorkspaceId,
+            userId,
+            roles,
             configuration,
             assignment,
             overrides,
@@ -57,4 +87,23 @@ public sealed class FeatureAccessService(AccessDbContext db, FeatureCatalog cata
         });
         return new(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(versionInput))), features, limits);
     }
+
+    private async Task<Policy> GetPolicyAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        if (policy is not null)
+            return policy;
+        var selected = await db.Configurations.AsNoTracking()
+            .Where(c => c.Id == (db.Assignments.Where(a => a.UserId == userId).Select(a => a.ConfigurationId).FirstOrDefault() ?? "v1-default"))
+            .Select(c => new
+            {
+                Configuration = c,
+                Assignment = db.Assignments.Where(a => a.UserId == userId).FirstOrDefault()
+            }).SingleOrDefaultAsync(cancellationToken);
+        var overrides = await db.Overrides.AsNoTracking().Where(x => x.UserId == userId).OrderBy(x => x.Key).ToArrayAsync(cancellationToken);
+        var flags = await db.Flags.AsNoTracking().OrderBy(x => x.Key).ToArrayAsync(cancellationToken);
+        return policy = new(selected?.Configuration, selected?.Assignment, overrides, flags);
+    }
+
+    private sealed record Policy(AccessConfiguration? Configuration, AccessAssignment? Assignment,
+        FeatureOverride[] Overrides, FeatureFlag[] Flags);
 }

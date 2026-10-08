@@ -352,6 +352,18 @@
       "trainflow.media.contracts": {
         "type": "Project"
       },
+      "trainflow.notifications": {
+        "type": "Project",
+        "dependencies": {
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
+          "TrainFlow.Accounts.Contracts": "[1.0.0, )",
+          "TrainFlow.BuildingBlocks": "[1.0.0, )",
+          "TrainFlow.Notifications.Contracts": "[1.0.0, )"
+        }
+      },
+      "trainflow.notifications.contracts": {
+        "type": "Project"
+      },
       "trainflow.videoanalysis": {
         "type": "Project",
         "dependencies": {
@@ -359,7 +371,8 @@
           "TrainFlow.Access.Contracts": "[1.0.0, )",
           "TrainFlow.Accounts.Contracts": "[1.0.0, )",
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
-          "TrainFlow.Media.Contracts": "[1.0.0, )"
+          "TrainFlow.Media.Contracts": "[1.0.0, )",
+          "TrainFlow.Notifications.Contracts": "[1.0.0, )"
         }
       },
       "Microsoft.EntityFrameworkCore": {

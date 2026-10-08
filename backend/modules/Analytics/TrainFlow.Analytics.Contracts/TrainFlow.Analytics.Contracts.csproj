@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><ProjectReference Include="../../Training/TrainFlow.Training.Contracts/TrainFlow.Training.Contracts.csproj" /></ItemGroup></Project>
