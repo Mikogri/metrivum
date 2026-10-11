@@ -1,14 +1,16 @@
 # TrainFlow
 
-ASP.NET Core backend and React web frontend for a coach's personal training workspace. PostgreSQL stores application data; Supabase provides Auth and private Storage. Business tables are never accessed through the Supabase Data API.
+TrainFlow is one monorepo: ASP.NET Core API, React web and Expo native mobile. PostgreSQL stores application data; Supabase provides Auth and private Storage. Both clients use the same API; business tables are never accessed through the Supabase Data API.
 
-The application includes profiles, coaching/client management, shared exercises, training programs/templates, messaging, calendar, billing, analytics, private videos and a durable analysis queue. The optional [MotionTrace integration](docs/features/motiontrace.md) provides two-point lift tracking, repetition detection and phase velocity charts in px/s. Analysis requests report `ANALYZER_NOT_CONFIGURED` until the local bridge is built and configured.
+The application includes profiles, coaching/client management, shared exercises, training programs/templates, messaging, calendar, simulated billing, analytics and private videos. New video analysis targets on-device execution; the real portable model/runtime is not available yet, so this feature remains explicitly blocked. The legacy server worker is retained for history and compatibility; it is not a fallback for mobile analysis. See [mobile setup and limitations](docs/mobile/README.md).
+
+Start with the [repository structure](docs/STRUCTURE.md), [implementation review](docs/architecture/refactor-2026-10-11/report.md) and [API contracts](contracts/generated). API, web and mobile changes are reviewed and versioned together in this private repository.
 
 [Stage 5](docs/coaching/stage-05.md) adds program assignment, client workout logs, actual progress, relationship documentation and deterministic program generation. Coaches use Programs → Generate program and Clients → client → Training/Progress/Documentation. Clients use My training and Shared documents.
 
 ## Start locally
 
-Requirements: .NET SDK from `global.json`, PostgreSQL 17, and a local/test Supabase for real Auth/Storage. Node 22+ is needed only to regenerate TypeScript contracts. You can run PostgreSQL with `infra/compose.yaml` or use an existing disposable instance. The compose service is PostgreSQL only; it does not provide Supabase Auth/Storage.
+Requirements: .NET SDK from `global.json`, Node 22.22+, PostgreSQL 17, and a local/test Supabase for real Auth/Storage. You can run PostgreSQL with `infra/compose.yaml` or use an existing disposable instance. The compose service is PostgreSQL only; it does not provide Supabase Auth/Storage.
 
 ```powershell
 dotnet tool restore
@@ -89,3 +91,7 @@ Run the explicit migration command on the base test database before integration 
 - [Frontend architecture](docs/frontend/architecture.md) and [hosting](docs/frontend/hosting.md): web app structure, sessions, routing and deployment rules.
 - [Coaching stage 02](docs/coaching/stage-02.md), [UI guide](docs/frontend/coaching.md) and [verification](docs/coaching/stage-02-verification.md): offers, forms, leads, services, check-ins and simulated billing.
 - [Change log](CHANGELOG.md) and [verification record](docs/verification.md): changes and actual validation.
+
+## Mobile
+
+The native Expo client is in `apps/mobile`. See [setup, architecture and privacy](docs/mobile/README.md), [screen/API coverage](docs/mobile/screen-api-map.md) and [verification status](docs/mobile/verification.md). A custom development build is required; Expo Go does not provide the encrypted draft database or Android PCM recorder. Local ML is not yet available—historical analysis results remain readable.

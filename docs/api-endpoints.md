@@ -851,3 +851,16 @@ Relationship-scoped measurements, private coach notes, text documents and privat
 [Team organizations](coaching/team-organizations.md#api-map) documents paid seats, roles, invitations, explicit client consent, ownership and scheduled dissolution. Team navigation remains visible in both account modes, including Free; nonmembers see invitations rather than a Team directory. [Individual subscriptions](coaching/platform-subscriptions.md#apis) retain separate checkout and renewal routes.
 
 `DELETE /api/v1/messaging/messages/{id}` returns **200 MessageDto** with `deletedAt` set, `body=null` and an empty `attachments` array. Only the sender with access to the conversation can delete; foreign IDs return 404. Repeating deletion preserves the tombstone timestamp. Clients receive `MessageDeleted`; see [chat behavior](frontend/messaging.md#message-deletion-and-voice-recording).
+
+## Client Details relationship-scoped reads
+
+- `GET /api/v1/coaching/relationships/{id}/profile`: currently permitted training profile fields.
+- `GET /api/v1/coaching/relationships/{id}/applications`: paginated original applications linked by services.
+- `GET /api/v1/coaching/relationships/{id}/applications/{applicationId}`: immutable application/form/offer snapshot, with exact relationship check.
+- `GET /api/v1/check-ins/relationships/{id}/summary`: review/overdue counters, latest request and next due date.
+- `GET /api/v1/check-ins/relationships/{id}/requests/{requestId}`: authorized immutable check-in detail; does not mark reviewed.
+- `GET /api/v1/training/activity-options`, `/assignment-summary`, `/last-activity`: relationship-scoped navigation options, paginated assignment progress, and real last execution.
+- Existing relationship billing adds status/service/date filters and per-currency overdue/last/next settlement summary. Services include a batched current-billing projection.
+- `GET /api/v1/coaching/services/current?relationshipIds=<uuid>&relationshipIds=<uuid>`: up to 100 Coach/workspace-owned relationships, authorized together. Returns `{ relationshipId, offerName, currentBilling }[]` for the latest Active service (`UpdatedAt DESC, Id ASC`), omitting relationships without one. Requires `coaching.services.manage`; a foreign/missing relationship rejects the entire request. Used by the Clients list to avoid one service request per row.
+
+The generated OpenAPI remains the source for exact request/response contracts. See `frontend/client-details.md` for URL state and metric definitions.

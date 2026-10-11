@@ -1,20 +1,26 @@
 # Messaging UI
 
-Entering Messages or returning to Chats from Requests/Blocked automatically opens the first conversation. Deep links and drafts keep their selection. Explicit mobile back navigation uses `view=list` to keep the conversation list open. Conversations are sorted by the latest visible incoming non-system message; own sends do not reorder them. Conversations without incoming messages follow, newest-created first.
+Entering Messages or returning to Chats from Blocked automatically opens the first conversation. Deep links and drafts keep their selection. Explicit mobile back navigation uses `view=list` to keep the conversation list open. Conversations are sorted by the latest visible incoming non-system message; own sends do not reorder them. Conversations without incoming messages follow, newest-created first.
 
-Open **Messages** in either Coach or Client mode, or `/app/messages`. The route uses the same account's conversations in both workspace modes. Inner navigation below the header contains Conversations, Requests and Blocked. Desktop shows a list beside the conversation; mobile opens one view at a time with a back button.
+Open **Messages** in either Coach or Client mode, or `/app/messages`. The route uses the same account's conversations in both workspace modes. Inner navigation below the header contains Chats and Blocked. Desktop shows a list beside the conversation; mobile opens one view at a time with a back button.
 
 `app/modules/messaging` contains the route, conversation dialogs, account-scoped queries/realtime connection, attachment composer and WAV recorder. It reuses the existing UI library, API transport, feature access, account scope and draft guards. `@microsoft/signalr` is the official client; database operations always use the TrainFlow API.
 
-- Start a chat by typing at least two username characters and selecting an autocomplete result. Active contacts open directly; other people open a draft chat. Opening a draft sends nothing. Its first text message creates a request; acceptance preserves that text as the first message. Existing request/block protections remain server-owned. Requests can still be accepted, declined or cancelled in Requests. Groups retain their separate creation flow.
+- Start a chat by selecting a username autocomplete result. Direct conversations are open by default. Settings → Profile → Message privacy can require approval for new conversations. A pending introduction is an ordinary chat: its recipient accepts/declines inline, and its sender keeps a visible disabled composer. Opening a private draft sends nothing; the first message creates its conversation. Groups retain their separate creation flow.
 - Send text, replies, images, documents, video or a voice recording. Uploads are private, finalized before send and referenced by Media ID. Retrying an unchanged message retains its idempotency key. Download/preview uses authenticated message attachment endpoints and revokes temporary object URLs on unmount.
 - Recording requests microphone access only after a click. Browser audio is decoded and encoded as mono PCM WAV, capped at five minutes, then attached to the draft. It is not sent automatically. Recording and unfinished messages participate in account-switch/navigation guards.
 - Read markers advance for a visible conversation near its newest message. Removed members see earlier history without a composer. Group owners/admins can rename, add/remove, ban and unban. Direct participants can block/unblock and report messages.
 - One account-scoped SignalR connection stays mounted throughout the app, with an app-bar notification center. HTTP acknowledgements and MessageCreated events merge directly into message history; read events refresh only summaries/details. Pending sends appear immediately, failed drafts remain editable, and typing events are throttled to one per 1.5 seconds. Reconnect/window focus and a 15-second poll recover missed notifications. Older messages load in pages of 50. Typing expires locally. Leaving the account stops SignalR, rejects stale callbacks/token requests, aborts uploads and discards private caches.
 
-Backend additions for this UI: `POST /api/v1/messaging/requests/by-username` accepts `{ username, body }`, resolves an exact active account and uses the existing request/block checks. Own request-list DTOs include optional sender/recipient display names, obtained in one batched Accounts lookup. Existing ID-based clients remain compatible. No database migration was needed.
+Backend additions for this UI: `POST /api/v1/messaging/requests/by-username` accepts `{ username, body }`, resolves an exact active account and uses the existing request/block checks. Own request-list DTOs include optional sender/recipient display names, obtained in one batched Accounts lookup. Existing ID-based clients remain compatible. The unified consent migration adds messaging preferences and preserves pending introductions inside normal conversations.
 
 ## People search
+
+Deleting a message requires confirmation. Image previews sit outside text bubbles; voice playback
+and recorder preview share plain icon controls. Opening a conversation starts at its newest message
+and follows delayed image resizing only while the reader stays near the bottom. Conversation and
+notification read actions update account-scoped caches immediately, with rollback and server
+reconciliation on failure. Notification labels say "Message received" without changing event names.
 
 `GET /api/v1/messaging/people?search=<username-prefix>` requires messaging access and returns at most 20 `{ userId, username, displayName }` results. Only active, onboarded accounts match; the caller and accounts blocked in either direction are excluded. No email, phone or profile details are returned. Search waits 250 ms after typing. Existing POST request endpoints remain compatible; no schema migration is required.
 
@@ -44,3 +50,19 @@ The sender's ellipsis menu deletes through `DELETE /api/v1/messaging/messages/{i
 Voice messages play inline. Recording displays elapsed time, a red stop square, a live microphone waveform and Cancel. Stopping prepares an audio preview. Text stays disabled through preparation and preview until Cancel or Send. Cancellation/unmount releases microphone tracks and AudioContext; stale permission/decode callbacks cannot attach an obsolete recording. The message viewport uses the spreadsheet scrollbar styling.
 
 Regression coverage includes sender/recipient isolation, repeated deletion, private attachment denial, cached older pages, recording cancellation and actual synthetic WAV playback on desktop/mobile. Physical microphone and live two-user Supabase transport remain separate manual checks.
+
+Conversation reads also persist matching notification reads on the server. Only events through the authorized message sequence are consumed; leaving the conversation cannot restore its unread notification count. The UI invalidates notification counts after a successful read.
+
+### Coaching actions in direct chats
+
+The composer menu lets eligible coaches share an active offer's application page or send a coaching invitation to the current participant without a lead or relationship. Existing coaching permissions and recipient acceptance still apply. Links are ordinary text messages with allowlisted internal destinations; composing a separate message preserves the draft. Invitation-message retries retain the created invitation and reuse the message idempotency key. If sending fails after invitation creation, the invitation remains available in Invitations and the dialog explains how to retry.
+
+### Destination-based notification reads
+
+The app shell acknowledges available notifications when their destination is visible, regardless of navigation entry point. `POST /api/v1/me/notifications/read-target` matches the exact path and all query parameters required by the notification; extra view filters are allowed. Reads are recipient-scoped, idempotent, exclude cancelled/future events, and broadcast counter changes. Cached rows update optimistically with rollback; unopened notification pages do not need downloading. Hidden tabs do not acknowledge, and realtime/poll refreshes handle new arrivals while staying in a view. MessageCreated retains the conversation message-watermark read mechanism. Publishers must link to the specific view where their notification is considered seen.
+
+## Durable coaching entries
+
+Invitation creation and active-offer form sharing produce a typed `coachingEntry` message through the server transaction. The UI sends one business command with a stable idempotency key, then refreshes its conversation; it never sends an additional text message to represent the action. Existing text cards remain readable. The native app opens invitation details or a form sheet and uses the same endpoints. Form sharing does not create coaching consent or a relationship.
+
+Modern attachment uploads include `conversationId`, enabling the API to reject pending-chat uploads before storage transfer. Older clients can still stage private unattached files; sending or exposing them remains blocked by the authoritative conversation policy.

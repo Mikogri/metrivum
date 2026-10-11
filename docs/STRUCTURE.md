@@ -15,7 +15,7 @@
 - `docs/frontend`: frontend architecture, design reference, API integration map, API gaps and hosting rules.
 - `apps/web/app/modules/coaching`: role-aware coach/client workflows; see `docs/frontend/coaching.md`. `apps/web/e2e-coaching` tests the screens against explicit browser fixtures.
 - `tests`: unit, real PostgreSQL integration and architecture tests.
-- `apps/web/app/modules/messaging`: conversation UI, private attachments/WAV recording, requests, group controls and account-scoped SignalR. See `docs/frontend/messaging.md`.
+- `apps/web/app/modules/messaging`: conversation UI, private attachments/WAV recording, inline conversation approval, durable coaching cards, group controls and account-scoped SignalR. See `docs/frontend/messaging.md`.
 - `infra`: local environment, role bootstrap and operational commands.
 - `infra/diagnostics`: reproducible query-plan, restricted-runtime and explicitly confirmed development Auth probes; fixtures are rolled back or removed.
 - `docs/architecture`: decisions and security; `docs/features`: document/CSV/formula contracts.
@@ -31,8 +31,18 @@ Web `training/delivery` contains assignment, workout and progress screens; `trai
 
 `Messaging` owns durable conversation/message history and SignalR delivery. Coaching synchronizes linked memberships through contracts and a shared transaction; Media authorizes private attachments. See [Messaging](coaching/messaging.md) and `contracts/messaging-events.ts` for REST/realtime integration.
 
+Direct conversations are open by default. `Messaging` owns the opt-in approval preference and returns send/upload capabilities to both clients. Pending introductions live in ordinary conversations. `Coaching.Contracts` supplies invitation/form-share entries in the business transaction, so every creation surface produces the same durable chat message. The UI never creates a second synthetic invitation message.
+
+CheckIns obtains assigned cycle dates through `Training.Contracts`; it does not read Training tables. Cycle schedules follow effective assignment versions, local release time and the assignment timezone. Already issued requests retain their original form and timing snapshot.
+
+The [2026-10-11 review](architecture/refactor-2026-10-11/plan.md) records the current hardening scope and evidence. `infra/diagnostics/consistency.sql` is bounded and read-only. Contract export does not load local credentials or start workers; `Workers:Enabled=false` disables background processing while inspecting a restored environment.
+
 ## Calendar and workspace switching
 
 `backend/modules/Calendar` owns events, attendee responses and immutable audit in the private `calendar` schema. `apps/web/app/modules/calendar` renders the calendar; `shared/session/WorkspaceScope.tsx` owns the Coach/Client UI mode. Check-in projections stay in CheckIns. See [calendar](coaching/calendar.md).
 
 Billing owns Team roles/memberships, organizational subscriptions, frozen seat quotes, proration credit and durable transitions. Coaching owns Team cases, assignments, client consent and scoped groups; downstream modules consume contracts only. Web `modules/team` is shared by coach/client views. See [Team organizations](coaching/team-organizations.md) and `infra/export-stage06.ps1`. Server currency conversion remains in `Infrastructure/PlatformCurrencyConverter.cs`.
+
+## Native mobile
+
+`apps/mobile` contains Expo native routes, daily feature screens and account-scoped infrastructure. `packages/ui-mobile` owns mobile-only semantic tokens, controls and charts; it has no business/API dependencies. The existing `packages/api-client-web` exposes a platform-neutral transport and generated contracts to both frontends. `apps/mobile/modules/trainflow-voice` is a reproducible Android PCM WAV Expo module. Generated native projects and private local configuration remain ignored. See [mobile architecture and setup](mobile/README.md) and its verification matrix.

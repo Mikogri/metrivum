@@ -1,10 +1,10 @@
 # Training v1
 
-Private programs and templates share one document engine. The authenticated coach and personal workspace determine ownership; requests contain neither owner nor workspace. Administrative permissions do not bypass these checks. Metadata and folder relationships are relational in the private `training` schema; draft contents, immutable snapshots, typed formula definitions and validated import sessions use JSONB with explicit schema version 1. The API does not use PostgREST.
+Private programs and templates share one document engine. The authenticated owner and personal workspace determine ownership; requests contain neither owner nor workspace. Administrative permissions do not bypass these checks. Metadata and folder relationships are relational in the private `training` schema; draft contents, immutable snapshots, typed formula definitions and validated import sessions use JSONB with explicit schema version 1. The API does not use PostgREST.
 
 ## Routes and editing
 
-All routes below are under `/api/v1/training` and require a completed, eligible coach account. DTOs are included in generated OpenAPI.
+All routes below are under `/api/v1/training` and require a completed account. Creation, templates, folders and formula libraries are coach-only; clients can read, edit, apply and export their own purchased programs. DTOs are included in generated OpenAPI.
 
 | Route | Purpose |
 | --- | --- |
@@ -13,7 +13,8 @@ All routes below are under `/api/v1/training` and require a completed, eligible 
 | `PUT /programs/{id}/draft` | Save metadata, folder and full typed document |
 | `POST /programs/{id}/copy` | Independent copy; target kind can turn a template into a program |
 | `PUT /programs/{id}/archive` | Archive/restore with `{ "archived": true/false }` |
-| `POST /programs/{id}/revisions` | Privately publish immutable snapshot |
+| `POST /programs/{id}/apply` | Apply the saved draft and atomically update eligible assignments |
+| `POST /programs/{id}/revisions` | Compatible alias for Apply changes |
 | `GET /programs/{id}/revisions[/{number}]` | List revision metadata or read a snapshot |
 | `GET/POST /folders` | List immediate children or create a folder |
 | `PUT/DELETE /folders/{id}` | Move, rename, reorder or delete an empty folder |
@@ -89,3 +90,13 @@ Workspace-scoped PostgreSQL transaction advisory locks serialize folder-tree cha
 | `Formula.MaximumOperations` / `Formula.MaximumGraphNodes` | 512 / 64 |
 
 Settings are validated at startup. No automatic database migrations run at API startup. RLS is explicitly disabled on these private backend-owned tables; isolation is enforced by schema/role restrictions and API ownership checks, not by per-user database claims.
+
+## Applied changes and purchased ownership
+
+Autosave changes only the private draft. **Apply changes** creates an immutable revision and updates active/paused authorized assignments in the same transaction. Today's unstarted workouts and future unstarted workouts are regenerated; past workouts and every execution keep their original revision and results. Workspace and assignment locks serialize applying, assigning and starting workouts. Reapplying an unchanged draft does not create another revision.
+
+Training-plan offers use `Purpose: TrainingPlan` and `BillingModel: OneTime`. Accepting an application requires `trainingPlanRevisionId`; it freezes delivery terms without creating a coaching relationship, service or assignment. Pending purchase summaries expose no document. `GET /training/purchases` lists the buyer's paginated receipts; `GET /me/plan-purchases/{orderId}/due` and `/by-application/{applicationId}/due` expose authorized payment status.
+
+Successful simulated, external or zero-price settlement creates one buyer-owned plan and initial revision in the same transaction as the receipt. Payment retries cannot deliver twice. Failed payment leaves content locked. The copy belongs to the buyer's actual personal workspace; seller edits and relationship changes do not affect it. Seller-owned formulas become frozen quantities, without copying private formula expressions or granting source-library access. Purchase provenance and completed delivery are immutable in PostgreSQL. Team seller reads/settlement require current administrative Team access, synchronized with membership changes.
+
+The client **Training plans** screen combines assignments and purchased copies. The existing `/programs/{id}` ownership checks protect draft, revision and export routes for both coaches and buyers. Historical `publishedAt` fields and revision endpoints retain their names for API compatibility.

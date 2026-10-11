@@ -1,0 +1,15 @@
+# Write and delivery guarantees
+
+`ModuleTransaction` enlists module contexts on one physical connection, commits business changes together and then invokes optional callbacks. Module contracts preserve ownership. Post-commit callbacks are not themselves an outbox: a crash can lose an unpersisted callback, and a callback error cannot roll back an already committed business change. Durable notification records are inserted before commit through the existing publisher and deduplicated by recipient/event key.
+
+Training/Form publication preserves immutable revisions/submissions and uses optimistic version checks and existing operation identities. Multi-module writes must run inside the shared coordinator; calling unrelated `SaveChanges` methods is not enough. The documented endpoint graph test prevents persisted entities from leaking into declared response DTO graphs, but cannot inspect untyped dynamic JSON returned at runtime.
+
+Notifications claim bounded rows with `FOR UPDATE SKIP LOCKED` and recheck account/preferences/source policy. SignalR can be delivered more than once if the transaction fails after emission; REST and stable notification identities provide catch-up. Mobile push has its own persisted delivery identity. Neither mechanism guarantees exactly-once provider effects. A universal versioned event envelope/inbox/dead-letter policy is still incomplete and was not replaced by a second queue.
+
+Legacy video-analysis work uses a DB-clock lease and token-conditional completion. These are historical server-job safeguards; absence of a working local model must not reactivate that path as a fallback. Check-in recurrence and financial renewals use their existing persisted scheduling/deduplication semantics; do not infer universal per-owner fairness or fencing from the analysis queue.
+
+The new [consistency SQL](../../../infra/diagnostics/consistency.sql) is a fixed administrative report, not an API endpoint or repair engine. It checks acceptance/service identity, request version/submission identity, historical payment agreement, assignment revision references, document Media references and four aged-work conditions. It emits counts, one opaque sample ID and investigation guidance. It never reads answers, message contents, payment tokens or Storage URLs.
+
+Read-only repeatable-read transaction, statement/lock/idle timeouts and final rollback bound the scan and prevent business writes. Full counts may still time out on large datasets; a timeout is an incomplete scan, never a clean result. Aged asynchronous work is a warning (15-minute investigation threshold), not proof of corruption. The report does not automatically retry payment, create consent, change history or delete sources. No `--apply` mode exists because no safe deterministic repair was demonstrated.
+
+Still missing: linked-chat comparisons that account for manual sources/bans/exclusions, actual Storage-object existence, complete analysis identity validation, and audited repeatable derived-model repair. Add these only against their owning contracts and verified current schema.

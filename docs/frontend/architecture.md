@@ -10,6 +10,11 @@ responses, body-read failures and connection starts cannot revive a previous acc
 effects retain their own disposal signal, and StrictMode replay safely re-arms the scope. The
 existing account-prefixed query keys and polling policy remain unchanged.
 
+Action feedback uses one top-right toast: a new result replaces the previous message, successes
+expire after five seconds and errors remain until dismissed. Leaving an account clears private
+feedback. Coaching mutations acknowledge the completed write before refreshing lists in the
+background. Library screens share the same accessible cards/list toggle and retain URL filters.
+
 ## Stack and versions (checked 2026-10-05)
 
 | Concern | Choice | Version |
@@ -265,3 +270,7 @@ npm run e2e               # Playwright against the production build (run `npm ru
 ```
 
 Environment: copy `apps/web/.env.example` to `apps/web/.env.local`. Only public values belong there.
+
+### User selection
+
+`accounts/UserAutocomplete` is the shared username picker for client invitations, Team invitations and new conversations. It debounces a minimum two-character prefix, hides stale suggestions, cancels obsolete queries and keys its cache by account and search policy. Accounts exposes only public active/onboarded directory entries through `/api/v1/accounts/people`; messaging retains its own endpoint to enforce block filtering. Invitation details use a person header and no list hub navigation; viewing an invitation does not create a coaching relationship.

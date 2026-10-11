@@ -5,6 +5,26 @@ on:
 permissions:
   contents: read
 jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_API_URL: https://api.trainflow.example
+      EXPO_PUBLIC_SUPABASE_URL: https://example-project.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck --workspace @trainflow/mobile
+      - run: npm test -- --project mobile-core
+      # Metro bundles both platforms; native/device acceptance remains a separate release gate.
+      - run: npm run export --workspace @trainflow/mobile
   web:
     runs-on: ubuntu-latest
     env:

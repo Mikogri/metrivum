@@ -64,3 +64,17 @@ The verifier uses the ignored local settings, applies the exact exported SQL, ch
 For local stage 02 sample data, start the normally configured API and apply migrations/feature grants first, then run the guarded DevFixtures CLI with its existing four onboarded account IDs and `--stage 2`. Existing development target/environment gates still apply. The scenario requires preexisting feature grants and reports an actionable error if a fixture offer/form has been archived. Repeated runs reuse the same fixture data; omitting `--stage 2` preserves the stage 01 scenario.
 
 The additive `IndexCheckInForeignKeys` migration indexes the five CheckIns foreign keys reported by the development database advisor. It changes no rows or applied migration definitions.
+
+### Session and package validity
+
+Offer billing options accept optional `validityDays` (1–36500 whole days) for PerSession, CustomPackage and FixedPackage. Null means no expiry; subscriptions continue to use their billing period. The rule is shown beside the price and in the application before submission. Published revisions and accepted order snapshots preserve the agreed duration when a coach edits the offer later.
+
+Settlement calculates `validUntil = settledAt + validityDays * 24 hours`, including simulated/external payment and zero-price settlement. Payment retries do not extend it. Payment dues and service billing summaries expose `validUntil` and `isExpired` (true at and after the deadline), including purchases settled before the service starts. The browser shows the date in its local timezone. Payment status and financial history remain unchanged after expiry. Existing purchases stay unlimited; the nullable columns are not backfilled.
+
+Billing currently has no session-consumption ledger (`remainingSessions` is null), and calendar meetings are not deducted from purchased packages. The expiry records the purchased entitlement's deadline; it does not cancel a relationship or block unrelated meetings. A future consumption operation must check this deadline server-side before deducting a session.
+
+Verification (2026-10-10): 214 unit tests, 34 Offers/Billing integration tests on local PostgreSQL, and 15 targeted frontend tests passed; production frontend build passed. Both SessionValidity migrations were applied to the TrainFlow DEV project and column/runtime privileges were verified. Existing full-repository lint issue: TextField.tsx no-useless-assignment; changed coaching files pass lint.
+
+### Training-plan sales
+
+`OfferPurpose.TrainingPlan` uses one-time upfront pricing and the existing application form. Acceptance includes `trainingPlanRevisionId`; the server freezes that applied revision and creates a product order, without a relationship or coaching service. Settlement delivers an independent owned copy exactly once. See [Training ownership](../features/training.md#applied-changes-and-purchased-ownership) for API boundaries and update behavior. Team purchase consent describes a product sale rather than creating a coaching case.

@@ -2,6 +2,43 @@
 
 ## Unreleased
 
+- Unify direct chat consent: open by default, opt-in approval, ordinary inbox for pending chats and a disabled composer while waiting. Persist invitation and offer-form cards in the business transaction, with retry-safe keys across web/mobile.
+- Add assigned-program cycle check-ins, editable local release time and scheduling explanations. Retain issued history and re-align future scheduling with effective plan changes.
+- Harden contract export and worker opt-out, architecture boundaries, bounded diagnostics, mobile mutation lifecycle/invalidation and partial-progress disclosure. Publish API, web and native mobile together; see `docs/architecture/refactor-2026-10-11/` for evidence and remaining limits.
+
+- Mobile UI revision: Geist typeface, compact controls, own switch/segmented/tab controls, a floating icon-only tab bar with the web app's navigation icons, notifications and profile in the title row, a Profile screen for account settings, translucent sheets over a blurred backdrop (system Liquid Glass sheet on iOS 26) and a horizontal stack transition. Switching between the Coach and Client view no longer remounts navigation or clears cached data. Verified on an Android device with a signed-in account; iOS is not device-verified. See `docs/mobile/verification.md`.
+
+- Mobile UI pass: an independent dark/light theme with the Outfit typeface and platform icons, shared motion and haptics, and one bottom-sheet system on the native `@expo/ui` sheet (actions, confirmations, selections, forms with draft protection). Context menus, alerts and centred dialogs are gone from the app. Workout execution is rebuilt for one-hand use (large reps/load entry with step buttons, a set check that saves and starts the rest timer, pinned actions). Verified on an Android device for the design system and sheets only; signed-in screens and all of iOS are not device-verified. See `docs/mobile/visual-direction.md` and `docs/mobile/verification.md`.
+
+- Add an Expo mobile client with native Coach/Client navigation, isolated saved accounts, encrypted drafts, versioned workout saves, daily coaching/check-in workflows, chat/voice/files, calendar and read-only subscription information. Add additive client-analysis provenance and private push transport migrations to confirmed DEV. Local TAPNext++ inference and physical-device validation remain blocked; new web analyses no longer fall back to the server queue. See `docs/mobile/README.md` and `docs/mobile/verification.md` for exact support and limits.
+
+- Replace plan publication with Apply changes: drafts autosave privately; applying updates assigned unstarted workouts, including today, while preserving execution history. Add one-time plan sales through intake and payment, independent buyer-owned copies, and the client Training plans library. Keep legacy revision API contracts.
+
+- Add optional payment-based session/package validity to offer options and immutable revisions. Disclose it before applying; show the settled expiry and expired state in service views without changing historical payments or subscription periods.
+
+- Audit account/resource boundaries and database reads: reject disabled ownership transfers and notification recipients, enforce chat rejoin capacity, validate measurement conversions before overflow, and unify SQL conflict errors.
+- Batch client service summaries and Team permission reads, move client name matching into SQL, reduce notification round trips, and share formula detail queries. Make editor save queues and workspace transitions respect their asynchronous/account boundaries; harden the check-in trigger search path in DEV. See `docs/architecture/quality-audit-2026-10-09.md` for measurements and verification limits.
+- Keep controlled dialogs mounted until their owner accepts dismissal, preserving drafts and interactive nested confirmations. Refresh browser fixtures and selectors for the current API and UI contracts.
+
+- Destructive actions (decline/revoke invitations, reject/withdraw applications, cancel check-in requests, end schedules and assignments, archive groups and offers, cancel renewal or checkout, decline Team transfers) ask for confirmation; quiet destructive buttons use a new `danger-ghost` variant that turns red on hover and press.
+- Groups: new cards with a colour edge, member avatars and an actions menu; the cards/table toggle sits beside New group; group colours are thin bars. Client details: panels share one size and carry tinted icons; Activity, Progress and Check-ins load with skeletons; Profile gets an account header and coloured tags.
+- Chat: sent images hug the right edge (fixed shrink-to-fit width); invitation/form cards are flat pressable tiles. The calendar opens a new check-in schedule in a wide right-hand panel. Custom formula cards are compact and show the expression and inputs.
+
+- Bring the newer coaching screens to the app standard with shared `Panel`/`Facts`/`StatStrip` blocks: client details (Overview panels, Activity table, Progress with an Add measurement dialog, Profile, Documentation with a segmented inner menu and Add dialogs, Check-ins), group, invitation, application, service and check-in details, public and coach offers, My coaches, Subscription and client documents. Drop metric explanations under stats.
+- Page headers show status badges and facts on the right beside the actions, so they never add height; client and group names carry their Private/Team badge inline. Destructive menu items are red.
+- Clients list: avatar, @username, plan, group, offer and payment columns; every Clients hub tab shares Check-in schedules and Invite client. Creating an offer keeps you on the list.
+- Cards: taller shared layout with subtitle and key facts (offers, clients, services, coach offers). Chat: own images hug the right edge; invitations and application forms render as action cards. Notifications show outcome icons (red cross for declined, warning for overdue, check for accepted).
+- Toasts: solid surface without blur, centred content, type stripe and tinted icon. Alert dialog icons lose the glow. Dashboard sparklines stay inside their cards.
+- Video analyses: search, state filter and sort for videos. Editor: clearer selected load unit, comments truncate inside their cell. Cards/table view (per page) and simple/advanced plan mode are remembered in this browser.
+
+- Move body metrics into Client Details Progress with canonical manual measurements, versioned corrections, chronological charts and BF percentage-point changes. Keep Photos/Files/author-private notes in Documentation; add retention-safe deletion and preserve relationship checks on each private download.
+
+- Keep notification read acknowledgements silent, anchor image actions beside the image, and give client details their own Overview/Activity/Progress/Profile/Files navigation with an avatar/name/username header.
+- Persist message notification reads with the conversation read marker, preserving newer messages and other conversations. Refresh notification counts across tabs/devices after commit; right-align standalone sent images and dim deleted-message text.
+- Show consistent button spinners for pending form and notification actions; keep message deletion confirmation open until completion and report success or failure. Use filled white voice playback icons and a smaller notification count without tinting the bell.
+- Polish messaging confirmation, media playback, initial scrolling and optimistic read indicators. Use one top-right action toast with persistent validation errors and immediate success feedback.
+- Start form builders empty, add question menus and direct restore actions, validate offer billing terms, and share cards/list controls across the libraries. Move Offers to Library and show dashboard skeletons during the first Analyze load.
+
 - Centralize strong numeric request preconditions, retaining legacy error contracts. Make Training/CheckIns relationship operations explicit and test management, execution and historical access independently.
 - Share one account lifecycle across HTTP and both realtime channels: abort on account changes, reject delayed tokens/body reads and stop late connections without changing polling or cache policy.
 
@@ -85,3 +122,9 @@
 - Add private signed video uploads, verified finalization and a durable analysis worker with leases, cancellation and retries. A real analyzer remains an external dependency.
 - Add schema migrations, separate database roles, generated OpenAPI/TypeScript contracts and PostgreSQL-backed CI.
 - Document local setup, security boundaries, module structure and actual verification results. Cloud operations require explicit authorization.
+
+- Client Details now composes six relationship-scoped tabs, check-in and payment drawers, actual training progress, editable body measurements, original applications and Team collaboration actions. Added batched service payment summaries and immutable check-in assignment provenance; retained existing domain permissions and snapshots.
+
+- Notifications: acknowledge matching destinations across direct links, chat links and ordinary navigation, with optimistic cache updates, account isolation and hidden-tab protection.
+
+- Shared username autocomplete for client/Team invitations and conversations; invitation details now use a person header outside the invitation list navigation.
