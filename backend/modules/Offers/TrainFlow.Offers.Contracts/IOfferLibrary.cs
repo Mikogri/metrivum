@@ -2,6 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace TrainFlow.Offers.Contracts;
 
+[JsonConverter(typeof(JsonStringEnumConverter<OfferPurpose>))]
+public enum OfferPurpose { CoachingService, TrainingPlan }
+
 [JsonConverter(typeof(JsonStringEnumConverter<CoachingMode>))]
 public enum CoachingMode
 {
@@ -15,7 +18,7 @@ public enum OfferStatus
 [JsonConverter(typeof(JsonStringEnumConverter<BillingModel>))]
 public enum BillingModel
 {
-    PerSession, CustomPackage, FixedPackage, PeriodSubscription
+    PerSession, CustomPackage, FixedPackage, PeriodSubscription, OneTime
 }
 [JsonConverter(typeof(JsonStringEnumConverter<PeriodUnit>))]
 public enum PeriodUnit
@@ -30,12 +33,12 @@ public enum DueRule
 public sealed record PaymentTerms(DueRule Rule, int? OffsetDays = null);
 public sealed record BillingOptionSnapshot(Guid Id, string Name, BillingModel Model, decimal Price,
     int? MinSessions = null, int? MaxSessions = null, int? SessionCount = null,
-    int? PeriodCount = null, PeriodUnit? PeriodUnit = null, PaymentTerms? PaymentTerms = null);
+    int? PeriodCount = null, PeriodUnit? PeriodUnit = null, PaymentTerms? PaymentTerms = null, int? ValidityDays = null);
 public sealed record OfferRevisionDto(Guid Id, Guid OfferId, Guid CoachId, int Number, string Name,
     string Description, string Category, CoachingMode CoachingMode, IReadOnlyList<string> Tags,
-    Guid ApplicationFormVersionId, string Currency, IReadOnlyList<BillingOptionSnapshot> BillingOptions, DateTimeOffset PublishedAt, Guid? TeamId = null, string? TeamName = null);
+    Guid ApplicationFormVersionId, string Currency, IReadOnlyList<BillingOptionSnapshot> BillingOptions, DateTimeOffset PublishedAt, Guid? TeamId = null, string? TeamName = null, OfferPurpose Purpose = OfferPurpose.CoachingService);
 public sealed record OfferQuote(Guid OfferId, Guid RevisionId, Guid CoachId, string Name, Guid ApplicationFormVersionId,
-    BillingOptionSnapshot BillingOption, int? SelectedSessionCount, decimal Amount, string Currency, Guid? TeamId = null);
+    BillingOptionSnapshot BillingOption, int? SelectedSessionCount, decimal Amount, string Currency, Guid? TeamId = null, OfferPurpose Purpose = OfferPurpose.CoachingService);
 
 // Internal workflow contracts. Callers authorize their own application/invitation/service context.
 public interface IOfferLibrary

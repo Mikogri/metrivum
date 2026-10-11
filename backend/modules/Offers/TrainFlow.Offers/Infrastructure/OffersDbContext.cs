@@ -1,3 +1,4 @@
+using TrainFlow.Offers.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using TrainFlow.Offers.Domain;
@@ -16,6 +17,10 @@ public sealed class OffersDbContext(DbContextOptions<OffersDbContext> options) :
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.HasDefaultSchema("offers");
+        model.Entity<Offer>().Property(x => x.Purpose).HasConversion<string>().HasMaxLength(32).HasDefaultValue(OfferPurpose.CoachingService);
+        model.Entity<OfferRevision>().Property(x => x.Purpose).HasConversion<string>().HasMaxLength(32).HasDefaultValue(OfferPurpose.CoachingService);
+        model.Entity<OfferBillingOption>().ToTable("billing_options", t => t.HasCheckConstraint("CK_option_validity", "\"ValidityDays\" IS NULL OR (\"ValidityDays\" BETWEEN 1 AND 36500 AND \"Model\" NOT IN ('PeriodSubscription','OneTime'))"));
+        model.Entity<RevisionBillingOption>().ToTable("revision_billing_options", t => t.HasCheckConstraint("CK_revision_option_validity", "\"ValidityDays\" IS NULL OR (\"ValidityDays\" BETWEEN 1 AND 36500 AND \"Model\" NOT IN ('PeriodSubscription','OneTime'))"));
         model.Entity<Offer>().HasIndex(x => new { x.TeamId, x.Status, x.UpdatedAt });
         model.Entity<Offer>().Property(x => x.TeamName).HasMaxLength(200);
         model.Entity<OfferRevision>().Property(x => x.TeamName).HasMaxLength(200);
@@ -27,7 +32,7 @@ public sealed class OffersDbContext(DbContextOptions<OffersDbContext> options) :
         model.Entity<OfferBillingOption>(e => { e.ToTable("billing_options", t => { t.HasCheckConstraint("CK_option_price", "\"Price\" >= 0"); t.HasCheckConstraint("CK_option_shape", "(" + OptionShape + ") IS TRUE"); }); e.HasKey(x => x.Id); e.Property(x => x.Name).HasMaxLength(120); e.Property(x => x.Model).HasConversion<string>().HasMaxLength(32); e.Property(x => x.Price).HasPrecision(28, 2); e.Property(x => x.PeriodUnit).HasConversion<string>().HasMaxLength(16); e.Property(x => x.DueRule).HasConversion<string>().HasMaxLength(32); e.HasIndex(x => x.OfferId); e.HasOne<Offer>().WithMany().HasForeignKey(x => x.OfferId).OnDelete(DeleteBehavior.Restrict); });
         model.Entity<RevisionBillingOption>(e => { e.ToTable("revision_billing_options", t => { t.HasCheckConstraint("CK_revision_option_price", "\"Price\" >= 0"); t.HasCheckConstraint("CK_revision_option_shape", "(" + OptionShape + ") IS TRUE"); }); e.HasKey(x => new { x.RevisionId, x.Id }); e.Property(x => x.Name).HasMaxLength(120); e.Property(x => x.Model).HasConversion<string>().HasMaxLength(32); e.Property(x => x.Price).HasPrecision(28, 2); e.Property(x => x.PeriodUnit).HasConversion<string>().HasMaxLength(16); e.Property(x => x.DueRule).HasConversion<string>().HasMaxLength(32); e.HasOne<OfferRevision>().WithMany().HasForeignKey(x => x.RevisionId).OnDelete(DeleteBehavior.Restrict); });
     }
-    private const string OptionShape = "(\"Model\" = 'PerSession' AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'CustomPackage' AND \"MinSessions\" >= 1 AND \"MaxSessions\" >= \"MinSessions\" AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'FixedPackage' AND \"SessionCount\" >= 1 AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'PeriodSubscription' AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND ((\"PeriodUnit\" = 'Week' AND \"PeriodCount\" BETWEEN 1 AND 52) OR (\"PeriodUnit\" = 'Month' AND \"PeriodCount\" BETWEEN 1 AND 12) OR (\"PeriodUnit\" = 'Year' AND \"PeriodCount\" = 1)))";
+    private const string OptionShape = "(\"Model\" IN ('PerSession','OneTime') AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'CustomPackage' AND \"MinSessions\" >= 1 AND \"MaxSessions\" >= \"MinSessions\" AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'FixedPackage' AND \"SessionCount\" >= 1 AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'PeriodSubscription' AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND ((\"PeriodUnit\" = 'Week' AND \"PeriodCount\" BETWEEN 1 AND 52) OR (\"PeriodUnit\" = 'Month' AND \"PeriodCount\" BETWEEN 1 AND 12) OR (\"PeriodUnit\" = 'Year' AND \"PeriodCount\" = 1)))";
     public override Task<int> SaveChangesAsync(CancellationToken ct = default)
     {
         if (ChangeTracker.Entries().Any(x => x.Entity is OfferRevision or RevisionBillingOption && x.State is EntityState.Modified or EntityState.Deleted))

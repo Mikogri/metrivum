@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TrainFlow.Access.Contracts;
@@ -12,7 +14,7 @@ using TrainFlow.Training.Infrastructure;
 
 namespace TrainFlow.IntegrationTests;
 
-public sealed class GeneratorPostgresTests
+public sealed class GeneratorPostgresTests : IDisposable
 {
     [TrainingPostgresFact]
     public async Task Generated_draft_is_normal_editable_publishable_plan_and_metadata_is_private()
@@ -90,8 +92,22 @@ public sealed class GeneratorPostgresTests
 
     private static GenerationRequest Input() => new(GenerationMode.Strength, GenerationLevel.Beginner, 60, 10, [1, 4, 8], 2, 42,
         ["dumbbells", "incline-bench"], [], [], [], []);
-    private static TrainingDbContext Context() => new(new DbContextOptionsBuilder<TrainingDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")).Options);
-    private static TrainingService Service(TrainingDbContext db, Guid owner, bool deny = false) => new(db, new Account(owner), new Features(deny), new Catalog(), Options.Create(new TrainingOptions()), TimeProvider.System);
+    private readonly Dictionary<TrainingDbContext, ServiceProvider> providers = [];
+    private TrainingDbContext Context()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(_ => NpgsqlDataSource.Create(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!));
+        services.AddModuleDatabase<TrainingDbContext>("training");
+        var provider = services.BuildServiceProvider();
+        var db = provider.GetRequiredService<TrainingDbContext>();
+        providers.Add(db, provider);
+        return db;
+    }
+    public void Dispose()
+    {
+        foreach (var provider in providers.Values) provider.Dispose();
+    }
+    private TrainingService Service(TrainingDbContext db, Guid owner, bool deny = false) => new(db, new Account(owner), new Features(deny), new Catalog(), Options.Create(new TrainingOptions()), TimeProvider.System, new NoTrainingRelationships(), providers[db].GetRequiredService<ModuleTransaction>(), []);
     private sealed class Account(Guid user) : IAccountContext
     {
         public Guid UserId => user;

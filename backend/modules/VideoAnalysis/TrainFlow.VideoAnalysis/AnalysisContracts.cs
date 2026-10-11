@@ -33,8 +33,9 @@ public sealed record TrajectoryPoint(double Seconds, double X, double Y, double?
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Segment = null);
 public sealed record AnalysisResult(int SchemaVersion, string EngineVersion, string ModelVersion, string Method,
     string PositionUnit, double? MetersPerPixel, AnalysisRepetition[] Repetitions, TrajectoryPoint[] Trajectory, string[] Warnings);
-public sealed record AnalysisDto(Guid Id, string Name, string? Note, string[] Tags, Guid MediaId, AnalysisConfiguration Configuration,
-    string Status, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt, string? FailureCode, int Attempts, long Version);
+public sealed record AnalysisDto(Guid Id, string Name, string? Note, string[] Tags, Guid? MediaId, AnalysisConfiguration Configuration,
+    string Status, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt, string? FailureCode, int Attempts, long Version, string ExecutionLocation = "server", Guid? LocalAnalysisId = null,
+    AnalysisSourceVideo? SourceVideo = null, Guid? WorkoutExecutionId = null, Guid? SetId = null);
 public sealed record AnalysisComparison(AnalysisResult Left, AnalysisResult Right);
 
 public interface IVideoAnalyzer
@@ -76,7 +77,7 @@ public static class AnalysisResults
         var previous = -1d;
         foreach (var point in result.Trajectory)
         {
-            if (!Time(point.Seconds) || point.Seconds < previous || !double.IsFinite(point.X) || !double.IsFinite(point.Y)
+            if (point == null || !Time(point.Seconds) || point.Seconds < previous || !double.IsFinite(point.X) || !double.IsFinite(point.Y)
                 || (point.Velocity.HasValue && !double.IsFinite(point.Velocity.Value)) || !double.IsFinite(point.Quality) || point.Quality is < 0 or > 1 || point.Segment is < 0)
                 throw Invalid();
             previous = point.Seconds;
@@ -84,12 +85,12 @@ public static class AnalysisResults
         var numbers = new HashSet<int>();
         foreach (var rep in result.Repetitions)
         {
-            if (rep.Number < 1 || !numbers.Add(rep.Number) || !Time(rep.StartSeconds) || !Time(rep.EndSeconds) || rep.EndSeconds <= rep.StartSeconds || rep.Phases == null || rep.Phases.Length > 20 || !Speed(rep.MeanSpeed) || !Speed(rep.PeakSpeed))
+            if (rep == null || rep.Number < 1 || !numbers.Add(rep.Number) || !Time(rep.StartSeconds) || !Time(rep.EndSeconds) || rep.EndSeconds <= rep.StartSeconds || rep.Phases == null || rep.Phases.Length > 20 || !Speed(rep.MeanSpeed) || !Speed(rep.PeakSpeed))
                 throw Invalid();
             var phaseEnd = rep.StartSeconds;
             foreach (var phase in rep.Phases)
             {
-                if (!Text(phase.Kind) || !Time(phase.StartSeconds) || !Time(phase.EndSeconds) || phase.StartSeconds < phaseEnd || phase.EndSeconds <= phase.StartSeconds || phase.EndSeconds > rep.EndSeconds || !Speed(phase.MeanSpeed) || !Speed(phase.PeakSpeed))
+                if (phase == null || !Text(phase.Kind) || !Time(phase.StartSeconds) || !Time(phase.EndSeconds) || phase.StartSeconds < phaseEnd || phase.EndSeconds <= phase.StartSeconds || phase.EndSeconds > rep.EndSeconds || !Speed(phase.MeanSpeed) || !Speed(phase.PeakSpeed))
                     throw Invalid();
                 phaseEnd = phase.EndSeconds;
             }

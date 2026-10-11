@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "kind": "source-artifact-audit",
+  "observedAt": "2026-10-10T15:48:22.575280+00:00",
+  "model": "TAPNext++",
+  "resolution": [
+    256,
+    256
+  ],
+  "sourceRevision": "730cda1c730877cfedbe01bf87fb1cadb78a565d",
+  "weightRevision": "5d3fb48e76c5422841e38501514121e251beabb7",
+  "artifact": {
+    "path": "tapnextpp_ckpt.pt",
+    "sizeBytes": 2532282370,
+    "sha256": "cb96a43444ccb4fbdb25d800b88c7ba196179a526e78f01b021a16b1c1eff6da"
+  },
+  "verifiedSourceFileCount": 60,
+  "license": {
+    "spdx": "Apache-2.0",
+    "evidence": [
+      {
+        "path": "LICENSE",
+        "sizeBytes": 11560,
+        "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+      },
+      {
+        "path": "MODEL_CARD.md",
+        "sizeBytes": 8560,
+        "sha256": "0e0d6ab776cc25383a323ce8316132e110611a772212ce2b87a7c1b09c8a2004"
+      }
+    ]
+  },
+  "referenceRuntime": "PyTorch; not a mobile or browser artifact",
+  "host": {
+    "system": "Windows",
+    "python": "3.11.16",
+    "torch": "2.8.0+cu126",
+    "cudaAvailable": true
+  },
+  "exportPackages": {
+    "torch": true,
+    "onnx": false,
+    "onnxscript": false,
+    "onnxruntime": false
+  },
+  "exportedArtifacts": [],
+  "verification": {
+    "checkpointIntegrity": true,
+    "sourceIntegrity": true,
+    "referenceInference": false,
+    "onnxExport": false,
+    "browserWebGpuInference": false,
+    "browserWasmInference": false,
+    "androidInference": false,
+    "iosInference": false
+  },
+  "tensorMetadata": {
+    "tensorCount": 401,
+    "elementsByDtype": {
+      "torch.float32": 244534529
+    },
+    "storageBytes": 978138116
+  }
+}

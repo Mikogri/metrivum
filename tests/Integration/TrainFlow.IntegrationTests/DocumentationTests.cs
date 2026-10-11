@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using TrainFlow.Access.Contracts;
@@ -20,6 +21,104 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class DocumentationTests
 {
+    [MediaPostgresFact]
+    public async Task Measurement_extremes_return_validation_errors_before_unit_conversion()
+    {
+        await using var f = await Fixture.Create();
+        var coach = f.Service(f.Coach, AccountRole.Coach);
+        foreach (var value in new[] { decimal.MaxValue, decimal.MinValue })
+            Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => coach.AddMeasurement(
+                f.Relationship, new("height", "in", value, f.Now, null), default))).Status);
+        var row = await coach.AddMeasurement(f.Relationship, new("height", "in", 100, f.Now, null), default);
+        Assert.Equal(254m, row.Value);
+        Assert.Equal("cm", row.Unit);
+        Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => coach.EditMeasurement(
+            f.Relationship, row.Id, new("height", "in", decimal.MaxValue, f.Now, null), row.Version, default))).Status);
+        Assert.Equal(254m, (await f.Docs.Measurements.AsNoTracking().SingleAsync(x => x.Id == row.Id)).Value);
+        Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => coach.AddMeasurement(
+            f.Relationship, new("height", "in", 119, f.Now, null), default))).Status);
+    }
+
+    [MediaPostgresFact]
+    public async Task Deleting_a_document_revokes_reads_and_notifications_but_retains_private_storage()
+    {
+        await using var f = await Fixture.Create();
+        var coach = f.Service(f.Coach, AccountRole.Coach);
+        var client = f.Service(f.Client, AccountRole.Client);
+        var upload = await coach.Upload(f.Relationship, new("photo.png", "image/png", f.Storage.Bytes.Length), default);
+        await coach.FinalizeUpload(f.Relationship, upload.MediaId, default);
+        var doc = await coach.AddDocument(f.Relationship, new("Photo", null, "ProgressPhoto", "SharedWithClient", null, upload.MediaId, f.Now), default);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => client.DeleteDocument(f.Relationship, doc.Id, doc.Version, default))).Status);
+        Assert.Equal(412, (await Assert.ThrowsAsync<ApiException>(() => coach.DeleteDocument(f.Relationship, doc.Id, doc.Version + 1, default))).Status);
+        await coach.DeleteDocument(f.Relationship, doc.Id, doc.Version, default);
+        Assert.Empty((await coach.Documents(f.Relationship, null, null, 1, 25, default)).Items);
+        Assert.Empty((await client.Documents(f.Relationship, null, null, 1, 25, default)).Items);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => client.ReadFile(f.Relationship, doc.Id, default))).Status);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => coach.ReadFile(f.Relationship, doc.Id, default))).Status);
+        Assert.False(await coach.CanDeliverAsync(Assert.Single(f.Notifications.Events), default));
+        Assert.NotNull((await f.Docs.Documents.SingleAsync(x => x.Id == doc.Id)).DeletedAt);
+        Assert.True((await f.MediaDb.Files.AsNoTracking().SingleAsync(x => x.Id == upload.MediaId)).Pinned);
+    }
+
+    [MediaPostgresFact]
+    public async Task Additive_migration_preserves_historical_measurements_and_initializes_edit_versions()
+    {
+        var connection = new NpgsqlConnectionStringBuilder(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"));
+        Assert.Contains(connection.Host, new[] { "localhost", "127.0.0.1", "::1" });
+        var name = "tf_docs_migration_" + Guid.NewGuid().ToString("N");
+        await using var admin = NpgsqlDataSource.Create(connection.ConnectionString);
+        await using (var create = admin.CreateCommand($"CREATE DATABASE {name}")) await create.ExecuteNonQueryAsync();
+        connection.Database = name;
+        try
+        {
+            await using var db = new DocumentationDbContext(new DbContextOptionsBuilder<DocumentationDbContext>().UseNpgsql(connection.ConnectionString).Options);
+            var migrator = db.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>();
+            await migrator.MigrateAsync("20261008135028_ClientDocumentationInitial");
+            var id = Guid.NewGuid(); var relationship = Guid.NewGuid(); var author = Guid.NewGuid(); var observed = DateTimeOffset.UtcNow;
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO client_documentation.measurements (\"Id\", \"RelationshipId\", \"AuthorId\", \"Source\", \"Key\", \"Unit\", \"Value\", \"ObservedAt\", \"CreatedAt\", \"UpdatedAt\") VALUES ({id}, {relationship}, {author}, 'Coach', 'weight', 'kg', 80, {observed}, {observed}, {observed})");
+            await migrator.MigrateAsync();
+            var row = await db.Measurements.SingleAsync();
+            Assert.Equal(id, row.Id); Assert.Equal(80, row.Value); Assert.Equal(1, row.Version);
+            Assert.False(db.Database.HasPendingModelChanges());
+        }
+        finally
+        {
+            NpgsqlConnection.ClearAllPools();
+            await using var drop = admin.CreateCommand($"DROP DATABASE {name} WITH (FORCE)"); await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    [MediaPostgresFact]
+    public async Task Manual_measurements_can_be_corrected_with_concurrency_and_scope_checks()
+    {
+        await using var f = await Fixture.Create();
+        var coach = f.Service(f.Coach, AccountRole.Coach);
+        var row = await coach.AddMeasurement(f.Relationship, new("body-fat", "%", 20, f.Now, null), default);
+        var imperial = await coach.AddMeasurement(f.Relationship, new("weight", "lb", 100, f.Now, null), default);
+        Assert.Equal("kg", imperial.Unit); Assert.Equal(45.359237m, imperial.Value);
+        var changed = await coach.EditMeasurement(f.Relationship, row.Id, new("body-fat", "%", 18, f.Now, "Corrected"), row.Version, default);
+        Assert.Equal(18, changed.Value);
+        Assert.Equal("Manual", changed.Source);
+        Assert.Equal(412, (await Assert.ThrowsAsync<ApiException>(() => coach.EditMeasurement(f.Relationship, row.Id, new("body-fat", "%", 19, f.Now, null), row.Version, default))).Status);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => coach.EditMeasurement(f.OtherClientRelationship, row.Id, new("body-fat", "%", 19, f.Now, null), changed.Version, default))).Status);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => f.Service(f.Client, AccountRole.Client).EditMeasurement(f.Relationship, row.Id, new("body-fat", "%", 19, f.Now, null), changed.Version, default))).Status);
+        Assert.Equal(18, Assert.Single((await coach.Trend(f.Relationship, "body-fat", "%", f.Now.AddDays(-1), f.Now.AddDays(1), default)).Points).Value);
+        foreach (var key in new[] { "weight", "waist", "chest", "arm", "thigh", "hip" })
+            Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => coach.AddMeasurement(f.Relationship, new(key, key == "weight" ? "kg" : "cm", 0, f.Now, null), default))).Status);
+    }
+
+    [MediaPostgresFact]
+    public async Task Notes_by_a_previous_coach_remain_author_private()
+    {
+        await using var f = await Fixture.Create();
+        var foreign = new PrivateCoachNote { Id = Guid.NewGuid(), RelationshipId = f.Relationship, AuthorId = f.OtherCoach, Text = "Previous coach private", CreatedAt = f.Now, UpdatedAt = f.Now };
+        f.Docs.Notes.Add(foreign);
+        await f.Docs.SaveChangesAsync();
+        var coach = f.Service(f.Coach, AccountRole.Coach);
+        Assert.Empty((await coach.Notes(f.Relationship, null, 1, 25, default)).Items);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => coach.SaveNote(f.Relationship, foreign.Id, new("Intrusion"), 1, default))).Status);
+    }
+
     [MediaPostgresFact]
     public async Task Client_uploaded_file_cannot_be_rebound_or_downloaded_after_coach_makes_it_private()
     {

@@ -40,16 +40,35 @@ using TrainFlow.Training.Infrastructure;
 using TrainFlow.VideoAnalysis;
 using TrainFlow.VideoAnalysis.Infrastructure;
 
-var builder = WebApplication.CreateBuilder(args);
-// Browser SignalR transports carry JWTs in query strings; suppress request URL logging.
-builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
-if (!builder.Environment.IsEnvironment("Testing"))
-    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
-builder.Configuration.AddEnvironmentVariables();
 var exportContracts = args.Contains("--export-contracts");
 var migrate = args.Contains("--migrate");
+if (exportContracts && migrate)
+    throw new InvalidOperationException("Contract export and database migration are separate operations.");
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    EnvironmentName = exportContracts ? "Testing" : null
+});
+// Browser SignalR transports carry JWTs in query strings; suppress request URL logging.
+builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
+if (exportContracts)
+{
+    // Export uses repository defaults only, never local secrets or deployment environment overrides.
+    builder.Configuration.Sources.Clear();
+    builder.Configuration.AddJsonFile("appsettings.json", optional: true).AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        ["ConnectionStrings:Database"] = "Host=127.0.0.1;Port=1;Database=contract_export;Username=unconfigured",
+        ["Supabase:Auth:ProjectUrl"] = "http://127.0.0.1:1",
+        ["Workers:Enabled"] = "false"
+    });
+}
+else
+{
+    if (!builder.Environment.IsEnvironment("Testing"))
+        builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
+    builder.Configuration.AddEnvironmentVariables();
+}
 var connectionString = builder.Configuration.GetConnectionString(migrate ? "MigrationDatabase" : "Database");
-if (exportContracts) connectionString ??= "Host=127.0.0.1;Database=contract_export;Username=unconfigured";
 if (string.IsNullOrWhiteSpace(connectionString)) throw new InvalidOperationException("Set ConnectionStrings__Database (or ConnectionStrings__MigrationDatabase for the explicit --migrate command).");
 var connection = new NpgsqlConnectionStringBuilder(connectionString);
 if (builder.Environment.IsEnvironment("Testing") && connection.Host is not ("localhost" or "127.0.0.1" or "::1"))
@@ -67,10 +86,11 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAccounts(builder.Configuration).AddAccess(builder.Configuration)
     .AddExerciseCatalog(builder.Configuration).AddTraining(builder.Configuration)
-    .AddMedia(builder.Configuration).AddVideoAnalysis(builder.Configuration).AddCoaching(builder.Configuration).AddForms(builder.Configuration)
+    .AddMedia(builder.Configuration).AddVideoAnalysis(builder.Configuration).AddClientAnalysis().AddCoaching(builder.Configuration).AddForms(builder.Configuration)
     .AddOffers(builder.Configuration).AddCheckIns(builder.Configuration).AddCalendar(builder.Configuration).AddMessaging(builder.Configuration).AddCoachingIntake().AddBilling(builder.Configuration).AddNotifications(builder.Configuration).AddAnalyticsModule(builder.Configuration).AddClientDocumentation();
-if (!builder.Environment.IsEnvironment("Testing") && !exportContracts && !migrate)
-    builder.Services.AddBillingWorker().AddNotificationsWorker();
+if (!builder.Environment.IsEnvironment("Testing") && !exportContracts && !migrate
+    && builder.Configuration.GetValue("Workers:Enabled", true))
+    builder.Services.AddBillingWorker().AddNotificationsWorker().AddCheckInsWorker();
 builder.Services.AddSupabaseAuthentication(builder.Configuration, builder.Environment);
 builder.Services.ConfigureHttpJsonOptions(options =>
 {

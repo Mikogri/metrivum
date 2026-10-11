@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using TrainFlow.BuildingBlocks;
 using TrainFlow.Messaging.Domain;
+using TrainFlow.Coaching.Contracts;
 
 namespace TrainFlow.Messaging.Features;
 
@@ -15,10 +16,11 @@ public sealed record UsernameContactRequest(string Username, string Body);
 public sealed record ReportRequest(string Category, string? Details);
 public sealed record ReportCreatedDto(Guid ReportId);
 public sealed record ReadRequest(Guid MessageId);
+public sealed record MessagingPreferenceDto(bool RequireApproval);
 public sealed record AttachmentDto(Guid MediaId, string ContentType, long Size, long? DurationMs);
-public sealed record MessageDto(Guid Id, Guid ConversationId, Guid SenderUserId, MessageType Type, string? Body, Guid? ReplyToMessageId, DateTimeOffset CreatedAt, string Cursor, AttachmentDto[] Attachments, string? ClientMessageId = null, DateTimeOffset? DeletedAt = null);
+public sealed record MessageDto(Guid Id, Guid ConversationId, Guid SenderUserId, MessageType Type, string? Body, Guid? ReplyToMessageId, DateTimeOffset CreatedAt, string Cursor, AttachmentDto[] Attachments, string? ClientMessageId = null, DateTimeOffset? DeletedAt = null, CoachingChatEntry? CoachingEntry = null);
 public sealed record MemberDto(Guid UserId, string DisplayName, MemberRole Role, MemberSource Source, MemberState State, bool Excluded, DateTimeOffset JoinedAt, DateTimeOffset? RemovedAt, Guid? LastReadMessageId, string? Username = null);
-public sealed record ConversationDto(Guid Id, ConversationType Type, string Title, Guid? ClientGroupId, MemberState MembershipState, MessageDto? LastMessage, long UnreadCount, MemberDto[] Members);
+public sealed record ConversationDto(Guid Id, ConversationType Type, string Title, Guid? ClientGroupId, MemberState MembershipState, MessageDto? LastMessage, long UnreadCount, MemberDto[] Members, RequestDto? Request = null, bool CanSendMessages = true, bool CanUploadAttachments = true);
 public sealed record MessagePage(MessageDto[] Items, string? OlderCursor, string? NewerCursor);
 public sealed record RequestDto(Guid Id, Guid SenderUserId, Guid RecipientUserId, string Body, RequestState State, Guid? ConversationId, DateTimeOffset CreatedAt, string? SenderDisplayName = null, string? RecipientDisplayName = null);
 public sealed record MessageCursor(Guid ConversationId, DateTimeOffset CreatedAt, Guid Id)

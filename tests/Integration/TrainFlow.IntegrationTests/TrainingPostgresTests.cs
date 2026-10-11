@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TrainFlow.Access.Contracts;
@@ -10,7 +12,7 @@ using TrainFlow.Training.Infrastructure;
 
 namespace TrainFlow.IntegrationTests;
 
-public sealed class TrainingPostgresTests
+public sealed class TrainingPostgresTests : IDisposable
 {
     [TrainingPostgresFact]
     public async Task Draft_conflicts_and_immutable_publication_preserve_original()
@@ -248,8 +250,22 @@ public sealed class TrainingPostgresTests
         return new(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "Cycle", "", 9, [new(Guid.NewGuid(), 1, [new(Guid.NewGuid(), "Workout", "", [exercise], [])])])])]);
     }
 
-    private static TrainingDbContext Context() => new(new DbContextOptionsBuilder<TrainingDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")).Options);
-    private static TrainingService Service(TrainingDbContext db, Guid? user = null, string? deny = null, int maximumDocuments = 1000, TimeProvider? clock = null) => new(db, new Account(user ?? Guid.NewGuid()), new Features(deny), new Catalog(), Options.Create(new TrainingOptions { MaximumDocuments = maximumDocuments }), clock ?? TimeProvider.System);
+    private readonly Dictionary<TrainingDbContext, ServiceProvider> providers = [];
+    private TrainingDbContext Context()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(_ => NpgsqlDataSource.Create(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!));
+        services.AddModuleDatabase<TrainingDbContext>("training");
+        var provider = services.BuildServiceProvider();
+        var db = provider.GetRequiredService<TrainingDbContext>();
+        providers.Add(db, provider);
+        return db;
+    }
+    public void Dispose()
+    {
+        foreach (var provider in providers.Values) provider.Dispose();
+    }
+    private TrainingService Service(TrainingDbContext db, Guid? user = null, string? deny = null, int maximumDocuments = 1000, TimeProvider? clock = null) => new(db, new Account(user ?? Guid.NewGuid()), new Features(deny), new Catalog(), Options.Create(new TrainingOptions { MaximumDocuments = maximumDocuments }), clock ?? TimeProvider.System, new NoTrainingRelationships(), providers[db].GetRequiredService<ModuleTransaction>(), []);
     private sealed class FixedClock(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;

@@ -4,6 +4,44 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class MediaWorkerStartupTests
 {
+    [Fact]
+    public async Task Disabled_worker_exits_before_database_and_cleanup()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !File.Exists(Path.Combine(root.FullName, "TrainFlow.slnx")))
+            root = root.Parent;
+        Assert.NotNull(root);
+        var output = new DirectoryInfo(AppContext.BaseDirectory);
+        var worker = Path.Combine(root.FullName, "workers", "TrainFlow.Worker", "bin", output.Parent!.Name, output.Name, "TrainFlow.Worker.dll");
+        if (!File.Exists(worker))
+            worker = Path.GetFullPath(Path.Combine(output.FullName, "..", "..", "TrainFlow.Worker", output.Name, "TrainFlow.Worker.dll"));
+        Assert.True(File.Exists(worker), "Build TrainFlow.slnx before worker startup tests.");
+        var start = new ProcessStartInfo("dotnet")
+        {
+            WorkingDirectory = root.FullName,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        start.ArgumentList.Add(worker);
+        start.Environment["DOTNET_ENVIRONMENT"] = "Testing";
+        start.Environment["Workers__Enabled"] = "false";
+        start.Environment["ConnectionStrings__WorkerDatabase"] = "invalid-connection-string";
+        using var process = Process.Start(start)!;
+        var stdout = process.StandardOutput.ReadToEndAsync();
+        var stderr = process.StandardError.ReadToEndAsync();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        try
+        {
+            await process.WaitForExitAsync(timeout.Token);
+        }
+        finally { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+        Assert.Equal(0, process.ExitCode);
+        Assert.Contains("Workers are disabled", await stdout);
+        Assert.Empty(await stderr);
+    }
+
     [Theory]
     [InlineData("Production", "Disable", true)]
     [InlineData("Production", "Prefer", true)]

@@ -61,6 +61,8 @@ public sealed class NotificationsDbContext(DbContextOptions<NotificationsDbConte
 {
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NotificationPreference> Preferences => Set<NotificationPreference>();
+    public DbSet<PushDevice> PushDevices => Set<PushDevice>();
+    public DbSet<PushDelivery> PushDeliveries => Set<PushDelivery>();
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.HasDefaultSchema("notifications");
@@ -80,6 +82,20 @@ public sealed class NotificationsDbContext(DbContextOptions<NotificationsDbConte
         n.Property(x => x.SourceModule).HasMaxLength(30);
         n.Property(x => x.DeepLink).HasMaxLength(300);
         b.Entity<NotificationPreference>().ToTable("Preferences").HasKey(x => x.UserId);
+        var device = b.Entity<PushDevice>();
+        device.ToTable("PushDevices").HasKey(x => x.Id);
+        device.HasIndex(x => new { x.UserId, x.InstallationId }).IsUnique();
+        device.Property(x => x.Token).HasMaxLength(256);
+        device.Property(x => x.Platform).HasMaxLength(10);
+        var push = b.Entity<PushDelivery>();
+        push.ToTable("PushDeliveries").HasKey(x => x.Id);
+        push.HasIndex(x => new { x.NotificationId, x.DeviceId }).IsUnique();
+        push.HasIndex(x => new { x.Status, x.AvailableAt });
+        push.Property(x => x.Token).HasMaxLength(256);
+        push.Property(x => x.Status).HasMaxLength(30);
+        push.Property(x => x.TicketId).HasMaxLength(200);
+        push.HasOne<Notification>().WithMany().HasForeignKey(x => x.NotificationId).OnDelete(DeleteBehavior.Cascade);
+        push.HasOne<PushDevice>().WithMany().HasForeignKey(x => x.DeviceId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 public sealed class NotificationsDesignFactory : IDesignTimeDbContextFactory<NotificationsDbContext>

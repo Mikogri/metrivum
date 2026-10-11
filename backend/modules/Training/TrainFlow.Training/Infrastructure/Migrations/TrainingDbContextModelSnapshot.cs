@@ -656,6 +656,58 @@ namespace TrainFlow.Training.Infrastructure.Migrations
                     b.ToTable("revisions", "training");
                 });
 
+            modelBuilder.Entity("TrainFlow.Training.Purchases.TrainingPurchase", b =>
+                {
+                    b.Property<Guid>("OrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BuyerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("PlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Snapshot")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("SourceRevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("OrderId");
+
+                    b.HasIndex("ApplicationId")
+                        .IsUnique();
+
+                    b.HasIndex("PlanId")
+                        .IsUnique();
+
+                    b.HasIndex("BuyerId", "CreatedAt", "OrderId");
+
+                    b.ToTable("purchases", "training");
+                });
+
             modelBuilder.Entity("TrainFlow.Training.Delivery.AssignmentGroupSource", b =>
                 {
                     b.HasOne("TrainFlow.Training.Delivery.ProgramAssignment", null)
@@ -797,6 +849,14 @@ namespace TrainFlow.Training.Infrastructure.Migrations
                         .HasForeignKey("PlanId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Purchases.TrainingPurchase", b =>
+                {
+                    b.HasOne("TrainFlow.Training.Infrastructure.TrainingPlan", null)
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("TrainFlow.Training.Delivery.ExerciseExecution", b =>

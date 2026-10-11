@@ -27,11 +27,12 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         FailureCode = x.FailureCode,
         Attempts = x.Attempts,
         Version = x.Version,
-        RequestHash = x.RequestHash
+        RequestHash = x.RequestHash, ExecutionLocation = x.ExecutionLocation, LocalAnalysisId = x.LocalAnalysisId, SourceVideo = x.SourceVideo, WorkoutExecutionId = x.WorkoutExecutionId, SetId = x.SetId
     };
-    private static AnalysisDto Dto(AnalysisJob job) => new(job.Id, job.Name, job.Note, job.Tags, job.MediaId,
+    internal static AnalysisDto Dto(AnalysisJob job) => new(job.Id, job.Name, job.Note, job.Tags, job.MediaId,
         JsonSerializer.Deserialize<AnalysisConfiguration>(job.Configuration, AnalysisResults.Json)!, job.Status,
-        job.CreatedAt, job.CompletedAt, job.FailureCode, job.Attempts, job.Version);
+        job.CreatedAt, job.CompletedAt, job.FailureCode, job.Attempts, job.Version, job.ExecutionLocation, job.LocalAnalysisId,
+        job.SourceVideo == null ? null : JsonSerializer.Deserialize<AnalysisSourceVideo>(job.SourceVideo, AnalysisResults.Json), job.WorkoutExecutionId, job.SetId);
 
     public static string[] ValidateMetadata(string name, string? note, string[]? tags)
     {
@@ -111,12 +112,12 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
     private async Task<AnalysisJob> OwnedAsync(Guid id, Guid owner, CancellationToken ct) =>
         await db.Jobs.AsNoTracking().Where(x => x.Id == id && x.OwnerId == owner).Select(Metadata).SingleOrDefaultAsync(ct) ?? throw ApiException.NotFound();
 
-    public async Task<IReadOnlyList<AnalysisDto>> ListAsync(Guid owner, string? search, string? status, string? tag, string? sort, int page, int pageSize, CancellationToken ct)
+    public async Task<IReadOnlyList<AnalysisDto>> ListAsync(Guid owner, string? search, string? status, string? tag, string? sort, int page, int pageSize, CancellationToken ct, bool clientOnly = false)
     {
         if (page is < 1 or > 100000 || pageSize is < 1 or > 100 || search?.Length > 200 || tag?.Length > 50
             || status is not (null or "Queued" or "Processing" or "Completed" or "Failed" or "Cancelled"))
             throw ApiException.Invalid("Invalid list filters or pagination.");
-        var query = db.Jobs.AsNoTracking().Where(x => x.OwnerId == owner);
+        var query = db.Jobs.AsNoTracking().Where(x => x.OwnerId == owner && (!clientOnly || x.ExecutionLocation == "client"));
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(x => x.Name.ToLower().Contains(search.ToLower()));
         if (status != null)

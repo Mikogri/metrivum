@@ -11,12 +11,13 @@ using TrainFlow.Offers.Infrastructure;
 namespace TrainFlow.Offers.Features;
 
 public sealed record OfferRequest(string Name, string Description, string Category, CoachingMode CoachingMode,
-    Guid ApplicationFormVersionId, IReadOnlyList<string> Tags, IReadOnlyList<BillingOptionSnapshot> BillingOptions, Guid? TeamId = null);
+    Guid ApplicationFormVersionId, IReadOnlyList<string> Tags, IReadOnlyList<BillingOptionSnapshot> BillingOptions, Guid? TeamId = null, OfferPurpose Purpose = OfferPurpose.CoachingService);
 public sealed record OfferDto(Guid Id, Guid CoachId, string Name, string Description, string Category, CoachingMode CoachingMode,
     Guid ApplicationFormVersionId, IReadOnlyList<string> Tags, IReadOnlyList<BillingOptionSnapshot> BillingOptions, OfferStatus Status,
-    Guid? CurrentPublishedRevisionId, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, long Version, Guid? TeamId = null, string? TeamName = null);
+    Guid? CurrentPublishedRevisionId, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, long Version, Guid? TeamId = null, string? TeamName = null, OfferPurpose Purpose = OfferPurpose.CoachingService);
 public sealed record OfferListDto(IReadOnlyList<OfferDto> Items, int Page, int PageSize, int Total);
 public sealed record PublicOfferListDto(IReadOnlyList<OfferRevisionDto> Items, int Page, int PageSize, int Total);
+public sealed record OfferCategoryDto(string Key, string Name, bool Active);
 
 public sealed class OffersService(OffersDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IAccountProfileFields profiles, IFormLibrary forms, TimeProvider clock, ModuleTransaction transaction, ITeamContext? teams = null) : IOfferLibrary
@@ -87,7 +88,7 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
         if (offer.Status == OfferStatus.Archived)
             throw ApiException.Conflict("Archived offers cannot be published.");
         var draft = await DetailAsync(id, token);
-        await Validate(new(draft.Name, draft.Description, draft.Category, draft.CoachingMode, draft.ApplicationFormVersionId, draft.Tags, draft.BillingOptions, draft.TeamId), token, offer.CoachId);
+        await Validate(new(draft.Name, draft.Description, draft.Category, draft.CoachingMode, draft.ApplicationFormVersionId, draft.Tags, draft.BillingOptions, draft.TeamId, draft.Purpose), token, offer.CoachId);
         var revision = new OfferRevision
         {
             Id = Guid.NewGuid(),
@@ -101,6 +102,7 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
             Description = offer.Description,
             Category = offer.Category,
             CoachingMode = offer.CoachingMode,
+            Purpose = offer.Purpose,
             ApplicationFormVersionId = offer.ApplicationFormVersionId,
             Tags = JsonSerializer.Serialize(draft.Tags),
             Currency = await profiles.GetCurrencyAsync(offer.CoachId, token),
@@ -142,10 +144,11 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
         }
         return await DetailAsync(id, token);
     }, ct);
-    public async Task<IReadOnlyList<OfferCategory>> CategoriesAsync(CancellationToken ct)
+    public async Task<IReadOnlyList<OfferCategoryDto>> CategoriesAsync(CancellationToken ct)
     {
         await access.RequireAsync("offers.view-public", ct);
-        return await db.Categories.AsNoTracking().Where(x => x.Active).OrderBy(x => x.Name).ToArrayAsync(ct);
+        return await db.Categories.AsNoTracking().Where(x => x.Active).OrderBy(x => x.Name)
+            .Select(x => new OfferCategoryDto(x.Key, x.Name, x.Active)).ToArrayAsync(ct);
     }
     public async Task<IReadOnlyList<string>> TagsAsync(string? search, CancellationToken ct)
     {
@@ -205,7 +208,7 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
     {
         var revision = await GetRevisionAsync(revisionId, ct);
         var option = revision.BillingOptions.SingleOrDefault(x => x.Id == billingOptionId) ?? throw ApiException.Invalid("Billing option does not belong to this revision.");
-        return new(revision.OfferId, revision.Id, revision.CoachId, revision.Name, revision.ApplicationFormVersionId, option, selectedSessionCount, OfferRules.Amount(option, selectedSessionCount), revision.Currency, revision.TeamId);
+        return new(revision.OfferId, revision.Id, revision.CoachId, revision.Name, revision.ApplicationFormVersionId, option, selectedSessionCount, OfferRules.Amount(option, selectedSessionCount), revision.Currency, revision.TeamId, revision.Purpose);
     }
     private async Task Validate(OfferRequest r, CancellationToken ct, Guid? formOwner = null)
     {
@@ -213,6 +216,8 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
             throw ApiException.Invalid("Invalid offer definition.");
         if (!await db.Categories.AnyAsync(x => x.Key == r.Category && x.Active, ct))
             throw ApiException.Invalid("Unknown or inactive offer category.");
+        if (!Enum.IsDefined(r.Purpose) || r.BillingOptions.Any(x => (x.Model == BillingModel.OneTime) != (r.Purpose == OfferPurpose.TrainingPlan)))
+            throw ApiException.Invalid("Plan sales require one-time pricing; coaching offers require session or subscription pricing.");
         foreach (var option in r.BillingOptions)
             OfferRules.Validate(option);
         foreach (var tag in r.Tags)
@@ -241,6 +246,7 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
                 PeriodCount = option.PeriodCount,
                 PeriodUnit = option.PeriodUnit,
                 DueRule = option.PaymentTerms?.Rule ?? DueRule.Upfront,
+                ValidityDays = option.ValidityDays,
                 OffsetDays = option.PaymentTerms?.OffsetDays
             });
         }
@@ -271,23 +277,24 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
         var ids = rows.Select(x => x.Id).ToArray();
         var options = await db.Options.AsNoTracking().Where(x => ids.Contains(x.OfferId)).OrderBy(x => x.Name).ThenBy(x => x.Id).ToArrayAsync(ct);
         var tags = await (from l in db.TagLinks.AsNoTracking() join t in db.Tags.AsNoTracking() on l.TagId equals t.Id where ids.Contains(l.OfferId) orderby t.Name select new { l.OfferId, t.Name }).ToArrayAsync(ct);
-        return rows.Select(x => new OfferDto(x.Id, x.CoachId, x.Name, x.Description, x.Category, x.CoachingMode, x.ApplicationFormVersionId, tags.Where(t => t.OfferId == x.Id).Select(t => t.Name).ToArray(), options.Where(o => o.OfferId == x.Id).Select(OptionDto).ToArray(), x.Status, x.CurrentPublishedRevisionId, x.CreatedAt, x.UpdatedAt, x.Version, x.TeamId, x.TeamName)).ToArray();
+        return rows.Select(x => new OfferDto(x.Id, x.CoachId, x.Name, x.Description, x.Category, x.CoachingMode, x.ApplicationFormVersionId, tags.Where(t => t.OfferId == x.Id).Select(t => t.Name).ToArray(), options.Where(o => o.OfferId == x.Id).Select(OptionDto).ToArray(), x.Status, x.CurrentPublishedRevisionId, x.CreatedAt, x.UpdatedAt, x.Version, x.TeamId, x.TeamName, x.Purpose)).ToArray();
     }
     private async Task<OfferRevisionDto[]> RevisionDtos(OfferRevision[] rows, CancellationToken ct)
     {
         var ids = rows.Select(x => x.Id).ToArray();
         var options = await db.RevisionOptions.AsNoTracking().Where(x => ids.Contains(x.RevisionId)).OrderBy(x => x.Name).ThenBy(x => x.Id).ToArrayAsync(ct);
-        return rows.Select(x => new OfferRevisionDto(x.Id, x.OfferId, x.CoachId, x.Number, x.Name, x.Description, x.Category, x.CoachingMode, JsonSerializer.Deserialize<string[]>(x.Tags)!, x.ApplicationFormVersionId, x.Currency, options.Where(o => o.RevisionId == x.Id).Select(OptionDto).ToArray(), x.PublishedAt, x.TeamId, x.TeamName)).ToArray();
+        return rows.Select(x => new OfferRevisionDto(x.Id, x.OfferId, x.CoachId, x.Number, x.Name, x.Description, x.Category, x.CoachingMode, JsonSerializer.Deserialize<string[]>(x.Tags)!, x.ApplicationFormVersionId, x.Currency, options.Where(o => o.RevisionId == x.Id).Select(OptionDto).ToArray(), x.PublishedAt, x.TeamId, x.TeamName, x.Purpose)).ToArray();
     }
-    private static BillingOptionSnapshot OptionDto(OfferBillingOption x) => new(x.Id, x.Name, x.Model, x.Price, x.MinSessions, x.MaxSessions, x.SessionCount, x.PeriodCount, x.PeriodUnit, new(x.DueRule, x.OffsetDays));
-    private static BillingOptionSnapshot OptionDto(RevisionBillingOption x) => new(x.Id, x.Name, x.Model, x.Price, x.MinSessions, x.MaxSessions, x.SessionCount, x.PeriodCount, x.PeriodUnit, new(x.DueRule, x.OffsetDays));
-    private static RevisionBillingOption RevisionOption(Guid revision, BillingOptionSnapshot x) => new() { RevisionId = revision, Id = x.Id, Name = x.Name, Model = x.Model, Price = x.Price, MinSessions = x.MinSessions, MaxSessions = x.MaxSessions, SessionCount = x.SessionCount, PeriodCount = x.PeriodCount, PeriodUnit = x.PeriodUnit, DueRule = x.PaymentTerms?.Rule ?? DueRule.Upfront, OffsetDays = x.PaymentTerms?.OffsetDays };
+    private static BillingOptionSnapshot OptionDto(OfferBillingOption x) => new(x.Id, x.Name, x.Model, x.Price, x.MinSessions, x.MaxSessions, x.SessionCount, x.PeriodCount, x.PeriodUnit, new(x.DueRule, x.OffsetDays), x.ValidityDays);
+    private static BillingOptionSnapshot OptionDto(RevisionBillingOption x) => new(x.Id, x.Name, x.Model, x.Price, x.MinSessions, x.MaxSessions, x.SessionCount, x.PeriodCount, x.PeriodUnit, new(x.DueRule, x.OffsetDays), x.ValidityDays);
+    private static RevisionBillingOption RevisionOption(Guid revision, BillingOptionSnapshot x) => new() { RevisionId = revision, Id = x.Id, Name = x.Name, Model = x.Model, Price = x.Price, MinSessions = x.MinSessions, MaxSessions = x.MaxSessions, SessionCount = x.SessionCount, PeriodCount = x.PeriodCount, PeriodUnit = x.PeriodUnit, DueRule = x.PaymentTerms?.Rule ?? DueRule.Upfront, OffsetDays = x.PaymentTerms?.OffsetDays, ValidityDays = x.ValidityDays };
     private static void Apply(Offer o, OfferRequest r)
     {
         o.Name = r.Name.Trim();
         o.Description = r.Description;
         o.Category = r.Category;
         o.CoachingMode = r.CoachingMode;
+        o.Purpose = r.Purpose;
         o.ApplicationFormVersionId = r.ApplicationFormVersionId;
     }
     private async Task<Offer> Owned(Guid id, CancellationToken ct)

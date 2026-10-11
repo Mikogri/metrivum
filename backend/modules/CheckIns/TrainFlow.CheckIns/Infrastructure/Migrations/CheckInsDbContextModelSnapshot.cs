@@ -29,6 +29,13 @@ namespace TrainFlow.CheckIns.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AssignmentGroupsJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("AssignmentSource")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<DateTimeOffset>("AvailableAtUtc")
                         .HasColumnType("timestamp with time zone");
 

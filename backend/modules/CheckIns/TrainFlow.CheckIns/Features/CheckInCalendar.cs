@@ -31,12 +31,14 @@ public sealed partial class CheckInsService
             if (s.NextAvailableAtUtc == null)
                 continue;
             var recurrence = JsonSerializer.Deserialize<Recurrence>(s.RecurrenceJson)!;
+            var assignment = recurrence.Kind == RecurrenceKind.AssignedProgramCycle && assignedPrograms != null
+                ? await assignedPrograms.GetAsync(s.CoachId, recurrence.AssignmentId!.Value, ct) : null;
             var after = from.AddHours(-s.ResponseWindowHours);
             if (after < clock.GetUtcNow())
                 after = clock.GetUtcNow();
             if (after < s.NextAvailableAtUtc.Value)
                 after = s.NextAvailableAtUtc.Value.AddTicks(-1);
-            for (var next = CheckInRules.Next(recurrence, s.TimeZone, after); next != null && next < to; next = CheckInRules.Next(recurrence, s.TimeZone, next))
+            for (var next = Next(recurrence, s.TimeZone, assignment, after); next != null && next < to; next = Next(recurrence, s.TimeZone, assignment, next))
             {
                 ct.ThrowIfCancellationRequested();
                 var due = next.Value.AddHours(s.ResponseWindowHours);

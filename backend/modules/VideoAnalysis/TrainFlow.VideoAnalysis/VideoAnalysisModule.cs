@@ -35,9 +35,19 @@ public static class VideoAnalysisModule
         return services;
     }
 
+    public static IServiceCollection AddClientAnalysis(this IServiceCollection services)
+        => services.AddScoped<ClientAnalysisLibrary>();
+
     public static IEndpointRouteBuilder MapVideoAnalysis(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/v1/analyses").RequireAuthorization().WithTags("VideoAnalysis");
+        group.MapPost("/client-results", async (SaveClientAnalysisRequest input, HttpRequest request, ClientAnalysisLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
+        {
+            var roles = await account.GetRolesAsync(ct);
+            if (!roles.Contains(AccountRole.Client))
+                await features.RequireAsync("video.analysis.run", ct);
+            return Results.Ok(await library.SaveAsync(account.UserId, request.Headers["Idempotency-Key"].ToString(), input, ct));
+        }).Produces<AnalysisDto>();
         group.MapPost("/", async (CreateAnalysisRequest input, HttpRequest request, AnalysisLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
         {
             await features.RequireAsync("video.analysis.run", ct);
@@ -46,13 +56,13 @@ public static class VideoAnalysisModule
         }).Produces<AnalysisDto>(StatusCodes.Status202Accepted);
         group.MapGet("/", async (AnalysisLibrary library, IAccountContext account, string? search, string? status, string? tag, string? sort, CancellationToken ct, int page = 1, int pageSize = 25) =>
         {
-            await account.RequireCoachAsync(ct);
-            return Results.Ok(await library.ListAsync(account.UserId, search, status, tag, sort, page, pageSize, ct));
+            var roles = await account.GetRolesAsync(ct);
+            return Results.Ok(await library.ListAsync(account.UserId, search, status, tag, sort, page, pageSize, ct, !roles.Contains(AccountRole.Coach)));
         }).Produces<AnalysisDto[]>();
         group.MapGet("/{id:guid}", async (Guid id, AnalysisLibrary library, IAccountContext account, HttpResponse response, CancellationToken ct) =>
         {
-            await account.RequireCoachAsync(ct);
             var job = await library.GetAsync(id, account.UserId, ct);
+            await RequireReadAsync(job, account, ct);
             response.Headers.ETag = $"\"{job.Version}\"";
             return Results.Ok(job);
         }).Produces<AnalysisDto>();
@@ -70,7 +80,7 @@ public static class VideoAnalysisModule
         }).Produces(StatusCodes.Status204NoContent);
         group.MapGet("/{id:guid}/result", async (Guid id, int? repetition, AnalysisLibrary library, IAccountContext account, CancellationToken ct, int maxPoints = 1000) =>
         {
-            await account.RequireCoachAsync(ct);
+            await RequireReadAsync(await library.GetAsync(id, account.UserId, ct), account, ct);
             return Results.Ok(await library.ResultAsync(id, account.UserId, repetition, maxPoints, ct));
         }).Produces<AnalysisResult>();
         group.MapGet("/compare", async (Guid leftId, Guid rightId, int? leftRepetition, int? rightRepetition, AnalysisLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct, int maxPoints = 1000) =>
@@ -82,4 +92,10 @@ public static class VideoAnalysisModule
     }
 
     private static long Version(HttpRequest request) => RequestPreconditions.RequireMediaVersion(request);
+    private static async Task RequireReadAsync(AnalysisDto job, IAccountContext account, CancellationToken ct)
+    {
+        var roles = await account.GetRolesAsync(ct);
+        if (job.ExecutionLocation != "client" && !roles.Contains(AccountRole.Coach))
+            throw ApiException.NotFound();
+    }
 }

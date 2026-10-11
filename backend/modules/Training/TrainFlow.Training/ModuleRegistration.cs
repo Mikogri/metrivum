@@ -1,3 +1,4 @@
+using TrainFlow.Training.Purchases;
 using TrainFlow.Training.Generation;
 using TrainFlow.Training.Delivery;
 using TrainFlow.Training.Contracts;
@@ -25,7 +26,11 @@ public static class ModuleRegistration
         services.AddScoped<TrainFlow.Coaching.Contracts.ITeamRelationshipLifecycle, TeamTrainingLifecycle>();
         services.AddModuleDatabase<TrainingDbContext>("training");
         services.AddScoped<TrainingService>();
+        services.AddScoped<TrainingPurchaseService>();
+        services.AddScoped<ITrainingPurchases>(sp => sp.GetRequiredService<TrainingPurchaseService>());
         services.AddScoped<TrainingDeliveryService>();
+        services.AddScoped<IAssignedProgramCycles, AssignedProgramCyclesReader>();
+        services.AddScoped<IAnalysisWorkoutReferences>(p => p.GetRequiredService<TrainingDeliveryService>());
         services.AddScoped<TrainFlow.Notifications.Contracts.INotificationDeliveryPolicy, TrainingNotificationPolicy>();
         services.AddScoped<ITrainingProgressReader>(p => p.GetRequiredService<TrainingDeliveryService>());
         foreach (var key in new[] { "training.assignments.manage", "training.executions.log-own", "training.executions.review", "training.progress.view-own", "training.progress.view-clients" })
@@ -41,6 +46,7 @@ public static class ModuleRegistration
     }
     public static IEndpointRouteBuilder MapTraining(this IEndpointRouteBuilder endpoints)
     {
+        endpoints.MapGet("/api/v1/training/purchases", (int? page, int? pageSize, TrainingPurchaseService service, CancellationToken ct) => service.ListAsync(page ?? 1, pageSize ?? 25, ct)).RequireAuthorization();
         var group = endpoints.MapGroup("/api/v1/training").WithTags("Training").RequireAuthorization();
         group.MapTrainingDelivery();
         group.MapProgramGenerator();
@@ -61,6 +67,7 @@ public static class ModuleRegistration
         group.MapPut("/programs/{id:guid}/draft", async (Guid id, SavePlanRequest request, TrainingService service, HttpContext http, CancellationToken ct) => Versioned(http, await service.SaveAsync(id, request, Version(http), ct))).Produces<PlanDto>();
         group.MapPost("/programs/{id:guid}/copy", async (Guid id, CopyPlanRequest request, TrainingService service, HttpContext http, CancellationToken ct) => Versioned(http, await service.CopyAsync(id, request, ct))).Produces<PlanDto>();
         group.MapPut("/programs/{id:guid}/archive", async (Guid id, ArchiveRequest request, TrainingService service, HttpContext http, CancellationToken ct) => Versioned(http, await service.ArchiveAsync(id, request.Archived, Version(http), ct))).Produces<PlanDto>();
+        group.MapPost("/programs/{id:guid}/apply", (Guid id, TrainingService service, HttpContext http, CancellationToken ct) => service.ApplyAsync(id, Version(http), Key(http), ct));
         group.MapPost("/programs/{id:guid}/revisions", (Guid id, TrainingService service, HttpContext http, CancellationToken ct) => service.PublishAsync(id, Version(http), Key(http), ct));
         group.MapGet("/programs/{id:guid}/revisions", (Guid id, int? page, int? pageSize, TrainingService service, CancellationToken ct) => service.RevisionsAsync(id, page ?? 1, pageSize ?? 25, ct));
         group.MapGet("/programs/{id:guid}/revisions/{number:int}", (Guid id, int number, TrainingService service, CancellationToken ct) => service.RevisionAsync(id, number, ct));

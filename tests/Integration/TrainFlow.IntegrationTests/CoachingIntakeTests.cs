@@ -24,8 +24,92 @@ using TrainFlow.Offers.Features;
 
 namespace TrainFlow.IntegrationTests;
 
-public sealed class CoachingIntakeTests
+public sealed partial class CoachingIntakeTests
 {
+    [CatalogPostgresFact]
+    public async Task Invitations_persist_offer_form_cards_in_direct_chat_without_activating_relationship()
+    {
+        using var original = new ApiFactory(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"));
+        using var factory = Allow(original);
+        var coach = await Onboard(factory, original, "Coach");
+        var client = await Onboard(factory, original, "Client");
+        var offer = await PublishOffer(coach.Http);
+        var invitationKey = Guid.NewGuid().ToString();
+        async Task<HttpResponseMessage> Invite()
+        {
+            using var input = new HttpRequestMessage(HttpMethod.Post, Root + "/invitations")
+            { Content = JsonContent.Create(new { username = client.Username, offerId = offer.Id, message = "Join me" }) };
+            input.Headers.Add("Idempotency-Key", invitationKey);
+            return await coach.Http.SendAsync(input);
+        }
+        var response = await Invite();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var invitationId = (await Body(response)).GetProperty("id").GetGuid();
+        Assert.Equal(invitationId, (await Body(await Invite())).GetProperty("id").GetGuid());
+        var chat = Assert.Single((await Get(client.Http, "/api/v1/messaging/conversations")).EnumerateArray());
+        var card = chat.GetProperty("lastMessage").GetProperty("coachingEntry");
+        Assert.Equal(invitationId, card.GetProperty("invitationId").GetGuid());
+        Assert.Equal(offer.RevisionId, card.GetProperty("offerRevisionId").GetGuid());
+        Assert.Equal(offer.FormVersionId, card.GetProperty("formVersionId").GetGuid());
+        Assert.Single((await Get(client.Http, "/api/v1/messaging/conversations/" + chat.GetProperty("id").GetGuid() + "/messages")).GetProperty("items").EnumerateArray());
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CoachingDbContext>();
+        Assert.False(await db.Relationships.AnyAsync(x => x.CoachId == coach.Id && x.ClientId == client.Id));
+        var messaging = scope.ServiceProvider.GetRequiredService<TrainFlow.Messaging.Infrastructure.MessagingDbContext>();
+        var chatId = chat.GetProperty("id").GetGuid();
+        await messaging.Messages.Where(x => x.ConversationId == chatId).ExecuteDeleteAsync();
+        var notifications = scope.ServiceProvider.GetRequiredService<TrainFlow.Notifications.NotificationsDbContext>();
+        var noticeCount = await notifications.Notifications.CountAsync(x => x.RecipientUserId == client.Id);
+        var invitationNotice = Assert.Single(await notifications.Notifications.Where(x => x.RecipientUserId == client.Id).ToArrayAsync());
+        Assert.Equal("InvitationReceived", invitationNotice.Type);
+        Assert.Equal("Coaching", invitationNotice.Category);
+        Assert.Equal("/app/messages?conversation=" + chatId, invitationNotice.DeepLink);
+        scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Http.IHttpContextAccessor>().HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext
+        {
+            User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity([new System.Security.Claims.Claim("sub", coach.Id.ToString())], "ReplayTest"))
+        };
+        var replay = scope.ServiceProvider.GetRequiredService<CoachingIntakeService>();
+        await replay.ReplayPendingInvitationChatsAsync(null, 100, false, default);
+        Assert.Empty(await messaging.Messages.Where(x => x.ConversationId == chatId).ToArrayAsync());
+        await replay.ReplayPendingInvitationChatsAsync(null, 100, true, default);
+        await replay.ReplayPendingInvitationChatsAsync(null, 100, true, default);
+        Assert.Single(await messaging.Messages.Where(x => x.ConversationId == chatId).ToArrayAsync());
+        Assert.Equal(noticeCount, await notifications.Notifications.CountAsync(x => x.RecipientUserId == client.Id));
+        Assert.Equal(HttpStatusCode.NoContent, (await client.Http.PostAsync($"/api/v1/me/blocked-users/{coach.Id}", null)).StatusCode);
+        var before = await db.Invitations.CountAsync(x => x.CoachId == coach.Id && x.TargetUserId == client.Id);
+        Assert.Equal(HttpStatusCode.Forbidden, (await coach.Http.PostAsJsonAsync(Root + "/invitations", new { username = client.Username, offerId = offer.Id })).StatusCode);
+        Assert.Equal(before, await db.Invitations.CountAsync(x => x.CoachId == coach.Id && x.TargetUserId == client.Id));
+    }
+
+    [CatalogPostgresFact]
+    public async Task Form_shares_are_idempotent_and_never_create_invitations_or_relationships()
+    {
+        using var original = new ApiFactory(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"));
+        using var factory = Allow(original);
+        var coach = await Onboard(factory, original, "Coach");
+        var client = await Onboard(factory, original, "Client");
+        var offer = await PublishOffer(coach.Http);
+        var key = Guid.NewGuid().ToString();
+        async Task<JsonElement> Share()
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, Root + "/form-shares")
+            { Content = JsonContent.Create(new { userId = client.Id, offerId = offer.Id }) };
+            request.Headers.Add("Idempotency-Key", key);
+            var response = await coach.Http.SendAsync(request);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            return await Body(response);
+        }
+        var first = await Share();
+        Assert.Equal(first.GetRawText(), (await Share()).GetRawText());
+        var chatId = first.GetProperty("conversationId").GetGuid();
+        var card = Assert.Single((await Get(client.Http, $"/api/v1/messaging/conversations/{chatId}/messages")).GetProperty("items").EnumerateArray());
+        Assert.Equal("OfferForm", card.GetProperty("coachingEntry").GetProperty("kind").GetString());
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CoachingDbContext>();
+        Assert.False(await db.Invitations.AnyAsync(x => x.CoachId == coach.Id && x.TargetUserId == client.Id));
+        Assert.False(await db.Relationships.AnyAsync(x => x.CoachId == coach.Id && x.ClientId == client.Id));
+    }
+
     private const string Root = "/api/v1/coaching";
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private static Dictionary<string, JsonElement> Answers(decimal weight = 80) => new() { ["weight"] = JsonSerializer.SerializeToElement(weight), ["notes"] = JsonSerializer.SerializeToElement("private custom response"), ["days"] = JsonSerializer.SerializeToElement(new[] { "1", "3" }) };
@@ -88,6 +172,16 @@ public sealed class CoachingIntakeTests
         var accepted = await Body(requests.Single(x => x.StatusCode == HttpStatusCode.OK));
         var relationship = accepted.GetProperty("relationshipId").GetGuid();
         var service = accepted.GetProperty("serviceId").GetGuid();
+        Assert.Equal(HttpStatusCode.NotFound, (await coach.Http.GetAsync($"{Root}/relationships/{relationship}/applications/{Guid.NewGuid()}")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await coach.Http.GetAsync($"{Root}/relationships/{relationship}/applications/{id}")).StatusCode);
+        var profile = await Get(coach.Http, $"{Root}/relationships/{relationship}/profile");
+        Assert.Equal(JsonValueKind.Object, profile.GetProperty("currentAllowedProfile").ValueKind);
+        var applications = await Get(coach.Http, $"{Root}/relationships/{relationship}/applications?pageSize=1");
+        Assert.Equal(id, Assert.Single(applications.GetProperty("items").EnumerateArray()).GetProperty("id").GetGuid());
+        Assert.Equal(HttpStatusCode.NotFound, (await coach.Http.GetAsync($"{Root}/relationships/{Guid.NewGuid()}/profile")).StatusCode);
+        var stranger = await Onboard(factory, original, "Coach");
+        Assert.Equal(HttpStatusCode.NotFound, (await stranger.Http.GetAsync($"{Root}/relationships/{relationship}/profile")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await stranger.Http.GetAsync($"{Root}/relationships/{relationship}/applications")).StatusCode);
         var retry = await Mutate(coach.Http, $"{Root}/applications/{id}/accept", accepted.GetProperty("version").GetInt64(), new AcceptApplicationRequest());
         Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
         Assert.Equal(service, (await Body(retry)).GetProperty("serviceId").GetGuid());
@@ -367,7 +461,7 @@ public sealed class CoachingIntakeTests
         })).StatusCode);
         return new(id, username, http);
     }
-    private static async Task<Offer> PublishOffer(HttpClient coach, string name = "Intake offer", decimal amount = 80)
+    private static async Task<Offer> PublishOffer(HttpClient coach, string name = "Intake offer", decimal amount = 80, OfferPurpose purpose = OfferPurpose.CoachingService)
     {
         var request = new FormTemplateRequest(FormPurpose.Application, "Intake", "", new([new("main", "Main", 0, [new("weight", "Weight", QuestionType.Number, true, Min: 1, Max: 600, SystemField: SystemFieldKey.Weight), new("notes", "Notes", QuestionType.LongText), new("days", "Days", QuestionType.MultiChoice, Choices: [new("1", "Monday"), new("3", "Wednesday")], SystemField: SystemFieldKey.PreferredTrainingDays)])]));
         var created = await coach.PostAsJsonAsync("/api/v1/forms", request);
@@ -377,7 +471,7 @@ public sealed class CoachingIntakeTests
         Assert.Equal(HttpStatusCode.OK, published.StatusCode);
         var formVersion = (await Body(published)).GetProperty("currentPublishedVersionId").GetGuid();
         var optionId = Guid.NewGuid();
-        var offer = await coach.PostAsJsonAsync("/api/v1/offers", new OfferRequest(name, "", "strength", CoachingMode.Online, formVersion, [], [new(optionId, "Session", BillingModel.PerSession, amount, PaymentTerms: new(DueRule.Upfront))]));
+        var offer = await coach.PostAsJsonAsync("/api/v1/offers", new OfferRequest(name, "", "strength", CoachingMode.Online, formVersion, [], [new(optionId, "Session", purpose == OfferPurpose.TrainingPlan ? BillingModel.OneTime : BillingModel.PerSession, amount, PaymentTerms: new(DueRule.Upfront))], Purpose: purpose));
         Assert.Equal(HttpStatusCode.OK, offer.StatusCode);
         var offerBody = await Body(offer);
         var id = offerBody.GetProperty("id").GetGuid();
@@ -430,7 +524,7 @@ public sealed class CoachingIntakeTests
     private sealed class Features(bool allowed = true) : IFeatureAccessService
     {
         public Task RequireAsync(string key, CancellationToken ct) => allowed ? Task.CompletedTask : Task.FromException(new ApiException(403, "FEATURE_UNAVAILABLE", "Feature revoked."));
-        public Task<AccessSnapshot> GetAsync(CancellationToken ct) => Task.FromResult(new AccessSnapshot("test", new[] { "coaching.clients.view", "coaching.clients.manage", "coaching.relationships.read-own", "coaching.services.manage", "coaching.services.read-own", "coaching.applications.submit-own", "coaching.applications.manage", "coaching.invitations.send", "coaching.invitations.respond-own" }.Select(x => new FeatureDecision(x, allowed, allowed ? "AVAILABLE" : "REVOKED")).ToArray(), []));
+        public Task<AccessSnapshot> GetAsync(CancellationToken ct) => Task.FromResult(new AccessSnapshot("test", new[] { "messaging.direct", "messaging.groups", "coaching.clients.view", "coaching.clients.manage", "coaching.relationships.read-own", "coaching.services.manage", "coaching.services.read-own", "coaching.applications.submit-own", "coaching.applications.manage", "coaching.invitations.send", "coaching.invitations.respond-own" }.Select(x => new FeatureDecision(x, allowed, allowed ? "AVAILABLE" : "REVOKED")).ToArray(), []));
     }
     private sealed class BatchAccount(Guid userId, Guid workspaceId) : IAccountContext
     {

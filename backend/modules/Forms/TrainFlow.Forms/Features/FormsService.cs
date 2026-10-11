@@ -124,6 +124,7 @@ public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IF
         await Owned(version.TemplateId, ct);
         return version;
     }
+    public async Task<IReadOnlyList<Guid>> GetVersionIdsForTemplateAsync(Guid templateId, CancellationToken ct) => await db.Versions.AsNoTracking().Where(x => x.TemplateId == templateId).Select(x => x.Id).ToArrayAsync(ct);
     public async Task<FormVersionDto> GetVersionAsync(Guid id, CancellationToken cancellationToken) => VersionDto(await db.Versions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken) ?? throw ApiException.NotFound());
     public async Task<FormVersionDto> RequireUsableVersionAsync(Guid id, Guid coachId, FormPurpose purpose, CancellationToken cancellationToken)
     {

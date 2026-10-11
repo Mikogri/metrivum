@@ -24,6 +24,10 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
     protected override void OnModelCreating(ModelBuilder m)
     {
         m.HasDefaultSchema("billing");
+        m.Entity<Order>().HasIndex(x => x.ApplicationId).IsUnique();
+        m.Entity<Order>().ToTable("orders", t => t.HasCheckConstraint("CK_order_purchase_context", "(\"Context\" = 'TrainingPlan' AND \"ServiceId\" IS NULL AND \"RelationshipId\" IS NULL AND \"ApplicationId\" IS NOT NULL AND \"TrainingPlanRevisionId\" IS NOT NULL) OR (\"Context\" <> 'TrainingPlan' AND (\"Context\" = 'Platform' OR (\"ServiceId\" IS NOT NULL AND \"RelationshipId\" IS NOT NULL)) AND \"ApplicationId\" IS NULL AND \"TrainingPlanRevisionId\" IS NULL)"));
+
+        m.Entity<PaymentDue>().ToTable("payment_dues", t => t.HasCheckConstraint("CK_due_validity", "(\"ValidityDays\" IS NULL AND \"ValidUntil\" IS NULL) OR (\"ValidityDays\" BETWEEN 1 AND 36500 AND ((\"SettledAt\" IS NULL AND \"ValidUntil\" IS NULL) OR (\"SettledAt\" IS NOT NULL AND \"ValidUntil\" = \"SettledAt\" + \"ValidityDays\" * interval '24 hours'))) IS TRUE"));
         m.Entity<Team>(e => { e.ToTable("teams"); e.HasKey(x => x.Id); e.HasIndex(x => x.OwnerId).IsUnique().HasFilter("\"Status\" <> 'Dissolved'"); e.Property(x => x.Name).HasMaxLength(80); });
         m.Entity<TeamMembership>(e => { e.ToTable("team_memberships"); e.HasKey(x => new { x.TeamId, x.UserId }); e.HasIndex(x => x.UserId).IsUnique().HasFilter("\"Status\" = 'Active'"); e.HasOne<Team>().WithMany().HasForeignKey(x => x.TeamId).OnDelete(DeleteBehavior.Restrict); });
         m.Entity<TeamRequest>(e => { e.ToTable("team_requests"); e.HasKey(x => x.Id); e.HasIndex(x => x.UserId); e.HasIndex(x => new { x.TeamId, x.UserId, x.Kind }).IsUnique().HasFilter("\"Status\" = 'Pending'"); e.Property(x => x.Kind).HasMaxLength(16); e.Property(x => x.Status).HasMaxLength(16); e.HasOne<Team>().WithMany().HasForeignKey(x => x.TeamId).OnDelete(DeleteBehavior.Restrict); });

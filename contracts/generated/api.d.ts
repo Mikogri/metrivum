@@ -70,6 +70,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    search: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccountSearchEntry"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/access": {
         parameters: {
             query?: never;
@@ -163,6 +200,44 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["DictionariesDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfPurchasedPlanDto"];
                     };
                 };
             };
@@ -1147,6 +1222,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/training/activity-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    relationshipId: string;
+                    programId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ActivityOptionsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/last-activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    relationshipId: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LastTrainingActivityDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/assignment-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    relationshipId: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignmentSummaryDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/training/programs/{programId}/assignments/preview": {
         parameters: {
             query?: never;
@@ -1413,6 +1600,10 @@ export interface paths {
                     to: string;
                     relationshipId?: string;
                     programId?: string;
+                    blockId?: string;
+                    cycleId?: string;
+                    status?: string;
+                    sort?: string;
                     page?: number | string;
                     pageSize?: number | string;
                     view?: string;
@@ -1451,7 +1642,9 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    relationshipId?: string;
+                };
                 header?: never;
                 path: {
                     id: string;
@@ -1657,6 +1850,9 @@ export interface paths {
                     programId?: string;
                     exerciseId?: string;
                     groupId?: string;
+                    blockId?: string;
+                    cycleId?: string;
+                    repetitions?: number | string;
                     view?: string;
                 };
                 header?: never;
@@ -1942,6 +2138,43 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/programs/{id}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RevisionDto"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -3066,7 +3299,9 @@ export interface paths {
         put?: never;
         post: {
             parameters: {
-                query?: never;
+                query?: {
+                    conversationId?: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -3105,7 +3340,9 @@ export interface paths {
         put?: never;
         post: {
             parameters: {
-                query?: never;
+                query?: {
+                    conversationId?: string;
+                };
                 header?: never;
                 path: {
                     id: string;
@@ -3164,6 +3401,45 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/client-results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveClientAnalysisRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4055,6 +4331,7 @@ export interface paths {
                     sort?: string;
                     archived?: boolean;
                     teamId?: string;
+                    relationshipId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -4776,7 +5053,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["OfferCategory"][];
+                        "application/json": components["schemas"]["OfferCategoryDto"][];
                     };
                 };
             };
@@ -5132,6 +5409,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/check-ins/assigned-programs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    relationshipId: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignedProgramCycles"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/check-ins/calendar": {
         parameters: {
             query?: never;
@@ -5189,6 +5503,7 @@ export interface paths {
                     search?: string;
                     sort?: string;
                     status?: components["schemas"]["ScheduleStatus"];
+                    relationshipId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -5441,6 +5756,9 @@ export interface paths {
                     relationshipId?: string;
                     scheduleId?: string;
                     role?: string;
+                    from?: string;
+                    to?: string;
+                    formTemplateId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -5455,6 +5773,81 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["CheckInPageOfCheckInRequestDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/relationships/{id}/requests/{requestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    requestId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInDetailDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/check-ins/relationships/{id}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CheckInSummaryDto"];
                     };
                 };
             };
@@ -6650,6 +7043,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/messaging-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessagingPreferenceDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MessagingPreferenceDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessagingPreferenceDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/blocked-users": {
         parameters: {
             query?: never;
@@ -6787,6 +7238,45 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["ConversationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/form-shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ShareOfferFormRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachingChatDelivery"];
                     };
                 };
             };
@@ -7403,6 +7893,121 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/coaching/relationships/{id}/applications/{applicationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    applicationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachApplicationDetailDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{id}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RelationshipProfileDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{id}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedOfApplicationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/coaching/relationships/{id}/services": {
         parameters: {
             query?: never;
@@ -7434,6 +8039,43 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["PagedOfRelationshipServiceDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/services/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    relationshipIds: string[];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CurrentRelationshipServiceDto"][];
                     };
                 };
             };
@@ -7771,6 +8413,80 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["BillingPageOfOrderDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/plan-purchases/by-application/{applicationId}/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    applicationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentDueDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/plan-purchases/{orderId}/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    orderId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentDueDto"];
                     };
                 };
             };
@@ -8969,7 +9685,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["TeamRequest"];
+                        "application/json": components["schemas"]["TeamRequestResultDto"];
                     };
                 };
             };
@@ -9010,7 +9726,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["TeamRequest"];
+                        "application/json": components["schemas"]["TeamRequestResultDto"];
                     };
                 };
             };
@@ -9051,7 +9767,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["TeamRequest"];
+                        "application/json": components["schemas"]["TeamRequestResultDto"];
                     };
                 };
             };
@@ -9074,6 +9790,11 @@ export interface paths {
                 query?: {
                     page?: number | string;
                     pageSize?: number | string;
+                    status?: components["schemas"]["DueStatus"];
+                    serviceId?: string;
+                    from?: string;
+                    to?: string;
+                    sort?: string;
                 };
                 header?: never;
                 path: {
@@ -9218,6 +9939,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/notifications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/devices/{installationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    installationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RegisterPushDeviceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PushDeviceDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    installationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/notifications/unread-count": {
         parameters: {
             query?: never;
@@ -9281,6 +10099,45 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/read-target": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["NotificationTargetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationCountDto"];
+                    };
                 };
             };
         };
@@ -9731,6 +10588,7 @@ export interface paths {
                     to: string;
                     page?: number | string;
                     pageSize?: number | string;
+                    key?: string;
                 };
                 header?: never;
                 path: {
@@ -9782,6 +10640,51 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/measurements/{measurementId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    relationshipId: string;
+                    measurementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MeasurementInput"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MeasurementDto"];
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/api/v1/coaching/relationships/{relationshipId}/documentation/measurements/trend": {
@@ -10014,7 +10917,27 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                    documentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch: {
@@ -10215,6 +11138,8 @@ export interface components {
     schemas: {
         AcceptApplicationRequest: {
             settlementMode?: components["schemas"]["SettlementMode"];
+            /** Format: uuid */
+            trainingPlanRevisionId?: null | string;
         };
         AccessSnapshot: {
             version: string;
@@ -10267,6 +11192,27 @@ export interface components {
             /** Format: double */
             conversionPercent: null | number | string;
         };
+        ActivityOptionsDto: {
+            programs: components["schemas"]["ActivityProgramOption"][];
+            structure: components["schemas"]["ActivityStructureOption"][];
+            /** Format: date */
+            earliestDate: null | string;
+        };
+        ActivityProgramOption: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        ActivityStructureOption: {
+            /** Format: uuid */
+            blockId: string;
+            /** Format: uuid */
+            cycleId: string;
+            /** Format: date */
+            firstDate: string;
+            /** Format: date */
+            lastDate: string;
+        };
         ActualExercise: {
             /** Format: uuid */
             prescribedInstanceId: null | string;
@@ -10299,6 +11245,8 @@ export interface components {
             restSeconds: null | number | string;
             tempo: null | string;
             comment: null | string;
+            /** Format: uuid */
+            id?: null | string;
         };
         AddMemberRequest: {
             /** Format: uuid */
@@ -10322,7 +11270,7 @@ export interface components {
             note: null | string;
             tags: string[];
             /** Format: uuid */
-            mediaId: string;
+            mediaId: null | string;
             configuration: components["schemas"]["AnalysisConfiguration"];
             status: string;
             /** Format: date-time */
@@ -10334,6 +11282,15 @@ export interface components {
             attempts: number | string;
             /** Format: int64 */
             version: number | string;
+            /** @default server */
+            executionLocation: string;
+            /** Format: uuid */
+            localAnalysisId?: null | string;
+            sourceVideo?: null | components["schemas"]["AnalysisSourceVideo"];
+            /** Format: uuid */
+            workoutExecutionId?: null | string;
+            /** Format: uuid */
+            setId?: null | string;
         };
         AnalysisOptions: {
             groups: components["schemas"]["GroupAnalysis"][];
@@ -10390,6 +11347,15 @@ export interface components {
             repetitions: components["schemas"]["AnalysisRepetition"][];
             trajectory: components["schemas"]["TrajectoryPoint"][];
             warnings: string[];
+        };
+        AnalysisSourceVideo: {
+            origin: string;
+            /** Format: double */
+            durationSeconds: number | string;
+            /** Format: int32 */
+            width: number | string;
+            /** Format: int32 */
+            height: number | string;
         };
         AnalysisTracking: {
             /** Format: double */
@@ -10532,6 +11498,26 @@ export interface components {
         ArchiveRequest: {
             archived: boolean;
         };
+        AssignedProgramCycle: {
+            /** Format: uuid */
+            cycleId: string;
+            /** Format: date */
+            startDate: string;
+            /** Format: int32 */
+            dayCount: number | string;
+        };
+        AssignedProgramCycles: {
+            /** Format: uuid */
+            assignmentId: string;
+            /** Format: uuid */
+            relationshipId: string;
+            programName: string;
+            timeZone: string;
+            active: boolean;
+            cycles: components["schemas"]["AssignedProgramCycle"][];
+            /** @default false */
+            ended: boolean;
+        };
         AssignmentBatchDto: {
             /** Format: uuid */
             id: string;
@@ -10578,6 +11564,19 @@ export interface components {
         AssignmentStatusRequest: {
             status: components["schemas"]["AssignmentStatus"];
         };
+        AssignmentSummaryDto: {
+            assignment: components["schemas"]["AssignmentDto"];
+            /** Format: date */
+            endDate: null | string;
+            /** Format: int32 */
+            scheduled: number | string;
+            /** Format: int32 */
+            completed: number | string;
+            /** Format: uuid */
+            currentBlockId: null | string;
+            /** Format: uuid */
+            currentCycleId: null | string;
+        };
         AssignProgramRequest: {
             /** Format: uuid */
             revisionId: null | string;
@@ -10614,7 +11613,7 @@ export interface components {
             version: number | string;
         };
         /** @enum {unknown} */
-        BillingModel: "PerSession" | "CustomPackage" | "FixedPackage" | "PeriodSubscription";
+        BillingModel: "PerSession" | "CustomPackage" | "FixedPackage" | "PeriodSubscription" | "OneTime";
         BillingOptionSnapshot: {
             /** Format: uuid */
             id: string;
@@ -10632,6 +11631,8 @@ export interface components {
             periodCount?: null | number | string;
             periodUnit?: null | components["schemas"]["PeriodUnit"];
             paymentTerms?: null | components["schemas"]["PaymentTerms"];
+            /** Format: int32 */
+            validityDays?: null | number | string;
         };
         BillingPageOfOrderDto: {
             items: components["schemas"]["OrderDto"][];
@@ -10705,6 +11706,11 @@ export interface components {
             submission: null | components["schemas"]["FormSubmissionDto"];
             coachPrivateNotes: null | string;
         };
+        CheckInGroupSourceDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
         CheckInPageOfCheckInCalendarItem: {
             items: components["schemas"]["CheckInCalendarItem"][];
             /** Format: int32 */
@@ -10767,6 +11773,10 @@ export interface components {
             /** Format: int64 */
             version: number | string;
             clientReply: null | string;
+            /** Format: uuid */
+            reviewedBy?: null | string;
+            assignmentSource?: null | string;
+            assignmentGroups?: null | components["schemas"]["CheckInGroupSourceDto"][];
         };
         CheckInsAnalysis: {
             /** Format: int32 */
@@ -10782,6 +11792,19 @@ export interface components {
             /** Format: double */
             averageReviewHours: null | number | string;
             series: components["schemas"]["CheckInPoint"][];
+        };
+        CheckInSummaryDto: {
+            /** Format: int32 */
+            awaitingReview: number | string;
+            /** Format: int32 */
+            overdue: number | string;
+            /** Format: int32 */
+            submitted: number | string;
+            /** Format: int32 */
+            reviewed: number | string;
+            lastCheckIn: null | components["schemas"]["CheckInRequestDto"];
+            /** Format: date-time */
+            nextDueAtUtc: null | string;
         };
         ClientPoint: {
             /** Format: date */
@@ -10844,6 +11867,26 @@ export interface components {
             /** Format: int32 */
             payments: number | string;
         };
+        CoachingChatDelivery: {
+            /** Format: uuid */
+            conversationId: string;
+            /** Format: uuid */
+            messageId: string;
+        };
+        CoachingChatEntry: {
+            kind: string;
+            /** Format: uuid */
+            invitationId: null | string;
+            /** Format: uuid */
+            offerId: string;
+            /** Format: uuid */
+            coachId: string;
+            /** Format: uuid */
+            offerRevisionId: string;
+            /** Format: uuid */
+            formVersionId: string;
+            title: string;
+        };
         /** @enum {unknown} */
         CoachingMode: "Online" | "Offline" | "Hybrid";
         CoachRelationshipDto: {
@@ -10871,6 +11914,8 @@ export interface components {
             teamId?: null | string;
             /** Format: uuid */
             teamClientCaseId?: null | string;
+            teamName?: null | string;
+            assignedCoach?: null | components["schemas"]["PersonDto"];
         };
         CommitImportRequest: {
             name: string;
@@ -10900,6 +11945,11 @@ export interface components {
             /** Format: int64 */
             unreadCount: number | string;
             members: components["schemas"]["MemberDto"][];
+            request?: null | components["schemas"]["RequestDto"];
+            /** @default true */
+            canSendMessages: boolean;
+            /** @default true */
+            canUploadAttachments: boolean;
         };
         /** @enum {unknown} */
         ConversationType: "Direct" | "Group" | "ClientGroupLinked";
@@ -10948,8 +11998,21 @@ export interface components {
         CreateTagRequest: {
             name: string;
         };
+        CurrencyOverdueDto: {
+            currency: string;
+            /** Format: double */
+            amount: number | string;
+            /** Format: int32 */
+            count: number | string;
+        };
         CurrencyRequest: {
             currency: string;
+        };
+        CurrentRelationshipServiceDto: {
+            /** Format: uuid */
+            relationshipId: string;
+            offerName: string;
+            currentBilling: null | components["schemas"]["ServiceBillingState"];
         };
         Cycle: {
             /** Format: uuid */
@@ -11046,6 +12109,8 @@ export interface components {
             /** Format: int64 */
             version: number | string;
             allowedActions: string[];
+            /** Format: int64 */
+            size: null | number | string;
         };
         DocumentEdit: {
             title: string;
@@ -11689,6 +12754,12 @@ export interface components {
         };
         /** @enum {unknown} */
         InvitationStatus: "Pending" | "Accepted" | "Declined" | "Revoked";
+        LastTrainingActivityDto: {
+            /** Format: date */
+            performedDate: null | string;
+            /** Format: date-time */
+            completedAt: null | string;
+        };
         LimitDecision: {
             key: string;
             /** Format: int64 */
@@ -11725,6 +12796,10 @@ export interface components {
             source: string;
             /** Format: date-time */
             createdAt: string;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         MeasurementInput: {
             key: string;
@@ -11745,6 +12820,13 @@ export interface components {
             key: string;
             unit: string;
             points: components["schemas"]["MeasurementPoint"][];
+            /** Format: double */
+            latestValue: null | number | string;
+            /** Format: date-time */
+            latestAt: null | string;
+            /** Format: double */
+            change: null | number | string;
+            aggregation: string;
         };
         MediaDto: {
             /** Format: uuid */
@@ -11811,6 +12893,7 @@ export interface components {
             clientMessageId?: null | string;
             /** Format: date-time */
             deletedAt?: null | string;
+            coachingEntry?: null | components["schemas"]["CoachingChatEntry"];
         };
         MessagePage: {
             items: components["schemas"]["MessageDto"][];
@@ -11826,6 +12909,9 @@ export interface components {
             received: number | string;
             /** Format: int32 */
             conversations: number | string;
+        };
+        MessagingPreferenceDto: {
+            requireApproval: boolean;
         };
         MoneyMetric: {
             currency: string;
@@ -11866,9 +12952,13 @@ export interface components {
             updatedAt: string;
             /** Format: int64 */
             version: number | string;
+            title: string;
+            /** Format: uuid */
+            authorId: string;
         };
         NoteInput: {
             text: string;
+            title?: null | string;
         };
         NotificationCountDto: {
             /** Format: int32 */
@@ -11896,6 +12986,9 @@ export interface components {
             pageSize: number | string;
             /** Format: int64 */
             total: number | string;
+        };
+        NotificationTargetRequest: {
+            target: string;
         };
         OccurrenceDto: {
             /** Format: uuid */
@@ -11927,11 +13020,19 @@ export interface components {
             executionId: null | string;
             loggedLate: boolean;
             allowedActions: string[];
+            /** Format: date */
+            performedDate?: null | string;
+            /** Format: int32 */
+            durationSeconds?: null | number | string;
+            /** @default false */
+            hasComment: boolean;
+            /** Format: int32 */
+            exerciseCount?: null | number | string;
         };
-        OfferCategory: {
-            key?: string;
-            name?: string;
-            active?: boolean;
+        OfferCategoryDto: {
+            key: string;
+            name: string;
+            active: boolean;
         };
         OfferChoice: {
             /** Format: uuid */
@@ -11963,6 +13064,7 @@ export interface components {
             /** Format: uuid */
             teamId?: null | string;
             teamName?: null | string;
+            purpose?: components["schemas"]["OfferPurpose"];
         };
         OfferListDto: {
             items: components["schemas"]["OfferDto"][];
@@ -11973,6 +13075,11 @@ export interface components {
             /** Format: int32 */
             total: number | string;
         };
+        /**
+         * @default CoachingService
+         * @enum {unknown}
+         */
+        OfferPurpose: "CoachingService" | "TrainingPlan";
         OfferRequest: {
             name: string;
             description: string;
@@ -11984,6 +13091,7 @@ export interface components {
             billingOptions: components["schemas"]["BillingOptionSnapshot"][];
             /** Format: uuid */
             teamId?: null | string;
+            purpose?: components["schemas"]["OfferPurpose"];
         };
         OfferRevenue: {
             /** Format: uuid */
@@ -12022,6 +13130,7 @@ export interface components {
             /** Format: uuid */
             teamId?: null | string;
             teamName?: null | string;
+            purpose?: components["schemas"]["OfferPurpose"];
         };
         /** @enum {unknown} */
         OfferStatus: "Draft" | "Active" | "Inactive" | "Archived";
@@ -12041,9 +13150,9 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** Format: uuid */
-            serviceId: string;
+            serviceId: null | string;
             /** Format: uuid */
-            relationshipId: string;
+            relationshipId: null | string;
             /** Format: uuid */
             coachId: string;
             /** Format: uuid */
@@ -12169,6 +13278,15 @@ export interface components {
             /** Format: int64 */
             total: number | string;
         };
+        PagedOfPurchasedPlanDto: {
+            items: components["schemas"]["PurchasedPlanDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int64 */
+            total: number | string;
+        };
         PagedOfRelationshipServiceDto: {
             items: components["schemas"]["RelationshipServiceDto"][];
             /** Format: int32 */
@@ -12234,9 +13352,9 @@ export interface components {
             /** Format: uuid */
             orderId: string;
             /** Format: uuid */
-            serviceId: string;
+            serviceId: null | string;
             /** Format: uuid */
-            relationshipId: string;
+            relationshipId: null | string;
             /** Format: uuid */
             coachId: string;
             /** Format: uuid */
@@ -12270,6 +13388,10 @@ export interface components {
             teamId?: null | string;
             /** Format: uuid */
             teamClientCaseId?: null | string;
+            /** Format: date-time */
+            validUntil?: null | string;
+            /** @default false */
+            isExpired: boolean;
         };
         PaymentMethodDto: {
             /** Format: uuid */
@@ -12315,19 +13437,19 @@ export interface components {
             displayName: string;
             username: null | string;
         };
-        PlanChange: {
+        PlanChangeDto: {
             /** Format: uuid */
-            id?: string;
+            id: string;
             /** Format: uuid */
-            subscriptionId?: string;
-            type?: string;
-            planId?: string;
+            subscriptionId: string;
+            type: string;
+            planId: string;
             /** Format: uuid */
-            dueId?: null | string;
+            dueId: null | string;
             /** Format: date-time */
-            createdAt?: string;
+            createdAt: string;
             /** Format: date-time */
-            effectiveAt?: null | string;
+            effectiveAt: null | string;
         };
         PlanDto: {
             /** Format: uuid */
@@ -12380,7 +13502,7 @@ export interface components {
             paymentMethodId?: null | string;
         };
         PlatformHistoryDto: {
-            changes: components["schemas"]["PlanChange"][];
+            changes: components["schemas"]["PlanChangeDto"][];
             payments: components["schemas"]["PaymentDto"][];
         };
         PlatformPlanDto: {
@@ -12484,6 +13606,25 @@ export interface components {
             /** Format: int32 */
             total: number | string;
         };
+        PurchasedPlanDto: {
+            /** Format: uuid */
+            orderId: string;
+            /** Format: uuid */
+            applicationId: string;
+            name: string;
+            /** Format: uuid */
+            planId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            deliveredAt: null | string;
+        };
+        PushDeviceDto: {
+            /** Format: uuid */
+            installationId: string;
+            platform: string;
+            enabled: boolean;
+        };
         Quantity: {
             /** Format: double */
             value: number | string;
@@ -12510,12 +13651,22 @@ export interface components {
             weekDays?: null | (number | string)[];
             /** Format: int32 */
             dayOfMonth?: null | number | string;
+            /** Format: uuid */
+            assignmentId?: null | string;
+            cycleDays?: null | (number | string)[];
         };
         /** @enum {unknown} */
-        RecurrenceKind: "OneTime" | "EveryNDays" | "EveryNWeeks" | "Monthly";
+        RecurrenceKind: "OneTime" | "EveryNDays" | "EveryNWeeks" | "Monthly" | "AssignedProgramCycle";
         RefreshAssignmentRequest: {
             /** Format: uuid */
             revisionId: string;
+        };
+        RegisterPushDeviceRequest: {
+            expoPushToken: string;
+            platform: string;
+            enabled: boolean;
+            /** Format: uuid */
+            activeConversationId?: null | string;
         };
         RejectApplicationRequest: {
             internalReason?: null | string;
@@ -12526,6 +13677,17 @@ export interface components {
             attempts: components["schemas"]["PaymentAttemptDto"][];
             payments: components["schemas"]["PaymentDto"][];
             transactions: components["schemas"]["PaymentTransactionDto"][];
+            summary?: null | components["schemas"]["RelationshipBillingSummaryDto"];
+        };
+        RelationshipBillingSummaryDto: {
+            lastSettlement: null | components["schemas"]["PaymentDto"];
+            overdueByCurrency: components["schemas"]["CurrencyOverdueDto"][];
+            nextDue: null | components["schemas"]["PaymentDueDto"];
+        };
+        RelationshipProfileDto: {
+            currentAllowedProfile: {
+                [key: string]: unknown;
+            };
         };
         RelationshipServiceDto: {
             /** Format: uuid */
@@ -12555,6 +13717,7 @@ export interface components {
             /** Format: int64 */
             version: number | string;
             allowedActions: string[];
+            currentBilling?: null | components["schemas"]["ServiceBillingState"];
         };
         /** @enum {unknown} */
         RelationshipStatus: "Active" | "Suspended" | "Completed";
@@ -12641,6 +13804,23 @@ export interface components {
             /** Format: int32 */
             selectedSessionCount?: null | number | string;
         };
+        SaveClientAnalysisRequest: {
+            /** Format: uuid */
+            localAnalysisId: string;
+            executionLocation: string;
+            name: string;
+            note: null | string;
+            tags: string[];
+            configuration: components["schemas"]["AnalysisConfiguration"];
+            sourceVideo: components["schemas"]["AnalysisSourceVideo"];
+            result: components["schemas"]["AnalysisResult"];
+            /** Format: uuid */
+            mediaId?: null | string;
+            /** Format: uuid */
+            workoutExecutionId?: null | string;
+            /** Format: uuid */
+            setId?: null | string;
+        };
         SaveExecutionRequest: {
             /** Format: date */
             performedDate: string;
@@ -12716,6 +13896,24 @@ export interface components {
             replyToMessageId: null | string;
             mediaIds: null | string[];
         };
+        ServiceBillingState: {
+            status: string;
+            /** Format: int32 */
+            remainingSessions: null | number | string;
+            /** Format: date-time */
+            periodStart: null | string;
+            /** Format: date-time */
+            periodEnd: null | string;
+            /** Format: date-time */
+            nextDueAt: null | string;
+            /** Format: double */
+            nextDueAmount: null | number | string;
+            currency: null | string;
+            /** Format: date-time */
+            validUntil?: null | string;
+            /** @default false */
+            isExpired: boolean;
+        };
         ServiceRenewalRequest: {
             autoRenew: boolean;
             /** Format: uuid */
@@ -12747,6 +13945,12 @@ export interface components {
          * @enum {unknown}
          */
         SettlementMode: "Simulated" | "External";
+        ShareOfferFormRequest: {
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            offerId: string;
+        };
         SimulatedMethodRequest: {
             label: string;
             outcome?: components["schemas"]["SimulatedOutcome"];
@@ -13002,25 +14206,6 @@ export interface components {
             /** Format: uuid */
             paymentMethodId?: null | string;
         };
-        TeamRequest: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            teamId?: string;
-            /** Format: uuid */
-            userId?: string;
-            kind?: string;
-            status?: string;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: uuid */
-            inviterId?: string;
-            role?: string;
-            /** Format: date-time */
-            expiresAt?: null | string;
-            /** Format: date-time */
-            decidedAt?: null | string;
-        };
         TeamRequestDto: {
             /** Format: uuid */
             id: string;
@@ -13034,6 +14219,25 @@ export interface components {
             role: string;
             /** Format: date-time */
             expiresAt: null | string;
+        };
+        TeamRequestResultDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            teamId: string;
+            /** Format: uuid */
+            userId: string;
+            kind: string;
+            status: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            inviterId: string;
+            role: string;
+            /** Format: date-time */
+            expiresAt: null | string;
+            /** Format: date-time */
+            decidedAt: null | string;
         };
         TeamRoleRequest: {
             role: string;
@@ -13107,6 +14311,8 @@ export interface components {
             averageRir: null | number | string;
             /** Format: int32 */
             substitutionSets: number | string;
+            /** Format: uuid */
+            occurrenceId?: null | string;
         };
         TrainingProgramProgress: {
             /** Format: uuid */
@@ -13148,6 +14354,17 @@ export interface components {
             clients: components["schemas"]["TrainingClientProgress"][];
             performance: components["schemas"]["TrainingPerformancePoint"][];
             metricDefinition: string;
+            /** Format: int64 */
+            totalTrainingSeconds?: null | number | string;
+            /** Format: double */
+            averageSessionSeconds?: null | number | string;
+            /** Format: double */
+            sessionsPerWeek?: null | number | string;
+            weeks?: null | components["schemas"]["TrainingWeekProgress"][];
+            /** @default false */
+            clientsHasMore: boolean;
+            /** @default false */
+            performanceHasMore: boolean;
         };
         TrainingSet: {
             /** Format: uuid */
@@ -13157,6 +14374,20 @@ export interface components {
             segments?: null | components["schemas"]["SetSegment"][];
             /** Format: uuid */
             sourceSetId?: null | string;
+        };
+        TrainingWeekProgress: {
+            /** Format: date */
+            weekStart: string;
+            /** Format: int32 */
+            scheduled: number | string;
+            /** Format: int32 */
+            completed: number | string;
+            /** Format: int32 */
+            due: number | string;
+            /** Format: int32 */
+            completedDue: number | string;
+            /** Format: double */
+            completionPercentage: null | number | string;
         };
         TrajectoryPoint: {
             /** Format: double */

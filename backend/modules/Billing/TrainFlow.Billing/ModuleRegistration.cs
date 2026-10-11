@@ -51,6 +51,8 @@ public static class ModuleRegistration
         me.MapPost("/service-subscriptions/{id:guid}/renewal", async (Guid id, ServiceRenewalRequest r, BillingService s, CancellationToken ct) => { await s.SetServiceRenewalAsync(id, r, ct); return Results.NoContent(); });
         me.MapGet("/payment-history", (int? page, int? pageSize, BillingService s, CancellationToken ct) => s.PaymentHistoryAsync(page ?? 1, pageSize ?? 25, ct));
         me.MapGet("/orders", (int? page, int? pageSize, string? sort, BillingService s, CancellationToken ct) => s.OrdersAsync(page ?? 1, pageSize ?? 25, sort ?? "created", ct));
+        me.MapGet("/plan-purchases/by-application/{applicationId:guid}/due", (Guid applicationId, BillingService s, CancellationToken ct) => s.PlanPurchaseApplicationDueAsync(applicationId, ct));
+        me.MapGet("/plan-purchases/{orderId:guid}/due", (Guid orderId, BillingService s, CancellationToken ct) => s.PlanPurchaseDueAsync(orderId, ct));
         me.MapGet("/payment-dues", (int? page, int? pageSize, DueStatus? status, string? sort, BillingService s, CancellationToken ct) => s.DuesAsync(page ?? 1, pageSize ?? 25, status, sort ?? "due", ct));
         me.MapPost("/payment-dues/{id:guid}/confirm-payment", (Guid id, PayRequest r, BillingService s, CancellationToken ct) => s.PayAsync(id, r, ct));
         me.MapPost("/payment-dues/{id:guid}/pay", (Guid id, PayRequest r, BillingService s, CancellationToken ct) => s.PayAsync(id, r, ct));
@@ -87,7 +89,7 @@ public static class ModuleRegistration
         teams.MapPost("/{id:guid}/invitations", (Guid id, TeamInviteRequest r, TeamService s, CancellationToken ct) => s.RequestAsync(id, r, ct));
         teams.MapPost("/requests/{id:guid}/decision", (Guid id, TeamDecisionRequest r, TeamService s, CancellationToken ct) => s.DecideAsync(id, r.Accept, ct));
         var coach = endpoints.MapGroup("/api/v1/coaching").WithTags("Billing").RequireAuthorization();
-        coach.MapGet("/relationships/{relationshipId:guid}/billing", (Guid relationshipId, int? page, int? pageSize, BillingService s, CancellationToken ct) => s.RelationshipAsync(relationshipId, page ?? 1, pageSize ?? 25, ct));
+        coach.MapGet("/relationships/{relationshipId:guid}/billing", (Guid relationshipId, int? page, int? pageSize, DueStatus? status, Guid? serviceId, DateTimeOffset? from, DateTimeOffset? to, string? sort, BillingService s, CancellationToken ct) => s.RelationshipAsync(relationshipId, page ?? 1, pageSize ?? 25, ct, status, serviceId, from, to, sort ?? "due"));
         coach.MapPost("/payment-dues/{id:guid}/mark-paid-externally", (Guid id, ExternalSettlementRequest r, BillingService s, CancellationToken ct) => s.ExternalAsync(id, r, ct));
         coach.MapGet("/earnings", (BillingService s, CancellationToken ct) => s.EarningsAsync(ct));
         return endpoints;

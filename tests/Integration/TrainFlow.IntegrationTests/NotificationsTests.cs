@@ -1,5 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Data.Common;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TrainFlow.BuildingBlocks;
@@ -9,6 +12,93 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class NotificationsTests
 {
+    [CatalogPostgresFact]
+    public async Task Single_notification_lookup_is_recipient_scoped_and_hides_cancelled_or_future_rows()
+    {
+        using var f = new ApiFactory(Database);
+        var user = Guid.NewGuid(); var other = Guid.NewGuid();
+        await Onboard(f, user);
+        var own = new NotificationEvent(user, "lookup:" + Guid.NewGuid(), "CheckInAssigned", "CheckIns", "CheckIns", Guid.NewGuid(), "/app/check-ins/one");
+        var foreign = own with { RecipientUserId = other, EventKey = "lookup:" + Guid.NewGuid() };
+        var cancelled = own with { EventKey = "lookup:" + Guid.NewGuid() };
+        var future = own with { EventKey = "lookup:" + Guid.NewGuid(), AvailableAt = DateTimeOffset.UtcNow.AddDays(1) };
+        foreach (var notification in new[] { own, foreign, cancelled, future }) await Publish(f, notification);
+        using var scope = f.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<NotificationsDbContext>();
+        await db.Notifications.Where(x => x.EventKey == cancelled.EventKey).ExecuteUpdateAsync(s => s.SetProperty(x => x.Cancelled, true));
+        var keys = new[] { own.EventKey, foreign.EventKey, cancelled.EventKey, future.EventKey };
+        var rows = await db.Notifications.AsNoTracking().Where(x => keys.Contains(x.EventKey)).ToDictionaryAsync(x => x.EventKey);
+        using var http = Client(f, user);
+        var response = await http.GetAsync($"/api/v1/me/notifications/{rows[own.EventKey].Id}");
+        response.EnsureSuccessStatusCode();
+        var dto = (await response.Content.ReadFromJsonAsync<NotificationDto>())!;
+        Assert.Equal(own.DeepLink, dto.DeepLink); Assert.Equal(own.SourceId, dto.SourceId); Assert.Null(dto.ReadAt);
+        Assert.Null((await db.Notifications.AsNoTracking().SingleAsync(x => x.Id == dto.Id)).ReadAt);
+        foreach (var hidden in new[] { foreign, cancelled, future })
+            Assert.Equal(HttpStatusCode.NotFound, (await http.GetAsync($"/api/v1/me/notifications/{rows[hidden.EventKey].Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await http.GetAsync($"/api/v1/me/notifications/{Guid.NewGuid()}")).StatusCode);
+        using var anonymous = f.CreateClient();
+        Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync($"/api/v1/me/notifications/{dto.Id}")).StatusCode);
+    }
+
+    [CatalogPostgresFact]
+    public async Task Empty_delivery_batch_does_not_query_preferences()
+    {
+        var commands = new NotificationCommands();
+        using var factory = new ApiFactory(Database);
+        using var app = factory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        {
+            services.AddDbContext<NotificationsDbContext>(options => options.AddInterceptors(commands));
+            services.AddSingleton<TimeProvider>(new BeforeNotificationsClock());
+        }));
+        using var scope = app.Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<NotificationsDelivery>().DeliverAsync(default);
+        Assert.Equal(1, commands.Count);
+    }
+
+    private sealed class BeforeNotificationsClock : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => DateTimeOffset.UnixEpoch;
+    }
+
+    [CatalogPostgresFact]
+    public async Task Publishing_uses_two_commands_and_retries_preserve_original_event()
+    {
+        var commands = new NotificationCommands();
+        using var factory = new ApiFactory(Database);
+        using var app = factory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            services.AddDbContext<NotificationsDbContext>(options => options.AddInterceptors(commands))));
+        using var scope = app.Services.CreateScope();
+        var publisher = scope.ServiceProvider.GetRequiredService<INotificationPublisher>();
+        var e = new NotificationEvent(Guid.NewGuid(), "query:" + Guid.NewGuid(), "CheckInAssigned", "CheckIns", "CheckIns", Guid.NewGuid(), "/app/check-ins");
+        await publisher.PublishAsync(e, default);
+        Assert.Equal(2, commands.Count);
+        commands.Count = 0;
+        await publisher.PublishAsync(e with { Type = "Changed", DeepLink = "/app/subscription" }, default);
+        Assert.Equal(2, commands.Count);
+        var row = await scope.ServiceProvider.GetRequiredService<NotificationsDbContext>().Notifications
+            .AsNoTracking().SingleAsync(n => n.RecipientUserId == e.RecipientUserId);
+        Assert.Equal(e.Type, row.Type);
+        Assert.Equal(e.DeepLink, row.DeepLink);
+    }
+
+    private sealed class NotificationCommands : DbCommandInterceptor
+    {
+        public int Count { get; set; }
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData,
+            InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            Count++;
+            return ValueTask.FromResult(result);
+        }
+        public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(DbCommand command, CommandEventData eventData,
+            InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            Count++;
+            return ValueTask.FromResult(result);
+        }
+    }
+
     private static string Database => Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!;
     private static HttpClient Client(ApiFactory f, Guid user)
     {
@@ -35,6 +125,40 @@ public sealed class NotificationsTests
     {
         using var scope = f.Services.CreateScope();
         await scope.ServiceProvider.GetRequiredService<INotificationPublisher>().PublishAsync(e, default);
+    }
+    [CatalogPostgresFact]
+    public async Task Opening_targets_reads_only_available_recipient_notifications_with_matching_view_parameters()
+    {
+        using var f = new ApiFactory(Database);
+        var user = Guid.NewGuid(); var other = Guid.NewGuid();
+        await Onboard(f, user);
+        using var http = Client(f, user);
+        var path = "/app/invitations/" + Guid.NewGuid();
+        var events = new[] {
+            new NotificationEvent(user, "target:" + Guid.NewGuid(), "InvitationReceived", "Coaching", "Coaching", Guid.NewGuid(), path),
+            new NotificationEvent(user, "tab:" + Guid.NewGuid(), "MessageRequestCreated", "Messaging", "Messaging", Guid.NewGuid(), "/app/messages?tab=requests"),
+            new NotificationEvent(user, "chat:" + Guid.NewGuid(), "MessageCreated", "Messaging", "Messaging", Guid.NewGuid(), "/app/messages?tab=requests"),
+            new NotificationEvent(other, "other:" + Guid.NewGuid(), "InvitationReceived", "Coaching", "Coaching", Guid.NewGuid(), path),
+            new NotificationEvent(user, "future:" + Guid.NewGuid(), "InvitationReceived", "Coaching", "Coaching", Guid.NewGuid(), path, DateTimeOffset.UtcNow.AddDays(1))
+        };
+        foreach (var e in events) await Publish(f, e);
+        async Task<int> Read(string target) {
+            var response = await http.PostAsJsonAsync("/api/v1/me/notifications/read-target", new { target });
+            response.EnsureSuccessStatusCode();
+            return (await response.Content.ReadFromJsonAsync<NotificationCountDto>())!.Count;
+        }
+        Assert.Equal(0, await Read("/app/invitations"));
+        Assert.Equal(0, await Read("/app/messages?tab=chats"));
+        Assert.Equal(1, await Read(path + "?from=chat"));
+        Assert.Equal(0, await Read(path));
+        Assert.Equal(1, await Read("/app/messages?page=2&tab=requests"));
+        using var scope = f.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<NotificationsDbContext>();
+        var rows = await db.Notifications.AsNoTracking().Where(n => events.Select(e => e.EventKey).Contains(n.EventKey)).ToArrayAsync();
+        Assert.All(rows.Where(n => n.Type == "MessageCreated" || n.RecipientUserId == other || n.AvailableAt > DateTimeOffset.UtcNow), n => Assert.Null(n.ReadAt));
+        Assert.Equal(HttpStatusCode.BadRequest, (await http.PostAsJsonAsync("/api/v1/me/notifications/read-target", new { target = "https://other/app/invitations" })).StatusCode);
+        using var anonymous = f.CreateClient();
+        Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.PostAsJsonAsync("/api/v1/me/notifications/read-target", new { target = path })).StatusCode);
     }
     [CatalogPostgresFact]
     public async Task Concurrent_retries_and_rollback_preserve_one_durable_event()

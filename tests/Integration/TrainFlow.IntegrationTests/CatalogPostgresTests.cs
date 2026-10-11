@@ -210,13 +210,17 @@ public sealed class CatalogPostgresTests
         var glutes = await db.Muscles.AsNoTracking().SingleAsync(x => x.Key == "glutes");
         var worked = await service.CreateAsync(new($"Hip thrust {Guid.NewGuid():N}", TagIds: [tag.Id], PrimaryMuscleKeys: ["glutes"]), default);
         await service.CreateAsync(new($"Curl {Guid.NewGuid():N}", TagIds: [tag.Id]), default);
-        foreach (var search in new[] { glutes.LabelEn.ToLowerInvariant(), glutes.LabelPl, "glut" })
+        // PostgreSQL's C locale uppercases ASCII only; label matching must use the same Unicode normalization as input.
+        foreach (var search in new[] { glutes.LabelEn.ToLowerInvariant(), glutes.LabelPl,
+            glutes.LabelPl.ToUpperInvariant(), glutes.LabelPl.ToLowerInvariant(),
+            glutes.LabelPl.Normalize(System.Text.NormalizationForm.FormD), "glut" })
         {
             var result = await service.ListAsync(new()
             {
                 Search = search,
                 TagId = tag.Id
             }, default);
+            Assert.True(result.Items.Count == 1, $"Expected one muscle match for '{search}', got {result.Items.Count}.");
             var item = Assert.Single(result.Items);
             Assert.Equal(worked.Id, item.Id);
             Assert.Equal(["glutes"], item.PrimaryMuscleKeys);

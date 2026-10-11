@@ -23,7 +23,9 @@ public sealed record PlatformConfirmRequest(Guid DueId, string IdempotencyKey, G
 public sealed record PlatformChangeRequest(string PlanId, long Version);
 public sealed record PlatformVersionRequest(long Version);
 public sealed record PlatformRenewalRequest(long Version, bool AutoRenew, Guid? PaymentMethodId = null);
-public sealed record PlatformHistoryDto(IReadOnlyList<PlanChange> Changes, IReadOnlyList<PaymentDto> Payments);
+public sealed record PlanChangeDto(Guid Id, Guid SubscriptionId, string Type, string PlanId, Guid? DueId,
+    DateTimeOffset CreatedAt, DateTimeOffset? EffectiveAt);
+public sealed record PlatformHistoryDto(IReadOnlyList<PlanChangeDto> Changes, IReadOnlyList<PaymentDto> Payments);
 
 public sealed class PlatformSubscriptionService(BillingDbContext db, BillingService billing, IAccountContext accounts,
     IConfiguration configuration, TimeProvider clock, ModuleTransaction transaction, INotificationPublisher notifications,
@@ -187,7 +189,8 @@ public sealed class PlatformSubscriptionService(BillingDbContext db, BillingServ
     {
         await accounts.GetRolesAsync(ct);
         var subscription = await db.PlatformSubscriptions.AsNoTracking().SingleOrDefaultAsync(x => x.OwnerId == accounts.UserId, ct);
-        var changes = subscription == null ? [] : await db.PlanChanges.AsNoTracking().Where(x => x.SubscriptionId == subscription.Id).OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Take(100).ToArrayAsync(ct);
+        var changes = subscription == null ? [] : await db.PlanChanges.AsNoTracking().Where(x => x.SubscriptionId == subscription.Id).OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Take(100)
+            .Select(x => new PlanChangeDto(x.Id, x.SubscriptionId, x.Type, x.PlanId, x.DueId, x.CreatedAt, x.EffectiveAt)).ToArrayAsync(ct);
         var payments = await db.Payments.AsNoTracking().Where(x => x.ClientId == accounts.UserId && x.Context == BillingContext.Platform).OrderByDescending(x => x.SettledAt).Take(100)
             .Select(x => new PaymentDto(x.Id, x.DueId, x.AttemptId, x.GrossAmount, x.FeeRate, x.FeeAmount, x.CoachNetAmount, x.Currency, x.Mode, x.Source, x.ActorId, x.SettledAt)).ToArrayAsync(ct);
         return new(changes, payments);

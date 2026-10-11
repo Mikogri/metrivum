@@ -1,3 +1,6 @@
+using TrainFlow.Training.Infrastructure;
+using TrainFlow.Training.Purchases;
+using TrainFlow.Training.Contracts;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -441,7 +444,17 @@ public sealed partial class OffersBillingTests
         await using var scope = buyer.CreateAsyncScope();
         var service = scope.ServiceProvider.GetRequiredService<BillingService>();
         var history = await service.RelationshipAsync(allowed, 1, 1, default);
-        Assert.Single(history.Dues.Items);
+        var historyDue = Assert.Single(history.Dues.Items);
+        Assert.NotNull(history.Summary);
+        var serviceStates = await service.GetServiceStatesAsync([historyDue.ServiceId!.Value], default);
+        Assert.Equal(historyDue.Currency, serviceStates[historyDue.ServiceId!.Value].Currency);
+        Assert.Null(serviceStates[historyDue.ServiceId!.Value].RemainingSessions);
+        Assert.NotEqual("Paid", serviceStates[historyDue.ServiceId!.Value].Status);
+        Assert.All(history.Summary.OverdueByCurrency, x => Assert.Equal(historyDue.Currency, x.Currency));
+        Assert.Empty((await service.RelationshipAsync(allowed, 1, 1, default, serviceId: Guid.NewGuid())).Dues.Items);
+        Assert.Empty((await service.RelationshipAsync(allowed, 1, 1, default, status: DueStatus.Paid)).Dues.Items);
+        Assert.Single((await service.RelationshipAsync(allowed, 1, 1, default, from: historyDue.DueAt.AddDays(-1), to: historyDue.DueAt.AddDays(1), sort: "latest")).Dues.Items);
+        Assert.Empty((await service.RelationshipAsync(allowed, 1, 1, default, to: historyDue.DueAt)).Dues.Items);
         var dues = await service.DuesAsync(1, 1, null, "due", default);
         Assert.Equal(1, dues.Total);
         Assert.Equal(allowed, Assert.Single(dues.Items).RelationshipId);
@@ -538,6 +551,7 @@ public sealed partial class OffersBillingTests
         s.AddLogging();
         s.AddSingleton(NpgsqlDataSource.Create(database ?? Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!));
         s.AddSingleton<IAccountContext>(new Account(user));
+        s.AddSingleton<IAccountDirectory, PurchaseAccountsDirectory>();
         s.AddSingleton<IFeatureAccessService>(features ?? new Features());
         s.AddSingleton<IAccountProfileFields>(currency ?? new Profiles());
         s.AddSingleton<IRelationshipAccessPolicy>(policy ?? new Policy());
@@ -545,6 +559,9 @@ public sealed partial class OffersBillingTests
         s.AddSingleton<IConfiguration>(Config(fee));
         if (provider != null)
             s.AddSingleton(provider);
+        s.AddModuleDatabase<TrainingDbContext>("training");
+        s.AddScoped<ITrainingPurchases, TrainingPurchaseService>();
+        s.AddScoped<TrainingPurchaseService>();
         s.AddForms(Config(fee));
         s.AddOffers(Config(fee));
         s.AddBilling(Config(fee));
@@ -566,6 +583,10 @@ public sealed partial class OffersBillingTests
     private sealed class Clock(DateTimeOffset now) : TimeProvider
     {
         public DateTimeOffset Now { get; set; } = now; public override DateTimeOffset GetUtcNow() => Now;
+    }
+    private sealed class PurchaseAccountsDirectory : IAccountDirectory
+    {
+        public Task<IReadOnlyDictionary<Guid, AccountDirectoryEntry>> GetAccountsAsync(IReadOnlyCollection<Guid> ids, CancellationToken ct) => Task.FromResult<IReadOnlyDictionary<Guid, AccountDirectoryEntry>>(ids.ToDictionary(id => id, id => new AccountDirectoryEntry(id, id, null, "Test", [AccountRole.Client])));
     }
     private sealed class Account(Guid user) : IAccountContext
     {
@@ -612,6 +633,8 @@ public sealed partial class OffersBillingTests
             var connection = builder.ConnectionString;
             await using var forms = new FormsDbContext(new DbContextOptionsBuilder<FormsDbContext>().UseNpgsql(connection, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "forms")).Options);
             await forms.Database.MigrateAsync();
+            await using var training = new TrainingDbContext(new DbContextOptionsBuilder<TrainingDbContext>().UseNpgsql(connection, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "training")).Options);
+            await training.Database.MigrateAsync();
             await using var offers = new OffersDbContext(new DbContextOptionsBuilder<OffersDbContext>().UseNpgsql(connection, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "offers")).Options);
             await offers.Database.MigrateAsync();
             await using var billing = new BillingDbContext(new DbContextOptionsBuilder<BillingDbContext>().UseNpgsql(connection, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "billing")).Options);

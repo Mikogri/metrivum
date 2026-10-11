@@ -8,6 +8,8 @@ public interface IAccountDirectory
 {
     Task<AccountSearchEntry[]> SearchAsync(string prefix, CancellationToken cancellationToken) => Task.FromResult(Array.Empty<AccountSearchEntry>());
     Task<IReadOnlyDictionary<Guid, AccountDirectoryEntry>> GetAccountsAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken);
+    async Task<Guid[]> GetActiveUserIdsAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken) =>
+        (await GetAccountsAsync(userIds, cancellationToken)).Keys.ToArray();
     async Task<Guid[]> FindNameMatchesAsync(IReadOnlyCollection<Guid> userIds, string search, CancellationToken cancellationToken)
     {
         var entries = await GetAccountsAsync(userIds, cancellationToken);

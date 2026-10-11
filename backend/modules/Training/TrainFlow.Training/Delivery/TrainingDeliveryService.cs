@@ -16,7 +16,7 @@ namespace TrainFlow.Training.Delivery;
 
 public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IRelationshipRecipients relationships, IRelationshipAccessPolicy policy, IExerciseCatalog catalog, INotificationPublisher notifications,
-    ModuleTransaction transaction, TimeProvider clock, IAccountDirectory directory, ITeamContext? teams = null) : ITrainingProgressReader
+    ModuleTransaction transaction, TimeProvider clock, IAccountDirectory directory, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers, ITeamContext? teams = null) : ITrainingProgressReader
 {
     private DbSet<ProgramAssignment> Assignments => db.Set<ProgramAssignment>();
     private DbSet<WorkoutOccurrence> Occurrences => db.Set<WorkoutOccurrence>();
@@ -53,6 +53,7 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
         var team = teams == null ? null : await teams.GetForUserAsync(coach.UserId, ct);
         if (team != null)
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({"team:" + team.TeamId}, 0))", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({coach.WorkspaceId.ToString()}, 7105))", ct);
         await LockAsync(coach.UserId, ct);
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(TrainingJson.Serialize(new
         {
@@ -175,6 +176,9 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
         a.Version++;
         a.UpdatedAt = clock.GetUtcNow();
         await db.SaveChangesAsync(ct);
+        var revision = await db.Revisions.AsNoTracking().SingleAsync(r => r.Id == a.EffectiveRevisionId, ct);
+        foreach (var observer in assignmentObservers)
+            await observer.ChangedAsync(a.CoachId, AssignedProgramCyclesReader.Describe(a, revision), ct);
         return Dto(a, true);
     }, ct);
     public Task<AssignmentDto> RefreshAsync(Guid id, Guid revisionId, long version, CancellationToken ct) => MutateAsync(async () =>
@@ -192,26 +196,19 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
             return Dto(a, true);
         var oldRevisionNumber = await db.Revisions.Where(x => x.Id == a.EffectiveRevisionId).Select(x => x.Number).SingleAsync(ct);
         if (revision.Number <= oldRevisionNumber)
-            throw ApiException.Invalid("Refresh requires a newer published revision.");
-        var today = DeliveryRules.LocalDate(clock.GetUtcNow(), a.TimeZone);
-        var existing = await Occurrences.Where(x => x.AssignmentId == id && !x.Superseded).ToArrayAsync(ct);
-        var started = await Executions.Where(e => existing.Select(o => o.Id).Contains(e.OccurrenceId)).Select(e => e.OccurrenceId).ToArrayAsync(ct);
-        foreach (var o in existing.Where(x => x.ScheduledDate > today && !started.Contains(x.Id)))
-            o.Superseded = true;
-        // A historical/started workout ID remains reserved even when moved by structural edits.
-        var retained = existing.Where(x => !x.Superseded).Select(x => x.WorkoutId).ToHashSet();
-        db.AddRange(DeliveryRules.Resolve(a, revision).Where(x => x.ScheduledDate > today && !retained.Contains(x.WorkoutId)));
-        a.EffectiveRevisionId = revision.Id;
-        a.Version++;
-        a.UpdatedAt = clock.GetUtcNow();
+            throw ApiException.Invalid("Refresh requires a newer applied revision.");
+        await AssignmentRevisionUpdater.RefreshAsync(db, a, revision, clock, assignmentObservers, ct);
         await db.SaveChangesAsync(ct);
         return Dto(a, true);
     }, ct);
 
-    public async Task<Paged<OccurrenceDto>> ScheduleAsync(DateOnly fromDate, DateOnly to, Guid? relationshipId, Guid? programId, int page, int pageSize, CancellationToken ct, string? view = null)
+    public async Task<Paged<OccurrenceDto>> ScheduleAsync(DateOnly fromDate, DateOnly to, Guid? relationshipId, Guid? programId, int page, int pageSize, CancellationToken ct, string? view = null, Guid? blockId = null, Guid? cycleId = null, string? status = null, string? sort = null)
     {
         Range(fromDate, to);
         Page(page, pageSize);
+        if (status is not (null or "" or "Scheduled" or "InProgress" or "Completed" or "Skipped" or "Missed") || sort is not (null or "oldest" or "latest"))
+            throw ApiException.Invalid("Invalid activity status or sort order.");
+        var now = clock.GetUtcNow();
         var ids = await VisibleAsync(relationshipId, null, ct, view);
         var q = from o in Occurrences.AsNoTracking()
                 join a in Assignments.AsNoTracking() on o.AssignmentId equals a.Id
@@ -224,9 +221,20 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
                     a,
                     e
                 };
+        q = q.Where(x => (blockId == null || x.o.BlockId == blockId) && (cycleId == null || x.o.CycleId == cycleId));
+        q = status switch
+        {
+            "Scheduled" => q.Where(x => x.e == null && x.o.Deadline > now),
+            "Missed" => q.Where(x => x.e == null && x.o.Deadline <= now),
+            "InProgress" => q.Where(x => x.e != null && x.e.Status == ExecutionStatus.InProgress),
+            "Completed" => q.Where(x => x.e != null && x.e.Status == ExecutionStatus.Completed),
+            "Skipped" => q.Where(x => x.e != null && x.e.Status == ExecutionStatus.Skipped),
+            _ => q
+        };
         var count = await q.CountAsync(ct);
         // Only summary fields are needed here; prescription snapshots belong to workout details.
-        var rows = await q.OrderBy(x => x.o.ScheduledDate).ThenBy(x => x.o.Id).Skip((page - 1) * pageSize).Take(pageSize)
+        var ordered = sort == "latest" ? q.OrderByDescending(x => x.o.ScheduledDate).ThenBy(x => x.o.Id) : q.OrderBy(x => x.o.ScheduledDate).ThenBy(x => x.o.Id);
+        var rows = await ordered.Skip((page - 1) * pageSize).Take(pageSize)
             .Select(x => new
             {
                 o = new WorkoutOccurrence
@@ -249,14 +257,17 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
                     ProgramName = x.a.ProgramName,
                     Status = x.a.Status
                 },
-                e = x.e == null ? null : new WorkoutExecution { Id = x.e.Id, Status = x.e.Status, CompletedAt = x.e.CompletedAt }
+                e = x.e == null ? null : new WorkoutExecution { Id = x.e.Id, Status = x.e.Status, CompletedAt = x.e.CompletedAt, PerformedDate = x.e.PerformedDate, DurationSeconds = x.e.DurationSeconds, Comment = x.e.Comment },
+                ExerciseCount = x.e == null ? (int?)null : x.e.Exercises.Count
             }).ToArrayAsync(ct);
         var active = await ActiveIds(rows.Select(x => x.a.RelationshipId).Distinct().ToArray(), ct);
-        return new(rows.Select(x => OccurrenceDto(x.o, x.a, x.e, active.Contains(x.a.RelationshipId))).ToArray(), page, pageSize, count);
+        return new(rows.Select(x => OccurrenceDto(x.o, x.a, x.e, active.Contains(x.a.RelationshipId)) with { ExerciseCount = x.ExerciseCount }).ToArray(), page, pageSize, count);
     }
-    public async Task<WorkoutDetailDto> WorkoutAsync(Guid id, CancellationToken ct)
+    public async Task<WorkoutDetailDto> WorkoutAsync(Guid id, CancellationToken ct, Guid? relationshipId = null)
     {
         var (o, a) = await WorkoutContextAsync(id, RelationshipOperation.HistoricalSharedRead, ct);
+        if (relationshipId != null && a.RelationshipId != relationshipId)
+            throw ApiException.NotFound();
         var e = await ExecutionQuery().SingleOrDefaultAsync(x => x.OccurrenceId == id, ct);
         var active = (await relationships.GetAsync(a.RelationshipId, ct))?.Status == RelationshipStatus.Active;
         return new(OccurrenceDto(o, a, e, active), e?.Prescription ?? o.Prescription, e == null ? null : ExecutionDto(e, active && (a.Status == AssignmentStatus.Active || e.Status == ExecutionStatus.Completed)));
@@ -393,8 +404,10 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
     {
         if (!await db.Plans.AnyAsync(x => x.Id == programId && x.OwnerId == account.UserId && x.WorkspaceId == account.WorkspaceId && !x.Archived && x.Kind == DocumentKind.Program, ct))
             throw ApiException.NotFound();
-        return await db.Revisions.Where(x => x.PlanId == programId && (revisionId == null || x.Id == revisionId)).OrderByDescending(x => x.Number).FirstOrDefaultAsync(ct)
-            ?? throw ApiException.Invalid("Publish the program before assigning it.");
+        var revision = await db.Revisions.Where(x => x.PlanId == programId).OrderByDescending(x => x.Number).FirstOrDefaultAsync(ct)
+            ?? throw ApiException.Invalid("Apply changes before assigning the program.");
+        if (revisionId != null && revisionId != revision.Id) throw ApiException.Conflict("Use the latest applied version.");
+        return revision;
     }
     private async Task<ProgramAssignment> AssignmentAsync(Guid id, RelationshipOperation operation, CancellationToken ct)
     {
@@ -512,20 +525,20 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
         coach && a.Status is AssignmentStatus.Active or AssignmentStatus.Paused ? activeRelationship ? ["status", "refresh"] : ["status"] : []);
     private OccurrenceDto OccurrenceDto(WorkoutOccurrence o, ProgramAssignment a, WorkoutExecution? e, bool active) => new(o.Id, a.Id, a.RelationshipId, a.ProgramId,
         a.ProgramName, o.RevisionId, o.BlockId, o.CycleId, o.DayId, o.WorkoutId, o.Name, o.ScheduledDate, o.Deadline, DeliveryRules.Status(o, e, clock.GetUtcNow()), e?.Id,
-        e?.CompletedAt >= o.Deadline, active && a.Status == AssignmentStatus.Active && e == null ? ["start", "skip"] : active && a.Status == AssignmentStatus.Active && e?.Status == ExecutionStatus.Skipped ? ["start"] : active && e != null ? ["view"] : []);
+        e?.CompletedAt >= o.Deadline, active && a.Status == AssignmentStatus.Active && e == null ? ["start", "skip"] : active && a.Status == AssignmentStatus.Active && e?.Status == ExecutionStatus.Skipped ? ["start"] : active && e != null ? ["view"] : [], e?.PerformedDate, e?.DurationSeconds, !string.IsNullOrWhiteSpace(e?.Comment));
     private static ExecutionDto ExecutionDto(WorkoutExecution e, bool active) => new(e.Id, e.OccurrenceId, e.Status, e.PerformedDate, e.StartedAt, e.CompletedAt, e.UpdatedAt,
         e.Comment, e.DurationSeconds, e.Version, e.Exercises.OrderBy(x => x.Position).Select(x => new ExerciseExecutionDto(x.Id, x.PrescribedInstanceId, x.ExerciseId, x.Name, x.Comment,
             x.Sets.OrderBy(s => s.Position).Select(s => new ActualSet(s.PrescribedSetId, s.PrescribedSegmentId, s.Skipped, s.Reps, s.Load, s.LoadUnit, s.LoadMeaning, s.Rpe, s.Rir, s.DurationSeconds,
-                s.DistanceMeters, s.RestSeconds, s.Tempo, s.Comment)).ToArray())).ToArray(), active ? e.Status == ExecutionStatus.Completed ? ["save"] : e.Status == ExecutionStatus.InProgress ? ["save", "complete"] : [] : []);
+                s.DistanceMeters, s.RestSeconds, s.Tempo, s.Comment, s.Id)).ToArray())).ToArray(), active ? e.Status == ExecutionStatus.Completed ? ["save"] : e.Status == ExecutionStatus.InProgress ? ["save", "complete"] : [] : []);
     private static void Page(int page, int size)
     {
         if (page is < 1 or > 100000 || size is < 1 or > 100)
             throw ApiException.Invalid("Invalid pagination (maximum page size 100).");
     }
-    private static void Range(DateOnly from, DateOnly to)
+    private static void Range(DateOnly from, DateOnly to, int maximumDays = 366)
     {
-        if (to < from || to.DayNumber - from.DayNumber > 366)
-            throw ApiException.Invalid("Use an ordered date range of at most 367 dates.");
+        if (to < from || to.DayNumber - from.DayNumber > maximumDays)
+            throw ApiException.Invalid($"Use an ordered date range of at most {maximumDays + 1} dates.");
     }
     private static void Text(string? text, int length)
     {

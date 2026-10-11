@@ -14,12 +14,172 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TrainFlow.Coaching.Contracts;
 using TrainFlow.Messaging.Domain;
+using TrainFlow.Messaging.Features;
 using TrainFlow.Messaging.Infrastructure;
 
 namespace TrainFlow.IntegrationTests;
 
 public sealed class MessagingTests
 {
+    [CatalogPostgresFact]
+    public async Task Deleted_introductions_are_redacted_from_every_request_projection_and_retry()
+    {
+        using var f = new ApiFactory(Database);
+        var realtime = new TestHubContext();
+        using var app = f.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            services.Replace(ServiceDescriptor.Singleton<IHubContext<MessagingHub>>(realtime))));
+        var sender = await User(f, "Coach", app.CreateClient);
+        var recipient = await User(f, "Client", app.CreateClient);
+        await Ok(recipient.Http.PutAsJsonAsync("/api/v1/me/messaging-preferences", new { requireApproval = true }));
+        var input = new { userId = recipient.Id, body = "Private introduction" };
+        var request = await Ok(sender.Http.PostAsJsonAsync(Root + "/requests", input));
+        var conversation = request.GetProperty("conversationId").GetGuid();
+        var requestId = request.GetProperty("id").GetGuid();
+        var intro = Assert.Single((await History(sender.Http, conversation)).GetProperty("items").EnumerateArray());
+        await Ok(sender.Http.DeleteAsync(Root + "/messages/" + intro.GetProperty("id").GetGuid()));
+        realtime.RequestEvents.Clear();
+        foreach (var http in new[] { sender.Http, recipient.Http })
+        {
+            Assert.Equal("", (await Ok(http.GetAsync(Root + "/conversations/" + conversation))).GetProperty("request").GetProperty("body").GetString());
+            Assert.Equal("", Assert.Single((await Ok(http.GetAsync(Root + "/conversations"))).EnumerateArray()).GetProperty("request").GetProperty("body").GetString());
+            Assert.Equal("", Assert.Single((await Ok(http.GetAsync(Root + "/requests"))).EnumerateArray()).GetProperty("body").GetString());
+        }
+        Assert.Equal("", (await Ok(sender.Http.PostAsJsonAsync(Root + "/requests", input))).GetProperty("body").GetString());
+        Assert.Equal("", (await Ok(recipient.Http.PostAsync(Root + $"/requests/{requestId}/accept", null))).GetProperty("body").GetString());
+        Assert.NotEmpty(realtime.RequestEvents);
+        Assert.All(realtime.RequestEvents, dto => Assert.Equal("", dto.Body));
+    }
+
+    [CatalogPostgresFact]
+    public async Task First_send_rechecks_approval_after_an_empty_conversation_was_opened()
+    {
+        using var f = new ApiFactory(Database);
+        var sender = await User(f, "Coach");
+        var recipient = await User(f, "Client");
+        var chat = await Ok(sender.Http.PostAsJsonAsync(Root + "/conversations/direct", new { userId = recipient.Id }));
+        var id = chat.GetProperty("id").GetGuid();
+        await Ok(recipient.Http.PutAsJsonAsync("/api/v1/me/messaging-preferences", new { requireApproval = true }));
+        var detail = await Ok(sender.Http.GetAsync(Root + "/conversations/" + id));
+        Assert.True(detail.GetProperty("canSendMessages").GetBoolean());
+        Assert.False(detail.GetProperty("canUploadAttachments").GetBoolean());
+        Assert.False(Assert.Single((await Ok(sender.Http.GetAsync(Root + "/conversations"))).EnumerateArray()).GetProperty("canUploadAttachments").GetBoolean());
+        Assert.Equal(HttpStatusCode.Forbidden, (await sender.Http.PostAsJsonAsync(Root + "/uploads?conversationId=" + id, new { name = "test.png", contentType = "image/png", size = 20 })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendResponse(sender.Http, id, "No reply", reply: Guid.NewGuid())).StatusCode);
+        using var attachment = new HttpRequestMessage(HttpMethod.Post, Root + $"/conversations/{id}/messages")
+        {
+            Content = JsonContent.Create(new { type = "Image", mediaIds = new[] { Guid.NewGuid() } })
+        };
+        attachment.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
+        Assert.Equal(HttpStatusCode.Forbidden, (await sender.Http.SendAsync(attachment)).StatusCode);
+        var key = Guid.NewGuid().ToString();
+        var body = new string('a', 8000);
+        var message = await Send(sender.Http, id, body, key);
+        Assert.Equal(message.GetProperty("id").GetGuid(), (await Send(sender.Http, id, body, key)).GetProperty("id").GetGuid());
+        detail = await Ok(recipient.Http.GetAsync(Root + "/conversations/" + id));
+        Assert.False(detail.GetProperty("canSendMessages").GetBoolean());
+        Assert.Equal("Pending", detail.GetProperty("request").GetProperty("state").GetString());
+        Assert.Equal(body, detail.GetProperty("request").GetProperty("body").GetString());
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendResponse(sender.Http, id, "Second")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendResponse(recipient.Http, id, "Reply before accepting")).StatusCode);
+        await Ok(sender.Http.DeleteAsync(Root + "/messages/" + message.GetProperty("id").GetGuid()));
+        var response = await Ok(recipient.Http.PostAsync(Root + "/requests/" + detail.GetProperty("request").GetProperty("id").GetGuid() + "/accept", null));
+        Assert.Equal("", response.GetProperty("body").GetString());
+        await Send(sender.Http, id, "After acceptance");
+    }
+
+    [CatalogPostgresFact]
+    public async Task Strangers_can_open_and_send_without_approval_by_default()
+    {
+        using var f = new ApiFactory(Database);
+        var sender = await User(f, "Coach");
+        var recipient = await User(f, "Client");
+        var chat = await Ok(sender.Http.PostAsJsonAsync(Root + "/conversations/direct", new { userId = recipient.Id }));
+        var id = chat.GetProperty("id").GetGuid();
+        await Send(sender.Http, id, "Hello");
+        await Send(recipient.Http, id, "Welcome");
+        Assert.Equal(2, (await History(recipient.Http, id)).GetProperty("items").GetArrayLength());
+    }
+
+    [CatalogPostgresFact]
+    public async Task Explicit_approval_keeps_intro_in_chat_and_denies_pending_mutations()
+    {
+        using var f = new ApiFactory(Database);
+        var sender = await User(f, "Coach");
+        var recipient = await User(f, "Client");
+        await Activate(f, sender.Id, recipient.Id);
+        await Ok(recipient.Http.PutAsJsonAsync("/api/v1/me/messaging-preferences", new { requireApproval = true }));
+        var request = await Ok(sender.Http.PostAsJsonAsync(Root + "/requests", new { userId = recipient.Id, body = "Hello" }));
+        var id = request.GetProperty("conversationId").GetGuid();
+        var requestId = request.GetProperty("id").GetGuid();
+        Assert.Equal("Pending", request.GetProperty("state").GetString());
+        Assert.Single((await History(recipient.Http, id)).GetProperty("items").EnumerateArray());
+        var listed = Assert.Single((await Ok(sender.Http.GetAsync(Root + "/conversations"))).EnumerateArray());
+        Assert.False(listed.GetProperty("canSendMessages").GetBoolean());
+        Assert.False(listed.GetProperty("canUploadAttachments").GetBoolean());
+        Assert.Equal(requestId, listed.GetProperty("request").GetProperty("id").GetGuid());
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendResponse(sender.Http, id, "Second")).StatusCode);
+        var introduction = Assert.Single((await History(sender.Http, id)).GetProperty("items").EnumerateArray());
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendResponse(sender.Http, id, "Reply", reply: introduction.GetProperty("id").GetGuid())).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await sender.Http.PostAsJsonAsync("/api/v1/messaging/uploads?conversationId=" + id, new { name = "test.png", contentType = "image/png", size = 20 })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await sender.Http.PostAsync($"/api/v1/messaging/uploads/{Guid.NewGuid()}/finalize?conversationId={id}", null)).StatusCode);
+        await Ok(recipient.Http.PostAsync(Root + $"/requests/{requestId}/accept", null));
+        await Send(sender.Http, id, "Accepted");
+        Assert.Equal(2, (await History(recipient.Http, id)).GetProperty("items").GetArrayLength());
+    }
+
+    [CatalogPostgresFact]
+    public async Task Rejoining_members_obey_capacity_and_active_adds_remain_idempotent()
+    {
+        using var f = new ApiFactory(Database);
+        using var app = f.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            services.Configure<MessagingOptions>(options => options.MaxGroupMembers = 2)));
+        var owner = await User(f, "Coach", app.CreateClient);
+        var former = await User(f, "Client", app.CreateClient);
+        var replacement = await User(f, "Client", app.CreateClient);
+        var id = await Group(owner.Http, [former.Id]);
+        var members = Root + $"/conversations/{id}/members";
+        Assert.Equal(HttpStatusCode.NoContent, (await owner.Http.DeleteAsync(members + $"/{former.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await owner.Http.PostAsync(members + $"/{former.Id}/unban", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await owner.Http.PostAsJsonAsync(members, new { userId = replacement.Id })).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await owner.Http.PostAsJsonAsync(members, new { userId = former.Id })).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await owner.Http.PostAsJsonAsync(members, new { userId = replacement.Id })).StatusCode);
+        using var db = Db();
+        Assert.Equal(2, await db.Members.CountAsync(x => x.ConversationId == id && x.State == MemberState.Active));
+        Assert.Equal(MemberState.Removed, (await db.Members.SingleAsync(x => x.ConversationId == id && x.UserId == former.Id)).State);
+        Assert.Equal(HttpStatusCode.NoContent, (await owner.Http.DeleteAsync(members + $"/{replacement.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await owner.Http.PostAsJsonAsync(members, new { userId = former.Id })).StatusCode);
+    }
+
+    [CatalogPostgresFact]
+    public async Task Reading_chat_persists_notification_reads_without_consuming_newer_or_other_conversation_events()
+    {
+        using var f = new ApiFactory(Database);
+        var reader = await User(f, "Coach");
+        var sender = await User(f, "Coach");
+        var chat = await Group(reader.Http, [sender.Id]);
+        var other = await Group(reader.Http, [sender.Id]);
+        var first = await Send(sender.Http, chat, "First");
+        var second = await Send(sender.Http, chat, "Second");
+        await Send(sender.Http, other, "Other conversation");
+        async Task Read(Guid messageId) => (await reader.Http.PostAsJsonAsync(Root + $"/conversations/{chat}/read", new { messageId })).EnsureSuccessStatusCode();
+        async Task<int> Count() => (await reader.Http.GetFromJsonAsync<TrainFlow.Notifications.NotificationCountDto>("/api/v1/me/notifications/unread-count"))!.Count;
+        Assert.Equal(3, await Count());
+        await Read(first.GetProperty("id").GetGuid());
+        Assert.Equal(2, await Count());
+        await Read(first.GetProperty("id").GetGuid());
+        Assert.Equal(2, await Count());
+        await Read(second.GetProperty("id").GetGuid());
+        Assert.Equal(1, await Count());
+        var third = await Send(sender.Http, chat, "After reading");
+        await Read(first.GetProperty("id").GetGuid());
+        Assert.Equal(2, await Count());
+        await Read(third.GetProperty("id").GetGuid());
+        Assert.Equal(1, await Count());
+        var notifications = await reader.Http.GetFromJsonAsync<TrainFlow.Notifications.NotificationPage>("/api/v1/me/notifications");
+        Assert.All(notifications!.Items.Where(n => n.SourceId == chat), n => Assert.NotNull(n.ReadAt));
+        Assert.Null(Assert.Single(notifications.Items, n => n.SourceId == other).ReadAt);
+    }
+
     private const string Root = "/api/v1/messaging";
     private static string Database => Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!;
 
@@ -192,6 +352,7 @@ public sealed class MessagingTests
         using var f = new ApiFactory(Database);
         var a = await User(f, "Coach");
         var b = await User(f, "Client");
+        await Ok(b.Http.PutAsJsonAsync("/api/v1/me/messaging-preferences", new { requireApproval = true }));
         Assert.Equal(HttpStatusCode.Forbidden, (await a.Http.PostAsJsonAsync(Root + "/conversations/direct", new
         {
             userId = b.Id
@@ -230,6 +391,7 @@ public sealed class MessagingTests
         using var f = new ApiFactory(Database);
         var a = await User(f, "Coach");
         var b = await User(f, "Client");
+        await Ok(b.Http.PutAsJsonAsync("/api/v1/me/messaging-preferences", new { requireApproval = true }));
         var r = await Ok(a.Http.PostAsJsonAsync(Root + "/requests", new
         {
             userId = b.Id,
@@ -237,20 +399,14 @@ public sealed class MessagingTests
         }));
         var id = r.GetProperty("id").GetGuid();
         await Ok(b.Http.PostAsync(Root + $"/requests/{id}/decline", null));
-        Assert.Equal(HttpStatusCode.Forbidden, (await a.Http.PostAsJsonAsync(Root + "/conversations/direct", new
-        {
-            userId = b.Id
-        })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendResponse(a.Http, r.GetProperty("conversationId").GetGuid(), "Still denied")).StatusCode);
         var next = await Ok(a.Http.PostAsJsonAsync(Root + "/requests", new
         {
             userId = b.Id,
             body = "retry"
         }));
         await Ok(a.Http.PostAsync(Root + "/requests/" + next.GetProperty("id").GetGuid() + "/cancel", null));
-        Assert.Equal(HttpStatusCode.Forbidden, (await b.Http.PostAsJsonAsync(Root + "/conversations/direct", new
-        {
-            userId = a.Id
-        })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendResponse(a.Http, r.GetProperty("conversationId").GetGuid(), "Still denied")).StatusCode);
     }
 
     [CatalogPostgresFact]
@@ -753,6 +909,7 @@ public sealed class MessagingTests
             get; private set;
         }
         public string LastEvent { get; set; } = "";
+        public List<RequestDto> RequestEvents { get; } = [];
 
         public IClientProxy AllExcept(IReadOnlyList<string> ids) => this;
         public IClientProxy Client(string id) => this;
@@ -775,6 +932,7 @@ public sealed class MessagingTests
         public async Task SendCoreAsync(string method, object?[] args, CancellationToken ct = default)
         {
             LastEvent = method;
+            if (args[0] is RequestDto request) RequestEvents.Add(request);
             if (method == "MessageCreated" && args[0] is TrainFlow.Messaging.Features.MessageDto dto)
             {
                 using var db = Db();

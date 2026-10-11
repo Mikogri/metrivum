@@ -54,6 +54,8 @@ public sealed class CheckInsDbContext(DbContextOptions<CheckInsDbContext> option
         r.HasIndex(x => x.FormSubmissionId).IsUnique();
         r.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
         r.Property(x => x.Version).IsConcurrencyToken();
+        r.Property(x => x.AssignmentSource).HasMaxLength(30);
+        r.Property(x => x.AssignmentGroupsJson).HasColumnType("jsonb");
         r.Property(x => x.ScheduleName).HasMaxLength(200);
         r.Property(x => x.ClientReply).HasMaxLength(4000);
         r.Property(x => x.CoachPrivateNotes).HasMaxLength(4000);

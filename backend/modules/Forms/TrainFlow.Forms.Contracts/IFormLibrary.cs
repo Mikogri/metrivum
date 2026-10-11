@@ -31,6 +31,7 @@ public sealed record FormSubmissionDto(Guid Id, Guid FormVersionId, Guid Respond
 // No unscoped public endpoint exposes versions or submissions to respondents.
 public interface IFormLibrary
 {
+    Task<IReadOnlyList<Guid>> GetVersionIdsForTemplateAsync(Guid templateId, CancellationToken ct) => Task.FromResult<IReadOnlyList<Guid>>([]);
     Task<FormVersionDto> GetVersionAsync(Guid id, CancellationToken cancellationToken);
     Task<FormVersionDto> RequireUsableVersionAsync(Guid id, Guid coachId, FormPurpose purpose, CancellationToken cancellationToken);
     Task<IReadOnlyDictionary<Guid, FormVersionDto>> GetVersionsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken);

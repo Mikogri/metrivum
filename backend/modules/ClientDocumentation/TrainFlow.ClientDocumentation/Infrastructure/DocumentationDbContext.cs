@@ -5,6 +5,7 @@ namespace TrainFlow.ClientDocumentation.Infrastructure;
 
 public sealed class MeasurementRecord
 {
+    public long Version { get; set; } = 1;
     public Guid Id
     {
         get; set;
@@ -43,6 +44,7 @@ public sealed class MeasurementRecord
 }
 public sealed class PrivateCoachNote
 {
+    public string Title { get; set; } = "";
     public Guid Id
     {
         get; set;
@@ -68,6 +70,8 @@ public sealed class PrivateCoachNote
 }
 public sealed class RelationshipDocument
 {
+    public DateTimeOffset? DeletedAt { get; set; }
+    public long? Size { get; set; }
     public Guid Id
     {
         get; set;
@@ -132,6 +136,7 @@ public sealed class DocumentationDbContext(DbContextOptions<DocumentationDbConte
             e.Property(x => x.Source).HasMaxLength(20);
             e.Property(x => x.Value).HasPrecision(18, 6);
             e.Property(x => x.Comment).HasMaxLength(2000);
+            e.Property(x => x.Version).IsConcurrencyToken();
         });
         model.Entity<PrivateCoachNote>(e =>
         {
@@ -139,6 +144,7 @@ public sealed class DocumentationDbContext(DbContextOptions<DocumentationDbConte
             e.HasKey(x => x.Id);
             e.HasIndex(x => new { x.RelationshipId, x.CreatedAt, x.Id });
             e.Property(x => x.Text).HasMaxLength(20000);
+            e.Property(x => x.Title).HasMaxLength(200);
             e.Property(x => x.Version).IsConcurrencyToken();
         });
         model.Entity<RelationshipDocument>(e =>

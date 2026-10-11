@@ -1,3 +1,4 @@
+using TrainFlow.Training.Purchases;
 using TrainFlow.Training.Generation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -198,6 +199,12 @@ public sealed class TrainingDbContext(DbContextOptions<TrainingDbContext> option
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.HasDefaultSchema("training");
+        model.Entity<TrainingPurchase>(e => {
+            e.ToTable("purchases"); e.HasKey(x => x.OrderId); e.HasIndex(x => x.ApplicationId).IsUnique();
+            e.HasIndex(x => new { x.BuyerId, x.CreatedAt, x.OrderId }); e.HasIndex(x => x.PlanId).IsUnique();
+            e.Property(x => x.Name).HasMaxLength(200); e.Property(x => x.Snapshot).HasColumnType("jsonb");
+            e.HasOne<TrainingPlan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
+        });
         TrainFlow.Training.Delivery.DeliveryModel.Configure(model);
         model.ConfigureProgramGeneration();
         var folder = model.Entity<TrainingFolder>();

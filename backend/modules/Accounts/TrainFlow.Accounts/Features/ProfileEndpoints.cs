@@ -18,6 +18,11 @@ public static class ProfileEndpoints
 {
     public static void Map(IEndpointRouteBuilder endpoints)
     {
+        endpoints.MapGet("/api/v1/accounts/people", async (string search, IAccountDirectory directory, IAccountContext account, CancellationToken ct) =>
+        {
+            await account.GetRolesAsync(ct);
+            return (await directory.SearchAsync(search, ct)).Where(person => person.UserId != account.UserId).ToArray();
+        }).WithTags("Accounts").RequireAuthorization();
         var group = endpoints.MapGroup("/api/v1/me").WithTags("Accounts");
         group.MapGet("/profile-fields", async (IAccountProfileFields fields, HttpContext http, CancellationToken ct) => ProfileFieldsResponse(http, await fields.GetOwnAsync(ct)));
         group.MapPatch("/profile-fields", async (ProfileFieldsRequest request, IAccountProfileFields fields, HttpContext http, CancellationToken ct) => ProfileFieldsResponse(http, await fields.UpdateOwnAsync(request.Values, ProfileFieldsVersion(http), ct)));

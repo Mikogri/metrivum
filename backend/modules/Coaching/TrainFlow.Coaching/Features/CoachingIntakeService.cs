@@ -18,7 +18,7 @@ namespace TrainFlow.Coaching.Features;
 public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext accounts, IAccountDirectory directory,
     IAccountProfileFields profile, IFeatureAccessService access, IOfferLibrary offers, IFormLibrary forms,
     IBillingOrders billing, IRelationshipActivation activation, IRelationshipAccessPolicy policy,
-    ModuleTransaction transactions, TimeProvider clock, INotificationPublisher notifications, ITeamContext? teams = null, TeamClientsService? teamClients = null)
+    ModuleTransaction transactions, TimeProvider clock, INotificationPublisher notifications, ITeamContext? teams = null, TeamClientsService? teamClients = null, ICoachingChatPublisher? chat = null)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
@@ -224,6 +224,17 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
             var submission = await forms.GetSubmissionAsync(app.FormSubmissionId!.Value, token);
             if (submission.RespondentId != app.ApplicantUserId || submission.FormVersionId != app.FormVersionId)
                 throw ApiException.Conflict("The application submission does not match.");
+            if (quote.Purpose == OfferPurpose.TrainingPlan)
+            {
+                if (request.TrainingPlanRevisionId is not { } revisionId) throw ApiException.Invalid("Select an applied plan to deliver.");
+                var purchase = await billing.CreateForPlanPurchaseAsync(new(app.Id, coach.UserId, app.ApplicantUserId, app.OfferRevisionId, app.BillingOptionId, revisionId, request.SettlementMode, app.TeamId), token);
+                if (purchase.Amount != app.Amount || purchase.Currency != app.Currency) throw ApiException.Conflict("Purchase terms do not match.");
+                app.DecidedAt = clock.GetUtcNow();
+                Change(app, ApplicationStatus.Accepted, coach.UserId, null);
+                await notifications.PublishAsync(new(app.ApplicantUserId, "application:" + app.Id + ":Accepted", "ApplicationAccepted", "Coaching", "Coaching", app.Id, "/app/training-plans"), token);
+                await SaveAsync(token);
+                return (await ApplicationDtosAsync([app], true, token))[0];
+            }
             Relationship? teamRelationship = app.TeamId == null ? null : await (teamClients ?? throw ApiException.Conflict("Team intake is unavailable.")).AcceptApplicationAsync(app, token);
             var relationshipId = teamRelationship?.Id ?? await activation.ActivateAcceptedApplicationAsync(coach.UserId, app.ApplicantUserId, token);
             var now = clock.GetUtcNow();
@@ -281,6 +292,30 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
         return new(await ApplicationDtosAsync(rows, coachSide, ct), page, pageSize, total);
     }
 
+    public async Task<RelationshipProfileDto> RelationshipProfileAsync(Guid id, CancellationToken ct)
+    {
+        var coach = await CoachAsync("coaching.clients.view", ct);
+        var relationship = await db.Relationships.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.CoachId == coach.UserId && x.WorkspaceId == coach.WorkspaceId, ct) ?? throw ApiException.NotFound();
+        if (!(await policy.DecideAsync(id, RelationshipOperation.HistoricalSharedRead, ct)).Allowed) throw ApiException.NotFound();
+        return new((await profile.GetAllowedForUserAsync(relationship.ClientId, ct)).Values);
+    }
+    public async Task<Paged<ApplicationDto>> RelationshipApplicationsAsync(Guid id, int page, int pageSize, CancellationToken ct)
+    {
+        ValidateList(page, pageSize, null, "created");
+        await RelationshipProfileAsync(id, ct);
+        var q = db.Applications.AsNoTracking().Where(x => db.Services.Any(service => service.ApplicationId == x.Id && service.RelationshipId == id) && x.CoachId == accounts.UserId && x.SubmittedAt != null);
+        var total = await q.LongCountAsync(ct);
+        var rows = await q.OrderByDescending(x => x.SubmittedAt).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync(ct);
+        return new(await ApplicationDtosAsync(rows, true, ct), page, pageSize, total);
+    }
+
+    public async Task<object> RelationshipApplicationAsync(Guid relationshipId, Guid applicationId, CancellationToken ct)
+    {
+        await RelationshipProfileAsync(relationshipId, ct);
+        if (!await db.Services.AnyAsync(x => x.RelationshipId == relationshipId && x.ApplicationId == applicationId, ct)) throw ApiException.NotFound();
+        return await ApplicationAsync(applicationId, ct);
+    }
+
     public async Task<object> ApplicationAsync(Guid id, CancellationToken ct)
     {
         var app = await db.Applications.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && (x.ApplicantUserId == accounts.UserId || x.CoachId == accounts.UserId && x.SubmittedAt != null), ct) ?? throw ApiException.NotFound();
@@ -299,7 +334,7 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
         return new CoachApplicationDetailDto(detail, currentProfile.Values, history);
     }
 
-    public async Task<InvitationDto> CreateInvitationAsync(CreateInvitationRequest request, CancellationToken ct)
+    public async Task<InvitationDto> CreateInvitationAsync(CreateInvitationRequest request, CancellationToken ct, string? idempotencyKey = null)
     {
         var coach = await CoachAsync("coaching.invitations.send", ct);
         Text(request.Username, 100, true);
@@ -315,13 +350,75 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
             throw ApiException.Invalid("Invalid billing option for this offer revision.");
         await CheckTeam(revision.TeamId, true, ct);
         var invitation = new CoachingInvitation { TeamId = revision.TeamId, CoachId = coach.UserId, WorkspaceId = coach.WorkspaceId, TargetUserId = target.UserId, OfferRevisionId = revision.Id, OfferName = revision.Name, OfferSnapshot = Write(revision), BillingOptionId = request.BillingOptionId, Message = request.Message, CreatedAt = clock.GetUtcNow() };
+        if (!string.IsNullOrEmpty(idempotencyKey))
+        {
+            if (!Guid.TryParse(idempotencyKey, out var clientKey) || clientKey == Guid.Empty) throw ApiException.Invalid("Idempotency-Key must be a UUID.");
+            invitation.Id = clientKey;
+        }
         await transactions.RunAsync(async token =>
         {
+            await LockAsync("invitation-create:" + invitation.Id, token);
+            var previous = await db.Invitations.SingleOrDefaultAsync(x => x.Id == invitation.Id, token);
+            if (previous != null)
+            {
+                if (previous.CoachId != coach.UserId || previous.WorkspaceId != coach.WorkspaceId || previous.TargetUserId != target.UserId || Read<OfferRevisionDto>(previous.OfferSnapshot).OfferId != request.OfferId || previous.Message != request.Message || previous.BillingOptionId != request.BillingOptionId)
+                    throw ApiException.Conflict("Idempotency key was used for a different invitation.");
+                invitation = previous;
+                return;
+            }
             db.Invitations.Add(invitation);
             await SaveAsync(token);
-            await notifications.PublishAsync(new(invitation.TargetUserId, "invitation:" + invitation.Id, "InvitationReceived", "Coaching", "Coaching", invitation.Id, "/app/invitations/" + invitation.Id), token);
+            if (chat == null) throw new InvalidOperationException("Coaching chat integration is unavailable.");
+            var delivery = await chat.PublishAsync(invitation.TargetUserId, "invitation:" + invitation.Id,
+                new("Invitation", invitation.Id, revision.OfferId, coach.UserId, revision.Id, revision.ApplicationFormVersionId, revision.Name), invitation.Message, token);
+            await notifications.PublishAsync(new(invitation.TargetUserId, "invitation:" + invitation.Id, "InvitationReceived", "Coaching", "Coaching", invitation.Id, "/app/messages?conversation=" + delivery.ConversationId), token);
         }, ct);
         return (await InvitationDtosAsync([invitation], true, ct))[0];
+    }
+
+    public async Task<CoachingChatDelivery> ShareFormAsync(ShareOfferFormRequest request, string key, CancellationToken ct)
+    {
+        var coach = await CoachAsync("coaching.invitations.send", ct);
+        if (!Guid.TryParse(key, out var clientKey) || clientKey == Guid.Empty)
+            throw ApiException.Invalid("A UUID Idempotency-Key is required.");
+        var revision = await offers.GetCurrentAsync(request.OfferId, ct);
+        if (revision.CoachId != coach.UserId) throw ApiException.NotFound();
+        await CheckTeam(revision.TeamId, true, ct);
+        await forms.RequireUsableVersionAsync(revision.ApplicationFormVersionId, coach.UserId, FormPurpose.Application, ct);
+        if (chat == null) throw new InvalidOperationException("Coaching chat integration is unavailable.");
+        return await transactions.RunAsync(token => chat.PublishAsync(request.UserId, "form-share:" + clientKey,
+            new("OfferForm", null, revision.OfferId, coach.UserId, revision.Id, revision.ApplicationFormVersionId, revision.Name), null, token), ct);
+    }
+
+    public async Task<InvitationChatReplayDto> ReplayPendingInvitationChatsAsync(Guid? after, int limit, bool apply, CancellationToken ct)
+    {
+        var coach = await CoachAsync("coaching.invitations.send", ct);
+        if (limit is < 1 or > 100) throw ApiException.Invalid("Limit must be between 1 and 100.");
+        var rows = await db.Invitations.AsNoTracking().Where(x => x.CoachId == coach.UserId && x.WorkspaceId == coach.WorkspaceId && x.Status == InvitationStatus.Pending && (!after.HasValue || x.Id.CompareTo(after.Value) > 0))
+            .OrderBy(x => x.Id).Take(limit).ToArrayAsync(ct);
+        if (!apply) return new(rows.Length, 0, 0, rows.LastOrDefault()?.Id);
+        if (chat == null) throw new InvalidOperationException("Coaching chat integration is unavailable.");
+        var delivered = 0;
+        var skipped = 0;
+        foreach (var row in rows)
+        {
+            try
+            {
+                await transactions.RunAsync(async token =>
+                {
+                    await LockAsync("invitation:" + row.Id, token);
+                    var current = await db.Invitations.AsNoTracking().SingleAsync(x => x.Id == row.Id, token);
+                    if (current.Status != InvitationStatus.Pending) { skipped++; return; }
+                    await CheckTeam(current.TeamId, true, token);
+                    var revision = Read<OfferRevisionDto>(current.OfferSnapshot);
+                    await chat.PublishAsync(current.TargetUserId, "invitation:" + current.Id,
+                        new("Invitation", current.Id, revision.OfferId, current.CoachId, revision.Id, revision.ApplicationFormVersionId, revision.Name), current.Message, token, historical: true);
+                    delivered++;
+                }, ct);
+            }
+            catch (ApiException ex) when (ex.Status is 403 or 404) { skipped++; }
+        }
+        return new(rows.Length, delivered, skipped, rows.LastOrDefault()?.Id);
     }
 
     public async Task<InvitationDto> RespondInvitationAsync(Guid id, InvitationStatus target, long version, CancellationToken ct)
@@ -392,6 +489,33 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
         return (await InvitationDtosAsync([invitation], coachSide, ct))[0];
     }
 
+    public async Task<CurrentRelationshipServiceDto[]> CurrentServicesAsync(Guid[] relationshipIds, CancellationToken ct)
+    {
+        var coach = await CoachAsync("coaching.services.manage", ct);
+        if (relationshipIds.Length > 100 || relationshipIds.Contains(Guid.Empty))
+            throw ApiException.Invalid("Choose at most 100 valid relationships.");
+        var ids = relationshipIds.Distinct().ToArray();
+        if (ids.Length == 0)
+            return [];
+        var owned = await db.Relationships.AsNoTracking()
+            .Where(x => ids.Contains(x.Id) && x.CoachId == coach.UserId && x.WorkspaceId == coach.WorkspaceId)
+            .Select(x => x.Id).ToArrayAsync(ct);
+        if (owned.Length != ids.Length)
+            throw ApiException.NotFound();
+        var decisions = await policy.DecideManyAsync(ids, RelationshipOperation.HistoricalSharedRead, ct);
+        if (ids.Any(id => !decisions.TryGetValue(id, out var decision) || !decision.Allowed))
+            throw ApiException.NotFound();
+        var rows = await db.Services.AsNoTracking().Where(x => ids.Contains(x.RelationshipId) && x.Status == ServiceStatus.Active)
+            .GroupBy(x => x.RelationshipId)
+            .Select(g => g.OrderByDescending(x => x.UpdatedAt).ThenBy(x => x.Id)
+                .Select(x => new { x.Id, x.RelationshipId, x.OfferName }).First())
+            .ToArrayAsync(ct);
+        if (rows.Length == 0)
+            return [];
+        var states = await billing.GetServiceStatesAsync(rows.Select(x => x.Id).ToArray(), ct);
+        return rows.Select(x => new CurrentRelationshipServiceDto(x.RelationshipId, x.OfferName, states.GetValueOrDefault(x.Id))).ToArray();
+    }
+
     public async Task<Paged<RelationshipServiceDto>> ServicesAsync(Guid relationshipId, int page, int pageSize, string? search, string sort, ServiceStatus? status, CancellationToken ct)
     {
         ValidateList(page, pageSize, search, sort);
@@ -416,14 +540,17 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
             "created" => query.OrderByDescending(x => x.StartedAt).ThenBy(x => x.Id),
             _ => query.OrderByDescending(x => x.UpdatedAt).ThenBy(x => x.Id)
         };
-        return new((await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync(ct)).Select(x => ServiceDto(x, canComplete)).ToArray(), page, pageSize, total);
+        var rows = await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync(ct);
+        var states = await billing.GetServiceStatesAsync(rows.Select(x => x.Id).ToArray(), ct);
+        return new(rows.Select(x => ServiceDto(x, canComplete) with { CurrentBilling = states.GetValueOrDefault(x.Id) }).ToArray(), page, pageSize, total);
     }
     public async Task<RelationshipServiceDto> ServiceAsync(Guid id, CancellationToken ct)
     {
         var service = await db.Services.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && (x.CoachId == accounts.UserId || x.ClientId == accounts.UserId || x.TeamId != null), ct) ?? throw ApiException.NotFound();
         var coachSide = await ServiceAccessAsync(service.RelationshipId, false, ct);
         var canComplete = coachSide && (service.TeamId != null || (await policy.DecideAsync(service.RelationshipId, RelationshipOperation.Manage, ct)).Allowed);
-        return ServiceDto(service, canComplete);
+        var states = await billing.GetServiceStatesAsync([service.Id], ct);
+        return ServiceDto(service, canComplete) with { CurrentBilling = states.GetValueOrDefault(service.Id) };
     }
     public async Task<RelationshipServiceDto> CompleteServiceAsync(Guid id, long version, CancellationToken ct)
     {

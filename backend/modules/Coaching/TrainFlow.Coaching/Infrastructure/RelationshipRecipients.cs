@@ -7,6 +7,11 @@ namespace TrainFlow.Coaching.Infrastructure;
 
 public sealed class RelationshipRecipients(CoachingDbContext db, ITeamContext? teams = null) : IRelationshipRecipients
 {
+    public async Task<IReadOnlyList<RelationshipGroupSource>> GetGroupSourcesAsync(Guid coachId, Guid workspaceId, IReadOnlyCollection<Guid> groupIds, CancellationToken ct) =>
+        await (from membership in db.Memberships.AsNoTracking()
+               join groupEntry in db.Groups.AsNoTracking() on membership.GroupId equals groupEntry.Id
+               where membership.CoachId == coachId && membership.WorkspaceId == workspaceId && groupEntry.CoachId == coachId && groupEntry.WorkspaceId == workspaceId && groupIds.Contains(groupEntry.Id) && !groupEntry.Archived
+               select new RelationshipGroupSource(membership.RelationshipId, groupEntry.Id, groupEntry.Name)).ToArrayAsync(ct);
     public async Task<IReadOnlyList<RelationshipRecipient>> GetForTeamAsync(Guid teamId, Guid? memberId, CancellationToken ct) =>
         await db.Relationships.AsNoTracking().Where(x => x.TeamId == teamId && (memberId == null || x.CoachId == memberId))
             .Select(x => new RelationshipRecipient(x.Id, x.CoachId, x.WorkspaceId, x.ClientId, x.Status, x.TeamId, x.TeamClientCaseId)).ToArrayAsync(ct);

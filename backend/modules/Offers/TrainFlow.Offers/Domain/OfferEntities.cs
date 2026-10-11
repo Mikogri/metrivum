@@ -4,6 +4,7 @@ namespace TrainFlow.Offers.Domain;
 
 public sealed class Offer
 {
+    public OfferPurpose Purpose { get; set; }
     public Guid? TeamId
     {
         get; set;
@@ -74,6 +75,7 @@ public sealed class OfferTagLink
 }
 public sealed class OfferRevision
 {
+    public OfferPurpose Purpose { get; set; }
     public Guid? TeamId
     {
         get; set;
@@ -122,6 +124,7 @@ public sealed class OfferRevision
 }
 public sealed class OfferBillingOption
 {
+    public int? ValidityDays { get; set; }
     public Guid Id
     {
         get; set;
@@ -170,6 +173,7 @@ public sealed class OfferBillingOption
 }
 public sealed class RevisionBillingOption
 {
+    public int? ValidityDays { get; set; }
     public Guid RevisionId
     {
         get; set;

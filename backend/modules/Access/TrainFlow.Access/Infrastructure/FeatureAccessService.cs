@@ -41,6 +41,8 @@ public sealed class FeatureAccessService : IFeatureAccessService
 
     internal static bool RoleAllows(string key, IReadOnlyList<AccountRole> roles) => key switch
     {
+        // Training content operations still require owner-scoped resource authorization.
+        "training.programs.read" or "training.programs.manage" or "training.sets.advanced" or "training.export.csv" or "training.export.pdf" or
         "exercises.browse" or "messaging.direct" or "messaging.groups" or "messaging.attachments" or "messaging.voice" or "messaging.report" or "messaging.group.manage" or "offers.view-public" => roles.Contains(AccountRole.Client) || roles.Contains(AccountRole.Coach),
         "coaching.relationships.read-own" or "coaching.applications.submit-own" or
         "coaching.invitations.respond-own" or "coaching.services.read-own" or

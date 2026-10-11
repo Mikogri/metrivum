@@ -67,6 +67,10 @@ namespace TrainFlow.ClientDocumentation.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("numeric(18,6)");
 
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RelationshipId", "Key", "ObservedAt", "Id");
@@ -96,6 +100,11 @@ namespace TrainFlow.ClientDocumentation.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(20000)
                         .HasColumnType("character varying(20000)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -132,6 +141,9 @@ namespace TrainFlow.ClientDocumentation.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
@@ -144,6 +156,9 @@ namespace TrainFlow.ClientDocumentation.Infrastructure.Migrations
 
                     b.Property<Guid>("RelationshipId")
                         .HasColumnType("uuid");
+
+                    b.Property<long?>("Size")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Source")
                         .IsRequired()

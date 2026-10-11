@@ -11,12 +11,14 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogger
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext http, Exception exception, CancellationToken cancellationToken)
     {
-        var error = exception switch
+        // SaveChanges wraps provider errors; ExecuteUpdate and raw SQL report them directly.
+        var cause = exception is DbUpdateException { InnerException: PostgresException provider } ? provider : exception;
+        var error = cause switch
         {
             ApiException api => api,
             DbUpdateConcurrencyException => new ApiException(412, "VERSION_CONFLICT", "The resource changed. Reload and retry."),
-            DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } } => ApiException.Conflict("A record with these unique values already exists."),
-            DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation } } => ApiException.Invalid("A referenced resource is missing or still in use."),
+            PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } => ApiException.Conflict("A record with these unique values already exists."),
+            PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation } => ApiException.Invalid("A referenced resource is missing or still in use."),
             BadHttpRequestException => ApiException.Invalid("The request body or parameters are invalid."),
             NpgsqlException or DbUpdateException => new ApiException(503, "DATABASE_UNAVAILABLE", "The database is temporarily unavailable."),
             HttpRequestException => new ApiException(503, "INTEGRATION_UNAVAILABLE", "An external integration is temporarily unavailable."),

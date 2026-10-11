@@ -168,6 +168,7 @@ public sealed class MembershipChange
 
 public sealed class Message
 {
+    public string? CoachingEntryJson { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ConversationId
     {
@@ -233,6 +234,7 @@ public sealed class MessageAttachment
 public sealed class MessageRequest
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid? IntroductionMessageId { get; set; }
     public Guid SenderUserId
     {
         get; set;
@@ -282,6 +284,12 @@ public sealed class UserBlock
     {
         get; set;
     }
+}
+
+public sealed class MessagingPreference
+{
+    public Guid UserId { get; set; }
+    public bool RequireApproval { get; set; }
 }
 
 public sealed class MessageReport

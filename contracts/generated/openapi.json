@@ -29,6 +29,43 @@
         }
       }
     },
+    "/api/v1/accounts/people": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountSearchEntry"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/me/access": {
       "get": {
         "tags": [
@@ -92,6 +129,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DictionariesDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/training/purchases": {
+      "get": {
+        "tags": [
+          "TrainFlow.Api"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedOfPurchasedPlanDto"
                 }
               }
             }
@@ -1146,6 +1233,122 @@
         ]
       }
     },
+    "/api/v1/training/activity-options": {
+      "get": {
+        "tags": [
+          "Training"
+        ],
+        "parameters": [
+          {
+            "name": "relationshipId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "programId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityOptionsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/training/last-activity": {
+      "get": {
+        "tags": [
+          "Training"
+        ],
+        "parameters": [
+          {
+            "name": "relationshipId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LastTrainingActivityDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/training/assignment-summary": {
+      "get": {
+        "tags": [
+          "Training"
+        ],
+        "parameters": [
+          {
+            "name": "relationshipId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssignmentSummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/training/programs/{programId}/assignments/preview": {
       "post": {
         "tags": [
@@ -1513,6 +1716,36 @@
             }
           },
           {
+            "name": "blockId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cycleId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "schema": {
@@ -1573,6 +1806,14 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "relationshipId",
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -1830,6 +2071,34 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "blockId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cycleId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "repetitions",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
             }
           },
           {
@@ -2177,6 +2446,41 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PlanDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/training/programs/{id}/apply": {
+      "post": {
+        "tags": [
+          "Training"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionDto"
                 }
               }
             }
@@ -3484,6 +3788,16 @@
         "tags": [
           "Messaging attachments"
         ],
+        "parameters": [
+          {
+            "name": "conversationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3523,6 +3837,14 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "conversationId",
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -3576,6 +3898,40 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/analyses/client-results": {
+      "post": {
+        "tags": [
+          "VideoAnalysis"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveClientAnalysisRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -4795,6 +5151,14 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "relationshipId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -5750,7 +6114,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OfferCategory"
+                    "$ref": "#/components/schemas/OfferCategoryDto"
                   }
                 }
               }
@@ -6187,6 +6551,44 @@
         ]
       }
     },
+    "/api/v1/check-ins/assigned-programs": {
+      "get": {
+        "tags": [
+          "CheckIns"
+        ],
+        "parameters": [
+          {
+            "name": "relationshipId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssignedProgramCycles"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/check-ins/calendar": {
       "get": {
         "tags": [
@@ -6318,6 +6720,14 @@
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/ScheduleStatus"
+            }
+          },
+          {
+            "name": "relationshipId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -6664,6 +7074,30 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "formTemplateId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -6673,6 +7107,85 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CheckInPageOfCheckInRequestDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/check-ins/relationships/{id}/requests/{requestId}": {
+      "get": {
+        "tags": [
+          "CheckIns"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckInDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/check-ins/relationships/{id}/summary": {
+      "get": {
+        "tags": [
+          "CheckIns"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckInSummaryDto"
                 }
               }
             }
@@ -8026,6 +8539,62 @@
         ]
       }
     },
+    "/api/v1/me/messaging-preferences": {
+      "get": {
+        "tags": [
+          "Messaging"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagingPreferenceDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Messaging"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessagingPreferenceDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagingPreferenceDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/me/blocked-users": {
       "get": {
         "tags": [
@@ -8164,6 +8733,40 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConversationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/coaching/form-shares": {
+      "post": {
+        "tags": [
+          "Coaching intake"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareOfferFormRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoachingChatDelivery"
                 }
               }
             }
@@ -9007,6 +9610,144 @@
         ]
       }
     },
+    "/api/v1/coaching/relationships/{id}/applications/{applicationId}": {
+      "get": {
+        "tags": [
+          "Coaching intake"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoachApplicationDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/coaching/relationships/{id}/profile": {
+      "get": {
+        "tags": [
+          "Coaching intake"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationshipProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/coaching/relationships/{id}/applications": {
+      "get": {
+        "tags": [
+          "Coaching intake"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedOfApplicationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/coaching/relationships/{id}/services": {
       "get": {
         "tags": [
@@ -9075,6 +9816,47 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PagedOfRelationshipServiceDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/coaching/services/current": {
+      "get": {
+        "tags": [
+          "Coaching intake"
+        ],
+        "parameters": [
+          {
+            "name": "relationshipIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CurrentRelationshipServiceDto"
+                  }
                 }
               }
             }
@@ -9415,6 +10197,76 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BillingPageOfOrderDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/me/plan-purchases/by-application/{applicationId}/due": {
+      "get": {
+        "tags": [
+          "Billing"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentDueDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/me/plan-purchases/{orderId}/due": {
+      "get": {
+        "tags": [
+          "Billing"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentDueDto"
                 }
               }
             }
@@ -10599,7 +11451,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TeamRequest"
+                  "$ref": "#/components/schemas/TeamRequestResultDto"
                 }
               }
             }
@@ -10644,7 +11496,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TeamRequest"
+                  "$ref": "#/components/schemas/TeamRequestResultDto"
                 }
               }
             }
@@ -10689,7 +11541,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TeamRequest"
+                  "$ref": "#/components/schemas/TeamRequestResultDto"
                 }
               }
             }
@@ -10739,6 +11591,44 @@
                 "string"
               ],
               "format": "int32"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DueStatus"
+            }
+          },
+          {
+            "name": "serviceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -10898,6 +11788,112 @@
         ]
       }
     },
+    "/api/v1/me/notifications/{id}": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/me/notifications/devices/{installationId}": {
+      "put": {
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "name": "installationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPushDeviceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushDeviceDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "name": "installationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/me/notifications/unread-count": {
       "get": {
         "tags": [
@@ -10951,6 +11947,40 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/me/notifications/read-target": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationTargetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationCountDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -11679,6 +12709,13 @@
               "format": "int32",
               "default": 25
             }
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11711,6 +12748,69 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeasurementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeasurementDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/coaching/relationships/{relationshipId}/documentation/measurements/{measurementId}": {
+      "patch": {
+        "tags": [
+          "Client documentation"
+        ],
+        "parameters": [
+          {
+            "name": "relationshipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "measurementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Current strong numeric ETag.",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -12165,6 +13265,41 @@
             "Bearer": [ ]
           }
         ]
+      },
+      "delete": {
+        "tags": [
+          "Client documentation"
+        ],
+        "parameters": [
+          {
+            "name": "relationshipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
       }
     },
     "/api/v1/coaching/relationships/{relationshipId}/documentation/documents/{documentId}/share": {
@@ -12364,6 +13499,13 @@
         "properties": {
           "settlementMode": {
             "$ref": "#/components/schemas/SettlementMode"
+          },
+          "trainingPlanRevisionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -12584,6 +13726,81 @@
         },
         "additionalProperties": false
       },
+      "ActivityOptionsDto": {
+        "required": [
+          "programs",
+          "structure",
+          "earliestDate"
+        ],
+        "type": "object",
+        "properties": {
+          "programs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityProgramOption"
+            }
+          },
+          "structure": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityStructureOption"
+            }
+          },
+          "earliestDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActivityProgramOption": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActivityStructureOption": {
+        "required": [
+          "blockId",
+          "cycleId",
+          "firstDate",
+          "lastDate"
+        ],
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cycleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "firstDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "lastDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
       "ActualExercise": {
         "required": [
           "prescribedInstanceId",
@@ -12738,6 +13955,13 @@
               "null",
               "string"
             ]
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -12837,7 +14061,10 @@
             }
           },
           "mediaId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           },
           "configuration": {
@@ -12878,6 +14105,41 @@
               "string"
             ],
             "format": "int64"
+          },
+          "executionLocation": {
+            "type": "string",
+            "default": "server"
+          },
+          "localAnalysisId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sourceVideo": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AnalysisSourceVideo"
+              }
+            ]
+          },
+          "workoutExecutionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "setId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -13132,6 +14394,45 @@
             "items": {
               "type": "string"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "AnalysisSourceVideo": {
+        "required": [
+          "origin",
+          "durationSeconds",
+          "width",
+          "height"
+        ],
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "string"
+          },
+          "durationSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "width": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "height": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -13711,6 +15012,74 @@
         },
         "additionalProperties": false
       },
+      "AssignedProgramCycle": {
+        "required": [
+          "cycleId",
+          "startDate",
+          "dayCount"
+        ],
+        "type": "object",
+        "properties": {
+          "cycleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dayCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AssignedProgramCycles": {
+        "required": [
+          "assignmentId",
+          "relationshipId",
+          "programName",
+          "timeZone",
+          "active",
+          "cycles"
+        ],
+        "type": "object",
+        "properties": {
+          "assignmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "relationshipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "programName": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "cycles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssignedProgramCycle"
+            }
+          },
+          "ended": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
       "AssignmentBatchDto": {
         "required": [
           "id",
@@ -13879,6 +15248,60 @@
         },
         "additionalProperties": false
       },
+      "AssignmentSummaryDto": {
+        "required": [
+          "assignment",
+          "endDate",
+          "scheduled",
+          "completed",
+          "currentBlockId",
+          "currentCycleId"
+        ],
+        "type": "object",
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/AssignmentDto"
+          },
+          "endDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "scheduled": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "completed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "currentBlockId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "currentCycleId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
       "AssignProgramRequest": {
         "required": [
           "revisionId",
@@ -14021,7 +15444,8 @@
           "PerSession",
           "CustomPackage",
           "FixedPackage",
-          "PeriodSubscription"
+          "PeriodSubscription",
+          "OneTime"
         ]
       },
       "BillingOptionSnapshot": {
@@ -14106,6 +15530,15 @@
                 "$ref": "#/components/schemas/PaymentTerms"
               }
             ]
+          },
+          "validityDays": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -14429,6 +15862,23 @@
         },
         "additionalProperties": false
       },
+      "CheckInGroupSourceDto": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "CheckInPageOfCheckInCalendarItem": {
         "required": [
           "items",
@@ -14681,6 +16131,28 @@
               "null",
               "string"
             ]
+          },
+          "reviewedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "assignmentSource": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assignmentGroups": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/CheckInGroupSourceDto"
+            }
           }
         },
         "additionalProperties": false
@@ -14752,6 +16224,69 @@
             "items": {
               "$ref": "#/components/schemas/CheckInPoint"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CheckInSummaryDto": {
+        "required": [
+          "awaitingReview",
+          "overdue",
+          "submitted",
+          "reviewed",
+          "lastCheckIn",
+          "nextDueAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "awaitingReview": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "overdue": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "submitted": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "reviewed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "lastCheckIn": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CheckInRequestDto"
+              }
+            ]
+          },
+          "nextDueAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -15014,6 +16549,68 @@
         },
         "additionalProperties": false
       },
+      "CoachingChatDelivery": {
+        "required": [
+          "conversationId",
+          "messageId"
+        ],
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CoachingChatEntry": {
+        "required": [
+          "kind",
+          "invitationId",
+          "offerId",
+          "coachId",
+          "offerRevisionId",
+          "formVersionId",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "invitationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "coachId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "offerRevisionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "formVersionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "CoachingMode": {
         "enum": [
           "Online",
@@ -15123,6 +16720,22 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "teamName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assignedCoach": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PersonDto"
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -15248,6 +16861,24 @@
             "items": {
               "$ref": "#/components/schemas/MemberDto"
             }
+          },
+          "request": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RequestDto"
+              }
+            ]
+          },
+          "canSendMessages": {
+            "type": "boolean",
+            "default": true
+          },
+          "canUploadAttachments": {
+            "type": "boolean",
+            "default": true
           }
         },
         "additionalProperties": false
@@ -15455,6 +17086,36 @@
         },
         "additionalProperties": false
       },
+      "CurrencyOverdueDto": {
+        "required": [
+          "currency",
+          "amount",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "count": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "CurrencyRequest": {
         "required": [
           "currency"
@@ -15463,6 +17124,34 @@
         "properties": {
           "currency": {
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CurrentRelationshipServiceDto": {
+        "required": [
+          "relationshipId",
+          "offerName",
+          "currentBilling"
+        ],
+        "type": "object",
+        "properties": {
+          "relationshipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "offerName": {
+            "type": "string"
+          },
+          "currentBilling": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ServiceBillingState"
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -15792,7 +17481,8 @@
           "createdAt",
           "updatedAt",
           "version",
-          "allowedActions"
+          "allowedActions",
+          "size"
         ],
         "type": "object",
         "properties": {
@@ -15866,6 +17556,15 @@
             "items": {
               "type": "string"
             }
+          },
+          "size": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -18510,6 +20209,30 @@
           "Revoked"
         ]
       },
+      "LastTrainingActivityDto": {
+        "required": [
+          "performedDate",
+          "completedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "performedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
       "LimitDecision": {
         "required": [
           "key",
@@ -18598,7 +20321,9 @@
           "comment",
           "authorId",
           "source",
-          "createdAt"
+          "createdAt",
+          "version",
+          "updatedAt"
         ],
         "type": "object",
         "properties": {
@@ -18642,6 +20367,18 @@
             "type": "string"
           },
           "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "updatedAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -18711,7 +20448,11 @@
         "required": [
           "key",
           "unit",
-          "points"
+          "points",
+          "latestValue",
+          "latestAt",
+          "change",
+          "aggregation"
         ],
         "type": "object",
         "properties": {
@@ -18726,6 +20467,34 @@
             "items": {
               "$ref": "#/components/schemas/MeasurementPoint"
             }
+          },
+          "latestValue": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "latestAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "change": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "aggregation": {
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -18970,6 +20739,16 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "coachingEntry": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CoachingChatEntry"
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -19044,6 +20823,18 @@
               "string"
             ],
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MessagingPreferenceDto": {
+        "required": [
+          "requireApproval"
+        ],
+        "type": "object",
+        "properties": {
+          "requireApproval": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -19183,7 +20974,9 @@
           "text",
           "createdAt",
           "updatedAt",
-          "version"
+          "version",
+          "title",
+          "authorId"
         ],
         "type": "object",
         "properties": {
@@ -19209,6 +21002,13 @@
               "string"
             ],
             "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "authorId": {
+            "type": "string",
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -19221,6 +21021,12 @@
         "properties": {
           "text": {
             "type": "string"
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         },
         "additionalProperties": false
@@ -19334,6 +21140,18 @@
         },
         "additionalProperties": false
       },
+      "NotificationTargetRequest": {
+        "required": [
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "OccurrenceDto": {
         "required": [
           "id",
@@ -19424,11 +21242,45 @@
             "items": {
               "type": "string"
             }
+          },
+          "performedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "durationSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hasComment": {
+            "type": "boolean",
+            "default": false
+          },
+          "exerciseCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         },
         "additionalProperties": false
       },
-      "OfferCategory": {
+      "OfferCategoryDto": {
+        "required": [
+          "key",
+          "name",
+          "active"
+        ],
         "type": "object",
         "properties": {
           "key": {
@@ -19553,6 +21405,9 @@
               "null",
               "string"
             ]
+          },
+          "purpose": {
+            "$ref": "#/components/schemas/OfferPurpose"
           }
         },
         "additionalProperties": false
@@ -19598,6 +21453,13 @@
           }
         },
         "additionalProperties": false
+      },
+      "OfferPurpose": {
+        "enum": [
+          "CoachingService",
+          "TrainingPlan"
+        ],
+        "default": "CoachingService"
       },
       "OfferRequest": {
         "required": [
@@ -19645,6 +21507,9 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "purpose": {
+            "$ref": "#/components/schemas/OfferPurpose"
           }
         },
         "additionalProperties": false
@@ -19791,6 +21656,9 @@
               "null",
               "string"
             ]
+          },
+          "purpose": {
+            "$ref": "#/components/schemas/OfferPurpose"
           }
         },
         "additionalProperties": false
@@ -19878,11 +21746,17 @@
             "format": "uuid"
           },
           "serviceId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           },
           "relationshipId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           },
           "coachId": {
@@ -20417,6 +22291,48 @@
         },
         "additionalProperties": false
       },
+      "PagedOfPurchasedPlanDto": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchasedPlanDto"
+            }
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
       "PagedOfRelationshipServiceDto": {
         "required": [
           "items",
@@ -20687,11 +22603,17 @@
             "format": "uuid"
           },
           "serviceId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           },
           "relationshipId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           },
           "coachId": {
@@ -20802,6 +22724,17 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "isExpired": {
+            "type": "boolean",
+            "default": false
           }
         },
         "additionalProperties": false
@@ -20983,7 +22916,16 @@
         },
         "additionalProperties": false
       },
-      "PlanChange": {
+      "PlanChangeDto": {
+        "required": [
+          "id",
+          "subscriptionId",
+          "type",
+          "planId",
+          "dueId",
+          "createdAt",
+          "effectiveAt"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -21215,7 +23157,7 @@
           "changes": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PlanChange"
+              "$ref": "#/components/schemas/PlanChangeDto"
             }
           },
           "payments": {
@@ -21708,6 +23650,70 @@
         },
         "additionalProperties": false
       },
+      "PurchasedPlanDto": {
+        "required": [
+          "orderId",
+          "applicationId",
+          "name",
+          "planId",
+          "createdAt",
+          "deliveredAt"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "planId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deliveredAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PushDeviceDto": {
+        "required": [
+          "installationId",
+          "platform",
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "installationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "Quantity": {
         "required": [
           "value",
@@ -21821,6 +23827,27 @@
               "string"
             ],
             "format": "int32"
+          },
+          "assignmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "cycleDays": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
           }
         },
         "additionalProperties": false
@@ -21830,7 +23857,8 @@
           "OneTime",
           "EveryNDays",
           "EveryNWeeks",
-          "Monthly"
+          "Monthly",
+          "AssignedProgramCycle"
         ]
       },
       "RefreshAssignmentRequest": {
@@ -21841,6 +23869,33 @@
         "properties": {
           "revisionId": {
             "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterPushDeviceRequest": {
+        "required": [
+          "expoPushToken",
+          "platform",
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "expoPushToken": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "activeConversationId": {
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           }
         },
@@ -21894,6 +23949,66 @@
             "items": {
               "$ref": "#/components/schemas/PaymentTransactionDto"
             }
+          },
+          "summary": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RelationshipBillingSummaryDto"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "RelationshipBillingSummaryDto": {
+        "required": [
+          "lastSettlement",
+          "overdueByCurrency",
+          "nextDue"
+        ],
+        "type": "object",
+        "properties": {
+          "lastSettlement": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentDto"
+              }
+            ]
+          },
+          "overdueByCurrency": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CurrencyOverdueDto"
+            }
+          },
+          "nextDue": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentDueDto"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "RelationshipProfileDto": {
+        "required": [
+          "currentAllowedProfile"
+        ],
+        "type": "object",
+        "properties": {
+          "currentAllowedProfile": {
+            "type": "object",
+            "additionalProperties": { }
           }
         },
         "additionalProperties": false
@@ -21996,6 +24111,16 @@
             "items": {
               "type": "string"
             }
+          },
+          "currentBilling": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ServiceBillingState"
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -22304,6 +24429,74 @@
               "string"
             ],
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SaveClientAnalysisRequest": {
+        "required": [
+          "localAnalysisId",
+          "executionLocation",
+          "name",
+          "note",
+          "tags",
+          "configuration",
+          "sourceVideo",
+          "result"
+        ],
+        "type": "object",
+        "properties": {
+          "localAnalysisId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "executionLocation": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/AnalysisConfiguration"
+          },
+          "sourceVideo": {
+            "$ref": "#/components/schemas/AnalysisSourceVideo"
+          },
+          "result": {
+            "$ref": "#/components/schemas/AnalysisResult"
+          },
+          "mediaId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "workoutExecutionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "setId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -22624,6 +24817,80 @@
         },
         "additionalProperties": false
       },
+      "ServiceBillingState": {
+        "required": [
+          "status",
+          "remainingSessions",
+          "periodStart",
+          "periodEnd",
+          "nextDueAt",
+          "nextDueAmount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "remainingSessions": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "periodStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "periodEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "nextDueAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "nextDueAmount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "currency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "isExpired": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
       "ServiceRenewalRequest": {
         "required": [
           "autoRenew"
@@ -22723,6 +24990,24 @@
           "External"
         ],
         "default": "Simulated"
+      },
+      "ShareOfferFormRequest": {
+        "required": [
+          "userId",
+          "offerId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
       },
       "SimulatedMethodRequest": {
         "required": [
@@ -23677,55 +25962,6 @@
         },
         "additionalProperties": false
       },
-      "TeamRequest": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "teamId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "kind": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "inviterId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "role": {
-            "type": "string"
-          },
-          "expiresAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "decidedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
       "TeamRequestDto": {
         "required": [
           "id",
@@ -23767,6 +26003,67 @@
             "type": "string"
           },
           "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TeamRequestResultDto": {
+        "required": [
+          "id",
+          "teamId",
+          "userId",
+          "kind",
+          "status",
+          "createdAt",
+          "inviterId",
+          "role",
+          "expiresAt",
+          "decidedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teamId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "inviterId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "decidedAt": {
             "type": [
               "null",
               "string"
@@ -24087,6 +26384,13 @@
               "string"
             ],
             "format": "int32"
+          },
+          "occurrenceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -24266,6 +26570,50 @@
           },
           "metricDefinition": {
             "type": "string"
+          },
+          "totalTrainingSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "averageSessionSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "sessionsPerWeek": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "weeks": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TrainingWeekProgress"
+            }
+          },
+          "clientsHasMore": {
+            "type": "boolean",
+            "default": false
+          },
+          "performanceHasMore": {
+            "type": "boolean",
+            "default": false
           }
         },
         "additionalProperties": false
@@ -24303,6 +26651,65 @@
               "string"
             ],
             "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TrainingWeekProgress": {
+        "required": [
+          "weekStart",
+          "scheduled",
+          "completed",
+          "due",
+          "completedDue",
+          "completionPercentage"
+        ],
+        "type": "object",
+        "properties": {
+          "weekStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "scheduled": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "completed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "due": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "completedDue": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "completionPercentage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -24658,6 +27065,9 @@
       "name": "TrainFlow.Api"
     },
     {
+      "name": "Accounts"
+    },
+    {
       "name": "Access"
     },
     {
@@ -24665,9 +27075,6 @@
     },
     {
       "name": "PlatformSubscriptions"
-    },
-    {
-      "name": "Accounts"
     },
     {
       "name": "Access administration"

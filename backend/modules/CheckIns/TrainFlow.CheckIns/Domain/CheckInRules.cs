@@ -1,4 +1,5 @@
 using TrainFlow.BuildingBlocks;
+using TrainFlow.Training.Contracts;
 
 namespace TrainFlow.CheckIns.Domain;
 
@@ -27,8 +28,33 @@ public static class CheckInRules
             throw ApiException.Invalid("Monthly recurrence needs dayOfMonth in 1–31.");
         if (recurrence.Kind != RecurrenceKind.EveryNWeeks && recurrence.WeekDays is { Count: > 0 })
             throw ApiException.Invalid("Weekdays only apply to weekly recurrence.");
+        if (recurrence.Kind == RecurrenceKind.AssignedProgramCycle &&
+            (recurrence.Interval != 1 || recurrence.AssignmentId is null || recurrence.AssignmentId == Guid.Empty || recurrence.CycleDays is not { Count: > 0 and <= 3660 } || recurrence.CycleDays.Any(d => d < 1) || recurrence.CycleDays.Distinct().Count() != recurrence.CycleDays.Count))
+            throw ApiException.Invalid("Choose an assigned program and distinct cycle days. Cycle interval must be one.");
+        if (recurrence.Kind != RecurrenceKind.AssignedProgramCycle && (recurrence.AssignmentId != null || recurrence.CycleDays is { Count: > 0 }))
+            throw ApiException.Invalid("Assigned programs and cycle days only apply to program-cycle recurrence.");
         if (recurrence.Kind != RecurrenceKind.Monthly && recurrence.DayOfMonth != null)
             throw ApiException.Invalid("Day of month only applies to monthly recurrence.");
+    }
+    public static void ValidateCycles(Recurrence recurrence, AssignedProgramCycles assignment)
+    {
+        if (assignment.Cycles.Count == 0 || recurrence.CycleDays!.Any(d => assignment.Cycles.Any(c => d > c.DayCount)))
+            throw ApiException.Invalid("Choose days that exist in every assigned program cycle.");
+    }
+    public static DateTimeOffset? NextCycle(Recurrence recurrence, AssignedProgramCycles assignment, DateTimeOffset? after = null)
+    {
+        if (!assignment.Active) return null;
+        var zone = Zone(assignment.TimeZone);
+        foreach (var cycle in assignment.Cycles)
+            foreach (var day in recurrence.CycleDays!.Order())
+            {
+                if (day > cycle.DayCount) continue;
+                var date = cycle.StartDate.AddDays(day - 1);
+                if (date < recurrence.StartDate) continue;
+                var available = ToUtc(date, recurrence.ReleaseTime, zone);
+                if (after == null || available > after) return available;
+            }
+        return null;
     }
     // Spring gaps move to the first valid local minute. Fall overlaps choose the earlier UTC occurrence.
     public static DateTimeOffset ToUtc(DateOnly date, TimeOnly time, TimeZoneInfo zone)

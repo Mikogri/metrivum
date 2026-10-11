@@ -17,7 +17,12 @@ public static class ModuleRegistration
         services.AddNotificationPublishing(configuration);
         services.AddScoped<NotificationsService>();
         services.AddScoped<NotificationsDelivery>();
+        services.AddScoped<PushDevices>();
+        services.AddScoped<MobilePushDelivery>();
+        services.AddOptions<ExpoPushOptions>().Bind(configuration.GetSection("Notifications:ExpoPush"));
+        services.AddHttpClient<ExpoPushTransport>(client => client.Timeout = TimeSpan.FromSeconds(15));
         services.AddSignalR();
+        services.AddScoped<INotificationReadStore, NotificationReadStore>();
         return services;
     }
     public static IServiceCollection AddNotificationPublishing(this IServiceCollection services, IConfiguration configuration)
@@ -42,12 +47,21 @@ public static class ModuleRegistration
             return await next(context);
         });
         g.MapGet("/notifications", (int? page, int? pageSize, bool? unread, Guid? activeConversation, NotificationsService s, CancellationToken ct) => s.ListAsync(page ?? 1, pageSize ?? 25, unread ?? false, ct, activeConversation));
+        g.MapGet("/notifications/{id:guid}", (Guid id, NotificationsService s, CancellationToken ct) => s.GetAsync(id, ct));
+        g.MapPut("/notifications/devices/{installationId:guid}", (Guid installationId, RegisterPushDeviceRequest input, PushDevices devices, CancellationToken ct) => devices.RegisterAsync(installationId, input, ct));
+        g.MapDelete("/notifications/devices/{installationId:guid}", async (Guid installationId, PushDevices devices, CancellationToken ct) =>
+        {
+            await devices.RemoveAsync(installationId, ct);
+            return Results.NoContent();
+        });
         g.MapGet("/notifications/unread-count", async (Guid? activeConversation, NotificationsService s, CancellationToken ct) => TypedResults.Ok(new NotificationCountDto(await s.CountAsync(ct, activeConversation))));
         g.MapPost("/notifications/{id:guid}/read", async (Guid id, NotificationsService s, CancellationToken ct) =>
         {
             await s.ReadAsync(id, ct);
             return Results.NoContent();
         });
+        g.MapPost("/notifications/read-target", async (NotificationTargetRequest request, NotificationsService s, CancellationToken ct) =>
+            TypedResults.Ok(new NotificationCountDto(await s.ReadTargetAsync(request, ct))));
         g.MapPost("/notifications/read-all", async (NotificationsService s, CancellationToken ct) =>
         {
             await s.ReadAllAsync(ct);

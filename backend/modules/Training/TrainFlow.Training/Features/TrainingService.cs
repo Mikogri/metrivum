@@ -1,3 +1,6 @@
+using TrainFlow.Training.Delivery;
+using TrainFlow.Training.Contracts;
+using TrainFlow.Coaching.Contracts;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +56,7 @@ public sealed record FormulaDto(Guid Id, string Name, int Version, bool Archived
 public sealed record FormulaListItem(Guid Id, string Name, int Version, bool Archived);
 
 public sealed partial class TrainingService(TrainingDbContext db, IAccountContext accounts, IFeatureAccessService access,
-    IExerciseCatalog catalog, IOptions<TrainingOptions> options, TimeProvider clock)
+    IExerciseCatalog catalog, IOptions<TrainingOptions> options, TimeProvider clock, IRelationshipAccessPolicy relationshipPolicy, ModuleTransaction transaction, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers)
 {
     private readonly TrainingOptions limits = options.Value;
     private FormulaEngine Engine => new(limits.Formula);
@@ -137,7 +140,8 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         await db.SaveChangesAsync(ct);
         return Dto(plan);
     }, ct);
-    public Task<RevisionDto> PublishAsync(Guid id, long expectedVersion, string idempotencyKey, CancellationToken ct) => WriteAsync("training.programs.manage", async account =>
+    public Task<RevisionDto> PublishAsync(Guid id, long expectedVersion, string idempotencyKey, CancellationToken ct) => ApplyAsync(id, expectedVersion, idempotencyKey, ct);
+    public Task<RevisionDto> ApplyAsync(Guid id, long expectedVersion, string idempotencyKey, CancellationToken ct) => WriteAsync("training.programs.manage", async account =>
     {
         ValidateKey(idempotencyKey);
         var plan = await PlanAsync(id, account, ct);
@@ -156,6 +160,8 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         CheckVersion(plan.Version, expectedVersion);
         Active(plan);
         Validate(() => DocumentRules.Validate(plan.Draft, limits.Document));
+        var effective = await db.Revisions.AsNoTracking().Where(x => x.PlanId == id).OrderByDescending(x => x.Number).FirstOrDefaultAsync(ct);
+        if (effective?.DraftVersion == plan.Version) return Dto(effective);
         var count = await db.Revisions.CountAsync(x => x.PlanId == id, ct);
         Limit(count < limits.MaximumRevisionsPerDocument, "Revision limit exceeded.");
         var exerciseIds = DocumentRules.Workouts(plan.Draft).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).Distinct().ToArray();
@@ -165,6 +171,8 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         var formulas = await EvaluateDocumentAsync(plan.Draft, account, ct);
         var revision = new TrainingRevision { Id = Guid.NewGuid(), PlanId = id, Number = count + 1, DraftVersion = plan.Version, PublishedAt = clock.GetUtcNow(), IdempotencyKey = idempotencyKey, RequestHash = hash, Snapshot = new(1, plan.Name, plan.Description, plan.Kind, TrainingJson.Deserialize<TrainingDocument>(TrainingJson.Serialize(plan.Draft)), new(snapshots), formulas) };
         db.Revisions.Add(revision);
+        await db.SaveChangesAsync(ct);
+        await AssignmentRevisionUpdater.ApplyAsync(db, revision, relationshipPolicy, clock, assignmentObservers, ct);
         await db.SaveChangesAsync(ct);
         return Dto(revision);
     }, ct);
@@ -439,22 +447,24 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
     private async Task<TrainingPlan> PlanAsync(Guid id, AccountIdentity account, CancellationToken ct) => await db.Plans.SingleOrDefaultAsync(x => x.Id == id && x.OwnerId == account.UserId && x.WorkspaceId == account.WorkspaceId, ct) ?? throw ApiException.NotFound();
     private async Task<AccountIdentity> ReadAsync(CancellationToken ct)
     {
-        var account = await accounts.RequireCoachAsync(ct);
+        var account = (await accounts.GetRolesAsync(ct)).Contains(AccountRole.Coach)
+            ? await accounts.RequireCoachAsync(ct) : await accounts.RequireClientAsync(ct);
         await access.RequireAsync("training.programs.read", ct);
         return account;
     }
     private Task TemplateAccessAsync(DocumentKind kind, CancellationToken ct) => kind == DocumentKind.Template ? access.RequireAsync("training.templates.manage", ct) : Task.CompletedTask;
     private async Task<T> WriteAsync<T>(string feature, Func<AccountIdentity, Task<T>> action, CancellationToken ct)
     {
-        var account = await accounts.RequireCoachAsync(ct);
+        var coach = (await accounts.GetRolesAsync(ct)).Contains(AccountRole.Coach);
+        var account = coach || feature != "training.programs.manage" ? await accounts.RequireCoachAsync(ct) : await accounts.RequireClientAsync(ct);
         await access.RequireAsync(feature, ct);
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({account.WorkspaceId.ToString()}, 7105))", ct);
         try
         {
-            var result = await action(account);
-            await transaction.CommitAsync(ct);
-            return result;
+            return await transaction.RunAsync(async token =>
+            {
+                await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({account.WorkspaceId.ToString()}, 7105))", token);
+                return await action(account);
+            }, ct);
         }
         catch (TrainingValidationException e) { throw ApiException.Invalid(e.Message); }
         catch (DbUpdateConcurrencyException) { throw new ApiException(412, "VERSION_CONFLICT", "Resource changed; reload and retry."); }

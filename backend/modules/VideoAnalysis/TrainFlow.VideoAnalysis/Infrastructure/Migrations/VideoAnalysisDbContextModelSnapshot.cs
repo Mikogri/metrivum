@@ -45,6 +45,13 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ExecutionLocation")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("server");
+
                     b.Property<string>("FailureCode")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -60,7 +67,10 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
                     b.Property<Guid?>("LeaseToken")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("MediaId")
+                    b.Property<Guid?>("LocalAnalysisId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("MediaId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
@@ -83,6 +93,12 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
                     b.Property<string>("Result")
                         .HasColumnType("jsonb");
 
+                    b.Property<Guid?>("SetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SourceVideo")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -96,9 +112,15 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("bigint");
 
+                    b.Property<Guid?>("WorkoutExecutionId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerId", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "LocalAnalysisId")
                         .IsUnique();
 
                     b.HasIndex("OwnerId", "CreatedAt", "Id");

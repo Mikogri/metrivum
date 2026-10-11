@@ -364,6 +364,9 @@
       "trainflow.notifications.contracts": {
         "type": "Project"
       },
+      "trainflow.training.contracts": {
+        "type": "Project"
+      },
       "trainflow.videoanalysis": {
         "type": "Project",
         "dependencies": {
@@ -372,7 +375,8 @@
           "TrainFlow.Accounts.Contracts": "[1.0.0, )",
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
           "TrainFlow.Media.Contracts": "[1.0.0, )",
-          "TrainFlow.Notifications.Contracts": "[1.0.0, )"
+          "TrainFlow.Notifications.Contracts": "[1.0.0, )",
+          "TrainFlow.Training.Contracts": "[1.0.0, )"
         }
       },
       "Microsoft.EntityFrameworkCore": {

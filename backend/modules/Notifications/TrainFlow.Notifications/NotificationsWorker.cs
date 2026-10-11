@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TrainFlow.BuildingBlocks;
+using Microsoft.Extensions.Options;
 namespace TrainFlow.Notifications;
 
 [Authorize]
@@ -29,13 +30,14 @@ public sealed class NotificationsWorker(IServiceScopeFactory scopes, ILogger<Not
             {
                 using var scope = scopes.CreateScope();
                 await scope.ServiceProvider.GetRequiredService<NotificationsDelivery>().DeliverAsync(stoppingToken);
+                await scope.ServiceProvider.GetRequiredService<MobilePushDelivery>().RunAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             catch (Exception ex) { logger.LogWarning(ex, "Notification delivery will retry; REST remains authoritative"); }
         }
     }
 }
-public sealed class NotificationsDelivery(NotificationsDbContext db, ModuleTransaction tx, IHubContext<NotificationsHub> hub, TimeProvider clock, IEnumerable<INotificationDeliveryPolicy> policies)
+public sealed class NotificationsDelivery(NotificationsDbContext db, ModuleTransaction tx, IHubContext<NotificationsHub> hub, TimeProvider clock, IEnumerable<INotificationDeliveryPolicy> policies, IAccountDirectory accounts, IOptions<ExpoPushOptions> pushOptions)
 {
     public Task DeliverAsync(CancellationToken ct) => tx.RunAsync(async token =>
     {
@@ -45,11 +47,13 @@ public sealed class NotificationsDelivery(NotificationsDbContext db, ModuleTrans
             WHERE "DeliveredAt" IS NULL AND NOT "Cancelled" AND "AvailableAt" <= {now}
             ORDER BY "AvailableAt" LIMIT 100 FOR UPDATE SKIP LOCKED
             """).ToArrayAsync(token);
+        if (rows.Length == 0) return;
         var users = rows.Select(x => x.RecipientUserId).Distinct().ToArray();
+        var activeUsers = (await accounts.GetActiveUserIdsAsync(users, token)).ToHashSet();
         var preferences = await db.Preferences.AsNoTracking().Where(x => users.Contains(x.UserId)).ToDictionaryAsync(x => x.UserId, token);
         foreach (var n in rows)
         {
-            if (!NotificationsService.Enabled(preferences.GetValueOrDefault(n.RecipientUserId), n.Category, n.Required))
+            if (!activeUsers.Contains(n.RecipientUserId) || !NotificationsService.Enabled(preferences.GetValueOrDefault(n.RecipientUserId), n.Category, n.Required))
             {
                 n.Cancelled = true;
                 continue;
@@ -62,6 +66,13 @@ public sealed class NotificationsDelivery(NotificationsDbContext db, ModuleTrans
             }
             await hub.Clients.User(n.RecipientUserId.ToString()).SendAsync("NotificationCreated", new NotificationDto(n.Id, n.Type, n.Category, n.SourceModule, n.SourceId, n.DeepLink, n.AvailableAt, n.ReadAt), token);
             await hub.Clients.User(n.RecipientUserId.ToString()).SendAsync("UnreadCountChanged", token);
+            if (pushOptions.Value.Enabled && n.ReadAt == null)
+            {
+                var devices = await db.PushDevices.AsNoTracking().Where(x => x.UserId == n.RecipientUserId && x.Enabled).ToArrayAsync(token);
+                foreach (var device in devices)
+                    if (!(n.Type == "MessageCreated" && device.ActiveConversationId == n.SourceId && device.ActiveUntil > now))
+                        db.PushDeliveries.Add(new() { NotificationId = n.Id, DeviceId = device.Id, Token = device.Token, AvailableAt = now });
+            }
             n.DeliveredAt = now;
         }
         await db.SaveChangesAsync(token);

@@ -14,7 +14,7 @@ using TrainFlow.Messaging.Infrastructure;
 
 namespace TrainFlow.Messaging.Features;
 
-public sealed class MessagingService(MessagingDbContext db, IAccountContext accounts, IAccountDirectory directory, IFeatureAccessService access, ICoachingMessagingDirectory coaching, IMediaLibrary media, ModuleTransaction tx, TimeProvider clock, IOptions<MessagingOptions> options, MessagingDispatcher dispatcher, INotificationPublisher notifications, IFeatureAudience audience) : ICoachingMessagingObserver
+public sealed partial class MessagingService(MessagingDbContext db, IAccountContext accounts, IAccountDirectory directory, IFeatureAccessService access, ICoachingMessagingDirectory coaching, IMediaLibrary media, ModuleTransaction tx, TimeProvider clock, IOptions<MessagingOptions> options, MessagingDispatcher dispatcher, INotificationPublisher notifications, IFeatureAudience audience, INotificationReadStore notificationReads) : ICoachingMessagingObserver, ICoachingChatPublisher, IMessagingUploadAuthorization
 {
     private Guid Actor => accounts.UserId;
 
@@ -106,7 +106,7 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
             var existing = await db.Conversations.SingleOrDefaultAsync(x => x.PairFirst == p.First && x.PairSecond == p.Second, token);
             if (existing != null)
                 return existing.Id;
-            if (!await coaching.IsActivePairAsync(Actor, other, token) && !await db.Requests.AnyAsync(x => x.PairFirst == p.First && x.PairSecond == p.Second && x.State == RequestState.Accepted, token))
+            if (await RequiresApprovalAsync(other, token))
                 throw new ApiException(403, "MESSAGE_REQUEST_REQUIRED", "Send a message request first.");
             return (await CreateDirect(Actor, other, token)).Id;
         }, ct);
@@ -297,10 +297,10 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
             {
                 if (m?.Excluded == true)
                     throw ApiException.Conflict("Remove the explicit exclusion first.");
+                if (m?.State != MemberState.Active && await db.Members.CountAsync(x => x.ConversationId == id && x.State == MemberState.Active, token) >= options.Value.MaxGroupMembers)
+                    throw ApiException.Conflict("Group is full.");
                 if (m == null)
                 {
-                    if (await db.Members.CountAsync(x => x.ConversationId == id && x.State == MemberState.Active, token) >= options.Value.MaxGroupMembers)
-                        throw ApiException.Conflict("Group is full.");
                     m = new()
                     {
                         ConversationId = id,
@@ -412,6 +412,12 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
                 return (existing, false);
             }
 
+            await RequireConversationConsentAsync(c, token);
+
+            var firstMessageRequiresApproval = await RequiresFirstMessageApprovalAsync(c, token);
+            if (firstMessageRequiresApproval && (request.Type != MessageType.Text || request.ReplyToMessageId.HasValue))
+                throw new ApiException(403, "MESSAGE_REQUEST_REQUIRED", "Send a text introduction and wait for approval before sending replies or attachments.");
+
             if (request.ReplyToMessageId.HasValue && !await db.Messages.AnyAsync(x => x.Id == request.ReplyToMessageId && x.ConversationId == id && (!member.CutoffSequence.HasValue || x.Sequence <= member.CutoffSequence), token))
                 throw ApiException.Invalid("Reply must reference a visible message in this conversation.");
             var ready = new List<ReadyMedia>();
@@ -442,6 +448,13 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
                 RequestHash = hash
             };
             db.Messages.Add(msg);
+            if (firstMessageRequiresApproval)
+                db.Requests.Add(new MessageRequest
+                {
+                    SenderUserId = Actor, RecipientUserId = c.PairFirst == Actor ? c.PairSecond!.Value : c.PairFirst!.Value,
+                    PairFirst = c.PairFirst!.Value, PairSecond = c.PairSecond!.Value, Body = request.Body!,
+                    ConversationId = c.Id, IntroductionMessageId = msg.Id, CreatedAt = now, UpdatedAt = now
+                });
             foreach (var file in ready)
                 db.Attachments.Add(new()
                 {
@@ -533,7 +546,7 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
             return [];
         var ids = messages.Select(x => x.Id).ToArray();
         var attachments = await db.Attachments.AsNoTracking().Where(x => ids.Contains(x.MessageId)).ToArrayAsync(ct);
-        return messages.Select(x => new MessageDto(x.Id, x.ConversationId, x.SenderUserId, x.Type, x.Body, x.ReplyToMessageId, x.CreatedAt, new MessageCursor(x.ConversationId, x.CreatedAt, x.Id).Encode(), attachments.Where(a => a.MessageId == x.Id && x.DeletedAt == null).Select(a => new AttachmentDto(a.MediaId, a.ContentType, a.Size, a.DurationMs)).ToArray(), Guid.TryParse(x.IdempotencyKey, out var clientId) ? clientId.ToString() : null, x.DeletedAt)).ToArray();
+        return messages.Select(x => new MessageDto(x.Id, x.ConversationId, x.SenderUserId, x.Type, x.Body, x.ReplyToMessageId, x.CreatedAt, new MessageCursor(x.ConversationId, x.CreatedAt, x.Id).Encode(), attachments.Where(a => a.MessageId == x.Id && x.DeletedAt == null).Select(a => new AttachmentDto(a.MediaId, a.ContentType, a.Size, a.DurationMs)).ToArray(), Guid.TryParse(x.IdempotencyKey, out var clientId) ? clientId.ToString() : null, x.DeletedAt, x.CoachingEntryJson == null ? null : JsonSerializer.Deserialize<CoachingChatEntry>(x.CoachingEntryJson))).ToArray();
     }
 
     public async Task<ConversationDto> GetAsync(Guid id, CancellationToken ct)
@@ -544,7 +557,11 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
         var unread = await Visible(id).LongCountAsync(x => x.SenderUserId != Actor && x.Sequence > m.LastReadSequence, ct);
         var members = await ReadMembersAsync(id, ct);
         var title = c.Type == ConversationType.Direct ? members.FirstOrDefault(x => x.UserId != Actor)?.DisplayName ?? "Unavailable account" : c.Title;
-        return new(c.Id, c.Type, title, c.ClientGroupId, m.State, last == null ? null : (await Dtos([last], ct))[0], unread, members);
+        var request = c.Type == ConversationType.Direct ? await LatestRequestAsync(id, ct) : null;
+        var canSend = m.State == MemberState.Active && (request == null || request.State == RequestState.Accepted)
+            && (c.Type != ConversationType.Direct || !await Blocked(c.PairFirst!.Value, c.PairSecond!.Value, ct));
+        var canUpload = canSend && !await RequiresFirstMessageApprovalAsync(c, ct);
+        return new(c.Id, c.Type, title, c.ClientGroupId, m.State, last == null ? null : (await Dtos([last], ct))[0], unread, members, request == null ? null : await RequestDtoAsync(request, ct), canSend, canUpload);
     }
 
     public async Task<MemberDto[]> MembersAsync(Guid id, CancellationToken ct)
@@ -594,7 +611,7 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
         var rows = await query
             .OrderByDescending(x => db.Messages
                 .Where(msg => msg.ConversationId == x.Conversation.Id
-                    && msg.SenderUserId != Actor && msg.Type != MessageType.System
+                    && msg.SenderUserId != Actor
                     && (!x.Membership.CutoffSequence.HasValue || msg.Sequence <= x.Membership.CutoffSequence))
                 .Select(msg => (DateTimeOffset?)msg.CreatedAt).Max() ?? DateTimeOffset.MinValue)
             .ThenByDescending(x => x.Conversation.CreatedAt)
@@ -604,13 +621,26 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
         var ids = rows.Select(x => x.Conversation.Id).ToArray();
         var members = await db.Members.AsNoTracking().Where(x => ids.Contains(x.ConversationId)).ToArrayAsync(ct);
         var people = await directory.GetAccountsAsync(members.Select(x => x.UserId).Distinct().ToArray(), ct);
+        var directIds = rows.Where(x => x.Conversation.Type == ConversationType.Direct).Select(x => x.Conversation.Id).ToArray();
+        var requests = directIds.Length == 0 ? [] : await db.Requests.AsNoTracking().Where(x => x.ConversationId.HasValue && directIds.Contains(x.ConversationId.Value)).OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).ToArrayAsync(ct);
+        var blockedUsers = directIds.Length == 0 ? [] : await db.Blocks.AsNoTracking().Where(x => x.UserId == Actor || x.BlockedUserId == Actor).Select(x => x.UserId == Actor ? x.BlockedUserId : x.UserId).ToArrayAsync(ct);
+        var requestDtos = await RequestDtosAsync(requests, ct);
+        var emptyPeers = rows.Where(x => x.Conversation.Type == ConversationType.Direct && x.Conversation.Sequence == 0)
+            .Select(x => x.Conversation.PairFirst == Actor ? x.Conversation.PairSecond!.Value : x.Conversation.PairFirst!.Value).ToArray();
+        var privatePeers = emptyPeers.Length == 0 ? [] : await db.Preferences.AsNoTracking()
+            .Where(x => emptyPeers.Contains(x.UserId) && x.RequireApproval).Select(x => x.UserId).ToArrayAsync(ct);
         var lastDtos = (await Dtos(rows.Where(x => x.Last != null).Select(x => x.Last!).ToArray(), ct)).ToDictionary(x => x.Id);
         return rows.Select(row =>
         {
             var c = row.Conversation;
             var title = c.Type == ConversationType.Direct ? people.GetValueOrDefault(c.PairFirst == Actor ? c.PairSecond!.Value : c.PairFirst!.Value)?.DisplayName ?? "Unavailable account" : c.Title;
             var summary = members.Where(x => x.ConversationId == c.Id && (row.Membership.State == MemberState.Active ? x.State == MemberState.Active : x.UserId == Actor)).Select(x => new MemberDto(x.UserId, people.GetValueOrDefault(x.UserId)?.DisplayName ?? "Unavailable account", x.Role, x.Source, x.State, x.Excluded, x.JoinedAt, x.RemovedAt, x.LastReadMessageId, people.GetValueOrDefault(x.UserId)?.Username)).ToArray();
-            return new ConversationDto(c.Id, c.Type, title, c.ClientGroupId, row.Membership.State, row.Last == null ? null : lastDtos[row.Last.Id], row.Unread, summary);
+            var request = requests.FirstOrDefault(x => x.ConversationId == c.Id);
+            var canSend = row.Membership.State == MemberState.Active && (request == null || request.State == RequestState.Accepted)
+                && (c.Type != ConversationType.Direct || !blockedUsers.Contains(c.PairFirst == Actor ? c.PairSecond!.Value : c.PairFirst!.Value));
+            var canUpload = canSend && (c.Type != ConversationType.Direct || c.Sequence > 0
+                || !privatePeers.Contains(c.PairFirst == Actor ? c.PairSecond!.Value : c.PairFirst!.Value));
+            return new ConversationDto(c.Id, c.Type, title, c.ClientGroupId, row.Membership.State, row.Last == null ? null : lastDtos[row.Last.Id], row.Unread, summary, request == null ? null : requestDtos[request.Id], canSend, canUpload);
         }).ToArray();
     }
 
@@ -622,6 +652,17 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
             var current = await Member(id, false, token);
             var message = await Visible(id).SingleOrDefaultAsync(x => x.Id == messageId, token) ?? throw ApiException.NotFound();
             await db.Members.Where(x => x.ConversationId == id && x.UserId == Actor && x.LastReadSequence < message.Sequence).ExecuteUpdateAsync(s => s.SetProperty(x => x.LastReadSequence, message.Sequence).SetProperty(x => x.LastReadMessageId, message.Id).SetProperty(x => x.LastReadAt, clock.GetUtcNow()), token);
+            // Resolve only unread events and use message sequence, not timestamps, to preserve newer notifications.
+            var eventKeys = await notificationReads.UnreadEventKeysAsync(Actor, "Messaging", id, "MessageCreated", token);
+            var candidates = eventKeys.Where(key => key.StartsWith("message:", StringComparison.Ordinal))
+                .Select(key => Guid.TryParse(key[8..], out var value) ? value : Guid.Empty).Where(value => value != Guid.Empty).ToArray();
+            if (candidates.Length > 0)
+            {
+                var through = Math.Max(current.LastReadSequence, message.Sequence);
+                var readIds = await db.Messages.Where(x => x.ConversationId == id && x.Sequence <= through && candidates.Contains(x.Id))
+                    .Select(x => x.Id).ToArrayAsync(token);
+                await notificationReads.MarkReadAsync(Actor, readIds.Select(value => "message:" + value).ToArray(), token);
+            }
         }, ct);
         await dispatcher.ConversationAsync(id, "ReadMarkerChanged", new
         {
@@ -662,8 +703,13 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
                 return pending;
             }
 
-            if (await db.Conversations.AnyAsync(x => x.PairFirst == pair.First && x.PairSecond == pair.Second, token))
+            var c = await CreateDirect(Actor, request.UserId, token);
+            var latest = await LatestRequestAsync(c.Id, token);
+            if (c.Sequence > 0 && (latest == null || latest.State == RequestState.Accepted))
                 throw ApiException.Conflict("Use the existing conversation.");
+            var approval = await RequiresApprovalAsync(request.UserId, token);
+            await Lock("messaging-conversation:" + c.Id, token);
+            await db.Entry(c).ReloadAsync(token);
             var row = new MessageRequest
             {
                 SenderUserId = Actor,
@@ -671,16 +717,20 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
                 PairFirst = pair.First,
                 PairSecond = pair.Second,
                 Body = request.Body,
+                ConversationId = c.Id,
+                State = approval ? RequestState.Pending : RequestState.Accepted,
                 CreatedAt = clock.GetUtcNow(),
                 UpdatedAt = clock.GetUtcNow()
             };
             db.Requests.Add(row);
             await db.SaveChangesAsync(token);
-            await notifications.PublishAsync(new(row.RecipientUserId, "request:" + row.Id, "MessageRequestCreated", "Messaging", "Messaging", row.Id, "/app/messages?tab=requests"), token);
+            row.IntroductionMessageId = (await AppendEntryAsync(c, Actor, "request:" + row.Id, row.Body, null, token)).Id;
+            await db.SaveChangesAsync(token);
             return row;
         }, ct);
-        await dispatcher.UserAsync(r.RecipientUserId, "MessageRequestCreated", RequestDto(r), ct);
-        return RequestDto(r);
+        var dto = await RequestDtoAsync(r, ct);
+        await dispatcher.UserAsync(r.RecipientUserId, "MessageRequestCreated", dto, ct);
+        return dto;
     }
 
     public async Task<RequestDto[]> RequestsAsync(CancellationToken ct)
@@ -688,14 +738,14 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
         await Feature("messaging.direct", ct);
         var rows = await db.Requests.AsNoTracking().Where(x => x.RecipientUserId == Actor || x.SenderUserId == Actor).OrderByDescending(x => x.CreatedAt).Take(100).ToArrayAsync(ct);
         var people = await directory.GetAccountsAsync(rows.SelectMany(x => new[] { x.SenderUserId, x.RecipientUserId }).Distinct().ToArray(), ct);
-        return rows.Select(row => RequestDto(row) with
+        var dtos = await RequestDtosAsync(rows, ct);
+        return rows.Select(row => dtos[row.Id] with
         {
             SenderDisplayName = people.GetValueOrDefault(row.SenderUserId)?.DisplayName,
             RecipientDisplayName = people.GetValueOrDefault(row.RecipientUserId)?.DisplayName
         }).ToArray();
     }
 
-    private static RequestDto RequestDto(MessageRequest r) => new(r.Id, r.SenderUserId, r.RecipientUserId, r.Body, r.State, r.ConversationId, r.CreatedAt);
     public async Task<RequestDto> RespondAsync(Guid id, RequestState state, CancellationToken ct)
     {
         await Feature("messaging.direct", ct);
@@ -715,32 +765,22 @@ public sealed class MessagingService(MessagingDbContext db, IAccountContext acco
                 await NotBlocked(r.SenderUserId, r.RecipientUserId, token);
                 var c = await CreateDirect(r.SenderUserId, r.RecipientUserId, token);
                 r.ConversationId = c.Id;
-                // The introduction becomes the first chat message, atomically with acceptance.
-                c.Sequence++;
-                c.UpdatedAt = clock.GetUtcNow();
-                db.Messages.Add(new Message
-                {
-                    ConversationId = c.Id,
-                    SenderUserId = r.SenderUserId,
-                    Type = MessageType.Text,
-                    Body = r.Body,
-                    CreatedAt = c.UpdatedAt,
-                    Sequence = c.Sequence,
-                    IdempotencyKey = "request:" + r.Id,
-                    RequestHash = "request:" + r.Id
-                });
+                // Older clients may still resolve a request created before conversation unification.
+                if (!await db.Messages.AnyAsync(x => x.ConversationId == c.Id && x.IdempotencyKey == "request:" + r.Id, token) && c.Sequence == 0)
+                    r.IntroductionMessageId = (await AppendEntryAsync(c, r.SenderUserId, "request:" + r.Id, r.Body, null, token)).Id;
             }
 
             if (state is RequestState.Accepted or RequestState.Declined)
-                await notifications.PublishAsync(new(r.SenderUserId, "request:" + r.Id + ":" + state, "MessageRequest" + state, "Messaging", "Messaging", r.Id, "/app/messages?tab=requests"), token);
+                await notifications.PublishAsync(new(r.SenderUserId, "request:" + r.Id + ":" + state, "MessageRequest" + state, "Messaging", "Messaging", r.ConversationId ?? r.Id, "/app/messages?conversation=" + r.ConversationId), token);
             r.State = state;
             r.UpdatedAt = clock.GetUtcNow();
             await db.SaveChangesAsync(token);
             return r;
         }, ct);
-        await dispatcher.UserAsync(result.SenderUserId, "MessageRequestUpdated", RequestDto(result), ct);
-        await dispatcher.UserAsync(result.RecipientUserId, "MessageRequestUpdated", RequestDto(result), ct);
-        return RequestDto(result);
+        var dto = await RequestDtoAsync(result, ct);
+        await dispatcher.UserAsync(result.SenderUserId, "MessageRequestUpdated", dto, ct);
+        await dispatcher.UserAsync(result.RecipientUserId, "MessageRequestUpdated", dto, ct);
+        return dto;
     }
 
     public async Task BlockAsync(Guid user, bool blocked, CancellationToken ct)

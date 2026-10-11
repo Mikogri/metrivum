@@ -81,6 +81,10 @@ IF to_regclass('messaging."Conversations"') IS NOT NULL THEN
     REVOKE ALL ON SCHEMA messaging FROM PUBLIC;
     REVOKE CREATE ON SCHEMA messaging FROM trainflow_api, trainflow_worker;
     GRANT SELECT, INSERT, UPDATE ON messaging."Conversations", messaging."Members", messaging."Requests" TO trainflow_api;
+    IF to_regclass('messaging."Preferences"') IS NOT NULL THEN
+        GRANT SELECT, INSERT, UPDATE ON messaging."Preferences" TO trainflow_api;
+        REVOKE ALL ON messaging."Preferences" FROM trainflow_worker;
+    END IF;
     GRANT SELECT, INSERT, DELETE ON messaging."Blocks" TO trainflow_api;
     GRANT SELECT, INSERT ON messaging."Messages", messaging."Attachments", messaging."MembershipChanges", messaging."Reports" TO trainflow_api;
     REVOKE UPDATE, DELETE ON messaging."Messages", messaging."Attachments", messaging."MembershipChanges", messaging."Reports" FROM trainflow_api;
@@ -170,6 +174,17 @@ END IF;
 END $$;
 
 -- Organizational subscriptions reuse the API-hosted durable billing worker.
+-- Push tokens are private to the API-hosted notification delivery process.
+DO $$ BEGIN
+IF to_regclass('notifications."PushDevices"') IS NOT NULL THEN
+    REVOKE ALL ON notifications."PushDevices", notifications."PushDeliveries" FROM PUBLIC, trainflow_worker, trainflow_api;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON notifications."PushDevices" TO trainflow_api;
+    GRANT SELECT, INSERT, UPDATE ON notifications."PushDeliveries" TO trainflow_api;
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname='anon') THEN REVOKE ALL ON notifications."PushDevices", notifications."PushDeliveries" FROM anon; END IF;
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname='authenticated') THEN REVOKE ALL ON notifications."PushDevices", notifications."PushDeliveries" FROM authenticated; END IF;
+END IF;
+END $$;
+
 DO $$ BEGIN
 IF to_regclass('coaching."TeamClientCases"') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE ON coaching."TeamClientCases", coaching."TeamCoachAssignments", coaching."ClientTransferRequests" TO trainflow_api;
@@ -193,5 +208,14 @@ IF to_regclass('billing.team_platform_subscriptions') IS NOT NULL THEN
     IF EXISTS (SELECT FROM pg_roles WHERE rolname='authenticated') THEN
         REVOKE ALL ON billing.team_platform_subscriptions, billing.team_billing_quotes, billing.proration_credits, billing.team_audit FROM authenticated;
     END IF;
+END IF;
+END $$;
+
+DO $$ BEGIN
+IF to_regclass('training.purchases') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON training.purchases TO trainflow_api;
+    REVOKE ALL ON training.purchases FROM PUBLIC, trainflow_worker;
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname='anon') THEN REVOKE ALL ON training.purchases FROM anon; END IF;
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname='authenticated') THEN REVOKE ALL ON training.purchases FROM authenticated; END IF;
 END IF;
 END $$;

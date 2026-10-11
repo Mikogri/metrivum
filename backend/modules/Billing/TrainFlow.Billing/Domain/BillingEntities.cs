@@ -21,6 +21,8 @@ public enum SimulatedOutcome
 }
 public sealed class Order
 {
+    public Guid? ApplicationId { get; set; }
+    public Guid? TrainingPlanRevisionId { get; set; }
     public Guid? TeamId
     {
         get; set;
@@ -37,11 +39,11 @@ public sealed class Order
     {
         get; set;
     }
-    public Guid ServiceId
+    public Guid? ServiceId
     {
         get; set;
     }
-    public Guid RelationshipId
+    public Guid? RelationshipId
     {
         get; set;
     }
@@ -99,6 +101,8 @@ public sealed class Order
 }
 public sealed class PaymentDue
 {
+    public int? ValidityDays { get; set; }
+    public DateTimeOffset? ValidUntil { get; set; }
     public Guid? TeamId
     {
         get; set;
@@ -119,11 +123,11 @@ public sealed class PaymentDue
     {
         get; set;
     }
-    public Guid ServiceId
+    public Guid? ServiceId
     {
         get; set;
     }
-    public Guid RelationshipId
+    public Guid? RelationshipId
     {
         get; set;
     }

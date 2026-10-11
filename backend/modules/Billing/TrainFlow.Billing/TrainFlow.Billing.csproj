@@ -9,4 +9,4 @@
     <ProjectReference Include="../../Offers/TrainFlow.Offers.Contracts/TrainFlow.Offers.Contracts.csproj" />
     <ProjectReference Include="../../Coaching/TrainFlow.Coaching.Contracts/TrainFlow.Coaching.Contracts.csproj" />
   </ItemGroup>
-<ItemGroup><ProjectReference Include="../../Analytics/TrainFlow.Analytics.Contracts/TrainFlow.Analytics.Contracts.csproj" /></ItemGroup></Project>
+<ItemGroup><ProjectReference Include="../../Analytics/TrainFlow.Analytics.Contracts/TrainFlow.Analytics.Contracts.csproj" /></ItemGroup><ItemGroup><ProjectReference Include="../../Training/TrainFlow.Training.Contracts/TrainFlow.Training.Contracts.csproj" /></ItemGroup></Project>

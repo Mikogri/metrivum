@@ -5,7 +5,7 @@ namespace TrainFlow.Billing.Domain;
 [JsonConverter(typeof(JsonStringEnumConverter<BillingContext>))]
 public enum BillingContext
 {
-    CoachingService, Platform
+    CoachingService, Platform, TrainingPlan
 }
 
 public sealed class PlatformPlan

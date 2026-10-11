@@ -61,6 +61,13 @@ namespace TrainFlow.Offers.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("CoachingService");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -140,6 +147,9 @@ namespace TrainFlow.Offers.Infrastructure.Migrations
                     b.Property<int?>("SessionCount")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("ValidityDays")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OfferId");
@@ -148,7 +158,9 @@ namespace TrainFlow.Offers.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_option_price", "\"Price\" >= 0");
 
-                            t.HasCheckConstraint("CK_option_shape", "((\"Model\" = 'PerSession' AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'CustomPackage' AND \"MinSessions\" >= 1 AND \"MaxSessions\" >= \"MinSessions\" AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'FixedPackage' AND \"SessionCount\" >= 1 AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'PeriodSubscription' AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND ((\"PeriodUnit\" = 'Week' AND \"PeriodCount\" BETWEEN 1 AND 52) OR (\"PeriodUnit\" = 'Month' AND \"PeriodCount\" BETWEEN 1 AND 12) OR (\"PeriodUnit\" = 'Year' AND \"PeriodCount\" = 1)))) IS TRUE");
+                            t.HasCheckConstraint("CK_option_shape", "((\"Model\" IN ('PerSession','OneTime') AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'CustomPackage' AND \"MinSessions\" >= 1 AND \"MaxSessions\" >= \"MinSessions\" AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'FixedPackage' AND \"SessionCount\" >= 1 AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'PeriodSubscription' AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND ((\"PeriodUnit\" = 'Week' AND \"PeriodCount\" BETWEEN 1 AND 52) OR (\"PeriodUnit\" = 'Month' AND \"PeriodCount\" BETWEEN 1 AND 12) OR (\"PeriodUnit\" = 'Year' AND \"PeriodCount\" = 1)))) IS TRUE");
+
+                            t.HasCheckConstraint("CK_option_validity", "\"ValidityDays\" IS NULL OR (\"ValidityDays\" BETWEEN 1 AND 36500 AND \"Model\" NOT IN ('PeriodSubscription','OneTime'))");
                         });
                 });
 
@@ -252,6 +264,13 @@ namespace TrainFlow.Offers.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("PublishedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("CoachingService");
+
                     b.Property<string>("Tags")
                         .IsRequired()
                         .HasColumnType("jsonb");
@@ -354,13 +373,18 @@ namespace TrainFlow.Offers.Infrastructure.Migrations
                     b.Property<int?>("SessionCount")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("ValidityDays")
+                        .HasColumnType("integer");
+
                     b.HasKey("RevisionId", "Id");
 
                     b.ToTable("revision_billing_options", "offers", t =>
                         {
                             t.HasCheckConstraint("CK_revision_option_price", "\"Price\" >= 0");
 
-                            t.HasCheckConstraint("CK_revision_option_shape", "((\"Model\" = 'PerSession' AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'CustomPackage' AND \"MinSessions\" >= 1 AND \"MaxSessions\" >= \"MinSessions\" AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'FixedPackage' AND \"SessionCount\" >= 1 AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'PeriodSubscription' AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND ((\"PeriodUnit\" = 'Week' AND \"PeriodCount\" BETWEEN 1 AND 52) OR (\"PeriodUnit\" = 'Month' AND \"PeriodCount\" BETWEEN 1 AND 12) OR (\"PeriodUnit\" = 'Year' AND \"PeriodCount\" = 1)))) IS TRUE");
+                            t.HasCheckConstraint("CK_revision_option_shape", "((\"Model\" IN ('PerSession','OneTime') AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'CustomPackage' AND \"MinSessions\" >= 1 AND \"MaxSessions\" >= \"MinSessions\" AND \"SessionCount\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'FixedPackage' AND \"SessionCount\" >= 1 AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"PeriodCount\" IS NULL AND \"PeriodUnit\" IS NULL) OR (\"Model\" = 'PeriodSubscription' AND \"MinSessions\" IS NULL AND \"MaxSessions\" IS NULL AND \"SessionCount\" IS NULL AND ((\"PeriodUnit\" = 'Week' AND \"PeriodCount\" BETWEEN 1 AND 52) OR (\"PeriodUnit\" = 'Month' AND \"PeriodCount\" BETWEEN 1 AND 12) OR (\"PeriodUnit\" = 'Year' AND \"PeriodCount\" = 1)))) IS TRUE");
+
+                            t.HasCheckConstraint("CK_revision_option_validity", "\"ValidityDays\" IS NULL OR (\"ValidityDays\" BETWEEN 1 AND 36500 AND \"Model\" NOT IN ('PeriodSubscription','OneTime'))");
                         });
                 });
 

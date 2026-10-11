@@ -5,6 +5,17 @@ namespace TrainFlow.Accounts.Infrastructure;
 
 public sealed class AccountDirectory(AccountsDbContext db) : IAccountDirectory
 {
+    public Task<Guid[]> GetActiveUserIdsAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken)
+    {
+        if (userIds.Count == 0)
+            return Task.FromResult(Array.Empty<Guid>());
+        var ids = userIds.Distinct().ToArray();
+        return db.Profiles.AsNoTracking()
+            .Where(x => ids.Contains(x.Id) && x.Active && x.Onboarded
+                && db.Workspaces.Any(w => w.OwnerId == x.Id))
+            .Select(x => x.Id).ToArrayAsync(cancellationToken);
+    }
+
     public Task<Guid[]> FindNameMatchesAsync(IReadOnlyCollection<Guid> userIds, string search, CancellationToken cancellationToken)
     {
         if (userIds.Count == 0)

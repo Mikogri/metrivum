@@ -36,6 +36,16 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
         var team = rows.Values.Any(x => x.TeamId != null) && teams != null ? await teams.GetForUserAsync(accounts.UserId, ct) : null;
         var teamCases = rows.Values.Where(x => x.TeamClientCaseId != null).Select(x => x.TeamClientCaseId!.Value).ToArray();
         var assigned = await db.Set<TeamCoachAssignment>().Where(x => teamCases.Contains(x.TeamClientCaseId) && x.CoachId == accounts.UserId && x.EndedAt == null).Select(x => x.TeamClientCaseId).ToArrayAsync(ct);
+        var writing = operation is RelationshipOperation.ProtectedWrite or RelationshipOperation.Manage;
+        var clientCases = writing && teams != null ? rows.Values
+            .Where(x => x.TeamClientCaseId != null && x.ClientId == accounts.UserId && x.TeamId != team?.TeamId)
+            .Select(x => x.TeamClientCaseId!.Value).Distinct().ToArray() : [];
+        var representatives = clientCases.Length == 0 ? [] : await db.Set<TeamCoachAssignment>().AsNoTracking()
+            .Where(x => clientCases.Contains(x.TeamClientCaseId) && x.EndedAt == null)
+            .Select(x => new { x.TeamId, x.TeamClientCaseId, x.CoachId }).ToArrayAsync(ct);
+        var representativeByCase = representatives.GroupBy(x => (x.TeamId, x.TeamClientCaseId))
+            .ToDictionary(x => x.Key, x => x.First().CoachId);
+        var activeScopes = new Dictionary<(Guid TeamId, Guid CoachId), bool>();
         foreach (var id in ids)
         {
             if (!rows.TryGetValue(id, out var relationship))
@@ -55,13 +65,21 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
                 decisions[id] = new(false, "RESOURCE_NOT_FOUND", null);
                 continue;
             }
-            var writing = operation is RelationshipOperation.ProtectedWrite or RelationshipOperation.Manage;
             var feature = client ? "coaching.relationships.read-own" : writing ? "coaching.clients.manage" : "coaching.clients.view";
             var allowed = roles.Contains(client ? AccountRole.Client : AccountRole.Coach) && features.Features.Any(x => x.Key == feature && x.Available);
             if (writing)
             {
-                var representative = await db.Set<TeamCoachAssignment>().Where(x => x.TeamClientCaseId == relationship.TeamClientCaseId && x.EndedAt == null).Select(x => (Guid?)x.CoachId).FirstOrDefaultAsync(ct);
-                var active = team?.TeamId == relationship.TeamId ? team.IsActive : teams != null && representative != null && (await teams.GetForUserAsync(representative.Value, ct)) is { IsActive: true } coachTeam && coachTeam.TeamId == relationship.TeamId;
+                var active = team?.TeamId == relationship.TeamId && team.IsActive;
+                if (team?.TeamId != relationship.TeamId && teams != null &&
+                    representativeByCase.TryGetValue((relationship.TeamId.Value, relationship.TeamClientCaseId!.Value), out var representative))
+                {
+                    var scope = (relationship.TeamId.Value, representative);
+                    if (!activeScopes.TryGetValue(scope, out active))
+                    {
+                        active = (await teams.GetForUserAsync(representative, ct)) is { IsActive: true } coachTeam && coachTeam.TeamId == relationship.TeamId;
+                        activeScopes[scope] = active;
+                    }
+                }
                 allowed &= active && relationship.Status == RelationshipStatus.Active && (operation != RelationshipOperation.Manage || staff);
             }
             else if (client)
@@ -234,14 +252,20 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
         return (await CoachDtosAsync([r], ct))[0];
     }
 
-    public async Task<Paged<GroupDto>> GroupsAsync(int page, int pageSize, string? search, string sort, bool archived, CancellationToken ct, Guid? teamId = null)
+    public async Task<Paged<GroupDto>> GroupsAsync(int page, int pageSize, string? search, string sort, bool archived, CancellationToken ct, Guid? teamId = null, Guid? relationshipId = null)
     {
         var owner = await CoachAsync("coaching.groups.manage", ct);
         Pagination(page, pageSize);
         Text(search, 200);
         if (teamId != null)
             await RequireTeamScope(teamId.Value, false, ct);
+        if (relationshipId != null)
+        {
+            var relationship = await OwnedRelationshipAsync(relationshipId.Value, owner, ct);
+            if (relationship.TeamId != teamId) throw ApiException.NotFound();
+        }
         var query = db.Groups.AsNoTracking().Where(x => x.CoachId == owner.UserId && x.WorkspaceId == owner.WorkspaceId && x.Archived == archived && x.TeamId == teamId);
+        if (relationshipId != null) query = query.Where(x => db.Memberships.Any(m => m.GroupId == x.Id && m.RelationshipId == relationshipId));
         if (!string.IsNullOrWhiteSpace(search))
         {
             var text = search.Trim().ToLowerInvariant();
@@ -345,11 +369,14 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
     private async Task<CoachRelationshipDto[]> CoachDtosAsync(Relationship[] rows, CancellationToken ct)
     {
         var ids = rows.Select(x => x.Id).ToArray();
-        var people = await directory.GetAccountsAsync(rows.Select(x => x.ClientId).Distinct().ToArray(), ct);
+        var caseIds = rows.Where(x => x.TeamClientCaseId != null).Select(x => x.TeamClientCaseId!.Value).ToArray();
+        var assignments = await db.Set<TeamCoachAssignment>().AsNoTracking().Where(x => caseIds.Contains(x.TeamClientCaseId) && x.EndedAt == null).ToArrayAsync(ct);
+        var currentTeam = teams == null || caseIds.Length == 0 ? null : await teams.GetForUserAsync(accounts.UserId, ct);
+        var people = await directory.GetAccountsAsync(rows.Select(x => x.ClientId).Concat(assignments.Select(x => x.CoachId)).Distinct().ToArray(), ct);
         var memberships = await db.Memberships.AsNoTracking().Where(x => ids.Contains(x.RelationshipId)).ToArrayAsync(ct);
         var history = await db.StatusChanges.AsNoTracking().Where(x => ids.Contains(x.RelationshipId)).OrderBy(x => x.Version).ToArrayAsync(ct);
         var canManage = (await access.GetAsync(ct)).Features.Any(x => x.Key == "coaching.clients.manage" && x.Available);
-        return rows.Select(x => new CoachRelationshipDto(x.Id, Person(x.ClientId, people), x.Status, x.StartedAt, x.SuspendedAt, x.ResumedAt, x.CompletedAt, x.Version, x.UpdatedAt, memberships.Where(m => m.RelationshipId == x.Id).Select(m => m.GroupId).Order().ToArray(), history.Where(h => h.RelationshipId == x.Id).Select(h => new StatusChangeDto(h.ActorId, h.OccurredAt, h.PreviousStatus, h.NewStatus, h.InternalReason, h.Version)).ToArray(), canManage && x.TeamId == null ? x.Status switch { RelationshipStatus.Active => ["suspend", "complete"], RelationshipStatus.Suspended => ["resume"], _ => [] } : [], people.TryGetValue(x.ClientId, out var person) ? person.SharedPhone : null, x.TeamId, x.TeamClientCaseId)).ToArray();
+        return rows.Select(x => new CoachRelationshipDto(x.Id, Person(x.ClientId, people), x.Status, x.StartedAt, x.SuspendedAt, x.ResumedAt, x.CompletedAt, x.Version, x.UpdatedAt, memberships.Where(m => m.RelationshipId == x.Id).Select(m => m.GroupId).Order().ToArray(), history.Where(h => h.RelationshipId == x.Id).Select(h => new StatusChangeDto(h.ActorId, h.OccurredAt, h.PreviousStatus, h.NewStatus, h.InternalReason, h.Version)).ToArray(), canManage && x.TeamId == null ? x.Status switch { RelationshipStatus.Active => ["suspend", "complete"], RelationshipStatus.Suspended => ["resume"], _ => [] } : [], people.TryGetValue(x.ClientId, out var person) ? person.SharedPhone : null, x.TeamId, x.TeamClientCaseId, currentTeam?.TeamId == x.TeamId ? currentTeam?.Name : null, assignments.FirstOrDefault(a => a.TeamClientCaseId == x.TeamClientCaseId) is { } assigned ? Person(assigned.CoachId, people) : null)).ToArray();
     }
     private static ClientRelationshipDto ClientDto(Relationship r, IReadOnlyDictionary<Guid, AccountDirectoryEntry> people) => new(r.Id, Person(r.CoachId, people), r.Status, r.Status switch { RelationshipStatus.Active => ["read", "write"], RelationshipStatus.Completed => ["read-history"], _ => [] }, r.TeamId, r.TeamClientCaseId);
     private static PersonDto Person(Guid id, IReadOnlyDictionary<Guid, AccountDirectoryEntry> people) => people.TryGetValue(id, out var person) ? new(id, person.DisplayName, person.Username) : new(id, "Unavailable account", null);
@@ -364,9 +391,7 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var ids = await query.Select(x => client ? x.CoachId : x.ClientId).Distinct().ToArrayAsync(ct);
-            var people = await directory.GetAccountsAsync(ids, ct);
-            var text = request.Search.Trim();
-            var matching = people.Values.Where(x => x.DisplayName.Contains(text, StringComparison.OrdinalIgnoreCase) || (x.Username?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false)).Select(x => x.UserId).ToArray();
+            var matching = await directory.FindNameMatchesAsync(ids, request.Search.Trim(), ct);
             query = query.Where(x => matching.Contains(client ? x.CoachId : x.ClientId));
         }
         return query;

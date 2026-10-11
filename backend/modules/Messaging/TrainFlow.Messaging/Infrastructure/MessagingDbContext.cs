@@ -14,10 +14,12 @@ public sealed class MessagingDbContext(DbContextOptions<MessagingDbContext> opti
     public DbSet<MessageRequest> Requests => Set<MessageRequest>();
     public DbSet<UserBlock> Blocks => Set<UserBlock>();
     public DbSet<MessageReport> Reports => Set<MessageReport>();
+    public DbSet<MessagingPreference> Preferences => Set<MessagingPreference>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.HasDefaultSchema("messaging");
+        b.Entity<MessagingPreference>().ToTable("Preferences").HasKey(x => x.UserId);
         var c = b.Entity<Conversation>();
         c.ToTable("Conversations", t => t.HasCheckConstraint("CK_Conversation_Pair", "(\"Type\" = 'Direct' AND \"PairFirst\" IS NOT NULL AND \"PairSecond\" IS NOT NULL AND \"PairFirst\" < \"PairSecond\" AND \"ClientGroupId\" IS NULL) OR (\"Type\" = 'Group' AND \"PairFirst\" IS NULL AND \"PairSecond\" IS NULL AND \"ClientGroupId\" IS NULL) OR (\"Type\" = 'ClientGroupLinked' AND \"PairFirst\" IS NULL AND \"PairSecond\" IS NULL AND \"ClientGroupId\" IS NOT NULL)"));
         c.HasKey(x => x.Id);
@@ -50,6 +52,7 @@ public sealed class MessagingDbContext(DbContextOptions<MessagingDbContext> opti
         msg.HasAlternateKey(x => new { x.ConversationId, x.Id });
         msg.Property(x => x.Type).HasConversion<string>().HasMaxLength(20);
         msg.Property(x => x.Body).HasMaxLength(8000);
+        msg.Property(x => x.CoachingEntryJson).HasColumnType("jsonb");
         msg.Property(x => x.IdempotencyKey).HasMaxLength(100);
         msg.Property(x => x.RequestHash).HasMaxLength(64);
         msg.HasIndex(x => new { x.ConversationId, x.CreatedAt, x.Id });
@@ -65,7 +68,7 @@ public sealed class MessagingDbContext(DbContextOptions<MessagingDbContext> opti
         var r = b.Entity<MessageRequest>();
         r.ToTable("Requests", t => t.HasCheckConstraint("CK_Request_NoSelf", "\"SenderUserId\" <> \"RecipientUserId\" AND \"PairFirst\" < \"PairSecond\""));
         r.HasKey(x => x.Id);
-        r.Property(x => x.Body).HasMaxLength(2000);
+        r.Property(x => x.Body).HasMaxLength(8000);
         r.Property(x => x.State).HasConversion<string>().HasMaxLength(20);
         r.HasIndex(x => new { x.PairFirst, x.PairSecond }).IsUnique().HasFilter("\"State\" = 'Pending'");
         r.HasIndex(x => new { x.RecipientUserId, x.State, x.CreatedAt });

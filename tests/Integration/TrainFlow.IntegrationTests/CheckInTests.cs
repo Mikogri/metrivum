@@ -1,3 +1,9 @@
+using TrainFlow.Training.Features;
+using TrainFlow.ExerciseCatalog.Contracts;
+using TrainFlow.Training.Contracts;
+using TrainFlow.Training.Delivery;
+using TrainFlow.Training.Infrastructure;
+using TrainFlow.Training.Domain;
 using TrainFlow.Notifications;
 using TrainFlow.Notifications.Contracts;
 using System.Text.Json;
@@ -30,6 +36,151 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class CheckInTests
 {
+    [CatalogPostgresFact]
+    public async Task Metadata_only_schedule_edits_preserve_a_pending_release()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var form = await f.FormAsync();
+        var person = await f.RelationshipAsync();
+        var request = f.Schedule(form.Id, [person.Id], []);
+        var schedule = await f.Coach(s => s.CreateAsync(request, default));
+        var renamed = await f.Coach(s => s.UpdateAsync(schedule.Id, request with { Name = "Renamed" }, schedule.Version, default));
+        Assert.Equal(schedule.NextAvailableAtUtc, renamed.NextAvailableAtUtc);
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        var issued = Assert.Single(await f.RequestsAsync(schedule.Id));
+        Assert.Equal(schedule.NextAvailableAtUtc, issued.AvailableAtUtc);
+        Assert.Equal("Renamed", issued.ScheduleName);
+    }
+
+    [CatalogPostgresFact]
+    public async Task Applying_shorter_cycles_realigns_future_checkins_and_pause_resume_preserves_history()
+    {
+        await using var f = await Fixture.CreateAsync();
+        f.Clock.Set(DateTimeOffset.Parse("2026-10-16T10:00:00Z"));
+        var form = await f.FormAsync();
+        var person = await f.RelationshipAsync();
+        var assignment = await f.AssignmentAsync(person);
+        var request = f.Schedule(form.Id, [person.Id], []) with { TimeZone = "Europe/Warsaw", Recurrence = new(RecurrenceKind.AssignedProgramCycle, 1, new(2026, 10, 16), new(9, 0), AssignmentId: assignment.Id, CycleDays: [1]) };
+        var schedule = await f.Coach(s => s.CreateAsync(request, default));
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        var first = Assert.Single(await f.RequestsAsync(schedule.Id));
+        Assert.Equal(DateTimeOffset.Parse("2026-10-26T08:00:00Z"), (await f.Coach(s => s.ScheduleAsync(schedule.Id, default))).NextAvailableAtUtc);
+        f.Clock.Set(DateTimeOffset.Parse("2026-10-17T10:00:00Z"));
+        await using (var scope = f.Provider.CreateAsyncScope())
+        {
+            var service = scope.ServiceProvider.GetRequiredService<TrainingService>();
+            var plan = await service.GetAsync(assignment.ProgramId, default);
+            var block = plan.Document.Blocks[0];
+            var updated = plan.Document with { Blocks = [block with { Cycles = [block.Cycles[0] with { DayCount = 5 }, block.Cycles[1]] }] };
+            var saved = await service.SaveAsync(plan.Id, new(plan.Name, "", null, updated), plan.Version, default);
+            var key = Guid.NewGuid().ToString();
+            await Assert.ThrowsAsync<InvalidOperationException>(() => scope.ServiceProvider.GetRequiredService<ModuleTransaction>().RunAsync(async ct =>
+            {
+                await service.ApplyAsync(plan.Id, saved.Version, key, ct);
+                throw new InvalidOperationException("Roll back publication and observer together.");
+            }, default));
+            Assert.Equal(DateTimeOffset.Parse("2026-10-26T08:00:00Z"), (await f.Coach(s => s.ScheduleAsync(schedule.Id, default))).NextAvailableAtUtc);
+            var applied = await service.ApplyAsync(plan.Id, saved.Version, key, default);
+            var aligned = await f.Coach(s => s.ScheduleAsync(schedule.Id, default));
+            Assert.Equal(applied.Id, (await service.ApplyAsync(plan.Id, saved.Version, key, default)).Id);
+            Assert.Equal(aligned.Version, (await f.Coach(s => s.ScheduleAsync(schedule.Id, default))).Version);
+        }
+        Assert.Equal(DateTimeOffset.Parse("2026-10-21T07:00:00Z"), (await f.Coach(s => s.ScheduleAsync(schedule.Id, default))).NextAvailableAtUtc);
+        await using (var scope = f.Provider.CreateAsyncScope())
+        {
+            var service = scope.ServiceProvider.GetRequiredService<TrainingDeliveryService>();
+            var current = await service.GetAsync(assignment.Id, default);
+            await service.SetStatusAsync(assignment.Id, AssignmentStatus.Paused, current.Version, default);
+        }
+        Assert.Null((await f.Coach(s => s.ScheduleAsync(schedule.Id, default))).NextAvailableAtUtc);
+        f.Clock.Set(DateTimeOffset.Parse("2026-10-21T06:00:00Z"));
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        Assert.Single(await f.RequestsAsync(schedule.Id));
+        await using (var scope = f.Provider.CreateAsyncScope())
+        {
+            var service = scope.ServiceProvider.GetRequiredService<TrainingDeliveryService>();
+            var current = await service.GetAsync(assignment.Id, default);
+            await service.SetStatusAsync(assignment.Id, AssignmentStatus.Active, current.Version, default);
+        }
+        Assert.Equal(DateTimeOffset.Parse("2026-10-21T07:00:00Z"), (await f.Coach(s => s.ScheduleAsync(schedule.Id, default))).NextAvailableAtUtc);
+        f.Clock.Advance(TimeSpan.FromHours(2));
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        var issued = await f.RequestsAsync(schedule.Id);
+        Assert.Equal(2, issued.Length);
+        Assert.Equal(first.AvailableAtUtc, issued.Single(x => x.Id == first.Id).AvailableAtUtc);
+        Assert.Null((await f.Coach(s => s.ScheduleAsync(schedule.Id, default))).NextAvailableAtUtc);
+        await using (var scope = f.Provider.CreateAsyncScope())
+        {
+            var service = scope.ServiceProvider.GetRequiredService<TrainingService>();
+            var plan = await service.GetAsync(assignment.ProgramId, default);
+            var block = plan.Document.Blocks[0];
+            var extended = plan.Document with { Blocks = [block with { Cycles = [.. block.Cycles, new(Guid.NewGuid(), "Extension", "", 10, [])] }] };
+            var saved = await service.SaveAsync(plan.Id, new(plan.Name, "", null, extended), plan.Version, default);
+            await service.ApplyAsync(plan.Id, saved.Version, Guid.NewGuid().ToString(), default);
+        }
+        Assert.Equal(DateTimeOffset.Parse("2026-10-31T08:00:00Z"), (await f.Coach(s => s.ScheduleAsync(schedule.Id, default))).NextAvailableAtUtc);
+        Assert.Equal(2, (await f.RequestsAsync(schedule.Id)).Length);
+    }
+
+    [CatalogPostgresFact]
+    public async Task Assigned_cycle_releases_real_days_deduplicates_ticks_and_edits_preserve_issued_requests()
+    {
+        await using var f = await Fixture.CreateAsync();
+        f.Clock.Set(DateTimeOffset.Parse("2026-10-16T10:00:00Z"));
+        var form = await f.FormAsync();
+        var person = await f.RelationshipAsync();
+        var assignment = await f.AssignmentAsync(person);
+        var request = f.Schedule(form.Id, [person.Id], []) with { TimeZone = "Europe/Warsaw", Recurrence = new(RecurrenceKind.AssignedProgramCycle, 1, new(2026, 10, 16), new(2, 30), AssignmentId: assignment.Id, CycleDays: [1, 10]) };
+        var options = await f.Coach(s => s.AssignedProgramsAsync(person.Id, default));
+        Assert.Equal(new DateOnly(2026, 10, 26), Assert.Single(options).Cycles[1].StartDate);
+        var schedule = await f.Coach(s => s.CreateAsync(request, default));
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        var first = Assert.Single(await f.RequestsAsync(schedule.Id));
+        Assert.Equal(DateTimeOffset.Parse("2026-10-16T00:30:00Z"), first.AvailableAtUtc);
+        var current = await f.Coach(s => s.ScheduleAsync(schedule.Id, default));
+        await f.Coach(s => s.UpdateAsync(schedule.Id, request with { Recurrence = request.Recurrence with { ReleaseTime = new(18, 0) } }, current.Version, default));
+        f.Clock.Set(DateTimeOffset.Parse("2026-10-16T20:00:00Z"));
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        Assert.Single(await f.RequestsAsync(schedule.Id));
+        f.Clock.Set(DateTimeOffset.Parse("2026-10-26T20:00:00Z"));
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        var issued = await f.RequestsAsync(schedule.Id);
+        Assert.Equal(3, issued.Length);
+        Assert.Contains(issued, x => x.AvailableAtUtc == DateTimeOffset.Parse("2026-10-25T17:00:00Z"));
+        Assert.Contains(issued, x => x.AvailableAtUtc == DateTimeOffset.Parse("2026-10-26T17:00:00Z"));
+        Assert.Equal(first.AvailableAtUtc, issued.Single(x => x.Id == first.Id).AvailableAtUtc);
+        await using (var scope = f.Provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TrainingDbContext>();
+            var row = await db.Set<ProgramAssignment>().SingleAsync(a => a.Id == assignment.Id);
+            row.Status = AssignmentStatus.Cancelled;
+            await db.SaveChangesAsync();
+        }
+        f.Clock.Set(DateTimeOffset.Parse("2026-11-05T20:00:00Z"));
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        Assert.Equal(3, (await f.RequestsAsync(schedule.Id)).Length);
+        Assert.Equal(ScheduleStatus.Ended, (await f.Coach(s => s.ScheduleAsync(schedule.Id, default))).Status);
+    }
+
+    [CatalogPostgresFact]
+    public async Task Cycle_schedule_rejects_foreign_assignments_wrong_client_zone_and_out_of_range_days()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var form = await f.FormAsync();
+        var person = await f.RelationshipAsync();
+        var other = await f.RelationshipAsync();
+        var assignment = await f.AssignmentAsync(person);
+        var request = f.Schedule(form.Id, [person.Id], []) with { TimeZone = "Europe/Warsaw", Recurrence = new(RecurrenceKind.AssignedProgramCycle, 1, new(2026, 10, 16), new(9, 0), AssignmentId: assignment.Id, CycleDays: [1, 10]) };
+        Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => f.Coach(s => s.CreateAsync(request with { TimeZone = "UTC" }, default)))).Status);
+        Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => f.Coach(s => s.CreateAsync(request with { Recurrence = request.Recurrence with { CycleDays = [11] } }, default)))).Status);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => f.Coach(s => s.CreateAsync(request with { RelationshipIds = [other.Id] }, default)))).Status);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => f.Coach(s => s.CreateAsync(request with { Recurrence = request.Recurrence with { AssignmentId = Guid.NewGuid() } }, default)))).Status);
+        await f.StatusAsync(person.Id, RelationshipStatus.Completed);
+        await Assert.ThrowsAsync<ApiException>(() => f.Coach(s => s.CreateAsync(request, default)));
+    }
+
     [CatalogPostgresFact]
     public async Task Http_authentication_roles_feature_revocation_and_strong_etags_are_enforced()
     {
@@ -199,6 +350,9 @@ public sealed class CheckInTests
         await Task.WhenAll(f.Coach(s => s.GenerateDueAsync(100, default)), f.Coach(s => s.GenerateDueAsync(100, default)));
         var first = await f.RequestsAsync(schedule.Id);
         Assert.Equal(2, first.Length);
+        Assert.Equal("Direct", first.Single(x => x.RelationshipId == a.Id).AssignmentSource);
+        Assert.Equal("Group", first.Single(x => x.RelationshipId == b.Id).AssignmentSource);
+        Assert.Contains(g1.Name, first.Single(x => x.RelationshipId == b.Id).AssignmentGroupsJson!);
         Assert.Single(first, x => x.RelationshipId == a.Id);
         Assert.DoesNotContain(first, x => x.RelationshipId == suspended.Id || x.RelationshipId == completed.Id);
         var c = await f.RelationshipAsync();
@@ -243,6 +397,16 @@ public sealed class CheckInTests
         var detail = await f.Coach(s => s.DetailAsync(issued.Id, default));
         Assert.Equal(RequestStatus.Available, detail.Request.Status);
         Assert.Null(detail.Request.ReviewedAt);
+        Assert.Equal("Direct", detail.Request.AssignmentSource);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => f.Coach(s => s.RelationshipDetailAsync(b.Id, issued.Id, default)))).Status);
+        var filtered = await f.Coach(s => s.RequestsAsync(1, 1, null, "latest", null, a.Id, null, "coach", default, formTemplateId: form.Id));
+        Assert.Equal(1, filtered.Total);
+        Assert.Equal(issued.Id, Assert.Single(filtered.Items).Id);
+        var summary = await f.Coach(s => s.SummaryAsync(a.Id, default));
+        Assert.Equal(0, summary.AwaitingReview);
+        Assert.Equal(0, summary.Overdue);
+        Assert.NotNull(summary.NextDueAtUtc);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => f.Coach(s => s.SummaryAsync(Guid.NewGuid(), default)))).Status);
         await using (var scope = f.Provider.CreateAsyncScope())
         {
             var service = scope.ServiceProvider.GetRequiredService<FormsService>();
@@ -252,6 +416,10 @@ public sealed class CheckInTests
         f.Clock.Advance(TimeSpan.FromHours(2));
         f.Account.UserId = a.ClientId;
         Assert.Equal(RequestStatus.Overdue, (await f.InScope(s => s.DetailAsync(issued.Id, default))).Request.Status);
+        var overdueSummary = await f.Coach(s => s.SummaryAsync(a.Id, default));
+        Assert.Equal(1, overdueSummary.Overdue);
+        f.Account.UserId = a.ClientId;
+
         var wrong = await Assert.ThrowsAsync<ApiException>(() => f.InScope(s => s.SubmitAsync(issued.Id, new(Answers("new-answer")), 1, default)));
         Assert.Equal(400, wrong.Status);
         var submitted = await f.InScope(s => s.SubmitAsync(issued.Id, new(Answers()), 1, default));
@@ -267,6 +435,11 @@ public sealed class CheckInTests
         Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => f.InScope(s => s.DetailAsync(issued.Id, default)))).Status);
         var reviewed = await f.Coach(s => s.ReviewAsync(issued.Id, new("Thank you", "Private injury observation"), submitted.Request.Version, default));
         Assert.Equal(RequestStatus.Reviewed, reviewed.Request.Status);
+        Assert.Equal(f.CoachId, reviewed.Request.ReviewedBy);
+        var reviewedSummary = await f.Coach(s => s.SummaryAsync(a.Id, default));
+        Assert.Equal(0, reviewedSummary.AwaitingReview);
+        Assert.Equal(1, reviewedSummary.Reviewed);
+        Assert.Equal(0, reviewedSummary.Overdue);
         await using (var notificationScope = f.Provider.CreateAsyncScope())
         {
             var notifications = await notificationScope.ServiceProvider.GetRequiredService<NotificationsDbContext>().Notifications.AsNoTracking().Where(x => x.SourceId == issued.Id).ToArrayAsync();
@@ -591,6 +764,13 @@ public sealed class CheckInTests
             services.AddSingleton<IFeatureAccessService>(new Features());
             services.AddSingleton<TimeProvider>(Clock);
             services.AddSingleton<IHostEnvironment>(new EnvironmentStub());
+            services.AddModuleDatabase<TrainingDbContext>("training");
+            services.AddScoped<IAssignedProgramCycles, AssignedProgramCyclesReader>();
+            services.AddScoped<IAssignedProgramScheduleObserver, AssignedProgramScheduleObserver>();
+            services.AddOptions<TrainingOptions>();
+            services.AddSingleton<IExerciseCatalog, EmptyCatalog>();
+            services.AddScoped<TrainingService>();
+            services.AddScoped<TrainingDeliveryService>();
             services.AddModuleDatabase<CheckInsDbContext>("checkins");
             services.AddModuleDatabase<NotificationsDbContext>("notifications");
             services.AddScoped<INotificationPublisher, NotificationPublisher>();
@@ -616,6 +796,19 @@ public sealed class CheckInTests
         {
             Account.UserId = CoachId;
             return InScope(action);
+        }
+        public async Task<ProgramAssignment> AssignmentAsync(Relationship person)
+        {
+            await using var scope = Provider.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<TrainingDbContext>();
+            var document = new TrainingDocument(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "First", "", 10, []), new(Guid.NewGuid(), "Second", "", 10, [])])]);
+            var plan = new TrainingPlan { Id = Guid.NewGuid(), OwnerId = CoachId, WorkspaceId = CoachId, Name = "Ten day plan", Draft = document, CreatedAt = Clock.GetUtcNow(), UpdatedAt = Clock.GetUtcNow() };
+            var revision = new TrainingRevision { Id = Guid.NewGuid(), PlanId = plan.Id, Number = 1, DraftVersion = 1, PublishedAt = Clock.GetUtcNow(), IdempotencyKey = Guid.NewGuid().ToString(), RequestHash = "fixture", Snapshot = new(1, plan.Name, "", DocumentKind.Program, document, [], []) };
+            var batch = new AssignmentBatch { Id = Guid.NewGuid(), CoachId = CoachId, IdempotencyKey = Guid.NewGuid().ToString(), RequestHash = "fixture", CreatedAt = Clock.GetUtcNow() };
+            var assignment = new ProgramAssignment { Id = Guid.NewGuid(), BatchId = batch.Id, RelationshipId = person.Id, CoachId = CoachId, ClientId = person.ClientId, ProgramId = plan.Id, OriginalRevisionId = revision.Id, EffectiveRevisionId = revision.Id, StartDate = new(2026, 10, 16), TimeZone = "Europe/Warsaw", ProgramName = plan.Name, CreatedAt = Clock.GetUtcNow(), UpdatedAt = Clock.GetUtcNow() };
+            db.AddRange(plan, revision, batch, assignment);
+            await db.SaveChangesAsync();
+            return assignment;
         }
         public async Task<FormTemplateDto> FormAsync(string name = "Original")
         {
@@ -683,6 +876,11 @@ public sealed class CheckInTests
                 await scope.ServiceProvider.GetRequiredService<CheckInsDbContext>().Schedules.Where(s => s.CoachId == CoachId && s.Status == ScheduleStatus.Active).ExecuteUpdateAsync(update => update.SetProperty(s => s.Status, ScheduleStatus.Ended));
             await Provider.DisposeAsync();
         }
+    }
+    private sealed class EmptyCatalog : IExerciseCatalog
+    {
+        public Task<IReadOnlyDictionary<Guid, ExerciseSnapshot>> SnapshotAsync(IEnumerable<Guid> ids, CancellationToken ct) => Task.FromResult<IReadOnlyDictionary<Guid, ExerciseSnapshot>>(new Dictionary<Guid, ExerciseSnapshot>());
+        public Task<IReadOnlyDictionary<string, ExerciseSnapshot>> MatchNamesAsync(IEnumerable<string> names, CancellationToken ct) => Task.FromResult<IReadOnlyDictionary<string, ExerciseSnapshot>>(new Dictionary<string, ExerciseSnapshot>());
     }
     private sealed class Clock : TimeProvider
     {

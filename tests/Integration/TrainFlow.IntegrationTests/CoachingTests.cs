@@ -102,7 +102,9 @@ public sealed class CoachingTests
         Assert.Equal(workspace, after.GetProperty("workspaceId").GetGuid());
         Assert.Equal(new[] { "Client", "Coach" }, after.GetProperty("roles").EnumerateArray().Select(x => x.GetString()).Order().ToArray());
         Assert.Equal(HttpStatusCode.OK, (await coach.Http.GetAsync("/api/v1/training/programs")).StatusCode);
-        foreach (var path in new[] { "/api/v1/training/programs", Root + "/groups", Root + "/clients" })
+        var clientPrograms = await Get(client.Http, "/api/v1/training/programs");
+        Assert.Empty(clientPrograms.GetProperty("items").EnumerateArray());
+        foreach (var path in new[] { Root + "/groups", Root + "/clients" })
             Assert.Equal(HttpStatusCode.Forbidden, (await client.Http.GetAsync(path)).StatusCode);
         var snapshot = await Get(client.Http, "/api/v1/me/access");
         Assert.False(snapshot.GetProperty("features").EnumerateArray().Single(x => x.GetProperty("key").GetString() == "coaching.groups.manage").GetProperty("available").GetBoolean());
@@ -234,7 +236,9 @@ public sealed class CoachingTests
         });
         Assert.Equal(HttpStatusCode.OK, program.StatusCode);
         var programId = (await program.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
-        Assert.Equal(HttpStatusCode.Forbidden, (await c.Http.GetAsync($"/api/v1/training/programs/{programId}")).StatusCode);
+        // Clients can own purchased copies, but private coach plans must remain indistinguishable from missing ones.
+        Assert.Equal(HttpStatusCode.NotFound, (await c.Http.GetAsync($"/api/v1/training/programs/{programId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await c.Http.GetAsync($"/api/v1/training/programs/{Guid.NewGuid()}")).StatusCode);
     }
 
     [CatalogPostgresFact]

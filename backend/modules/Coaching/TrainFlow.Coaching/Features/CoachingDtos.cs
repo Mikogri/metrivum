@@ -3,7 +3,7 @@ using TrainFlow.Coaching.Contracts;
 namespace TrainFlow.Coaching.Features;
 
 public sealed record PersonDto(Guid Id, string DisplayName, string? Username);
-public sealed record CoachRelationshipDto(Guid Id, PersonDto Client, RelationshipStatus Status, DateTimeOffset StartedAt, DateTimeOffset? SuspendedAt, DateTimeOffset? ResumedAt, DateTimeOffset? CompletedAt, long Version, DateTimeOffset UpdatedAt, Guid[] GroupIds, StatusChangeDto[] StatusHistory, string[] AllowedActions, string? ClientPhone = null, Guid? TeamId = null, Guid? TeamClientCaseId = null);
+public sealed record CoachRelationshipDto(Guid Id, PersonDto Client, RelationshipStatus Status, DateTimeOffset StartedAt, DateTimeOffset? SuspendedAt, DateTimeOffset? ResumedAt, DateTimeOffset? CompletedAt, long Version, DateTimeOffset UpdatedAt, Guid[] GroupIds, StatusChangeDto[] StatusHistory, string[] AllowedActions, string? ClientPhone = null, Guid? TeamId = null, Guid? TeamClientCaseId = null, string? TeamName = null, PersonDto? AssignedCoach = null);
 public sealed record StatusChangeDto(Guid ActorId, DateTimeOffset OccurredAt, RelationshipStatus PreviousStatus, RelationshipStatus NewStatus, string? InternalReason, long Version);
 public sealed record ClientRelationshipDto(Guid Id, PersonDto Coach, RelationshipStatus Status, string[] AllowedActions, Guid? TeamId = null, Guid? TeamClientCaseId = null);
 public sealed record GroupDto(Guid Id, string Name, string Description, string Color, bool Archived, long Version, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, string[] AllowedActions, Guid? TeamId = null);

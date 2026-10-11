@@ -12,9 +12,9 @@ public sealed record AssignmentDto(Guid Id, Guid RelationshipId, Guid ProgramId,
     DateOnly StartDate, string TimeZone, AssignmentStatus Status, string Source, Guid? GroupAssignmentId, long Version, string[] AllowedActions);
 public sealed record OccurrenceDto(Guid Id, Guid AssignmentId, Guid RelationshipId, Guid ProgramId, string ProgramName, Guid RevisionId,
     Guid BlockId, Guid CycleId, Guid DayId, Guid WorkoutId, string Name, DateOnly ScheduledDate, DateTimeOffset Deadline,
-    string Status, Guid? ExecutionId, bool LoggedLate, string[] AllowedActions);
+    string Status, Guid? ExecutionId, bool LoggedLate, string[] AllowedActions, DateOnly? PerformedDate = null, int? DurationSeconds = null, bool HasComment = false, int? ExerciseCount = null);
 public sealed record ActualSet(Guid? PrescribedSetId, Guid? PrescribedSegmentId, bool Skipped, int? Reps, decimal? Load, string? LoadUnit,
-    LoadMeaning LoadMeaning, decimal? Rpe, decimal? Rir, decimal? DurationSeconds, decimal? DistanceMeters, decimal? RestSeconds, string? Tempo, string? Comment);
+    LoadMeaning LoadMeaning, decimal? Rpe, decimal? Rir, decimal? DurationSeconds, decimal? DistanceMeters, decimal? RestSeconds, string? Tempo, string? Comment, Guid? Id = null);
 public sealed record ActualExercise(Guid? PrescribedInstanceId, Guid ExerciseId, string? Comment, ActualSet[] Sets);
 public sealed record SaveExecutionRequest(DateOnly PerformedDate, string? Comment, int? DurationSeconds, ActualExercise[] Exercises);
 public sealed record ExerciseExecutionDto(Guid Id, Guid? PrescribedInstanceId, Guid ExerciseId, string Name, string Comment, ActualSet[] Sets);

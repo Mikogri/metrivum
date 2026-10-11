@@ -13,8 +13,11 @@ public static class OfferRules
     {
         if (option.Id == Guid.Empty || string.IsNullOrWhiteSpace(option.Name) || option.Name.Length > 120 || !Enum.IsDefined(option.Model) || option.Price < 0 || option.Price > MaximumAmount || Round(option.Price) != option.Price)
             throw ApiException.Invalid("Billing option requires an id, name and non-negative price with at most two decimals.");
+        if (option.ValidityDays is < 1 or > 36500 || (option.ValidityDays != null && option.Model is BillingModel.PeriodSubscription or BillingModel.OneTime))
+            throw ApiException.Invalid("Session validity must be 1–36500 days; subscriptions use their billing period.");
         switch (option.Model)
         {
+            case BillingModel.OneTime:
             case BillingModel.PerSession:
                 if (option.MinSessions != null || option.MaxSessions != null || option.SessionCount != null || option.PeriodCount != null || option.PeriodUnit != null)
                     throw ApiException.Invalid("PerSession accepts price only.");
@@ -36,6 +39,8 @@ public static class OfferRules
         var terms = option.PaymentTerms ?? new(DueRule.Upfront);
         if (!Enum.IsDefined(terms.Rule) || (terms.Rule == DueRule.CustomOffsetDays ? terms.OffsetDays is null or < 0 or > 365 : terms.OffsetDays != null))
             throw ApiException.Invalid("CustomOffsetDays requires 0–365 days; other rules do not accept an offset.");
+        if (option.Model == BillingModel.OneTime && terms.Rule != DueRule.Upfront)
+            throw ApiException.Invalid("Plan purchases require upfront payment.");
         if (terms.Rule == DueRule.EndOfServicePeriod && option.Model != BillingModel.PeriodSubscription)
             throw ApiException.Invalid("EndOfServicePeriod requires a subscription with an explicit service period.");
     }

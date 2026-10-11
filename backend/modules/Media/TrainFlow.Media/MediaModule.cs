@@ -67,15 +67,17 @@ public static class MediaModule
             return Results.Accepted();
         }).Produces(StatusCodes.Status202Accepted);
         var uploads = endpoints.MapGroup("/api/v1/messaging/uploads").RequireAuthorization().WithTags("Messaging attachments");
-        uploads.MapPost("/", async (UploadRequest input, MediaLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
+        uploads.MapPost("/", async (UploadRequest input, Guid? conversationId, IMessagingUploadAuthorization authorization, MediaLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
         {
+            if (conversationId.HasValue) await authorization.RequireUploadAsync(conversationId.Value, ct);
             await features.RequireAsync("messaging.attachments", ct);
             if (input.ContentType.StartsWith("audio/", StringComparison.Ordinal))
                 await features.RequireAsync("messaging.voice", ct);
             return Results.Ok(await library.CreateMessagingAsync(account.UserId, input, ct));
         }).Produces<UploadTicket>();
-        uploads.MapPost("/{id:guid}/finalize", async (Guid id, MediaLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
+        uploads.MapPost("/{id:guid}/finalize", async (Guid id, Guid? conversationId, IMessagingUploadAuthorization authorization, MediaLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
         {
+            if (conversationId.HasValue) await authorization.RequireUploadAsync(conversationId.Value, ct);
             await features.RequireAsync("messaging.attachments", ct);
             var file = await library.GetMessagingAsync(id, account.UserId, ct);
             if (file.ContentType.StartsWith("audio/", StringComparison.Ordinal))

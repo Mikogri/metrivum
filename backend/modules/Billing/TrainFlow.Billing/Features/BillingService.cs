@@ -1,3 +1,4 @@
+using TrainFlow.Training.Contracts;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,13 +17,13 @@ public sealed record SimulatedMethodRequest(string Label, SimulatedOutcome Outco
 public sealed record PaymentMethodDto(Guid Id, string Label, bool Active, DateTimeOffset CreatedAt);
 public sealed record PayRequest(Guid? PaymentMethodId, string IdempotencyKey);
 public sealed record ExternalSettlementRequest(string Source, string IdempotencyKey);
-public sealed record OrderDto(Guid Id, Guid ServiceId, Guid RelationshipId, Guid CoachId, Guid ClientId, string Name,
+public sealed record OrderDto(Guid Id, Guid? ServiceId, Guid? RelationshipId, Guid CoachId, Guid ClientId, string Name,
     Guid OfferRevisionId, Guid BillingOptionId, int? SelectedSessionCount, decimal Amount, string Currency, decimal FeeRate,
     decimal FeeAmount, decimal CoachNetAmount, SettlementMode SettlementMode, DateTimeOffset StartedAt, DateTimeOffset CreatedAt, Guid? TeamId = null, Guid? TeamClientCaseId = null);
-public sealed record PaymentDueDto(Guid Id, Guid OrderId, Guid ServiceId, Guid RelationshipId, Guid CoachId, Guid ClientId,
+public sealed record PaymentDueDto(Guid Id, Guid OrderId, Guid? ServiceId, Guid? RelationshipId, Guid CoachId, Guid ClientId,
     int Sequence, DateTimeOffset PeriodStart, DateTimeOffset? PeriodEnd, DateTimeOffset DueAt, DueStatus Status, decimal Amount,
     string Currency, decimal FeeRate, decimal FeeAmount, decimal CoachNetAmount, SettlementMode SettlementMode,
-    DateTimeOffset? SettledAt, Guid? SettledBy, string? SettlementSource, bool Overdue, Guid? TeamId = null, Guid? TeamClientCaseId = null);
+    DateTimeOffset? SettledAt, Guid? SettledBy, string? SettlementSource, bool Overdue, Guid? TeamId = null, Guid? TeamClientCaseId = null, DateTimeOffset? ValidUntil = null, bool IsExpired = false);
 public sealed record PaymentAttemptDto(Guid Id, Guid DueId, Guid? PaymentMethodId, AttemptStatus Status, string? FailureCode, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt);
 public sealed record PaymentDto(Guid Id, Guid DueId, Guid? AttemptId, decimal GrossAmount, decimal FeeRate, decimal FeeAmount,
     decimal CoachNetAmount, string Currency, SettlementMode Mode, string Source, Guid? ActorId, DateTimeOffset SettledAt, Guid? TeamId = null, Guid? TeamClientCaseId = null);
@@ -30,15 +31,33 @@ public sealed record PaymentTransactionDto(Guid Id, Guid PaymentId, string Provi
 public sealed record PaymentResultDto(PaymentDueDto Due, PaymentAttemptDto? Attempt, PaymentDto? Payment);
 public sealed record BillingPage<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);
 public sealed record RelationshipBillingDto(BillingPage<PaymentDueDto> Dues, IReadOnlyList<OrderDto> Orders,
-    IReadOnlyList<PaymentAttemptDto> Attempts, IReadOnlyList<PaymentDto> Payments, IReadOnlyList<PaymentTransactionDto> Transactions);
+    IReadOnlyList<PaymentAttemptDto> Attempts, IReadOnlyList<PaymentDto> Payments, IReadOnlyList<PaymentTransactionDto> Transactions, RelationshipBillingSummaryDto? Summary = null);
+public sealed record CurrencyOverdueDto(string Currency, decimal Amount, int Count);
+public sealed record RelationshipBillingSummaryDto(PaymentDto? LastSettlement, IReadOnlyList<CurrencyOverdueDto> OverdueByCurrency, PaymentDueDto? NextDue);
 public sealed record CoachEarningsDto(string Currency, decimal GrossAmount, decimal FeeAmount, decimal CoachNetAmount, int Payments);
 public sealed record ServiceRenewalRequest(bool AutoRenew, Guid? PaymentMethodId = null);
 public sealed record ServiceSubscriptionDto(Guid Id, Guid ServiceId, bool AutoRenew, Guid? PaymentMethodId, DateTimeOffset NextPeriodAt, bool Active);
 
-public sealed class BillingService(BillingDbContext db, IAccountContext accounts, IFeatureAccessService access,
+public sealed partial class BillingService(BillingDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IRelationshipAccessPolicy relationships, IOfferLibrary offers, IPaymentProvider provider, IConfiguration configuration,
-    TimeProvider clock, ModuleTransaction transaction, TrainFlow.Notifications.Contracts.INotificationPublisher notifications) : IBillingOrders
+    TimeProvider clock, ModuleTransaction transaction, TrainFlow.Notifications.Contracts.INotificationPublisher notifications, ITrainingPurchases? trainingPurchases = null, ITeamContext? teams = null) : IBillingOrders
 {
+    // Trusted Coaching read: the caller authorizes the exact relationship before supplying this bounded page.
+    public async Task<IReadOnlyDictionary<Guid, ServiceBillingState>> GetServiceStatesAsync(IReadOnlyCollection<Guid> serviceIds, CancellationToken ct)
+    {
+        if (serviceIds.Count > 100) throw ApiException.Invalid("At most 100 services can be summarized.");
+        var now = clock.GetUtcNow();
+        var rows = await db.Orders.AsNoTracking().Where(x => serviceIds.Contains(x.ServiceId!.Value) && x.Context == BillingContext.CoachingService)
+            .Select(x => new
+            {
+                x.ServiceId,
+                Current = db.Dues.Where(d => d.OrderId == x.Id && (d.PeriodStart <= now || d.ValidUntil != null)).OrderByDescending(d => d.PeriodStart).ThenByDescending(d => d.Sequence).FirstOrDefault(),
+                Next = db.Dues.Where(d => d.OrderId == x.Id && d.Status == DueStatus.AwaitingPayment && d.DueAt >= now).OrderBy(d => d.DueAt).ThenBy(d => d.Id).FirstOrDefault(),
+                Overdue = db.Dues.Any(d => d.OrderId == x.Id && d.Status == DueStatus.AwaitingPayment && d.DueAt < now)
+            }).ToArrayAsync(ct);
+        return rows.ToDictionary(x => x.ServiceId!.Value, x => new ServiceBillingState(x.Overdue ? "Overdue" : x.Current?.Status.ToString() ?? "NotAvailable", null, x.Current?.PeriodStart, x.Current?.PeriodEnd, x.Next?.DueAt, x.Next?.Amount, x.Current?.Currency ?? x.Next?.Currency, x.Current?.ValidUntil, x.Current?.ValidUntil <= now));
+    }
+
     public async Task<IReadOnlyList<ServiceSubscriptionDto>> ServiceSubscriptionsAsync(CancellationToken ct)
     {
         await Client("billing.read-own", ct);
@@ -111,7 +130,7 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
             {
                 Id = Guid.NewGuid(),
                 OrderId = order.Id,
-                ServiceId = order.ServiceId,
+                ServiceId = order.ServiceId!.Value,
                 ClientId = order.ClientId,
                 Anchor = order.StartedAt,
                 PeriodCount = quote.BillingOption.PeriodCount!.Value,
@@ -119,7 +138,7 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
                 NextPeriodAt = due.PeriodEnd!.Value
             });
         if (order.Amount == 0)
-            Settle(due, null, null, "ZeroPrice", "zero:" + due.Id, null, false);
+            await Settle(due, null, null, "ZeroPrice", "zero:" + due.Id, null, false);
         await db.SaveChangesAsync(token);
         await Publish(due, "PaymentDue", token);
         return await Snapshot(order, token);
@@ -165,9 +184,9 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
     {
         await Client("billing.read-own", ct);
         Query(page, size, sort, "created");
-        var q = db.Orders.AsNoTracking().Where(x => x.ClientId == accounts.UserId && x.Context == BillingContext.CoachingService);
+        var q = db.Orders.AsNoTracking().Where(x => x.ClientId == accounts.UserId && (x.Context == BillingContext.CoachingService || x.Context == BillingContext.TrainingPlan));
         var allowed = await VisibleRelationships(await q.Select(x => x.RelationshipId).Distinct().ToArrayAsync(ct), ct);
-        q = q.Where(x => allowed.Contains(x.RelationshipId));
+        q = q.Where(x => x.Context == BillingContext.TrainingPlan || allowed.Contains(x.RelationshipId!.Value));
         var total = await q.CountAsync(ct);
         var rows = await q.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Skip((page - 1) * size).Take(size).ToArrayAsync(ct);
         return new(rows.Select(OrderDto).ToArray(), page, size, total);
@@ -176,9 +195,9 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
     {
         await Client("billing.read-own", ct);
         Query(page, size, "created", "created");
-        var visible = await VisibleRelationships(await db.Dues.AsNoTracking().Where(x => x.ClientId == accounts.UserId && x.Context == BillingContext.CoachingService).Select(x => x.RelationshipId).Distinct().ToArrayAsync(ct), ct);
-        var dues = db.Dues.Where(x => visible.Contains(x.RelationshipId)).Select(x => x.Id);
-        var query = db.Payments.AsNoTracking().Where(x => x.ClientId == accounts.UserId && x.Context == BillingContext.CoachingService && dues.Contains(x.DueId));
+        var visible = await VisibleRelationships(await db.Dues.AsNoTracking().Where(x => x.ClientId == accounts.UserId && (x.Context == BillingContext.CoachingService || x.Context == BillingContext.TrainingPlan)).Select(x => x.RelationshipId).Distinct().ToArrayAsync(ct), ct);
+        var dues = db.Dues.Where(x => x.ClientId == accounts.UserId && (x.Context == BillingContext.TrainingPlan || visible.Contains(x.RelationshipId!.Value))).Select(x => x.Id);
+        var query = db.Payments.AsNoTracking().Where(x => x.ClientId == accounts.UserId && (x.Context == BillingContext.CoachingService || x.Context == BillingContext.TrainingPlan) && dues.Contains(x.DueId));
         var total = await query.CountAsync(ct);
         var items = await query.OrderByDescending(x => x.SettledAt).ThenBy(x => x.Id).Skip((page - 1) * size).Take(size).ToArrayAsync(ct);
         return new(items.Select(PaymentDto).ToArray(), page, size, total);
@@ -189,19 +208,20 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
         Query(page, size, sort, "due", "created");
         if (status != null && !Enum.IsDefined(status.Value))
             throw ApiException.Invalid("Unknown payment status.");
-        var q = db.Dues.AsNoTracking().Where(x => x.ClientId == accounts.UserId && x.Context == BillingContext.CoachingService);
+        var q = db.Dues.AsNoTracking().Where(x => x.ClientId == accounts.UserId && (x.Context == BillingContext.CoachingService || x.Context == BillingContext.TrainingPlan));
         if (status != null)
             q = q.Where(x => x.Status == status);
         var allowed = await VisibleRelationships(await q.Select(x => x.RelationshipId).Distinct().ToArrayAsync(ct), ct);
-        q = q.Where(x => allowed.Contains(x.RelationshipId));
+        q = q.Where(x => x.Context == BillingContext.TrainingPlan || allowed.Contains(x.RelationshipId!.Value));
         var total = await q.CountAsync(ct);
         var ordered = sort == "created" ? q.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id) : q.OrderBy(x => x.DueAt).ThenBy(x => x.Id);
         var rows = await ordered.Skip((page - 1) * size).Take(size).ToArrayAsync(ct);
         return new(rows.Select(DueDto).ToArray(), page, size, total);
     }
-    public async Task<RelationshipBillingDto> RelationshipAsync(Guid id, int page, int size, CancellationToken ct)
+    public async Task<RelationshipBillingDto> RelationshipAsync(Guid id, int page, int size, CancellationToken ct, DueStatus? status = null, Guid? serviceId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, string sort = "due")
     {
         Query(page, size, "due", "due");
+        if (from >= to || status.HasValue && !Enum.IsDefined(status.Value) || sort is not ("due" or "latest")) throw ApiException.Invalid("Invalid billing filters.");
         await Relation(id, RelationshipOperation.HistoricalSharedRead, ct);
         // An account can be a Coach and Client; financial ownership determines its role here.
         var coachOwned = await db.Orders.AsNoTracking().AnyAsync(x => x.RelationshipId == id && x.CoachId == accounts.UserId, ct);
@@ -214,8 +234,19 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
         else
             await Client("billing.read-own", ct);
         var q = db.Dues.AsNoTracking().Where(x => x.RelationshipId == id && (x.CoachId == accounts.UserId || x.ClientId == accounts.UserId));
+        q = q.Where(x => x.Context == BillingContext.CoachingService);
+        var now = clock.GetUtcNow();
+        var overdue = await q.Where(x => x.Status == DueStatus.AwaitingPayment && x.DueAt < now).GroupBy(x => x.Currency).Select(g => new CurrencyOverdueDto(g.Key, g.Sum(x => x.Amount), g.Count())).ToArrayAsync(ct);
+        var next = await q.Where(x => x.Status == DueStatus.AwaitingPayment && x.DueAt >= now).OrderBy(x => x.DueAt).ThenBy(x => x.Id).FirstOrDefaultAsync(ct);
+        var last = await db.Payments.AsNoTracking().Where(x => q.Any(d => d.Id == x.DueId)).OrderByDescending(x => x.SettledAt).ThenBy(x => x.Id).FirstOrDefaultAsync(ct);
+        var summary = new RelationshipBillingSummaryDto(last == null ? null : PaymentDto(last), overdue, next == null ? null : DueDto(next));
+        if (status != null) q = q.Where(x => x.Status == status);
+        if (serviceId != null) q = q.Where(x => x.ServiceId == serviceId);
+        if (from != null) q = q.Where(x => x.DueAt >= from);
+        if (to != null) q = q.Where(x => x.DueAt < to);
         var total = await q.CountAsync(ct);
-        var rows = await q.OrderBy(x => x.DueAt).ThenBy(x => x.Id).Skip((page - 1) * size).Take(size).ToArrayAsync(ct);
+        var ordered = sort == "latest" ? q.OrderByDescending(x => x.DueAt).ThenBy(x => x.Id) : q.OrderBy(x => x.DueAt).ThenBy(x => x.Id);
+        var rows = await ordered.Skip((page - 1) * size).Take(size).ToArrayAsync(ct);
         var ids = rows.Select(x => x.Id).ToArray();
         var orderIds = rows.Select(x => x.OrderId).Distinct().ToArray();
         var orders = await db.Orders.AsNoTracking().Where(x => orderIds.Contains(x.Id)).ToArrayAsync(ct);
@@ -223,16 +254,16 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
         var payments = await db.Payments.AsNoTracking().Where(x => ids.Contains(x.DueId)).ToArrayAsync(ct);
         var paymentIds = payments.Select(x => x.Id).ToArray();
         var transactions = await db.Transactions.AsNoTracking().Where(x => paymentIds.Contains(x.PaymentId)).ToArrayAsync(ct);
-        return new(new(rows.Select(DueDto).ToArray(), page, size, total), orders.Select(OrderDto).ToArray(), attempts.Select(AttemptDto).ToArray(), payments.Select(PaymentDto).ToArray(), transactions.Select(x => new PaymentTransactionDto(x.Id, x.PaymentId, x.Provider, x.ProviderReference, x.Amount, x.Currency, x.CreatedAt)).ToArray());
+        return new(new(rows.Select(DueDto).ToArray(), page, size, total), orders.Select(OrderDto).ToArray(), attempts.Select(AttemptDto).ToArray(), payments.Select(PaymentDto).ToArray(), transactions.Select(x => new PaymentTransactionDto(x.Id, x.PaymentId, x.Provider, x.ProviderReference, x.Amount, x.Currency, x.CreatedAt)).ToArray(), summary);
     }
     public Task<PaymentResultDto> PayAsync(Guid id, PayRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
         await Client("billing.pay-own", token);
         Key(request.IdempotencyKey);
         var due = await OwnedDue(id, false, token);
-        if (due.Context != BillingContext.CoachingService)
+        if (due.Context is not (BillingContext.CoachingService or BillingContext.TrainingPlan))
             throw ApiException.NotFound();
-        await Relation(due.RelationshipId, RelationshipOperation.ProtectedWrite, token);
+        if (due.Context == BillingContext.CoachingService) await Relation(due.RelationshipId, RelationshipOperation.ProtectedWrite, token);
         if (due.SettlementMode == SettlementMode.External && due.Status == DueStatus.AwaitingPayment)
             throw ApiException.Conflict("This due uses external settlement.");
         var previous = await db.Attempts.AsNoTracking().SingleOrDefaultAsync(x => x.DueId == id && x.IdempotencyKey == request.IdempotencyKey, token);
@@ -257,9 +288,9 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
         if (string.IsNullOrWhiteSpace(request.Source) || request.Source.Length > 200)
             throw ApiException.Invalid("External settlement requires a bounded source description.");
         var due = await OwnedDue(id, true, token);
-        if (due.Context != BillingContext.CoachingService)
+        if (due.Context is not (BillingContext.CoachingService or BillingContext.TrainingPlan))
             throw ApiException.NotFound();
-        await Relation(due.RelationshipId, RelationshipOperation.Manage, token);
+        if (due.Context == BillingContext.CoachingService) await Relation(due.RelationshipId, RelationshipOperation.Manage, token);
         if (due.Status != DueStatus.AwaitingPayment)
         {
             var payment = await db.Payments.AsNoTracking().SingleOrDefaultAsync(x => x.DueId == id, token);
@@ -267,7 +298,7 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
                 throw ApiException.Conflict("Due is already settled.");
             return await Result(due, null, token);
         }
-        Settle(due, null, null, request.Source.Trim(), request.IdempotencyKey, accounts.UserId, true);
+        await Settle(due, null, null, request.Source.Trim(), request.IdempotencyKey, accounts.UserId, true);
         await Publish(due, "PaymentConfirmed", token);
         await db.SaveChangesAsync(token);
         return await Result(due, null, token);
@@ -276,7 +307,7 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
     {
         await accounts.RequireCoachAsync(ct);
         await access.RequireAsync("billing.manage", ct);
-        return await db.Payments.AsNoTracking().Where(x => x.CoachId == accounts.UserId && x.TeamId == null && x.Context == BillingContext.CoachingService).GroupBy(x => x.Currency).OrderBy(g => g.Key).Select(g => new CoachEarningsDto(g.Key, g.Sum(x => x.GrossAmount), g.Sum(x => x.FeeAmount), g.Sum(x => x.CoachNetAmount), g.Count())).ToArrayAsync(ct);
+        return await db.Payments.AsNoTracking().Where(x => x.CoachId == accounts.UserId && x.TeamId == null && (x.Context == BillingContext.CoachingService || x.Context == BillingContext.TrainingPlan)).GroupBy(x => x.Currency).OrderBy(g => g.Key).Select(g => new CoachEarningsDto(g.Key, g.Sum(x => x.GrossAmount), g.Sum(x => x.FeeAmount), g.Sum(x => x.CoachNetAmount), g.Count())).ToArrayAsync(ct);
     }
     // One committed occurrence per transaction; SKIP LOCKED permits multiple independent workers.
     public async Task<int> GenerateRenewalsAsync(int maximum, CancellationToken ct)
@@ -306,7 +337,7 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
                     db.Dues.Add(due);
                     await db.SaveChangesAsync(token);
                     if (due.Amount == 0)
-                        Settle(due, null, null, "ZeroPrice", "zero:" + due.Id, null, false);
+                        await Settle(due, null, null, "ZeroPrice", "zero:" + due.Id, null, false);
                     // Provider calls happen only after the concrete due has committed.
                     subscription.NextSequence++;
                     subscription.NextPeriodAt = BillingRules.PeriodAt(subscription.Anchor, subscription.PeriodCount, subscription.PeriodUnit, subscription.NextSequence);
@@ -390,6 +421,7 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
         {
             Id = Guid.NewGuid(),
             OrderId = order.Id,
+            ValidityDays = option.ValidityDays,
             ServiceId = order.ServiceId,
             RelationshipId = order.RelationshipId,
             TeamId = order.TeamId,
@@ -428,19 +460,19 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
         attempt.CompletedAt = clock.GetUtcNow();
         if (result.Succeeded)
         {
-            if (due.Context == BillingContext.CoachingService)
+            if (due.Context is BillingContext.CoachingService or BillingContext.TrainingPlan)
             {
                 due.FeeRate = await FeeRateAsync(due.CoachId, ct, due.TeamId);
                 var split = BillingRules.Split(due.Amount, due.FeeRate);
                 due.FeeAmount = split.Fee;
                 due.CoachNetAmount = split.Net;
             }
-            Settle(due, attempt, result.Reference, result.Provider, key, actor, false, startNewPlatformPeriod);
+            await Settle(due, attempt, result.Reference, result.Provider, key, actor, false, startNewPlatformPeriod);
             await Publish(due, "PaymentConfirmed", ct);
         }
         return attempt;
     }
-    private void Settle(PaymentDue due, PaymentAttempt? attempt, string? providerReference, string source, string key, Guid? actor, bool external, bool startNewPlatformPeriod = false)
+    private async Task Settle(PaymentDue due, PaymentAttempt? attempt, string? providerReference, string source, string key, Guid? actor, bool external, bool startNewPlatformPeriod = false)
     {
         if (external)
         {
@@ -451,6 +483,7 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
         }
         due.Status = due.Amount == 0 ? DueStatus.Free : external ? DueStatus.PaidExternally : DueStatus.Paid;
         due.SettledAt = new DateTimeOffset(clock.GetUtcNow().UtcTicks / 10 * 10, TimeSpan.Zero);
+        due.ValidUntil = due.ValidityDays is { } days ? due.SettledAt.Value.AddDays(days) : null;
         if (startNewPlatformPeriod)
         {
             if (due.Context != BillingContext.Platform)
@@ -494,6 +527,8 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
                 Currency = due.Currency,
                 CreatedAt = clock.GetUtcNow()
             });
+        if (due.Context == BillingContext.TrainingPlan)
+            await (trainingPurchases ?? throw ApiException.Conflict("Plan delivery is unavailable.")).FulfillAsync(due.OrderId, CancellationToken.None);
     }
     private async Task<ServiceOrderSnapshot> Snapshot(Order o, CancellationToken ct)
     {
@@ -528,23 +563,30 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
     internal async Task<PaymentResultDto> Result(PaymentDue due, PaymentAttempt? attempt, CancellationToken ct) => new(DueDto(due), attempt == null ? null : AttemptDto(attempt), (await db.Payments.AsNoTracking().SingleOrDefaultAsync(x => x.DueId == due.Id, ct)) is { } p ? PaymentDto(p) : null);
     private async Task<PaymentDue> OwnedDue(Guid id, bool coach, CancellationToken ct)
     {
+        if (coach)
+        {
+            var teamId = await db.Dues.Where(x => x.Id == id && x.CoachId == accounts.UserId && x.Context == BillingContext.TrainingPlan).Select(x => x.TeamId).SingleOrDefaultAsync(ct);
+            if (teamId is { } team)
+                await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({"team:" + team}, 0))", ct);
+        }
         var rows = coach
             ? await db.Dues.FromSqlInterpolated($"SELECT * FROM billing.payment_dues WHERE \"Id\"={id} AND \"CoachId\"={accounts.UserId} FOR UPDATE").ToArrayAsync(ct)
             : await db.Dues.FromSqlInterpolated($"SELECT * FROM billing.payment_dues WHERE \"Id\"={id} AND \"ClientId\"={accounts.UserId} FOR UPDATE").ToArrayAsync(ct);
         var due = rows.SingleOrDefault() ?? throw ApiException.NotFound();
         await db.Entry(due).ReloadAsync(ct);
+        if (coach && due.Context == BillingContext.TrainingPlan) await RequirePlanSellerAsync(due.TeamId, ct);
         return due;
     }
-    private async Task Relation(Guid id, RelationshipOperation op, CancellationToken ct)
+    private async Task Relation(Guid? id, RelationshipOperation op, CancellationToken ct)
     {
-        var decision = await relationships.DecideAsync(id, op, ct);
+        var decision = await relationships.DecideAsync(id ?? throw ApiException.NotFound(), op, ct);
         if (!decision.Allowed)
             throw new ApiException(decision.Reason is "RESOURCE_NOT_FOUND" or "not_found" ? 404 : 403, "RELATIONSHIP_ACCESS_DENIED", "Relationship does not permit this billing operation.");
     }
-    private async Task<Guid[]> VisibleRelationships(Guid[] ids, CancellationToken ct)
+    private async Task<Guid[]> VisibleRelationships(Guid?[] ids, CancellationToken ct)
     {
         var visible = new List<Guid>();
-        foreach (var batch in ids.Chunk(1000))
+        foreach (var batch in ids.Where(x => x.HasValue).Select(x => x!.Value).Chunk(1000))
         {
             var decisions = await relationships.DecideManyAsync(batch, RelationshipOperation.HistoricalSharedRead, ct);
             visible.AddRange(decisions.Where(x => x.Value.Allowed).Select(x => x.Key));
@@ -569,7 +611,7 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
     private Task Lock(string key, CancellationToken ct) => db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({"billing:" + key}, 0))", ct);
     internal async Task Publish(PaymentDue due, string type, CancellationToken ct)
     {
-        var link = due.Context == BillingContext.Platform ? "/app/subscription" : "/app/payments";
+        var link = due.Context == BillingContext.Platform ? "/app/subscription" : due.Context == BillingContext.TrainingPlan ? "/app/training-plans" : "/app/payments";
         if (type == "PaymentConfirmed")
             await notifications.CancelScheduledAsync("Billing", due.Id, ct);
         await notifications.PublishAsync(new(due.ClientId, type + ":" + due.Id, type, "Billing", "Billing", due.Id, link, Required: true), ct);
@@ -593,7 +635,7 @@ public sealed class BillingService(BillingDbContext db, IAccountContext accounts
         if (page is < 1 or > 100000 || size is < 1 or > 100 || !sorts.Contains(sort))
             throw ApiException.Invalid("Invalid billing list query.");
     }
-    internal PaymentDueDto DueDto(PaymentDue d) => new(d.Id, d.OrderId, d.ServiceId, d.RelationshipId, d.CoachId, d.ClientId, d.Sequence, d.PeriodStart, d.PeriodEnd, d.DueAt, d.Status, d.Amount, d.Currency, d.FeeRate, d.FeeAmount, d.CoachNetAmount, d.SettlementMode, d.SettledAt, d.SettledBy, d.SettlementSource, d.Status == DueStatus.AwaitingPayment && d.DueAt < clock.GetUtcNow(), d.TeamId, d.TeamClientCaseId);
+    internal PaymentDueDto DueDto(PaymentDue d) => new(d.Id, d.OrderId, d.ServiceId, d.RelationshipId, d.CoachId, d.ClientId, d.Sequence, d.PeriodStart, d.PeriodEnd, d.DueAt, d.Status, d.Amount, d.Currency, d.FeeRate, d.FeeAmount, d.CoachNetAmount, d.SettlementMode, d.SettledAt, d.SettledBy, d.SettlementSource, d.Status == DueStatus.AwaitingPayment && d.DueAt < clock.GetUtcNow(), d.TeamId, d.TeamClientCaseId, d.ValidUntil, d.ValidUntil <= clock.GetUtcNow());
     private static OrderDto OrderDto(Order x) => new(x.Id, x.ServiceId, x.RelationshipId, x.CoachId, x.ClientId, x.Name, x.OfferRevisionId, x.BillingOptionId, x.SelectedSessionCount, x.Amount, x.Currency, x.FeeRate, x.FeeAmount, x.CoachNetAmount, x.SettlementMode, x.StartedAt, x.CreatedAt, x.TeamId, x.TeamClientCaseId);
     private static PaymentMethodDto MethodDto(PaymentMethod m) => new(m.Id, m.Label, m.Active, m.CreatedAt);
     private static PaymentAttemptDto AttemptDto(PaymentAttempt a) => new(a.Id, a.DueId, a.PaymentMethodId, a.Status, a.FailureCode, a.CreatedAt, a.CompletedAt);

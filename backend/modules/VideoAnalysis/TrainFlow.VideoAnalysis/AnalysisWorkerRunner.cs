@@ -33,7 +33,7 @@ public sealed class AnalysisWorkerRunner(IServiceScopeFactory scopes, IOptions<A
             if (!analyzer.IsConfigured)
                 throw new ApiException(503, "ANALYZER_NOT_CONFIGURED", "No video analysis engine is configured.");
             var media = scope.ServiceProvider.GetRequiredService<IMediaLibrary>();
-            await using var source = await media.OpenReadAsync(job.MediaId, job.OwnerId, run.Token);
+            await using var source = await media.OpenReadAsync(job.MediaId ?? throw new ApiException(422, "ANALYSIS_RESULT_INVALID", "Server analysis requires source media."), job.OwnerId, run.Token);
             var config = JsonSerializer.Deserialize<AnalysisConfiguration>(job.Configuration, AnalysisResults.Json)!;
             var result = await analyzer.AnalyzeAsync(source, config, run.Token);
             run.Token.ThrowIfCancellationRequested();

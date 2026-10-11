@@ -16,6 +16,11 @@ if (!builder.Environment.IsEnvironment("Testing"))
         builder.Configuration.AddUserSecrets<Worker>(optional: true);
     builder.Configuration.AddEnvironmentVariables().AddCommandLine(args);
 }
+if (!builder.Configuration.GetValue("Workers:Enabled", true))
+{
+    Console.WriteLine("Workers are disabled; no cleanup or analysis processing was started.");
+    return;
+}
 var connectionString = builder.Configuration["ConnectionStrings:WorkerDatabase"]
     ?? throw new InvalidOperationException("ConnectionStrings:WorkerDatabase must name the dedicated worker database role.");
 var connection = new NpgsqlConnectionStringBuilder(connectionString);

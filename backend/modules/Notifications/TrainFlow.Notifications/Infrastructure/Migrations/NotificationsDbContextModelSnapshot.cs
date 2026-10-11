@@ -119,6 +119,110 @@ namespace TrainFlow.Notifications.Infrastructure.Migrations
 
                     b.ToTable("Preferences", "notifications");
                 });
+
+            modelBuilder.Entity("TrainFlow.Notifications.PushDelivery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("AvailableAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("NotificationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("TicketId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceId");
+
+                    b.HasIndex("NotificationId", "DeviceId")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "AvailableAt");
+
+                    b.ToTable("PushDeliveries", "notifications");
+                });
+
+            modelBuilder.Entity("TrainFlow.Notifications.PushDevice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ActiveConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ActiveUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("InstallationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "InstallationId")
+                        .IsUnique();
+
+                    b.ToTable("PushDevices", "notifications");
+                });
+
+            modelBuilder.Entity("TrainFlow.Notifications.PushDelivery", b =>
+                {
+                    b.HasOne("TrainFlow.Notifications.PushDevice", null)
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrainFlow.Notifications.Notification", null)
+                        .WithMany()
+                        .HasForeignKey("NotificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 #pragma warning restore 612, 618
         }
     }

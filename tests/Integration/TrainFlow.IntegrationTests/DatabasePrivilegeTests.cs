@@ -62,6 +62,11 @@ public sealed class DatabasePrivilegeTests
                 await billing.Database.MigrateAsync();
             await using (var checkins = new CheckInsDbContext(Options<CheckInsDbContext>(migration, "checkins")))
                 await checkins.Database.MigrateAsync();
+            await using (var triggerPolicy = migration.CreateCommand("""
+                SELECT proconfig @> ARRAY['search_path=pg_catalog'] AND NOT prosecdef
+                FROM pg_proc WHERE oid = 'checkins.protect_assignment_source()'::regprocedure
+                """))
+                Assert.Equal(true, await triggerPolicy.ExecuteScalarAsync());
             await using (var messaging = new MessagingDbContext(Options<MessagingDbContext>(migration, "messaging")))
                 await messaging.Database.MigrateAsync();
             // Runtime grants must restore schema access even when bootstrap grants are missing.

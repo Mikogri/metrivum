@@ -12,10 +12,15 @@ public sealed class AnalysisJob
     {
         get; set;
     }
-    public Guid MediaId
+    public Guid? MediaId
     {
         get; set;
     }
+    public string ExecutionLocation { get; set; } = "server";
+    public Guid? LocalAnalysisId { get; set; }
+    public string? SourceVideo { get; set; }
+    public Guid? WorkoutExecutionId { get; set; }
+    public Guid? SetId { get; set; }
     public string Name { get; set; } = "";
     public string? Note
     {
@@ -76,6 +81,9 @@ public sealed class VideoAnalysisDbContext(DbContextOptions<VideoAnalysisDbConte
             table.HasCheckConstraint("ck_job_lease", "(\"Status\" = 'Processing') = (\"LeaseToken\" IS NOT NULL AND \"LeaseExpiresAt\" IS NOT NULL)");
         });
         job.HasKey(x => x.Id);
+        job.Property(x => x.ExecutionLocation).HasMaxLength(10).HasDefaultValue("server");
+        job.Property(x => x.SourceVideo).HasColumnType("jsonb");
+        job.HasIndex(x => new { x.OwnerId, x.LocalAnalysisId }).IsUnique();
         job.Property(x => x.Name).HasMaxLength(200);
         job.Property(x => x.Note).HasMaxLength(10000);
         job.Property(x => x.Status).HasMaxLength(20);

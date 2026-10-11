@@ -45,7 +45,7 @@ public sealed class BillingAnalytics(BillingDbContext db) : IFinanceAnalytics
                 && d.Status == Domain.DueStatus.AwaitingPayment
                 && d.DueAt >= s.Window.Start
                 && d.DueAt < s.Window.End
-                && (all || ids.Contains(d.RelationshipId))
+                && (all || ids.Contains(d.RelationshipId!.Value))
             )
             .Join(
                 db.Orders.Where(o => anyOffer || o.OfferRevisionId == offer),
@@ -65,7 +65,7 @@ public sealed class BillingAnalytics(BillingDbContext db) : IFinanceAnalytics
                     ((personal && o.TeamId == null && o.CoachId == s.CoachId) || (!personal && o.TeamId == team && (allMembers || o.CoachId == member)))
                     && o.Context == Domain.BillingContext.CoachingService
                     && (anyOffer || o.OfferRevisionId == offer)
-                    && (all || ids.Contains(o.RelationshipId))
+                    && (all || ids.Contains(o.RelationshipId!.Value))
                 ),
                 x => x.OrderId,
                 o => o.Id,
@@ -100,7 +100,7 @@ public sealed class BillingAnalytics(BillingDbContext db) : IFinanceAnalytics
                 && d.Sequence > 0
                 && d.SettledAt >= s.Window.Start
                 && d.SettledAt < s.Window.End
-                && (all || ids.Contains(d.RelationshipId))
+                && (all || ids.Contains(d.RelationshipId!.Value))
             )
             .Join(
                 db.Orders.Where(o => anyOffer || o.OfferRevisionId == offer),

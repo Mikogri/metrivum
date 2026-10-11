@@ -5,7 +5,7 @@ namespace TrainFlow.CheckIns.Domain;
 [JsonConverter(typeof(JsonStringEnumConverter<RecurrenceKind>))]
 public enum RecurrenceKind
 {
-    OneTime, EveryNDays, EveryNWeeks, Monthly
+    OneTime, EveryNDays, EveryNWeeks, Monthly, AssignedProgramCycle
 }
 [JsonConverter(typeof(JsonStringEnumConverter<ScheduleStatus>))]
 public enum ScheduleStatus
@@ -17,7 +17,7 @@ public enum RequestStatus
 {
     Scheduled, Available, Overdue, Submitted, Reviewed, Cancelled
 }
-public sealed record Recurrence(RecurrenceKind Kind, int Interval, DateOnly StartDate, TimeOnly ReleaseTime, IReadOnlyList<int>? WeekDays = null, int? DayOfMonth = null);
+public sealed record Recurrence(RecurrenceKind Kind, int Interval, DateOnly StartDate, TimeOnly ReleaseTime, IReadOnlyList<int>? WeekDays = null, int? DayOfMonth = null, Guid? AssignmentId = null, IReadOnlyList<int>? CycleDays = null);
 public sealed class CheckInSchedule
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -104,6 +104,8 @@ public sealed class ScheduleTarget
 }
 public sealed class CheckInRequest
 {
+    public string? AssignmentSource { get; set; }
+    public string? AssignmentGroupsJson { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ScheduleId
     {

@@ -15,6 +15,8 @@ public sealed record TeamDto(Guid Id, string Name, bool IsOwner, bool IsMember, 
 public sealed record TeamInviteRequest(string Username, string Role = "Member");
 public sealed record TeamDecisionRequest(bool Accept);
 public sealed record TeamRequestDto(Guid Id, Guid TeamId, string TeamName, string DisplayName, string Kind, string Status, bool CanDecide, string Role, DateTimeOffset? ExpiresAt);
+public sealed record TeamRequestResultDto(Guid Id, Guid TeamId, Guid UserId, string Kind, string Status,
+    DateTimeOffset CreatedAt, Guid InviterId, string Role, DateTimeOffset? ExpiresAt, DateTimeOffset? DecidedAt);
 public sealed record TeamHomeDto(IReadOnlyList<TeamDto> Teams, IReadOnlyList<TeamRequestDto> Requests);
 public sealed record TeamMemberDto(Guid UserId, string DisplayName, string? Username, string Role, DateTimeOffset JoinedAt);
 public sealed record TeamUpdateRequest(string Name, string Description, long Version);
@@ -56,7 +58,7 @@ public sealed class TeamService(BillingDbContext db, IAccountContext accounts, I
         var people = await directory.GetAccountsAsync(members.Select(x => x.UserId).ToArray(), ct);
         return members.Select(x => new TeamMemberDto(x.UserId, people.GetValueOrDefault(x.UserId)?.DisplayName ?? "Member", people.GetValueOrDefault(x.UserId)?.Username, x.Role, x.JoinedAt)).ToArray();
     }
-    public Task<TeamRequest> RequestAsync(Guid id, TeamInviteRequest? invite, CancellationToken ct) => transaction.RunAsync(async token =>
+    public Task<TeamRequestResultDto> RequestAsync(Guid id, TeamInviteRequest? invite, CancellationToken ct) => transaction.RunAsync(async token =>
     {
         await accounts.RequireCoachAsync(token);
         if (invite is null)
@@ -76,7 +78,7 @@ public sealed class TeamService(BillingDbContext db, IAccountContext accounts, I
         var now = clock.GetUtcNow();
         var existing = await db.TeamRequests.SingleOrDefaultAsync(x => x.TeamId == id && x.UserId == target.UserId && x.Kind == "Invite" && x.Status == "Pending", token);
         if (existing is not null && existing.ExpiresAt > now)
-            return existing;
+            return RequestResult(existing);
         if (existing is not null)
         {
             existing.Status = "Expired";
@@ -89,9 +91,9 @@ public sealed class TeamService(BillingDbContext db, IAccountContext accounts, I
         Audit(team, "MemberInvited", target.UserId);
         await Notify(request.UserId, team, "TeamInvitation", request.Id.ToString(), token);
         await db.SaveChangesAsync(token);
-        return request;
+        return RequestResult(request);
     }, ct);
-    public Task<TeamRequest> DecideAsync(Guid id, bool accept, CancellationToken ct) => transaction.RunAsync(async token =>
+    public Task<TeamRequestResultDto> DecideAsync(Guid id, bool accept, CancellationToken ct) => transaction.RunAsync(async token =>
     {
         await accounts.GetRolesAsync(token);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({"team:user:" + accounts.UserId}, 0))", token);
@@ -99,7 +101,7 @@ public sealed class TeamService(BillingDbContext db, IAccountContext accounts, I
         var team = await Locked(request.TeamId, token);
         await db.Entry(request).ReloadAsync(token);
         if (request.Status != "Pending")
-            return request;
+            return RequestResult(request);
         if (request.ExpiresAt <= clock.GetUtcNow())
             throw ApiException.Conflict("This invitation expired.");
         if (accept)
@@ -133,8 +135,11 @@ public sealed class TeamService(BillingDbContext db, IAccountContext accounts, I
         Audit(team, "Invitation" + request.Status, accounts.UserId);
         await Notify(team.OwnerId, team, "TeamInvitation" + request.Status, request.Id.ToString(), token);
         await db.SaveChangesAsync(token);
-        return request;
+        return RequestResult(request);
     }, ct);
+    private static TeamRequestResultDto RequestResult(TeamRequest request) => new(request.Id, request.TeamId, request.UserId,
+        request.Kind, request.Status, request.CreatedAt, request.InviterId, request.Role, request.ExpiresAt, request.DecidedAt);
+
     public Task RevokeAsync(Guid id, Guid requestId, CancellationToken ct) => transaction.RunAsync(async token =>
     {
         var team = await Locked(id, token);
@@ -251,6 +256,7 @@ public sealed class TeamService(BillingDbContext db, IAccountContext accounts, I
     }, ct);
     public Task AcceptOwnershipAsync(Guid id, long version, ClaimsPrincipal principal, CancellationToken ct) => transaction.RunAsync(async token =>
     {
+        await accounts.RequireCoachAsync(token);
         TeamSecurity.RequireRecentAuthentication(principal, clock.GetUtcNow());
         var team = await Locked(id, token);
         await Active(team, token);

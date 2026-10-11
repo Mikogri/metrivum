@@ -12,6 +12,58 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed partial class OffersBillingTests
 {
+    [CatalogPostgresFact]
+    public async Task Disabled_account_cannot_accept_pending_team_ownership()
+    {
+        await using var isolated = await IsolatedDatabase.CreateAsync();
+        var owner = Guid.NewGuid();
+        var member = Guid.NewGuid();
+        var clock = new Clock(DateTimeOffset.UtcNow);
+        await using var services = TeamServices(owner, isolated.Connection, clock);
+        await using var scope = services.CreateAsyncScope();
+        var billing = TeamBilling(scope);
+        var quote = await billing.QuoteAsync(new("Ownership authorization", 2, "team-v1"), default);
+        var paid = await billing.ConfirmAsync(new(quote.Id, "create"), default);
+        var admin = Organization(scope, owner, clock);
+        var invite = await admin.RequestAsync(paid.TeamId, new(member.ToString()), default);
+        await Organization(scope, member, clock).DecideAsync(invite.Id, true, default);
+        var current = (await admin.HomeAsync(default)).Teams.Single();
+        await admin.RequestOwnershipAsync(paid.TeamId, new(member, current.Version), Recent(clock), default);
+        current = (await admin.HomeAsync(default)).Teams.Single();
+
+        await using var accounts = new TrainFlow.Accounts.Infrastructure.AccountsDbContext(
+            new DbContextOptionsBuilder<TrainFlow.Accounts.Infrastructure.AccountsDbContext>()
+                .UseNpgsql(isolated.Connection, options => options.MigrationsHistoryTable("__EFMigrationsHistory", "accounts")).Options);
+        await accounts.Database.MigrateAsync();
+        accounts.Profiles.Add(new() { Id = member, Active = false, Onboarded = true });
+        accounts.Workspaces.Add(new() { Id = Guid.NewGuid(), OwnerId = member });
+        accounts.Roles.Add(new() { UserId = member, Role = "Coach" });
+        await accounts.SaveChangesAsync();
+        var http = new Microsoft.AspNetCore.Http.HttpContextAccessor
+        {
+            HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity([new("sub", member.ToString())], "test"))
+            }
+        };
+        var account = new TrainFlow.Accounts.Infrastructure.AccountContext(http, accounts);
+        var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
+        var recipient = new TeamService(db, account, new OrganizationDirectory(),
+            scope.ServiceProvider.GetRequiredService<ModuleTransaction>(), clock);
+        var error = await Assert.ThrowsAsync<ApiException>(() => recipient.AcceptOwnershipAsync(paid.TeamId, current.Version, Recent(clock), default));
+        Assert.Equal("ACCOUNT_DISABLED", error.Code);
+        var unchanged = await db.Teams.AsNoTracking().SingleAsync(x => x.Id == paid.TeamId);
+        Assert.Equal(owner, unchanged.OwnerId);
+        Assert.Equal(member, unchanged.PendingOwnerId);
+        Assert.Equal(current.Version, unchanged.Version);
+        Assert.Equal("Member", (await db.TeamMemberships.AsNoTracking().SingleAsync(x => x.TeamId == paid.TeamId && x.UserId == member)).Role);
+
+        (await accounts.Profiles.SingleAsync(x => x.Id == member)).Active = true;
+        await accounts.SaveChangesAsync();
+        await recipient.AcceptOwnershipAsync(paid.TeamId, current.Version, Recent(clock), default);
+        Assert.Equal(member, (await db.Teams.AsNoTracking().SingleAsync(x => x.Id == paid.TeamId)).OwnerId);
+    }
+
     private sealed class OrganizationDirectory : IAccountDirectory
     {
         public Task<IReadOnlyDictionary<Guid, AccountDirectoryEntry>> GetAccountsAsync(IReadOnlyCollection<Guid> ids, CancellationToken ct) =>

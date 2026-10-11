@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Options;
+using TrainFlow.Training.Features;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +20,83 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class TrainingDeliveryPostgresTests
 {
+    [TrainingPostgresFact]
+    public async Task Progress_reports_partial_client_details_without_truncating_totals()
+    {
+        await using var f = new Fixture();
+        var program = await f.Seed();
+        f.Directory.GroupMembers.Clear();
+        f.Directory.GroupMembers.AddRange(Enumerable.Range(0, 201).Select(_ => Guid.NewGuid()));
+        await using var scope = f.Scope(f.Coach);
+        foreach (var recipients in f.Directory.GroupMembers.Chunk(200))
+            await scope.Service.AssignAsync(program.Id,
+                new(null, recipients, [], new(2026, 1, 1), "Europe/Warsaw"), Guid.NewGuid().ToString(), default);
+        var report = await scope.Service.ReadAsync(new(new(2026, 1, 1), new(2026, 1, 31)), default);
+        Assert.Equal(402, report.Planned);
+        Assert.Equal(200, report.Clients.Length);
+        Assert.True(report.ClientsHasMore);
+        Assert.False(report.PerformanceHasMore);
+        var narrowed = await scope.Service.ReadAsync(new(new(2026, 1, 1), new(2026, 1, 31), report.Clients[0].RelationshipId), default);
+        Assert.Single(narrowed.Clients);
+        Assert.False(narrowed.ClientsHasMore);
+        Assert.Equal(2, narrowed.Planned);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Activity_filters_paginate_in_sql_and_preserve_due_denominator()
+    {
+        await using var f = new Fixture();
+        f.Clock.Now = new(2026, 1, 5, 12, 0, 0, TimeSpan.Zero);
+        var program = await f.Seed();
+        await f.Assign(program.Id);
+        await using var scope = f.Scope(f.Client);
+        var all = await scope.Service.ScheduleAsync(new(2026, 1, 1), new(2026, 1, 31), f.Relationship, program.Id, 1, 100, default);
+        var started = await scope.Service.StartAsync(all.Items[0].Id, default);
+        var exerciseId = Guid.NewGuid();
+        var saved = await scope.Service.SaveAsync(started.Id, new(new(2026, 1, 2), "Recorded session", 1800,
+            [new(null, exerciseId, "", [new(null, null, false, 5, 20, "kg", LoadMeaning.TotalExternal, null, null, null, null, null, null, null)])]), started.Version, default);
+        await scope.Service.CompleteAsync(saved.Id, saved.Version, default);
+        var completed = await scope.Service.ScheduleAsync(new(2026, 1, 1), new(2026, 1, 31), f.Relationship, program.Id, 1, 1, default, status: "Completed", sort: "latest");
+        Assert.Equal(1, completed.Total);
+        Assert.Equal(new DateOnly(2026, 1, 2), Assert.Single(completed.Items).PerformedDate);
+        Assert.True(completed.Items[0].HasComment);
+        var future = await scope.Service.ScheduleAsync(new(2026, 1, 1), new(2026, 1, 31), f.Relationship, program.Id, 1, 1, default, status: "Scheduled");
+        Assert.Equal(all.Items[1].Id, Assert.Single(future.Items).Id);
+        var empty = await scope.Service.ScheduleAsync(new(2026, 1, 1), new(2026, 1, 31), f.Relationship, program.Id, 1, 10, default, cycleId: Guid.NewGuid());
+        Assert.Empty(empty.Items);
+        var report = await scope.Service.ReadAsync(new(new(2026, 1, 1), new(2026, 1, 31), f.Relationship), default);
+        Assert.Equal(2, report.Planned);
+        Assert.Equal(1, report.Due);
+        Assert.Equal(100m, report.CompletionPercentage);
+        Assert.Equal(1800, report.TotalTrainingSeconds);
+        Assert.Equal(1800, report.AverageSessionSeconds);
+        Assert.Equal(all.Items[0].Id, Assert.Single(report.Performance).OccurrenceId);
+        Assert.Equal(100m, report.Performance[0].VolumeKg);
+        Assert.Equal(2, report.Weeks!.Length);
+        var options = await scope.Service.ActivityOptionsAsync(f.Relationship, program.Id, default);
+        Assert.Single(options.Programs);
+        Assert.Equal(2, options.Structure.Length);
+        var summary = Assert.Single(await scope.Service.AssignmentSummaryAsync(f.Relationship, default));
+        Assert.Equal(2, summary.Scheduled);
+        Assert.Equal(1, summary.Completed);
+        Assert.Equal(new DateOnly(2026, 1, 2), (await scope.Service.LastActivityAsync(f.Relationship, default)).PerformedDate);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => scope.Service.WorkoutAsync(all.Items[0].Id, default, Guid.NewGuid()))).Status);
+        var repsFiltered = await scope.Service.ReadAsync(new(new(2026, 1, 1), new(2026, 1, 31), f.Relationship, Repetitions: 6), default);
+        Assert.Empty(repsFiltered.Performance);
+        Assert.Equal(100m, repsFiltered.CompletionPercentage);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Activity_options_and_assignments_require_relationship_access()
+    {
+        await using var f = new Fixture();
+        var program = await f.Seed();
+        await f.Assign(program.Id);
+        await using var outsider = f.Scope(Guid.NewGuid());
+        await Assert.ThrowsAsync<ApiException>(() => outsider.Service.ActivityOptionsAsync(f.Relationship, program.Id, default));
+        await Assert.ThrowsAsync<ApiException>(() => outsider.Service.AssignmentSummaryAsync(f.Relationship, default));
+    }
+
     [TrainingPostgresFact]
     public async Task Assignment_retry_rechecks_revoked_relationship_access_before_returning_existing_batch()
     {
@@ -343,6 +422,45 @@ public sealed class TrainingDeliveryPostgresTests
         Assert.Equal(execution.Id, (await scope.Db.Set<WorkoutExecution>().AsNoTracking().SingleAsync(x => x.Id == execution.Id)).Id);
     }
 
+    [TrainingPostgresFact]
+    public async Task Refresh_updates_today_before_execution_without_rewriting_past_workouts()
+    {
+        await using var f = new Fixture();
+        f.Clock.Now = new(2026, 1, 11, 12, 0, 0, TimeSpan.Zero);
+        var program = await f.Seed();
+        var assignment = await f.Assign(program.Id);
+        await using var coach = f.Scope(f.Coach);
+        var before = await coach.Service.ScheduleAsync(new(2026, 1, 1), new(2026, 2, 1), null, null, 1, 100, default);
+        var original = await coach.Db.Revisions.SingleAsync(x => x.PlanId == program.Id);
+        var revision = new TrainingRevision { Id = Guid.NewGuid(), PlanId = program.Id, Number = 2, DraftVersion = 2,
+            PublishedAt = f.Clock.Now, IdempotencyKey = "today", RequestHash = "today", Snapshot = original.Snapshot with { Name = "Updated" } };
+        coach.Db.Add(revision);
+        await coach.Db.SaveChangesAsync();
+        await coach.Service.RefreshAsync(assignment.Id, revision.Id, assignment.Version, default);
+        var after = await coach.Service.ScheduleAsync(new(2026, 1, 1), new(2026, 2, 1), null, null, 1, 100, default);
+        Assert.Equal(original.Id, after.Items.Single(x => x.ScheduledDate == new DateOnly(2026, 1, 1)).RevisionId);
+        Assert.Equal(revision.Id, after.Items.Single(x => x.ScheduledDate == new DateOnly(2026, 1, 11)).RevisionId);
+        Assert.Equal(2, after.Items.Length);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Apply_refreshes_assignments_but_draft_save_does_not()
+    {
+        await using var f = new Fixture();
+        f.Clock.Now = new(2026, 1, 11, 12, 0, 0, TimeSpan.Zero);
+        var plan = await f.Seed();
+        var assignment = await f.Assign(plan.Id);
+        await using var scope = f.Scope(f.Coach);
+        var doc = plan.Draft with { Blocks = plan.Draft.Blocks.Select(b => b with { Cycles = b.Cycles.Select(c => c with { Days = c.Days.Select(d => d with { Workouts = d.Workouts.Select(w => w with { Exercises = [] }).ToArray() }).ToArray() }).ToArray() }).ToArray() };
+        var saved = await scope.Programs.SaveAsync(plan.Id, new("Changed", "", null, doc), plan.Version, default);
+        Assert.Equal(assignment.EffectiveRevisionId, (await scope.Service.GetAsync(assignment.Id, default)).EffectiveRevisionId);
+        var applied = await scope.Programs.ApplyAsync(plan.Id, saved.Version, "apply", default);
+        Assert.Equal(applied.Id, (await scope.Service.GetAsync(assignment.Id, default)).EffectiveRevisionId);
+        Assert.Equal(applied.Id, (await scope.Programs.ApplyAsync(plan.Id, saved.Version, "apply", default)).Id);
+        Assert.Equal(applied.Id, (await scope.Programs.ApplyAsync(plan.Id, saved.Version, "unchanged", default)).Id);
+        Assert.Equal(2, await scope.Db.Revisions.CountAsync(x => x.PlanId == plan.Id));
+    }
+
     private sealed class Fixture : IAsyncDisposable
     {
         public Guid Coach { get; } = Guid.NewGuid(); public Guid Client { get; } = Guid.NewGuid(); public Guid Relationship { get; } = Guid.NewGuid(); public Guid Group { get; } = Guid.NewGuid();
@@ -396,6 +514,7 @@ public sealed class TrainingDeliveryPostgresTests
         {
             get;
         }
+        public TrainingService Programs { get; }
         public TestScope(NpgsqlDataSource source, Guid user, Fixture f)
         {
             var services = new ServiceCollection();
@@ -404,7 +523,8 @@ public sealed class TrainingDeliveryPostgresTests
             services.AddDbContext<TrainingDbContext>(options => options.AddInterceptors(f.Queries));
             provider = services.BuildServiceProvider();
             Db = provider.GetRequiredService<TrainingDbContext>();
-            Service = new(Db, new Account(user, f.Coach), new Features(), f.Directory, new Policy(user, f.Directory), new Catalog(), new Notifications(), provider.GetRequiredService<ModuleTransaction>(), f.Clock, new AccountsDirectory());
+            Programs = new(Db, new Account(user, f.Coach), new Features(), new Catalog(), Options.Create(new TrainingOptions()), f.Clock, new Policy(user, f.Directory), provider.GetRequiredService<ModuleTransaction>(), []);
+            Service = new(Db, new Account(user, f.Coach), new Features(), f.Directory, new Policy(user, f.Directory), new Catalog(), new Notifications(), provider.GetRequiredService<ModuleTransaction>(), f.Clock, new AccountsDirectory(), []);
         }
         public ValueTask DisposeAsync() => provider.DisposeAsync();
     }

@@ -23,8 +23,13 @@ public sealed partial class CatalogService(ExerciseCatalogDbContext db, IAccount
             // Matches the exercise name or any muscle it works (English/Polish label or key).
             var search = NormalizedName(request.Search, 200);
             var key = search.ToLowerInvariant().Replace(' ', '-');
+            // Normalize the reference dictionary in .NET: PostgreSQL's C locale cannot uppercase Polish letters.
+            var muscles = await db.Muscles.AsNoTracking().Select(m => new { m.Key, m.LabelEn, m.LabelPl }).ToArrayAsync(ct);
+            var matchingMuscles = muscles.Where(m => m.Key.Contains(key, StringComparison.Ordinal) ||
+                CatalogText.Normalize(m.LabelEn).Contains(search, StringComparison.Ordinal) ||
+                CatalogText.Normalize(m.LabelPl).Contains(search, StringComparison.Ordinal)).Select(m => m.Key).ToArray();
             query = query.Where(x => x.NormalizedName.Contains(search) ||
-                x.Muscles.Any(m => m.MuscleKey.Contains(key) || m.Muscle.LabelEn.ToUpper().Contains(search) || m.Muscle.LabelPl.ToUpper().Contains(search)));
+                x.Muscles.Any(m => matchingMuscles.Contains(m.MuscleKey)));
         }
         if (request.TagId is { } tag)
             query = query.Where(x => x.Tags.Any(t => t.TagId == tag));

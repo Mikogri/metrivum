@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using TrainFlow.Access.Contracts;
 using TrainFlow.BuildingBlocks;
 using TrainFlow.Coaching.Contracts;
+using TrainFlow.Media.Contracts;
 using TrainFlow.Messaging.Domain;
 using TrainFlow.Messaging.Features;
 using TrainFlow.Messaging.Infrastructure;
@@ -24,6 +25,8 @@ public static class ModuleRegistration
         services.AddScoped<MessagingService>();
         services.AddScoped<IMessagingAnalytics, MessagingAnalytics>();
         services.AddScoped<ICoachingMessagingObserver>(p => p.GetRequiredService<MessagingService>());
+        services.AddScoped<ICoachingChatPublisher>(p => p.GetRequiredService<MessagingService>());
+        services.AddScoped<IMessagingUploadAuthorization>(p => p.GetRequiredService<MessagingService>());
         services.AddScoped<MessagingDispatcher>();
         services.AddSignalR().AddJsonProtocol(options =>
             options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -48,6 +51,9 @@ public static class ModuleRegistration
     public static IEndpointRouteBuilder MapMessaging(this IEndpointRouteBuilder endpoints)
     {
         var g = endpoints.MapGroup("/api/v1/messaging").WithTags("Messaging").RequireAuthorization();
+        var preferences = endpoints.MapGroup("/api/v1/me/messaging-preferences").WithTags("Messaging").RequireAuthorization();
+        preferences.MapGet("", (MessagingService s, CancellationToken ct) => s.PreferencesAsync(ct));
+        preferences.MapPut("", (MessagingPreferenceDto input, MessagingService s, CancellationToken ct) => s.SavePreferencesAsync(input, ct));
         g.MapGet("/people", (string search, MessagingService s, CancellationToken ct) => s.SearchPeopleAsync(search, ct));
         g.MapGet("/conversations", (string? search, int? limit, MessagingService s, CancellationToken ct) => s.ListAsync(search, limit ?? 25, ct));
         g.MapPost("/conversations/direct", (DirectRequest r, MessagingService s, CancellationToken ct) => s.DirectAsync(r.UserId, ct));

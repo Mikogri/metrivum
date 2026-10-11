@@ -546,7 +546,8 @@
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.Notifications.Contracts": "[1.0.0, )",
-          "TrainFlow.Offers.Contracts": "[1.0.0, )"
+          "TrainFlow.Offers.Contracts": "[1.0.0, )",
+          "TrainFlow.Training.Contracts": "[1.0.0, )"
         }
       },
       "trainflow.billing.contracts": {
@@ -581,7 +582,8 @@
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.Forms.Contracts": "[1.0.0, )",
-          "TrainFlow.Notifications.Contracts": "[1.0.0, )"
+          "TrainFlow.Notifications.Contracts": "[1.0.0, )",
+          "TrainFlow.Training.Contracts": "[1.0.0, )"
         }
       },
       "trainflow.clientdocumentation": {
@@ -725,7 +727,8 @@
           "TrainFlow.Accounts.Contracts": "[1.0.0, )",
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
           "TrainFlow.Media.Contracts": "[1.0.0, )",
-          "TrainFlow.Notifications.Contracts": "[1.0.0, )"
+          "TrainFlow.Notifications.Contracts": "[1.0.0, )",
+          "TrainFlow.Training.Contracts": "[1.0.0, )"
         }
       },
       "CsvHelper": {

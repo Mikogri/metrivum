@@ -33,6 +33,9 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                         .HasPrecision(28, 2)
                         .HasColumnType("numeric(28,2)");
 
+                    b.Property<Guid?>("ApplicationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("BillingOptionId")
                         .HasColumnType("uuid");
 
@@ -81,13 +84,13 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
-                    b.Property<Guid>("RelationshipId")
+                    b.Property<Guid?>("RelationshipId")
                         .HasColumnType("uuid");
 
                     b.Property<int?>("SelectedSessionCount")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("ServiceId")
+                    b.Property<Guid?>("ServiceId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("SettlementMode")
@@ -104,7 +107,13 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                     b.Property<Guid?>("TeamId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("TrainingPlanRevisionId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId")
+                        .IsUnique();
 
                     b.HasIndex("ServiceId")
                         .IsUnique();
@@ -118,6 +127,8 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                     b.ToTable("orders", "billing", t =>
                         {
                             t.HasCheckConstraint("CK_order_money", "\"Amount\" >= 0 AND \"FeeRate\" BETWEEN 0 AND 1 AND \"FeeAmount\" >= 0 AND \"CoachNetAmount\" >= 0 AND \"Amount\" = \"FeeAmount\" + \"CoachNetAmount\"");
+
+                            t.HasCheckConstraint("CK_order_purchase_context", "(\"Context\" = 'TrainingPlan' AND \"ServiceId\" IS NULL AND \"RelationshipId\" IS NULL AND \"ApplicationId\" IS NOT NULL AND \"TrainingPlanRevisionId\" IS NOT NULL) OR (\"Context\" <> 'TrainingPlan' AND (\"Context\" = 'Platform' OR (\"ServiceId\" IS NOT NULL AND \"RelationshipId\" IS NOT NULL)) AND \"ApplicationId\" IS NULL AND \"TrainingPlanRevisionId\" IS NULL)");
                         });
                 });
 
@@ -316,13 +327,13 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("PeriodStart")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("RelationshipId")
+                    b.Property<Guid?>("RelationshipId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Sequence")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("ServiceId")
+                    b.Property<Guid?>("ServiceId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset?>("SettledAt")
@@ -351,6 +362,12 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                     b.Property<Guid?>("TeamId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("ValidUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ValidityDays")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId", "PeriodStart")
@@ -373,6 +390,8 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_due_money", "\"Amount\" >= 0 AND \"FeeRate\" BETWEEN 0 AND 1 AND \"FeeAmount\" >= 0 AND \"CoachNetAmount\" >= 0 AND \"Amount\" = \"FeeAmount\" + \"CoachNetAmount\"");
 
                             t.HasCheckConstraint("CK_due_sequence", "\"Sequence\" >= 0");
+
+                            t.HasCheckConstraint("CK_due_validity", "(\"ValidityDays\" IS NULL AND \"ValidUntil\" IS NULL) OR (\"ValidityDays\" BETWEEN 1 AND 36500 AND ((\"SettledAt\" IS NULL AND \"ValidUntil\" IS NULL) OR (\"SettledAt\" IS NOT NULL AND \"ValidUntil\" = \"SettledAt\" + \"ValidityDays\" * interval '24 hours'))) IS TRUE");
                         });
                 });
 

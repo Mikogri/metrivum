@@ -12,6 +12,30 @@ namespace TrainFlow.IntegrationTests;
 public sealed class AccountNameSearchTests
 {
     [CatalogPostgresFact]
+    public async Task General_autocomplete_requires_an_active_account_and_returns_only_public_active_profiles()
+    {
+        var database = Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!;
+        using var factory = new ApiFactory(database);
+        using var http = factory.CreateClient();
+        var actor = Guid.NewGuid(); var prefix = "u" + actor.ToString("N")[..10];
+        http.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(actor));
+        (await http.PutAsJsonAsync("/api/v1/me/onboarding", new { username = prefix + "self", displayName = "Self", birthDate = "1990-01-01", acceptedTerms = true, locale = "en", timeZone = "UTC", role = "Coach" })).EnsureSuccessStatusCode();
+        await using var db = new AccountsDbContext(new DbContextOptionsBuilder<AccountsDbContext>().UseNpgsql(database).Options);
+        foreach (var suffix in new[] { "active", "disabled", "draft" })
+            db.Profiles.Add(new Profile { Id = Guid.NewGuid(), Username = prefix + suffix, NormalizedUsername = (prefix + suffix).ToUpperInvariant(), DisplayName = suffix, Active = suffix != "disabled", Onboarded = suffix != "draft" });
+        await db.SaveChangesAsync();
+        var rows = await http.GetFromJsonAsync<JsonElement>("/api/v1/accounts/people?search=%40" + prefix);
+        var row = Assert.Single(rows.EnumerateArray());
+        Assert.Equal(prefix + "active", row.GetProperty("username").GetString());
+        Assert.Equal(new[] { "displayName", "userId", "username" }, row.EnumerateObject().Select(p => p.Name).Order());
+        Assert.Empty((await http.GetFromJsonAsync<JsonElement>("/api/v1/accounts/people?search=a")).EnumerateArray());
+        using var anonymous = factory.CreateClient();
+        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/v1/accounts/people?search=" + prefix)).StatusCode);
+        await db.Profiles.Where(p => p.Id == actor).ExecuteUpdateAsync(s => s.SetProperty(p => p.Active, false));
+        Assert.Equal(System.Net.HttpStatusCode.Forbidden, (await http.GetAsync("/api/v1/accounts/people?search=" + prefix)).StatusCode);
+    }
+
+    [CatalogPostgresFact]
     public async Task Conversation_search_filters_membership_and_names_before_the_result_limit()
     {
         var database = Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!;
