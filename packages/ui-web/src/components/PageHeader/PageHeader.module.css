@@ -11,7 +11,7 @@
 .row {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: var(--tf-space-4);
 }
@@ -28,11 +28,6 @@
   align-items: center;
   gap: var(--tf-space-2);
   min-width: 0;
-}
-
-/* Meta lines up with the title, past the arrow. */
-.lead[data-back] > .meta {
-  padding-left: calc(1.75rem + var(--tf-space-2) - var(--tf-space-1));
 }
 
 /* Back: just the arrow beside the title block; it brightens and nudges left on hover. */
@@ -96,12 +91,29 @@
   font-size: var(--tf-text-sm);
 }
 
+/* Right-hand side: status badges, then the page actions, all on the title's line. */
+.side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tf-space-3);
+  margin-left: auto;
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--tf-space-2);
-  margin-top: var(--tf-space-1);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+/* A hairline between the facts and the buttons, only when there really are buttons after it. */
+.meta:has(+ .actions:not(:empty)) {
+  padding-right: var(--tf-space-3);
+  border-right: 1px solid var(--tf-color-border-subtle);
 }
 
 .actions {

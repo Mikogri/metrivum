@@ -1,9 +1,7 @@
-import { Inbox, ShieldCheck } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { UseQueryResult } from "@tanstack/react-query";
+import { ShieldCheck } from "lucide-react";
+import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
-import { Badge, Button, Checkbox, Combobox, Dialog, DialogFooter, EmptyState, LoadingState, Option, Select, Spinner, TextField } from "@trainflow/ui-web";
-import { useAccountContext } from "~/shared/session";
+import { Button, Checkbox, Dialog, DialogFooter, EmptyState, LoadingState, Option, Select, Spinner, TextField } from "@trainflow/ui-web";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
@@ -12,6 +10,7 @@ import { root, useChatQuery } from "./api";
 import { Failure, useChatAction } from "./messages";
 import type { Conversation, Request } from "./model";
 import styles from "./messaging.module.css";
+import { UserAutocomplete } from "~/modules/accounts";
 export type ChatPerson = { userId: string; displayName: string; username: string };
 type Person = { id: string; displayName: string; username?: string | null };
 function useContacts() {
@@ -63,13 +62,10 @@ export function NewConversation({
     const [selected, setSelected] = useState<string[]>([]);
     const api = useApi();
     const [search, setSearch] = useState("");
-    const [term, setTerm] = useState("");
     const [opening, setOpening] = useState(false);
     const [openError, setOpenError] = useState<unknown>(null);
-    useEffect(() => { const timer = setTimeout(() => setTerm(search.trim()), 250); return () => clearTimeout(timer); }, [search]);
-    const people = useChatQuery<ChatPerson[]>(`${root}/people`, { search: term }, direct && kind === "direct" && term.replace(/^@/, "").length >= 2);
-    async function choose(userId: string) {
-        const target = people.data?.find(p => p.userId === userId);
+    async function choose(target: ChatPerson) {
+        const userId = target.userId;
         if (!target || opening) return;
         setOpening(true); setOpenError(null);
         try { open((await api<Conversation>({ method: "POST", path: `${root}/conversations/direct`, json: { userId } })).data.id); }
@@ -125,29 +121,9 @@ export function NewConversation({
                     ))}
                 </Select>
                 {kind === "direct" && <>
-                    <Combobox
-                        label="Find a person"
-                        placeholder="Name or @username"
-                        inputValue={search}
-                        onInputChange={setSearch}
-                        menuTrigger="input"
-                        onSelectionChange={(key) => { if (key) void choose(String(key)); }}
-                        isDisabled={opening}
-                        allowsEmptyCollection
-                        defaultFilter={() => true}
-                        emptyState={term.replace(/^@/, "").length < 2 ? "Type at least two characters." : people.isFetching ? <span className={styles.searching}><Spinner size="sm" />Searching…</span> : "Nobody matches. Check the username."}
-                        description={opening ? "Opening the conversation…" : "Choose someone to open your chat with them."}
-                    >
-                        {(term === search.trim() ? people.data ?? [] : []).map((p) => (
-                            <Option key={p.userId} id={p.userId} textValue={`${p.displayName} @${p.username}`} description={`@${p.username}`}>
-                                <span className={styles.personOption}>
-                                    <span className={styles.avatar} data-size="sm" aria-hidden="true">{initialsOf(p.displayName || p.username || "?")}</span>
-                                    {p.displayName}
-                                </span>
-                            </Option>
-                        ))}
-                    </Combobox>
-                    {people.error || openError ? <Failure error={people.error || openError} /> : null}
+                    <UserAutocomplete label="Find a person" value={search} onChange={setSearch} searchPath={`${root}/people`} onSelect={person => void choose(person)} isDisabled={opening}
+                      description={opening ? "Opening the conversation…" : "Choose someone to open your chat with them."} />
+                    {openError ? <Failure error={openError} /> : null}
                 </>}
                 {kind === "group" && <>
                     <TextField label="Group name" placeholder="e.g. Marathon crew" value={title} onChange={setTitle} isRequired maxLength={200} />
@@ -197,19 +173,13 @@ const initialsOf = (name: string) =>
         .slice(0, 2)
         .map((p) => p[0]!.toUpperCase())
         .join("") || "?";
-const stateTone = (state: string) => (state === "Accepted" ? "success" : state === "Pending" ? "info" : "neutral");
-
-/** Message requests split into received and sent, each a card with the introduction and its actions; blocked people as a list. */
-export function Requests({ kind, requests, open }: { kind: string; requests: UseQueryResult<Request[]>; open: (id: string) => void }) {
-    const { account } = useAccountContext();
-    const blocked = useChatQuery<string[]>("/api/v1/me/blocked-users", undefined, kind === "blocked");
+/** Blocking remains separate from conversations; pending approval stays inside its chat. */
+export function BlockedPeople() {
+    const blocked = useChatQuery<string[]>("/api/v1/me/blocked-users");
     const contacts = useContacts();
-    const action = useChatAction<Request>((r) => {
-        if (r?.state === "Accepted" && r.conversationId) open(r.conversationId);
-    });
+    const action = useChatAction();
     const name = (id: string) => contacts.people.find((p) => p.id === id)?.displayName || "TrainFlow member";
-    if (kind === "blocked")
-        return (
+    return (
             <>
                 {action.error && <Failure error={action.error} />}
                 {blocked.isPending ? (
@@ -235,81 +205,6 @@ export function Requests({ kind, requests, open }: { kind: string; requests: Use
                 )}
             </>
         );
-    const received = (requests.data ?? []).filter((r) => r.recipientUserId === account.userId);
-    const sent = (requests.data ?? []).filter((r) => r.recipientUserId !== account.userId);
-    const card = (r: Request, incoming: boolean) => {
-        const person = incoming ? r.senderDisplayName || name(r.senderUserId) : r.recipientDisplayName || name(r.recipientUserId);
-        return (
-            <article className={styles.requestCard} key={r.id} data-state={r.state}>
-                <header className={styles.requestHead}>
-                    <span className={styles.avatar} aria-hidden="true">
-                        {initialsOf(person)}
-                    </span>
-                    <span className={styles.requestWho}>
-                        <strong>{person}</strong>
-                        <small>{new Date(r.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</small>
-                    </span>
-                    <Badge tone={stateTone(r.state)} size="sm" dot>
-                        {r.state}
-                    </Badge>
-                </header>
-                <p className={styles.requestBody}>{r.body}</p>
-                {r.state === "Pending" || r.conversationId ? (
-                    <footer className={styles.requestActions}>
-                        {r.state === "Pending" && incoming ? (
-                            <>
-                                <Button size="sm" variant="ghost" isDisabled={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${r.id}/decline` })}>
-                                    Decline
-                                </Button>
-                                <Button size="sm" variant="primary" isDisabled={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${r.id}/accept` })}>
-                                    Accept
-                                </Button>
-                            </>
-                        ) : null}
-                        {r.state === "Pending" && !incoming ? (
-                            <Button size="sm" variant="ghost" isDisabled={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${r.id}/cancel` })}>
-                                Cancel request
-                            </Button>
-                        ) : null}
-                        {r.conversationId ? (
-                            <Button size="sm" onPress={() => open(r.conversationId!)}>
-                                Open conversation
-                            </Button>
-                        ) : null}
-                    </footer>
-                ) : null}
-            </article>
-        );
-    };
-    return (
-        <>
-            {action.error && <Failure error={action.error} />}
-            {requests.isPending ? (
-                <LoadingState label="Loading requests" />
-            ) : requests.error ? (
-                <Failure error={requests.error} retry={() => void requests.refetch()} />
-            ) : !requests.data.length ? (
-                <EmptyState icon={<Inbox />} title="No message requests" description="Introductions from new people and the requests you send show up here." />
-            ) : (
-                <div className={styles.requestGroups}>
-                    {[
-                        ["Received", received, true],
-                        ["Sent", sent, false],
-                    ].map(([title, items, incoming]) =>
-                        (items as Request[]).length ? (
-                            <section key={title as string} className={styles.requestGroup}>
-                                <h2 className={styles.requestGroupTitle}>
-                                    {title as string}
-                                    <span>{(items as Request[]).length}</span>
-                                </h2>
-                                <div className={styles.requestList}>{(items as Request[]).map((r) => card(r, incoming as boolean))}</div>
-                            </section>
-                        ) : null,
-                    )}
-                </div>
-            )}
-        </>
-    );
 }
 export function GroupMembers({
     conversation,
@@ -350,6 +245,7 @@ export function GroupMembers({
                     >
                         <TextField
                             label="Conversation name"
+                            placeholder="e.g. Marathon group"
                             value={title}
                             onChange={setTitle}
                             isRequired

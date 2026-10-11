@@ -34,8 +34,8 @@ export function ExercisePicker({
     <Dialog isOpen={isOpen} onOpenChange={onOpenChange} title={title ?? m.editor.picker.title} size="md" closeLabel={m.common.close}>
       <div className={styles.body}>
         <SearchInput aria-label={m.editor.picker.search} placeholder={m.editor.picker.search} value={search} onChange={setSearch} autoFocus />
-        <div className={styles.listWrap} aria-busy={list.isFetching}>
-          {list.isFetching ? (
+        <div className={styles.listWrap} aria-busy={list.isFetching} data-refreshing={list.isFetching && items.length > 0 ? "" : undefined}>
+          {list.isFetching && items.length > 0 ? (
             <span className={styles.spinner}>
               <Spinner size="sm" />
             </span>
@@ -46,7 +46,9 @@ export function ExercisePicker({
             selectionMode="single"
             selectedKeys={selectedId ? [selectedId] : []}
             className={styles.list}
-            renderEmptyState={() => <p className={styles.empty}>{list.isPending ? m.common.loading : m.editor.picker.empty}</p>}
+            renderEmptyState={() => list.isPending || list.isFetching ? (
+              <div className={styles.loading} role="status"><Spinner size="md" /><span>{m.common.loading}</span></div>
+            ) : <p className={styles.empty}>{m.editor.picker.empty}</p>}
             onAction={(key) => {
               const exercise = items.find((item) => item.id === key);
               if (exercise) {

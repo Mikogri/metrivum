@@ -46,6 +46,16 @@
   color: var(--tf-color-danger);
 }
 
+.item[data-tone="danger"]:hover,
+.item[data-tone="danger"]:focus-visible,
+.item[data-tone="danger"]:focus {
+  background: var(--tf-color-danger-soft);
+}
+
+.item[data-tone="danger"]:active {
+  background: rgb(240 96 93 / 0.22);
+}
+
 .icon {
   display: inline-flex;
   width: 0.9375rem;

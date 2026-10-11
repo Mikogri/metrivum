@@ -9,7 +9,7 @@ export interface ToastOptions {
   title: ReactNode;
   description?: ReactNode;
   tone?: ToastTone;
-  /** ms; 0 keeps the toast until dismissed. Errors default to 8s. */
+  /** ms; 0 keeps the toast until dismissed. Errors persist by default. */
   duration?: number;
   action?: { label: string; onAction: () => void };
 }
@@ -31,7 +31,7 @@ function emit() {
 /** Show a toast from anywhere. No provider needed beyond a single `<Toaster />`. */
 export function toast(options: ToastOptions): number {
   const id = nextId++;
-  records = [...records, { ...options, id, dismissed: false }].slice(-5);
+  records = [{ ...options, id, dismissed: false }];
   emit();
   return id;
 }
@@ -46,19 +46,26 @@ export function dismissToast(id: number) {
   }, 220);
 }
 
+/** Drop private action feedback when leaving an account. */
+export function clearToasts() {
+  records = [];
+  emit();
+}
+
 function subscribe(listener: Listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
 const getSnapshot = () => records;
-const getServerSnapshot = (): ToastRecord[] => [];
+const emptySnapshot: ToastRecord[] = [];
+const getServerSnapshot = () => emptySnapshot;
 
 const icons = { neutral: Info, success: CheckCircle2, warning: AlertTriangle, danger: XOctagon };
 
 function ToastItem({ record, index, dismissLabel }: { record: ToastRecord; index: number; dismissLabel: string }) {
   const [mounted, setMounted] = useState(false);
-  const remaining = useRef(record.duration ?? (record.tone === "danger" ? 8000 : 5000));
+  const remaining = useRef(record.duration ?? (record.tone === "danger" ? 0 : 5000));
   const started = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -103,7 +110,9 @@ function ToastItem({ record, index, dismissLabel }: { record: ToastRecord; index
       onFocus={pause}
       onBlur={resume}
     >
-      <Icon aria-hidden="true" className={styles.icon} />
+      <span className={styles.icon} aria-hidden="true">
+        <Icon />
+      </span>
       <div className={styles.body}>
         <p className={styles.title}>{record.title}</p>
         {record.description ? <p className={styles.description}>{record.description}</p> : null}

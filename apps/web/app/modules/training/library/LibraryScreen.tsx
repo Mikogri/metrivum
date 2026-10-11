@@ -6,7 +6,7 @@ import { Button as AriaButton } from "react-aria-components";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
 import type { DocumentKind, FolderDto, PlanListItem } from "@trainflow/api-client-web";
 import { LinkButton } from "@trainflow/ui-web";
-import { Badge, Breadcrumbs, Button, ContextMenu, DataTable, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, ErrorState, LoadingState, Option, PageHeader, Pagination, SearchInput, Segment, SegmentedControl, Select, Switch, Toolbar, toast, type ContextMenuEntry } from "@trainflow/ui-web";
+import { Badge, Breadcrumbs, Button, ContextMenu, DataTable, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, ErrorState, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, Switch, Toolbar, toast, type ContextMenuEntry } from "@trainflow/ui-web";
 import { LockedReason, useFeatures } from "~/shared/access";
 import { formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
@@ -24,6 +24,7 @@ import { folderPath, useFolderLookup } from "./folderLookup";
 import type { FolderAction } from "./FolderTree";
 import { useDragToFolder, type DragItem } from "./dragToFolder";
 import styles from "./LibraryScreen.module.css";
+import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
 import { ProgramsIcon } from "~/layouts/components/navIcons";
 
 /** Rows per page in lists. */
@@ -470,23 +471,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
           <Switch isSelected={state.archived === "1"} onChange={(on) => update({ archived: on ? "1" : null })}>
             {t.showArchived}
           </Switch>
-          <SegmentedControl
-            aria-label={t.view.label}
-            size="sm"
-            selectedKeys={[view]}
-            onSelectionChange={(keys) => {
-              const next = [...keys][0];
-              if (next) update({ view: String(next) });
-            }}
-            className={styles.viewToggle}
-          >
-            <Segment id="cards" aria-label={t.view.cards}>
-              <LayoutGrid aria-hidden="true" />
-            </Segment>
-            <Segment id="table" aria-label={t.view.table}>
-              <Table2 aria-hidden="true" />
-            </Segment>
-          </SegmentedControl>
+          <LibraryViewToggle value={view === "table" ? "list" : "cards"} onChange={(next) => update({ view: next === "list" ? "table" : "cards" })} />
         </Toolbar>
 
         {list.data && entries.length ? (

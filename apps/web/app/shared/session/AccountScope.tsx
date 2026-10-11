@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { clearToasts } from "@trainflow/ui-web";
 import { createContext, useContext, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
 import { mockFetch } from "~/shared/dev/mockApi";
@@ -76,6 +77,7 @@ export function AccountScope({ account, generation, children }: { account: Signe
       unsubscribe();
       // Leaving this account: abort its in-flight requests, polls and downloads, and drop its cache.
       controller.abort();
+      clearToasts();
       void queryClient.cancelQueries({ queryKey: [accountKey] });
       queryClient.removeQueries({ queryKey: [accountKey] });
     };

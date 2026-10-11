@@ -1,11 +1,13 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useBlocker } from "react-router";
-import { Button as AriaButton } from "react-aria-components";
-import { ArrowLeft, Download, MessageCircle, MoreVertical, Paperclip, Plus, SendHorizontal, Users, X } from "lucide-react";
+import { Button as AriaButton, Dialog as AriaDialog, Modal, ModalOverlay } from "react-aria-components";
+import { ArrowLeft, Download, FileText, Film, MessageCircle, MoreVertical, Paperclip, Plus, SendHorizontal, Users, X } from "lucide-react";
 import type { Schema } from "@trainflow/api-client-web";
 import {
   AlertDialog,
+  toast,
   Button,
   Dialog,
   DialogFooter,
@@ -27,11 +29,13 @@ import { useFeatureAccess } from "~/shared/access";
 import { saveBlob, type ApiRequest } from "~/shared/http";
 import { privateMeta } from "~/shared/i18n/site";
 import { cacheMessage, root, useChatQuery, type useRealtime } from "./api";
-import { mergeMessages, messageKind, messageWasRead, type LocalOutgoing, type Conversation, type Message, type Request } from "./model";
+import { mergeMessages, messageKind, messageWasRead, type LocalOutgoing, type Conversation, type Message } from "./model";
 import { useMessagingRealtime } from "./provider";
 import { DraftChat } from "./draft-chat";
-import { NewConversation, GroupMembers, Requests } from "./dialogs";
-import { VoicePreview, VoiceRecorder } from "./voice";
+import { NewConversation, GroupMembers, BlockedPeople } from "./dialogs";
+import { CoachingActions, CoachingCard, coachingCard, MessageText } from "./coaching-actions";
+import { VoicePlayer, VoicePreview, VoiceRecorder } from "./voice";
+import { optimisticRead } from "./read-cache";
 import styles from "./messaging.module.css";
 
 export const meta = () => privateMeta("Messages — TrainFlow");
@@ -97,15 +101,12 @@ export default function Messages() {
   const draft = params.get("person") ? { userId: params.get("person")!, displayName: params.get("name") || "TrainFlow member", username: params.get("username") || "" } : null;
   const direct = useFeatureAccess("messaging.direct");
   const groups = useFeatureAccess("messaging.groups");
-  const tab = direct.allowed && (requestedTab === "requests" || requestedTab === "blocked") ? requestedTab : "conversations";
+  const tab = direct.allowed && requestedTab === "blocked" ? requestedTab : "conversations";
   const groupManage = useFeatureAccess("messaging.group.manage").allowed;
   const allowed = direct.allowed || groups.allowed;
   const canCreate = direct.allowed || (groups.allowed && groupManage);
   const realtime = useMessagingRealtime();
   const list = useChatQuery<Conversation[]>(`${root}/conversations`, { search, limit: 100 }, allowed);
-  const requests = useChatQuery<Request[]>(`${root}/requests`, undefined, direct.allowed);
-  const { account } = useAccountContext();
-  const unreadRequests = requests.data?.filter((r) => r.recipientUserId === account.userId && r.state === "Pending").length ?? 0;
   const select = (value: string | null) => setParams(value ? { conversation: value } : { view: "list" });
   useEffect(() => {
     const first = list.data?.[0];
@@ -135,12 +136,12 @@ export default function Messages() {
             <header className={styles.paneHeader}>
               <IconButton className={styles.back} label="Back to conversations" icon={<ArrowLeft />} variant="ghost" size="sm" onPress={() => setParams({})} />
               <div>
-                <h1>{tab === "requests" ? "Message requests" : "Blocked people"}</h1>
-                <p>{tab === "requests" ? "People who want to start a conversation with you." : "They can't message you or send requests."}</p>
+                <h1>Blocked people</h1>
+                <p>They can't message you or send requests.</p>
               </div>
             </header>
             <div className={styles.paneBody}>
-              <Requests kind={tab} requests={requests} open={select} />
+              <BlockedPeople />
             </div>
           </div>
         ) : id ? (
@@ -174,10 +175,9 @@ export default function Messages() {
             size="sm"
             className={styles.sections}
             selectedKeys={[tab]}
-            onSelectionChange={(keys) => setParams([...keys][0] === "conversations" ? {} : { tab: String([...keys][0]) })}
+            onSelectionChange={(keys) => setParams([...keys][0] === "conversations" ? {} : { tab: String([...keys][0]) }, { replace: true })}
           >
             <Segment id="conversations">Chats</Segment>
-            <Segment id="requests">Requests{unreadRequests ? ` · ${unreadRequests}` : ""}</Segment>
             <Segment id="blocked">Blocked</Segment>
           </SegmentedControl>
         ) : null}
@@ -240,7 +240,8 @@ export default function Messages() {
 }
 
 function Thread({ id, back, realtime }: { id: string; back: () => void; realtime: ReturnType<typeof useRealtime> }) {
-  const { api, account, accountKey } = useAccountContext();
+  const { api, account, accountKey, lifecycle } = useAccountContext();
+  const showError = useErrorToast();
   const cache = useQueryClient();
   const details = useChatQuery<Conversation>(`${root}/conversations/${id}`);
   const blocked = useChatQuery<string[]>("/api/v1/me/blocked-users", undefined, useFeatureAccess("messaging.direct").allowed);
@@ -253,6 +254,7 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
   });
   const messages = mergeMessages(...(history.data?.pages.map((p) => p.items) ?? []));
   const latest = messages.at(-1);
+  const latestId = latest?.id;
   // Messages newer than the history first shown animate in; the initial history does not.
   const shownSince = useRef<string | null>(null);
   if (shownSince.current === null && !history.isPending) shownSince.current = latest?.createdAt ?? "";
@@ -260,9 +262,11 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
   const [reply, setReply] = useState<Message | null>(null);
   const [outgoing, setOutgoing] = useState<LocalOutgoing | null>(null);
   const [report, setReport] = useState<Message | null>(null);
+  const [deleting, setDeleting] = useState<Message | null>(null);
   const [nearBottom, setNearBottom] = useState(true);
   const scroll = useRef<HTMLDivElement>(null);
   const read = useRef("");
+  const pendingReads = useRef(0);
   useEffect(() => {
     if (outgoing) scroll.current?.scrollTo({ top: scroll.current.scrollHeight, behavior: "instant" });
   }, [outgoing]);
@@ -272,28 +276,48 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
   const peer = details.data?.type === "Direct" ? details.data.members.find((m) => m.userId !== account.userId) : undefined;
   const isBlocked = peer && blocked.data?.includes(peer.userId);
   const action = useChatAction();
+  const followBottom = useRef(true);
+  useLayoutEffect(() => {
+    const el = scroll.current;
+    if (!el) return;
+    const bottom = () => { if (followBottom.current) el.scrollTop = el.scrollHeight; };
+    bottom();
+    const observer = new ResizeObserver(bottom);
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
+    el.addEventListener("load", bottom, true);
+    return () => { observer.disconnect(); el.removeEventListener("load", bottom, true); };
+  }, [details.isSuccess, history.isSuccess, latest?.id]);
   useEffect(() => {
-    if (!latest || !nearBottom || details.data?.membershipState !== "Active") return;
-    scroll.current?.scrollTo({ top: scroll.current.scrollHeight, behavior: "instant" });
-    let disposed = false;
+    if (!latestId || !nearBottom || details.data?.membershipState !== "Active") return;
+    const messageId = latestId;
     const mark = () => {
-      if (document.visibilityState !== "visible" || read.current === latest.id) return;
-      read.current = latest.id;
-      void api({ method: "POST", path: `${root}/conversations/${id}/read`, json: { messageId: latest.id } })
+      if (document.visibilityState !== "visible" || read.current === messageId || !lifecycle.isCurrent()) return;
+      read.current = messageId;
+      // Cancel older summary responses before applying the local read marker.
+      void cache.cancelQueries({ queryKey: [accountKey, "messaging", `${root}/conversations`] });
+      void cache.cancelQueries({ queryKey: [accountKey, "messaging", `${root}/conversations/${id}`] });
+      pendingReads.current++;
+      const rollback = optimisticRead(cache, accountKey, id, account.userId, messageId);
+      void api({ method: "POST", path: `${root}/conversations/${id}/read`, json: { messageId }, signal: lifecycle.signal() })
         .then(() => {
-          if (!disposed) void cache.invalidateQueries({ queryKey: [accountKey, "messaging", `${root}/conversations`] });
+          rollback.commit();
+          if (lifecycle.isCurrent()) void cache.invalidateQueries({ queryKey: [accountKey, "notifications"] });
         })
         .catch(() => {
-          if (!disposed) read.current = "";
+          rollback();
+          if (!lifecycle.isCurrent()) return;
+          if (read.current === messageId) read.current = "";
+        }).finally(() => {
+          pendingReads.current--;
+          if (!lifecycle.isCurrent() || pendingReads.current) return;
+          void cache.invalidateQueries({ queryKey: [accountKey, "messaging", `${root}/conversations`] });
+          void cache.invalidateQueries({ queryKey: [accountKey, "messaging", `${root}/conversations/${id}`] });
         });
     };
     mark();
     document.addEventListener("visibilitychange", mark);
-    return () => {
-      disposed = true;
-      document.removeEventListener("visibilitychange", mark);
-    };
-  }, [latest, id, api, nearBottom, details.data?.membershipState, cache, accountKey]);
+    return () => { document.removeEventListener("visibilitychange", mark); };
+  }, [latestId, id, api, nearBottom, details.data?.membershipState, cache, accountKey, account.userId, lifecycle]);
 
   if (details.isPending)
     return (
@@ -314,6 +338,8 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
   const nameOf = (userId: string) => (userId === account.userId ? "You" : c.members.find((m) => m.userId === userId)?.displayName || "Member");
   const subtitle = c.type === "Direct" ? (peer?.username ? `@${peer.username}` : "") : `${c.members.filter((m) => m.state === "Active").length} members`;
   const typing = (realtime.typing[id] ?? []).length > 0;
+  const canSend = c.canSendMessages !== false && c.membershipState === "Active" && !isBlocked;
+  const pendingRequest = c.request?.state === "Pending" ? c.request : null;
 
   return (
     <section className={styles.thread} aria-label={c.title}>
@@ -345,7 +371,10 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
         ref={scroll}
         onScroll={() => {
           const el = scroll.current;
-          if (el) setNearBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 90);
+          if (el) {
+            followBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 90;
+            setNearBottom(followBottom.current);
+          }
         }}
         aria-label="Message history"
       >
@@ -360,6 +389,7 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
                 const el = scroll.current;
                 const height = el?.scrollHeight ?? 0;
                 const top = el?.scrollTop ?? 0;
+                followBottom.current = false;
                 setNearBottom(false);
                 void history.fetchNextPage().then(() =>
                   requestAnimationFrame(() => {
@@ -392,6 +422,19 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
               const newDay = !previous || !sameDay(new Date(previous.createdAt), new Date(message.createdAt));
               const firstOfRun = newDay || previous!.senderUserId !== message.senderUserId;
               const name = nameOf(message.senderUserId);
+              const images = message.attachments.filter(a => a.contentType.startsWith("image/"));
+              const hasImages = !message.deletedAt && images.length > 0;
+              const card = !message.deletedAt && !message.replyToMessageId && !message.attachments.length ? coachingCard(message.body, message.coachingEntry) : null;
+              const messageMenu = !message.deletedAt && (mine || (canSend) || (canReport && !mine)) ? <div className={styles.messageActions}>
+                          <DropdownMenuTrigger>
+                            <AriaButton className={styles.menuButton} aria-label="Message options"><MoreVertical aria-hidden="true" /></AriaButton>
+                            <DropdownMenu aria-label="Message actions" onAction={key => { if (key === "reply") setReply(message); if (key === "report") setReport(message); if (key === "delete") setDeleting(message); }}>
+                              {canSend ? <DropdownMenuItem id="reply">Reply</DropdownMenuItem> : null}
+                              {canReport && !mine ? <DropdownMenuItem id="report" tone="danger">Report</DropdownMenuItem> : null}
+                              {mine ? <DropdownMenuItem id="delete" tone="danger">Delete message</DropdownMenuItem> : null}
+                            </DropdownMenu>
+                          </DropdownMenuTrigger>
+                        </div> : null;
               return (
                 <Fragment key={message.id}>
                   {newDay ? (
@@ -417,23 +460,17 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
                     <div className={styles.messageBody}>
                       {!mine && firstOfRun && c.type !== "Direct" ? <span className={styles.sender}>{name}</span> : null}
                       <div className={styles.bubbleRow}>
-                        <div className={styles.bubble}>
+                        <div className={styles.messageContent}>
+                        {card ? <CoachingCard card={card} mine={mine} /> : message.deletedAt || message.body || message.replyToMessageId || message.attachments.some(a => !a.contentType.startsWith("image/")) ? <div className={styles.bubble}>
                           {!message.deletedAt && message.replyToMessageId ? <blockquote className={styles.reply}>{(messages.find((m) => m.id === message.replyToMessageId)?.deletedAt ? "This message was deleted" : messages.find((m) => m.id === message.replyToMessageId)?.body) || "Reply to an earlier message"}</blockquote> : null}
-                          {message.deletedAt ? <em>This message was deleted</em> : message.body}
-                          {!message.deletedAt && message.attachments.map((a) => (
-                            <Attachment key={a.mediaId} message={message.id} attachment={a} />
+                          {message.deletedAt ? <em className={styles.deletedMessage}>This message was deleted</em> : <MessageText body={message.body ?? ""} />}
+                          {!message.deletedAt && message.attachments.filter(a => !a.contentType.startsWith("image/")).map((a) => (
+                            <Attachment key={a.mediaId} message={message.id} attachment={a} mine={mine} />
                           ))}
-                        </div>
-                        {!message.deletedAt && (mine || (c.membershipState === "Active" && !isBlocked) || (canReport && !mine)) ? <div className={styles.messageActions}>
-                          <DropdownMenuTrigger>
-                            <AriaButton className={styles.menuButton} aria-label="Message options"><MoreVertical aria-hidden="true" /></AriaButton>
-                            <DropdownMenu aria-label="Message actions" onAction={key => { if (key === "reply") setReply(message); if (key === "report") setReport(message); if (key === "delete") action.mutate({ method: "DELETE", path: `${root}/messages/${message.id}` }); }}>
-                              {c.membershipState === "Active" && !isBlocked ? <DropdownMenuItem id="reply">Reply</DropdownMenuItem> : null}
-                              {canReport && !mine ? <DropdownMenuItem id="report" tone="danger">Report</DropdownMenuItem> : null}
-                              {mine ? <DropdownMenuItem id="delete" tone="danger">Delete message</DropdownMenuItem> : null}
-                            </DropdownMenu>
-                          </DropdownMenuTrigger>
                         </div> : null}
+                        {hasImages && images.map((a, imageIndex) => <div key={a.mediaId} className={styles.imageRow}><Attachment message={message.id} attachment={a} mine={mine} />{imageIndex === images.length - 1 ? messageMenu : null}</div>)}
+                        </div>
+                        {!hasImages && messageMenu}
                       </div>
                       {mine && message.id === statusMessageId ? <span className={styles.meta}>{messageWasRead(message, messages, peer?.lastReadMessageId) ? "Read" : "Sent"}</span> : null}
                     </div>
@@ -457,29 +494,65 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
           </span>
         ) : null}
       </div>
+      {pendingRequest ? <div className={styles.closed} role="status">
+        <p>{pendingRequest.recipientUserId === account.userId ? "Accept this conversation to reply." : "Message sent. Waiting for this person to accept."}</p>
+        {pendingRequest.recipientUserId === account.userId ? <div className={styles.actions}>
+          <Button size="sm" loading={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${pendingRequest.id}/accept` })}>Accept</Button>
+          <Button size="sm" isDisabled={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${pendingRequest.id}/decline` })}>Decline</Button>
+        </div> : null}
+      </div> : null}
       {c.membershipState !== "Active" || isBlocked ? (
         <p className={styles.closed}>{isBlocked ? "You blocked this person. Previous messages stay available." : "You no longer take part in this conversation. Your earlier history is available."}</p>
       ) : history.isSuccess ? (
         <Composer
           key={id}
           id={id}
+          recipient={peer?.username ?? undefined}
+          recipientId={peer?.userId}
+          disabled={!canSend}
+          uploadsDisabled={c.canUploadAttachments === false}
           reply={reply}
           replyName={reply ? nameOf(reply.senderUserId) : ""}
           clearReply={() => setReply(null)}
           onSending={setOutgoing}
-          onSent={() => setNearBottom(true)}
+          onSent={() => {
+            // A first-contact introduction consumes the one permitted send immediately.
+            if (c.canUploadAttachments === false) cache.setQueryData([accountKey, "messaging", `${root}/conversations/${id}`, undefined], { ...c, canSendMessages: false });
+            void details.refetch();
+            followBottom.current = true; setNearBottom(true); scroll.current?.scrollTo({ top: scroll.current.scrollHeight, behavior: "instant" });
+          }}
           typing={realtime.sendTyping}
         />
       ) : null}
+      <AlertDialog isOpen={Boolean(deleting)} isConfirming={action.isPending} onOpenChange={open => { if (!open && !action.isPending) setDeleting(null); }} title="Delete this message?" tone="danger" confirmLabel="Delete message" cancelLabel="Keep message" onConfirm={() => {
+        if (deleting) action.mutate({ method: "DELETE", path: `${root}/messages/${deleting.id}` }, {
+          onSuccess: () => { if (lifecycle.isCurrent()) { setDeleting(null); toast({ tone: "success", title: "Message deleted" }); } },
+          onError: error => { if (lifecycle.isCurrent()) showError(error, "Could not delete the message. Please retry."); },
+        });
+      }}>This message will be deleted for everyone in the conversation.</AlertDialog>
       {members ? <GroupMembers conversation={c} canManage={manage && (self?.role === "Owner" || self?.role === "Admin")} close={() => setMembers(false)} /> : null}
       {report ? <ReportDialog message={report} close={() => setReport(null)} /> : null}
     </section>
   );
 }
 
-function Attachment({ message, attachment }: { message: string; attachment: Schema<"AttachmentDto"> }) {
+const EXTENSION: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/gif": "gif",
+  "image/webp": "webp",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "audio/wav": "wav",
+  "application/pdf": "pdf",
+  "text/plain": "txt",
+  "application/zip": "zip",
+};
+
+function Attachment({ message, attachment, mine }: { message: string; attachment: Schema<"AttachmentDto">; mine: boolean }) {
   const api = useApi();
-  const [url, setUrl] = useState<string | null>(null);
+  const [file, setFile] = useState<{ url: string; blob: Blob } | null>(null);
+  const [zoom, setZoom] = useState(false);
   const resources = useRef<string[]>([]);
   const alive = useRef(true);
   useEffect(() => {
@@ -490,43 +563,87 @@ function Attachment({ message, attachment }: { message: string; attachment: Sche
       urls.forEach(URL.revokeObjectURL);
     };
   }, []);
-  const preview = /^(image\/(png|jpeg|gif|webp)|video\/(mp4|webm)|audio\/wav)$/.test(attachment.contentType);
+  const type = attachment.contentType;
+  const image = /^image\/(png|jpeg|gif|webp)$/.test(type);
+  const voice = type.startsWith("audio/");
+  const video = /^video\/(mp4|webm)$/.test(type);
+  const name = `attachment.${EXTENSION[type] ?? "bin"}`;
   const load = useMutation({
     mutationFn: async () => (await api<Blob>({ path: `${root}/messages/${message}/attachments/${attachment.mediaId}`, responseType: "blob" })).data,
     onSuccess: (blob) => {
       if (!alive.current) return;
-      if (preview) {
+      if (image || voice || video) {
         const objectUrl = URL.createObjectURL(blob);
         resources.current.push(objectUrl);
-        setUrl(objectUrl);
-      } else saveBlob(blob, `attachment.${attachment.contentType === "application/pdf" ? "pdf" : attachment.contentType === "text/plain" ? "txt" : "zip"}`);
+        setFile({ url: objectUrl, blob });
+      } else saveBlob(blob, name);
     },
   });
-  const voice = attachment.contentType.startsWith("audio/");
-  const fetchVoice = load.mutate;
-  useEffect(() => { if (voice) fetchVoice(); }, [voice, fetchVoice]);
-  const label = attachment.contentType.startsWith("image/")
-    ? "View image"
-    : attachment.contentType.startsWith("video/")
-      ? "Play video"
-      : attachment.contentType.startsWith("audio/")
-        ? "Play voice message"
-        : "Download file";
+  // Images and voice messages show in the conversation right away; other files wait for a click.
+  const fetchNow = load.mutate;
+  useEffect(() => {
+    if (image || voice) fetchNow();
+  }, [image, voice, fetchNow]);
+  const size = `${Math.max(1, Math.round(Number(attachment.size) / 1024))} KB`;
+
+  if (voice) {
+    return (
+      <div className={styles.attachment}>
+        <VoicePlayer src={file?.url ?? null} label="Voice message" seed={attachment.mediaId} durationMs={attachment.durationMs ? Number(attachment.durationMs) : null} tone={mine ? "mine" : "default"} />
+        {load.error ? <p className={styles.error}>Could not load the voice message.</p> : null}
+      </div>
+    );
+  }
+
+  if (image) {
+    return (
+      <div className={styles.attachment}>
+        {file ? (
+          <button type="button" className={styles.thumb} aria-label="Open image" onClick={() => setZoom(true)}>
+            <img src={file.url} alt="Shared image" />
+          </button>
+        ) : (
+          <span className={styles.thumbLoading} aria-busy={load.isPending || undefined}>
+            {load.error ? "Could not load the image." : <Spinner size="sm" label="Loading image" />}
+          </span>
+        )}
+        {file && zoom ? (
+          <ModalOverlay isOpen isDismissable onOpenChange={setZoom} className={styles.lightboxOverlay}>
+            <Modal className={styles.lightbox}>
+              <AriaDialog aria-label="Image preview" className={styles.lightboxDialog}>
+                <div className={styles.lightboxBar}>
+                  <span>{size}</span>
+                  <Button size="sm" iconStart={<Download />} onPress={() => saveBlob(file.blob, name)}>
+                    Download
+                  </Button>
+                  <IconButton label="Close preview" icon={<X />} variant="ghost" size="sm" onPress={() => setZoom(false)} />
+                </div>
+                <img src={file.url} alt="Shared image, enlarged" className={styles.lightboxImage} />
+              </AriaDialog>
+            </Modal>
+          </ModalOverlay>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div className={styles.attachment}>
-      {url ? (
-        attachment.contentType.startsWith("image/") ? (
-          <img src={url} alt="Shared attachment" />
-        ) : attachment.contentType.startsWith("video/") ? (
-          <video src={url} controls />
-        ) : (
-          <audio src={url} controls preload="metadata" aria-label="Voice message" />
-        )
+      {file && video ? (
+        <video src={file.url} controls />
       ) : (
-        <Button size="sm" iconStart={voice ? undefined : <Download size={13} />} loading={load.isPending} onPress={() => load.mutate()}>
-          {label} · {Math.max(1, Math.round(Number(attachment.size) / 1024))} KB
-          {attachment.durationMs ? ` · ${Math.ceil(Number(attachment.durationMs) / 1000)}s` : ""}
-        </Button>
+        <button type="button" className={styles.fileChip} disabled={load.isPending} onClick={() => load.mutate()}>
+          <span className={styles.fileIcon} aria-hidden="true">
+            {video ? <Film /> : <FileText />}
+          </span>
+          <span className={styles.fileText}>
+            <span>{video ? "Play video" : "Download file"}</span>
+            <small>
+              {(EXTENSION[type] ?? "file").toUpperCase()} · {size}
+            </small>
+          </span>
+          {load.isPending ? <Spinner size="sm" label="Loading" /> : <Download aria-hidden="true" />}
+        </button>
       )}
       {load.error ? <p className={styles.error}>Could not download. Try again.</p> : null}
     </div>
@@ -534,6 +651,10 @@ function Attachment({ message, attachment }: { message: string; attachment: Sche
 }
 
 function Composer({
+  recipient,
+  recipientId,
+  disabled = false,
+  uploadsDisabled = false,
   id,
   reply,
   replyName,
@@ -543,6 +664,10 @@ function Composer({
   typing,
 }: {
   id: string;
+  recipient?: string;
+  recipientId?: string;
+  disabled?: boolean;
+  uploadsDisabled?: boolean;
   reply: Message | null;
   replyName: string;
   clearReply: () => void;
@@ -560,6 +685,10 @@ function Composer({
   const [busy, setBusy] = useState(false);
   const [recording, setRecording] = useState(false);
   const voiceFile = files.length === 1 && files[0]?.type === "audio/wav" ? files[0] : null;
+  // The recorder unmounts as soon as its file is ready, before it can report that it stopped.
+  useEffect(() => {
+    if (voiceFile) setRecording(false);
+  }, [voiceFile]);
   const input = useRef<HTMLInputElement>(null);
   const text = useRef<HTMLTextAreaElement>(null);
   const controller = useRef(new AbortController());
@@ -595,7 +724,7 @@ function Composer({
     }
   }
   async function send() {
-    if (busy || recording || (!body.trim() && !files.length)) return;
+    if (disabled || busy || recording || (!body.trim() && !files.length)) return;
     setBusy(true);
     const preview = body.trim() || files.map(file => file.name).join(", ");
     onSending({ body: preview, status: "Sending…" });
@@ -609,13 +738,13 @@ function Composer({
         if (!ready.current.has(file)) {
           let ticket = tickets.current.get(file);
           if (!ticket) {
-            ticket = (await api<Schema<"UploadTicket">>({ method: "POST", path: `${root}/uploads/`, json: { name: file.name, contentType: file.type, size: file.size }, signal })).data;
+            ticket = (await api<Schema<"UploadTicket">>({ method: "POST", path: `${root}/uploads/`, query: { conversationId: id }, json: { name: file.name, contentType: file.type, size: file.size }, signal })).data;
             tickets.current.set(file, ticket);
           }
           // Keep tickets and successful media IDs across retries; send uses the same message key.
           const upload = await fetch(ticket.uploadUrl, { method: ticket.method, headers: { "Content-Type": file.type }, body: file, signal, credentials: "omit" });
           if (!upload.ok && upload.status !== 409 && upload.status !== 400) throw new Error("The upload failed. Retry to continue.");
-          const finalized = (await api<Schema<"MediaDto">>({ method: "POST", path: `${root}/uploads/${ticket.file.id}/finalize`, signal })).data;
+          const finalized = (await api<Schema<"MediaDto">>({ method: "POST", path: `${root}/uploads/${ticket.file.id}/finalize`, query: { conversationId: id }, signal })).data;
           ready.current.set(file, finalized.id);
         }
         mediaIds.push(ready.current.get(file)!);
@@ -680,7 +809,7 @@ function Composer({
             <IconButton label="Cancel reply" icon={<X />} variant="ghost" size="sm" onPress={clearReply} />
           </div>
         ) : null}
-        {voiceFile ? <VoicePreview file={voiceFile} disabled={busy} cancel={() => setFiles([])} /> : files.length ? (
+        {!voiceFile && files.length ? (
           <ul className={styles.files}>
             {files.map((f, i) => (
               <li key={`${f.name}-${i}`}>
@@ -694,44 +823,54 @@ function Composer({
           </ul>
         ) : null}
         <div className={styles.composerRow}>
-          {attachments ? (
+          {voiceFile ? (
+            <VoicePreview file={voiceFile} disabled={busy} cancel={() => setFiles([])} />
+          ) : (
             <>
-              <input
-                ref={input}
-                type="file"
-                hidden
-                multiple
-                accept="image/png,image/jpeg,image/gif,image/webp,application/pdf,text/plain,application/zip,video/mp4,video/webm,audio/wav"
-                onChange={(e) => {
-                  addFiles(Array.from(e.target.files ?? []));
-                  e.target.value = "";
-                }}
-              />
-              <IconButton label="Attach files" icon={<Plus />} variant="ghost" size="sm" isDisabled={busy || recording || Boolean(voiceFile)} onPress={() => input.current?.click()} />
-              {voice ? <VoiceRecorder disabled={busy || Boolean(voiceFile)} onBusyChange={setRecording} onFile={(file) => addFiles([file])} /> : null}
+              {recipient && !recording ? <CoachingActions conversationId={id} username={recipient} recipientId={recipientId!} disabled={disabled || busy} onSent={onSent} /> : null}
+              {attachments && !recording ? (
+                <>
+                  <input
+                    ref={input}
+                    type="file"
+                    hidden
+                    multiple
+                    accept="image/png,image/jpeg,image/gif,image/webp,application/pdf,text/plain,application/zip,video/mp4,video/webm,audio/wav"
+                    onChange={(e) => {
+                      addFiles(Array.from(e.target.files ?? []));
+                      e.target.value = "";
+                    }}
+                  />
+                  <IconButton label="Attach files" icon={<Plus />} variant="ghost" size="sm" isDisabled={disabled || uploadsDisabled || busy} onPress={() => input.current?.click()} />
+                </>
+              ) : null}
+              {/* While recording, the recorder takes the place of the text field. */}
+              {attachments && voice ? <VoiceRecorder disabled={disabled || uploadsDisabled || busy} onBusyChange={setRecording} onFile={(file) => addFiles([file])} /> : null}
+              {!recording ? (
+                <textarea
+                  ref={text}
+                  rows={1}
+                  aria-label="Message"
+                  placeholder="Send message…"
+                  value={body}
+                  maxLength={8000}
+                  disabled={disabled || busy}
+                  onChange={(e) => {
+                    setBody(e.target.value);
+                    onSending(null);
+                    typing(id, Boolean(e.target.value));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                      e.preventDefault();
+                      void send();
+                    }
+                  }}
+                />
+              ) : null}
             </>
-          ) : null}
-          <textarea
-            ref={text}
-            rows={1}
-            aria-label="Message"
-            placeholder="Send message…"
-            value={body}
-            maxLength={8000}
-            disabled={busy || recording || Boolean(voiceFile)}
-            onChange={(e) => {
-              setBody(e.target.value);
-              onSending(null);
-              typing(id, Boolean(e.target.value));
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault();
-                void send();
-              }
-            }}
-          />
-          <button type="submit" className={styles.send} aria-label="Send" disabled={busy || recording || (!body.trim() && files.length === 0)}>
+          )}
+          <button type="submit" className={styles.send} aria-label="Send" disabled={disabled || busy || recording || (!body.trim() && files.length === 0)}>
             {busy ? <Spinner size="sm" label="Sending" /> : <SendHorizontal aria-hidden="true" />}
           </button>
         </div>

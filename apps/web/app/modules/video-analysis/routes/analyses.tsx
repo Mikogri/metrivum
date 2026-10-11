@@ -12,6 +12,7 @@ import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { useDebounced } from "~/shared/lib/useDebounced";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
+import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { deleteMedia } from "../api";
 import { StatusBadge } from "../components/StatusBadge";
@@ -24,9 +25,9 @@ const PAGE_SIZE = 20;
 
 export const meta = () => privateMeta("Video analyses — TrainFlow");
 
-const DEFAULTS = { tab: "analyses", q: "", status: "", tag: "", sort: "newest", page: "1" };
+const DEFAULTS = { tab: "analyses", q: "", status: "", tag: "", sort: "newest", page: "1", view: "list", vq: "", vstate: "", vsort: "newest" };
 
-function Videos() {
+function Videos({ view, search, state, sort }: { view: "list" | "cards"; search: string; state: string; sort: string }) {
   const m = useT();
   const t = m.video.list;
   const locale = useLocale();
@@ -37,7 +38,9 @@ function Videos() {
   const access = useFeatures(["video.library.manage"] as const);
   const [page, setPage] = useState(1);
   const pageSize = PAGE_SIZE;
-  const list = useMediaList({ sort: "newest", page, pageSize });
+  const filtered = Boolean(search || state);
+  useEffect(() => setPage(1), [search, state, sort]);
+  const list = useMediaList({ search: search || undefined, state: state || undefined, sort, page, pageSize });
   const [target, setTarget] = useState<MediaDto | null>(null);
   const remove = useMutation({
     mutationFn: (media: MediaDto) => deleteMedia(api, media.id, media.version),
@@ -53,6 +56,7 @@ function Videos() {
   });
   if (list.isPending) return <LoadingState label={m.common.loading} />;
   if (list.isError) return <ErrorState title={errorText(m, list.error)} actions={<Button onPress={() => void list.refetch()}>{m.common.retry}</Button>} />;
+  if (!list.data.length && filtered) return <EmptyState icon={<SearchX />} title={t.noVideosMatch} description={t.noVideosMatchBody} />;
   if (!list.data.length)
     return (
       <EmptyState
@@ -70,7 +74,28 @@ function Videos() {
     );
   return (
     <>
-      <DataTable
+      {view === "cards" ? (
+        <ul className={styles.cards} aria-label={t.videos} data-stale={list.isPlaceholderData || undefined}>
+          {list.data.map((media) => (
+            <li key={media.id} className={styles.card}>
+              <div className={styles.cardTop}>
+                <span className={styles.tableIcon} data-tone="blue" aria-hidden="true"><Film /></span>
+                <IconButton label={t.deleteVideo} icon={<Trash2 />} variant="danger" size="sm"
+                  isDisabled={!access["video.library.manage"].allowed || media.state === "Deleting" || media.pinned}
+                  onPress={() => setTarget(media)} />
+              </div>
+              <h3 className={styles.cardTitle}>{media.name}</h3>
+              <p className={styles.cardDescription}>{media.contentType} · {formatBytes(locale, media.size)}</p>
+              <div className={styles.cardMeta}>
+                <Badge size="sm" tone={media.state === "Ready" ? "success" : media.state === "Deleting" ? "warning" : "neutral"} dot>
+                  {m.video.mediaStates[media.state] ?? media.state}
+                </Badge>
+                <span>{formatRelative(locale, media.createdAt)}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : <DataTable
         label={t.videos}
         rows={list.data}
         rowKey={(media) => media.id}
@@ -117,7 +142,7 @@ function Videos() {
             ),
           },
         ]}
-      />
+      />}
       <Pagination
         page={page}
         pageCount={null}
@@ -149,11 +174,14 @@ export default function AnalysesRoute() {
   const t = m.video.list;
   const locale = useLocale();
   const [state, update] = useUrlState(DEFAULTS);
+  const view = state.view === "cards" ? "cards" : "list";
   const pageSize = PAGE_SIZE;
   const [search, setSearch] = useState(state.q);
   const [tag, setTag] = useState(state.tag);
   const debounced = useDebounced(search, 300);
   const debouncedTag = useDebounced(tag, 400);
+  const [videoSearch, setVideoSearch] = useState(state.vq);
+  const debouncedVideoSearch = useDebounced(videoSearch, 300);
   const page = pageFromParam(state.page);
   const access = useFeatures(["video.library.manage", "video.analysis.run", "video.analysis.compare"] as const);
   useEffect(() => {
@@ -164,6 +192,10 @@ export default function AnalysesRoute() {
     if (debouncedTag !== state.tag) update({ tag: debouncedTag });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedTag]);
+  useEffect(() => {
+    if (debouncedVideoSearch !== state.vq) update({ vq: debouncedVideoSearch });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedVideoSearch]);
 
   const list = useAnalysisList({ search: state.q || undefined, status: state.status || undefined, tag: state.tag || undefined, sort: state.sort, page, pageSize }, state.tab === "analyses");
   const filtersActive = Boolean(state.q || state.status || state.tag);
@@ -215,6 +247,7 @@ export default function AnalysesRoute() {
                 </Option>
               ))}
             </Select>
+            <LibraryViewToggle value={view} onChange={(next) => update({ view: next, page: state.page })} />
           </Toolbar>
           {list.isPending ? (
             <LoadingState label={m.common.loading} />
@@ -239,7 +272,21 @@ export default function AnalysesRoute() {
             )
           ) : (
             <>
-              <DataTable
+              {view === "cards" ? (
+                <ul className={styles.cards} aria-label={t.analyses} data-stale={list.isPlaceholderData || undefined}>
+                  {list.data.map((analysis) => (
+                    <li key={analysis.id} className={styles.card}>
+                      <div className={styles.cardTop}>
+                        <span className={styles.tableIcon} data-tone="rose" aria-hidden="true"><Video /></span>
+                        <StatusBadge status={analysis.status} size="sm" />
+                      </div>
+                      <RouterLink className={styles.cardTitle} to={`/app/video-analyses/${analysis.id}`}>{analysis.name}</RouterLink>
+                      {analysis.tags.length || analysis.note ? <p className={styles.cardDescription}>{analysis.tags.length ? analysis.tags.join(", ") : analysis.note}</p> : null}
+                      <span className={styles.cardMeta}>{formatRelative(locale, analysis.createdAt)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <DataTable
                 label={t.title}
                 stale={list.isPlaceholderData}
                 rows={list.data}
@@ -263,7 +310,7 @@ export default function AnalysesRoute() {
                   { id: "status", header: m.common.col.status, width: "9rem", cell: (analysis) => <StatusBadge status={analysis.status} size="sm" /> },
                   { id: "created", header: m.common.col.created, width: "9rem", muted: true, hideOnMobile: true, cell: (analysis) => formatRelative(locale, analysis.createdAt) },
                 ]}
-              />
+              />}
               <Pagination
                 page={page}
                 pageCount={null}
@@ -276,7 +323,25 @@ export default function AnalysesRoute() {
           )}
         </TabPanel>
         <TabPanel id="videos">
-          <Videos />
+          <Toolbar aria-label={t.videos} className={styles.toolbar}>
+            <SearchInput aria-label={t.searchVideos} placeholder={m.common.search} value={videoSearch} onChange={setVideoSearch} className={styles.search} />
+            <Select aria-label={t.status} selectedKey={state.vstate || "__any"} onSelectionChange={(key) => update({ vstate: key === "__any" ? null : String(key) })} className={styles.filter}>
+              {[["__any", t.anyState], ...Object.entries(m.video.mediaStates)].map(([key, label]) => (
+                <Option key={key} id={key}>
+                  {label}
+                </Option>
+              ))}
+            </Select>
+            <Select aria-label={m.common.sortBy} selectedKey={state.vsort} onSelectionChange={(key) => update({ vsort: String(key) })} className={styles.filter}>
+              {Object.entries(t.sort).map(([key, label]) => (
+                <Option key={key} id={key}>
+                  {label}
+                </Option>
+              ))}
+            </Select>
+            <LibraryViewToggle value={view} onChange={(next) => update({ view: next, page: state.page })} />
+          </Toolbar>
+          <Videos view={view} search={debouncedVideoSearch} state={state.vstate} sort={state.vsort} />
         </TabPanel>
       </Tabs>
     </>

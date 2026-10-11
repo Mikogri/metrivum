@@ -1,10 +1,15 @@
+/* Label, control and hint are separate lines with their own rhythm: the label reads as a title for the
+   control, the hint as quieter secondary text, so neither sticks to the input. */
 .field {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--tf-space-2);
   min-width: 0;
 }
 
+/* The hint reads with its label, above the control, so it never runs into the next field's label.
+   Errors stay below the control they refer to. */
 .labelRow {
+  order: -2;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -12,9 +17,10 @@
 }
 
 .label {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
   font-weight: var(--tf-weight-medium);
+  line-height: var(--tf-leading-snug);
 }
 
 .required {
@@ -23,13 +29,16 @@
 }
 
 .description {
+  order: -1;
+  margin-top: calc(var(--tf-space-1) * -1);
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-snug);
+  line-height: var(--tf-leading-normal);
 }
 
 .error {
   display: flex;
+  line-height: var(--tf-leading-normal);
   align-items: flex-start;
   gap: var(--tf-space-1);
   color: var(--tf-color-danger);

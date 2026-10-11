@@ -41,3 +41,56 @@ export function useDiscardConfirm() {
 
   return { confirm, dialog };
 }
+
+export interface DangerConfirmOptions {
+  title: string;
+  body?: React.ReactNode;
+  confirmLabel: string;
+  cancelLabel?: string;
+}
+
+/**
+ * Promise-based confirmation for destructive actions (decline, revoke, end, cancel, archive…).
+ * `await ask({...})` resolves true when confirmed. Render `dialog` once in the tree.
+ */
+export function useDangerConfirm() {
+  const [options, setOptions] = useState<DangerConfirmOptions | null>(null);
+  const resolver = useRef<((value: boolean) => void) | null>(null);
+  // Keeps the copy on screen while the dialog plays its exit animation.
+  const shown = useRef<DangerConfirmOptions | null>(null);
+  if (options) shown.current = options;
+  const view = shown.current;
+
+  const ask = useCallback(
+    (next: DangerConfirmOptions) =>
+      new Promise<boolean>((resolve) => {
+        resolver.current = resolve;
+        setOptions(next);
+      }),
+    [],
+  );
+
+  const settle = (value: boolean) => {
+    resolver.current?.(value);
+    resolver.current = null;
+    setOptions(null);
+  };
+
+  const dialog = (
+    <AlertDialog
+      isOpen={options !== null}
+      onOpenChange={(next) => {
+        if (!next) settle(false);
+      }}
+      title={view?.title ?? ""}
+      tone="danger"
+      confirmLabel={view?.confirmLabel ?? "Confirm"}
+      cancelLabel={view?.cancelLabel ?? "Cancel"}
+      onConfirm={() => settle(true)}
+    >
+      {typeof view?.body === "string" ? <p>{view.body}</p> : view?.body}
+    </AlertDialog>
+  );
+
+  return { ask, dialog };
+}

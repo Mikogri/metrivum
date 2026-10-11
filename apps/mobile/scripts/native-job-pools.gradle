@@ -1,0 +1,15 @@
+// Applied by build-android.ps1, including after Expo regenerates android/.
+gradle.beforeProject { project ->
+    def configurePools = {
+        project.extensions.getByName('androidComponents').finalizeDsl { android ->
+            android.defaultConfig.externalNativeBuild.cmake.arguments.addAll([
+                '-DCMAKE_JOB_POOLS=trainflow_native=2',
+                '-DCMAKE_JOB_POOL_COMPILE=trainflow_native',
+                '-DCMAKE_JOB_POOL_LINK=trainflow_native'
+            ])
+            project.logger.info("TrainFlow native pool configured: ${project.path} (compile/link maximum 2)")
+        }
+    }
+    project.plugins.withId('com.android.application') { configurePools() }
+    project.plugins.withId('com.android.library') { configurePools() }
+}

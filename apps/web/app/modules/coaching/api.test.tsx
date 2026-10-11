@@ -1,0 +1,21 @@
+import type { ReactNode } from "react";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { expect, it, vi } from "vitest";
+import { useCoachingMutation } from "./api";
+vi.mock("~/shared/session/AccountScope", () => ({ useAccountKey: () => "account", useApi: () => async () => ({ data: { version: 2 } }) }));
+vi.mock("~/shared/session/WorkspaceScope", () => ({ useWorkspace: () => ({ mode: "coach" }) }));
+it("reports every successful write before a deferred refetch completes", async () => {
+  const cache = new QueryClient();
+  let complete!: () => void;
+  const invalidate = vi.spyOn(cache, "invalidateQueries").mockImplementation(() => new Promise<void>(resolve => { complete = resolve; }));
+  const success = vi.fn();
+  const { result } = renderHook(() => useCoachingMutation(success), { wrapper: ({ children }: { children: ReactNode }) => <QueryClientProvider client={cache}>{children}</QueryClientProvider> });
+  await act(async () => { await result.current.mutateAsync({ method: "POST", path: "/publish" }); });
+  expect(success).toHaveBeenCalledWith({ version: 2 });
+  expect(invalidate).toHaveBeenCalledWith({ queryKey: ["account", "coaching"] });
+  await waitFor(() => expect(result.current.isPending).toBe(false));
+  await act(async () => { await result.current.mutateAsync({ method: "POST", path: "/publish" }); });
+  expect(success).toHaveBeenCalledTimes(2);
+  complete();
+});

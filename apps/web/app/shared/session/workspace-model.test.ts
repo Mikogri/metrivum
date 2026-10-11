@@ -12,6 +12,8 @@ describe("workspace boundaries", () => {
     expect(routeWorkspace("/app/check-ins")).toBe("coach");
     expect(routeWorkspace("/app/my-check-ins")).toBe("client");
     expect(routeWorkspace("/app/programs/123/edit")).toBe("coach");
+    expect(routeWorkspace("/app/training-plans")).toBe("client");
+    expect(routeWorkspace("/app/training-plans/123/edit")).toBe("client");
     expect(routeWorkspace("/app/calendar")).toBe(null);
     expect(routeWorkspace("/app/subscription")).toBe(null);
     expect(routeWorkspace("/app/team")).toBe(null);

@@ -32,6 +32,7 @@ import { useExerciseNames } from "~/modules/exercises";
 import { SheetCanvas, usePersistentSheet } from "../editor/components/SheetCanvas";
 import { WeekView } from "../editor/components/WeekView";
 import { isSimpleShape } from "../editor/model/structure";
+import { storedMode, storeMode, type EditorMode } from "../editor/mode-preference";
 import { documentStats, uniqueExerciseIds } from "../editor/model/document";
 import { ExportDialog } from "../import-export/ExportDialog";
 import { CopyPlanDialog } from "../library/dialogs";
@@ -57,7 +58,11 @@ function ProgramDetail() {
   const [exportOpen, setExportOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
   const [sheet, setSheet] = usePersistentSheet(programId);
-  const [previewMode, setPreviewMode] = useState<"simple" | "advanced" | null>(null);
+  const [previewMode, setPreviewModeState] = useState<EditorMode | null>(storedMode);
+  const setPreviewMode = (next: EditorMode) => {
+    setPreviewModeState(next);
+    storeMode(next);
+  };
   const names = useExerciseNames(query.data ? uniqueExerciseIds(query.data.data.document) : []);
 
   const archive = useMutation({
@@ -150,22 +155,17 @@ function ProgramDetail() {
           <Badge size="sm">{m.common.version(version)}</Badge>
         </div>
         <dl className={styles.stats}>
-          <div>
-            <dt>{t.structure}</dt>
-            <dd>{t.blocks(stats.blocks)}</dd>
-          </div>
-          <div>
-            <dt>&nbsp;</dt>
-            <dd>{t.cycles(stats.cycles)}</dd>
-          </div>
-          <div>
-            <dt>&nbsp;</dt>
-            <dd>{t.days(stats.days)}</dd>
-          </div>
-          <div>
-            <dt>&nbsp;</dt>
-            <dd>{t.exercises(stats.exercises)}</dd>
-          </div>
+          {[stats.blocks, stats.cycles, stats.days, stats.exercises].map((n, i) => {
+            // Plural form as a column label ("Blocks", "Training days"), the count above it.
+            const word = [t.blocks, t.cycles, t.days, t.exercises][i]!(2).replace(/^\s*\d+\s*/, "");
+            const text = word.charAt(0).toUpperCase() + word.slice(1);
+            return (
+              <div key={i}>
+                <dd>{n}</dd>
+                <dt>{text}</dt>
+              </div>
+            );
+          })}
         </dl>
         <Button iconStart={<Rocket />} isDisabled={!canManage || plan.archived} onPress={() => setPublishOpen(true)}>
           {t.publish}

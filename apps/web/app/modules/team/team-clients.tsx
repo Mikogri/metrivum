@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import type { Schema } from "@trainflow/api-client-web";
 import { ArrowRightLeft, UserPlus } from "lucide-react";
 import { AlertDialog, Badge, Button, Card, DataTable, EmptyState, LinkButton, Option, Select } from "@trainflow/ui-web";
@@ -14,6 +15,7 @@ export function TransferRequests() {
   const client = useProfile().roles.includes("Client");
   const requests = useCoachingQuery<Transfer[]>("/api/v1/me/team-client-transfer-requests", undefined, client);
   const [selected, setSelected] = useState<Transfer | null>(null);
+  const { ask, dialog: confirmDialog } = useDangerConfirm();
   const mutation = useCoachingMutation();
   if (!client) return null;
   if (requests.isPending) return <Loading />;
@@ -22,6 +24,7 @@ export function TransferRequests() {
   return <section aria-labelledby="transfer-requests" className={styles.invites}>
     <div><h2 id="transfer-requests" className={styles.sectionTitle}>Client transfer requests</h2><p className={styles.muted}>A Team transfer changes who owns your coaching case. Review the exact consent before deciding.</p></div>
     <MutationError error={mutation.error} />
+    {confirmDialog}
     {requests.data.map((request) => <Card key={request.id} padding="md" className={styles.stack}>
       <div className={styles.invite}>
         <span className={styles.inviteIcon} aria-hidden="true"><ArrowRightLeft /></span>
@@ -30,7 +33,7 @@ export function TransferRequests() {
       </div>
       <p className={styles.note}>{request.consentText}</p>
       <div className={styles.rowActions}>
-        {request.allowedActions.includes("decline") && <Button variant="ghost" isDisabled={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/me/team-client-transfer-requests/${request.id}/decline`, json: { version: request.version } })}>Decline transfer</Button>}
+        {request.allowedActions.includes("decline") && <Button variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await ask({ title: "Decline this transfer?", body: "Your coaching stays private with your current coach.", confirmLabel: "Decline transfer", cancelLabel: "Keep request" })) mutation.mutate({ method: "POST", path: `/api/v1/me/team-client-transfer-requests/${request.id}/decline`, json: { version: request.version } }); }}>Decline transfer</Button>}
         {request.allowedActions.includes("accept") && <Button variant="primary" isDisabled={mutation.isPending} onPress={() => setSelected(request)}>Review and accept transfer</Button>}
       </div>
     </Card>)}
@@ -81,7 +84,7 @@ function AssignCoach({ client, members }: { client: TeamClientCase; members: Mem
       <Select aria-label={`Assign coach to ${client.clientName}`} placeholder="Select coach" size="sm" selectedKey={coachId || null} onSelectionChange={(key) => setCoach(key ? String(key) : "")} className={styles.roleSelect}>{members.filter((member) => member.userId !== client.clientId && !client.assignedCoachIds.includes(member.userId)).map((member) => <Option key={member.userId} id={member.userId}>{member.displayName || member.username}</Option>)}</Select>
       <Button type="submit" size="sm" iconStart={<UserPlus />} isDisabled={!coachId || mutation.isPending}>Assign coach</Button>
     </form>
-    {client.assignedCoachIds.map((id) => <Button key={id} size="sm" variant="ghost" isDisabled={mutation.isPending} onPress={() => setRemove(id)}>Unassign {members.find((member) => member.userId === id)?.displayName || "coach"}</Button>)}
+    {client.assignedCoachIds.map((id) => <Button key={id} size="sm" variant="danger-ghost" isDisabled={mutation.isPending} onPress={() => setRemove(id)}>Unassign {members.find((member) => member.userId === id)?.displayName || "coach"}</Button>)}
     <MutationError error={mutation.error} />
     <AlertDialog isOpen={!!remove} onOpenChange={(open) => { if (!open) setRemove(null); }} title="End this coach assignment?" tone="danger" confirmLabel="Unassign coach" cancelLabel="Keep assignment" isConfirming={mutation.isPending} onConfirm={() => { if (remove) mutation.mutate({ method: "DELETE", path: `/api/v1/teams/${client.teamId}/clients/${client.id}/assignments/${remove}`, json: { version: client.version } }, { onSuccess: () => setRemove(null) }); }}><p>The coach will lose access to this Team case. The client remains with the organization. Assign another authorized coach if needed; private data remains unchanged.</p><MutationError error={mutation.error} /></AlertDialog>
   </div>;

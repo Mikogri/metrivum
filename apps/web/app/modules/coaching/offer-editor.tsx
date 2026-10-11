@@ -1,13 +1,17 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Button, DialogFooter, LinkButton, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, toast } from "@trainflow/ui-web";
+import { Archive, Building2, Check, Copy, ExternalLink, Eye, Globe, MapPin, PauseCircle, PlayCircle, Shuffle, Upload, UserRound } from "lucide-react";
+import { Alert, Button, Card, DialogFooter, IconButton, LinkButton, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, toast } from "@trainflow/ui-web";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useCoachingMutation, useCoachingQuery, type Page } from "./api";
+import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { DraftNavigationGuard, Failure, MutationError, StatusBadge } from "./components";
-import { BillingOptionsEditor, newOption, type BillingOption } from "./pricing";
+import { BillingOptionsEditor, newOption, priceDescription, type BillingOption } from "./pricing";
+import { validateOffer } from "./offer-validation";
 import styles from "./coaching.module.css";
+import page from "./offer-page.module.css";
 
 type Offer = Schema<"OfferDto">;
 
@@ -15,13 +19,15 @@ type Offer = Schema<"OfferDto">;
  * Offer form. On its page (an existing offer) it lays the sections out in two columns with publishing
  * actions; in the side panel (a new offer) it stacks them and ends with Cancel / Create draft.
  */
-export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { initial?: Offer; ownership?: { id: string; name: string }; onDirtyChange?: (dirty: boolean) => void; panel?: { close: () => void } }) {
+export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { initial?: Offer; ownership?: { id: string; name: string }; onDirtyChange?: (dirty: boolean) => void; panel?: { close: () => void; created?: (offer: Offer) => void } }) {
   const navigate = useNavigate();
+  const operation = useRef("save");
   const [current, setCurrent] = useState(initial);
   const teamId = current?.teamId ?? ownership?.id ?? null;
   const teamName = current?.teamName ?? ownership?.name;
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [purpose, setPurpose] = useState<"CoachingService" | "TrainingPlan">(initial?.purpose ?? "CoachingService");
   const [category, setCategory] = useState(initial?.category ?? "");
   const [coachingMode, setMode] = useState(initial?.coachingMode ?? "Online");
   const [formId, setFormId] = useState(initial?.applicationFormVersionId ?? "");
@@ -33,16 +39,18 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
     onDirtyChange?.(value);
   };
   const forms = useCoachingQuery<Page<Schema<"FormTemplateDto">>>("/api/v1/forms", { purpose: "Application", pageSize: 100 });
-  const categories = useCoachingQuery<Schema<"OfferCategory">[]>("/api/v1/offers/categories");
+  const categories = useCoachingQuery<Schema<"OfferCategoryDto">[]>("/api/v1/offers/categories");
   const currency = useCoachingQuery<Schema<"AccountProfileFields">>("/api/v1/me/profile-fields");
   const mutation = useCoachingMutation<Offer>((o) => {
+    toast({ tone: "success", title: operation.current === "publish" ? "Offer published" : operation.current === "archive" ? "Offer archived" : operation.current === "activate" ? "Offer activated" : operation.current === "deactivate" ? "Offer deactivated" : current ? "Offer draft saved" : "Offer saved as a draft" });
     flushSync(() => {
       setCurrent(o);
       setDirty(false);
     });
+    // A new offer made in the side panel closes it and stays on the list; elsewhere it opens the offer.
     if (!current) {
-      toast({ tone: "success", title: "Offer saved as a draft", description: "Publish it when the terms are ready." });
-      navigate(`/app/offers/${o.id}`, { replace: !panel });
+      if (panel?.created) panel.created(o);
+      else navigate(`/app/offers/${o.id}`, { replace: !panel });
     }
   });
   useUnsavedWorkGuard(useCallback(() => dirty, [dirty]));
@@ -50,7 +58,8 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
   const selectedForm = formId || (published.length === 1 ? published[0]!.currentPublishedVersionId! : "");
   const selectedCategory = category || (categories.data?.length === 1 ? categories.data[0]!.key! : "");
   const locked = mutation.isPending || current?.status === "Archived";
-  const action = (operation: string) => current && mutation.mutate({ method: "POST", path: `/api/v1/offers/${current.id}/${operation}`, ifMatch: current.version });
+  const { ask, dialog: confirmDialog } = useDangerConfirm();
+  const action = async (action: string) => { if (action === "archive" && !(await ask({ title: "Archive this offer?", body: "It disappears from your public offers and can no longer receive applications. Existing clients keep their accepted terms.", confirmLabel: "Archive offer", cancelLabel: "Keep offer" }))) return; operation.current = action; if (current) mutation.mutate({ method: "POST", path: `/api/v1/offers/${current.id}/${action}`, ifMatch: current.version }); };
   const formChoices = [...(formId && !published.some((f) => f.currentPublishedVersionId === formId) ? [{ id: formId, name: "Current linked form version" }] : []), ...published.map((f) => ({ id: f.currentPublishedVersionId!, name: f.name }))];
   const edit =
     <T,>(set: (value: T) => void) =>
@@ -66,9 +75,10 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
       hint: "How the offer appears to people who apply.",
       body: (
         <>
-          <Alert title={teamId ? `Team-owned offer · ${teamName ?? "Team"}` : "Personal offer"}>{teamId ? "New coaching cases and settled revenue from this offer belong to the organization. Applicants must explicitly accept Team ownership. Personal history stays private." : "New clients and payments from this offer belong to your private coaching practice."} Ownership cannot be changed after creation.</Alert>
+          {panel ? <Alert title={teamId ? `Team-owned offer · ${teamName ?? "Team"}` : "Personal offer"}>{teamId ? "New coaching cases and settled revenue from this offer belong to the organization. Applicants must explicitly accept Team ownership. Personal history stays private." : "New clients and payments from this offer belong to your private coaching practice."} Ownership cannot be changed after creation.</Alert> : null}
+          <Select label="Offer type" selectedKey={purpose} isDisabled={locked} onSelectionChange={key => { const next = key as typeof purpose; edit(setPurpose)(next); setOptions([newOption(next === "TrainingPlan" ? "OneTime" : "PerSession")]); }}><Option id="CoachingService">Coaching service</Option><Option id="TrainingPlan">Training plan</Option></Select>
           <TextField label="Offer name" placeholder="e.g. 12-week online coaching" isRequired maxLength={200} value={name} isDisabled={locked} onChange={edit(setName)} />
-          <TextArea label="Description" placeholder="What clients get, how often you check in, who it's for" value={description} isDisabled={locked} onChange={edit(setDescription)} />
+          <TextArea maxLength={4000} label="Description" placeholder="What clients get, how often you check in, who it's for" value={description} isDisabled={locked} onChange={edit(setDescription)} />
           <div className={styles.columns}>
             <Select label="Category" placeholder="Choose a category" isRequired isDisabled={locked} selectedKey={selectedCategory || null} onSelectionChange={(key) => edit(setCategory)(String(key))}>
               {(categories.data ?? []).map((c) => (
@@ -111,26 +121,30 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
     },
     {
       id: "billing",
-      title: "Billing options",
+      title: "Pricing",
       hint: `Prices are in your account currency${currency.data ? ` (${currency.data.currency})` : ""}. Change it in Settings.`,
-      body: <BillingOptionsEditor options={options} disabled={locked} currency={currency.data?.currency} onChange={edit(setOptions)} />,
+      body: <BillingOptionsEditor purpose={purpose} options={options} disabled={locked} currency={currency.data?.currency} onChange={edit(setOptions)} />,
     },
   ];
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = { name: name.trim(), description, category: selectedCategory, coachingMode, applicationFormVersionId: selectedForm, tags: tags.split(",").map(t => t.trim()).filter(Boolean), billingOptions: options, teamId, purpose };
+    const error = validateOffer(payload);
+    if (error) { toast({ tone: "danger", title: "Check the offer details", description: error }); return; }
+    operation.current = "save";
     mutation.mutate({
       method: current ? "PATCH" : "POST",
       path: `/api/v1/offers${current ? `/${current.id}` : ""}`,
       ifMatch: current?.version,
-      json: { name: name.trim(), description, category: selectedCategory, coachingMode, applicationFormVersionId: selectedForm, tags: tags.split(",").map((t) => t.trim()).filter(Boolean), billingOptions: options, teamId },
+      json: payload,
     });
   };
-  const canSave = Boolean(name.trim() && selectedForm && selectedCategory) && !locked;
+  const canSave = !locked;
 
   if (panel)
     return (
-      <form className={styles.panelForm} onSubmit={submit}>
+      <form noValidate className={styles.panelForm} onSubmit={submit}>
         <MutationError error={mutation.error} />
         {sections.map((s) => (
           <section key={s.id} className={styles.panelSection}>
@@ -143,59 +157,130 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
         ))}
         <DialogFooter>
           <Button onPress={panel.close}>Cancel</Button>
-          <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!canSave}>
+          <Button type="submit" variant="primary" loading={mutation.isPending && !/\/(publish|activate|deactivate|archive)$/.test(mutation.variables?.path ?? "")} isDisabled={!canSave}>
             Create draft
           </Button>
         </DialogFooter>
       </form>
     );
 
+  const status = current?.status ?? "Draft";
+  const steps: Array<{ id: string; label: string; done: boolean; current: boolean }> = [
+    { id: "draft", label: "Draft saved", done: Boolean(current), current: !current?.currentPublishedRevisionId },
+    { id: "published", label: "Revision published", done: Boolean(current?.currentPublishedRevisionId), current: Boolean(current?.currentPublishedRevisionId) && status !== "Active" },
+    { id: "active", label: "Open for applications", done: status === "Active", current: status === "Active" },
+  ];
+  const link = current ? `${window.location.origin}/app/coaches/${current.coachId}/offers/${current.id}` : "";
+  const modeLabel = { Online: "Online", Offline: "In person", Hybrid: "Hybrid" }[coachingMode] ?? coachingMode;
+  const categoryName = categories.data?.find((c) => c.key === selectedCategory)?.name;
+  const cur = currency.data?.currency ?? "EUR";
+  const ModeIcon = coachingMode === "Offline" ? MapPin : coachingMode === "Hybrid" ? Shuffle : Globe;
+
   return (
     <>
-      <PageHeader title={name || "Offer"} description="Clients keep the exact terms they applied for." actions={current && <StatusBadge status={current.status} />} />
+      <PageHeader
+        title={name || "Offer"}
+        description="Clients keep the exact terms they applied for."
+        meta={
+          <>
+            <StatusBadge status={status} />
+            <span className={page.chip}>{teamId ? <><Building2 aria-hidden="true" /> {teamName ?? "Team"} offer</> : <><UserRound aria-hidden="true" /> Personal offer</>}</span>
+          </>
+        }
+      />
       <DraftNavigationGuard dirty={dirty} />
-      <form className={styles.page} onSubmit={submit}>
-        {current?.currentPublishedRevisionId ? <Alert title="Published terms are preserved">Changes below stay a draft until you publish a new revision.</Alert> : null}
-        <MutationError error={mutation.error} />
-        {sections.map((s) => (
-          <section key={s.id} className={styles.section}>
-            <header className={styles.sectionHead}>
-              <h2>{s.title}</h2>
-              <p>{s.hint}</p>
-            </header>
-            <div className={styles.sectionBody}>{s.body}</div>
-          </section>
-        ))}
-        {current?.status === "Active" ? (
-          <section className={styles.section}>
-            <header className={styles.sectionHead}>
-              <h2>Share</h2>
-              <p>Send this link to people who want to apply.</p>
-            </header>
-            <div className={styles.sectionBody}>
-              <TextField label="Offer link" isReadOnly value={`${window.location.origin}/app/coaches/${current.coachId}/offers/${current.id}`} />
+      <form noValidate className={page.layout} onSubmit={submit}>
+        <div className={page.main}>
+          {current?.currentPublishedRevisionId ? <Alert title="Published terms are preserved">Changes below stay a draft until you publish a new revision.</Alert> : null}
+          <MutationError error={mutation.error} />
+          {sections.map((s, i) => (
+            <Card as="section" padding="none" key={s.id} className={page.card} aria-labelledby={`offer-${s.id}`}>
+              <header className={page.cardHead}>
+                <span className={page.step} aria-hidden="true">{i + 1}</span>
+                <div>
+                  <h2 id={`offer-${s.id}`}>{s.title}</h2>
+                  <p>{s.hint}</p>
+                </div>
+              </header>
+              <div className={page.cardBody}>{s.body}</div>
+            </Card>
+          ))}
+        </div>
+
+        <aside className={page.aside}>
+          <Card as="section" padding="none" className={page.card} aria-labelledby="offer-publishing">
+            <header className={page.cardHead}>
               <div>
-                <LinkButton href={`/app/coaches/${current.coachId}/offers/${current.id}`} size="sm">Open client offer page</LinkButton>
+                <h2 id="offer-publishing">Publishing</h2>
+                <p>{dirty ? "Save your changes before publishing." : teamId ? "Revenue and new cases belong to the Team. Ownership can't change." : "Clients and payments belong to your own practice."}</p>
+              </div>
+            </header>
+            <div className={page.cardBody}>
+              <ol className={page.steps}>
+                {steps.map((step) => (
+                  <li key={step.id} data-done={step.done || undefined} data-current={step.current || undefined}>
+                    <span className={page.stepDot} aria-hidden="true">{step.done ? <Check /> : null}</span>
+                    {step.label}
+                  </li>
+                ))}
+              </ol>
+              <div className={page.buttons}>
+                <Button type="submit" variant="primary" block loading={mutation.isPending && !/\/(publish|activate|deactivate|archive)$/.test(mutation.variables?.path ?? "")} isDisabled={!canSave || !dirty}>
+                  Save draft
+                </Button>
+                {current ? (
+                  <>
+                    <Button block loading={mutation.isPending && mutation.variables?.path.endsWith("/publish")} iconStart={<Upload />} isDisabled={locked || dirty} onPress={() => void action("publish")}>Publish revision</Button>
+                    {current.currentPublishedRevisionId ? (
+                      <Button block loading={mutation.isPending && /\/(activate|deactivate)$/.test(mutation.variables?.path ?? "")} iconStart={current.status === "Active" ? <PauseCircle /> : <PlayCircle />} isDisabled={locked || dirty} onPress={() => void action(current.status === "Active" ? "deactivate" : "activate")}>{current.status === "Active" ? "Deactivate" : "Activate"}</Button>
+                    ) : null}
+                    <Button variant="danger-ghost" block loading={mutation.isPending && mutation.variables?.path.endsWith("/archive")} iconStart={<Archive />} isDisabled={locked || dirty} onPress={() => void action("archive")}>Archive</Button>{confirmDialog}
+                  </>
+                ) : null}
               </div>
             </div>
-          </section>
-        ) : null}
-        <div className={styles.formActions}>
-          {current ? (
-            <div className={styles.actions}>
-              <Button isDisabled={locked || dirty} onPress={() => action("publish")}>Publish revision</Button>
-              {current.currentPublishedRevisionId ? (
-                <Button isDisabled={locked || dirty} onPress={() => action(current.status === "Active" ? "deactivate" : "activate")}>{current.status === "Active" ? "Deactivate" : "Activate"}</Button>
-              ) : null}
-              <Button variant="ghost" isDisabled={locked || dirty} onPress={() => action("archive")}>Archive</Button>
-              {dirty ? <span className={styles.muted}>Save changes before publishing.</span> : null}
-            </div>
+          </Card>
+
+          {current?.status === "Active" ? (
+            <Card as="section" padding="none" className={page.card} aria-labelledby="offer-share">
+              <header className={page.cardHead}>
+                <div>
+                  <h2 id="offer-share">Share</h2>
+                  <p>Send this link to people who want to apply.</p>
+                </div>
+              </header>
+              <div className={page.cardBody}>
+                <div className={page.linkRow}>
+                  <TextField aria-label="Offer link" placeholder="Link appears after publishing" isReadOnly value={link} className={page.grow} />
+                  <IconButton label="Copy link" icon={<Copy />} onPress={() => { void navigator.clipboard?.writeText(link); toast({ tone: "success", title: "Link copied" }); }} />
+                </div>
+                <LinkButton href={`/app/coaches/${current.coachId}/offers/${current.id}`} size="sm" variant="ghost" iconStart={<ExternalLink />}>Open client offer page</LinkButton>
+              </div>
+            </Card>
           ) : null}
-          <span className={styles.spacer} />
-          <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!canSave || !dirty}>
-            Save draft
-          </Button>
-        </div>
+
+          {/* What an applicant sees, updated as you type. */}
+          <section className={page.preview} aria-labelledby="offer-preview">
+            <h2 id="offer-preview" className={page.previewLabel}><Eye aria-hidden="true" /> Client preview</h2>
+            <div className={page.previewCard}>
+              <div className={page.previewTags}>
+                <span><ModeIcon aria-hidden="true" /> {modeLabel}</span>
+                {categoryName ? <span>{categoryName}</span> : null}
+              </div>
+              <p className={page.previewName}>{name || "Untitled offer"}</p>
+              <p className={page.previewText}>{description || "Your description appears here."}</p>
+              <ul className={page.previewPrices}>
+                {options.map((o, i) => (
+                  <li key={o.id}>
+                    <span>{o.name || `Option ${i + 1}`}</span>
+                    <strong>{priceDescription(o, cur)}</strong>
+                  </li>
+                ))}
+              </ul>
+              {tags.trim() ? <p className={page.previewTagsLine}>{tags.split(",").map((t) => t.trim()).filter(Boolean).map((t) => `#${t}`).join("  ")}</p> : null}
+            </div>
+          </section>
+        </aside>
       </form>
     </>
   );

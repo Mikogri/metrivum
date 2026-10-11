@@ -3,6 +3,16 @@
   gap: var(--tf-space-4);
 }
 
+.skeletonPanel {
+  display: grid;
+  gap: var(--tf-space-4);
+  min-width: 0;
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
 .filters {
   display: flex;
   flex-wrap: wrap;

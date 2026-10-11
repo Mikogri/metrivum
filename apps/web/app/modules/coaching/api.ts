@@ -27,9 +27,9 @@ export function useCoachingMutation<T = unknown>(onSuccess?: (result: T) => void
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   return useMutation({
     mutationFn: async (request: ApiRequest) => (await api<T>(request)).data,
-    onSuccess: async (result) => {
-      if (options.invalidate !== false) await cache.invalidateQueries({ queryKey: [account, "coaching"] });
+    onSuccess: (result) => {
       if (mounted.current) onSuccess?.(result);
+      if (options.invalidate !== false) void cache.invalidateQueries({ queryKey: [account, "coaching"] });
     },
   });
 }

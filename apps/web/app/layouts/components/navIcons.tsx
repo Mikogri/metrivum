@@ -60,3 +60,17 @@ export const AnalyzeIcon = icon([
   "M17 4.105a1.105 1.105 0 0 1 1.105 -1.105h1.79a1.105 1.105 0 0 1 1.105 1.105v15.79a1.105 1.105 0 0 1 -1.105 1.105h-1.79a1.105 1.105 0 0 1 -1.105 -1.105l0 -15.79",
   "M3 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0",
 ]);
+
+/* Client menu icons supplied with the design (Tabler outline). */
+export const InvitationsIcon = icon(["M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10", "M3 7l9 6l9 -6"]);
+
+export const CheckInsIcon = icon(["M12 4l-8 4l8 4l8 -4l-8 -4", "M4 12l8 4l8 -4", "M4 16l8 4l8 -4"]);
+
+export const PaymentsIcon = icon([
+  "M2 4h9.914a3 3 0 0 1 1.92 .695l5.166 4.305",
+  "M11.15 9h8.85a2 2 0 0 1 2 2v7a2 2 0 0 1 -2 2h-13a2 2 0 0 1 -2 -2v-8.7",
+  "M3 8l7.2 4.7a1.803 1.803 0 0 0 2 -3l-4.2 -2.7",
+  "M5 16h17",
+]);
+
+export const DocumentsIcon = icon(["M14 3v4a1 1 0 0 0 1 1h4", "M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"]);

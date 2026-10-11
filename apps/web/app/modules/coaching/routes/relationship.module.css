@@ -4,6 +4,30 @@
   gap: var(--tf-space-3);
 }
 
+.identity { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.identity small { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); font-weight: var(--tf-weight-regular); letter-spacing: 0; }
+
+/* Name with its type badge on one line, so the header keeps its height. */
+.nameLine { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--tf-space-2); min-width: 0; }
+.name { min-width: 0; overflow-wrap: anywhere; }
+.nameLine > :last-child:not(.name) { font-family: var(--tf-font-sans); letter-spacing: 0; }
+.teamMeta { color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
+.stack { display: grid; gap: var(--tf-space-4); min-width: 0; }
+
+.history > summary {
+  width: fit-content;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  cursor: pointer;
+}
+
+.history > summary:hover { color: var(--tf-color-text); }
+.history[open] > summary { margin-bottom: var(--tf-space-2); }
+.history .timeline { padding: var(--tf-space-2) 0 0; }
+.profile { display: grid; gap: var(--tf-space-4); }
+.profile dt { color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
+.profile dd { margin: var(--tf-space-1) 0 0; overflow-wrap: anywhere; }
+
 .avatar {
   display: grid;
   flex-shrink: 0;

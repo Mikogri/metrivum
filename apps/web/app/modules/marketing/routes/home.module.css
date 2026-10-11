@@ -1,39 +1,50 @@
-/* Hero: copy on the left, the program sheet on the right running off the page edge. */
+/*
+ * Landing page. A quiet, dense layout: one column of content on a near-black canvas, large
+ * left-aligned headings, hairline dividers and the product drawn in framed stages.
+ */
+.page {
+  /* Same measure and gutter as the header and footer, so every edge lines up. */
+  --gutter: var(--tf-space-5);
+  --section: clamp(var(--tf-space-16), 11vw, 9rem);
+  overflow: clip;
+}
+
+.hero,
+.facts,
+.statement,
+.chapter,
+.steps,
+.faq {
+  width: 100%;
+  max-width: var(--tf-content-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ---- Hero ---- */
+
 .hero {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  align-items: center;
-  gap: clamp(var(--tf-space-8), 5vw, var(--tf-space-16));
-  margin-top: calc(var(--tf-header-height) * -1);
-  padding: calc(var(--tf-header-height) + clamp(var(--tf-space-12), 8vw, 7rem)) 0 clamp(var(--tf-space-12), 7vw, var(--tf-space-24))
-    max(var(--tf-space-5), calc((100% - var(--tf-content-max)) / 2 + var(--tf-space-5)));
-  overflow: hidden;
+  padding-top: clamp(var(--tf-space-12), 9vw, 7rem);
 }
 
 .heroCopy {
   display: grid;
-  justify-items: start;
   gap: var(--tf-space-6);
-  min-width: 0;
+  animation: rise 700ms var(--tf-ease-out) both;
 }
 
-/* A small status pill above the headline, set in mono like a terminal line. */
+/* A status line above the headline, set in mono like a terminal prompt. */
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-self: start;
   gap: var(--tf-space-2);
   padding: var(--tf-space-1) var(--tf-space-3);
-  border: 1px solid var(--tf-glass-border, var(--tf-color-border));
+  border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-full);
-  background: var(--tf-glass, var(--tf-color-surface));
-  -webkit-backdrop-filter: var(--tf-glass-blur, none);
-  backdrop-filter: var(--tf-glass-blur, none);
   color: var(--tf-color-text-secondary);
   font-family: var(--tf-font-mono);
   font-size: var(--tf-text-xs);
-  animation: lead-in 700ms var(--tf-ease-out) 100ms backwards;
 }
 
 .badge span {
@@ -41,233 +52,403 @@
   height: 6px;
   border-radius: 50%;
   background: var(--tf-color-accent);
-  box-shadow: 0 0 8px var(--tf-color-accent);
 }
 
 .heroTitle {
-  max-width: 13ch;
+  max-width: 20ch;
   color: var(--tf-color-text);
-  font-size: clamp(2.75rem, 1.4rem + 4.6vw, 5.5rem);
+  font-family: var(--tf-font-display);
+  font-size: clamp(2.5rem, 1.3rem + 4.4vw, 4.5rem);
   font-weight: var(--tf-weight-bold);
-  line-height: 0.95;
+  letter-spacing: var(--tf-tracking-display);
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.heroRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--tf-space-4) var(--tf-space-10);
 }
 
 .heroLead {
-  max-width: 32rem;
+  max-width: 36rem;
   color: var(--tf-color-text-secondary);
   font-size: var(--tf-text-lg);
   line-height: var(--tf-leading-relaxed);
-  animation: lead-in 800ms var(--tf-ease-out) 450ms both;
+}
+
+.heroNote {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-md);
+  transition: color var(--tf-duration-fast) ease;
+}
+
+.heroNote span {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+}
+
+.heroNote svg,
+.more svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
 }
 
 .heroActions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   gap: var(--tf-space-2);
-  animation: lead-in 800ms var(--tf-ease-out) 600ms both;
 }
 
-.heroLink {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--tf-space-1);
-  margin-left: var(--tf-space-3);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
-  text-decoration: underline;
-  text-decoration-color: var(--tf-color-border-strong);
-  text-underline-offset: 4px;
-  transition: text-decoration-color var(--tf-duration-fast) ease;
-}
-
-.heroLink svg {
-  width: 0.9375rem;
-  height: 0.9375rem;
-  transition: transform var(--tf-duration-base) var(--tf-ease-out);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .heroLink:hover {
-    text-decoration-color: var(--tf-color-accent);
-  }
-
-  .heroLink:hover svg {
-    transform: translateX(3px);
-  }
-}
-
-@keyframes lead-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-}
-
-/* The sheet is wider than its column and bleeds off the right edge. */
-.heroVisual {
+/* The product window: framed, lit from above, and fading into the page at the bottom. */
+.heroStage {
   position: relative;
-  min-width: 0;
-  width: calc(100% + 12rem);
-  padding-top: var(--tf-space-10);
+  margin-top: clamp(var(--tf-space-10), 6vw, var(--tf-space-16));
+  animation: rise 900ms var(--tf-ease-out) 150ms both;
 }
 
 .heroPreview {
   position: absolute;
-  top: 0;
-  left: 0;
-  animation: lead-in 600ms var(--tf-ease-out) 1400ms both;
+  top: calc(var(--tf-space-8) * -1);
+  right: 0;
 }
 
-/* ---- Facts: a scoreboard of four numbers ---- */
+.heroWindow {
+  padding: var(--tf-space-2) var(--tf-space-2) 0;
+  border: 1px solid var(--tf-color-border);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 70%);
+  -webkit-mask-image: linear-gradient(180deg, #000 62%, transparent);
+  mask-image: linear-gradient(180deg, #000 62%, transparent);
+}
+
+/* ---- Facts ---- */
 
 .facts {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: var(--tf-content-max);
-  margin: 0 auto;
-  padding: 0 var(--tf-space-5);
+  gap: var(--tf-space-6);
+  margin-top: var(--tf-space-10);
+  padding-block: var(--tf-space-8);
 }
 
 .facts div {
   display: grid;
   align-content: start;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-5) var(--tf-space-5) var(--tf-space-6) 0;
-  border-top: 2px solid var(--tf-color-text);
-  animation: lead-in 700ms var(--tf-ease-out) both;
-  animation-delay: calc(900ms + var(--i) * 90ms);
-}
-
-.facts div + div {
-  padding-left: var(--tf-space-5);
-  border-left: 1px solid var(--tf-color-border);
+  gap: var(--tf-space-1);
 }
 
 .facts dt {
-  font-family: var(--tf-font-display);
-  font-size: clamp(2rem, 1.4rem + 1.8vw, 3rem);
-  font-weight: var(--tf-weight-bold);
-  letter-spacing: var(--tf-tracking-display);
-  line-height: 1;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-tight);
 }
 
 .facts dd {
-  max-width: 16rem;
   margin: 0;
-  color: var(--tf-color-text-secondary);
+  color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-sm);
   line-height: var(--tf-leading-snug);
 }
 
-/* ---- Features ---- */
+/* ---- Statement and pillars ---- */
 
-.features {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  gap: var(--tf-space-10);
-  max-width: var(--tf-content-max);
-  margin: 0 auto;
-  padding: clamp(var(--tf-space-16), 10vw, 8rem) var(--tf-space-5) var(--tf-space-12);
+.statement {
+  padding-top: var(--section);
 }
 
-/* Invisible waypoints that steer the ribbon of light running down the page. */
-.flowMark {
-  display: block;
-  height: 0;
-}
-
-.features .featuresTitle {
-  max-width: 40rem;
-}
-
-.inlineTitle {
+.statementText {
+  max-width: 54rem;
+  padding-left: var(--tf-space-6);
+  border-left: 2px solid var(--tf-color-accent);
   color: var(--tf-color-text-secondary);
+  font-size: clamp(1.5rem, 1rem + 1.9vw, 2.5rem);
   font-weight: var(--tf-weight-semibold);
+  letter-spacing: -0.028em;
+  line-height: 1.2;
+  text-wrap: pretty;
+}
+
+.statementText strong {
+  color: var(--tf-color-text);
+  font-weight: inherit;
+}
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: clamp(var(--tf-space-10), 6vw, var(--tf-space-16));
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.pillar {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-5) var(--tf-space-6) 0 0;
+}
+
+.pillar + .pillar {
+  padding-left: var(--tf-space-6);
+  border-left: 1px solid var(--tf-color-border-subtle);
+}
+
+.partIndex {
+  color: var(--tf-color-text-tertiary);
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-2xs);
+  letter-spacing: 0.04em;
+}
+
+.pillar svg {
+  margin: var(--tf-space-5) 0 var(--tf-space-5);
+}
+
+.pillar h3,
+.partNote h3,
+.stepList h3 {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-tight);
+}
+
+.pillar p,
+.partBody,
+.stepList p {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-md);
+  line-height: var(--tf-leading-relaxed);
+}
+
+/* ---- Chapters ---- */
+
+.chapter {
+  padding-top: var(--section);
+  scroll-margin-top: var(--tf-header-height);
+}
+
+.chapterHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--tf-space-6) var(--tf-space-10);
+}
+
+.chapterTitle,
+.stepsTitle {
+  max-width: 13ch;
+  color: var(--tf-color-text);
+  font-family: var(--tf-font-display);
+  font-size: clamp(1.875rem, 1.2rem + 2.2vw, 3rem);
+  font-weight: var(--tf-weight-bold);
+  letter-spacing: var(--tf-tracking-display);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.chapterLead {
+  display: grid;
+  justify-items: start;
+  gap: var(--tf-space-4);
+  max-width: 30rem;
+  padding-top: var(--tf-space-2);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-lg);
+  line-height: var(--tf-leading-relaxed);
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-medium);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .heroNote:hover {
+    color: var(--tf-color-text);
+  }
+
+  .heroNote:hover svg,
+  .more:hover svg {
+    transform: translateX(3px);
+  }
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tf-space-4);
+  margin-top: clamp(var(--tf-space-10), 6vw, var(--tf-space-16));
+}
+
+.stageLabel {
+  position: absolute;
+  top: calc(var(--tf-space-8) * -1);
+  right: 0;
+}
+
+.part {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-width: 0;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 45%);
+  overflow: hidden;
+}
+
+.part[data-wide] {
+  grid-column: 1 / -1;
+}
+
+.partVisual {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  padding: clamp(var(--tf-space-4), 2.4vw, var(--tf-space-8));
+}
+
+.partNote {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: var(--tf-space-1) var(--tf-space-2);
+  padding: var(--tf-space-5) clamp(var(--tf-space-4), 2.4vw, var(--tf-space-8)) var(--tf-space-6);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.partIndex {
+  padding-top: 0.2em;
+}
+
+.partBody {
+  grid-column: 2;
+  max-width: 44rem;
+}
+
+.partBody strong {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
 }
 
 .honesty {
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border-left: 2px solid var(--tf-color-warning);
-  border-radius: 0 var(--tf-radius-md) var(--tf-radius-md) 0;
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-text-secondary);
+  max-width: 44rem;
+  margin-top: var(--tf-space-5);
+  padding-left: var(--tf-space-4);
+  border-left: 1px solid var(--tf-color-border-strong);
+  color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-sm);
   line-height: var(--tf-leading-relaxed);
 }
 
-.labelled {
-  display: grid;
-  justify-items: end;
-  gap: var(--tf-space-2);
+/* ---- Steps ---- */
+
+.steps {
+  padding-top: var(--section);
 }
 
-.labelled > :last-child {
-  justify-self: stretch;
+.stepsTitle {
+  max-width: 20ch;
 }
+
+.stepList {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--tf-space-4);
+  margin: clamp(var(--tf-space-8), 5vw, var(--tf-space-12)) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepList li {
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 60%);
+}
+
+.stepIndex {
+  margin-bottom: var(--tf-space-6);
+  color: var(--tf-color-accent);
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-3xl);
+  font-weight: var(--tf-weight-bold);
+  line-height: 1;
+}
+
+/* ---- FAQ ---- */
 
 .faq {
   display: grid;
   grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
   gap: var(--tf-space-10);
-  max-width: var(--tf-content-max);
-  margin: 0 auto;
-  padding: clamp(var(--tf-space-12), 9vw, var(--tf-space-24)) var(--tf-space-5);
+  padding-block: var(--section) var(--tf-space-8);
 }
 
-.faq .faqTitle {
-  align-self: start;
-  font-size: var(--tf-text-4xl);
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
 }
 
 @media (max-width: 60rem) {
-  .hero {
+  .chapterHead,
+  .faq {
     grid-template-columns: minmax(0, 1fr);
-    padding-right: var(--tf-space-5);
   }
 
-  .heroVisual {
-    width: calc(100% + var(--tf-space-5));
+  .stage {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .heroLink {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .facts {
+  .facts,
+  .stepList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .facts div:nth-child(3) {
-    padding-left: 0;
+  .pillars {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pillar,
+  .pillar + .pillar {
+    padding: var(--tf-space-5) 0 var(--tf-space-6);
     border-left: 0;
   }
 
-  .faq {
-    grid-template-columns: 1fr;
+  .pillar + .pillar {
+    border-top: 1px solid var(--tf-color-border-subtle);
   }
 }
 
 @media (max-width: 30rem) {
-  .facts {
+  .facts,
+  .stepList {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .facts div + div {
-    padding-left: 0;
-    border-left: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .heroLead,
-  .heroActions,
-  .heroPreview,
-  .facts div {
-    animation-duration: 1ms;
-    animation-delay: 0ms;
+  .heroCopy,
+  .heroStage {
+    animation: none;
   }
 }

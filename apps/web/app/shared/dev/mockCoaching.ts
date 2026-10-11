@@ -15,6 +15,7 @@ const day = (offset: number) => {
 };
 
 const COACH = "00000000-0000-4000-8000-0000000000c0";
+let mockInvitationStatus = "Pending";
 const people = [
   { id: "22222222-0000-4000-8000-000000000001", displayName: "Kazik Kowalski", username: "kazik_kowal" },
   { id: "22222222-0000-4000-8000-000000000002", displayName: "Anna Nowak", username: "anna.runs" },
@@ -23,12 +24,13 @@ const people = [
 ];
 
 const groups = [
-  { id: uid(), name: "Marathon block", description: "Spring marathon runners", color: "#79a8ff", archived: false, version: 1, createdAt: ago(40), updatedAt: ago(3), allowedActions: ["edit", "archive"] },
-  { id: uid(), name: "Strength beginners", description: "First 12 weeks in the gym", color: "#3ee09a", archived: false, version: 1, createdAt: ago(20), updatedAt: ago(1), allowedActions: ["edit", "archive"] },
+  { id: "55555555-0000-4000-8000-000000000001", name: "Marathon block", description: "Spring marathon runners", color: "#79a8ff", archived: false, version: 1, createdAt: ago(40), updatedAt: ago(3), allowedActions: ["edit", "archive"] },
+  { id: "55555555-0000-4000-8000-000000000002", name: "Strength beginners", description: "First 12 weeks in the gym", color: "#3ee09a", archived: false, version: 1, createdAt: ago(20), updatedAt: ago(1), allowedActions: ["edit", "archive"] },
 ];
 
 const clients = people.map((client, i) => ({
-  id: uid(),
+  // Stable ids so client links survive a reload in mock mode.
+  id: `33333333-0000-4000-8000-00000000000${i + 1}`,
   client,
   status: i === 3 ? "Suspended" : "Active",
   startedAt: ago(90 - i * 14),
@@ -47,14 +49,21 @@ const section = (title: string, labels: string[]) => ({
   key: uid(),
   title,
   order: 0,
-  questions: labels.map((label, order) => ({ key: uid(), label, type: "ShortText", required: false, order })),
+  questions: labels.map((label, order) => ({ key: uid(), label, type: "ShortText", required: order === 0, order, helpText: order === 0 ? "A sentence or two is enough — your coach will ask follow-up questions." : null })),
 });
 const forms = [
   { id: uid(), coachId: COACH, purpose: "Application", name: "Online coaching intake", description: "Goals, training history and availability.", draft: { sections: [section("About you", ["Main goal", "Training history"])] }, currentPublishedVersionId: uid(), archived: false, createdAt: ago(30), updatedAt: ago(4), version: 3 },
   { id: uid(), coachId: COACH, purpose: "CheckIn", name: "Weekly check-in", description: "Sleep, energy, soreness and body weight.", draft: { sections: [section("This week", ["Sleep quality", "Energy", "Body weight"])] }, currentPublishedVersionId: uid(), archived: false, createdAt: ago(25), updatedAt: ago(2), version: 2 },
 ];
 
-const offers: Record<string, unknown>[] = [];
+const offers: Record<string, unknown>[] = [
+  // Developer data: one active offer with two ways to pay.
+  { id: "offer-1", coachId: "00000000-0000-4000-8000-000000000000", name: "12-week online coaching", description: "A personal strength and running plan, weekly check-ins and a video call every month. For people who want structure and feedback without a gym coach next to them.", category: "online-coaching", coachingMode: "Online", applicationFormVersionId: "form-v1", tags: ["strength", "running"], status: "Active", currentPublishedRevisionId: "rev-1", createdAt: "2026-09-01T09:00:00Z", updatedAt: "2026-10-01T09:00:00Z", version: 3, teamId: null, teamName: null,
+    billingOptions: [
+      { id: "b1", name: "Monthly coaching", model: "PeriodSubscription", price: 349, minSessions: null, maxSessions: null, sessionCount: null, periodCount: 1, periodUnit: "Month", paymentTerms: { rule: "Upfront", offsetDays: null } },
+      { id: "b2", name: "Technique sessions", model: "FixedPackage", price: 600, minSessions: null, maxSessions: null, sessionCount: 5, periodCount: null, periodUnit: null, paymentTerms: { rule: "OnStart", offsetDays: null } },
+    ] },
+];
 
 const schedules = [
   {
@@ -81,7 +90,7 @@ const checkIns = [
   { id: uid(), kind: "Request", scheduleId: schedules[0]!.id, requestId: uid(), name: "Monday check-in", availableAtUtc: at(-4, 9), dueAtUtc: at(-2, 9), status: "Reviewed" },
 ];
 
-type Msg = { id: string; conversationId: string; senderUserId: string; type: string; body: string | null; replyToMessageId: null; createdAt: string; cursor: string; attachments: [] };
+type Msg = { id: string; conversationId: string; senderUserId: string; type: string; body: string | null; replyToMessageId: null; createdAt: string; cursor: string; attachments: unknown[] };
 const conversations = people.slice(0, 3).map((p, i) => ({
   id: uid(),
   type: "Direct",
@@ -104,6 +113,18 @@ for (const [i, c] of [...conversations, groupChat].entries()) {
   const list: Msg[] = (i === 0 ? script : i === 1 ? [[false, "Is tomorrow's tempo run still at 4:50/km?", 30] as [boolean, string, number], [false, "Legs feel fresh after the rest day.", 28] as [boolean, string, number]] : i === 2 ? [[true, "Welcome aboard! Fill in the intake form when you have a moment.", 3000] as [boolean, string, number]] : [[true, "Long run on Sunday: 24 km easy. Bring gels.", 600] as [boolean, string, number]]).map(([mine, body, minutes], n) => ({
     id: uid(), conversationId: c.id, senderUserId: mine ? SELF : (c.peer?.id ?? people[1]!.id), type: "Text", body, replyToMessageId: null, createdAt: new Date(Date.now() - minutes * 60_000).toISOString(), cursor: String(n), attachments: [],
   }));
+  if (i === 0) {
+    // A photo and a voice note from the client, so the chat shows both kinds of attachment.
+    const at = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
+    list.push(
+      { id: uid(), conversationId: c.id, senderUserId: c.peer?.id ?? people[1]!.id, type: "Attachment", body: "Form check from today's session", replyToMessageId: null, createdAt: at(40), cursor: String(list.length), attachments: [{ mediaId: "mock-image", contentType: "image/png", size: 24576, durationMs: null }] },
+      { id: uid(), conversationId: c.id, senderUserId: c.peer?.id ?? people[1]!.id, type: "VoiceMessage", body: null, replyToMessageId: null, createdAt: at(38), cursor: String(list.length + 1), attachments: [{ mediaId: "mock-voice", contentType: "audio/wav", size: 24044, durationMs: 1500 }] },
+      // The coach's own photo, an invitation and an application form link: they render on the coach's side.
+      { id: uid(), conversationId: c.id, senderUserId: SELF, type: "Attachment", body: null, replyToMessageId: null, createdAt: at(30), cursor: String(list.length + 2), attachments: [{ mediaId: "mock-image", contentType: "image/png", size: 24576, durationMs: null }] },
+      { id: uid(), conversationId: c.id, senderUserId: SELF, type: "Text", body: "Coaching invitation: 12-week online coaching\n/app/invitations/66666666-0000-4000-8000-000000000001", replyToMessageId: null, createdAt: at(20), cursor: String(list.length + 3), attachments: [] },
+      { id: uid(), conversationId: c.id, senderUserId: SELF, type: "Text", body: "Application form: 12-week online coaching\n/app/coaches/00000000-0000-4000-8000-0000000000c0/offers/77777777-0000-4000-8000-000000000001", replyToMessageId: null, createdAt: at(19), cursor: String(list.length + 4), attachments: [] },
+    );
+  }
   messages.set(c.id, list);
 }
 
@@ -250,6 +271,14 @@ function mockTrainingProgress(from: string, to: string) {
   };
 }
 
+const mockNotifications: Array<{ id: string; type: string; category: string; sourceModule: string; sourceId: string; deepLink: string | null; createdAt: string; readAt: string | null }> = [
+  { id: "n1", type: "MessageCreated", category: "Messaging", sourceModule: "Messaging", sourceId: "c1", deepLink: "/app/messages", createdAt: new Date(Date.now() - 6 * 60_000).toISOString(), readAt: null },
+  { id: "n2", type: "CheckInSubmitted", category: "CheckIns", sourceModule: "CheckIns", sourceId: "k1", deepLink: "/app/check-ins", createdAt: new Date(Date.now() - 52 * 60_000).toISOString(), readAt: null },
+  { id: "n3", type: "ApplicationSubmitted", category: "Coaching", sourceModule: "Coaching", sourceId: "a1", deepLink: "/app/leads", createdAt: new Date(Date.now() - 26 * 3_600_000).toISOString(), readAt: new Date().toISOString() },
+  // Older, already read items so the panel has enough to scroll.
+  ...Array.from({ length: 12 }, (_, i) => ({ id: `n${i + 4}`, type: i % 2 ? "CheckInSubmitted" : "MessageCreated", category: i % 2 ? "CheckIns" : "Messaging", sourceModule: i % 2 ? "CheckIns" : "Messaging", sourceId: `old${i}`, deepLink: i % 2 ? "/app/check-ins" : "/app/messages", createdAt: new Date(Date.now() - (i + 2) * 86_400_000).toISOString(), readAt: new Date().toISOString() })),
+];
+
 /** Returns a response for the coaching, calendar and messaging endpoints, or null when the path isn't one of them. */
 export function mockCoaching(path: string, method: string, q: URLSearchParams, body: Record<string, unknown> | undefined, auth: string | null): { status: number; body: unknown } | null {
   const me = `00000000-0000-4000-8000-00000000000${(auth ?? "").replace(/^Bearer mock-/, "") || "0"}`;
@@ -258,6 +287,10 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
 
   // Team (developer data): one Team the demo coach owns, with two members.
   const team = { id: "t1", name: "North Strength Collective", isOwner: true, isMember: true, members: 3, role: "Owner", status: "Active", description: "Strength and conditioning coaches in Gdańsk.", version: 1, purchasedSeats: 5, occupiedSeats: 3, periodEnd: null, dissolutionAt: null, allowedActions: ["teams.invite", "teams.manage", "teams.clients", "teams.analyze", "teams.settings", "teams.transfer-ownership"], pendingOwnerId: null };
+  if (path === "/api/v1/accounts/people" || path === "/api/v1/messaging/people") {
+    const prefix = (q.get("search") ?? "").trim().replace(/^@/, "").toLowerCase();
+    return ok(prefix.length < 2 ? [] : people.filter(person => person.username.toLowerCase().startsWith(prefix)).map(person => ({ userId: person.id, username: person.username, displayName: person.displayName })));
+  }
   if (path === "/api/v1/teams/mine") return ok({ teams: [team], requests: [{ id: "tr1", teamId: "t1", teamName: team.name, displayName: "Ola Zielińska", kind: "Invite", status: "Pending", canDecide: false, role: "Member", expiresAt: new Date(Date.now() + 5 * 86400000).toISOString() }] });
   if (path === "/api/v1/teams/t1/members") return ok([
     { userId: me, displayName: "Demo Coach", username: "demo.coach", role: "Owner", joinedAt: "2026-03-01T09:00:00Z" },
@@ -266,6 +299,15 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
   ]);
   if (path === "/api/v1/teams/t1/clients") return ok([{ id: "tc1", teamId: "t1", clientId: "c9", clientName: "Bartek Nowicki", status: "Active", assignedCoachIds: ["u2"], relationshipId: null, allowedActions: ["assign-coach"], version: 1 }]);
   if (path === "/api/v1/teams/t1/client-transfer-requests") return ok([]);
+  // Notifications (developer data): two unread, one read.
+  if (path === "/api/v1/me/notifications/unread-count") return ok({ count: mockNotifications.filter((n) => !n.readAt).length });
+  if (path === "/api/v1/me/notifications/read-all" && method === "POST") { mockNotifications.forEach((n) => { n.readAt ??= now(); }); return { status: 204, body: undefined }; }
+  if ((m = path.match(/^\/api\/v1\/me\/notifications\/([^/]+)\/read$/)) && method === "POST") { const n = mockNotifications.find((x) => x.id === m![1]); if (n) n.readAt ??= now(); return { status: 204, body: undefined }; }
+  if (path === "/api/v1/me/notifications") {
+    const items = q.get("unreadOnly") === "true" ? mockNotifications.filter((n) => !n.readAt) : mockNotifications;
+    return ok({ items, page: 1, pageSize: 25, total: items.length });
+  }
+  if (path === "/api/v1/me/notification-preferences") return ok(method === "PATCH" ? body : { messaging: true, checkIns: true, coaching: true, system: true });
   if (path === "/api/v1/coaching/clients" && method === "GET") {
     const term = q.get("search")?.toLowerCase();
     return ok(page(clients.filter((c) => (!q.get("status") || c.status === q.get("status")) && (!term || c.client.displayName.toLowerCase().includes(term))), q));
@@ -353,6 +395,38 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     s.version = (s.version as number) + 1;
     return ok(s);
   }
+
+  // Client side: the invitation and offer shared in the demo chat, the coaches and the payments.
+  const revision = { ...offers[0]!, offerId: "77777777-0000-4000-8000-000000000001", coachId: COACH, number: 3, currency: "PLN" };
+  const coach = { id: COACH, displayName: "Ola Trener", username: "ola.coach" };
+  if ((m = path.match(/^\/api\/v1\/coaching\/invitations\/([^/]+)$/)) && method === "GET") return ok({ id: m[1], coachId: COACH, coach, target: { id: SELF, displayName: "Demo Coach", username: "demo_coach" }, offerRevision: revision, billingOptionId: null, message: "Hi! I think this plan fits your spring goals — have a look.", status: mockInvitationStatus, createdAt: ago(2), respondedAt: mockInvitationStatus === "Pending" ? null : now(), applicationId: null, allowedActions: mockInvitationStatus === "Pending" ? ["accept", "decline"] : mockInvitationStatus === "Accepted" ? ["apply"] : [], version: 1 });
+  if ((m = path.match(/^\/api\/v1\/coaching\/invitations\/([^/]+)\/(accept|decline)$/)) && method === "POST") { mockInvitationStatus = m[2] === "accept" ? "Accepted" : "Declined"; return ok({}); }
+  if ((m = path.match(/^\/api\/v1\/coaches\/([^/]+)\/offers\/([^/]+)$/))) return ok(revision);
+  if (path === "/api/v1/coaching/my-coaches") {
+    const term = q.get("search")?.toLowerCase();
+    const mine = [
+      { id: "88888888-0000-4000-8000-000000000001", status: "Active", coach, client: { id: SELF, displayName: "Demo Coach", username: "demo_coach" }, createdAt: ago(60), updatedAt: ago(1) },
+      { id: "88888888-0000-4000-8000-000000000002", status: "Completed", coach: { id: uid(), displayName: "Tomasz Biegacz", username: "tomek.runs" }, client: { id: SELF, displayName: "Demo Coach", username: "demo_coach" }, createdAt: ago(200), updatedAt: ago(30) },
+      { id: "88888888-0000-4000-8000-000000000003", status: "Suspended", coach: { id: uid(), displayName: "Ewa Mobilność", username: "ewa.mobility" }, client: { id: SELF, displayName: "Demo Coach", username: "demo_coach" }, createdAt: ago(90), updatedAt: ago(10) },
+    ];
+    return ok(page(mine.filter((r) => (!q.get("status") || r.status === q.get("status")) && (!term || `${r.coach.displayName} ${r.coach.username}`.toLowerCase().includes(term))), q));
+  }
+  if ((path === "/api/v1/coaching/applications" && method === "POST") || /^\/api\/v1\/coaching\/applications\/[^/]+$/.test(path)) {
+    const sections = [section("About you", ["Main goal", "Training history"]), section("Availability", ["Days per week", "Equipment"])];
+    return ok({ application: { id: "aaaaaaaa-0000-4000-8000-000000000001", status: "InProgress", version: 1, offerName: "12-week online coaching", amount: 349, currency: "PLN", selectedSessionCount: null, submittedAt: null, source: "Invitation", allowedActions: ["withdraw", "submit"], relationshipId: null, applicant: { id: SELF, displayName: "Demo Coach", username: "demo_coach" } }, offerRevision: revision, formVersion: { definition: { sections } }, answers: {}, profilePrefill: {}, profileVersion: 1 });
+  }
+  if (path === "/api/v1/training/purchases") return ok(page([
+    { orderId: "po1", name: "Hypertrophy 10-day · self-guided", planId: "44444444-0000-4000-8000-000000000003" },
+    { orderId: "po2", name: "Spring 10K plan", planId: null },
+  ], q));
+  if (path === "/api/v1/me/payment-dues") {
+    const due = (i: number, status: string, dueAt: string, extra: Record<string, unknown> = {}) => ({ id: `99999999-0000-4000-8000-00000000000${i}`, orderId: "o1", serviceId: "s1", relationshipId: "r1", coachId: COACH, clientId: SELF, sequence: i, periodStart: dueAt, periodEnd: null, dueAt, status, amount: 349, currency: "PLN", settlementMode: "Simulated", settledAt: status === "Paid" ? dueAt : null, overdue: false, ...extra });
+    const dues = [due(4, "AwaitingPayment", at(5, 9)), due(3, "AwaitingPayment", ago(3), { overdue: true }), due(2, "Paid", ago(33)), due(1, "Paid", ago(63))];
+    return ok(page(dues.filter((d) => !q.get("status") || d.status === q.get("status")), q));
+  }
+  if (path === "/api/v1/me/payment-methods" && method === "GET") return ok([{ id: "pm1", label: "Personal card", active: true, createdAt: ago(40) }]);
+  if (path === "/api/v1/me/service-subscriptions") return ok([{ id: "sub1", serviceId: "s1", autoRenew: false, paymentMethodId: null, nextPeriodAt: at(5, 9), active: true }]);
+  if (path === "/api/v1/me/orders") return ok(page([{ id: "o1", serviceId: "s1", name: "12-week online coaching · Monthly", amount: 349, currency: "PLN", settlementMode: "Simulated", createdAt: ago(63) }], q));
 
   // Remaining coaching lists (leads, invitations, payments, earnings…) are empty in mock mode.
   if (method === "GET" && /^\/api\/v1\/(coaching|check-ins|me\/(payment|orders)|coaches|offers|forms|billing)/.test(path)) return ok(page([], q));

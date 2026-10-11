@@ -4,3 +4,5 @@ export { BootScreen } from "./components/BootScreen";
 export { useProfile, useProfileQuery, profileKey } from "./api/useProfile";
 export { getMe, completeOnboarding, updateProfile } from "./api/profile";
 export { timeZones } from "./lib/timeZones";
+
+export { UserAutocomplete, type UserSuggestion } from "./components/UserAutocomplete";

@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
+import { Toaster, toast } from "@trainflow/ui-web";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { afterEach, expect, it, vi } from "vitest";
@@ -36,6 +37,11 @@ it("loads account queries through StrictMode effect cleanup and replay", async (
   </SessionProvider></QueryClientProvider></StrictMode>);
   await screen.findByText("Coach profile loaded");
   expect(fetchImpl).toHaveBeenCalledTimes(1);
+  const notifications = render(<Toaster label="Notifications" dismissLabel="Dismiss" />);
+  act(() => { toast({ tone: "danger", title: "Private account error" }); });
+  expect(screen.getByRole("alert")).toHaveTextContent("Private account error");
   unmount();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  notifications.unmount();
   cache.clear();
 });

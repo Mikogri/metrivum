@@ -9,6 +9,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { useDebounced } from "~/shared/lib/useDebounced";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
+import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
 import { CreateExerciseDialog } from "../components/CreateExerciseDialog";
 import { FavoriteButton } from "../components/FavoriteButton";
 import { useDictionaries, useExerciseList, useTags } from "../queries";
@@ -21,15 +22,16 @@ const PAGE_SIZE = 20;
 
 export const meta = () => privateMeta("Exercises — TrainFlow");
 
-const DEFAULTS = { q: "", tag: "", muscle: "", pattern: "", fav: "", sort: "name", page: "1" };
+const DEFAULTS = { q: "", tag: "", muscle: "", pattern: "", fav: "", sort: "name", page: "1", view: "list" };
 
 function ExerciseLibrary() {
   const m = useT();
   const t = m.exercises;
   const locale = useLocale();
   const [state, update] = useUrlState(DEFAULTS);
+  const view = state.view === "cards" ? "cards" : "list";
   const pageSize = PAGE_SIZE;
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const [search, setSearch] = useState(state.q);
   const debounced = useDebounced(search, 300);
   const page = pageFromParam(state.page);
@@ -154,12 +156,13 @@ function ExerciseLibrary() {
             size="sm"
             onPress={() => {
               setSearch("");
-              setParams(new URLSearchParams(), { replace: true });
+              update({ q: null, tag: null, muscle: null, pattern: null, fav: null });
             }}
           >
             {m.common.clearFilters}
           </Button>
         ) : null}
+        <LibraryViewToggle value={view} onChange={(next) => update({ view: next, page: state.page })} />
       </Toolbar>
 
       {list.isPending ? (
@@ -185,7 +188,27 @@ function ExerciseLibrary() {
           <p className={styles.count} aria-live="polite">
             {t.results(list.data.total)}
           </p>
-          <DataTable
+          {view === "cards" ? (
+            <ul className={styles.cards} aria-label={t.title} data-stale={list.isPlaceholderData || undefined}>
+              {list.data.items.map((exercise) => (
+                <li key={exercise.id} className={styles.card}>
+                  <div className={styles.cardTop}>
+                    <span className={styles.cardIcon} data-group={exerciseGroup(exercise.primaryMuscleKeys) ?? undefined} aria-hidden="true"><Dumbbell /></span>
+                    <FavoriteButton id={exercise.id} isFavorite={exercise.isFavorite} />
+                  </div>
+                  <RouterLink className={styles.cardTitle} to={`/app/exercises/${exercise.id}`}>{exercise.name}</RouterLink>
+                  <div className={styles.chips}>
+                    {exercise.primaryMuscleKeys.slice(0, 3).map((key) => (
+                      <span key={key} className={styles.chip} data-group={muscleGroup(key) ?? undefined}>{muscleName(key)}</span>
+                    ))}
+                    {exercise.primaryMuscleKeys.length > 3 ? <span className={styles.more}>+{exercise.primaryMuscleKeys.length - 3}</span> : null}
+                  </div>
+                  {exercise.description ? <p className={styles.cardDescription}>{exercise.description}</p> : null}
+                  <span className={styles.cardMeta}>{formatRelative(locale, exercise.createdAt)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : <DataTable
             label={t.title}
             stale={list.isPlaceholderData}
             rows={list.data.items}
@@ -235,7 +258,7 @@ function ExerciseLibrary() {
                 cell: (exercise) => <FavoriteButton id={exercise.id} isFavorite={exercise.isFavorite} />,
               },
             ]}
-          />
+          />}
           <Pagination
             page={page}
             pageCount={pageCount}

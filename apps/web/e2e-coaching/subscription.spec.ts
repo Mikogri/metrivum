@@ -230,14 +230,14 @@ test("Pro checkout survives reload and downgrade preserves the paid period", asy
     await expect(page.getByRole("heading", { name: "Pro checkout", exact: true })).toBeVisible();
     expect(state.writes).toHaveLength(0);
     await page.getByRole("button", { name: /Pay.*97[.,]79/ }).click();
-    await expect(page.getByRole("heading", { name: "Current plan: Pro", exact: true })).toBeVisible();
+    await expect(page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Pro", exact: true }) }).getByRole("button", { name: "Your plan", exact: true })).toBeVisible();
     expect(state.settlements()).toBe(1);
     expect(state.writes.find(w => w.path.endsWith("/checkout"))?.body).toMatchObject({ planId: "Pro", priceVersion: "e2e-v1" });
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Current plan: Pro", exact: true })).toBeVisible();
+    await expect(page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Pro", exact: true }) }).getByRole("button", { name: "Your plan", exact: true })).toBeVisible();
     await expect(page.getByRole("table", { name: "Platform payment history" })).toContainText("Simulated");
     await page.getByRole("button", { name: "Switch to Free at period end", exact: true }).first().click();
-    await expect(page.getByRole("heading", { name: "Current plan: Pro", exact: true })).toBeVisible();
+    await expect(page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Pro", exact: true }) }).getByRole("button", { name: "Your plan", exact: true })).toBeVisible();
     await expect(page.getByText(/Free starts at the end of your paid period/)).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2)).toBeTruthy();
 });
@@ -285,7 +285,7 @@ test("Admin has management and Analyze but cannot see owner billing", async ({ p
     await expect(page.getByRole("link", { name: "Team Analyze", exact: true })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Billing", exact: true })).toHaveCount(0);
     await page.getByRole("tab", { name: "Members", exact: true }).click();
-    await expect(page.getByLabel("Invite by username")).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Invite by username", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Transfer ownership", exact: true })).toHaveCount(0);
 });
 

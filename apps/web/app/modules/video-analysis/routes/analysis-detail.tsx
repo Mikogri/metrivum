@@ -179,9 +179,9 @@ export default function AnalysisDetail() {
           {t.result}
         </h2>
         {analysis.status === "Completed" && result.data ? (
-          <ResultView result={result.data} mediaId={analysis.mediaId} aside={aside} />
+          <ResultView result={result.data} mediaId={analysis.mediaId ?? undefined} aside={aside} />
         ) : (
-          <AnalysisStage aside={aside} mediaId={analysis.mediaId}>
+          <AnalysisStage aside={aside} mediaId={analysis.mediaId ?? undefined}>
             {status}
             {analysis.status !== "Completed" ? (
               active ? null : <EmptyState size="sm" title={t.noResultYet} />

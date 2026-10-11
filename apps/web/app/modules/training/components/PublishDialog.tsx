@@ -9,7 +9,7 @@ import { publishRevision } from "../api";
 import { trainingKeys } from "../queries";
 
 /**
- * Publishes the saved draft. One Idempotency-Key per publish attempt: retrying after a network
+ * Applies the saved draft. One Idempotency-Key per apply attempt: retrying after a network
  * failure resends the same key so the server returns the original revision instead of a second one.
  */
 export function PublishDialog({ planId, version, isOpen, onOpenChange }: { planId: string; version: number; isOpen: boolean; onOpenChange: (open: boolean) => void }) {
@@ -28,7 +28,8 @@ export function PublishDialog({ planId, version, isOpen, onOpenChange }: { planI
     mutationFn: () => publishRevision(api, planId, version, key.current ?? (key.current = newIdempotencyKey())),
     onSuccess: (revision) => {
       key.current = null;
-      void queryClient.invalidateQueries({ queryKey: trainingKeys.revisions(a, planId) });
+      void queryClient.invalidateQueries({ queryKey: trainingKeys.all(a) });
+      void queryClient.invalidateQueries({ queryKey: [a, "coaching"] });
       toast({ tone: "success", title: t.published(revision.number) });
       onOpenChange(false);
     },

@@ -6,7 +6,9 @@ import {
   TextField as AriaTextField,
   type TextFieldProps as AriaTextFieldProps,
 } from "react-aria-components";
+import { parseDate } from "@internationalized/date";
 import { cx } from "../../lib/cx";
+import { DateField } from "./DateField";
 import { FieldFooter, FieldLabel, fieldStyles as styles, type FieldChromeProps } from "./FieldParts";
 
 export interface TextFieldProps extends Omit<AriaTextFieldProps, "className" | "children">, FieldChromeProps {
@@ -30,6 +32,29 @@ export function TextField({
   className,
   ...props
 }: TextFieldProps) {
+  // Dates use the app's own calendar picker instead of the browser's native one, keeping the "yyyy-mm-dd" string API.
+  if (props.type === "date") {
+    let value = null;
+    try { value = props.value ? parseDate(props.value) : null; } catch { /* Invalid external date values render as an empty field. */ }
+    return (
+      <DateField
+        label={label}
+        description={description}
+        errorMessage={errorMessage}
+        labelAside={labelAside}
+        size={size}
+        className={className}
+        aria-label={props["aria-label"]}
+        isRequired={props.isRequired}
+        isDisabled={props.isDisabled}
+        isReadOnly={props.isReadOnly}
+        autoFocus={props.autoFocus}
+        name={props.name}
+        value={value}
+        onChange={(date) => props.onChange?.(date ? date.toString() : "")}
+      />
+    );
+  }
   return (
     <AriaTextField {...props} className={cx(styles.field, className)}>
       <FieldLabel label={label} isRequired={props.isRequired} labelAside={labelAside} />

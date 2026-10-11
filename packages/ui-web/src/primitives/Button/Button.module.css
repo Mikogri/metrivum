@@ -140,7 +140,40 @@
   color: #ffffff;
 }
 
+/* Confirms something good and final: accepting, approving. */
+.success {
+  background: #1f9d63;
+  border-color: #2bb673;
+  color: #ffffff;
+}
+
+.success[data-pressed] {
+  background: #1a8554;
+}
+
+/* Quiet destructive action: red text that turns into a red surface on hover and press. */
+.danger-ghost {
+  background: transparent;
+  color: var(--tf-color-danger);
+}
+
+.danger-ghost[data-pressed] {
+  border-color: var(--tf-color-danger-border);
+  background: rgb(240 96 93 / 0.22);
+  color: #ff8a86;
+}
+
+.danger[data-pressed] {
+  background: #b5322f;
+}
+
 @media (hover: hover) and (pointer: fine) {
+  .danger-ghost[data-hovered]:not([data-pressed]) {
+    border-color: var(--tf-color-danger-border);
+    background: var(--tf-color-danger-soft);
+    color: #ff7c78;
+  }
+
   .primary[data-hovered] {
     border-color: var(--tf-color-primary-border-hover);
     background: var(--tf-color-primary-hover);
@@ -158,6 +191,10 @@
   .ghost[data-hovered] {
     background: var(--tf-color-surface-hover);
     color: var(--tf-color-text);
+  }
+
+  .success[data-hovered]:not([data-pressed]) {
+    background: #23ad6d;
   }
 
   .danger[data-hovered] {

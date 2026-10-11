@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { Mic, Square } from "lucide-react";
-import { Button, IconButton } from "@trainflow/ui-web";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Mic, Pause, Play, Square, Trash2 } from "lucide-react";
+import { IconButton } from "@trainflow/ui-web";
 import styles from "./messaging.module.css";
 export function wavFile(buffer: AudioBuffer): File {
     const length = Math.min(buffer.length, Math.floor(buffer.sampleRate * 300));
@@ -42,6 +42,83 @@ export function wavFile(buffer: AudioBuffer): File {
     }
     return new File([data], "voice-message.wav", { type: "audio/wav" });
 }
+const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+
+/** A stable, gently varied waveform for a recording, so each voice message has its own shape. */
+function bars(seed: string, count = 36) {
+    let h = 2166136261;
+    for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+    return Array.from({ length: count }, (_, i) => {
+        h = Math.imul(h ^ (i + 1), 16777619);
+        const wave = Math.sin((i / count) * Math.PI) * 0.55 + 0.25;
+        return Math.round((wave + ((h >>> 0) % 100) / 300) * 100);
+    });
+}
+
+/**
+ * The voice message player: play/pause, a waveform that fills as it plays (click to seek) and the
+ * time. The audio element is the real player; it stays in the DOM, just without native controls.
+ */
+export function VoicePlayer({ src, label, seed, durationMs, tone = "default", preview = false }: { preview?: boolean; src: string | null; label: string; seed: string; durationMs?: number | null; tone?: "default" | "mine" }) {
+    const audio = useRef<HTMLAudioElement>(null);
+    const [playing, setPlaying] = useState(false);
+    const [time, setTime] = useState(0);
+    const [duration, setDuration] = useState(durationMs ? durationMs / 1000 : 0);
+    const shape = useMemo(() => bars(seed), [seed]);
+    const progress = duration ? Math.min(1, time / duration) : 0;
+    return (
+        <div className={styles.voicePlayer} data-tone={tone} role="group" aria-label={label}>
+            <IconButton
+                label={playing ? "Pause" : "Play"}
+                variant="ghost"
+                size="sm"
+                isDisabled={!src}
+                icon={playing ? <Pause aria-hidden="true" fill={preview ? "none" : "currentColor"} /> : <Play aria-hidden="true" fill={preview ? "none" : "currentColor"} />}
+                className={preview ? undefined : styles.voicePlayback}
+                onPress={() => {
+                    const el = audio.current;
+                    if (!el) return;
+                    if (el.paused) void el.play().catch(() => setPlaying(false));
+                    else el.pause();
+                }}
+            />
+            <span
+                className={styles.voiceBars}
+                aria-hidden="true"
+                onClick={(event) => {
+                    const el = audio.current;
+                    if (!el || !duration) return;
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    el.currentTime = ((event.clientX - rect.left) / rect.width) * duration;
+                }}
+            >
+                {shape.map((height, i) => (
+                    <i key={i} style={{ height: `${height}%` }} data-played={i / shape.length < progress || undefined} />
+                ))}
+            </span>
+            <span className={styles.voiceTime}>{clock(playing || time ? time : duration)}</span>
+            {src ? (
+                <audio
+                    ref={audio}
+                    src={src}
+                    preload="metadata"
+                    onLoadedMetadata={(event) => {
+                        if (Number.isFinite(event.currentTarget.duration)) setDuration(event.currentTarget.duration);
+                    }}
+                    onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
+                    onPlay={() => setPlaying(true)}
+                    onPause={() => setPlaying(false)}
+                    onEnded={() => {
+                        setPlaying(false);
+                        setTime(0);
+                    }}
+                />
+            ) : null}
+        </div>
+    );
+}
+
+/** A recorded message waiting to be sent, in the composer row where the text would be. */
 export function VoicePreview({ file, disabled, cancel }: { file: File; disabled: boolean; cancel: () => void }) {
     const [url, setUrl] = useState("");
     useEffect(() => {
@@ -49,11 +126,12 @@ export function VoicePreview({ file, disabled, cancel }: { file: File; disabled:
         setUrl(next);
         return () => URL.revokeObjectURL(next);
     }, [file]);
-    return <div className={styles.voicePreview}>
-        <span>Voice message ready</span>
-        <audio src={url || undefined} controls aria-label="Preview voice message" />
-        <Button size="sm" isDisabled={disabled} onPress={cancel}>Cancel</Button>
-    </div>;
+    return (
+        <div className={styles.voiceBar}>
+            <IconButton label="Delete recording" icon={<Trash2 />} variant="ghost" size="sm" isDisabled={disabled} onPress={cancel} />
+            <VoicePlayer preview src={url || null} label="Preview voice message" seed={`${file.name}${file.size}`} />
+        </div>
+    );
 }
 
 export function VoiceRecorder({ disabled, onFile, onBusyChange }: {
@@ -137,17 +215,18 @@ export function VoiceRecorder({ disabled, onFile, onBusyChange }: {
             if (generation.current === current) { setPhase("idle"); setError(e instanceof Error ? e.message : "Microphone access failed."); }
         }
     }
-    return <>
-        <IconButton label={phase === "recording" ? "Stop recording" : "Record voice message"}
-            className={phase === "recording" ? styles.recordingStop : undefined}
-            variant="ghost" size="sm" icon={phase === "recording" ? <Square fill="currentColor" /> : <Mic />}
-            isDisabled={disabled || phase === "preparing"}
-            onPress={() => { if (phase === "recording") recorder.current?.stop(); else void start(); }} />
-        {phase !== "idle" && <div className={styles.recording}>
-            <span role="status">{phase === "recording" ? `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}` : "Preparing..."}</span>
-            {phase === "recording" && <span className={styles.waveform} role="img" aria-label="Live audio waveform">{levels.map((level, index) => <i key={index} style={{ height: level }} />)}</span>}
-            <Button size="sm" aria-label="Cancel recording" onPress={cancel}>Cancel</Button>
-        </div>}
-        {error && <span role="alert" className={styles.error}>{error}</span>}
-    </>;
+    // Idle: just the microphone. Recording: the whole composer row becomes the recorder.
+    if (phase === "idle") {
+        return <>
+            <IconButton label="Record voice message" variant="ghost" size="sm" icon={<Mic />} isDisabled={disabled} onPress={() => void start()} />
+            {error && <span role="alert" className={styles.voiceError}>{error}</span>}
+        </>;
+    }
+    return <div className={styles.voiceBar} data-recording={phase === "recording" || undefined}>
+        <IconButton label="Cancel recording" icon={<Trash2 />} variant="ghost" size="sm" onPress={cancel} />
+        <span className={styles.recDot} aria-hidden="true" />
+        <span role="status" className={styles.voiceTime}>{phase === "recording" ? clock(elapsed) : "Preparing..."}</span>
+        <span className={styles.waveform} role="img" aria-label="Live audio waveform">{levels.map((level, index) => <i key={index} style={{ height: phase === "recording" ? level : 2 }} />)}</span>
+        <IconButton label="Stop recording" className={styles.recordingStop} variant="ghost" size="sm" icon={<Square fill="currentColor" />} isDisabled={phase !== "recording"} onPress={() => recorder.current?.stop()} />
+    </div>;
 }

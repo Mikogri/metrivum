@@ -175,13 +175,20 @@
   height: 1.125rem;
   padding: 0 0.3125rem;
   border-radius: 200px;
-  background: color-mix(in srgb, var(--tf-color-warning) 22%, transparent);
-  color: var(--tf-color-warning);
+  /* Notifications are a soft red: noticeable, never alarming. */
+  background: color-mix(in srgb, #ec6a5e 20%, transparent);
+  color: #ec6a5e;
   font-size: 0.625rem;
   font-weight: var(--tf-weight-semibold);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   transition: opacity 200ms ease;
+}
+
+/* Things waiting in a section: informative, not an alert. */
+.navCount[data-tone="neutral"] {
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text-secondary);
 }
 
 .shell[data-collapsed] .navCount {

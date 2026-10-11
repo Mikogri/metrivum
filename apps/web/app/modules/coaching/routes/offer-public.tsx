@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Button, PageHeader } from "@trainflow/ui-web";
+import { Alert, Button, NumberInput, Option, PageHeader, Select } from "@trainflow/ui-web";
+import { Facts, Panel } from "~/shared/ui/Panel";
 import { profileKey, useProfile } from "~/modules/accounts";
 import { useAccountKey } from "~/shared/session/AccountScope";
 import { useFeatureAccess } from "~/shared/access";
@@ -28,10 +29,10 @@ export function StartApplication({ offer, invitationId, preselected }: { offer: 
   if (!profile.roles.includes("Client")) return <div className={styles.stack}><Alert title="Enable your client profile to apply">You can be both a coach and a client on this account.</Alert><Button loading={enable.isPending} onPress={() => enable.mutate({ method: "POST", path: "/api/v1/me/roles/client" })}>Enable client profile</Button><MutationError error={enable.error} /></div>;
   if (!canApply.allowed) return <Alert title="Applications are unavailable">Your account needs permission to submit coaching applications.</Alert>;
   return <form className={styles.form} onSubmit={(e) => { e.preventDefault(); start.mutate({ method: "POST", path: "/api/v1/coaching/applications", json: { offerId: offer.offerId, billingOptionId: optionId, selectedSessionCount: selected?.model === "CustomPackage" ? Math.max(sessions, selected.minSessions ?? 1) : null, invitationId: invitationId ?? null } }); }}>
-    {offer.teamId && <Alert title={`Organizational coaching · ${offer.teamName ?? "Team"}`}>This offer creates a Team-owned coaching case. Authorized assigned coaches may work with you within the organization. You will review and accept this scope before submitting your application.</Alert>}
-    <label className={styles.field}>Choose your billing option<select required value={optionId} disabled={Boolean(preselected) || start.isPending} onChange={(e) => { setOption(e.target.value); setSessions(offer.billingOptions.find((o) => o.id === e.target.value)?.minSessions ?? 1); }}><option value="">Choose an option</option>{offer.billingOptions.map((o) => <option key={o.id} value={o.id}>{o.name} — {priceDescription(o, offer.currency)}</option>)}</select></label>
-    {selected?.model === "CustomPackage" && <label className={styles.field}>Number of sessions<input type="number" required min={selected.minSessions ?? 1} max={selected.maxSessions ?? undefined} step={1} value={Math.max(sessions, selected.minSessions ?? 1)} onChange={(e) => setSessions(Number(e.target.value))} /></label>}
-    <MutationError error={start.error} /><Button type="submit" variant="primary" isDisabled={!selected} loading={start.isPending}>Start application</Button><p className={styles.muted}>You will review the questions and submit your application next.</p>
+    {offer.teamId && <Alert title={`${offer.purpose === "TrainingPlan" ? "Team offer" : "Organizational coaching"} · ${offer.teamName ?? "Team"}`}>{offer.purpose === "TrainingPlan" ? "You are buying an independent training plan copy from this Team. No coaching relationship is created." : "This offer creates a Team-owned coaching case. Authorized assigned coaches may work with you within the organization. You will review and accept this scope before submitting your application."}</Alert>}
+    <Select label="Billing option" placeholder="Choose an option" isRequired isDisabled={Boolean(preselected) || start.isPending} selectedKey={optionId || null} onSelectionChange={(key) => { const id = String(key); setOption(id); setSessions(offer.billingOptions.find((o) => o.id === id)?.minSessions ?? 1); }}>{offer.billingOptions.map((o) => <Option key={o.id} id={o.id} textValue={o.name}>{`${o.name} — ${priceDescription(o, offer.currency)}`}</Option>)}</Select>
+    {selected?.model === "CustomPackage" && <NumberInput label="Number of sessions" placeholder="e.g. 8" isRequired minValue={selected.minSessions ?? 1} maxValue={selected.maxSessions ?? undefined} step={1} value={Math.max(sessions, selected.minSessions ?? 1)} onChange={(value) => setSessions(Number.isFinite(value) ? value : selected.minSessions ?? 1)} />}
+    <MutationError error={start.error} /><Button type="submit" variant="primary" isDisabled={!selected} loading={start.isPending}>{invitationId ? "Fill out the form" : "Start application"}</Button><p className={styles.note}>You will review the questions and submit your application next.</p>
   </form>;
 }
 
@@ -41,5 +42,12 @@ export default function PublicOffer() {
   if (query.isPending) return <Loading />;
   if (query.isError) return <Failure error={query.error} retry={() => void query.refetch()} />;
   const offer = query.data;
-  return <><PageHeader title={offer.name} description={`${offer.coachingMode} · ${offer.category}`} /><div className={styles.grid}><section className={styles.panel}><h2>About this offer</h2><p>{offer.description}</p><div className={styles.actions}>{offer.tags.map((tag) => <span key={tag} className={styles.muted}>#{tag}</span>)}</div>{offer.billingOptions.map((o) => <div key={o.id} className={styles.item}><h3>{o.name}</h3><p>{priceDescription(o, offer.currency)}</p><p className={styles.muted}>Payment: {o.paymentTerms?.rule ?? "Upfront"}</p></div>)}</section><section className={styles.panel}><h2>Apply for coaching</h2><StartApplication offer={offer} /></section></div></>;
+  return <><PageHeader title={offer.name} description={`${offer.coachingMode === "Offline" ? "In person" : offer.coachingMode} coaching${offer.teamName ? ` · ${offer.teamName}` : ""}`} meta={offer.tags.length ? <span className={styles.chips}>{offer.tags.map((tag) => <span key={tag} className={styles.chip}>#{tag}</span>)}</span> : undefined} />
+    <div className={styles.offerLayout}>
+      <div className={styles.stack}>
+        {offer.description ? <Panel title="About this offer"><p className={styles.prose}>{offer.description}</p></Panel> : null}
+        <Panel title="Pricing"><Facts items={offer.billingOptions.map((o) => ({ key: o.id, label: o.name, value: <span className={styles.priceCell}>{priceDescription(o, offer.currency)}<small>{o.paymentTerms?.rule ?? "Upfront"} payment</small></span> }))} /></Panel>
+      </div>
+      <Panel title="Apply for coaching"><StartApplication offer={offer} /></Panel>
+    </div></>;
 }

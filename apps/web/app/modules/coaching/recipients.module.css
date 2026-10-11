@@ -94,10 +94,10 @@
 }
 
 .swatch {
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 3px;
+  height: 0.875rem;
   flex-shrink: 0;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .name {

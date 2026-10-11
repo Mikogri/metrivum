@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, FunctionSquare, Pencil, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormulaDefinition, FormulaListItem, Quantity, Unit } from "@trainflow/api-client-web";
 import { UNITS } from "@trainflow/api-client-web";
 import { Alert, Badge, Button, Card, DataTable, Dialog, EmptyState, ErrorState, IconButton, LoadingState, NumberInput, Option, PageHeader, Pagination, SearchInput, Select, Skeleton, TextField, toast } from "@trainflow/ui-web";
@@ -12,12 +12,13 @@ import { useDebounced } from "~/shared/lib/useDebounced";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
-import { copyFormula, createFormula, evaluateFormula, getFormula, updateFormula } from "../api";
+import { copyFormula, createFormula, evaluateFormula, updateFormula } from "../api";
 import { formatQuantity } from "../editor/model/notation";
-import { trainingKeys, useBuiltInFormulas, useFormulaList } from "../queries";
+import { formulaQueryOptions, trainingKeys, useBuiltInFormulas, useFormulaList } from "../queries";
 import { FormulaExpressionInput } from "../components/FormulaExpressionInput";
 import styles from "./formulas.module.css";
 import { privateMeta } from "~/shared/i18n/site";
+import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
 
 /** Rows per page in lists. */
 const PAGE_SIZE = 20;
@@ -74,31 +75,31 @@ function FormulaDialog({ formula, onClose }: { formula: FormulaListItem | "new" 
   const [inputs, setInputs] = useState<Array<{ name: string; unit: Unit }>>([]);
   const [outputUnit, setOutputUnit] = useState<Unit>("Kg");
   const [version, setVersion] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState<unknown>(null);
+  const existing = formula !== "new" ? formula : null;
+  const full = useQuery({ ...formulaQueryOptions(api, a, existing ?? { id: "", version: 0 }), enabled: Boolean(existing) });
+  const loading = Boolean(existing) && full.isPending;
+  const loadError = existing ? full.error : null;
+  const initialized = useRef(false);
 
   useEffect(() => {
-    setLoadError(null);
+    if (initialized.current) return;
     if (formula === "new") {
+      initialized.current = true;
       setName("");
       setExpression("");
       setInputs([{ name: "base", unit: "Kg" }]);
       setOutputUnit("Kg");
       setVersion(0);
-    } else if (formula) {
-      setLoading(true);
-      getFormula(api, formula.id)
-        .then(({ data, version: v }) => {
-          setName(data.name);
-          setExpression(data.definition.expression);
-          setInputs(Object.entries(data.definition.inputs).map(([n, unit]) => ({ name: n, unit })));
-          setOutputUnit(data.definition.outputUnit);
-          setVersion(v);
-        })
-        .catch(setLoadError)
-        .finally(() => setLoading(false));
+    } else if (formula && full.data) {
+      initialized.current = true;
+      const { data, version: v } = full.data;
+      setName(data.name);
+      setExpression(data.definition.expression);
+      setInputs(Object.entries(data.definition.inputs).map(([n, unit]) => ({ name: n, unit })));
+      setOutputUnit(data.definition.outputUnit);
+      setVersion(v);
     }
-  }, [formula, api]);
+  }, [formula, full.data]);
 
   const definition: FormulaDefinition = { expression: expression.trim(), inputs: Object.fromEntries(inputs.map((i) => [i.name.trim(), i.unit])), outputUnit };
   const invalidNames = inputs.some((i) => !NAME_PATTERN.test(i.name.trim())) || new Set(inputs.map((i) => i.name.trim())).size !== inputs.length;
@@ -125,7 +126,7 @@ function FormulaDialog({ formula, onClose }: { formula: FormulaListItem | "new" 
           <Button variant="secondary" onPress={close}>
             {m.common.cancel}
           </Button>
-          <Button variant="primary" loading={save.isPending} isDisabled={loading || !name.trim() || !expression.trim() || invalidNames} onPress={() => save.mutate()}>
+          <Button variant="primary" loading={save.isPending} isDisabled={loading || Boolean(loadError) || !name.trim() || !expression.trim() || invalidNames} onPress={() => save.mutate()}>
             {m.common.save}
           </Button>
         </>
@@ -181,7 +182,7 @@ function Formulas() {
   const queryClient = useQueryClient();
   const showError = useErrorToast();
   const custom = useFeatureAccess("training.formulas.custom");
-  const [state, update] = useUrlState({ q: "", page: "1" });
+  const [state, update] = useUrlState({ q: "", page: "1", view: "list" });
   const [search, setSearch] = useState(state.q);
   const debounced = useDebounced(search, 300);
   const page = pageFromParam(state.page);
@@ -253,6 +254,7 @@ function Formulas() {
             {t.custom}
           </h2>
           <SearchInput aria-label={t.searchLabel} placeholder={m.common.search} value={search} onChange={setSearch} size="sm" className={styles.search} />
+          <LibraryViewToggle value={state.view === "cards" ? "cards" : "list"} onChange={(view) => update({ view })} />
         </div>
         {!custom.allowed && !custom.pending ? <Alert tone="info" title={t.lockedCustom} /> : null}
         {list.isPending ? (
@@ -263,7 +265,20 @@ function Formulas() {
           <EmptyState icon={<FunctionSquare />} title={t.emptyTitle} description={t.emptyBody} />
         ) : (
           <>
-            <DataTable
+            {state.view === "cards" ? (
+              <ul className={styles.formulaGrid} aria-label={t.title}>
+                {list.data.items.map((formula) => (
+                  <FormulaCard
+                    key={formula.id}
+                    formula={formula}
+                    canEdit={custom.allowed}
+                    onEdit={() => setEditing(formula)}
+                    onCopy={() => copy.mutate(formula)}
+                    onTry={(inputs, version) => setTrying({ id: formula.id, inputs, version })}
+                  />
+                ))}
+              </ul>
+            ) : <DataTable
               label={t.title}
               rows={list.data.items}
               rowKey={(formula) => formula.id}
@@ -297,7 +312,7 @@ function Formulas() {
                         size="sm"
                         variant="ghost"
                         onPress={async () => {
-                          const full = await getFormula(api, formula.id).catch((error) => {
+                          const full = await queryClient.fetchQuery(formulaQueryOptions(api, a, formula)).catch((error) => {
                             showError(error);
                             return null;
                           });
@@ -312,7 +327,7 @@ function Formulas() {
                   ),
                 },
               ]}
-            />
+            />}
             <Pagination
               page={page}
               pageCount={pageCount}
@@ -323,7 +338,7 @@ function Formulas() {
           </>
         )}
       </section>
-      <FormulaDialog formula={editing} onClose={() => setEditing(null)} />
+      <FormulaDialog key={editing === "new" ? "new" : editing?.id ?? "closed"} formula={editing} onClose={() => setEditing(null)} />
       <Dialog isOpen={trying !== null} onOpenChange={(open) => !open && setTrying(null)} title={t.try} size="sm" closeLabel={m.common.close}>
         {trying ? <TryFormula binding={{ builtIn: null, formulaId: trying.id, version: trying.version }} inputs={trying.inputs} /> : null}
       </Dialog>
@@ -336,5 +351,36 @@ export default function FormulasRoute() {
     <RequireFeature feature="training.programs.read">
       <Formulas />
     </RequireFeature>
+  );
+}
+
+/** A compact formula card: expression and inputs up front, actions in the foot. */
+function FormulaCard({ formula, canEdit, onEdit, onCopy, onTry }: { formula: FormulaListItem; canEdit: boolean; onEdit: () => void; onCopy: () => void; onTry: (inputs: Record<string, Unit>, version: number) => void }) {
+  const m = useT();
+  const t = m.training.formulas;
+  const api = useApi();
+  const a = useAccountKey();
+  const full = useQuery(formulaQueryOptions(api, a, formula));
+  const definition = full.data?.data.definition;
+  return (
+    <li className={styles.formulaCard}>
+      <header className={styles.formulaCardHead}>
+        <span className={styles.formulaIcon} aria-hidden="true"><FunctionSquare /></span>
+        <h3>{formula.name}</h3>
+        {formula.archived ? <Badge size="sm" tone="warning">{t.archivedBadge}</Badge> : <Badge size="sm">{t.versionLabel(formula.version)}</Badge>}
+      </header>
+      {definition ? <code className={styles.expression}>{definition.expression}</code> : <Skeleton height="1.75rem" radius="md" />}
+      <div className={styles.inputChips}>
+        {definition ? Object.entries(definition.inputs).map(([name, unit]) => (
+          <span key={name} className={styles.inputChip}>{name}<small>{m.editor.units[unit] || unit}</small></span>
+        )) : null}
+      </div>
+      <footer className={styles.formulaCardFoot}>
+        <Button size="sm" variant="ghost" isDisabled={!definition} onPress={() => definition && onTry(definition.inputs, Number(full.data!.version))}>{t.try}</Button>
+        <span className={styles.spacer} />
+        <IconButton label={m.common.edit} icon={<Pencil />} size="sm" isDisabled={!canEdit} onPress={onEdit} />
+        <IconButton label={m.common.duplicate} icon={<Copy />} size="sm" isDisabled={!canEdit} onPress={onCopy} />
+      </footer>
+    </li>
   );
 }

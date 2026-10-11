@@ -1,5 +1,6 @@
 import type { AnalysisComparison, AnalysisDto, AnalysisResult, CreateAnalysisRequest, MediaDto, MediaReadTicket, UpdateAnalysisRequest, UploadRequest, UploadTicket } from "@trainflow/api-client-web";
 import type { Transport } from "~/shared/http/transport";
+import { requireLocalAnalyzer } from './local-analysis';
 
 const id = (value: string) => encodeURIComponent(value);
 
@@ -21,8 +22,8 @@ export async function getAnalysis(api: Transport, analysisId: string, signal?: A
   return { data: response.data, version: response.version ?? response.data.version };
 }
 
-export async function createAnalysis(api: Transport, body: CreateAnalysisRequest, idempotencyKey: string) {
-  return (await api<AnalysisDto>({ method: "POST", path: "/api/v1/analyses", json: body, idempotencyKey })).data;
+export async function createAnalysis(_api: Transport, _body: CreateAnalysisRequest, _idempotencyKey: string): Promise<AnalysisDto> {
+  return requireLocalAnalyzer();
 }
 
 export async function updateAnalysis(api: Transport, analysisId: string, body: UpdateAnalysisRequest, version: number) {

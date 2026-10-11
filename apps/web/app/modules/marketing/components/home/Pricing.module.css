@@ -1,4 +1,8 @@
 .section {
+  /* Plans are neutral: the recommended one is marked by a brighter border, not a colour. */
+  --tf-color-accent: var(--tf-color-text);
+  --tf-color-accent-soft: rgb(255 255 255 / 0.06);
+  --tf-color-accent-border: var(--tf-color-border-strong);
   position: relative;
   isolation: isolate;
   display: grid;
@@ -121,9 +125,7 @@
 .plan[data-featured] {
   border-color: var(--tf-color-accent-border);
   box-shadow:
-    0 1px 0 rgb(87 242 159 / 0.35) inset,
-    0 0 0 1px rgb(87 242 159 / 0.15),
-    0 0 60px -10px rgb(87 242 159 / 0.35),
+    0 1px 0 rgb(255 255 255 / 0.12) inset,
     0 30px 60px -30px rgb(0 0 0 / 0.8);
 }
 

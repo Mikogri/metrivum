@@ -5,16 +5,25 @@ import { parseDate } from "@internationalized/date";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { Alert, DateField, EmptyState, Option, PageHeader, Segment, SegmentedControl, Select, Tab, TabList, TabPanel, Tabs } from "@trainflow/ui-web";
+import { Alert, DateField, EmptyState, Option, PageHeader, Segment, SegmentedControl, Select, Skeleton, Tab, TabList, TabPanel, Tabs } from "@trainflow/ui-web";
 import { RequireFeature } from "~/shared/access";
 import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useUrlState } from "~/shared/lib/useUrlState";
-import { useCoachingQuery } from "~/modules/coaching";
-import { Failure, Loading } from "../coaching/components";
-import { money } from "../coaching/pricing";
+import { Failure, money, useCoachingQuery } from "~/modules/coaching";
 import { AreaChart, compact, Donut, NoData, FlowBars, Funnel, Kpi, RankList, Ring, shortDate, Sparkline, Split, StackedBars, type Tone } from "./charts";
 import type { Overview } from "./types";
 import styles from "./analyze.module.css";
+
+function AnalyzeSkeleton() {
+  return <div className={`${styles.body} ${styles.grid}`} aria-busy="true" role="status" aria-label="Loading analysis">
+    <div className={styles.kpis}>{Array.from({ length: 4 }, (_, i) => <div className={styles.skeletonPanel} key={i}>
+      <Skeleton width="55%" /><Skeleton width="70%" height="2rem" /><Skeleton height="3rem" />
+    </div>)}</div>
+    {Array.from({ length: 3 }, (_, i) => <div className={styles.skeletonPanel} key={i}>
+      <Skeleton width="45%" /><Skeleton height="14rem" radius="md" />
+    </div>)}
+  </div>;
+}
 
 export function dateString(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -196,7 +205,7 @@ function Workspace() {
           <Tab id="training">Training</Tab>
         </TabList>
         {query.isPending ? (
-          <Loading />
+          <AnalyzeSkeleton />
         ) : query.isError || !data?.finance ? (
           <Failure error={query.error} retry={() => void query.refetch()} />
         ) : (

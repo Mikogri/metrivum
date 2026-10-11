@@ -249,6 +249,37 @@ export const publicEn = {
       ],
       note: "Prices in US dollars, excluding VAT. Free currently has no plan-based feature restrictions. Team checkout is coming soon.",
     },
+    landing: {
+      heroNoteLabel: "New",
+      heroNote: "Lift video analysis in the same workspace",
+      statement: {
+        lead: "A different kind of training tool.",
+        rest: "Purpose-built for coaches who write programs, with blocks, cycles and typed sets at its core. TrainFlow keeps the speed of a spreadsheet and adds the structure a program needs.",
+      },
+      pillars: [
+        { title: "Built like a training plan", body: "Blocks, cycles of any length and numbered days: the structure coaches already think in." },
+        { title: "Sets stored as data", body: "Eight set types, ranges, %1RM, RPE and formulas are fields, not text typed into a cell." },
+        { title: "Your work leaves cleanly", body: "Import a CSV you already have and export any published revision to CSV or PDF." },
+      ],
+      chapters: {
+        structure: {
+          title: "Plan and structure",
+          lead: "Lay out a block from cycle length down to a single day, and keep programs and templates in folders. A template always gives you an independent copy.",
+        },
+        sets: {
+          title: "Sets, loads and exercises",
+          lead: "Write every set with a type and let formulas work out the load. Pick exercises from one shared library.",
+        },
+        files: {
+          title: "Import and export",
+          lead: "Bring an existing spreadsheet in through a validated import and send published revisions out as files.",
+        },
+        video: {
+          title: "Lift video analysis",
+          lead: "Keep lift videos next to the program and follow each analysis from upload to result.",
+        },
+      },
+    },
     finalCta: {
       title: "Start your next block in TrainFlow",
       body: "Create an account, finish onboarding and build your first program.",

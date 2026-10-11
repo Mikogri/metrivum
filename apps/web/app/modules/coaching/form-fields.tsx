@@ -9,15 +9,15 @@ export type Answers = Record<string, string | number | boolean | string[] | null
 
 export function FormAnswerFields({ definition, answers, onChange, disabled = false }: { definition: Definition; answers: Answers; onChange: (answers: Answers) => void; disabled?: boolean }) {
   const set = (key: string, value: Answers[string]) => onChange({ ...answers, [key]: value });
-  return <div className={styles.stack}>{[...definition.sections].sort((a, b) => a.order - b.order).map((s) => <section className={styles.panel} key={s.key}>
-    <h2>{s.title}</h2>{s.description && <p className={styles.muted}>{s.description}</p>}
+  return <div className={styles.stack}>{[...definition.sections].sort((a, b) => a.order - b.order).map((s) => <section className={`${styles.panel} ${styles.answerSection}`} key={s.key}>
+    <header className={styles.answerHead}><h2>{s.title}</h2>{s.description && <p className={styles.muted}>{s.description}</p>}</header>
     {[...s.questions].sort((a, b) => a.order - b.order).map((q) => {
       const value = answers[q.key];
       if (q.type === "ShortText" || q.type === "LongText") {
         const Field = q.type === "LongText" ? TextArea : TextField;
         return <Field key={q.key} label={q.label} placeholder={q.type === "LongText" ? "Write your answer" : "Your answer"} description={q.helpText ?? undefined} isRequired={q.required} isDisabled={disabled} value={typeof value === "string" ? value : ""} maxLength={q.maxLength ?? undefined} onChange={(text) => set(q.key, text)} />;
       }
-      if (q.type === "MultiChoice") return <fieldset key={q.key} className={styles.form} disabled={disabled}><legend>{q.label}{q.required ? " *" : ""}</legend>{q.helpText && <p className={styles.muted}>{q.helpText}</p>}{q.choices?.map((choice) => <Checkbox key={choice.key} isSelected={Array.isArray(value) && value.includes(choice.key)} onChange={(checked) => set(q.key, checked ? [...(Array.isArray(value) ? value : []), choice.key] : (Array.isArray(value) ? value : []).filter((v) => v !== choice.key))}>{choice.label}</Checkbox>)}</fieldset>;
+      if (q.type === "MultiChoice") return <fieldset key={q.key} className={styles.choiceGroup} disabled={disabled}><legend className={styles.choiceLegend}>{q.label}{q.required ? <span aria-hidden="true"> *</span> : ""}{q.helpText && <small>{q.helpText}</small>}</legend>{q.choices?.map((choice) => <Checkbox key={choice.key} isSelected={Array.isArray(value) && value.includes(choice.key)} onChange={(checked) => set(q.key, checked ? [...(Array.isArray(value) ? value : []), choice.key] : (Array.isArray(value) ? value : []).filter((v) => v !== choice.key))}>{choice.label}</Checkbox>)}</fieldset>;
       if (q.type === "SingleChoice" || q.type === "YesNo")
         return <Select key={q.key} label={q.label} description={q.helpText ?? undefined} placeholder="Choose an answer" isRequired={q.required} isDisabled={disabled} selectedKey={value === undefined || value === null ? null : String(value)} onSelectionChange={(key) => set(q.key, q.type === "YesNo" ? key === "true" : String(key))}>
           {q.type === "YesNo" ? [<Option key="true" id="true">Yes</Option>, <Option key="false" id="false">No</Option>] : (q.choices ?? []).map((c) => <Option key={c.key} id={c.key}>{c.label}</Option>)}

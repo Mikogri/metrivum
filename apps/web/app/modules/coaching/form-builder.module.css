@@ -132,7 +132,10 @@
   line-height: 1.15;
 }
 
+/* Grows with its text (height is set from the content), so it never scrolls inside itself. */
 .descriptionInput {
+  overflow: hidden;
+  resize: none;
   margin-top: calc(var(--tf-space-3) * -1);
   color: var(--tf-color-text-secondary);
   font-size: var(--tf-text-md);

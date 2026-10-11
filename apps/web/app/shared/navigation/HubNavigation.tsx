@@ -17,7 +17,7 @@ export function HubNavigation() {
   if (mode !== "coach" || !selected) return null;
   const sections = client ? clientSections : programSections;
   return (
-    <Tabs className={styles.navigation} selectedKey={selected} onSelectionChange={(key) => navigate(String(key))}>
+    <Tabs className={styles.navigation} selectedKey={selected} onSelectionChange={(key) => navigate(String(key), { replace: true })}>
       <TabList aria-label={client ? "Clients sections" : "Programs sections"}>
         {sections.map(([label, url]) => <Tab key={url} id={url}>{label}</Tab>)}
       </TabList>

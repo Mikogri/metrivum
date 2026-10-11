@@ -1,0 +1,30 @@
+.figure {
+  display: block;
+  width: 100%;
+  max-width: 15rem;
+  height: auto;
+  fill: none;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.line {
+  stroke: var(--tf-color-border-strong);
+}
+
+/* The part of each drawing the pillar is about, in the product's data accent. */
+.on {
+  fill: var(--tf-color-accent-soft);
+  stroke: var(--tf-color-accent);
+}
+
+.off {
+  fill: var(--tf-color-surface-raised);
+  stroke: var(--tf-color-border-strong);
+}
+
+.dash {
+  stroke: var(--tf-color-border-strong);
+  stroke-dasharray: 2 4;
+}

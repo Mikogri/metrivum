@@ -59,6 +59,11 @@
   color: var(--tf-color-danger);
 }
 
+.danger[data-pressed] {
+  background: rgb(240 96 93 / 0.22);
+  color: var(--tf-color-danger);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .iconButton[data-hovered] {
     background: var(--tf-color-surface-hover);

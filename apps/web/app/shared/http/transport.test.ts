@@ -41,6 +41,16 @@ describe("buildUrl", () => {
     const url = buildUrl("https://api.example.test", "/api/v1/exercises", { Search: "squat", TagId: undefined, MuscleKey: null, Page: 2, FavoritesOnly: false });
     expect(url).toBe("https://api.example.test/api/v1/exercises?Search=squat&Page=2&FavoritesOnly=false");
   });
+
+  it("encodes arrays as repeated query parameters without changing scalar values", () => {
+    const url = new URL(buildUrl("https://api.example.test", "/api/v1/coaching/services/current", {
+      relationshipIds: ["first", "second & third"], empty: [], page: 0, active: false,
+    }));
+    expect(url.searchParams.getAll("relationshipIds")).toEqual(["first", "second & third"]);
+    expect(url.searchParams.has("empty")).toBe(false);
+    expect(url.searchParams.get("page")).toBe("0");
+    expect(url.searchParams.get("active")).toBe("false");
+  });
 });
 
 describe("parseVersion", () => {
@@ -53,6 +63,37 @@ describe("parseVersion", () => {
 });
 
 describe("transport", () => {
+  it.each(['account', 'caller', 'timeout'] as const)("keeps cancellation attached while reading the response body: %s", async source => {
+    vi.useFakeTimers();
+    const account = new AbortController(); const caller = new AbortController();
+    let signal!: AbortSignal; let release!: (text: string) => void; let reading!: () => void;
+    const started = new Promise<void>(resolve => { reading = resolve; });
+    const body = new Promise<string>(resolve => { release = resolve; });
+    const response = jsonResponse(200, {});
+    response.text = () => { reading(); return body; };
+    const transport = createTransport({ baseUrl: "https://api.example.test", getAccessToken: async () => 'token',
+      accountSignal: () => account.signal, isCurrent: () => true,
+      fetchImpl: async (_url, init) => { signal = init!.signal!; return response; } });
+    const pending = transport({ path: '/api/v1/me', signal: caller.signal, timeoutMs: 100 });
+    const outcome = pending.catch(error => error);
+    await started;
+    try {
+      if (source === 'account') account.abort(); else if (source === 'caller') caller.abort(); else await vi.advanceTimersByTimeAsync(101);
+      expect(signal.aborted).toBe(true);
+    } finally { release('{}'); vi.useRealTimers(); }
+    const result = await outcome;
+    if (source === 'account') expect(result).toBeInstanceOf(StaleAccountError);
+    else if (source === 'timeout') expect(result).toBeInstanceOf(NetworkError);
+    else expect(result).toHaveProperty('name', 'AbortError');
+  });
+
+  it("supports a caller AbortSignal without throwIfAborted", async () => {
+    const caller = new AbortController();
+    Object.defineProperty(caller.signal, 'throwIfAborted', { value: undefined });
+    const { transport } = setup([jsonResponse(200, { ok: true })]);
+    expect((await transport<{ ok: boolean }>({ path: '/api/v1/me', signal: caller.signal })).data.ok).toBe(true);
+  });
+
   it("does not send a write when the account changes during token lookup", async () => {
     let current = true;
     let release!: (token: string) => void;

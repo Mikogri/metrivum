@@ -46,7 +46,7 @@ export function GeneratorForm() {
   });
   const save = useMutation({
     mutationFn: async () => (await api<PlanDto>({ method: "POST", path: `${base}/save-draft`, idempotencyKey: saveKey,
-      json: { name: name.trim(), description: "Created from a reviewed deterministic recipe. Review and publish in the program builder.", folderId: null, state: preview!.state } })).data,
+      json: { name: name.trim(), description: "Created from a reviewed deterministic recipe. Review and apply changes in the program builder.", folderId: null, state: preview!.state } })).data,
     onSuccess: (plan) => { void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(account) }); navigate(`/app/programs/${plan.id}/edit`); },
   });
   const busy = action.isPending || save.isPending;
@@ -90,11 +90,11 @@ export function GeneratorForm() {
           <Select label="Experience" selectedKey={input.level} onSelectionChange={key => update("level", key as GenerationLevel)}>
             {["Beginner", "Intermediate", "Advanced"].map(x => <Option key={x} id={x}>{x}</Option>)}
           </Select>
-          <TextField label="Minutes per session" description="10–180 minutes" type="number" value={String(input.sessionMinutes)} onChange={v => update("sessionMinutes", Number(v))} />
-          <TextField label="Days per cycle" description="1–28 days" type="number" value={String(input.cycleDays)} onChange={v => update("cycleDays", Number(v))} />
-          <TextField label="Workout day positions" description="Comma-separated positions in each cycle, such as 1, 4, 8 for a 10-day cycle." value={days} onChange={v => { setDays(v); setFormChanged(true); }} />
-          <TextField label="Number of cycles" description="1–12 cycles" type="number" value={String(input.cycles)} onChange={v => update("cycles", Number(v))} />
-          <TextField label="Seed" type="number" value={String(input.seed)} onChange={v => update("seed", Number(v))} />
+          <TextField label="Minutes per session" placeholder="60" description="10–180 minutes" type="number" value={String(input.sessionMinutes)} onChange={v => update("sessionMinutes", Number(v))} />
+          <TextField label="Days per cycle" placeholder="7" description="1–28 days" type="number" value={String(input.cycleDays)} onChange={v => update("cycleDays", Number(v))} />
+          <TextField label="Workout day positions" placeholder="1, 3, 5" description="Comma-separated positions in each cycle, such as 1, 4, 8 for a 10-day cycle." value={days} onChange={v => { setDays(v); setFormChanged(true); }} />
+          <TextField label="Number of cycles" placeholder="4" description="1–12 cycles" type="number" value={String(input.cycles)} onChange={v => update("cycles", Number(v))} />
+          <TextField label="Seed" placeholder="Any number" type="number" value={String(input.seed)} onChange={v => update("seed", Number(v))} />
           <Checkbox isSelected={input.progressRepetitions} onChange={v => update("progressRepetitions", v)}>Add up to two repetitions across subsequent cycles</Checkbox>
         </fieldset>
         <fieldset disabled={busy} className={styles.checks}><legend>Available equipment and space</legend>
@@ -148,8 +148,8 @@ export function GeneratorForm() {
         })}
         <details><summary>Recipe assumptions and reproducibility</summary><ul>{preview.assumptions.map(x => <li key={x}>{x}</li>)}</ul><p>Recipe: {preview.state.recipeVersion}<br />Metadata: {preview.state.metadataVersion}<br />Dataset: <code className={styles.hash}>{preview.state.datasetVersion}</code></p></details>
         <div className={styles.save}>
-          <TextField label="Program name" value={name} maxLength={200} onChange={value => { setName(value); setSaveKey(newIdempotencyKey()); }} isDisabled={busy} />
-          <p>Save creates a private draft. Continue editing sets, loads and structure in the program builder, then publish and assign explicitly.</p>
+          <TextField label="Program name" placeholder="e.g. Strength block A" value={name} maxLength={200} onChange={value => { setName(value); setSaveKey(newIdempotencyKey()); }} isDisabled={busy} />
+          <p>Save creates a private draft. Continue editing sets, loads and structure in the program builder, then apply changes and assign.</p>
           <Button variant="primary" loading={save.isPending} isDisabled={action.isPending || formChanged || !preview.feasible || !name.trim()} onPress={() => save.mutate()}>Save draft and open builder</Button>
         </div>
       </section> : null}

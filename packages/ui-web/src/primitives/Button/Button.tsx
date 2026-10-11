@@ -9,7 +9,7 @@ import { cx } from "../../lib/cx";
 import { Spinner } from "../../components/Spinner/Spinner";
 import styles from "./Button.module.css";
 
-export type ButtonVariant = "primary" | "accent" | "secondary" | "ghost" | "danger";
+export type ButtonVariant = "primary" | "accent" | "secondary" | "ghost" | "danger" | "danger-ghost" | "success";
 export type ButtonSize = "sm" | "md" | "lg";
 
 interface SharedButtonProps {
@@ -63,7 +63,7 @@ export function Button({
       isPending={loading || props.isPending}
       className={cx(styles.button, styles[variant], styles[size], block && styles.block, className)}
     >
-      <Content iconStart={iconStart} iconEnd={iconEnd} loading={loading}>
+      <Content iconStart={iconStart} iconEnd={iconEnd} loading={loading || props.isPending}>
         {children}
       </Content>
     </AriaButton>

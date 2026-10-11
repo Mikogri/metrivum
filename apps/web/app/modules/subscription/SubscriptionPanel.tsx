@@ -48,7 +48,8 @@ function OffersSkeleton() {
   );
 }
 
-export function Offers() {
+/** The plan cards. `embedded` is the Subscription page itself, which shows renewal and history below. */
+export function Offers({ embedded = false }: { embedded?: boolean } = {}) {
   const profile = useProfile();
   const plans = useCoachingQuery<Plan[]>("/api/v1/subscriptions/plans");
   const current = useCoachingQuery<Subscription>("/api/v1/me/platform-subscription");
@@ -81,7 +82,7 @@ export function Offers() {
 
   return (
     <div className={styles.panel}>
-      <p className={styles.note}>Individual tools stay available. Team adds organizational roles, paid seats and shared client management. Payments are simulated; no real money is charged.</p>
+      {!embedded && <p className={styles.note}>Individual tools stay available. Team adds organizational roles, paid seats and shared client management. Payments are simulated; no real money is charged.</p>}
       <MutationError error={mutation.error} />
       <div className={styles.offers}>
         {OFFERS.map((offer, i) => {
@@ -146,9 +147,11 @@ export function Offers() {
           ))}
         </ul>
       </section>
-      <LinkButton href="/app/subscription" variant="ghost" size="sm" className={styles.manage}>
-        Renewal and payment history
-      </LinkButton>
+      {!embedded && (
+        <LinkButton href="/app/subscription" variant="ghost" size="sm" className={styles.manage}>
+          Renewal and payment history
+        </LinkButton>
+      )}
     </div>
   );
 }

@@ -21,7 +21,7 @@ export function DraftChat({ person, back, open }: { person: ChatPerson; back: ()
   const dirty = Boolean(body.trim() || action.isPending);
   useUnsavedWorkGuard(() => dirty);
   const blocker = useBlocker(({ currentLocation, nextLocation }) => dirty && (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search));
-  useEffect(() => { if (request?.state === "Accepted" && request.conversationId) open(request.conversationId); }, [request, open]);
+  useEffect(() => { if (request?.conversationId) open(request.conversationId); }, [request, open]);
   const incoming = request?.recipientUserId === account.userId;
   function send() {
     if (!body.trim() || action.isPending || request || !requests.isSuccess) return;
@@ -43,15 +43,15 @@ export function DraftChat({ person, back, open }: { person: ChatPerson; back: ()
         <article className={styles.message} data-mine={!incoming || undefined}><div className={styles.messageBody}><div className={styles.bubble}>{request.body}</div>{!incoming ? <span className={styles.meta}>Sent</span> : null}</div></article>
         <p className={styles.hint}>{request.state !== "Pending" ? `Request ${request.state.toLowerCase()}.` : incoming ? "Accept to continue the conversation." : "Message sent. You can continue when they accept."}</p>
         {incoming && request.state === "Pending" ? <div className={styles.actions}>{["accept", "decline"].map(operation => <Button key={operation} loading={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${request.id}/${operation}` })}>{operation === "accept" ? "Accept" : "Decline"}</Button>)}</div> : null}
-      </> : <p className={styles.hint}>Send your first message here. They will receive a message request and can accept the conversation.</p>}
+      </> : <p className={styles.hint}>Send your first message here. If they require approval, you can continue after they accept.</p>}
       {outgoing && !request ? <article className={styles.message} data-mine="true" aria-label="Outgoing message"><div className={styles.messageBody}><div className={styles.bubble}>{outgoing.body}</div><span className={styles.meta} role="status">{outgoing.status}</span></div></article> : null}
     </div></div>
-    {!request ? <form className={styles.composer} onSubmit={event => { event.preventDefault(); send(); }}>
+    {<form className={styles.composer} onSubmit={event => { event.preventDefault(); send(); }}>
       <div className={styles.composerBox}><div className={styles.composerRow}>
-        <textarea aria-label="Message" placeholder="Send message…" rows={1} maxLength={2000} value={body} disabled={action.isPending} onChange={event => { setBody(event.target.value); setOutgoing(null); }} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(); } }} />
-        <button className={styles.send} type="submit" aria-label="Send" disabled={!body.trim() || action.isPending || !requests.isSuccess}>{action.isPending ? <Spinner size="sm" label="Sending" /> : <SendHorizontal />}</button>
+        <textarea aria-label="Message" placeholder="Send message…" rows={1} maxLength={2000} value={body} disabled={Boolean(request) || action.isPending} onChange={event => { setBody(event.target.value); setOutgoing(null); }} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(); } }} />
+        <button className={styles.send} type="submit" aria-label="Send" disabled={Boolean(request) || !body.trim() || action.isPending || !requests.isSuccess}>{action.isPending ? <Spinner size="sm" label="Sending" /> : <SendHorizontal />}</button>
       </div></div>
-    </form> : null}
+    </form>}
     {action.error ? <Failure error={action.error} /> : null}
   </section>;
 }

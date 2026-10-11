@@ -1,3 +1,4 @@
+import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Download, Redo2, Rocket, Save, Undo2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -25,6 +26,7 @@ import { SheetCanvas, usePersistentSheet } from "./components/SheetCanvas";
 import { WeekView } from "./components/WeekView";
 import { locate, uniqueExerciseIds } from "./model/document";
 import { isSimpleShape } from "./model/structure";
+import { storedMode, storeMode, type EditorMode } from "./mode-preference";
 import { useEditor } from "./useEditor";
 import styles from "./EditorWorkspace.module.css";
 
@@ -45,9 +47,13 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
   const canEdit = access["training.programs.manage"].allowed && (plan.kind === "Program" || access["training.templates.manage"].allowed);
   const readOnly = !canEdit || plan.archived || smallScreen;
   const editor = useEditor(plan, version, { readOnly });
-  // Plans shaped like one week open in simple mode, others in advanced. Either mode can be picked
-  // at any time: simple only limits what can be created, it never changes the plan's structure.
-  const [mode, setMode] = useState<"simple" | "advanced">(() => (isSimpleShape(plan.document) ? "simple" : "advanced"));
+  // The last mode picked in this browser wins; without one, plans shaped like one week open in simple
+  // mode and others in advanced. Simple only limits what can be created, it never changes the structure.
+  const [mode, setModeState] = useState<EditorMode>(() => storedMode() ?? (isSimpleShape(plan.document) ? "simple" : "advanced"));
+  const setMode = (next: EditorMode) => {
+    setModeState(next);
+    storeMode(next);
+  };
   const activeMode = mode;
   // Sheet arrangement: remembered in this browser per plan (disconnected cycles stay in memory only).
   const [sheet, setSheet] = usePersistentSheet(plan.id);
@@ -57,7 +63,8 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
   const leaving = useRef(false);
   const { confirm, dialog } = useDiscardConfirm();
   const names = useExerciseNames(uniqueExerciseIds(editor.doc));
-  const detailPath = `/app/programs/${plan.id}`;
+  const { mode: workspaceMode } = useWorkspace();
+  const detailPath = workspaceMode === "client" ? `/app/training-plans/${plan.id}` : `/app/programs/${plan.id}`;
 
   // Cycles disconnected on the sheet exist only in memory; leaving would lose them like unsaved edits.
   const looseRef = useRef(false);
@@ -156,7 +163,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
             {t.export}
           </Button>
           <TooltipTrigger delay={200}>
-            <Button size="sm" iconStart={<Rocket />} isDisabled={readOnly || editor.dirty || editor.status === "saving"} onPress={() => setPublishOpen(true)}>
+            <Button size="sm" iconStart={<Rocket />} isDisabled={readOnly || editor.status === "saving"} onPress={async () => { await editor.save(); if (!editor.isDirty()) setPublishOpen(true); }}>
               {t.publish}
             </Button>
             {editor.dirty ? <Tooltip>{t.publishDirty}</Tooltip> : <Tooltip>{m.training.detail.revisionsBody}</Tooltip>}

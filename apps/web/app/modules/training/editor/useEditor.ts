@@ -69,57 +69,55 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
       again.current = true;
       return inFlight.current;
     }
-    const doc = historyRef.current.present;
-    const snapshotMeta = metaRef.current;
-    const body = serialize(doc, snapshotMeta);
-    if (body === savedRef.current) {
-      setStatusBoth("clean");
-      return;
-    }
-    if (typeof navigator !== "undefined" && navigator.onLine === false) {
-      setStatusBoth("offline");
-      return;
-    }
-    setStatusBoth("saving");
-    setError(null);
+    // One shared promise covers the whole queue, including edits requested during a save.
     const run = (async () => {
-      try {
-        const result = await saveDraft(
-          api,
-          plan.id,
-          { name: snapshotMeta.name.trim() || plan.name, description: snapshotMeta.description, folderId: snapshotMeta.folderId, document: doc },
-          versionRef.current,
-        );
-        versionRef.current = result.version;
-        setVersion(result.version);
-        // The saved snapshot is what we sent; edits made during the request stay dirty.
-        savedRef.current = body;
-        setSavedBody(body);
-        queryClient.setQueryData(trainingKeys.plan(accountKey, plan.id), result);
-        void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(accountKey), refetchType: "none" });
-        const stillDirty = serialize(historyRef.current.present, metaRef.current) !== savedRef.current;
-        setStatusBoth(stillDirty ? "dirty" : "saved");
-      } catch (caught) {
-        if (isAbortError(caught)) {
-          setStatusBoth("dirty");
+      do {
+        again.current = false;
+        const doc = historyRef.current.present;
+        const snapshotMeta = metaRef.current;
+        const body = serialize(doc, snapshotMeta);
+        if (body === savedRef.current) {
+          setStatusBoth("clean");
           return;
         }
-        setError(caught);
-        if (caught instanceof ApiError && caught.status === 412) setStatusBoth("conflict");
-        else if (caught instanceof NetworkError) setStatusBoth("offline");
-        else setStatusBoth("error");
-        again.current = false;
-      } finally {
-        inFlight.current = null;
-      }
+        if (typeof navigator !== "undefined" && navigator.onLine === false) {
+          setStatusBoth("offline");
+          return;
+        }
+        setStatusBoth("saving");
+        setError(null);
+        try {
+          const result = await saveDraft(
+            api,
+            plan.id,
+            { name: snapshotMeta.name.trim() || plan.name, description: snapshotMeta.description, folderId: snapshotMeta.folderId, document: doc },
+            versionRef.current,
+          );
+          versionRef.current = result.version;
+          setVersion(result.version);
+          // The saved snapshot is what we sent; edits made during the request stay dirty.
+          savedRef.current = body;
+          setSavedBody(body);
+          queryClient.setQueryData(trainingKeys.plan(accountKey, plan.id), result);
+          void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(accountKey), refetchType: "none" });
+          const stillDirty = serialize(historyRef.current.present, metaRef.current) !== savedRef.current;
+          setStatusBoth(stillDirty ? "dirty" : "saved");
+        } catch (caught) {
+          if (isAbortError(caught)) {
+            setStatusBoth("dirty");
+            return;
+          }
+          setError(caught);
+          if (caught instanceof ApiError && caught.status === 412) setStatusBoth("conflict");
+          else if (caught instanceof NetworkError) setStatusBoth("offline");
+          else setStatusBoth("error");
+          return;
+        }
+      } while (again.current);
     })();
     inFlight.current = run;
-    await run;
-    const after = statusRef.current as SaveStatus;
-    if (again.current && after !== "conflict" && after !== "error") {
-      again.current = false;
-      await save();
-    }
+    try { await run; }
+    finally { inFlight.current = null; }
   }, [api, accountKey, options.readOnly, plan.id, plan.name, queryClient]);
 
   // Debounced autosave: waits for a pause in editing; never overlaps with a running save.

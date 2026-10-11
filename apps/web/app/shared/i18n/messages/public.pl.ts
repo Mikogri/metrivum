@@ -251,6 +251,37 @@ export const publicPl: PublicMessages = {
       ],
       note: "Ceny w dolarach amerykańskich, bez VAT. Free nie ma obecnie ograniczeń funkcji wynikających z planu. Zakup Team będzie dostępny wkrótce.",
     },
+    landing: {
+      heroNoteLabel: "Nowość",
+      heroNote: "Analiza wideo liftów w tej samej przestrzeni",
+      statement: {
+        lead: "Inny rodzaj narzędzia treningowego.",
+        rest: "Stworzony dla trenerów, którzy piszą programy, z blokami, cyklami i typowanymi seriami w centrum. TrainFlow zachowuje szybkość arkusza i dodaje strukturę, której potrzebuje program.",
+      },
+      pillars: [
+        { title: "Zbudowany jak plan treningowy", body: "Bloki, cykle o dowolnej długości i numerowane dni: struktura, w której trenerzy i tak myślą." },
+        { title: "Serie zapisane jako dane", body: "Osiem typów serii, zakresy, %1RM, RPE i formuły to pola, a nie tekst wpisany w komórkę." },
+        { title: "Twoja praca wychodzi czysto", body: "Zaimportuj CSV, który już masz, i wyeksportuj dowolną opublikowaną rewizję do CSV lub PDF." },
+      ],
+      chapters: {
+        structure: {
+          title: "Plan i struktura",
+          lead: "Rozpisz blok od długości cyklu po pojedynczy dzień i trzymaj programy oraz szablony w folderach. Szablon zawsze daje niezależną kopię.",
+        },
+        sets: {
+          title: "Serie, obciążenia i ćwiczenia",
+          lead: "Zapisz każdą serię z typem i pozwól formułom policzyć obciążenie. Ćwiczenia wybierasz z jednej wspólnej bazy.",
+        },
+        files: {
+          title: "Import i eksport",
+          lead: "Wprowadź istniejący arkusz przez import z walidacją i wyślij opublikowane rewizje jako pliki.",
+        },
+        video: {
+          title: "Analiza wideo liftów",
+          lead: "Trzymaj nagrania liftów obok programu i śledź każdą analizę od przesłania po wynik.",
+        },
+      },
+    },
     finalCta: {
       title: "Zacznij kolejny blok w TrainFlow",
       body: "Załóż konto, przejdź onboarding i zbuduj pierwszy program.",

@@ -11,7 +11,71 @@
 .table input, .table select { min-width: 5rem; max-width: 8rem; }
 .scroll { max-width: 100%; overflow-x: auto; }
 .number { font-size: var(--tf-text-2xl); font-variant-numeric: tabular-nums; }
-.chart { width: 100%; height: 160px; color: var(--tf-color-accent); }
-.chart polyline { fill: none; stroke: currentColor; stroke-width: 2; }
+.perfChart { width: 100%; min-width: 0; color: var(--tf-color-accent); }
+.perfChart svg { display: block; overflow: visible; }
+.perfChart polyline { fill: none; stroke: currentColor; stroke-width: 2; }
+.perfChart circle { fill: currentColor; }
+.perfChart a:focus-visible circle { stroke: var(--tf-color-text); stroke-width: 3; }
 .field { display: grid; gap: var(--tf-space-1); font-size: var(--tf-text-sm); }
 .field input, .field select, .table input, .table select { border: 1px solid var(--tf-color-border); background: var(--tf-color-surface); color: var(--tf-color-text); border-radius: var(--tf-radius-sm); padding: var(--tf-space-2); font: inherit; }
+
+/* Filter bar above lists and tables. */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tf-space-2); }
+
+/* Two-line row link in tables: title, then a muted line. */
+.rowLink { display: grid; gap: 1px; padding: 0; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.rowLink > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rowLink > small { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-regular); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Rows inside a flush panel. */
+.rows { display: grid; margin: 0; padding: 0; list-style: none; }
+.itemRow { display: flex; align-items: center; justify-content: space-between; gap: var(--tf-space-3); min-width: 0; padding: var(--tf-space-3) var(--tf-space-4); }
+.itemRow + .itemRow { border-top: 1px solid var(--tf-color-border-subtle); }
+.itemMain { display: grid; gap: 3px; min-width: 0; flex: 1; }
+.itemTitle { color: var(--tf-color-text); font-size: var(--tf-text-sm); font-weight: var(--tf-weight-medium); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.itemTitle:hover { text-decoration: underline; text-underline-offset: 3px; }
+.itemMeta { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+.itemSide { display: flex; flex-shrink: 0; align-items: center; gap: var(--tf-space-2); }
+.itemProgress { display: flex; align-items: center; gap: var(--tf-space-2); max-width: 16rem; color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); font-variant-numeric: tabular-nums; }
+.bar { position: relative; flex: 1; height: 4px; overflow: hidden; border-radius: 999px; background: var(--tf-color-surface-overlay); }
+.bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--tf-color-accent); }
+.panelEmpty { padding: var(--tf-space-5) var(--tf-space-4); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); text-align: center; }
+.reps { width: 8rem; }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--tf-space-4); align-items: stretch; }
+.perfChart .axis { stroke: var(--tf-color-border-subtle); stroke-width: 1; }
+.perfChart polyline { stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.perfChart circle { fill: var(--tf-color-surface); stroke: currentColor; stroke-width: 2; }
+.chartFacts { display: inline-flex; align-items: baseline; gap: var(--tf-space-3); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); font-variant-numeric: tabular-nums; }
+.chartFacts strong { color: var(--tf-color-text); font-weight: var(--tf-weight-semibold); }
+.chartFacts [data-tone="up"] { color: var(--tf-color-accent); }
+.chartFacts [data-tone="down"] { color: var(--tf-color-warning); }
+.details > summary { width: fit-content; color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); cursor: pointer; }
+.details[open] > summary { margin-bottom: var(--tf-space-2); }
+.table th { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-medium); }
+.sectionTitle { margin-top: var(--tf-space-2); font-size: var(--tf-text-md); font-weight: var(--tf-weight-semibold); }
+.hint { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+.formRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--tf-space-3); }
+.pickSection { display: grid; gap: var(--tf-space-2); padding-top: var(--tf-space-4); border-top: 1px solid var(--tf-color-border-subtle); }
+.pickSection > header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--tf-space-2); }
+.pickSection h3 { font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); }
+.range { display: inline-flex; align-items: center; gap: var(--tf-space-2); color: var(--tf-color-text-tertiary); }
+.range > :not(span) { width: 9.5rem; }
+a.rowLink { text-decoration: none; }
+
+/* Recipient picker: one row per client or group, the whole row toggles; selection reads as a lit row. */
+.pickCount { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+.pickCount[data-active] { color: var(--tf-color-text); font-weight: var(--tf-weight-medium); }
+.pickList { display: grid; max-height: 17rem; overflow: auto; border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-lg); }
+.pickList > .pickRow { display: flex; align-items: center; gap: var(--tf-space-3); width: 100%; padding: var(--tf-space-2-5) var(--tf-space-3); cursor: pointer; transition: background-color var(--tf-duration-fast) ease; }
+.pickList > .pickRow + .pickRow { border-top: 1px solid var(--tf-color-border-subtle); }
+.pickList > .pickRow[data-hovered] { background: color-mix(in srgb, var(--tf-color-text) 7%, transparent); }
+.pickList > .pickRow[data-selected] { background: color-mix(in srgb, var(--tf-color-text) 10%, transparent); }
+.pickList > .pickRow > :last-child { flex: 1; min-width: 0; }
+.pickPerson { display: flex; align-items: center; gap: var(--tf-space-2-5); min-width: 0; }
+.pickText { display: grid; min-width: 0; line-height: 1.3; }
+.pickText > strong { overflow: hidden; font-size: var(--tf-text-sm); font-weight: var(--tf-weight-medium); text-overflow: ellipsis; white-space: nowrap; }
+.pickText > small { overflow: hidden; color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); text-overflow: ellipsis; white-space: nowrap; }
+.pickSwatch { width: 4px; height: 1.75rem; flex-shrink: 0; border-radius: 2px; }
+.pickEmpty { padding: var(--tf-space-5) var(--tf-space-4); border: 1px dashed var(--tf-color-border); border-radius: var(--tf-radius-lg); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); text-align: center; }
+
+.planFilter { justify-self: start; }

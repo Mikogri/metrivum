@@ -1,7 +1,13 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { VoicePreview, VoiceRecorder } from "./voice";
+import { VoicePlayer, VoicePreview, VoiceRecorder } from "./voice";
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.useRealTimers(); });
+it("uses filled playback icons for sent voice messages", () => {
+  const { container } = render(<VoicePlayer src="blob:sent" label="Voice message" seed="sent" />);
+  expect(screen.getByRole("button", { name: "Play" }).querySelector("svg")).toHaveAttribute("fill", "currentColor");
+  fireEvent.play(container.querySelector("audio")!);
+  expect(screen.getByRole("button", { name: "Pause" }).querySelector("svg")).toHaveAttribute("fill", "currentColor");
+});
 it("shows elapsed recording and cancels without creating an attachment", async () => {
   vi.useFakeTimers();
   const stop = vi.fn();
@@ -49,10 +55,20 @@ it("previews a ready recording inline and releases its object URL", () => {
   const revoke = vi.fn();
   vi.stubGlobal("URL", { createObjectURL: () => "blob:preview", revokeObjectURL: revoke });
   const cancel = vi.fn();
-  const { unmount } = render(<VoicePreview file={new File(["wav"], "voice.wav", { type: "audio/wav" })} disabled={false} cancel={cancel} />);
-  expect(screen.getByLabelText("Preview voice message")).toHaveAttribute("src", "blob:preview");
-  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  const { container, unmount } = render(<VoicePreview file={new File(["wav"], "voice.wav", { type: "audio/wav" })} disabled={false} cancel={cancel} />);
+  expect(screen.getByRole("group", { name: "Preview voice message" })).toBeInTheDocument();
+  expect(container.querySelector("audio")).toHaveAttribute("src", "blob:preview");
+  fireEvent.click(screen.getByRole("button", { name: "Delete recording" }));
   expect(cancel).toHaveBeenCalledOnce();
   unmount();
   expect(revoke).toHaveBeenCalledWith("blob:preview");
+});
+
+it("uses the same ghost control for starting a recording and playing its draft", () => {
+  vi.stubGlobal("URL", { createObjectURL: () => "blob:preview", revokeObjectURL: vi.fn() });
+  render(<><VoiceRecorder disabled={false} onFile={() => {}} onBusyChange={() => {}} /><VoicePreview file={new File(["wav"], "voice.wav", { type: "audio/wav" })} disabled={false} cancel={() => {}} /></>);
+  const record = screen.getByRole("button", { name: "Record voice message" });
+  const play = screen.getByRole("button", { name: "Play" });
+  expect(play.className).toBe(record.className);
+  expect(play.getAttribute("data-size")).toBe(record.getAttribute("data-size"));
 });

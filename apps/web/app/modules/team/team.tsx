@@ -1,3 +1,4 @@
+import { UserAutocomplete } from "~/modules/accounts";
 import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
 import { useQueryClient } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import { Alert, AlertDialog, Badge, Button, Card, DataTable, Dialog, EmptyState,
 import { Failure, Loading, MutationError, useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { useAccountContext, useAccountKey } from "~/shared/session/AccountScope";
 import { ApiError } from "~/shared/http";
+import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { TeamBilling } from "~/modules/subscription";
 import { TeamClients, TransferRequests } from "./team-clients";
 import styles from "./team.module.css";
@@ -36,12 +38,14 @@ const statusTone = (status: string) => (status === "Active" ? "success" : status
 export default function TeamRoute() {
   const home = useCoachingQuery<Schema<"TeamHomeDto">>("/api/v1/teams/mine");
   const mutation = useTeamMutation();
+  const { ask, dialog: confirmDialog } = useDangerConfirm();
   if (home.isPending) return <Loading />;
   if (home.isError) return <Failure error={home.error} retry={() => void home.refetch()} />;
   const invites = home.data.requests.filter((request) => request.kind === "Invite" && request.canDecide);
   return <><PageHeader title="Team" description="Your organization, membership and shared coaching. Personal clients and resources remain private." />
     <div className={styles.page}>
       <TeamMutationError error={mutation.error} />
+      {confirmDialog}
       {invites.length > 0 && <section aria-labelledby="team-invites" className={styles.invites}>
         <h2 id="team-invites" className={styles.sectionTitle}>Incoming invitations</h2>
         {invites.map((request) => <Card key={request.id} padding="md" className={styles.invite}>
@@ -50,7 +54,7 @@ export default function TeamRoute() {
             <p className={styles.strong}>{request.teamName}</p>
             <p className={styles.muted}>Join as {request.role}{request.expiresAt ? ` · expires ${new Date(request.expiresAt).toLocaleDateString()}` : ""}</p>
           </div>
-          <Button variant="ghost" isDisabled={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/teams/requests/${request.id}/decision`, json: { accept: false } })}>Decline invitation</Button>
+          <Button variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await ask({ title: `Decline the invitation to ${request.teamName}?`, body: "The Team is told you declined. An admin can invite you again later.", confirmLabel: "Decline invitation", cancelLabel: "Keep invitation" })) mutation.mutate({ method: "POST", path: `/api/v1/teams/requests/${request.id}/decision`, json: { accept: false } }); }}>Decline invitation</Button>
           <Button variant="primary" isDisabled={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/teams/requests/${request.id}/decision`, json: { accept: true } })}>Accept invitation</Button>
         </Card>)}
       </section>}
@@ -154,10 +158,12 @@ function Members({ team, members, requests }: { team: Team; members: Member[]; r
   const mutation = useTeamMutation();
   const can = (action: string) => team.allowedActions.includes(`teams.${action}`);
   const full = Number(team.occupiedSeats) >= Number(team.purchasedSeats);
+  const { ask: askMember, dialog: confirmDialog } = useDangerConfirm();
   return <div className={styles.stack}>
     <TeamMutationError error={mutation.error} />
-    {can("invite") && <form className={styles.inviteForm} onSubmit={(event) => { event.preventDefault(); mutation.mutate({ method: "POST", path: `/api/v1/teams/${team.id}/invitations`, json: { username: username.trim(), role } }, { onSuccess: () => setUsername("") }); }}>
-      <TextField label="Invite by username" placeholder="coach username" isRequired value={username} onChange={setUsername} className={styles.grow} />
+    {confirmDialog}
+    {can("invite") && <form className={styles.inviteForm} onSubmit={(event) => { event.preventDefault(); mutation.mutate({ method: "POST", path: `/api/v1/teams/${team.id}/invitations`, json: { username: username.trim().replace(/^@/, ""), role } }, { onSuccess: () => setUsername("") }); }}>
+      <UserAutocomplete label="Invite by username" isRequired value={username} onChange={setUsername} className={styles.grow} isDisabled={mutation.isPending || full} />
       <Select label="Invitation role" selectedKey={role} onSelectionChange={(key) => setRole(String(key))} className={styles.roleSelect}><Option id="Member">Member</Option>{team.isOwner && <Option id="Admin">Admin</Option>}</Select>
       <Button type="submit" variant="primary" iconStart={<Mail />} isDisabled={mutation.isPending || full || !username.trim()}>Send invitation</Button>
       {full && <p className={styles.formNote}>Add paid seats before inviting another coach.</p>}
@@ -168,10 +174,10 @@ function Members({ team, members, requests }: { team: Team; members: Member[]; r
       { id: "joined", header: "Joined", width: "9rem", muted: true, hideOnMobile: true, cell: (member) => new Date(member.joinedAt).toLocaleDateString() },
       { id: "actions", header: <span className="tf-visually-hidden">Actions</span>, align: "end", cell: (member) => <div className={styles.rowActions}>
         {team.isOwner && can("manage") && member.role !== "Owner" && <Button size="sm" variant="ghost" isDisabled={mutation.isPending} onPress={() => mutation.mutate({ method: "PATCH", path: `/api/v1/teams/${team.id}/members/${member.userId}/role`, json: { role: member.role === "Admin" ? "Member" : "Admin", version: team.version } })}>{member.role === "Admin" ? "Demote to Member" : "Promote to Admin"}</Button>}
-        {can("manage") && member.role !== "Owner" && (team.isOwner || member.role === "Member") && <Button size="sm" variant="ghost" onPress={() => setRemove(member)}>Remove</Button>}
+        {can("manage") && member.role !== "Owner" && (team.isOwner || member.role === "Member") && <Button size="sm" variant="danger-ghost" onPress={() => setRemove(member)}>Remove</Button>}
       </div> },
     ]} />
-    {can("manage") && requests.length > 0 && <section className={styles.stack}><h3 className={styles.sectionTitle}>Invitations</h3><ul className={styles.requestList}>{requests.map((request) => <li key={request.id}><span className={styles.avatar} aria-hidden="true">{initials(request.displayName)}</span><span className={styles.inline}>{request.displayName} <span className={styles.muted}>· {request.role}</span></span><Badge size="sm" tone={statusTone(request.status)}>{request.status}</Badge>{request.status === "Pending" && <Button size="sm" variant="ghost" isDisabled={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/teams/${team.id}/invitations/${request.id}/revoke` })}>Revoke invitation</Button>}</li>)}</ul></section>}
+    {can("manage") && requests.length > 0 && <section className={styles.stack}><h3 className={styles.sectionTitle}>Invitations</h3><ul className={styles.requestList}>{requests.map((request) => <li key={request.id}><span className={styles.avatar} aria-hidden="true">{initials(request.displayName)}</span><span className={styles.inline}>{request.displayName} <span className={styles.muted}>· {request.role}</span></span><Badge size="sm" tone={statusTone(request.status)}>{request.status}</Badge>{request.status === "Pending" && <Button size="sm" variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await askMember({ title: "Revoke this invitation?", body: "The coach can no longer join with it. You can invite them again later.", confirmLabel: "Revoke invitation", cancelLabel: "Keep invitation" })) mutation.mutate({ method: "POST", path: `/api/v1/teams/${team.id}/invitations/${request.id}/revoke` }); }}>Revoke invitation</Button>}</li>)}</ul></section>}
     {can("transfer-ownership") && <div className={styles.zone}>
       <div className={styles.grow}><p className={styles.strong}>Transfer ownership</p><p className={styles.muted}>{team.pendingOwnerId ? "Ownership transfer is awaiting the selected member's acceptance." : "The new owner takes over billing and owner-only actions."}</p></div>
       <Select aria-label="New owner" placeholder="Select a Team member" selectedKey={successor || null} onSelectionChange={(key) => setSuccessor(key ? String(key) : "")} className={styles.ownerSelect}>{members.filter((member) => member.role !== "Owner").map((member) => <Option key={member.userId} id={member.userId}>{member.displayName || member.username}</Option>)}</Select>
@@ -190,8 +196,8 @@ function TeamSettings({ team }: { team: Team }) {
   const mutation = useTeamMutation();
   return <form className={styles.settings} onSubmit={(event) => { event.preventDefault(); mutation.mutate({ method: "PATCH", path: `/api/v1/teams/${team.id}`, json: { name: name.trim(), description, version: team.version } }); }}>
     <TeamMutationError error={mutation.error} />
-    <TextField label="Organization name" isRequired maxLength={80} value={name} onChange={setName} />
-    <TextArea label="Description" description="Shown to Team members." maxLength={2000} rows={3} value={description} onChange={setDescription} />
+    <TextField label="Organization name" placeholder="e.g. Peak Performance Studio" isRequired maxLength={80} value={name} onChange={setName} />
+    <TextArea label="Description" placeholder="What your team does and who it coaches" description="Shown to Team members." maxLength={2000} rows={3} value={description} onChange={setDescription} />
     <div><Button type="submit" variant="primary" loading={mutation.isPending}>Save Team settings</Button></div>
   </form>;
 }

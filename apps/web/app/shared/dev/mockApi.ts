@@ -12,6 +12,7 @@ import type {
   TrainingDocument,
 } from "@trainflow/api-client-web";
 import { featureDefinitions } from "@trainflow/api-client-web";
+import { mockClientDetail } from "./mockClientDetail";
 import { mockCoaching } from "./mockCoaching";
 
 // Developer mock data. Clearly fake, used only with VITE_DEV_MOCKS=1 in `npm run dev`.
@@ -218,8 +219,8 @@ db.media = [
   { id: "66666666-0000-4000-8000-000000000002", name: "rdl-ramp.webm", contentType: "video/webm", size: 22_004_881, state: "Ready", pinned: false, createdAt: ago(1), version: 1 },
 ];
 db.analyses = [
-  { id: "77777777-0000-4000-8000-000000000001", name: "Squat top set — week 3", note: "Mock analysis result (developer data).", tags: ["squat", "top set"], mediaId: db.media[0]!.id, configuration: { movement: "squat", metersPerPixel: null }, status: "Completed", createdAt: ago(2), completedAt: ago(2), failureCode: null, attempts: 1, version: 3 },
-  { id: "77777777-0000-4000-8000-000000000002", name: "RDL ramp", note: null, tags: ["hinge"], mediaId: db.media[1]!.id, configuration: { movement: "unspecified", metersPerPixel: null }, status: "Failed", createdAt: ago(1), completedAt: ago(1), failureCode: "ANALYZER_NOT_CONFIGURED", attempts: 1, version: 2 },
+  { id: "77777777-0000-4000-8000-000000000001", name: "Squat top set — week 3", note: "Mock analysis result (developer data).", tags: ["squat", "top set"], mediaId: db.media[0]!.id, executionLocation: "server", configuration: { movement: "squat", metersPerPixel: null }, status: "Completed", createdAt: ago(2), completedAt: ago(2), failureCode: null, attempts: 1, version: 3 },
+  { id: "77777777-0000-4000-8000-000000000002", name: "RDL ramp", note: null, tags: ["hinge"], mediaId: db.media[1]!.id, executionLocation: "server", configuration: { movement: "unspecified", metersPerPixel: null }, status: "Failed", createdAt: ago(1), completedAt: ago(1), failureCode: "ANALYZER_NOT_CONFIGURED", attempts: 1, version: 2 },
 ];
 
 function demoResult(): AnalysisResult {
@@ -266,6 +267,10 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   let m: RegExpMatchArray | null;
 
   if (path === "/api/v1/me" && method === "GET") return json(200, db.profile, db.profile.version);
+  if (path === "/api/v1/me/roles/client" && method === "POST") {
+    db.profile = { ...db.profile, roles: [...new Set([...db.profile.roles, "Client"])], version: db.profile.version + 1 } as ProfileResponse;
+    return json(200, db.profile, db.profile.version);
+  }
   if (path === "/api/v1/me" && method === "PATCH") {
     if (ifMatch(init) !== db.profile.version) return problem(412, "VERSION_CONFLICT");
     db.profile = { ...db.profile, ...body, version: db.profile.version + 1 };
@@ -436,7 +441,12 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   if (path.startsWith("/api/v1/training/imports")) return problem(503, "INTEGRATION_UNAVAILABLE", "CSV import is not simulated in developer mock mode.");
 
   // Media & analysis
-  if (path === "/api/v1/media" && method === "GET") return json(200, db.media.filter((x) => !q.get("state") || x.state === q.get("state")));
+  if (path === "/api/v1/media" && method === "GET") {
+    const term = q.get("search")?.toLowerCase();
+    const items = db.media.filter((x) => (!q.get("state") || x.state === q.get("state")) && (!term || x.name.toLowerCase().includes(term)));
+    const sort = q.get("sort");
+    return json(200, sort === "name" ? [...items].sort((a, b) => a.name.localeCompare(b.name)) : sort === "oldest" ? [...items].reverse() : items);
+  }
   if (path === "/api/v1/media/uploads") return problem(503, "INTEGRATION_UNAVAILABLE", "Uploads are not simulated in developer mock mode.");
   if (path === "/api/v1/analyses" && method === "GET") {
     let items = db.analyses;
@@ -452,7 +462,29 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   if (path === "/api/v1/analyses/compare") return json(200, { left: demoResult(), right: demoResult() });
   if (path.match(/^\/api\/v1\/media\/[^/]+\/read-url$/)) return problem(503, "INTEGRATION_UNAVAILABLE", "Playback is not simulated in developer mock mode.");
 
+  if (path.endsWith("/attachments/mock-image")) return fetch("/brand/trainflow-mark.png");
+  if (path.endsWith("/attachments/mock-voice")) return new Response(mockTone(), { status: 200, headers: { "content-type": "audio/wav" } });
+
+  const detail = mockClientDetail(path, method, q);
+  if (detail) return json(detail.status, detail.body);
   const coaching = mockCoaching(path, method, q, body, new Headers(init.headers).get("Authorization"));
   if (coaching) return json(coaching.status, coaching.body);
   return problem(404, "RESOURCE_NOT_FOUND", `Mock has no handler for ${method} ${path}`);
+}
+
+/** 1.5 s of a soft, wavering tone as a WAV file: a stand-in voice note for the mock chat. */
+function mockTone() {
+  const rate = 8000;
+  const length = Math.floor(rate * 1.5);
+  const view = new DataView(new ArrayBuffer(44 + length * 2));
+  const text = (offset: number, value: string) => [...value].forEach((c, i) => view.setUint8(offset + i, c.charCodeAt(0)));
+  text(0, "RIFF"); view.setUint32(4, 36 + length * 2, true); text(8, "WAVEfmt ");
+  view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  text(36, "data"); view.setUint32(40, length * 2, true);
+  for (let i = 0; i < length; i++) {
+    const t = i / rate;
+    view.setInt16(44 + i * 2, Math.round(Math.sin(2 * Math.PI * 220 * t) * Math.abs(Math.sin(Math.PI * 3 * t)) * 6000), true);
+  }
+  return view.buffer;
 }

@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Alert, Button } from "@trainflow/ui-web";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
-import { useAccountKey, useApi } from "./AccountScope";
+import { useAccountContext, useAccountKey, useApi } from "./AccountScope";
 import { hasUnsavedWork } from "./dirty-guard";
 import { initialWorkspace, routeWorkspace, type WorkspaceMode } from "./workspace-model";
 
@@ -18,6 +18,7 @@ export function useWorkspace() {
 
 export function WorkspaceScope({ children, roles }: { children: ReactNode; roles: readonly string[] }) {
   const account = useAccountKey();
+  const { lifecycle } = useAccountContext();
   const api = useApi();
   const cache = useQueryClient();
   const navigate = useNavigate();
@@ -31,24 +32,27 @@ export function WorkspaceScope({ children, roles }: { children: ReactNode; roles
   const busy = useRef(false);
   const [error, setError] = useState("");
   const switchMode: Workspace["switchMode"] = async (next, destination) => {
-    if (busy.current || (next === "coach" && !roles.includes("Coach"))) return false;
+    if (!lifecycle.isCurrent() || busy.current || (next === "coach" && !roles.includes("Coach"))) return false;
     busy.current = true;
     try {
       if (hasUnsavedWork() && !await confirm()) return false;
+      if (!lifecycle.isCurrent()) return false;
       setSwitching(true);
       setError("");
       if (next === "client" && !roles.includes("Client")) {
         await api({ method: "POST", path: "/api/v1/me/roles/client" });
+        if (!lifecycle.isCurrent()) return false;
         await cache.invalidateQueries({ queryKey: [account, "me"] });
       }
       await cache.cancelQueries({ queryKey: [account, "coaching"] });
+      if (!lifecycle.isCurrent()) return false;
       try { localStorage.setItem(key, next); } catch { /* Session-only mode when storage is unavailable. */ }
       // Unmount dirty editors before navigating, avoiding a second route-blocker confirmation.
       flushSync(() => setMode(next));
       navigate(destination?.startsWith("/app/") ? destination : next === "coach" ? "/app/dashboard" : "/app/my-coaches", { replace: true });
       return true;
     } catch {
-      setError("Could not switch workspace. Please try again.");
+      if (lifecycle.isCurrent()) setError("Could not switch workspace. Please try again.");
       return false;
     } finally { busy.current = false; setSwitching(false); }
   };

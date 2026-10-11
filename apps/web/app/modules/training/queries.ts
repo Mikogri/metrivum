@@ -1,6 +1,7 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
+import type { Transport } from "~/shared/http/transport";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
-import { getPlan, listBuiltInFormulas, listFolders, listFormulas, listPlans, listRevisions, type PlanListQuery } from "./api";
+import { getFormula, getPlan, listBuiltInFormulas, listFolders, listFormulas, listPlans, listRevisions, type PlanListQuery } from "./api";
 
 export const trainingKeys = {
   all: (a: string) => [a, "training"] as const,
@@ -12,8 +13,17 @@ export const trainingKeys = {
   folderChildren: (a: string, parentId: string | null) => [a, "training", "folders", parentId ?? "root"] as const,
   formulas: (a: string) => [a, "training", "formulas"] as const,
   formulaList: (a: string, search: string, page: number, pageSize = 20) => [a, "training", "formulas", "list", search, page, pageSize] as const,
+  formula: (a: string, id: string, version: number) => [a, "training", "formulas", "detail", id, version] as const,
   builtIns: (a: string) => [a, "training", "formulas", "built-in"] as const,
 };
+
+export function formulaQueryOptions(api: Transport, account: string, formula: { id: string; version: number }) {
+  return queryOptions({
+    queryKey: trainingKeys.formula(account, formula.id, formula.version),
+    queryFn: ({ signal }) => getFormula(api, formula.id, undefined, signal),
+    staleTime: 5 * 60_000,
+  });
+}
 
 export function usePlanList(q: PlanListQuery, enabled = true) {
   const api = useApi();

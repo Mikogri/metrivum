@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/*",
     "apps/web",
-    "apps/ui-catalog"
+    "apps/ui-catalog",
+    "apps/mobile"
   ],
   "engines": {
     "node": ">=22.22.0"
@@ -23,7 +24,8 @@
     "test:hosting": "node --test apps/web/scripts/hosting-rules.test.mjs",
     "e2e": "npm run e2e --workspace @trainflow/web",
     "e2e:coaching": "npm run e2e:coaching --workspace @trainflow/web",
-    "catalog:seed": "node infra/catalog/build-catalog-seed.mjs"
+    "catalog:seed": "node infra/catalog/build-catalog-seed.mjs",
+    "dev:mobile": "npm run dev --workspace @trainflow/mobile"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

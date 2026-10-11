@@ -2,7 +2,8 @@
 export { usePlanList, trainingKeys } from "./queries";
 export { emptyDocument } from "./editor/model/document";
 
-export { AssignmentLauncher, AssignmentList } from "./delivery/Assignments";
+export { AssignmentList, AssignedProgramsSummary, AssignProgramPicker } from "./delivery/Assignments";
+export { TrainingActivity } from "./delivery/Activity";
 export { RelationshipTraining } from "./delivery/TrainingHome";
 export { TrainingProgress } from "./delivery/Progress";
 export type { ProgressData } from "./delivery/Progress";

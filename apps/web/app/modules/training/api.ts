@@ -77,7 +77,7 @@ export async function setArchived(api: Transport, planId: string, archived: bool
 }
 
 export async function publishRevision(api: Transport, planId: string, version: number, idempotencyKey: string) {
-  return (await api<RevisionDto>({ method: "POST", path: `${base}/programs/${id(planId)}/revisions`, ifMatch: version, idempotencyKey })).data;
+  return (await api<RevisionDto>({ method: "POST", path: `${base}/programs/${id(planId)}/apply`, ifMatch: version, idempotencyKey })).data;
 }
 
 export async function listRevisions(api: Transport, planId: string, page = 1, signal?: AbortSignal) {

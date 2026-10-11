@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { X } from "lucide-react";
 import {
   Dialog as AriaDialog,
@@ -44,11 +44,20 @@ export function Dialog({
   role = "dialog",
   className,
   isDismissable = true,
+  isOpen,
+  onOpenChange,
   ...overlayProps
 }: DialogProps) {
   const side = placement ?? (size === "lg" || size === "xl" ? "right" : "center");
   return (
-    <ModalOverlay {...overlayProps} isDismissable={isDismissable} className={styles.overlay} data-placement={side}>
+    <ModalOverlay
+      {...overlayProps}
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      isDismissable={isDismissable}
+      className={styles.overlay}
+      data-placement={side}
+    >
       <Modal className={cx(styles.modal, styles[size], className)} data-placement={side}>
         <AriaDialog role={role} className={styles.dialog}>
           {({ close }) => (
@@ -88,7 +97,7 @@ export interface AlertDialogProps extends Omit<DialogProps, "footer" | "children
   children?: ReactNode;
   confirmLabel: string;
   cancelLabel: string;
-  tone?: "default" | "danger";
+  tone?: "default" | "danger" | "success";
   onConfirm: () => void | Promise<void>;
   isConfirming?: boolean;
 }
@@ -97,13 +106,23 @@ export interface AlertDialogProps extends Omit<DialogProps, "footer" | "children
  * Confirmation that interrupts the flow: a toned icon beside the message, then two equal-width actions.
  * Focus starts on the cancel action for destructive confirms.
  */
-/** Outline warning triangle (Tabler); stroked in currentColor so the tone and glow come from CSS. */
+/** Outline warning triangle (Tabler); stroked in currentColor so the tone comes from CSS. */
 function WarningGlyph() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 9v4" />
       <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" />
       <path d="M12 16h.01" />
+    </svg>
+  );
+}
+
+/** Outline circle check (Tabler), for confirmations of a positive step. */
+function CheckGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+      <path d="M9 12l2 2l4 -4" />
     </svg>
   );
 }
@@ -124,13 +143,14 @@ export function AlertDialog({
       role="alertdialog"
       size="sm"
       isDismissable={!isConfirming}
+      isKeyboardDismissDisabled={isConfirming || props.isKeyboardDismissDisabled}
       footer={(close) => (
         <>
           <Button variant="secondary" onPress={close} isDisabled={isConfirming} autoFocus={tone === "danger"}>
             {cancelLabel}
           </Button>
           <Button
-            variant={tone === "danger" ? "danger" : "primary"}
+            variant={tone === "danger" ? "danger" : tone === "success" ? "success" : "primary"}
             loading={isConfirming}
             onPress={async () => {
               await onConfirm();
@@ -143,7 +163,7 @@ export function AlertDialog({
     >
       <div className={styles.alert}>
         <span className={styles.alertIcon} data-tone={tone} aria-hidden="true">
-          <WarningGlyph />
+          {tone === "success" ? <CheckGlyph /> : <WarningGlyph />}
         </span>
         <div className={styles.alertText}>
           {description ? <p>{description}</p> : null}

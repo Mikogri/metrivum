@@ -120,6 +120,8 @@
   stroke-width: 1.75;
   stroke-dasharray: 1;
   animation: draw 1100ms var(--tf-ease-out) both;
+  /* New data morphs the line instead of jumping. */
+  transition: d 700ms var(--tf-ease-out);
   animation-delay: calc(200ms + var(--i, 0) * 60ms);
 }
 

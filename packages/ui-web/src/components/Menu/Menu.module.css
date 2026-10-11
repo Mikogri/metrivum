@@ -73,6 +73,10 @@
   background: var(--tf-color-danger-soft);
 }
 
+.danger[data-pressed] {
+  background: rgb(240 96 93 / 0.22);
+}
+
 .separator {
   height: 1px;
   margin: var(--tf-space-1) calc(var(--tf-space-1) * -1);

@@ -1,0 +1,29 @@
+appId: com.trainflow.app
+name: Coach and Client native tabs on one identity
+---
+- launchApp:
+    permissions:
+      all: unset
+- extendedWaitUntil:
+    visible: "More"
+    timeout: 30000
+- tapOn:
+    text: "More"
+    index: 0
+- assertVisible: "Current view: Coach"
+- tapOn: "Switch to Client"
+- assertVisible: "Plans"
+- assertVisible: "History"
+- assertNotVisible: "Clients"
+- tapOn:
+    text: "More"
+    index: 0
+- assertVisible: "Current view: Client"
+- tapOn: "Switch to Coach"
+- assertVisible: "Clients"
+- assertVisible: "Calendar"
+- assertNotVisible: "Plans"
+- tapOn:
+    text: "More"
+    index: 0
+- assertVisible: "Current view: Coach"

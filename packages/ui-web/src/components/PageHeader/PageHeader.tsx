@@ -21,6 +21,7 @@ export interface PageHeaderProps {
   /** Breadcrumbs or a back link above the title. */
   context?: ReactNode;
   actions?: ReactNode;
+  /** Status badges and similar facts. They sit on the right, before the actions, so they never add height. */
   meta?: ReactNode;
   /** Overrides the back button from PageBackContext; `false` hides it. */
   back?: PageBack | false;
@@ -46,9 +47,13 @@ export function PageHeader({ title, description, context, actions, meta, back, c
               {description ? <p className={styles.description}>{description}</p> : null}
             </div>
           </div>
-          {meta ? <div className={styles.meta}>{meta}</div> : null}
         </div>
-        {actions ? <div className={styles.actions}>{actions}</div> : null}
+        {meta || actions ? (
+          <div className={styles.side}>
+            {meta ? <div className={styles.meta}>{meta}</div> : null}
+            {actions ? <div className={styles.actions}>{actions}</div> : null}
+          </div>
+        ) : null}
       </div>
     </header>
   );

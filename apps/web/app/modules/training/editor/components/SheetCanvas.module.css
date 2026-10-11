@@ -744,6 +744,15 @@
   color: var(--tf-color-text-secondary);
 }
 
+/* Long values (comments, loads) stay inside their cell and end in an ellipsis. */
+.cellText {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 button.cell:disabled {
   color: var(--tf-color-text);
   cursor: default;
@@ -806,7 +815,8 @@ button.cell:disabled {
 }
 
 .popOption[aria-selected="true"] {
-  background: var(--tf-color-surface-hover);
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
 }
 
 .popEmpty {
@@ -834,9 +844,16 @@ button.cell:disabled {
   cursor: pointer;
 }
 
-.unit[aria-checked="true"] {
-  background: var(--tf-color-surface-selected);
+.unit:hover {
   color: var(--tf-color-text);
+}
+
+/* The chosen unit reads at a glance: accent fill and text, like a selected segment. */
+.unit[aria-checked="true"] {
+  background: var(--tf-color-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--tf-color-accent-border);
+  color: var(--tf-color-accent);
+  font-weight: var(--tf-weight-semibold);
 }
 
 .popActions {

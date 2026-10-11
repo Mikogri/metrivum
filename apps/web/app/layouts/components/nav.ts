@@ -1,5 +1,5 @@
 import { clientSection, clientSections } from "~/shared/session/workspace-model";
-import { AnalyzeIcon, CalendarIcon, ClientsIcon, DashboardIcon, EarningsIcon, ExercisesIcon, FormsIcon, FormulasIcon, MessagesIcon, OffersIcon, ProgramsIcon, SettingsIcon, VideoAnalysesIcon } from "./navIcons";
+import { AnalyzeIcon, CalendarIcon, CheckInsIcon, ClientsIcon, DashboardIcon, DocumentsIcon, InvitationsIcon, PaymentsIcon, ExercisesIcon, FormsIcon, FormulasIcon, MessagesIcon, OffersIcon, ProgramsIcon, SettingsIcon, VideoAnalysesIcon } from "./navIcons";
 import type { AppMessages } from "~/shared/i18n/messages/app.en";
 
 export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach", "Client"]) {
@@ -10,10 +10,9 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
         id: "client-general",
         label: m.nav.groups.general,
         items: [
-          { to: "/app/my-training", label: "My training", icon: ProgramsIcon },
+          { to: "/app/my-training", label: "Training", icon: ProgramsIcon },
           { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
           { to: "/app/messages", label: "Messages", icon: MessagesIcon },
-          { to: "/app/team", label: "Team", icon: ClientsIcon },
         ],
       },
       {
@@ -24,7 +23,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
           ...(roles.includes("Client")
             ? [
                 { to: "/app/my-applications", label: "Applications", icon: FormsIcon },
-                { to: "/app/my-invitations", label: "Invitations", icon: OffersIcon },
+                { to: "/app/my-invitations", label: "Invitations", icon: InvitationsIcon },
               ]
             : []),
         ],
@@ -35,9 +34,9 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
               id: "client-progress",
               label: "Progress",
               items: [
-                { to: "/app/my-check-ins", label: "Check-ins", icon: FormsIcon },
-                { to: "/app/my-documents", label: "Shared documents", icon: FormsIcon },
-                { to: "/app/payments", label: "Payments", icon: EarningsIcon },
+                { to: "/app/my-check-ins", label: "Check-ins", icon: CheckInsIcon },
+                { to: "/app/my-documents", label: "Shared documents", icon: DocumentsIcon },
+                { to: "/app/payments", label: "Payments", icon: PaymentsIcon },
               ],
             },
           ]
@@ -67,6 +66,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
         { to: "/app/exercises", label: m.nav.exercises, icon: ExercisesIcon },
         { to: "/app/formulas", label: m.nav.formulas, icon: FormulasIcon },
         { to: "/app/forms", label: "Forms", icon: FormsIcon },
+        { to: "/app/offers", label: "Offers", icon: OffersIcon },
       ],
     },
     {
@@ -74,10 +74,9 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
       label: m.nav.groups.coaching,
       items: [
         { to: "/app/clients", label: "Clients", icon: ClientsIcon },
-        { to: "/app/offers", label: "Offers", icon: OffersIcon },
         { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
         { to: "/app/messages", label: "Messages", icon: MessagesIcon },
-          { to: "/app/team", label: "Team", icon: ClientsIcon },
+        { to: "/app/team", label: "Team", icon: ClientsIcon },
       ],
     },
   ];
@@ -100,7 +99,7 @@ export function pathCrumbs(m: AppMessages, pathname: string, mode: "coach" | "cl
   const items = [...appNavItems(m, mode === "coach" ? ["Coach"] : ["Client"]), settingsNavItem(m)];
   const section = items.find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`));
   if (!section) return [];
-  const group = appNavGroups(m).find((g) => g.items.some((item) => item.to === section.to));
+  const group = appNavGroups(m, mode === "coach" ? ["Coach"] : ["Client"]).find((g) => g.items.some((item) => item.to === section.to));
   const crumbs: { href: string; label: string }[] = [{ href: section.to, label: section.label }];
   const rest = pathname.slice(section.to.length).split("/").filter(Boolean)[0];
   if (rest === "new") crumbs.push({ href: pathname, label: section.to === "/app/video-analyses" ? m.nav.crumbs.newAnalysis : m.nav.crumbs.create });

@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-import { parseDate, parseTime } from "@internationalized/date";
+import { Info } from "lucide-react";
+import { parseDate } from "@internationalized/date";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Button, Combobox, DateField, LinkButton, NumberInput, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, TimeField } from "@trainflow/ui-web";
+import { Alert, Button, Combobox, DateField, Dialog, DialogFooter, LinkButton, NumberInput, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, Tooltip, TooltipTrigger, toast } from "@trainflow/ui-web";
+import { useDangerConfirm, useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { RequireFeature } from "~/shared/access";
 import { timeZones } from "~/modules/accounts";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
@@ -14,18 +16,23 @@ import styles from "../coaching.module.css";
 
 type Schedule = Schema<"ScheduleDto">;
 type Kind = Schedule["recurrence"]["kind"];
-const KINDS: { id: Kind; label: string; unit?: [string, string] }[] = [
-  { id: "OneTime", label: "Once" },
-  { id: "EveryNDays", label: "Daily", unit: ["day", "days"] },
-  { id: "EveryNWeeks", label: "Weekly", unit: ["week", "weeks"] },
-  { id: "Monthly", label: "Monthly", unit: ["month", "months"] },
+const KINDS: { id: Kind; label: string; explanation: string; unit?: [string, string] }[] = [
+  { id: "OneTime", label: "Once", explanation: "Send one check-in on the selected date." },
+  { id: "EveryNDays", label: "Daily", explanation: "Repeat every selected number of calendar days, starting on the start date.", unit: ["day", "days"] },
+  { id: "EveryNWeeks", label: "Weekly", explanation: "Send on selected weekdays in every selected number of weeks.", unit: ["week", "weeks"] },
+  { id: "AssignedProgramCycle", label: "Program cycle", explanation: "Send on selected day numbers in each actual assigned program cycle. Dates and time zone follow the assignment. Ends with the assigned program; it does not restart the program." },
+  { id: "Monthly", label: "Monthly", explanation: "Send on the chosen day of the month; shorter months use their final day.", unit: ["month", "months"] },
 ];
 // Monday first on screen; the API numbers days from Sunday (0).
 const WEEK = [["Mon", 1], ["Tue", 2], ["Wed", 3], ["Thu", 4], ["Fri", 5], ["Sat", 6], ["Sun", 0]] as const;
 
-function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?: (dirty: boolean) => void }) {
+/** Opening values when the editor is used as a side panel (e.g. from the calendar). */
+export interface ScheduleSeed { date?: string; timeZone?: string; relationshipId?: string }
+
+function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirtyChange?: (dirty: boolean) => void; panel?: { seed?: ScheduleSeed; close: () => void } }) {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [urlParams] = useSearchParams();
+  const params = panel ? new URLSearchParams(Object.entries(panel.seed ?? {}).filter(([, v]) => v) as [string, string][]) : urlParams;
   const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(params.get("date") ?? "") ? params.get("date")! : null;
   const zones = useMemo(() => timeZones(), []);
   const [current, setCurrent] = useState(initial);
@@ -37,8 +44,13 @@ function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?
     initial?.recurrence ?? { kind: selectedDate ? "OneTime" : "EveryNWeeks", interval: 1, startDate: selectedDate ?? new Date().toLocaleDateString("en-CA"), releaseTime: "09:00:00", weekDays: selectedDate ? null : [1], dayOfMonth: null },
   );
   const [hours, setHours] = useState(Number(initial?.responseWindowHours ?? 48));
-  const [relationships, setRelationships] = useState(initial?.relationshipIds ?? []);
+  const [relationships, setRelationships] = useState(initial?.relationshipIds ?? (params.get("relationshipId") ? [params.get("relationshipId")!] : []));
   const [groups, setGroups] = useState(initial?.groupIds ?? []);
+  const assignments = useCoachingQuery<Schema<"AssignedProgramCycles">[]>("/api/v1/check-ins/assigned-programs", { relationshipId: relationships[0] }, relationships.length === 1 && groups.length === 0);
+  const programs = assignments.data ?? [];
+  const assignment = programs.find((p) => p.assignmentId === recurrence.assignmentId);
+  const cycleDays = (recurrence.cycleDays ?? []).map(Number);
+  const cycleLength = assignment?.cycles.length ? Math.min(...assignment.cycles.map((c) => Number(c.dayCount))) : 0;
   const [dirty, setDirtyState] = useState(false);
   const setDirty = (value: boolean) => {
     setDirtyState(value);
@@ -50,9 +62,13 @@ function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?
       setCurrent(value);
       setDirty(false);
     });
-    if (!current) navigate(`/app/check-in-schedules/${value.id}`, { replace: true });
+    if (panel) {
+      toast({ tone: "success", title: current ? "Schedule saved" : "Check-in schedule created" });
+      panel.close();
+    } else if (!current) navigate(`/app/check-in-schedules/${value.id}`, { replace: true });
   });
   useUnsavedWorkGuard(useCallback(() => dirty, [dirty]));
+  const { ask, dialog: confirmDialog } = useDangerConfirm();
   const available = forms.data?.items.filter((f) => f.currentPublishedVersionId) ?? [];
   const selectedForm = formId || (available.length === 1 ? available[0]!.id : "");
   const locked = current?.status === "Ended" || mutation.isPending;
@@ -63,16 +79,21 @@ function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?
     setDirty(true);
   };
   const days = (recurrence.weekDays ?? []).map(Number);
-  const ready = Boolean(name.trim() && selectedForm && relationships.length + groups.length && (recurrence.kind !== "EveryNWeeks" || days.length));
+  const ready = Boolean(name.trim() && selectedForm && relationships.length + groups.length && /^([01]\d|2[0-3]):[0-5]\d:00$/.test(recurrence.releaseTime) && (recurrence.kind !== "EveryNWeeks" || days.length) && (recurrence.kind !== "AssignedProgramCycle" || (relationships.length === 1 && groups.length === 0 && assignment && cycleDays.length && cycleDays.every((d) => d <= cycleLength))));
 
   return (
     <>
-      <PageHeader
-        title={initial ? name || "Check-in schedule" : "New check-in schedule"}
-        description="Each release uses the form's current published version. Requests already sent keep their questions."
-        actions={current && <StatusBadge status={current.status} />}
-      />
-      <DraftNavigationGuard dirty={dirty} />
+      {panel ? null : (
+        <>
+          <PageHeader
+            title={initial ? name || "Check-in schedule" : "New check-in schedule"}
+            description="Each release uses the form's current published version. Requests already sent keep their questions."
+            meta={current && <StatusBadge status={current.status} />}
+          />
+          <DraftNavigationGuard dirty={dirty} />
+        </>
+      )}
+      {confirmDialog}
       <form
         className={styles.page}
         onSubmit={(e) => {
@@ -81,11 +102,12 @@ function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?
             method: current ? "PATCH" : "POST",
             path: `/api/v1/check-ins/schedules${current ? `/${current.id}` : ""}`,
             ifMatch: current?.version,
-            json: { formTemplateId: selectedForm, name: name.trim(), description, timeZone: zone, recurrence, responseWindowHours: hours, relationshipIds: relationships, groupIds: groups },
+            json: { formTemplateId: selectedForm, name: name.trim(), description, timeZone: recurrence.kind === "AssignedProgramCycle" ? assignment!.timeZone : zone, recurrence, responseWindowHours: hours, relationshipIds: relationships, groupIds: groups },
           });
         }}
       >
         <MutationError error={mutation.error} />
+        {current?.status === "Active" && current.recurrence.kind === "AssignedProgramCycle" && !current.nextAvailableAtUtc && !current.lastFailure && <Alert title="No upcoming release">This schedule stays linked to the assignment. It waits for an active assigned program with remaining cycle dates; it does not restart the program.</Alert>}
         {current?.lastFailure ? (
           <Alert tone="warning" title="The last release could not be completed">
             {current.lastFailure} {current.retryAtUtc && `Next try: ${new Date(current.retryAtUtc).toLocaleString()}`}
@@ -138,23 +160,34 @@ function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?
                 selectedKeys={[recurrence.kind]}
                 onSelectionChange={(keys) => {
                   const next = [...keys][0] as Kind;
-                  change({ kind: next, interval: 1, weekDays: next === "EveryNWeeks" ? (days.length ? days : [1]) : null, dayOfMonth: next === "Monthly" ? 1 : null });
+                  change({ kind: next, assignmentId: next === "AssignedProgramCycle" && programs.length === 1 ? programs[0]!.assignmentId : null, cycleDays: next === "AssignedProgramCycle" ? [1] : null, interval: 1, weekDays: next === "EveryNWeeks" ? (days.length ? days : [1]) : null, dayOfMonth: next === "Monthly" ? 1 : null });
                 }}
               >
                 {KINDS.map((k) => (
-                  <Segment key={k.id} id={k.id}>{k.label}</Segment>
+                  <Segment key={k.id} id={k.id} isDisabled={k.id === "AssignedProgramCycle" && !programs.length}>{k.label}</Segment>
                 ))}
               </SegmentedControl>
+              <div className={styles.actions}>{KINDS.map((k) => <TooltipTrigger key={k.id}><Button variant="ghost" size="sm" aria-label={`Explain ${k.label}`}><Info size={14} />{k.label}</Button><Tooltip>{k.explanation}</Tooltip></TooltipTrigger>)}</div>
+              {!programs.length && <p>Select one client with an active assigned program to use program-cycle days.</p>}
+              {assignments.isError && <Failure error={assignments.error} retry={() => void assignments.refetch()} />}
+              {recurrence.kind === "AssignedProgramCycle" && <>
+                <Select label="Assigned program" isRequired isDisabled={locked} selectedKey={recurrence.assignmentId ?? null} onSelectionChange={(id) => change({ assignmentId: String(id), cycleDays: [1] })}>
+                  {programs.map((p) => <Option key={p.assignmentId} id={p.assignmentId}>{p.programName}</Option>)}
+                </Select>
+                <p>Day 1 starts on the assignment date. Choose days within each actual cycle; this schedule ends with the assigned program.</p>
+                <div className={styles.weekdays} role="group" aria-label="Program cycle days">{Array.from({ length: cycleLength }, (_, i) => i + 1).map((day) => <button key={day} type="button" className={styles.weekday} aria-pressed={cycleDays.includes(day)} disabled={locked} onClick={() => change({ cycleDays: cycleDays.includes(day) ? cycleDays.filter((d) => d !== day) : [...cycleDays, day] })}>Day {day}</button>)}</div>
+                {assignment && <p>Assignment time zone: {assignment.timeZone}. For cycles of different lengths, choose days present in every cycle.</p>}
+              </>}
             </div>
             <div className={styles.columns}>
               <DateField label={recurrence.kind === "OneTime" ? "Date" : "Starts on"} isRequired isDisabled={locked} value={parseDate(recurrence.startDate)} onChange={(v) => v && change({ startDate: v.toString() })} />
-              <TimeField label="Release time" isRequired isDisabled={locked} hourCycle={24} value={parseTime(recurrence.releaseTime)} onChange={(v) => v && change({ releaseTime: `${v.toString().slice(0, 5)}:00` })} />
+              <TextField label="Release time" type="time" isRequired isDisabled={locked} value={recurrence.releaseTime.slice(0, 5)} onChange={(v) => change({ releaseTime: v ? `${v}:00` : "" })} description="Editable local time in the selected time zone." labelAside={<TooltipTrigger><Button slot={null} variant="ghost" size="sm" aria-label="Explain release time"><Info size={14} /></Button><Tooltip>The form becomes available at this local time. Daylight-saving clock changes preserve the local schedule.</Tooltip></TooltipTrigger>} />
             </div>
             {kind.unit ? (
               <div className={styles.columns}>
-                <NumberInput label="Every" isRequired isDisabled={locked} minValue={1} maxValue={365} step={1} value={interval} unit={interval === 1 ? kind.unit[0] : kind.unit[1]} onChange={(v) => change({ interval: Number.isFinite(v) ? v : 1 })} />
+                <NumberInput label="Every" placeholder="1" isRequired isDisabled={locked} minValue={1} maxValue={365} step={1} value={interval} unit={interval === 1 ? kind.unit[0] : kind.unit[1]} onChange={(v) => change({ interval: Number.isFinite(v) ? v : 1 })} />
                 {recurrence.kind === "Monthly" ? (
-                  <NumberInput label="Day of the month" description="Shorter months use their last day." isRequired isDisabled={locked} minValue={1} maxValue={31} step={1} value={Number(recurrence.dayOfMonth ?? 1)} onChange={(v) => change({ dayOfMonth: Number.isFinite(v) ? v : 1 })} />
+                  <NumberInput label="Day of the month" placeholder="1" description="Shorter months use their last day." isRequired isDisabled={locked} minValue={1} maxValue={31} step={1} value={Number(recurrence.dayOfMonth ?? 1)} onChange={(v) => change({ dayOfMonth: Number.isFinite(v) ? v : 1 })} />
                 ) : null}
               </div>
             ) : null}
@@ -182,14 +215,14 @@ function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?
                 label="Time zone"
                 placeholder="Search time zones"
                 isRequired
-                isDisabled={locked}
+                isDisabled={locked || recurrence.kind === "AssignedProgramCycle"}
                 defaultItems={zones.map((z) => ({ id: z }))}
-                selectedKey={zone}
+                selectedKey={recurrence.kind === "AssignedProgramCycle" ? assignment?.timeZone ?? zone : zone}
                 onSelectionChange={(key) => { if (key) { setZone(String(key)); setDirty(true); } }}
               >
                 {(item: { id: string }) => <Option id={item.id}>{item.id.replace(/_/g, " ")}</Option>}
               </Combobox>
-              <NumberInput label="Response window" isRequired isDisabled={locked} minValue={1} maxValue={8760} step={1} value={hours} unit={hours === 1 ? "hour" : "hours"} onChange={(v) => { setHours(Number.isFinite(v) ? v : 48); setDirty(true); }} />
+              <NumberInput label="Response window" placeholder="48" isRequired isDisabled={locked} minValue={1} maxValue={8760} step={1} value={hours} description="Hours after release during which the client can answer on time." labelAside={<TooltipTrigger><Button slot={null} variant="ghost" size="sm" aria-label="Explain response window"><Info size={14} /></Button><Tooltip>The deadline is the release instant plus this many hours. Existing released requests keep their deadlines.</Tooltip></TooltipTrigger>} unit={hours === 1 ? "hour" : "hours"} onChange={(v) => { setHours(Number.isFinite(v) ? v : 48); setDirty(true); }} />
             </div>
           </div>
         </section>
@@ -206,6 +239,7 @@ function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?
               disabled={locked}
               onChange={(value) => {
                 setRelationships(value.relationships);
+                if (recurrence.kind === "AssignedProgramCycle") change({ assignmentId: null, cycleDays: [] });
                 setGroups(value.groups);
                 setDirty(true);
               }}
@@ -213,11 +247,21 @@ function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?
           </div>
         </section>
 
+        {/* In the side panel the actions are the dialog's own footer: fixed at the bottom edge, opaque and
+            edge to edge, so the form never shows through or scrolls past it. */}
+        {panel ? (
+          <DialogFooter>
+          <Button onPress={() => (panel ? panel.close() : navigate("/app/check-in-schedules"))}>Cancel</Button>
+          <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={locked || !ready}>
+            {current ? "Save changes" : "Create schedule"}
+          </Button>
+          </DialogFooter>
+        ) : (
         <div className={styles.formActions}>
           {current && current.status !== "Ended" ? (
             <div className={styles.actions}>
               {[current.status === "Paused" ? "resume" : "pause", "end"].map((action) => (
-                <Button key={action} variant={action === "end" ? "ghost" : "secondary"} isDisabled={locked || dirty} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/check-ins/schedules/${current.id}/${action}`, ifMatch: current.version })}>
+                <Button key={action} variant={action === "end" ? "danger-ghost" : "secondary"} isDisabled={locked || dirty} onPress={async () => { if (action === "end" && !(await ask({ title: "End this schedule?", body: "No further check-ins are released. Requests already sent stay available to clients and in the history.", confirmLabel: "End schedule", cancelLabel: "Keep schedule" }))) return; mutation.mutate({ method: "POST", path: `/api/v1/check-ins/schedules/${current.id}/${action}`, ifMatch: current.version }); }}>
                   {action === "end" ? "End schedule" : action === "pause" ? "Pause" : "Resume"}
                 </Button>
               ))}
@@ -230,6 +274,7 @@ function Editor({ initial, onDirtyChange }: { initial?: Schedule; onDirtyChange?
             {current ? "Save changes" : "Create schedule"}
           </Button>
         </div>
+        )}
       </form>
     </>
   );
@@ -249,5 +294,34 @@ export default function ScheduleRoute() {
     <RequireFeature feature="checkins.schedules.manage">
       <Detail />
     </RequireFeature>
+  );
+}
+
+/**
+ * New check-in schedule in a wide panel sliding in from the right (used by the calendar). Closing
+ * with unsaved changes asks first.
+ */
+export function ScheduleEditorPanel({ seed, isOpen, onClose }: { seed?: ScheduleSeed; isOpen: boolean; onClose: () => void }) {
+  const [dirty, setDirty] = useState(false);
+  const { confirm, dialog } = useDiscardConfirm();
+  const close = async () => {
+    if (dirty && !(await confirm())) return;
+    setDirty(false);
+    onClose();
+  };
+  return (
+    <>
+      <Dialog
+        isOpen={isOpen}
+        onOpenChange={(open) => { if (!open) void close(); }}
+        placement="right"
+        size="xl"
+        title="New check-in schedule"
+        description="Each release uses the form's current published version. Requests already sent keep their questions."
+      >
+        {isOpen ? <Editor key={`${seed?.date ?? ""}:${seed?.timeZone ?? ""}`} onDirtyChange={setDirty} panel={{ seed, close: () => { setDirty(false); onClose(); } }} /> : null}
+      </Dialog>
+      {dialog}
+    </>
   );
 }

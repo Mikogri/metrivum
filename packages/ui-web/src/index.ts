@@ -69,7 +69,7 @@ export { List, ListRow, type ListRowProps } from "./components/List/List";
 // Feedback
 export { Badge, type BadgeProps, type BadgeTone } from "./components/Badge/Badge";
 export { Alert, type AlertProps } from "./components/Alert/Alert";
-export { Toaster, toast, dismissToast, type ToastOptions, type ToastTone, type ToasterProps } from "./components/Toast/Toast";
+export { Toaster, toast, dismissToast, clearToasts, type ToastOptions, type ToastTone, type ToasterProps } from "./components/Toast/Toast";
 export { Spinner, type SpinnerProps } from "./components/Spinner/Spinner";
 export { Skeleton, type SkeletonProps } from "./components/Skeleton/Skeleton";
 export { LoadingState, type LoadingStateProps } from "./components/LoadingState/LoadingState";

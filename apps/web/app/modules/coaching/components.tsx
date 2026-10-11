@@ -1,13 +1,14 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useBlocker } from "react-router";
 import { Alert, AlertDialog, Badge, Button, ErrorState, LoadingState, Pagination } from "@trainflow/ui-web";
 import { ApiError } from "~/shared/http";
 import type { Page } from "./api";
 import { useT } from "~/shared/i18n/AppLocale";
+import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 
 export function StatusBadge({ status }: { status: string }) {
-  return <Badge dot tone={["Active", "Accepted", "Reviewed", "Paid"].includes(status) ? "success" : ["Suspended", "Overdue", "AwaitingPayment"].includes(status) ? "warning" : "neutral"}>{status}</Badge>;
+  return <Badge dot tone={["Active", "Accepted", "Reviewed", "Paid"].includes(status) ? "success" : ["Suspended", "Overdue", "AwaitingPayment"].includes(status) ? "warning" : "neutral"}>{status.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ ([A-Z])/g, (_, c: string) => ` ${c.toLowerCase()}`)}</Badge>;
 }
 
 export function Failure({ error, retry }: { error: unknown; retry?: () => void }) {
@@ -19,6 +20,9 @@ export function Failure({ error, retry }: { error: unknown; retry?: () => void }
 export function MutationError({ error }: { error: unknown }) {
   const m = useT();
   const [reload, setReload] = useState(false);
+  const message = error ? error instanceof ApiError && error.status < 500 ? error.message : errorText(m, error) : null;
+  const showError = useErrorToast();
+  useEffect(() => { if (error && message) showError(error, message); }, [error, message, showError]);
   if (!error) return null;
   const conflict = error instanceof ApiError && (error.status === 412 || error.status === 409 && error.code === "VERSION_CONFLICT");
   return <><Alert tone="danger" title={error instanceof ApiError && error.status < 500 ? error.message : errorText(m, error)} live="assertive" actions={conflict && <Button onPress={() => setReload(true)}>Reload latest version</Button>} />

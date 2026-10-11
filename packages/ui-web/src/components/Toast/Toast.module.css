@@ -1,7 +1,7 @@
 .region {
   position: fixed;
   right: var(--tf-space-4);
-  bottom: var(--tf-space-4);
+  top: max(var(--tf-space-4), env(safe-area-inset-top));
   z-index: var(--tf-z-toast);
   width: min(24rem, calc(100vw - var(--tf-space-8)));
   pointer-events: none;
@@ -17,25 +17,35 @@
 }
 
 .toast {
+  /* Type colour (neutral blue, green, amber, red) drives the stripe and the icon badge. */
+  --toast: var(--tf-color-info);
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-3) var(--tf-space-3) var(--tf-space-4);
-  /* Dark glass with a faint tint of the toast's type (--toast: neutral blue, green, amber, red). */
-  --toast: 121 168 255;
-  border: 1px solid rgb(var(--toast) / 0.18);
+  min-height: 3.25rem;
+  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2) var(--tf-space-3);
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border-strong);
   border-radius: var(--tf-radius-lg);
-  background: color-mix(in srgb, rgb(var(--toast)) 6%, rgb(18 18 18 / 0.86));
+  background: var(--tf-color-surface-overlay);
   box-shadow: var(--tf-shadow-lg);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
   pointer-events: auto;
   opacity: 0;
-  transform: translateY(100%);
+  transform: translateY(-12px);
   /* Transitions, not keyframes: rapid toasts retarget instead of restarting. */
   transition:
-    transform 400ms var(--tf-ease-out),
-    opacity 400ms var(--tf-ease-out);
+    transform 180ms var(--tf-ease-out),
+    opacity 180ms var(--tf-ease-out);
+}
+
+/* Thin type stripe on the leading edge. */
+.toast::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--toast);
 }
 
 .toast[data-mounted] {
@@ -45,21 +55,29 @@
 
 .toast[data-dismissed] {
   opacity: 0;
-  transform: translateY(12px) scale(0.98);
+  transform: translateY(-8px) scale(0.98);
   transition-duration: 200ms;
 }
 
 .icon {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
-  width: 1rem;
-  height: 1rem;
-  margin-top: 2px;
-  color: rgb(var(--toast));
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--tf-radius-md);
+  background: color-mix(in srgb, var(--toast) 16%, transparent);
+  color: var(--toast);
 }
 
-.success { --toast: 62 224 154; }
-.warning { --toast: 242 169 59; }
-.danger { --toast: 240 96 93; }
+.icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.success { --toast: var(--tf-color-success); }
+.warning { --toast: var(--tf-color-warning); }
+.danger { --toast: var(--tf-color-danger); }
 
 .body {
   flex: 1;
@@ -91,6 +109,7 @@
 }
 
 .close {
+  align-self: center;
   display: grid;
   place-items: center;
   flex-shrink: 0;

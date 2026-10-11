@@ -1,4 +1,4 @@
-import { Heart, Search } from "lucide-react";
+import { Dumbbell, Heart, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { prefersReducedMotion, useInView } from "../../lib/useInView";
 import { usePublicMessages } from "../../messages";
@@ -52,7 +52,9 @@ export function LibraryDemo() {
       <ul role="list" className={styles.items}>
         {l.items.map((item, i) => (
           <li key={item.name} className={styles.item} data-hidden={!visible(i) || undefined} style={{ "--i": i } as React.CSSProperties}>
-            <span className={styles.thumb} aria-hidden="true" />
+            <span className={styles.thumb} aria-hidden="true">
+              <Dumbbell />
+            </span>
             <span className={styles.text}>
               <span className={styles.name}>{item.name}</span>
               <span className={styles.meta}>{item.meta}</span>

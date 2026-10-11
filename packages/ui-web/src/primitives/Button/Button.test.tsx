@@ -4,6 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 import { Button } from "./Button";
 
 describe("Button", () => {
+  it("renders a spinner for the shared pending prop", () => {
+    render(<Button isPending>Save</Button>);
+    expect(screen.getByRole("button", { name: "Save" }).querySelector("svg")).toBeInTheDocument();
+  });
   it("fires onPress and is keyboard operable", async () => {
     const onPress = vi.fn();
     render(<Button onPress={onPress}>Save</Button>);

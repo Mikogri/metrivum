@@ -6,7 +6,7 @@ import { Button, Dialog, EmptyState, IconButton, LinkButton, PageHeader, Segment
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useProfile } from "~/modules/accounts";
-import { Failure, Loading } from "~/modules/coaching";
+import { Failure, Loading, ScheduleEditorPanel, type ScheduleSeed } from "~/modules/coaching";
 import { useCalendarRange, type CalendarEvent, type CalendarCheckIn } from "../api";
 import { CalendarViews, onDay, type CalendarEntry } from "../CalendarViews";
 import { EventEditor } from "../EventEditor";
@@ -39,6 +39,7 @@ export default function CalendarRoute() {
   const [filters, setFilters] = useState<string[]>(KINDS.map(([kind]) => kind));
   const [editor, setEditor] = useState<{ kind: "Meeting" | "Event"; initial?: CalendarEvent } | null>(null);
   const [detail, setDetail] = useState<string | null>(null);
+  const [scheduling, setScheduling] = useState<ScheduleSeed | null>(null);
   const dirty = useRef(false);
   const { confirm, dialog } = useDiscardConfirm();
   const coach = mode === "coach";
@@ -150,7 +151,7 @@ export default function CalendarRoute() {
               <Button size="sm" iconStart={<Plus />} onPress={() => setEditor({ kind: "Meeting" })}>
                 Meeting
               </Button>
-              <Button size="sm" variant="ghost" iconStart={<CalendarClock />} onPress={() => navigate(`/app/check-in-schedules/new?date=${date}&timeZone=${encodeURIComponent(zone)}`)}>
+              <Button size="sm" variant="ghost" iconStart={<CalendarClock />} onPress={() => setScheduling({ date, timeZone: zone })}>
                 Schedule check-in
               </Button>
             </div>
@@ -205,6 +206,7 @@ export default function CalendarRoute() {
           />
         ) : null}
       </Dialog>
+      <ScheduleEditorPanel isOpen={scheduling !== null} seed={scheduling ?? undefined} onClose={() => setScheduling(null)} />
     </>
   );
 }

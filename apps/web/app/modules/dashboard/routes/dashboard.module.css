@@ -502,11 +502,17 @@
 
 .metricSpark {
   height: 2.25rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
+/* The shared sparkline bleeds into Kpi padding; here it stays inside the card's padding box. */
 .metricSpark svg {
+  display: block;
   width: 100%;
   height: 100%;
+  margin: 0;
+  overflow: hidden;
 }
 
 /* ---- Income chart beside upcoming sessions ---- */

@@ -384,7 +384,7 @@ export function MenuCell({
       data-no-drag
       onClick={(event) => onOpen(event.currentTarget.getBoundingClientRect())}
     >
-      {value || <span className={styles.cellPlaceholder}>{placeholder}</span>}
+      {value ? <span className={styles.cellText}>{value}</span> : <span className={styles.cellPlaceholder}>{placeholder}</span>}
     </button>
   );
 }

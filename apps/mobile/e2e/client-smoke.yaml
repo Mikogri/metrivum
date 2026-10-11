@@ -1,0 +1,32 @@
+appId: com.trainflow.app
+name: Client tabs and retained session
+---
+- launchApp:
+    permissions:
+      all: unset
+- extendedWaitUntil:
+    visible: "More"
+    timeout: 30000
+- tapOn:
+    text: "More"
+    index: 0
+- assertVisible: "Current view: Client"
+- tapOn:
+    text: "Plans"
+    index: 0
+- assertVisible: "Owned plans"
+- tapOn:
+    text: "Messages"
+    index: 0
+- assertVisible: "New message"
+- assertVisible: "Search conversations"
+- launchApp:
+    permissions:
+      all: unset
+- extendedWaitUntil:
+    visible: "More"
+    timeout: 30000
+- tapOn:
+    text: "More"
+    index: 0
+- assertVisible: "Current view: Client"

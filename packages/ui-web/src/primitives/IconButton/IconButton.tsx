@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Button as AriaButton, type ButtonProps as AriaButtonProps } from "react-aria-components";
 import { cx } from "../../lib/cx";
+import { Spinner } from "../../components/Spinner/Spinner";
 import { Tooltip, TooltipTrigger } from "../../components/Tooltip/Tooltip";
 import styles from "./IconButton.module.css";
 
@@ -27,7 +28,7 @@ export function IconButton({
   const button = (
     <AriaButton {...props} aria-label={label} className={cx(styles.iconButton, styles[variant], styles[size], className)}>
       <span aria-hidden="true" className={styles.glyph}>
-        {icon}
+        {props.isPending ? <Spinner size="sm" tone="current" /> : icon}
       </span>
     </AriaButton>
   );

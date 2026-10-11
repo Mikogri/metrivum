@@ -3,7 +3,7 @@ import { Check, LogOut, Minus, Plus } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Avatar, Badge, Button, Card, Combobox, List, ListRow, Option, PageHeader, Select, Skeleton, TextField, toast } from "@trainflow/ui-web";
+import { Alert, Avatar, Badge, Button, Card, Checkbox, Combobox, List, ListRow, Option, PageHeader, Select, Skeleton, TextField, toast } from "@trainflow/ui-web";
 import { profileKey, timeZones, updateProfile, useProfile } from "~/modules/accounts";
 
 import { useAccessSnapshot } from "~/shared/access";
@@ -12,7 +12,7 @@ import { formatBytes, formatDate } from "~/shared/i18n/format";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
-import { useAccountKey, useApi } from "~/shared/session/AccountScope";
+import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useSessionState } from "~/shared/session/SessionProvider";
 import { useAccountActions } from "~/shared/session/useAccountActions";
 import styles from "./settings.module.css";
@@ -103,6 +103,23 @@ function ProfileForm() {
       </form>
     </Card>
   );
+}
+
+function MessagingPrivacy() {
+  const { api, accountKey, lifecycle } = useAccountContext();
+  const cache = useQueryClient();
+  const key = [accountKey, "messaging-preferences"];
+  const preferences = useQuery({ queryKey: key, queryFn: async ({ signal }) => (await api<Schema<"MessagingPreferenceDto">>({ path: "/api/v1/me/messaging-preferences", signal })).data });
+  const save = useMutation({
+    mutationFn: async (requireApproval: boolean) => (await api<Schema<"MessagingPreferenceDto">>({ method: "PUT", path: "/api/v1/me/messaging-preferences", json: { requireApproval }, signal: lifecycle.signal() })).data,
+    onSuccess: value => { if (lifecycle.isCurrent()) { cache.setQueryData(key, value); toast({ tone: "success", title: "Message privacy saved" }); } },
+  });
+  return <Card as="section" padding="lg">
+    <h2 className={styles.title}>Message privacy</h2>
+    <p className={styles.hint}>Anyone can message you by default. Require approval to review a new conversation before continuing. Existing accepted conversations stay open.</p>
+    {preferences.isPending ? <Skeleton /> : preferences.error ? <Alert tone="danger" title="Could not load message privacy" actions={<Button onPress={() => void preferences.refetch()}>Retry</Button>} /> : <Checkbox isSelected={preferences.data.requireApproval} isDisabled={save.isPending} onChange={value => save.mutate(value)}>Require approval for new conversations</Checkbox>}
+    {save.error && <Alert tone="danger" title={save.error instanceof Error ? save.error.message : "Could not save message privacy"} />}
+  </Card>;
 }
 
 function Accounts() {
@@ -326,7 +343,7 @@ export default function Settings() {
           ))}
         </nav>
         <div className={styles.content} key={section}>
-          {section === "profile" ? <ProfileForm /> : section === "accounts" ? <Accounts /> : section === "coaching" ? <CoachingPreferences /> : <AccessOverview />}
+          {section === "profile" ? <><ProfileForm /><MessagingPrivacy /></> : section === "accounts" ? <Accounts /> : section === "coaching" ? <CoachingPreferences /> : <AccessOverview />}
         </div>
       </div>
     </>

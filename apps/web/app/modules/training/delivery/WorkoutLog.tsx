@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import type { ExerciseSnapshot, Prescription, Workout } from "@trainflow/api-client-web";
-import { Alert, Button, Checkbox, EmptyState, PageHeader, TextArea } from "@trainflow/ui-web";
+import { Alert, Button, Checkbox, EmptyState, NumberInput, PageHeader, TextArea, TextField } from "@trainflow/ui-web";
 import { ExercisePicker } from "~/modules/exercises";
 import { useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { DraftNavigationGuard, Failure, Loading, MutationError } from "~/modules/coaching";
@@ -12,7 +12,7 @@ import styles from "./delivery.module.css";
 
 type ActualSet = { prescribedSetId: string | null; prescribedSegmentId: string | null; skipped: boolean; reps: number | null; load: number | null; loadUnit: string | null; loadMeaning: string; rpe: number | null; rir: number | null; durationSeconds: number | null; distanceMeters: number | null; restSeconds: number | null; tempo: string | null; comment: string | null };
 type ActualExercise = { prescribedInstanceId: string | null; exerciseId: string; name?: string; comment: string; sets: ActualSet[] };
-interface Execution { id: string; version: number; status: string; performedDate: string; comment: string; durationSeconds: number | null; exercises: ActualExercise[]; allowedActions: string[] }
+interface Execution { startedAt: string; completedAt: string | null; id: string; version: number; status: string; performedDate: string; comment: string; durationSeconds: number | null; exercises: ActualExercise[]; allowedActions: string[] }
 interface Detail { occurrence: Occurrence; prescription: { workout: Workout; exercises: Record<string, ExerciseSnapshot>; formulas: Record<string, { result: { value: number; unit: string } }> }; execution: Execution | null }
 const blankSet = (prescribedSetId: string | null = null, prescribedSegmentId: string | null = null): ActualSet => ({ prescribedSetId, prescribedSegmentId, skipped: false, reps: null, load: null, loadUnit: "kg", loadMeaning: "TotalExternal", rpe: null, rir: null, durationSeconds: null, distanceMeters: null, restSeconds: null, tempo: null, comment: "" });
 function describe(p: Prescription) {
@@ -38,7 +38,7 @@ function ExecutionEditor({ detail, execution }: { detail: Detail; execution: Exe
   }
   return <div className={styles.stack}><DraftNavigationGuard dirty={dirty} /><MutationError error={mutate.error} />
     <Alert title="Prescription and actual training stay separate">Enter only what you performed. Blank values are unknown; skipped sets are excluded from performance. Saved corrections overwrite your actual log and preserve the original prescription.</Alert>
-    <div className={styles.toolbar}><label className={styles.field}>Performed date<input type="date" value={draft.performedDate} disabled={!canEdit} onChange={event => { setDirty(true); setDraft({ ...draft, performedDate: event.target.value }); }} /></label><label className={styles.field}>Session duration (seconds)<input type="number" min="0" value={draft.durationSeconds ?? ""} disabled={!canEdit} onChange={event => { setDirty(true); setDraft({ ...draft, durationSeconds: event.target.value === "" ? null : Number(event.target.value) }); }} /></label></div>
+    <div className={styles.formRow}><TextField label="Performed date" type="date" value={draft.performedDate} isDisabled={!canEdit} onChange={value => { setDirty(true); setDraft({ ...draft, performedDate: value }); }} /><NumberInput label="Session duration (seconds)" placeholder="e.g. 3600" minValue={0} value={draft.durationSeconds ?? Number.NaN} isDisabled={!canEdit} onChange={value => { setDirty(true); setDraft({ ...draft, durationSeconds: Number.isFinite(value) ? value : null }); }} /></div>
     <p className={styles.muted}>{detail.prescription.workout.description}</p>
     {detail.prescription.workout.groups.map(group => <p key={group.id}>{group.kind} · {group.rounds} rounds · {group.restSeconds}s rest · {group.exerciseIds.map(id => detail.prescription.workout.exercises.find(ex => ex.id === id)).map(ex => ex && detail.prescription.exercises[ex.exerciseId]?.name).filter(Boolean).join(" → ")}</p>)}
     {draft.exercises.map((exercise, exIndex) => {
@@ -52,28 +52,30 @@ function ExecutionEditor({ detail, execution }: { detail: Detail; execution: Exe
           return <tr key={setIndex}><td>{setIndex + 1} · {original?.kind || "Extra"}<p className={styles.muted}>{p ? describe(p) : "Not in prescription"}</p>{(set.prescribedSegmentId || set.prescribedSetId) && detail.prescription.formulas?.[set.prescribedSegmentId || set.prescribedSetId!] && <p className={styles.muted}>Calculated prescription: {detail.prescription.formulas[set.prescribedSegmentId || set.prescribedSetId!]!.result.value} {detail.prescription.formulas[set.prescribedSegmentId || set.prescribedSetId!]!.result.unit}</p>}</td><td>{numeric("reps", "reps")}</td><td>{numeric("load", "load")}</td><td><select aria-label={`Set ${setIndex + 1} load unit`} value={set.loadUnit || "kg"} disabled={!canEdit} onChange={event => patchSet(exIndex, setIndex, { loadUnit: event.target.value })}><option>kg</option><option>lb</option></select><select aria-label={`Set ${setIndex + 1} load meaning`} disabled={!canEdit} value={set.loadMeaning} onChange={event => patchSet(exIndex, setIndex, { loadMeaning: event.target.value })}>{["TotalExternal", "PerHand", "Bodyweight", "Assisted"].map(value => <option key={value}>{value}</option>)}</select></td><td>{numeric("rpe", "RPE")}{numeric("rir", "RIR")}</td><td>{numeric("durationSeconds", "seconds")}{numeric("distanceMeters", "meters")}</td><td>{numeric("restSeconds", "rest seconds")}<input aria-label={`Set ${setIndex + 1} tempo`} disabled={!canEdit} value={set.tempo || ""} onChange={event => patchSet(exIndex, setIndex, { tempo: event.target.value })} /></td><td><Checkbox isDisabled={!canEdit} isSelected={set.skipped} onChange={skipped => patchSet(exIndex, setIndex, { skipped })}>Skipped</Checkbox><input aria-label={`Set ${setIndex + 1} comment`} disabled={!canEdit} value={set.comment || ""} onChange={event => patchSet(exIndex, setIndex, { comment: event.target.value })} />{canEdit && !set.prescribedSetId && <Button size="sm" variant="ghost" onPress={() => patchExercise(exIndex, { sets: exercise.sets.filter((_, i) => i !== setIndex) })}>Remove extra set</Button>}</td></tr>;
         })}</tbody></table></div>
         {canEdit && <Button size="sm" onPress={() => patchExercise(exIndex, { sets: [...exercise.sets, blankSet()] })}>Add actual set</Button>}
-        <TextArea label="Exercise comment" value={exercise.comment} isDisabled={!canEdit} onChange={comment => patchExercise(exIndex, { comment })} />
+        <TextArea label="Exercise comment" placeholder="How did this exercise feel?" value={exercise.comment} isDisabled={!canEdit} onChange={comment => patchExercise(exIndex, { comment })} />
       </article>;
     })}
     <ExercisePicker isOpen={picker !== null} onOpenChange={open => { if (!open) setPicker(null); }} onPick={exercise => { if (picker !== null) patchExercise(picker, { exerciseId: exercise.id, name: exercise.name, sets: draft.exercises[picker]!.sets.map(set => ({ ...set, load: null })) }); }} />
-    <TextArea label="Session comment" value={draft.comment} isDisabled={!canEdit} onChange={comment => { setDirty(true); setDraft({ ...draft, comment }); }} />
+    <TextArea label="Session comment" placeholder="Energy, sleep, anything worth noting" value={draft.comment} isDisabled={!canEdit} onChange={comment => { setDirty(true); setDraft({ ...draft, comment }); }} />
     {canEdit && <div className={styles.toolbar}><Button loading={mutate.isPending} onPress={() => { void save(false).catch(() => {}); }}>Save {execution.status === "Completed" ? "correction" : "draft"}</Button>{execution.status !== "Completed" && <Button variant="primary" loading={mutate.isPending} onPress={() => { void save(true).catch(() => {}); }}>Save and complete workout</Button>}</div>}
   </div>;
 }
 
-export default function WorkoutLog() {
-  const { occurrenceId } = useParams();
-  const query = useCoachingQuery<Detail>(`/api/v1/training/workouts/${occurrenceId}`);
+export function WorkoutDetail({ occurrenceId, relationshipId }: { occurrenceId: string; relationshipId?: string }) {
+  const query = useCoachingQuery<Detail>(`/api/v1/training/workouts/${occurrenceId}`, { relationshipId });
   const mutate = useCoachingMutation();
   const [reason, setReason] = useState("");
   if (query.isPending) return <Loading />;
   if (query.isError) return <Failure error={query.error} retry={() => void query.refetch()} />;
   const detail = query.data;
-  return <><PageHeader title={detail.occurrence.name} description={`${detail.occurrence.programName} · Scheduled ${detail.occurrence.scheduledDate} · ${detail.occurrence.status}`} /><MutationError error={mutate.error} />
+  return <><PageHeader title={detail.occurrence.name} description={`${detail.occurrence.programName} · Scheduled ${detail.occurrence.scheduledDate} · ${detail.occurrence.status}`} /><MutationError error={mutate.error} /><p className={styles.muted}>Prescription snapshot: {detail.occurrence.revisionId} · <Link to={`/app/programs/${detail.occurrence.programId}`}>View program</Link></p>{detail.execution && <p className={styles.muted}>Performed {detail.execution.performedDate} · Started {new Date(detail.execution.startedAt).toLocaleString()} · Finished {detail.execution.completedAt ? new Date(detail.execution.completedAt).toLocaleString() : "Not completed"} · Duration {detail.execution.durationSeconds == null ? "Not recorded" : `${detail.execution.durationSeconds}s`}</p>}
     {detail.execution && detail.execution.status !== "Skipped" ? <ExecutionEditor key={`${detail.execution.id}:${detail.execution.status}`} detail={detail} execution={detail.execution} /> : <div className={styles.stack}>
+      {detail.execution?.comment && <p>Session comment: {detail.execution.comment}</p>}
       {detail.prescription.workout.exercises.map(exercise => <section key={exercise.id} className={styles.card}><h2>{detail.prescription.exercises[exercise.exerciseId]?.name}</h2>{exercise.sets.map((set, i) => <p key={set.id}>{i + 1}. {set.kind}: {describe(set.prescription)}</p>)}</section>)}
       {detail.occurrence.allowedActions.includes("start") ? <Button variant="primary" loading={mutate.isPending} onPress={() => mutate.mutate({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/start` })}>Start workout</Button> : <EmptyState title="Read-only workout" description="The assignment or coaching relationship does not currently allow starting this workout." />}
-      {detail.occurrence.allowedActions.includes("skip") && <><TextArea label="Reason for skipping (optional)" value={reason} onChange={setReason} /><Button loading={mutate.isPending} onPress={() => mutate.mutate({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/skip`, json: { reason: reason || null } })}>Mark skipped</Button></>}
+      {detail.occurrence.allowedActions.includes("skip") && <><TextArea label="Reason for skipping (optional)" placeholder="e.g. Felt sick, travelling" value={reason} onChange={setReason} /><Button loading={mutate.isPending} onPress={() => mutate.mutate({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/skip`, json: { reason: reason || null } })}>Mark skipped</Button></>}
     </div>}
   </>;
 }
+
+export default function WorkoutLog() { const { occurrenceId } = useParams(); return <WorkoutDetail occurrenceId={occurrenceId!} />; }

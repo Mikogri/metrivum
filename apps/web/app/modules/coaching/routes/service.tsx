@@ -1,9 +1,9 @@
-import { HubNavigation } from "~/shared/navigation/HubNavigation";
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { AlertDialog, Button, PageHeader } from "@trainflow/ui-web";
+import { AlertDialog, Button, LinkButton, PageHeader } from "@trainflow/ui-web";
+import { Facts, Panel, PanelGrid } from "~/shared/ui/Panel";
 import { useProfile } from "~/modules/accounts";
 import { useCoachingMutation, useCoachingQuery } from "../api";
 import { Failure, Loading, MutationError, StatusBadge } from "../components";
@@ -23,9 +23,31 @@ export default function Service() {
   const option = s.offerRevision.billingOptions.find((o) => o.id === s.billingOptionId);
   const coach = s.offerRevision.coachId === profile.id;
   if ((mode === "coach") !== coach) return <WorkspaceRouteGuard required={coach ? "coach" : "client"}>{null}</WorkspaceRouteGuard>;
-  return <><PageHeader title={s.offerName} description={`Started ${new Date(s.startedAt).toLocaleDateString()}`} actions={<StatusBadge status={s.status} />} /><HubNavigation /><div className={styles.stack}><section className={styles.panel}><h2>Accepted terms</h2><p>{s.offerRevision.description}</p><p className={styles.summary}>{money(s.amount, s.currency)}</p>{option && <p>{option.name} · {priceDescription(option, s.currency)}</p>}{s.selectedSessionCount != null && <p>{s.selectedSessionCount} sessions</p>}<p className={styles.muted}>Offer revision {s.offerRevision.number}</p>{s.completedAt && <p>Completed {new Date(s.completedAt).toLocaleString()}</p>}</section>
-    <Link to={`/app/${coach ? "clients" : "my-coaches"}/${s.relationshipId}/services`}>All services and billing</Link>
-    {s.allowedActions.includes("complete") && <Button onPress={() => setConfirm(true)}>Complete service</Button>}<MutationError error={mutation.error} />
-    <AlertDialog isOpen={confirm} onOpenChange={setConfirm} title="Complete this service?" confirmLabel="Complete service" cancelLabel="Keep active" isConfirming={mutation.isPending} onConfirm={() => mutation.mutate({ method: "POST", path: `/api/v1/coaching/services/${s.id}/complete`, ifMatch: s.version })}>Future subscription periods will stop. Existing orders and payment history remain available.<MutationError error={mutation.error} /></AlertDialog>
-  </div></>;
+  const back = `/app/${coach ? "clients" : "my-coaches"}/${s.relationshipId}${coach ? "?tab=overview" : "/services"}`;
+  return <><PageHeader title={s.offerName} description={`Started ${new Date(s.startedAt).toLocaleDateString()}`} meta={<StatusBadge status={s.status} />} actions={<><LinkButton href={back}>{coach ? "Open client" : "All services"}</LinkButton>{s.allowedActions.includes("complete") && <Button variant="danger-ghost" onPress={() => setConfirm(true)}>Complete service</Button>}</>} />
+    <MutationError error={mutation.error} />
+    <PanelGrid>
+      <Panel title="Accepted terms" description={`Offer revision ${s.offerRevision.number}`}>
+        <Facts items={[
+          { label: "Price", value: <strong>{money(s.amount, s.currency)}</strong> },
+          ...(option ? [{ label: option.name, value: priceDescription(option, s.currency) }] : []),
+          ...(s.selectedSessionCount != null ? [{ label: "Sessions", value: s.selectedSessionCount }] : []),
+          { label: "Mode", value: s.offerRevision.coachingMode === "Offline" ? "In person" : s.offerRevision.coachingMode },
+          { label: "Started", value: new Date(s.startedAt).toLocaleDateString() },
+          ...(s.completedAt ? [{ label: "Completed", value: new Date(s.completedAt).toLocaleDateString() }] : []),
+        ]} />
+      </Panel>
+      <Panel title="Billing">
+        <Facts items={s.currentBilling ? [
+          { label: "Status", value: <StatusBadge status={s.currentBilling.status} /> },
+          ...(s.currentBilling.validUntil ? [{ label: s.currentBilling.isExpired ? "Sessions expired" : "Use sessions before", value: new Date(s.currentBilling.validUntil).toLocaleString() }] : []),
+          { label: "Current period", value: s.currentBilling.periodStart ? `${new Date(s.currentBilling.periodStart).toLocaleDateString()}${s.currentBilling.periodEnd ? ` – ${new Date(s.currentBilling.periodEnd).toLocaleDateString()}` : ""}` : "—" },
+          { label: "Next due", value: s.currentBilling.nextDueAt && s.currentBilling.nextDueAmount != null && s.currentBilling.currency ? `${money(s.currentBilling.nextDueAmount, s.currentBilling.currency)} · ${new Date(s.currentBilling.nextDueAt).toLocaleDateString()}` : "—" },
+          ...(s.currentBilling.remainingSessions != null ? [{ label: "Sessions left", value: s.currentBilling.remainingSessions }] : []),
+        ] : [{ label: "Status", value: "No payment due recorded" }]} />
+      </Panel>
+    </PanelGrid>
+    {s.offerRevision.description ? <Panel title="About this offer"><p className={styles.prose}>{s.offerRevision.description}</p></Panel> : null}
+    <AlertDialog isOpen={confirm} onOpenChange={setConfirm} title="Complete this service?" tone="danger" confirmLabel="Complete service" cancelLabel="Keep active" isConfirming={mutation.isPending} onConfirm={() => mutation.mutate({ method: "POST", path: `/api/v1/coaching/services/${s.id}/complete`, ifMatch: s.version })}>Future subscription periods will stop. Existing orders and payment history remain available.<MutationError error={mutation.error} /></AlertDialog>
+  </>;
 }

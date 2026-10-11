@@ -1,1 +1,1 @@
-export { RelationshipDocumentation } from "./relationship-documentation";
+export { RelationshipDocumentation, BodyMeasurements } from "./relationship-documentation";

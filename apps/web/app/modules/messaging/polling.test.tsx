@@ -121,3 +121,28 @@ it("does not refetch notification preferences for incoming notifications", async
   expect(calls("/notifications")).toBe(1);
   expect(calls("notification-preferences")).toBe(0);
 });
+
+it("acknowledges direct navigation with the bell closed, and observes later arrivals", async () => {
+  vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+  const { rerender } = renderHook(({ target }) => useDurableNotifications(null, false, target), { wrapper, initialProps: { target: "/app/invitations/one" } });
+  await tick();
+  expect(calls("read-target")).toBe(1);
+  expect(mock.api).toHaveBeenCalledWith(expect.objectContaining({ method: "POST", json: { target: "/app/invitations/one" } }));
+  expect(calls("/notifications")).toBe(0);
+  rerender({ target: "/app/invitations/two?from=chat" }); await tick();
+  expect(calls("read-target")).toBe(2);
+  await tick(6000);
+  act(() => mock.hubs[0]!.events.NotificationCreated!()); await tick();
+  expect(calls("read-target")).toBe(3);
+  vi.restoreAllMocks();
+});
+
+it("does not acknowledge a destination in a hidden tab, then catches up on visibility", async () => {
+  const visible = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+  renderHook(() => useDurableNotifications(null, false, "/app/invitations/one"), { wrapper }); await tick();
+  expect(calls("read-target")).toBe(0);
+  visible.mockReturnValue("visible");
+  act(() => document.dispatchEvent(new Event("visibilitychange"))); await tick();
+  expect(calls("read-target")).toBe(1);
+  vi.restoreAllMocks();
+});

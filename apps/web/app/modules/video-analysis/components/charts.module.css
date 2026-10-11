@@ -51,6 +51,8 @@
   stroke-width: 1.75;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
+  /* A different metric or analysis morphs the trace instead of jumping. */
+  transition: d 500ms var(--tf-ease-out);
 }
 
 .path {
@@ -59,6 +61,8 @@
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  /* A different metric or analysis morphs the trace instead of jumping. */
+  transition: d 500ms var(--tf-ease-out);
 }
 
 .dot {

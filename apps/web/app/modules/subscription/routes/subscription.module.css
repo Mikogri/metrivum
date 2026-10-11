@@ -54,3 +54,11 @@
     background: var(--tf-color-field);
     color: var(--tf-color-text);
 }
+
+.grow { flex: 1; min-width: 12rem; }
+.empty { padding: var(--tf-space-5) var(--tf-space-4); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); text-align: center; }
+.methods { display: grid; gap: var(--tf-space-2); margin: 0; padding: 0; list-style: none; }
+.methods li { display: flex; align-items: center; gap: var(--tf-space-3); padding: var(--tf-space-2) var(--tf-space-3); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); background: var(--tf-color-bg-sunken); font-size: var(--tf-text-sm); }
+.methodIcon { display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: var(--tf-radius-sm); background: var(--tf-color-surface-overlay); color: var(--tf-color-text-secondary); }
+.methodIcon svg { width: 0.875rem; height: 0.875rem; }
+.muted { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); }

@@ -103,9 +103,15 @@
   height: 2.25rem;
   border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-md);
-  background:
-    radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--tf-color-accent) 25%, transparent), transparent 60%),
-    var(--tf-color-surface-raised);
+  display: grid;
+  place-items: center;
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.thumb svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .text {

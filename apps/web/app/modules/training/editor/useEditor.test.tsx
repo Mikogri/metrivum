@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PlanDto } from "@trainflow/api-client-web";
-import { ApiError, NetworkError } from "~/shared/http/errors";
+import { ApiError, NetworkError, StaleAccountError } from "~/shared/http/errors";
 import type { ApiRequest } from "~/shared/http/transport";
 import { addBlock } from "./model/document";
 import { useEditor } from "./useEditor";
@@ -106,9 +106,47 @@ describe("useEditor saving", () => {
     expect(result.current.dirty).toBe(true);
   });
 
+  it("keeps every queued save caller pending until its edits are saved", async () => {
+    const releases: (() => void)[] = [];
+    respond = (request) => new Promise(resolve => {
+      releases.push(() => resolve({ data: { ...plan, version: Number(request.ifMatch) + 1 }, version: Number(request.ifMatch) + 1 }));
+    });
+    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    act(() => result.current.updateMeta({ name: "First" }));
+    let first!: Promise<void>;
+    act(() => { first = result.current.save(); });
+    act(() => result.current.updateMeta({ name: "Second" }));
+    const finished = vi.fn();
+    let second!: Promise<void>;
+    act(() => { second = result.current.save().then(finished); });
+    await act(async () => { releases[0]!(); });
+    expect(calls).toHaveLength(2);
+    expect(finished).not.toHaveBeenCalled();
+    await act(async () => { releases[1]!(); await Promise.all([first, second]); });
+    expect(finished).toHaveBeenCalledOnce();
+    expect(result.current.dirty).toBe(false);
+    expect(result.current.version).toBe(3);
+  });
+
   it("ignores edits when read-only", () => {
     const { result } = renderHook(() => useEditor(plan, 1, { readOnly: true }), { wrapper });
     act(() => result.current.apply((doc) => addBlock(doc, "Block").doc));
     expect(result.current.dirty).toBe(false);
+  });
+
+  it("drops queued saves when the current request loses its account", async () => {
+    let reject!: (reason: unknown) => void;
+    respond = vi.fn().mockImplementationOnce(() => new Promise((_, fail) => { reject = fail; }))
+      .mockRejectedValue(new StaleAccountError());
+    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    act(() => result.current.updateMeta({ name: "First" }));
+    let first!: Promise<void>;
+    act(() => { first = result.current.save(); });
+    act(() => result.current.updateMeta({ name: "Second" }));
+    let second!: Promise<void>;
+    act(() => { second = result.current.save(); });
+    await act(async () => { reject(new StaleAccountError()); await Promise.all([first, second]); });
+    expect(calls).toHaveLength(1);
+    expect(result.current.dirty).toBe(true);
   });
 });

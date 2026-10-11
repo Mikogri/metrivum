@@ -1,9 +1,9 @@
-import { ArrowDown, ArrowUp, CalendarDays, Copy, Monitor, PenLine, Play, Plus, Smartphone, Trash2, X } from "lucide-react";
-import { useCallback, useState } from "react";
+import { CalendarDays, MoreHorizontal, Monitor, PenLine, Play, Plus, Smartphone, Trash2, X } from "lucide-react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Badge, Button, IconButton, NumberInput, Option, PageHeader, Segment, SegmentedControl, Select, Switch, TextField } from "@trainflow/ui-web";
+import { Alert, Badge, Button, DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, toast, IconButton, NumberInput, Option, PageHeader, Segment, SegmentedControl, Select, Switch, TextField } from "@trainflow/ui-web";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useCoachingMutation, useCoachingQuery } from "../api";
 import { DraftNavigationGuard, EditableResource, Failure, Loading, MutationError } from "../components";
@@ -28,7 +28,7 @@ const TYPES: [Question["type"], string][] = [
 const systemFields = ["Height", "Weight", "BodyFat", "HrMax", "TrainingExperience", "ActivityLevel", "AvailableEquipment", "PreferredTrainingDays", "SessionsPerWeek", "AvailableSessionDuration", "Sleep", "Stress", "InjuriesLimitationsPainNotes", "AdditionalNotes"] as const;
 const newKey = () => crypto.randomUUID();
 const blankQuestion = (type: Question["type"], order: number): Question => ({ key: newKey(), label: "", required: false, order, ...questionType(type), type }) as Question;
-const blankSection = (purpose: Purpose, order: number): Section => ({ key: newKey(), title: purpose === "CheckIn" ? "This week" : "About you", description: "", order, questions: [blankQuestion("ShortText", 0)] });
+const blankSection = (order: number): Section => ({ key: newKey(), title: "", description: "", order, questions: [] });
 
 /**
  * What the client will see in place of the answer, drawn statically. Choice options are the
@@ -139,8 +139,17 @@ function QuestionBlock({
   remove: () => void;
 }) {
   return (
-    <div className={styles.block} data-selected={selected || undefined} onFocusCapture={select} onPointerDown={select}>
+    <div className={styles.block} data-selected={selected || undefined} >
       <div className={styles.blockHead}>
+        <DropdownMenuTrigger><IconButton label={`Question ${index + 1} actions`} icon={<MoreHorizontal />} isDisabled={locked} />
+          <DropdownMenu onAction={(key) => { if (key === "edit") select(); if (key === "duplicate") duplicate(); if (key === "delete") remove(); if (key === "up") move(-1); if (key === "down") move(1); }}>
+            <DropdownMenuItem id="edit">Edit question</DropdownMenuItem>
+            <DropdownMenuItem id="duplicate">Duplicate question</DropdownMenuItem>
+            <DropdownMenuItem id="up" isDisabled={index === 0}>Move up</DropdownMenuItem>
+            <DropdownMenuItem id="down" isDisabled={index === count - 1}>Move down</DropdownMenuItem>
+            <DropdownMenuItem id="delete">Delete question</DropdownMenuItem>
+          </DropdownMenu>
+        </DropdownMenuTrigger>
         <input className={`${styles.inlineInput} ${styles.questionInput}`} aria-label={`Question ${index + 1}`} placeholder="Type your question" required disabled={locked} value={q.label} onChange={(e) => change({ label: e.target.value })} />
         {q.required ? (
           <span className={styles.required} aria-label="Required">
@@ -195,12 +204,7 @@ function QuestionBlock({
             <Switch isSelected={q.required} isDisabled={locked} onChange={(required) => change({ required })}>
               Required
             </Switch>
-            <span className={styles.blockActions}>
-              <IconButton label="Move up" icon={<ArrowUp />} size="sm" isDisabled={locked || index === 0} onPress={() => move(-1)} />
-              <IconButton label="Move down" icon={<ArrowDown />} size="sm" isDisabled={locked || index === count - 1} onPress={() => move(1)} />
-              <IconButton label="Duplicate question" icon={<Copy />} size="sm" isDisabled={locked} onPress={duplicate} />
-              <IconButton label="Remove question" icon={<Trash2 />} size="sm" variant="danger" isDisabled={locked || count < 2} onPress={remove} />
-            </span>
+
           </div>
         </div>
       ) : null}
@@ -213,8 +217,11 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
   const [current, setCurrent] = useState(initial);
   const [purpose, setPurpose] = useState<Purpose>(initial?.purpose ?? initialPurpose);
   const [name, setName] = useState(initial?.name ?? "");
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const operation = useRef("save");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [draft, setDraft] = useState<Definition>(initial?.draft ?? { sections: [blankSection(initialPurpose, 0)] });
+  useLayoutEffect(() => { const field = descriptionRef.current; if (field) { field.style.height = "auto"; field.style.height = `${field.scrollHeight + field.offsetHeight - field.clientHeight}px`; } }, [description]);
+  const [draft, setDraft] = useState<Definition>(initial?.draft ?? { sections: [] });
   const [selected, setSelected] = useState<string | null>(draft.sections[0]?.questions[0]?.key ?? null);
   const [mode, setMode] = useState("edit");
   const [device, setDevice] = useState("desktop");
@@ -225,9 +232,10 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
     onDirtyChange?.(value);
   };
   const [duplicateKey] = useState(() => crypto.randomUUID());
-  const duplicate = useCoachingMutation<Template>((value) => navigate(`/app/forms/${value.id}`));
+  const duplicate = useCoachingMutation<Template>((value) => { toast({ tone: "success", title: "Form duplicated" }); navigate(`/app/forms/${value.id}`); });
   useUnsavedWorkGuard(useCallback(() => dirty, [dirty]));
   const mutation = useCoachingMutation<Template>((value) => {
+    toast({ tone: "success", title: operation.current === "publish" ? "Form published" : operation.current === "restore" ? "Form restored" : operation.current === "archive" ? "Form archived" : current ? "Form draft saved" : "Form created" });
     flushSync(() => {
       setCurrent(value);
       setDirty(false);
@@ -246,7 +254,7 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
     setQuestions(i, [...draft.sections[i]!.questions, question]);
     setSelected(question.key);
   };
-  const write = (action: string) => current && mutation.mutate({ method: "POST", path: `/api/v1/forms/${current.id}/${action}`, ifMatch: current.version });
+  const write = (action: string) => { operation.current = action; if (current) mutation.mutate({ method: "POST", path: `/api/v1/forms/${current.id}/${action}`, ifMatch: current.version }); };
   const status = current?.archived ? "Archived" : current?.currentPublishedVersionId ? "Published" : current ? "Draft" : "New";
   const count = draft.sections.reduce((sum, s) => sum + s.questions.length, 0);
 
@@ -260,7 +268,7 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
           <>
             {current ? (
               <>
-                <Button isDisabled={mutation.isPending || dirty} onPress={() => write(current.archived ? "restore" : "archive")}>
+                <Button loading={mutation.isPending && /\/(archive|restore)$/.test(mutation.variables?.path ?? "")} isDisabled={mutation.isPending || dirty} onPress={() => write(current.archived ? "restore" : "archive")}>
                   {current.archived ? "Restore" : "Archive"}
                 </Button>
                 <Button
@@ -272,11 +280,11 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
                 </Button>
               </>
             ) : null}
-            <Button type="submit" form="form-builder" variant={current && !dirty ? "secondary" : "primary"} isDisabled={current?.archived} loading={mutation.isPending}>
+            <Button type="submit" form="form-builder" variant={current && !dirty ? "secondary" : "primary"} isDisabled={current?.archived || mutation.isPending} loading={mutation.isPending && !/\/(publish|archive|restore)$/.test(mutation.variables?.path ?? "")}>
               {current ? "Save draft" : "Create form"}
             </Button>
             {current ? (
-              <Button variant="primary" isDisabled={locked || dirty} onPress={() => write("publish")}>
+              <Button variant="primary" loading={mutation.isPending && mutation.variables?.path.endsWith("/publish")} isDisabled={locked || dirty} onPress={() => write("publish")}>
                 Publish form
               </Button>
             ) : null}
@@ -338,11 +346,13 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
             hidden={mode !== "edit"}
             onSubmit={(e) => {
               e.preventDefault();
+              if (!count) { toast({ tone: "danger", title: "Add at least one question before saving" }); return; }
+              operation.current = "save";
               mutation.mutate({ method: current ? "PATCH" : "POST", path: `/api/v1/forms${current ? `/${current.id}` : ""}`, ifMatch: current?.version, json: { purpose, name, description, draft } });
             }}
           >
             <input className={`${styles.inlineInput} ${styles.nameInput}`} aria-label="Form name" placeholder={purpose === "CheckIn" ? "Weekly check-in" : "Online coaching intake"} value={name} maxLength={200} required disabled={locked} autoFocus={!current} onChange={(e) => { setName(e.target.value); setDirty(true); }} />
-            <textarea className={`${styles.inlineInput} ${styles.descriptionInput}`} aria-label="Description" placeholder="Add a description (optional)" rows={2} value={description} maxLength={4000} disabled={locked} onChange={(e) => { setDescription(e.target.value); setDirty(true); }} />
+            <textarea ref={descriptionRef} className={`${styles.inlineInput} ${styles.descriptionInput}`} aria-label="Description" placeholder="Add a description (optional)" rows={1} value={description} maxLength={4000} disabled={locked} onChange={(e) => { setDescription(e.target.value); setDirty(true); }} />
 
             {draft.sections.map((s, i) => (
               <section className={styles.section} key={s.key} aria-label={`Section ${i + 1}`}>
@@ -388,7 +398,7 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
                 </div>
               </section>
             ))}
-            <Button iconStart={<Plus />} variant="ghost" isDisabled={locked} onPress={() => update({ sections: [...draft.sections, blankSection(purpose, draft.sections.length)] })} className={styles.addSection}>
+            <Button iconStart={<Plus />} variant="ghost" isDisabled={locked} onPress={() => update({ sections: [...draft.sections, blankSection(draft.sections.length)] })} className={styles.addSection}>
               Add section
             </Button>
           </form>

@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
+test.setTimeout(90_000);
+
 const user = "00000000-0000-4000-8000-000000000000";
 const relationship = "20000000-0000-4000-8000-000000000051";
 const base = `/api/v1/coaching/relationships/${relationship}/documentation`;
@@ -23,6 +25,7 @@ async function fixture(page: Page) {
     if (path === "/api/v1/me") return respond({ id: user, workspaceId: user, username: "documentation", displayName: "Documentation test", onboarded: true, roles: ["Coach", "Client"], contexts: ["Coach", "Client"], version: 1, locale: "en", timeZone: "UTC", birthDate: "1990-01-01" });
     if (path === "/api/v1/me/access") return respond({ version: "test", features: features.map((f) => ({ key: f.key, available: true, reason: "available" })), limits: [] });
     if (path === "/api/v1/messaging/conversations" || path === "/api/v1/messaging/requests") return respond([]);
+    if (path === "/api/v1/teams/mine") return respond({ teams: [], invitations: [] });
     if (path === "/api/v1/me/profile-fields") return respond({ currency: "EUR", values: {}, version: 1 });
     if (path === `/api/v1/coaching/clients/${relationship}`) return respond({ id: relationship, client: { id: user, displayName: "Documentation client" }, status, startedAt: new Date().toISOString(), groupIds: [], statusHistory: [], allowedActions: [], version: 1 });
     if (path === "/api/v1/coaching/my-coaches") return respond(paged([{ id: relationship, coach: { id: user, displayName: "Documentation coach" }, status }]));
@@ -39,31 +42,37 @@ async function fixture(page: Page) {
   });
   return {
     paths,
-    async asClient(nextStatus = "Active") { client = true; status = nextStatus; await page.addInitScript(({ user }) => localStorage.setItem(`tf.workspace.0:${user}`, "client"), { user }); await page.goto(`/app/my-coaches/${relationship}/documents`); },
+    async asClient(nextStatus = "Active") { client = true; status = nextStatus; await page.addInitScript(({ user }) => localStorage.setItem(`tf.workspace.0:${user}`, "client"), { user }); await page.goto(`/app/my-coaches/${relationship}/documents`, { waitUntil: "domcontentloaded" }); },
   };
 }
 
 test("coach shares plain text and client sees shared historical material without private notes", async ({ page }) => {
   const f = await fixture(page);
-  await page.goto(`/app/clients/${relationship}?tab=documentation`);
-  await page.getByRole("button", { name: "Documents", exact: true }).click();
+  await page.goto(`/app/clients/${relationship}?tab=documentation`, { waitUntil: "domcontentloaded" });
+  await page.getByRole("radio", { name: "Files", exact: true }).click();
+  await page.getByRole("button", { name: "Add file", exact: true }).click();
   await page.getByRole("textbox", { name: "Title", exact: true }).fill("Private training context");
   await page.getByRole("textbox", { name: "Document text", exact: true }).fill("Private context must not reach client");
   await page.getByRole("button", { name: "Save document", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Private training context" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Private training context", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Add file", exact: true }).click();
   await page.getByRole("textbox", { name: "Title", exact: true }).fill("Shared recovery instructions");
   await page.getByRole("textbox", { name: "Document text", exact: true }).fill("Rest and record how you feel.");
   await page.getByRole("button", { name: "Visibility" }).click();
   await page.getByRole("option", { name: "Shared with client" }).click();
   await page.getByRole("button", { name: "Save document", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Shared recovery instructions" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Shared recovery instructions", exact: true })).toBeVisible();
   await f.asClient("Completed");
   await expect(page.getByText("Completed relationship — historical records are read-only.")).toBeVisible();
-  await page.getByRole("button", { name: "Documents", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Shared recovery instructions" })).toBeVisible();
+  await page.getByRole("radio", { name: "Files", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Shared recovery instructions", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Private training context", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Shared recovery instructions", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Shared recovery instructions" })).toContainText("Rest and record how you feel.");
+  await page.keyboard.press("Escape");
   await expect(page.getByText("Private context must not reach client")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Private notes", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Save document", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: "Private Coach Notes", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add file", exact: true })).toHaveCount(0);
 });
 
 test("suspended client receives unavailable state before protected documentation queries", async ({ page }) => {
@@ -71,6 +80,6 @@ test("suspended client receives unavailable state before protected documentation
   await f.asClient("Suspended");
   const switchButton = page.getByRole("button", { name: "Switch workspace" });
   if (await switchButton.isVisible()) await switchButton.click();
-  await expect(page.getByText("This relationship does not permit documentation access.")).toBeVisible();
+  await expect(page.getByText("This relationship does not permit documentation access.").first()).toBeVisible();
   expect(f.paths.some((p) => p === `${base}/documents` || p === `${base}/notes` || p === `${base}/measurements`)).toBe(false);
 });

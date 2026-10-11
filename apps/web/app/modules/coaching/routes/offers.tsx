@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Link } from "react-router";
-import { BadgePercent, Plus } from "lucide-react";
+import { BadgePercent, Plus, Tag } from "lucide-react";
 import type { Schema } from "@trainflow/api-client-web";
 import { Alert, Button, DataTable, Dialog, EmptyState, LinkButton, Option, PageHeader, SearchInput, Select, Toolbar } from "@trainflow/ui-web";
 import { RequireFeature } from "~/shared/access";
@@ -9,14 +9,21 @@ import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useCoachingQuery, type Page } from "../api";
 import { Failure, ListPagination, Loading, StatusBadge } from "../components";
 import { OfferEditor } from "../offer-editor";
+import { money } from "../pricing";
+
+const categoryName = (key: string) => key.split("-").map((part, i) => (i === 0 ? part[0]!.toUpperCase() + part.slice(1) : part)).join(" ");
+import { CardGrid, ListCard } from "~/shared/library/DataView";
+import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
 import styles from "../coaching.module.css";
 
 function Offers() {
-  const [state, update] = useUrlState({ q: "", status: "", sort: "updated", page: "1", create: "", scope: "personal" });
+  const [state, update] = useUrlState({ q: "", status: "", sort: "updated", page: "1", create: "", scope: "personal", view: "list" });
   const context = useCoachingQuery<Schema<"TeamAccess"> | null>("/api/v1/me/team-context");
   const team = state.scope === "team" && context.data?.isActive ? context.data : null;
   const available = state.scope !== "team" || team != null;
   const list = useCoachingQuery<Page<Schema<"OfferDto">>>("/api/v1/offers", { page: pageFromParam(state.page), pageSize: 20, search: state.q || undefined, status: state.status || undefined, sort: state.sort, teamId: team?.teamId }, available);
+  const profile = useCoachingQuery<Schema<"AccountProfileFields">>("/api/v1/me/profile-fields");
+  const currency = profile.data?.currency ?? "EUR";
   const dirty = useRef(false);
   const { confirm, dialog } = useDiscardConfirm();
   const creating = state.create === "1";
@@ -53,6 +60,7 @@ function Offers() {
           <Option id="updated">Recently updated</Option>
           <Option id="name">Name</Option>
         </Select>
+        <LibraryViewToggle value={state.view === "cards" ? "cards" : "list"} onChange={(view) => update({ view, page: state.page })} />
       </Toolbar>
       {!available && context.isPending ? <Loading /> : !available && context.isError ? <Failure error={context.error} retry={() => void context.refetch()} /> : !available && !context.isPending ? <Alert tone="warning" title="Team offers are unavailable">An active Team membership is required. <Button onPress={() => update({ scope: "personal", create: "" })}>Open personal offers</Button></Alert> : list.isPending ? (
         <Loading />
@@ -76,7 +84,17 @@ function Offers() {
         />
       ) : (
         <>
-          <DataTable
+          {state.view === "cards" ? <CardGrid label="Offers">{list.data.items.map((o) => {
+            const prices = o.billingOptions.map((b) => Number(b.price)).filter((p) => p > 0);
+            const from = prices.length ? Math.min(...prices) : null;
+            return <ListCard key={o.id} href={`/app/offers/${o.id}`} title={o.name} subtitle={o.teamId ? `Team · ${o.teamName ?? "Organization"}` : categoryName(o.category)} icon={<Tag />} tone="orange" badge={<StatusBadge status={o.status} />} description={o.description || "No description yet."}
+              facts={[
+                { label: "From", value: from == null ? "—" : money(from, currency) },
+                { label: "Mode", value: o.coachingMode === "Offline" ? "In person" : o.coachingMode },
+                { label: "Options", value: o.billingOptions.length },
+              ]}
+              meta={[o.currentPublishedRevisionId ? "Published" : "Not published", `Updated ${new Date(o.updatedAt).toLocaleDateString()}`]} />;
+          })}</CardGrid> : <DataTable
             label="Offers"
             rows={list.data.items}
             rowKey={(o) => o.id}
@@ -87,7 +105,7 @@ function Offers() {
               { id: "options", header: "Billing options", cell: (o) => o.billingOptions.length, hideOnMobile: true },
               { id: "status", header: "Status", cell: (o) => <StatusBadge status={o.status} /> },
             ]}
-          />
+          />}
           <ListPagination data={list.data} onChange={(page) => update({ page: String(page) })} />
         </>
       )}
@@ -101,7 +119,7 @@ function Offers() {
           if (!isOpen) void close();
         }}
       >
-        {creating ? <OfferEditor ownership={team ? { id: team.teamId, name: team.name } : undefined} panel={{ close: () => void close() }} onDirtyChange={(value) => (dirty.current = value)} /> : null}
+        {creating ? <OfferEditor ownership={team ? { id: team.teamId, name: team.name } : undefined} panel={{ close: () => void close(), created: () => { dirty.current = false; update({ create: "", page: state.page }); } }} onDirtyChange={(value) => (dirty.current = value)} /> : null}
       </Dialog>
     </>
   );

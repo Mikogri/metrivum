@@ -8,7 +8,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--tf-space-6);
-  margin-bottom: var(--tf-space-4);
+  margin-bottom: var(--tf-space-5);
   padding: var(--tf-space-4) var(--tf-space-5);
   border: 1px solid var(--tf-color-border-subtle);
   border-radius: var(--tf-radius-lg);
@@ -24,7 +24,7 @@
 .preview {
   display: flex;
   flex-direction: column;
-  margin-bottom: var(--tf-space-4);
+  margin-bottom: var(--tf-space-5);
   overflow: hidden;
   border: 1px solid var(--tf-color-border-subtle);
   border-radius: var(--tf-radius-lg);
@@ -72,11 +72,20 @@
   font-size: var(--tf-text-sm);
 }
 
+/* Four counts, each a number over its own label, divided by hairlines. */
 .stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--tf-space-3);
   margin: 0;
+}
+
+.stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 var(--tf-space-5);
+  border-left: 1px solid var(--tf-color-border-subtle);
 }
 
 .stats dt {
@@ -86,8 +95,10 @@
 
 .stats dd {
   margin: 0;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
 .revisions {
@@ -118,5 +129,11 @@
 
   .stats {
     grid-template-columns: 1fr 1fr;
+    row-gap: var(--tf-space-3);
+  }
+
+  .stats > div:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
   }
 }

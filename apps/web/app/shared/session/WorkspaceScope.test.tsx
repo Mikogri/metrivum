@@ -5,8 +5,8 @@ import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceScope, useWorkspace } from "./WorkspaceScope";
 
-const mocks = vi.hoisted(() => ({ api: vi.fn(), confirm: vi.fn(), dirty: vi.fn() }));
-vi.mock("./AccountScope", () => ({ useApi: () => mocks.api, useAccountKey: () => "workspace-test" }));
+const mocks = vi.hoisted(() => ({ api: vi.fn(), confirm: vi.fn(), dirty: vi.fn(), current: vi.fn() }));
+vi.mock("./AccountScope", () => ({ useApi: () => mocks.api, useAccountKey: () => "workspace-test", useAccountContext: () => ({ lifecycle: { isCurrent: mocks.current } }) }));
 vi.mock("~/shared/lib/useConfirm", () => ({ useDiscardConfirm: () => ({ confirm: mocks.confirm, dialog: null }) }));
 vi.mock("./dirty-guard", () => ({ hasUnsavedWork: mocks.dirty }));
 
@@ -20,7 +20,7 @@ function setup(roles: string[], delayed = Promise.resolve("Coach data")) {
   return render(<QueryClientProvider client={cache}><MemoryRouter><WorkspaceScope roles={roles}><Probe delayed={delayed} /></WorkspaceScope></MemoryRouter></QueryClientProvider>);
 }
 
-beforeEach(() => { localStorage.clear(); mocks.api.mockReset(); mocks.confirm.mockReset(); mocks.dirty.mockReturnValue(false); });
+beforeEach(() => { localStorage.clear(); mocks.api.mockReset(); mocks.confirm.mockReset(); mocks.dirty.mockReturnValue(false); mocks.current.mockReturnValue(true); });
 describe("workspace lifecycle", () => {
   it("drops late coach data after switching into client mode", async () => {
     let release!: (value: string) => void;
@@ -46,6 +46,28 @@ describe("workspace lifecycle", () => {
     await userEvent.click(screen.getByRole("button", { name: "Switch to client" }));
     await screen.findByText("Could not switch workspace. Please try again.");
     expect(mocks.api).toHaveBeenCalledWith({ method: "POST", path: "/api/v1/me/roles/client" });
+    expect(screen.getByText("Workspace: coach")).toBeInTheDocument();
+  });
+  it("abandons a pending confirmation when its account has changed", async () => {
+    let confirm!: (accepted: boolean) => void;
+    mocks.dirty.mockReturnValue(true);
+    mocks.confirm.mockImplementation(() => new Promise<boolean>(resolve => { confirm = resolve; }));
+    setup(["Coach"]);
+    await userEvent.click(screen.getByRole("button", { name: "Switch to client" }));
+    mocks.current.mockReturnValue(false);
+    await act(async () => { confirm(true); });
+    expect(mocks.api).not.toHaveBeenCalled();
+    expect(localStorage.getItem("tf.workspace.workspace-test")).toBeNull();
+    expect(screen.getByText("Workspace: coach")).toBeInTheDocument();
+  });
+  it("abandons role activation after the originating account changes", async () => {
+    let complete!: () => void;
+    mocks.api.mockImplementation(() => new Promise<void>(resolve => { complete = resolve; }));
+    setup(["Coach"]);
+    await userEvent.click(screen.getByRole("button", { name: "Switch to client" }));
+    mocks.current.mockReturnValue(false);
+    await act(async () => { complete(); });
+    expect(localStorage.getItem("tf.workspace.workspace-test")).toBeNull();
     expect(screen.getByText("Workspace: coach")).toBeInTheDocument();
   });
 });

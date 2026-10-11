@@ -330,3 +330,17 @@ test("Member defaults to Personal and can request only their own Team activity",
     await expect(page.getByText("Requested scope unavailable", { exact: true })).toBeVisible();
     await expect.poll(() => calls.at(-1)?.searchParams.get("scope")).toBe("Personal");
 });
+
+test("Analyze shows dashboard skeletons while the first overview request is pending", async ({ page }) => {
+    await fixture(page);
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    await page.route("**/api/v1/analyze/overview**", async (route) => { await pending; await route.fallback(); });
+    try {
+        await page.goto("/app/analyze");
+        await expect(page.getByRole("status", { name: "Loading analysis" })).toBeVisible();
+        release();
+        await expect(page.getByRole("heading", { name: "Revenue", exact: true })).toBeVisible();
+        await expect(page.getByRole("status", { name: "Loading analysis" })).toHaveCount(0);
+    } finally { release(); }
+});

@@ -2,7 +2,7 @@
   display: grid;
   max-width: 44rem;
   font-family: var(--tf-font-display);
-  font-size: clamp(2.25rem, 1.3rem + 3vw, 3.5rem);
+  font-size: clamp(1.875rem, 1.2rem + 2.2vw, 3rem);
   font-weight: var(--tf-weight-semibold);
   letter-spacing: var(--tf-tracking-display);
   line-height: 1.04;
@@ -33,13 +33,9 @@
     opacity 700ms ease;
 }
 
-/* The second line answers the first in a serif italic. */
+/* The second line answers the first in the same face, a tone quieter. */
 .line[data-tone="quiet"] {
   color: var(--tf-color-text-secondary);
-  font-family: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.01em;
   transition-delay: 90ms;
 }
 

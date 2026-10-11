@@ -8,6 +8,7 @@ import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceSco
 import { MOCK_MODE } from "~/shared/dev/mockMode";
 import { useT } from "~/shared/i18n/AppLocale";
 import { NotificationBell, useNotifications } from "~/modules/messaging";
+import { useNavCounts } from "~/modules/coaching";
 import { SubscriptionButton } from "~/modules/subscription/SubscriptionPanel";
 import { AccountSwitcher } from "./AccountSwitcher";
 import { CommandPalette } from "./CommandPalette";
@@ -38,7 +39,7 @@ function Brand() {
   );
 }
 
-function NavItem({ to, label, icon: Icon, count, collapsed, onNavigate }: { to: string; label: string; icon: NavIcon; count?: string; collapsed: boolean; onNavigate?: () => void }) {
+function NavItem({ to, label, icon: Icon, count, tone, collapsed, onNavigate }: { to: string; label: string; icon: NavIcon; count?: string; tone?: "neutral" | "danger"; collapsed: boolean; onNavigate?: () => void }) {
   const { pathname } = useLocation();
   const active = pathname === to || pathname.startsWith(`${to}/`) || (to === "/app/clients" && !!clientSection(pathname)) || (to === "/app/programs" && pathname.startsWith("/app/templates"));
   return (
@@ -47,7 +48,7 @@ function NavItem({ to, label, icon: Icon, count, collapsed, onNavigate }: { to: 
       <Link to={to} aria-current={active ? "page" : undefined} className={styles.navLink} onClick={onNavigate} title={collapsed ? label : undefined}>
         <Icon aria-hidden="true" strokeWidth={1.5} />
         <span className={styles.navLabel}>{label}</span>
-        {count ? <span className={styles.navCount}>{count}</span> : null}
+        {count ? <span className={styles.navCount} data-tone={tone}>{count}</span> : null}
       </Link>
     </li>
   );
@@ -62,6 +63,8 @@ function SidebarContent({ collapsed = false, onNavigate }: { collapsed?: boolean
   const { pathname } = useLocation();
   const running = useAccessSnapshot().data?.limits.find((limit) => limit.key === "analysis.concurrent")?.used;
   const counts: Record<string, string | undefined> = { "/app/messages": pathname !== "/app/messages" && unreadMessages > 0 ? String(unreadMessages > 99 ? "99+" : unreadMessages) : undefined, "/app/video-analyses": Number(running) > 0 ? String(running) : undefined };
+  const waiting = useNavCounts(mode);
+  const capped = (value: number) => (value > 99 ? "99+" : String(value));
   return (
     <>
       <nav aria-label={m.nav.main} className={styles.nav}>
@@ -75,7 +78,7 @@ function SidebarContent({ collapsed = false, onNavigate }: { collapsed?: boolean
             </div>
             <ul className={styles.navList} aria-labelledby={`nav-${group.id}`}>
               {group.items.map((item) => (
-                <NavItem key={item.to} {...item} count={counts[item.to]} collapsed={collapsed} onNavigate={onNavigate} />
+                <NavItem key={item.to} {...item} count={counts[item.to] ?? (waiting[item.to] ? capped(waiting[item.to]!.value) : undefined)} tone={counts[item.to] ? undefined : waiting[item.to]?.tone} collapsed={collapsed} onNavigate={onNavigate} />
               ))}
             </ul>
           </div>
