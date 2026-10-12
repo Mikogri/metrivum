@@ -9,7 +9,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { useDebounced } from "~/shared/lib/useDebounced";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
-import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
+import { LibraryViewToggle, useLibraryView } from "~/shared/library/LibraryViewToggle";
 import { CreateExerciseDialog } from "../components/CreateExerciseDialog";
 import { FavoriteButton } from "../components/FavoriteButton";
 import { useDictionaries, useExerciseList, useTags } from "../queries";
@@ -29,7 +29,7 @@ function ExerciseLibrary() {
   const t = m.exercises;
   const locale = useLocale();
   const [state, update] = useUrlState(DEFAULTS);
-  const view = state.view === "cards" ? "cards" : "list";
+  const view = useLibraryView(state.view);
   const pageSize = PAGE_SIZE;
   const [params] = useSearchParams();
   const [search, setSearch] = useState(state.q);

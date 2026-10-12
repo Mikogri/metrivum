@@ -342,3 +342,20 @@
 .table[data-readonly] > [role="row"]:last-of-type > * {
   border-bottom: 0;
 }
+
+@media (max-width: 767px) {
+  .week, .panel, .body, .side { min-width: 0; }
+  .week { height: auto; }
+  .strip { grid-template-columns: repeat(7, minmax(5rem, 1fr)); }
+  .body { grid-template-columns: minmax(0, 1fr); }
+  .side { border-left: 0; border-top: 1px solid var(--tf-color-border-subtle); overflow: visible; }
+  .panelHeader, .headerEnd, .workoutTabs { flex-wrap: wrap; }
+  .panelHeader { align-items: flex-start; }
+  .headerEnd { margin-left: 0; max-width: 100%; }
+  .workoutName { min-width: 0; min-height: 44px; }
+  .workoutTab { min-height: 44px; }
+  .editorArea { min-width: 0; max-width: 100%; overscroll-behavior-x: contain; }
+  .table { min-width: 44rem; }
+  .restCard { grid-template-columns: auto minmax(0, 1fr); }
+  .restCard > button { grid-column: 1 / -1; }
+}

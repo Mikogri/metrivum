@@ -1,9 +1,14 @@
 import { LayoutGrid, Table2 } from "lucide-react";
-import { Segment, SegmentedControl } from "@trainflow/ui-web";
+import { Segment, SegmentedControl, useMobileLayout } from "@trainflow/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./LibraryViewToggle.module.css";
 
 export type LibraryView = "list" | "cards";
+
+/** Phone cards do not overwrite the user's desktop view preference. */
+export function useLibraryView(requested: string): LibraryView {
+  return useMobileLayout() || requested === "cards" ? "cards" : "list";
+}
 
 export function LibraryViewToggle({ value, onChange }: { value: LibraryView; onChange: (value: LibraryView) => void }) {
   const labels = useT().training.library.view;

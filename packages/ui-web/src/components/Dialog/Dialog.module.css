@@ -203,27 +203,6 @@
 
 }
 
-@media (max-width: 40rem) {
-  .overlay {
-    align-items: end;
-    padding: 0;
-  }
-
-  .modal {
-    max-width: none;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-
-  .modal[data-entering] {
-    animation: sheet-in 320ms var(--tf-ease-drawer);
-  }
-
-  .modal[data-exiting] {
-    animation: sheet-out 220ms cubic-bezier(0.4, 0, 1, 1) forwards;
-  }
-}
-
 @keyframes sheet-out {
   to {
     transform: translateY(100%);
@@ -325,6 +304,63 @@
 
 @media (prefers-reduced-motion: reduce) {
   .modal[data-exiting] {
+    animation: none;
+  }
+}
+
+/* Every phone overlay shares the same sheet, including desktop side-panel forms. */
+@media (max-width: 767px) {
+  .overlay,
+  .overlay[data-placement="right"] {
+    place-items: end stretch;
+    padding: 0;
+    height: var(--visual-viewport-height, 100dvh);
+  }
+
+  .modal,
+  .modal[data-placement="right"],
+  .modal[data-placement="right"].xl {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: calc(min(100dvh, var(--visual-viewport-height, 100dvh)) - max(1rem, env(safe-area-inset-top)));
+    border-width: 1px 0 0;
+    border-radius: var(--tf-radius-xl) var(--tf-radius-xl) 0 0;
+    transform-origin: bottom center;
+    overflow: hidden;
+  }
+
+  .modal[data-entering],
+  .modal[data-placement="right"][data-entering] {
+    animation: sheet-in 240ms var(--tf-ease-drawer);
+  }
+
+  .modal[data-exiting],
+  .modal[data-placement="right"][data-exiting] {
+    animation: sheet-out 160ms var(--tf-ease-out) forwards;
+  }
+
+  .header,
+  .modal[data-placement="right"] .header {
+    flex-shrink: 0;
+    padding: var(--tf-space-3) max(var(--tf-space-4), env(safe-area-inset-right)) var(--tf-space-3) max(var(--tf-space-4), env(safe-area-inset-left));
+  }
+
+  .header .close { min-width: 44px; min-height: 44px; }
+  .title, .description { overflow-wrap: anywhere; }
+  .body { overscroll-behavior: contain; }
+  .body:last-child { padding-bottom: max(var(--tf-space-5), env(safe-area-inset-bottom)); }
+  .footer { flex-shrink: 0; padding-bottom: max(var(--tf-space-4), env(safe-area-inset-bottom)); }
+  .footer > * { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay[data-entering],
+  .overlay[data-exiting],
+  .modal[data-entering],
+  .modal[data-exiting],
+  .modal[data-placement="right"][data-entering],
+  .modal[data-placement="right"][data-exiting] {
     animation: none;
   }
 }

@@ -1792,3 +1792,14 @@ button.tile[data-kind="workout"]:hover {
 .toggle svg[data-open] {
   transform: rotate(90deg);
 }
+
+@media (max-width: 767px) {
+  .sheet, .scroller { min-width: 0; }
+  .scroller { overscroll-behavior: contain; }
+  .tools { flex-wrap: wrap; height: auto; min-height: 44px; padding-block: var(--tf-space-2); }
+  .tools > button { min-width: 44px; min-height: 44px; }
+  .hint { flex-basis: 100%; margin-left: 0; white-space: normal; }
+  .panel, .volume { top: 0; width: 100%; }
+  .panelHead { flex-wrap: wrap; height: auto; min-height: 44px; }
+  .panelTitle { min-width: 0; max-width: 100%; }
+}

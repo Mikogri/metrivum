@@ -1,7 +1,7 @@
 import { ClipboardCheck, Plus } from "lucide-react";
 import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
-import { AlertDialog, Button, DataTable, Dialog, EmptyState, Option, Select, TextField, Toolbar } from "@trainflow/ui-web";
+import { AlertDialog, Button, DataTable, Dialog, EmptyState, Option, Select, TextField, Toolbar, useMobileLayout } from "@trainflow/ui-web";
 import { Facts, Panel, PanelSkeleton, StatStrip, StatStripSkeleton, type Stat } from "~/shared/ui/Panel";
 import { useFeatureAccess } from "~/shared/access";
 import { useCoachingQuery, type Page } from "../api";
@@ -41,6 +41,7 @@ export function CheckInSummary({ relationshipId, compact = false }: { relationsh
   );
 }
 export function ClientCheckIns({ relationshipId, active }: { relationshipId: string; active: boolean }) {
+  const mobile = useMobileLayout();
   const { params, update } = useClientDetailsUrl();
   const review = useFeatureAccess("checkins.review");
   const manage = useFeatureAccess("checkins.schedules.manage");
@@ -64,13 +65,13 @@ export function ClientCheckIns({ relationshipId, active }: { relationshipId: str
     <Select aria-label="Sort check-ins" selectedKey={params.get("ciSort") || "latest"} onSelectionChange={key => filter({ ciSort: String(key) })}><Option id="latest">Latest</Option><Option id="due">Due date</Option><Option id="status">Status</Option></Select>
     <span className={styles.spacer} />
     {active && manage.allowed && <Button variant="primary" iconStart={<Plus />} onPress={() => setAssigning(true)}>Assign check-in</Button>}
-  </Toolbar>{query.isPending ? <Loading /> : query.isError ? <Failure error={query.error} retry={() => void query.refetch()} /> : !query.data.items.length ? <EmptyState icon={<ClipboardCheck />} title="No check-ins" description="No requests match this period and filters." /> : <><DataTable label="Client check-ins" rows={query.data.items} rowKey={r => r.id} columns={[
+  </Toolbar>{query.isPending ? <Loading /> : query.isError ? <Failure error={query.error} retry={() => void query.refetch()} /> : !query.data.items.length ? <EmptyState icon={<ClipboardCheck />} title="No check-ins" description="No requests match this period and filters." /> : <>{mobile ? <ul className={styles.rows} aria-label="Client check-ins">{query.data.items.map(r => <li key={r.id}><button type="button" className={styles.checkInRow} onClick={() => update({ checkIn: r.id })}><span className={styles.itemMain}><strong>{r.scheduleName}</strong><span className={styles.itemMeta}>Due {dateTime(r.dueAtUtc)}</span><span className={styles.itemMeta}>{source(r)}</span>{r.wasLate && <span className={styles.late}>Submitted late</span>}</span><StatusBadge status={r.status} /></button></li>)}</ul> : <DataTable label="Client check-ins" rows={query.data.items} rowKey={r => r.id} columns={[
     { id: "name", header: "Check-in", width: "28%", cell: r => <button type="button" data-row-link className={styles.rowButton} onClick={() => update({ checkIn: r.id })}><span className={styles.twoLine}><span>{r.scheduleName}</span><small>{source(r)}</small></span></button> },
     { id: "available", header: "Available", hideOnMobile: true, cell: r => new Date(r.availableAtUtc).toLocaleDateString() },
     { id: "due", header: "Due", cell: r => dateTime(r.dueAtUtc) },
     { id: "submitted", header: "Submitted", hideOnMobile: true, cell: r => r.submittedAt ? <>{dateTime(r.submittedAt)}{r.wasLate ? <span className={styles.late}> · late</span> : null}</> : <span className={styles.muted}>—</span> },
     { id: "status", header: "Status", cell: r => <StatusBadge status={r.status} /> },
-  ]} />{Number(query.data.total) > Number(query.data.pageSize) ? <ListPagination data={query.data} onChange={page => update({ ciPage: String(page) })} /> : null}</>}
+  ]} />}{Number(query.data.total) > Number(query.data.pageSize) ? <ListPagination data={query.data} onChange={page => update({ ciPage: String(page) })} /> : null}</>}
   <ScheduleEditorPanel isOpen={assigning} seed={{ relationshipId }} onClose={() => setAssigning(false)} />
   {selected && <Dialog isOpen placement="right" size="lg" title="Check-in details" onOpenChange={open => { if (!open) close(); }}><CheckInDetail key={selected} requestId={selected} relationshipId={relationshipId} embedded onDirtyChange={setDirty} /></Dialog>}
   <AlertDialog isOpen={discard} onOpenChange={setDiscard} title="Discard unsaved review?" confirmLabel="Discard changes" cancelLabel="Keep editing" onConfirm={() => { setDirty(false); setDiscard(false); update({ checkIn: null }); }}>Your review has not been saved.</AlertDialog></div>;

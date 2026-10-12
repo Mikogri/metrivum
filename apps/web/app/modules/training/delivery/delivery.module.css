@@ -79,3 +79,34 @@ a.rowLink { text-decoration: none; }
 .pickEmpty { padding: var(--tf-space-5) var(--tf-space-4); border: 1px dashed var(--tf-color-border); border-radius: var(--tf-radius-lg); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); text-align: center; }
 
 .planFilter { justify-self: start; }
+
+.saveStatus { display: none; }
+.actualField { display: contents; }
+.actualField > span { display: none; }
+.workoutRow { display: flex; align-items: center; gap: var(--tf-space-3); width: 100%; min-height: 4.5rem; padding: var(--tf-space-4); border: 0; border-bottom: 1px solid var(--tf-color-border-subtle); background: var(--tf-color-surface); color: var(--tf-color-text); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.workoutRow strong { font-size: var(--tf-text-sm); overflow-wrap: anywhere; }
+.workoutRow:focus-visible { outline: 2px solid var(--tf-color-accent); outline-offset: -2px; }
+@media (max-width: 767px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .range { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); width: 100%; }
+  .range > :not(span) { width: auto; min-width: 0; }
+  .filters > * { max-width: 100%; }
+  .itemRow { flex-wrap: wrap; }
+  .itemMain { flex-basis: 60%; }
+  .itemTitle { white-space: normal; overflow-wrap: anywhere; }
+  .itemSide { flex-wrap: wrap; max-width: 100%; }
+  .itemSide button, .itemSide a { min-height: 44px; }
+  .workoutSets, .workoutSets tbody { display: block; }
+  .workoutSets thead { display: none; }
+  .workoutSets tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--tf-space-3); padding: var(--tf-space-4) 0; border-bottom: 1px solid var(--tf-color-border); }
+  .workoutSets td { display: grid; align-content: start; gap: var(--tf-space-2); padding: 0; border: 0; min-width: 0; }
+  .workoutSets td:first-child, .workoutSets td:last-child { grid-column: 1 / -1; }
+  .workoutSets td[data-label]::before { content: attr(data-label); color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); }
+  .actualField { display: grid; gap: var(--tf-space-1); }
+  .actualField > span { display: block; color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); }
+  .workoutSets input, .workoutSets select { width: 100%; min-width: 0; max-width: none; min-height: 44px; font-size: 16px; }
+  .workoutActions { position: sticky; bottom: calc(var(--tf-mobile-nav-height, 0px) + env(safe-area-inset-bottom)); z-index: 2; padding: var(--tf-space-3); border: 1px solid var(--tf-color-border); border-radius: var(--tf-radius-lg); background: var(--tf-color-surface); }
+  .saveStatus { display: block; color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); }
+  .workoutActions > .saveStatus { min-height: auto; }
+  .workoutActions > * { flex: 1 1 100%; min-height: 44px; }
+}

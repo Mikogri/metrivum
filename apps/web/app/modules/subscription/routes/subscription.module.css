@@ -62,3 +62,21 @@
 .methodIcon { display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: var(--tf-radius-sm); background: var(--tf-color-surface-overlay); color: var(--tf-color-text-secondary); }
 .methodIcon svg { width: 0.875rem; height: 0.875rem; }
 .muted { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); }
+
+@media (max-width: 767px) {
+    .stack, .panel { min-width: 0; overflow-wrap: anywhere; }
+    .panel { padding: var(--tf-space-4); }
+    .grow { min-width: 0; flex-basis: 100%; }
+    .panel label, .row > label { display: grid; min-width: 0; max-width: 100%; gap: var(--tf-space-2); }
+    .panel input, .panel select { width: 100%; min-width: 0; min-height: 44px; font-size: 1rem; }
+    .stack button, .stack a, .panel button {
+        max-width: 100%;
+        height: auto;
+        min-height: 44px;
+        padding-block: var(--tf-space-2);
+        white-space: normal;
+    }
+    .methods li { flex-wrap: wrap; }
+    .methodIcon { flex-shrink: 0; }
+    .stack table { min-width: 32rem; }
+}

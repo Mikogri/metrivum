@@ -89,3 +89,10 @@
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-sm);
 }
+
+@media (max-width: 767px) {
+  .trigger { min-height: 44px; }
+  .option { min-height: 44px; }
+  .optionText { overflow-wrap: anywhere; }
+  .listbox { max-height: min(18rem, 50dvh); }
+}

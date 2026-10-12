@@ -1,6 +1,8 @@
 import { Children, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cx } from "../../lib/cx";
+import { useMobileLayout } from "../../lib/useMobileLayout";
+import { Dialog } from "../Dialog/Dialog";
 import styles from "./ContextMenu.module.css";
 
 export type ContextMenuEntry =
@@ -25,7 +27,26 @@ export interface ContextMenuProps {
  * Menu opened at the pointer (right click) or at a focused element (Shift+F10 / Menu key).
  * Arrow keys move, Enter activates, Escape or a click outside closes and focus returns.
  */
-export function ContextMenu({ x, y, items, label, onAction, onClose, children, className }: ContextMenuProps) {
+export function ContextMenu(props: ContextMenuProps) {
+  const phone = useMobileLayout();
+  if (!phone) return <DesktopContextMenu {...props} />;
+  return <Dialog isOpen title={props.label} onOpenChange={open => { if (!open) props.onClose(); }}>
+    <div className={cx(styles.phoneActions, props.className)}>
+      {props.items.map(item => {
+        if (item.type === "separator") return <div key={item.id} role="separator" className={styles.separator} />;
+        if (item.type === "label") return <div key={item.id} className={styles.label}>{item.label}</div>;
+        return <button key={item.id} type="button" className={styles.item} data-tone={item.tone}
+          disabled={item.isDisabled} onClick={() => { props.onAction(item.id); props.onClose(); }}>
+          <span className={styles.icon} aria-hidden="true">{item.icon}</span>
+          <span className={styles.text}>{item.label}</span>
+        </button>;
+      })}
+      {Children.toArray(props.children).length > 0 ? <div className={styles.extra}>{props.children}</div> : null}
+    </div>
+  </Dialog>;
+}
+
+function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, className }: ContextMenuProps) {
   // `{a ? x : null}{b ? y : null}` passes an array of nulls: only real content gets the extra area.
   const extra = Children.toArray(children).length > 0;
   const ref = useRef<HTMLDivElement>(null);

@@ -18,7 +18,7 @@ import { formulaQueryOptions, trainingKeys, useBuiltInFormulas, useFormulaList }
 import { FormulaExpressionInput } from "../components/FormulaExpressionInput";
 import styles from "./formulas.module.css";
 import { privateMeta } from "~/shared/i18n/site";
-import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
+import { LibraryViewToggle, useLibraryView } from "~/shared/library/LibraryViewToggle";
 
 /** Rows per page in lists. */
 const PAGE_SIZE = 20;
@@ -183,6 +183,7 @@ function Formulas() {
   const showError = useErrorToast();
   const custom = useFeatureAccess("training.formulas.custom");
   const [state, update] = useUrlState({ q: "", page: "1", view: "list" });
+  const view = useLibraryView(state.view);
   const [search, setSearch] = useState(state.q);
   const debounced = useDebounced(search, 300);
   const page = pageFromParam(state.page);
@@ -254,7 +255,7 @@ function Formulas() {
             {t.custom}
           </h2>
           <SearchInput aria-label={t.searchLabel} placeholder={m.common.search} value={search} onChange={setSearch} size="sm" className={styles.search} />
-          <LibraryViewToggle value={state.view === "cards" ? "cards" : "list"} onChange={(view) => update({ view })} />
+          <LibraryViewToggle value={view === "cards" ? "cards" : "list"} onChange={(view) => update({ view })} />
         </div>
         {!custom.allowed && !custom.pending ? <Alert tone="info" title={t.lockedCustom} /> : null}
         {list.isPending ? (
@@ -265,7 +266,7 @@ function Formulas() {
           <EmptyState icon={<FunctionSquare />} title={t.emptyTitle} description={t.emptyBody} />
         ) : (
           <>
-            {state.view === "cards" ? (
+            {view === "cards" ? (
               <ul className={styles.formulaGrid} aria-label={t.title}>
                 {list.data.items.map((formula) => (
                   <FormulaCard

@@ -2,7 +2,7 @@ import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { Link } from "react-router";
 import { useState } from "react";
 import { Dumbbell, MoreHorizontal, Plus } from "lucide-react";
-import { Alert, Avatar, Button, Checkbox, DataTable, Dialog, DialogFooter, DialogTrigger, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, IconButton, Option, SearchInput, Select, TextField } from "@trainflow/ui-web";
+import { Alert, Avatar, Button, Checkbox, DataTable, Dialog, DialogFooter, DialogTrigger, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, IconButton, Option, SearchInput, Select, TextField, useMobileLayout } from "@trainflow/ui-web";
 import { Panel } from "~/shared/ui/Panel";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { useCoachingMutation, useCoachingQuery, type Page, type Relationship, type Group } from "~/modules/coaching";
@@ -84,6 +84,7 @@ export function AssignProgramButton({ programId, groupId, relationshipId, teamId
 }
 
 export function AssignmentList({ programId, relationshipId, groupId, coach = true, assign }: { programId?: string; relationshipId?: string; groupId?: string; coach?: boolean; assign?: { relationshipId?: string; groupId?: string; teamId?: string | null } }) {
+  const mobile = useMobileLayout();
   const [page, setPage] = useState(1);
   const { mode } = useWorkspace();
   const list = useCoachingQuery<Page<Assignment>>("/api/v1/training/assignments", { programId, relationshipId, groupId, page, pageSize: 20, view: mode });
@@ -102,7 +103,7 @@ export function AssignmentList({ programId, relationshipId, groupId, coach = tru
         <p className={styles.panelEmpty}>{coach ? "No assigned programs yet." : "Your coach has not assigned a program yet."}</p>
       ) : (
         <>
-          <DataTable label="Assigned programs" rows={list.data.items} rowKey={(item) => item.id} columns={[
+          {mobile && !coach ? <ul className={styles.rows}>{list.data.items.map(item => <li key={item.id}><Link className={styles.workoutRow} to={`/app/my-training?tab=history&relationshipId=${item.relationshipId}&programId=${item.programId}`}><span className={styles.itemMain}><strong>{item.programName}</strong><span className={styles.itemMeta}>Starts {item.startDate} · {item.timeZone}</span></span><StatusBadge status={item.status} /></Link></li>)}</ul> : <DataTable label="Assigned programs" rows={list.data.items} rowKey={(item) => item.id} columns={[
             { id: "program", header: "Program", width: "34%", cell: (item) => coach ? <Link data-row-link to={`/app/programs/${item.programId}`}>{item.programName}</Link> : <Link data-row-link to={`/app/my-training?relationshipId=${item.relationshipId}`}>{item.programName}</Link> },
             { id: "start", header: "Starts", cell: (item) => item.startDate },
             { id: "source", header: "Source", hideOnMobile: true, muted: true, cell: (item) => (item.groupAssignmentId ? "Group assignment" : "Direct") },
@@ -128,7 +129,7 @@ export function AssignmentList({ programId, relationshipId, groupId, coach = tru
                 );
               },
             },
-          ]} />
+          ]} />}
           {Number(list.data.total) > Number(list.data.pageSize) ? <ListPagination data={list.data} onChange={setPage} /> : null}
         </>
       )}

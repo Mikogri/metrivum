@@ -2,6 +2,7 @@
 // The library knows nothing about endpoints, Supabase, users or feature access.
 
 export { cx } from "./lib/cx";
+export { useMobileLayout } from "./lib/useMobileLayout";
 
 // Actions
 export { Button, LinkButton, type ButtonProps, type LinkButtonProps, type ButtonVariant, type ButtonSize } from "./primitives/Button/Button";

@@ -2,7 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link as RouterLink } from "react-router";
 import { DataTable, type DataTableProps } from "@trainflow/ui-web";
-import type { LibraryView } from "./LibraryViewToggle";
+import { useLibraryView, type LibraryView } from "./LibraryViewToggle";
 import styles from "./DataView.module.css";
 
 export interface CardSpec {
@@ -95,7 +95,8 @@ export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge,
 
 /** The same rows as a table or as cards; `view` comes from the page's list toggle. */
 export function DataView<T>({ view, card, ...table }: DataTableProps<T> & { view: LibraryView; card: (row: T) => CardSpec }) {
-  if (view === "list") return <DataTable {...table} />;
+  const presentation = useLibraryView(view);
+  if (presentation === "list") return <DataTable {...table} />;
   return (
     <ul className={styles.grid} aria-label={table.label} data-stale={table.stale || undefined}>
       {table.rows.map((row) => (

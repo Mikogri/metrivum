@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
 import { Navigate } from "react-router";
 import { ShoppingBag } from "lucide-react";
-import { Badge, Button, Dialog, DialogFooter, LinkButton, Segment, SegmentedControl, toast } from "@trainflow/ui-web";
+import { Badge, Button, Dialog, DialogFooter, LinkButton, Segment, SegmentedControl, toast, useMobileLayout } from "@trainflow/ui-web";
 import { Panel } from "~/shared/ui/Panel";
 import { useCoachingMutation, useCoachingQuery, type Page, Failure, ListPagination, Loading, money } from "~/modules/coaching";
 import { AssignmentList } from "../delivery/Assignments";
@@ -49,11 +49,12 @@ function PurchasedPlans() {
 
 /** The "Training plans" tab of Training: plans assigned by a coach and purchased copies, together or one kind at a time. */
 export function TrainingPlansTab({ relationshipId }: { relationshipId?: string }) {
+  const mobile = useMobileLayout();
   const [filter, setFilter] = useState("all");
   return <div className={styles.stack}>
-    <SegmentedControl size="sm" className={styles.planFilter} aria-label="Plan type" selectedKeys={[filter]} onSelectionChange={keys => { const key = [...keys][0]; if (key) setFilter(String(key)); }}><Segment id="all">All plans</Segment><Segment id="assigned">Assigned by coach</Segment><Segment id="purchased">Purchased</Segment></SegmentedControl>
-    {filter !== "purchased" && <AssignmentList relationshipId={relationshipId} coach={false} />}
-    {filter !== "assigned" && <PurchasedPlans />}
+    {!mobile && <SegmentedControl size="sm" className={styles.planFilter} aria-label="Plan type" selectedKeys={[filter]} onSelectionChange={keys => { const key = [...keys][0]; if (key) setFilter(String(key)); }}><Segment id="all">All plans</Segment><Segment id="assigned">Assigned by coach</Segment><Segment id="purchased">Purchased</Segment></SegmentedControl>}
+    {(mobile || filter !== "purchased") && <AssignmentList relationshipId={relationshipId} coach={false} />}
+    {(mobile || filter !== "assigned") && <PurchasedPlans />}
   </div>;
 }
 

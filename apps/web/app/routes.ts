@@ -28,6 +28,9 @@ export default [
     ]),
     route("app", "layouts/app-layout.tsx", [
       index("modules/dashboard/routes/app-index.tsx"),
+      route("today", "modules/dashboard/routes/today.tsx"),
+      route("more", "modules/dashboard/routes/more.tsx"),
+      route("analysis", "modules/video-analysis/routes/mobile-analysis.tsx"),
       route("messages", "modules/messaging/messages.tsx"),
       route("calendar", "modules/calendar/routes/calendar.tsx"),
       route("dashboard", "modules/dashboard/routes/dashboard.tsx"),

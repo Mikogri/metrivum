@@ -244,3 +244,9 @@
   margin-right: var(--tf-space-2);
   color: var(--tf-color-text-disabled);
 }
+
+@media (max-width: 767px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .card { min-width: 0; }
+  .title { overflow-wrap: anywhere; }
+}

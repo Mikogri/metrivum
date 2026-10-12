@@ -320,3 +320,22 @@
   flex: 1;
   min-width: 0;
 }
+
+@media (max-width: 767px) {
+  .page, .stack, .workspace, .body, .settings { min-width: 0; }
+  .hero, .body { padding: var(--tf-space-4); }
+  .links { grid-template-columns: minmax(0, 1fr); }
+  .teamName, .grow, .personText, .inline { overflow-wrap: anywhere; }
+  .requestList li { flex-wrap: wrap; }
+  .requestList .inline { flex-basis: calc(100% - 3rem); }
+  .inviteForm > .grow { flex-basis: 100%; }
+  .roleSelect, .ownerSelect, .seats { width: 100%; min-width: 0; }
+  .body table { min-width: 36rem; }
+  .zone > button, .inviteForm > button, .rowActions > button {
+    max-width: 100%;
+    min-height: 44px;
+    height: auto;
+    padding-block: var(--tf-space-2);
+    white-space: normal;
+  }
+}

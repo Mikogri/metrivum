@@ -12,7 +12,7 @@ import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { useDebounced } from "~/shared/lib/useDebounced";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
-import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
+import { LibraryViewToggle, useLibraryView } from "~/shared/library/LibraryViewToggle";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { deleteMedia } from "../api";
 import { StatusBadge } from "../components/StatusBadge";
@@ -174,7 +174,7 @@ export default function AnalysesRoute() {
   const t = m.video.list;
   const locale = useLocale();
   const [state, update] = useUrlState(DEFAULTS);
-  const view = state.view === "cards" ? "cards" : "list";
+  const view = useLibraryView(state.view);
   const pageSize = PAGE_SIZE;
   const [search, setSearch] = useState(state.q);
   const [tag, setTag] = useState(state.tag);

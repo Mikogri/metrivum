@@ -1,17 +1,18 @@
 import { useSearchParams } from "react-router";
 import { ArrowLeft } from "lucide-react";
-import { Button, DataTable, EmptyState, Option, Select, Toolbar } from "@trainflow/ui-web";
+import { Button, DataTable, EmptyState, Option, Select, Toolbar, useMobileLayout } from "@trainflow/ui-web";
 import { PeriodFilter } from "~/shared/ui/PeriodFilter";
 import { StatStrip, StatStripSkeleton } from "~/shared/ui/Panel";
 import { useCoachingQuery, Failure, Loading, ListPagination, StatusBadge, type Page } from "~/modules/coaching";
 import { localDate } from "./Assignments";
-import type { Occurrence } from "./TrainingHome";
+import { MobileWorkoutRows, type Occurrence } from "./TrainingHome";
 import type { ProgressData } from "./Progress";
 import { WorkoutDetail } from "./WorkoutLog";
 import styles from "./delivery.module.css";
 
 export interface ActivityOptions { earliestDate?: string | null; programs: { id: string; name: string }[]; structure: { blockId: string; cycleId: string; firstDate: string; lastDate: string }[] }
 export function TrainingActivity({ relationshipId }: { relationshipId: string }) {
+  const mobile = useMobileLayout();
   const [params, setParams] = useSearchParams();
   const get = (name: string, fallback = "") => params.get(`activity.${name}`) || fallback;
   const update = (values: Record<string, string>) => setParams(previous => { const next = new URLSearchParams(previous); if (!Object.hasOwn(values, "workout") && !Object.hasOwn(values, "page")) next.delete("activity.page"); for (const [key, value] of Object.entries(values)) { if (value) next.set(`activity.${key}`, value); else next.delete(`activity.${key}`); } return next; }, { replace: true });
@@ -43,7 +44,7 @@ export function TrainingActivity({ relationshipId }: { relationshipId: string })
       { label: "Completion rate", value: summary.data.completionPercentage == null ? "—" : `${summary.data.completionPercentage}%` },
     ]} />}
     {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : !list.data.items.length ? <EmptyState title="No workouts in this period" description="Change filters or assign a program with applied changes from Overview." /> : <>
-      <DataTable label="Workouts" rows={list.data.items} rowKey={item => item.id} columns={[
+      {mobile ? <MobileWorkoutRows items={list.data.items} onOpen={id => update({ workout: id })} /> : <DataTable label="Workouts" rows={list.data.items} rowKey={item => item.id} columns={[
         { id: "workout", header: "Workout", width: "26%", cell: item => <button type="button" data-row-link className={styles.rowLink} onClick={() => update({ workout: item.id })}><span>{item.name}</span><small>{item.programName}</small></button> },
         { id: "scheduled", header: "Scheduled", cell: item => item.scheduledDate },
         { id: "performed", header: "Performed", cell: item => item.performedDate ?? "—", hideOnMobile: true },
@@ -52,7 +53,7 @@ export function TrainingActivity({ relationshipId }: { relationshipId: string })
         { id: "exercises", header: "Exercises", hideOnMobile: true, align: "end", cell: item => item.exerciseCount ?? "—" },
         { id: "notes", header: "Notes", hideOnMobile: true, muted: true, cell: item => [item.hasComment && "Comment", item.loggedLate && "Logged late"].filter(Boolean).join(" · ") || "—" },
         { id: "status", header: "Status", cell: item => <StatusBadge status={item.status === "InProgress" ? "In progress" : item.status} /> },
-      ]} />
+      ]} />}
       <ListPagination data={list.data} onChange={page => update({ page: String(page) })} />
     </>}
   </section>;

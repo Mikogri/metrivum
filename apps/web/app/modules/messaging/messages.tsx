@@ -23,6 +23,7 @@ import {
   SegmentedControl,
   Spinner,
   TextArea,
+  useMobileLayout,
 } from "@trainflow/ui-web";
 import { useAccountContext, useApi, useUnsavedWorkGuard } from "~/shared/session";
 import { useFeatureAccess } from "~/shared/access";
@@ -93,6 +94,7 @@ const dayLabel = (iso: string) => {
 };
 
 export default function Messages() {
+  const mobile = useMobileLayout();
   const [params, setParams] = useSearchParams();
   const id = params.get("conversation");
   const requestedTab = params.get("tab");
@@ -110,10 +112,10 @@ export default function Messages() {
   const select = (value: string | null) => setParams(value ? { conversation: value } : { view: "list" });
   useEffect(() => {
     const first = list.data?.[0];
-    // Only an explicit return to the mobile list suppresses the default conversation.
-    if (!allowed || !first || id || tab !== "conversations" || params.has("person") || params.get("view") === "list" || create) return;
+    // Phone history must return to the inbox without immediately reopening a thread.
+    if (mobile || !allowed || !first || id || tab !== "conversations" || params.has("person") || params.get("view") === "list" || create) return;
     setParams({ conversation: first.id }, { replace: true });
-  }, [allowed, create, id, list.data, params, tab, setParams]);
+  }, [mobile, allowed, create, id, list.data, params, tab, setParams]);
 
   if (direct.pending || groups.pending)
     return (
@@ -283,6 +285,7 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
     const bottom = () => { if (followBottom.current) el.scrollTop = el.scrollHeight; };
     bottom();
     const observer = new ResizeObserver(bottom);
+    observer.observe(el);
     if (el.firstElementChild) observer.observe(el.firstElementChild);
     el.addEventListener("load", bottom, true);
     return () => { observer.disconnect(); el.removeEventListener("load", bottom, true); };

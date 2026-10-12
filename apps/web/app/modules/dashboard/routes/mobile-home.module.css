@@ -1,0 +1,20 @@
+.home { display: flex; flex-direction: column; gap: 20px; max-width: 48rem; margin: 0 auto; min-width: 0; }
+.section { padding: 16px; border: 1px solid var(--tf-color-border-subtle); background: var(--tf-color-surface); border-radius: var(--tf-radius-lg); min-width: 0; }
+.section h2 { font-size: var(--tf-text-sm); font-weight: 600; margin: 0 0 12px; }
+.rows { padding: 0; margin: 0; list-style: none; }
+.rows li + li { border-top: 1px solid var(--tf-color-border-subtle); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; min-height: 56px; text-decoration: none; }
+.row > span:first-child { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.row strong { font-size: var(--tf-text-sm); font-weight: 550; overflow-wrap: anywhere; }
+.row small, .muted { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); line-height: 1.5; }
+.row:focus-visible, .stats a:focus-visible, .more:focus-visible, .tile:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 3px; border-radius: var(--tf-radius-md); }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stats a { display: grid; gap: 5px; padding: 16px; border-radius: var(--tf-radius-lg); background: var(--tf-color-surface); font-size: var(--tf-text-xs); color: var(--tf-color-text-secondary); }
+.stats strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; color: var(--tf-color-text); }
+.more { display: inline-flex; padding: 10px 0; min-height: 44px; align-items: center; font-size: var(--tf-text-sm); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 18px; background: var(--tf-color-surface); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-lg); font-size: var(--tf-text-sm); font-weight: 500; text-align: left; }
+.tile svg { width: 24px; height: 24px; color: var(--tf-color-text-secondary); }
+.tiles > div { display: flex; }
+.tiles > div > button { width: 100%; height: 100%; min-height: 102px; justify-content: flex-start; white-space: normal; }
+.account { display: flex; flex-direction: column; gap: 14px; padding: 16px; background: var(--tf-color-surface); border-radius: var(--tf-radius-lg); }

@@ -668,8 +668,10 @@ test("archived forms can be restored directly from cards or the list", async ({ 
     await expect(page.getByRole("status").filter({ hasText: "Form archived" })).toBeVisible();
     await page.goto("/app/forms?archived=true&view=cards");
     await expect(page.getByRole("article").filter({ hasText: "Weekly review" })).toBeVisible();
-    await page.getByRole("radio", { name: "Table", exact: true }).click();
-    await expect(page.getByRole("table", { name: "Forms" })).toBeVisible();
+    if ((page.viewportSize()?.width ?? 1280) >= 768) {
+        await page.getByRole("radio", { name: "Table", exact: true }).click();
+        await expect(page.getByRole("table", { name: "Forms" })).toBeVisible();
+    }
     await page.getByRole("button", { name: "Restore form", exact: true }).click();
     await expect(page.getByRole("status").filter({ hasText: "Form restored" })).toBeVisible();
     expect(writes.at(-1)).toMatchObject({ path: `/api/v1/forms/${formId}/restore`, etag: '"2"' });
@@ -724,7 +726,7 @@ test("Client Details has six scoped tabs and right-side check-in and payment dra
     await page.keyboard.press("Escape");
     await expect(payments).toHaveCount(0);
     await tabs.getByRole("tab", { name: "Check-ins", exact: true }).click();
-    await page.getByRole("table", { name: "Client check-ins" }).getByRole("button", { name: /Weekly review/ }).click();
+    await page.getByRole((page.viewportSize()?.width ?? 1280) < 768 ? "list" : "table", { name: "Client check-ins" }).getByRole("button", { name: /Weekly review/ }).click();
     const drawer = page.getByRole("dialog", { name: "Check-in details", exact: true });
     await expect(drawer).toContainText("Energy level");
     await expect(drawer).toContainText("7");
@@ -732,6 +734,7 @@ test("Client Details has six scoped tabs and right-side check-in and payment dra
     await expect(page).toHaveURL(new RegExp(`checkIn=${f.requestId}`));
     await drawer.getByRole("textbox", { name: "Reply visible to the client" }).fill("Good work");
     await drawer.getByRole("button", { name: "Mark as reviewed", exact: true }).click();
+    await expect(drawer.getByRole("heading", { name: "Coach reply", exact: true })).toBeVisible();
     await expect(drawer).toContainText("Good work");
     expect(f.reviewed()).toBe(true);
     await page.keyboard.press("Escape");

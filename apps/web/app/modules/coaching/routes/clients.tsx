@@ -13,6 +13,7 @@ import { useCoachingMutation, useCoachingQuery, type Group, type Page, type Rela
 import { Failure, ListPagination, Loading, MutationError, StatusBadge } from "../components";
 import { ColorSwatches, GROUP_COLORS } from "../color";
 import { DataView } from "~/shared/library/DataView";
+import { ResponsiveFilters } from "~/shared/library/ResponsiveFilters";
 import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
 import styles from "../coaching.module.css";
 
@@ -72,8 +73,8 @@ function Clients() {
   return <><PageHeader title="Clients" description="Your coaching relationships, services and check-ins." actions={<ClientHubActions />} /><HubNavigation />
     <Toolbar aria-label="Filter clients" className={styles.toolbar}>
       <SearchInput aria-label="Search clients" placeholder="Search by name or username" value={state.q} onChange={(q) => update({ q })} className={styles.search} />
-      <Select aria-label="Relationship status" selectedKey={state.status || "all"} onSelectionChange={(key) => update({ status: key === "all" ? "" : String(key) })}><Option id="all">All statuses</Option>{["Active", "Suspended", "Completed"].map((s) => <Option key={s} id={s}>{s}</Option>)}</Select>
-      <Select aria-label="Sort clients" selectedKey={state.sort} onSelectionChange={(key) => update({ sort: String(key) })}><Option id="updated">Recently updated</Option><Option id="created">Recently started</Option><Option id="status">Status</Option></Select>
+      <ResponsiveFilters active={Boolean(state.status)}><Select aria-label="Relationship status" selectedKey={state.status || "all"} onSelectionChange={(key) => update({ status: key === "all" ? "" : String(key) })}><Option id="all">All statuses</Option>{["Active", "Suspended", "Completed"].map((s) => <Option key={s} id={s}>{s}</Option>)}</Select>
+      <Select aria-label="Sort clients" selectedKey={state.sort} onSelectionChange={(key) => update({ sort: String(key) })}><Option id="updated">Recently updated</Option><Option id="created">Recently started</Option><Option id="status">Status</Option></Select></ResponsiveFilters>
     <LibraryViewToggle value={state.view === "cards" ? "cards" : "list"} onChange={(view) => update({ view })} /></Toolbar>
     {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : list.data.items.length === 0 ? <EmptyState icon={<UsersRound />} title={state.q || state.status ? "No matching clients" : "Your first collaboration starts here"} description="Accept a submitted application to start a coaching relationship." actions={<LinkButton href="/app/leads" variant="primary">View leads</LinkButton>} /> : <>
       <DataView view={state.view === "cards" ? "cards" : "list"} card={(r) => ({

@@ -1,7 +1,9 @@
 import { Navigate } from "react-router";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
+import { useMobileLayout } from "@trainflow/ui-web";
 
 export default function AppIndex() {
   const { mode } = useWorkspace();
-  return <Navigate to={mode === "coach" ? "/app/dashboard" : "/app/my-coaches"} replace />;
+  const mobile = useMobileLayout();
+  return <Navigate to={mobile ? "/app/today" : mode === "coach" ? "/app/dashboard" : "/app/my-coaches"} replace />;
 }

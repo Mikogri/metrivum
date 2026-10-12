@@ -5,6 +5,8 @@ import {
   MenuItem as AriaMenuItem,
   MenuSection as AriaMenuSection,
   MenuTrigger,
+  Modal,
+  ModalOverlay,
   Separator,
   Keyboard,
   Text,
@@ -12,7 +14,9 @@ import {
   type MenuProps as AriaMenuProps,
 } from "react-aria-components";
 import { cx } from "../../lib/cx";
+import { useMobileLayout } from "../../lib/useMobileLayout";
 import { Popover } from "../Popover/Popover";
+import dialogStyles from "../Dialog/Dialog.module.css";
 import styles from "./Menu.module.css";
 
 export { MenuTrigger as DropdownMenuTrigger };
@@ -24,9 +28,17 @@ export interface DropdownMenuProps<T> extends Omit<AriaMenuProps<T>, "className"
 
 /** Popover menu. Place inside `DropdownMenuTrigger` after the trigger button. */
 export function DropdownMenu<T extends object>({ placement = "bottom end", className, ...props }: DropdownMenuProps<T>) {
+  const phone = useMobileLayout();
+  const menu = <AriaMenu {...props} className={cx(styles.menu, className)} />;
+  if (phone) {
+    // ModalOverlay consumes MenuTrigger's state, preserving selection, dismissal and focus restoration.
+    return <ModalOverlay isDismissable className={dialogStyles.overlay} data-mobile-sheet="actions">
+      <Modal className={cx(dialogStyles.modal, styles.actionSheet)}>{menu}</Modal>
+    </ModalOverlay>;
+  }
   return (
     <Popover placement={placement} asDialog={false}>
-      <AriaMenu {...props} className={cx(styles.menu, className)} />
+      {menu}
     </Popover>
   );
 }

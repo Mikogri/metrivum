@@ -218,11 +218,16 @@ async function fixture(
     });
     return writes;
 }
+async function openInbox(page: Page) {
+    await page.goto("/app/messages");
+    if ((page.viewportSize()?.width ?? 1280) < 768) await page.getByRole("button", { name: /Alex Morgan/ }).click();
+}
+
 test("Messaging sends replies, preserves retry identity and fits mobile", async ({
     page,
 }) => {
     const writes = await fixture(page, { failFirst: true, removed: false });
-    await page.goto("/app/messages");
+    await openInbox(page);
     await expect(page).toHaveURL(new RegExp("conversation=" + chat));
     await expect(
         page.getByLabel("Message history").getByText("Ready for your next session?", { exact: true }),
@@ -268,6 +273,7 @@ test("Messaging inline approval, direct creation and unsent draft guard", async 
 }) => {
     const writes = await fixture(page, { pending: "incoming" });
     await page.goto("/app/messages?tab=requests");
+    if ((page.viewportSize()?.width ?? 1280) < 768) await page.getByRole("button", { name: /Alex Morgan/ }).click();
     await expect(
         page.getByText("Accept this conversation to reply.", { exact: true }),
     ).toBeVisible();
@@ -374,11 +380,11 @@ test("Autocomplete opens a private chat without notifying until the first messag
         }
         return route.fulfill({ json: route.request().method() === "POST" ? requestBody : requestBody ? [requestBody] : [], headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "*" } });
     });
-    await page.goto("/app/messages");
+    await openInbox(page);
     await expect(page).toHaveURL(new RegExp("conversation=" + chat));
     const back = page.getByRole("button", { name: "Back to conversations", exact: true });
     // On phones the opened thread covers the list; wait for it before going back.
-    if (test.info().project.name === "mobile") {
+    if ((page.viewportSize()?.width ?? 1280) < 768) {
         await back.click();
         await expect(page).not.toHaveURL(/conversation=/);
     }
@@ -470,8 +476,10 @@ test("Notification bell persists safe history, read actions and preferences with
     await expect(page.getByRole("textbox", { name: "Message", exact: true })).toBeVisible();
     await expect.poll(() => read).toBe(true);
     if (await navMessage.isVisible()) await expect(navMessage).toHaveText("Messages");
+    if ((page.viewportSize()?.width ?? 1280) < 768) await page.getByRole("button", { name: "Back to conversations", exact: true }).click();
     await page.getByRole("button", { name: /Notifications, 1 unread/ }).click();
-    await expect(panel.getByText("Message received", { exact: true })).toHaveCount(0);
+    if ((page.viewportSize()?.width ?? 1280) < 768) await expect(panel.getByText("Message received", { exact: true })).toBeVisible();
+    else await expect(panel.getByText("Message received", { exact: true })).toHaveCount(0);
     await expect(panel.getByRole("button", { name: "Enable notification sound" })).toBeVisible();
     await page.screenshot({ path: `../../.local/messaging/notifications-${test.info().project.name}.png`, fullPage: true, animations: "disabled" });
 });
@@ -504,6 +512,10 @@ test("Chats opens the latest conversation when returning from Blocked", async ({
         const chats = page.getByRole("radio", { name: "Chats", exact: true });
         if (await chats.isVisible()) await chats.click();
         else await page.getByRole("button", { name: "Back to conversations", exact: true }).click();
+        if ((page.viewportSize()?.width ?? 1280) < 768) {
+            await expect(page).not.toHaveURL(/conversation=/);
+            await page.getByRole("button", { name: /Alex Morgan/ }).click();
+        }
         await expect(page).toHaveURL(new RegExp("conversation=" + chat));
         await expect(page.getByRole("textbox", { name: "Message", exact: true })).toBeVisible();
         const back = page.getByRole("button", { name: "Back to conversations", exact: true });
@@ -513,6 +525,84 @@ test("Chats opens the latest conversation when returning from Blocked", async ({
             await expect(page.getByRole("button", { name: /Alex Morgan/ })).toBeVisible();
         }
     }
+});
+
+test("Phone inbox, browser Back and small keyboard viewport retain chat access", async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 1280) >= 768, "Phone-specific navigation");
+    await fixture(page);
+    await page.setViewportSize({ width: 320, height: 740 });
+    await page.goto("/app/messages");
+    await expect(page.getByRole("button", { name: /Alex Morgan/ })).toBeVisible();
+    await expect(page).not.toHaveURL(/conversation=/);
+    await page.getByRole("button", { name: /Alex Morgan/ }).click();
+    const input = page.getByRole("textbox", { name: "Message", exact: true });
+    await expect(input).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Main", exact: true })).toHaveCount(0);
+    await page.goBack();
+    await expect(page.getByRole("button", { name: /Alex Morgan/ })).toBeVisible();
+    await expect(page).not.toHaveURL(/conversation=/);
+    await page.goForward();
+    await expect(input).toBeVisible();
+    await page.setViewportSize({ width: 320, height: 420 });
+    await input.fill("Keyboard-sized viewport");
+    const send = page.getByRole("button", { name: "Send", exact: true });
+    await expect(send).toBeInViewport();
+    await expect(page.getByLabel("Message history")).toBeInViewport();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await page.screenshot({ path: test.info().outputPath("chat-320-keyboard.png"), fullPage: true });
+    await send.click();
+    await expect(input).toHaveValue("");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/app/more");
+    const notifications = page.getByRole("main").getByRole("button", { name: /^Notifications/ });
+    await notifications.click();
+    const sheet = page.getByRole("dialog", { name: "Notifications", exact: true });
+    await expect(sheet).toBeVisible();
+    await page.screenshot({ path: test.info().outputPath("notifications-more-390.png"), fullPage: true });
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
+    await expect(notifications).toBeFocused();
+});
+
+test("Calendar keeps phone month agenda and actions while desktop keeps its views", async ({ page }) => {
+    await fixture(page);
+    const headers = { "Access-Control-Allow-Origin": "*" };
+    const event = { id: "meeting-one", coachId: me, organizerName: "Test Coach", kind: "Meeting", title: "October training review", description: "Review the next block", timeZone: "UTC", startsAtUtc: "2026-10-12T09:00:00Z", endsAtUtc: "2026-10-12T10:00:00Z", startDate: null, endDateExclusive: null, location: "Gym", meetingUrl: null, cancelled: false, version: 1, response: "Accepted", attendees: [] };
+    await page.route("**/api/v1/calendar/events?*", route => route.fulfill({ headers, json: { items: [event], total: 1, page: 1, pageSize: 100 } }));
+    await page.route("**/api/v1/calendar/events/meeting-one?*", route => route.fulfill({ headers, json: event }));
+    await page.goto("/app/calendar?date=2026-10-12");
+    if ((page.viewportSize()?.width ?? 1280) < 768) {
+        for (const width of [320, 390, 430]) {
+            await page.setViewportSize({ width, height: 800 });
+            await expect(page.getByRole("list", { name: "This month's agenda" }).getByRole("button", { name: /October training review/ })).toBeVisible();
+            await expect(page.getByRole("group", { name: "Calendar view" })).toHaveCount(0);
+            await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+            await page.screenshot({ path: test.info().outputPath(`calendar-${width}.png`), fullPage: true });
+        }
+        await page.getByRole("button", { name: "Calendar filters and actions" }).click();
+        const sheet = page.getByRole("dialog", { name: "Calendar filters and actions" });
+        await expect(sheet).toBeVisible();
+        await sheet.getByRole("button", { name: "Meetings", exact: true }).click();
+        await sheet.getByRole("button", { name: "Done", exact: true }).click();
+        await expect(page.getByText("Nothing planned this month")).toBeVisible();
+        await page.getByRole("button", { name: "Calendar filters and actions" }).click();
+        await sheet.getByRole("button", { name: "Meetings", exact: true }).click();
+        await sheet.getByRole("button", { name: "Done", exact: true }).click();
+        await page.getByRole("list", { name: "This month's agenda" }).getByRole("button").click();
+    } else {
+        await expect(page.getByRole("radio", { name: "Month", exact: true })).toBeVisible();
+        await page.getByRole("radio", { name: "Week", exact: true }).click();
+        await expect(page).toHaveURL(/view=week/);
+        await page.getByRole("radio", { name: "Year", exact: true }).click();
+        await expect(page).toHaveURL(/view=year/);
+        await page.getByRole("complementary", { name: "Selected day" }).getByRole("button", { name: /October training review/ }).click();
+    }
+    const details = page.getByRole("dialog", { name: "Details", exact: true });
+    await expect(details.getByRole("heading", { name: "October training review" })).toBeVisible();
+    await expect(details.getByText("Gym", { exact: true })).toBeVisible();
+    await details.getByRole("button", { name: "Close", exact: true }).click();
+    await page.getByRole("button", { name: "New meeting", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "New meeting", exact: true })).toBeVisible();
 });
 
 
@@ -693,7 +783,7 @@ test("Chat coaching actions explain missing offers and honor feature access", as
 
 test("Pending sender keeps a disabled composer in the normal inbox", async ({ page }) => {
     const writes = await fixture(page, { pending: "outgoing" });
-    await page.goto("/app/messages");
+    await openInbox(page);
     await expect(page.getByRole("textbox", { name: "Message", exact: true })).toBeVisible();
     await expect(page.getByRole("textbox", { name: "Message", exact: true })).toBeDisabled();
     await expect(page.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
@@ -709,7 +799,7 @@ test("Message privacy is opt-in and persists independently of chat navigation", 
     await expect(preference).not.toBeChecked();
     await page.getByText("Require approval for new conversations", { exact: true }).click();
     await expect(preference).toBeChecked();
-    await page.goto("/app/messages");
+    await openInbox(page);
     await expect(page.getByRole("textbox", { name: "Message", exact: true })).toBeEnabled();
     await page.goto("/app/settings");
     await expect(preference).toBeChecked();

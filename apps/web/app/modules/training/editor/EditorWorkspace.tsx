@@ -11,7 +11,6 @@ import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
-import { useMediaQuery } from "~/shared/lib/useMediaQuery";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { createPlan, getPlan } from "../api";
@@ -43,9 +42,8 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
   const a = useAccountKey();
   const queryClient = useQueryClient();
   const access = useFeatures(["training.programs.manage", "training.templates.manage", "training.sets.advanced", "training.formulas.custom"] as const);
-  const smallScreen = useMediaQuery("(max-width: 56rem)");
   const canEdit = access["training.programs.manage"].allowed && (plan.kind === "Program" || access["training.templates.manage"].allowed);
-  const readOnly = !canEdit || plan.archived || smallScreen;
+  const readOnly = !canEdit || plan.archived;
   const editor = useEditor(plan, version, { readOnly });
   // The last mode picked in this browser wins; without one, plans shaped like one week open in simple
   // mode and others in advanced. Simple only limits what can be created, it never changes the structure.
@@ -175,7 +173,6 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
       </header>
 
       {plan.archived ? <Alert tone="warning" title={t.readOnly} className={styles.banner} /> : null}
-      {smallScreen ? <Alert tone="info" title={m.shell.smallScreenEditor} className={styles.banner} /> : null}
       {validation ? (
         <Alert tone="danger" title={t.validation} className={styles.banner} live="assertive">
           {(editor.error as ApiError).problem?.detail}

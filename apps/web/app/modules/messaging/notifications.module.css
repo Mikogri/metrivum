@@ -49,6 +49,18 @@
     max-height: inherit;
 }
 
+.mobilePanel {
+    --notify: #ec6a5e;
+    min-width: 0;
+}
+
+@media (max-width: 767px) {
+    .mobilePanel .head { flex-wrap: wrap; padding-inline: 0; }
+    .mobilePanel .tools button { min-width: 2.75rem; min-height: 2.75rem; }
+    .mobilePanel .source { min-height: 4rem; }
+    .mobilePanel .read { min-width: 2.75rem; min-height: 2.75rem; }
+}
+
 .head {
     display: flex;
     align-items: center;

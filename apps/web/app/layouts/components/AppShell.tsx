@@ -1,8 +1,8 @@
 import { ChevronRight, Menu, PanelLeft, Search, X } from "lucide-react";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
-import { Link, Outlet, useLocation, useMatches, useNavigate } from "react-router";
-import { IconButton, Kbd, PageBackContext, type PageBack } from "@trainflow/ui-web";
+import { Link, Navigate, Outlet, useLocation, useMatches, useNavigate, useNavigationType } from "react-router";
+import { IconButton, Kbd, PageBackContext, useMobileLayout, type PageBack } from "@trainflow/ui-web";
 import { useAccessSnapshot } from "~/shared/access";
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
@@ -18,6 +18,8 @@ import styles from "./AppShell.module.css";
 
 import { clientSection } from "~/shared/session/workspace-model";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { MobileNavigation } from "./MobileNavigation";
+import { immersiveMobileRoute, mobileViewport } from "./mobile-navigation";
 
 const COLLAPSED_KEY = "tf.sidebar.collapsed";
 
@@ -149,10 +151,16 @@ function useBack(pathname: string, search: string, navigate: ReturnType<typeof u
 
 export function AppShell() {
   const m = useT();
+  const phone = useMobileLayout();
+  const shell = useRef<HTMLDivElement>(null);
   const [palette, setPalette] = useState<{ open: boolean; animated: boolean }>({ open: false, animated: false });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const location = useLocation();
+  const navigationType = useNavigationType();
+  const scrollPositions = useRef(new Map<string, number>());
+  const immersive = phone && immersiveMobileRoute(location.pathname, location.search);
+  const conversation = immersive && location.pathname === "/app/messages";
   const matches = useMatches();
   const workspace = matches.some((match) => (match.handle as { workspace?: boolean } | undefined)?.workspace);
   // `fit` pages (calendar, dashboard) size their content to the window instead of scrolling.
@@ -161,10 +169,46 @@ export function AppShell() {
   const navigate = useNavigate();
   const back = useBack(location.pathname, location.search, navigate, m.common.back);
   useEffect(() => setDrawerOpen(false), [location.pathname]);
-  // The content area scrolls (not the window), so a new page starts at its top.
+  // The shell owns scrolling, so browser Back restores its entry rather than the window's scroll.
+  useLayoutEffect(() => {
+    const element = main.current;
+    if (!element) return;
+    element.scrollTop = navigationType === "POP" ? scrollPositions.current.get(location.key) ?? 0 : 0;
+    const positions = scrollPositions.current;
+    if (positions.size > 40) positions.delete(positions.keys().next().value!);
+  }, [location.key, navigationType]);
   useEffect(() => {
-    main.current?.scrollTo({ top: 0 });
-  }, [location.pathname]);
+    const element = shell.current;
+    if (!phone || !element) return;
+    let height = window.innerHeight;
+    let width = window.innerWidth;
+    const update = () => {
+      if (width !== window.innerWidth) { width = window.innerWidth; height = window.innerHeight; }
+      height = Math.max(height, window.innerHeight);
+      const focused = document.activeElement;
+      const editing = focused instanceof HTMLElement && focused.matches("input:not([type=checkbox]):not([type=radio]), textarea, [contenteditable=true]");
+      const viewport = mobileViewport(height, window.visualViewport ?? undefined, editing);
+      element.style.setProperty("--mobile-viewport-height", `${viewport.height}px`);
+      element.style.setProperty("--mobile-viewport-top", `${viewport.top}px`);
+      element.toggleAttribute("data-keyboard", viewport.keyboard);
+    };
+    update();
+    window.visualViewport?.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    document.addEventListener("focusin", update);
+    document.addEventListener("focusout", update);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      document.removeEventListener("focusin", update);
+      document.removeEventListener("focusout", update);
+      element.style.removeProperty("--mobile-viewport-height");
+      element.style.removeProperty("--mobile-viewport-top");
+      element.removeAttribute("data-keyboard");
+    };
+  }, [phone]);
 
   const toggleCollapsed = () => {
     setCollapsed((value) => {
@@ -190,19 +234,22 @@ export function AppShell() {
   }, []);
 
   return (
-    <div className={styles.shell} data-collapsed={collapsed || undefined} data-workspace={workspace || undefined} data-fit={fit || undefined}>
+    <div ref={shell} className={styles.shell} data-phone={phone || undefined} data-immersive={immersive || undefined} data-conversation={conversation || undefined} data-collapsed={collapsed || undefined} data-workspace={workspace || undefined} data-fit={fit || undefined}>
       <a href="#app-main" className="tf-skip-link">
         {m.common.skipToContent}
       </a>
-      <aside className={styles.sidebar}>
+      {!phone && <aside className={styles.sidebar}>
         <div className={styles.logo}>
           <Brand />
         </div>
         <SidebarContent collapsed={collapsed} />
-      </aside>
+      </aside>}
 
       <div className={styles.column}>
-        <header className={styles.appBar}>
+        {phone ? (!conversation && <header className={`${styles.appBar} ${styles.phoneBar}`}>
+          <Link to="/app/today" className={styles.phoneBrand}>TrainFlow</Link>
+          <div className={styles.appBarActions}><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
+        </header>) : <header className={styles.appBar}>
           <span className={styles.desktopOnly}>
             <IconButton
               label={collapsed ? m.nav.expand : m.nav.collapse}
@@ -226,21 +273,22 @@ export function AppShell() {
             <WorkspaceSwitcher />
             <SubscriptionButton label={m.nav.subscription} />
           </div>
-        </header>
+        </header>}
 
         {MOCK_MODE ? (
           <p className={styles.mockBanner} role="note">
             Developer mock data — not connected to the TrainFlow API (VITE_DEV_MOCKS=1).
           </p>
         ) : null}
-        <main id="app-main" ref={main} className={styles.main} tabIndex={-1}>
+        <main id="app-main" ref={main} className={styles.main} tabIndex={-1} onScroll={event => scrollPositions.current.set(location.key, event.currentTarget.scrollTop)}>
           <div className={styles.content}>
-            <PageBackContext.Provider value={back}><WorkspaceRouteGuard><Outlet /></WorkspaceRouteGuard></PageBackContext.Provider>
+            <PageBackContext.Provider value={back}>{phone && location.pathname === "/app/dashboard" ? <Navigate to="/app/today" replace /> : <WorkspaceRouteGuard><Outlet /></WorkspaceRouteGuard>}</PageBackContext.Provider>
           </div>
         </main>
+        {phone && !immersive && <div className={styles.phoneNav}><MobileNavigation /></div>}
       </div>
 
-      <ModalOverlay isOpen={drawerOpen} onOpenChange={setDrawerOpen} isDismissable className={styles.drawerOverlay}>
+      {!phone && <ModalOverlay isOpen={drawerOpen} onOpenChange={setDrawerOpen} isDismissable className={styles.drawerOverlay}>
         <Modal className={styles.drawer}>
           <Dialog aria-label={m.nav.main} className={styles.drawerDialog}>
             <div className={styles.logo}>
@@ -250,7 +298,7 @@ export function AppShell() {
             <SidebarContent onNavigate={() => setDrawerOpen(false)} />
           </Dialog>
         </Modal>
-      </ModalOverlay>
+      </ModalOverlay>}
 
       <CommandPalette isOpen={palette.open} animated={palette.animated} onOpenChange={(open) => setPalette((state) => ({ ...state, open }))} />
     </div>

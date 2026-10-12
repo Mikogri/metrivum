@@ -210,3 +210,19 @@
   color: var(--tf-color-text);
 }
 .checkoutActions { display: flex; flex-wrap: wrap; gap: var(--tf-space-3); }
+
+@media (max-width: 767px) {
+  .panel, .offer, .checkout { min-width: 0; overflow-wrap: anywhere; }
+  .offer, .checkout { padding: var(--tf-space-4); }
+  .head { flex-wrap: wrap; }
+  .features ul { grid-template-columns: minmax(0, 1fr); }
+  .features li > span:last-child { min-width: 0; }
+  .checkout input { width: 100%; min-width: 0; min-height: 44px; font-size: 1rem; }
+  .cta, .manage, .checkoutActions > button {
+    max-width: 100%;
+    height: auto;
+    min-height: 44px;
+    padding-block: var(--tf-space-2);
+    white-space: normal;
+  }
+}

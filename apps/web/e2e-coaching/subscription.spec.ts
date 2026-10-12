@@ -11,6 +11,28 @@ const catalog = JSON.parse(
     ),
 ) as { key: string }[];
 
+test("responsive checkout preserves quote review and payment at narrow widths", async ({ page }, testInfo) => {
+    const state = await fixture(page);
+    await page.goto("/app/subscription");
+    await page.getByRole("button", { name: "Pay for Team", exact: true }).click();
+    const checkout = page.getByRole("region", { name: "Team checkout" });
+    await checkout.getByLabel("Team name", { exact: true }).fill("TrainFlow Test Team");
+    await checkout.getByLabel("Purchased seats", { exact: true }).fill("3");
+    await checkout.getByRole("button", { name: "Review quote", exact: true }).click();
+    await expect(checkout.getByText(/Amount due:.*209[.,]69/)).toBeVisible();
+    const confirm = checkout.getByRole("button", { name: "Confirm payment", exact: true });
+    await confirm.scrollIntoViewIfNeeded();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBeTruthy();
+    const button = await confirm.boundingBox();
+    expect(button!.x).toBeGreaterThanOrEqual(0);
+    expect(button!.x + button!.width).toBeLessThanOrEqual(page.viewportSize()!.width + 1);
+    await page.screenshot({ path: testInfo.outputPath("team-checkout.png"), fullPage: true, animations: "disabled" });
+    expect(state.settlements()).toBe(0);
+    await confirm.click();
+    await expect(page.getByRole("status")).toContainText("Team is active");
+    expect(state.settlements()).toBe(1);
+});
+
 async function fixture(page: Page, configured = true, role = "Coach", teamRole: string | null = null, transferRequest = false) {
     const writes: { path: string; body: Record<string, unknown> }[] = [];
     let settlements = 0;

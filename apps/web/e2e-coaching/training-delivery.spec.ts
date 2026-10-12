@@ -127,7 +127,7 @@ test("coach assigns a published program, client records blank actuals, coach see
   expect(assignmentWrite.key).toBeTruthy();
   expect(assignmentWrite.body).toMatchObject({ relationshipIds: [ids.relationship], groupIds: [], revisionId: ids.revision, startDate: today, timeZone: "UTC" });
   await page.getByRole("tab", { name: "Activity", exact: true }).click();
-  const workout = page.getByRole("table", { name: "Workouts" }).getByRole("button", { name: /Upper body A/ });
+  const workout = page.getByRole("button", { name: /Upper body A/ });
   await expect(workout).toBeVisible();
   await page.getByRole("button", { name: /Sort$/ }).click();
   await page.getByRole("option", { name: "Oldest first", exact: true }).click();
@@ -188,4 +188,44 @@ test("execution conflict preserves typed actual values and offers an explicit re
   await expect(reps).toHaveValue("7");
   expect(f.writes.filter(w => w.method === "PUT" && w.path.includes("/executions/"))).toHaveLength(1);
   expect(f.writes.some(w => w.path.endsWith("/complete"))).toBe(false);
+});
+
+
+test("responsive Plans, History, workout and client details retain native priorities", async ({ page }, testInfo) => {
+  const f = await fixture(page, { assigned: true, initialRole: "Client" });
+  const mobile = (page.viewportSize()?.width ?? 1440) < 768;
+  const fits = async () => expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.goto("/app/my-training?tab=plans", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: mobile ? "Plans" : "Training", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Assigned programs", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Purchased plans", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Foundation strength/ })).toBeVisible();
+  await fits();
+  await page.screenshot({ path: testInfo.outputPath("plans.png"), fullPage: true, animations: "disabled" });
+  await page.goto("/app/my-training?tab=history", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: mobile ? "History" : "Training", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Upper body A/ })).toBeVisible();
+  await fits();
+  await page.screenshot({ path: testInfo.outputPath("history.png"), fullPage: true, animations: "disabled" });
+  await page.getByRole("link", { name: /Upper body A/ }).click();
+  await page.getByRole("button", { name: "Start workout", exact: true }).click();
+  const reps = page.getByRole("spinbutton", { name: "Bench press set 1 reps", exact: true });
+  await reps.fill("8");
+  await expect(reps).toHaveAttribute("inputmode", "decimal");
+  if (mobile) await expect(page.getByRole("status").filter({ hasText: "Unsaved changes" })).toBeVisible();
+  await fits();
+  await reps.evaluate(element => element.scrollIntoView({ block: "center" }));
+  await page.screenshot({ path: testInfo.outputPath("workout.png"), fullPage: true, animations: "disabled" });
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  if (mobile) await expect(page.getByRole("status").filter({ hasText: "All changes saved" })).toBeVisible();
+  expect(f.writes.find(w => w.method === "PUT")?.body).toMatchObject({ exercises: [{ sets: [{ reps: 8 }, {}] }] });
+  await f.asRole("Coach", `/app/clients/${ids.relationship}`);
+  await expect(page.getByRole("tablist", { name: "Client views" }).getByRole("tab")).toHaveText(["Overview", "Activity", "Progress", "Profile", "Documentation", "Check-ins"]);
+  await expect(page.getByRole("heading", { name: "Assigned programs", exact: true })).toBeVisible();
+  await fits();
+  await page.screenshot({ path: testInfo.outputPath("client-overview.png"), fullPage: true, animations: "disabled" });
+  await page.getByRole("tab", { name: "Activity", exact: true }).click();
+  await expect(page.getByRole("button", { name: /Upper body A/ })).toBeVisible();
+  await fits();
+  await page.screenshot({ path: testInfo.outputPath("client-activity.png"), fullPage: true, animations: "disabled" });
 });

@@ -302,3 +302,11 @@
     grid-template-columns: 1fr;
   }
 }
+
+.mobileStatus { display: flex; align-items: center; gap: var(--tf-space-3); margin-bottom: var(--tf-space-4); color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
+@media (max-width: 767px) {
+  .title { min-width: 0; }
+  .views { min-width: 0; max-width: 100%; }
+  .views [role="tab"] { min-height: 44px; flex-shrink: 0; }
+  .history > summary { min-height: 44px; display: flex; align-items: center; }
+}

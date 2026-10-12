@@ -1,15 +1,20 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import type { DictionariesDto } from "@trainflow/api-client-web";
 
 const features = JSON.parse(readFileSync(new URL("../../../contracts/generated/features.json", import.meta.url), "utf8")) as { key: string }[];
 const userId = "00000000-0000-4000-8000-000000000000";
 const programId = "12000000-0000-4000-8000-000000000001";
 const exerciseId = "0e78cee8-0685-531f-8a54-5313fd6ef631";
+const dictionaries: DictionariesDto = {
+  muscles: [{ key: "rectus-abdominis", labelEn: "Rectus abdominis", labelPl: "Mięsień prosty brzucha", isActive: true, version: 1 }],
+  movementPatterns: [],
+};
 const guid = (n: number) => `23000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const document = { schemaVersion: 1, blocks: [{ id: guid(1), name: "Generated baseline", description: "", cycles: [{ id: guid(2), name: "Cycle 1", description: "", dayCount: 10,
   days: [{ id: guid(3), dayNumber: 1, workouts: [{ id: guid(4), name: "Session 1", description: "Warm up before training.", groups: [], exercises: [{ id: guid(5), exerciseId, comment: "Repetitions per side", sets: [{ id: guid(6), kind: "Standard", prescription: { reps: { minimum: 8, maximum: 10 }, rir: 3, rest: { value: 90, unit: "Seconds" } } }] }] }] }] }] }] };
 
-test("generator previews constraints, locks choices, saves explicitly and opens the normal builder", async ({ page }) => {
+test("generator previews constraints, locks choices, saves explicitly and opens the normal builder", async ({ page }, testInfo) => {
   const writes: { path: string; body: Record<string, unknown> }[] = [];
   await page.addInitScript(({ id }) => {
     localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh-0", expires_at: Math.floor(Date.now() / 1000) + 3600,
@@ -40,6 +45,8 @@ test("generator previews constraints, locks choices, saves explicitly and opens 
     if (path.endsWith("/generator/reshuffle")) return respond({ ...preview, state: request.postDataJSON().state, slots: preview.slots.map(x => ({ ...x, locked: true })) });
     if (path.endsWith("/generator/save-draft") || path === `/api/v1/training/programs/${programId}`) return respond(plan);
     if (path.endsWith("/formulas/built-in")) return respond([]);
+    if (path === "/api/v1/exercise-dictionaries") return respond(dictionaries);
+    if (path.endsWith("/revisions")) return respond({ items: [], page: 1, pageSize: 25, total: 0 });
     if (path.startsWith("/api/v1/exercises/")) return respond({ ...exercise, description: "", instructions: "", version: 1, primaryMuscleKeys: ["rectus-abdominis"], secondaryMuscleKeys: [], movementPatternKeys: [], tags: [], isArchived: false });
     return respond({ items: [], page: 1, pageSize: 25, total: 0 });
   });
@@ -57,4 +64,24 @@ test("generator previews constraints, locks choices, saves explicitly and opens 
   await expect(page.getByRole("toolbar").first()).toBeVisible();
   expect(writes.some(x => /assignments|revisions/.test(x.path))).toBe(false);
   expect(writes.find(x => x.path.endsWith("save-draft"))?.body).toMatchObject({ state: { lockedSlots: ["session-1/core"] }, name: "Generated program" });
+  await expect(page.locator("#program-name")).toBeEditable();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBeTruthy();
+  await page.screenshot({ path: testInfo.outputPath("program-editor.png"), fullPage: true, animations: "disabled" });
+  await page.getByRole("radio", { name: "Simple", exact: true }).click();
+  await expect(page.getByRole("tabpanel")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBeTruthy();
+  await page.screenshot({ path: testInfo.outputPath("program-editor-simple.png"), fullPage: true, animations: "disabled" });
+  const exportButton = page.getByRole("button", { name: "Export", exact: true });
+  await expect(exportButton).toBeVisible();
+  await exportButton.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect.poll(async () => {
+    const bounds = await dialog.boundingBox();
+    return bounds != null && bounds.x >= 0 && bounds.x + bounds.width <= page.viewportSize()!.width + 1;
+  }).toBeTruthy();
+  await page.screenshot({ path: testInfo.outputPath("export-dialog.png"), fullPage: true, animations: "disabled" });
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(exportButton).toBeFocused();
 });

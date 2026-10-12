@@ -60,3 +60,11 @@
     opacity: 0;
   }
 }
+
+@media (max-width: 767px) {
+  .popover {
+    min-width: min(10rem, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    overscroll-behavior: contain;
+  }
+}

@@ -2,7 +2,7 @@ import { ArrowRight, CheckCircle2, Handshake, MoreHorizontal, PauseCircle, PlayC
 import { useState } from "react";
 import { useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, AlertDialog, Avatar, Badge, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton, PageHeader, Tab, TabList, Tabs, TextArea, toast } from "@trainflow/ui-web";
+import { Alert, AlertDialog, Avatar, Badge, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton, PageHeader, Tab, TabList, Tabs, TextArea, toast, useMobileLayout } from "@trainflow/ui-web";
 import { BodyMeasurements, RelationshipDocumentation } from "~/modules/client-documentation";
 import { AssignedProgramsSummary, TrainingActivity, TrainingProgress } from "~/modules/training";
 import { OpenConversationButton } from "~/modules/messaging";
@@ -26,6 +26,7 @@ const TABS = ["overview", "activity", "progress", "profile", "documentation", "c
 const TAB_LABEL: Record<(typeof TABS)[number], string> = { overview: "Overview", activity: "Activity", progress: "Progress", profile: "Profile", documentation: "Documentation", "check-ins": "Check-ins" };
 
 function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
+  const mobile = useMobileLayout();
   const { params, update } = useClientDetailsUrl();
   const requestedTab = params.get("tab") === "training" ? "activity" : params.get("tab");
   const tab = TABS.find((value) => value === requestedTab) ?? "overview";
@@ -105,6 +106,7 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
           </>
         }
       />
+      {mobile && <div className={styles.mobileStatus}><StatusBadge status={r.status} /><span>Since {new Date(r.startedAt).toLocaleDateString()}</span></div>}
       <Tabs selectedKey={tab} onSelectionChange={(key) => update({ tab: String(key), checkIn: null, application: null, drawer: null })} className={styles.views}>
         <TabList aria-label="Client views">
           {TABS.map((value) => (
@@ -116,8 +118,9 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
         <TrainingActivity relationshipId={r.id} />
       ) : tab === "progress" ? (
         <div className={styles.stack}>
-          <BodyMeasurements relationshipId={r.id} />
+          {!mobile && <BodyMeasurements relationshipId={r.id} />}
           <TrainingProgress relationshipId={r.id} coach />
+          {mobile && <BodyMeasurements relationshipId={r.id} />}
         </div>
       ) : tab === "documentation" ? (
         <RelationshipDocumentation relationshipId={r.id} />
@@ -126,13 +129,14 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
       ) : tab === "check-ins" ? (
         <ClientCheckIns relationshipId={r.id} active={r.status === "Active"} />
       ) : (
-        <PanelGrid equal>
-          <Collaboration relationship={r} />
+        <PanelGrid equal={!mobile}>
+          {!mobile && <Collaboration relationship={r} />}
           <AssignedProgramsSummary relationshipId={r.id} teamId={r.teamId} canManage={canTraining.allowed && r.status === "Active"} />
           <ClientServices relationshipId={r.id} />
           <CheckInSummary relationshipId={r.id} compact />
           <ClientGroups relationship={r} manage={canGroups.allowed} />
           <ClientPaymentSummary relationshipId={r.id} />
+          {mobile && <Collaboration relationship={r} />}
         </PanelGrid>
       )}
       {params.get("drawer") === "payments" && <PaymentHistoryDrawer relationshipId={r.id} />}

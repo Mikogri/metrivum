@@ -564,3 +564,20 @@
   font-size: var(--tf-text-xs);
   text-align: center;
 }
+
+@media (max-width: 767px) {
+  .shell[data-phone] { position: relative; top: var(--mobile-viewport-top, 0); height: var(--mobile-viewport-height, 100dvh); transition: none; }
+  .phoneBar { height: auto; min-height: 56px; padding-top: env(safe-area-inset-top); padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+  .phoneBrand { font-family: var(--tf-font-brand); font-weight: 800; font-size: 1rem; }
+  .phoneAccount { width: 44px; min-height: 44px; display: grid; place-items: center; overflow: hidden; }
+  .phoneAccount > button { padding: 7px; height: 44px; }
+  .phoneNav { flex: none; }
+  .shell[data-keyboard] .phoneNav { display: none; }
+  .shell[data-phone] .main { overscroll-behavior-y: contain; }
+  .shell[data-phone] .content { padding: 18px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left)); min-width: 0; animation: none; }
+  .shell[data-phone][data-immersive] .content { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .shell[data-phone][data-workspace] .content { padding: 0; }
+  .shell[data-conversation] .content { height: 100%; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); display: flex; flex-direction: column; }
+  .shell[data-conversation] .main { overflow: hidden; }
+  .shell[data-phone] .mockBanner { padding: 3px 12px; font-size: 10px; }
+}

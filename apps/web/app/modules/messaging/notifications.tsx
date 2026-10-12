@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, Bell, BellOff, CalendarClock, CalendarX, Check, CheckCheck, CheckCircle2, ClipboardCheck, CreditCard, Dumbbell, FileText, Film, Flag, Inbox, MailOpen, MessageSquare, PauseCircle, Repeat2, Settings2, UserMinus, UsersRound, Volume2, VolumeX, XCircle } from "lucide-react";
-import { DialogTrigger } from "react-aria-components";
+import { Button as AriaButton, DialogTrigger } from "react-aria-components";
 import { useLocation, useNavigate } from "react-router";
-import { Button, Checkbox, IconButton, Popover, Segment, SegmentedControl, Spinner, toast } from "@trainflow/ui-web";
+import { Button, Checkbox, Dialog, IconButton, Popover, Segment, SegmentedControl, Spinner, toast, useMobileLayout } from "@trainflow/ui-web";
 import { useAccountContext } from "~/shared/session";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { formatRelative } from "~/shared/i18n/format";
@@ -46,7 +46,7 @@ export function notificationLook(type: string, category: string): Look {
     return CATEGORY[category] ?? { icon: Bell, tone: "neutral" };
 }
 
-export function NotificationBell() {
+export function NotificationBell({ label, className }: { label?: string; className?: string } = {}) {
     const sound = useNotifications();
     const locale = useLocale();
     const [open, setOpen] = useState(false);
@@ -76,7 +76,10 @@ export function NotificationBell() {
     };
     return (
         <DialogTrigger isOpen={open} onOpenChange={setOpen}>
-            <IconButton
+            {label ? <AriaButton className={className} aria-label={`${label}${count ? `, ${count} unread` : ""}`}>
+                <Bell aria-hidden="true" />
+                <span>{label}{count ? ` (${count > 99 ? "99+" : count})` : ""}</span>
+            </AriaButton> : <IconButton
                 className={styles.bell}
                 data-unread={count ? "" : undefined}
                 label={`Notifications${count ? `, ${count} unread` : ""}`}
@@ -89,8 +92,8 @@ export function NotificationBell() {
                         {count ? <span className={styles.badge}>{count > 99 ? "99+" : count}</span> : null}
                     </>
                 }
-            />
-            <Popover placement="bottom end" aria-label="Notifications" className={styles.panel}>
+            />}
+            <NotificationPanel open={open} setOpen={setOpen}>
                 <header className={styles.head}>
                     <div className={styles.title}>
                         <strong>Notifications</strong>
@@ -189,7 +192,14 @@ export function NotificationBell() {
                         </Button>
                     </footer>
                 ) : null}
-            </Popover>
+            </NotificationPanel>
         </DialogTrigger>
     );
+}
+
+function NotificationPanel({ open, setOpen, children }: { open: boolean; setOpen: (open: boolean) => void; children: ReactNode }) {
+    const mobile = useMobileLayout();
+    return mobile
+        ? <Dialog title="Notifications" isOpen={open} onOpenChange={setOpen}><div className={styles.mobilePanel}>{children}</div></Dialog>
+        : <Popover placement="bottom end" aria-label="Notifications" className={styles.panel}>{children}</Popover>;
 }

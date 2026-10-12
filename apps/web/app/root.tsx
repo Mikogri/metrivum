@@ -41,7 +41,7 @@ export function Layout({ children }: { children: ReactNode }) {
     <html lang={lang} suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
         <meta name="theme-color" content="#0f0f0f" />
         <meta name="color-scheme" content="dark" />
         {/* Enables reveal-on-scroll initial states only when JS runs and motion is allowed. */}
