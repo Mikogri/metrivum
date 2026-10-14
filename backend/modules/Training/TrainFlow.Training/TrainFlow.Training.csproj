@@ -5,6 +5,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
     <PackageReference Include="CsvHelper" />
     <PackageReference Include="PDFsharp" />
+    <!-- PDFsharp still requests vulnerable PKCS 8.0.1; retain the patched runtime package. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\TrainFlow.BuildingBlocks\TrainFlow.BuildingBlocks.csproj" />

@@ -20,7 +20,9 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - run: npm install --global npm@11.21.0 --ignore-scripts
       - run: npm ci --ignore-scripts
+      - run: npm run test:security-dependencies
       - run: npm run typecheck --workspace @trainflow/mobile
       - run: npm test -- --project mobile-core
       # Metro bundles both platforms; native/device acceptance remains a separate release gate.
@@ -39,7 +41,9 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - run: npm install --global npm@11.21.0 --ignore-scripts
       - run: npm ci --ignore-scripts
+      - run: npm run test:security-dependencies
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

@@ -63,8 +63,8 @@ export default function Verify() {
       const client = manager.client(slot);
       const { error: resendError } =
         type === "signup"
-          ? await client.auth.resend({ type: "signup", email, options: { emailRedirectTo: callbackUrl(slot, returnTo) } })
-          : await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(slot, returnTo) } });
+          ? await client.auth.resend({ type: "signup", email, options: { emailRedirectTo: callbackUrl(slot, returnTo, email) } })
+          : await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(slot, returnTo, email) } });
       if (resendError) throw resendError;
       toast({ tone: "success", title: t.resent });
     } catch (caught) {

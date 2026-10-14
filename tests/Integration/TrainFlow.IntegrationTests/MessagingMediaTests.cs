@@ -20,6 +20,7 @@ public sealed class MessagingMediaTests
         await using (var create = admin.CreateCommand($"CREATE DATABASE {databaseName}"))
             await create.ExecuteNonQueryAsync();
         connection.Database = databaseName;
+        connection.Pooling = false;
         try
         {
             await using var db = new MediaDbContext(new DbContextOptionsBuilder<MediaDbContext>().UseNpgsql(connection.ConnectionString, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "media")).Options);
@@ -69,8 +70,7 @@ public sealed class MessagingMediaTests
         }
         finally
         {
-            NpgsqlConnection.ClearAllPools();
-            await using var drop = admin.CreateCommand($"DROP DATABASE {databaseName} WITH (FORCE)");
+            await using var drop = admin.CreateCommand($"DROP DATABASE {databaseName}");
             await drop.ExecuteNonQueryAsync();
         }
     }

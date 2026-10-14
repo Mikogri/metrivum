@@ -41,7 +41,7 @@ export default function Register() {
       const { data, error: signUpError } = await manager.client(slot).auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: callbackUrl(slot, onboardingUrl(role)) },
+        options: { emailRedirectTo: callbackUrl(slot, onboardingUrl(role), email) },
       });
       if (signUpError) throw signUpError;
       if (data.session) {

@@ -3,6 +3,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    // Bound JSDOM process pressure on developer machines and CI; assertions keep their normal deadlines.
+    maxWorkers: 4,
     projects: [
       { test: { name: "mobile-core", root: "apps/mobile", environment: "node", include: ["src/**/*.test.ts"] } },
       {

@@ -278,7 +278,7 @@ public sealed class CheckInTests
             await using var constraints = dbSource.CreateCommand("SELECT count(*) FROM pg_constraint WHERE conname IN ('FK_Targets_Coaching_Relationship','FK_Targets_Coaching_Group','FK_Requests_Coaching_Relationship','CK_Request_Submission')");
             Assert.Equal(4L, await constraints.ExecuteScalarAsync());
         }
-        finally { await using var drop = admin.CreateCommand($"DROP DATABASE {name} WITH (FORCE)"); await drop.ExecuteNonQueryAsync(); }
+        finally { await using var drop = admin.CreateCommand($"DROP DATABASE {name}"); await drop.ExecuteNonQueryAsync(); }
     }
     [CatalogPostgresFact]
     public async Task Concurrent_submission_is_duplicate_safe_and_DST_occurrences_persist_unique_UTC_dates()

@@ -22,4 +22,6 @@ The dedicated worker connection is stored outside the repository in .NET User Se
 
 The adapter bounds source/result sizes, runs each job in a private temporary directory, terminates the process tree on cancellation/timeout, and cleans up job files. Keep the work directory accessible only to the service account. API readiness checks bridge/configuration presence; installed models, GPU and sufficient memory are still required at execution time.
 
+The bridge inherits only allowlisted OS, user-directory, runtime and accelerator settings; application credentials and arbitrary environment variables are excluded. This is not an OS sandbox: the bridge and Python children retain the worker's file/network permissions and OS identity. Deploy untrusted media processing with a dedicated service identity and external memory, disk and network limits.
+
 Tests cover invalid points, process failures, size limits, cancellation and chart gaps. Cached real tracking data was checked against MotionTrace calculations. A fresh local GPU trial reached tracking but was refused by MotionTrace's RAM guard; fresh end-to-end inference remains to be verified with sufficient free memory.

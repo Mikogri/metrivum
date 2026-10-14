@@ -70,12 +70,14 @@ the browser bundle.
 Per environment (local, staging, production), with no wildcard in production:
 
 - **Site URL**: the site origin.
-- **Redirect URLs**: exactly `<origin>/auth/callback` (query parameters `slot`, `next` are appended by the
+- **Redirect URLs**: exactly `<origin>/auth/callback` (query parameters `slot`, `nonce`, `next` are appended by the
   app). Local example: `http://localhost:5173/auth/callback`.
 - **PKCE** is used by the web client (`flowType: "pkce"`); links return `?code=…` to the callback.
 - **Email templates**: either include `{{ .Token }}` for code entry on `/auth/verify`, or keep
   `{{ .ConfirmationURL }}` for links. For token-hash links use
   `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=<signup|recovery|email>`.
 - Email confirmation on; Data API off (the frontend never calls it).
+
+Callback links require the latest sign-in, signup or recovery request in the same browser, expire after one hour and are consumed before Auth exchange. A new tab is supported. A different device/browser, cleared browser storage, a resend or a link created before this protection requires requesting a new link. Code entry on `/auth/verify` remains available. Preserve the complete `.RedirectTo`, including its nonce, in custom email templates; never construct callback URLs manually.
 
 The API must list the site origin in `Cors:Origins` and already exposes `ETag`, `Location`, `Retry-After`.

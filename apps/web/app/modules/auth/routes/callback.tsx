@@ -8,6 +8,7 @@ import { useSessionManager, useSessionState } from "~/shared/session/SessionProv
 import { SLOT_IDS, type SlotId } from "~/shared/session/storage-keys";
 import { AuthHeader } from "../components/AuthHeader";
 import { slotParam } from "../lib/urls";
+import { consumeCallbackAttempt } from "../lib/callback-attempt";
 import styles from "./callback.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
@@ -47,13 +48,15 @@ export default function AuthCallback() {
       return;
     }
     const slot = requested as SlotId;
-    const client = manager.client(slot);
     const code = params.get("code");
     const tokenHash = params.get("token_hash");
     const type = params.get("type") as EmailOtpType | null;
 
     void (async () => {
       try {
+        if (params.getAll("nonce").length !== 1 || params.getAll("slot").length !== 1 || (code && tokenHash)) throw new Error("Invalid sign-in link.");
+        const attempt = consumeCallbackAttempt(slot, params.get("nonce"));
+        const client = manager.client(slot);
         let session: Session | null = null;
         if (code) {
           const { data, error } = await client.auth.exchangeCodeForSession(code);
@@ -67,6 +70,10 @@ export default function AuthCallback() {
         if (!session) {
           setFailure("failed");
           return;
+        }
+        if (session.user.email?.trim().toLowerCase() !== attempt.email) {
+          await client.auth.signOut({ scope: "local" });
+          throw new Error("Invalid account for this sign-in link.");
         }
         await manager.completeSignIn(slot, session);
         const next = type === "recovery" ? "/auth/reset-password" : nextPath(params.get("next"));

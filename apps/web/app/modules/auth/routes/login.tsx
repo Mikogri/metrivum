@@ -60,7 +60,7 @@ export default function Login() {
       if (mode === "code") {
         const { error: otpError } = await client.auth.signInWithOtp({
           email,
-          options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(slot, returnTo) },
+          options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(slot, returnTo, email) },
         });
         if (otpError) throw otpError;
         navigate(`/auth/verify?type=email&slot=${slot}&email=${encodeURIComponent(email)}&returnTo=${encodeURIComponent(returnTo)}`);

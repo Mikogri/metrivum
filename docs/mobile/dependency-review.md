@@ -1,12 +1,16 @@
-# Mobile dependency review — 2026-10-10
+# Mobile dependency review — 2026-10-14
 
-`npm audit --workspace @trainflow/mobile --omit=dev --json` reported **31 affected dependency nodes: 20 high, 11 moderate, 0 critical**. These are propagated nodes from four underlying advisories, not 31 independently identified application exploits. Exact local output: `.local/mobile/npm-audit.json`. Do not describe this dependency tree as audit-clean or store-ready.
+The previous 31 affected npm dependency nodes came from four advisories. The current locked workspace installs with zero reported npm advisories, without downgrading Expo. Expo remains SDK 57 with React Native 0.86.3 and React 19.2.3; native packages now match `expo install --check` (including Reanimated 4.5.1 and Worklets 0.10.1).
 
-| Advisory | Reachability and action |
-|---|---|
-| [braces stack exhaustion](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | Metro/build-tool glob dependency; no upstream patched version listed. No public build server is deployed by this task. Reassess toolchain updates before distribution. |
-| [node-forge signature verification](https://github.com/advisories/GHSA-86w9-cpqp-85rv) | Expo CLI/code-signing tooling; no upstream patched version listed. No OTA signing/update service is configured. Do not infer that APK/OS signing is proven vulnerable or safe from the audit count alone. |
-| [decode-uri-component malformed-input CPU exhaustion](https://github.com/advisories/GHSA-vcc3-ghjq-m6fr) | Router/query-string dependency, potentially relevant to external links. Patched 0.5.0 is ESM-only, while the installed query-string uses CommonJS; a blind override is not compatible evidence. Native system intents are reduced to static allowlisted routes before router query parsing. Auth independently validates and consumes the original bounded PKCE URL. This guard is tested, but does not remove the vulnerable package or replace an upstream compatible update. |
-| [uuid buffer bounds](https://github.com/advisories/GHSA-w5hq-g745-h8pq) | Transitive xcode/build tooling. App identifiers use Expo Crypto UUIDs, not affected v3/v5/v6 buffer APIs. Requires compatible upstream dependency resolution before release. |
+| Dependency | Remediation |
+| --- | --- |
+| `node-forge` | Private source fork of 1.4.0, backporting upstream PR 1152's RSA DigestAlgorithm validation. Provenance, source hashes and exact patch are in `vendor/node-forge`. |
+| `braces` | Private source fork of 3.0.3, bounding nesting in parsing and recursive AST consumers. Literal/escaped input remains supported. |
+| `decode-uri-component` | Fixed 0.5.0 decoding algorithm adapted to CommonJS, retaining the legacy plus-to-space behavior required by query-string/Expo Router. Malformed UTF-8 handling can differ; see its patch notes. |
+| `uuid` | Official 11.1.1, scoped to `xcode`. CommonJS v4 compatibility and affected buffer operations are tested. |
 
-The configured SDK remains a coherent stable Expo 57 / RN 0.86 set. Audit suggests destructive downgrades (including Expo 44/RN 0.72) for some propagated nodes; `npm audit fix --force` was deliberately not applied. Do not add an unreviewed major override merely to reduce counts. Native deep-link normalization uses Expo's documented [system intent hook](https://docs.expo.dev/router/advanced/native-intent/); device link tests remain outstanding.
+The three forks have distinct private package names and retained licenses; these are maintained source patches, not claimed upstream releases. Registry audit alone cannot validate private source: `npm run test:security-dependencies` runs 17 exploit, compatibility and installed-caller regressions, including actual Expo signing helpers. Replace forks when compatible upstream fixes are available; do not remove them solely because a renamed package is absent from audit output.
+
+Use npm 11.21.0 and supported Node branches from root `package.json`. npm 11.17.0 mishandles these workspace overrides. CI uses the pinned installer and clean installation with scripts disabled. Root file dependencies plus `$` overrides ensure callers resolve the vendored implementations.
+
+Android/iOS Metro exports and the Expo compatibility check passed. Native/device verification boundaries are recorded in [dependency remediation](../architecture/dependency-remediation-2026-10-14.md). Package audits do not prove operating-system, SDK, external model or device security.

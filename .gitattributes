@@ -1,3 +1,5 @@
 * text=auto eol=lf
 *.ttf binary
 *.pdf binary
+# Preserve upstream source, licenses and patch context exactly in audited vendored packages.
+vendor/** -whitespace

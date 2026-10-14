@@ -138,11 +138,6 @@
           "Microsoft.Extensions.Logging.Abstractions": "10.0.0"
         }
       },
-      "System.Security.Cryptography.Pkcs": {
-        "type": "Transitive",
-        "resolved": "8.0.1",
-        "contentHash": "CoCRHFym33aUSf/NtWSVSZa99dkd0Hm7OCZUxORBjRB16LNhIEOf8THPqzIYlvKM0nNDAPTRBa1FxEECrgaxxA=="
-      },
       "xunit.abstractions": {
         "type": "Transitive",
         "resolved": "2.0.3",
@@ -400,7 +395,8 @@
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.ExerciseCatalog.Contracts": "[1.0.0, )",
           "TrainFlow.Notifications.Contracts": "[1.0.0, )",
-          "TrainFlow.Training.Contracts": "[1.0.0, )"
+          "TrainFlow.Training.Contracts": "[1.0.0, )",
+          "System.Security.Cryptography.Pkcs": "[10.0.13, )"
         }
       },
       "trainflow.training.contracts": {
@@ -468,6 +464,12 @@
           "Microsoft.Extensions.Logging": "8.0.1",
           "System.Security.Cryptography.Pkcs": "8.0.1"
         }
+      },
+      "System.Security.Cryptography.Pkcs": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.13, )",
+        "resolved": "10.0.13",
+        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
       }
     }
   }

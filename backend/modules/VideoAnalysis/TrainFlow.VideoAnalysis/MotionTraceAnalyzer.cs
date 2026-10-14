@@ -92,6 +92,15 @@ public sealed class MotionTraceAnalyzer(IOptions<MotionTraceOptions> configured,
                 RedirectStandardError = true,
                 WorkingDirectory = job
             };
+            // Decoders do not need application credentials. This limits inheritance, not OS/file/network access.
+            string[] allowedEnvironment = ["PATH", "SystemRoot", "WINDIR", "TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE",
+                "APPDATA", "LOCALAPPDATA", "XDG_CACHE_HOME", "DOTNET_ROOT", "DOTNET_ROOT_X64", "DOTNET_ROOT_ARM64",
+                "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "CUDA_PATH", "CUDA_HOME", "CUDA_VISIBLE_DEVICES",
+                "NVIDIA_VISIBLE_DEVICES", "NVIDIA_DRIVER_CAPABILITIES", "OMP_NUM_THREADS", "MKL_NUM_THREADS",
+                "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS", "LANG", "LC_ALL"];
+            var environment = start.Environment.Where(pair => allowedEnvironment.Contains(pair.Key, StringComparer.OrdinalIgnoreCase)).ToArray();
+            start.Environment.Clear();
+            foreach (var pair in environment) start.Environment[pair.Key] = pair.Value;
             foreach (var argument in new[] { options.BridgePath, "--request", request, "--output", output })
                 start.ArgumentList.Add(argument);
             using var process = new Process { StartInfo = start };

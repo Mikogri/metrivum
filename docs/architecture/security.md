@@ -26,9 +26,11 @@ Run `infra/bootstrap-roles.sql`, then EF migrations as the migrator, then `infra
 - Private responses use `Cache-Control: no-store`; explicit CORS origins are required. HTTP rate limits are per API instance; database reservations are global.
 - Error responses contain stable `code` and `traceId` fields without SQL details. Logs omit tokens, private payloads and signed Storage URLs.
 - Secrets are supplied through environment variables or .NET user-secrets. Real `.env`/local configuration files and test database credentials are ignored by Git.
+- Local configuration is also excluded from build/test/publish outputs. Secret scanning includes untracked non-ignored source; Git history and ignored machine files require separate checks.
+- Web email callbacks require a browser-held, expiring nonce and expected identity before Auth exchange. The analysis decoder inherits an explicit minimal environment, never the entire API/worker configuration.
 - Frontend requests bind to account identity/generation before token use, refresh and response-body delivery. Cached idempotent responses also require current resource authorization on the server.
 
-The [2026-10-08 audit](performance-security-audit-2026-10-08.md) records regressions, external-service checks, remaining operational boundaries and product decisions.
+The [2026-10-14 review](security-audit-2026-10-14.md) records current fixes and verification boundaries. The [2026-10-08 audit](performance-security-audit-2026-10-08.md) records regressions, external-service checks, remaining operational boundaries and product decisions.
 
 ## Shared request and access rules
 

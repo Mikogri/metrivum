@@ -157,7 +157,7 @@ public sealed class DatabasePrivilegeTests
         finally
         {
             // Every datasource above is disposed before dropping this uniquely named test database.
-            await using var drop = administrator.CreateCommand($"DROP DATABASE {name} WITH (FORCE)");
+            await using var drop = administrator.CreateCommand($"DROP DATABASE {name}");
             await drop.ExecuteNonQueryAsync();
         }
     }

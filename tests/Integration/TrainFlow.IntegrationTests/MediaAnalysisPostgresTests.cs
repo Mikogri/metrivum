@@ -467,7 +467,7 @@ public sealed class MediaAnalysisPostgresTests
             await source.DisposeAsync();
             await using var connection = new NpgsqlConnection(adminConnection);
             await connection.OpenAsync();
-            await using var command = new NpgsqlCommand($"DROP DATABASE \"{name}\" WITH (FORCE)", connection);
+            await using var command = new NpgsqlCommand($"DROP DATABASE \"{name}\"", connection);
             await command.ExecuteNonQueryAsync();
         }
     }

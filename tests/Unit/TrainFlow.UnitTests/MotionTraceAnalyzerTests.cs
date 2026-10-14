@@ -73,6 +73,24 @@ public sealed class MotionTraceAnalyzerTests : IDisposable
     }
 
     [Fact]
+    public async Task EngineDoesNotInheritApplicationOrUnrecognizedEnvironmentVariables()
+    {
+        var names = new[] { "Storage__SecretKey", "ConnectionStrings__WorkerDatabase", "TRAINFLOW_UNRECOGNIZED_CREDENTIAL" };
+        var previous = names.Select(Environment.GetEnvironmentVariable).ToArray();
+        try
+        {
+            foreach (var name in names) Environment.SetEnvironmentVariable(name, "test-only-sentinel");
+            var (analyzer, _) = Create("environment");
+            var result = await analyzer.AnalyzeAsync(new MemoryStream([1]), Tracking, CancellationToken.None);
+            Assert.Equal("fake-test-engine", result.EngineVersion);
+        }
+        finally
+        {
+            for (var i = 0; i < names.Length; i++) Environment.SetEnvironmentVariable(names[i], previous[i]);
+        }
+    }
+
+    [Fact]
     public async Task AdapterAlsoEnforcesRuntimeTimeoutOutsideWorker()
     {
         var (analyzer, options) = Create("sleep", 2);
@@ -141,6 +159,7 @@ public sealed class MotionTraceAnalyzerTests : IDisposable
             "nonzero" => "[Console]::Error.Write('private-engine-diagnostic'); exit 7",
             "oversize" => "[IO.File]::WriteAllText($args[3], ('x' * 2048))",
             "malformed" => "[IO.File]::WriteAllText($args[3], '{')",
+            "environment" => $"if ($env:Storage__SecretKey -or $env:ConnectionStrings__WorkerDatabase -or $env:TRAINFLOW_UNRECOGNIZED_CREDENTIAL -or !$env:SystemRoot -or !$env:PATH) {{exit 19}}; [IO.File]::WriteAllText($args[3], '{result}')",
             "sleep" => $"$child = Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe') -WindowStyle Hidden -ArgumentList '-NoProfile', '-Command', 'Start-Sleep -Seconds 60' -PassThru; [IO.File]::WriteAllText('{marker}', \"$PID $($child.Id)\"); Start-Sleep -Seconds 60",
             _ => $"$request = Get-Content -Raw $args[1] | ConvertFrom-Json; if (!(Test-Path $request.videoPath) -or !$request.configuration.tracking -or $request.cacheDirectory -ne (Split-Path $args[1])) {{exit 9}}; [IO.File]::WriteAllText($args[3], '{result}')"
         } : mode switch
@@ -148,6 +167,7 @@ public sealed class MotionTraceAnalyzerTests : IDisposable
             "nonzero" => "echo private-engine-diagnostic >&2; exit 7",
             "oversize" => "head -c 2048 /dev/zero > \"$4\"",
             "malformed" => "printf '{' > \"$4\"",
+            "environment" => $"[ -z \"$Storage__SecretKey$ConnectionStrings__WorkerDatabase$TRAINFLOW_UNRECOGNIZED_CREDENTIAL\" ] && [ -n \"$PATH\" ] || exit 19; printf '%s' '{result}' > \"$4\"",
             "sleep" => $"sleep 60 & child=$!; echo $$ $child > '{marker}'; wait",
             _ => $"printf '%s' '{result}' > \"$4\""
         };

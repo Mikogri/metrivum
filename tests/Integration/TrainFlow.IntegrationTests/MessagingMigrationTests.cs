@@ -19,7 +19,7 @@ public sealed class MessagingMigrationTests
         await using (var create = admin.CreateCommand($"CREATE DATABASE {name}")) await create.ExecuteNonQueryAsync();
         try
         {
-            var connection = new NpgsqlConnectionStringBuilder(source) { Database = name };
+            var connection = new NpgsqlConnectionStringBuilder(source) { Database = name, Pooling = false };
             await using var db = new MessagingDbContext(new DbContextOptionsBuilder<MessagingDbContext>().UseNpgsql(connection.ConnectionString, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "messaging")).Options);
             await db.GetService<IMigrator>().MigrateAsync("20261008173117_MessagingReadIndexes");
             var pair = MessagingRules.Pair(Guid.NewGuid(), Guid.NewGuid());
@@ -43,8 +43,7 @@ public sealed class MessagingMigrationTests
         }
         finally
         {
-            NpgsqlConnection.ClearAllPools();
-            await using var drop = admin.CreateCommand($"DROP DATABASE {name} WITH (FORCE)");
+            await using var drop = admin.CreateCommand($"DROP DATABASE {name}");
             await drop.ExecuteNonQueryAsync();
         }
     }

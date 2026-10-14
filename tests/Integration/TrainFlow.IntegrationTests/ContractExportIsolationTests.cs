@@ -7,6 +7,13 @@ namespace TrainFlow.IntegrationTests;
 public sealed class ContractExportIsolationTests
 {
     [Fact]
+    public void Build_outputs_do_not_include_machine_local_credentials()
+    {
+        Assert.False(File.Exists(Path.Combine(AppContext.BaseDirectory, "appsettings.Local.json")));
+        Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location)!, "appsettings.Local.json")));
+    }
+
+    [Fact]
     public void Testing_host_has_no_business_background_workers()
     {
         using var factory = new ApiFactory();

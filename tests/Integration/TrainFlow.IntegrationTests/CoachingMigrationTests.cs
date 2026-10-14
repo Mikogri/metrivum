@@ -87,7 +87,7 @@ public sealed class CoachingMigrationTests
         }
         finally
         {
-            await using var drop = admin.CreateCommand($"DROP DATABASE {name} WITH (FORCE)");
+            await using var drop = admin.CreateCommand($"DROP DATABASE {name}");
             await drop.ExecuteNonQueryAsync();
         }
     }

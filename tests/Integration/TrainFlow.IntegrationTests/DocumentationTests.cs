@@ -69,6 +69,7 @@ public sealed class DocumentationTests
         await using var admin = NpgsqlDataSource.Create(connection.ConnectionString);
         await using (var create = admin.CreateCommand($"CREATE DATABASE {name}")) await create.ExecuteNonQueryAsync();
         connection.Database = name;
+        connection.Pooling = false;
         try
         {
             await using var db = new DocumentationDbContext(new DbContextOptionsBuilder<DocumentationDbContext>().UseNpgsql(connection.ConnectionString).Options);
@@ -83,8 +84,7 @@ public sealed class DocumentationTests
         }
         finally
         {
-            NpgsqlConnection.ClearAllPools();
-            await using var drop = admin.CreateCommand($"DROP DATABASE {name} WITH (FORCE)"); await drop.ExecuteNonQueryAsync();
+            await using var drop = admin.CreateCommand($"DROP DATABASE {name}"); await drop.ExecuteNonQueryAsync();
         }
     }
 
@@ -321,6 +321,7 @@ public sealed class DocumentationTests
             await using (var create = admin.CreateCommand($"CREATE DATABASE {name}"))
                 await create.ExecuteNonQueryAsync();
             connection.Database = name;
+            connection.Pooling = false;
             var f = new Fixture(admin, name, connection.ConnectionString);
             try
             {
@@ -350,8 +351,7 @@ public sealed class DocumentationTests
             await Docs.DisposeAsync();
             await Coaching.DisposeAsync();
             await MediaDb.DisposeAsync();
-            NpgsqlConnection.ClearAllPools();
-            await using var drop = admin.CreateCommand($"DROP DATABASE {name} WITH (FORCE)");
+            await using var drop = admin.CreateCommand($"DROP DATABASE {name}");
             await drop.ExecuteNonQueryAsync();
             await admin.DisposeAsync();
         }

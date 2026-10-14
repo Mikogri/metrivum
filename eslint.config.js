@@ -14,6 +14,7 @@ export default tseslint.config(
       "**/test-results/**",
       "**/playwright-report/**",
       "contracts/generated/**",
+      "vendor/**",
       "graphify-out/**",
       "backend/**",
       "apps/api/**",
@@ -32,7 +33,7 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
   },
   {
-    files: ["apps/mobile/metro.config.cjs", "apps/mobile/plugins/*.cjs"],
+    files: ["apps/mobile/metro.config.cjs", "apps/mobile/plugins/*.cjs", "infra/security-dependencies/*.cjs"],
     languageOptions: { sourceType: "commonjs", globals: { ...globals.node } },
     rules: { "@typescript-eslint/no-require-imports": "off" },
   },

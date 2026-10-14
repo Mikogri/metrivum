@@ -32,7 +32,9 @@ jobs:
           cache: npm
       - run: dotnet tool restore
       - run: dotnet restore --locked-mode
+      - run: npm install --global npm@11.21.0 --ignore-scripts
       - run: npm ci --ignore-scripts
+      - run: npm run test:security-dependencies
       - run: dotnet build --no-restore
       - shell: pwsh
         run: ./infra/scan-secrets.ps1

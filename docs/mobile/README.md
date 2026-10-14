@@ -8,10 +8,12 @@ The mobile theme and components live in `packages/ui-mobile` and are independent
 
 ## Run locally
 
-Use Node 22.22+ and the repository npm lockfile. Android requires JDK 17 and the Android SDK; iOS native compilation requires macOS/Xcode or a separately configured remote build. This app requires a development build: Expo Go cannot supply SQLCipher or the custom Android WAV recorder.
+Use Node 22.22.2+, 24.15.0+ or 26+ (supported branches in root `package.json`), npm 11.21.0 and the repository lockfile. Android requires JDK 17 and the Android SDK; iOS native compilation requires macOS/Xcode or a separately configured remote build. This app requires a development build: Expo Go cannot supply SQLCipher or the custom Android WAV recorder.
 
 ```powershell
 cd C:\Work\Projects\train-flow
+# One-time installer upgrade if npm --version is below 11.21.0.
+& 'C:\Program Files\nodejs\npm.cmd' install --global npm@11.21.0
 & 'C:\Program Files\nodejs\npm.cmd' ci
 Copy-Item apps/mobile/.env.example apps/mobile/.env.local
 # Fill only the public API URL, Supabase URL and publishable key.

@@ -630,6 +630,7 @@ public sealed partial class OffersBillingTests
             await using var create = new NpgsqlCommand("CREATE DATABASE \"" + name + "\"", admin);
             await create.ExecuteNonQueryAsync();
             builder.Database = name;
+            builder.Pooling = false;
             var connection = builder.ConnectionString;
             await using var forms = new FormsDbContext(new DbContextOptionsBuilder<FormsDbContext>().UseNpgsql(connection, o => o.MigrationsHistoryTable("__EFMigrationsHistory", "forms")).Options);
             await forms.Database.MigrateAsync();
@@ -647,7 +648,7 @@ public sealed partial class OffersBillingTests
         {
             await using var admin = new NpgsqlConnection(original);
             await admin.OpenAsync();
-            await using var drop = new NpgsqlCommand("DROP DATABASE \"" + name + "\" WITH (FORCE)", admin);
+            await using var drop = new NpgsqlCommand("DROP DATABASE \"" + name + "\"", admin);
             await drop.ExecuteNonQueryAsync();
         }
     }

@@ -31,7 +31,7 @@ export default function ForgotPassword() {
     setError(null);
     try {
       const { error: resetError } = await manager.client(slot).auth.resetPasswordForEmail(email, {
-        redirectTo: callbackUrl(slot, "/auth/reset-password"),
+        redirectTo: callbackUrl(slot, "/auth/reset-password", email),
       });
       if (resetError) throw resetError;
       // Same message whether or not the account exists, to avoid account enumeration.
