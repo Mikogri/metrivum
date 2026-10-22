@@ -29,7 +29,7 @@ public sealed record PlatformHistoryDto(IReadOnlyList<PlanChangeDto> Changes, IR
 
 public sealed class PlatformSubscriptionService(BillingDbContext db, BillingService billing, IAccountContext accounts,
     IConfiguration configuration, TimeProvider clock, ModuleTransaction transaction, INotificationPublisher notifications,
-    IEnumerable<FeatureDefinition> features, IAccountProfileFields? profiles = null, IPlatformCurrencyConverter? exchange = null)
+    IEnumerable<FeatureDefinition> features, IAccountProfileFields? profiles = null, IPlatformCurrencyConverter? exchange = null, IAbuseProtection? abuse = null)
 {
     public Task<IReadOnlyList<PlatformPlanDto>> PlansAsync(CancellationToken ct) => transaction.RunAsync(async token =>
     {
@@ -97,6 +97,7 @@ public sealed class PlatformSubscriptionService(BillingDbContext db, BillingServ
 
     public Task<PlatformSubscriptionDto> ConfirmAsync(PlatformConfirmRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
+        abuse?.Require(accounts.UserId, AbusePolicies.Payment);
         await accounts.GetRolesAsync(token);
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey) || request.IdempotencyKey.Length > 100)
             throw ApiException.Invalid("A bounded idempotency key is required.");

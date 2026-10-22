@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Collaboration files — TrainFlow");
+
 import { useState } from "react";
 import { useParams } from "react-router";
 import { FolderOpen } from "lucide-react";
@@ -19,16 +23,16 @@ export default function ClientDocuments() {
   ) : undefined;
   return (
     <>
-      <PageHeader title="Shared documents" description="Measurements, files and progress photos within each coaching relationship." actions={picker} />
+      <PageHeader title="Collaboration files" description="Your private files, shared documents and progress photos for each collaboration, alongside your measurements." actions={picker} />
       {!relationshipId && list.isPending ? <Loading /> : !relationshipId && list.isError ? <Failure error={list.error} /> : !relationshipId && !list.data?.items.length ? (
-        <EmptyState icon={<FolderOpen />} title="No coaching relationship yet" description="Shared documentation lives inside a collaboration with a coach." actions={<LinkButton href="/app/my-invitations" variant="primary">View invitations</LinkButton>} />
+        <EmptyState icon={<FolderOpen />} title="No coaching relationship yet" description="Private and shared files belong to a collaboration with a coach." actions={<LinkButton href="/app/my-invitations" variant="primary">View invitations</LinkButton>} />
       ) : id ? (
         <div className={styles.stack}>
           <BodyMeasurements relationshipId={id} />
           <RelationshipDocumentation relationshipId={id} clientView />
         </div>
       ) : (
-        <EmptyState icon={<FolderOpen />} title="Choose a coach" description="Select a coach above to see your shared records." />
+        <EmptyState icon={<FolderOpen />} title="Choose a coach" description="Select a coach above to see your private and shared records." />
       )}
     </>
   );

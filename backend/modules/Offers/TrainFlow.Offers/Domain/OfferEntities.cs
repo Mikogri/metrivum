@@ -32,7 +32,7 @@ public sealed class Offer
     {
         get; set;
     }
-    public Guid ApplicationFormVersionId
+    public Guid? ApplicationFormVersionId
     {
         get; set;
     }
@@ -112,7 +112,7 @@ public sealed class OfferRevision
         get; set;
     }
     public string Tags { get; set; } = "[]";
-    public Guid ApplicationFormVersionId
+    public Guid? ApplicationFormVersionId
     {
         get; set;
     }

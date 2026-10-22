@@ -150,6 +150,27 @@
     transition: background-color 120ms ease;
 }
 
+/* Analyzer update: amber round badge like the top banner, the next step as inline links. */
+.item[data-update] {
+    align-items: flex-start;
+    gap: var(--tf-space-3);
+    padding: var(--tf-space-2-5);
+    background: color-mix(in srgb, #e0a030 8%, transparent);
+}
+.updateIcon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    margin: 1px 0.3125rem 0;
+    border-radius: 50%;
+    background: #e0a030;
+    color: #1a1206;
+}
+.updateIcon svg { width: 0.8125rem; height: 0.8125rem; stroke-width: 3; }
+.item[data-update] .text strong { white-space: normal; }
+
 @media (hover: hover) and (pointer: fine) {
     .item:hover {
         background: var(--tf-color-surface-hover);

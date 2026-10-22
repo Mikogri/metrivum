@@ -205,6 +205,9 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
       },
+      "trainflow.calendar.contracts": {
+        "type": "Project"
+      },
       "trainflow.coaching.contracts": {
         "type": "Project"
       },

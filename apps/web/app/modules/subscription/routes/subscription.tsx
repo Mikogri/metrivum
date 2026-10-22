@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Subscription — TrainFlow");
+
 import { Offers } from "../SubscriptionPanel";
 import { useState } from "react";
 import { CreditCard, MoreHorizontal, Plus } from "lucide-react";

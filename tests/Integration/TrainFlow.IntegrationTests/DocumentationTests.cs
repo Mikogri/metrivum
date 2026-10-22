@@ -22,6 +22,47 @@ namespace TrainFlow.IntegrationTests;
 public sealed class DocumentationTests
 {
     [MediaPostgresFact]
+    public async Task Both_participants_control_only_their_own_documents_and_private_files()
+    {
+        foreach (var clientAuthor in new[] { false, true })
+        {
+            await using var f = await Fixture.Create();
+            var author = f.Service(clientAuthor ? f.Client : f.Coach, clientAuthor ? AccountRole.Client : AccountRole.Coach);
+            var other = f.Service(clientAuthor ? f.Coach : f.Client, clientAuthor ? AccountRole.Coach : AccountRole.Client);
+            var upload = await author.Upload(f.Relationship, new("private.png", "image/png", f.Storage.Bytes.Length), default);
+            await author.FinalizeUpload(f.Relationship, upload.MediaId, default);
+            var document = await author.AddDocument(f.Relationship, new("Private photo", null, "ProgressPhoto", "CoachPrivate", null, upload.MediaId, f.Now), default);
+            Assert.Equal(new[] { "edit", "share", "delete" }, document.AllowedActions);
+            Assert.Single((await author.Documents(f.Relationship, null, null, 1, 25, default)).Items);
+            Assert.Equal(0, (await other.Documents(f.Relationship, "Private", "ProgressPhoto", 1, 25, default)).Total);
+            Assert.Empty(f.Notifications.Events);
+            await author.ReadFile(f.Relationship, document.Id, default);
+            Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => other.ReadFile(f.Relationship, document.Id, default))).Status);
+            foreach (var visibility in new[] { "CoachPrivate", "SharedWithClient" })
+            {
+                if (visibility == "SharedWithClient")
+                    document = await author.Share(f.Relationship, document.Id, new(visibility), document.Version, default);
+                Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => other.EditDocument(f.Relationship, document.Id, new("Intrusion", null, "ProgressPhoto", null, f.Now), document.Version, default))).Status);
+                Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => other.DeleteDocument(f.Relationship, document.Id, document.Version, default))).Status);
+                Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => other.Share(f.Relationship, document.Id, new("CoachPrivate"), document.Version, default))).Status);
+            }
+            Assert.Empty(Assert.Single((await other.Documents(f.Relationship, null, null, 1, 25, default)).Items).AllowedActions);
+            await other.ReadFile(f.Relationship, document.Id, default);
+            var notification = Assert.Single(f.Notifications.Events);
+            Assert.Equal(clientAuthor ? f.Coach : f.Client, notification.RecipientUserId);
+            Assert.True(await author.CanDeliverAsync(notification, default));
+            Assert.Equal(412, (await Assert.ThrowsAsync<ApiException>(() => author.Share(f.Relationship, document.Id, new("CoachPrivate"), document.Version - 1, default))).Status);
+            document = await author.Share(f.Relationship, document.Id, new("CoachPrivate"), document.Version, default);
+            Assert.False(await author.CanDeliverAsync(notification, default));
+            Assert.Empty((await other.Documents(f.Relationship, null, null, 1, 25, default)).Items);
+            Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => other.ReadFile(f.Relationship, document.Id, default))).Status);
+            await author.DeleteDocument(f.Relationship, document.Id, document.Version, default);
+            Assert.Empty((await author.Documents(f.Relationship, null, null, 1, 25, default)).Items);
+            Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => author.ReadFile(f.Relationship, document.Id, default))).Status);
+        }
+    }
+
+    [MediaPostgresFact]
     public async Task Measurement_extremes_return_validation_errors_before_unit_conversion()
     {
         await using var f = await Fixture.Create();
@@ -120,7 +161,22 @@ public sealed class DocumentationTests
     }
 
     [MediaPostgresFact]
-    public async Task Client_uploaded_file_cannot_be_rebound_or_downloaded_after_coach_makes_it_private()
+    public async Task Previous_coach_private_documents_do_not_become_visible_to_the_current_coach()
+    {
+        await using var f = await Fixture.Create();
+        f.Docs.Documents.Add(new RelationshipDocument
+        {
+            Id = Guid.NewGuid(), RelationshipId = f.Relationship, AuthorId = f.OtherCoach,
+            Source = "Coach", Visibility = "CoachPrivate", Title = "Previous coach private",
+            Category = "General", Text = "Private history", ObservedAt = f.Now, CreatedAt = f.Now, UpdatedAt = f.Now
+        });
+        await f.Docs.SaveChangesAsync();
+        Assert.Empty((await f.Service(f.Coach, AccountRole.Coach).Documents(f.Relationship, null, null, 1, 25, default)).Items);
+        Assert.Empty((await f.Service(f.Client, AccountRole.Client).Documents(f.Relationship, null, null, 1, 25, default)).Items);
+    }
+
+    [MediaPostgresFact]
+    public async Task Client_uploaded_file_privacy_is_controlled_by_its_author_and_cannot_be_bypassed_via_media()
     {
         await using var f = await Fixture.Create();
         var coach = f.Service(f.Coach, AccountRole.Coach);
@@ -131,12 +187,15 @@ public sealed class DocumentationTests
         Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => coach.AddDocument(f.OtherClientRelationship, input, default))).Status);
         var doc = await client.AddDocument(f.Relationship, input, default);
         await client.ReadFile(f.Relationship, doc.Id, default);
-        await coach.Share(f.Relationship, doc.Id, new("CoachPrivate"), doc.Version, default);
-        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => client.ReadFile(f.Relationship, doc.Id, default))).Status);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => coach.Share(f.Relationship, doc.Id, new("CoachPrivate"), doc.Version, default))).Status);
+        await client.Share(f.Relationship, doc.Id, new("CoachPrivate"), doc.Version, default);
+        await client.ReadFile(f.Relationship, doc.Id, default);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => coach.ReadFile(f.Relationship, doc.Id, default))).Status);
         Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => f.Media.ReadUrlAsync(upload.MediaId, f.Client, default))).Status);
-        Assert.Empty((await client.Documents(f.Relationship, "Client photo", null, 1, 25, default)).Items);
+        Assert.Single((await client.Documents(f.Relationship, "Client photo", null, 1, 25, default)).Items);
+        Assert.Empty((await coach.Documents(f.Relationship, "Client photo", null, 1, 25, default)).Items);
         Assert.DoesNotContain(await f.Media.ListAsync(f.Client, null, null, null, 1, 25, default), x => x.Id == upload.MediaId);
-        Assert.Equal(1, f.Storage.ReadUrls);
+        Assert.Equal(2, f.Storage.ReadUrls);
     }
 
     [MediaPostgresFact]
@@ -243,7 +302,7 @@ public sealed class DocumentationTests
         var own = await client.AddDocument(f.Relationship, TextDocument("Client provided"), default);
         await client.EditDocument(f.Relationship, own.Id, new("Updated", null, "General", "Plain <script> text", f.Now), 1, default);
         Assert.Equal(412, (await Assert.ThrowsAsync<ApiException>(() => client.EditDocument(f.Relationship, own.Id, new("Stale", null, "General", "stale", f.Now), 1, default))).Status);
-        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => client.Share(f.Relationship, own.Id, new("CoachPrivate"), 2, default))).Status);
+        Assert.Equal("CoachPrivate", (await client.Share(f.Relationship, own.Id, new("CoachPrivate"), 2, default)).Visibility);
         var coachDocument = await coach.AddDocument(f.Relationship, TextDocument("Coach provided"), default);
         Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => client.EditDocument(f.Relationship, coachDocument.Id, new("Intrusion", null, "General", "intrusion", f.Now), 1, default))).Status);
         Assert.Equal(2, (await client.Documents(f.Relationship, null, null, 1, 1, default)).Total);

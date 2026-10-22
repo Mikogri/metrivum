@@ -1,6 +1,6 @@
 namespace TrainFlow.Coaching.Contracts;
 
-public sealed record CoachingChatEntry(string Kind, Guid? InvitationId, Guid OfferId, Guid CoachId, Guid OfferRevisionId, Guid FormVersionId, string Title);
+public sealed record CoachingChatEntry(string Kind, Guid? InvitationId, Guid OfferId, Guid CoachId, Guid OfferRevisionId, Guid? FormVersionId, string Title);
 public sealed record CoachingChatDelivery(Guid ConversationId, Guid MessageId);
 public interface ICoachingChatPublisher
 {
@@ -10,6 +10,7 @@ public interface ICoachingChatPublisher
 public sealed record MessagingClientGroup(Guid Id, Guid CoachId, string Title, bool Archived, Guid[] EligibleUserIds);
 public interface ICoachingMessagingDirectory
 {
+    Task<bool> HasActiveRelationshipAsync(Guid userId, CancellationToken ct) => Task.FromResult(false);
     Task<bool> IsActivePairAsync(Guid first, Guid second, CancellationToken ct);
     Task<MessagingClientGroup> OwnedGroupAsync(Guid groupId, CancellationToken ct);
 }

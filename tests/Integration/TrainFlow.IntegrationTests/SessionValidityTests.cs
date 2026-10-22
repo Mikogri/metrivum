@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using TrainFlow.Billing.Contracts;
+using TrainFlow.Billing.Domain;
 using TrainFlow.Billing.Features;
 using TrainFlow.Billing.Infrastructure;
 using TrainFlow.Offers.Contracts;
@@ -43,6 +44,14 @@ public sealed partial class OffersBillingTests
         var dues = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         var dueBefore = await dues.Dues.AsNoTracking().SingleAsync(x => x.Id == order.PaymentDueId);
         if (!free) Assert.Null(dueBefore.ValidUntil);
+        else
+        {
+            Assert.Equal(DueStatus.Free, dueBefore.Status);
+            Assert.Equal(clock.Now, dueBefore.SettledAt);
+            Assert.Equal(clock.Now.AddDays(30), dueBefore.ValidUntil);
+            Assert.Equal("ZeroPrice", dueBefore.SettlementSource);
+            Assert.False(await dues.Attempts.AnyAsync(x => x.DueId == order.PaymentDueId));
+        }
         var changed = await offers.UpdateAsync(draft.Id, request with { BillingOptions = [option with { ValidityDays = 5 }] }, published.Version, default);
         await offers.PublishAsync(draft.Id, changed.Version, default);
         Assert.Equal(30, (await offers.GetRevisionAsync(revision.Id, default)).BillingOptions.Single().ValidityDays);

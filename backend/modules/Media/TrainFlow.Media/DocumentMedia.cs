@@ -46,6 +46,7 @@ public sealed partial class MediaLibrary
     public async Task<DocumentReadUrl> ReadDocumentAsync(Guid relationshipId, Guid ownerId, Guid mediaId, CancellationToken ct)
     {
         var file = await RequireDocumentAsync(relationshipId, ownerId, mediaId, ct);
+        abuse?.Require(ownerId, AbusePolicies.SignedDownload);
         var actual = await storage.InspectAsync(file.Bucket, file.ObjectKey, ct);
         await ValidateAsync(await DocumentFileAsync(relationshipId, ownerId, mediaId, ct), actual, ct);
         return new(await storage.CreateReadUrlAsync(file.Bucket, file.ObjectKey, ct), DateTimeOffset.UtcNow.AddSeconds(options.ReadUrlSeconds));

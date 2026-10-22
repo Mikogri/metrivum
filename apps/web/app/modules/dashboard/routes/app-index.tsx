@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Home — TrainFlow");
+
 import { Navigate } from "react-router";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useMobileLayout } from "@trainflow/ui-web";

@@ -1,3 +1,4 @@
+using TrainFlow.Training.Features;
 using Microsoft.EntityFrameworkCore;
 using TrainFlow.Coaching.Contracts;
 using TrainFlow.Training.Contracts;
@@ -7,7 +8,7 @@ namespace TrainFlow.Training.Delivery;
 
 internal static class AssignmentRevisionUpdater
 {
-    public static async Task ApplyAsync(TrainingDbContext db, TrainingRevision revision, IRelationshipAccessPolicy policy, TimeProvider clock, IEnumerable<IAssignedProgramScheduleObserver> observers, CancellationToken ct)
+    public static async Task ApplyAsync(TrainingDbContext db, TrainingRevision revision, IRelationshipAccessPolicy policy, TimeProvider clock, IEnumerable<IAssignedProgramScheduleObserver> observers, CancellationToken ct, TrainingService? formulaService = null)
     {
         var assignments = await db.Set<ProgramAssignment>().Where(x => x.ProgramId == revision.PlanId &&
             (x.Status == AssignmentStatus.Active || x.Status == AssignmentStatus.Paused)).OrderBy(x => x.Id).ToArrayAsync(ct);
@@ -21,13 +22,15 @@ internal static class AssignmentRevisionUpdater
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({assignment.Id.ToString()}, 507))", ct);
             await db.Entry(assignment).ReloadAsync(ct);
             if (assignment.Status is AssignmentStatus.Active or AssignmentStatus.Paused)
-                await RefreshAsync(db, assignment, revision, clock, observers, ct);
+                await RefreshAsync(db, assignment, revision, clock, observers, ct, formulaService);
         }
     }
 
-    public static async Task RefreshAsync(TrainingDbContext db, ProgramAssignment assignment, TrainingRevision revision, TimeProvider clock, IEnumerable<IAssignedProgramScheduleObserver> observers, CancellationToken ct)
+    public static async Task RefreshAsync(TrainingDbContext db, ProgramAssignment assignment, TrainingRevision revision, TimeProvider clock, IEnumerable<IAssignedProgramScheduleObserver> observers, CancellationToken ct, TrainingService? formulaService = null)
     {
         if (assignment.EffectiveRevisionId == revision.Id) return;
+        if (formulaService != null)
+            assignment.FormulaSnapshot = await formulaService.ResolveClientFormulasAsync(revision.Snapshot.Document, assignment.ClientId, assignment.CoachId, ct, assignment.FormulaSnapshot == null ? null : new(assignment.FormulaSnapshot.Variables, assignment.FormulaSnapshot.SourceVersions, []), includeNewVariables: true);
         var today = DeliveryRules.LocalDate(clock.GetUtcNow(), assignment.TimeZone);
         var existing = await db.Set<WorkoutOccurrence>().Where(x => x.AssignmentId == assignment.Id && !x.Superseded).ToArrayAsync(ct);
         var started = await db.Set<WorkoutExecution>().Where(e => db.Set<WorkoutOccurrence>().Any(o => o.Id == e.OccurrenceId && o.AssignmentId == assignment.Id)).Select(e => e.OccurrenceId).ToArrayAsync(ct);

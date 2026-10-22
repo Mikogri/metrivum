@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Payments — TrainFlow");
+
 import { useRef, useState } from "react";
 import { Link } from "react-router";
 import { Check, CreditCard, Repeat, Wallet } from "lucide-react";

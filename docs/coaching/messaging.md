@@ -26,7 +26,7 @@ Prefix **`/api/v1/messaging`**:
 
 | Method and path | Input | Result / behavior |
 |---|---|---|
-| GET `/conversations` | `search?`, `limit?` (default 25, max 100) | `ConversationDto[]`: type/title, membership state, visible last message, unread count, safe member projections. Searches titles and participant names. |
+| GET `/conversations` | `search?`, `page?` (default 1, max 1000000), `limit?` (default 25, max 100) | `ConversationDto[]`: type/title, membership state, visible last message, unread count, safe member projections. Searches titles and participant names; paging applies after authorization and sorting. |
 | POST `/conversations/direct` | `{ userId }` | Canonical `ConversationDto`; concurrent/repeated requests reuse the same pair. Strangers get `MESSAGE_REQUEST_REQUIRED`. |
 | POST `/conversations/group` | `{ title, userIds }` | New group `ConversationDto`, caller becomes owner. |
 | GET `/conversations/{id}` | — | Authorized `ConversationDto`. |
@@ -39,7 +39,7 @@ Prefix **`/api/v1/messaging`**:
 | DELETE `/conversations/{id}/members/{userId}` | — | 204; remove with retained cutoff, or leave as self. |
 | POST `/conversations/{id}/members/{userId}/ban` | — | 204; exclude from future synchronization. |
 | POST `/conversations/{id}/members/{userId}/unban` | — | 204; clear exclusion, restore if currently eligible. |
-| GET `/requests` | — | Own sent/received `RequestDto[]`, including state and accepted conversation ID. |
+| GET `/requests` | `page?`, `limit?` | Own sent/received `RequestDto[]`, including state and accepted conversation ID. Without parameters, retains the 100-row limit; opting in defaults to page 1/limit 25 (max page 1000000/limit 100). |
 | POST `/requests` | `{ userId, body }` | `RequestDto`; one pending request per canonical pair. |
 | POST `/requests/by-username` | `{ username, body }` | `RequestDto`; exact active username lookup with the same capability/block rules. Own request lists include optional display names. |
 | POST `/requests/{id}/accept` | — | Recipient accepts; `RequestDto` includes direct conversation ID. |

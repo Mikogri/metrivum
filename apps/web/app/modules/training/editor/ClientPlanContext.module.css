@@ -1,0 +1,37 @@
+.context { display: flex; align-items: center; gap: var(--tf-space-2); flex-wrap: wrap; }
+/*
+ * Client preview and assigned clients as one joined control, framed like the secondary buttons:
+ * [eye  View as…  ⌄ | people 3]. The left part picks a client, the right opens the assigned list.
+ */
+.joined { display: flex; align-items: stretch; min-width: 0; flex-shrink: 1; border-radius: var(--tf-radius-sm); box-shadow: var(--tf-shadow-sm); }
+.joined > :last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; box-shadow: none; }
+.picker { width: 9rem; min-width: 6rem; flex-shrink: 1; }
+.picker [role="group"] { position: relative; min-width: 0; height: var(--tf-control-sm); padding-left: 1.75rem; border-color: var(--tf-color-border); border-right-width: 0; border-radius: var(--tf-radius-sm) 0 0 var(--tf-radius-sm); background: var(--tf-color-surface-raised); color: var(--tf-color-text); transition: background-color var(--tf-duration-fast) ease; }
+.picker [role="group"]::before { content: ""; position: absolute; left: 0.5625rem; top: 50%; width: 0.875rem; height: 0.875rem; background: var(--tf-color-text-secondary); transform: translateY(-50%); pointer-events: none;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0'/><circle cx='12' cy='12' r='3'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0'/><circle cx='12' cy='12' r='3'/></svg>") center / contain no-repeat; }
+.picker [role="group"]:hover { background: var(--tf-color-surface-hover); }
+.picker [role="group"]:focus-within { background: var(--tf-color-field); }
+.picker input { min-width: 0; width: 100%; font-size: var(--tf-text-xs); font-weight: var(--tf-weight-medium); }
+.picker input::placeholder { color: var(--tf-color-text-secondary); opacity: 1; }
+.picker [role="group"] button { color: var(--tf-color-text-tertiary); }
+/* The number of assigned clients, as a small count beside the label. */
+.count { margin-left: 2px; min-width: 1.125rem; padding: 0 var(--tf-space-1); border-radius: var(--tf-radius-full); background: var(--tf-color-surface-overlay); color: var(--tf-color-text-secondary); font-size: var(--tf-text-2xs); line-height: 1.125rem; text-align: center; font-variant-numeric: tabular-nums; }
+.notice { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tf-space-2); padding: var(--tf-space-2) var(--tf-space-3); font-size: var(--tf-text-xs); color: var(--tf-color-text-secondary); }
+.notice > :last-child { flex-basis: 100%; }
+.stack { display: grid; gap: var(--tf-space-4); padding: var(--tf-space-4); }
+.stack p { margin: 0; color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
+.variables, .fields { display: flex; flex-wrap: wrap; gap: var(--tf-space-4); }
+.variables > div { display: flex; gap: var(--tf-space-2); }
+.variables dd { margin: 0; }
+.tableWrap { max-height: 20rem; overflow: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: var(--tf-text-sm); text-align: left; }
+.table th, .table td { padding: var(--tf-space-2); border-bottom: 1px solid var(--tf-color-border); }
+.form { display: grid; gap: var(--tf-space-3); }
+.fields > * { flex: 1; min-width: 5rem; }
+.fields label { display: grid; gap: var(--tf-space-2); font-size: var(--tf-text-sm); }
+.fields select { padding: var(--tf-space-2); background: var(--tf-color-bg); color: var(--tf-color-text); border: 1px solid var(--tf-color-border); border-radius: var(--tf-radius-md); }
+@media (max-width: 767px) { .context { width: 100%; } .picker { flex: 1; } .table { min-width: 32rem; } }
+.context { flex-wrap: nowrap; min-width: 0; flex-shrink: 1; }
+.context > :not(.picker) { flex-shrink: 0; }
+.hint { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); margin: 0; }

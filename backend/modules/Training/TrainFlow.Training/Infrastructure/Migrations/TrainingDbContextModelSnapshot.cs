@@ -147,6 +147,9 @@ namespace TrainFlow.Training.Infrastructure.Migrations
                     b.Property<Guid>("EffectiveRevisionId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("FormulaSnapshot")
+                        .HasColumnType("jsonb");
+
                     b.Property<Guid?>("GroupAssignmentId")
                         .HasColumnType("uuid");
 
@@ -370,6 +373,44 @@ namespace TrainFlow.Training.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("workout_occurrences", "training");
+                });
+
+            modelBuilder.Entity("TrainFlow.Training.Features.ClientExerciseMax", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Alias")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("LoadKg")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateOnly>("RecordedOn")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Reps")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId", "Alias")
+                        .IsUnique();
+
+                    b.ToTable("client_exercise_maxes", "training");
                 });
 
             modelBuilder.Entity("TrainFlow.Training.Generation.ProgramGenerationRecord", b =>

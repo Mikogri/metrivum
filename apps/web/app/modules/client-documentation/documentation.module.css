@@ -3,6 +3,7 @@
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tf-space-2); }
 .spacer { flex: 1; }
 .search { width: min(100%, 16rem); }
+.category { width: min(100%, 14rem); flex: 0 1 14rem; }
 .segment { display: inline-flex; align-items: center; gap: var(--tf-space-1-5); }
 .segment svg { width: 0.875rem; height: 0.875rem; }
 .hint { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }

@@ -3,7 +3,9 @@
   z-index: var(--tf-z-popover);
   display: grid;
   min-width: 12rem;
-  max-width: 22rem;
+  max-width: min(22rem, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  overflow: auto;
   padding: var(--tf-space-1);
   border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-md);

@@ -9,15 +9,33 @@ using TrainFlow.ExerciseCatalog.Infrastructure;
 
 namespace TrainFlow.ExerciseCatalog.Features;
 
-public sealed partial class CatalogService(ExerciseCatalogDbContext db, IAccountContext account, IFeatureAccessService access) : IExerciseCatalog
+public sealed partial class CatalogService(ExerciseCatalogDbContext db, IAccountContext account, IFeatureAccessService access, IAbuseProtection? abuse = null) : IExerciseCatalog
 {
-    public async Task<CatalogPage> ListAsync(CatalogQuery request, CancellationToken ct)
+    public Task<CatalogPage> ListAsync(CatalogQuery request, CancellationToken ct) => ListInternalAsync(request, null, ct);
+
+    public async Task<CatalogPage> ListForMcpAsync(CatalogQuery request, string[]? equipment, CancellationToken ct)
+    {
+        Guid[]? eligible = null;
+        if (equipment is not null)
+        {
+            if (equipment.Length > 50) throw ApiException.Invalid("At most 50 equipment keys are allowed.");
+            foreach (var key in equipment) ValidateKey(key);
+            var available = equipment.ToHashSet(StringComparer.Ordinal);
+            eligible = (await GeneratorPoolAsync(ct)).Exercises.Where(x => x.EquipmentAnyOf.Any(branch => branch.AllOf.All(available.Contains)))
+                .Select(x => x.Id).ToArray();
+        }
+        return await ListInternalAsync(request, eligible, ct);
+    }
+
+    private async Task<CatalogPage> ListInternalAsync(CatalogQuery request, Guid[]? eligible, CancellationToken ct)
     {
         await access.RequireAsync("exercises.browse", ct);
+        abuse?.Require(account.UserId, AbusePolicies.Search);
         if (request.FavoritesOnly)
             await access.RequireAsync("exercises.favorites", ct);
         ValidatePage(request.Page, request.PageSize);
         var query = db.Exercises.AsNoTracking().Where(x => !x.IsArchived);
+        if (eligible is not null) query = query.Where(x => eligible.Contains(x.Id));
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             // Matches the exercise name or any muscle it works (English/Polish label or key).

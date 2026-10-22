@@ -283,10 +283,10 @@ export function LeadDetail({ id }: { id: string }) {
                 </View>
                 <StatusBadge status={detail.application.status} />
             </View>
-            <AnswerFields
+            {detail.formVersion ? <AnswerFields
                 definition={detail.formVersion.definition}
                 answers={detail.answers}
-            />
+            /> : <Text>No application form was required.</Text>}
             {canAccept && (
                 <>
                     <Choices

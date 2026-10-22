@@ -677,6 +677,7 @@ function Editor({
                 </Section>
             )}
 
+            <WorkoutAnnotations detail={detail} />
             {detail.prescription.workout.groups.length > 0 && (
                 <Section title="Structure">
                     {detail.prescription.workout.groups.map((group) => (
@@ -1268,6 +1269,7 @@ function Preview({
             {!!mutation.error && !skipping && (
                 <ErrorState error={mutation.error} />
             )}
+            <WorkoutAnnotations detail={detail} />
             {detail.prescription.workout.exercises.map((exercise) => (
                 <Section
                     key={exercise.id}
@@ -1348,6 +1350,10 @@ function Preview({
             </BottomSheet>
         </Screen>
     );
+}
+
+function WorkoutAnnotations({ detail }: { detail: WorkoutDetail }) {
+    return <>{detail.prescription.annotations?.map(note => <Section key={note.id} title={`${note.kind}: ${note.title}`}><Text>{note.content}</Text></Section>)}</>;
 }
 
 export function WorkoutScreen() {

@@ -35,7 +35,7 @@ function OfferSummary({ offer, billingOptionId }: { offer: OfferRevision; billin
         {options.map((o) => {
           const [price, ...rest] = priceDescription(o, offer.currency).split(" / ");
           return <li key={o.id} className={styles.option}>
-            <span className={styles.optionText}><strong>{o.name}</strong><small>{({ Upfront: "Paid upfront", OnStart: "Paid when coaching starts" } as Record<string, string>)[o.paymentTerms?.rule ?? "Upfront"] ?? `${o.paymentTerms?.rule} payment`}</small></span>
+            <span className={styles.optionText}><strong>{o.name}</strong><small>{o.price === 0 ? "No payment required" : ({ Upfront: "Paid upfront", OnStart: "Paid when coaching starts" } as Record<string, string>)[o.paymentTerms?.rule ?? "Upfront"] ?? `${o.paymentTerms?.rule} payment`}</small></span>
             <span className={styles.optionPrice}><strong>{price}</strong>{rest.length ? <small>/ {rest.join(" / ")}</small> : null}</span>
           </li>;
         })}
@@ -87,7 +87,7 @@ export function InvitationDialog({ invitationId, close }: { invitationId: string
           { label: "Responded", value: i.respondedAt ? when(i.respondedAt) : "Waiting for a response" },
         ]} />
         <Section title="Offer"><OfferSummary offer={i.offerRevision} billingOptionId={i.billingOptionId} /></Section>
-        {canStart ? <Section title="Application form">{i.allowedActions.includes("apply") && apply.allowed ? <StartApplication offer={i.offerRevision} invitationId={i.id} preselected={i.billingOptionId} /> : <Alert title="Application is currently unavailable">{reason(apply)}</Alert>}</Section> : <p className={styles.note}>These offer terms are reserved in this invitation. Accepting lets {coach ? "the client" : "you"} fill out an application.</p>}
+        {canStart ? <Section title={i.offerRevision.applicationFormVersionId ? "Application form" : "Application"}>{i.allowedActions.includes("apply") && apply.allowed ? <StartApplication offer={i.offerRevision} invitationId={i.id} preselected={i.billingOptionId} /> : <Alert title="Application is currently unavailable">{reason(apply)}</Alert>}</Section> : <p className={styles.note}>These offer terms are reserved in this invitation. Accepting lets {coach ? "the client" : "you"} submit an application.</p>}
         <MutationError error={mutation.error} />
       </div> : null}
     </Dialog>
@@ -98,7 +98,7 @@ export function InvitationDialog({ invitationId, close }: { invitationId: string
 /** An application form shared in the chat: the offer and the start of the application, in place. */
 export function OfferDialog({ coachId, offerId, close }: { coachId: string; offerId: string; close: () => void }) {
   const query = useCoachingQuery<OfferRevision>(`/api/v1/coaches/${coachId}/offers/${offerId}`);
-  return <Dialog isOpen size="md" title="Application form" onOpenChange={(open) => { if (!open) close(); }}>
+  return <Dialog isOpen size="md" title={query.data?.applicationFormVersionId ? "Application form" : "Application"} onOpenChange={(open) => { if (!open) close(); }}>
     {query.isPending ? <Loading /> : query.isError ? <Failure error={query.error} retry={() => void query.refetch()} /> : <div className={styles.stack}>
       <OfferSummary offer={query.data} />
       <Section title="Apply for coaching"><StartApplication offer={query.data} /></Section>

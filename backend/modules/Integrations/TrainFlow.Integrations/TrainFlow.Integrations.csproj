@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../BuildingBlocks/TrainFlow.BuildingBlocks/TrainFlow.BuildingBlocks.csproj" />
+    <ProjectReference Include="../../Accounts/TrainFlow.Accounts.Contracts/TrainFlow.Accounts.Contracts.csproj" />
+    <ProjectReference Include="../../Access/TrainFlow.Access.Contracts/TrainFlow.Access.Contracts.csproj" />
+    <ProjectReference Include="../../Messaging/TrainFlow.Messaging.Contracts/TrainFlow.Messaging.Contracts.csproj" />
+    <ProjectReference Include="../../Training/TrainFlow.Training.Contracts/TrainFlow.Training.Contracts.csproj" />
+    <ProjectReference Include="../../ExerciseCatalog/TrainFlow.ExerciseCatalog.Contracts/TrainFlow.ExerciseCatalog.Contracts.csproj" />
+    <ProjectReference Include="../../Coaching/TrainFlow.Coaching.Contracts/TrainFlow.Coaching.Contracts.csproj" />
+    <ProjectReference Include="../../CheckIns/TrainFlow.CheckIns.Contracts/TrainFlow.CheckIns.Contracts.csproj" />
+    <ProjectReference Include="../../Forms/TrainFlow.Forms.Contracts/TrainFlow.Forms.Contracts.csproj" />
+    <ProjectReference Include="../../Offers/TrainFlow.Offers.Contracts/TrainFlow.Offers.Contracts.csproj" />
+    <ProjectReference Include="../../Analytics/TrainFlow.Analytics.Contracts/TrainFlow.Analytics.Contracts.csproj" />
+    <ProjectReference Include="../../Calendar/TrainFlow.Calendar.Contracts/TrainFlow.Calendar.Contracts.csproj" />
+  </ItemGroup>
+</Project>

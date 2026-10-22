@@ -1,3 +1,4 @@
+import { maxesTables, withMaxesTables } from "./maxes";
 import type {
   Block,
   Cycle,
@@ -222,7 +223,10 @@ function repairBackOffs(sets: TrainingSet[]): TrainingSet[] {
 }
 
 export function removeNode(doc: TrainingDocument, id: string): TrainingDocument {
-  return withSiblings(doc, id, (items, index) => items.filter((_, i) => i !== index));
+  const stripped = withSiblings(doc, id, (items, index) => items.filter((_, i) => i !== index));
+  const remaining = new Set(stripped.blocks.flatMap(b => [b.id, ...b.cycles.map(c => c.id)]));
+  const next = { ...stripped, annotations: stripped.annotations?.map(n => n.targetId && !remaining.has(n.targetId) ? { ...n, targetId: null } : n) };
+  return doc.blocks.some(b => b.id === id) ? withMaxesTables(next, maxesTables(doc).map(t => t.blockId === id ? { ...t, blockId: null } : t)) : next;
 }
 
 export function moveNode(doc: TrainingDocument, id: string, delta: -1 | 1): TrainingDocument {
@@ -324,6 +328,7 @@ export function cloneWithNewIds<T>(node: T): T {
       const out: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
         if (k === "id" && typeof v === "string") out[k] = fresh(v);
+        else if ((k === "blockId" || k === "targetId") && typeof v === "string") out[k] = fresh(v);
         else if (k === "sourceSetId" && typeof v === "string") out[k] = fresh(v);
         else if (k === "exerciseIds" && Array.isArray(v)) out[k] = v.map((x) => fresh(String(x)));
         else if (k === "exerciseId" || k === "formulaId") out[k] = v; // catalog/formula references stay
@@ -454,9 +459,12 @@ export function removeGroup(doc: TrainingDocument, workoutId: string, groupId: s
 
 export function uniqueExerciseIds(doc: TrainingDocument): string[] {
   const ids = new Set<string>();
-  for (const block of doc.blocks)
+  for (const block of doc.blocks) {
+    for (const row of block.exerciseMaxes ?? []) if (row.exerciseId) ids.add(row.exerciseId);
     for (const cycle of block.cycles)
       for (const day of cycle.days) for (const workout of day.workouts) for (const exercise of workout.exercises) ids.add(exercise.exerciseId);
+  }
+  for (const table of maxesTables(doc)) for (const row of table.rows) if (row.exerciseId) ids.add(row.exerciseId);
   return [...ids];
 }
 

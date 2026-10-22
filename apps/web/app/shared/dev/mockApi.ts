@@ -220,6 +220,7 @@ db.media = [
 ];
 db.analyses = [
   { id: "77777777-0000-4000-8000-000000000001", name: "Squat top set — week 3", note: "Mock analysis result (developer data).", tags: ["squat", "top set"], mediaId: db.media[0]!.id, executionLocation: "server", configuration: { movement: "squat", metersPerPixel: null }, status: "Completed", createdAt: ago(2), completedAt: ago(2), failureCode: null, attempts: 1, version: 3 },
+  { id: "77777777-0000-4000-8000-000000000003", name: "Squat top set — week 4", note: null, tags: ["squat"], mediaId: db.media[0]!.id, executionLocation: "server", configuration: { movement: "squat", metersPerPixel: null }, status: "Completed", createdAt: ago(1), completedAt: ago(1), failureCode: null, attempts: 1, version: 1 },
   { id: "77777777-0000-4000-8000-000000000002", name: "RDL ramp", note: null, tags: ["hinge"], mediaId: db.media[1]!.id, executionLocation: "server", configuration: { movement: "unspecified", metersPerPixel: null }, status: "Failed", createdAt: ago(1), completedAt: ago(1), failureCode: "ANALYZER_NOT_CONFIGURED", attempts: 1, version: 2 },
 ];
 
@@ -256,6 +257,26 @@ const page = <T,>(items: T[], params: URLSearchParams, size = 25) => {
 };
 const listItem = (plan: PlanDto) => ({ id: plan.id, name: plan.name, description: plan.description, kind: plan.kind, folderId: plan.folderId, archived: plan.archived, version: plan.version, updatedAt: plan.updatedAt });
 const ifMatch = (init: RequestInit) => Number(String(new Headers(init.headers).get("If-Match") ?? "").replace(/"/g, ""));
+
+const mockShares = new Map<string, { token: string; createdAt: string }>();
+const mockLinks = new Map<string, { executionId: string; setId: string | null; shared: boolean }>();
+/** Two logged workouts of demo clients, so linking an analysis to a set can be tried without the API. */
+function mockSetOptions() {
+  const set = (id: string, number: number, reps: number, load: number) => ({ id, number, skipped: false, reps, load, loadUnit: "kg", rpe: 8 });
+  return { workouts: [
+    { executionId: "e0000000-0000-4000-8000-000000000001", relationshipId: "r0000000-0000-4000-8000-000000000001", clientId: "c1", clientName: "Anna Kowalska", performedDate: "2026-10-18", workoutName: "Lower A", status: "Completed",
+      exercises: [{ id: "x1", name: "Back squat", sets: [set("s1", 1, 5, 100), set("s2", 2, 5, 105), set("s3", 3, 5, 110)] }, { id: "x2", name: "Romanian deadlift", sets: [set("s4", 1, 8, 80), set("s5", 2, 8, 80)] }] },
+    { executionId: "e0000000-0000-4000-8000-000000000002", relationshipId: "r0000000-0000-4000-8000-000000000002", clientId: "c2", clientName: "Piotr Nowak", performedDate: "2026-10-16", workoutName: "Upper B", status: "Completed",
+      exercises: [{ id: "x3", name: "Bench press", sets: [set("s6", 1, 6, 80), set("s7", 2, 6, 82.5)] }] },
+  ] };
+}
+function mockLinkReference(link: { executionId: string; setId: string | null; shared?: boolean }) {
+  const workout = mockSetOptions().workouts.find((w) => w.executionId === link.executionId)!;
+  const exercise = workout.exercises.find((x) => x.sets.some((s) => s.id === link.setId));
+  const set = exercise?.sets.find((s) => s.id === link.setId);
+  return { executionId: workout.executionId, setId: link.setId, relationshipId: workout.relationshipId, clientId: workout.clientId, clientName: workout.clientName,
+    performedDate: workout.performedDate, workoutName: workout.workoutName, exerciseName: exercise?.name ?? null, setNumber: set?.number ?? null, reps: set?.reps ?? null, load: set?.load ?? null, loadUnit: set?.loadUnit ?? null };
+}
 
 export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   await new Promise((resolve) => setTimeout(resolve, 180 + Math.random() * 220));
@@ -454,6 +475,44 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     return json(200, items);
   }
   if (path === "/api/v1/analyses" && method === "POST") return problem(503, "ANALYZER_NOT_CONFIGURED");
+  if (path === "/api/v1/training/analysis-set-options") return json(200, mockSetOptions());
+  // Client view: one analysis "shared by the coach" at a logged set, so the client pages can be tried.
+  if (path === "/api/v1/analyses/from-coach" || (m = path.match(/^\/api\/v1\/analyses\/from-coach\/([^/]+)(\/result|\/video-url)?$/))) {
+    const analysis = db.analyses[0]!;
+    const item = { analysis, set: mockLinkReference({ executionId: "e0000000-0000-4000-8000-000000000001", setId: "s2" }) };
+    if (path === "/api/v1/analyses/from-coach") return json(200, q.get("executionId") && q.get("executionId") !== item.set.executionId ? [] : [item]);
+    if (m![1] !== analysis.id) return problem(404, "RESOURCE_NOT_FOUND");
+    if (m![2] === "/result") return json(200, demoResult());
+    if (m![2] === "/video-url") return problem(503, "INTEGRATION_UNAVAILABLE", "Playback is not simulated in developer mock mode.");
+    return json(200, item);
+  }
+  if ((m = path.match(/^\/api\/v1\/analyses\/([^/]+)\/workout-link$/))) {
+    const id = m[1]!;
+    const analysis = db.analyses.find((a) => a.id === id);
+    if (!analysis) return problem(404, "RESOURCE_NOT_FOUND");
+    if (method === "DELETE") { mockLinks.delete(id); analysis.version += 1; return new Response(null, { status: 204 }); }
+    if (method === "PUT") { mockLinks.set(id, { executionId: body.workoutExecutionId, setId: body.setId ?? null, shared: Boolean(body.shareWithClient) }); analysis.version += 1; const saved = mockLinks.get(id)!; return json(200, { set: mockLinkReference(saved), sharedWithClient: saved.shared }, analysis.version); }
+    const link = mockLinks.get(id);
+    return link ? json(200, { set: mockLinkReference(link), sharedWithClient: link.shared }) : new Response(null, { status: 204 });
+  }
+  if (path === "/api/v1/analyses/saved") return json(200, []);
+  if (path.match(/^\/api\/v1\/analyses\/shared\/[^/]+\/save$/)) return new Response(null, { status: 204 });
+  // Shared links: one token per analysis, kept in memory for the session.
+  if ((m = path.match(/^\/api\/v1\/analyses\/([^/]+)\/share$/))) {
+    const id = m[1]!;
+    if (method === "DELETE") { mockShares.delete(id); return new Response(null, { status: 204 }); }
+    if (method === "POST" && !mockShares.has(id)) mockShares.set(id, { token: crypto.randomUUID().replace(/-/g, "").padEnd(43, "x").slice(0, 43), createdAt: now() });
+    const share = mockShares.get(id);
+    return share ? json(200, share) : new Response(null, { status: 204 });
+  }
+  if ((m = path.match(/^\/api\/v1\/analyses\/shared\/([^/]+)(\/result|\/video-url)?$/))) {
+    const entry = [...mockShares.entries()].find(([, share]) => share.token === m![1]);
+    const analysis = entry && db.analyses.find((a) => a.id === entry[0]);
+    if (!analysis) return problem(404, "RESOURCE_NOT_FOUND");
+    if (m[2] === "/result") return json(200, demoResult());
+    if (m[2] === "/video-url") return problem(503, "INTEGRATION_UNAVAILABLE", "Playback is not simulated in developer mock mode.");
+    return json(200, { name: analysis.name, configuration: analysis.configuration, createdAt: analysis.createdAt, completedAt: analysis.completedAt, hasVideo: Boolean(analysis.mediaId) });
+  }
   if ((m = path.match(/^\/api\/v1\/analyses\/([^/]+)$/))) {
     const analysis = db.analyses.find((a) => a.id === m![1]);
     return analysis ? json(200, analysis, analysis.version) : problem(404, "RESOURCE_NOT_FOUND");

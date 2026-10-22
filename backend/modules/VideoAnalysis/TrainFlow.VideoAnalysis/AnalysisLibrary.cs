@@ -34,6 +34,9 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         job.CreatedAt, job.CompletedAt, job.FailureCode, job.Attempts, job.Version, job.ExecutionLocation, job.LocalAnalysisId,
         job.SourceVideo == null ? null : JsonSerializer.Deserialize<AnalysisSourceVideo>(job.SourceVideo, AnalysisResults.Json), job.WorkoutExecutionId, job.SetId);
 
+    public static bool ValidMovement(string? movement, string? exercise) =>
+        movement is "unspecified" or "squat" or "deadlift" or "bench-press" && (exercise == null || exercise.Trim().Length is > 0 and <= 200);
+
     public static string[] ValidateMetadata(string name, string? note, string[]? tags)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length > 200 || note?.Length > 10000 || tags == null || tags.Length > 20 || tags.Any(x => string.IsNullOrWhiteSpace(x) || x.Length > 50))
@@ -46,7 +49,7 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         var tags = ValidateMetadata(input.Name, input.Note, input.Tags);
         if (string.IsNullOrWhiteSpace(idempotencyKey) || idempotencyKey.Length > 100)
             throw ApiException.Invalid("Supply an Idempotency-Key of 1 to 100 characters.");
-        if (input.Configuration == null || input.Configuration.Movement is not ("unspecified" or "squat" or "deadlift" or "bench-press")
+        if (input.Configuration == null || !ValidMovement(input.Configuration.Movement, input.Configuration.Exercise)
             || (input.Configuration.MetersPerPixel.HasValue && (!double.IsFinite(input.Configuration.MetersPerPixel.Value) || input.Configuration.MetersPerPixel is <= 0 or > 100)))
             throw ApiException.Invalid("Invalid analysis configuration.");
         if (input.Configuration.Tracking is { } tracking &&
@@ -76,8 +79,12 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         if (!analyzer.IsConfigured)
             throw new ApiException(503, "ANALYZER_NOT_CONFIGURED", "No video analysis engine is configured.");
         analyzer.ValidateConfiguration(input.Configuration);
+        // Queue admission is serialized across owners; workers consume existing jobs without an interactive budget.
+        await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(743165208915)", ct);
+        if (await db.Jobs.CountAsync(x => x.Status == "Queued" || x.Status == "Processing", ct) >= options.MaxQueuedJobs)
+            throw new ApiException(429, "RATE_LIMIT_EXCEEDED", "The analysis queue is full. Try again later.", retryAfter: TimeSpan.FromSeconds(30));
         if (options.MaxConcurrentPerOwner > 0 && await db.Jobs.CountAsync(x => x.OwnerId == owner && (x.Status == "Queued" || x.Status == "Processing"), ct) >= options.MaxConcurrentPerOwner)
-            throw new ApiException(429, "LIMIT_EXCEEDED", "The concurrent analysis limit has been reached.");
+            throw new ApiException(429, "RATE_LIMIT_EXCEEDED", "Two analyses are already queued or running. Try again when one finishes.", retryAfter: TimeSpan.FromSeconds(30));
         var source = await media.RequireReadyAsync(input.MediaId, owner, ct);
         if (source.ContentType is not ("video/mp4" or "video/webm" or "video/quicktime"))
             throw ApiException.Invalid("Video analysis requires an MP4, WebM or MOV video.");
@@ -145,8 +152,15 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         var job = await OwnedAsync(id, owner, ct);
         if (job.Version != version)
             throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
+        if (input.Movement != null && !ValidMovement(input.Movement, input.Exercise))
+            throw ApiException.Invalid("Choose a valid movement and exercise.");
+        var configuration = job.Configuration;
+        if (input.Movement != null)
+            configuration = JsonSerializer.Serialize(JsonSerializer.Deserialize<AnalysisConfiguration>(job.Configuration, AnalysisResults.Json)! with
+                { Movement = input.Movement, Exercise = input.Exercise?.Trim() }, AnalysisResults.Json);
         if (await db.Jobs.Where(x => x.Id == id && x.OwnerId == owner && x.Version == version).ExecuteUpdateAsync(update => update
-            .SetProperty(x => x.Name, input.Name.Trim()).SetProperty(x => x.Note, input.Note).SetProperty(x => x.Tags, tags).SetProperty(x => x.Version, x => x.Version + 1), ct) != 1)
+            .SetProperty(x => x.Name, input.Name.Trim()).SetProperty(x => x.Note, input.Note).SetProperty(x => x.Tags, tags)
+            .SetProperty(x => x.Configuration, configuration).SetProperty(x => x.Version, x => x.Version + 1), ct) != 1)
             throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
     }
 

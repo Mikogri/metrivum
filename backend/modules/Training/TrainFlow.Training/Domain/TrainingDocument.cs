@@ -21,11 +21,11 @@ public enum DocumentKind
 
 public sealed record IntRange(int Minimum, int Maximum);
 public sealed record QuantityRange(Quantity Minimum, Quantity Maximum);
-public sealed record FormulaUse(Guid? FormulaId, int Version, string? BuiltIn, Dictionary<string, Quantity> Inputs);
-public sealed record FormulaEvaluation(string Expression, int Version, Dictionary<string, Quantity> Inputs, Quantity Result);
+public sealed record FormulaUse(Guid? FormulaId, int Version, string? BuiltIn, Dictionary<string, Quantity> Inputs, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Expression = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, string>? VariableBindings = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Unit? OutputUnit = null);
+public sealed record FormulaEvaluation(string Expression, int Version, Dictionary<string, Quantity> Inputs, Quantity Result, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, string>? SourceVersions = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, Quantity>? FieldValues = null);
 public sealed record Prescription(IntRange? Reps = null, QuantityRange? Load = null, decimal? LoadPercent = null, Quantity? BaseValue = null,
     decimal? Rpe = null, decimal? Rir = null, Quantity? WorkTime = null, Quantity? Rest = null, string? Tempo = null,
-    Quantity? Distance = null, string? Comment = null, FormulaUse? LoadFormula = null);
+    Quantity? Distance = null, string? Comment = null, FormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Unit? LoadUnit = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, FormulaUse>? FieldFormulas = null);
 public sealed record SetSegment(Guid Id, Prescription Prescription);
 public sealed record TrainingSet(Guid Id, SetKind Kind, Prescription Prescription, SetSegment[]? Segments = null, Guid? SourceSetId = null);
 public sealed record ExerciseInstance(Guid Id, Guid ExerciseId, string Comment, TrainingSet[] Sets);
@@ -34,8 +34,18 @@ public sealed record Workout(Guid Id, string Name, string Description, ExerciseI
 /// <summary>A day of a cycle. <c>Note</c> is free text for the day, e.g. what to do on a rest day.</summary>
 public sealed record TrainingDay(Guid Id, int DayNumber, Workout[] Workouts, string? Note = null);
 public sealed record Cycle(Guid Id, string Name, string Description, int DayCount, TrainingDay[] Days);
-public sealed record Block(Guid Id, string Name, string Description, Cycle[] Cycles);
-public sealed record TrainingDocument(int SchemaVersion, Block[] Blocks);
+public sealed record BlockExerciseMax(Guid? ExerciseId, int Reps, Quantity? Load = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Unit? LoadUnit = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Quantity? Time = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FormulaUse? TimeFormula = null);
+public sealed record Block(Guid Id, string Name, string Description, Cycle[] Cycles,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BlockExerciseMax[]? ExerciseMaxes = null);
+public sealed record ExerciseMaxesTable(Guid Id, Guid? BlockId, BlockExerciseMax[] Rows);
+[JsonConverter(typeof(JsonStringEnumConverter<AnnotationKind>))]
+public enum AnnotationKind { Comment, Goal }
+[JsonConverter(typeof(JsonStringEnumConverter<AnnotationVisibility>))]
+public enum AnnotationVisibility { Coach, Client }
+public sealed record PlanAnnotation(Guid Id, AnnotationKind Kind, string Title, string Content, Guid? TargetId = null, AnnotationVisibility Visibility = AnnotationVisibility.Coach);
+public sealed record TrainingDocument(int SchemaVersion, Block[] Blocks,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ExerciseMaxesTable[]? MaxesTables = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] PlanAnnotation[]? Annotations = null);
 
 public sealed class DocumentLimits
 {
@@ -54,11 +64,14 @@ public static class TrainingJson
 
 public static class DocumentRules
 {
+    // Privacy is enforced before content leaves the owning API, including purchased copies.
+    public static TrainingDocument ForClient(TrainingDocument document) => document with { Annotations = document.Annotations?.Where(n => n.Visibility == AnnotationVisibility.Client).ToArray() };
+    public static PlanAnnotation[] AnnotationsFor(TrainingDocument document, Guid blockId, Guid cycleId) => (document.Annotations ?? []).Where(n => n.TargetId == null || n.TargetId == blockId || n.TargetId == cycleId).ToArray();
     public static IEnumerable<Workout> Workouts(TrainingDocument document) => document.Blocks.SelectMany(b => b.Cycles).SelectMany(c => c.Days).SelectMany(d => d.Workouts);
     public static IEnumerable<TrainingSet> Sets(TrainingDocument document) => Workouts(document).SelectMany(w => w.Exercises).SelectMany(e => e.Sets);
     public static bool HasAdvanced(TrainingDocument document) => Workouts(document).Any(w => w.Groups.Length > 0) || Sets(document).Any(s => s.Kind != SetKind.Standard);
-    public static bool HasCustomFormulas(TrainingDocument document) => Prescriptions(document).Any(p => p.LoadFormula?.FormulaId != null);
-    public static IEnumerable<Prescription> Prescriptions(TrainingDocument document) => Sets(document).SelectMany(s => new[] { s.Prescription }.Concat((s.Segments ?? []).Select(x => x.Prescription)));
+    public static bool HasCustomFormulas(TrainingDocument document) => Prescriptions(document).Any(p => PrescriptionFormulas.Uses(p).Any(f => f.FormulaId != null || f.Expression != null || f.VariableBindings?.Count > 0));
+    public static IEnumerable<Prescription> Prescriptions(TrainingDocument document) => Sets(document).SelectMany(s => new[] { s.Prescription }.Concat((s.Segments ?? []).Select(x => x.Prescription))).Concat(BlockMaxes.Rows(document).SelectMany(r => new[] { new Prescription(LoadFormula: r.LoadFormula, LoadUnit: r.LoadUnit), new Prescription(LoadFormula: r.TimeFormula) }));
     public static void Validate(TrainingDocument document, DocumentLimits limits)
     {
         if (document is null || document.SchemaVersion != 1 || document.Blocks is null)
@@ -73,6 +86,22 @@ public static class DocumentRules
             if (ids.Count > limits.MaximumNodes)
                 throw new TrainingValidationException("Document node limit exceeded.");
         }
+        var targets = document.Blocks.Where(b => b != null).SelectMany(b => new[] { b.Id }.Concat((b.Cycles ?? []).Select(c => c.Id))).ToHashSet();
+        foreach (var note in document.Annotations ?? [])
+        {
+            if (note == null || !Enum.IsDefined(note.Kind) || !Enum.IsDefined(note.Visibility) || note.TargetId is { } target && !targets.Contains(target))
+                throw new TrainingValidationException("Invalid plan annotation or connection.");
+            Id(note.Id); Text(note.Title, 200, true); NonNullText(note.Content, 4000);
+        }
+        var connected = new HashSet<Guid>();
+        foreach (var table in document.MaxesTables ?? [])
+        {
+            if (table?.Rows == null) throw new TrainingValidationException("Maxes table rows are required.");
+            Id(table.Id);
+            BlockMaxes.Validate(table.Rows);
+            if (table.BlockId is { } owner && (!document.Blocks.Any(b => b.Id == owner) || !connected.Add(owner) || document.Blocks.Any(b => b.Id == owner && b.ExerciseMaxes?.Length > 0)))
+                throw new TrainingValidationException("Invalid or duplicate maxes table connection.");
+        }
         foreach (var block in document.Blocks)
         {
             if (block?.Cycles is null)
@@ -80,6 +109,7 @@ public static class DocumentRules
             Id(block.Id);
             Text(block.Name, 200, true);
             NonNullText(block.Description, 4000);
+            BlockMaxes.Validate(block.ExerciseMaxes);
             foreach (var cycle in block.Cycles)
             {
                 if (cycle?.Days is null)
@@ -170,6 +200,7 @@ public static class DocumentRules
     {
         if (prescription is null)
             throw new TrainingValidationException("Prescription is required.");
+        if (prescription.LoadUnit is { } unit && unit is not (Unit.Kg or Unit.Lb)) throw new TrainingValidationException("Invalid load unit.");
         if (prescription.Reps is { } reps && (reps.Minimum < 1 || reps.Maximum < reps.Minimum || reps.Maximum > 10000))
             throw new TrainingValidationException("Invalid repetition range.");
         if (prescription.Load is { } load)
@@ -200,14 +231,33 @@ public static class DocumentRules
         Text(prescription.Comment, 2000);
         if (prescription.Tempo != null && !System.Text.RegularExpressions.Regex.IsMatch(prescription.Tempo, @"\A(?:\d{1,2}|X)-(?:\d{1,2}|X)-(?:\d{1,2}|X)-(?:\d{1,2}|X)\z", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(50)))
             throw new TrainingValidationException("Tempo must contain four dash-separated numbers or X.");
+        if (prescription.FieldFormulas is { } fields)
+        {
+            if (fields.Count > 4) throw new TrainingValidationException("At most four field formulas are supported.");
+            foreach (var field in fields)
+            {
+                PrescriptionFormulas.UnitFor(field.Key);
+                if (field.Value == null) throw new TrainingValidationException("Field formula is required.");
+                ValidatePrescription(new(LoadFormula: field.Value));
+            }
+        }
         if (prescription.LoadFormula is { } formula)
         {
-            if ((formula.FormulaId != null) == (formula.BuiltIn != null) || formula.Version < 1 || formula.Inputs is null || formula.Inputs.Count > 64)
+            if (((formula.FormulaId != null ? 1 : 0) + (formula.BuiltIn != null ? 1 : 0) + (formula.Expression != null ? 1 : 0) != 1) || formula.Version < 1 || formula.Inputs is null || formula.Inputs.Count > 64)
                 throw new TrainingValidationException("Invalid formula reference.");
+            if (formula.Expression?.Length > 2048 || formula.VariableBindings?.Count > 64)
+                throw new TrainingValidationException("Formula limits exceeded.");
+            if (formula.OutputUnit is { } output && !Enum.IsDefined(output)) throw new TrainingValidationException("Invalid formula output unit.");
+            foreach (var binding in formula.VariableBindings ?? [])
+            {
+                FormulaBindings.Identifier(binding.Key);
+                FormulaBindings.Identifier(binding.Value);
+                if (formula.Inputs.ContainsKey(binding.Key)) throw new TrainingValidationException("A formula input cannot also have a variable binding.");
+            }
             foreach (var input in formula.Inputs)
             {
                 Text(input.Key, 80, true);
-                if (input.Value is null || !Enum.IsDefined(input.Value.Unit) || Math.Abs(input.Value.Value) > 1_000_000_000m)
+                if (input.Value is null || !Enum.IsDefined(input.Value.Unit) || input.Value.Value is < -1_000_000_000m or > 1_000_000_000m)
                     throw new TrainingValidationException("Invalid formula input.");
             }
         }
@@ -239,10 +289,12 @@ public static class DocumentRules
         }
         return source with
         {
+            Annotations = source.Annotations?.Select(n => n with { Id = New(n.Id), TargetId = n.TargetId is { } target ? New(target) : null }).ToArray(),
+            MaxesTables = source.MaxesTables?.Select(t => t with { Id = New(t.Id), BlockId = t.BlockId is { } blockId ? New(blockId) : null, Rows = t.Rows.ToArray() }).ToArray(),
             Blocks = source.Blocks.Select(b => b with { Id = New(b.Id), Cycles = b.Cycles.Select(c => c with { Id = New(c.Id), Days = c.Days.Select(d => d with { Id = New(d.Id), Workouts = d.Workouts.Select(w => w with { Id = New(w.Id), Exercises = w.Exercises.Select(e => e with { Id = New(e.Id), Sets = e.Sets.Select(s => s with { Id = New(s.Id), SourceSetId = s.SourceSetId is { } top ? New(top) : null, Segments = s.Segments?.Select(p => p with { Id = New(p.Id), Prescription = CopyPrescription(p.Prescription) }).ToArray(), Prescription = CopyPrescription(s.Prescription) }).ToArray() }).ToArray(), Groups = w.Groups.Select(g => g with { Id = New(g.Id), ExerciseIds = g.ExerciseIds.Select(New).ToArray() }).ToArray() }).ToArray() }).ToArray() }).ToArray() }).ToArray()
         };
     }
-    private static Prescription CopyPrescription(Prescription value) => value with { LoadFormula = value.LoadFormula is { } f ? f with { Inputs = new(f.Inputs) } : null };
+    private static Prescription CopyPrescription(Prescription value) => value with { LoadFormula = value.LoadFormula is { } f ? f with { Inputs = new(f.Inputs), VariableBindings = f.VariableBindings == null ? null : new(f.VariableBindings) } : null };
 }
 
 public static class FolderRules

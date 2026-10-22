@@ -878,8 +878,14 @@ function AuthScreen({
                       email: email.trim(),
                       password,
                   });
-            if (result.error) throw result.error;
-            if (result.data.session) {
+            // Signing up with a registered address continues like a new sign-up, so the form
+            // cannot be used to find out who has an account (the owner can sign in or reset).
+            const existing =
+                register &&
+                (result.error?.code === "user_already_exists" ||
+                    result.error?.code === "email_exists");
+            if (result.error && !existing) throw result.error;
+            if (result.data?.session) {
                 await authAttempts.cancel(slot);
                 await onSignedIn(slot, result.data.session);
             } else setNotice(t("auth.confirmationNotice"));

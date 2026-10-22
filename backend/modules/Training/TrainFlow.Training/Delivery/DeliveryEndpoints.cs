@@ -9,7 +9,11 @@ public static class DeliveryEndpoints
 {
     public static void MapTrainingDelivery(this RouteGroupBuilder group)
     {
+        group.MapGet("/assignments/{id:guid}/formula-snapshot", (Guid id, TrainingDeliveryService s, CancellationToken ct) => s.FormulaSnapshotAsync(id, false, ct));
+        group.MapPost("/assignments/{id:guid}/formula-snapshot/preview", (Guid id, TrainingDeliveryService s, CancellationToken ct) => s.FormulaSnapshotAsync(id, true, ct));
+        group.MapPost("/assignments/{id:guid}/formula-snapshot/refresh", (Guid id, RefreshFormulaSnapshotRequest request, HttpContext h, TrainingDeliveryService s, CancellationToken ct) => s.RefreshFormulaSnapshotAsync(id, request, Version(h), ct));
         group.MapGet("/activity-options", (Guid relationshipId, Guid? programId, TrainingDeliveryService s, CancellationToken ct) => s.ActivityOptionsAsync(relationshipId, programId, ct));
+        group.MapGet("/analysis-set-options", (Guid? relationshipId, int? days, TrainingDeliveryService s, CancellationToken ct) => s.AnalysisSetOptionsAsync(relationshipId, days ?? 60, ct)).Produces<AnalysisSetOptionsDto>();
         group.MapGet("/last-activity", (Guid relationshipId, TrainingDeliveryService s, CancellationToken ct) => s.LastActivityAsync(relationshipId, ct));
         group.MapGet("/assignment-summary", (Guid relationshipId, TrainingDeliveryService s, CancellationToken ct) => s.AssignmentSummaryAsync(relationshipId, ct));
         group.MapPost("/programs/{programId:guid}/assignments/preview", (Guid programId, AssignProgramRequest request, TrainingDeliveryService s, CancellationToken ct) => s.PreviewAsync(programId, request, ct));

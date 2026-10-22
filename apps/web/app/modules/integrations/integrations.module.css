@@ -1,0 +1,12 @@
+.stack { display: grid; gap: var(--tf-space-4); min-width: 0; }
+.card { display: grid; gap: var(--tf-space-3); }
+.heading { font-size: var(--tf-text-md); font-weight: var(--tf-weight-semibold); }
+.hint { color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--tf-space-2); align-items: center; }
+.identity { overflow-wrap: anywhere; font-size: var(--tf-text-xs); color: var(--tf-color-text-tertiary); }
+.preview { white-space: pre-wrap; overflow-wrap: anywhere; padding: var(--tf-space-4); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); background: var(--tf-color-bg-sunken); }
+.page { width: 100%; max-width: 48rem; }
+.grants { display: grid; gap: var(--tf-space-2); }
+.guide { display: grid; gap: var(--tf-space-2); }
+.guide ol { padding-left: var(--tf-space-5); }
+.guide a { color: var(--tf-color-accent); text-decoration: underline; }

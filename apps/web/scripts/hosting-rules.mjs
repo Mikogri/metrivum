@@ -5,7 +5,7 @@
 export const SPA_PREFIXES = ["/app", "/auth", "/onboarding"];
 
 /** Never answered with HTML: API calls and build assets must fail loudly when missing. */
-export const NEVER_FALLBACK_PREFIXES = ["/api/", "/assets/", "/brand/"];
+export const NEVER_FALLBACK_PREFIXES = ["/api/", "/assets/", "/brand/", "/anatomy/"];
 
 /**
  * Decides how a request path is served.

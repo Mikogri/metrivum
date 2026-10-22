@@ -1050,6 +1050,9 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("\"Status\" = 'Active'");
 
+                    b.HasIndex("TeamId", "JoinedAt", "UserId")
+                        .HasFilter("\"Status\" = 'Active'");
+
                     b.ToTable("team_memberships", "billing", t =>
                         {
                             t.HasCheckConstraint("CK_team_member_role", "\"Role\" IN ('Owner','Admin','Member')");

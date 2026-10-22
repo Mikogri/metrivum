@@ -211,6 +211,12 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
       },
+      "trainflow.checkins.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "TrainFlow.Forms.Contracts": "[1.0.0, )"
+        }
+      },
       "trainflow.coaching.contracts": {
         "type": "Project"
       },

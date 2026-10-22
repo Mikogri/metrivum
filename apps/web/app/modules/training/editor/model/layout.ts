@@ -1,3 +1,4 @@
+import { maxesTables } from "./maxes";
 import type { Cycle, TrainingDocument } from "@trainflow/api-client-web";
 
 /** Sheet cell size in pixels. Nodes snap to cell corners, like objects on a spreadsheet. */
@@ -36,6 +37,7 @@ export function autoLayout(doc: TrainingDocument, loose: Cycle[]): Layout {
   let row = 1;
   for (const block of doc.blocks) {
     layout[block.id] = { col: 1, row };
+
     let height = BLOCK_ROWS;
     block.cycles.forEach((cycle, index) => {
       layout[cycle.id] = { col: 1 + BLOCK_COLS + 1 + index * (CYCLE_COLS + 1), row };
@@ -46,6 +48,8 @@ export function autoLayout(doc: TrainingDocument, loose: Cycle[]): Layout {
   loose.forEach((cycle, index) => {
     layout[cycle.id] = { col: 1 + BLOCK_COLS + 1 + index * (CYCLE_COLS + 1), row };
   });
+  for (const table of maxesTables(doc)) { layout[table.id] = { col: 1, row }; row += table.rows.length + 4; }
+  for (const note of doc.annotations ?? []) { layout[note.id] = { col: 1, row }; row += 7; }
   return layout;
 }
 
@@ -95,4 +99,65 @@ export function resolveLayout(layout: Layout, sizes: Record<string, Size>, first
     result[id] = cell;
   }
   return result;
+}
+
+
+export const MIN_COLUMN_WIDTH = 64;
+export const MAX_COLUMN_WIDTH = 320;
+export const MAX_SAVED_COLUMNS = 2048;
+export type ColumnWidths = Record<number, number>;
+
+export function clampColumnWidth(width: number): number {
+  return Number.isFinite(width) ? Math.min(MAX_COLUMN_WIDTH, Math.max(MIN_COLUMN_WIDTH, Math.round(width))) : CELL_W;
+}
+
+export function sanitizeColumnWidths(value: unknown): ColumnWidths {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter(([key, width]) => {
+    const col = Number(key);
+    return Number.isInteger(col) && col >= 0 && col < MAX_SAVED_COLUMNS && typeof width === "number" && Number.isFinite(width);
+  }).map(([key, width]) => [key, clampColumnWidth(width as number)]));
+}
+
+export const columnWidth = (widths: ColumnWidths, col: number): number => widths[col] ?? CELL_W;
+
+/** Cell positions stay logical; only rendering and pointer inversion use pixel widths. */
+export function columnLeft(widths: ColumnWidths, col: number): number {
+  let x = col * CELL_W;
+  for (const [key, width] of Object.entries(widths)) if (Number(key) < col) x += width - CELL_W;
+  return x;
+}
+
+export function columnSpan(widths: ColumnWidths, col: number, count: number): number {
+  return columnLeft(widths, col + count) - columnLeft(widths, col);
+}
+
+export function columnAt(widths: ColumnWidths, x: number, nearest = false): number {
+  if (x <= 0) return 0;
+  let col = 0;
+  let left = 0;
+  while (left + columnWidth(widths, col) <= x) left += columnWidth(widths, col++);
+  return col + (nearest && x - left >= columnWidth(widths, col) / 2 ? 1 : 0);
+}
+
+export function resizedColumnWidth(initial: number, clientDelta: number, zoom: number): number {
+  return clampColumnWidth(initial + clientDelta / zoom);
+}
+
+export type ElementWidths = Record<string, ColumnWidths>;
+export function sanitizeElementWidths(value: unknown): ElementWidths {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value).slice(0, 10000).map(([id, widths]) => [id, Object.fromEntries(Object.entries(sanitizeColumnWidths(widths)).filter(([index]) => Number(index) < 64))]));
+}
+/** Element preferences project onto their current columns; moving never mutates the base sheet. */
+export function elementColumnWidths(base: ColumnWidths | undefined, layout: Layout, elements: ElementWidths | undefined, active: ReadonlySet<string>): ColumnWidths {
+  const owned: ColumnWidths = {};
+  for (const [id, widths] of Object.entries(elements ?? {})) {
+    const at = layout[id]; if (!at || !active.has(id)) continue;
+    for (const [index, width] of Object.entries(widths)) {
+      const col = at.col + Number(index);
+      owned[col] = Math.max(owned[col] ?? MIN_COLUMN_WIDTH, clampColumnWidth(width));
+    }
+  }
+  return { ...sanitizeColumnWidths(base), ...owned };
 }

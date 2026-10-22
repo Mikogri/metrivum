@@ -1,3 +1,4 @@
+import { useCellValidation } from "../cell-validation";
 import { Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ExerciseInstance, TrainingDocument } from "@trainflow/api-client-web";
@@ -6,9 +7,11 @@ import { useDictionaryLabel, useExerciseList } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useDebounced } from "~/shared/lib/useDebounced";
-import { updateNode } from "../model/document";
-import { LOAD_UNITS, exerciseRow, loadOf, seconds, setExerciseDuration, setExerciseLoad, setExerciseReps, setExerciseSets, type LoadUnit } from "../model/workouts";
+import { addSet, findExercise, setPrescription, updateNode } from "../model/document";
+import { exerciseRow, setExerciseSets } from "../model/workouts";
 import styles from "./SheetCanvas.module.css";
+import { InlinePrescriptionCell, type FormulaField } from "./InlinePrescriptionCell";
+import { InlineLoadCell } from "./InlineLoadCell";
 
 /**
  * Exercise cells shared by the sheet's expanded cycle and the simple editor: one row per exercise
@@ -58,6 +61,7 @@ export function TextCell({
 }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [invalid, setInvalid] = useState(false);
+  const validationId = useCellValidation(invalid, label, inputMode === "numeric" ? "Enter a whole number within the allowed range." : "Use a valid value or range for this column (for example 5 or 5–8 for repetitions).");
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (editing !== null) input.current?.focus();
@@ -85,6 +89,7 @@ export function TextCell({
         value={editing}
         inputMode={inputMode}
         aria-label={label}
+        data-validation-id={validationId}
         aria-invalid={invalid || undefined}
         placeholder={placeholder}
         data-no-drag
@@ -138,221 +143,7 @@ export function TextCell({
   );
 }
 
-type Part = "h" | "m" | "s";
-
-/**
- * Segmented duration input with a fixed structure, like the birth date field: digits fill the
- * focused part and jump to the next one when it is complete. `parts` is "hms" (time) or "ms"
- * (rest; minutes then go up to 99). Arrows move or step, Backspace clears, ":" jumps forward.
- */
-function DurationInput({
-  parts,
-  initial,
-  label,
-  onDone,
-}: {
-  parts: Part[];
-  initial: number | null;
-  label: string;
-  onDone: (save: boolean, seconds: number) => void;
-}) {
-  const m = useT();
-  const t = m.editor.sheet;
-  const max: Record<Part, number> = { h: 23, m: parts.includes("h") ? 59 : 99, s: 59 };
-  const split = (total: number): Record<Part, number> =>
-    parts.includes("h") ? { h: Math.floor(total / 3600), m: Math.floor((total % 3600) / 60), s: total % 60 } : { h: 0, m: Math.min(99, Math.floor(total / 60)), s: total % 60 };
-  const [values, setValues] = useState<Record<Part, number>>(() => split(Math.round(initial ?? 0)));
-  const latest = useRef(values);
-  const [active, setActive] = useState(parts.indexOf("m"));
-  const typed = useRef("");
-  const refs = useRef<(HTMLSpanElement | null)[]>([]);
-  const box = useRef<HTMLDivElement>(null);
-  const done = useRef(false);
-
-  useEffect(() => {
-    refs.current[active]?.focus();
-  }, [active]);
-
-  const set = (part: Part, value: number) => {
-    const next = { ...latest.current, [part]: value };
-    latest.current = next;
-    setValues(next);
-  };
-  const go = (index: number) => {
-    typed.current = "";
-    setActive(Math.max(0, Math.min(parts.length - 1, index)));
-  };
-  const finish = (save: boolean) => {
-    if (done.current) return;
-    done.current = true;
-    const v = latest.current;
-    onDone(save, v.h * 3600 + v.m * 60 + v.s);
-  };
-  const names: Record<Part, string> = { h: t.hours, m: t.minutes, s: t.seconds };
-
-  return (
-    <div
-      ref={box}
-      role="group"
-      aria-label={label}
-      className={styles.duration}
-      onBlur={(event) => {
-        if (!box.current?.contains(event.relatedTarget as Node)) finish(true);
-      }}
-    >
-      {parts.map((part, index) => (
-        <span key={part} className={styles.durationPart}>
-          {index > 0 ? <span className={styles.durationSep}>:</span> : null}
-          <span
-            ref={(el) => {
-              refs.current[index] = el;
-            }}
-            role="spinbutton"
-            tabIndex={index === active ? 0 : -1}
-            aria-label={names[part]}
-            aria-valuemin={0}
-            aria-valuemax={max[part]}
-            aria-valuenow={values[part]}
-            className={styles.durationSegment}
-            data-focused={index === active || undefined}
-            onFocus={() => {
-              if (index !== active) go(index);
-            }}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              go(index);
-            }}
-            onKeyDown={(event) => {
-              event.stopPropagation();
-              const key = event.key;
-              if (/^\d$/.test(key)) {
-                event.preventDefault();
-                const digit = Number(key);
-                if (typed.current === "") {
-                  set(part, digit);
-                  // A first digit that can't start a two-digit value completes the part.
-                  if (digit * 10 > max[part]) go(index + 1);
-                  else typed.current = key;
-                } else {
-                  const value = Number(typed.current + key);
-                  set(part, value > max[part] ? digit : value);
-                  go(index + 1);
-                }
-              } else if (key === "Backspace" || key === "Delete") {
-                event.preventDefault();
-                if (values[part] === 0 && typed.current === "" && key === "Backspace") go(index - 1);
-                else {
-                  set(part, 0);
-                  typed.current = "";
-                }
-              } else if (key === "ArrowLeft") {
-                event.preventDefault();
-                go(index - 1);
-              } else if (key === "ArrowRight" || key === ":" || key === "." || key === " ") {
-                event.preventDefault();
-                go(index + 1);
-              } else if (key === "ArrowUp" || key === "ArrowDown") {
-                event.preventDefault();
-                const step = key === "ArrowUp" ? 1 : -1;
-                set(part, (values[part] + step + max[part] + 1) % (max[part] + 1));
-                typed.current = "";
-              } else if (key === "Tab" && !event.shiftKey && index < parts.length - 1) {
-                event.preventDefault();
-                go(index + 1);
-              } else if (key === "Tab" && event.shiftKey && index > 0) {
-                event.preventDefault();
-                go(index - 1);
-              } else if (key === "Enter") {
-                event.preventDefault();
-                finish(true);
-              } else if (key === "Escape") {
-                event.preventDefault();
-                finish(false);
-              }
-            }}
-          >
-            {String(values[part]).padStart(2, "0")}
-          </span>
-        </span>
-      ))}
-    </div>
-  );
-}
-
-/** Time (h:mm:ss) or rest (m:ss) cell: shows "1:30", edits with the segmented input. */
-export function DurationCell({
-  value,
-  stored,
-  parts,
-  label,
-  placeholder,
-  title,
-  readOnly,
-  style,
-  className,
-  onCommit,
-}: {
-  value: string;
-  stored: { value: number | string; unit: string } | null | undefined;
-  parts: "hms" | "ms";
-  label: string;
-  placeholder?: string;
-  title?: string;
-  readOnly: boolean;
-  style: React.CSSProperties;
-  className?: string;
-  onCommit: (text: string) => boolean;
-}) {
-  const [editing, setEditing] = useState(false);
-  const cell = useRef<HTMLDivElement>(null);
-
-  if (editing) {
-    return (
-      <div className={`${styles.cell} ${styles.cellInput} ${styles.clockEdit}`} style={style} data-no-drag onKeyDown={(event) => event.stopPropagation()}>
-        <DurationInput
-          parts={[...parts] as Part[]}
-          initial={seconds(stored)}
-          label={label}
-          onDone={(save, total) => {
-            if (save) {
-              const pad = (n: number) => String(n).padStart(2, "0");
-              const h = Math.floor(total / 3600);
-              const mm = Math.floor((total % 3600) / 60);
-              const text = total === 0 ? "" : h ? `${h}:${pad(mm)}:${pad(total % 60)}` : `${Math.floor(total / 60)}:${pad(total % 60)}`;
-              if (text !== value) onCommit(text);
-            }
-            setEditing(false);
-            requestAnimationFrame(() => cell.current?.focus({ preventScroll: true }));
-          }}
-        />
-      </div>
-    );
-  }
-  return (
-    <div
-      ref={cell}
-      role="gridcell"
-      tabIndex={readOnly ? -1 : 0}
-      className={`${styles.cell} ${readOnly ? "" : styles.editable} ${className ?? ""}`}
-      style={style}
-      title={title}
-      aria-label={`${label}: ${value || "—"}`}
-      aria-readonly={readOnly || undefined}
-      data-no-drag
-      onClick={() => !readOnly && setEditing(true)}
-      onKeyDown={(event) => {
-        if (readOnly) return;
-        if (event.key === "Enter" || event.key === "F2") {
-          event.preventDefault();
-          event.stopPropagation();
-          setEditing(true);
-        }
-      }}
-    >
-      {value || <span className={styles.cellPlaceholder}>{placeholder}</span>}
-    </div>
-  );
-}
+export { DurationCell } from "./DurationCell";
 
 /** A cell that opens a small menu at itself (load, comment). */
 export function MenuCell({
@@ -400,6 +191,8 @@ export function ExerciseCell({
   style,
   idleStyle,
   startOpen = false,
+  required = false,
+  excludedIds = [],
   onPick,
 }: {
   name: string;
@@ -411,6 +204,8 @@ export function ExerciseCell({
   idleStyle?: React.CSSProperties;
   /** Opens typing right away (e.g. "Add exercise" from a menu). */
   startOpen?: boolean;
+  required?: boolean;
+  excludedIds?: string[];
   onPick: (exerciseId: string) => void;
 }) {
   const m = useT();
@@ -422,8 +217,9 @@ export function ExerciseCell({
   const input = useRef<HTMLInputElement>(null);
   const search = useDebounced(text ?? "", 180);
   const list = useExerciseList({ search: search.trim() || undefined, sort: "name", page: 1, pageSize: 12 }, text !== null && open);
-  const items = list.data?.items ?? [];
-  const invalid = text !== null && !open && text.trim() !== "";
+  const items = (list.data?.items ?? []).filter(item => !excludedIds.includes(item.id));
+  const invalid = required && !name || text !== null && !open && text.trim() !== "";
+  const validationId = useCellValidation(invalid, t.columns.exercise, !name ? "Choose an exercise from the suggestions." : "Select a matching exercise or clear the text.");
   const listId = useRef(`ex-${Math.random().toString(36).slice(2)}`).current;
 
   useEffect(() => {
@@ -448,7 +244,9 @@ export function ExerciseCell({
         type="button"
         className={`${styles.cell} ${add ? styles.addExercise : `${styles.exerciseCell} ${readOnly ? "" : styles.editable}`}`}
         style={idleStyle ?? style}
+        data-validation-id={validationId}
         aria-label={add ? t.addExercise : `${t.columns.exercise}: ${name}`}
+        aria-invalid={invalid || undefined}
         disabled={readOnly}
         data-no-drag
         onClick={() => begin(add ? "" : name)}
@@ -480,6 +278,7 @@ export function ExerciseCell({
         value={text}
         role="combobox"
         aria-label={t.columns.exercise}
+        data-validation-id={validationId}
         aria-expanded={open && items.length > 0}
         aria-controls={listId}
         aria-activedescendant={open && items[active] ? `${listId}-${active}` : undefined}
@@ -541,54 +340,6 @@ export function ExerciseCell({
   );
 }
 
-function LoadEditor({ instance, onApply }: { instance: ExerciseInstance; onApply: (unit: LoadUnit, text: string) => boolean }) {
-  const m = useT();
-  const t = m.editor.sheet;
-  const locale = useLocale();
-  const current = loadOf(instance.sets[0]?.prescription ?? {});
-  const [unit, setUnit] = useState<LoadUnit>(current.unit);
-  const [text, setText] = useState(current.value === null ? "" : new Intl.NumberFormat(locale, { maximumFractionDigits: 2, useGrouping: false }).format(current.value));
-  const [invalid, setInvalid] = useState(false);
-  const submit = () => (onApply(unit, text) ? undefined : setInvalid(true));
-  return (
-    <div className={styles.popForm}>
-      <div className={styles.unitRow} role="radiogroup" aria-label={t.columns.load}>
-        {LOAD_UNITS.map((u) => (
-          <button key={u} type="button" role="radio" aria-checked={unit === u} className={styles.unit} onClick={() => setUnit(u)}>
-            {t.loadUnits[u]}
-          </button>
-        ))}
-      </div>
-      <input
-        className={styles.popInput}
-        inputMode="decimal"
-        aria-label={t.loadValue}
-        aria-invalid={invalid || undefined}
-        placeholder={unit === "rir" ? "2" : unit === "rpe" ? "8" : "60"}
-        value={text}
-        onChange={(event) => {
-          setText(event.target.value);
-          setInvalid(false);
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            submit();
-          }
-        }}
-      />
-      <div className={styles.popActions}>
-        <button type="button" className={styles.popGhost} onClick={() => onApply(unit, "")}>
-          {t.clear}
-        </button>
-        <button type="button" className={styles.popPrimary} onClick={submit}>
-          {t.apply}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export type ExerciseColumn = "exercise" | "sets" | "reps" | "load" | "time" | "rest" | "comment";
 
 /**
@@ -603,6 +354,8 @@ export function ExerciseRow({
   apply,
   onContextMenu,
   entering = false,
+  formulaAllowed = false,
+  customFormulas = false,
   children,
 }: {
   instance: ExerciseInstance;
@@ -613,16 +366,38 @@ export function ExerciseRow({
   onContextMenu?: (event: React.MouseEvent) => void;
   /** Just revealed (its workout was unfolded): the cells fade in. */
   entering?: boolean;
+  formulaAllowed?: boolean;
+  customFormulas?: boolean;
   /** Extra cells after the comment (e.g. the row's ⋮ menu in the simple editor). */
   children?: React.ReactNode;
 }) {
   const m = useT();
   const t = m.editor.sheet;
   const locale = useLocale();
-  const [popup, setPopup] = useState<{ kind: "load" | "comment"; rect: DOMRect } | null>(null);
+  const [popup, setPopup] = useState<{ kind: "comment"; rect: DOMRect } | null>(null);
   const values = exerciseRow(locale, instance, (key) => m.training.formulas.builtInNames[key] ?? key);
   const mixed = values.mixed ? styles.mixedCell : undefined;
   const p = instance.sets[0]?.prescription;
+  const formulaCell = (field: FormulaField, column: ExerciseColumn) => <InlinePrescriptionCell field={field} prescription={p ?? {}} count={instance.sets.length} exerciseId={instance.exerciseId}
+    label={t.columns[column]} style={cells[column]} className={`${styles.cell} ${mixed ?? ""}`} readOnly={readOnly} formulaAllowed={formulaAllowed} customAllowed={customFormulas}
+    onChange={(formula, value, maximum) => apply?.(doc => {
+      let next = doc;
+      if (!instance.sets.length) next = addSet(next, instance.id).doc;
+      if (field === "Sets" && !formula && value) next = setExerciseSets(next, instance.id, String(value.value)) ?? next;
+      const current = findExercise(next, instance.id)?.exercise;
+      return current?.sets.reduce((document, set, index) => {
+        if (field === "Sets" && index !== 0) {
+          const fieldFormulas = { ...set.prescription.fieldFormulas }; delete fieldFormulas.Sets;
+          return setPrescription(document, set.id, { ...set.prescription, fieldFormulas });
+        }
+        const fieldFormulas = { ...set.prescription.fieldFormulas };
+        if (formula) fieldFormulas[field] = formula; else delete fieldFormulas[field];
+        return setPrescription(document, set.id, { ...set.prescription, fieldFormulas,
+          ...(field === "Reps" ? { reps: !formula && value ? { minimum: value.value, maximum: maximum ?? value.value } : null } : {}),
+          ...(field === "WorkTime" ? { workTime: formula ? null : value } : {}),
+          ...(field === "Rest" ? { rest: formula ? null : value } : {}) });
+      }, next) ?? next;
+    })} />;
 
   return (
     <div
@@ -637,60 +412,35 @@ export function ExerciseRow({
       }}
     >
       <ExerciseCell name={name} mode="replace" readOnly={readOnly} style={cells.exercise} onPick={(exerciseId) => apply?.((doc) => updateNode(doc, instance.id, { exerciseId }))} />
-      <TextCell
-        style={cells.sets}
-        value={values.sets}
-        label={t.columns.sets}
-        placeholder={t.setsHint}
-        readOnly={readOnly}
-        allowed={/^\d$/}
-        inputMode="numeric"
-        onCommit={(text) => tryApply(apply, (doc) => setExerciseSets(doc, instance.id, text))}
-      />
-      <TextCell
-        style={cells.reps}
-        className={mixed}
-        value={values.reps}
-        label={t.columns.reps}
-        placeholder={t.repsHint}
-        title={values.mixed ? t.mixed : undefined}
-        readOnly={readOnly}
-        allowed={/^[\d\-–]$/}
-        onCommit={(text) => tryApply(apply, (doc) => setExerciseReps(doc, instance.id, text))}
-      />
-      <MenuCell
-        style={cells.load}
-        className={mixed}
-        value={values.load}
+      {formulaCell("Sets", "sets")}
+      {formulaCell("Reps", "reps")}
+      <InlineLoadCell
+        exerciseId={instance.exerciseId}
+        effortAsLoad
+        prescription={p ?? {}}
+        formulaAllowed={formulaAllowed}
+        customAllowed={customFormulas}
+        fallbackValue={values.load}
         label={t.columns.load}
-        placeholder={t.loadHint}
+        style={cells.load}
+        className={`${styles.cell} ${mixed ?? ""}`}
         readOnly={readOnly}
-        onOpen={(rect) => setPopup({ kind: "load", rect })}
+        onChange={(value) => apply?.((doc) => {
+          const current = findExercise(doc, instance.id)?.exercise;
+          if (!current) return doc;
+          if (!current.sets.length) {
+            const added = addSet(doc, instance.id);
+            return added.id ? setPrescription(added.doc, added.id, value) : doc;
+          }
+          return current.sets.reduce((next, set) => setPrescription(next, set.id, {
+            ...set.prescription, load: value.load, loadPercent: value.loadPercent, baseValue: value.baseValue, loadFormula: value.loadFormula, loadUnit: value.loadUnit,
+            rpe: value.rpe !== p?.rpe ? value.rpe : set.prescription.rpe,
+            rir: value.rir !== p?.rir ? value.rir : set.prescription.rir,
+          }), doc);
+        })}
       />
-      <DurationCell
-        style={cells.time}
-        className={mixed}
-        value={values.time}
-        stored={p?.workTime}
-        parts="hms"
-        label={t.columns.time}
-        placeholder={t.timeHintShort}
-        title={t.timeHint}
-        readOnly={readOnly}
-        onCommit={(text) => tryApply(apply, (doc) => setExerciseDuration(locale, doc, instance.id, "workTime", text))}
-      />
-      <DurationCell
-        style={cells.rest}
-        className={mixed}
-        value={values.rest}
-        stored={p?.rest}
-        parts="ms"
-        label={t.columns.rest}
-        placeholder={t.restHintShort}
-        title={t.restHint}
-        readOnly={readOnly}
-        onCommit={(text) => tryApply(apply, (doc) => setExerciseDuration(locale, doc, instance.id, "rest", text))}
-      />
+      {formulaCell("WorkTime", "time")}
+      {formulaCell("Rest", "rest")}
       <MenuCell
         style={cells.comment}
         className={styles.commentCell}
@@ -702,17 +452,7 @@ export function ExerciseRow({
       />
       {children}
       {popup ? (
-        <ContextMenu x={popup.rect.left} y={popup.rect.bottom + 2} items={[]} label={popup.kind === "load" ? t.columns.load : t.columns.comment} onAction={() => undefined} onClose={() => setPopup(null)}>
-          {popup.kind === "load" ? (
-            <LoadEditor
-              instance={instance}
-              onApply={(unit, text) => {
-                const ok = tryApply(apply, (doc) => setExerciseLoad(locale, doc, instance.id, unit, text));
-                if (ok) setPopup(null);
-                return ok;
-              }}
-            />
-          ) : (
+        <ContextMenu x={popup.rect.left} y={popup.rect.bottom + 2} items={[]} label={t.columns.comment} onAction={() => undefined} onClose={() => setPopup(null)}>
             <textarea
               className={styles.menuTextarea}
               rows={5}
@@ -722,7 +462,6 @@ export function ExerciseRow({
               defaultValue={instance.comment}
               onChange={(event) => apply?.((doc) => updateNode(doc, instance.id, { comment: event.target.value }))}
             />
-          )}
         </ContextMenu>
       ) : null}
     </div>

@@ -48,7 +48,7 @@ export function ExercisePicker({
             className={styles.list}
             renderEmptyState={() => list.isPending || list.isFetching ? (
               <div className={styles.loading} role="status"><Spinner size="md" /><span>{m.common.loading}</span></div>
-            ) : <p className={styles.empty}>{m.editor.picker.empty}</p>}
+            ) : <p className={styles.empty} role={list.isError ? "alert" : undefined}>{list.isError ? m.editor.picker.failed : debounced ? m.editor.picker.noMatch(debounced) : m.editor.picker.none}</p>}
             onAction={(key) => {
               const exercise = items.find((item) => item.id === key);
               if (exercise) {

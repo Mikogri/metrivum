@@ -18,6 +18,7 @@ public static class ModuleRegistration
     {
         services.AddModuleDatabase<OffersDbContext>("offers");
         services.AddScoped<OffersService>();
+        services.AddScoped<IMcpOfferOperations, McpOfferOperations>();
         services.AddScoped<IOfferLibrary>(p => p.GetRequiredService<OffersService>());
         services.TryAddSingleton(TimeProvider.System);
         foreach (var key in new[] { "offers.manage", "offers.view-public" })
@@ -37,6 +38,7 @@ public static class ModuleRegistration
         group.MapPost("/{id:guid}/activate", async (Guid id, OffersService s, HttpContext http, CancellationToken ct) => Versioned(http, await s.ChangeStatusAsync(id, OfferStatus.Active, Version(http), ct))).Produces<OfferDto>();
         group.MapPost("/{id:guid}/deactivate", async (Guid id, OffersService s, HttpContext http, CancellationToken ct) => Versioned(http, await s.ChangeStatusAsync(id, OfferStatus.Inactive, Version(http), ct))).Produces<OfferDto>();
         group.MapPost("/{id:guid}/archive", async (Guid id, OffersService s, HttpContext http, CancellationToken ct) => Versioned(http, await s.ChangeStatusAsync(id, OfferStatus.Archived, Version(http), ct))).Produces<OfferDto>();
+        group.MapDelete("/{id:guid}", async (Guid id, OffersService s, HttpContext http, CancellationToken ct) => { await s.DeleteAsync(id, Version(http), ct); return Results.NoContent(); }).Produces(204);
         var coaches = endpoints.MapGroup("/api/v1/coaches/{coachId:guid}/offers").WithTags("Offers").RequireAuthorization();
         coaches.MapGet("", (Guid coachId, int? page, int? pageSize, string? search, string? category, string? sort, OffersService s, CancellationToken ct) => s.PublicListAsync(coachId, page ?? 1, pageSize ?? 25, search, category, sort ?? "updated", ct));
         coaches.MapGet("/{offerId:guid}", (Guid coachId, Guid offerId, OffersService s, CancellationToken ct) => s.PublicDetailAsync(coachId, offerId, ct));

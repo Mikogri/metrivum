@@ -21,6 +21,321 @@ namespace TrainFlow.IntegrationTests;
 public sealed class TrainingDeliveryPostgresTests
 {
     [TrainingPostgresFact]
+    public async Task Max_table_formulas_use_typed_athlete_inputs_and_preserve_staleness_and_scope()
+    {
+        await using var f = new Fixture { EnableClientFormulas = true }; f.Clock.Now = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var seed = await f.Seed(); await using var coach = f.Scope(f.Coach);
+        var exercise = Guid.NewGuid(); var alias = BlockMaxes.Alias(exercise, 1);
+        var set = new TrainingSet(Guid.NewGuid(), SetKind.Standard, new(LoadFormula: new(null, 1, null, [], "oneRepMax_kg * .8", new() { ["oneRepMax_kg"] = alias }), LoadUnit: Unit.Lb));
+        var block = new Block(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "Cycle", "", 7, [new(Guid.NewGuid(), 1, [new(Guid.NewGuid(), "Workout", "", [new(Guid.NewGuid(), exercise, "", [set])], [])])])]);
+        var row = new BlockExerciseMax(exercise, 1, LoadFormula: new(null, 1, null, [], "ROUND_TO_STEP_LOWER(oneRepMax_kg * .9, 2.5)", new() { ["oneRepMax_kg"] = alias }), LoadUnit: Unit.Kg);
+        var doc = new TrainingDocument(1, [block], [new(Guid.NewGuid(), block.Id, [row])]);
+        var metric = await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(exercise, 1, new(100, Unit.Kg), new(2026, 1, 1), "bench"), null, default);
+        var draft = await coach.Programs.SaveAsync(seed.Id, new("Typed max", "", null, doc), seed.Version, default);
+        await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        var assignment = Assert.Single((await coach.Service.AssignAsync(seed.Id, new(null, [f.Relationship], [], new(2026, 1, 1), "UTC"), Guid.NewGuid().ToString(), default)).Assignments);
+        var snapshot = await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default);
+        Assert.Equal(Unit.Lb, snapshot.Evaluations[set.Id].Result.Unit);
+        Assert.Equal(72m / .45359237m, snapshot.Evaluations[set.Id].Result.Value);
+        Assert.NotEmpty(snapshot.Evaluations[set.Id].SourceVersions!);
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, metric.Id, new(exercise, 1, new(110, Unit.Kg), new(2026, 1, 1), "bench"), metric.Version, default);
+        Assert.True((await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default)).Stale);
+        var empty = doc with { MaxesTables = [doc.MaxesTables![0] with { Rows = [new(exercise, 1)] }] };
+        draft = await coach.Programs.SaveAsync(seed.Id, new("Incomplete", "", null, empty), draft.Version, default);
+        await Assert.ThrowsAsync<TrainFlow.BuildingBlocks.ApiException>(() => coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default));
+    }
+
+    [TrainingPostgresFact]
+    public async Task Annotation_privacy_is_enforced_by_the_API_and_preserved_for_old_client_saves()
+    {
+        await using var f = new Fixture(); f.Clock.Now = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var plan = await f.Seed(); await using var coach = f.Scope(f.Coach); await using var client = f.Scope(f.Client);
+        var content = plan.Draft with { Blocks = plan.Draft.Blocks.Select(b => b with { Cycles = b.Cycles.Select(c => c with { Days = c.Days.Select(d => d with { Workouts = d.Workouts.Select(w => w with { Exercises = w.Exercises.Select(e => e with { Sets = e.Sets.Select(set => set with { Id = Guid.NewGuid() }).ToArray() }).ToArray() }).ToArray() }).ToArray() }).ToArray() }).ToArray() };
+        var block = content.Blocks[0]; var cycle = block.Cycles[0];
+        var secret = new PlanAnnotation(Guid.NewGuid(), AnnotationKind.Comment, "Coach", "Private strategy");
+        var shared = new PlanAnnotation(Guid.NewGuid(), AnnotationKind.Goal, "Goal", "Build consistency", cycle.Id, AnnotationVisibility.Client);
+        var other = shared with { Id = Guid.NewGuid(), TargetId = block.Cycles[1].Id, Content = "Other cycle" };
+        var draft = await coach.Programs.SaveAsync(plan.Id, new("Notes", "", null, content with { Annotations = [secret, shared, other] }), plan.Version, default);
+        draft = await coach.Programs.SaveAsync(plan.Id, new("Old client", "", null, draft.Document with { Annotations = null }), draft.Version, default);
+        Assert.Equal(3, draft.Document.Annotations!.Length);
+        await coach.Programs.ApplyAsync(plan.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        var assignment = Assert.Single((await coach.Service.AssignAsync(plan.Id, new(null, [f.Relationship], [], new(2026, 1, 1), "UTC"), Guid.NewGuid().ToString(), default)).Assignments);
+        var occurrences = await coach.Db.Set<WorkoutOccurrence>().AsNoTracking().Where(o => o.AssignmentId == assignment.Id).ToArrayAsync();
+        var occurrence = occurrences.First(o => o.CycleId == cycle.Id);
+        var coachDetail = await coach.Service.WorkoutAsync(occurrence.Id, default);
+        var clientDetail = await client.Service.WorkoutAsync(occurrence.Id, default);
+        Assert.Equal(2, coachDetail.Prescription.Annotations!.Length);
+        Assert.Equal(shared.Id, Assert.Single(clientDetail.Prescription.Annotations!).Id);
+        Assert.DoesNotContain("Private strategy", TrainingJson.Serialize(clientDetail));
+        await client.Service.StartAsync(occurrence.Id, default);
+        Assert.DoesNotContain("Private strategy", TrainingJson.Serialize(await client.Service.WorkoutAsync(occurrence.Id, default)));
+    }
+
+    [TrainingPostgresFact]
+    public async Task Independent_maxes_tables_survive_save_and_only_affect_explicitly_connected_blocks()
+    {
+        await using var f = new Fixture { EnableClientFormulas = true };
+        f.Clock.Now = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var seed = await f.Seed();
+        await using var coach = f.Scope(f.Coach);
+        var exercise = Guid.NewGuid(); var alias = BlockMaxes.Alias(exercise, 1);
+        var set = new TrainingSet(Guid.NewGuid(), SetKind.Standard, new(LoadFormula: new(null, 1, null, [], "oneRepMax*.8", new() { ["oneRepMax"] = alias })));
+        var block = new Block(Guid.NewGuid(), "A", "", [new(Guid.NewGuid(), "Cycle", "", 7, [new(Guid.NewGuid(), 1, [new(Guid.NewGuid(), "Workout", "", [new(Guid.NewGuid(), exercise, "", [set])], [])])])]);
+        var table = new ExerciseMaxesTable(Guid.NewGuid(), null, [new(exercise, 1, new(150, Unit.Kg))]);
+        var document = new TrainingDocument(1, [block], [table]);
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(exercise, 1, new(100, Unit.Kg), new(2026, 1, 1), "benchSingle"), null, default);
+        var draft = await coach.Programs.SaveAsync(seed.Id, new("Detached", "", null, document), seed.Version, default);
+        Assert.Null(Assert.Single(draft.Document.MaxesTables!).BlockId);
+        await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        var assignment = Assert.Single((await coach.Service.AssignAsync(seed.Id, new(null, [f.Relationship], [], new(2026, 1, 1), "UTC"), Guid.NewGuid().ToString(), default)).Assignments);
+        Assert.Equal(80, (await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default)).Evaluations[set.Id].Result.Value);
+        document = document with { MaxesTables = [table with { BlockId = block.Id }] };
+        draft = await coach.Programs.SaveAsync(seed.Id, new("Connected", "", null, document), draft.Version, default);
+        await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        Assert.Equal(120, (await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default)).Evaluations[set.Id].Result.Value);
+        draft = await coach.Programs.SaveAsync(seed.Id, new("Old client", "", null, document with { MaxesTables = null }), draft.Version, default);
+        Assert.Equal(table.Id, Assert.Single(draft.Document.MaxesTables!).Id);
+        draft = await coach.Programs.SaveAsync(seed.Id, new("Detached again", "", null, document with { MaxesTables = [table] }), draft.Version, default);
+        await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        Assert.Equal(80, (await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default)).Evaluations[set.Id].Result.Value);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Block_maxes_override_only_their_block_and_survive_old_client_saves()
+    {
+        await using var f = new Fixture { EnableClientFormulas = true };
+        f.Clock.Now = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var seed = await f.Seed();
+        await using var coach = f.Scope(f.Coach);
+        var exercise = Guid.NewGuid(); var alias = BlockMaxes.Alias(exercise, 1);
+        TrainingSet S() => new(Guid.NewGuid(), SetKind.Standard, new(LoadFormula: new(null, 1, null, [], "oneRepMax*.8", new() { ["oneRepMax"] = alias })));
+        var setA = S(); var setB = S();
+        var repSet = new TrainingSet(Guid.NewGuid(), SetKind.Standard, new(LoadFormula: new(null, 1, null, [], "repMax*.8", new() { ["repMax"] = alias })));
+        Block B(string name, TrainingSet set, BlockExerciseMax[]? rows = null, TrainingSet? extra = null) => new(Guid.NewGuid(), name, "", [new(Guid.NewGuid(), "Cycle", "", 7, [new(Guid.NewGuid(), 1, [new(Guid.NewGuid(), "Workout", "", [new(Guid.NewGuid(), exercise, "", extra == null ? [set] : [set, extra])], [])])])], rows);
+        var document = new TrainingDocument(1, [B("A", setA, [new(exercise, 1, new(150, Unit.Kg))], repSet), B("B", setB)]);
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(exercise, 1, new(100, Unit.Kg), new(2026, 1, 1), "benchSingle"), null, default);
+        var draft = await coach.Programs.SaveAsync(seed.Id, new("Scoped", "", null, document), seed.Version, default);
+        var revision = await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        var assignment = Assert.Single((await coach.Service.AssignAsync(seed.Id, new(null, [f.Relationship], [], new(2026, 1, 1), "UTC"), Guid.NewGuid().ToString(), default)).Assignments);
+        var values = await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default);
+        Assert.Equal(120, values.Evaluations[setA.Id].Result.Value);
+        Assert.Equal(80, values.Evaluations[setB.Id].Result.Value);
+        Assert.Empty(values.Evaluations[setA.Id].SourceVersions!);
+        Assert.NotEmpty(values.Evaluations[setB.Id].SourceVersions!);
+        Assert.Equal(100, values.Variables[alias].Value);
+        // The generic row variable follows the block's rep count; 1RM never becomes a five-rep max.
+        document = document with { Blocks = document.Blocks.Select((b, i) => i == 0 ? b with { ExerciseMaxes = [new(exercise, 5, new(80, Unit.Kg))] } : b).ToArray() };
+        draft = await coach.Programs.SaveAsync(seed.Id, new("Five reps", "", null, document), draft.Version, default);
+        await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        values = await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default);
+        Assert.Equal(64, values.Evaluations[repSet.Id].Result.Value);
+        Assert.Equal(80, values.Evaluations[setA.Id].Result.Value);
+        Assert.Equal(80, values.Evaluations[setB.Id].Result.Value);
+        var oldClient = document with { Blocks = document.Blocks.Select(b => b with { ExerciseMaxes = null }).ToArray() };
+        draft = await coach.Programs.SaveAsync(seed.Id, new("Old client", "", null, oldClient), draft.Version, default);
+        Assert.Equal(80, draft.Document.Blocks[0].ExerciseMaxes![0].Load!.Value);
+        var clear = draft.Document with { Blocks = draft.Document.Blocks.Select(b => b with { ExerciseMaxes = [] }).ToArray() };
+        draft = await coach.Programs.SaveAsync(seed.Id, new("Clear", "", null, clear), draft.Version, default);
+        Assert.Empty(draft.Document.Blocks[0].ExerciseMaxes!);
+        Assert.Equal(150, (await coach.Programs.RevisionAsync(seed.Id, revision.Number, default)).Snapshot.Document.Blocks[0].ExerciseMaxes![0].Load!.Value);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Exercise_scoped_one_rep_max_uses_latest_measured_single_and_ignores_multi_rep_results()
+    {
+        await using var f = new Fixture { EnableClientFormulas = true };
+        f.Clock.Now = new(2026, 1, 3, 12, 0, 0, TimeSpan.Zero);
+        await f.Seed();
+        await using var coach = f.Scope(f.Coach);
+        var exercise = Guid.NewGuid(); var other = Guid.NewGuid();
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(exercise, 1, new(100, Unit.Kg), new(2026, 1, 1), "oldSingle"), null, default);
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(exercise, 1, new(110, Unit.Kg), new(2026, 1, 2), "newSingle"), null, default);
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(exercise, 5, new(120, Unit.Kg), new(2026, 1, 3), "fiveReps"), null, default);
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(other, 5, new(80, Unit.Kg), new(2026, 1, 3), "otherFive"), null, default);
+        var values = await coach.Programs.ClientVariablesAsync(f.Relationship, default);
+        var alias = $"exercise1Rm_{exercise:N}";
+        Assert.Equal(110, values.Variables[alias].Value);
+        Assert.Equal(values.SourceVersions["newSingle"], values.SourceVersions[alias]);
+        Assert.False(values.Variables.ContainsKey($"exercise1Rm_{other:N}"));
+        var formula = new FormulaUse(null, 1, null, [], "oneRepMax*80%", new() { ["oneRepMax"] = alias });
+        Assert.Equal(88, FormulaBindings.Evaluate(formula, null, values.Variables, values.SourceVersions).Result.Value);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Applying_new_client_alias_supplements_snapshot_without_refreshing_existing_values()
+    {
+        await using var f = new Fixture { EnableClientFormulas = true };
+        f.Clock.Now = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var seed = await f.Seed();
+        await using var coach = f.Scope(f.Coach);
+        var benchExercise = Guid.NewGuid(); var squatExercise = Guid.NewGuid();
+        TrainingSet S(string alias) => new(Guid.NewGuid(), SetKind.Standard, new(LoadFormula: new(null, 1, null, [], $"={alias}*80%")));
+        var bench = S("maxBench1r"); var squat = S("maxSquat1r");
+        var workout = new Workout(Guid.NewGuid(), "Formula session", "", [new(Guid.NewGuid(), benchExercise, "", [bench])], []);
+        TrainingDocument D(Workout w) => new(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "Cycle", "", 7, [new(Guid.NewGuid(), 1, [w])])])]);
+        var benchMetric = await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(benchExercise, 1, new(100, Unit.Kg), new(2026, 1, 1), "maxBench1r"), null, default);
+        var draft = await coach.Programs.SaveAsync(seed.Id, new("Bound", "", null, D(workout)), 1, default);
+        await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        var assignment = Assert.Single((await coach.Service.AssignAsync(seed.Id, new(null, [f.Relationship], [], new(2026, 1, 1), "Europe/Warsaw"), Guid.NewGuid().ToString(), default)).Assignments);
+        var original = await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default);
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(squatExercise, 1, new(150, Unit.Kg), new(2026, 1, 1), "maxSquat1r"), null, default);
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, benchMetric.Id, new(benchExercise, 1, new(120, Unit.Kg), new(2026, 1, 1), "maxBench1r"), benchMetric.Version, default);
+        var expanded = workout with { Exercises = [..workout.Exercises, new(Guid.NewGuid(), squatExercise, "", [squat])] };
+        draft = await coach.Programs.SaveAsync(seed.Id, new("Expanded", "", null, D(expanded)), draft.Version, default);
+        var applied = await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        var snapshot = await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default);
+        Assert.Equal(80, snapshot.Evaluations[bench.Id].Result.Value);
+        Assert.Equal(120, snapshot.Evaluations[squat.Id].Result.Value);
+        Assert.Equal(original.SourceVersions["maxBench1r"], snapshot.SourceVersions["maxBench1r"]);
+        Assert.Equal(150, snapshot.Variables["maxSquat1r"].Value);
+        Assert.True(snapshot.Stale);
+        var missing = expanded with { Exercises = [..expanded.Exercises, new(Guid.NewGuid(), squatExercise, "", [S("missingMax")])] };
+        draft = await coach.Programs.SaveAsync(seed.Id, new("Missing", "", null, D(missing)), draft.Version, default);
+        Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default))).Status);
+        await using var verify = f.Scope(f.Coach);
+        Assert.Equal(applied.Id, (await verify.Service.GetAsync(assignment.Id, default)).EffectiveRevisionId);
+        Assert.Equal(3, await verify.Db.Revisions.CountAsync(x => x.PlanId == seed.Id));
+        var persisted = await verify.Service.FormulaSnapshotAsync(assignment.Id, false, default);
+        Assert.Equal(80, persisted.Evaluations[bench.Id].Result.Value);
+        Assert.Equal(120, persisted.Evaluations[squat.Id].Result.Value);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Client_profile_variables_use_private_contract_without_zero_defaults_or_unrelated_staleness()
+    {
+        await using var f = new Fixture { EnableClientFormulas = true };
+        await using var coach = f.Scope(f.Coach);
+        Assert.Empty((await coach.Programs.ClientVariablesAsync(f.Relationship, default)).Variables);
+        f.Profiles.Values[SystemFieldKey.Weight] = System.Text.Json.JsonSerializer.SerializeToElement(80m);
+        f.Profiles.Values[SystemFieldKey.Height] = System.Text.Json.JsonSerializer.SerializeToElement(180m);
+        f.Profiles.Values[SystemFieldKey.HrMax] = System.Text.Json.JsonSerializer.SerializeToElement(190m);
+        var values = await coach.Programs.ClientVariablesAsync(f.Relationship, default);
+        Assert.Equal(new Quantity(80, Unit.Kg), values.Variables["bodyweight"]);
+        Assert.Equal(new Quantity(180, Unit.Scalar), values.Variables["height"]);
+        Assert.Equal(190, values.Variables["hrMax"].Value);
+        f.Profiles.Version++;
+        var unrelated = await coach.Programs.ClientVariablesAsync(f.Relationship, default);
+        Assert.Equal(values.SourceVersions["weight"], unrelated.SourceVersions["weight"]);
+        f.Profiles.Values[SystemFieldKey.Weight] = System.Text.Json.JsonSerializer.SerializeToElement(81m);
+        Assert.NotEqual(values.SourceVersions["weight"], (await coach.Programs.ClientVariablesAsync(f.Relationship, default)).SourceVersions["weight"]);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Client_formula_metrics_freeze_until_explicit_refresh_and_preserve_started_workouts()
+    {
+        await using var f = new Fixture { EnableClientFormulas = true };
+        f.Clock.Now = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var seed = await f.Seed();
+        await using var coach = f.Scope(f.Coach);
+        var exercise = Guid.NewGuid();
+        Workout W() => new(Guid.NewGuid(), "Formula session", "", [new(Guid.NewGuid(), exercise, "", [new(Guid.NewGuid(), SetKind.Standard, new(LoadFormula: new(null, 1, null, [], "=maxBench1r*80%")))])], []);
+        var doc = new TrainingDocument(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "Cycle", "", 14, [new(Guid.NewGuid(), 1, [W()]), new(Guid.NewGuid(), 8, [W()])])])]);
+        var metric = await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(exercise, 1, new(100, Unit.Kg), new(2026, 1, 1), "maxBench1r"), null, default);
+        var draft = await coach.Programs.SaveAsync(seed.Id, new("Formula", "", null, doc), 1, default);
+        await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        var assignment = Assert.Single((await coach.Service.AssignAsync(seed.Id, new(null, [f.Relationship], [], new(2026, 1, 1), "Europe/Warsaw"), Guid.NewGuid().ToString(), default)).Assignments);
+        var initial = await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default);
+        Assert.All(initial.Evaluations.Values, x => Assert.Equal(80, x.Result.Value)); Assert.False(initial.Stale);
+        var schedule = await coach.Service.ScheduleAsync(new(2026, 1, 1), new(2026, 1, 31), f.Relationship, seed.Id, 1, 25, default);
+        await using (var client = f.Scope(f.Client)) { await client.Service.StartAsync(schedule.Items[0].Id, default); }
+        await coach.Programs.SaveExerciseMaxAsync(f.Relationship, metric.Id, new(exercise, 1, new(120, Unit.Kg), new(2026, 1, 1), "maxBench1r"), metric.Version, default);
+        Assert.True((await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default)).Stale);
+        Assert.All((await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default)).Evaluations.Values, x => Assert.Equal(80, x.Result.Value));
+        var saved = await coach.Programs.SaveAsync(seed.Id, new("Formula updated", "", null, doc), draft.Version, default);
+        await coach.Programs.ApplyAsync(seed.Id, saved.Version, Guid.NewGuid().ToString(), default);
+        var afterApply = await coach.Service.FormulaSnapshotAsync(assignment.Id, false, default);
+        Assert.True(afterApply.Stale); Assert.All(afterApply.Evaluations.Values, x => Assert.Equal(80, x.Result.Value));
+        var preview = await coach.Service.FormulaSnapshotAsync(assignment.Id, true, default);
+        var latest = await coach.Service.GetAsync(assignment.Id, default);
+        var wrongPreview = new RefreshFormulaSnapshotRequest(initial.SourceVersions);
+        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => coach.Service.RefreshFormulaSnapshotAsync(assignment.Id, wrongPreview, latest.Version, default))).Status);
+        var refreshed = await coach.Service.RefreshFormulaSnapshotAsync(assignment.Id, new(preview.SourceVersions), latest.Version, default);
+        Assert.False(refreshed.Stale); Assert.All(refreshed.Evaluations.Values, x => Assert.Equal(96, x.Result.Value));
+        var started = await coach.Service.WorkoutAsync(schedule.Items[0].Id, default);
+        Assert.All(started.Prescription.Formulas.Values, x => Assert.Equal(80, x.Result.Value));
+        var future = await coach.Service.ScheduleAsync(new(2026, 1, 8), new(2026, 1, 8), f.Relationship, seed.Id, 1, 25, default);
+        Assert.All((await coach.Service.WorkoutAsync(Assert.Single(future.Items).Id, default)).Prescription.Formulas.Values, x => Assert.Equal(96, x.Result.Value));
+        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => coach.Service.RefreshFormulaSnapshotAsync(assignment.Id, new(preview.SourceVersions), latest.Version, default))).Status);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Client_formula_metrics_require_manage_access_and_missing_client_variable_rolls_back_assignment()
+    {
+        await using var f = new Fixture { EnableClientFormulas = true };
+        var seed = await f.Seed();
+        await using var coach = f.Scope(f.Coach);
+        var exercise = Guid.NewGuid();
+        var metric = await coach.Programs.SaveExerciseMaxAsync(f.Relationship, null, new(exercise, 1, new(100, Unit.Kg), new(2026, 1, 1), "maxBench1r"), null, default);
+        var otherRelationship = f.Directory.GroupMembers[1];
+        Assert.Empty((await coach.Programs.ClientVariablesAsync(otherRelationship, default)).Variables);
+        await using (var client = f.Scope(f.Client)) Assert.Equal(403, (await Assert.ThrowsAsync<ApiException>(() => client.Programs.ClientVariablesAsync(f.Relationship, default))).Status);
+        f.Directory.DeniedOperations.Add(RelationshipOperation.Manage);
+        Assert.Equal(403, (await Assert.ThrowsAsync<ApiException>(() => coach.Programs.ClientVariablesAsync(f.Relationship, default))).Status);
+        f.Directory.DeniedOperations.Clear();
+        f.Directory.Status = RelationshipStatus.Suspended;
+        Assert.Equal(403, (await Assert.ThrowsAsync<ApiException>(() => coach.Programs.ClientVariablesAsync(f.Relationship, default))).Status);
+        f.Directory.Status = RelationshipStatus.Active;
+        Assert.Equal(412, (await Assert.ThrowsAsync<ApiException>(() => coach.Programs.SaveExerciseMaxAsync(f.Relationship, metric.Id, new(exercise, 1, new(110, Unit.Kg), new(2026, 1, 1), "maxBench1r"), 999, default))).Status);
+        var workout = new Workout(Guid.NewGuid(), "Missing metric", "", [new(Guid.NewGuid(), exercise, "", [new(Guid.NewGuid(), SetKind.Standard, new(LoadFormula: new(null, 1, null, [], "=maxBench1r*80%")))])], []);
+        var doc = new TrainingDocument(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "Cycle", "", 7, [new(Guid.NewGuid(), 1, [workout])])])]);
+        var draft = await coach.Programs.SaveAsync(seed.Id, new("Bound", "", null, doc), 1, default);
+        await coach.Programs.ApplyAsync(seed.Id, draft.Version, Guid.NewGuid().ToString(), default);
+        Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => coach.Service.AssignAsync(seed.Id, new(null, [f.Relationship, otherRelationship], [], new(2026, 1, 1), "Europe/Warsaw"), Guid.NewGuid().ToString(), default))).Status);
+        await using var verify = f.Scope(f.Coach);
+        Assert.False(await verify.Db.Set<ProgramAssignment>().AnyAsync(x => x.ProgramId == seed.Id));
+    }
+
+    [TrainingPostgresFact]
+    public async Task Mcp_actual_logs_are_batched_authorized_and_keep_units_and_effective_prescriptions()
+    {
+        await using var f = new Fixture();
+        var program = await f.Seed();
+        var assignment = await f.Assign(program.Id);
+        await using (var client = f.Scope(f.Client))
+        {
+            var schedule = await client.Service.ScheduleAsync(new(2026, 1, 1), new(2026, 1, 31), f.Relationship, program.Id, 1, 25, default);
+            foreach (var occurrence in schedule.Items)
+            {
+                var started = await client.Service.StartAsync(occurrence.Id, default);
+                var actual = await client.Service.SaveAsync(started.Id, new(occurrence.ScheduledDate, "Recorded session", 1200,
+                    [new(null, Guid.NewGuid(), "Actual cue", [new(null, null, false, 5, 20, "kg", LoadMeaning.TotalExternal,
+                        8, null, null, null, 90, "2-0-1-0", "Actual set")])]), started.Version, default);
+                await client.Service.CompleteAsync(actual.Id, actual.Version, default);
+            }
+        }
+        await using var coach = f.Scope(f.Coach);
+        var adapter = new McpTrainingOperations(coach.Programs, coach.Service, new Account(f.Coach, f.Coach));
+        f.Queries.Commands.Clear();
+        var first = await adapter.LogsAsync(f.Relationship, new(2026, 1, 1), new(2026, 1, 31), 1, 1, default);
+        var oneQueryCount = f.Queries.Commands.Count;
+        Assert.Equal(2, first.Total);
+        Assert.Single(first.Items);
+        f.Queries.Commands.Clear();
+        var full = await adapter.LogsAsync(f.Relationship, new(2026, 1, 1), new(2026, 1, 31), 1, 25, default);
+        Assert.Equal(2, full.Items.Length);
+        Assert.True(f.Queries.Commands.Count <= oneQueryCount + 1, "Execution queries must stay bounded when the occurrence page grows.");
+        var set = Assert.Single(Assert.Single(full.Items[0].Exercises).Sets);
+        Assert.Equal("kg", set.LoadUnit);
+        Assert.Equal("TotalExternal", set.LoadMeaning);
+        Assert.Equal(20m, set.Load);
+        Assert.Equal(8m, set.Rpe);
+        Assert.Equal(90m, set.RestSeconds);
+        Assert.Equal("2-0-1-0", set.Tempo);
+        Assert.Equal("Actual set", set.Comment);
+        Assert.NotNull(full.Items[0].CompletedAt);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => adapter.LogsAsync(Guid.NewGuid(),
+            new(2026, 1, 1), new(2026, 1, 31), 1, 25, default))).Status);
+        Assert.Empty((await adapter.LogsAsync(f.Relationship, new(2027, 1, 1), new(2027, 1, 31), 1, 25, default)).Items);
+        var draft = await adapter.GetAsync(program.Id, default);
+        await adapter.ApplyDraftAsync(program.Id, draft.Revision,
+            new(draft.Name, "Private edited notes", draft.FolderId, new(1, [])), default);
+        Assert.Equal(assignment.EffectiveRevisionId, (await coach.Service.GetAsync(assignment.Id, default)).EffectiveRevisionId);
+        Assert.Equal(1, await coach.Db.Revisions.CountAsync(x => x.PlanId == program.Id));
+        Assert.Equal(full.Items.Select(x => x.OccurrenceId), (await adapter.LogsAsync(f.Relationship,
+            new(2026, 1, 1), new(2026, 1, 31), 1, 25, default)).Items.Select(x => x.OccurrenceId));
+    }
+
+    [TrainingPostgresFact]
     public async Task Progress_reports_partial_client_details_without_truncating_totals()
     {
         await using var f = new Fixture();
@@ -468,6 +783,8 @@ public sealed class TrainingDeliveryPostgresTests
         {
             get;
         }
+        public bool EnableClientFormulas { get; set; }
+        public Profiles Profiles { get; } = new();
         public QueryLog Queries { get; } = new();
         private readonly NpgsqlDataSource source = NpgsqlDataSource.Create(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!);
         public Fixture()
@@ -523,10 +840,20 @@ public sealed class TrainingDeliveryPostgresTests
             services.AddDbContext<TrainingDbContext>(options => options.AddInterceptors(f.Queries));
             provider = services.BuildServiceProvider();
             Db = provider.GetRequiredService<TrainingDbContext>();
-            Programs = new(Db, new Account(user, f.Coach), new Features(), new Catalog(), Options.Create(new TrainingOptions()), f.Clock, new Policy(user, f.Directory), provider.GetRequiredService<ModuleTransaction>(), []);
-            Service = new(Db, new Account(user, f.Coach), new Features(), f.Directory, new Policy(user, f.Directory), new Catalog(), new Notifications(), provider.GetRequiredService<ModuleTransaction>(), f.Clock, new AccountsDirectory(), []);
+            Programs = new(Db, new Account(user, f.Coach), new Features(), new Catalog(), Options.Create(new TrainingOptions()), f.Clock, new Policy(user, f.Directory), provider.GetRequiredService<ModuleTransaction>(), [], profileFields: f.EnableClientFormulas ? f.Profiles : null, metricRelationships: f.Directory);
+            Service = new(Db, new Account(user, f.Coach), new Features(), f.Directory, new Policy(user, f.Directory), new Catalog(), new Notifications(), provider.GetRequiredService<ModuleTransaction>(), f.Clock, new AccountsDirectory(), [], formulaService: f.EnableClientFormulas ? Programs : null);
         }
         public ValueTask DisposeAsync() => provider.DisposeAsync();
+    }
+    private sealed class Profiles : IAccountProfileFields
+    {
+        public Dictionary<SystemFieldKey, System.Text.Json.JsonElement> Values { get; } = [];
+        public long Version { get; set; } = 1;
+        public Task<AccountProfileFields> GetAllowedForUserAsync(Guid id, CancellationToken ct) => Task.FromResult(new AccountProfileFields("PLN", Values, Version));
+        public Task<AccountProfileFields> GetOwnAsync(CancellationToken ct) => throw new NotSupportedException();
+        public Task<AccountProfileFields> UpdateOwnAsync(IReadOnlyDictionary<SystemFieldKey, System.Text.Json.JsonElement> values, long version, CancellationToken ct) => throw new NotSupportedException();
+        public Task<AccountProfileFields> UpdateCurrencyOwnAsync(string currency, long version, CancellationToken ct) => throw new NotSupportedException();
+        public Task<string> GetCurrencyAsync(Guid id, CancellationToken ct) => Task.FromResult("PLN");
     }
     private sealed class QueryLog : DbCommandInterceptor
     {

@@ -143,6 +143,14 @@ export const publicPl: PublicMessages = {
       sourceMeta: "UTF-8 · 3 KB",
       files: { csvIn: "blok-wiosna.csv", pdfOut: "blok-silowy-a-r3.pdf", csvOut: "blok-silowy-a-r3.csv" },
       hub: { rows: "38 wierszy dopasowanych", check: "0 błędów" },
+      sheet: {
+        columns: ["Ćwiczenie", "Serie", "Powt.", "Obciąż."],
+        rows: [["Przysiad", "4", "5", "80%"], ["RDL", "3", "8", "60 kg"], ["Wykroki", "3", "10", "24 kg"], ["Deska", "3", "45 s", "—"]],
+      },
+      mapping: { title: "Dopasowane do katalogu", pairs: [["RDL", "Martwy ciąg rumuński"], ["Wykroki", "Przysiad bułgarski"]] },
+      pdfTitle: "Blok siłowy A",
+      pdfMeta: "Cykl 1 · Dzień 3",
+      outputs: "Pliki z rewizji 3",
     },
     video: {
       title: "Analiza liftów obok programu",

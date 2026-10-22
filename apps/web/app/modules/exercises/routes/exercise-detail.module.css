@@ -7,21 +7,153 @@
   margin-bottom: var(--tf-space-4);
 }
 
+/* Model on the left, panels on the right; together they fill the window (height from useFitHeight). */
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 20rem;
-  gap: var(--tf-space-4);
-  align-items: start;
+  grid-template-columns: minmax(20rem, 0.8fr) minmax(0, 1.25fr);
+  gap: var(--tf-space-5);
+  height: var(--fit, auto);
+  min-height: 28rem;
 }
 
+.anatomy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  min-height: 0;
+}
+
+/* Only the panel column scrolls, and only when the text is long. */
 .main {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--tf-space-4);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
 }
 
-.side {
-  position: sticky;
-  top: var(--tf-space-6);
+.main::-webkit-scrollbar {
+  display: none;
+}
+
+.main > * {
+  flex: none;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: 0 0 var(--tf-space-3);
+  color: var(--tf-color-text-tertiary);
+  font-family: var(--tf-font-label);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.panelTitle svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.anatomy .panelTitle {
+  margin: 0;
+}
+
+.panelTitle[data-spaced] {
+  margin-top: var(--tf-space-6);
+  padding-top: var(--tf-space-5);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.muscles {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.muscleRow {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: var(--tf-space-3);
+  align-items: center;
+}
+
+.factLabel {
+  display: inline-flex;
+  align-items: center;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.kindDot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: var(--tf-space-1-5);
+  border-radius: var(--tf-radius-full);
+  background: #3ee09a;
+}
+
+.kindDot[data-kind="secondary"] {
+  background: #e0b04a;
+}
+
+.factRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--tf-space-4);
+  margin: var(--tf-space-5) 0 0;
+  padding-top: var(--tf-space-4);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.factRow > div {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  align-content: start;
+  min-width: 0;
+  font-size: var(--tf-text-sm);
+}
+
+.factRow dd {
+  margin: 0;
+}
+
+.steps {
+  display: grid;
+  gap: var(--tf-space-2-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  gap: var(--tf-space-3);
+  align-items: baseline;
+  color: var(--tf-color-text-secondary);
+  line-height: var(--tf-leading-relaxed);
+}
+
+.stepNo {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.sectionTitle {
+  margin-bottom: 0;
 }
 
 .sectionTitle {
@@ -35,6 +167,11 @@
   color: var(--tf-color-text-secondary);
   line-height: var(--tf-leading-relaxed);
   white-space: pre-wrap;
+}
+
+.prose[data-empty] {
+  color: var(--tf-color-text-tertiary);
+  font-style: italic;
 }
 
 .muted {
@@ -83,23 +220,6 @@
   white-space: pre-wrap;
 }
 
-.facts {
-  display: grid;
-  gap: var(--tf-space-4);
-  margin: 0;
-}
-
-.facts dt {
-  margin-bottom: var(--tf-space-1);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-}
-
-.facts dd {
-  margin: 0;
-  font-size: var(--tf-text-sm);
-}
-
 .tags {
   display: flex;
   flex-wrap: wrap;
@@ -121,9 +241,19 @@
 @media (max-width: 60rem) {
   .layout {
     grid-template-columns: 1fr;
+    height: auto;
   }
 
-  .side {
-    position: static;
+  .anatomy {
+    height: 32rem;
+  }
+
+  .main {
+    overflow: visible;
+  }
+
+  .muscleRow,
+  .factRow {
+    grid-template-columns: 1fr;
   }
 }

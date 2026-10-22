@@ -6,6 +6,7 @@
  <ProjectReference Include="../../Access/TrainFlow.Access.Contracts/TrainFlow.Access.Contracts.csproj" />
  <ProjectReference Include="../../Coaching/TrainFlow.Coaching.Contracts/TrainFlow.Coaching.Contracts.csproj" />
  <ProjectReference Include="../../Media/TrainFlow.Media.Contracts/TrainFlow.Media.Contracts.csproj" />
+ <ProjectReference Include="../TrainFlow.Messaging.Contracts/TrainFlow.Messaging.Contracts.csproj" />
  </ItemGroup>
 <ItemGroup><ProjectReference Include="../../Notifications/TrainFlow.Notifications.Contracts/TrainFlow.Notifications.Contracts.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Analytics/TrainFlow.Analytics.Contracts/TrainFlow.Analytics.Contracts.csproj" /></ItemGroup></Project>

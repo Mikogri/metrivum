@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import AnalysesRoute from "./analyses";
@@ -14,6 +14,8 @@ vi.mock("~/shared/access", () => ({
 }));
 vi.mock("~/shared/session/AccountScope", () => ({ useApi: () => ({}), useAccountKey: () => "test" }));
 vi.mock("~/shared/lib/useErrorToast", () => ({ useErrorToast: () => vi.fn() }));
+vi.mock("../api", () => ({ listSaved: async () => [{ token: "token-1", analysisId: "a-2", name: "Coach's bench", ownerName: "Anna", createdAt: "2026-10-01T10:00:00Z", completedAt: "2026-10-01T10:00:00Z", savedAt: "2026-10-02T10:00:00Z", hasVideo: true }] }));
+vi.mock("../components/AnalysisQueue", () => ({ AnalysisQueue: () => null }));
 vi.mock("../queries", () => ({
   useAnalysisList: () => ({ data: [{ id: "analysis-1", name: "Squat analysis", status: "Completed", tags: ["squat"], createdAt: "2026-10-01T10:00:00Z" }] }),
   useMediaList: () => ({ data: [
@@ -37,20 +39,11 @@ it("switches analysis views while preserving query and page", () => {
   expect(screen.getByTestId("url")).toHaveTextContent("q=Squat&page=2&view=cards");
 });
 
-it("shows media cards with the same deletion restrictions and confirmation", () => {
-  access.allowed = true;
-  mount("/app/video-analyses?tab=videos&view=cards");
-  const [readyCard, pinnedCard, deletingCard] = screen.getAllByRole("listitem");
-  if (!readyCard || !pinnedCard || !deletingCard) throw new Error("Expected ready, pinned, and deleting media cards");
-  expect(within(pinnedCard).getByRole("button", { name: "Delete video" })).toBeDisabled();
-  expect(within(deletingCard).getByRole("button", { name: "Delete video" })).toBeDisabled();
-  fireEvent.click(within(readyCard).getByRole("button", { name: "Delete video" }));
-  expect(screen.getByRole("alertdialog")).toBeInTheDocument();
-});
-
-it("keeps deletion disabled without media management access in cards", () => {
-  access.allowed = false;
-  mount("/app/video-analyses?tab=videos&view=cards");
-  for (const button of screen.getAllByRole("button", { name: "Delete video" })) expect(button).toBeDisabled();
-  access.allowed = true;
+it("is one list without separate analyses and videos tabs, and lists analyses shared with you", async () => {
+  mount("/app/video-analyses");
+  expect(screen.queryByRole("tab")).toBeNull();
+  expect(screen.getByRole("link", { name: "Squat analysis" })).toBeInTheDocument();
+  const shared = await screen.findByRole("link", { name: "Coach's bench" });
+  expect(shared).toHaveAttribute("href", "/app/video-analyses/shared/token-1");
+  expect(screen.getByText(/Anna/)).toBeInTheDocument();
 });

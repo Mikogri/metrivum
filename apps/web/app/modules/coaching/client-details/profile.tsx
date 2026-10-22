@@ -86,5 +86,5 @@ function ApplicationResponses({ id, relationshipId }: { id: string; relationship
   if (query.isError) return <Failure error={query.error} retry={() => void query.refetch()} />;
   const d = query.data.detail;
   if (!d || d.application.relationshipId !== relationshipId) return <EmptyState title="Application is not part of this collaboration" />;
-  return <div className={styles.stack}><Facts items={[{ label: "Form", value: d.formVersion.name }, { label: "Offer", value: d.application.offerName }, { label: "Form version", value: d.formVersion.number }, { label: "Status", value: <StatusBadge status={d.application.status} /> }]} /><AnswerReview definition={d.formVersion.definition} answers={d.answers as Answers} /></div>;
+  return <div className={styles.stack}><Facts items={[{ label: "Form", value: d.formVersion?.name ?? "No application form" }, { label: "Offer", value: d.application.offerName }, { label: "Form version", value: d.formVersion?.number ?? "—" }, { label: "Status", value: <StatusBadge status={d.application.status} /> }]} />{d.formVersion && <AnswerReview definition={d.formVersion.definition} answers={d.answers as Answers} />}</div>;
 }

@@ -37,13 +37,21 @@ function DayPicker({ count, current, onPick }: { count: number; current: number;
  */
 export function CycleCells({
   cycle,
+  renderColumnResize,
+  onColumnContextMenu,
   apply,
   names,
   collapsed,
   onToggleWorkout,
   onExerciseMenu,
+  advancedAllowed = false,
+  customFormulas = false,
 }: {
   cycle: Cycle;
+  onColumnContextMenu?: (col: number, event: React.MouseEvent) => void;
+  renderColumnResize?: (col: number, label: string) => React.ReactNode;
+  advancedAllowed?: boolean;
+  customFormulas?: boolean;
   apply?: Apply;
   names: Map<string, ExerciseLabel>;
   collapsed: ReadonlySet<string>;
@@ -98,11 +106,12 @@ export function CycleCells({
   };
 
   return (
-    <div className={styles.cells2} style={{ gridTemplateColumns: `repeat(${WORKOUT_COLS}, var(--cell-w))` }} role="grid" aria-label={cycle.name} data-no-drag>
+    <div className={styles.cells2} style={{ gridTemplateColumns: `var(--sheet-columns, repeat(${WORKOUT_COLS}, var(--cell-w)))` }} role="grid" aria-label={cycle.name} data-no-drag>
       <div role="row" className={styles.headRow}>
         {WORKOUT_COLUMNS.map((c) => (
-          <div key={c.id} role="columnheader" className={`${styles.cell} ${styles.colHead}`} style={place(COL_START[c.id]!, 0, c.span)}>
+          <div key={c.id} role="columnheader" onContextMenu={event => onColumnContextMenu?.(COL_START[c.id]! + c.span - 1, event)} className={`${styles.cell} ${styles.colHead}`} style={place(COL_START[c.id]!, 0, c.span)}>
             {t.columns[c.id]}
+            {renderColumnResize?.(COL_START[c.id]! + c.span - 1, t.columns[c.id])}
           </div>
         ))}
       </div>
@@ -190,6 +199,8 @@ export function CycleCells({
             <ExerciseRow
               key={instance.id}
               instance={instance}
+              formulaAllowed={advancedAllowed}
+              customFormulas={customFormulas}
               name={names.get(instance.exerciseId)?.name ?? "—"}
               cells={cellsAt(line)}
               readOnly={readOnly}

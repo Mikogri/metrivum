@@ -6,7 +6,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
-import { authErrorText } from "../lib/authErrors";
+import { authErrorText, passwordProblem } from "../lib/authErrors";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Set new password — TrainFlow");
@@ -39,7 +39,7 @@ export default function ResetPassword() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    if (password.length < 8 || password !== confirm) return;
+    if (passwordProblem(m, password) || password !== confirm) return;
     setPending(true);
     setError(null);
     try {
@@ -67,8 +67,8 @@ export default function ResetPassword() {
           onChange={setPassword}
           isRequired
           description={m.auth.register.passwordHint}
-          isInvalid={submitted && password.length < 8}
-          errorMessage={m.auth.errors.passwordShort}
+          isInvalid={submitted && Boolean(passwordProblem(m, password))}
+          errorMessage={passwordProblem(m, password) ?? undefined}
           size="lg"
         />
         <TextField placeholder={m.common.ph.confirmPassword}

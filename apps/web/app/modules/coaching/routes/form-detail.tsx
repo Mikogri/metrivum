@@ -1,3 +1,8 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = ({ location }: { location: { pathname: string } }) =>
+  privateMeta(`${location.pathname.endsWith("/new") ? "New form" : "Edit form"} — TrainFlow`);
+
 import { CalendarDays, MoreHorizontal, Monitor, PenLine, Play, Plus, Smartphone, Trash2, X } from "lucide-react";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -25,7 +30,7 @@ const TYPES: [Question["type"], string][] = [
   ["Scale", "Scale"],
   ["Date", "Date"],
 ];
-const systemFields = ["Height", "Weight", "BodyFat", "HrMax", "TrainingExperience", "ActivityLevel", "AvailableEquipment", "PreferredTrainingDays", "SessionsPerWeek", "AvailableSessionDuration", "Sleep", "Stress", "InjuriesLimitationsPainNotes", "AdditionalNotes"] as const;
+const systemFields = ["Sex", "Height", "Weight", "BodyFat", "HrMax", "TrainingExperience", "ActivityLevel", "AvailableEquipment", "PreferredTrainingDays", "SessionsPerWeek", "AvailableSessionDuration", "Sleep", "Stress", "InjuriesLimitationsPainNotes", "AdditionalNotes"] as const;
 const newKey = () => crypto.randomUUID();
 const blankQuestion = (type: Question["type"], order: number): Question => ({ key: newKey(), label: "", required: false, order, ...questionType(type), type }) as Question;
 const blankSection = (order: number): Section => ({ key: newKey(), title: "", description: "", order, questions: [] });

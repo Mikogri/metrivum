@@ -14,7 +14,15 @@ public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> option
         model.HasDefaultSchema("accounts");
         model.Entity<Profile>(e =>
         {
-            e.ToTable("profiles");
+            // The database repeats the structural identity rules, so data stays valid even if a write path
+            // bypasses AccountIdentityPolicy. Reserved names, Unicode checks and "onboarded means named" stay in the
+            // application: legacy and fixture rows mark profiles onboarded without a username.
+            e.ToTable("profiles", t =>
+            {
+                t.HasCheckConstraint("CK_profiles_username_shape", "\"Username\" IS NULL OR \"Username\" ~ '^[A-Za-z0-9_]{3,32}$'");
+                t.HasCheckConstraint("CK_profiles_username_normalized", "(\"Username\" IS NULL AND \"NormalizedUsername\" IS NULL) OR \"NormalizedUsername\" = upper(\"Username\")");
+                t.HasCheckConstraint("CK_profiles_display_name", "char_length(\"DisplayName\") <= 100 AND \"DisplayName\" = btrim(\"DisplayName\")");
+            });
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.NormalizedUsername).IsUnique();
             e.Property(x => x.Username).HasMaxLength(32);
@@ -37,7 +45,7 @@ public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> option
         });
         model.Entity<UserRole>(e =>
         {
-            e.ToTable("user_roles");
+            e.ToTable("user_roles", t => t.HasCheckConstraint("CK_user_roles_role", "\"Role\" IN ('Coach', 'Client', 'CatalogAdmin', 'AccessAdmin')"));
             e.HasKey(x => new { x.UserId, x.Role });
             e.Property(x => x.Role).HasMaxLength(32);
             e.HasOne<Profile>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);

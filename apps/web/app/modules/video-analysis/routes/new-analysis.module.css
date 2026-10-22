@@ -1,45 +1,99 @@
+/*
+ * Video in the middle, as large as possible: details on the left, analyzer, start and queue on the right.
+ * All three columns are exactly as tall as the window allows; only the lists inside them scroll when they grow.
+ */
 .layout {
+  --video-height: max(30rem, calc(100dvh - 17.5rem));
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
-  gap: var(--tf-space-4);
-  align-items: start;
+  grid-template-columns: minmax(12.5rem, 15rem) minmax(0, 1fr) minmax(14rem, 17rem);
+  grid-template-areas: "left video right";
+  gap: var(--tf-space-3);
+  align-items: stretch;
+}
+
+/* Portrait: the middle column is as wide as the video at full height. */
+.layout[data-portrait] {
+  grid-template-columns: minmax(12.5rem, 1fr) auto minmax(14rem, 1fr);
+}
+
+.layout[data-portrait] .left { justify-self: end; width: min(100%, 15rem); }
+.layout[data-portrait] .right { justify-self: start; width: min(100%, 17rem); }
+
+/* No video chosen yet: no empty left column taking space. */
+.layout[data-empty] {
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 17rem);
+  grid-template-areas: "video right";
+}
+
+.layout[data-empty] .left {
+  display: none;
+}
+
+.left,
+.right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  height: var(--video-height);
+  min-width: 0;
+  min-height: 0;
+}
+
+.left { grid-area: left; }
+.right { grid-area: right; }
+
+.left > *,
+.right > * {
+  flex: none;
+}
+
+/* The details card takes the rest of the left column; it scrolls only if its content is taller. */
+.left > .card {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  align-content: start;
+  scrollbar-width: thin;
 }
 
 .card {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--tf-space-3);
+  min-width: 0;
 }
 
 .cardTitle {
-  font-size: var(--tf-text-md);
+  font-size: var(--tf-text-sm);
   font-weight: var(--tf-weight-semibold);
-}
-
-/* Details and the start button travel together, the button right under the fields. */
-.aside {
-  position: sticky;
-  top: var(--tf-space-4);
-  display: grid;
-  gap: var(--tf-space-3);
 }
 
 .startBar {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--tf-space-1-5);
 }
 
 /* The video panel always takes the full height of the screen; the picker grows inside it. */
 .videoCard {
+  grid-area: video;
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-3);
-  height: calc(100dvh - 15rem);
-  min-height: 34rem;
+  gap: var(--tf-space-2);
+  height: var(--video-height);
+  min-height: 30rem;
   transition: border-color var(--tf-duration-fast) ease;
 }
 
-.videoCard[data-dragging] {
-  border-color: var(--tf-color-accent-border);
+/* As wide as the video's own proportions allow at full height (plus the header and toolbar around it). */
+.layout[data-portrait] .videoCard {
+  width: clamp(18rem, calc((var(--video-height) - 5.5rem) * var(--ratio) + 1.5rem), 42rem);
+}
+
+/* Many videos: the list scrolls, the details stay in view. */
+.chipsCard {
+  display: grid;
+  max-height: 40%;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .pickerArea {
@@ -80,85 +134,374 @@
   font-weight: var(--tf-weight-semibold);
 }
 
-/* Once a file is chosen it shrinks to one quiet line at the bottom. */
-.fileBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--tf-space-3);
-  padding-top: var(--tf-space-3);
-  border-top: 1px solid var(--tf-color-border-subtle);
-}
-
-.fileName {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--tf-space-2);
-  min-width: 0;
-  overflow: hidden;
-  font-size: var(--tf-text-sm);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.fileName svg {
-  flex-shrink: 0;
-  width: 1rem;
-  height: 1rem;
-  color: var(--tf-color-text-tertiary);
-}
-
 .hint {
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
 }
 
-.progress {
-  display: grid;
-  gap: var(--tf-space-2);
-}
+@media (max-width: 75rem) {
+  .left,
+  .right {
+    height: auto;
+  }
 
-.progressLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--tf-space-2);
-  font-size: var(--tf-text-sm);
-}
+  .layout,
+  .layout[data-portrait] {
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 17rem);
+    grid-template-areas: "video right" "video left";
+  }
 
-.bar {
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--tf-color-surface-hover);
-}
+  .layout[data-portrait] .left,
+  .layout[data-portrait] .right {
+    justify-self: stretch;
+    width: auto;
+  }
 
-/* Width reflects real upload progress only; processing stages use a spinner, never a fake bar. */
-.bar span {
-  display: block;
-  height: 100%;
-  background: var(--tf-color-accent);
-  transform-origin: left;
-  transition: transform 300ms linear;
+  .left { position: static; }
 }
 
 @media (max-width: 60rem) {
-  .layout {
+  .layout,
+  .layout[data-portrait] {
     grid-template-columns: 1fr;
+    grid-template-areas: "video" "left" "right";
   }
 
-  .aside {
+  .left,
+  .right {
     position: static;
   }
 
-  .videoCard {
+  .videoCard,
+  .layout[data-portrait] .videoCard {
+    width: auto;
     height: auto;
     min-height: 24rem;
   }
 }
 
-/* The note can grow a little, never past the details panel. */
-.note textarea {
-  min-height: 4.5rem;
-  max-height: 9rem;
-  resize: vertical;
+
+/* What is done and what is next, under the name. */
+.checklist { display: grid; gap: var(--tf-space-2); margin: 0; padding: 0; list-style: none; }
+.checklist li { display: grid; grid-template-columns: 1.375rem minmax(0, 1fr); column-gap: var(--tf-space-2-5); align-items: center; font-size: var(--tf-text-sm); font-weight: var(--tf-weight-medium); }
+.checklist li > span { display: grid; place-items: center; width: 1.375rem; height: 1.375rem; border: 1px solid var(--tf-color-border); border-radius: 50%; color: var(--tf-color-text-tertiary); font-size: var(--tf-text-2xs); }
+.checklist li[data-done] > span { border-color: var(--tf-color-accent-border); background: var(--tf-color-accent-soft); color: var(--tf-color-accent); }
+.checklist li:not([data-done]) > span { border-color: color-mix(in srgb, var(--tf-color-warning) 50%, transparent); color: var(--tf-color-warning); }
+.checklist small { display: block; min-width: 0; overflow: hidden; color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-regular); text-overflow: ellipsis; white-space: nowrap; }
+
+/* Why the start button is off: a quiet note, not an alarm. */
+.notice { display: flex; gap: var(--tf-space-2); margin: 0; color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); line-height: var(--tf-leading-normal); }
+.notice svg { flex-shrink: 0; width: 0.875rem; height: 0.875rem; margin-top: 2px; }
+
+/* One run, one bar: the estimate moves fast early and slows near the end; stages tick off underneath. */
+.run {
+  display: grid;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.runHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.runLabel {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.runPercent {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.runBar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+}
+
+.runBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-color-accent);
+  transform-origin: left;
+  transition: transform 300ms var(--tf-ease-out);
+}
+
+.run[data-stage="save_failed"] .runBar > span {
+  background: var(--tf-color-warning);
+}
+
+.runSteps {
+  display: flex;
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--tf-text-xs);
+}
+
+.runSteps li {
+  color: var(--tf-color-text-tertiary);
+}
+
+.runSteps li[data-state="active"] {
+  color: var(--tf-color-text);
+}
+
+.runSteps li[data-state="done"] {
+  color: var(--tf-color-text-secondary);
+}
+
+.runSteps li[data-state="done"]::before {
+  content: "✓ ";
+  color: var(--tf-color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .runBar > span {
+    transition: none;
+  }
+}
+
+/* Several videos: one chip each, ticked once its two points are marked. */
+.drafts {
+  display: flex;
+  gap: var(--tf-space-1-5);
+  padding-bottom: var(--tf-space-1);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.draft,
+.draftAdd {
+  display: inline-flex;
+  flex: none;
+  min-width: 0;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  max-width: 13rem;
+  height: 2rem;
+  padding: 0 var(--tf-space-2-5) 0 var(--tf-space-1);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease;
+}
+
+.draft:hover:not(:disabled),
+.draftAdd:hover:not(:disabled) {
+  border-color: var(--tf-color-border-strong);
+  color: var(--tf-color-text);
+}
+
+/* The chosen video: a quiet fill and a slightly stronger border, not a bright outline. */
+.draft[aria-selected="true"] {
+  border-color: var(--tf-color-border-strong);
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.draft:disabled,
+.draftAdd:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.draftMark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+  font-size: var(--tf-text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.draft[data-ready] .draftMark {
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.draftMark svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.draftName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draftAdd {
+  padding-left: var(--tf-space-2-5);
+  border-style: dashed;
+}
+
+.draftAdd svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Vertical list of videos beside a portrait video. */
+.drafts[aria-orientation="vertical"] {
+  flex-direction: column;
+  align-items: stretch;
+  padding-bottom: 0;
+  overflow: visible;
+}
+
+.drafts[aria-orientation="vertical"] .draft,
+.drafts[aria-orientation="vertical"] .draftAdd {
+  max-width: none;
+}
+
+.draftPercent {
+  margin-left: auto;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.draft[data-sent] .draftMark {
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+}
+
+.draft[data-sent="saved"] .draftMark {
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.draft[data-sent="failed"] .draftMark,
+.draft[data-sent="save_failed"] .draftMark {
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation-duration: 3s; }
+}
+
+/* A sent video: what the analyzer is doing with it, and how to move on to the next one. */
+.sent {
+  display: grid;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-bg-sunken);
+}
+
+.sent[data-state="failed"],
+.sent[data-state="save_failed"] {
+  border-color: color-mix(in srgb, var(--tf-color-warning) 40%, transparent);
+}
+
+.sentHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.sentHead strong {
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sentPercent {
+  font-size: var(--tf-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.sentText {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.sentActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1-5);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  min-height: 1.75rem;
+}
+
+/* Stabilization: a switch, then one line saying whether it is needed. */
+.stability {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  padding: var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+}
+
+.stability[data-state="unstable"] {
+  border-color: color-mix(in srgb, var(--tf-color-warning) 45%, transparent);
+  background: var(--tf-color-warning-soft);
+}
+
+.stabilityNote,
+.stabilityHint {
+  display: flex;
+  gap: var(--tf-space-1-5);
+  margin: 0;
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.stabilityHint {
+  color: var(--tf-color-text-tertiary);
+}
+
+.stabilityNote {
+  color: var(--tf-color-text-secondary);
+}
+
+.stabilityNote svg,
+.stabilityHint svg {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: 1px;
+}
+
+.stabilityNote svg {
+  color: var(--tf-color-warning);
 }

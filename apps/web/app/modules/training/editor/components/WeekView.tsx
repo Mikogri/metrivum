@@ -1,3 +1,4 @@
+import { effectiveBlock } from "../model/maxes";
 import { Moon, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button, Option, Select } from "@trainflow/ui-web";
@@ -8,6 +9,7 @@ import { addWorkout, newWorkout, updateNode } from "../model/document";
 import { WEEK_DAYS, ensureWeekday, ensureWeekdayWorkout } from "../model/structure";
 import { cycleWorkouts, setDayNote } from "../model/workouts";
 import type { TrainingDocument } from "@trainflow/api-client-web";
+import { BlockFormulaScope } from "../block-maxes";
 import { SimpleWorkoutTable } from "./SimpleWorkoutTable";
 import { VolumeContent } from "./VolumePanel";
 import styles from "./WeekView.module.css";
@@ -123,6 +125,7 @@ export function WeekView({
         })}
       </div>
 
+      {(doc.annotations ?? []).filter(note => !note.targetId || note.targetId === cycle?.id || note.targetId === cycles.find(item => item.cycle.id === cycle?.id)?.block.id).map(note => <section key={note.id} className={styles.panel}><small>{note.kind} · {note.visibility === "Coach" ? "Coach only" : "Coach & client"}</small><strong>{note.title}</strong><p style={{ whiteSpace: "pre-wrap" }}>{note.content}</p></section>)}
       <div className={styles.body}>
         <section className={styles.panel} role="tabpanel" aria-label={dayName(current)}>
           {workout && day ? (
@@ -163,7 +166,7 @@ export function WeekView({
                 </div>
               </header>
               <div className={styles.editorArea}>
-                <SimpleWorkoutTable key={workout.id} workout={workout} names={names} apply={apply} />
+                <BlockFormulaScope block={effectiveBlock(doc, cycles.find(item => item.cycle.id === cycle?.id)?.block)}><SimpleWorkoutTable key={workout.id} workout={workout} names={names} apply={apply} /></BlockFormulaScope>
               </div>
             </>
           ) : (

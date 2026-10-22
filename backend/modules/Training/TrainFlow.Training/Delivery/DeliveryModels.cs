@@ -55,6 +55,7 @@ public sealed class GroupProgramAssignment
 }
 public sealed class ProgramAssignment
 {
+    public TrainFlow.Training.Features.ClientFormulaPreview FormulaSnapshot { get; set; } = null!;
     public Guid Id
     {
         get; set;
@@ -167,7 +168,7 @@ public sealed class WorkoutOccurrence
     }
     public WorkoutPrescription Prescription { get; set; } = null!;
 }
-public sealed record WorkoutPrescription(Guid RevisionId, string ProgramName, Workout Workout, Dictionary<Guid, ExerciseSnapshot> Exercises, Dictionary<Guid, FormulaEvaluation> Formulas);
+public sealed record WorkoutPrescription(Guid RevisionId, string ProgramName, Workout Workout, Dictionary<Guid, ExerciseSnapshot> Exercises, Dictionary<Guid, FormulaEvaluation> Formulas, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] PlanAnnotation[]? Annotations = null);
 public sealed class WorkoutExecution
 {
     public Guid Id
@@ -335,6 +336,8 @@ public static class DeliveryModel
         a.HasIndex(x => new { x.BatchId, x.RelationshipId }).IsUnique();
         a.HasIndex(x => new { x.RelationshipId, x.Status, x.CreatedAt });
         a.Property(x => x.Version).IsConcurrencyToken();
+        Json(a.Property(x => x.FormulaSnapshot));
+        a.Property(x => x.FormulaSnapshot).IsRequired(false);
         a.Property(x => x.Status).HasConversion<string>();
         a.Property(x => x.TimeZone).HasMaxLength(100);
         a.HasOne<AssignmentBatch>().WithMany().HasForeignKey(x => x.BatchId).OnDelete(DeleteBehavior.Restrict);

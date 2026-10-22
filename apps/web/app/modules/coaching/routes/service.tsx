@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Service details — TrainFlow");
+
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { useState } from "react";
 import { useParams } from "react-router";

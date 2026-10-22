@@ -2,11 +2,11 @@ import { CalendarClock, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Button, Dialog, DialogFooter, LinkButton, Option, Select, TextArea } from "@trainflow/ui-web";
+import { Button, Dialog, DialogFooter, LinkButton, Option, Select, TextArea } from "@trainflow/ui-web";
 import { useFeatureAccess } from "~/shared/access";
 import { UserAutocomplete, useProfile } from "~/modules/accounts";
 import { useCoachingMutation, useCoachingQuery, type Page } from "./api";
-import { Failure, MutationError } from "./components";
+import { Failure, MutationError, NoActiveOffers } from "./components";
 import styles from "./coaching.module.css";
 
 /**
@@ -38,11 +38,17 @@ export function InvitationEditor({ close }: { close: () => void }) {
   const revision = useCoachingQuery<Schema<"OfferRevisionDto">>(`/api/v1/coaches/${profile.id}/offers/${selectedOffer}`, undefined, Boolean(selectedOffer));
   const mutation = useCoachingMutation<Schema<"InvitationDto">>((i) => navigate(`/app/invitations/${i.id}`));
   const offerItems = offers.data?.items ?? [];
+  // Without an active offer there is nothing to invite to: explain that instead of showing a dead form.
+  if (offers.data && offerItems.length === 0) {
+    return <Dialog isOpen title="Invite a client" onOpenChange={(v) => { if (!v) close(); }}>
+      <NoActiveOffers purpose="invitation" />
+      <DialogFooter><Button onPress={close}>Close</Button></DialogFooter>
+    </Dialog>;
+  }
   return <Dialog isOpen title="Invite a client" description="The invitation shows up in their TrainFlow account. No email or push notification is sent." onOpenChange={(v) => { if (!v) close(); }}><form className={styles.form} onSubmit={(e) => { e.preventDefault(); mutation.mutate({ method: "POST", path: "/api/v1/coaching/invitations", json: { username: username.trim().replace(/^@/, ""), offerId: selectedOffer, billingOptionId: option || null, message: message || null } }); }}>
     <UserAutocomplete label="Client username" isRequired value={username} onChange={setUsername} autoFocus isDisabled={mutation.isPending} />
-    {offers.isError ? <Failure error={offers.error} retry={() => void offers.refetch()} /> : <Select label="Offer" placeholder={offers.isPending ? "Loading offers…" : "Choose an active offer"} isRequired isDisabled={!offerItems.length} selectedKey={selectedOffer || null} onSelectionChange={(key) => { setOffer(String(key)); setOption(""); }}>{offerItems.map((o) => <Option key={o.id} id={o.id}>{o.name}</Option>)}</Select>}
+    {offers.isError ? <Failure error={offers.error} retry={() => void offers.refetch()} /> : <Select label="Offer" description={offerItems.length > 1 && !selectedOffer ? "The client sees this offer's terms and price before accepting." : undefined} placeholder={offers.isPending ? "Loading offers…" : "Choose an active offer"} isRequired isDisabled={!offerItems.length} selectedKey={selectedOffer || null} onSelectionChange={(key) => { setOffer(String(key)); setOption(""); }}>{offerItems.map((o) => <Option key={o.id} id={o.id}>{o.name}</Option>)}</Select>}
     {revision.data ? <Select label="Billing option" selectedKey={option || "any"} onSelectionChange={(key) => setOption(key === "any" ? "" : String(key))}><Option id="any">Let the client choose</Option>{revision.data.billingOptions.map((o) => <Option key={o.id} id={o.id}>{o.name}</Option>)}</Select> : null}
-    {offers.data?.items.length === 0 ? <Alert tone="warning" title="Activate an offer first" actions={<LinkButton href="/app/offers" size="sm">Open offers</LinkButton>}>Invitations are tied to an active offer.</Alert> : null}
     <TextArea label="Message" placeholder="Optional, a short note for the client" value={message} onChange={setMessage} maxLength={1000} />
     <MutationError error={mutation.error} />
     <DialogFooter><Button onPress={close}>Cancel</Button><Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!revision.data || !username.trim()}>Send invitation</Button></DialogFooter>

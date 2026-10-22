@@ -15,6 +15,61 @@ namespace TrainFlow.IntegrationTests;
 public sealed class TrainingPostgresTests : IDisposable
 {
     [TrainingPostgresFact]
+    public async Task Typed_field_formulas_and_time_maxima_save_apply_and_freeze_together()
+    {
+        await using var db = Context();
+        var service = Service(db);
+        var exerciseId = Guid.NewGuid();
+        var set = new TrainingSet(Guid.NewGuid(), SetKind.Standard, new(FieldFormulas: new()
+        {
+            ["Sets"] = new(null, 1, null, [], "2 + 1"),
+            ["Reps"] = new(null, 1, null, [], "4 * 2"),
+            ["WorkTime"] = new(null, 1, null, [], "maxTime_s / 2", new() { ["maxTime_s"] = BlockMaxes.TimeAlias(exerciseId, 1) }),
+            ["Rest"] = new(null, 1, null, [], "1.5", OutputUnit: Unit.Minutes)
+        }));
+        var workout = new Workout(Guid.NewGuid(), "Workout", "", [new(Guid.NewGuid(), exerciseId, "", [set])], []);
+        var block = new Block(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "Cycle", "", 1, [new(Guid.NewGuid(), 1, [workout])])]);
+        var document = new TrainingDocument(1, [block], [new(Guid.NewGuid(), block.Id, [new(exerciseId, 1, TimeFormula: new(null, 1, null, [], "2", OutputUnit: Unit.Minutes))])]);
+        var plan = await service.CreateAsync(new("Typed", "", DocumentKind.Program, null, document), default);
+        var revision = await service.ApplyAsync(plan.Id, plan.Version, Guid.NewGuid().ToString(), default);
+        var frozen = PrescriptionFormulas.Freeze(workout, revision.Snapshot.Formulas);
+        Assert.Equal(3, frozen.Exercises[0].Sets.Length);
+        Assert.All(frozen.Exercises[0].Sets, s =>
+        {
+            Assert.Equal(new IntRange(8, 8), s.Prescription.Reps);
+            Assert.Equal(new Quantity(60, Unit.Seconds), s.Prescription.WorkTime);
+            Assert.Equal(new Quantity(90, Unit.Seconds), s.Prescription.Rest);
+            Assert.Null(s.Prescription.Load);
+        });
+        Assert.NotNull(DocumentRules.Prescriptions((await service.GetAsync(plan.Id, default)).Document).First().FieldFormulas);
+        var invalidSet = set with { Prescription = set.Prescription with { FieldFormulas = new() { ["Reps"] = new(null, 1, null, [], "3.5") } } };
+        var invalidWorkout = workout with { Exercises = [workout.Exercises[0] with { Sets = [invalidSet] }] };
+        var invalidCycle = block.Cycles[0] with { Days = [block.Cycles[0].Days[0] with { Workouts = [invalidWorkout] }] };
+        var invalid = document with { Blocks = [block with { Cycles = [invalidCycle] }] };
+        var saved = await service.SaveAsync(plan.Id, new("Typed", "", null, invalid), plan.Version, default);
+        Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => service.ApplyAsync(plan.Id, saved.Version, Guid.NewGuid().ToString(), default))).Status);
+        Assert.Equal(3, PrescriptionFormulas.Freeze(workout, (await service.RevisionAsync(plan.Id, revision.Number, default)).Snapshot.Formulas).Exercises[0].Sets.Length);
+    }
+
+    [TrainingPostgresFact]
+    public async Task Invalid_formula_draft_is_saved_but_cannot_replace_an_applied_revision()
+    {
+        await using var db = Context();
+        var service = Service(db);
+        var plan = await service.CreateAsync(new("Draft", "", DocumentKind.Program, null, new(1, [])), default);
+        var revision = await service.ApplyAsync(plan.Id, plan.Version, Guid.NewGuid().ToString(), default);
+        foreach (var expression in new[] { "80 * (", "10 kg + 2 s", "ROUND_TO_STEP_UPPER(10 kg, 0)" })
+        {
+            var exercise = new ExerciseInstance(Guid.NewGuid(), Guid.NewGuid(), "", [new(Guid.NewGuid(), SetKind.Standard, new(LoadFormula: new(null, 1, null, [], expression)))]);
+            var document = new TrainingDocument(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "Cycle", "", 7, [new(Guid.NewGuid(), 1, [new(Guid.NewGuid(), "Workout", "", [exercise], [])])])])]);
+            plan = await service.SaveAsync(plan.Id, new("Invalid draft", "", null, document), plan.Version, default);
+            Assert.Equal(expression, DocumentRules.Prescriptions((await service.GetAsync(plan.Id, default)).Document).Single().LoadFormula!.Expression);
+            Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => service.ApplyAsync(plan.Id, plan.Version, Guid.NewGuid().ToString(), default))).Status);
+            Assert.Empty((await service.RevisionAsync(plan.Id, revision.Number, default)).Snapshot.Document.Blocks);
+        }
+    }
+
+    [TrainingPostgresFact]
     public async Task Draft_conflicts_and_immutable_publication_preserve_original()
     {
         await using var db = Context();

@@ -14,6 +14,7 @@ Playwright tests. Any host must behave the same way:
 | Pre-rendered page (`/`, `/features`, `/features/program-builder`, `/features/video-analysis`, `/pl/…`) | Its own `…/index.html` with status 200 |
 | `/app`, `/app/*`, `/auth/*`, `/onboarding` | `__spa-fallback.html` with status 200 and `X-Robots-Tag: noindex` |
 | `/api/*`, missing `/assets/*`, missing `/brand/*` | 404, never HTML |
+| `/anatomy/bodyparts3d-4.0/*` | Prepared anatomical assets; `.glb` uses `model/gltf-binary`. Hash-named GLBs are immutable; revalidate the manifest. Missing assets return 404, never the SPA fallback. See [asset preparation](../features/anatomy.md). |
 | Anything else | `404/index.html` with **status 404** |
 
 Do not use an “always serve index.html with 200” rule: `index.html` is the pre-rendered English landing, it

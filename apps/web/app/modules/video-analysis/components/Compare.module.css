@@ -1,0 +1,318 @@
+.compare {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+/* Videos side by side, each with its number (the same number marks its reps in the table). */
+.videos {
+  display: grid;
+  grid-template-columns: repeat(var(--count, 2), minmax(0, 1fr));
+  gap: var(--tf-space-3);
+}
+
+.videoCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.videoBody {
+  display: grid;
+  min-height: 0;
+  background: #000;
+}
+
+.videoBody video {
+  max-height: 46dvh;
+}
+
+.videoHead {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2) var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+/* The video's number in its chart colour, the same as the badge in the table. */
+.videoIndex {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: var(--tf-radius-sm);
+  color: #fff;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.videoName small {
+  margin-left: var(--tf-space-2);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-regular);
+}
+
+.videoName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.videoTag {
+  flex: none;
+  padding: 1px var(--tf-space-1-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+}
+
+.noVideo {
+  display: grid;
+  place-items: center;
+  min-height: 10rem;
+  margin: 0;
+  background: var(--tf-color-bg-sunken);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+/* Charts: each takes the full width, the bar path keeps its square shape in the middle. */
+.charts {
+  display: grid;
+  gap: var(--tf-space-6);
+}
+
+/* Bar path on the left, each rep's phase times on the right. */
+.pathRow {
+  display: grid;
+  grid-template-columns: minmax(16rem, 28rem) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--tf-space-6);
+}
+
+.path {
+  min-width: 0;
+}
+
+.phaseBars {
+  display: grid;
+  gap: var(--tf-space-3);
+  min-width: 0;
+}
+
+.phaseBars h3 {
+  margin: 0;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.phaseRows {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phaseRows > li {
+  display: grid;
+  gap: 4px;
+}
+
+.phaseLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-text-xs);
+}
+
+.phaseLabel i {
+  width: 0.875rem;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.phaseLabel b {
+  margin-left: auto;
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.phaseTrack {
+  display: flex;
+  min-width: 3rem;
+  height: 1.5rem;
+  padding: 2px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--tf-color-surface-raised);
+  gap: 2px;
+}
+
+.phaseSegment {
+  display: grid;
+  flex-basis: 0;
+  place-items: center;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--tf-color-text-tertiary);
+  color: #fff;
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 0.3);
+  white-space: nowrap;
+}
+
+.phaseSegment[data-kind="eccentric"] { background: #7c6cf0; }
+.phaseSegment[data-kind="pause"] { background: #7d8aa3; }
+.phaseSegment[data-kind="concentric"] { background: #2fae6e; }
+.phaseKey [data-kind="eccentric"] { --key: #7c6cf0; }
+.phaseKey [data-kind="pause"] { --key: #7d8aa3; }
+.phaseKey [data-kind="concentric"] { --key: #2fae6e; }
+
+/* Legend swatches use the same colours as the phase segments. */
+.phaseKey {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2) var(--tf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phaseKey li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-2xs);
+  white-space: nowrap;
+}
+
+.phaseKey li::before {
+  content: '';
+  flex: none;
+  width: 1rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: var(--key);
+}
+
+@media (max-width: 64rem) {
+  .pathRow { grid-template-columns: 1fr; }
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: 0;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.hint svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (max-width: 64rem) {
+  .videos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.option:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* Dialog: a searchable list with ticks. */
+.dialog {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.options {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2-5);
+  width: 100%;
+  padding: var(--tf-space-2) var(--tf-space-2-5);
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-md);
+  background: transparent;
+  color: var(--tf-color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--tf-color-surface-hover);
+}
+
+.option[aria-pressed="true"] {
+  border-color: var(--tf-color-border);
+  background: var(--tf-color-surface-selected);
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: -2px;
+}
+
+.box {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--tf-color-border-strong);
+  border-radius: 4px;
+}
+
+.option[aria-pressed="true"] .box {
+  border-color: var(--tf-color-text);
+  background: var(--tf-color-text);
+  color: var(--tf-color-bg);
+}
+
+.box svg {
+  width: 0.7rem;
+  height: 0.7rem;
+  stroke-width: 3;
+}
+
+.optionName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionMeta {
+  flex: none;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}

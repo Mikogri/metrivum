@@ -1,10 +1,14 @@
 .tooltip {
   max-width: 16rem;
-  padding: var(--tf-space-1) var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface-overlay);
+  padding: var(--tf-space-1-5) var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  /* Frosted: the page shows through, blurred. */
+  background: color-mix(in srgb, var(--tf-color-surface-overlay) 62%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
   box-shadow: var(--tf-shadow-md);
+  font-weight: var(--tf-weight-medium);
   color: var(--tf-color-text);
   font-size: var(--tf-text-xs);
   line-height: var(--tf-leading-snug);
@@ -18,17 +22,22 @@
 .tooltip[data-placement="right"] { --origin: center left; }
 
 .tooltip[data-entering] {
-  animation: tooltip-in 125ms var(--tf-ease-out);
+  animation: tooltip-in var(--tf-duration-base) var(--tf-ease-out);
 }
 
 .tooltip[data-exiting] {
   animation: tooltip-in 100ms var(--tf-ease-out) reverse;
 }
 
-.arrow svg {
-  display: block;
-  fill: var(--tf-color-surface-overlay);
-  stroke: var(--tf-color-border-strong);
+/* A see-through panel has no arrow: it would not match the blurred fill. */
+.arrow {
+  display: none;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tooltip {
+    background: var(--tf-color-surface-overlay);
+  }
 }
 
 .arrow[data-placement="bottom"] svg { transform: rotate(180deg); }
@@ -38,7 +47,7 @@
 @keyframes tooltip-in {
   from {
     opacity: 0;
-    transform: scale(0.97);
+    transform: translateY(-4px) scale(0.96);
   }
 }
 

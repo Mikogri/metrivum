@@ -1,19 +1,20 @@
-import { Check, Download, Upload } from "lucide-react";
+import { ArrowRight, Check, Download, FileSpreadsheet, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
-import { FileCard } from "@trainflow/ui-web";
 import { prefersReducedMotion, useInView } from "../../lib/useInView";
 import { usePublicMessages } from "../../messages";
 import styles from "./TransferDiagram.module.css";
 
-const WIRES = ["M0 70 C 120 70, 120 120, 200 120", "M200 120 C 280 120, 280 60, 400 60", "M200 120 C 280 120, 280 180, 400 180"];
-
+/**
+ * Import and export as one flow, left to right: the raw spreadsheet, what TrainFlow does with it
+ * (steps, matched exercises, the check), and the files a published revision produces.
+ */
 export function TransferDiagram() {
   const m = usePublicMessages();
   const t = m.home.transfer;
   const [ref, inView] = useInView<HTMLDivElement>();
   const [step, setStep] = useState(t.steps.length);
 
-  // Import steps light up in order, then the export side receives the files.
+  // The steps tick through once the diagram is on screen; the outputs arrive when they are done.
   useEffect(() => {
     if (!inView || prefersReducedMotion()) return;
     setStep(0);
@@ -22,58 +23,84 @@ export function TransferDiagram() {
       i++;
       setStep(i);
       if (i >= t.steps.length) clearInterval(timer);
-    }, 650);
+    }, 700);
     return () => clearInterval(timer);
   }, [inView, t.steps.length]);
 
   const done = step >= t.steps.length;
   return (
-    <div ref={ref} className={styles.diagram} data-inview={inView || undefined} data-done={done || undefined}>
-      <div className={styles.side}>
-        <p className={styles.sideLabel}>
-          <Upload aria-hidden="true" />
-          {t.importLabel}
-        </p>
-        <FileCard name={t.files.csvIn} kind="CSV" meta={t.sourceMeta} />
+    <div ref={ref} className={styles.flow} data-done={done || undefined}>
+      {/* 1 — the spreadsheet as it comes in */}
+      <section className={styles.panel} aria-label={t.importLabel}>
+        <header className={styles.panelHead}>
+          <span className={styles.panelKind}><Upload aria-hidden="true" />{t.importLabel}</span>
+          <span className={styles.fileName}><FileSpreadsheet aria-hidden="true" />{t.files.csvIn}</span>
+        </header>
+        <table className={styles.sheet}>
+          <thead>
+            <tr>{t.sheet.columns.map((c) => <th key={c} scope="col">{c}</th>)}</tr>
+          </thead>
+          <tbody>
+            {t.sheet.rows.map((row, i) => (
+              <tr key={row[0]} data-read={step > 0 || undefined} style={{ "--i": i } as React.CSSProperties}>
+                {row.map((cell, j) => <td key={j}>{cell}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className={styles.panelFoot}>{t.sourceMeta}</p>
+      </section>
+
+      <span className={styles.joint} aria-hidden="true"><ArrowRight /></span>
+
+      {/* 2 — what happens to it */}
+      <section className={styles.panel} aria-label={t.steps.join(", ")}>
         <ol className={styles.steps}>
           {t.steps.map((label, i) => (
             <li key={label} data-state={i < step ? "done" : i === step ? "active" : "pending"}>
-              <span className={styles.stepDot} aria-hidden="true" />
+              <span className={styles.stepMark} aria-hidden="true">{i < step ? <Check /> : i + 1}</span>
               {label}
             </li>
           ))}
         </ol>
-      </div>
-
-      <svg className={styles.wires} viewBox="0 0 400 240" preserveAspectRatio="none" aria-hidden="true">
-        {WIRES.map((d, i) => (
-          <g key={d} className={i > 0 ? styles.wireOut : undefined}>
-            <path className={styles.wire} d={d} />
-            <path className={styles.spark} d={d} pathLength={100} style={{ "--o": `${-i * 0.5}s` } as React.CSSProperties} />
-          </g>
-        ))}
-      </svg>
-
-      <div className={styles.hub} aria-hidden="true">
-        <span className={styles.hubRow}>{t.hub.rows}</span>
-        <span className={styles.hubRow} data-ok={done || undefined}>
-          <Check />
-          {t.hub.check}
-        </span>
-      </div>
-
-      <div className={styles.side}>
-        <p className={styles.sideLabel}>
-          <Download aria-hidden="true" />
-          {t.exportLabel}
+        <div className={styles.mapping}>
+          <p className={styles.mappingTitle}>{t.mapping.title}</p>
+          {t.mapping.pairs.map(([from, to]) => (
+            <p key={from} className={styles.pair} data-on={step > 1 || undefined}>
+              <code>{from}</code>
+              <ArrowRight aria-hidden="true" />
+              <span>{to}</span>
+            </p>
+          ))}
+        </div>
+        <p className={styles.check} data-ok={done || undefined}>
+          <span>{t.hub.rows}</span>
+          <span className={styles.checkOk}><Check aria-hidden="true" />{t.hub.check}</span>
         </p>
-        <div className={styles.outFile} style={{ "--i": 0 } as React.CSSProperties}>
-          <FileCard name={t.files.pdfOut} kind="PDF" meta={t.revisionMeta} />
+      </section>
+
+      <span className={styles.joint} aria-hidden="true"><ArrowRight /></span>
+
+      {/* 3 — the files a revision gives back */}
+      <section className={styles.panel} aria-label={t.exportLabel}>
+        <header className={styles.panelHead}>
+          <span className={styles.panelKind}><Download aria-hidden="true" />{t.exportLabel}</span>
+          <span className={styles.fileName}>{t.outputs}</span>
+        </header>
+        <div className={styles.outputs}>
+          <div className={styles.page} aria-label={t.files.pdfOut} role="img">
+            <span className={styles.pageBadge}>PDF</span>
+            <span className={styles.pageTitle}>{t.pdfTitle}</span>
+            <span className={styles.pageMeta}>{t.pdfMeta}</span>
+            {[0, 1, 2, 3, 4].map((i) => <span key={i} className={styles.pageRow} style={{ "--w": `${92 - i * 9}%` } as React.CSSProperties} />)}
+          </div>
+          <div className={styles.files}>
+            <p className={styles.file}><span className={styles.fileKind}>PDF</span><span>{t.files.pdfOut}</span></p>
+            <p className={styles.file}><span className={styles.fileKind}>CSV</span><span>{t.files.csvOut}</span></p>
+            <p className={styles.fileMeta}>{t.revisionMeta}</p>
+          </div>
         </div>
-        <div className={styles.outFile} style={{ "--i": 1 } as React.CSSProperties}>
-          <FileCard name={t.files.csvOut} kind="CSV" meta={t.revisionMeta} />
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

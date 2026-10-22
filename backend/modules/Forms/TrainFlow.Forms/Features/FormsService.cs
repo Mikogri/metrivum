@@ -14,9 +14,39 @@ public sealed record DuplicateFormRequest(string IdempotencyKey);
 public sealed record FormTemplateDto(Guid Id, Guid CoachId, FormPurpose Purpose, string Name, string Description,
     FormDefinition Draft, Guid? CurrentPublishedVersionId, bool Archived, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, long Version);
 public sealed record FormListDto(IReadOnlyList<FormTemplateDto> Items, int Page, int PageSize, int Total);
+public sealed record FormSummaryDto(Guid Id, FormPurpose Purpose, string Name, string Description,
+    Guid? CurrentPublishedVersionId, bool Archived, DateTimeOffset UpdatedAt, long Version, int QuestionCount);
+public sealed record FormSummaryListDto(IReadOnlyList<FormSummaryDto> Items, int Page, int PageSize, int Total);
+internal sealed record FormSummaryRow(Guid Id, string Name, string Description,
+    Guid? CurrentPublishedVersionId, bool Archived, DateTimeOffset UpdatedAt, long Version, int QuestionCount);
 
-public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IFeatureAccessService access, TimeProvider clock, ModuleTransaction transaction) : IFormLibrary
+public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IFeatureAccessService access, TimeProvider clock, ModuleTransaction transaction, IAbuseProtection? abuse = null) : IFormLibrary
 {
+    public async Task<FormSummaryListDto> SummariesAsync(int page, int pageSize, FormPurpose purpose, bool archived, string? search, string sort, CancellationToken ct)
+    {
+        await Authorize(purpose, ct);
+        if (page < 1 || page > 100000 || pageSize is < 1 or > 100 || search?.Length > 200 || sort is not ("updated" or "name"))
+            throw ApiException.Invalid("Invalid form list query.");
+        var term = search?.Trim().ToLowerInvariant() ?? "";
+        var owner = accounts.UserId;
+        var purposeName = purpose.ToString();
+        var total = await db.Templates.CountAsync(x => x.CoachId == owner && x.Purpose == purpose && x.Archived == archived
+            && (term == "" || x.Name.ToLower().Contains(term)), ct);
+        // Count questions in PostgreSQL so library pages never load draft JSON into the API.
+        var rows = await db.Database.SqlQuery<FormSummaryRow>($"""
+            SELECT "Id", "Name", "Description", "CurrentPublishedVersionId", "Archived", "UpdatedAt", "Version",
+                jsonb_array_length(jsonb_path_query_array("Draft", '$.Sections[*].Questions[*]')) AS "QuestionCount"
+            FROM forms.templates
+            WHERE "CoachId" = {owner} AND "Purpose" = {purposeName} AND "Archived" = {archived}
+                AND ({term} = '' OR strpos(lower("Name"), {term}) > 0)
+            ORDER BY CASE WHEN {sort} = 'name' THEN "Name" END,
+                CASE WHEN {sort} = 'updated' THEN "UpdatedAt" END DESC, "Id"
+            LIMIT {pageSize} OFFSET {(page - 1) * pageSize}
+            """).ToArrayAsync(ct);
+        return new(rows.Select(x => new FormSummaryDto(x.Id, purpose, x.Name, x.Description, x.CurrentPublishedVersionId,
+            x.Archived, x.UpdatedAt, x.Version, x.QuestionCount)).ToArray(), page, pageSize, total);
+    }
+
     public async Task<FormListDto> ListAsync(int page, int pageSize, FormPurpose purpose, bool archived, string? search, string sort, CancellationToken ct)
     {
         await Authorize(purpose, ct);
@@ -36,6 +66,7 @@ public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IF
     public async Task<FormTemplateDto> CreateAsync(FormTemplateRequest request, CancellationToken ct)
     {
         await Authorize(request.Purpose, ct);
+        if (request.Purpose == FormPurpose.CheckIn) abuse?.Require(accounts.UserId, AbusePolicies.CheckInTemplate);
         FormRules.ValidateDefinition(request.Purpose, request.Name, request.Description, request.Draft);
         return await transaction.RunAsync(async token => { var t = New(request); db.Templates.Add(t); await db.SaveChangesAsync(token); return Dto(t); }, ct);
     }

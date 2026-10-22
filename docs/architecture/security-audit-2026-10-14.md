@@ -1,7 +1,5 @@
 # Security review — 2026-10-14
 
-Publication scope: this security/dependency commit excludes the separate pending MCP, offer, collaboration-file and UI feature changes. Full-workspace test totals below include those local features. MCP middleware fixes/tests remain with that pending feature; they are not part of this published snapshot.
-
 Scope: API/module trust boundaries, web/native authentication and account lifetimes, uploads/private files, messaging/notifications, MCP, analysis subprocesses, repository secrets and dependency advisories. This is source review plus automated checks, not an exhaustive penetration test or production release approval. Unrelated working-tree edits were preserved.
 
 ## Confirmed issues corrected

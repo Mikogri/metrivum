@@ -1,0 +1,88 @@
+.progress {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-width: 9rem;
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-text-xs);
+}
+
+.stage {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top b {
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--tf-color-text-secondary), var(--tf-color-text));
+  transform-origin: left;
+  transition: transform 600ms var(--tf-ease-out);
+}
+
+.waiting,
+.failed {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  font-size: var(--tf-text-xs);
+}
+
+.waiting {
+  color: var(--tf-color-text-tertiary);
+}
+
+.waiting svg,
+.failed svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.failed {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tf-color-warning);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+  outline: none;
+}
+
+.failed[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.reason {
+  max-width: 18rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar > span { transition: none; }
+}

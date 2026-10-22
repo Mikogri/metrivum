@@ -16,11 +16,11 @@ public sealed class StorageOptions
     {
         get; set;
     }
-    public long MaxAttachmentBytes { get; set; } = 67108864;
+    public long MaxAttachmentBytes { get; set; } = 52428800;
     public long MaxVoiceDurationMs { get; set; } = 300000;
     public string[] AllowedAttachmentTypes { get; set; } = ["image/png", "image/jpeg", "image/gif", "image/webp", "application/pdf", "text/plain", "application/zip", "video/mp4", "video/webm", "audio/wav"];
-    public long MaxVideoBytes { get; set; } = 268435456;
-    public int MaxPendingUploadsPerOwner { get; set; } = 5;
+    public long MaxVideoBytes { get; set; } = 524288000;
+    public int MaxPendingUploadsPerOwner { get; set; } = 3;
     public int ReadUrlSeconds { get; set; } = 120;
 }
 
@@ -70,7 +70,7 @@ public sealed class SupabaseObjectStorage(HttpClient client, IOptions<StorageOpt
             : new ApiException(503, "STORAGE_UNAVAILABLE", "Private storage could not complete the operation.");
     }
 
-    private async Task EnsurePrivateAsync(string bucket, CancellationToken ct)
+    private async Task EnsurePrivateAsync(string bucket, CancellationToken ct, bool requireUploadLimit = false)
     {
         if (bucket != options.Bucket)
             throw new ApiException(503, "STORAGE_CONFIGURATION_INVALID", "Stored bucket does not match this environment.");
@@ -79,11 +79,15 @@ public sealed class SupabaseObjectStorage(HttpClient client, IOptions<StorageOpt
         using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
         if (!json.RootElement.TryGetProperty("public", out var value) || value.ValueKind != JsonValueKind.False)
             throw new ApiException(503, "STORAGE_BUCKET_NOT_PRIVATE", "The configured bucket must be private.");
+        if (requireUploadLimit && (!json.RootElement.TryGetProperty("file_size_limit", out var max)
+            || max.ValueKind != JsonValueKind.Number || !max.TryGetInt64(out var cap)
+            || cap <= 0 || cap > Math.Max(options.MaxVideoBytes, options.MaxAttachmentBytes)))
+            throw new ApiException(503, "STORAGE_BUCKET_LIMIT_REQUIRED", "Configure the private bucket file size limit before enabling direct uploads.");
     }
 
     public async Task<string> CreateUploadUrlAsync(string bucket, string key, CancellationToken ct)
     {
-        await EnsurePrivateAsync(bucket, ct);
+        await EnsurePrivateAsync(bucket, ct, requireUploadLimit: true);
         using var request = Request(HttpMethod.Post, "object/upload/sign/" + Path(bucket, key));
         request.Headers.Add("x-upsert", "false");
         request.Content = JsonContent.Create(new

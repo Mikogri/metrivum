@@ -211,3 +211,19 @@
   -webkit-appearance: none;
   appearance: none;
 }
+
+/*
+ * Browser autofill paints its own blue or yellow box inside the field. The fill is held back
+ * indefinitely so a saved email or password looks like any other value.
+ */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input:autofill {
+  -webkit-text-fill-color: var(--tf-color-text);
+  caret-color: var(--tf-color-text);
+  transition:
+    background-color 600000s 0s,
+    color 600000s 0s;
+}
+

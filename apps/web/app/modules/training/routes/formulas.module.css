@@ -31,8 +31,8 @@
   display: grid;
   align-content: start;
   gap: var(--tf-space-2);
-  animation: rise 360ms var(--tf-ease-out) both;
-  animation-delay: calc(var(--i) * 60ms);
+  /* No delay or stagger: content shows the moment the page does. */
+  animation: rise 200ms var(--tf-ease-out) both;
 }
 
 .builtInHead {

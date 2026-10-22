@@ -1,0 +1,152 @@
+.row {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2) 0;
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  height: 1.25rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.icon svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.row[data-state="saved"] .icon { color: var(--tf-color-success); }
+.row[data-state="failed"] .icon,
+.row[data-state="save_failed"] .icon { color: var(--tf-color-warning); }
+.row[data-state="analyzing"] .icon,
+.row[data-state="saving"] .icon,
+.row[data-state="done"] .icon { color: var(--tf-color-text); }
+
+.body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  line-height: 1.25rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.percent {
+  flex: none;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* "Failed · details": the reason is one hover or focus away. */
+.failed {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tf-color-warning);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+  outline: none;
+}
+
+.failed[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.reason {
+  max-width: 18rem;
+}
+
+.bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-color-text-secondary);
+  transform-origin: left;
+  transition: transform 600ms var(--tf-ease-out);
+}
+
+.row[data-state="analyzing"] .bar > span {
+  background: linear-gradient(90deg, var(--tf-color-text-secondary), var(--tf-color-text));
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.spin {
+  animation: spin 1.1s linear infinite;
+}
+
+@keyframes spin {
+  to { rotate: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation-duration: 3s; }
+  .bar > span { transition: none; }
+}
+
+/* In menus: the state icon on a tinted tile, like notification items. */
+.row[data-tile] {
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.row[data-tile] .icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+}
+
+.row[data-tile][data-state="saved"] .icon { background: color-mix(in srgb, var(--tf-color-success) 16%, transparent); }
+.row[data-tile][data-state="failed"] .icon,
+.row[data-tile][data-state="save_failed"] .icon { background: var(--tf-color-warning-soft); }

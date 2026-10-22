@@ -7,8 +7,9 @@ import { useSessionManager, useSessionState } from "~/shared/session/SessionProv
 import { supabaseConfigured } from "~/shared/session/supabase";
 import { AuthFooter, AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
-import { authErrorText, isEmailNotConfirmed } from "../lib/authErrors";
-import { callbackUrl, EMAIL_PATTERN, slotParam } from "../lib/urls";
+import { authErrorText, isEmailNotConfirmed, isUnknownAccount } from "../lib/authErrors";
+import { callbackUrl, slotParam } from "../lib/urls";
+import { isValidEmail, normalizeEmail } from "../lib/email";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Sign in — TrainFlow");
@@ -47,26 +48,28 @@ export default function Login() {
     );
   }
 
-  const emailInvalid = submitted && !EMAIL_PATTERN.test(email);
+  const emailInvalid = submitted && !isValidEmail(email);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    if (!EMAIL_PATTERN.test(email) || (mode === "password" && !password) || slot === null) return;
+    if (!isValidEmail(email) || (mode === "password" && !password) || slot === null) return;
+    const address = normalizeEmail(email);
     setPending(true);
     setError(null);
     const client = manager.client(slot);
     try {
       if (mode === "code") {
         const { error: otpError } = await client.auth.signInWithOtp({
-          email,
-          options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(slot, returnTo, email) },
+          email: address,
+          options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(slot, returnTo, address) },
         });
-        if (otpError) throw otpError;
-        navigate(`/auth/verify?type=email&slot=${slot}&email=${encodeURIComponent(email)}&returnTo=${encodeURIComponent(returnTo)}`);
+        // "No such account" looks exactly like "code sent": the form must not reveal who is registered.
+        if (otpError && !isUnknownAccount(otpError)) throw otpError;
+        navigate(`/auth/verify?type=email&slot=${slot}&email=${encodeURIComponent(address)}&returnTo=${encodeURIComponent(returnTo)}`);
         return;
       }
-      const { data, error: signInError } = await client.auth.signInWithPassword({ email, password });
+      const { data, error: signInError } = await client.auth.signInWithPassword({ email: address, password });
       if (signInError) throw signInError;
       if (!data.session) throw new Error("No session");
       await manager.completeSignIn(slot, data.session);

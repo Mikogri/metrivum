@@ -2,10 +2,12 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <MotionTraceRoot Condition="'$(MotionTraceRoot)' == ''">$(MSBuildThisFileDirectory)../../../MotionTrace</MotionTraceRoot>
+    <DefaultItemExcludes>$(DefaultItemExcludes);artifacts/**;bin/**;obj/**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="tests/**/*.cs" />
-    <ProjectReference Include="$(MotionTraceRoot)/src/MotionTrace.Infrastructure/MotionTrace.Infrastructure.csproj" AdditionalProperties="UseArtifactsOutput=true;ArtifactsPath=$(MSBuildThisFileDirectory)artifacts" />
-    <ProjectReference Include="$(MotionTraceRoot)/src/MotionTrace.Core/MotionTrace.Core.csproj" AdditionalProperties="UseArtifactsOutput=true;ArtifactsPath=$(MSBuildThisFileDirectory)artifacts" />
+    <None Include="preprocess.py" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <ProjectReference Include="$(MotionTraceRoot)/src/MotionTrace.Infrastructure/MotionTrace.Infrastructure.csproj" />
+    <ProjectReference Include="$(MotionTraceRoot)/src/MotionTrace.Core/MotionTrace.Core.csproj" />
   </ItemGroup>
 </Project>

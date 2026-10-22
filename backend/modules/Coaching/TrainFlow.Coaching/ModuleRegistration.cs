@@ -22,11 +22,13 @@ public static class ModuleRegistration
     {
         services.AddModuleDatabase<CoachingDbContext>("coaching");
         services.AddScoped<CoachingService>();
+        services.AddScoped<IMcpClientOperations, TrainFlow.Coaching.Features.McpClientOperations>();
         services.AddScoped<TeamClientsService>();
         services.AddScoped<ITeamLifecycle>(p => p.GetRequiredService<TeamClientsService>());
         services.AddScoped<ITeamCaseAccess>(p => p.GetRequiredService<TeamClientsService>());
         services.AddScoped<INotificationDeliveryPolicy>(p => p.GetRequiredService<TeamClientsService>());
         services.AddScoped<ICoachingAnalytics, CoachingAnalytics>();
+        services.AddScoped<TrainFlow.Offers.Contracts.IOfferUsage, CoachingOfferUsage>();
         services.AddScoped<IRelationshipAccessPolicy>(p => p.GetRequiredService<CoachingService>());
         services.AddScoped<IRelationshipActivation>(p => p.GetRequiredService<CoachingService>());
         services.AddScoped<IRelationshipRecipients, RelationshipRecipients>();
@@ -41,7 +43,7 @@ public static class ModuleRegistration
     {
         MapTeamClients(endpoints);
         var group = endpoints.MapGroup("/api/v1/coaching").WithTags("Coaching").RequireAuthorization();
-        group.MapGet("/clients", (int? page, int? pageSize, string? search, string? sort, RelationshipStatus? status, Guid[]? groupIds, Guid? teamId, CoachingService service, CancellationToken ct) => service.ClientsAsync(Query(page, pageSize, search, sort, status, groupIds, teamId), ct));
+        group.MapGet("/clients", (int? page, int? pageSize, string? search, string? sort, RelationshipStatus? status, Guid[]? groupIds, Guid? teamId, Guid? offerId, string? offerCategory, CoachingService service, CancellationToken ct) => service.ClientsAsync(Query(page, pageSize, search, sort, status, groupIds, teamId, offerId, offerCategory), ct));
         group.MapGet("/clients/{id:guid}", async (Guid id, CoachingService service, HttpContext http, CancellationToken ct) => Versioned(http, await service.ClientAsync(id, ct))).Produces<CoachRelationshipDto>();
         group.MapGet("/my-coaches", (int? page, int? pageSize, string? search, string? sort, RelationshipStatus? status, CoachingService service, CancellationToken ct) => service.MyCoachesAsync(Query(page, pageSize, search, sort, status, null), ct));
         group.MapGet("/relationships/{id:guid}", async (Guid id, CoachingService service, HttpContext http, CancellationToken ct) =>
@@ -68,18 +70,18 @@ public static class ModuleRegistration
     private static void MapTeamClients(IEndpointRouteBuilder endpoints)
     {
         var teams = endpoints.MapGroup("/api/v1/teams/{teamId:guid}").WithTags("TeamClients").RequireAuthorization();
-        teams.MapGet("/clients", (Guid teamId, TeamClientsService service, CancellationToken ct) => service.ListAsync(teamId, ct)).Produces<TeamClientCaseDto[]>();
+        teams.MapGet("/clients", (Guid teamId, int? page, int? pageSize, TeamClientsService service, CancellationToken ct) => service.ListAsync(teamId, ct, page, pageSize)).Produces<TeamClientCaseDto[]>();
         teams.MapGet("/clients/{caseId:guid}", (Guid teamId, Guid caseId, TeamClientsService service, CancellationToken ct) => service.GetAsync(teamId, caseId, ct)).Produces<TeamClientCaseDto>();
         teams.MapPost("/clients/{caseId:guid}/assign-coach", (Guid teamId, Guid caseId, AssignTeamCoach input, TeamClientsService service, CancellationToken ct) => service.AssignAsync(teamId, caseId, input, ct)).Produces<TeamClientCaseDto>();
         teams.MapDelete("/clients/{caseId:guid}/assignments/{coachId:guid}", (Guid teamId, Guid caseId, Guid coachId, [Microsoft.AspNetCore.Mvc.FromBody] TeamConsentDecision input, TeamClientsService service, CancellationToken ct) => service.UnassignAsync(teamId, caseId, coachId, input.Version, ct)).Produces<TeamClientCaseDto>();
         teams.MapPost("/client-transfer-requests", (Guid teamId, RequestTeamTransfer input, TeamClientsService service, CancellationToken ct) => service.RequestAsync(teamId, input, ct)).Produces<TeamClientTransferDto>();
-        teams.MapGet("/client-transfer-requests", (Guid teamId, TeamClientsService service, CancellationToken ct) => service.RequestsAsync(teamId, ct)).Produces<TeamClientTransferDto[]>();
+        teams.MapGet("/client-transfer-requests", (Guid teamId, int? page, int? pageSize, TeamClientsService service, CancellationToken ct) => service.RequestsAsync(teamId, ct, page, pageSize)).Produces<TeamClientTransferDto[]>();
         var incoming = endpoints.MapGroup("/api/v1/me/team-client-transfer-requests").WithTags("TeamClients").RequireAuthorization();
-        incoming.MapGet("/", (TeamClientsService service, CancellationToken ct) => service.IncomingAsync(ct)).Produces<TeamClientTransferDto[]>();
+        incoming.MapGet("/", (int? page, int? pageSize, TeamClientsService service, CancellationToken ct) => service.IncomingAsync(ct, page, pageSize)).Produces<TeamClientTransferDto[]>();
         incoming.MapPost("/{id:guid}/accept", (Guid id, TeamConsentDecision input, TeamClientsService service, CancellationToken ct) => service.DecideAsync(id, true, input.Version, ct)).Produces<TeamClientTransferDto>();
         incoming.MapPost("/{id:guid}/decline", (Guid id, TeamConsentDecision input, TeamClientsService service, CancellationToken ct) => service.DecideAsync(id, false, input.Version, ct)).Produces<TeamClientTransferDto>();
     }
-    private static CoachingListQuery Query(int? page, int? pageSize, string? search, string? sort, RelationshipStatus? status, Guid[]? groupIds, Guid? teamId = null) => new() { Page = page ?? 1, PageSize = pageSize ?? 25, Search = search, Sort = sort ?? "updated", Status = status, GroupIds = groupIds ?? [], TeamId = teamId };
+    private static CoachingListQuery Query(int? page, int? pageSize, string? search, string? sort, RelationshipStatus? status, Guid[]? groupIds, Guid? teamId = null, Guid? offerId = null, string? offerCategory = null) => new() { Page = page ?? 1, PageSize = pageSize ?? 25, Search = search, Sort = sort ?? "updated", Status = status, GroupIds = groupIds ?? [], TeamId = teamId, OfferId = offerId, OfferCategory = offerCategory };
     private static long Version(HttpContext http) => RequestPreconditions.RequireVersion(http.Request);
     private static IResult Versioned(HttpContext http, CoachRelationshipDto value)
     {

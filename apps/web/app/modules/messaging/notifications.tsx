@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, Bell, BellOff, CalendarClock, CalendarX, Check, CheckCheck, CheckCircle2, ClipboardCheck, CreditCard, Dumbbell, FileText, Film, Flag, Inbox, MailOpen, MessageSquare, PauseCircle, Repeat2, Settings2, UserMinus, UsersRound, Volume2, VolumeX, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowUp, Bell, BellOff, CalendarClock, CalendarX, Check, CheckCheck, CheckCircle2, ClipboardCheck, CreditCard, Dumbbell, FileText, Film, Flag, Inbox, MailOpen, MessageSquare, PauseCircle, Repeat2, Settings2, UserMinus, UsersRound, Volume2, VolumeX, XCircle } from "lucide-react";
 import { Button as AriaButton, DialogTrigger } from "react-aria-components";
 import { useLocation, useNavigate } from "react-router";
 import { Button, Checkbox, Dialog, IconButton, Popover, Segment, SegmentedControl, Spinner, toast, useMobileLayout } from "@trainflow/ui-web";
@@ -8,6 +8,7 @@ import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useNotifications } from "./provider";
+import { AnalyzerUpdateActions, useAnalyzerUpdate } from "~/modules/video-analysis";
 import { notificationTitle, useDurableNotifications } from "./durable-notifications";
 import styles from "./notifications.module.css";
 
@@ -59,7 +60,8 @@ export function NotificationBell({ label, className }: { label?: string; classNa
     const navigate = useNavigate();
     const active = location.pathname === "/app/messages" ? new URLSearchParams(location.search).get("conversation") : null;
     const notifications = useDurableNotifications(active, open, location.pathname + location.search);
-    const count = notifications.count;
+    const analyzerUpdate = useAnalyzerUpdate();
+    const count = notifications.count + (analyzerUpdate ? 1 : 0);
     const act = async (key: string, operation: () => Promise<unknown>, success?: string) => {
         if (inFlight.current.has(key)) return;
         inFlight.current.add(key);
@@ -100,7 +102,7 @@ export function NotificationBell({ label, className }: { label?: string; classNa
                         {count ? <span className={styles.count}>{count > 99 ? "99+" : count}</span> : null}
                     </div>
                     <div className={styles.tools}>
-                        <IconButton label="Mark all read" icon={<CheckCheck />} variant="ghost" size="sm" isPending={pending.has("all")} isDisabled={!count} onPress={() => void act("all", notifications.readAll)} />
+                        <IconButton label="Mark all read" icon={<CheckCheck />} variant="ghost" size="sm" isPending={pending.has("all")} isDisabled={!notifications.count} onPress={() => void act("all", notifications.readAll)} />
                         <IconButton label={sound.muted ? "Enable notification sound" : "Mute notification sound"} icon={sound.muted ? <VolumeX /> : <Volume2 />} variant="ghost" size="sm" onPress={sound.toggleSound} />
                         <IconButton label="Preferences" icon={<Settings2 />} variant={settings ? "secondary" : "ghost"} size="sm" onPress={() => setSettings(!settings)} />
                     </div>
@@ -140,7 +142,7 @@ export function NotificationBell({ label, className }: { label?: string; classNa
                         </Button>
                     </div>
                 ) : null}
-                {!notifications.loading && !notifications.failed && !notifications.items.length ? (
+                {!notifications.loading && !notifications.failed && !notifications.items.length && !analyzerUpdate ? (
                     <div className={styles.empty}>
                         <span className={styles.emptyIcon} aria-hidden="true">
                             <BellOff />
@@ -149,6 +151,14 @@ export function NotificationBell({ label, className }: { label?: string; classNa
                     </div>
                 ) : null}
                 <ul className={styles.list}>
+                    {analyzerUpdate ? <li className={styles.item} data-unread data-update>
+                        <span className={styles.updateIcon} aria-hidden="true"><ArrowUp /></span>
+                        <span className={styles.text}>
+                            <strong>Analyzer update available ({analyzerUpdate.version})</strong>
+                            <AnalyzerUpdateActions className={styles.meta} />
+                            <span className={styles.meta}>Stays here until the analyzer is updated.</span>
+                        </span>
+                    </li> : null}
                     {notifications.items.map((item) => {
                         const look = notificationLook(item.type, item.category);
                         const Icon = look.icon;

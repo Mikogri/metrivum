@@ -25,7 +25,8 @@ public class ModuleBoundaryTests
         typeof(FormsDbContext).Assembly, typeof(OffersDbContext).Assembly, typeof(BillingDbContext).Assembly,
         typeof(CheckInsDbContext).Assembly, typeof(CalendarDbContext).Assembly, typeof(MessagingDbContext).Assembly,
         typeof(NotificationsDbContext).Assembly, typeof(TrainFlow.Analytics.ModuleRegistration).Assembly,
-        typeof(TrainFlow.ClientDocumentation.Infrastructure.DocumentationDbContext).Assembly];
+        typeof(TrainFlow.ClientDocumentation.Infrastructure.DocumentationDbContext).Assembly,
+        typeof(TrainFlow.Integrations.Infrastructure.IntegrationsDbContext).Assembly];
 
     [Fact]
     public void Modules_reference_only_contracts_of_other_modules()

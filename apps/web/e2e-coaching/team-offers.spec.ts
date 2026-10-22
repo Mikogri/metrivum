@@ -11,15 +11,15 @@ const relationshipId = "70000000-0000-4000-8000-000000000006";
 const now = "2026-10-08T09:00:00Z";
 const catalog = JSON.parse(readFileSync(new URL("../../../contracts/generated/features.json", import.meta.url), "utf8")) as { key: string }[];
 
-async function fixture(page: Page, client = false) {
+async function fixture(page: Page, client = false, noForm = false, publishedForms = true) {
   const writes: { path: string; body: Record<string, unknown> }[] = [];
   const reads: URL[] = [];
   let groupCreated = false;
   let grouped = false;
   const group = { id: groupId, name: "Team cohort", description: "", color: "#10b981", archived: false, version: 1, createdAt: now, updatedAt: now, teamId, allowedActions: ["edit", "archive", "add-member", "remove-member"] };
   const relationship = () => ({ id: relationshipId, client: { id: applicationId, displayName: "Assigned Team client", username: "team_client" }, status: "Active", startedAt: now, version: 1, updatedAt: now, groupIds: grouped ? [groupId] : [], statusHistory: [], allowedActions: [], teamId });
-  const offer = { id: offerId, coachId: coach, name: "Team coaching", description: "Organizational coaching", category: "strength", coachingMode: "Online", applicationFormVersionId: formId, tags: [], billingOptions: [], status: "Draft", currentPublishedRevisionId: null, createdAt: now, updatedAt: now, version: 1, teamId, teamName: "Strength Collective" };
-  const detail = { application: { id: applicationId, coachId: "other-coach", applicantUserId: coach, applicant: { id: coach, username: "client", displayName: "Test Client" }, offerName: offer.name, offerRevisionId: offerId, billingOptionId: formId, selectedSessionCount: null, amount: 100, currency: "PLN", status: "InProgress", source: "Direct", version: 1, allowedActions: ["submit"], relationshipId: null }, offerRevision: { ...offer, offerId, number: 1, currency: "PLN", publishedAt: now }, formVersion: { id: formId, number: 1, definition: { sections: [] } }, answers: {}, profilePrefill: {}, profileVersion: 1 };
+  const offer = { id: offerId, coachId: coach, name: "Team coaching", description: "Organizational coaching", category: "strength", coachingMode: "Online", applicationFormVersionId: noForm ? null : formId, tags: [], billingOptions: [], status: "Draft", currentPublishedRevisionId: null, createdAt: now, updatedAt: now, version: 1, teamId, teamName: "Strength Collective" };
+  const detail = { application: { id: applicationId, coachId: "other-coach", applicantUserId: coach, applicant: { id: coach, username: "client", displayName: "Test Client" }, offerName: offer.name, offerRevisionId: offerId, billingOptionId: formId, selectedSessionCount: null, amount: noForm ? 0 : 100, currency: "PLN", status: "InProgress", source: "Direct", version: 1, allowedActions: ["submit"], relationshipId: null }, offerRevision: { ...offer, offerId, number: 1, currency: "PLN", publishedAt: now }, formVersion: noForm ? null : { id: formId, number: 1, definition: { sections: [] } }, answers: {}, profilePrefill: {}, profileVersion: 1 };
   await page.addInitScript(({ id, client }) => {
     localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id, email: "team@trainflow.test", aud: "authenticated" } }));
     localStorage.setItem("tf.auth.active-slot", "0");
@@ -48,7 +48,7 @@ async function fixture(page: Page, client = false) {
     if (path === "/api/v1/me/team-context") return respond({ teamId, ownerId: coach, role: "Owner", status: "Active", isActive: true, name: "Strength Collective" });
     if (path === "/api/v1/me/profile-fields") return respond({ currency: "PLN", values: {}, version: 1 });
     if (path === "/api/v1/offers/categories") return respond([{ key: "strength", name: "Strength" }]);
-    if (path === "/api/v1/forms") return respond({ items: [{ id: formId, name: "Application", currentPublishedVersionId: formId }], page: 1, pageSize: 100, total: 1 });
+    if (path === "/api/v1/forms") return respond({ items: publishedForms ? [{ id: formId, name: "Application", currentPublishedVersionId: formId }] : [], page: 1, pageSize: 100, total: publishedForms ? 1 : 0 });
     if (path === "/api/v1/coaching/groups") return respond({ items: groupCreated ? [group] : [], page: 1, pageSize: 20, total: groupCreated ? 1 : 0 });
     if (path === `/api/v1/coaching/groups/${groupId}`) return respond(group);
     if (path === `/api/v1/coaching/groups/${groupId}/members`) return respond({ items: grouped ? [relationship()] : [], page: 1, pageSize: 20, total: grouped ? 1 : 0 });
@@ -75,6 +75,7 @@ test("Team offer creation preserves organization ownership when edited", async (
   await expect(panel.getByText("Team-owned offer · Strength Collective", { exact: true })).toBeVisible();
   await panel.getByRole("textbox", { name: "Offer name", exact: true }).fill("Team strength coaching");
   await panel.getByRole("textbox", { name: "Option name", exact: true }).fill("Individual session");
+  await panel.getByRole("radio", { name: "Paid", exact: true }).click();
   await panel.getByRole("textbox", { name: "Price per session", exact: true }).fill("100");
   await panel.getByRole("button", { name: "Create draft", exact: true }).click();
   await expect.poll(() => state.writes.find(write => write.path === "/api/v1/offers")?.body.teamId).toBe(teamId);
@@ -100,7 +101,7 @@ test("Team application cannot submit without explicit organizational consent", a
   await expect(submit).toBeEnabled();
   await submit.click();
   await expect.poll(() => state.writes.find(write => write.path.endsWith("/submit"))?.body.acceptTeamScope).toBe(true);
-  await expect(page.getByRole("heading", { name: "Submitted answers", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your answers", exact: true })).toBeVisible();
 });
 
 test("Team group creation and member picker keep ownership scope", async ({ page }) => {
@@ -163,4 +164,37 @@ test("invalid offer shows a persistent top-right error and replaces the previous
   await expect(error).toContainText("Billing option 1: enter a name up to 120 characters.");
   await expect(error).not.toContainText("Enter an offer name");
   expect(state.writes).toHaveLength(0);
+});
+
+
+for (const publishedForms of [false, true]) {
+  test(`Free offer defaults to no application form with ${publishedForms ? 'one' : 'no'} published forms`, async ({ page }) => {
+    const state = await fixture(page, false, true, publishedForms);
+    await page.goto("/app/offers?scope=team");
+    await page.getByRole("button", { name: "Create offer", exact: true }).first().click();
+    const panel = page.getByRole("dialog", { name: "New offer", exact: true });
+    await expect(panel.getByText("No application form", { exact: true }).first()).toBeVisible();
+    await expect(panel.getByRole("radio", { name: "Free", exact: true })).toBeChecked();
+    await panel.getByRole("textbox", { name: "Offer name", exact: true }).fill("Free coaching");
+    await panel.getByRole("textbox", { name: "Option name", exact: true }).fill("Free session");
+    await panel.getByRole("button", { name: "Create draft", exact: true }).click();
+    await expect.poll(() => state.writes.find(write => write.path === "/api/v1/offers")?.body.applicationFormVersionId).toBeNull();
+    expect(state.writes.find(write => write.path === "/api/v1/offers")?.body.billingOptions).toEqual(expect.arrayContaining([expect.objectContaining({ price: 0, model: "PerSession" })]));
+    await expect(panel).toBeHidden();
+  });
+}
+
+test("No-form free Team application still requires consent and explicit submission", async ({ page }) => {
+  const state = await fixture(page, true, true);
+  await page.goto(`/app/applications/${applicationId}`);
+  await expect(page.getByText("No application form required", { exact: true })).toBeVisible();
+  await expect(page.getByText("Free", { exact: true })).toBeVisible();
+  const submit = page.getByRole("button", { name: "Submit application", exact: true });
+  await expect(submit).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Save draft", exact: true })).toHaveCount(0);
+  expect(state.writes).toHaveLength(0);
+  await page.getByRole("checkbox", { name: /I accept Strength Collective/ }).press("Space");
+  await submit.click();
+  await expect.poll(() => state.writes.find(write => write.path.endsWith("/submit"))?.body).toMatchObject({ answers: {}, acceptTeamScope: true, saveProfileFields: [] });
+  await expect(page.getByText("No application form was required.", { exact: true })).toBeVisible();
 });

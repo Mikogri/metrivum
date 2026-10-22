@@ -17,6 +17,7 @@ public static class ModuleRegistration
     {
         services.AddModuleDatabase<ExerciseCatalogDbContext>("exercise_catalog");
         services.AddScoped<CatalogService>();
+        services.AddScoped<IMcpExerciseOperations, McpExerciseOperations>();
         services.AddScoped<IExerciseCatalog>(provider => provider.GetRequiredService<CatalogService>());
         services.AddSingleton(new FeatureDefinition("exercises.browse", "ExerciseCatalog", "features.exercises.browse.title", "features.exercises.browse.description", [], []));
         services.AddSingleton(new FeatureDefinition("exercises.create", "ExerciseCatalog", "features.exercises.create.title", "features.exercises.create.description", ["exercises.browse"], []));

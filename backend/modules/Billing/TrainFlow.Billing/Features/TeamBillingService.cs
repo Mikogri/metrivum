@@ -22,7 +22,7 @@ public sealed record TeamBillingDto(Guid TeamId, string Status, int PurchasedSea
     bool RenewalMethodEligible, IReadOnlyList<TeamBillingQuoteDto> History);
 
 public sealed class TeamBillingService(BillingDbContext db, BillingService billing, PlatformSubscriptionService platform,
-    IAccountContext accounts, ModuleTransaction transaction, TimeProvider clock, INotificationPublisher notifications)
+    IAccountContext accounts, ModuleTransaction transaction, TimeProvider clock, INotificationPublisher notifications, IAbuseProtection? abuse = null)
 {
     public Task<TeamBillingQuoteDto> QuoteAsync(TeamCheckoutQuoteRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
@@ -78,6 +78,7 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
 
     private Task<TeamBillingDto> Confirm(Guid? requestedTeam, TeamPaymentConfirmRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
+        abuse?.Require(accounts.UserId, AbusePolicies.Payment);
         await accounts.RequireCoachAsync(token);
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey) || request.IdempotencyKey.Length > 100)
             throw ApiException.Invalid("A bounded idempotency key is required.");

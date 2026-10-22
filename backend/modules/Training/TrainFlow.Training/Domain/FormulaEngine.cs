@@ -284,6 +284,7 @@ public sealed class FormulaEngine(FormulaLimits? limits = null)
         }
         private static Quantity Function(string name, List<Quantity> args)
         {
+            name = name.ToUpperInvariant();
             if (name is "MIN" or "MAX" or "AVG")
             {
                 if (args.Count is < 1 or > 32)
@@ -298,12 +299,15 @@ public sealed class FormulaEngine(FormulaLimits? limits = null)
                 var alternative = args[2].In(args[1].Unit);
                 return condition != 0 ? args[1] : new(alternative, args[1].Unit);
             }
-            if (name == "ROUND_TO_STEP" && args.Count == 2)
+            if (name is "ROUND_TO_STEP" or "ROUND_TO_STEP_LOWER" or "ROUND_TO_STEP_UPPER" && args.Count == 2)
             {
-                var step = args[1].In(args[0].Unit);
+                // An unqualified step uses the result unit; explicit units still require compatibility.
+                var step = args[1].Unit == Unit.Scalar ? args[1].Value : args[1].In(args[0].Unit);
                 if (step <= 0)
                     throw new TrainingValidationException("Rounding step must be positive.");
-                return new(decimal.Round(args[0].Value / step, 0, MidpointRounding.AwayFromZero) * step, args[0].Unit);
+                var quotient = args[0].Value / step;
+                var rounded = name == "ROUND_TO_STEP_LOWER" ? decimal.Floor(quotient) : name == "ROUND_TO_STEP_UPPER" ? decimal.Ceiling(quotient) : decimal.Round(quotient, 0, MidpointRounding.AwayFromZero);
+                return new(rounded * step, args[0].Unit);
             }
             throw new TrainingValidationException("Unknown function or wrong argument count.");
         }

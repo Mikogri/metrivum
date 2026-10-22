@@ -1,6 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 import type { Schema } from "@trainflow/api-client-web";
-import { Button, IconButton, NumberInput, Option, Select, TextField } from "@trainflow/ui-web";
+import { Button, IconButton, NumberInput, Option, Segment, SegmentedControl, Select, TextField } from "@trainflow/ui-web";
 import styles from "./coaching.module.css";
 
 export type BillingOption = Schema<"BillingOptionSnapshot">;
@@ -29,7 +29,7 @@ export function priceDescription(option: BillingOption, currency: string) {
   return priceOnly(option, currency) + (validity ? ` · ${validity}` : "");
 }
 function priceOnly(option: BillingOption, currency: string) {
-  const price = money(Number(option.price), currency);
+  const price = option.price === 0 ? "Free" : Number.isFinite(option.price) ? money(Number(option.price), currency) : "Set a price";
   switch (option.model) {
     case "OneTime":
       return `${price} · Independent plan copy`;
@@ -66,13 +66,18 @@ export function BillingOptionsEditor({ options, onChange, disabled, currency, pu
               <TextField maxLength={120} aria-label="Option name" placeholder="e.g. Monthly coaching" value={o.name} onChange={(name) => change(i, { name })} isRequired isDisabled={disabled} className={styles.grow} />
               <IconButton label="Remove option" icon={<Trash2 />} variant="ghost" size="sm" isDisabled={disabled || options.length === 1} onPress={() => onChange(options.filter((_, n) => n !== i))} />
             </div>
+            <SegmentedControl aria-label={`Pricing for option ${i + 1}`} isDisabled={disabled} selectedKeys={[o.price === 0 ? "Free" : "Paid"]} onSelectionChange={(keys) => change(i, [...keys][0] === "Free" ? { price: 0, paymentTerms: { rule: "Upfront", offsetDays: null } } : { price: Number.NaN })}>
+              <Segment id="Free">Free</Segment>
+              <Segment id="Paid">Paid</Segment>
+            </SegmentedControl>
+            {o.price === 0 && <p className={styles.note}>No payment is required. Session counts and validity still apply.</p>}
             <div className={styles.columns}>
-              <Select label="Billing model" isDisabled={disabled} selectedKey={o.model} onSelectionChange={(key) => change(i, { ...newOption(key as BillingOption["model"]), id: o.id, name: o.name })}>
+              <Select label="Billing model" isDisabled={disabled} selectedKey={o.model} onSelectionChange={(key) => change(i, { ...newOption(key as BillingOption["model"]), id: o.id, name: o.name, price: o.price })}>
                 {(purpose === "TrainingPlan" ? [["OneTime", "One-time purchase"]] as const : MODELS).map(([id, label]) => (
                   <Option key={id} id={id}>{label}</Option>
                 ))}
               </Select>
-              <NumberInput
+              {o.price !== 0 && <NumberInput
                 label={o.model === "PerSession" || o.model === "CustomPackage" ? "Price per session" : "Total price"}
                 placeholder="0.00"
                 isRequired
@@ -83,7 +88,7 @@ export function BillingOptionsEditor({ options, onChange, disabled, currency, pu
                 isDisabled={disabled}
                 value={Number(o.price)}
                 onChange={(v) => change(i, { price: v })}
-              />
+              />}
               {counts.map((field) => (
                 <NumberInput key={field} label={COUNTS[field]} placeholder="1" minValue={1} step={1} isRequired isDisabled={disabled} value={Number(o[field as keyof BillingOption] ?? 1)} onChange={(v) => change(i, { [field]: v })} />
               ))}
@@ -95,7 +100,7 @@ export function BillingOptionsEditor({ options, onChange, disabled, currency, pu
                 </Select>
               ) : null}
               {o.model !== "PeriodSubscription" && o.model !== "OneTime" && <NumberInput label="Validity after payment (days)" placeholder="No expiry" description="Leave empty for no expiry. The whole package expires at the same time." minValue={1} maxValue={36500} step={1} isDisabled={disabled} value={o.validityDays ?? Number.NaN} onChange={value => change(i, { validityDays: Number.isNaN(value) ? null : value })} />}
-              <Select
+              {o.price !== 0 && <Select
                 label="Payment due"
                 isDisabled={disabled || o.model === "OneTime"}
                 selectedKey={o.paymentTerms?.rule ?? "Upfront"}
@@ -106,8 +111,8 @@ export function BillingOptionsEditor({ options, onChange, disabled, currency, pu
                 {o.model === "PeriodSubscription" ? <Option id="EndOfServicePeriod">End of service period</Option> : null}
                 <Option id="EndOfCalendarMonth">End of calendar month</Option>
                 <Option id="CustomOffsetDays">Days after start</Option>
-              </Select>
-              {o.paymentTerms?.rule === "CustomOffsetDays" ? (
+              </Select>}
+              {o.price !== 0 && o.paymentTerms?.rule === "CustomOffsetDays" ? (
                 <NumberInput label="Days after start" placeholder="0" minValue={0} maxValue={365} step={1} isRequired isDisabled={disabled} value={Number(o.paymentTerms.offsetDays ?? 0)} onChange={(v) => change(i, { paymentTerms: { rule: "CustomOffsetDays", offsetDays: v } })} />
               ) : null}
             </div>

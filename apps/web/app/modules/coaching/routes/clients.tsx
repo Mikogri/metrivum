@@ -9,17 +9,20 @@ import { ClientHubActions } from "../hub-actions";
 import { RequireFeature } from "~/shared/access";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { privateMeta } from "~/shared/i18n/site";
-import { useCoachingMutation, useCoachingQuery, type Group, type Page, type Relationship } from "../api";
+import { groupInvalidation, useCoachingMutation, useCoachingQuery, type Group, type Page, type Relationship } from "../api";
 import { Failure, ListPagination, Loading, MutationError, StatusBadge } from "../components";
 import { ColorSwatches, GROUP_COLORS } from "../color";
+import { CategoryTag, categoryName } from "../offer-category";
+import { PlanState, clientNote } from "../client-card";
 import { DataView } from "~/shared/library/DataView";
-import { ResponsiveFilters } from "~/shared/library/ResponsiveFilters";
 import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
+import { ResponsiveFilters } from "~/shared/library/ResponsiveFilters";
 import styles from "../coaching.module.css";
 
 export const meta = () => privateMeta("Clients — TrainFlow");
 
-type CurrentService = Pick<Schema<"RelationshipServiceDto">, "relationshipId" | "offerName" | "currentBilling">;
+type CurrentService = Schema<"CurrentRelationshipServiceDto">;
+const modeName = (mode?: string | null) => (mode === "Offline" ? "In person" : mode ?? null);
 type AssignmentRow = { id: string; relationshipId: string; programName: string; status: string };
 
 function OfferCell({ service }: { service?: CurrentService }) {
@@ -46,8 +49,11 @@ function ClientName({ relationship: r, link = true }: { relationship: Relationsh
 }
 
 function Clients() {
-  const [state, update] = useUrlState({ view: "list", q: "", status: "", page: "1", sort: "updated" });
-  const list = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { search: state.q || undefined, status: state.status || undefined, page: pageFromParam(state.page), pageSize: 20, sort: state.sort });
+  const [state, update] = useUrlState({ view: "list", q: "", status: "", type: "", offer: "", page: "1", sort: "updated" });
+  const list = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { search: state.q || undefined, status: state.status || undefined, offerCategory: state.type || undefined, offerId: state.offer || undefined, page: pageFromParam(state.page), pageSize: 20, sort: state.sort });
+  const categories = useCoachingQuery<Schema<"OfferCategoryDto">[]>("/api/v1/offers/categories");
+  const offers = useCoachingQuery<Page<Schema<"OfferDto">>>("/api/v1/offers", { page: 1, pageSize: 100, sort: "name" });
+  const filtered = Boolean(state.q || state.status || state.type || state.offer);
   const relationshipIds = (list.data?.items ?? []).map(client => client.id).sort();
   const services = useCoachingQuery<CurrentService[]>("/api/v1/coaching/services/current", { relationshipIds }, relationshipIds.length > 0);
   const serviceByRelationship = new Map((services.data ?? []).map(service => [service.relationshipId, service]));
@@ -73,23 +79,30 @@ function Clients() {
   return <><PageHeader title="Clients" description="Your coaching relationships, services and check-ins." actions={<ClientHubActions />} /><HubNavigation />
     <Toolbar aria-label="Filter clients" className={styles.toolbar}>
       <SearchInput aria-label="Search clients" placeholder="Search by name or username" value={state.q} onChange={(q) => update({ q })} className={styles.search} />
-      <ResponsiveFilters active={Boolean(state.status)}><Select aria-label="Relationship status" selectedKey={state.status || "all"} onSelectionChange={(key) => update({ status: key === "all" ? "" : String(key) })}><Option id="all">All statuses</Option>{["Active", "Suspended", "Completed"].map((s) => <Option key={s} id={s}>{s}</Option>)}</Select>
-      <Select aria-label="Sort clients" selectedKey={state.sort} onSelectionChange={(key) => update({ sort: String(key) })}><Option id="updated">Recently updated</Option><Option id="created">Recently started</Option><Option id="status">Status</Option></Select></ResponsiveFilters>
+      <ResponsiveFilters active={Boolean(state.status || state.type || state.offer)}>
+      <Select aria-label="Relationship status" selectedKey={state.status || "all"} onSelectionChange={(key) => update({ status: key === "all" ? "" : String(key) })}><Option id="all">All statuses</Option>{["Active", "Suspended", "Completed"].map((s) => <Option key={s} id={s}>{s}</Option>)}</Select>
+      <Select aria-label="Plan type" selectedKey={state.type || "all"} onSelectionChange={(key) => update({ type: key === "all" ? "" : String(key) })}><Option id="all">All plan types</Option>{(categories.data ?? []).filter((c) => c.active || c.key === state.type).map((c) => <Option key={c.key} id={c.key} textValue={categoryName(c.key)}><CategoryTag category={c.key} /></Option>)}</Select>
+      <Select aria-label="Offer" selectedKey={state.offer || "all"} onSelectionChange={(key) => update({ offer: key === "all" ? "" : String(key) })}><Option id="all">All offers</Option>{(offers.data?.items ?? []).map((o) => <Option key={o.id} id={o.id}>{o.name}</Option>)}</Select>
+      <Select aria-label="Sort clients" selectedKey={state.sort} onSelectionChange={(key) => update({ sort: String(key) })}><Option id="updated">Recently updated</Option><Option id="created">Recently started</Option><Option id="status">Status</Option></Select>
+      </ResponsiveFilters>
     <LibraryViewToggle value={state.view === "cards" ? "cards" : "list"} onChange={(view) => update({ view })} /></Toolbar>
-    {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : list.data.items.length === 0 ? <EmptyState icon={<UsersRound />} title={state.q || state.status ? "No matching clients" : "Your first collaboration starts here"} description="Accept a submitted application to start a coaching relationship." actions={<LinkButton href="/app/leads" variant="primary">View leads</LinkButton>} /> : <>
+    {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : list.data.items.length === 0 ? <EmptyState icon={<UsersRound />} title={filtered ? "No matching clients" : "Your first collaboration starts here"} description={filtered ? "Clear the search or choose other filters." : "Accept a submitted application to start a coaching relationship."} actions={filtered ? undefined : <LinkButton href="/app/leads" variant="primary">View leads</LinkButton>} /> : <>
       <DataView view={state.view === "cards" ? "cards" : "list"} card={(r) => ({
         href: `/app/clients/${r.id}`,
         title: r.client.displayName || r.client.username,
-        icon: <Avatar name={r.client.displayName || r.client.username || "Client"} size="lg" decorative />,
+        icon: <Avatar name={r.client.displayName || r.client.username || "Client"} size="md" decorative />,
         tone: "neutral",
         badge: <StatusBadge status={r.status} />,
+        // Groups show as their colours only, on the card's edge; the names are in the tooltip.
+        marks: r.groupIds.map((id) => groupById.get(id)).filter((g): g is Group => Boolean(g)).map((g) => ({ color: g.color, label: g.name })),
         subtitle: r.client.username ? `@${r.client.username}` : undefined,
+        description: clientNote(r.status, Boolean(planFor(r.id))),
+        // When the collaboration started, how it is run, and where the assigned training plan stands.
         facts: [
-          { label: "Plan", value: planFor(r.id)?.programName ?? "—" },
-          { label: "Group", value: r.groupIds.map((id) => groupById.get(id)?.name).filter(Boolean).join(", ") || "—" },
-          { label: "Offer", value: <OfferCell service={serviceByRelationship.get(r.id)} /> },
+          { label: "Since", value: new Date(r.startedAt).toLocaleDateString([], { dateStyle: "medium" }) },
+          ...(modeName(serviceByRelationship.get(r.id)?.coachingMode) ? [{ label: "", value: modeName(serviceByRelationship.get(r.id)?.coachingMode) }] : []),
+          { label: "Plan", value: planFor(r.id) ? <PlanState status={planFor(r.id)!.status} /> : "none" },
         ],
-        meta: [`Client since ${new Date(r.startedAt).toLocaleDateString()}`],
       })} label="Clients" rows={list.data.items} rowKey={(r) => r.id} columns={[
         { id: "name", header: "Client", width: "22%", cell: (r) => <ClientName relationship={r} /> },
         { id: "plan", header: "Plan", hideOnMobile: true, cell: (r) => { const plan = planFor(r.id); return plan ? <span className={styles.clip}>{plan.programName}</span> : <span className={styles.none}>—</span>; } },
@@ -154,7 +167,7 @@ export function Groups() {
   const available = state.scope !== "team" || team != null;
   const [editing, setEditing] = useState<Group | "new" | null>(null);
   const list = useCoachingQuery<Page<Group>>("/api/v1/coaching/groups", { page: pageFromParam(state.page), pageSize: 20, search: state.q || undefined, archived: state.archived === "true", sort: "name", teamId: team?.teamId }, available);
-  const mutation = useCoachingMutation();
+  const mutation = useCoachingMutation(undefined, groupInvalidation);
   const { ask, dialog: confirmDialog } = useDangerConfirm();
   const toggleArchive = async (g: Group) => {
     if (!g.archived && !(await ask({ title: `Archive ${g.name}?`, body: "Members stay your clients. Archived groups no longer receive group check-ins or assignments; you can restore the group later.", confirmLabel: "Archive group", cancelLabel: "Keep group" }))) return;
@@ -208,7 +221,7 @@ export function GroupEditor({ group, teamId, close }: { group?: Group; teamId?: 
   const [name, setName] = useState(group?.name ?? "");
   const [description, setDescription] = useState(group?.description ?? "");
   const [color, setColor] = useState(group?.color ?? GROUP_COLORS[3]!.value);
-  const mutation = useCoachingMutation(close);
+  const mutation = useCoachingMutation(close, groupInvalidation);
   return <Dialog isOpen onOpenChange={(open) => { if (!open) close(); }} title={group ? "Edit group" : "New client group"} description="Groups let you message, schedule and send check-ins to several clients at once.">
     <form className={styles.form} onSubmit={(e) => { e.preventDefault(); mutation.mutate({ method: group ? "PATCH" : "POST", path: `/api/v1/coaching/groups${group ? `/${group.id}` : ""}`, ifMatch: group?.version, json: { name: name.trim(), description, color, teamId: group ? group.teamId ?? null : teamId ?? null } }); }}>
       <Alert title={(group ? group.teamId : teamId) ? "Team-owned group" : "Personal group"}>Only clients from the same ownership scope can be added. Scope is fixed when this group is created.</Alert>

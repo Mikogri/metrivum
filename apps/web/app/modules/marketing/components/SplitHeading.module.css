@@ -4,21 +4,17 @@
   letter-spacing: var(--tf-tracking-display);
 }
 
-/* The mask: room for descenders below and side bearings left and right. */
+/* Words stay inline (no mask): each one comes into focus in place, a beat after the previous. */
 .word {
   display: inline-block;
-  overflow: clip;
-  padding: 0 0.04em 0.12em;
-  margin: 0 -0.04em -0.12em;
   vertical-align: top;
   white-space: pre;
 }
 
 .inner {
   display: inline-block;
-  transform-origin: 0 100%;
-  animation: word-rise 1150ms var(--tf-ease-out) both;
-  animation-delay: calc(var(--delay) + 120ms + var(--i) * 65ms);
+  animation: word-focus 700ms var(--tf-ease-out) both;
+  animation-delay: calc(var(--delay) + 80ms + var(--i) * 40ms);
 }
 
 /* The closing word set in a serif italic, the one change of voice in the headline. */
@@ -30,9 +26,11 @@
   letter-spacing: -0.01em;
 }
 
-@keyframes word-rise {
+@keyframes word-focus {
   from {
-    transform: translateY(108%) rotate(4deg);
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(0.12em);
   }
 }
 

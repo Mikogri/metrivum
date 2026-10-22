@@ -8,9 +8,20 @@ Business roles live in `accounts.user_roles`; `user_metadata` and JWT role claim
 
 Local JWT validation does not immediately revoke a Supabase token after logout. Keep the Supabase access-token lifetime short (for example 15 minutes), revoke Supabase sessions when appropriate and disable the TrainFlow account or remove its admin role for immediate application-level denial. Sensitive access administration rechecks database-controlled roles and account state on every request. TrainFlow does not maintain its own refresh-token/session store.
 
+## Account identity rules
+
+`AccountIdentityPolicy` (Accounts domain) is the only place the rules live; onboarding, role onboarding and `PATCH /api/v1/me` all call it, so a direct API call cannot skip them.
+
+- **Username** (public, immutable after onboarding): 3–32 ASCII letters, digits and single underscores, starting with a letter and not ending with `_`. ASCII-only also excludes look-alike letters from other scripts. A reserved list (`admin`, `support`, `system`, `security`, `staff`, …) and every name starting with `trainflow` are refused. Uniqueness is case-insensitive through `NormalizedUsername = upper(Username)` and its unique index; a lost race returns 409 `USERNAME_TAKEN`. Usernames created before 2026-10-18 under the older shape-only rule stay valid.
+- **Display name**: any script and emoji. Stored NFC, trimmed, whitespace runs collapsed. Control and line-break characters, bidirectional overrides/isolates, zero-width characters (except the emoji joiner U+200D), BOM, private-use code points and broken surrogates are refused (400 `DISPLAY_NAME_INVALID`), so names cannot hide text or spoof others in chats, invitations and search. 1–100 characters after normalisation.
+- **Database**: CHECK constraints repeat the structural part — username shape, normalised-username consistency, trimmed display name of at most 100 characters, and a closed set of role names (`Coach`, `Client`, `CatalogAdmin`, `AccessAdmin`). They hold for every row, including legacy rows, so the migration applies without data changes; it fails instead of rewriting data if a hand-edited row breaks them.
+- **Rate limits** (per user, per API instance, on top of the global 120/min): onboarding and coach onboarding 10/min, people search 30/min. 429 carries `Retry-After`.
+- **Email, passwords, sign-in**: owned by Supabase Auth. The web client trims addresses, checks RFC 5321 lengths and refuses control/invisible characters before calling Supabase, and limits passwords to 8–72 characters (bcrypt ignores bytes after 72). Passwordless sign-in for an unknown address and sign-up for a registered address continue exactly like the success path, so these forms do not reveal who is registered; password reset was already neutral. Email changes and their re-verification are Supabase's secure email-change flow; the app offers no email-change form.
+- **Supabase project settings to enable before public release** (remote configuration, not changed by the application): CAPTCHA on sign-up/sign-in/reset, leaked-password protection, a minimum password length of at least 8 with character requirements as desired, "Secure email change" (confirm both addresses), Auth rate limits for emails and sign-ins, and a short access-token lifetime.
+
 ## Database boundary
 
-All business tables belong to non-exposed schemas: `accounts`, `access`, `coaching`, `exercise_catalog`, `training`, `media`, `video_analysis`, `billing`, `forms`, `offers`, `calendar`, `checkins`, `messaging`, `notifications` and `client_documentation`. No PostgREST integration exists. Disable Data API in Supabase; accidental re-enabling is also constrained by revoked schema/table privileges for `anon` and `authenticated`.
+All business tables belong to non-exposed schemas: `accounts`, `access`, `coaching`, `exercise_catalog`, `training`, `media`, `video_analysis`, `billing`, `forms`, `offers`, `calendar`, `checkins`, `messaging`, `notifications`, `client_documentation` and `integrations`. No PostgREST integration exists. Disable Data API in Supabase; accidental re-enabling is also constrained by revoked schema/table privileges for `anon` and `authenticated`.
 
 The v1 tenant boundary is **API ownership checks plus private schemas and restricted database roles**. Initial migrations explicitly leave application-table RLS disabled. There are no per-user RLS policies and no claim of database row-level tenant isolation. A verified ASP.NET token does not populate `auth.uid()` in Npgsql. A stolen runtime database credential can access the application rows granted to that role; keep it server-side and rotate it after a compromise.
 
@@ -30,7 +41,7 @@ Run `infra/bootstrap-roles.sql`, then EF migrations as the migrator, then `infra
 - Web email callbacks require a browser-held, expiring nonce and expected identity before Auth exchange. The analysis decoder inherits an explicit minimal environment, never the entire API/worker configuration.
 - Frontend requests bind to account identity/generation before token use, refresh and response-body delivery. Cached idempotent responses also require current resource authorization on the server.
 
-The [2026-10-14 review](security-audit-2026-10-14.md) records current fixes and verification boundaries. The [2026-10-08 audit](performance-security-audit-2026-10-08.md) records regressions, external-service checks, remaining operational boundaries and product decisions.
+The [2026-10-18 review](security-review-2026-10-18.md) records account-identity, sign-in enumeration and offer-deletion fixes. The [2026-10-14 review](security-audit-2026-10-14.md) records current fixes, secret/dependency checks and release limits. The [2026-10-08 audit](performance-security-audit-2026-10-08.md) records earlier regressions, external-service checks and product decisions.
 
 ## Shared request and access rules
 

@@ -29,14 +29,16 @@ Handled application errors use `application/problem+json` with `status`, `title`
 | HTTP | Typical code | Meaning |
 | --- | --- | --- |
 | 400 | VALIDATION_FAILED | Invalid body, parameters, units, formula or mapping |
+| 400 | USERNAME_INVALID / USERNAME_RESERVED / DISPLAY_NAME_INVALID | Account identity rules (see [security model](architecture/security.md#account-identity-rules)); `errors.username` / `errors.displayName` carry the field message |
 | 401 | UNAUTHENTICATED | Missing, expired or invalid token |
 | 403 | ONBOARDING_REQUIRED / ACCOUNT_DISABLED / FEATURE_UNAVAILABLE / ADMIN_PERMISSION_REQUIRED | Caller cannot perform the operation |
 | 404 | RESOURCE_NOT_FOUND | Missing resource; foreign private resources use the same response |
 | 409 | CONFLICT / VERSION_CONFLICT / IDEMPOTENCY_CONFLICT / LIMIT_EXCEEDED | Domain conflict, catalog/access version conflict, mismatched retry or Training quota |
+| 409 | USERNAME_TAKEN / OFFER_PUBLISHED | Username already owned (case-insensitive); deleting an offer that was published (archive it instead) |
 | 412 | VERSION_CONFLICT | Stale profile, Training, Media or Analysis version |
 | 413 / 415 | LIMIT_EXCEEDED / UNSUPPORTED_MEDIA_TYPE | Oversized CSV or wrong upload content type |
 | 428 | VERSION_REQUIRED / PRECONDITION_REQUIRED / IF_MATCH_REQUIRED | Required version header is missing or invalid for that module |
-| 429 | RATE_LIMIT_EXCEEDED / LIMIT_EXCEEDED | Per-instance request rate or global Media/Analysis quota |
+| 429 | RATE_LIMIT_EXCEEDED / LIMIT_EXCEEDED | Per-instance request rate (with `Retry-After`) or global Media/Analysis quota |
 | 503 | DATABASE_UNAVAILABLE / INTEGRATION_UNAVAILABLE / ANALYZER_NOT_CONFIGURED | A dependency is unavailable |
 
 HTTP server limits may reject requests before application error handling. A successful 202 means accepted work, not completion; 204 has no body. Do not call `response.json()` for empty 202/204 responses or CSV/PDF bytes.
@@ -178,7 +180,7 @@ Replaces editable profile settings: display name, locale and time zone.
 - **Query:** None.
 - **Body:** [UpdateProfileRequest](api-types.md#updateprofilerequest) (application/json).
 - **Returns:** **200** — [ProfileResponse](api-types.md#profileresponse).
-- **Behavior:** Requires If-Match; returns ETag. Username and birth date are not editable here. Missing version: 428 PRECONDITION_REQUIRED; stale version: 412 VERSION_CONFLICT.
+- **Behavior:** Requires If-Match; returns ETag. Username and birth date are not editable here. The display name is stored normalised (NFC, trimmed, single spaces); hidden or control characters return 400 DISPLAY_NAME_INVALID. Missing version: 428 PRECONDITION_REQUIRED; stale version: 412 VERSION_CONFLICT.
 
 ### `PUT /api/v1/me/onboarding`
 
@@ -188,7 +190,7 @@ Completes coach onboarding and assigns the server-owned Coach role.
 - **Query:** None.
 - **Body:** [OnboardingRequest](api-types.md#onboardingrequest) (application/json).
 - **Returns:** **200** — [ProfileResponse](api-types.md#profileresponse).
-- **Behavior:** Requires age 18+, acceptedTerms=true and valid username/locale/timeZone. Returns ETag. Repeating the same username and birth date is safe; it returns the existing profile without overwriting settings. A different identity conflicts.
+- **Behavior:** Requires age 18+, acceptedTerms=true and valid username/locale/timeZone. Returns ETag. Repeating the same username and birth date is safe; it returns the existing profile without overwriting settings. A different identity conflicts (409 CONFLICT); a username owned by someone else returns 409 USERNAME_TAKEN. Rate-limited to 10 calls per user per minute (also `PUT /api/v1/me/roles/coach/onboarding`).
 
 ## Access
 
@@ -819,6 +821,23 @@ Returns two owned completed results after checking compatibility.
 - **Body:** None.
 - **Returns:** **200** — [AnalysisComparison](api-types.md#analysiscomparison).
 - **Behavior:** leftId/rightId are required; optional repetition numbers select individual repetitions. maxPoints=1000 (2..5000) applies to each result. It returns left/right results, not a computed difference score.
+
+### `GET | POST | DELETE /api/v1/analyses/{id}/share`
+
+Read-only link to one completed analysis, owned by its creator.
+
+- **Access:** Signed in; only the analysis owner (others get 404).
+- **Body:** None.
+- **Returns:** GET **200** `{ token, createdAt }` or **204** when no link is active; POST **200** `{ token, createdAt }`; DELETE **204**.
+- **Behavior:** POST returns the active link or creates one (32 random bytes, URL-safe, 43 characters); a unique partial index keeps one active link per analysis, and a parallel create returns the winner. Only `Completed` analyses can be shared (409 ANALYSIS_NOT_COMPLETED). DELETE revokes the active link; the token then answers 404 for everyone. Sharing again issues a new token.
+
+### `GET /api/v1/analyses/shared/{token}` · `GET …/result` · `POST …/video-url`
+
+What a link's recipient can read.
+
+- **Access:** Any signed-in user who has the token. No library or analysis feature is required.
+- **Returns:** metadata `{ name, configuration, createdAt, completedAt, hasVideo, sourceVideo }`; the [AnalysisResult](api-types.md#analysisresult) (`repetition`, `maxPoints` as above); a short-lived signed video URL `{ url, expiresAt }`.
+- **Behavior:** Unknown, malformed and revoked tokens all return 404. Notes, tags and the owner's other analyses are never exposed. Signed-download limits are charged to the viewer. Nothing can be changed through a link.
 
 ## OpenAPI document
 

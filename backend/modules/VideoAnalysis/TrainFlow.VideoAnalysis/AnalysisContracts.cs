@@ -6,8 +6,9 @@ namespace TrainFlow.VideoAnalysis;
 
 public sealed class AnalysisOptions
 {
-    // Zero leaves admission unrestricted; operators can opt into a capacity guard.
-    public int MaxConcurrentPerOwner { get; set; } = 0;
+    // Technical safety limits are identical for Free and Pro.
+    public int MaxConcurrentPerOwner { get; set; } = 2;
+    public int MaxQueuedJobs { get; set; } = 100;
     public int MaxAttempts { get; set; } = 3;
     public int LeaseSeconds { get; set; } = 60;
     public int HeartbeatSeconds { get; set; } = 15;
@@ -19,10 +20,15 @@ public sealed class AnalysisOptions
 
 public sealed record AnalysisTrackingPoint(double X, double Y);
 public sealed record AnalysisTracking(double TimestampSeconds, int VideoWidth, int VideoHeight, AnalysisTrackingPoint[] Points);
+/// <summary>Movement is what the engine understands (squat, bench press, deadlift or unspecified); Exercise is the
+/// catalog exercise the coach chose, shown as the label (any exercise, not only the three engine movements).</summary>
 public sealed record AnalysisConfiguration(double? MetersPerPixel = null, string Movement = "unspecified",
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] AnalysisTracking? Tracking = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] AnalysisTracking? Tracking = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Exercise = null);
 public sealed record CreateAnalysisRequest(string Name, string? Note, string[] Tags, Guid MediaId, AnalysisConfiguration Configuration);
-public sealed record UpdateAnalysisRequest(string Name, string? Note, string[] Tags);
+/// <summary>Movement null keeps the movement and exercise; otherwise both are replaced (a null Exercise clears it).
+/// It relabels the analysis; the result is not recalculated.</summary>
+public sealed record UpdateAnalysisRequest(string Name, string? Note, string[] Tags, string? Movement = null, string? Exercise = null);
 public sealed record AnalysisPhase(string Kind, double StartSeconds, double EndSeconds,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] double? MeanSpeed = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] double? PeakSpeed = null);

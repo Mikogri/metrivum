@@ -1,7 +1,11 @@
-import { FileText, Plus } from "lucide-react";
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Forms — TrainFlow");
+
+import { ClipboardCheck, FileText, Plus } from "lucide-react";
 import { Link, Navigate } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Button, DataTable, LinkButton, EmptyState, Option, PageHeader, SearchInput, Select, Toolbar, toast } from "@trainflow/ui-web";
+import { Badge, Button, DataTable, LinkButton, EmptyState, Option, PageHeader, SearchInput, Select, Toolbar, toast } from "@trainflow/ui-web";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useAccessSnapshot } from "~/shared/access";
 import { useCoachingMutation, useCoachingQuery, type Page } from "../api";
@@ -10,16 +14,28 @@ import { CardGrid, ListCard } from "~/shared/library/DataView";
 import { LibraryViewToggle, useLibraryView } from "~/shared/library/LibraryViewToggle";
 import styles from "../coaching.module.css";
 
+function questionCount(form: Schema<"FormSummaryDto">) {
+  const count = form.questionCount;
+  return `${count} ${count === 1 ? "question" : "questions"}`;
+}
+
+/** What a form is for, with its own colour and icon: an offer's application form, or a check-in. */
+function kind(form: Schema<"FormSummaryDto">) {
+  return form.purpose === "CheckIn"
+    ? { label: "Check-in form", tone: "violet" as const, badge: "violet" as const, icon: <ClipboardCheck /> }
+    : { label: "Offer application form", tone: "blue" as const, badge: "info" as const, icon: <FileText /> };
+}
+
 export default function Forms() {
   const [state, update] = useUrlState({ purpose: "Application", q: "", page: "1", sort: "updated", archived: "false", create: "", view: "list" });
   const view = useLibraryView(state.view);
   const restore = useCoachingMutation(() => toast({ tone: "success", title: "Form restored" }));
-  const restoreForm = (form: Schema<"FormTemplateDto">) => restore.mutate({ method: "POST", path: `/api/v1/forms/${form.id}/restore`, ifMatch: form.version });
+  const restoreForm = (form: Schema<"FormSummaryDto">) => restore.mutate({ method: "POST", path: `/api/v1/forms/${form.id}/restore`, ifMatch: form.version });
   const access = useAccessSnapshot();
   const purpose = state.purpose === "CheckIn" ? "CheckIn" : "Application";
   const allowed = access.data?.features.some((f) => f.key === (purpose === "Application" ? "forms.application.manage" : "forms.checkin.manage") && f.available) === true;
   const createHref = `/app/forms/new?purpose=${purpose}`;
-  const list = useCoachingQuery<Page<Schema<"FormTemplateDto">>>("/api/v1/forms", { purpose, search: state.q || undefined, sort: state.sort, archived: state.archived === "true", page: pageFromParam(state.page), pageSize: 20 }, allowed);
+  const list = useCoachingQuery<Page<Schema<"FormSummaryDto">>>("/api/v1/forms/summaries", { purpose, search: state.q || undefined, sort: state.sort, archived: state.archived === "true", page: pageFromParam(state.page), pageSize: 20 }, allowed);
   // Older links open the builder screen directly.
   if (state.create === "1") return <Navigate to={createHref} replace />;
   return <><PageHeader title="Forms" description="Create application questionnaires and recurring check-in forms." actions={allowed && <LinkButton href={createHref} variant="primary" iconStart={<Plus />}>Create form</LinkButton>} />
@@ -31,8 +47,9 @@ export default function Forms() {
     </Toolbar>
     <MutationError error={restore.error} />
     {access.isPending ? <Loading /> : !allowed ? <EmptyState title="Form management is unavailable" description="Your current account needs access to manage this type of form." /> : list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : !list.data.items.length ? <EmptyState title={state.archived === "true" ? "No archived forms" : state.q ? "No matching forms" : "Build your first form"} description={state.archived === "true" ? "Archived forms appear here and can be restored anytime." : "Start with a few questions. Publish when it is ready to use in an offer or check-in."} actions={<LinkButton href={createHref} variant="primary" iconStart={<Plus />}>Create form</LinkButton>} /> : <>
-      {view === "cards" ? <CardGrid label="Forms">{list.data.items.map((f) => <ListCard key={f.id} href={`/app/forms/${f.id}`} title={f.name} icon={<FileText />} tone={purpose === "Application" ? "blue" : "violet"} badge={<StatusBadge status={f.archived ? "Archived" : f.currentPublishedVersionId ? "Published" : "Draft"} />} description={f.description || undefined} meta={[`Updated ${new Date(f.updatedAt).toLocaleDateString()}`]} actions={f.archived ? <Button size="sm" loading={restore.isPending && restore.variables?.path === `/api/v1/forms/${f.id}/restore`} isDisabled={restore.isPending} onPress={() => restoreForm(f)}>Restore form</Button> : undefined} />)}</CardGrid>: <DataTable label="Forms" rows={list.data.items} rowKey={(f) => f.id} columns={[
+      {view === "cards" ? <CardGrid label="Forms">{list.data.items.map((f) => <ListCard key={f.id} href={`/app/forms/${f.id}`} title={f.name} subtitle={kind(f).label} icon={kind(f).icon} tone={kind(f).tone} badge={<StatusBadge status={f.archived ? "Archived" : f.currentPublishedVersionId ? "Published" : "Draft"} />} description={f.description || "No description yet. Add one in the builder to tell this form apart from your other forms."} meta={[questionCount(f), `Updated ${new Date(f.updatedAt).toLocaleDateString([], { dateStyle: "medium" })}`]} actions={f.archived ? <Button size="sm" loading={restore.isPending && restore.variables?.path === `/api/v1/forms/${f.id}/restore`} isDisabled={restore.isPending} onPress={() => restoreForm(f)}>Restore form</Button> : undefined} />)}</CardGrid>: <DataTable label="Forms" rows={list.data.items} rowKey={(f) => f.id} columns={[
         { id: "name", header: "Form", cell: (f) => <Link data-row-link to={`/app/forms/${f.id}`}>{f.name}</Link> },
+        { id: "type", header: "Type", cell: (f) => <Badge tone={kind(f).badge} icon={kind(f).icon}>{kind(f).label}</Badge> },
         { id: "description", header: "Description", cell: (f) => f.description, muted: true, hideOnMobile: true },
         { id: "status", header: "Status", cell: (f) => <StatusBadge status={f.archived ? "Archived" : f.currentPublishedVersionId ? "Published" : "Draft"} /> },
         { id: "updated", header: "Updated", cell: (f) => new Date(f.updatedAt).toLocaleDateString(), hideOnMobile: true },

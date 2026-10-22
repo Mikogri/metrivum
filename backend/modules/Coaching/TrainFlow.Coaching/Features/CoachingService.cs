@@ -195,6 +195,8 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
         ValidateList(request);
         if (request.GroupIds.Length > 0)
             throw ApiException.Invalid("Client lists do not support private group filters.");
+        if (request.OfferId != null || request.OfferCategory != null)
+            throw ApiException.Invalid("Client lists do not support offer filters.");
         var query = await FilterAsync(db.Relationships.AsNoTracking().Where(x => x.ClientId == identity.UserId), request, true, ct);
         var total = await query.LongCountAsync(ct);
         var rows = await Order(query, request.Sort).Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToArrayAsync(ct);
@@ -388,6 +390,24 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
             query = query.Where(x => x.Status == request.Status);
         if (request.GroupIds.Length > 0)
             query = query.Where(x => db.Memberships.Any(m => m.RelationshipId == x.Id && request.GroupIds.Contains(m.GroupId)));
+        if (request.OfferId != null || !string.IsNullOrWhiteSpace(request.OfferCategory))
+        {
+            // The offer a client is on is the snapshot kept with their service: the active one, or the latest.
+            var scope = query.Select(x => x.Id);
+            var services = await db.Services.AsNoTracking().Where(s => scope.Contains(s.RelationshipId))
+                .Select(s => new { s.RelationshipId, s.Status, s.UpdatedAt, s.OfferSnapshot }).ToArrayAsync(ct);
+            var matching = services.GroupBy(s => s.RelationshipId)
+                .Select(g => g.OrderByDescending(s => s.Status == ServiceStatus.Active).ThenByDescending(s => s.UpdatedAt).First())
+                .Where(s =>
+                {
+                    using var snapshot = System.Text.Json.JsonDocument.Parse(s.OfferSnapshot);
+                    var offer = snapshot.RootElement;
+                    return (request.OfferId == null || offer.TryGetProperty("offerId", out var id) && id.TryGetGuid(out var value) && value == request.OfferId)
+                        && (string.IsNullOrWhiteSpace(request.OfferCategory) || offer.TryGetProperty("category", out var category) && category.GetString() == request.OfferCategory);
+                })
+                .Select(s => s.RelationshipId).ToArray();
+            query = query.Where(x => matching.Contains(x.Id));
+        }
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var ids = await query.Select(x => client ? x.CoachId : x.ClientId).Distinct().ToArrayAsync(ct);
@@ -505,6 +525,9 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
         Text(request.Search, 200);
         if (request.Status.HasValue && !Enum.IsDefined(request.Status.Value))
             throw ApiException.Invalid("Invalid relationship status.");
+        Text(request.OfferCategory, 60);
+        if (request.OfferId == Guid.Empty)
+            throw ApiException.Invalid("Invalid offer ID.");
         if (request.GroupIds.Length > 50 || request.GroupIds.Contains(Guid.Empty))
             throw ApiException.Invalid("Use at most 50 nonempty group IDs.");
     }

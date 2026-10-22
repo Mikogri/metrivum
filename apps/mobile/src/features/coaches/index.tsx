@@ -451,7 +451,7 @@ function ApplicationEditor({
                         </Text>
                         <Text variant="caption" tone="mutedText">
                             {joinParts(
-                                `${detail.application.amount} ${detail.application.currency}`,
+                                detail.application.amount === 0 ? "Free" : `${detail.application.amount} ${detail.application.currency}`,
                                 selectedOption?.validityDays
                                     ? `valid ${selectedOption.validityDays} days from payment`
                                     : "no fixed expiry",
@@ -472,7 +472,7 @@ function ApplicationEditor({
                     />
                 </Section>
             )}
-            {conflict && (
+            {conflict && detail.formVersion && (
                 <Section title="The saved version changed">
                     <Text variant="caption" tone="warning">
                         These are the answers on the server. Your own draft is
@@ -507,7 +507,7 @@ function ApplicationEditor({
                     />
                 </Section>
             )}
-            <AnswerFields
+            {detail.formVersion ? <AnswerFields
                 key={detail.formVersion.id}
                 definition={detail.formVersion.definition}
                 answers={answers}
@@ -519,7 +519,7 @@ function ApplicationEditor({
                     localWrites.current = drafts.put(key, next, version);
                     void localWrites.current.catch(setError);
                 }}
-            />
+            /> : <Section><Text>No application form is required. Review the offer and submit when ready.</Text></Section>}
             {can("submit") && (
                 <Section>
                     <ListItem

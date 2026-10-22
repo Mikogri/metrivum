@@ -19,6 +19,79 @@ namespace TrainFlow.IntegrationTests;
 public sealed class FormsTests
 {
     [CatalogPostgresFact]
+    public async Task Summaries_page_owned_forms_with_question_counts_without_draft_payloads()
+    {
+        var owner = Guid.NewGuid();
+        await using var provider = Provider(owner);
+        await using var scope = provider.CreateAsyncScope();
+        var forms = scope.ServiceProvider.GetRequiredService<FormsService>();
+        var first = await forms.CreateAsync(Request("Summary Alpha"), default);
+        var second = await forms.CreateAsync(Request("Summary Beta") with { Draft = new([
+            new("main", "Main", 0, [new("weight", "Weight", QuestionType.Number, true), new("notes", "Notes", QuestionType.ShortText, false)]),
+            new("extra", "Extra", 1, [new("sleep", "Sleep", QuestionType.Number, false)])]) }, default);
+        var archived = await forms.CreateAsync(Request("Summary Archived"), default);
+        await forms.ArchiveAsync(archived.Id, true, archived.Version, default);
+        await forms.CreateAsync(new(FormPurpose.CheckIn, "Summary Check-in", "Private check-in",
+            new([new("main", "Main", 0, [new("sleep", "Sleep", QuestionType.Number)])])), default);
+        await using var stranger = Provider(Guid.NewGuid());
+        await using var strangerScope = stranger.CreateAsyncScope();
+        await strangerScope.ServiceProvider.GetRequiredService<FormsService>().CreateAsync(Request("Summary Other"), default);
+        var page = await forms.SummariesAsync(2, 1, FormPurpose.Application, false, "summary", "name", default);
+        Assert.Equal(2, page.Total);
+        var item = Assert.Single(page.Items);
+        Assert.Equal(second.Id, item.Id);
+        Assert.Equal(3, item.QuestionCount);
+        Assert.Equal(second.Version, item.Version);
+        Assert.Equal(first.Id, Assert.Single((await forms.SummariesAsync(1, 1, FormPurpose.Application, false, "summary", "name", default)).Items).Id);
+        var json = JsonSerializer.SerializeToElement(page, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        Assert.False(json.GetProperty("items")[0].TryGetProperty("draft", out _));
+        Assert.Equal(3, json.GetProperty("items")[0].GetProperty("questionCount").GetInt32());
+        Assert.Equal(archived.Id, Assert.Single((await forms.SummariesAsync(1, 20, FormPurpose.Application, true, "summary", "updated", default)).Items).Id);
+        var database = scope.ServiceProvider.GetRequiredService<FormsDbContext>();
+        var tiedAt = DateTimeOffset.UtcNow;
+        await database.Templates.Where(x => x.Id == first.Id || x.Id == second.Id).ExecuteUpdateAsync(set => set.SetProperty(x => x.Name, "Summary Tie").SetProperty(x => x.UpdatedAt, tiedAt));
+        var ordered = new[] { first.Id, second.Id }.Order().ToArray();
+        foreach (var sort in new[] { "name", "updated" })
+        {
+            Assert.Equal(ordered[0], Assert.Single((await forms.SummariesAsync(1, 1, FormPurpose.Application, false, "summary", sort, default)).Items).Id);
+            Assert.Equal(ordered[1], Assert.Single((await forms.SummariesAsync(2, 1, FormPurpose.Application, false, "summary", sort, default)).Items).Id);
+        }
+        Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => forms.SummariesAsync(1, 101, FormPurpose.Application, false, null, "name", default))).Status);
+        await using var denied = Provider(owner, false);
+        await using var deniedScope = denied.CreateAsyncScope();
+        Assert.Equal(403, (await Assert.ThrowsAsync<ApiException>(() => deniedScope.ServiceProvider.GetRequiredService<FormsService>()
+            .SummariesAsync(1, 20, FormPurpose.Application, false, null, "name", default))).Status);
+        Assert.NotNull((await forms.DetailAsync(second.Id, default)).Draft);
+    }
+
+    [CatalogPostgresFact]
+    public async Task Mcp_form_adapter_creates_private_checkin_draft_without_publication()
+    {
+        var user = Guid.NewGuid();
+        await using var provider = Provider(user);
+        await using var scope = provider.CreateAsyncScope();
+        var adapter = new McpFormOperations(scope.ServiceProvider.GetRequiredService<FormsService>());
+        var definition = new FormDefinition([new("main", "Daily check-in", 0,
+            [new("sleep", "Sleep hours", QuestionType.Number, true, Min: 0, Max: 24)])]);
+        var draft = await adapter.CreateDraftAsync(new("AI check-in draft", "Private review", definition), default);
+        Assert.False(draft.Published);
+        Assert.Equal(1, draft.Revision);
+        Assert.Equal($"/app/forms/{draft.Id}", draft.EditorPath);
+        var db = scope.ServiceProvider.GetRequiredService<FormsDbContext>();
+        var stored = await db.Templates.AsNoTracking().SingleAsync(x => x.Id == draft.Id);
+        Assert.Equal(user, stored.CoachId);
+        Assert.Equal(FormPurpose.CheckIn, stored.Purpose);
+        Assert.Null(stored.CurrentPublishedVersionId);
+        Assert.False(await db.Versions.AnyAsync(x => x.TemplateId == draft.Id));
+        var fetched = await adapter.GetAsync(draft.Id, default);
+        Assert.Equal("sleep", fetched.Definition.Sections.Single().Questions.Single().Key);
+        await using var strangerProvider = Provider(Guid.NewGuid());
+        await using var strangerScope = strangerProvider.CreateAsyncScope();
+        var stranger = new McpFormOperations(strangerScope.ServiceProvider.GetRequiredService<FormsService>());
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => stranger.GetAsync(draft.Id, default))).Status);
+    }
+
+    [CatalogPostgresFact]
     public async Task Http_routes_enforce_identity_role_strong_etags_and_profile_privacy()
     {
         using var original = new ApiFactory(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"));
@@ -49,6 +122,14 @@ public sealed class FormsTests
         Assert.Equal(HttpStatusCode.OK, created.StatusCode);
         Assert.Equal("\"1\"", created.Headers.ETag?.Tag);
         var form = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        var summaries = await owner.GetFromJsonAsync<JsonElement>("/api/v1/forms/summaries?purpose=Application");
+        var summary = Assert.Single(summaries.GetProperty("items").EnumerateArray());
+        Assert.Equal(form, summary.GetProperty("id").GetGuid());
+        Assert.Equal(1, summary.GetProperty("questionCount").GetInt32());
+        Assert.False(summary.TryGetProperty("draft", out _));
+        Assert.Empty((await stranger.GetFromJsonAsync<JsonElement>("/api/v1/forms/summaries?purpose=Application")).GetProperty("items").EnumerateArray());
+        Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().GetAsync("/api/v1/forms/summaries?purpose=Application")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/forms/summaries?purpose=Application")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await stranger.GetAsync($"/api/v1/forms/{form}")).StatusCode);
         Assert.Equal((HttpStatusCode)428, (await owner.PostAsync($"/api/v1/forms/{form}/publish", null)).StatusCode);
         using var weak = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/forms/{form}/publish");

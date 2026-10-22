@@ -9,7 +9,7 @@ public sealed record SkipWorkoutRequest(string? Reason);
 public sealed record AssignmentBatchDto(Guid Id, AssignmentDto[] Assignments);
 public sealed record AssignmentRecipientDto(Guid Id, Guid ClientId, string DisplayName, string? Username);
 public sealed record AssignmentDto(Guid Id, Guid RelationshipId, Guid ProgramId, string ProgramName, Guid OriginalRevisionId, Guid EffectiveRevisionId,
-    DateOnly StartDate, string TimeZone, AssignmentStatus Status, string Source, Guid? GroupAssignmentId, long Version, string[] AllowedActions);
+    DateOnly StartDate, string TimeZone, AssignmentStatus Status, string Source, Guid? GroupAssignmentId, long Version, string[] AllowedActions, Guid? ClientId = null, string? ClientDisplayName = null, string? ClientUsername = null);
 public sealed record OccurrenceDto(Guid Id, Guid AssignmentId, Guid RelationshipId, Guid ProgramId, string ProgramName, Guid RevisionId,
     Guid BlockId, Guid CycleId, Guid DayId, Guid WorkoutId, string Name, DateOnly ScheduledDate, DateTimeOffset Deadline,
     string Status, Guid? ExecutionId, bool LoggedLate, string[] AllowedActions, DateOnly? PerformedDate = null, int? DurationSeconds = null, bool HasComment = false, int? ExerciseCount = null);

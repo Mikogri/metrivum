@@ -11,6 +11,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
         label: m.nav.groups.general,
         items: [
           { to: "/app/my-training", label: "Training", icon: ProgramsIcon },
+          { to: "/app/exercises", label: m.nav.exercises, icon: ExercisesIcon },
           { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
           { to: "/app/messages", label: "Messages", icon: MessagesIcon },
         ],
@@ -35,6 +36,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
               label: "Progress",
               items: [
                 { to: "/app/my-check-ins", label: "Check-ins", icon: CheckInsIcon },
+                { to: "/app/my-analyses", label: "Coach analyses", icon: VideoAnalysesIcon },
                 { to: "/app/my-documents", label: "Shared documents", icon: DocumentsIcon },
                 { to: "/app/payments", label: "Payments", icon: PaymentsIcon },
               ],
@@ -77,6 +79,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
         { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
         { to: "/app/messages", label: "Messages", icon: MessagesIcon },
         { to: "/app/team", label: "Team", icon: ClientsIcon },
+        // Temporary design page (see routes.ts).
       ],
     },
   ];

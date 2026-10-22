@@ -29,6 +29,9 @@ namespace TrainFlow.Media.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Bucket")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -74,6 +77,9 @@ namespace TrainFlow.Media.Infrastructure.Migrations
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("Video");
 
+                    b.Property<long>("ReservedStorageBytes")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
 
@@ -93,6 +99,8 @@ namespace TrainFlow.Media.Infrastructure.Migrations
 
                     b.HasIndex("Bucket", "ObjectKey")
                         .IsUnique();
+
+                    b.HasIndex("OwnerId", "AcceptedAt");
 
                     b.HasIndex("State", "DeleteAfter");
 

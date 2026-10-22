@@ -1,8 +1,10 @@
-import { Eraser, Pause, RefreshCcw, Scan, Undo2, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeftToLine, ArrowRightToLine, Check, Crosshair, Eraser, RotateCcw, Scan, Scissors, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Slider, SliderThumb, SliderTrack } from "react-aria-components";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { AnalysisTracking } from "@trainflow/api-client-web";
 import { Alert, Button, IconButton } from "@trainflow/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
+import type { VideoTrim } from "../local-analysis";
 import styles from "./TrackingPicker.module.css";
 
 export type TrackingSelection = AnalysisTracking;
@@ -15,8 +17,16 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
  * frozen it can be zoomed (wheel, buttons, + / −) and panned by dragging, so points land precisely;
  * clicks map back through the zoom because the overlay is scaled together with the video.
  */
-export function TrackingPicker({ src, value, onChange, disabled = false }: {
+const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(1).padStart(4, "0")}`;
+
+export function TrackingPicker({ src, value, onChange, disabled = false, onMetadata, compact = false, trim = null, onTrimChange }: {
   src: string; value: TrackingSelection | null; onChange: (value: TrackingSelection | null) => void; disabled?: boolean;
+  onMetadata?: (metadata: { durationSeconds: number; width: number; height: number }) => void;
+  /** Tall (portrait) layout: only the video and its tools, the explanations live beside it. */
+  compact?: boolean;
+  /** Only this part is analyzed; playback stays inside it. Null: the whole video. */
+  trim?: VideoTrim | null;
+  onTrimChange?: (trim: VideoTrim | null) => void;
 }) {
   const t = useT().video.new.tracking;
   const video = useRef<HTMLVideoElement>(null);
@@ -24,9 +34,13 @@ export function TrackingPicker({ src, value, onChange, disabled = false }: {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [keyboard, setKeyboard] = useState({ x: 50, y: 50 });
+  const [duration, setDuration] = useState(0);
+  const [now, setNow] = useState(0);
   const [view, setView] = useState({ z: 1, x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
-  const invalidate = () => { if (value) onChange(null); };
+  // Coming back to a video that already has points: seek to their frame instead of clearing them.
+  const restoring = useRef(false);
+  const invalidate = () => { if (value && !restoring.current) onChange(null); };
 
   // Zoom only applies to a frozen frame; playing the video always shows all of it.
   useEffect(() => { if (!value) setView({ z: 1, x: 0, y: 0 }); }, [value]);
@@ -103,7 +117,7 @@ export function TrackingPicker({ src, value, onChange, disabled = false }: {
   };
 
   // One column: a header with the live status, the video as large as the panel allows, one toolbar under it.
-  return <section className={styles.picker} aria-label={t.title}>
+  return <section className={styles.picker} aria-label={t.title} data-compact={compact || undefined}>
     <div className={styles.head}>
       <h3>{t.title}</h3>
       <p role="status" className={styles.status} data-missing={(value && needed > 0) || undefined} data-done={(value && needed === 0) || undefined}>
@@ -114,9 +128,27 @@ export function TrackingPicker({ src, value, onChange, disabled = false }: {
     <div ref={frame} className={styles.frame} data-zoomed={view.z > 1 || undefined}>
       <div ref={stage} className={styles.stage} style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})`, "--z": view.z } as React.CSSProperties}>
         <video ref={video} src={src} controls={!value && !disabled} playsInline preload="auto"
-          onLoadedData={() => { setReady(true); setFailed(false); onChange(null); }}
-          onSeeking={invalidate} onPlay={invalidate}
-          onTimeUpdate={(event) => { if (value && Math.abs(event.currentTarget.currentTime - value.timestampSeconds) > 0.001) invalidate(); }}
+          onLoadedData={event => {
+            setReady(true); setFailed(false);
+            const video = event.currentTarget;
+            if (Number.isFinite(video.duration)) setDuration(video.duration);
+            if (value && value.videoWidth === video.videoWidth && value.videoHeight === video.videoHeight) {
+              restoring.current = true;
+              video.currentTime = value.timestampSeconds;
+            } else onChange(null);
+            if (Number.isFinite(video.duration) && video.duration > 0)
+              onMetadata?.({ durationSeconds: video.duration, width: video.videoWidth, height: video.videoHeight });
+          }}
+          onSeeking={invalidate}
+          onSeeked={() => { restoring.current = false; }}
+          onTimeUpdate={(event) => {
+            const player = event.currentTarget;
+            setNow(player.currentTime);
+            if (value && Math.abs(player.currentTime - value.timestampSeconds) > 0.001) invalidate();
+            // Playback stays inside the trimmed part.
+            if (trim && !value && !player.paused && player.currentTime >= trim.endSeconds) { player.pause(); player.currentTime = trim.endSeconds; }
+          }}
+          onPlay={(event) => { invalidate(); const player = event.currentTarget; if (trim && (player.currentTime < trim.startSeconds || player.currentTime >= trim.endSeconds - 0.05)) player.currentTime = trim.startSeconds; }}
           onError={() => { setReady(false); setFailed(true); onChange(null); }} />
         {value ? <div role="button" tabIndex={disabled ? -1 : 0} aria-label={t.canvas} aria-disabled={disabled || value.points.length === 2}
           className={styles.overlay} data-full={value.points.length === 2 || undefined}
@@ -139,16 +171,28 @@ export function TrackingPicker({ src, value, onChange, disabled = false }: {
             else if (event.key === "-") { event.preventDefault(); zoomTo(view.z * 0.8); }
           }}>
           <span className={styles.crosshair} style={{ left: `${keyboard.x}%`, top: `${keyboard.y}%` }}>+</span>
-          {value.points.map((point, index) => <span key={index} className={styles.marker} style={{ left: `${point.x / value.videoWidth * 100}%`, top: `${point.y / value.videoHeight * 100}%` }} />)}
+          {value.points.map((point, index) => <span key={index} className={styles.marker} style={{ left: `${point.x / value.videoWidth * 100}%`, top: `${point.y / value.videoHeight * 100}%` }}><span className={styles.markerNo}>{index + 1}</span></span>)}
         </div> : null}
       </div>
+      {/* On the video itself: the one next step, as small as the marking guide that follows it. */}
+      {ready && !value && !disabled ? <button type="button" className={styles.freezeChip} onClick={freeze}>
+        <Crosshair aria-hidden="true" />Freeze frame<span className={styles.freezeHint}>where the bar is clearly visible</span>
+      </button> : null}
+      {value && !disabled ? <div className={styles.onVideo}>
+        <p className={styles.guide} data-done={needed === 0 || undefined} aria-hidden="true">
+          {needed === 0 ? <><Check />{t.guideDone}</> : <><span className={styles.guideStep}>{3 - needed}</span>{t.guide(3 - needed)}</>}
+        </p>
+        <button type="button" className={styles.cancelChip} onClick={freeze}><X aria-hidden="true" />Cancel</button>
+      </div> : null}
     </div>
 
-    <div className={styles.toolbar}>
+    {/* One control bar: frame and point tools on the left, zoom on the right. */}
+    <div className={styles.controls}>
       <div className={styles.group} role="group" aria-label={t.frameTools}>
-        <Button size="sm" variant={value ? "secondary" : "primary"} iconStart={value ? <RefreshCcw /> : <Pause />} isDisabled={disabled || !ready} onPress={freeze}>
-          {value ? t.changeFrame : t.freeze}
+        <Button size="sm" variant={value ? "ghost" : "secondary"} iconStart={value ? <X /> : <Crosshair />} isDisabled={disabled || !ready} onPress={freeze}>
+          {value ? "Cancel" : compact ? "Freeze" : t.freeze}
         </Button>
+        <span className={styles.divider} aria-hidden="true" />
         <IconButton size="sm" variant="ghost" icon={<Undo2 />} label={t.undo} isDisabled={disabled || !value?.points.length} onPress={() => value && onChange({ ...value, points: value.points.slice(0, -1) })} />
         <IconButton size="sm" variant="ghost" icon={<Eraser />} label={t.clear} isDisabled={disabled || !value?.points.length} onPress={() => value && onChange({ ...value, points: [] })} />
       </div>
@@ -159,10 +203,47 @@ export function TrackingPicker({ src, value, onChange, disabled = false }: {
         <IconButton size="sm" variant="ghost" icon={<Scan />} label={t.zoomFit} isDisabled={!frozen || view.z <= 1} onPress={() => setView({ z: 1, x: 0, y: 0 })} />
       </div>
     </div>
+    {onTrimChange && duration > 0 ? <div className={styles.trim} role="group" aria-label="Trim video" data-trimmed={trim ? "" : undefined}>
+      <div className={styles.trimHead}>
+        <span className={styles.trimLabel}><Scissors aria-hidden="true" />{trim ? "Trimmed" : "Trim"}</span>
+        <span className={styles.trimTimes}>
+          <span>{clock(trim?.startSeconds ?? 0)}</span><span aria-hidden="true">→</span><span>{clock(trim?.endSeconds ?? duration)}</span>
+          <small>{((trim?.endSeconds ?? duration) - (trim?.startSeconds ?? 0)).toFixed(1)} s</small>
+        </span>
+        <span className={styles.trimActions}>
+          <IconButton size="sm" variant="ghost" icon={<ArrowLeftToLine />} label="Start at the playhead" isDisabled={disabled || now >= (trim?.endSeconds ?? duration) - 0.5}
+            onPress={() => onTrimChange({ startSeconds: Math.round(now * 100) / 100, endSeconds: trim?.endSeconds ?? duration })} />
+          <IconButton size="sm" variant="ghost" icon={<ArrowRightToLine />} label="End at the playhead" isDisabled={disabled || now <= (trim?.startSeconds ?? 0) + 0.5}
+            onPress={() => onTrimChange({ startSeconds: trim?.startSeconds ?? 0, endSeconds: Math.round(now * 100) / 100 })} />
+          <IconButton size="sm" variant="ghost" icon={<RotateCcw />} label="Whole video" isDisabled={disabled || !trim} onPress={() => onTrimChange(null)} />
+        </span>
+      </div>
+      <Slider aria-label="Part of the video to analyze" className={styles.trimSlider} minValue={0} maxValue={duration} step={0.05} isDisabled={disabled}
+        value={[trim?.startSeconds ?? 0, trim?.endSeconds ?? duration]}
+        onChange={(range) => {
+          const [start, end] = range as number[];
+          if (end! - start! < 0.5) return;
+          const whole = start! <= 0.01 && end! >= duration - 0.01;
+          onTrimChange(whole ? null : { startSeconds: Math.round(start! * 100) / 100, endSeconds: Math.round(end! * 100) / 100 });
+          const player = video.current;
+          if (player && !value) player.currentTime = range[0] !== (trim?.startSeconds ?? 0) ? start! : end!;
+        }}>
+        <SliderTrack className={styles.trimTrack}>
+          {({ state }) => <>
+            <span className={styles.trimShade} style={{ left: 0, width: `${state.getThumbPercent(0) * 100}%` }} />
+            <span className={styles.trimRange} style={{ left: `${state.getThumbPercent(0) * 100}%`, width: `${(state.getThumbPercent(1) - state.getThumbPercent(0)) * 100}%` }} />
+            <span className={styles.trimShade} style={{ left: `${state.getThumbPercent(1) * 100}%`, right: 0 }} />
+            <span className={styles.trimNow} style={{ left: `${(now / duration) * 100}%` }} />
+            <SliderThumb index={0} className={styles.trimThumb} aria-label="Start" />
+            <SliderThumb index={1} className={styles.trimThumb} aria-label="End" />
+          </>}
+        </SliderTrack>
+      </Slider>
+    </div> : null}
     {failed ? <Alert tone="danger" title={t.loadError} /> : null}
-    <p className={styles.note}>
+    {compact ? null : <p className={styles.note}>
       {t.hint} {t.pixels}
       {value ? <span className={styles.meta}>{` ${value.timestampSeconds.toFixed(3)} s · ${value.videoWidth} × ${value.videoHeight} px`}</span> : null}
-    </p>
+    </p>}
   </section>;
 }

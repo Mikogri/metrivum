@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("My training — TrainFlow");
+
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";

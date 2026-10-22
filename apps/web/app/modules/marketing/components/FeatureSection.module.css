@@ -53,16 +53,14 @@
 /* The title rises out of its mask once; the visual carries the section's own motion. */
 .mask {
   display: block;
-  overflow: clip;
-  padding-bottom: 0.12em;
-  margin-bottom: -0.12em;
 }
 
 .line {
   display: block;
   transition:
-    transform 1000ms var(--tf-ease-out),
-    opacity 600ms ease;
+    transform 700ms var(--tf-ease-out),
+    opacity 600ms ease,
+    filter 700ms var(--tf-ease-out);
 }
 
 .body {
@@ -70,8 +68,10 @@
 }
 
 :global(html[data-motion]) .section:not([data-inview]) .line {
+  /* Comes into focus in place instead of sliding up from under a mask. */
   opacity: 0;
-  transform: translateY(105%);
+  filter: blur(8px);
+  transform: translateY(0.25em);
 }
 
 :global(html[data-motion]) .section:not([data-inview]) .body {

@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Today — TrainFlow");
+
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";

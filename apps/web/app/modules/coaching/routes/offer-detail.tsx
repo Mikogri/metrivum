@@ -1,3 +1,8 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = ({ location }: { location: { pathname: string } }) =>
+  privateMeta(`${location.pathname.endsWith("/new") ? "New offer" : "Edit offer"} — TrainFlow`);
+
 import { Navigate, useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
 import { RequireFeature } from "~/shared/access";

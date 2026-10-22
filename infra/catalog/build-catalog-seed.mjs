@@ -126,6 +126,8 @@ push(
 );
 
 function upsertDictionary(table, dict) {
+  // BodyParts3D owns a separate additive namespace; the exercise seed must not retire those entries.
+  const externalEntries = table === "muscles" ? " AND key NOT LIKE 'anatomy-fma%'" : "";
   push(`-- ${table}`);
   push(`INSERT INTO ${table} AS t (key, label_en, label_pl, is_active, version) VALUES`);
   push(dict.entries.map((e) => `  (${sql(e.key)}, ${sql(e.en)}, ${sql(e.pl ?? e.en)}, true, 1)`).join(",\n"));
@@ -134,7 +136,7 @@ function upsertDictionary(table, dict) {
     `ON CONFLICT (key) DO UPDATE SET label_en = EXCLUDED.label_en, label_pl = ${pl}, is_active = true, version = t.version + 1`,
     `  WHERE t.label_en IS DISTINCT FROM EXCLUDED.label_en OR t.label_pl IS DISTINCT FROM ${pl} OR NOT t.is_active;`,
     // Entries no longer in the list stay (exercises may reference them) but are hidden from pickers.
-    `UPDATE ${table} SET is_active = false, version = version + 1 WHERE is_active AND key NOT IN (${dict.entries.map((e) => sql(e.key)).join(", ")});`,
+    `UPDATE ${table} SET is_active = false, version = version + 1 WHERE is_active${externalEntries} AND key NOT IN (${dict.entries.map((e) => sql(e.key)).join(", ")});`,
     "",
   );
 }

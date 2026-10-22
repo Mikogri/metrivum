@@ -1,6 +1,8 @@
 using TrainFlow.ClientDocumentation;
 using TrainFlow.ClientDocumentation.Infrastructure;
 using TrainFlow.Notifications;
+using TrainFlow.Integrations;
+using TrainFlow.Integrations.Infrastructure;
 using TrainFlow.Analytics;
 using TrainFlow.Messaging;
 using TrainFlow.Messaging.Infrastructure;
@@ -18,6 +20,7 @@ using TrainFlow.Access;
 using TrainFlow.Access.Domain;
 using TrainFlow.Access.Infrastructure;
 using TrainFlow.Accounts;
+using TrainFlow.Accounts.Features;
 using TrainFlow.Accounts.Infrastructure;
 using TrainFlow.Coaching;
 using TrainFlow.Coaching.Infrastructure;
@@ -51,6 +54,7 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 });
 // Browser SignalR transports carry JWTs in query strings; suppress request URL logging.
 builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
+builder.Logging.AddFilter("ModelContextProtocol", LogLevel.Warning);
 if (exportContracts)
 {
     // Export uses repository defaults only, never local secrets or deployment environment overrides.
@@ -92,6 +96,8 @@ if (!builder.Environment.IsEnvironment("Testing") && !exportContracts && !migrat
     && builder.Configuration.GetValue("Workers:Enabled", true))
     builder.Services.AddBillingWorker().AddNotificationsWorker().AddCheckInsWorker();
 builder.Services.AddSupabaseAuthentication(builder.Configuration, builder.Environment);
+builder.Services.AddIntegrations(builder.Configuration);
+builder.Services.AddTrainFlowMcp(builder.Configuration, builder.Environment);
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
@@ -133,7 +139,7 @@ builder.Services.AddOpenApi(options => options.AddSchemaTransformer((schema, con
     document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT" };
     foreach (var (path, item) in document.Paths)
     {
-        if (path.StartsWith("/health/", StringComparison.Ordinal))
+        if (path.StartsWith("/health/", StringComparison.Ordinal) || path.StartsWith("/.well-known/", StringComparison.Ordinal))
             continue;
         if (item.Operations is null)
             continue;
@@ -220,21 +226,18 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
         .WithHeaders("Authorization", "Content-Type", "If-Match", "Idempotency-Key", "X-SignalR-User-Agent")
         .AllowCredentials()
         .WithExposedHeaders("ETag", "Location", "Retry-After")));
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = 429;
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(http => RateLimitPartition.GetFixedWindowLimiter(
-        http.User.FindFirst("sub")?.Value ?? http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
-});
+builder.Services.AddAbuseHttpProtection(builder.Configuration);
 if (exportContracts) builder.WebHost.UseUrls("http://127.0.0.1:0");
 var app = builder.Build();
 _ = app.Services.GetRequiredService<FeatureCatalog>();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseForwardedHeaders();
 app.UseCors();
 app.UseAuthentication();
+app.UseAbuseHttpProtection();
 app.UseRateLimiter();
+app.UseIntegrationTokenIsolation();
 app.UseAuthorization();
 app.Use(async (http, next) =>
 {
@@ -275,19 +278,27 @@ app.MapBilling();
 app.MapNotifications();
 app.MapAnalyticsModule();
 app.MapClientDocumentation();
+app.MapIntegrations();
+app.MapTrainFlowMcp();
 
 if (migrate)
 {
     await using var scope = app.Services.CreateAsyncScope();
     var dbs = new DbContext[]
     {
-        scope.ServiceProvider.GetRequiredService<NotificationsDbContext>(),
+        scope.ServiceProvider.GetRequiredService<NotificationsDbContext>(), scope.ServiceProvider.GetRequiredService<IntegrationsDbContext>(),
         scope.ServiceProvider.GetRequiredService<AccountsDbContext>(), scope.ServiceProvider.GetRequiredService<AccessDbContext>(),
         scope.ServiceProvider.GetRequiredService<ExerciseCatalogDbContext>(), scope.ServiceProvider.GetRequiredService<TrainingDbContext>(),
         scope.ServiceProvider.GetRequiredService<MediaDbContext>(), scope.ServiceProvider.GetRequiredService<VideoAnalysisDbContext>(),
         scope.ServiceProvider.GetRequiredService<CoachingDbContext>(), scope.ServiceProvider.GetRequiredService<FormsDbContext>(),
         scope.ServiceProvider.GetRequiredService<OffersDbContext>(), scope.ServiceProvider.GetRequiredService<BillingDbContext>(), scope.ServiceProvider.GetRequiredService<CheckInsDbContext>(), scope.ServiceProvider.GetRequiredService<CalendarDbContext>(), scope.ServiceProvider.GetRequiredService<MessagingDbContext>(), scope.ServiceProvider.GetRequiredService<DocumentationDbContext>()
     };
+    // Poolers may ignore startup Options. Keep the shared session open so EF retains SET ROLE.
+    if (builder.Configuration.GetValue<bool>("Migrations:UseMigratorRole"))
+    {
+        await dbs[0].Database.OpenConnectionAsync();
+        await dbs[0].Database.ExecuteSqlRawAsync("SET ROLE trainflow_migrator");
+    }
     foreach (var db in dbs)
         await db.Database.MigrateAsync();
     var access = scope.ServiceProvider.GetRequiredService<AccessDbContext>();

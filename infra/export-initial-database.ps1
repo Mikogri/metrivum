@@ -24,7 +24,7 @@ try {
 BEGIN;
 DO $$ BEGIN
     IF EXISTS (SELECT FROM pg_namespace WHERE nspname IN
-        ('accounts','access','exercise_catalog','training','media','video_analysis','coaching','forms','offers','billing','checkins','calendar','messaging','notifications','client_documentation')) THEN
+        ('accounts','access','exercise_catalog','training','media','video_analysis','coaching','forms','offers','billing','checkins','calendar','messaging','notifications','client_documentation','integrations')) THEN
         RAISE EXCEPTION 'Initial deployment requires absent TrainFlow schemas';
     END IF;
 END $$;
@@ -37,7 +37,7 @@ END $$;
     $sql.Add('GRANT trainflow_migrator TO postgres WITH INHERIT FALSE, SET TRUE;')
     $sql.Add($bootstrap.Substring($boundary))
     $sql.Add('SET LOCAL ROLE trainflow_migrator;')
-    foreach ($module in @('Notifications','Accounts','Access','ExerciseCatalog','Training','Media','VideoAnalysis','Forms','Offers','Coaching','Billing','CheckIns','Calendar','Messaging','ClientDocumentation')) {
+    foreach ($module in @('Notifications','Accounts','Access','ExerciseCatalog','Training','Media','VideoAnalysis','Forms','Offers','Coaching','Billing','CheckIns','Calendar','Messaging','ClientDocumentation','Integrations')) {
         $part = Join-Path $parts "$module.sql"
         dotnet ef migrations script --no-transactions --no-build --configuration $Configuration `
             --project "backend/modules/$module/TrainFlow.$module" `

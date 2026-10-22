@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Invitation details — TrainFlow");
+
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { Link, useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
@@ -58,7 +62,7 @@ export default function Invitation() {
       <Panel title={i.offerRevision.name} description={`${i.offerRevision.coachingMode === "Offline" ? "In person" : i.offerRevision.coachingMode} coaching`}>
         {i.offerRevision.description ? <p className={styles.prose}>{i.offerRevision.description}</p> : null}
         <Facts items={options.map((o) => ({ key: o.id, label: o.name, value: priceDescription(o, i.offerRevision.currency) }))} />
-        <p className={styles.note}>These offer terms are reserved in this invitation. Accepting lets {coach ? "the client" : "you"} fill out an application.</p>
+        <p className={styles.note}>These offer terms are reserved in this invitation. Accepting lets {coach ? "the client" : "you"} submit an application.</p>
       </Panel>
       {/* The third column is the next step: the application, the form that starts it, or what unlocks it. */}
       {i.applicationId ? (
@@ -67,12 +71,12 @@ export default function Invitation() {
           <Link to={`/app/applications/${i.applicationId}`}>Open application</Link>
         </Panel>
       ) : coach ? null : i.status === "Accepted" ? (
-        <Panel className={styles.attention} title="Application form" description="The next step after accepting">
+        <Panel className={styles.attention} title={i.offerRevision.applicationFormVersionId ? "Application form" : "Application"} description="The next step after accepting">
           {i.allowedActions.includes("apply") && apply.allowed ? <StartApplication offer={i.offerRevision} invitationId={i.id} preselected={i.billingOptionId} /> : <Alert title="Application is currently unavailable">{reason(apply)}</Alert>}
         </Panel>
       ) : (
-        <Panel className={actions.includes("accept") ? styles.attention : undefined} title="Application form" description="The next step after accepting">
-          <p className={styles.prose}>{actions.includes("accept") ? "Accept the invitation to fill out the application form for this offer." : "The application form is available only while the invitation is accepted."}</p>
+        <Panel className={actions.includes("accept") ? styles.attention : undefined} title={i.offerRevision.applicationFormVersionId ? "Application form" : "Application"} description="The next step after accepting">
+          <p className={styles.prose}>{actions.includes("accept") ? "Accept the invitation to review and submit an application for this offer." : "You can start an application only while the invitation is accepted."}</p>
         </Panel>
       )}
     </div>

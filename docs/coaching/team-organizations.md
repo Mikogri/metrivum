@@ -51,7 +51,7 @@ All routes below use `/api/v1`, authenticated bearer tokens and the existing JSO
 | `POST /teams/{id}/renewal/quote` | Quotes renewal after paid expiry |
 | `POST /teams/{id}/renewal` | Version, explicit auto-renew choice and eligible simulated method; returns billing state |
 | `PATCH /teams/{id}` | Version, name and description; returns Team summary |
-| `GET /teams/{id}/members` | Authorized roster with display names, usernames, roles and join dates |
+| `GET /teams/{id}/members` | Authorized roster with display names, usernames, roles and join dates; optional `page`/`pageSize` (defaults 1/25, maximum size 100); omitted parameters retain the full roster for existing selectors |
 | `POST /teams/{id}/invitations` | Exact existing username and role; creates/reuses a bounded, expiring invitation |
 | `POST /teams/requests/{id}/decision` | Recipient accepts/declines; seat checks run atomically |
 | `POST /teams/{id}/invitations/{requestId}/revoke` | Revoke pending invitation; no response body |
@@ -62,13 +62,15 @@ All routes below use `/api/v1`, authenticated bearer tokens and the existing JSO
 | `POST /teams/{id}/ownership-transfer/accept` | Recipient version and recent authentication; changes Owner atomically |
 | `POST /teams/{id}/schedule-dissolution` | Version and explicit confirmation; returns scheduled Team state |
 | `POST /teams/{id}/cancel-dissolution` | Version, `resumeRenewal: false`; restores unscheduled state |
-| `GET /teams/{id}/clients` | Organizational cases; Members receive only assigned cases |
+| `GET /teams/{id}/clients` | Organizational cases; Members receive only assigned cases; optional `page`/`pageSize` |
 | `GET /teams/{id}/clients/{caseId}` | Authorized case summary and assignment metadata |
 | `POST /teams/{id}/clients/{caseId}/assign-coach` | Coach ID and case version; returns case |
 | `DELETE /teams/{id}/clients/{caseId}/assignments/{coachId}` | Version in body; ends assignment, retains history |
-| `GET/POST /teams/{id}/client-transfer-requests` | Read permitted requests / propose an eligible personal relationship transfer |
-| `GET /me/team-client-transfer-requests` | Actual client's incoming requests and consent wording |
+| `GET/POST /teams/{id}/client-transfer-requests` | Read permitted requests with optional `page`/`pageSize` / propose an eligible personal relationship transfer |
+| `GET /me/team-client-transfer-requests` | Actual client's incoming requests and consent wording; optional `page`/`pageSize` |
 | `POST /me/team-client-transfer-requests/{id}/accept` or `/decline` | Client's request version; returns updated consent state |
+
+Team case and transfer lists retain array responses. Supplying either `page` or `pageSize` enables SQL pagination (defaults 1/25; page 1–1000000, size 1–100), ordered by creation descending and ID ascending. Authorization filters apply before paging. Without either parameter, older clients retain the original maximum of 1000 rows. A full page may have a following page; an empty page ends traversal.
 
 Legacy Team search returns no directory and unrestricted join is rejected. Team creation begins in Subscription; nonmembers see invitations/empty state. Existing Coaching list/group routes accept optional `teamId`, validated against current membership. Existing Analyze routes accept `scope` and authorized `memberId` filters.
 

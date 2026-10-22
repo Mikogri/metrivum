@@ -3,6 +3,8 @@
   --shell-ease: cubic-bezier(0.32, 0.72, 0, 1);
   display: grid;
   grid-template-columns: var(--shell-sidebar) minmax(0, 1fr);
+  /* Row 1 holds a full-width notice (analyzer update) when there is one; it is empty otherwise. */
+  grid-template-rows: auto minmax(0, 1fr);
   /* The page itself never scrolls: the content area under the app bar does. */
   height: 100dvh;
   overflow: hidden;
@@ -20,15 +22,18 @@
 .sidebar {
   position: sticky;
   top: 0;
+  grid-row: 2;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
   border-right: 1px solid var(--tf-color-border-subtle);
   background: var(--tf-color-sidebar);
 }
 
 .logo {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -36,6 +41,15 @@
   height: 4.0625rem; /* 65px */
   /* Centres the 25px mark on the 54px rail, so collapsing never shifts it. */
   padding: 0 1.25rem 0 0.9rem;
+}
+
+.sidebar > .logo::after {
+  content: "";
+  position: absolute;
+  left: 0.625rem;
+  right: 0.625rem;
+  bottom: 0;
+  border-bottom: 1px solid var(--tf-color-border-subtle);
 }
 
 .brand {
@@ -70,34 +84,19 @@
   opacity: 0;
 }
 
-/*
- * Collapsed rail: section labels fold to zero height (no empty space) and a hairline separates
- * the groups instead.
- */
-.navGroupHead {
-  overflow: hidden;
-}
-
 .navGroupSeparator {
   display: block;
   height: 0;
-  margin: 0 0.625rem;
-  border-top: 1px solid transparent;
+  margin: 0.75rem 1.25rem;
+  border-top: 1px solid var(--tf-color-border);
   transition:
     border-color 200ms ease,
     margin 180ms var(--shell-ease);
 }
 
 .shell[data-collapsed] .navGroup + .navGroup .navGroupSeparator {
-  margin: 0 0.625rem 0.625rem;
-  border-top-color: var(--tf-color-border-subtle);
-}
-
-.shell[data-collapsed] .navGroupLabel {
-  max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  opacity: 0;
+  margin: 0.75rem 0.875rem;
+  border-top-color: var(--tf-color-border);
 }
 
 .nav {
@@ -105,31 +104,20 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  /* Groups sit flush; the separator carries the spacing, so every gap between groups is the same. */
+  gap: 0;
+  padding-bottom: 0.75rem;
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: none;
 }
 
-.navGroupLabel {
-  max-height: 3rem;
-  padding: 0.9375rem 1.25rem;
-  overflow: hidden;
-  transition: opacity 200ms ease, padding 180ms var(--shell-ease), max-height 180ms var(--shell-ease);
-  color: #a0a0a0;
-  font-family: var(--tf-font-label);
-  font-size: 0.6875rem;
-  font-weight: 400;
-  line-height: 0.9375rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
 
 .navList {
   display: grid;
   /* minmax(0, …): long labels must not hold the items wider than the rail. */
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.3125rem;
+  gap: 0.125rem;
   margin: 0;
   padding: 0 0.625rem;
   list-style: none;
@@ -175,8 +163,8 @@
   height: 1.125rem;
   padding: 0 0.3125rem;
   border-radius: 200px;
-  /* Notifications are a soft red: noticeable, never alarming. */
-  background: color-mix(in srgb, #ec6a5e 20%, transparent);
+  /* Notifications are a soft red: noticeable, never alarming. Solid, so an icon never shows through. */
+  background: color-mix(in srgb, #ec6a5e 20%, var(--tf-color-sidebar));
   color: #ec6a5e;
   font-size: 0.625rem;
   font-weight: var(--tf-weight-semibold);
@@ -187,14 +175,16 @@
 
 /* Things waiting in a section: informative, not an alert. */
 .navCount[data-tone="neutral"] {
-  background: var(--tf-color-surface-selected);
+  background: color-mix(in srgb, #ffffff 15%, var(--tf-color-sidebar));
   color: var(--tf-color-text-secondary);
 }
 
+/* On the collapsed rail the count sits on the icon's corner, cut out from it by a ring in the sidebar colour. */
 .shell[data-collapsed] .navCount {
   position: absolute;
   top: 2px;
   right: 1px;
+  box-shadow: 0 0 0 2px var(--tf-color-sidebar);
 }
 .shell[data-collapsed] .navLink { position: relative; }
 
@@ -227,6 +217,9 @@
 /* Content column with the app bar */
 
 .column {
+  position: relative;
+  grid-row: 2;
+  grid-column: -2;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -241,13 +234,12 @@
 .column::after {
   --corner: 0.75rem;
   content: "";
-  position: fixed;
-  left: calc(var(--shell-sidebar) - 1px);
+  position: absolute;
+  left: -1px;
   z-index: calc(var(--tf-z-header) + 1);
   width: var(--corner);
   height: var(--corner);
   pointer-events: none;
-  transition: left 180ms var(--shell-ease);
 }
 
 .column::before {
@@ -394,6 +386,7 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  scrollbar-gutter: stable;
   outline: none;
 }
 
@@ -402,6 +395,39 @@
   margin: 0 auto;
   padding: var(--tf-space-6) clamp(var(--tf-space-4), 2.5vw, var(--tf-space-8)) var(--tf-space-16);
   animation: page-in var(--tf-duration-settle) var(--tf-ease-settle);
+}
+
+/* Next page's code is loading: an empty page with a thin indeterminate bar at the top. */
+.pageSwitching {
+  position: relative;
+  min-height: 50vh;
+}
+
+.pageSwitching::before {
+  content: "";
+  position: absolute;
+  top: calc(-1 * var(--tf-space-6));
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: var(--tf-radius-full);
+  background: linear-gradient(var(--tf-color-text-tertiary), var(--tf-color-text-tertiary)) no-repeat;
+  background-size: 30% 100%;
+  animation: switching 900ms var(--tf-ease-in-out) infinite;
+}
+
+@keyframes switching {
+  from { background-position: -43% 0; }
+  to { background-position: 143% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageSwitching::before {
+    animation: none;
+    width: 100%;
+    background-size: 100% 100%;
+    opacity: 0.4;
+  }
 }
 
 @keyframes page-in {
@@ -580,4 +606,9 @@
   .shell[data-conversation] .content { height: 100%; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); display: flex; flex-direction: column; }
   .shell[data-conversation] .main { overflow: hidden; }
   .shell[data-phone] .mockBanner { padding: 3px 12px; font-size: 10px; }
+}
+
+/* Air between the view select and the first group. */
+.nav {
+  padding-top: 0.75rem;
 }

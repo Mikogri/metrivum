@@ -26,15 +26,19 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON exercise_catalog.exercises, exercise_cat
 GRANT SELECT, INSERT ON exercise_catalog.exercise_revisions TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE, DELETE ON training.folders, training.plans, training.formulas, training.imports TO trainflow_api;
 GRANT SELECT, INSERT ON training.revisions, training.formula_versions TO trainflow_api;
+GRANT SELECT, INSERT, UPDATE ON training.client_exercise_maxes TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE, DELETE ON media.files TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE ON video_analysis.jobs TO trainflow_api;
+GRANT SELECT, INSERT, UPDATE ON video_analysis.analysis_shares TO trainflow_api;
+GRANT SELECT, INSERT, DELETE ON video_analysis.saved_shares TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE ON coaching."Relationships", coaching."Groups" TO trainflow_api;
 GRANT SELECT, INSERT, DELETE ON coaching."Memberships" TO trainflow_api;
 GRANT SELECT, INSERT ON coaching."StatusChanges", coaching."MembershipChanges" TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE ON forms.templates TO trainflow_api;
 GRANT SELECT, INSERT ON forms.versions, forms.submissions, forms.operations TO trainflow_api;
 GRANT SELECT ON offers.categories TO trainflow_api;
-GRANT SELECT, INSERT, UPDATE ON offers.offers TO trainflow_api;
+-- DELETE removes never-published drafts only; published revisions stay immutable (no grant, triggers).
+GRANT SELECT, INSERT, UPDATE, DELETE ON offers.offers TO trainflow_api;
 GRANT SELECT, INSERT ON offers.tags, offers.revisions, offers.revision_billing_options TO trainflow_api;
 GRANT SELECT, INSERT, DELETE ON offers.billing_options, offers.tag_links TO trainflow_api;
 GRANT SELECT, INSERT ON billing.orders, billing.payments, billing.transactions TO trainflow_api;
@@ -84,6 +88,10 @@ IF to_regclass('messaging."Conversations"') IS NOT NULL THEN
     IF to_regclass('messaging."Preferences"') IS NOT NULL THEN
         GRANT SELECT, INSERT, UPDATE ON messaging."Preferences" TO trainflow_api;
         REVOKE ALL ON messaging."Preferences" FROM trainflow_worker;
+    END IF;
+    IF to_regclass('messaging."AbuseRecords"') IS NOT NULL THEN
+        GRANT SELECT, INSERT, DELETE ON messaging."AbuseRecords" TO trainflow_api;
+        REVOKE ALL ON messaging."AbuseRecords" FROM trainflow_worker;
     END IF;
     GRANT SELECT, INSERT, DELETE ON messaging."Blocks" TO trainflow_api;
     GRANT SELECT, INSERT ON messaging."Messages", messaging."Attachments", messaging."MembershipChanges", messaging."Reports" TO trainflow_api;
@@ -217,5 +225,25 @@ IF to_regclass('training.purchases') IS NOT NULL THEN
     REVOKE ALL ON training.purchases FROM PUBLIC, trainflow_worker;
     IF EXISTS (SELECT FROM pg_roles WHERE rolname='anon') THEN REVOKE ALL ON training.purchases FROM anon; END IF;
     IF EXISTS (SELECT FROM pg_roles WHERE rolname='authenticated') THEN REVOKE ALL ON training.purchases FROM authenticated; END IF;
+END IF;
+END $$;
+
+DO $$ BEGIN
+IF to_regclass('integrations."Connections"') IS NOT NULL THEN
+    GRANT USAGE ON SCHEMA integrations TO trainflow_api;
+    REVOKE ALL ON SCHEMA integrations FROM PUBLIC;
+    REVOKE CREATE ON SCHEMA integrations FROM trainflow_api, trainflow_worker;
+    GRANT SELECT, INSERT, UPDATE ON integrations."Connections", integrations."PendingActions",
+        integrations."CommandReceipts", integrations."ProgrammingPreferences" TO trainflow_api;
+    REVOKE ALL ON ALL TABLES IN SCHEMA integrations FROM PUBLIC, trainflow_worker;
+    REVOKE ALL ON integrations."__EFMigrationsHistory" FROM trainflow_api;
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname='anon') THEN
+        REVOKE ALL ON SCHEMA integrations FROM anon;
+        REVOKE ALL ON ALL TABLES IN SCHEMA integrations FROM anon;
+    END IF;
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname='authenticated') THEN
+        REVOKE ALL ON SCHEMA integrations FROM authenticated;
+        REVOKE ALL ON ALL TABLES IN SCHEMA integrations FROM authenticated;
+    END IF;
 END IF;
 END $$;

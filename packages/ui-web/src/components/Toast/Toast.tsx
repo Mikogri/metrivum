@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, Info, X, XOctagon } from "lucide-react";
+import { CircleAlert, CircleCheck, CircleX, Info, X } from "lucide-react";
 import { cx } from "../../lib/cx";
 import styles from "./Toast.module.css";
 
@@ -61,7 +61,7 @@ const getSnapshot = () => records;
 const emptySnapshot: ToastRecord[] = [];
 const getServerSnapshot = () => emptySnapshot;
 
-const icons = { neutral: Info, success: CheckCircle2, warning: AlertTriangle, danger: XOctagon };
+const icons = { neutral: Info, success: CircleCheck, warning: CircleAlert, danger: CircleX };
 
 function ToastItem({ record, index, dismissLabel }: { record: ToastRecord; index: number; dismissLabel: string }) {
   const [mounted, setMounted] = useState(false);
@@ -96,40 +96,75 @@ function ToastItem({ record, index, dismissLabel }: { record: ToastRecord; index
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const tone = record.tone ?? "neutral";
+  const [paused, setPaused] = useState(false);
+  const duration = record.duration ?? (record.tone === "danger" ? 0 : 5000);
+  return (
+    <ToastView
+      {...record}
+      index={index}
+      duration={duration}
+      mounted={mounted}
+      dismissed={record.dismissed}
+      paused={paused}
+      dismissLabel={dismissLabel}
+      onDismiss={() => dismissToast(record.id)}
+      onPause={() => { setPaused(true); pause(); }}
+      onResume={() => { setPaused(false); resume(); }}
+    />
+  );
+}
+
+export interface ToastViewProps extends Omit<ToastOptions, "duration"> {
+  dismissLabel: string;
+  /** ms shown by the countdown bar; 0 hides it. */
+  duration?: number;
+  index?: number;
+  mounted?: boolean;
+  dismissed?: boolean;
+  paused?: boolean;
+  onDismiss?: () => void;
+  onPause?: () => void;
+  onResume?: () => void;
+}
+
+/** One toast without the queue: used by the Toaster and for previews. */
+export function ToastView({ title, description, tone = "neutral", action, dismissLabel, duration = 0, index = 0, mounted = true, dismissed, paused, onDismiss, onPause, onResume }: ToastViewProps) {
   const Icon = icons[tone];
   return (
     <li
       className={cx(styles.toast, styles[tone])}
       data-mounted={mounted || undefined}
-      data-dismissed={record.dismissed || undefined}
-      style={{ "--index": index } as React.CSSProperties}
+      data-dismissed={dismissed || undefined}
+      data-paused={paused || undefined}
+      style={{ "--index": index, "--duration": `${duration}ms` } as React.CSSProperties}
       role={tone === "danger" ? "alert" : "status"}
-      onPointerEnter={pause}
-      onPointerLeave={resume}
-      onFocus={pause}
-      onBlur={resume}
+      onPointerEnter={onPause}
+      onPointerLeave={onResume}
+      onFocus={onPause}
+      onBlur={onResume}
     >
       <span className={styles.icon} aria-hidden="true">
         <Icon />
       </span>
       <div className={styles.body}>
-        <p className={styles.title}>{record.title}</p>
-        {record.description ? <p className={styles.description}>{record.description}</p> : null}
+        <p className={styles.title}>{title}</p>
+        {description ? <p className={styles.description}>{description}</p> : null}
+        {action ? (
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.action}
+              onClick={() => {
+                action.onAction();
+                onDismiss?.();
+              }}
+            >
+              {action.label}
+            </button>
+          </div>
+        ) : null}
       </div>
-      {record.action ? (
-        <button
-          type="button"
-          className={styles.action}
-          onClick={() => {
-            record.action?.onAction();
-            dismissToast(record.id);
-          }}
-        >
-          {record.action.label}
-        </button>
-      ) : null}
-      <button type="button" className={styles.close} aria-label={dismissLabel} onClick={() => dismissToast(record.id)}>
+      <button type="button" className={styles.close} aria-label={dismissLabel} onClick={onDismiss}>
         <X aria-hidden="true" />
       </button>
     </li>

@@ -8,6 +8,10 @@ import { join } from "node:path";
 import test from "node:test";
 import { classify } from "./hosting-rules.mjs";
 
+test("missing anatomy assets never resolve to the SPA document", () => {
+  assert.deepEqual(classify("/anatomy/bodyparts3d-4.0/muscles-missing.glb", () => false), { kind: "not-found" });
+});
+
 test("malformed percent encoding is not a route and never reaches the filesystem", () => {
   for (const path of ["/%ZZ", "/app/%", "/%E0%A4%A"]) {
     assert.deepEqual(classify(path, () => { assert.fail("Malformed path reached the filesystem"); }), { kind: "not-found" });

@@ -1,0 +1,212 @@
+.link {
+  display: grid;
+  gap: var(--tf-space-1-5);
+}
+
+.label {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-regular);
+}
+
+.current,
+.none {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2) var(--tf-space-3);
+}
+
+.none {
+  justify-content: space-between;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-color-text-secondary);
+}
+
+.icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.text {
+  display: grid;
+  flex: 1;
+  min-width: 12rem;
+  gap: 1px;
+}
+
+.text strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.text span,
+.muted {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.actions {
+  display: flex;
+  gap: var(--tf-space-1);
+}
+
+/* The picker: filters on top, then one card per logged workout with its exercises and set chips. */
+.dialog {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 10rem);
+  gap: var(--tf-space-2);
+}
+
+.workouts {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workout {
+  display: grid;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+}
+
+.workoutHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.workoutHead > span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.workoutHead strong {
+  font-size: var(--tf-text-sm);
+}
+
+.exercise {
+  display: grid;
+  grid-template-columns: minmax(6rem, 10rem) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--tf-space-2);
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.exerciseName {
+  padding-top: 5px;
+  overflow: hidden;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  text-overflow: ellipsis;
+}
+
+.sets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1);
+}
+
+.set,
+.whole {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  height: 1.75rem;
+  padding: 0 var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.whole {
+  flex: none;
+}
+
+.set b {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.set[data-skipped] {
+  opacity: 0.55;
+}
+
+.set:hover,
+.whole:hover {
+  border-color: var(--tf-color-border-strong);
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+
+.set[aria-pressed="true"],
+.whole[aria-pressed="true"] {
+  border-color: var(--tf-color-text);
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.set:focus-visible,
+.whole:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+@media (max-width: 40rem) {
+  .filters,
+  .exercise {
+    grid-template-columns: 1fr;
+  }
+}
+
+.visibility {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  margin-top: 2px;
+}
+
+.visibility svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.visibility[data-shared] {
+  color: var(--tf-color-text-secondary);
+}
+
+.shareBox {
+  align-self: center;
+  margin-right: auto;
+  font-size: var(--tf-text-sm);
+}

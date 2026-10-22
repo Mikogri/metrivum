@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FileText, Image as ImageIcon, MoreHorizontal, NotebookPen, Pencil, Plus, Scale } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Schema } from "@trainflow/api-client-web";
@@ -26,7 +26,7 @@ import {
   TextField,
   Toolbar,
 } from "@trainflow/ui-web";
-import { useAccountKey, useApi } from "~/shared/session/AccountScope";
+import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useCoachingMutation, useCoachingQuery, type Page } from "~/modules/coaching";
 import { Failure, ListPagination, Loading, MutationError } from "~/modules/coaching";
 import { Panel, StatStrip } from "~/shared/ui/Panel";
@@ -54,11 +54,12 @@ export function RelationshipDocumentation({ relationshipId, clientView = false }
   return <Documentation key={`${account}:${relationshipId}:${clientView}`} relationshipId={relationshipId} clientView={clientView} />;
 }
 
-type Section = "photos" | "documents" | "notes";
+type Section = "documents" | "notes";
 
 function Documentation({ relationshipId, clientView }: { relationshipId: string; clientView: boolean }) {
-  const [tab, setTab] = useState<Section>("photos");
+  const [tab, setTab] = useState<Section>("documents");
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All");
   const [creating, setCreating] = useState(false);
   const access = useCoachingQuery<Access>(`${root(relationshipId)}/`);
   if (access.isPending) return <Loading />;
@@ -66,11 +67,10 @@ function Documentation({ relationshipId, clientView }: { relationshipId: string;
   const canWrite = access.data.allowedActions.includes("create");
   const coach = access.data.coach && !clientView;
   const sections: Array<[Section, string, React.ReactNode]> = [
-    ["photos", "Photos", <ImageIcon key="i" />],
     ["documents", "Files", <FileText key="f" />],
     ...(coach ? [["notes", "Private Coach Notes", <NotebookPen key="n" />] as [Section, string, React.ReactNode]] : []),
   ];
-  const addLabel = tab === "photos" ? "Add photo" : tab === "documents" ? "Add file" : "New note";
+  const addLabel = tab === "documents" ? "Add file" : "New note";
   const base = root(relationshipId);
   return (
     <section className={styles.workspace} aria-label="Relationship documentation">
@@ -94,12 +94,19 @@ function Documentation({ relationshipId, clientView }: { relationshipId: string;
           ))}
         </SegmentedControl>
         <SearchInput
-          aria-label={tab === "photos" ? "Search progress photos" : tab === "documents" ? "Search documents" : "Search private notes"}
+          aria-label={tab === "documents" ? "Search documents" : "Search private notes"}
           placeholder="Search"
           value={search}
           onChange={setSearch}
           className={styles.search}
         />
+        {tab === "documents" ? (
+          <Select aria-label="File category" className={styles.category} selectedKey={category} onSelectionChange={(key) => setCategory(String(key))}>
+            <Option id="All">All files</Option>
+            <Option id="ProgressPhoto">Progress photos</Option>
+            <Option id="Files">Other files and documents</Option>
+          </Select>
+        ) : null}
         <span className={styles.spacer} />
         {canWrite ? (
           <Button variant="primary" iconStart={<Plus />} onPress={() => setCreating(true)}>
@@ -110,7 +117,7 @@ function Documentation({ relationshipId, clientView }: { relationshipId: string;
       {tab === "notes" && coach ? (
         <Notes base={base} canWrite={canWrite} search={search} creating={creating} onCreatingChange={setCreating} />
       ) : (
-        <Documents key={tab} base={base} canWrite={canWrite} coach={coach} photos={tab === "photos"} search={search} creating={creating} onCreatingChange={setCreating} />
+        <Documents key={`${tab}:${category}`} base={base} canWrite={canWrite} coach={coach} search={search} category={category} creating={creating} onCreatingChange={setCreating} />
       )}
     </section>
   );
@@ -354,12 +361,13 @@ function NoteDialog({ base, note, close }: { base: string; note: Note | null; cl
 const kindOf = (d: Document) => (!d.hasFile ? "TXT" : d.contentType?.startsWith("image/") ? (d.contentType.split("/")[1] ?? "IMG").toUpperCase().slice(0, 4) : d.contentType === "application/pdf" ? "PDF" : "FILE");
 const sizeOf = (size: Document["size"]) => (size == null ? null : Number(size) > 1_000_000 ? `${(Number(size) / 1_000_000).toFixed(1)} MB` : `${Math.max(1, Math.round(Number(size) / 1000))} KB`);
 
-function Documents({ base, canWrite, coach, photos, search, creating, onCreatingChange }: { base: string; canWrite: boolean; coach: boolean; photos: boolean; search: string; creating: boolean; onCreatingChange: (open: boolean) => void }) {
+function Documents({ base, canWrite, coach, search, category, creating, onCreatingChange }: { base: string; canWrite: boolean; coach: boolean; search: string; category: string; creating: boolean; onCreatingChange: (open: boolean) => void }) {
+  const photos = category === "ProgressPhoto";
   const [removing, setRemoving] = useState<Document | null>(null);
   const [editing, setEditing] = useState<Document | null>(null);
   const [viewing, setViewing] = useState<Document | null>(null);
   const [page, setPage] = useState(1);
-  const list = useCoachingQuery<Page<Document>>(`${base}/documents`, { search, category: photos ? "ProgressPhoto" : "Files", page, pageSize: 12 });
+  const list = useCoachingQuery<Page<Document>>(`${base}/documents`, { search, category: category === "All" ? undefined : category, page, pageSize: 12 });
   const share = useCoachingMutation();
   const remove = useCoachingMutation(() => setRemoving(null));
   const onAction = (d: Document, key: React.Key) => {
@@ -370,7 +378,7 @@ function Documents({ base, canWrite, coach, photos, search, creating, onCreating
   };
   const menu = (d: Document) => {
     const canEditDoc = d.allowedActions.includes("edit");
-    const canShare = coach && d.allowedActions.includes("share");
+    const canShare = d.allowedActions.includes("share");
     const canDelete = d.allowedActions.includes("delete");
     if (!canEditDoc && !canShare && !canDelete && d.hasFile) return null;
     return (
@@ -379,23 +387,24 @@ function Documents({ base, canWrite, coach, photos, search, creating, onCreating
         <DropdownMenu aria-label={`Actions for ${d.title}`} onAction={(key) => onAction(d, key)}>
           {!d.hasFile ? <DropdownMenuItem id="view">Open</DropdownMenuItem> : null}
           {canEditDoc ? <DropdownMenuItem id="edit">Edit details</DropdownMenuItem> : null}
-          {canShare ? <DropdownMenuItem id="share">{d.visibility === "CoachPrivate" ? "Share with client" : "Revoke client access"}</DropdownMenuItem> : null}
+          {canShare ? <DropdownMenuItem id="share">{d.visibility === "CoachPrivate" ? (coach ? "Share with client" : "Share with coach") : "Make visible only to me"}</DropdownMenuItem> : null}
           {canDelete ? <DropdownMenuSeparator /> : null}
           {canDelete ? <DropdownMenuItem id="delete" tone="danger">Delete document</DropdownMenuItem> : null}
         </DropdownMenu>
       </DropdownMenuTrigger>
     );
   };
-  const visibility = (d: Document) => (d.visibility === "CoachPrivate" ? <Badge size="sm">Private</Badge> : <Badge size="sm" tone="success">Shared</Badge>);
+  const visibility = (d: Document) => (d.visibility === "CoachPrivate" ? <Badge size="sm">Only me</Badge> : <Badge size="sm" tone="success">{coach ? "Shared with client" : "Shared with coach"}</Badge>);
 
   return (
     <div className={styles.stack}>
+      <p className={styles.hint}>Your private files and shared files appear together here. Only you can see files marked Only me.</p>
       <MutationError error={share.error} />
       {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} /> : !list.data.items.length ? (
         <EmptyState
           icon={photos ? <ImageIcon /> : <FileText />}
           title={search ? "Nothing matches this search" : photos ? "No progress photos available." : "No documents available."}
-          description={photos ? "Progress photos from you and the client appear here." : "Files and text documents for this collaboration appear here."}
+          description={photos ? "Progress photos for this collaboration appear here." : "Files and text documents for this collaboration appear here."}
         />
       ) : photos ? (
         <ul className={styles.gallery}>
@@ -473,7 +482,8 @@ function useReadUrl(base: string, document: Document, enabled: boolean) {
   return useQuery({
     queryKey: [account, "documentation-read-url", document.id, document.version],
     enabled,
-    staleTime: 4 * 60_000,
+    staleTime: 0,
+    refetchInterval: (query) => query.state.status !== "error" && query.state.data ? Math.max(1000, Date.parse(query.state.data.expiresAt) - Date.now() - 5000) : false,
     retry: false,
     queryFn: async () => (await api<{ url: string; expiresAt: string }>({ method: "POST", path: `${base}/documents/${document.id}/read-url` })).data,
   });
@@ -481,9 +491,17 @@ function useReadUrl(base: string, document: Document, enabled: boolean) {
 
 function PhotoThumb({ base, document }: { base: string; document: Document }) {
   const read = useReadUrl(base, document, document.hasFile);
+  const [expired, setExpired] = useState(true);
+  useEffect(() => {
+    const remaining = read.data ? Date.parse(read.data.expiresAt) - Date.now() : 0;
+    setExpired(!(remaining > 0));
+    if (!(remaining > 0)) return;
+    const timer = window.setTimeout(() => setExpired(true), remaining);
+    return () => window.clearTimeout(timer);
+  }, [read.data]);
   return (
     <div className={styles.thumb}>
-      {read.data ? (
+      {read.data && !expired ? (
         <a href={read.data.url} target="_blank" rel="noreferrer" aria-label={`Open ${document.title}`}>
           <img src={read.data.url} alt={document.description || document.title} loading="lazy" />
         </a>
@@ -497,10 +515,10 @@ function PhotoThumb({ base, document }: { base: string; document: Document }) {
 }
 
 function DownloadLink({ base, document }: { base: string; document: Document }) {
-  const api = useApi();
+  const { api, lifecycle } = useAccountContext();
   const open = useMutation({
     mutationFn: async () => (await api<{ url: string }>({ method: "POST", path: `${base}/documents/${document.id}/read-url` })).data,
-    onSuccess: (data) => window.open(data.url, "_blank", "noopener"),
+    onSuccess: (data) => { if (lifecycle.isCurrent()) window.open(data.url, "_blank", "noopener"); },
   });
   return (
     <button type="button" className={styles.fileName} onClick={() => open.mutate()} aria-busy={open.isPending || undefined} title="Open file (temporary link)">
@@ -514,11 +532,11 @@ function DocumentDialog({ base, coach, photos, document, close }: { base: string
   const [description, setDescription] = useState(document?.description ?? "");
   const [text, setText] = useState(document?.text ?? "");
   const [category, setCategory] = useState(document?.category ?? (photos ? "ProgressPhoto" : "General"));
-  const [visibility, setVisibility] = useState(coach ? "CoachPrivate" : "SharedWithClient");
+  const [visibility, setVisibility] = useState("CoachPrivate");
   const [observed, setObserved] = useState(document ? document.observedAt.slice(0, 10) : today());
   const [file, setFile] = useState<File | null>(null);
   const [uploadId, setUploadId] = useState<string | null>(null);
-  const api = useApi();
+  const { api, lifecycle } = useAccountContext();
   const account = useAccountKey();
   const cache = useQueryClient();
   const save = useMutation({
@@ -526,10 +544,11 @@ function DocumentDialog({ base, coach, photos, document, close }: { base: string
       let mediaId = uploadId;
       if (file && !mediaId) {
         const ticket = (await api<Upload>({ method: "POST", path: `${base}/uploads`, json: { name: file.name, contentType: file.type || "application/octet-stream", size: file.size } })).data;
-        const result = await fetch(ticket.uploadUrl, { method: ticket.method, headers: { "Content-Type": file.type, "x-upsert": "false" }, body: file });
+        const result = await fetch(ticket.uploadUrl, { method: ticket.method, headers: { "Content-Type": file.type, "x-upsert": "false" }, body: file, signal: lifecycle.signal() });
         if (!result.ok) throw new Error("Upload failed. Retry the upload or choose another file.");
         await api({ method: "POST", path: `${base}/uploads/${ticket.mediaId}/finalize` });
         mediaId = ticket.mediaId;
+        if (!lifecycle.isCurrent()) return;
         setUploadId(mediaId);
       }
       await api({
@@ -540,8 +559,9 @@ function DocumentDialog({ base, coach, photos, document, close }: { base: string
       });
     },
     onSuccess: async () => {
+      if (!lifecycle.isCurrent()) return;
       await cache.invalidateQueries({ queryKey: [account, "coaching"] });
-      close();
+      if (lifecycle.isCurrent()) close();
     },
   });
   const needsText = !photos && !file && !document?.hasFile;
@@ -564,10 +584,10 @@ function DocumentDialog({ base, coach, photos, document, close }: { base: string
         <div className={styles.pair}>
           <TextField label="Observed date" type="date" value={observed} onChange={setObserved} isRequired />
           {!photos ? <TextField label="Category" placeholder="e.g. Medical" value={category} onChange={setCategory} maxLength={60} isRequired /> : null}
-          {coach && !document ? (
+          {!document ? (
             <Select label="Visibility" selectedKey={visibility} onSelectionChange={(v) => setVisibility(String(v))}>
-              <Option id="CoachPrivate">Private to coach</Option>
-              <Option id="SharedWithClient">Shared with client</Option>
+              <Option id="CoachPrivate">Only me</Option>
+              <Option id="SharedWithClient">{coach ? "Shared with client" : "Shared with coach"}</Option>
             </Select>
           ) : null}
         </div>

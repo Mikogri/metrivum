@@ -55,6 +55,7 @@ public static class FormRules
                     {
                         SystemFieldKey.Height or SystemFieldKey.Weight or SystemFieldKey.BodyFat or SystemFieldKey.HrMax or SystemFieldKey.SessionsPerWeek or SystemFieldKey.AvailableSessionDuration or SystemFieldKey.Sleep or SystemFieldKey.Stress => q.Type is QuestionType.Number or QuestionType.Scale,
                         SystemFieldKey.PreferredTrainingDays or SystemFieldKey.AvailableEquipment => q.Type == QuestionType.MultiChoice,
+                        SystemFieldKey.Sex => q.Type == QuestionType.SingleChoice && q.Choices is { Count: > 0 } && q.Choices.All(c => c.Key is "Male" or "Female" or "Other"),
                         _ => q.Type is QuestionType.ShortText or QuestionType.LongText or QuestionType.SingleChoice
                     };
                     if (!valid)

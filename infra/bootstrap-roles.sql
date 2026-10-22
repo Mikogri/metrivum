@@ -16,7 +16,7 @@ END $$;
 DO $$
 DECLARE schema_name text;
 BEGIN
-    FOREACH schema_name IN ARRAY ARRAY['accounts','access','exercise_catalog','training','media','video_analysis','coaching','forms','offers','billing','checkins','calendar','messaging','notifications','client_documentation'] LOOP
+    FOREACH schema_name IN ARRAY ARRAY['accounts','access','exercise_catalog','training','media','video_analysis','coaching','forms','offers','billing','checkins','calendar','messaging','notifications','client_documentation','integrations'] LOOP
         EXECUTE format('CREATE SCHEMA IF NOT EXISTS %I AUTHORIZATION trainflow_migrator', schema_name);
     END LOOP;
 END $$;
@@ -27,7 +27,7 @@ SET ROLE trainflow_migrator;
 DO $$
 DECLARE schema_name text;
 BEGIN
-    FOREACH schema_name IN ARRAY ARRAY['accounts','access','exercise_catalog','training','media','video_analysis','coaching','forms','offers','billing','checkins','calendar','messaging','notifications','client_documentation'] LOOP
+    FOREACH schema_name IN ARRAY ARRAY['accounts','access','exercise_catalog','training','media','video_analysis','coaching','forms','offers','billing','checkins','calendar','messaging','notifications','client_documentation','integrations'] LOOP
         EXECUTE format('REVOKE ALL ON SCHEMA %I FROM PUBLIC', schema_name);
         IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'anon') THEN
             EXECUTE format('REVOKE ALL ON SCHEMA %I FROM anon', schema_name);
@@ -45,7 +45,7 @@ GRANT USAGE ON SCHEMA media, video_analysis TO trainflow_worker;
 DO $$
 DECLARE schema_name text;
 BEGIN
-    FOREACH schema_name IN ARRAY ARRAY['accounts','access','exercise_catalog','training','media','video_analysis','coaching','forms','offers','billing','checkins','calendar','messaging','notifications','client_documentation'] LOOP
+    FOREACH schema_name IN ARRAY ARRAY['accounts','access','exercise_catalog','training','media','video_analysis','coaching','forms','offers','billing','checkins','calendar','messaging','notifications','client_documentation','integrations'] LOOP
         EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I REVOKE ALL ON TABLES FROM PUBLIC', schema_name);
         EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC', schema_name);
     END LOOP;

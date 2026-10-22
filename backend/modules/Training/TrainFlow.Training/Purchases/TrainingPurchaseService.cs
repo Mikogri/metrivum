@@ -30,13 +30,10 @@ public sealed class TrainingPurchaseService(TrainingDbContext db, IAccountContex
         var buyer = (await directory.GetAccountsAsync([purchase.BuyerId], ct)).GetValueOrDefault(purchase.BuyerId) ?? throw ApiException.NotFound();
         var snapshot = TrainingJson.Deserialize<RevisionSnapshot>(purchase.Snapshot);
         // Convert seller-owned formulas into their accepted values; ownership never grants access to the source formula library.
-        Prescription Freeze(Guid id, Prescription prescription) => snapshot.Formulas.TryGetValue(id, out var formula)
-            ? prescription with { LoadFormula = null, Load = new(formula.Result, formula.Result), LoadPercent = null, BaseValue = null }
-            : prescription with { LoadFormula = null };
-        var document = snapshot.Document with { Blocks = snapshot.Document.Blocks.Select(b => b with { Cycles = b.Cycles.Select(c => c with {
-            Days = c.Days.Select(d => d with { Workouts = d.Workouts.Select(w => w with { Exercises = w.Exercises.Select(e => e with {
-                Sets = e.Sets.Select(s => s with { Prescription = Freeze(s.Id, s.Prescription), Segments = s.Segments?.Select(g => g with { Prescription = Freeze(g.Id, g.Prescription) }).ToArray() }).ToArray()
-            }).ToArray() }).ToArray() }).ToArray() }).ToArray() }).ToArray() };
+        var publicDocument = DocumentRules.ForClient(snapshot.Document);
+        // Max-table formulas belong to the seller; the delivered workouts already contain frozen loads.
+        var document = publicDocument with { MaxesTables = publicDocument.MaxesTables?.Select(t => t with { Rows = t.Rows.Where(r => r.LoadFormula == null && r.TimeFormula == null).ToArray() }).ToArray(), Blocks = publicDocument.Blocks.Select(b => b with { ExerciseMaxes = b.ExerciseMaxes?.Where(r => r.LoadFormula == null && r.TimeFormula == null).ToArray(), Cycles = b.Cycles.Select(c => c with {
+            Days = c.Days.Select(d => d with { Workouts = d.Workouts.Select(w => PrescriptionFormulas.Freeze(w, snapshot.Formulas)).ToArray() }).ToArray() }).ToArray() }).ToArray() };
         var plan = new TrainingPlan { Id = Guid.NewGuid(), OwnerId = purchase.BuyerId, WorkspaceId = buyer.WorkspaceId, Name = snapshot.Name,
             Description = snapshot.Description, Kind = DocumentKind.Program, Draft = document, CreatedAt = clock.GetUtcNow(), UpdatedAt = clock.GetUtcNow() };
         db.Plans.Add(plan);

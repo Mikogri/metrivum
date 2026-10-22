@@ -94,7 +94,7 @@ public static class TrainingPdf
                 Lines($"{cycle.Name} · {cycle.DayCount} days", true);
                 Lines(cycle.Description);
                 foreach (var day in cycle.Days)
-                    foreach (var workout in day.Workouts)
+                    foreach (var workout in day.Workouts.Select(w => PrescriptionFormulas.Freeze(w, snapshot.Formulas)))
                     {
                         Lines($"Day {day.DayNumber} · {workout.Name}", true);
                         Lines(workout.Description);
@@ -126,6 +126,7 @@ public static class TrainingPdf
     }
     private static string Describe(Prescription p, FormulaEvaluation? formula)
     {
+        p = PrescriptionFormulas.Freeze(p, formula);
         var parts = new List<string>();
         string Q(Quantity q) => q.Value.ToString(CultureInfo.InvariantCulture) + " " + q.Unit;
         if (p.Reps is { } reps)

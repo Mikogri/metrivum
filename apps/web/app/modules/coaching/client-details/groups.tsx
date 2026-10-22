@@ -1,9 +1,9 @@
 import { UsersRound } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
-import { Button, Checkbox, Dialog, SearchInput, toast } from "@trainflow/ui-web";
+import { Alert, Button, Checkbox, Dialog, LinkButton, SearchInput, toast } from "@trainflow/ui-web";
 import { Panel } from "~/shared/ui/Panel";
-import { useCoachingMutation, useCoachingQuery, type Group, type Page, type Relationship } from "../api";
+import { groupInvalidation, useCoachingMutation, useCoachingQuery, type Group, type Page, type Relationship } from "../api";
 import { Failure, ListPagination, Loading, MutationError } from "../components";
 import styles from "./client-details.module.css";
 
@@ -39,6 +39,6 @@ export function ManageClientGroups({ relationship, close }: { relationship: Rela
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const groups = useCoachingQuery<Page<Group>>("/api/v1/coaching/groups", { page, pageSize: 20, search: search || undefined, teamId: relationship.teamId ?? undefined, sort: "name" });
-  const mutation = useCoachingMutation(() => toast({ tone: "success", title: "Groups updated" }));
-  return <Dialog isOpen title="Manage client groups" onOpenChange={open => { if (!open && !mutation.isPending) close(); }} isDismissable={!mutation.isPending} isKeyboardDismissDisabled={mutation.isPending}><div className={styles.stack}><SearchInput aria-label="Search client groups" placeholder="Search groups" value={search} onChange={value => { setSearch(value); setPage(1); }} /><MutationError error={mutation.error} />{groups.isPending ? <Loading /> : groups.isError ? <Failure error={groups.error} retry={() => void groups.refetch()} /> : <>{groups.data.items.map(group => <Checkbox key={group.id} isSelected={relationship.groupIds.includes(group.id)} isDisabled={mutation.isPending} onChange={selected => mutation.mutate({ method: selected ? "PUT" : "DELETE", path: `/api/v1/coaching/groups/${group.id}/members/${relationship.id}`, ifMatch: group.version })}>{group.name}</Checkbox>)}{!groups.data.items.length && <p>No groups match</p>}<ListPagination data={groups.data} onChange={setPage} /></>}</div></Dialog>;
+  const mutation = useCoachingMutation(() => toast({ tone: "success", title: "Groups updated" }), groupInvalidation);
+  return <Dialog isOpen title="Manage client groups" onOpenChange={open => { if (!open && !mutation.isPending) close(); }} isDismissable={!mutation.isPending} isKeyboardDismissDisabled={mutation.isPending}><div className={styles.stack}><SearchInput aria-label="Search client groups" placeholder="Search groups" value={search} onChange={value => { setSearch(value); setPage(1); }} /><MutationError error={mutation.error} />{groups.isPending ? <Loading /> : groups.isError ? <Failure error={groups.error} retry={() => void groups.refetch()} /> : <>{groups.data.items.map(group => <Checkbox key={group.id} isSelected={relationship.groupIds.includes(group.id)} isDisabled={mutation.isPending} onChange={selected => mutation.mutate({ method: selected ? "PUT" : "DELETE", path: `/api/v1/coaching/groups/${group.id}/members/${relationship.id}`, ifMatch: group.version })}>{group.name}</Checkbox>)}{!groups.data.items.length && (search ? <p>No groups match “{search}”.</p> : <Alert tone="info" title="No groups yet" actions={<LinkButton href="/app/groups" size="sm">Open groups</LinkButton>}>Groups let you message, check in with and assign programs to several clients at once.</Alert>)}<ListPagination data={groups.data} onChange={setPage} /></>}</div></Dialog>;
 }

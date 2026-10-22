@@ -22,13 +22,18 @@ public static class ModuleRegistration
     public static IServiceCollection AddMessaging(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddModuleDatabase<MessagingDbContext>("messaging");
+        services.AddOptions<MessagingAbuseOptions>().Bind(configuration.GetSection("AbuseProtection:Messaging"))
+            .Validate(x => x.StrangerContactsPerHour is > 0 and <= 100 && x.UnestablishedContactsPerDay is > 0 and <= 100
+                && x.GroupsPerDay is > 0 and <= 100 && x.MaximumRecipients is > 0 and <= 100, "Invalid messaging abuse limits.").ValidateOnStart();
         services.AddScoped<MessagingService>();
+        services.AddScoped<TrainFlow.Messaging.Contracts.IMcpMessageOperations>(p => p.GetRequiredService<MessagingService>());
         services.AddScoped<IMessagingAnalytics, MessagingAnalytics>();
         services.AddScoped<ICoachingMessagingObserver>(p => p.GetRequiredService<MessagingService>());
         services.AddScoped<ICoachingChatPublisher>(p => p.GetRequiredService<MessagingService>());
         services.AddScoped<IMessagingUploadAuthorization>(p => p.GetRequiredService<MessagingService>());
         services.AddScoped<MessagingDispatcher>();
-        services.AddSignalR().AddJsonProtocol(options =>
+        services.AddSingleton<MessagingHubAbuse>();
+        services.AddSignalR(options => { options.MaximumReceiveMessageSize = 16384; options.MaximumParallelInvocationsPerClient = 1; options.AddFilter<MessagingHubAbuse>(); }).AddJsonProtocol(options =>
             options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         services.AddSingleton<IUserIdProvider, MessagingUserIdProvider>();
         services.TryAddSingleton(TimeProvider.System);
@@ -55,7 +60,7 @@ public static class ModuleRegistration
         preferences.MapGet("", (MessagingService s, CancellationToken ct) => s.PreferencesAsync(ct));
         preferences.MapPut("", (MessagingPreferenceDto input, MessagingService s, CancellationToken ct) => s.SavePreferencesAsync(input, ct));
         g.MapGet("/people", (string search, MessagingService s, CancellationToken ct) => s.SearchPeopleAsync(search, ct));
-        g.MapGet("/conversations", (string? search, int? limit, MessagingService s, CancellationToken ct) => s.ListAsync(search, limit ?? 25, ct));
+        g.MapGet("/conversations", (string? search, int? limit, int? page, MessagingService s, CancellationToken ct) => s.ListAsync(search, limit ?? 25, ct, page ?? 1));
         g.MapPost("/conversations/direct", (DirectRequest r, MessagingService s, CancellationToken ct) => s.DirectAsync(r.UserId, ct));
         g.MapPost("/conversations/group", (GroupRequest r, MessagingService s, CancellationToken ct) => s.GroupAsync(r, ct));
         g.MapGet("/conversations/{id:guid}", (Guid id, MessagingService s, CancellationToken ct) => s.GetAsync(id, ct));
@@ -92,7 +97,7 @@ public static class ModuleRegistration
             await s.MemberAsync(id, userId, "unban", ct);
             return Results.NoContent();
         });
-        g.MapGet("/requests", (MessagingService s, CancellationToken ct) => s.RequestsAsync(ct));
+        g.MapGet("/requests", (int? page, int? limit, MessagingService s, CancellationToken ct) => s.RequestsAsync(ct, page, limit));
         g.MapPost("/requests", (ContactRequest r, MessagingService s, CancellationToken ct) => s.RequestAsync(r, ct));
         g.MapPost("/requests/by-username", (UsernameContactRequest r, MessagingService s, CancellationToken ct) => s.RequestByUsernameAsync(r, ct));
         foreach (var (action, state) in new[]

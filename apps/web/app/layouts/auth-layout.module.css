@@ -1,11 +1,15 @@
+/* Sign-in pages in the landing style: the product on the left, a quiet form column on the right. */
 .page {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(24rem, 34rem);
+  grid-template-columns: minmax(0, 1fr) minmax(24rem, 32rem);
   min-height: 100dvh;
+  background: var(--tf-color-bg);
+  color: var(--tf-color-text);
 }
 
 .visual {
   position: relative;
+  min-width: 0;
   overflow: hidden;
   border-right: 1px solid var(--tf-color-border-subtle);
   background: var(--tf-color-bg-sunken);
@@ -22,26 +26,33 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--tf-space-3);
-  padding: var(--tf-space-4) var(--tf-space-6);
+  height: var(--tf-header-height);
+  padding: 0 var(--tf-space-6);
 }
 
 .back {
   display: inline-flex;
   align-items: center;
   gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-tertiary);
+  color: var(--tf-color-text-secondary);
   font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
   transition: color var(--tf-duration-fast) ease;
 }
 
 .back svg {
   width: 0.9375rem;
   height: 0.9375rem;
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .back:hover {
     color: var(--tf-color-text);
+  }
+
+  .back:hover svg {
+    transform: translateX(-3px);
   }
 }
 
@@ -49,32 +60,58 @@
   flex: 1;
   display: grid;
   align-content: center;
-  gap: var(--tf-space-6);
+  gap: var(--tf-space-8);
   width: 100%;
-  max-width: 26rem;
+  max-width: 25rem;
   margin: 0 auto;
-  padding: var(--tf-space-6) var(--tf-space-6) var(--tf-space-12);
+  padding: var(--tf-space-8) var(--tf-space-6);
 }
 
-.logo {
+.home {
+  display: none;
+}
+
+.home img {
+  display: block;
   width: auto;
-  height: 1.375rem;
+  height: 1.25rem;
+}
+
+/* Notices on these pages are neutral: no blue or tinted panels beside the form. */
+.card {
+  --tf-color-info: var(--tf-color-text-secondary);
+  --tf-color-info-soft: var(--tf-color-surface-selected);
+  --tf-color-info-border: var(--tf-color-border);
 }
 
 .card {
   display: grid;
-  gap: var(--tf-space-5);
-  animation: card-in 500ms var(--tf-ease-out) both;
+  gap: var(--tf-space-6);
+  animation: card-in 600ms var(--tf-ease-out) both;
+}
+
+/* Headings follow the landing page: the display face, bold and tight. */
+.card h1 {
+  font-size: clamp(1.875rem, 1.5rem + 1.2vw, 2.375rem);
+  font-weight: var(--tf-weight-bold);
+  line-height: 1.04;
+}
+
+.card h1 + p {
+  font-size: var(--tf-text-md);
+  line-height: var(--tf-leading-relaxed);
 }
 
 @keyframes card-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
 }
 
 .tagline {
+  padding: var(--tf-space-4) var(--tf-space-6);
+  border-top: 1px solid var(--tf-color-border-subtle);
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
 }
@@ -84,8 +121,34 @@
     grid-template-columns: 1fr;
   }
 
-  .visual {
+  .visual,
+  .back {
     display: none;
+  }
+
+  .home {
+    display: block;
+  }
+
+  .top {
+    padding: 0 var(--tf-space-5);
+    border-bottom: 1px solid var(--tf-color-border-subtle);
+  }
+
+  /* The form starts near the top instead of floating in the middle of a tall screen. */
+  .main {
+    align-content: start;
+    max-width: 28rem;
+    padding: var(--tf-space-10) var(--tf-space-5) var(--tf-space-8);
+  }
+
+  .card h1 {
+    font-size: var(--tf-text-3xl);
+  }
+
+  .tagline {
+    padding: var(--tf-space-4) var(--tf-space-5);
+    text-align: center;
   }
 }
 

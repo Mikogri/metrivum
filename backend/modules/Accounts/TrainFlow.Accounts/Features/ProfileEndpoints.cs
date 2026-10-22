@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using TrainFlow.Accounts.Contracts;
 using TrainFlow.Accounts.Domain;
 using TrainFlow.Accounts.Infrastructure;
@@ -14,6 +15,15 @@ public sealed record ProfileResponse(Guid Id, Guid WorkspaceId, string? Username
 public sealed record OnboardingRequest(string Username, string DisplayName, DateOnly BirthDate, bool AcceptedTerms, string Locale, string TimeZone, AccountRole Role = AccountRole.Coach, string? Phone = null, bool? PhoneVisibleToCoach = null);
 public sealed record UpdateProfileRequest(string DisplayName, string Locale, string TimeZone, string? Phone = null, bool? PhoneVisibleToCoach = null);
 
+/// <summary>Rate-limit policy names registered by the API host for identity-sensitive endpoints.</summary>
+public static class AccountRateLimits
+{
+    /// <summary>Onboarding and role onboarding: 10 per user per minute.</summary>
+    public const string Identity = "account-identity";
+    /// <summary>People search: 30 per user per minute.</summary>
+    public const string Directory = "account-directory";
+}
+
 public static class ProfileEndpoints
 {
     public static void Map(IEndpointRouteBuilder endpoints)
@@ -22,7 +32,7 @@ public static class ProfileEndpoints
         {
             await account.GetRolesAsync(ct);
             return (await directory.SearchAsync(search, ct)).Where(person => person.UserId != account.UserId).ToArray();
-        }).WithTags("Accounts").RequireAuthorization();
+        }).WithTags("Accounts").RequireAuthorization().RequireRateLimiting(AccountRateLimits.Directory);
         var group = endpoints.MapGroup("/api/v1/me").WithTags("Accounts");
         group.MapGet("/profile-fields", async (IAccountProfileFields fields, HttpContext http, CancellationToken ct) => ProfileFieldsResponse(http, await fields.GetOwnAsync(ct)));
         group.MapPatch("/profile-fields", async (ProfileFieldsRequest request, IAccountProfileFields fields, HttpContext http, CancellationToken ct) => ProfileFieldsResponse(http, await fields.UpdateOwnAsync(request.Values, ProfileFieldsVersion(http), ct)));
@@ -43,14 +53,18 @@ public static class ProfileEndpoints
             {
                 if (!await db.Roles.AnyAsync(x => x.UserId == account.UserId && x.Role == request.Role.ToString(), ct))
                     throw ApiException.Conflict("Use the explicit role onboarding operation to add a role.");
-                if (profile.NormalizedUsername != request.Username.ToUpperInvariant() || profile.BirthDate != request.BirthDate)
+                if (profile.NormalizedUsername != AccountIdentityPolicy.NormalizeUsername(request.Username) || profile.BirthDate != request.BirthDate)
                     throw ApiException.Conflict("Onboarding is already complete. Use profile settings for editable fields.");
             }
             else
             {
+                var normalizedUsername = AccountIdentityPolicy.NormalizeUsername(request.Username);
+                // A clear answer for the common case; the unique index below still decides concurrent claims.
+                if (await db.Profiles.AnyAsync(x => x.NormalizedUsername == normalizedUsername && x.Id != account.UserId, ct))
+                    throw UsernameTaken();
                 profile.Username = request.Username;
-                profile.NormalizedUsername = request.Username.ToUpperInvariant();
-                profile.DisplayName = request.DisplayName.Trim();
+                profile.NormalizedUsername = normalizedUsername;
+                profile.DisplayName = AccountIdentityPolicy.NormalizeDisplayName(request.DisplayName);
                 profile.BirthDate = request.BirthDate;
                 profile.Locale = request.Locale;
                 profile.TimeZone = request.TimeZone;
@@ -61,11 +75,18 @@ public static class ProfileEndpoints
                 profile.Onboarded = true;
                 profile.Version++;
                 db.Roles.Add(new UserRole { UserId = account.UserId, Role = request.Role.ToString() });
-                await db.SaveChangesAsync(ct);
+                try
+                {
+                    await db.SaveChangesAsync(ct);
+                }
+                catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: UsernameIndex })
+                {
+                    throw UsernameTaken();
+                }
             }
             await transaction.CommitAsync(ct);
             return await Response(profile, db, http, ct);
-        });
+        }).RequireRateLimiting(AccountRateLimits.Identity);
         group.MapPost("/roles/client", async (AccountContext account, AccountsDbContext db, HttpContext http, CancellationToken ct) =>
         {
             await account.GetRolesAsync(ct);
@@ -93,7 +114,7 @@ public static class ProfileEndpoints
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({account.UserId.ToString()}, 0))", ct);
             var profile = await account.EnsureProfileAsync(ct);
             await db.Entry(profile).ReloadAsync(ct);
-            if (profile.NormalizedUsername != request.Username.ToUpperInvariant() || profile.BirthDate != request.BirthDate)
+            if (profile.NormalizedUsername != AccountIdentityPolicy.NormalizeUsername(request.Username) || profile.BirthDate != request.BirthDate)
                 throw ApiException.Conflict("Coach onboarding must match the existing account identity.");
             if (!await db.Roles.AnyAsync(x => x.UserId == account.UserId && x.Role == "Coach", ct))
             {
@@ -105,7 +126,7 @@ public static class ProfileEndpoints
             }
             await transaction.CommitAsync(ct);
             return await Response(profile, db, http, ct);
-        });
+        }).RequireRateLimiting(AccountRateLimits.Identity);
         group.MapPatch("", async (UpdateProfileRequest request, AccountContext account, AccountsDbContext db, HttpContext http, CancellationToken ct) =>
         {
             AccountRules.ValidatePhone(request.Phone);
@@ -119,7 +140,7 @@ public static class ProfileEndpoints
                 profile.Phone = request.Phone.Length == 0 ? null : request.Phone;
             if (request.PhoneVisibleToCoach is { } visible)
                 profile.PhoneVisibleToCoach = visible;
-            profile.DisplayName = request.DisplayName.Trim();
+            profile.DisplayName = AccountIdentityPolicy.NormalizeDisplayName(request.DisplayName);
             profile.Locale = request.Locale;
             profile.TimeZone = request.TimeZone;
             profile.Version++;
@@ -135,6 +156,10 @@ public static class ProfileEndpoints
         var roles = (await db.Roles.AsNoTracking().Where(x => x.UserId == profile.Id && (x.Role == "Coach" || x.Role == "Client")).Select(x => x.Role).ToArrayAsync(ct)).Select(Enum.Parse<AccountRole>).Order().ToArray();
         return new(profile.Id, workspace.Id, profile.Username, profile.DisplayName, profile.BirthDate, profile.Locale, profile.TimeZone, profile.Onboarded, profile.Version, roles, roles, profile.Phone, profile.PhoneVisibleToCoach);
     }
+    /// <summary>The unique index on the normalized username (see the Accounts migrations).</summary>
+    private const string UsernameIndex = "IX_profiles_NormalizedUsername";
+    private static ApiException UsernameTaken() => new(409, "USERNAME_TAKEN", "This username is already taken.",
+        new Dictionary<string, string[]> { ["username"] = ["This username is already taken."] });
     private static long ProfileFieldsVersion(HttpContext http) => RequestPreconditions.RequireVersion(http.Request);
     private static AccountProfileFields ProfileFieldsResponse(HttpContext http, AccountProfileFields fields)
     {

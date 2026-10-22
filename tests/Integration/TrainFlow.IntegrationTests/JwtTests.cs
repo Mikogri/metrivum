@@ -99,17 +99,19 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         }
     }
 
-    public string Token(Guid userId, string? fault = null, bool metadataAdmin = false)
+    public string Token(Guid userId, string? fault = null, bool metadataAdmin = false, string? oauthClientId = null)
     {
         var now = DateTime.UtcNow;
         var claims = new List<Claim>
         {
             new("sub", fault == "subject" ? "not-a-guid" : userId.ToString()),
+            new("iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
             new("role", fault == "role" ? "service_role" : "authenticated"),
             new("is_anonymous", fault == "anonymous" ? "true" : "false", ClaimValueTypes.Boolean),
             new("session_id", fault == "session" ? "invalid" : Guid.NewGuid().ToString()),
             new("user_metadata", metadataAdmin ? "{\"Admin\":true,\"role\":\"AccessAdmin\",\"capabilities\":[\"all\"]}" : "{}", "JSON")
         };
+        if (oauthClientId != null) claims.Add(new("client_id", oauthClientId));
         using var other = RSA.Create(2048);
         var key = fault == "signature" ? new RsaSecurityKey(other) { KeyId = "test-key" } : SigningKey ?? Key;
         if (fault == "unknown_kid")

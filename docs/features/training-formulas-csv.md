@@ -2,6 +2,8 @@
 
 ## Formulas
 
+See [client-aware formulas](training-client-formulas.md) for advanced inline cells, named exercise/profile variables, and per-client frozen assignment snapshots. The legacy library bindings described below remain supported.
+
 The domain engine is independent of HTTP and EF. It uses a bounded recursive parser and decimal arithmetic; there is no scripting runtime, reflection, SQL, file/network access or `eval`.
 
 Case-sensitive identifiers match `[A-Za-z_][A-Za-z0-9_]*`. Numeric literals use a decimal dot (including `.8`), without thousands separators or exponent notation. Arithmetic is `+ - * /`, unary `+/-`, parentheses, and comparisons `> >= < <= == !=`. Precedence is unary, multiplication/division, addition/subtraction, then a comparison. Comparisons yield scalar 1/0. Input names and all inputs must be explicitly declared; missing inputs are validation errors. Program bindings supply prescribed values, not athlete execution history.

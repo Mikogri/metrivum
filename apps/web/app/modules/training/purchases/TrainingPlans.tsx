@@ -1,8 +1,12 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Training plans — TrainFlow");
+
 import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
 import { Navigate } from "react-router";
 import { ShoppingBag } from "lucide-react";
-import { Badge, Button, Dialog, DialogFooter, LinkButton, Segment, SegmentedControl, toast, useMobileLayout } from "@trainflow/ui-web";
+import { Alert, Badge, Button, Dialog, DialogFooter, LinkButton, Segment, SegmentedControl, toast, useMobileLayout } from "@trainflow/ui-web";
 import { Panel } from "~/shared/ui/Panel";
 import { useCoachingMutation, useCoachingQuery, type Page, Failure, ListPagination, Loading, money } from "~/modules/coaching";
 import { AssignmentList } from "../delivery/Assignments";
@@ -20,8 +24,10 @@ function PurchasePayment({ purchase, close }: { purchase: Purchase; close: () =>
     {query.isPending ? <Loading /> : query.isError ? <Failure error={query.error} /> : <>
       <p>{purchase.name} · {money(query.data.amount, query.data.currency)}</p>
       <p>You receive an independent copy after payment. Future changes by the coach do not update your copy.</p>
-      <p>{query.data.settlementMode === "External" ? "Your coach must confirm receipt of the external payment." : "Test payment — no real money is charged."}</p>
-      {pay.error && <Failure error={pay.error} />}
+      {query.data.status !== "AwaitingPayment" ? <Alert tone="success" title="Nothing to pay">This plan is already paid or no longer awaiting payment.</Alert>
+        : query.data.settlementMode === "External" ? <Alert tone="info" title="Paid outside TrainFlow">Pay your coach as agreed. The plan unlocks when your coach confirms the payment.</Alert>
+        : <p className={styles.hint}>Test payment — no real money is charged.</p>}
+      {pay.error && <Alert tone="danger" live="assertive" title="Payment did not go through">{pay.error instanceof Error ? pay.error.message : "Try again in a moment."}</Alert>}
       <DialogFooter><Button isDisabled={pay.isPending} onPress={close}>Cancel</Button><Button variant="primary" loading={pay.isPending} isDisabled={query.data.settlementMode === "External" || query.data.status !== "AwaitingPayment"} onPress={() => pay.mutate({ method: "POST", path: `/api/v1/me/payment-dues/${query.data.id}/pay`, json: { paymentMethodId: null, idempotencyKey: key } })}>Pay {money(query.data.amount, query.data.currency)}</Button></DialogFooter>
     </>}
   </Dialog>;

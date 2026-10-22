@@ -6,7 +6,8 @@ import { useSessionManager } from "~/shared/session/SessionProvider";
 import { AuthFooter, AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
 import { authErrorText } from "../lib/authErrors";
-import { callbackUrl, EMAIL_PATTERN, slotParam } from "../lib/urls";
+import { callbackUrl, slotParam } from "../lib/urls";
+import { isValidEmail, normalizeEmail } from "../lib/email";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Reset password — TrainFlow");
@@ -26,12 +27,13 @@ export default function ForgotPassword() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    if (!EMAIL_PATTERN.test(email) || slot === null) return;
+    if (!isValidEmail(email) || slot === null) return;
+    const address = normalizeEmail(email);
     setPending(true);
     setError(null);
     try {
-      const { error: resetError } = await manager.client(slot).auth.resetPasswordForEmail(email, {
-        redirectTo: callbackUrl(slot, "/auth/reset-password", email),
+      const { error: resetError } = await manager.client(slot).auth.resetPasswordForEmail(address, {
+        redirectTo: callbackUrl(slot, "/auth/reset-password", address),
       });
       if (resetError) throw resetError;
       // Same message whether or not the account exists, to avoid account enumeration.
@@ -58,7 +60,7 @@ export default function ForgotPassword() {
             value={email}
             onChange={setEmail}
             isRequired
-            isInvalid={submitted && !EMAIL_PATTERN.test(email)}
+            isInvalid={submitted && !isValidEmail(email)}
             errorMessage={m.auth.errors.emailInvalid}
             size="lg"
           />

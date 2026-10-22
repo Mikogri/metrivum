@@ -15,6 +15,7 @@ import { FavoriteButton } from "../components/FavoriteButton";
 import { useDictionaries, useExerciseList, useTags } from "../queries";
 import { GROUP_LABELS, exerciseGroup, muscleGroup } from "../muscleGroup";
 import styles from "./exercises.module.css";
+import { MuscleExplorer } from "~/modules/anatomy";
 import { privateMeta } from "~/shared/i18n/site";
 
 /** Rows per page in lists. */
@@ -79,6 +80,7 @@ function ExerciseLibrary() {
           </LockedReason>
         }
       />
+      <MuscleExplorer muscleKey={state.muscle} onMuscleChange={key => update({ muscle: key || null })}>
       <Toolbar aria-label={m.common.search} className={styles.toolbar}>
         <SearchInput aria-label={t.searchLabel} placeholder={t.searchPlaceholder} value={search} onChange={setSearch} className={styles.search} />
         <Combobox
@@ -248,7 +250,6 @@ function ExerciseLibrary() {
                     <span className={styles.more}>—</span>
                   ),
               },
-              { id: "description", header: m.common.col.description, muted: true, hideOnMobile: true, cell: (exercise) => exercise.description || "—" },
               { id: "created", header: m.common.col.created, width: "9rem", muted: true, hideOnMobile: true, cell: (exercise) => formatRelative(locale, exercise.createdAt) },
               {
                 id: "favorite",
@@ -268,6 +269,7 @@ function ExerciseLibrary() {
           />
         </>
       )}
+      </MuscleExplorer>
       <CreateExerciseDialog isOpen={createOpen} onOpenChange={setCreateOpen} />
     </>
   );

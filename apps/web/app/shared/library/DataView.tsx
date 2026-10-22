@@ -16,6 +16,8 @@ export interface CardSpec {
   tone?: "green" | "blue" | "violet" | "orange" | "rose" | "neutral";
   /** Status or another badge, top right. */
   badge?: ReactNode;
+  /** Colour marks on the card's edge (e.g. the client's groups); the labels are read out and shown as a tooltip. */
+  marks?: Array<{ color: string; label: string }>;
   description?: ReactNode;
   /** Key facts in a small grid (price, mode, counts). Each list picks its own. */
   facts?: Array<{ label: ReactNode; value: ReactNode }>;
@@ -30,66 +32,80 @@ export interface CardSpec {
 }
 
 /**
- * One card in a grid: icon and title (with an optional subtitle) beside the badge, a two-line
- * description, an optional grid of facts, then meta and actions at the foot. With `href`, the title
- * link is stretched over the whole card.
+ * One card in a grid; every card is the same size. The header is one row centred on the icon:
+ * the icon or avatar, the title with its subtitle, and the status. Below it a description of up to
+ * two lines, then the footer: details on one line, any actions, and the open arrow in the corner.
+ * With `href`, the title link is stretched over the whole card.
  */
-export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge, description, facts, meta, actions, onOpen, openLabel }: CardSpec) {
+export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge, marks, description, facts, meta, actions, onOpen, openLabel }: CardSpec) {
   const linked = Boolean(href || onOpen);
   const items = meta?.filter(Boolean) ?? [];
+  const markNames = marks?.map((mark) => mark.label).join(", ");
   return (
     <li className={styles.item}>
-    <article className={styles.card} data-link={linked ? "" : undefined}>
-      <div className={styles.head}>
-        {icon ? (
-          <span className={styles.icon} data-tone={tone} aria-hidden="true">
-            {icon}
+      <article className={styles.card} data-link={linked ? "" : undefined}>
+        {marks?.length ? (
+          <span className={styles.marks} role="img" aria-label={markNames} title={markNames}>
+            {marks.map((mark, i) => (
+              <i key={i} style={{ background: mark.color }} />
+            ))}
           </span>
         ) : null}
-        <div className={styles.heading}>
-          <h3 className={styles.title}>
-            {href ? (
-              <RouterLink to={href} className={styles.link}>
-                {title}
-              </RouterLink>
-            ) : onOpen ? (
-              <button type="button" className={styles.link} aria-label={openLabel} onClick={onOpen}>
-                {title}
-              </button>
-            ) : (
-              title
-            )}
-          </h3>
-          {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
-        </div>
-        {badge ? <span className={styles.badge}>{badge}</span> : null}
-      </div>
-      {description ? <p className={styles.description}>{description}</p> : null}
-      {facts?.length ? (
-        <dl className={styles.facts}>
-          {facts.map((fact, i) => (
-            <div key={i}>
-              <dt>{fact.label}</dt>
-              <dd>{fact.value}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : null}
-      {items.length || actions || linked ? (
-        <div className={styles.foot}>
-          {items.length ? (
-            <span className={styles.meta}>
-              {items.map((item, i) => (
-                <span key={i}>{item}</span>
-              ))}
+        <div className={styles.head}>
+          {icon ? (
+            <span className={styles.icon} data-tone={tone} aria-hidden="true">
+              {icon}
             </span>
           ) : null}
-          {actions ? <span className={styles.actions}>{actions}</span> : null}
-          {linked && !actions ? <ArrowUpRight aria-hidden="true" className={styles.arrow} /> : null}
+          <div className={styles.heading}>
+            <h3 className={styles.title}>
+              {href ? (
+                <RouterLink to={href} className={styles.link}>
+                  {title}
+                </RouterLink>
+              ) : onOpen ? (
+                <button type="button" className={styles.link} aria-label={openLabel} onClick={onOpen}>
+                  {title}
+                </button>
+              ) : (
+                title
+              )}
+            </h3>
+            {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
+          </div>
+          {badge ? <span className={styles.badge}>{badge}</span> : null}
         </div>
-      ) : null}
-    </article>
+        {description ? <p className={styles.description}>{description}</p> : null}
+        <div className={styles.foot}>
+          {facts?.length || items.length ? (
+            <dl className={styles.facts}>
+              {facts?.map((fact, i) => (
+                <div key={i}>
+                  {fact.label ? <dt>{fact.label}</dt> : null}
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
+              {items.map((item, i) => (
+                <div key={`meta-${i}`}>
+                  <dd>{item}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+          {actions ? <div className={styles.actions}>{actions}</div> : null}
+          {linked ? <ArrowUpRight className={styles.arrow} aria-hidden="true" /> : null}
+        </div>
+      </article>
     </li>
+  );
+}
+
+/** A quiet text link for a card's actions: no padding, only the text lightens on hover. */
+export function CardAction({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <RouterLink to={href} className={styles.action}>
+      {children}
+    </RouterLink>
   );
 }
 

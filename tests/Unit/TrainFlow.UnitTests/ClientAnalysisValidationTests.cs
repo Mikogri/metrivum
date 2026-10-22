@@ -25,4 +25,15 @@ public sealed class ClientAnalysisValidationTests
         };
         foreach (var input in invalid) Assert.Throws<ApiException>(() => ClientAnalysisLibrary.Validate(input, new()));
     }
+
+    [Fact]
+    public void Accepts_any_exercise_label_on_an_engine_movement()
+    {
+        var valid = Request();
+        ClientAnalysisLibrary.Validate(valid with { Configuration = new(Movement: "squat", Exercise: "Front squat") }, new());
+        ClientAnalysisLibrary.Validate(valid with { Configuration = new(Exercise: "Overhead press") }, new());
+        Assert.Throws<ApiException>(() => ClientAnalysisLibrary.Validate(valid with { Configuration = new(Movement: "overhead-press") }, new()));
+        Assert.Throws<ApiException>(() => ClientAnalysisLibrary.Validate(valid with { Configuration = new(Exercise: new string('x', 201)) }, new()));
+        Assert.Throws<ApiException>(() => ClientAnalysisLibrary.Validate(valid with { Configuration = new(Exercise: "  ") }, new()));
+    }
 }

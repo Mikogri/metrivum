@@ -33,15 +33,23 @@ async function fixture(page: Page) {
     if (path === `${base}/measurement-definitions`) return respond([{ key: "weight", label: "Body weight", units: ["kg", "lb"] }]);
     if (path === `${base}/measurements/trend`) return respond({ key: "weight", unit: "kg", points: [] });
     if (path === `${base}/documents` && req.method() === "POST") {
-      const body = req.postDataJSON(); const doc = { ...body, id: `document-${++sequence}`, source: client ? "Client" : "Coach", version: 1, hasFile: false, contentType: null, allowedActions: ["edit", "share"] };
+      const body = req.postDataJSON(); const doc = { ...body, id: `document-${++sequence}`, source: client ? "Client" : "Coach", authorId: client ? "client-author" : "coach-author", version: 1, hasFile: false, contentType: null, allowedActions: ["edit", "share"] };
       documents.push(doc); return respond(doc);
     }
-    if (path === `${base}/documents`) return respond(paged(documents.filter((d) => !client || d.visibility === "SharedWithClient").map((d) => ({ ...d, allowedActions: client || status !== "Active" ? [] : ["edit", "share"] }))));
+    if (path.startsWith(`${base}/documents/`) && path.endsWith("/share")) {
+      const doc = documents.find((d) => path === `${base}/documents/${d.id}/share`);
+      if (!doc || doc.authorId !== (client ? "client-author" : "coach-author")) return respond({}, 404);
+      doc.visibility = req.postDataJSON().visibility;
+      doc.version = Number(doc.version) + 1;
+      return respond(doc);
+    }
+    if (path === `${base}/documents`) return respond(paged(documents.filter((d) => d.authorId === (client ? "client-author" : "coach-author") || d.visibility === "SharedWithClient").map((d) => ({ ...d, allowedActions: d.authorId !== (client ? "client-author" : "coach-author") || status !== "Active" ? [] : ["edit", "share"] }))));
     if (path === "/api/v1/notifications/unread-count") return respond({ count: 0 });
     return respond(paged([]));
   });
   return {
     paths,
+    async asCoach() { client = false; status = "Active"; await page.addInitScript(({ user }) => localStorage.setItem(`tf.workspace.0:${user}`, "coach"), { user }); await page.goto(`/app/clients/${relationship}?tab=documentation`, { waitUntil: "domcontentloaded" }); },
     async asClient(nextStatus = "Active") { client = true; status = nextStatus; await page.addInitScript(({ user }) => localStorage.setItem(`tf.workspace.0:${user}`, "client"), { user }); await page.goto(`/app/my-coaches/${relationship}/documents`, { waitUntil: "domcontentloaded" }); },
   };
 }
@@ -82,4 +90,31 @@ test("suspended client receives unavailable state before protected documentation
   if (await switchButton.isVisible()) await switchButton.click();
   await expect(page.getByText("This relationship does not permit documentation access.").first()).toBeVisible();
   expect(f.paths.some((p) => p === `${base}/documents` || p === `${base}/notes` || p === `${base}/measurements`)).toBe(false);
+});
+
+
+test("client keeps a file private, shares it with coach, then revokes access", async ({ page }) => {
+  const f = await fixture(page);
+  await f.asClient();
+  await page.getByRole("button", { name: "Add file", exact: true }).click();
+  await page.getByRole("textbox", { name: "Title", exact: true }).fill("Client private record");
+  await page.getByRole("textbox", { name: "Document text", exact: true }).fill("Client-owned content");
+  await expect(page.getByRole("button", { name: "Visibility" })).toContainText("Only me");
+  await page.getByRole("button", { name: "Save document", exact: true }).click();
+  await expect(page.getByText("Only me", { exact: true })).toBeVisible();
+  await f.asCoach();
+  await expect(page.getByText("No documents available.")).toBeVisible();
+  await f.asClient();
+  await page.getByRole("button", { name: "Actions for Client private record" }).click();
+  await page.getByRole("menuitem", { name: "Share with coach" }).click();
+  await expect(page.getByText("Shared with coach", { exact: true })).toBeVisible();
+  await f.asCoach();
+  await expect(page.getByRole("button", { name: "Client private record", exact: true })).toBeVisible();
+  await expect(page.getByText("Shared with client", { exact: true })).toBeVisible();
+  await f.asClient();
+  await page.getByRole("button", { name: "Actions for Client private record" }).click();
+  await page.getByRole("menuitem", { name: "Make visible only to me" }).click();
+  await expect(page.getByText("Only me", { exact: true })).toBeVisible();
+  await f.asCoach();
+  await expect(page.getByText("No documents available.")).toBeVisible();
 });

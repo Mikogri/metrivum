@@ -1,0 +1,119 @@
+/* Full-width notice at the very top of the app: amber tint, centred one-line message, close on the right. */
+.banner {
+  --notice: #e0a030;
+  position: relative;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: var(--tf-space-2) 3rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--notice) 30%, transparent);
+  background: color-mix(in srgb, var(--notice) 14%, var(--tf-color-sidebar));
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+}
+
+.message {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px var(--tf-space-2);
+  margin: 0;
+  text-align: center;
+}
+
+.badge {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  background: var(--notice);
+  color: #1a1206;
+}
+
+.badge svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  stroke-width: 3;
+}
+
+.message strong {
+  font-weight: var(--tf-weight-semibold);
+}
+
+.dot,
+.detail {
+  color: var(--tf-color-text-secondary);
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tf-color-text);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration-color: currentColor;
+}
+
+.link:disabled {
+  color: var(--tf-color-text-secondary);
+  cursor: progress;
+}
+
+.link:focus-visible,
+.close:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.close {
+  position: absolute;
+  top: 50%;
+  right: var(--tf-space-3);
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: var(--tf-radius-md);
+  background: none;
+  color: var(--tf-color-text-secondary);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.close:hover {
+  background: color-mix(in srgb, var(--tf-color-text) 8%, transparent);
+  color: var(--tf-color-text);
+}
+
+.close svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (max-width: 40rem) {
+  .banner {
+    justify-content: flex-start;
+    padding: var(--tf-space-2) 2.75rem var(--tf-space-2) var(--tf-space-4);
+    font-size: var(--tf-text-xs);
+  }
+
+  .message {
+    justify-content: flex-start;
+    text-align: left;
+  }
+}

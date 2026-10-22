@@ -18,6 +18,7 @@ public static class ModuleRegistration
     {
         services.AddModuleDatabase<FormsDbContext>("forms");
         services.AddScoped<FormsService>();
+        services.AddScoped<IMcpFormOperations, TrainFlow.Forms.Features.McpFormOperations>();
         services.AddScoped<IFormLibrary>(p => p.GetRequiredService<FormsService>());
         services.TryAddSingleton(TimeProvider.System);
         foreach (var key in new[] { "forms.application.manage", "forms.checkin.manage" })
@@ -28,6 +29,7 @@ public static class ModuleRegistration
     {
         var group = endpoints.MapGroup("/api/v1/forms").WithTags("Forms").RequireAuthorization();
         group.MapGet("", (int? page, int? pageSize, FormPurpose purpose, bool? archived, string? search, string? sort, FormsService service, CancellationToken ct) => service.ListAsync(page ?? 1, pageSize ?? 25, purpose, archived ?? false, search, sort ?? "updated", ct));
+        group.MapGet("/summaries", (int? page, int? pageSize, FormPurpose purpose, bool? archived, string? search, string? sort, FormsService service, CancellationToken ct) => service.SummariesAsync(page ?? 1, pageSize ?? 25, purpose, archived ?? false, search, sort ?? "updated", ct));
         group.MapPost("", async (FormTemplateRequest request, FormsService service, HttpContext http, CancellationToken ct) => Versioned(http, await service.CreateAsync(request, ct))).Produces<FormTemplateDto>();
         group.MapGet("/{id:guid}", async (Guid id, FormsService service, HttpContext http, CancellationToken ct) => Versioned(http, await service.DetailAsync(id, ct))).Produces<FormTemplateDto>();
         group.MapPatch("/{id:guid}", async (Guid id, FormTemplateRequest request, FormsService service, HttpContext http, CancellationToken ct) => Versioned(http, await service.UpdateAsync(id, request, Version(http), ct))).Produces<FormTemplateDto>();

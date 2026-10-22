@@ -141,6 +141,14 @@ export const publicEn = {
       sourceMeta: "UTF-8 · 3 KB",
       files: { csvIn: "spring-block.csv", pdfOut: "strength-block-a-r3.pdf", csvOut: "strength-block-a-r3.csv" },
       hub: { rows: "38 rows matched", check: "0 errors" },
+      sheet: {
+        columns: ["Exercise", "Sets", "Reps", "Load"],
+        rows: [["Back squat", "4", "5", "80%"], ["RDL", "3", "8", "60 kg"], ["Split sq.", "3", "10", "24 kg"], ["Plank", "3", "45 s", "—"]],
+      },
+      mapping: { title: "Matched to the catalogue", pairs: [["RDL", "Romanian deadlift"], ["Split sq.", "Split squat"]] },
+      pdfTitle: "Strength block A",
+      pdfMeta: "Cycle 1 · Day 3",
+      outputs: "Files from revision 3",
     },
     video: {
       title: "Lift analysis next to the program",

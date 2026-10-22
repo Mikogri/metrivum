@@ -41,6 +41,17 @@ describe("useEditor saving", () => {
     respond = async (request) => ({ data: { ...plan, version: Number(request.ifMatch) + 1 }, version: Number(request.ifMatch) + 1, status: 200, etag: null, headers: new Headers() });
   });
 
+  it("does not serialize the whole plan again for an unchanged rerender", () => {
+    const stringify = vi.spyOn(JSON, "stringify");
+    try {
+      const { rerender } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+      const serializedPlans = () => stringify.mock.calls.filter(([value]) => value && typeof value === "object" && "doc" in value).length;
+      const initial = serializedPlans();
+      rerender();
+      expect(serializedPlans()).toBe(initial);
+    } finally { stringify.mockRestore(); }
+  });
+
   it("saves with the version it started from and becomes clean", async () => {
     const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
     act(() => result.current.apply((doc) => addBlock(doc, "Block 1").doc));
@@ -51,6 +62,20 @@ describe("useEditor saving", () => {
     expect(result.current.version).toBe(2);
     expect(result.current.dirty).toBe(false);
     expect(result.current.status).toBe("saved");
+  });
+
+  it("keeps edits and the expected version after 429 and saves them on explicit retry", async () => {
+    respond = async () => { throw new ApiError(429, { status: 429, code: "RATE_LIMIT_EXCEEDED" }, 30); };
+    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    act(() => result.current.apply((doc) => addBlock(doc, "Unsaved").doc));
+    await act(() => result.current.save());
+    expect(result.current.dirty).toBe(true);
+    expect(result.current.status).toBe("error");
+    expect(calls).toHaveLength(1);
+    respond = async () => ({ data: { ...plan, version: 2 }, version: 2, status: 200, etag: null, headers: new Headers() });
+    await act(() => result.current.save());
+    expect(calls[1]!.ifMatch).toBe(1);
+    expect(result.current.dirty).toBe(false);
   });
 
   it("stops on a version conflict and never overwrites", async () => {

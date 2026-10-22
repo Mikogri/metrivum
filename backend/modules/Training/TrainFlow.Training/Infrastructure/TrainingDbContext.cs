@@ -225,6 +225,13 @@ public sealed class TrainingDbContext(DbContextOptions<TrainingDbContext> option
         plan.HasOne<TrainingFolder>().WithMany().HasForeignKey(x => new { x.FolderId, x.WorkspaceId }).HasPrincipalKey(x => new { x.Id, x.WorkspaceId }).OnDelete(DeleteBehavior.Restrict);
         plan.HasIndex(x => new { x.WorkspaceId, x.OwnerId, x.Archived, x.UpdatedAt, x.Id });
         Json(plan.Property(x => x.Draft));
+        var metric = model.Entity<TrainFlow.Training.Features.ClientExerciseMax>();
+        metric.ToTable("client_exercise_maxes");
+        metric.HasKey(x => x.Id);
+        metric.Property(x => x.Alias).HasMaxLength(80);
+        metric.Property(x => x.Version).IsConcurrencyToken();
+        metric.HasIndex(x => new { x.ClientId, x.Alias }).IsUnique();
+
         var revision = model.Entity<TrainingRevision>();
         revision.ToTable("revisions");
         revision.HasKey(x => x.Id);

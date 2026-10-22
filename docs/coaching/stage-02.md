@@ -28,7 +28,7 @@ Every operation checks server-owned roles, current features, resource ownership 
 | API area | Main routes and returned data |
 | --- | --- |
 | Accounts | GET/PATCH `/api/v1/me/profile-fields`, PATCH `/me/currency`: currency, allowlisted values and profile version |
-| Forms | `/api/v1/forms`: paged templates; detail/create/edit/publish/duplicate/archive/restore return template DTOs; `/forms/versions/{id}` returns an owned frozen definition |
+| Forms | `/api/v1/forms`: paged templates; `/forms/summaries`: paged library metadata and database-counted question totals without draft definitions; detail/create/edit/publish/duplicate/archive/restore return template DTOs; `/forms/versions/{id}` returns an owned frozen definition |
 | Offers | `/api/v1/offers`: paged owner drafts and versioned commands; `/coaches/{coachId}/offers`: only active published revisions |
 | Intake | `/api/v1/coaching/applications`, `/leads`: side-specific lists/details, answers and allowed actions; coach-only projection includes private audit/current allowed profile |
 | Invitations | `/api/v1/coaching/invitations`, `/my-invitations`: frozen terms, target/coach summary, status and allowed actions |

@@ -11,6 +11,7 @@ export function questionType(type: Question["type"]): Partial<Question> {
 export function profileQuestion(field: Question["systemField"]): Partial<Question> {
   if (!field) return { systemField: null };
   if (["Height", "Weight", "BodyFat", "HrMax", "SessionsPerWeek", "AvailableSessionDuration", "Sleep", "Stress"].includes(field)) return { ...questionType("Number"), systemField: field };
+  if (field === "Sex") return { ...questionType("SingleChoice"), systemField: field, choices: ["Male", "Female", "Other"].map((name) => ({ key: name, label: name })) };
   if (field === "PreferredTrainingDays") return { ...questionType("MultiChoice"), systemField: field, choices: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((label, i) => ({ key: String(i + 1), label })) };
   if (field === "AvailableEquipment") return { ...questionType("MultiChoice"), systemField: field, choices: ["Dumbbells", "Barbell", "Bands", "Machines"].map((name) => ({ key: name, label: name })) };
   return { ...questionType("LongText"), systemField: field };

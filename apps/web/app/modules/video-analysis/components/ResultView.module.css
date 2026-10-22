@@ -34,13 +34,13 @@
 
 .player {
   overflow: hidden;
+  background: #000;
 }
 
 .video {
   display: block;
   width: 100%;
   max-height: 26rem;
-  border-radius: var(--tf-radius-md);
   background: #000;
 }
 
@@ -75,54 +75,79 @@
   }
 }
 
-.metrics { overflow-x: auto; }
-.metrics table { width: 100%; border-collapse: collapse; text-align: left; font-size: var(--tf-text-sm); }
-.metrics th, .metrics td { padding: var(--tf-space-3); border-bottom: 1px solid var(--tf-color-border); white-space: nowrap; }
-.metrics thead { color: var(--tf-color-text-secondary); }
-
-/* Detail page: actions | video | measurements. The video column stays modest; the sides take the rest. */
-.stage {
-  display: grid;
-  grid-template-columns: minmax(12rem, 0.8fr) minmax(12rem, 15rem) minmax(20rem, 1.7fr);
-  align-items: start;
-  gap: var(--tf-space-5);
+/* Repetitions: a quiet table, numbers aligned right, the rep under the video cursor marked on the left. */
+.metrics {
+  overflow-x: auto;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
 }
 
-.side,
-.center {
-  display: grid;
-  gap: var(--tf-space-4);
-  min-width: 0;
+.metrics table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tf-text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
 }
 
-.center {
-  position: sticky;
-  top: var(--tf-space-4);
+.metrics th,
+.metrics td {
+  height: 2.25rem;
+  padding: 0 var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  white-space: nowrap;
 }
 
-.center .placeholder {
-  min-height: 0;
-  aspect-ratio: 4 / 5;
-}
-
-.center .video {
-  max-height: 18rem;
-}
-
-/* In the side column the rep table stays compact enough to fit without scrolling. */
-.side .metrics th,
-.side .metrics td {
-  padding: var(--tf-space-2);
-  white-space: normal;
-}
-
-.side .metrics thead {
+.metrics thead th {
+  height: 2rem;
+  border-top: 0;
+  background: var(--tf-color-bg-sunken);
+  color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.metrics tbody th {
+  font-weight: var(--tf-weight-semibold);
+}
+
+.metrics .num {
+  text-align: right;
+}
+
+.metrics td[data-empty] {
+  color: var(--tf-color-text-tertiary);
+}
+
+.metrics .pick {
+  width: 2.25rem;
+  padding-right: 0;
+}
+
+.repJump {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.repJump:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.repJump:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .pickers {
-  display: grid;
-  justify-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--tf-space-2);
 }
 
@@ -158,30 +183,15 @@
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 72rem) {
-  .stage {
-    grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
-  }
 
-  .stage > .side:first-child {
-    grid-column: 1 / -1;
-  }
-
-  .center {
-    position: static;
-  }
-}
-
-@media (max-width: 48rem) {
-  .stage {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Detail page: one sheet with everything about the analysis, the video in its own container beside it. */
-.duo {
+/*
+ * Detail page: the video as large as the window allows, in its own proportions, and one sheet beside it.
+ * --ratio is width / height: a 9:16 video gets a tall narrow column, a 16:9 one a wide column.
+ */
+.detail {
+  --video-height: calc(100dvh - 10.5rem);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+  grid-template-columns: min(42%, max(15rem, calc(var(--video-height) * 0.78 * var(--ratio)))) minmax(0, 1fr);
   align-items: start;
   gap: var(--tf-space-4);
 }
@@ -193,9 +203,9 @@
 
 .sheetSection {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--tf-space-3);
   min-width: 0;
-  padding: var(--tf-space-5);
+  padding: var(--tf-space-4);
 }
 
 .sheetSection + .sheetSection {
@@ -206,39 +216,303 @@
   justify-items: start;
 }
 
-.sheetCharts {
-  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+/* Bar path and the analysis details share the last row. */
+.sheetPath {
+  grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr);
   align-items: start;
+  gap: var(--tf-space-5);
+}
+
+.sheetAside {
+  min-width: 0;
 }
 
 .videoCol {
   position: sticky;
-  top: var(--tf-space-4);
+  top: var(--tf-space-3);
+  display: grid;
   min-width: 0;
+}
+
+.videoCol .video {
+  width: 100%;
+  max-height: calc(var(--video-height) * 0.78);
+  object-fit: contain;
 }
 
 .videoCol .placeholder {
   min-height: 0;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: var(--ratio);
+  max-height: var(--video-height);
 }
 
-.videoCol .video {
-  max-height: 32rem;
-}
-
-@media (max-width: 72rem) {
-  .sheetCharts {
+@media (max-width: 80rem) {
+  .sheetPath {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 56rem) {
-  .duo {
+  .detail {
     grid-template-columns: 1fr;
   }
 
   .videoCol {
     position: static;
-    order: -1;
   }
+
+  .videoCol .video {
+    max-height: 70dvh;
+  }
+}
+
+/* One quiet line: calibration and quality, then a warning icon whose tooltip lists the details. */
+.metaItem {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.metaItem b {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.metaItem + .metaItem::before {
+  content: "·";
+  margin-right: var(--tf-space-2);
+  color: var(--tf-color-text-tertiary);
+}
+
+.metaIcons {
+  display: inline-flex;
+  gap: var(--tf-space-1);
+  margin-left: auto;
+}
+
+.caution,
+.infoIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 1.75rem;
+  padding: 0 var(--tf-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-full);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  cursor: default;
+  outline: none;
+}
+
+.caution {
+  justify-content: center;
+  width: 1.75rem;
+  padding: 0;
+  border-color: color-mix(in srgb, var(--tf-color-warning) 35%, transparent);
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+  cursor: help;
+}
+
+.caution svg,
+.infoIcon svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.infoIcon[data-hovered],
+.infoIcon[data-focus-visible] {
+  color: var(--tf-color-text);
+}
+
+.caution[data-focus-visible],
+.infoIcon[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+.cautionTip {
+  display: grid;
+  gap: var(--tf-space-1);
+  max-width: 22rem;
+}
+
+.cautionTip ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding-left: var(--tf-space-4);
+}
+
+/* Phase colours, the same as the charts. */
+.result,
+.detail {
+  --phase-eccentric: #7c6cf0;
+  --phase-pause: #7d8aa3;
+  --phase-concentric: #2fae6e;
+  --phase-none: #9a9a9a;
+}
+
+/* The overlay shares the video element's box; "meet" scaling letterboxes it exactly like the video. */
+.videoBox {
+  position: relative;
+  display: grid;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.trail {
+  fill: none;
+  stroke: var(--phase-none);
+  stroke-linecap: round;
+}
+
+.trail[data-kind="eccentric"] { stroke: var(--phase-eccentric); }
+.trail[data-kind="pause"] { stroke: var(--phase-pause); }
+.trail[data-kind="concentric"] { stroke: var(--phase-concentric); }
+.trail[data-hidden] { display: none; }
+
+.point {
+  fill: var(--phase-none);
+  stroke: #000;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.point[data-kind="eccentric"] { fill: var(--phase-eccentric); }
+.point[data-kind="pause"] { fill: var(--phase-pause); }
+.point[data-kind="concentric"] { fill: var(--phase-concentric); }
+
+.halo {
+  fill: none;
+  stroke: #fff;
+  stroke-opacity: 0.55;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.playerStack {
+  display: grid;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.overlaySwitch {
+  font-size: var(--tf-text-sm);
+}
+
+.overlayHint {
+  display: block;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+/* Phase filter: one chip per phase kind with its colour; switched-off chips fade. */
+.phaseFilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1-5);
+}
+
+.phaseChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  height: 1.75rem;
+  padding: 0 var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  cursor: pointer;
+  outline: none;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+}
+
+.phaseChip[data-selected] {
+  border-color: var(--tf-color-border-strong);
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.phaseChip[data-hovered] {
+  color: var(--tf-color-text);
+}
+
+.phaseChip[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+.phaseSwatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--phase-none);
+  opacity: 0.35;
+}
+
+.phaseChip[data-kind="eccentric"] .phaseSwatch { background: var(--phase-eccentric); }
+.phaseChip[data-kind="pause"] .phaseSwatch { background: var(--phase-pause); }
+.phaseChip[data-kind="concentric"] .phaseSwatch { background: var(--phase-concentric); }
+.phaseChip[data-selected] .phaseSwatch { opacity: 1; }
+
+/* The repetition under the time cursor is highlighted; rows jump the video to their start. */
+.metrics tbody tr {
+  transition: background-color 120ms ease, opacity 120ms ease;
+}
+
+.metrics tbody tr:hover {
+  background: var(--tf-color-surface-hover);
+}
+
+.metrics tbody tr[data-current] {
+  background: var(--tf-color-surface-selected);
+  box-shadow: inset 2px 0 0 var(--tf-color-text);
+}
+
+/* Unticked reps stay listed (to tick them again) but step back. */
+.metrics tbody tr[data-off] th,
+.metrics tbody tr[data-off] td:not(.pick) {
+  opacity: 0.45;
+}
+
+/* Speed in the rep table: the value with a thin bar against the fastest rep. */
+.speedCell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tf-space-2);
+  width: 100%;
+}
+
+.speedBar {
+  flex: 1;
+  max-width: 5rem;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+}
+
+.speedBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-color-text-secondary);
+}
+
+.metrics tbody tr[data-current] .speedBar > span {
+  background: var(--tf-color-text);
 }

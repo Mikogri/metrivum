@@ -31,7 +31,7 @@ export function WorkoutEditor({
   return (
     <div className={styles.editor}>
       <div className={styles.grid}>
-        <SetGrid key={workout.id} editor={editor} workout={workout} names={names} advancedAllowed={advancedAllowed && !simple} readOnly={readOnly} onSelectionChange={setSelection} />
+        <SetGrid key={workout.id} editor={editor} workout={workout} names={names} advancedAllowed={advancedAllowed && !simple} customFormulas={customFormulas && !simple} readOnly={readOnly} onSelectionChange={setSelection} />
       </div>
       <aside className={styles.details}>
         <DetailsPanel

@@ -25,6 +25,7 @@ beforeEach(() => {
   mocks.api.mockReset().mockImplementation(async ({ path }: ApiRequest) => {
     if (path === "/api/v1/coaching/clients") return { data: page(clients) };
     if (path === "/api/v1/coaching/services/current") return { data: services };
+    if (path === "/api/v1/offers/categories") return { data: [] };
     const id = path.match(/relationships\/([^/]+)\/services$/)?.[1];
     return { data: page(id ? services.filter(s => s.relationshipId === id) : []) };
   });
@@ -39,15 +40,16 @@ const serviceCalls = () => mocks.api.mock.calls.filter(([request]) => request.pa
 
 it.each(["list", "cards"])("fetches current services once for twenty visible clients in %s view", async view => {
   setup(view);
-  await screen.findByText("Offer 19");
-  expect(serviceCalls()).toHaveLength(1);
+  // The table shows the offer; the card shows the client, their start date, mode and plan status.
+  await screen.findByText(view === "list" ? "Offer 19" : "Client 19");
+  await waitFor(() => expect(serviceCalls()).toHaveLength(1));
   expect(serviceCalls()[0]![0]).toMatchObject({ path: "/api/v1/coaching/services/current", query: { relationshipIds: clients.map(client => client.id) } });
   expect(serviceCalls()[0]![0].signal).toBeInstanceOf(AbortSignal);
   if (view === "list") expect(screen.getAllByText("Paid")).toHaveLength(20);
 });
 
 it("does not fetch service summaries for an empty client page", async () => {
-  mocks.api.mockResolvedValue({ data: page([]) });
+  mocks.api.mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/offers/categories" ? [] : page([]) }));
   setup();
   await screen.findByText("Your first collaboration starts here");
   expect(serviceCalls()).toHaveLength(0);

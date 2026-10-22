@@ -30,4 +30,3 @@ export function onboardingUrl(role: string | null): string {
   return `/onboarding?role=${registrationRole(role)}`;
 }
 
-export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

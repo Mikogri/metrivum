@@ -1,16 +1,150 @@
 .figure {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--tf-space-2);
+  min-width: 0;
   margin: 0;
 }
 
-.svg {
+/* Phase colours, shared by lines, the bar path, bands, the timeline and the video overlay. */
+.figure,
+.timeline {
+  --phase-eccentric: #7c6cf0;
+  --phase-pause: #7d8aa3;
+  --phase-concentric: #2fae6e;
+  --phase-none: var(--tf-color-text-secondary);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.title {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.unit {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.chart {
+  position: relative;
+  min-width: 0;
+  touch-action: none;
+  user-select: none;
+}
+
+.canvas {
   width: 100%;
-  height: auto;
+  min-width: 0;
+}
+
+.canvas :global(.uplot) {
+  font-family: inherit;
+}
+
+/* The pointer stays a normal arrow over charts, also where clicking moves the video. */
+.chart :global(.u-over) {
+  cursor: default !important;
+}
+
+.chart :global(.u-cursor-x) {
+  border-right: 1px dashed var(--tf-color-border-strong);
+}
+
+/* The video's moment on the time charts. */
+.playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  border-left: 1.5px solid var(--tf-color-text);
+  pointer-events: none;
+}
+
+.playhead::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -5.5px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--tf-color-bg);
+  border-radius: 50%;
+  background: var(--tf-color-text);
+}
+
+.dot {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--tf-color-bg);
+  border-radius: 50%;
+  background: var(--tf-color-text);
+  box-shadow: 0 0 0 1px var(--tf-color-text);
+  pointer-events: none;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  gap: 2px;
+  min-width: 8.5rem;
+  padding: var(--tf-space-1-5) var(--tf-space-2);
   border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
-  cursor: crosshair;
+  background: color-mix(in srgb, var(--tf-color-surface-raised) 88%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--tf-shadow-md, 0 6px 20px rgb(0 0 0 / 0.25));
+  font-size: var(--tf-text-xs);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.tooltip strong {
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.tipRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  color: var(--tf-color-text-secondary);
+}
+
+.tipRow b {
+  margin-left: auto;
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.tipSwatch {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--phase-none);
+}
+
+.tipSwatch[data-kind="eccentric"] { background: var(--phase-eccentric); }
+.tipSwatch[data-kind="pause"] { background: var(--phase-pause); }
+.tipSwatch[data-kind="concentric"] { background: var(--phase-concentric); }
+
+.timeline {
+  --phase-eccentric: #7c6cf0;
+  --phase-pause: #7d8aa3;
+  --phase-concentric: #2fae6e;
+  --phase-none: var(--tf-color-text-tertiary);
 }
 
 .square {
@@ -47,7 +181,7 @@
 
 .line {
   fill: none;
-  stroke: var(--tf-color-accent);
+  stroke: var(--phase-none);
   stroke-width: 1.75;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
@@ -57,7 +191,7 @@
 
 .path {
   fill: none;
-  stroke: var(--tf-color-accent);
+  stroke: var(--phase-none);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -71,14 +205,35 @@
   stroke-width: 2;
 }
 
-.repBand {
-  fill: rgb(121 168 255 / 0.06);
+.line[data-kind="eccentric"], .path[data-kind="eccentric"] { stroke: var(--phase-eccentric); }
+.line[data-kind="pause"], .path[data-kind="pause"] { stroke: var(--phase-pause); }
+.line[data-kind="concentric"], .path[data-kind="concentric"] { stroke: var(--phase-concentric); }
+
+/* Filtered-out phases stay as a faint trace, so the rest keeps its context. */
+.line[data-hidden], .path[data-hidden] {
+  opacity: 0.12;
 }
+
+.phaseBand { fill: transparent; }
+.phaseBand[data-kind="eccentric"] { fill: color-mix(in srgb, var(--phase-eccentric) 7%, transparent); }
+.phaseBand[data-kind="pause"] { fill: color-mix(in srgb, var(--phase-pause) 7%, transparent); }
+.phaseBand[data-kind="concentric"] { fill: color-mix(in srgb, var(--phase-concentric) 7%, transparent); }
+.phaseBand[data-hidden] { fill: transparent; }
 
 .cursor {
   stroke: var(--tf-color-text);
-  stroke-width: 1;
-  stroke-dasharray: 3 3;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.handle {
+  fill: var(--tf-color-text);
+  stroke: var(--tf-color-bg);
+  stroke-width: 2;
+}
+
+.cursorGroup {
+  pointer-events: none;
 }
 
 .caption {
@@ -96,7 +251,7 @@
 
 .timeline li {
   display: grid;
-  grid-template-columns: 4rem 1fr 4rem;
+  grid-template-columns: 3.5rem 1fr 3.5rem;
   align-items: center;
   gap: var(--tf-space-3);
 }
@@ -113,12 +268,13 @@
 }
 
 .phases {
+  position: relative;
   display: flex;
-  height: 0.75rem;
-  overflow: hidden;
+  height: 0.375rem;
   border-radius: 999px;
   background: var(--tf-color-surface-hover);
-  animation: reveal 700ms var(--tf-ease-out) both;
+  /* Backwards only: a clip-path left in place would also clip the phase tooltips. */
+  animation: reveal 700ms var(--tf-ease-out) backwards;
   animation-delay: calc(var(--i) * 80ms);
 }
 
@@ -132,15 +288,69 @@
 }
 
 .phase {
-  background: var(--tf-color-text-tertiary);
+  padding: 0;
+  border: 0;
+  background: var(--phase-none);
+  cursor: pointer;
 }
 
-.phase[data-kind*="ecc"] {
-  background: var(--tf-color-info);
+.phase:disabled {
+  cursor: default;
 }
 
-.phase[data-kind*="con"] {
-  background: var(--tf-color-accent);
+.phase[data-kind="eccentric"] { background: var(--phase-eccentric); }
+.phase[data-kind="pause"] { background: var(--phase-pause); }
+.phase[data-kind="concentric"] { background: var(--phase-concentric); }
+
+.phase:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
+.phase {
+  position: relative;
+}
+
+.phase:first-of-type { border-radius: 999px 0 0 999px; }
+.phase:last-of-type { border-radius: 0 999px 999px 0; }
+.phase:only-of-type { border-radius: 999px; }
+
+.phaseTip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: 2;
+  padding: 2px var(--tf-space-1-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-2xs);
+  white-space: nowrap;
+  opacity: 0;
+  translate: -50% 2px;
+  transition: opacity 120ms ease, translate 120ms ease;
+  pointer-events: none;
+}
+
+.phase:hover .phaseTip,
+.phase:focus-visible .phaseTip {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+.timeline li[data-current] .repName {
+  color: var(--tf-color-text);
+}
+
+.timelineCursor {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--tf-color-text);
+  pointer-events: none;
 }
 
 .phase + .phase {
@@ -151,4 +361,33 @@
   .phases {
     animation: none;
   }
+}
+
+/* Legend under overlay charts: one chip per line. */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1) var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  list-style: none;
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legend i {
+  flex: none;
+  width: 0.875rem;
+  height: 3px;
+  border-radius: 2px;
 }

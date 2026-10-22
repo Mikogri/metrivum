@@ -8,6 +8,8 @@ namespace TrainFlow.Coaching.Infrastructure;
 
 public sealed class CoachingMessagingDirectory(CoachingDbContext db, IAccountContext accounts, ITeamContext? teams = null) : ICoachingMessagingDirectory
 {
+    public Task<bool> HasActiveRelationshipAsync(Guid userId, CancellationToken ct) => db.Relationships.AnyAsync(x =>
+        x.Status == RelationshipStatus.Active && x.TeamId == null && (x.CoachId == userId || x.ClientId == userId), ct);
     public async Task<bool> IsActivePairAsync(Guid first, Guid second, CancellationToken ct)
     {
         var rows = await db.Relationships.AsNoTracking().Where(x => x.Status == RelationshipStatus.Active && ((x.CoachId == first && x.ClientId == second) || (x.CoachId == second && x.ClientId == first))).ToArrayAsync(ct);

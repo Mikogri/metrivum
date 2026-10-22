@@ -35,6 +35,25 @@ export function authErrorText(m: AppMessages, error: unknown): string {
   return m.auth.errors.generic;
 }
 
+/** Supabase stores passwords with bcrypt, which ignores everything after 72 bytes; refuse longer ones openly. */
+export const PASSWORD_MIN = 8;
+export const PASSWORD_MAX = 72;
+export function passwordProblem(m: AppMessages, password: string): string | null {
+  if (password.length < PASSWORD_MIN) return m.auth.errors.passwordShort;
+  if (new TextEncoder().encode(password).length > PASSWORD_MAX) return m.auth.errors.passwordLong;
+  return null;
+}
+
+/** Sign-up for an address that already has an account. Treated like success so the form does not reveal accounts. */
+export function isExistingAccount(error: unknown): boolean {
+  return error instanceof AuthError && (error.code === "user_already_exists" || error.code === "email_exists");
+}
+
+/** Passwordless sign-in for an address without an account (Supabase refuses to create one here). */
+export function isUnknownAccount(error: unknown): boolean {
+  return error instanceof AuthError && (error.code === "otp_disabled" || error.code === "signup_disabled" || error.code === "user_not_found");
+}
+
 export function isEmailNotConfirmed(error: unknown): boolean {
   return error instanceof AuthError && error.code === "email_not_confirmed";
 }

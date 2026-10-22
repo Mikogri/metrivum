@@ -1,13 +1,14 @@
 import { ChevronRight, Menu, PanelLeft, Search, X } from "lucide-react";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
-import { Link, Navigate, Outlet, useLocation, useMatches, useNavigate, useNavigationType } from "react-router";
-import { IconButton, Kbd, PageBackContext, useMobileLayout, type PageBack } from "@trainflow/ui-web";
+import { Link, Navigate, Outlet, useLocation, useMatches, useNavigate, useNavigation, useNavigationType } from "react-router";
+import { Hint, IconButton, Kbd, PageBackContext, useMobileLayout, type PageBack } from "@trainflow/ui-web";
 import { useAccessSnapshot } from "~/shared/access";
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
 import { useT } from "~/shared/i18n/AppLocale";
 import { NotificationBell, useNotifications } from "~/modules/messaging";
+import { AnalyzerMenu, AnalyzerUpdateBanner } from "~/modules/video-analysis";
 import { useNavCounts } from "~/modules/coaching";
 import { SubscriptionButton } from "~/modules/subscription/SubscriptionPanel";
 import { AccountSwitcher } from "./AccountSwitcher";
@@ -17,7 +18,7 @@ import type { NavIcon } from "./navIcons";
 import styles from "./AppShell.module.css";
 
 import { clientSection } from "~/shared/session/workspace-model";
-import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+import { WorkspaceSelect } from "./WorkspaceSelect";
 import { MobileNavigation } from "./MobileNavigation";
 import { immersiveMobileRoute, mobileViewport } from "./mobile-navigation";
 
@@ -47,11 +48,14 @@ function NavItem({ to, label, icon: Icon, count, tone, collapsed, onNavigate }: 
   return (
     <li>
       {/* The active state switches in place: no highlight travelling between items. */}
-      <Link to={to} aria-current={active ? "page" : undefined} className={styles.navLink} onClick={onNavigate} title={collapsed ? label : undefined}>
-        <Icon aria-hidden="true" strokeWidth={1.5} />
-        <span className={styles.navLabel}>{label}</span>
-        {count ? <span className={styles.navCount} data-tone={tone}>{count}</span> : null}
-      </Link>
+      {/* On the collapsed rail the label lives in a tooltip beside the icon. */}
+      <Hint label={count ? `${label} · ${count}` : label} placement="right" delay={150} disabled={!collapsed}>
+        <Link to={to} prefetch="render" aria-current={active ? "page" : undefined} className={styles.navLink} onClick={onNavigate}>
+          <Icon aria-hidden="true" strokeWidth={1.5} />
+          <span className={styles.navLabel}>{label}</span>
+          {count ? <span className={styles.navCount} data-tone={tone}>{count}</span> : null}
+        </Link>
+      </Hint>
     </li>
   );
 }
@@ -69,16 +73,12 @@ function SidebarContent({ collapsed = false, onNavigate }: { collapsed?: boolean
   const capped = (value: number) => (value > 99 ? "99+" : String(value));
   return (
     <>
+      <WorkspaceSelect collapsed={collapsed} />
       <nav aria-label={m.nav.main} className={styles.nav}>
-        {groups.map((group) => (
+        {groups.map((group, index) => (
           <div key={group.id} className={styles.navGroup}>
-            <div className={styles.navGroupHead}>
-              <span className={styles.navGroupSeparator} aria-hidden="true" />
-              <p className={styles.navGroupLabel} id={`nav-${group.id}`}>
-                {group.label}
-              </p>
-            </div>
-            <ul className={styles.navList} aria-labelledby={`nav-${group.id}`}>
+            {index > 0 ? <span className={styles.navGroupSeparator} aria-hidden="true" /> : null}
+            <ul className={styles.navList} aria-label={group.label}>
               {group.items.map((item) => (
                 <NavItem key={item.to} {...item} count={counts[item.to] ?? (waiting[item.to] ? capped(waiting[item.to]!.value) : undefined)} tone={counts[item.to] ? undefined : waiting[item.to]?.tone} collapsed={collapsed} onNavigate={onNavigate} />
               ))}
@@ -115,7 +115,7 @@ function PathCrumbs() {
                     {crumb.label}
                   </span>
                 ) : crumb.href ? (
-                  <Link to={crumb.href} className={styles.crumbLink}>
+                  <Link to={crumb.href} prefetch="intent" className={styles.crumbLink}>
                     {crumb.label}
                   </Link>
                 ) : (
@@ -167,6 +167,11 @@ export function AppShell() {
   const fit = matches.some((match) => (match.handle as { fit?: boolean } | undefined)?.fit);
   const main = useRef<HTMLElement>(null);
   const navigate = useNavigate();
+  // While the next page's code is still loading, the old page leaves at once and a thin bar runs along
+  // the top. No spinner here: the page itself then shows its own loading (skeleton or spinner), so only
+  // one loading style is ever on screen. A search-param change on the same page keeps the page.
+  const navigation = useNavigation();
+  const switching = navigation.state === "loading" && navigation.location.pathname !== location.pathname;
   const back = useBack(location.pathname, location.search, navigate, m.common.back);
   useEffect(() => setDrawerOpen(false), [location.pathname]);
   // The shell owns scrolling, so browser Back restores its entry rather than the window's scroll.
@@ -238,6 +243,8 @@ export function AppShell() {
       <a href="#app-main" className="tf-skip-link">
         {m.common.skipToContent}
       </a>
+      {/* Full width above the sidebar and the page, like a status notice. */}
+      {!MOCK_MODE ? <AnalyzerUpdateBanner /> : null}
       {!phone && <aside className={styles.sidebar}>
         <div className={styles.logo}>
           <Brand />
@@ -248,7 +255,7 @@ export function AppShell() {
       <div className={styles.column}>
         {phone ? (!conversation && <header className={`${styles.appBar} ${styles.phoneBar}`}>
           <Link to="/app/today" className={styles.phoneBrand}>TrainFlow</Link>
-          <div className={styles.appBarActions}><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
+          <div className={styles.appBarActions}><AnalyzerMenu /><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
         </header>) : <header className={styles.appBar}>
           <span className={styles.desktopOnly}>
             <IconButton
@@ -269,8 +276,8 @@ export function AppShell() {
               <span>{m.nav.searchShort}</span>
               <Kbd>⌘K</Kbd>
             </button>
+            <AnalyzerMenu />
             <NotificationBell />
-            <WorkspaceSwitcher />
             <SubscriptionButton label={m.nav.subscription} />
           </div>
         </header>}
@@ -282,7 +289,7 @@ export function AppShell() {
         ) : null}
         <main id="app-main" ref={main} className={styles.main} tabIndex={-1} onScroll={event => scrollPositions.current.set(location.key, event.currentTarget.scrollTop)}>
           <div className={styles.content}>
-            <PageBackContext.Provider value={back}>{phone && location.pathname === "/app/dashboard" ? <Navigate to="/app/today" replace /> : <WorkspaceRouteGuard><Outlet /></WorkspaceRouteGuard>}</PageBackContext.Provider>
+            <PageBackContext.Provider value={back}>{phone && location.pathname === "/app/dashboard" ? <Navigate to="/app/today" replace /> : <WorkspaceRouteGuard>{switching ? <div className={styles.pageSwitching} role="status" aria-label={m.common.loading} /> : <Outlet />}</WorkspaceRouteGuard>}</PageBackContext.Provider>
           </div>
         </main>
         {phone && !immersive && <div className={styles.phoneNav}><MobileNavigation /></div>}

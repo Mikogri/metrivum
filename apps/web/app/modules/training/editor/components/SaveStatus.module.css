@@ -1,72 +1,58 @@
+/*
+ * The save state beside the program name: an icon and a word in the state's colour, no pill.
+ * It has a fixed width, so the header never shifts while the state changes.
+ */
 .status {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: var(--tf-space-1-5);
-  height: 1.625rem;
-  padding: 0 var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
+  min-width: 5.5rem;
+  height: var(--tf-control-sm);
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
   white-space: nowrap;
-  transition:
-    color var(--tf-duration-base) ease,
-    border-color var(--tf-duration-base) ease,
-    background-color var(--tf-duration-base) ease;
+  transition: color var(--tf-duration-base) ease;
 }
 
 .icon {
+  flex-shrink: 0;
   width: 0.8125rem;
   height: 0.8125rem;
 }
 
-/* Label swaps with a short blur so the state change reads as one transition. */
 .label {
-  animation: swap 220ms var(--tf-ease-out);
-}
-
-@keyframes swap {
-  from {
-    opacity: 0;
-    filter: blur(2px);
-  }
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .status[data-status="saving"] .icon {
   animation: spin 700ms linear infinite;
 }
 
-/* Each state has its own colour: green = safe, amber = waiting, blue = working, red = needs action. */
+/* Calm when everything is stored, amber while changes wait, red when they need action. */
 .status[data-status="saved"],
 .status[data-status="clean"] {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-text-tertiary);
+}
+
+.status[data-status="saved"] .icon,
+.status[data-status="clean"] .icon {
   color: var(--tf-color-accent);
 }
 
-.status[data-status="dirty"] {
-  border-color: rgb(242 169 59 / 0.35);
-  background: var(--tf-color-warning-soft);
+.status[data-status="dirty"],
+.status[data-status="offline"] {
   color: var(--tf-color-warning);
 }
 
 .status[data-status="saving"] {
-  border-color: rgb(121 168 255 / 0.35);
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  color: var(--tf-color-text-secondary);
 }
 
 .status[data-status="error"],
 .status[data-status="conflict"] {
-  border-color: var(--tf-color-danger-border);
-  background: var(--tf-color-danger-soft);
   color: var(--tf-color-danger);
-}
-
-.status[data-status="offline"] {
-  border-color: rgb(242 169 59 / 0.35);
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
 }
 
 @keyframes spin {
@@ -76,7 +62,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .label {
-    animation: none;
+  .status[data-status="saving"] .icon {
+    animation-duration: 2s;
   }
 }
+
+.status[data-invalid] { color: var(--tf-color-danger); min-width: 12rem; }
+.status[data-invalid] .icon { color: inherit; }
+
+.tooltip { max-width: 28rem; padding: var(--tf-space-3); }
+.issues { text-align: left; display: grid; gap: var(--tf-space-2); white-space: normal; overflow-wrap: anywhere; }
+
+.trigger { display: inline-flex; border: 0; padding: 0; background: transparent; color: inherit; font: inherit; cursor: default; }
+.trigger[data-focus-visible] { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 2px; border-radius: var(--tf-radius-sm); }

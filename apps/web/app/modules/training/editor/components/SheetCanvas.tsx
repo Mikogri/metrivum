@@ -1,3 +1,9 @@
+import { useColumnWidths } from "../useColumnWidths";
+import { elementColumnWidths, sanitizeElementWidths, type ElementWidths } from "../model/layout";
+import { AnnotationCard } from "./AnnotationCard";
+import { connectBounds, cablePath, handleStyle, plugRotation, type Bounds } from "../model/connections";
+import { SheetMenuButton as MenuButton } from "./SheetMenuButton";
+import { maxesTables, withMaxesTables, effectiveBlock } from "../model/maxes";
 import {
   ArrowDown,
   BarChart3,
@@ -6,12 +12,13 @@ import {
   ChevronDown,
   ChevronRight,
   Copy,
+  Info,
   LayoutGrid,
   Link2,
   ListTree,
-  MoreVertical,
   Pencil,
   Plus,
+  RotateCcw,
   Repeat,
   Sigma,
   Trash2,
@@ -23,23 +30,29 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import type { Block, Cycle, ExerciseInstance, FormulaUse, TrainingDocument, Workout } from "@trainflow/api-client-web";
 import { Button, ContextMenu, IconButton, Tooltip, TooltipTrigger, type ContextMenuEntry } from "@trainflow/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
+import { useAccountContext } from "~/shared/session/AccountScope";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useBuiltInFormulas, useFormulaList } from "../../queries";
 import { setExerciseFormula } from "../model/cells";
 import { EXPANDED_TOP_ROWS, WORKOUT_COLS, cycleCalendar, cycleWorkouts, setDayNote, withDayNote, workoutRows } from "../model/workouts";
 import { addBlock, addCycle, duplicateNode, findWorkout, locate, moveNode, newCycle, removeNode, updateNode } from "../model/document";
-import { BLOCK_COLS, CELL_H, CELL_W, CYCLE_COLS, autoLayout, cycleRows, mergeLayout, resolveLayout, snap, type Cell, type Layout, type Size } from "../model/layout";
+import { BLOCK_COLS, CELL_H, CELL_W, CYCLE_COLS, autoLayout, cycleRows, mergeLayout, resolveLayout, snap, columnAt, columnLeft, columnSpan, columnWidth, clampColumnWidth, resizedColumnWidth, sanitizeColumnWidths, MIN_COLUMN_WIDTH, MAX_COLUMN_WIDTH, MAX_SAVED_COLUMNS, type ColumnWidths, type Cell, type Layout, type Size } from "../model/layout";
 import { attachCycle, detachCycle } from "../model/structure";
 import type { EditorApi } from "../useEditor";
 import { CycleCells } from "./CycleCells";
 import { ProgressionDialog } from "./ProgressionDialog";
 import { VolumePanel } from "./VolumePanel";
 import { SheetMinimap, type MinimapNode } from "./SheetMinimap";
+import { BlockFormulaScope } from "../block-maxes";
+import { BlockMaxesTable } from "./BlockMaxesTable";
 import { WorkoutEditor } from "./WorkoutEditor";
 import styles from "./SheetCanvas.module.css";
 
 export interface SheetState {
   layout: Layout;
+  columnWidths?: ColumnWidths;
+  elementWidths?: ElementWidths;
+  collapsedCards?: string[];
   /** Cycles taken out of every block. They exist only here until connected again. */
   loose: Cycle[];
   /** Cycles shown as cells. */
@@ -55,35 +68,46 @@ const isCell = (v: unknown): v is Cell =>
 const ids = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
 
 /**
- * The sheet's arrangement (card positions, expanded cycles, folded workouts) for one plan, kept in
+ * The sheet's arrangement (positions, column widths and folded cards) for one account and plan, kept in
  * this browser so the editor and the program preview reopen the way they were left. Disconnected
  * cycles are plan content, not arrangement, so they are not stored. Without storage it starts from
  * the default layout.
  */
 export function usePersistentSheet(planId: string): [SheetState, (next: SheetState | ((current: SheetState) => SheetState)) => void] {
-  const key = `tf.sheet.${planId}`;
-  const [sheet, setSheet] = useState<SheetState>(() => {
+  const { accountKey, lifecycle } = useAccountContext();
+  const key = `tf.sheet.${accountKey}.${planId}`;
+  const activeKey = useRef(key);
+  activeKey.current = key;
+  const read = (): SheetState => {
     try {
       const raw = typeof window === "undefined" ? null : window.localStorage.getItem(key);
       if (!raw) return emptySheet;
       const saved = JSON.parse(raw) as Record<string, unknown>;
       const layout = Object.fromEntries(Object.entries((saved.layout as Record<string, unknown>) ?? {}).filter(([, cell]) => isCell(cell))) as Layout;
-      return { ...emptySheet, layout, expanded: ids(saved.expanded), collapsedWorkouts: ids(saved.collapsedWorkouts) };
+      return { ...emptySheet, layout, expanded: ids(saved.expanded), collapsedCards: ids(saved.collapsedCards), collapsedWorkouts: ids(saved.collapsedWorkouts), elementWidths: sanitizeElementWidths(saved.elementWidths), columnWidths: sanitizeColumnWidths(saved.columnWidths) };
     } catch {
       return emptySheet;
     }
-  });
+  };
+  const [state, setState] = useState(() => ({ key, sheet: read() }));
+  // Replace the state before children render when the plan changes; never write the old plan under a new key.
+  const sheet = state.key === key ? state.sheet : read();
+  if (state.key !== key) setState({ key, sheet });
   useEffect(() => {
     const timer = setTimeout(() => {
+      if (activeKey.current !== key || !lifecycle.isCurrent()) return;
       try {
-        window.localStorage.setItem(key, JSON.stringify({ layout: sheet.layout, expanded: sheet.expanded, collapsedWorkouts: sheet.collapsedWorkouts }));
+        window.localStorage.setItem(key, JSON.stringify({ layout: sheet.layout, expanded: sheet.expanded, collapsedWorkouts: sheet.collapsedWorkouts, columnWidths: sheet.columnWidths, elementWidths: sheet.elementWidths, collapsedCards: sheet.collapsedCards }));
       } catch {
         // Storage blocked or full: the arrangement just isn't remembered.
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [key, sheet.layout, sheet.expanded, sheet.collapsedWorkouts]);
-  return [sheet, setSheet];
+  }, [key, sheet.layout, sheet.expanded, sheet.collapsedWorkouts, sheet.columnWidths, sheet.elementWidths, sheet.collapsedCards, lifecycle]);
+  return [sheet, (next) => {
+    if (activeKey.current !== key || !lifecycle.isCurrent()) return;
+    setState((current) => ({ key, sheet: typeof next === "function" ? next(current.key === key ? current.sheet : sheet) : next }));
+  }];
 }
 
 type Apply = (fn: (doc: TrainingDocument) => TrainingDocument) => void;
@@ -119,8 +143,9 @@ type Drag = {
   group: Record<string, Cell>;
 };
 type Marquee = { pointerId: number; x0: number; y0: number; x1: number; y1: number };
-type Link = { blockId: string; pointerId: number; x: number; y: number };
+type Link = { kind: "cycle" | "maxes" | "annotation"; targetId?: string; hoveredId?: string; blockId: string; pointerId: number; x: number; y: number };
 type Menu =
+  | { kind: "column"; x: number; y: number; col: number; owner?: string }
   | { kind: "canvas"; x: number; y: number; cell: Cell }
   | { kind: "block"; x: number; y: number; id: string }
   | { kind: "cycle"; x: number; y: number; id: string }
@@ -133,7 +158,7 @@ type Menu =
  * cells. Dragging from a block's handle onto a cycle connects them; right click opens context
  * menus everywhere (sheet, cards, connections, exercise cells). Clicking a cycle expands it into
  * cells: one column group per day, workouts and exercises edited in place. Ctrl + scroll zooms;
- * the minimap moves the view. Positions, zoom and expanded cycles live only in memory.
+ * the minimap moves the view. Arrangement and column widths are remembered per account and plan.
  *
  * Without `apply` the sheet is a read-only preview (pan, zoom, expand only).
  */
@@ -169,11 +194,15 @@ export function SheetCanvas({
   const readOnly = !apply;
   const scrollerRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const pointerCapture = useRef<{ element: Element; pointerId: number } | null>(null);
+  const resizing = useRef<{ col: number; pointerId: number; x: number; width: number; resize: (col: number, width: number) => void } | null>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
+  const [maxesMenu, setMaxesMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [link, setLink] = useState<Link | null>(null);
   const [menu, setMenu] = useState<Menu | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
   const [hoverNode, setHoverNode] = useState<string | null>(null);
+  const [nodeHeights, setNodeHeights] = useState<Record<string, number>>({});
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
   const [selected, setSelected] = useState<string[]>([]);
   const [marquee, setMarquee] = useState<Marquee | null>(null);
@@ -184,6 +213,23 @@ export function SheetCanvas({
   const [renaming, setRenaming] = useState<string | null>(null);
   const [view, setView] = useState({ x: 0, y: 0, w: 1, h: 1 });
   const zoomAnchor = useRef<{ bx: number; by: number; px: number; py: number } | null>(null);
+
+  const cancelPointer = useCallback(() => {
+    const captured = pointerCapture.current;
+    pointerCapture.current = null;
+    resizing.current = null;
+    document.body.removeAttribute("data-training-column-resize");
+    setDrag(null);
+    setMarquee(null);
+    setLink(null);
+    if (captured?.element.hasPointerCapture?.(captured.pointerId)) captured.element.releasePointerCapture(captured.pointerId);
+  }, []);
+  const capturePointer = (event: ReactPointerEvent) => {
+    pointerCapture.current = { element: event.currentTarget, pointerId: event.pointerId };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  useEffect(() => { if (menu) cancelPointer(); }, [menu, cancelPointer]);
+  useEffect(() => () => { document.body.removeAttribute("data-training-column-resize"); }, []);
 
   // A cycle back in the document (connect, undo) is no longer loose.
   const loose = useMemo(() => sheet.loose.filter((cycle) => !locate(doc, cycle.id)), [sheet.loose, doc]);
@@ -212,26 +258,78 @@ export function SheetCanvas({
     () => [...doc.blocks.flatMap((block) => block.cycles.map((cycle) => ({ cycle, blockId: block.id as string | null }))), ...loose.map((cycle) => ({ cycle, blockId: null }))],
     [doc, loose],
   );
+  const collapsedCards = useMemo(() => new Set(sheet.collapsedCards ?? []), [sheet.collapsedCards]);
+  const toggleCard = (id: string) => update(s => ({ ...s, collapsedCards: collapsedCards.has(id) ? [...collapsedCards].filter(value => value !== id) : [...collapsedCards, id] }));
   const sizes = useMemo(() => {
     const result: Record<string, Size> = {};
-    for (const block of doc.blocks) result[block.id] = { cols: BLOCK_COLS, rows: BLOCK_ROWS };
+    for (const block of doc.blocks) {
+      result[block.id] = { cols: BLOCK_COLS, rows: BLOCK_ROWS };
+
+    }
     for (const { cycle, blockId } of allCycles) {
       if (expanded.has(cycle.id) && blockId) {
         // Header + column headings + one row per workout heading / exercise / add row.
         result[cycle.id] = { cols: WORKOUT_COLS, rows: EXPANDED_TOP_ROWS + workoutRows(cycle, collapsedWorkouts, !readOnly).length };
       } else result[cycle.id] = { cols: CYCLE_COLS, rows: cycleRows(cycle) };
     }
+    for (const table of maxesTables(doc)) result[table.id] = { cols: collapsedCards.has(table.id) ? 2 : 5, rows: collapsedCards.has(table.id) ? 2 : table.rows.length + 3 };
+    for (const note of doc.annotations ?? []) result[note.id] = { cols: 3, rows: collapsedCards.has(note.id) ? 2 : 5 };
     return result;
-  }, [doc, allCycles, expanded, collapsedWorkouts, readOnly]);
+  }, [doc, allCycles, expanded, collapsedWorkouts, readOnly, collapsedCards]);
   // Where cards are drawn: no overlaps, expanded cycles keep their place and push neighbours.
   const layout = useMemo(() => resolveLayout(stored, sizes, [...expanded]), [stored, sizes, expanded]);
 
+  const targetWidths = useMemo(() => elementColumnWidths(sheet.columnWidths, stored, sheet.elementWidths, new Set([...expanded, ...maxesTables(doc).filter(t => !collapsedCards.has(t.id)).map(t => t.id)])), [sheet.columnWidths, sheet.elementWidths, stored, expanded, doc, collapsedCards]);
+  const widths = useColumnWidths(targetWidths, Boolean(resizing.current));
+  const xAt = (col: number) => columnLeft(widths, col);
+  const span = (col: number, count: number) => columnSpan(widths, col, count);
+  const resizeColumn = (col: number, width: number) => update(s => ({ ...s, columnWidths: { ...s.columnWidths, [col]: clampColumnWidth(width) }, elementWidths: Object.fromEntries(Object.entries(s.elementWidths ?? {}).map(([id, values]) => [id, Object.fromEntries(Object.entries(values).filter(([relative]) => (stored[id]?.col ?? -100) + Number(relative) !== col))])) }));
+  const resizeElementColumn = (id: string, col: number, width: number) => update(s => ({ ...s, elementWidths: { ...s.elementWidths, [id]: { ...s.elementWidths?.[id], [col]: clampColumnWidth(width) } } }));
+
+  const resizeHandle = (col: number, width: number, resize: (col: number, width: number) => void, label: string, owner?: string) => (<button
+                    type="button"
+                    className={styles.columnResize}
+                    title="Drag to resize. Double-click or right-click to reset."
+                    aria-label={label}
+                    aria-valuemin={MIN_COLUMN_WIDTH}
+                    aria-valuemax={MAX_COLUMN_WIDTH}
+                    aria-valuenow={width}
+                    role="separator"
+                    aria-orientation="vertical"
+                    onContextMenu={event => { event.preventDefault(); event.stopPropagation(); setMenu({ kind: "column", col, owner, x: event.clientX, y: event.clientY }); }}
+                    onPointerDown={(event) => {
+                      if (event.button !== 0 || menu) return;
+                      event.stopPropagation();
+                      capturePointer(event);
+                      document.body.setAttribute("data-training-column-resize", "");
+                      resizing.current = { col, pointerId: event.pointerId, x: event.clientX, width: width, resize };
+                    }}
+                    onPointerMove={(event) => {
+                      const start = resizing.current;
+                      if (!start || start.pointerId !== event.pointerId) return;
+                      event.stopPropagation();
+                      start.resize(start.col, resizedColumnWidth(start.width, event.clientX - start.x, zoom));
+                    }}
+                    onPointerUp={(event) => { event.stopPropagation(); cancelPointer(); }}
+                    onPointerCancel={cancelPointer}
+                    onLostPointerCapture={cancelPointer}
+                    onDoubleClick={(event) => { event.stopPropagation(); resize(col, CELL_W); }}
+                    onKeyDown={(event) => {
+                      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+                      event.preventDefault();
+                      event.stopPropagation();
+                      resize(col, event.key === "Home" ? MIN_COLUMN_WIDTH : event.key === "End" ? MAX_COLUMN_WIDTH : width + (event.key === "ArrowLeft" ? -1 : 1) * (event.shiftKey ? 32 : 8));
+                    }}
+                  />);
+  const columnMenu = (owner: string, col: number, event: React.MouseEvent) => { event.preventDefault(); event.stopPropagation(); setMenu({ kind: "column", owner, col, x: event.clientX, y: event.clientY }); };
+  const elementResizeHandle = (id: string, relative: number, label: string) => resizeHandle(relative, columnWidth(targetWidths, (stored[id]?.col ?? 0) + relative), (col, width) => resizeElementColumn(id, col, width), `Resize ${label} column in element`, id);
+
   // Enough cells, letters and row numbers to fill the screen even fully zoomed out.
-  const fillCols = Math.ceil((viewport.w / MIN_ZOOM - HEADER) / CELL_W) + 1;
+  const fillCols = columnAt(widths, Math.max(0, viewport.w / MIN_ZOOM - HEADER)) + 2;
   const fillRows = Math.ceil((viewport.h / MIN_ZOOM - HEADER) / CELL_H) + 1;
   const cols = Math.max(26, fillCols, ...Object.entries(sizes).map(([id, s]) => (layout[id]?.col ?? 0) + s.cols + 6));
   const rows = Math.max(40, fillRows, ...Object.entries(sizes).map(([id, s]) => (layout[id]?.row ?? 0) + s.rows + 10));
-  const boardW = HEADER + cols * CELL_W;
+  const boardW = HEADER + xAt(cols);
   const boardH = HEADER + rows * CELL_H;
 
   // Viewport tracking for the minimap ---------------------------------------------------------
@@ -310,10 +408,10 @@ export function SheetCanvas({
 
   // Moving cards ---------------------------------------------------------------------------
   const startDrag = (event: ReactPointerEvent, id: string) => {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || menu) return;
     const target = event.target as HTMLElement;
-    if (target.closest("input, textarea, button, a, select, [data-no-drag]")) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if (!event.currentTarget.contains(target) || target.closest("input, textarea, button, a, select, [contenteditable=true], [role=textbox], [role=menu], [role=dialog], [data-no-drag]")) return;
+    capturePointer(event);
     const renameKey = readOnly ? undefined : target.closest<HTMLElement>("[data-rename]")?.dataset.rename;
     // Shift adds or removes a card from the selection; pressing a selected card drags the whole selection.
     let members = selected.includes(id) ? selected : [id];
@@ -335,7 +433,7 @@ export function SheetCanvas({
     if (!drag || event.pointerId !== drag.pointerId) return;
     if (drag.moved) {
       // Everything in the group moves by the same number of cells.
-      const dc = snap(drag.origin.col * CELL_W + drag.dx, CELL_W) - drag.origin.col;
+      const dc = columnAt(widths, xAt(drag.origin.col) + drag.dx, true) - drag.origin.col;
       const dr = snap(drag.origin.row * CELL_H + drag.dy, CELL_H) - drag.origin.row;
       if (dc || dr) {
         const moves = Object.fromEntries(Object.entries(drag.group).map(([id, at]) => [id, { col: Math.max(0, at.col + dc), row: Math.max(0, at.row + dr) }]));
@@ -346,7 +444,7 @@ export function SheetCanvas({
       setRenaming(drag.renameKey);
     }
     // Cycles open only from their arrow or a training day, never from a click on the card.
-    setDrag(null);
+    cancelPointer();
   };
   const cardKeys = (event: React.KeyboardEvent, id: string, kind: "block" | "cycle") => {
     if (event.target !== event.currentTarget) return;
@@ -371,8 +469,8 @@ export function SheetCanvas({
 
   // Selecting an area: drag on empty cells to select every card the rectangle touches. ---------
   const startMarquee = (event: ReactPointerEvent) => {
-    if (readOnly || event.button !== 0 || (event.target as HTMLElement).closest("[data-node], [data-edge], button, input, textarea")) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if (readOnly || menu || event.button !== 0 || !event.currentTarget.contains(event.target as Node) || (event.target as HTMLElement).closest("[data-node], [data-edge], [data-no-drag], [role=menu], [role=dialog], button, input, textarea")) return;
+    capturePointer(event);
     const p = toBoard(event.clientX, event.clientY);
     setMarquee({ pointerId: event.pointerId, x0: p.x, y0: p.y, x1: p.x, y1: p.y });
   };
@@ -394,13 +492,13 @@ export function SheetCanvas({
           .filter(([id, size]) => {
             const at = layout[id];
             if (!at) return false;
-            const x = at.col * CELL_W;
+            const x = xAt(at.col);
             const y = at.row * CELL_H;
-            return x < right && x + size.cols * CELL_W > left && y < bottom && y + size.rows * CELL_H > top;
+            return x < right && x + span(at.col, size.cols) > left && y < bottom && y + size.rows * CELL_H > top;
           })
           .map(([id]) => id);
     setSelected(event.shiftKey ? [...new Set([...selected, ...hit])] : hit);
-    setMarquee(null);
+    cancelPointer();
   };
 
   // Connecting -------------------------------------------------------------------------------
@@ -418,21 +516,36 @@ export function SheetCanvas({
     setLoose((cycles) => [...cycles.filter((c) => c.id !== cycle.id), cycle]);
     update((s) => ({ ...s, expanded: s.expanded.filter((x) => x !== cycle.id) }));
   };
-  const startLink = (event: ReactPointerEvent, blockId: string) => {
-    if (readOnly || event.button !== 0) return;
+  const startLink = (event: ReactPointerEvent, blockId: string, kind: Link["kind"] = "cycle") => {
+    if (readOnly || menu || event.button !== 0) return;
     event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    setLink({ blockId, pointerId: event.pointerId, ...toBoard(event.clientX, event.clientY) });
+    capturePointer(event);
+    setLink({ kind, blockId, pointerId: event.pointerId, ...toBoard(event.clientX, event.clientY) });
+  };
+  const eligibleTarget = (kind: Link["kind"], source: string, target: string) => {
+    if (source === target) return false;
+    if (kind === "cycle") return allCycles.some(c => c.cycle.id === target);
+    if (kind === "annotation") return doc.blocks.some(b => b.id === target || b.cycles.some(c => c.id === target));
+    return doc.blocks.some(b => b.id === target) && !maxesTables(doc).some(t => t.id !== source && t.blockId === target);
+  };
+  const linkHit = (event: ReactPointerEvent, current: Link) => {
+    const point = toBoard(event.clientX, event.clientY);
+    const hoveredId = Object.keys(sizes).reverse().find(id => { const b = bounds(id); return id !== current.blockId && point.x >= b.left && point.x <= b.left + b.width && point.y >= b.top && point.y <= b.top + b.height; });
+    return { ...current, ...point, hoveredId, targetId: hoveredId && eligibleTarget(current.kind, current.blockId, hoveredId) ? hoveredId : undefined };
   };
   const moveLink = (event: ReactPointerEvent) => {
     if (!link || event.pointerId !== link.pointerId) return;
-    setLink({ ...link, ...toBoard(event.clientX, event.clientY) });
+    setLink(linkHit(event, link));
   };
   const endLink = (event: ReactPointerEvent) => {
     if (!link || event.pointerId !== link.pointerId) return;
-    const under = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-cycle-id]");
-    if (under?.dataset.cycleId) connect(link.blockId, under.dataset.cycleId);
-    setLink(null);
+    const { targetId } = linkHit(event, link);
+    if (targetId) {
+      if (link.kind === "cycle") connect(link.blockId, targetId);
+      else if (link.kind === "annotation") apply?.(current => ({ ...current, annotations: (current.annotations ?? []).map(n => n.id === link.blockId ? { ...n, targetId } : n) }));
+      else apply?.(current => withMaxesTables(current, maxesTables(current).map(t => t.id === link.blockId ? { ...t, blockId: targetId } : t)));
+    }
+    cancelPointer();
   };
 
   // Adding -----------------------------------------------------------------------------------
@@ -452,42 +565,52 @@ export function SheetCanvas({
     if ((event.target as HTMLElement).closest("[data-node], [data-edge]")) return;
     event.preventDefault();
     const p = toBoard(event.clientX, event.clientY);
-    setMenu({ kind: "canvas", x: event.clientX, y: event.clientY, cell: { col: Math.max(0, Math.floor(p.x / CELL_W)), row: Math.max(0, Math.floor(p.y / CELL_H)) } });
+    setMenu({ kind: "canvas", x: event.clientX, y: event.clientY, cell: { col: columnAt(widths, p.x), row: Math.max(0, Math.floor(p.y / CELL_H)) } });
   };
 
   const pos = (id: string) => {
     const cell = layout[id] ?? { col: 0, row: 0 };
     const moving = Boolean(drag?.moved && (drag.id === id || drag.group[id]));
-    return { left: cell.col * CELL_W + (moving ? drag!.dx : 0), top: cell.row * CELL_H + (moving ? drag!.dy : 0) };
+    return { left: xAt(cell.col) + (moving ? drag!.dx : 0), top: cell.row * CELL_H + (moving ? drag!.dy : 0), width: span(cell.col, sizes[id]!.cols), "--sheet-columns": Array.from({ length: sizes[id]!.cols }, (_, i) => `${columnWidth(widths, cell.col + i)}px`).join(" ") } as React.CSSProperties & { left: number; top: number; width: number };
   };
 
-  // Cable geometry: from the socket on the block's edge to a plug at the cycle's header.
-  const socketAt = (blockId: string) => {
-    const a = pos(blockId);
-    return { x: a.left + BLOCK_COLS * CELL_W - 4, y: a.top + CELL_H };
+  useLayoutEffect(() => {
+    const nodes = [...(boardRef.current?.querySelectorAll<HTMLElement>("[data-node-id]") ?? [])];
+    const measure = () => {
+      const next = Object.fromEntries(nodes.map(node => [node.dataset.nodeId!, node.offsetHeight]));
+      setNodeHeights(current => Object.keys(current).length === Object.keys(next).length && Object.entries(next).every(([id, height]) => current[id] === height) ? current : next);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    nodes.forEach(node => observer.observe(node));
+    return () => observer.disconnect();
+  }, [doc, expanded, loose]);
+
+  const bounds = (id: string): Bounds => {
+    const p = pos(id); const cellSize = sizes[id]!;
+    const isTable = maxesTables(doc).some(t => t.id === id);
+    const open = isTable || (doc.annotations ?? []).some(n => n.id === id) || expanded.has(id);
+    return { left: p.left + (open ? -1 : 4), top: p.top + (open ? -1 : 4), width: p.width + (open ? 2 : -8), height: nodeHeights[id] || cellSize.rows * CELL_H + (open ? 2 : -8) };
   };
-  const edges = doc.blocks.flatMap((block) =>
-    block.cycles.map((cycle) => {
-      const from = socketAt(block.id);
-      const b = pos(cycle.id);
-      const open = expanded.has(cycle.id);
-      const x2 = b.left + (open ? 0 : 4);
-      const y2 = b.top + (open ? CELL_H / 2 : 24);
-      const live = hoverEdge === `${block.id}-${cycle.id}` || hoverNode === block.id || hoverNode === cycle.id;
-      return { id: `${block.id}-${cycle.id}`, cycleId: cycle.id, x1: from.x + 5, y1: from.y, x2, y2, live };
-    }),
-  );
-  const curve = (x1: number, y1: number, x2: number, y2: number) => {
-    const bend = Math.max(40, Math.abs(x2 - x1) / 2);
-    return `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`;
+  const edges = [
+    ...doc.blocks.flatMap(block => block.cycles.map(cycle => ({ id: `${block.id}-${cycle.id}`, sourceId: block.id, targetId: cycle.id, cycleId: cycle.id, tableId: undefined as string | undefined, annotationId: undefined as string | undefined }))),
+    ...maxesTables(doc).filter(t => t.blockId).map(t => ({ id: t.id, sourceId: t.id, targetId: t.blockId!, cycleId: "", tableId: t.id, annotationId: undefined as string | undefined })),
+    ...(doc.annotations ?? []).filter(n => n.targetId).map(n => ({ id: n.id, sourceId: n.id, targetId: n.targetId!, cycleId: "", tableId: undefined as string | undefined, annotationId: n.id })),
+  ].map(edge => ({ ...edge, ...connectBounds(bounds(edge.sourceId), bounds(edge.targetId)), live: hoverEdge === edge.id || hoverNode === edge.sourceId || hoverNode === edge.targetId }));
+  const draftCable = link ? connectBounds(bounds(link.blockId), link.hoveredId ? bounds(link.hoveredId) : { left: link.x, top: link.y, width: 0, height: 0 }) : null;
+  const sourceHandleStyle = (id: string) => {
+    const box = bounds(id);
+    const port = link?.blockId === id ? draftCable?.from : edges.find(edge => edge.sourceId === id)?.from;
+    return port ? handleStyle(port, box) : undefined;
   };
-  const linkFrom = link ? socketAt(link.blockId) : null;
 
   // Context menus ----------------------------------------------------------------------------
   const builtIns = useBuiltInFormulas();
   const customList = useFormulaList("", 1);
   const menuItems = (current: Menu): ContextMenuEntry[] => {
     switch (current.kind) {
+      case "column":
+        return [{ id: "reset-column", icon: <RotateCcw />, label: t.resetColumnWidth }];
       case "canvas":
         return [
           ...(readOnly
@@ -498,7 +621,7 @@ export function SheetCanvas({
                 { type: "separator", id: "s1" },
               ] as ContextMenuEntry[])),
           { id: "arrange", label: t.arrange, icon: <LayoutGrid /> },
-          { id: "zoom-reset", label: t.zoomReset, shortcut: `${Math.round(zoom * 100)}%` },
+          { id: "zoom-reset", icon: <RotateCcw />, label: t.zoomReset, shortcut: `${Math.round(zoom * 100)}%` },
         ];
       case "block":
         return readOnly
@@ -554,7 +677,12 @@ export function SheetCanvas({
     }
   };
   const onMenuAction = (current: Menu, id: string) => {
-    if (current.kind === "canvas") {
+    if (current.kind === "column") {
+      if (id === "reset-column") {
+        if (current.owner) resizeElementColumn(current.owner, current.col, CELL_W);
+        else resizeColumn(current.col, CELL_W);
+      }
+    } else if (current.kind === "canvas") {
       if (id === "add-block") addBlockAt(current.cell);
       else if (id === "add-cycle") addCycleAt(current.cell);
       else if (id === "arrange") update((s) => ({ ...s, layout: autoLayout(doc, loose) }));
@@ -637,15 +765,21 @@ export function SheetCanvas({
   const nodesForMinimap: MinimapNode[] = Object.entries(sizes).map(([id, s]) => ({
     id,
     kind: doc.blocks.some((b) => b.id === id) ? "block" : "cycle",
-    x: HEADER + (layout[id]?.col ?? 0) * CELL_W,
-    y: HEADER + (layout[id]?.row ?? 0) * CELL_H,
-    w: s.cols * CELL_W,
+    x: HEADER + pos(id).left,
+    y: HEADER + pos(id).top,
+    w: span(layout[id]?.col ?? 0, s.cols),
     h: s.rows * CELL_H,
   }));
 
   return (
-    <div className={`${styles.sheet} ${className ?? ""}`}>
+    <div className={`${styles.sheet} ${className ?? ""}`} data-width-animating={JSON.stringify(widths) !== JSON.stringify(targetWidths) || undefined}
+      onContextMenuCapture={cancelPointer}
+      onPointerCancel={cancelPointer}
+      onLostPointerCapture={(event) => { if (pointerCapture.current?.element === event.target) cancelPointer(); }}
+    >
+      {maxesMenu ? <ContextMenu x={maxesMenu.x} y={maxesMenu.y} label="Table connection" onClose={() => setMaxesMenu(null)} items={[{ id: "disconnect", label: "Disconnect" }]} onAction={ () => { apply?.(current => withMaxesTables(current, maxesTables(current).map(t => t.id === maxesMenu.id ? { ...t, blockId: null } : t))); setMaxesMenu(null); }} /> : null}
       <div className={styles.tools}>
+        <Button size="sm" variant="ghost" iconStart={<RotateCcw />} onPress={() => update(s => ({ ...s, columnWidths: {}, elementWidths: {} }))}>Reset all column widths</Button>
         {!readOnly ? (
           <>
             <Button size="sm" iconStart={<Plus />} onPress={() => addBlockAt(null)}>
@@ -654,6 +788,8 @@ export function SheetCanvas({
             <Button size="sm" iconStart={<Plus />} onPress={() => addCycleAt(null)}>
               {t.addCycle}
             </Button>
+            <Button size="sm" iconStart={<Plus />} onPress={() => apply?.(current => withMaxesTables(current, [...maxesTables(current), { id: crypto.randomUUID(), blockId: null, rows: [] }]))}>Add maxes table</Button>
+            {(["Comment", "Goal"] as const).map(kind => <Button key={kind} size="sm" iconStart={<Plus />} onPress={() => apply?.(current => ({ ...current, annotations: [...(current.annotations ?? []), { id: crypto.randomUUID(), kind, title: kind, content: "", targetId: null, visibility: "Coach" }] }))}>Add {kind.toLowerCase()}</Button>)}
           </>
         ) : null}
         <TooltipTrigger delay={300}>
@@ -665,7 +801,10 @@ export function SheetCanvas({
         <Button size="sm" variant={volumeOpen ? "secondary" : "ghost"} iconStart={<BarChart3 />} onPress={() => setVolumeOpen((v) => !v)} aria-pressed={volumeOpen}>
           {t.volume.open}
         </Button>
-        {!readOnly ? <span className={styles.hint}>{doc.blocks.length || loose.length ? `${t.openCycle} · ${t.zoomHint}` : t.empty}</span> : null}
+        {!readOnly ? <TooltipTrigger delay={300}>
+          <IconButton label="Sheet help" icon={<Info />} size="sm" variant="ghost" className={styles.help} showTooltip={false} />
+          <Tooltip>{doc.blocks.length || loose.length ? `${t.openCycle} · ${t.zoomHint}` : t.empty}</Tooltip>
+        </TooltipTrigger> : null}
       </div>
 
       <div ref={scrollerRef} className={styles.scroller}>
@@ -696,12 +835,17 @@ export function SheetCanvas({
             onDoubleClick={(event) => {
               if (readOnly || (event.target as HTMLElement).closest("[data-node]")) return;
               const p = toBoard(event.clientX, event.clientY);
-              setMenu({ kind: "canvas", x: event.clientX, y: event.clientY, cell: { col: Math.max(0, Math.floor(p.x / CELL_W)), row: Math.max(0, Math.floor(p.y / CELL_H)) } });
+              setMenu({ kind: "canvas", x: event.clientX, y: event.clientY, cell: { col: columnAt(widths, p.x), row: Math.max(0, Math.floor(p.y / CELL_H)) } });
             }}
           >
-            <div className={styles.colHeads} aria-hidden="true">
+            <div className={styles.colHeads}>
               {Array.from({ length: cols }, (_, i) => (
-                <span key={i}>{columnName(i)}</span>
+                <span key={i} data-sheet-column={i} style={{ width: columnWidth(widths, i) }} data-no-drag
+                  onContextMenu={event => { event.preventDefault(); event.stopPropagation(); setMenu({ kind: "column", col: i, x: event.clientX, y: event.clientY }); }}
+                  onDoubleClick={event => event.stopPropagation()}>
+                  {columnName(i)}
+                  {i < MAX_SAVED_COLUMNS ? resizeHandle(i, columnWidth(targetWidths, i), resizeColumn, `Resize column ${columnName(i)}`) : null}
+                </span>
               ))}
             </div>
             <div className={styles.rowHeads} aria-hidden="true">
@@ -711,27 +855,34 @@ export function SheetCanvas({
             </div>
 
             <div className={styles.cells}>
-              <svg className={styles.edges} width={cols * CELL_W} height={rows * CELL_H} aria-hidden="true">
+              <div className={styles.columnLines} aria-hidden="true">
+                {Array.from({ length: cols }, (_, i) => <i key={i} style={{ left: xAt(i) }} />)}
+              </div>
+              <svg className={styles.edges} width={xAt(cols)} height={rows * CELL_H} aria-hidden="true">
                 {edges.map((edge) => {
                   // The cable stops at the plug; the plug's pins disappear under the cycle card.
-                  const d = curve(edge.x1, edge.y1, edge.x2 - 9, edge.y2);
+                  const d = cablePath(edge.from, edge.to);
                   return (
-                    <g key={edge.id} data-edge data-live={edge.live || undefined} className={styles.edgeGroup}>
+                    <g key={edge.id} data-edge data-maxes-connection={edge.tableId} data-annotation-connection={edge.annotationId} data-live={edge.live || undefined} className={styles.edgeGroup}>
                       <path d={d} className={styles.edgeHit} onPointerEnter={() => setHoverEdge(edge.id)} onPointerLeave={() => setHoverEdge(null)}
                         onContextMenu={(event) => {
                           event.preventDefault();
                           event.stopPropagation();
-                          setMenu({ kind: "edge", x: event.clientX, y: event.clientY, cycleId: edge.cycleId });
+                          if (edge.annotationId) return;
+                          if (edge.tableId) { if (!readOnly) setMaxesMenu({ id: edge.tableId, x: event.clientX, y: event.clientY }); }
+                          else setMenu({ kind: "edge", x: event.clientX, y: event.clientY, cycleId: edge.cycleId });
                         }}
                       />
                       <path d={d} className={styles.edge} />
                       {edge.live ? <path d={d} className={styles.edgeCurrent} /> : null}
-                      <rect x={edge.x2 - 10} y={edge.y2 - 4.5} width={7} height={9} rx={2} className={styles.plug} />
-                      <path d={`M ${edge.x2 - 3} ${edge.y2 - 2} h 4 M ${edge.x2 - 3} ${edge.y2 + 2} h 4`} className={styles.plugPins} />
+                      <g data-plug-side={edge.to.side} transform={`translate(${edge.to.x} ${edge.to.y}) rotate(${plugRotation(edge.to.side)})`}>
+                        <rect x={-10} y={-4.5} width={7} height={9} rx={2} className={styles.plug} />
+                        <path d="M -3 -2 h 4 M -3 2 h 4" className={styles.plugPins} />
+                      </g>
                     </g>
                   );
                 })}
-                {link && linkFrom ? <path d={curve(linkFrom.x + 5, linkFrom.y, link.x, link.y)} className={styles.edgeDraft} /> : null}
+                {draftCable ? <g data-link-preview data-target-id={link?.targetId}><path d={cablePath(draftCable.from, draftCable.to, true)} className={styles.edgeDraft} /><g data-preview-side={draftCable.to.side} transform={`translate(${draftCable.to.x} ${draftCable.to.y}) rotate(${plugRotation(draftCable.to.side)})`}><rect x={-10} y={-4.5} width={7} height={9} rx={2} className={styles.plug} /><path d="M -3 -2 h 4 M -3 2 h 4" className={styles.plugPins} /></g></g> : null}
               </svg>
 
               {marquee ? (
@@ -747,10 +898,13 @@ export function SheetCanvas({
                 />
               ) : null}
 
+              {(doc.annotations ?? []).map(note => <AnnotationCard key={note.id} collapsed={collapsedCards.has(note.id)} onToggle={() => toggleCard(note.id)} note={note} scope={note.targetId ? doc.blocks.find(b => b.id === note.targetId)?.name ?? allCycles.find(c => c.cycle.id === note.targetId)?.cycle.name ?? "Linked" : "Global · plan"} apply={apply} style={pos(note.id)} dragging={Boolean(drag?.moved && (drag.id === note.id || drag.group[note.id]))} onPointerDown={event => startDrag(event, note.id)} onPointerMove={moveDrag} onPointerUp={endDrag} handle={!readOnly ? <span className={styles.handle} style={sourceHandleStyle(note.id)} title="Connect annotation" data-no-drag onPointerDown={event => startLink(event, note.id, "annotation")} onPointerMove={moveLink} onPointerUp={endLink} /> : null} />)}
+              {maxesTables(doc).map(table => <BlockMaxesTable key={table.id} collapsed={collapsedCards.has(table.id)} onToggle={() => toggleCard(table.id)} table={table} renderColumnResize={(col, label) => elementResizeHandle(table.id, col, label)} dragging={Boolean(drag?.moved && (drag.id === table.id || drag.group[table.id]))} selected={selected.includes(table.id)} apply={apply} names={names} style={pos(table.id)} onPointerDown={event => startDrag(event, table.id)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerEnter={() => setHoverNode(table.id)} onPointerLeave={() => setHoverNode(null)} handle={<span className={styles.handle} style={sourceHandleStyle(table.id)} role="presentation" title="Connect to block" data-no-drag onPointerDown={event => startLink(event, table.id, "maxes")} onPointerMove={moveLink} onPointerUp={endLink}></span>} />)}
               {doc.blocks.map((block) => (
                 <BlockCard
                   key={block.id}
                   block={block}
+                  linkTarget={link?.targetId === block.id}
                   style={pos(block.id)}
                   dragging={Boolean(drag?.moved && drag.group[block.id])}
                   selected={selected.includes(block.id)}
@@ -775,6 +929,7 @@ export function SheetCanvas({
                     ) : (
                       <span
                         className={styles.handle}
+                        style={sourceHandleStyle(block.id)}
                         data-no-drag
                         role="presentation"
                         title={t.connectHandle(block.name)}
@@ -788,16 +943,20 @@ export function SheetCanvas({
               ))}
 
               {allCycles.map(({ cycle, blockId }) => (
+                <BlockFormulaScope key={cycle.id} block={effectiveBlock(doc, doc.blocks.find(b => b.id === blockId))}>
                 <CycleCard
+                  advancedAllowed={advancedAllowed}
+                  customFormulas={customFormulas}
                   key={cycle.id}
                   cycle={cycle}
+                  onColumnContextMenu={(col, event) => columnMenu(cycle.id, col, event)} renderColumnResize={(col, label) => elementResizeHandle(cycle.id, col, label)}
                   loose={blockId === null}
                   expanded={expanded.has(cycle.id) && blockId !== null}
                   size={sizes[cycle.id]!}
                   style={pos(cycle.id)}
                   dragging={Boolean(drag?.moved && drag.group[cycle.id])}
                   selected={selected.includes(cycle.id)}
-                  linkTarget={Boolean(link)}
+                  linkTarget={link?.targetId === cycle.id}
                   apply={apply}
                   names={names}
                   onRenameLoose={(name) => setLoose((cycles) => cycles.map((c) => (c.id === cycle.id ? { ...c, name } : c)))}
@@ -820,7 +979,7 @@ export function SheetCanvas({
                   collapsedWorkouts={collapsedWorkouts}
                   onToggleWorkout={toggleWorkout}
                   onExerciseMenu={(event, instance, w) => setMenu({ kind: "exercise", x: event.clientX, y: event.clientY, instance, workout: w })}
-                />
+                /></BlockFormulaScope>
               ))}
             </div>
           </div>
@@ -865,6 +1024,7 @@ export function SheetCanvas({
       {volumeOpen ? <VolumePanel doc={doc} names={names} onClose={() => setVolumeOpen(false)} /> : null}
 
       {workout && editor ? (
+        <BlockFormulaScope block={effectiveBlock(doc, doc.blocks.find(b => b.cycles.some(c => c.days.some(d => d.workouts.some(w => w.id === workout.id)))))}>
         <WorkoutPanel
           workout={workout}
           editor={editor}
@@ -873,7 +1033,7 @@ export function SheetCanvas({
           customFormulas={customFormulas}
           readOnly={readOnly}
           onClose={() => setOpenWorkout(null)}
-        />
+        /></BlockFormulaScope>
       ) : null}
     </div>
   );
@@ -905,12 +1065,15 @@ function InlineName({
   renameKey,
   editing,
   onDone,
+  multiline = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   readOnly: boolean;
   label: string;
   className?: string;
+  /** Several lines (descriptions): Enter adds a line, Ctrl/Cmd+Enter or leaving the field finishes. */
+  multiline?: boolean;
   /** Pressing the text without dragging the card starts renaming with this key. */
   renameKey: string;
   editing: boolean;
@@ -918,6 +1081,34 @@ function InlineName({
 }) {
   const m = useT();
   const original = useRef(value);
+  if (editing && !readOnly && multiline) {
+    return (
+      <textarea
+        className={`${className ?? styles.name} ${styles.nameEditing} ${styles.multiline}`}
+        value={value}
+        aria-label={label}
+        maxLength={4000}
+        placeholder={label}
+        rows={Math.min(Math.max(value.split("\n").length, 3), 12)}
+        autoFocus
+        data-no-drag
+        onFocus={(event) => {
+          original.current = value;
+          event.currentTarget.select();
+        }}
+        onChange={(event) => onChange(event.target.value)}
+        onBlur={onDone}
+        onKeyDown={(event) => {
+          event.stopPropagation();
+          if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) onDone();
+          else if (event.key === "Escape") {
+            onChange(original.current);
+            onDone();
+          }
+        }}
+      />
+    );
+  }
   if (editing && !readOnly) {
     return (
       <input
@@ -946,32 +1137,16 @@ function InlineName({
     );
   }
   return (
-    <span className={className ?? styles.name} data-rename={readOnly ? undefined : renameKey} title={readOnly ? undefined : m.editor.sheet.renameHint}>
+    <span className={`${className ?? styles.name} ${multiline ? styles.multiline : ""}`} data-rename={readOnly ? undefined : renameKey} title={readOnly ? undefined : m.editor.sheet.renameHint}>
       {value || <span className={styles.cellPlaceholder}>{label}</span>}
     </span>
   );
 }
 
-function MenuButton({ label, onOpen }: { label: string; onOpen: (x: number, y: number) => void }) {
-  const m = useT();
-  return (
-    <button
-      type="button"
-      className={styles.menu}
-      aria-label={m.common.moreActions(label)}
-      data-no-drag
-      onClick={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        onOpen(rect.left, rect.bottom + 4);
-      }}
-    >
-      <MoreVertical aria-hidden="true" />
-    </button>
-  );
-}
 
 function BlockCard({
   block,
+  linkTarget,
   style,
   dragging,
   selected,
@@ -983,6 +1158,7 @@ function BlockCard({
   ...events
 }: {
   block: Block;
+  linkTarget: boolean;
   style: React.CSSProperties;
   dragging: boolean;
   selected: boolean;
@@ -1000,11 +1176,14 @@ function BlockCard({
       className={styles.card}
       data-node
       data-kind="block"
+      data-node-id={block.id}
+      data-block-id={block.id}
+      data-link-target={linkTarget || undefined}
       data-dragging={dragging || undefined}
       data-selected={selected || undefined}
       tabIndex={0}
       aria-label={`${t.blockLabel}: ${block.name}`}
-      style={{ ...style, width: BLOCK_COLS * CELL_W - 8, minHeight: BLOCK_ROWS * CELL_H - 8 }}
+      style={{ ...style, width: Number(style.width) - 8, minHeight: BLOCK_ROWS * CELL_H - 8 }}
       {...events}
     >
       <div className={styles.cardHead}>
@@ -1028,6 +1207,7 @@ function BlockCard({
         readOnly={readOnly}
         label={m.common.col.description}
         className={styles.description}
+        multiline
         editing={renaming === `${block.id}:description`}
         renameKey={`${block.id}:description`}
         onDone={() => onRename(null)}
@@ -1039,7 +1219,11 @@ function BlockCard({
 }
 
 function CycleCard({
+  advancedAllowed,
+  customFormulas,
   cycle,
+  renderColumnResize,
+  onColumnContextMenu,
   loose,
   expanded,
   size,
@@ -1060,7 +1244,11 @@ function CycleCard({
   onRename,
   ...events
 }: {
+  advancedAllowed: boolean;
+  customFormulas: boolean;
   cycle: Cycle;
+  onColumnContextMenu?: (col: number, event: React.MouseEvent) => void;
+  renderColumnResize?: (col: number, label: string) => React.ReactNode;
   loose: boolean;
   expanded: boolean;
   size: Size;
@@ -1088,6 +1276,7 @@ function CycleCard({
       className={styles.card}
       data-node
       data-kind="cycle"
+      data-node-id={cycle.id}
       data-cycle-id={cycle.id}
       data-loose={loose || undefined}
       data-expanded={expanded || undefined}
@@ -1098,7 +1287,7 @@ function CycleCard({
       aria-label={`${t.cycleLabel}: ${cycle.name}`}
       aria-expanded={loose ? undefined : expanded}
       title={loose || expanded ? undefined : t.openCycle}
-      style={expanded ? { ...style, width: size.cols * CELL_W + 2, minHeight: size.rows * CELL_H + 2 } : { ...style, width: CYCLE_COLS * CELL_W - 8, minHeight: cycleRows(cycle) * CELL_H - 8 }}
+      style={expanded ? { ...style, width: Number(style.width) + 2, minHeight: size.rows * CELL_H + 2 } : { ...style, width: Number(style.width) - 8, minHeight: cycleRows(cycle) * CELL_H - 8 }}
       {...events}
     >
       <div className={styles.cardHead}>
@@ -1128,7 +1317,7 @@ function CycleCard({
         {!readOnly ? <MenuButton label={cycle.name} onOpen={onMenuButton} /> : null}
       </div>
       {expanded ? (
-        <CycleCells cycle={cycle} apply={apply} names={names} collapsed={collapsedWorkouts} onToggleWorkout={onToggleWorkout} onExerciseMenu={onExerciseMenu} />
+        <CycleCells onColumnContextMenu={onColumnContextMenu} renderColumnResize={renderColumnResize} advancedAllowed={advancedAllowed} customFormulas={customFormulas} cycle={cycle} apply={apply} names={names} collapsed={collapsedWorkouts} onToggleWorkout={onToggleWorkout} onExerciseMenu={onExerciseMenu} />
       ) : (
         <>
           <InlineName

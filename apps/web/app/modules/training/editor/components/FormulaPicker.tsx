@@ -1,13 +1,16 @@
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { FormulaUse, Unit } from "@trainflow/api-client-web";
-import { Button, Combobox, NumberInput, Option, Spinner } from "@trainflow/ui-web";
+import { Combobox, NumberInput, Option, Select, Spinner } from "@trainflow/ui-web";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
 import { useApi } from "~/shared/session/AccountScope";
-import { evaluateFormula } from "../../api";
+import { getFormula } from "../../api";
 import { useBuiltInFormulas, useFormulaList } from "../../queries";
+import { withClientVariables, type InlineFormulaUse } from "../model/inline-formula";
+import { useFormulaEvaluation } from "./useFormulaEvaluation";
+import { useClientFormulaContext } from "../client-context";
+import { useAccountKey } from "~/shared/session/AccountScope";
 import { formatQuantity } from "../model/notation";
 import styles from "./FormulaPicker.module.css";
 
@@ -22,14 +25,15 @@ export function FormulaPicker({ value, onChange, customAllowed, isDisabled }: { 
   const api = useApi();
   const builtIns = useBuiltInFormulas();
   const custom = useFormulaList("", 1);
-  const [result, setResult] = useState<string | null>(null);
-  const evaluate = useMutation({
-    mutationFn: () => evaluateFormula(api, value),
-    onSuccess: (evaluation) => setResult(formatQuantity(locale, evaluation.result)),
-  });
+  const account = useAccountKey();
+  const context = useClientFormulaContext();
+  const resolved = withClientVariables(value, context.variables, Boolean(context.relationshipId));
+  const evaluation = useFormulaEvaluation(resolved);
+  const result = evaluation.data ? formatQuantity(locale, evaluation.data.result) : null;
+  const full = useQuery({ queryKey: [account, "training", "formula-definition", value.formulaId, value.version], queryFn: ({ signal }) => getFormula(api, value.formulaId!, value.version, signal), enabled: Boolean(value.formulaId), staleTime: 300_000 });
 
   const selectedKey = value.builtIn ? `builtin:${value.builtIn}` : value.formulaId ? `custom:${value.formulaId}` : null;
-  const definition = value.builtIn ? builtIns.data?.find((f) => f.key === value.builtIn)?.definition : undefined;
+  const definition = value.builtIn ? builtIns.data?.find((f) => f.key === value.builtIn)?.definition : full.data?.data.definition;
   const inputs: Record<string, Unit> = definition?.inputs ?? Object.fromEntries(Object.entries(value.inputs).map(([k, q]) => [k, q.unit]));
 
   return (
@@ -45,10 +49,9 @@ export function FormulaPicker({ value, onChange, customAllowed, isDisabled }: { 
         onSelectionChange={(key) => {
           if (key === null) return;
           const id = String(key);
-          setResult(null);
           if (id.startsWith("builtin:")) {
             const builtIn = builtIns.data?.find((f) => f.key === id.slice(8));
-            const defaults = Object.fromEntries(Object.entries(builtIn?.definition.inputs ?? {}).map(([name, unit]) => [name, { value: 0, unit }]));
+            const defaults = Object.fromEntries(Object.keys(builtIn?.definition.inputs ?? {}).filter((name) => context.variables[name]).map((name) => [name, context.variables[name]!]));
             onChange({ formulaId: null, builtIn: id.slice(8), version: builtIn?.version ?? 1, inputs: defaults });
           } else {
             const formula = custom.data?.items.find((f) => f.id === id.slice(7));
@@ -70,28 +73,39 @@ export function FormulaPicker({ value, onChange, customAllowed, isDisabled }: { 
         <div className={styles.inputs}>
           <span className={styles.label}>{t.formulaInputs}</span>
           {Object.entries(inputs).map(([name, unit]) => (
+            <div key={name}>
+              <Select label={`${name} source`} size="sm" selectedKey={(value as InlineFormulaUse).variableBindings?.[name] ?? "manual"} isDisabled={isDisabled} onSelectionChange={(key) => {
+                const variableBindings = { ...(value as InlineFormulaUse).variableBindings };
+                const nextInputs = { ...value.inputs };
+                if (key === "manual") { delete variableBindings[name]; delete nextInputs[name]; }
+                else if (key && context.variables[String(key)]) { variableBindings[name] = String(key); nextInputs[name] = context.variables[String(key)]!; }
+                const next: InlineFormulaUse = { ...value, inputs: nextInputs, variableBindings };
+                onChange(next);
+              }}>
+                <Option id="manual">{locale === "pl" ? "Wartość własna" : "Manual value"}</Option>
+                {Object.entries(context.variables).filter(([, quantity]) => quantity.unit === unit).map(([alias]) => <Option key={alias} id={alias}>{alias}</Option>)}
+              </Select>
             <NumberInput placeholder={m.common.ph.number}
-              key={name}
               label={name}
               size="sm"
               unit={m.editor.units[unit] || undefined}
-              value={value.inputs[name]?.value ?? NaN}
-              isDisabled={isDisabled}
+              value={resolved?.inputs[name]?.value ?? NaN}
+              isDisabled={isDisabled || Boolean((value as InlineFormulaUse).variableBindings?.[name])}
               onChange={(next) => {
-                setResult(null);
-                onChange({ ...value, inputs: { ...value.inputs, [name]: { value: Number.isNaN(next) ? 0 : next, unit } } });
+                const nextInputs = { ...value.inputs };
+                if (Number.isNaN(next)) delete nextInputs[name];
+                else nextInputs[name] = { value: next, unit };
+                onChange({ ...value, inputs: nextInputs });
               }}
             />
+            </div>
           ))}
         </div>
       ) : null}
       <div className={styles.evaluate}>
-        <Button size="sm" onPress={() => evaluate.mutate()} isDisabled={!selectedKey} loading={evaluate.isPending}>
-          {t.evaluate}
-        </Button>
-        {evaluate.isPending ? <Spinner size="sm" /> : null}
+        {evaluation.isFetching ? <Spinner size="sm" /> : null}
         {result ? <span className={styles.result}>{t.evaluated(result)}</span> : null}
-        {evaluate.error ? <span className={styles.error}>{errorText(m, evaluate.error)}</span> : null}
+        {evaluation.error ? <span className={styles.error}>{errorText(m, evaluation.error)}</span> : null}
       </div>
     </div>
   );

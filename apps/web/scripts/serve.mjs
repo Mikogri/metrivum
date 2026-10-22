@@ -21,6 +21,7 @@ const types = {
   ".woff2": "font/woff2",
   ".ico": "image/x-icon",
   ".data": "text/x-script",
+  ".glb": "model/gltf-binary",
 };
 
 const exists = (path) => {
@@ -32,7 +33,7 @@ const exists = (path) => {
 function send(res, status, path, extraHeaders = {}) {
   const full = join(root, path);
   const type = types[extname(full)] ?? "application/octet-stream";
-  const immutable = path.startsWith("/assets/");
+  const immutable = path.startsWith("/assets/") || /^\/anatomy\/bodyparts3d-[\d.]+\/[a-z]+-[a-f0-9]{16}\.glb$/.test(path);
   res.writeHead(status, {
     "Content-Type": type,
     "Cache-Control": immutable ? "public, max-age=31536000, immutable" : "no-cache",

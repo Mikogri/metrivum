@@ -29,7 +29,7 @@ namespace TrainFlow.Offers.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ApplicationFormVersionId")
+                    b.Property<Guid?>("ApplicationFormVersionId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Category")
@@ -221,7 +221,7 @@ namespace TrainFlow.Offers.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ApplicationFormVersionId")
+                    b.Property<Guid?>("ApplicationFormVersionId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Category")

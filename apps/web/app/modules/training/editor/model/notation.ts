@@ -73,8 +73,8 @@ export function parseEffort(locale: Locale, input: string): ParseResult<EffortPa
 export function parseDuration(locale: Locale, input: string): ParseResult<Quantity | null> {
   const text = input.trim().toLowerCase();
   if (!text) return { ok: true, value: null };
-  const clock = /^(\d{1,3}):([0-5]\d)$/.exec(text);
-  if (clock) return { ok: true, value: { value: Number(clock[1]) * 60 + Number(clock[2]), unit: "Seconds" } };
+  const clock = /^(?:(\d{1,3}):)?(\d{1,3}):([0-5]\d)$/.exec(text);
+  if (clock && (clock[1] === undefined || Number(clock[2]) < 60)) return { ok: true, value: { value: Number(clock[1] ?? 0) * 3600 + Number(clock[2]) * 60 + Number(clock[3]), unit: "Seconds" } };
   const match = /^([\d.,]+)\s*(s|sec|secs|seconds?|m|min|mins|minutes?|')?$/.exec(text);
   if (!match) return { ok: false };
   const value = parseLocaleNumber(locale, match[1]!);

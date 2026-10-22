@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Team — TrainFlow");
+
 import { UserAutocomplete } from "~/modules/accounts";
 import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
@@ -10,7 +14,7 @@ import { useAccountContext, useAccountKey } from "~/shared/session/AccountScope"
 import { ApiError } from "~/shared/http";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { TeamBilling } from "~/modules/subscription";
-import { TeamClients, TransferRequests } from "./team-clients";
+import { TEAM_PAGE_SIZE, TeamClients, TeamPageControls, TransferRequests } from "./team-clients";
 import styles from "./team.module.css";
 
 export type Team = Schema<"TeamDto">;
@@ -79,7 +83,8 @@ function Seats({ team }: { team: Team }) {
 function TeamWorkspace({ team, requests }: { team: Team; requests: Request[] }) {
   const [tab, setTab] = useState("overview");
   const { account } = useAccountContext();
-  const roster = useCoachingQuery<Member[]>(`/api/v1/teams/${team.id}/members`, undefined, tab === "members" || tab === "clients");
+  const [memberPage, setMemberPage] = useState(1);
+  const roster = useCoachingQuery<Member[]>(`/api/v1/teams/${team.id}/members`, tab === "members" ? { page: memberPage, pageSize: TEAM_PAGE_SIZE } : undefined, tab === "members" || tab === "clients");
   const mutation = useTeamMutation();
   const [leaving, setLeaving] = useState(false);
   const can = (action: string) => team.allowedActions.includes(`teams.${action}`);
@@ -119,7 +124,7 @@ function TeamWorkspace({ team, requests }: { team: Team; requests: Request[] }) 
             {can("leave") && <Button variant="secondary" iconStart={<LogOut />} onPress={() => setLeaving(true)}>Leave Team</Button>}
           </div>}
         </div></TabPanel>
-        <TabPanel id="members">{roster.isPending ? <Loading /> : roster.isError ? <Failure error={roster.error} retry={() => void roster.refetch()} /> : <Members team={team} members={roster.data} requests={requests} />}</TabPanel>
+        <TabPanel id="members">{roster.isPending ? <Loading /> : roster.isError ? <Failure error={roster.error} retry={() => void roster.refetch()} /> : <><Members team={team} members={roster.data} requests={requests} /><TeamPageControls label="Team members" page={memberPage} count={roster.data.length} loading={roster.isFetching || mutation.isPending} onChange={setMemberPage} /></>}</TabPanel>
         <TabPanel id="clients"><TeamClients teamId={team.id} members={roster.data ?? []} active={can("clients")} /></TabPanel>
         {can("billing") && <TabPanel id="billing"><div className={styles.stack}><TeamBilling teamId={team.id} dissolutionAt={team.dissolutionAt} /><TeamLifecycle team={team} /></div></TabPanel>}
         {can("settings") && <TabPanel id="settings"><TeamSettings key={`${team.id}:${team.version}`} team={team} /></TabPanel>}

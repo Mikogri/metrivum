@@ -1,11 +1,27 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
+import { useState, StrictMode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Button } from "../../primitives/Button/Button";
 import { AlertDialog, Dialog, DialogTrigger } from "./Dialog";
 
 describe("Dialog", () => {
+  it("does not create an exit copy during StrictMode opening", async () => {
+    const animate = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "animate");
+    Object.defineProperty(HTMLElement.prototype, "animate", { configurable: true, value: vi.fn() });
+    try {
+      const view = render(<StrictMode><Dialog isOpen title="Single formula dialog" /></StrictMode>);
+      await Promise.resolve();
+      expect(document.querySelectorAll('[data-exiting][inert]')).toHaveLength(0);
+      expect(screen.getAllByRole("dialog")).toHaveLength(1);
+      view.unmount();
+      await Promise.resolve();
+      document.querySelectorAll('[data-exiting][inert]').forEach(node => node.remove());
+    } finally {
+      if (animate) Object.defineProperty(HTMLElement.prototype, "animate", animate);
+      else Reflect.deleteProperty(HTMLElement.prototype, "animate");
+    }
+  });
   it.each([false, true])("labels a triggered dialog from its title (controlled=%s)", async (controlled) => {
     function TriggeredDialog() {
       const [open, setOpen] = useState(false);
@@ -88,7 +104,7 @@ describe("Dialog", () => {
     expect(screen.getByRole("textbox", { name: "Review" })).toBe(input);
     expect(input).toHaveValue("Unsaved feedback");
     await user.keyboard("{Escape}");
-    await user.click(within(screen.getByRole("alertdialog", { name: "Discard unsaved review?" }))
+    await user.click(within(await screen.findByRole("alertdialog", { name: "Discard unsaved review?" }))
       .getByRole("button", { name: "Discard changes" }));
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

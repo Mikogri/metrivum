@@ -115,6 +115,8 @@ public sealed partial class TrainingService
             throw ApiException.Invalid("Format must be csv or pdf.");
         await access.RequireAsync("training.export." + format, ct);
         var source = (await RevisionAsync(id, revision, ct)).Snapshot;
+        abuse?.Require(accounts.UserId, AbusePolicies.Export);
+        using var heavyLease = abuse?.Enter(accounts.UserId, AbusePolicies.Heavy);
         var selected = SelectScope(source, scope, scopeId);
         ct.ThrowIfCancellationRequested();
         try
@@ -143,7 +145,9 @@ public sealed partial class TrainingService
             throw ApiException.NotFound();
         var document = source.Document with
         {
-            Blocks = blocks
+            Blocks = blocks,
+            Annotations = source.Document.Annotations?.Where(n => n.TargetId == null || blocks.Any(b => b.Id == n.TargetId || b.Cycles.Any(c => c.Id == n.TargetId))).ToArray(),
+            MaxesTables = source.Document.MaxesTables?.Where(t => t.BlockId == null || blocks.Any(b => b.Id == t.BlockId)).ToArray()
         };
         var exerciseIds = DocumentRules.Workouts(document).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).ToHashSet();
         var formulaIds = DocumentRules.Sets(document).SelectMany(s => new[] { s.Id }.Concat((s.Segments ?? []).Select(p => p.Id))).ToHashSet();

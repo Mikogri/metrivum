@@ -1,5 +1,7 @@
 .skeleton {
   display: block;
+  min-width: 0;
+  max-width: 100%;
   background: linear-gradient(
     90deg,
     var(--tf-color-surface-raised) 0%,

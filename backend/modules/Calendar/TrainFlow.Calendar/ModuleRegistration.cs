@@ -17,6 +17,7 @@ public static class ModuleRegistration
         services.AddScoped<TrainFlow.Coaching.Contracts.ITeamRelationshipLifecycle, TeamCalendarLifecycle>();
         services.AddModuleDatabase<CalendarDbContext>("calendar");
         services.AddScoped<CalendarService>();
+        services.AddScoped<TrainFlow.Calendar.Contracts.IMcpCalendarOperations, McpCalendarOperations>();
         services.AddScoped<TrainFlow.Notifications.Contracts.INotificationDeliveryPolicy, CalendarNotificationPolicy>();
         foreach (var key in new[] { "calendar.events.manage", "calendar.events.read-own", "calendar.invitations.respond-own" })
             services.AddSingleton(new FeatureDefinition(key, "Calendar", key + ".title", key + ".description", [], []));

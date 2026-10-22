@@ -1,22 +1,27 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Film, GitCompare, Plus, SearchX, Trash2, Video } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { BookmarkCheck, GitCompare, Plus, SearchX, Share2, Video } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router";
-import type { MediaDto } from "@trainflow/api-client-web";
-import { AlertDialog, Badge, Button, DataTable, EmptyState, ErrorState, IconButton, LinkButton, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, Tab, TabList, TabPanel, Tabs, TextField, Toolbar, toast } from "@trainflow/ui-web";
+import { Button, DataTable, EmptyState, ErrorState, IconButton, LinkButton, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, TextField, Toolbar } from "@trainflow/ui-web";
 import { LockedReason, useFeatures } from "~/shared/access";
-import { formatBytes, formatRelative } from "~/shared/i18n/format";
+import { formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { useDebounced } from "~/shared/lib/useDebounced";
-import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { LibraryViewToggle, useLibraryView } from "~/shared/library/LibraryViewToggle";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
-import { deleteMedia } from "../api";
+import { listSaved } from "../api";
 import { StatusBadge } from "../components/StatusBadge";
-import { useAnalysisList, useMediaList, videoKeys } from "../queries";
+import { useAnalyzerJobs } from "../analyzer-jobs";
+import { JobProgress } from "../components/JobProgress";
+import type { AnalysisDto } from "@trainflow/api-client-web";
+import type { AnalyzerJob } from "../local-analysis";
+import { ShareAnalysisDialog } from "../components/ShareAnalysisDialog";
+import { useAnalysisList, useMediaList } from "../queries";
+
+type Row = { kind: "job"; job: AnalyzerJob } | { kind: "analysis"; analysis: AnalysisDto };
 import styles from "./analyses.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
@@ -25,147 +30,28 @@ const PAGE_SIZE = 20;
 
 export const meta = () => privateMeta("Video analyses — TrainFlow");
 
-const DEFAULTS = { tab: "analyses", q: "", status: "", tag: "", sort: "newest", page: "1", view: "list", vq: "", vstate: "", vsort: "newest" };
+const DEFAULTS = { q: "", status: "", tag: "", sort: "newest", page: "1", view: "list" };
 
-function Videos({ view, search, state, sort }: { view: "list" | "cards"; search: string; state: string; sort: string }) {
-  const m = useT();
-  const t = m.video.list;
-  const locale = useLocale();
+/** Analyses other people shared and this account kept: references opened through their link, never copies. */
+function SavedFromOthers() {
   const api = useApi();
   const a = useAccountKey();
-  const queryClient = useQueryClient();
-  const showError = useErrorToast();
-  const access = useFeatures(["video.library.manage"] as const);
-  const [page, setPage] = useState(1);
-  const pageSize = PAGE_SIZE;
-  const filtered = Boolean(search || state);
-  useEffect(() => setPage(1), [search, state, sort]);
-  const list = useMediaList({ search: search || undefined, state: state || undefined, sort, page, pageSize });
-  const [target, setTarget] = useState<MediaDto | null>(null);
-  const remove = useMutation({
-    mutationFn: (media: MediaDto) => deleteMedia(api, media.id, media.version),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: videoKeys.all(a) });
-      toast({ tone: "success", title: t.deleteScheduled });
-      setTarget(null);
-    },
-    onError: (error) => {
-      setTarget(null);
-      showError(error);
-    },
-  });
-  if (list.isPending) return <LoadingState label={m.common.loading} />;
-  if (list.isError) return <ErrorState title={errorText(m, list.error)} actions={<Button onPress={() => void list.refetch()}>{m.common.retry}</Button>} />;
-  if (!list.data.length && filtered) return <EmptyState icon={<SearchX />} title={t.noVideosMatch} description={t.noVideosMatchBody} />;
-  if (!list.data.length)
-    return (
-      <EmptyState
-        icon={<Film />}
-        title={t.videosEmpty}
-        description={t.videosEmptyBody}
-        actions={
-          access["video.library.manage"].allowed ? (
-            <LinkButton href="/app/video-analyses/new" variant="primary" iconStart={<Plus />}>
-              {t.new}
-            </LinkButton>
-          ) : undefined
-        }
-      />
-    );
+  const locale = useLocale();
+  const saved = useQuery({ queryKey: [a, "video", "saved"] as const, queryFn: ({ signal }) => listSaved(api, signal) });
+  if (!saved.data?.length) return null;
   return (
-    <>
-      {view === "cards" ? (
-        <ul className={styles.cards} aria-label={t.videos} data-stale={list.isPlaceholderData || undefined}>
-          {list.data.map((media) => (
-            <li key={media.id} className={styles.card}>
-              <div className={styles.cardTop}>
-                <span className={styles.tableIcon} data-tone="blue" aria-hidden="true"><Film /></span>
-                <IconButton label={t.deleteVideo} icon={<Trash2 />} variant="danger" size="sm"
-                  isDisabled={!access["video.library.manage"].allowed || media.state === "Deleting" || media.pinned}
-                  onPress={() => setTarget(media)} />
-              </div>
-              <h3 className={styles.cardTitle}>{media.name}</h3>
-              <p className={styles.cardDescription}>{media.contentType} · {formatBytes(locale, media.size)}</p>
-              <div className={styles.cardMeta}>
-                <Badge size="sm" tone={media.state === "Ready" ? "success" : media.state === "Deleting" ? "warning" : "neutral"} dot>
-                  {m.video.mediaStates[media.state] ?? media.state}
-                </Badge>
-                <span>{formatRelative(locale, media.createdAt)}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : <DataTable
-        label={t.videos}
-        rows={list.data}
-        rowKey={(media) => media.id}
-        columns={[
-          {
-            id: "name",
-            header: m.common.col.name,
-            cell: (media) => (
-              <span className={styles.nameCell}>
-                <span className={styles.tableIcon} data-tone="blue" aria-hidden="true">
-                  <Film />
-                </span>
-                {media.name}
-              </span>
-            ),
-          },
-          { id: "type", header: m.common.col.type, width: "9rem", muted: true, hideOnMobile: true, cell: (media) => media.contentType },
-          { id: "size", header: m.common.col.size, width: "7rem", muted: true, hideOnMobile: true, cell: (media) => formatBytes(locale, media.size) },
-          {
-            id: "status",
-            header: m.common.col.status,
-            width: "8rem",
-            cell: (media) => (
-              <Badge size="sm" tone={media.state === "Ready" ? "success" : media.state === "Deleting" ? "warning" : "neutral"} dot>
-                {m.video.mediaStates[media.state] ?? media.state}
-              </Badge>
-            ),
-          },
-          { id: "created", header: m.common.col.created, width: "9rem", muted: true, hideOnMobile: true, cell: (media) => formatRelative(locale, media.createdAt) },
-          {
-            id: "actions",
-            header: <span className="tf-visually-hidden">{m.common.actions}</span>,
-            width: "3.5rem",
-            align: "end",
-            cell: (media) => (
-              <IconButton
-                label={t.deleteVideo}
-                icon={<Trash2 />}
-                variant="danger"
-                size="sm"
-                isDisabled={!access["video.library.manage"].allowed || media.state === "Deleting" || media.pinned}
-                onPress={() => setTarget(media)}
-              />
-            ),
-          },
-        ]}
-      />}
-      <Pagination
-        page={page}
-        pageCount={null}
-        hasNextPage={list.data.length === pageSize}
-        onPageChange={setPage}
-        pageSize={pageSize}
-            labels={{ previous: m.common.previous, next: m.common.next, status: m.common.pageStatus, navigation: m.common.pagination, pageSize: m.common.perPage }}
-      />
-      <AlertDialog
-        isOpen={target !== null}
-        onOpenChange={(open) => !open && setTarget(null)}
-        title={t.deleteVideoTitle}
-        tone="danger"
-        confirmLabel={t.deleteVideo}
-        cancelLabel={m.common.cancel}
-        isConfirming={remove.isPending}
-        onConfirm={() => {
-          if (target) remove.mutate(target);
-        }}
-      >
-        <p>{t.deleteVideoBody}</p>
-      </AlertDialog>
-    </>
+    <section className={styles.saved} aria-labelledby="saved-title">
+      <h2 id="saved-title" className={styles.savedTitle}><BookmarkCheck aria-hidden="true" />Shared with you</h2>
+      <ul className={styles.savedList}>
+        {saved.data.map((item) => (
+          <li key={item.token}>
+            <span className={styles.tableIcon} data-tone="violet" aria-hidden="true"><Video /></span>
+            <RouterLink to={`/app/video-analyses/shared/${encodeURIComponent(item.token)}`} className={styles.savedName}>{item.name}</RouterLink>
+            <span className={styles.savedMeta}>{item.ownerName} · {formatRelative(locale, item.completedAt ?? item.createdAt)}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -180,8 +66,6 @@ export default function AnalysesRoute() {
   const [tag, setTag] = useState(state.tag);
   const debounced = useDebounced(search, 300);
   const debouncedTag = useDebounced(tag, 400);
-  const [videoSearch, setVideoSearch] = useState(state.vq);
-  const debouncedVideoSearch = useDebounced(videoSearch, 300);
   const page = pageFromParam(state.page);
   const access = useFeatures(["video.library.manage", "video.analysis.run", "video.analysis.compare"] as const);
   useEffect(() => {
@@ -192,13 +76,17 @@ export default function AnalysesRoute() {
     if (debouncedTag !== state.tag) update({ tag: debouncedTag });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedTag]);
-  useEffect(() => {
-    if (debouncedVideoSearch !== state.vq) update({ vq: debouncedVideoSearch });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedVideoSearch]);
 
-  const list = useAnalysisList({ search: state.q || undefined, status: state.status || undefined, tag: state.tag || undefined, sort: state.sort, page, pageSize }, state.tab === "analyses");
+  const list = useAnalysisList({ search: state.q || undefined, status: state.status || undefined, tag: state.tag || undefined, sort: state.sort, page, pageSize });
   const filtersActive = Boolean(state.q || state.status || state.tag);
+  // Videos still in the local analyzer lead the first page; finished ones become normal rows once saved.
+  const queue = useAnalyzerJobs();
+  const media = useMediaList({ pageSize: 100 });
+  const files = new Map((media.data ?? []).map((item) => [item.id, item.name]));
+  const fileOf = (analysis: AnalysisDto) => (analysis.mediaId ? files.get(analysis.mediaId) : undefined);
+  const jobs = page === 1 && !filtersActive ? queue.jobs.filter((job) => !queue.saved.some((item) => item.id === job.id)) : [];
+  const rows: Row[] = [...jobs.map((job) => ({ kind: "job" as const, job })), ...(list.data ?? []).map((analysis) => ({ kind: "analysis" as const, analysis }))];
+  const [sharing, setSharing] = useState<{ id: string; name: string } | null>(null);
 
   return (
     <>
@@ -220,16 +108,7 @@ export default function AnalysesRoute() {
           </>
         }
       />
-      <Tabs selectedKey={state.tab} onSelectionChange={(key) => update({ tab: String(key) })}>
-        <TabList aria-label={t.title}>
-          <Tab id="analyses">
-            {t.analyses}
-          </Tab>
-          <Tab id="videos">
-            {t.videos}
-          </Tab>
-        </TabList>
-        <TabPanel id="analyses">
+      {/* One list: what is being analyzed now, then everything analyzed (yours and the ones people shared with you). */}
           <Toolbar aria-label={m.common.search} className={styles.toolbar}>
             <SearchInput aria-label={t.searchLabel} placeholder={m.common.search} value={search} onChange={setSearch} className={styles.search} />
             <Select aria-label={t.status} selectedKey={state.status || "__any"} onSelectionChange={(key) => update({ status: key === "__any" ? null : String(key) })} className={styles.filter}>
@@ -253,7 +132,7 @@ export default function AnalysesRoute() {
             <LoadingState label={m.common.loading} />
           ) : list.isError ? (
             <ErrorState title={errorText(m, list.error)} reference={traceIdOf(list.error)} actions={<Button onPress={() => void list.refetch()}>{m.common.retry}</Button>} />
-          ) : list.data.length === 0 ? (
+          ) : rows.length === 0 ? (
             filtersActive ? (
               <EmptyState icon={<SearchX />} title={t.noResultsTitle} description={t.noResultsBody} />
             ) : (
@@ -274,43 +153,66 @@ export default function AnalysesRoute() {
             <>
               {view === "cards" ? (
                 <ul className={styles.cards} aria-label={t.analyses} data-stale={list.isPlaceholderData || undefined}>
-                  {list.data.map((analysis) => (
-                    <li key={analysis.id} className={styles.card}>
+                  {rows.map((row) => row.kind === "job" ? (
+                    <li key={row.job.id} className={styles.card} data-analyzing="">
+                      <div className={styles.cardTop}>
+                        <span className={styles.tableIcon} data-tone="neutral" aria-hidden="true"><Video /></span>
+                      </div>
+                      <span className={styles.cardTitle}>{row.job.name}</span>
+                      <span className={styles.fileName} title={row.job.fileName}>{row.job.fileName}</span>
+                      <JobProgress job={row.job} />
+                    </li>
+                  ) : (
+                    <li key={row.analysis.id} className={styles.card}>
                       <div className={styles.cardTop}>
                         <span className={styles.tableIcon} data-tone="rose" aria-hidden="true"><Video /></span>
-                        <StatusBadge status={analysis.status} size="sm" />
+                        <StatusBadge status={row.analysis.status} size="sm" />
                       </div>
-                      <RouterLink className={styles.cardTitle} to={`/app/video-analyses/${analysis.id}`}>{analysis.name}</RouterLink>
-                      {analysis.tags.length || analysis.note ? <p className={styles.cardDescription}>{analysis.tags.length ? analysis.tags.join(", ") : analysis.note}</p> : null}
-                      <span className={styles.cardMeta}>{formatRelative(locale, analysis.createdAt)}</span>
+                      <RouterLink className={styles.cardTitle} to={`/app/video-analyses/${row.analysis.id}`}>{row.analysis.name}</RouterLink>
+                      {fileOf(row.analysis) ? <span className={styles.fileName} title={fileOf(row.analysis)}>{fileOf(row.analysis)}</span> : null}
+                      <span className={styles.cardMeta}>{formatRelative(locale, row.analysis.createdAt)}</span>
                     </li>
                   ))}
                 </ul>
               ) : <DataTable
                 label={t.title}
                 stale={list.isPlaceholderData}
-                rows={list.data}
-                rowKey={(analysis) => analysis.id}
+                rows={rows}
+                rowKey={(row) => (row.kind === "job" ? `job:${row.job.id}` : row.analysis.id)}
                 columns={[
                   {
                     id: "name",
                     header: m.common.col.name,
-                    cell: (analysis) => (
+                    cell: (row) => (
                       <span className={styles.nameCell}>
-                        <span className={styles.tableIcon} data-tone="rose" aria-hidden="true">
+                        <span className={styles.tableIcon} data-tone={row.kind === "job" ? "neutral" : "rose"} aria-hidden="true">
                           <Video />
                         </span>
-                        <RouterLink to={`/app/video-analyses/${analysis.id}`} data-row-link>
-                          {analysis.name}
-                        </RouterLink>
+                        {row.kind === "job" ? <span className={styles.jobName}>{row.job.name}</span> : (
+                          <RouterLink to={`/app/video-analyses/${row.analysis.id}`} data-row-link>
+                            {row.analysis.name}
+                          </RouterLink>
+                        )}
                       </span>
                     ),
                   },
-                  { id: "tags", header: m.common.col.tags, muted: true, hideOnMobile: true, cell: (analysis) => (analysis.tags.length ? analysis.tags.join(", ") : analysis.note || "—") },
-                  { id: "status", header: m.common.col.status, width: "9rem", cell: (analysis) => <StatusBadge status={analysis.status} size="sm" /> },
-                  { id: "created", header: m.common.col.created, width: "9rem", muted: true, hideOnMobile: true, cell: (analysis) => formatRelative(locale, analysis.createdAt) },
+                  {
+                    id: "file", header: "File", muted: true, hideOnMobile: true,
+                    cell: (row) => { const file = row.kind === "job" ? row.job.fileName : fileOf(row.analysis); return file ? <span className={styles.fileName} title={file}>{file}</span> : "—"; },
+                  },
+                  { id: "status", header: m.common.col.status, width: "13rem", cell: (row) => (row.kind === "job" ? <JobProgress job={row.job} /> : <StatusBadge status={row.analysis.status} size="sm" />) },
+                  { id: "created", header: m.common.col.created, width: "8rem", muted: true, hideOnMobile: true, cell: (row) => (row.kind === "job" ? "now" : formatRelative(locale, row.analysis.createdAt)) },
+                  {
+                    id: "share",
+                    header: <span className="tf-visually-hidden">{m.common.actions}</span>,
+                    width: "3rem",
+                    cell: (row) => row.kind === "analysis" && row.analysis.status === "Completed"
+                      ? <IconButton size="sm" label={m.video.share.action} icon={<Share2 />} onPress={() => setSharing({ id: row.analysis.id, name: row.analysis.name })} />
+                      : null,
+                  },
                 ]}
               />}
+              {sharing ? <ShareAnalysisDialog analysisId={sharing.id} name={sharing.name} onClose={() => setSharing(null)} /> : null}
               <Pagination
                 page={page}
                 pageCount={null}
@@ -321,29 +223,7 @@ export default function AnalysesRoute() {
               />
             </>
           )}
-        </TabPanel>
-        <TabPanel id="videos">
-          <Toolbar aria-label={t.videos} className={styles.toolbar}>
-            <SearchInput aria-label={t.searchVideos} placeholder={m.common.search} value={videoSearch} onChange={setVideoSearch} className={styles.search} />
-            <Select aria-label={t.status} selectedKey={state.vstate || "__any"} onSelectionChange={(key) => update({ vstate: key === "__any" ? null : String(key) })} className={styles.filter}>
-              {[["__any", t.anyState], ...Object.entries(m.video.mediaStates)].map(([key, label]) => (
-                <Option key={key} id={key}>
-                  {label}
-                </Option>
-              ))}
-            </Select>
-            <Select aria-label={m.common.sortBy} selectedKey={state.vsort} onSelectionChange={(key) => update({ vsort: String(key) })} className={styles.filter}>
-              {Object.entries(t.sort).map(([key, label]) => (
-                <Option key={key} id={key}>
-                  {label}
-                </Option>
-              ))}
-            </Select>
-            <LibraryViewToggle value={view} onChange={(next) => update({ view: next, page: state.page })} />
-          </Toolbar>
-          <Videos view={view} search={debouncedVideoSearch} state={state.vstate} sort={state.vsort} />
-        </TabPanel>
-      </Tabs>
+      <SavedFromOthers />
     </>
   );
 }

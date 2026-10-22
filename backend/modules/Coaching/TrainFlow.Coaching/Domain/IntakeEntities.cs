@@ -75,7 +75,7 @@ public sealed class CoachingApplication
     {
         get; set;
     }
-    public Guid FormVersionId
+    public Guid? FormVersionId
     {
         get; set;
     }

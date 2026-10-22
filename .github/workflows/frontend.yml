@@ -48,7 +48,12 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:hosting
+      - uses: actions/cache@v4
+        with:
+          path: .local/bodyparts3d-4.0/source
+          key: bodyparts3d-${{ hashFiles('infra/anatomy/source-lock.json') }}
       - run: npm run build
+      - run: python infra/anatomy/verify_assets.py
       - run: npm run storybook:build
       - run: npx playwright install --with-deps chromium
         working-directory: apps/web

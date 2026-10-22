@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Archive, ExternalLink, Pencil } from "lucide-react";
-import { useState } from "react";
+import { Activity, Archive, Dumbbell, ExternalLink, FileText, History, ListOrdered, Pencil } from "lucide-react";
+import { useState, type CSSProperties } from "react";
 import { useParams } from "react-router";
 import {
   AlertDialog,
@@ -23,11 +23,15 @@ import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { ApiError } from "~/shared/http/errors";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
+import { useFitHeight } from "~/shared/lib/useFitHeight";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { archiveExercise, updateExercise } from "../api";
 import { FavoriteButton } from "../components/FavoriteButton";
 import { exerciseKeys, useDictionaryLabel, useExercise, useExerciseHistory } from "../queries";
+import { muscleGroup } from "../muscleGroup";
+import { MusclePreview } from "~/modules/anatomy";
+import listStyles from "./exercises.module.css";
 import styles from "./exercise-detail.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
@@ -60,6 +64,8 @@ function ExerciseDetail() {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [instructions, setInstructions] = useState("");
+  // Model and panels fill the window; only the text column scrolls when it is long.
+  const { ref: fitRef, height: fit } = useFitHeight<HTMLDivElement>([query.isPending, query.isError]);
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: exerciseKeys.all(a) });
 
@@ -109,6 +115,12 @@ function ExerciseDetail() {
   const demo = safeHttps(exercise.demonstrationUrl);
   const conflict = edit.error instanceof ApiError && edit.error.code === "VERSION_CONFLICT";
 
+  // One instruction per line reads as numbered steps.
+  const steps = exercise.instructions.split("\n").map((line) => line.trim()).filter(Boolean);
+  const muscleChips = (keys: string[], kind: "primary" | "secondary") => keys.length
+    ? <span className={listStyles.chips}>{keys.map((k) => <span key={k} className={listStyles.chip} data-group={muscleGroup(k) ?? undefined} data-kind={kind}>{dictLabel("muscles", k)}</span>)}</span>
+    : <span className={styles.muted}>—</span>;
+
   return (
     <>
       <PageHeader
@@ -154,24 +166,57 @@ function ExerciseDetail() {
       />
       {exercise.isArchived ? <Alert tone="warning" title={t.archivedNote} className={styles.alert} /> : null}
 
-      <div className={styles.layout}>
+      <div ref={fitRef} className={styles.layout} style={fit ? ({ "--fit": `${fit}px` } as CSSProperties) : undefined}>
+        <Card as="section" padding="md" aria-labelledby="worked" className={styles.anatomy}>
+          <h2 id="worked" className={styles.panelTitle}><Activity aria-hidden="true" />{t.musclesWorked}</h2>
+          <MusclePreview primary={exercise.primaryMuscleKeys} secondary={exercise.secondaryMuscleKeys} />
+        </Card>
         <div className={styles.main}>
-          <Card as="section" padding="lg" aria-labelledby="desc">
-            <h2 id="desc" className={styles.sectionTitle}>
-              {t.description}
-            </h2>
-            <p className={styles.prose}>{exercise.description || t.noText}</p>
+          <Card as="section" padding="lg" aria-labelledby="overview">
+            <h2 id="overview" className={styles.panelTitle}><Dumbbell aria-hidden="true" />{t.overview}</h2>
+            <div className={styles.muscles}>
+              <div className={styles.muscleRow}>
+                <span className={styles.factLabel}><span className={styles.kindDot} data-kind="primary" aria-hidden="true" />{t.primaryMuscles}</span>
+                {muscleChips(exercise.primaryMuscleKeys, "primary")}
+              </div>
+              <div className={styles.muscleRow}>
+                <span className={styles.factLabel}><span className={styles.kindDot} data-kind="secondary" aria-hidden="true" />{t.secondaryMuscles}</span>
+                {muscleChips(exercise.secondaryMuscleKeys, "secondary")}
+              </div>
+            </div>
+            <dl className={styles.factRow}>
+              <div>
+                <dt className={styles.factLabel}>{t.patterns}</dt>
+                <dd className={styles.tags}>{exercise.movementPatternKeys.length ? exercise.movementPatternKeys.map((k) => <Badge key={k}>{dictLabel("movementPatterns", k)}</Badge>) : <span className={styles.muted}>—</span>}</dd>
+              </div>
+              <div>
+                <dt className={styles.factLabel}>{t.tags}</dt>
+                <dd className={styles.tags}>{exercise.tags.length ? exercise.tags.map((tag) => <Badge key={tag.id}>{tag.name}</Badge>) : <span className={styles.muted}>—</span>}</dd>
+              </div>
+              <div>
+                <dt className={styles.factLabel}>{t.demonstration}</dt>
+                <dd>
+                  {demo ? (
+                    <Link href={demo} target="_blank" rel="noopener noreferrer nofollow" tone="accent">
+                      {t.openDemonstration} <ExternalLink aria-hidden="true" className={styles.inlineIcon} />
+                    </Link>
+                  ) : <span className={styles.muted}>—</span>}
+                </dd>
+              </div>
+            </dl>
           </Card>
-          <Card as="section" padding="lg" aria-labelledby="instr">
-            <h2 id="instr" className={styles.sectionTitle}>
-              {t.instructions}
-            </h2>
-            <p className={styles.prose}>{exercise.instructions || t.noText}</p>
+          <Card as="section" padding="lg" aria-labelledby="desc">
+            <h2 id="desc" className={styles.panelTitle}><FileText aria-hidden="true" />{t.description}</h2>
+            <p className={styles.prose} data-empty={!exercise.description || undefined}>{exercise.description || t.noText}</p>
+            <h2 id="instr" className={styles.panelTitle} data-spaced=""><ListOrdered aria-hidden="true" />{t.instructions}</h2>
+            {steps.length > 1 ? (
+              <ol className={styles.steps}>{steps.map((step, i) => <li key={i}><span className={styles.stepNo} aria-hidden="true">{i + 1}</span><span>{step}</span></li>)}</ol>
+            ) : (
+              <p className={styles.prose} data-empty={!exercise.instructions || undefined}>{exercise.instructions || t.noText}</p>
+            )}
           </Card>
           <Card as="section" padding="lg" aria-labelledby="history">
-            <h2 id="history" className={styles.sectionTitle}>
-              {t.history}
-            </h2>
+            <h2 id="history" className={styles.panelTitle}><History aria-hidden="true" />{t.history}</h2>
             {history.isPending ? (
               <Skeleton height="4rem" />
             ) : history.isError ? (
@@ -191,44 +236,6 @@ function ExerciseDetail() {
             )}
           </Card>
         </div>
-        <aside className={styles.side}>
-          <Card padding="md">
-            <dl className={styles.facts}>
-              <div>
-                <dt>{t.primaryMuscles}</dt>
-                <dd>{exercise.primaryMuscleKeys.length ? exercise.primaryMuscleKeys.map((k) => dictLabel("muscles", k)).join(", ") : "—"}</dd>
-              </div>
-              <div>
-                <dt>{t.secondaryMuscles}</dt>
-                <dd>{exercise.secondaryMuscleKeys.length ? exercise.secondaryMuscleKeys.map((k) => dictLabel("muscles", k)).join(", ") : "—"}</dd>
-              </div>
-              <div>
-                <dt>{t.patterns}</dt>
-                <dd>
-                  {exercise.movementPatternKeys.length ? exercise.movementPatternKeys.map((k) => dictLabel("movementPatterns", k)).join(", ") : "—"}
-                </dd>
-              </div>
-              <div>
-                <dt>{t.tags}</dt>
-                <dd className={styles.tags}>
-                  {exercise.tags.length ? exercise.tags.map((tag) => <Badge key={tag.id}>{tag.name}</Badge>) : "—"}
-                </dd>
-              </div>
-              <div>
-                <dt>{t.demonstration}</dt>
-                <dd>
-                  {demo ? (
-                    <Link href={demo} target="_blank" rel="noopener noreferrer nofollow" tone="accent">
-                      {t.openDemonstration} <ExternalLink aria-hidden="true" className={styles.inlineIcon} />
-                    </Link>
-                  ) : (
-                    "—"
-                  )}
-                </dd>
-              </div>
-            </dl>
-          </Card>
-        </aside>
       </div>
 
       <Dialog

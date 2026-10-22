@@ -23,6 +23,7 @@ public static class ModuleRegistration
         services.AddScoped<TrainFlow.Coaching.Contracts.ITeamRelationshipLifecycle, TeamCheckInLifecycle>();
         services.AddModuleDatabase<CheckInsDbContext>("checkins");
         services.AddScoped<CheckInsService>();
+        services.AddScoped<TrainFlow.CheckIns.Contracts.IMcpCheckInOperations, McpCheckInOperations>();
         services.AddScoped<TrainFlow.Training.Contracts.IAssignedProgramScheduleObserver, AssignedProgramScheduleObserver>();
         services.AddScoped<INotificationDeliveryPolicy, CheckInNotificationPolicy>();
         services.AddScoped<ICheckInsAnalytics, CheckInsAnalytics>();

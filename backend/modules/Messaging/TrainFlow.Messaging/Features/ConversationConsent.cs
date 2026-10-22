@@ -119,6 +119,11 @@ public sealed partial class MessagingService
                 return new CoachingChatDelivery(c.Id, previous.Id);
             }
             await RequireConversationConsentAsync(c, token);
+            if (!historical)
+            {
+                abuse?.Require(Actor, AbusePolicies.Message);
+                await AdmitDirectContactAsync(c, token);
+            }
             var initial = c.Sequence == 0 && await RequiresApprovalAsync(recipientId, token);
             MessageRequest? request = null;
             if (initial)

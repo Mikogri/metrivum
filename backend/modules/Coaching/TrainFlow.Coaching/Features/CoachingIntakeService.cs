@@ -18,13 +18,14 @@ namespace TrainFlow.Coaching.Features;
 public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext accounts, IAccountDirectory directory,
     IAccountProfileFields profile, IFeatureAccessService access, IOfferLibrary offers, IFormLibrary forms,
     IBillingOrders billing, IRelationshipActivation activation, IRelationshipAccessPolicy policy,
-    ModuleTransaction transactions, TimeProvider clock, INotificationPublisher notifications, ITeamContext? teams = null, TeamClientsService? teamClients = null, ICoachingChatPublisher? chat = null)
+    ModuleTransaction transactions, TimeProvider clock, INotificationPublisher notifications, ITeamContext? teams = null, TeamClientsService? teamClients = null, ICoachingChatPublisher? chat = null, IAbuseProtection? abuse = null)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     public async Task<ApplicationDetailDto> StartApplicationAsync(StartApplicationRequest request, CancellationToken ct)
     {
         var client = await ClientAsync("coaching.applications.submit-own", ct);
+        abuse?.Require(client.UserId, AbusePolicies.Application);
         return await transactions.RunAsync(async token =>
         {
             CoachingInvitation? invitation = null;
@@ -51,14 +52,14 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
             var people = await directory.GetAccountsAsync([revision.CoachId], token);
             if (!people.TryGetValue(revision.CoachId, out var coach) || !coach.Roles.Contains(AccountRole.Coach))
                 throw ApiException.NotFound();
-            var form = invitation == null
-                ? await forms.RequireUsableVersionAsync(revision.ApplicationFormVersionId, revision.CoachId, FormPurpose.Application, token)
-                : await forms.GetVersionAsync(revision.ApplicationFormVersionId, token);
-            if (form.CoachId != revision.CoachId || form.Purpose != FormPurpose.Application)
+            var form = revision.ApplicationFormVersionId is not { } formVersionId ? null : invitation == null
+                ? await forms.RequireUsableVersionAsync(formVersionId, revision.CoachId, FormPurpose.Application, token)
+                : await forms.GetVersionAsync(formVersionId, token);
+            if (form != null && (form.CoachId != revision.CoachId || form.Purpose != FormPurpose.Application))
                 throw ApiException.Conflict("The offer does not reference its owner's application form.");
             var quote = await offers.QuoteAsync(revision.Id, request.BillingOptionId, request.SelectedSessionCount, token);
             var now = clock.GetUtcNow();
-            var application = new CoachingApplication { TeamId = revision.TeamId, CoachId = coach.UserId, WorkspaceId = coach.WorkspaceId, ApplicantUserId = client.UserId, OfferId = revision.OfferId, OfferRevisionId = revision.Id, OfferName = revision.Name, OfferSnapshot = Write(revision), FormVersionId = form.Id, BillingOptionId = quote.BillingOption.Id, SelectedSessionCount = quote.SelectedSessionCount, Amount = quote.Amount, Currency = quote.Currency, Source = invitation == null ? ApplicationSource.Direct : ApplicationSource.Invitation, InvitationId = invitation?.Id, CreatedAt = now, UpdatedAt = now };
+            var application = new CoachingApplication { TeamId = revision.TeamId, CoachId = coach.UserId, WorkspaceId = coach.WorkspaceId, ApplicantUserId = client.UserId, OfferId = revision.OfferId, OfferRevisionId = revision.Id, OfferName = revision.Name, OfferSnapshot = Write(revision), FormVersionId = form?.Id, BillingOptionId = quote.BillingOption.Id, SelectedSessionCount = quote.SelectedSessionCount, Amount = quote.Amount, Currency = quote.Currency, Source = invitation == null ? ApplicationSource.Direct : ApplicationSource.Invitation, InvitationId = invitation?.Id, CreatedAt = now, UpdatedAt = now };
             db.Applications.Add(application);
             await SaveAsync(token);
             return await OwnDetailAsync(application, token);
@@ -72,8 +73,8 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
         CoachingService.CheckVersion(app.Version, version);
         RequireState(app, ApplicationStatus.InProgress);
         ValidateDraftAnswers(request.Answers);
-        var form = await forms.GetVersionAsync(app.FormVersionId, ct);
-        var known = form.Definition.Sections.SelectMany(x => x.Questions).Select(x => x.Key).ToHashSet(StringComparer.Ordinal);
+        var form = app.FormVersionId is { } formVersionId ? await forms.GetVersionAsync(formVersionId, ct) : null;
+        var known = form?.Definition.Sections.SelectMany(x => x.Questions).Select(x => x.Key).ToHashSet(StringComparer.Ordinal) ?? [];
         if (request.Answers.Keys.Any(x => !known.Contains(x)))
             throw ApiException.Invalid("Answers contain an unknown question.");
         if (request.BillingOptionId.HasValue)
@@ -106,10 +107,13 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
             CoachingService.CheckVersion(app.Version, version);
             if (app.TeamId != null && !request.AcceptTeamScope)
                 throw ApiException.Invalid("Explicitly accept this Team as your organizational coaching counterparty before submitting.");
+            if (app.FormVersionId == null && (request.Answers is not { Count: 0 } || request.SaveProfileFields is { Count: > 0 }))
+                throw ApiException.Invalid("Applications without a form cannot contain answers or mapped profile fields.");
             if (app.Status == ApplicationStatus.Submitted)
             {
                 ValidateDraftAnswers(request.Answers);
-                await forms.SubmitAsync(new(app.FormVersionId, client.UserId, "application:" + app.Id, request.Answers), token);
+                if (app.FormVersionId is { } submittedFormId)
+                    await forms.SubmitAsync(new(submittedFormId, client.UserId, "application:" + app.Id, request.Answers), token);
                 return await OwnDetailAsync(app, token);
             }
             RequireState(app, ApplicationStatus.InProgress);
@@ -132,13 +136,14 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
                     throw ApiException.Conflict("The invitation is not accepted.");
             }
             await offers.QuoteAsync(app.OfferRevisionId, app.BillingOptionId, app.SelectedSessionCount, token);
-            await forms.ValidateAsync(app.FormVersionId, request.Answers, token);
-            var form = await forms.GetVersionAsync(app.FormVersionId, token);
+            var form = app.FormVersionId is { } formVersionId ? await forms.GetVersionAsync(formVersionId, token) : null;
+            if (form != null)
+                await forms.ValidateAsync(form.Id, request.Answers, token);
             if (request.SaveProfileFields is { Count: > 0 })
             {
                 if (request.ProfileVersion is null)
                     throw ApiException.Invalid("ProfileVersion is required when saving mapped profile values.");
-                var mappings = form.Definition.Sections.SelectMany(x => x.Questions).Where(x => x.SystemField.HasValue).ToDictionary(x => x.SystemField!.Value, x => x.Key);
+                var mappings = form!.Definition.Sections.SelectMany(x => x.Questions).Where(x => x.SystemField.HasValue).ToDictionary(x => x.SystemField!.Value, x => x.Key);
                 var values = new Dictionary<SystemFieldKey, JsonElement>();
                 foreach (var field in request.SaveProfileFields.Distinct())
                 {
@@ -150,9 +155,9 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
                 }
                 await profile.UpdateOwnAsync(values, request.ProfileVersion.Value, token);
             }
-            var submission = await forms.SubmitAsync(new(app.FormVersionId, client.UserId, "application:" + app.Id, request.Answers), token);
-            app.FormSubmissionId = submission.Id;
-            app.Answers = Write(submission.Answers);
+            var submission = form == null ? null : await forms.SubmitAsync(new(form.Id, client.UserId, "application:" + app.Id, request.Answers), token);
+            app.FormSubmissionId = submission?.Id;
+            app.Answers = Write(submission?.Answers ?? request.Answers);
             app.SubmittedAt = clock.GetUtcNow();
             if (app.TeamId != null)
             {
@@ -221,9 +226,16 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
             var quote = await offers.QuoteAsync(app.OfferRevisionId, app.BillingOptionId, app.SelectedSessionCount, token);
             if (quote.CoachId != coach.UserId || quote.Amount != app.Amount || quote.Currency != app.Currency || quote.ApplicationFormVersionId != app.FormVersionId)
                 throw ApiException.Conflict("The application's historical terms do not match its offer revision.");
-            var submission = await forms.GetSubmissionAsync(app.FormSubmissionId!.Value, token);
-            if (submission.RespondentId != app.ApplicantUserId || submission.FormVersionId != app.FormVersionId)
-                throw ApiException.Conflict("The application submission does not match.");
+            if (app.FormVersionId is { } formVersionId)
+            {
+                if (app.FormSubmissionId is not { } submissionId)
+                    throw ApiException.Conflict("The application requires its form submission.");
+                var submission = await forms.GetSubmissionAsync(submissionId, token);
+                if (submission.RespondentId != app.ApplicantUserId || submission.FormVersionId != formVersionId)
+                    throw ApiException.Conflict("The application submission does not match.");
+            }
+            else if (app.FormSubmissionId != null || Read<Dictionary<string, JsonElement>>(app.Answers).Count != 0)
+                throw ApiException.Conflict("An application without a form cannot contain a submission or answers.");
             if (quote.Purpose == OfferPurpose.TrainingPlan)
             {
                 if (request.TrainingPlanRevisionId is not { } revisionId) throw ApiException.Invalid("Select an applied plan to deliver.");
@@ -337,6 +349,7 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
     public async Task<InvitationDto> CreateInvitationAsync(CreateInvitationRequest request, CancellationToken ct, string? idempotencyKey = null)
     {
         var coach = await CoachAsync("coaching.invitations.send", ct);
+        abuse?.Require(coach.UserId, AbusePolicies.Invitation);
         Text(request.Username, 100, true);
         Text(request.Message, 2000);
         var target = await directory.ResolveExactUsernameAsync(request.Username.Trim(), ct) ?? throw ApiException.NotFound();
@@ -345,7 +358,8 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
         var revision = await offers.GetCurrentAsync(request.OfferId, ct);
         if (revision.CoachId != coach.UserId)
             throw ApiException.NotFound();
-        await forms.RequireUsableVersionAsync(revision.ApplicationFormVersionId, coach.UserId, FormPurpose.Application, ct);
+        if (revision.ApplicationFormVersionId is { } formVersionId)
+            await forms.RequireUsableVersionAsync(formVersionId, coach.UserId, FormPurpose.Application, ct);
         if (request.BillingOptionId.HasValue && !revision.BillingOptions.Any(x => x.Id == request.BillingOptionId))
             throw ApiException.Invalid("Invalid billing option for this offer revision.");
         await CheckTeam(revision.TeamId, true, ct);
@@ -379,12 +393,14 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
     public async Task<CoachingChatDelivery> ShareFormAsync(ShareOfferFormRequest request, string key, CancellationToken ct)
     {
         var coach = await CoachAsync("coaching.invitations.send", ct);
+        abuse?.Require(coach.UserId, AbusePolicies.Invitation);
         if (!Guid.TryParse(key, out var clientKey) || clientKey == Guid.Empty)
             throw ApiException.Invalid("A UUID Idempotency-Key is required.");
         var revision = await offers.GetCurrentAsync(request.OfferId, ct);
         if (revision.CoachId != coach.UserId) throw ApiException.NotFound();
         await CheckTeam(revision.TeamId, true, ct);
-        await forms.RequireUsableVersionAsync(revision.ApplicationFormVersionId, coach.UserId, FormPurpose.Application, ct);
+        if (revision.ApplicationFormVersionId is { } formVersionId)
+            await forms.RequireUsableVersionAsync(formVersionId, coach.UserId, FormPurpose.Application, ct);
         if (chat == null) throw new InvalidOperationException("Coaching chat integration is unavailable.");
         return await transactions.RunAsync(token => chat.PublishAsync(request.UserId, "form-share:" + clientKey,
             new("OfferForm", null, revision.OfferId, coach.UserId, revision.Id, revision.ApplicationFormVersionId, revision.Name), null, token), ct);
@@ -393,6 +409,7 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
     public async Task<InvitationChatReplayDto> ReplayPendingInvitationChatsAsync(Guid? after, int limit, bool apply, CancellationToken ct)
     {
         var coach = await CoachAsync("coaching.invitations.send", ct);
+        abuse?.Require(coach.UserId, AbusePolicies.Invitation);
         if (limit is < 1 or > 100) throw ApiException.Invalid("Limit must be between 1 and 100.");
         var rows = await db.Invitations.AsNoTracking().Where(x => x.CoachId == coach.UserId && x.WorkspaceId == coach.WorkspaceId && x.Status == InvitationStatus.Pending && (!after.HasValue || x.Id.CompareTo(after.Value) > 0))
             .OrderBy(x => x.Id).Take(limit).ToArrayAsync(ct);
@@ -508,12 +525,12 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
         var rows = await db.Services.AsNoTracking().Where(x => ids.Contains(x.RelationshipId) && x.Status == ServiceStatus.Active)
             .GroupBy(x => x.RelationshipId)
             .Select(g => g.OrderByDescending(x => x.UpdatedAt).ThenBy(x => x.Id)
-                .Select(x => new { x.Id, x.RelationshipId, x.OfferName }).First())
+                .Select(x => new { x.Id, x.RelationshipId, x.OfferName, x.OfferSnapshot }).First())
             .ToArrayAsync(ct);
         if (rows.Length == 0)
             return [];
         var states = await billing.GetServiceStatesAsync(rows.Select(x => x.Id).ToArray(), ct);
-        return rows.Select(x => new CurrentRelationshipServiceDto(x.RelationshipId, x.OfferName, states.GetValueOrDefault(x.Id))).ToArray();
+        return rows.Select(x => { var offer = Read<OfferRevisionDto>(x.OfferSnapshot); return new CurrentRelationshipServiceDto(x.RelationshipId, x.OfferName, states.GetValueOrDefault(x.Id), offer.CoachingMode, offer.Category); }).ToArray();
     }
 
     public async Task<Paged<RelationshipServiceDto>> ServicesAsync(Guid relationshipId, int page, int pageSize, string? search, string sort, ServiceStatus? status, CancellationToken ct)
@@ -610,10 +627,10 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
     private async Task<ApplicationDetailDto> OwnDetailAsync(CoachingApplication app, CancellationToken ct) => await DetailAsync(app, false, ct);
     private async Task<ApplicationDetailDto> DetailAsync(CoachingApplication app, bool coachSide, CancellationToken ct)
     {
-        var form = await forms.GetVersionAsync(app.FormVersionId, ct);
+        var form = app.FormVersionId is { } formVersionId ? await forms.GetVersionAsync(formVersionId, ct) : null;
         var answers = app.FormSubmissionId.HasValue ? (await forms.GetSubmissionAsync(app.FormSubmissionId.Value, ct)).Answers : Read<Dictionary<string, JsonElement>>(app.Answers);
-        AccountProfileFields? ownProfile = !coachSide && app.Status == ApplicationStatus.InProgress ? await profile.GetOwnAsync(ct) : null;
-        var mapped = form.Definition.Sections.SelectMany(x => x.Questions).Where(x => x.SystemField.HasValue).Select(x => x.SystemField!.Value).ToHashSet();
+        AccountProfileFields? ownProfile = form != null && !coachSide && app.Status == ApplicationStatus.InProgress ? await profile.GetOwnAsync(ct) : null;
+        var mapped = form?.Definition.Sections.SelectMany(x => x.Questions).Where(x => x.SystemField.HasValue).Select(x => x.SystemField!.Value).ToHashSet() ?? [];
         var prefill = ownProfile?.Values.Where(x => mapped.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value);
         return new((await ApplicationDtosAsync([app], coachSide, ct))[0], Read<OfferRevisionDto>(app.OfferSnapshot), form, answers, prefill, ownProfile?.Version);
     }
@@ -623,7 +640,7 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
         var services = await db.Services.AsNoTracking().Where(x => ids.Contains(x.ApplicationId)).ToArrayAsync(ct);
         var people = await directory.GetAccountsAsync(rows.Select(x => x.ApplicantUserId).Distinct().ToArray(), ct);
         var canAccept = coachSide && (await access.GetAsync(ct)).Features.Any(x => x.Key == "coaching.services.manage" && x.Available);
-        return rows.Select(x => { var service = services.SingleOrDefault(s => s.ApplicationId == x.Id); return new ApplicationDto(x.Id, x.CoachId, x.ApplicantUserId, Person(x.ApplicantUserId, people), x.OfferName, x.OfferRevisionId, x.BillingOptionId, x.SelectedSessionCount, x.Amount, x.Currency, x.Source, x.InvitationId, x.Status, x.SubmittedAt, x.DecidedAt, x.CreatedAt, x.UpdatedAt, x.Version, service?.RelationshipId, service?.Id, coachSide ? x.Status == ApplicationStatus.Submitted ? canAccept ? ["accept", "reject"] : ["reject"] : [] : x.Status == ApplicationStatus.InProgress ? ["save", "submit", "withdraw"] : x.Status == ApplicationStatus.Submitted ? ["withdraw"] : []); }).ToArray();
+        return rows.Select(x => { var service = services.SingleOrDefault(s => s.ApplicationId == x.Id); return new ApplicationDto(x.Id, x.CoachId, x.ApplicantUserId, Person(x.ApplicantUserId, people), x.OfferName, x.OfferRevisionId, x.BillingOptionId, x.SelectedSessionCount, x.Amount, x.Currency, x.Source, x.InvitationId, x.Status, x.SubmittedAt, x.DecidedAt, x.CreatedAt, x.UpdatedAt, x.Version, service?.RelationshipId, service?.Id, coachSide ? x.Status == ApplicationStatus.Submitted ? canAccept ? ["accept", "reject"] : ["reject"] : [] : x.Status == ApplicationStatus.InProgress ? ["save", "submit", "withdraw"] : x.Status == ApplicationStatus.Submitted ? ["withdraw"] : [], Read<OfferRevisionDto>(x.OfferSnapshot).Category); }).ToArray();
     }
     private async Task<InvitationDto[]> InvitationDtosAsync(CoachingInvitation[] rows, bool coachSide, CancellationToken ct)
     {

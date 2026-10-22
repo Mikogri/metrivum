@@ -1,3 +1,5 @@
+import { flushSync } from "react-dom";
+import { CellValidationContext } from "./cell-validation";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Download, Redo2, Rocket, Save, Undo2 } from "lucide-react";
@@ -15,11 +17,18 @@ import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { createPlan, getPlan } from "../api";
 import { PublishDialog } from "../components/PublishDialog";
+import { useDocumentIssues } from "./useDocumentIssues";
+import { useFormatRefusal } from "../components/FormatBanner";
+import { FormatIssues } from "../components/FormatIssues";
+import { DraftState } from "../components/DraftState";
+import { FormulaDialog } from "../components/FormulaDialog";
+import { FormulaHelp } from "../components/FormulaHelp";
 import { ExportDialog } from "../import-export/ExportDialog";
 import { trainingKeys } from "../queries";
 import { ConflictDialog } from "./components/ConflictDialog";
 import { KeyboardHelp } from "./components/KeyboardHelp";
 import { NodeDialog } from "./components/NodeDialog";
+import { FormulaMark } from "../components/FormulaMark";
 import { SaveStatus } from "./components/SaveStatus";
 import { SheetCanvas, usePersistentSheet } from "./components/SheetCanvas";
 import { WeekView } from "./components/WeekView";
@@ -27,6 +36,8 @@ import { locate, uniqueExerciseIds } from "./model/document";
 import { isSimpleShape } from "./model/structure";
 import { storedMode, storeMode, type EditorMode } from "./mode-preference";
 import { useEditor } from "./useEditor";
+import { ClientFormulaContext } from "./client-context";
+import { usePlanClientContext } from "./ClientPlanContext";
 import styles from "./EditorWorkspace.module.css";
 
 function isTextTarget(target: EventTarget | null) {
@@ -57,11 +68,16 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
   const [sheet, setSheet] = usePersistentSheet(plan.id);
   const [editNode, setEditNode] = useState<string | null>(null);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [formulaOpen, setFormulaOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const leaving = useRef(false);
   const { confirm, dialog } = useDiscardConfirm();
   const names = useExerciseNames(uniqueExerciseIds(editor.doc));
+  // Problems the server would refuse on apply, with their place in the plan (hover the status to read them).
+  const docIssues = useDocumentIssues(editor.doc, names);
+  const [refusal] = useFormatRefusal(plan.id);
   const { mode: workspaceMode } = useWorkspace();
+  const clientContext = usePlanClientContext(plan.id, workspaceMode === "coach" && canEdit && plan.kind === "Program" && !plan.archived);
   const detailPath = workspaceMode === "client" ? `/app/training-plans/${plan.id}` : `/app/programs/${plan.id}`;
 
   // Cycles disconnected on the sheet exist only in memory; leaving would lose them like unsaved edits.
@@ -77,6 +93,12 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
     void confirm().then((ok) => (ok ? blocker.proceed() : blocker.reset()));
   }, [blocker, confirm]);
 
+  const saveDraft = useCallback(() => {
+    // Capture the focused cell before serializing history, including unfinished formulas.
+    flushSync(() => window.dispatchEvent(new Event("training:commit-cell")));
+    return editor.save();
+  }, [editor]);
+
   // Editor shortcuts: save works everywhere; undo/redo only outside text fields so typing keeps native undo.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -85,7 +107,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
       const key = event.key.toLowerCase();
       if (key === "s") {
         event.preventDefault();
-        void editor.save();
+        void saveDraft();
       } else if ((key === "z" || key === "y") && !isTextTarget(event.target)) {
         event.preventDefault();
         if (key === "y" || event.shiftKey) editor.redo();
@@ -94,7 +116,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [editor]);
+  }, [editor, saveDraft]);
 
   const reload = useMutation({
     mutationFn: () => getPlan(api, plan.id),
@@ -114,9 +136,15 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
     },
   });
 
+  const [invalidCells, setInvalidCells] = useState<Map<string, string>>(() => new Map());
+  const reportInvalid = useCallback((id: string, invalid: boolean, detail = "Invalid cell") => setInvalidCells(current => {
+    if (invalid ? current.get(id) === detail : !current.has(id)) return current;
+    const next = new Map(current); if (invalid) next.set(id, detail); else next.delete(id); return next;
+  }), []);
   const validation = editor.status === "error" && editor.error instanceof ApiError && editor.error.status === 400;
 
   return (
+    <CellValidationContext.Provider value={reportInvalid}><ClientFormulaContext.Provider value={clientContext.value}>
     <div className={styles.workspace}>
       <header className={styles.toolbar} role="toolbar" aria-label={t.toolbar}>
         <RouterLink to={detailPath} className={styles.back} aria-label={t.back}>
@@ -136,8 +164,14 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
             placeholder={t.untitled}
           />
           {plan.kind === "Template" ? <Badge size="sm" tone="violet">{m.training.library.templateBadge}</Badge> : null}
+          {/* Only the save state here; format problems and applied/draft sit next to "View as". */}
+          <SaveStatus status={editor.status} />
+          <span className={styles.planState}>
+            <FormatIssues compact issues={[...docIssues, ...invalidCells.values(), ...(validation && editor.error instanceof ApiError ? [editor.error.problem?.detail ?? m.editor.issues.title] : []), ...(refusal && !docIssues.length ? [refusal] : [])]} />
+            {plan.kind === "Program" ? <DraftState compact planId={plan.id} draftVersion={editor.version} /> : null}
+          </span>
         </div>
-        <SaveStatus status={editor.status} />
+        {clientContext.toolbar}
         <TooltipTrigger delay={400}>
           <SegmentedControl
             aria-label={t.mode.label}
@@ -154,30 +188,30 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
           <Tooltip>{t.mode.simpleHint}</Tooltip>
         </TooltipTrigger>
         <div className={styles.tools}>
+          {activeMode === "advanced" ? <>
+            <IconButton size="sm" label="New formula" icon={<FormulaMark />} isDisabled={readOnly || !access["training.formulas.custom"].allowed} onPress={() => setFormulaOpen(true)} />
+            <FormulaHelp compact />
+          </> : null}
           <IconButton label={t.undo} icon={<Undo2 />} onPress={editor.undo} isDisabled={readOnly || !editor.canUndo} />
           <IconButton label={t.redo} icon={<Redo2 />} onPress={editor.redo} isDisabled={readOnly || !editor.canRedo} />
           <KeyboardHelp />
-          <Button size="sm" variant="ghost" iconStart={<Download />} onPress={() => setExportOpen(true)}>
-            {t.export}
-          </Button>
+          <IconButton size="sm" label={t.export} icon={<Download />} onPress={() => setExportOpen(true)} />
           <TooltipTrigger delay={200}>
-            <Button size="sm" iconStart={<Rocket />} isDisabled={readOnly || editor.status === "saving"} onPress={async () => { await editor.save(); if (!editor.isDirty()) setPublishOpen(true); }}>
+            <Button size="sm" iconStart={<Rocket />} isDisabled={readOnly || editor.status === "saving"} onPress={async () => { await saveDraft(); if (!editor.isDirty()) setPublishOpen(true); }}>
               {t.publish}
             </Button>
             {editor.dirty ? <Tooltip>{t.publishDirty}</Tooltip> : <Tooltip>{m.training.detail.revisionsBody}</Tooltip>}
           </TooltipTrigger>
-          <Button size="sm" variant="primary" iconStart={<Save />} isDisabled={readOnly || !editor.dirty} loading={editor.status === "saving"} onPress={() => void editor.save()}>
+          <Button size="sm" variant="primary" iconStart={<Save />} isDisabled={readOnly} loading={editor.status === "saving"} onPress={() => void saveDraft()}>
             {t.save}
           </Button>
         </div>
       </header>
 
+      {clientContext.banners}
+
       {plan.archived ? <Alert tone="warning" title={t.readOnly} className={styles.banner} /> : null}
-      {validation ? (
-        <Alert tone="danger" title={t.validation} className={styles.banner} live="assertive">
-          {(editor.error as ApiError).problem?.detail}
-        </Alert>
-      ) : editor.status === "error" ? (
+      {!validation && editor.status === "error" ? (
         <Alert tone="danger" title={errorText(m, editor.error)} className={styles.banner} />
       ) : null}
       {editor.status === "offline" ? <Alert tone="warning" title={m.errors.network} className={styles.banner} /> : null}
@@ -201,7 +235,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
       </div>
 
       <NodeDialog editor={editor} nodeId={editNode} onClose={() => setEditNode(null)} />
-      <PublishDialog planId={plan.id} version={editor.version} isOpen={publishOpen} onOpenChange={setPublishOpen} />
+      <PublishDialog planId={plan.id} version={editor.version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={[...docIssues, ...invalidCells.values()]} />
       <ExportDialog planId={plan.id} planName={editor.meta.name || plan.name} isOpen={exportOpen} onOpenChange={setExportOpen} />
       <ConflictDialog
         isOpen={editor.status === "conflict"}
@@ -211,6 +245,9 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
         savingCopy={saveCopy.isPending}
       />
       {dialog}
+      {clientContext.dialogs}
+      {formulaOpen ? <FormulaDialog formula="new" onClose={() => setFormulaOpen(false)} /> : null}
     </div>
+    </ClientFormulaContext.Provider></CellValidationContext.Provider>
   );
 }

@@ -42,13 +42,14 @@ public sealed class TeamClientsService(CoachingDbContext db, IAccountContext acc
             Active(access);
         return access;
     }
-    public async Task<TeamClientCaseDto[]> ListAsync(Guid teamId, CancellationToken ct)
+    public async Task<TeamClientCaseDto[]> ListAsync(Guid teamId, CancellationToken ct, int? page = null, int? pageSize = null)
     {
         var access = await Access(teamId, false, false, ct);
+        var (offset, size) = Pagination(page, pageSize);
         var query = Cases.AsNoTracking().Where(x => x.TeamId == teamId);
         if (!Admin(access))
             query = query.Where(x => Assignments.Any(a => a.TeamClientCaseId == x.Id && a.CoachId == accounts.UserId && a.EndedAt == null));
-        return await CaseDtos(await query.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Take(1000).ToArrayAsync(ct), access, ct);
+        return await CaseDtos(await query.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Skip(offset).Take(size).ToArrayAsync(ct), access, ct);
     }
     public async Task<TeamClientCaseDto> GetAsync(Guid teamId, Guid id, CancellationToken ct)
     {
@@ -98,20 +99,34 @@ public sealed class TeamClientsService(CoachingDbContext db, IAccountContext acc
         return (await TransferDtos([request], false, token))[0];
     }, ct);
 
-    public async Task<TeamClientTransferDto[]> IncomingAsync(CancellationToken ct)
+    public async Task<TeamClientTransferDto[]> IncomingAsync(CancellationToken ct, int? page = null, int? pageSize = null)
     {
         await accounts.RequireClientAsync(ct);
         await features.RequireAsync("coaching.relationships.read-own", ct);
+        var (offset, size) = Pagination(page, pageSize);
         return await TransferDtos(await Transfers.AsNoTracking().Where(x => x.ClientId == accounts.UserId)
-            .OrderByDescending(x => x.CreatedAt).Take(1000).ToArrayAsync(ct), true, ct);
+            .OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Skip(offset).Take(size).ToArrayAsync(ct), true, ct);
     }
-    public async Task<TeamClientTransferDto[]> RequestsAsync(Guid teamId, CancellationToken ct)
+    public async Task<TeamClientTransferDto[]> RequestsAsync(Guid teamId, CancellationToken ct, int? page = null, int? pageSize = null)
     {
         var access = await Access(teamId, false, false, ct);
+        var (offset, size) = Pagination(page, pageSize);
         var query = Transfers.AsNoTracking().Where(x => x.TeamId == teamId);
         if (!Admin(access))
             query = query.Where(x => x.ProposedBy == accounts.UserId);
-        return await TransferDtos(await query.OrderByDescending(x => x.CreatedAt).Take(1000).ToArrayAsync(ct), false, ct);
+        return await TransferDtos(await query.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Skip(offset).Take(size).ToArrayAsync(ct), false, ct);
+    }
+
+    private static (int Offset, int Size) Pagination(int? page, int? pageSize)
+    {
+        // Older clients receive the original bounded array until they opt into paging.
+        if (page == null && pageSize == null)
+            return (0, 1000);
+        var number = page ?? 1;
+        var size = pageSize ?? 25;
+        if (number is < 1 or > 1000000 || size is < 1 or > 100)
+            throw ApiException.Invalid("Page must be 1–1000000 and pageSize 1–100.");
+        return ((number - 1) * size, size);
     }
 
     public Task<TeamClientTransferDto> DecideAsync(Guid id, bool accept, long version, CancellationToken ct) => transaction.RunAsync(async token =>

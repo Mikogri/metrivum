@@ -97,7 +97,14 @@ namespace TrainFlow.Accounts.Infrastructure.Migrations
                     b.HasIndex("NormalizedUsername")
                         .IsUnique();
 
-                    b.ToTable("profiles", "accounts");
+                    b.ToTable("profiles", "accounts", t =>
+                        {
+                            t.HasCheckConstraint("CK_profiles_display_name", "char_length(\"DisplayName\") <= 100 AND \"DisplayName\" = btrim(\"DisplayName\")");
+
+                            t.HasCheckConstraint("CK_profiles_username_normalized", "(\"Username\" IS NULL AND \"NormalizedUsername\" IS NULL) OR \"NormalizedUsername\" = upper(\"Username\")");
+
+                            t.HasCheckConstraint("CK_profiles_username_shape", "\"Username\" IS NULL OR \"Username\" ~ '^[A-Za-z0-9_]{3,32}$'");
+                        });
                 });
 
             modelBuilder.Entity("TrainFlow.Accounts.Domain.UserRole", b =>
@@ -111,7 +118,10 @@ namespace TrainFlow.Accounts.Infrastructure.Migrations
 
                     b.HasKey("UserId", "Role");
 
-                    b.ToTable("user_roles", "accounts");
+                    b.ToTable("user_roles", "accounts", t =>
+                        {
+                            t.HasCheckConstraint("CK_user_roles_role", "\"Role\" IN ('Coach', 'Client', 'CatalogAdmin', 'AccessAdmin')");
+                        });
                 });
 
             modelBuilder.Entity("TrainFlow.Accounts.Domain.Workspace", b =>

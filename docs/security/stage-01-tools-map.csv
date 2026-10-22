@@ -1,0 +1,39 @@
+operation,transport,policy,key,shared_action,test
+get_my_context,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+search_exercises,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,search60/min,McpTransportTests; shared-policy boundary tests
+get_exercise,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+search_programs,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_program,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_program_revision,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+create_program_draft,MCP,mcp-write15/min,verified-user+authorized-client; stricter per-user allowance,program-create30/hour,McpTransportTests; shared-policy boundary tests
+propose_program_changes,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+apply_program_draft_changes,MCP,mcp-write15/min,verified-user+authorized-client; stricter per-user allowance,autosave120/min,McpTransportTests; shared-policy boundary tests
+validate_program,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+search_clients,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_client_context,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_client_training_history,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_client_programs,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_client_progress,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+list_checkins,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_checkin_submission,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+list_checkin_templates,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_checkin_template,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+create_checkin_form_draft,MCP,mcp-write15/min,verified-user+authorized-client; stricter per-user allowance,check-in-template30/hour,McpTransportTests; shared-policy boundary tests
+propose_checkin_assignment,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+list_clients_needing_followup,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+list_offers,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+list_leads,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_business_analytics,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_calendar_events,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+prepare_message,MCP,mcp-write15/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+list_conversations,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_conversation,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+get_messages,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+send_approved_message,MCP,mcp-write15/min,verified-user+authorized-client; stricter per-user allowance,message40burst+30/min,McpTransportTests; shared-policy boundary tests
+get_my_ai_preferences,MCP,mcp-read60/min,verified-user+authorized-client; stricter per-user allowance,owning-service authorization and bounded input,McpTransportTests; shared-policy boundary tests
+Subscribe,SignalR,hub-invocation300/min; connections5; frame16KiB,verified-user,current membership,MessagingHubAbuseTests
+Typing,SignalR,hub-invocation300/min; typing30/min; effect2s/conversation,verified-user,current membership before coalescing,MessagingHubAbuseTests; MessagingTests
+CheckIn scheduler,system,bounded existing worker batches; no interactive budget,system,analysis owner2/global100 queue where applicable,worker and owning-module integration tests
+Notifications scheduler,system,bounded existing worker batches; no interactive budget,system,analysis owner2/global100 queue where applicable,worker and owning-module integration tests
+Billing renewals,system,bounded existing worker batches; no interactive budget,system,analysis owner2/global100 queue where applicable,worker and owning-module integration tests
+Analysis worker,system,bounded existing worker batches; no interactive budget,system,analysis owner2/global100 queue where applicable,worker and owning-module integration tests

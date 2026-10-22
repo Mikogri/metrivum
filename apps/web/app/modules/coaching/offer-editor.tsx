@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Archive, Building2, Check, Copy, ExternalLink, Eye, Globe, MapPin, PauseCircle, PlayCircle, Shuffle, Upload, UserRound } from "lucide-react";
+import { Archive, Building2, Check, Copy, ExternalLink, Eye, Globe, MapPin, PauseCircle, PlayCircle, Shuffle, Trash2, Upload, UserRound } from "lucide-react";
 import { Alert, Button, Card, DialogFooter, IconButton, LinkButton, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, toast } from "@trainflow/ui-web";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useCoachingMutation, useCoachingQuery, type Page } from "./api";
@@ -55,10 +55,20 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
   });
   useUnsavedWorkGuard(useCallback(() => dirty, [dirty]));
   const published = forms.data?.items.filter((f) => f.currentPublishedVersionId) ?? [];
-  const selectedForm = formId || (published.length === 1 ? published[0]!.currentPublishedVersionId! : "");
+  const selectedForm = formId;
   const selectedCategory = category || (categories.data?.length === 1 ? categories.data[0]!.key! : "");
   const locked = mutation.isPending || current?.status === "Archived";
   const { ask, dialog: confirmDialog } = useDangerConfirm();
+  const remove = useCoachingMutation(() => {
+    toast({ tone: "success", title: "Offer deleted" });
+    setDirty(false);
+    navigate("/app/offers", { replace: true });
+  });
+  // An offer a client was ever on stays in the records: it can be archived, never deleted.
+  const deleteOffer = async () => {
+    if (!current || !(await ask({ title: "Delete this draft?", body: "This offer was never published, so it can be removed completely. This cannot be undone.", confirmLabel: "Delete draft", cancelLabel: "Keep draft" }))) return;
+    remove.mutate({ method: "DELETE", path: `/api/v1/offers/${current.id}`, ifMatch: current.version });
+  };
   const action = async (action: string) => { if (action === "archive" && !(await ask({ title: "Archive this offer?", body: "It disappears from your public offers and can no longer receive applications. Existing clients keep their accepted terms.", confirmLabel: "Archive offer", cancelLabel: "Keep offer" }))) return; operation.current = action; if (current) mutation.mutate({ method: "POST", path: `/api/v1/offers/${current.id}/${action}`, ifMatch: current.version }); };
   const formChoices = [...(formId && !published.some((f) => f.currentPublishedVersionId === formId) ? [{ id: formId, name: "Current linked form version" }] : []), ...published.map((f) => ({ id: f.currentPublishedVersionId!, name: f.name }))];
   const edit =
@@ -101,19 +111,19 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
     {
       id: "form",
       title: "Application form",
-      hint: "Applicants fill in this published form.",
-      body: forms.isError ? (
-        <Failure error={forms.error} retry={() => void forms.refetch()} />
-      ) : (
+      hint: "Choose a published form, or let clients apply without answering questions.",
+      body: (
         <>
-          <Select label="Published form" placeholder={forms.isPending ? "Loading forms…" : "Choose a published application form"} isRequired isDisabled={locked || !formChoices.length} selectedKey={selectedForm || null} onSelectionChange={(key) => edit(setFormId)(String(key))}>
+          {forms.isError && <Failure error={forms.error} retry={() => void forms.refetch()} />}
+          <Select label="Application form" isDisabled={locked} selectedKey={selectedForm || "none"} onSelectionChange={(key) => edit(setFormId)(key === "none" ? "" : String(key))}>
+            <Option id="none">No application form</Option>
             {formChoices.map((f) => (
               <Option key={f.id} id={f.id}>{f.name}</Option>
             ))}
           </Select>
-          {!forms.isPending && !published.length && !formId ? (
-            <Alert tone="warning" title="Publish an application form first" actions={<LinkButton href="/app/forms/new?purpose=Application" size="sm">Create form</LinkButton>}>
-              An offer needs a published application form before it can be saved.
+          {!selectedForm ? (
+            <Alert title="No questions required" actions={<LinkButton href="/app/forms/new?purpose=Application" size="sm">Create a form instead</LinkButton>}>
+              Clients review the offer and submit an application. You still decide whether to accept it.
             </Alert>
           ) : null}
         </>
@@ -129,7 +139,7 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { name: name.trim(), description, category: selectedCategory, coachingMode, applicationFormVersionId: selectedForm, tags: tags.split(",").map(t => t.trim()).filter(Boolean), billingOptions: options, teamId, purpose };
+    const payload = { name: name.trim(), description, category: selectedCategory, coachingMode, applicationFormVersionId: selectedForm || null, tags: tags.split(",").map(t => t.trim()).filter(Boolean), billingOptions: options, teamId, purpose };
     const error = validateOffer(payload);
     if (error) { toast({ tone: "danger", title: "Check the offer details", description: error }); return; }
     operation.current = "save";
@@ -234,7 +244,13 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
                     {current.currentPublishedRevisionId ? (
                       <Button block loading={mutation.isPending && /\/(activate|deactivate)$/.test(mutation.variables?.path ?? "")} iconStart={current.status === "Active" ? <PauseCircle /> : <PlayCircle />} isDisabled={locked || dirty} onPress={() => void action(current.status === "Active" ? "deactivate" : "activate")}>{current.status === "Active" ? "Deactivate" : "Activate"}</Button>
                     ) : null}
-                    <Button variant="danger-ghost" block loading={mutation.isPending && mutation.variables?.path.endsWith("/archive")} iconStart={<Archive />} isDisabled={locked || dirty} onPress={() => void action("archive")}>Archive</Button>{confirmDialog}
+                    <Button variant="danger-ghost" block loading={mutation.isPending && mutation.variables?.path.endsWith("/archive")} iconStart={<Archive />} isDisabled={locked || dirty || remove.isPending} onPress={() => void action("archive")}>Archive</Button>
+                    {current.currentPublishedRevisionId ? (
+                      <p className={page.hint}>{current.hasClientHistory ? "Clients have been on this offer, so it can only be archived." : "Published offers keep their terms for clients and records. Archive it instead of deleting."}</p>
+                    ) : (
+                      <Button variant="danger-ghost" block loading={remove.isPending} iconStart={<Trash2 />} isDisabled={mutation.isPending || dirty} onPress={() => void deleteOffer()}>Delete draft</Button>
+                    )}
+                    <MutationError error={remove.error} />{confirmDialog}
                   </>
                 ) : null}
               </div>

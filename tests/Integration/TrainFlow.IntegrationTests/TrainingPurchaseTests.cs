@@ -38,6 +38,8 @@ public sealed partial class OffersBillingTests
         var setId = Guid.NewGuid();
         var exercise = new ExerciseInstance(Guid.NewGuid(), Guid.NewGuid(), "", [new(setId, SetKind.Standard, new(LoadFormula: new(Guid.NewGuid(), 1, null, [])))]);
         var document = new TrainingDocument(1, [new(Guid.NewGuid(), "B", "", [new(Guid.NewGuid(), "C", "", 1, [new(Guid.NewGuid(), 1, [new(Guid.NewGuid(), "W", "", [exercise], [])])])])]);
+        document = document with { Annotations = [new(Guid.NewGuid(), AnnotationKind.Comment, "Private", "Seller secret"), new(Guid.NewGuid(), AnnotationKind.Goal, "Goal", "Shared goal", Visibility: AnnotationVisibility.Client)] };
+        document = document with { MaxesTables = [new(Guid.NewGuid(), document.Blocks[0].Id, [new(exercise.ExerciseId, 1, LoadFormula: new(Guid.NewGuid(), 1, null, [])), new(Guid.NewGuid(), 5, new(60, Unit.Kg))])] };
         var plan = new TrainingPlan { Id = Guid.NewGuid(), OwnerId = coach, WorkspaceId = coach, Name = "Sold plan", Draft = document };
         var revision = new TrainingRevision { Id = Guid.NewGuid(), PlanId = plan.Id, Number = 1, DraftVersion = 1, IdempotencyKey = "sale", RequestHash = "sale", Snapshot = new(1, "Sold plan", "Accepted content", DocumentKind.Program, plan.Draft, [], new() { [setId] = new("privateExpression", 1, [], new(70, Unit.Kg)) }) };
         training.AddRange(plan, revision); await training.SaveChangesAsync();
@@ -71,6 +73,14 @@ public sealed partial class OffersBillingTests
 
         var owned = buyerScope.ServiceProvider.GetRequiredService<TrainingPurchaseService>();
         if (!free) Assert.Null(Assert.Single((await owned.ListAsync(1, 20, default)).Items).PlanId);
+        else
+        {
+            Assert.NotNull(Assert.Single((await owned.ListAsync(1, 20, default)).Items).PlanId);
+            var freeDue = await billing.PlanPurchaseDueAsync(order.OrderId, default);
+            Assert.Equal(DueStatus.Free, freeDue.Status);
+            Assert.Equal("ZeroPrice", freeDue.SettlementSource);
+            Assert.False(await sellerScope.ServiceProvider.GetRequiredService<BillingDbContext>().Attempts.AnyAsync(x => x.DueId == order.PaymentDueId));
+        }
         var buyerBilling = buyerScope.ServiceProvider.GetRequiredService<BillingService>();
         if (!free && !external)
         {
@@ -93,10 +103,15 @@ public sealed partial class OffersBillingTests
         var received = Assert.Single((await owned.ListAsync(1, 20, default)).Items);
         Assert.NotNull(received.PlanId);
         var copy = await training.Plans.AsNoTracking().SingleAsync(x => x.Id == received.PlanId);
-        Assert.Equal(client, copy.OwnerId); Assert.NotEqual(plan.Id, copy.Id);
+        Assert.Equal(client, copy.OwnerId);
+        Assert.Equal("Shared goal", Assert.Single(copy.Draft.Annotations!).Content);
+        Assert.DoesNotContain("Seller secret", TrainingJson.Serialize(copy.Draft)); Assert.NotEqual(plan.Id, copy.Id);
         var prescription = Assert.Single(DocumentRules.Sets(copy.Draft)).Prescription;
         Assert.Null(prescription.LoadFormula); Assert.Equal(new Quantity(70, Unit.Kg), prescription.Load!.Minimum);
         Assert.Empty((await training.Revisions.SingleAsync(x => x.PlanId == copy.Id)).Snapshot.Formulas);
+        var deliveredMax = Assert.Single(Assert.Single(copy.Draft.MaxesTables!).Rows);
+        Assert.Null(deliveredMax.LoadFormula);
+        Assert.Equal(new Quantity(60, Unit.Kg), deliveredMax.Load);
         var immutable = await Assert.ThrowsAsync<Npgsql.PostgresException>(() => training.Database.ExecuteSqlInterpolatedAsync($"UPDATE training.purchases SET \"Name\"='tampered' WHERE \"OrderId\"={order.OrderId}"));
         Assert.Equal("23514", immutable.SqlState);
         plan.Name = "Changed source"; plan.Archived = true; await training.SaveChangesAsync();

@@ -16,7 +16,7 @@ namespace TrainFlow.Training.Delivery;
 
 public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IRelationshipRecipients relationships, IRelationshipAccessPolicy policy, IExerciseCatalog catalog, INotificationPublisher notifications,
-    ModuleTransaction transaction, TimeProvider clock, IAccountDirectory directory, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers, ITeamContext? teams = null) : ITrainingProgressReader
+    ModuleTransaction transaction, TimeProvider clock, IAccountDirectory directory, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers, ITeamContext? teams = null, TrainingService? formulaService = null) : ITrainingProgressReader
 {
     private DbSet<ProgramAssignment> Assignments => db.Set<ProgramAssignment>();
     private DbSet<WorkoutOccurrence> Occurrences => db.Set<WorkoutOccurrence>();
@@ -111,6 +111,7 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
                 CreatedAt = clock.GetUtcNow(),
                 UpdatedAt = clock.GetUtcNow()
             };
+            if (formulaService != null) a.FormulaSnapshot = await formulaService.ResolveClientFormulasAsync(revision.Snapshot.Document, a.ClientId, a.CoachId, ct);
             var occurrences = DeliveryRules.Resolve(a, revision);
             if (occurrences.Length == 0)
                 throw ApiException.Invalid("The published program has no workouts to assign.");
@@ -144,7 +145,8 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
         var total = await q.CountAsync(ct);
         var rows = await q.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize).ToArrayAsync(ct);
         var active = await ActiveIds(rows.Select(x => x.RelationshipId).Distinct().ToArray(), ct);
-        return new(rows.Select(x => Dto(x, x.CoachId == accounts.UserId, active.Contains(x.RelationshipId))).ToArray(), page, pageSize, total);
+        var clients = await directory.GetAccountsAsync(rows.Select(x => x.ClientId).Distinct().ToArray(), ct);
+        return new(rows.Select(x => Dto(x, x.CoachId == accounts.UserId, active.Contains(x.RelationshipId)) with { ClientDisplayName = clients.GetValueOrDefault(x.ClientId)?.DisplayName, ClientUsername = clients.GetValueOrDefault(x.ClientId)?.Username }).ToArray(), page, pageSize, total);
     }
     public async Task<AssignmentDto> GetAsync(Guid id, CancellationToken ct)
     {
@@ -197,7 +199,7 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
         var oldRevisionNumber = await db.Revisions.Where(x => x.Id == a.EffectiveRevisionId).Select(x => x.Number).SingleAsync(ct);
         if (revision.Number <= oldRevisionNumber)
             throw ApiException.Invalid("Refresh requires a newer applied revision.");
-        await AssignmentRevisionUpdater.RefreshAsync(db, a, revision, clock, assignmentObservers, ct);
+        await AssignmentRevisionUpdater.RefreshAsync(db, a, revision, clock, assignmentObservers, ct, formulaService);
         await db.SaveChangesAsync(ct);
         return Dto(a, true);
     }, ct);
@@ -270,7 +272,9 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
             throw ApiException.NotFound();
         var e = await ExecutionQuery().SingleOrDefaultAsync(x => x.OccurrenceId == id, ct);
         var active = (await relationships.GetAsync(a.RelationshipId, ct))?.Status == RelationshipStatus.Active;
-        return new(OccurrenceDto(o, a, e, active), e?.Prescription ?? o.Prescription, e == null ? null : ExecutionDto(e, active && (a.Status == AssignmentStatus.Active || e.Status == ExecutionStatus.Completed)));
+        var prescription = e?.Prescription ?? o.Prescription;
+        if (accounts.UserId != a.CoachId) prescription = prescription with { Annotations = prescription.Annotations?.Where(n => n.Visibility == AnnotationVisibility.Client).ToArray() };
+        return new(OccurrenceDto(o, a, e, active), prescription, e == null ? null : ExecutionDto(e, active && (a.Status == AssignmentStatus.Active || e.Status == ExecutionStatus.Completed)));
     }
     public Task<ExecutionDto> StartAsync(Guid id, CancellationToken ct) => MutateAsync(async () =>
     {
@@ -322,14 +326,19 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
         var snapshots = await catalog.SnapshotAsync(request.Exercises.Select(x => x.ExerciseId).Distinct(), ct);
         if (request.Exercises.Any(x => !snapshots.ContainsKey(x.ExerciseId)))
             throw ApiException.Invalid("An actual exercise is unavailable.");
+        // Sets keep their ids when they stay in the same place (same exercise slot and position), so links to a set
+        // (video analyses) survive corrections. The old rows are deleted first so the ids can be reused.
+        var previous = e.Exercises.OrderBy(x => x.Position).Select(x => (x.PrescribedInstanceId, x.ExerciseId, x.Id, Sets: x.Sets.OrderBy(s => s.Position).Select(s => s.Id).ToArray())).ToArray();
         db.RemoveRange(e.Exercises);
         e.Exercises.Clear();
+        await db.SaveChangesAsync(ct);
         for (var i = 0; i < request.Exercises.Length; i++)
         {
             var actual = request.Exercises[i];
+            var kept = i < previous.Length && previous[i].PrescribedInstanceId == actual.PrescribedInstanceId && previous[i].ExerciseId == actual.ExerciseId ? previous[i] : default;
             var ex = new ExerciseExecution
             {
-                Id = Guid.NewGuid(),
+                Id = kept.Sets != null ? kept.Id : Guid.NewGuid(),
                 ExecutionId = e.Id,
                 PrescribedInstanceId = actual.PrescribedInstanceId,
                 ExerciseId = actual.ExerciseId,
@@ -340,7 +349,7 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
             };
             ex.Sets = actual.Sets.Select((s, p) => new SetExecution
             {
-                Id = Guid.NewGuid(),
+                Id = kept.Sets != null && p < kept.Sets.Length ? kept.Sets[p] : Guid.NewGuid(),
                 ExerciseExecutionId = ex.Id,
                 PrescribedSetId = s.PrescribedSetId,
                 PrescribedSegmentId = s.PrescribedSegmentId,
@@ -522,7 +531,7 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
     }
     private static AssignmentDto Dto(ProgramAssignment a, bool coach, bool activeRelationship = true) => new(a.Id, a.RelationshipId, a.ProgramId, a.ProgramName, a.OriginalRevisionId, a.EffectiveRevisionId,
         a.StartDate, a.TimeZone, a.Status, a.GroupAssignmentId == null ? "Direct" : "Group", a.GroupAssignmentId, a.Version,
-        coach && a.Status is AssignmentStatus.Active or AssignmentStatus.Paused ? activeRelationship ? ["status", "refresh"] : ["status"] : []);
+        coach && a.Status is AssignmentStatus.Active or AssignmentStatus.Paused ? activeRelationship ? ["status", "refresh"] : ["status"] : [], a.ClientId);
     private OccurrenceDto OccurrenceDto(WorkoutOccurrence o, ProgramAssignment a, WorkoutExecution? e, bool active) => new(o.Id, a.Id, a.RelationshipId, a.ProgramId,
         a.ProgramName, o.RevisionId, o.BlockId, o.CycleId, o.DayId, o.WorkoutId, o.Name, o.ScheduledDate, o.Deadline, DeliveryRules.Status(o, e, clock.GetUtcNow()), e?.Id,
         e?.CompletedAt >= o.Deadline, active && a.Status == AssignmentStatus.Active && e == null ? ["start", "skip"] : active && a.Status == AssignmentStatus.Active && e?.Status == ExecutionStatus.Skipped ? ["start"] : active && e != null ? ["view"] : [], e?.PerformedDate, e?.DurationSeconds, !string.IsNullOrWhiteSpace(e?.Comment));

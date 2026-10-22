@@ -1,0 +1,44 @@
+.chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 16rem;
+  height: 1.5rem;
+  padding: 0 var(--tf-space-2);
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 40%, transparent);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--tf-color-violet) 12%, transparent);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 120ms ease;
+}
+
+.chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip svg {
+  flex: none;
+  width: 0.8rem;
+  height: 0.8rem;
+  color: var(--tf-color-violet);
+}
+
+.chip:hover {
+  border-color: var(--tf-color-violet);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}

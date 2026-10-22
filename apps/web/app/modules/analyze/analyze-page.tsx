@@ -1,17 +1,21 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Analytics — TrainFlow");
+
 import type { ProgressData } from "~/modules/training";
 import type { Schema } from "@trainflow/api-client-web";
-import { useQuery } from "@tanstack/react-query";
 import { parseDate } from "@internationalized/date";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Alert, DateField, EmptyState, Option, PageHeader, Segment, SegmentedControl, Select, Skeleton, Tab, TabList, TabPanel, Tabs } from "@trainflow/ui-web";
 import { RequireFeature } from "~/shared/access";
-import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
+import { useAccountContext } from "~/shared/session/AccountScope";
 import { useUrlState } from "~/shared/lib/useUrlState";
 import { Failure, money, useCoachingQuery } from "~/modules/coaching";
 import { AreaChart, compact, Donut, NoData, FlowBars, Funnel, Kpi, RankList, Ring, shortDate, Sparkline, Split, StackedBars, type Tone } from "./charts";
-import type { Overview } from "./types";
+import { useAnalysis, type AnalysisTab } from "./api";
+import type { CheckInsData, ClientsData, FinanceData, Overview, TrainingData } from "./types";
 import styles from "./analyze.module.css";
 
 function AnalyzeSkeleton() {
@@ -84,21 +88,6 @@ function Legend({ items }: { items: Array<{ label: string; tone: Tone; ghost?: b
   );
 }
 
-function useOverview(params: Record<string, string | undefined>, enabled: boolean) {
-  const api = useApi();
-  const account = useAccountKey();
-  return useQuery({
-    queryKey: [account, "coaching", "analyze", params],
-    enabled,
-    queryFn: async ({ signal }) => (await api<Overview>({ path: "/api/v1/analyze/overview", query: params, signal })).data,
-    // Date changes can retain charts; a new ownership scope must never show the previous scope's data.
-    placeholderData: (previous, previousQuery) => {
-      const old = previousQuery?.queryKey[3] as typeof params | undefined;
-      return old?.scope === params.scope && old?.memberId === params.memberId ? previous : undefined;
-    },
-  });
-}
-
 function Workspace() {
   const [state, update] = useUrlState({ preset: "30", from: "", to: "", tab: "overview", groupId: "", offerRevisionId: "", currency: "", grouping: "day", scope: "", memberId: "" });
   const { account } = useAccountContext();
@@ -114,14 +103,16 @@ function Workspace() {
   const defaults = presetRange(preset === "custom" ? "30" : preset);
   const safeDate = (value: string, fallback: string) => { try { return value ? parseDate(value).toString() : fallback; } catch { return fallback; } };
   const range = { from: safeDate(state.from, defaults.from), to: safeDate(state.to, defaults.to) };
-  const tab = ["overview", "finance", "clients", "checkins", "training"].includes(state.tab) ? state.tab : "overview";
+  const tab = (["overview", "finance", "clients", "checkins", "training"].includes(state.tab) ? state.tab : "overview") as AnalysisTab;
   const group = state.groupId;
   const offer = state.offerRevisionId;
   const currency = state.currency;
   const grouping = ["day", "week", "month"].includes(state.grouping) ? state.grouping : "day";
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  const query = useOverview({ from: range.from, to: range.to, timeZone: zone, grouping, groupId: group || undefined, offerRevisionId: offer || undefined, scope, memberId }, context.isSuccess);
+  const analysis = useAnalysis(tab, { from: range.from, to: range.to, timeZone: zone, grouping, groupId: group || undefined, offerRevisionId: offer || undefined, scope, memberId }, context.isSuccess, scope === "Personal" ? undefined : team?.teamId);
+  const { query, metadata } = analysis;
   const data = query.data;
+  const finance = data?.section === "overview" || data?.section === "finance" ? data.data.finance : undefined;
 
   const choosePreset = (value: string) => {
     update({ preset: value, ...(value !== "custom" ? presetRange(value) : range) });
@@ -163,31 +154,31 @@ function Workspace() {
           <Option id="month">Monthly</Option>
         </Select>
         <Select aria-label="Client group" size="sm" selectedKey={group || "all"} onSelectionChange={(k) => update({ groupId: k === "all" ? "" : String(k) })} className={styles.filter}>
-          {[{ id: "all", name: "All clients" }, ...(data?.filters?.groups ?? [])].map((g) => (
+          {[{ id: "all", name: "All clients" }, ...(metadata?.filters.groups ?? [])].map((g) => (
             <Option key={g.id} id={g.id}>
               {g.name}
             </Option>
           ))}
         </Select>
         <Select aria-label="Offer" size="sm" selectedKey={offer || "all"} onSelectionChange={(k) => update({ offerRevisionId: k === "all" ? "" : String(k) })} className={styles.filter}>
-          {[{ id: "all", name: "All offers" }, ...(data?.filters?.offers ?? [])].map((o) => (
+          {[{ id: "all", name: "All offers" }, ...(metadata?.filters.offers ?? [])].map((o) => (
             <Option key={o.id} id={o.id}>
               {o.name}
             </Option>
           ))}
         </Select>
-        {data?.finance && data.finance.totals.length > 1 ? (
-          <Select aria-label="Currency" size="sm" selectedKey={currency || data.finance.totals[0]!.currency} onSelectionChange={(k) => update({ currency: String(k) })} className={styles.filter}>
-            {data.finance.totals.map((t) => (
+        {finance && finance.totals.length > 1 ? (
+          <Select aria-label="Currency" size="sm" selectedKey={currency || finance.totals[0]!.currency} onSelectionChange={(k) => update({ currency: String(k) })} className={styles.filter}>
+            {finance.totals.map((t) => (
               <Option key={t.currency} id={t.currency}>
                 {t.currency}
               </Option>
             ))}
           </Select>
         ) : null}
-        {data?.period ? (
+        {metadata ? (
           <p className={styles.compare}>
-            {data.period.from} – {data.period.to} <span>vs {data.comparisonPeriod.from} – {data.comparisonPeriod.to}</span>
+            {metadata.period.from} – {metadata.period.to} <span>vs {metadata.comparisonPeriod.from} – {metadata.comparisonPeriod.to}</span>
           </p>
         ) : null}
       </div>
@@ -204,28 +195,20 @@ function Workspace() {
           <Tab id="checkins">Check-ins</Tab>
           <Tab id="training">Training</Tab>
         </TabList>
-        {query.isPending ? (
+        {analysis.error ? (
+          <Failure error={analysis.error} retry={() => void analysis.retry()} />
+        ) : query.isPending ? (
           <AnalyzeSkeleton />
-        ) : query.isError || !data?.finance ? (
-          <Failure error={query.error} retry={() => void query.refetch()} />
+        ) : !data ? (
+          <Failure error={query.error} retry={() => void analysis.retry()} />
         ) : (
-          <div className={styles.body} data-stale={query.isPlaceholderData || undefined} aria-busy={query.isFetching}>
+          <div className={styles.body} aria-busy={query.isFetching}>
             <span className={styles.progress} aria-hidden="true" />
-            <TabPanel id="overview">
-              <OverviewTab data={data!} currency={currency} />
-            </TabPanel>
-            <TabPanel id="finance">
-              <FinanceTab data={data!} currency={currency} />
-            </TabPanel>
-            <TabPanel id="clients">
-              <ClientsTab data={data!} />
-            </TabPanel>
-            <TabPanel id="checkins">
-              <CheckInsTab data={data!} />
-            </TabPanel>
-            <TabPanel id="training">
-              <TrainingTab data={data!} />
-            </TabPanel>
+            {data.section === "overview" && <TabPanel id="overview"><OverviewTab data={data.data} currency={currency} /></TabPanel>}
+            {data.section === "finance" && <TabPanel id="finance"><FinanceTab data={data.data} currency={currency} /></TabPanel>}
+            {data.section === "clients" && <TabPanel id="clients"><ClientsTab data={data.data} /></TabPanel>}
+            {data.section === "checkins" && <TabPanel id="checkins"><CheckInsTab data={data.data} /></TabPanel>}
+            {data.section === "training" && <TabPanel id="training"><TrainingTab data={data.data} /></TabPanel>}
           </div>
         )}
       </Tabs>
@@ -235,7 +218,7 @@ function Workspace() {
 
 /* ---------------------------------------------------------------- tabs */
 
-function useFinance(data: Overview, currency: string) {
+function useFinance(data: FinanceData, currency: string) {
   const selected = data.finance.totals.find((x) => x.currency === (currency || data.finance.totals[0]?.currency));
   const prior = data.previousFinance.totals.find((x) => x.currency === selected?.currency);
   const series = data.finance.series.filter((x) => x.currency === selected?.currency);
@@ -310,7 +293,7 @@ function OverviewTab({ data, currency }: { data: Overview; currency: string }) {
   );
 }
 
-function FinanceTab({ data, currency }: { data: Overview; currency: string }) {
+function FinanceTab({ data, currency }: { data: FinanceData; currency: string }) {
   const { selected, prior, series, previous, fmt, offers } = useFinance(data, currency);
   if (!selected)
     return <EmptyState title="No financial activity" description="Settled client-service payments, pending dues and recurring services appear here. TrainFlow plan payments are excluded." />;
@@ -367,7 +350,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ClientsTab({ data }: { data: Overview }) {
+function ClientsTab({ data }: { data: ClientsData }) {
   const c = data.clients;
   const a = data.acquisition;
   return (
@@ -437,7 +420,7 @@ function lifts(progress: ProgressData) {
     .sort((a, b) => b.sets - a.sets);
 }
 
-function TrainingTab({ data }: { data: Overview }) {
+function TrainingTab({ data }: { data: TrainingData }) {
   const t = data.training.progress;
   if (!t) return <NoData height={260} title="No recorded training data" hint={data.training.reason} />;
   const recorded = lifts(t);
@@ -539,7 +522,7 @@ function TrainingTab({ data }: { data: Overview }) {
   );
 }
 
-function CheckInsTab({ data }: { data: Overview }) {
+function CheckInsTab({ data }: { data: CheckInsData }) {
   const k = data.checkIns;
   const p = data.previousCheckIns;
   return (

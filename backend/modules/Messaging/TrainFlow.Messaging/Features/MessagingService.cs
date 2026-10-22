@@ -14,9 +14,10 @@ using TrainFlow.Messaging.Infrastructure;
 
 namespace TrainFlow.Messaging.Features;
 
-public sealed partial class MessagingService(MessagingDbContext db, IAccountContext accounts, IAccountDirectory directory, IFeatureAccessService access, ICoachingMessagingDirectory coaching, IMediaLibrary media, ModuleTransaction tx, TimeProvider clock, IOptions<MessagingOptions> options, MessagingDispatcher dispatcher, INotificationPublisher notifications, IFeatureAudience audience, INotificationReadStore notificationReads) : ICoachingMessagingObserver, ICoachingChatPublisher, IMessagingUploadAuthorization
+public sealed partial class MessagingService(MessagingDbContext db, IAccountContext accounts, IAccountDirectory directory, IFeatureAccessService access, ICoachingMessagingDirectory coaching, IMediaLibrary media, ModuleTransaction tx, TimeProvider clock, IOptions<MessagingOptions> options, MessagingDispatcher dispatcher, INotificationPublisher notifications, IFeatureAudience audience, INotificationReadStore notificationReads, IAbuseProtection? abuse = null, IOptions<MessagingAbuseOptions>? abuseOptions = null) : ICoachingMessagingObserver, ICoachingChatPublisher, IMessagingUploadAuthorization
 {
     private Guid Actor => accounts.UserId;
+    private readonly MessagingAbuseOptions abuseLimits = abuseOptions?.Value ?? new();
 
     public async Task<AccountSearchEntry[]> SearchPeopleAsync(string search, CancellationToken ct)
     {
@@ -153,11 +154,12 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
         await Feature("messaging.group.manage", ct);
         MessagingRules.Text(request.Title, 200, true);
         var ids = (request.UserIds ?? []).Append(Actor).Distinct().ToArray();
-        if (ids.Length > options.Value.MaxGroupMembers)
+        if (ids.Length > Math.Min(101, options.Value.MaxGroupMembers))
             throw ApiException.Invalid("Too many group members.");
         await Known(ids, ct);
         var id = await tx.RunAsync(async token =>
         {
+            await AdmitRecipientsAsync(ids, true, token);
             var c = new Conversation
             {
                 Type = ConversationType.Group,
@@ -196,6 +198,7 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
                     throw ApiException.NotFound();
                 if (group.Archived)
                     throw ApiException.Conflict("Restore the client group first.");
+                await AdmitRecipientsAsync(group.EligibleUserIds, true, token);
                 c = new()
                 {
                     Type = ConversationType.ClientGroupLinked,
@@ -230,7 +233,9 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
         await Lock("messaging-conversation:" + c.Id, ct);
         await db.Entry(c).ReloadAsync(ct);
         var members = await db.Members.Where(x => x.ConversationId == c.Id).ToArrayAsync(ct);
-        var eligible = group.Archived ? [] : group.EligibleUserIds;
+        var eligible = group.Archived ? [] : group.EligibleUserIds.Distinct().ToArray();
+        if (eligible.Count(user => user != group.CoachId && !members.Any(m => m.UserId == user && m.State == MemberState.Active)) > abuseLimits.MaximumRecipients)
+            throw ApiException.Invalid("Too many unique group recipients in one operation.");
         foreach (var m in members.Where(x => x.Source == MemberSource.ClientGroupSync))
         {
             if (!eligible.Contains(m.UserId) && m.State == MemberState.Active)
@@ -295,6 +300,7 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
                 throw new ApiException(403, "OWNER_REQUIRED", "Owner required.");
             if (operation == "add")
             {
+                await AdmitRecipientsAsync([user], false, token);
                 if (m?.Excluded == true)
                     throw ApiException.Conflict("Remove the explicit exclusion first.");
                 if (m?.State != MemberState.Active && await db.Members.CountAsync(x => x.ConversationId == id && x.State == MemberState.Active, token) >= options.Value.MaxGroupMembers)
@@ -413,6 +419,9 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
             }
 
             await RequireConversationConsentAsync(c, token);
+            abuse?.Require(Actor, AbusePolicies.Message);
+            if (c.Type == ConversationType.Direct)
+                await AdmitDirectContactAsync(c, token);
 
             var firstMessageRequiresApproval = await RequiresFirstMessageApprovalAsync(c, token);
             if (firstMessageRequiresApproval && (request.Type != MessageType.Text || request.ReplyToMessageId.HasValue))
@@ -474,7 +483,12 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
         }, ct);
         var dto = (await Dtos([result.Item1], ct))[0];
         if (result.Item2)
-            await dispatcher.ConversationAsync(id, "MessageCreated", dto, ct);
+        {
+            if (tx.IsActive)
+                tx.OnCommitted(token => dispatcher.ConversationAsync(id, "MessageCreated", dto, token));
+            else
+                await dispatcher.ConversationAsync(id, "MessageCreated", dto, ct);
+        }
         return dto;
     }
 
@@ -579,7 +593,7 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
         return rows.Select(x => new MemberDto(x.UserId, people.TryGetValue(x.UserId, out var p) ? p.DisplayName : "Unavailable account", x.Role, x.Source, x.State, x.Excluded, x.JoinedAt, x.RemovedAt, x.LastReadMessageId, people.GetValueOrDefault(x.UserId)?.Username)).ToArray();
     }
 
-    public async Task<ConversationDto[]> ListAsync(string? search, int limit, CancellationToken ct)
+    public async Task<ConversationDto[]> ListAsync(string? search, int limit, CancellationToken ct, int page = 1)
     {
         if ((await accounts.GetRolesAsync(ct)).Count == 0)
             throw new ApiException(403, "ONBOARDING_REQUIRED", "Complete onboarding.");
@@ -591,6 +605,8 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
         MessagingRules.Text(search, 200);
         if (limit is < 1 or > 100)
             throw ApiException.Invalid("Limit must be 1 to 100.");
+        if (page is < 1 or > 1000000)
+            throw ApiException.Invalid("Page must be 1 to 1000000.");
         var query =
             from c in db.Conversations.AsNoTracking()
             join m in db.Members.AsNoTracking() on c.Id equals m.ConversationId
@@ -615,7 +631,7 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
                     && (!x.Membership.CutoffSequence.HasValue || msg.Sequence <= x.Membership.CutoffSequence))
                 .Select(msg => (DateTimeOffset?)msg.CreatedAt).Max() ?? DateTimeOffset.MinValue)
             .ThenByDescending(x => x.Conversation.CreatedAt)
-            .ThenBy(x => x.Conversation.Id).Take(limit).Select(x => new { x.Conversation, x.Membership, Last = db.Messages.Where(msg => msg.ConversationId == x.Conversation.Id && (!x.Membership.CutoffSequence.HasValue || msg.Sequence <= x.Membership.CutoffSequence)).OrderByDescending(msg => msg.CreatedAt).ThenByDescending(msg => msg.Id).FirstOrDefault(), Unread = db.Messages.LongCount(msg => msg.ConversationId == x.Conversation.Id && msg.SenderUserId != Actor && msg.Sequence > x.Membership.LastReadSequence && (!x.Membership.CutoffSequence.HasValue || msg.Sequence <= x.Membership.CutoffSequence)) }).ToArrayAsync(ct);
+            .ThenBy(x => x.Conversation.Id).Skip((page - 1) * limit).Take(limit).Select(x => new { x.Conversation, x.Membership, Last = db.Messages.Where(msg => msg.ConversationId == x.Conversation.Id && (!x.Membership.CutoffSequence.HasValue || msg.Sequence <= x.Membership.CutoffSequence)).OrderByDescending(msg => msg.CreatedAt).ThenByDescending(msg => msg.Id).FirstOrDefault(), Unread = db.Messages.LongCount(msg => msg.ConversationId == x.Conversation.Id && msg.SenderUserId != Actor && msg.Sequence > x.Membership.LastReadSequence && (!x.Membership.CutoffSequence.HasValue || msg.Sequence <= x.Membership.CutoffSequence)) }).ToArrayAsync(ct);
         if (rows.Length == 0)
             return [];
         var ids = rows.Select(x => x.Conversation.Id).ToArray();
@@ -708,6 +724,8 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
             if (c.Sequence > 0 && (latest == null || latest.State == RequestState.Accepted))
                 throw ApiException.Conflict("Use the existing conversation.");
             var approval = await RequiresApprovalAsync(request.UserId, token);
+            abuse?.Require(Actor, AbusePolicies.Message);
+            await AdmitDirectContactAsync(c, token);
             await Lock("messaging-conversation:" + c.Id, token);
             await db.Entry(c).ReloadAsync(token);
             var row = new MessageRequest
@@ -733,10 +751,15 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
         return dto;
     }
 
-    public async Task<RequestDto[]> RequestsAsync(CancellationToken ct)
+    public async Task<RequestDto[]> RequestsAsync(CancellationToken ct, int? page = null, int? limit = null)
     {
         await Feature("messaging.direct", ct);
-        var rows = await db.Requests.AsNoTracking().Where(x => x.RecipientUserId == Actor || x.SenderUserId == Actor).OrderByDescending(x => x.CreatedAt).Take(100).ToArrayAsync(ct);
+        var number = page ?? 1;
+        var size = limit ?? (page.HasValue ? 25 : 100);
+        if (number is < 1 or > 1000000 || size is < 1 or > 100)
+            throw ApiException.Invalid("Page must be 1 to 1000000 and limit 1 to 100.");
+        var rows = await db.Requests.AsNoTracking().Where(x => x.RecipientUserId == Actor || x.SenderUserId == Actor)
+            .OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Skip((number - 1) * size).Take(size).ToArrayAsync(ct);
         var people = await directory.GetAccountsAsync(rows.SelectMany(x => new[] { x.SenderUserId, x.RecipientUserId }).Distinct().ToArray(), ct);
         var dtos = await RequestDtosAsync(rows, ct);
         return rows.Select(row => dtos[row.Id] with

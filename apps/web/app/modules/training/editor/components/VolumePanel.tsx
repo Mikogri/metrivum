@@ -1,7 +1,8 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 import type { TrainingDocument, Workout } from "@trainflow/api-client-web";
-import { IconButton, Segment, SegmentedControl } from "@trainflow/ui-web";
+import { IconButton, Option, Segment, SegmentedControl, Select } from "@trainflow/ui-web";
+import { MuscleHeatmap } from "~/modules/anatomy";
 import { useDictionaryLabel, type ExerciseLabel } from "~/modules/exercises";
 import { formatNumber } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
@@ -28,6 +29,10 @@ export function VolumeContent({ sections, names }: { sections: VolumeSection[]; 
   const locale = useLocale();
   const dictionaryLabel = useDictionaryLabel();
   const [by, setBy] = useState<VolumeBy>("primary");
+  const [mode, setMode] = useState<"table" | "heatmap">("table");
+  const [metric, setMetric] = useState<"sets" | "hardSets">("sets");
+  // The heatmap shows one range at a time; the last one (the cycle total or the latest cycle) by default.
+  const [sectionId, setSectionId] = useState<string | null>(null);
   const label = (key: string) => (key === "—" ? t.unassigned : dictionaryLabel(by === "patterns" ? "movementPatterns" : "muscles", key));
   const n = (value: number) => formatNumber(locale, Math.round(value));
   const heading = by === "patterns" ? t.patternsLong : by === "secondary" ? t.secondaryLong : t.primaryLong;
@@ -71,8 +76,56 @@ export function VolumeContent({ sections, names }: { sections: VolumeSection[]; 
     </table>
   );
 
+  const heatSection = sections.find((section) => section.id === sectionId) ?? sections[sections.length - 1];
+  const heatValues = (() => {
+    const values = new Map<string, number>();
+    if (!heatSection) return values;
+    const workouts = heatSection.workouts.map((w) => w.workout);
+    for (const [kind, weight] of [["primary", 1], ["secondary", 0.5]] as const) {
+      for (const line of volumeLines(workouts, taxonomy, kind)) {
+        if (line.key === "—") continue;
+        values.set(line.key, (values.get(line.key) ?? 0) + line.total[metric] * weight);
+      }
+    }
+    return values;
+  })();
+  const formatAmount = (value: number) => formatNumber(locale, Math.round(value * 10) / 10);
+
+  const modeSwitch = (
+    <SegmentedControl aria-label={t.show} size="sm" selectedKeys={[mode]} onSelectionChange={(keys) => setMode(([...keys][0] as "table" | "heatmap") ?? "table")} className={styles.volumeBy}>
+      <Segment id="table">{t.table}</Segment>
+      <Segment id="heatmap">{t.heatmap}</Segment>
+    </SegmentedControl>
+  );
+
+  if (mode === "heatmap") {
+    return (
+      <div className={styles.volumeContent}>
+        {modeSwitch}
+        <div className={styles.heatControls}>
+          <SegmentedControl aria-label={t.metric} size="sm" selectedKeys={[metric]} onSelectionChange={(keys) => setMetric(([...keys][0] as "sets" | "hardSets") ?? "sets")}>
+            <Segment id="sets">{t.sets}</Segment>
+            <Segment id="hardSets">{t.hard}</Segment>
+          </SegmentedControl>
+          {sections.length > 1 ? (
+            <Select aria-label={t.section} selectedKey={heatSection?.id ?? null} onSelectionChange={(key) => setSectionId(String(key))} className={styles.heatSection}>
+              {sections.map((section) => <Option key={section.id} id={section.id}>{section.title}</Option>)}
+            </Select>
+          ) : null}
+        </div>
+        <MuscleHeatmap
+          values={heatValues}
+          label={(key) => dictionaryLabel("muscles", key)}
+          format={formatAmount}
+          caption={t.heatCaption(metric === "sets" ? t.setsHint : t.hardHint, heatSection?.title ?? "")}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.volumeContent}>
+      {modeSwitch}
       <SegmentedControl aria-label={t.by} size="sm" selectedKeys={[by]} onSelectionChange={(keys) => setBy(([...keys][0] as VolumeBy) ?? "primary")} className={styles.volumeBy}>
         <Segment id="primary">{t.primary}</Segment>
         <Segment id="secondary">{t.secondary}</Segment>

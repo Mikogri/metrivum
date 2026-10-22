@@ -56,7 +56,7 @@ public sealed record FormulaDto(Guid Id, string Name, int Version, bool Archived
 public sealed record FormulaListItem(Guid Id, string Name, int Version, bool Archived);
 
 public sealed partial class TrainingService(TrainingDbContext db, IAccountContext accounts, IFeatureAccessService access,
-    IExerciseCatalog catalog, IOptions<TrainingOptions> options, TimeProvider clock, IRelationshipAccessPolicy relationshipPolicy, ModuleTransaction transaction, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers)
+    IExerciseCatalog catalog, IOptions<TrainingOptions> options, TimeProvider clock, IRelationshipAccessPolicy relationshipPolicy, ModuleTransaction transaction, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers, IAccountProfileFields? profileFields = null, IRelationshipRecipients? metricRelationships = null, IAbuseProtection? abuse = null)
 {
     private readonly TrainingOptions limits = options.Value;
     private FormulaEngine Engine => new(limits.Formula);
@@ -106,14 +106,19 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         var plan = await PlanAsync(id, account, ct);
         CheckVersion(plan.Version, expectedVersion);
         Active(plan);
+        abuse?.Require(account.UserId, AbusePolicies.Autosave);
         await TemplateAccessAsync(plan.Kind, ct);
-        await ValidateContentAsync(request.Document, plan.Draft, account, ct);
+        if (request.Document?.Blocks == null || request.Document.Blocks.Any(b => b == null)) throw ApiException.Invalid("Document blocks are required.");
+        // An older client omits the additive table field; it must not erase existing block data.
+        var remainingTargets = request.Document.Blocks.SelectMany(b => new[] { b.Id }.Concat((b.Cycles ?? []).Select(c => c.Id))).ToHashSet();
+        var document = request.Document with { Annotations = request.Document.Annotations ?? plan.Draft.Annotations?.Select(n => n.TargetId is { } target && !remainingTargets.Contains(target) ? n with { TargetId = null } : n).ToArray(), MaxesTables = request.Document.MaxesTables ?? plan.Draft.MaxesTables?.Select(t => t.BlockId is { } blockId && !request.Document.Blocks.Any(b => b.Id == blockId) ? t with { BlockId = null } : t).ToArray(), Blocks = request.Document.Blocks.Select(b => b.ExerciseMaxes == null ? b with { ExerciseMaxes = plan.Draft.Blocks.FirstOrDefault(old => old.Id == b.Id)?.ExerciseMaxes } : b).ToArray() };
+        await ValidateContentAsync(document, plan.Draft, account, ct);
         await FolderAvailableAsync(request.FolderId, account, ct);
         Validate(() => { DocumentRules.Text(request.Name, 200, true); DocumentRules.NonNullText(request.Description, 4000); });
         plan.Name = request.Name.Trim();
         plan.Description = request.Description;
         plan.FolderId = request.FolderId;
-        plan.Draft = request.Document;
+        plan.Draft = document;
         plan.Version++;
         plan.UpdatedAt = clock.GetUtcNow();
         await db.SaveChangesAsync(ct);
@@ -164,15 +169,16 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         if (effective?.DraftVersion == plan.Version) return Dto(effective);
         var count = await db.Revisions.CountAsync(x => x.PlanId == id, ct);
         Limit(count < limits.MaximumRevisionsPerDocument, "Revision limit exceeded.");
-        var exerciseIds = DocumentRules.Workouts(plan.Draft).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).Distinct().ToArray();
+        var exerciseIds = DocumentRules.Workouts(plan.Draft).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).Concat(BlockMaxes.Rows(plan.Draft).Where(x => x.ExerciseId.HasValue).Select(x => x.ExerciseId!.Value)).Distinct().ToArray();
         var snapshots = await catalog.SnapshotAsync(exerciseIds, ct);
         if (snapshots.Count != exerciseIds.Length)
             throw ApiException.Invalid("Some exercises are unavailable.");
+        if (BlockMaxes.Rows(plan.Draft).Any(r => r.ExerciseId == null || r.Load == null && r.LoadFormula == null && r.Time == null && r.TimeFormula == null)) throw ApiException.Invalid("Invalid format: every exercise max requires an exercise and a value or variable.");
         var formulas = await EvaluateDocumentAsync(plan.Draft, account, ct);
         var revision = new TrainingRevision { Id = Guid.NewGuid(), PlanId = id, Number = count + 1, DraftVersion = plan.Version, PublishedAt = clock.GetUtcNow(), IdempotencyKey = idempotencyKey, RequestHash = hash, Snapshot = new(1, plan.Name, plan.Description, plan.Kind, TrainingJson.Deserialize<TrainingDocument>(TrainingJson.Serialize(plan.Draft)), new(snapshots), formulas) };
         db.Revisions.Add(revision);
         await db.SaveChangesAsync(ct);
-        await AssignmentRevisionUpdater.ApplyAsync(db, revision, relationshipPolicy, clock, assignmentObservers, ct);
+        await AssignmentRevisionUpdater.ApplyAsync(db, revision, relationshipPolicy, clock, assignmentObservers, ct, this);
         await db.SaveChangesAsync(ct);
         return Dto(revision);
     }, ct);
@@ -295,13 +301,14 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
     public async Task<FormulaEvaluation> EvaluateFormulaAsync(FormulaUse request, CancellationToken ct)
     {
         var account = await ReadAsync(ct);
-        if (request.FormulaId != null)
+        if (request.FormulaId != null || request.Expression != null || request.VariableBindings?.Count > 0)
             await access.RequireAsync("training.formulas.custom", ct);
         return await EvaluateAsync(request, account, ct);
     }
 
     private async Task<TrainingPlan> CreateInternalAsync(string name, string description, DocumentKind kind, Guid? folder, TrainingDocument content, AccountIdentity account, CancellationToken ct)
     {
+        abuse?.Require(account.UserId, AbusePolicies.ProgramCreate);
         Validate(() => { DocumentRules.Text(name, 200, true); DocumentRules.NonNullText(description, 4000); });
         await FolderAvailableAsync(folder, account, ct);
         Limit(await db.Plans.CountAsync(x => x.WorkspaceId == account.WorkspaceId, ct) < limits.MaximumDocuments, "Document limit exceeded.");
@@ -317,15 +324,26 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
             await access.RequireAsync("training.sets.advanced", ct);
         if (HasChangedContent(ContentFingerprints(content, true), old == null ? [] : ContentFingerprints(old, true)))
             await access.RequireAsync("training.formulas.custom", ct);
-        var ids = DocumentRules.Workouts(content).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).Distinct().ToArray();
+        var ids = DocumentRules.Workouts(content).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).Concat(BlockMaxes.Rows(content).Where(x => x.ExerciseId.HasValue).Select(x => x.ExerciseId!.Value)).Distinct().ToArray();
         if ((await catalog.SnapshotAsync(ids, ct)).Count != ids.Length)
             throw ApiException.Invalid("Some catalog exercises are unavailable.");
-        await EvaluateDocumentAsync(content, account, ct);
+        // Drafts may contain unfinished expressions. Ownership and bounded structure still apply;
+        // ApplyAsync performs the authoritative semantic validation before creating a revision.
+        var formulaIds = DocumentRules.Prescriptions(content).SelectMany(PrescriptionFormulas.Uses).Select(f => f.FormulaId).OfType<Guid>().Distinct().ToArray();
+        if (formulaIds.Length > 0 && await db.Formulas.CountAsync(f => formulaIds.Contains(f.Id) && f.OwnerId == account.UserId && f.WorkspaceId == account.WorkspaceId, ct) != formulaIds.Length)
+            throw ApiException.NotFound();
     }
     private static bool HasChangedContent(Dictionary<Guid, string> incoming, Dictionary<Guid, string> previous) => incoming.Any(x => !previous.TryGetValue(x.Key, out var old) || old != x.Value);
     private static Dictionary<Guid, string> ContentFingerprints(TrainingDocument document, bool formulas)
     {
         var result = new Dictionary<Guid, string>();
+        if (formulas)
+        {
+            foreach (var table in document.MaxesTables ?? [])
+                if (table.Rows.Any(r => r.LoadFormula != null || r.TimeFormula != null)) result[table.Id] = Hash(table.Rows.Select(r => new { r.LoadFormula, r.TimeFormula }));
+            foreach (var block in document.Blocks)
+                if (block.ExerciseMaxes?.Any(r => r.LoadFormula != null || r.TimeFormula != null) == true) result[block.Id] = Hash(block.ExerciseMaxes.Select(r => new { r.LoadFormula, r.TimeFormula }));
+        }
         foreach (var workout in DocumentRules.Workouts(document))
         {
             if (!formulas)
@@ -349,17 +367,17 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
                         }));
                     if (!formulas)
                         continue;
-                    if (set.Prescription.LoadFormula?.FormulaId != null)
+                    if (PrescriptionFormulas.Uses(set.Prescription).Any(f => f.FormulaId != null || f.Expression != null || f.VariableBindings?.Count > 0))
                         result.Add(set.Id, Hash(new
                         {
                             WorkoutId = workout.Id,
                             InstanceId = exercise.Id,
                             exercise.ExerciseId,
                             SetId = set.Id,
-                            Formula = set.Prescription.LoadFormula
+                            Formula = PrescriptionFormulas.Uses(set.Prescription).ToArray()
                         }));
                     foreach (var segment in set.Segments ?? [])
-                        if (segment.Prescription.LoadFormula?.FormulaId != null)
+                        if (PrescriptionFormulas.Uses(segment.Prescription).Any(f => f.FormulaId != null || f.Expression != null || f.VariableBindings?.Count > 0))
                             result.Add(segment.Id, Hash(new
                             {
                                 WorkoutId = workout.Id,
@@ -367,46 +385,98 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
                                 exercise.ExerciseId,
                                 SetId = set.Id,
                                 SegmentId = segment.Id,
-                                Formula = segment.Prescription.LoadFormula
+                                Formula = PrescriptionFormulas.Uses(segment.Prescription).ToArray()
                             }));
                 }
         }
         return result;
     }
-    private async Task<Dictionary<Guid, FormulaEvaluation>> EvaluateDocumentAsync(TrainingDocument doc, AccountIdentity account, CancellationToken ct)
+    private async Task<Dictionary<Guid, FormulaEvaluation>> EvaluateDocumentAsync(TrainingDocument doc, AccountIdentity account, CancellationToken ct, ClientVariablesDto? variables = null, bool structureOnly = true)
     {
         var values = new Dictionary<Guid, FormulaEvaluation>();
-        foreach (var set in DocumentRules.Sets(doc))
+        foreach (var original in doc.Blocks)
         {
-            if (set.Prescription.LoadFormula is { } f)
-                values.Add(set.Id, await EvaluateAsync(f, account, ct));
-            foreach (var segment in set.Segments ?? [])
-                if (segment.Prescription.LoadFormula is { } sf)
-                    values.Add(segment.Id, await EvaluateAsync(sf, account, ct));
+            var block = BlockMaxes.Effective(doc, original);
+            var dependencies = new Dictionary<string, Dictionary<string, string>>();
+            var rows = new List<BlockExerciseMax>();
+            foreach (var row in block.ExerciseMaxes ?? [])
+            {
+                async Task<Quantity?> ResolveMax(FormulaUse? formula, Quantity? literal, Unit output)
+                {
+                    if (formula == null) return literal;
+                    if (formula.OutputUnit is { } declared && Quantity.Dimension(declared) != Quantity.Dimension(output)) throw ApiException.Invalid("Incompatible formula output units.");
+                    var use = (row.ExerciseId is { } exerciseId ? BlockMaxes.Scope(formula, exerciseId, block) : formula) with { OutputUnit = formula.OutputUnit ?? output };
+                    var unresolved = structureOnly && FormulaBindings.NeedsClient(use) && !BlockMaxes.Resolved(use, variables?.Variables ?? []);
+                    var evaluation = await EvaluateAsync(use, account, ct, variables, unresolved);
+                    if (!unresolved && (evaluation.Result.Value <= 0 || Quantity.Dimension(output) == "time" && evaluation.Result.In(Unit.Seconds) > 86400)) throw ApiException.Invalid("Invalid format: an exercise max must be positive.");
+                    if (row.ExerciseId is { } id) dependencies[Quantity.Dimension(output) == "time" ? BlockMaxes.TimeAlias(id, row.Reps) : BlockMaxes.Alias(id, row.Reps)] = evaluation.SourceVersions ?? [];
+                    return unresolved ? null : evaluation.Result;
+                }
+                rows.Add(row with { Load = await ResolveMax(row.LoadFormula, row.Load, row.LoadUnit ?? row.Load?.Unit ?? Unit.Kg), Time = await ResolveMax(row.TimeFormula, row.Time, row.Time?.Unit ?? Unit.Seconds) });
+            }
+            block = block with { ExerciseMaxes = rows.ToArray() };
+            var scopedValues = BlockMaxes.Variables(block, variables?.Variables ?? []);
+            var versions = new Dictionary<string, string>(variables?.SourceVersions ?? []);
+            foreach (var row in block.ExerciseMaxes ?? [])
+                if (row.ExerciseId is { } id && row.Load != null) versions.Remove(BlockMaxes.Alias(id, row.Reps));
+            var scoped = new ClientVariablesDto(scopedValues, versions, []);
+            foreach (var exercise in block.Cycles.SelectMany(c => c.Days).SelectMany(d => d.Workouts).SelectMany(w => w.Exercises))
+                foreach (var set in exercise.Sets)
+                {
+                    async Task Evaluate(Guid id, Prescription prescription)
+                    {
+                        FormulaEvaluation? load = null;
+                        var fieldValues = new Dictionary<string, Quantity>();
+                        var sources = new Dictionary<string, string>();
+                        async Task<FormulaEvaluation?> Resolve(FormulaUse formula, Unit output)
+                        {
+                            if (formula.OutputUnit is { } declared && Quantity.Dimension(declared) != Quantity.Dimension(output)) throw ApiException.Invalid("Incompatible formula output units.");
+                            var use = BlockMaxes.Scope(formula, exercise.ExerciseId, block) with { OutputUnit = formula.OutputUnit ?? output };
+                            var unresolved = structureOnly && FormulaBindings.NeedsClient(use) && !BlockMaxes.Resolved(use, scopedValues);
+                            var value = await EvaluateAsync(use, account, ct, scoped, unresolved);
+                            if (unresolved) return null;
+                            foreach (var pair in value.SourceVersions ?? []) sources[pair.Key] = pair.Value;
+                            var used = (use.VariableBindings?.Values ?? Enumerable.Empty<string>()).Concat(use.Expression == null ? [] : FormulaBindings.Names(use.Expression));
+                            foreach (var alias in used)
+                                if (dependencies.TryGetValue(alias, out var versionsUsed)) foreach (var pair in versionsUsed) sources[pair.Key] = pair.Value;
+                            return value;
+                        }
+                        if (prescription.LoadFormula is { } formula) load = await Resolve(formula, prescription.LoadUnit ?? Unit.Kg);
+                        foreach (var field in prescription.FieldFormulas ?? [])
+                        {
+                            var result = await Resolve(field.Value, PrescriptionFormulas.UnitFor(field.Key));
+                            if (field.Key == "Sets" && (set != exercise.Sets[0] || exercise.Sets.Any(s => s.Kind != SetKind.Standard || s.Segments?.Length > 0))) throw ApiException.Invalid("Sets formulas apply to the first standard set of an exercise without advanced sets.");
+                            if (result != null)
+                            {
+                                try { fieldValues[field.Key] = PrescriptionFormulas.ValidateValue(field.Key, result.Result); }
+                                catch (TrainingValidationException error) { throw ApiException.Invalid(error.Message); }
+                            }
+                        }
+                        if (load != null || fieldValues.Count > 0)
+                            values.Add(id, (load ?? new FormulaEvaluation("", 1, [], fieldValues.Values.First())) with { SourceVersions = sources, FieldValues = fieldValues.Count == 0 ? null : fieldValues });
+                    }
+                    await Evaluate(set.Id, set.Prescription);
+                    foreach (var segment in set.Segments ?? []) await Evaluate(segment.Id, segment.Prescription);
+                }
         }
+        var total = DocumentRules.Workouts(doc).SelectMany(w => w.Exercises).Sum(e => e.Sets.FirstOrDefault() is { } first && values.GetValueOrDefault(first.Id)?.FieldValues?.TryGetValue("Sets", out var count) == true ? (long)count.Value : e.Sets.Length);
+        if (total > limits.Document.MaximumNodes) throw ApiException.Invalid("Calculated set count exceeds the document limit.");
         return values;
     }
-    private async Task<FormulaEvaluation> EvaluateAsync(FormulaUse use, AccountIdentity account, CancellationToken ct)
+    private async Task<FormulaEvaluation> EvaluateAsync(FormulaUse use, AccountIdentity account, CancellationToken ct, ClientVariablesDto? variables = null, bool structureOnly = false)
     {
         Validate(() => DocumentRules.ValidatePrescription(new(LoadFormula: use)));
-        FormulaDefinition definition;
+        FormulaDefinition? definition = null;
         if (use.FormulaId is { } id)
         {
             await FormulaOwnerAsync(id, account, ct);
             definition = (await db.FormulaVersions.AsNoTracking().SingleOrDefaultAsync(x => x.FormulaId == id && x.Version == use.Version, ct) ?? throw ApiException.NotFound()).Definition;
         }
-        else if (use.Version != 1 || use.BuiltIn == null || !BuiltInFormulas.TryGetValue(use.BuiltIn, out definition!))
+        else if (use.Expression == null && (use.Version != 1 || use.BuiltIn == null || !BuiltInFormulas.TryGetValue(use.BuiltIn, out definition!)))
             throw ApiException.Invalid("Unknown built-in formula version.");
-        if (use.Inputs.Count != definition.Inputs.Count || definition.Inputs.Keys.Any(x => !use.Inputs.ContainsKey(x)))
-            throw ApiException.Invalid("Formula inputs do not match the versioned declaration.");
         try
         {
-            var normalized = use.Inputs.ToDictionary(x => x.Key, x => new Quantity(x.Value.In(definition.Inputs[x.Key]), definition.Inputs[x.Key]));
-            var value = Engine.Evaluate(definition.Expression, normalized);
-            value = new(value.In(definition.OutputUnit), definition.OutputUnit);
-            if (Quantity.Dimension(value.Unit) != "mass" || value.Value < 0)
-                throw new TrainingValidationException("Load formula must produce a nonnegative mass.");
-            return new(definition.Expression, use.Version, new(use.Inputs), value);
+            return FormulaBindings.Evaluate(use, definition, variables?.Variables ?? [], variables?.SourceVersions ?? [], Engine, structureOnly && FormulaBindings.NeedsClient(use));
         }
         catch (TrainingValidationException e) { throw ApiException.Invalid(e.Message); }
         catch (OverflowException) { throw ApiException.Invalid("Formula numeric overflow."); }

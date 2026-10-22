@@ -21,9 +21,11 @@
     <Project Path="backend/modules/Billing/TrainFlow.Billing/TrainFlow.Billing.csproj" />
   </Folder>
   <Folder Name="/backend/modules/Calendar/">
+    <Project Path="backend/modules/Calendar/TrainFlow.Calendar.Contracts/TrainFlow.Calendar.Contracts.csproj" />
     <Project Path="backend/modules/Calendar/TrainFlow.Calendar/TrainFlow.Calendar.csproj" />
   </Folder>
   <Folder Name="/backend/modules/CheckIns/">
+    <Project Path="backend/modules/CheckIns/TrainFlow.CheckIns.Contracts/TrainFlow.CheckIns.Contracts.csproj" />
     <Project Path="backend/modules/CheckIns/TrainFlow.CheckIns/TrainFlow.CheckIns.csproj" />
   </Folder>
   <Folder Name="/backend/modules/Coaching/">
@@ -38,11 +40,15 @@
     <Project Path="backend/modules/Forms/TrainFlow.Forms.Contracts/TrainFlow.Forms.Contracts.csproj" />
     <Project Path="backend/modules/Forms/TrainFlow.Forms/TrainFlow.Forms.csproj" />
   </Folder>
+  <Folder Name="/backend/modules/Integrations/">
+    <Project Path="backend/modules/Integrations/TrainFlow.Integrations/TrainFlow.Integrations.csproj" />
+  </Folder>
   <Folder Name="/backend/modules/Media/">
     <Project Path="backend/modules/Media/TrainFlow.Media.Contracts/TrainFlow.Media.Contracts.csproj" />
     <Project Path="backend/modules/Media/TrainFlow.Media/TrainFlow.Media.csproj" />
   </Folder>
   <Folder Name="/backend/modules/Messaging/">
+    <Project Path="backend/modules/Messaging/TrainFlow.Messaging.Contracts/TrainFlow.Messaging.Contracts.csproj" />
     <Project Path="backend/modules/Messaging/TrainFlow.Messaging/TrainFlow.Messaging.csproj" />
   </Folder>
   <Folder Name="/backend/modules/Offers/">

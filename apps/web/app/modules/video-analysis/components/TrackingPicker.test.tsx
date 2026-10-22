@@ -41,6 +41,6 @@ it("clears markers when choosing another frame and supports keyboard point place
   fireEvent.keyDown(canvas, { key: "ArrowRight" });
   fireEvent.keyDown(canvas, { key: "Enter" });
   expect(JSON.parse(screen.getByTestId("value").textContent!).points).toEqual([{ x: 320, y: 240 }, { x: 326, y: 240 }]);
-  fireEvent.click(screen.getByRole("button", { name: "Choose another frame" }));
+  fireEvent.click(screen.getAllByRole("button", { name: "Cancel" })[0]!);
   expect(screen.getByTestId("value")).toHaveTextContent("null");
 });

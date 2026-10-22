@@ -17,6 +17,7 @@ public static class ModuleRegistration
     )
     {
         services.AddScoped<AnalysisService>();
+        services.AddScoped<IMcpAnalyticsOperations, McpAnalyticsOperations>();
         services.AddSingleton(
             new FeatureDefinition(
                 "analytics.view",
@@ -43,6 +44,20 @@ public static class ModuleRegistration
                     s.QueryAsync(q, ct)
             )
             .Produces<AnalysisOverview>();
+        routes
+            .MapGet(
+                "/context",
+                ([AsParameters] AnalysisQuery q, AnalysisService s, CancellationToken ct) =>
+                    s.ContextAsync(q, ct)
+            )
+            .Produces<AnalysisContext>();
+        routes
+            .MapGet(
+                "/messaging",
+                ([AsParameters] AnalysisQuery q, AnalysisService s, CancellationToken ct) =>
+                    s.MessagingAsync(q, ct)
+            )
+            .Produces<MessagingAnalysis>();
         routes
             .MapGet(
                 "/financial",
@@ -187,6 +202,23 @@ public sealed class AnalysisService(
         );
     }
 
+    public async Task<AnalysisContext> ContextAsync(AnalysisQuery q, CancellationToken ct)
+    {
+        var scope = await ScopeAsync(q, ct);
+        return new(scope.Window, AnalysisDates.Previous(scope.Window), await Options(scope, ct));
+    }
+
+    public async Task<MessagingAnalysis> MessagingAsync(AnalysisQuery q, CancellationToken ct) =>
+        await Messaging(await ScopeAsync(q, ct), ct);
+
+    private Task<AnalysisOptions> Options(AnalysisScope scope, CancellationToken ct) =>
+        scope.TeamId is { } teamId
+            ? coaching.TeamOptionsAsync(teamId, scope.MemberId, ct)
+            : coaching.OptionsAsync(scope.CoachId, scope.WorkspaceId, ct);
+
+    private async Task<MessagingAnalysis> Messaging(AnalysisScope scope, CancellationToken ct) =>
+        scope.TeamId is null ? await messaging.QueryAsync(scope, ct) : new(0, 0, 0);
+
     public async Task<FinancialAnalysis> FinancialAsync(AnalysisQuery q, CancellationToken ct) =>
         await finance.QueryAsync(await ScopeAsync(q, ct), ct);
 
@@ -231,8 +263,8 @@ public sealed class AnalysisService(
             await checkins.QueryAsync(scope, ct),
             await checkins.QueryAsync(prior, ct),
             await Training(scope, ct),
-            scope.TeamId is { } teamId ? await coaching.TeamOptionsAsync(teamId, scope.MemberId, ct) : await coaching.OptionsAsync(scope.CoachId, scope.WorkspaceId, ct),
-            scope.TeamId is null ? await messaging.QueryAsync(scope, ct) : new MessagingAnalysis(0, 0, 0)
+            await Options(scope, ct),
+            await Messaging(scope, ct)
         );
     }
 }

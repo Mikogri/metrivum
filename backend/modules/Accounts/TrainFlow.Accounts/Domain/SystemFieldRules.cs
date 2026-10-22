@@ -8,7 +8,7 @@ public static class SystemFieldRules
 {
     public static void Validate(IReadOnlyDictionary<SystemFieldKey, JsonElement> values)
     {
-        if (values is null || values.Count > 14)
+        if (values is null || values.Count > 15)
             throw ApiException.Invalid("Profile fields are required and bounded.");
         foreach (var (key, value) in values)
         {
@@ -41,6 +41,10 @@ public static class SystemFieldRules
                     break;
                 case SystemFieldKey.Stress:
                     Number(value, 0, 10, true);
+                    break;
+                case SystemFieldKey.Sex:
+                    if (value.ValueKind != JsonValueKind.String || value.GetString() is not ("Male" or "Female" or "Other"))
+                        throw ApiException.Invalid("Sex must be Male, Female, or Other.");
                     break;
                 case SystemFieldKey.PreferredTrainingDays:
                     if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() > 7 || value.EnumerateArray().Any(x => x.ValueKind != JsonValueKind.Number || !x.TryGetInt32(out var day) || day < 1 || day > 7) || value.EnumerateArray().Select(x => x.GetInt32()).Distinct().Count() != value.GetArrayLength())

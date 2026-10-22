@@ -535,6 +535,8 @@ public sealed class AnalyticsTests
             var name in new[]
             {
                 "overview",
+                "context",
+                "messaging",
                 "financial",
                 "clients",
                 "acquisition",
@@ -551,11 +553,18 @@ public sealed class AnalyticsTests
     [CatalogPostgresFact]
     public async Task Analytics_http_role_invalid_bounds_foreign_group_and_empty_sources()
     {
+        var commands = new AnalyticsCommands();
         using var original = new ApiFactory(Database);
         using var factory = original.WithWebHostBuilder(b =>
-            b.ConfigureServices(s =>
-                s.AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures())
-            )
+            b.ConfigureServices(s => {
+                s.AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures());
+                s.ConfigureDbContext<TrainFlow.Accounts.Infrastructure.AccountsDbContext>(options => options.AddInterceptors(commands));
+                s.ConfigureDbContext<CoachingDbContext>(options => options.AddInterceptors(commands));
+                s.ConfigureDbContext<BillingDbContext>(options => options.AddInterceptors(commands));
+                s.ConfigureDbContext<CheckInsDbContext>(options => options.AddInterceptors(commands));
+                s.ConfigureDbContext<MessagingDbContext>(options => options.AddInterceptors(commands));
+                s.ConfigureDbContext<TrainFlow.Training.Infrastructure.TrainingDbContext>(options => options.AddInterceptors(commands));
+            })
         );
         async Task<HttpClient> User(string role)
         {
@@ -619,16 +628,57 @@ public sealed class AnalyticsTests
         Assert.Null(overview.Training.Progress.CompletionPercentage);
         Assert.Empty(overview.Training.Progress.Performance);
         Assert.Null(overview.CheckIns.SubmissionRate);
+        const string current = "?from=2026-10-01&to=2026-10-08&grouping=week";
+        const string previous = "?from=2026-09-23&to=2026-09-30&grouping=week";
+        commands.Count = 0;
+        Assert.Equal(HttpStatusCode.OK, (await coach.GetAsync("/api/v1/analyze/overview" + current)).StatusCode);
+        var overviewReads = commands.Count;
+        Console.WriteLine($"Analytics cold overview: 1 HTTP request, {overviewReads} SQL reader commands.");
+        foreach (var sections in new[] {
+            new[] { "context" + current, "financial" + current, "financial" + previous },
+            new[] { "context" + current, "clients" + current, "clients" + previous, "acquisition" + current },
+            new[] { "context" + current, "check-ins" + current, "check-ins" + previous, "messaging" + current },
+            new[] { "context" + current, "training" + current },
+        })
+        {
+            commands.Count = 0;
+            foreach (var section in sections)
+                Assert.Equal(HttpStatusCode.OK, (await coach.GetAsync("/api/v1/analyze/" + section)).StatusCode);
+            Console.WriteLine($"Analytics cold {sections[1].Split('?')[0]}: {sections.Length} HTTP requests, {commands.Count} SQL reader commands.");
+            Assert.True(commands.Count < overviewReads, $"Selected tab {sections[1]} used {commands.Count} SQL commands; overview used {overviewReads}.");
+        }
         using (var isolated = original.WithWebHostBuilder(b => b.ConfigureServices(services =>
             services.AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures())
                 .AddScoped<IMessagingAnalytics>(_ => new UnexpectedMessaging()))))
         using (var training = isolated.CreateClient())
         {
             training.DefaultRequestHeaders.Authorization = coach.DefaultRequestHeaders.Authorization;
-            foreach (var section in new[] { "financial", "clients", "acquisition", "check-ins", "training" })
+            foreach (var section in new[] { "context", "financial", "clients", "acquisition", "check-ins", "training" })
                 Assert.Equal(HttpStatusCode.OK, (await training.GetAsync($"/api/v1/analyze/{section}")).StatusCode);
         }
-        foreach (var section in new[] { "financial", "clients", "acquisition", "check-ins", "training" })
+        using (var isolated = original.WithWebHostBuilder(b => b.ConfigureServices(services =>
+            services.AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures())
+                .AddScoped<IFinanceAnalytics>(_ => new UnexpectedFinance())
+                .AddScoped<ICheckInsAnalytics>(_ => new UnexpectedCheckIns())
+                .AddScoped<TrainFlow.Training.Contracts.ITrainingProgressReader>(_ => new UnexpectedTraining()))))
+        using (var light = isolated.CreateClient())
+        {
+            light.DefaultRequestHeaders.Authorization = coach.DefaultRequestHeaders.Authorization;
+            foreach (var section in new[] { "context", "clients", "acquisition", "messaging" })
+                Assert.Equal(HttpStatusCode.OK, (await light.GetAsync($"/api/v1/analyze/{section}")).StatusCode);
+        }
+        var metadata = await coach.GetAsync("/api/v1/analyze/context?from=2026-10-01&to=2026-10-08");
+        Assert.Equal(HttpStatusCode.OK, metadata.StatusCode);
+        using (var json = System.Text.Json.JsonDocument.Parse(await metadata.Content.ReadAsStringAsync()))
+        {
+            Assert.Equal("2026-10-01", json.RootElement.GetProperty("period").GetProperty("from").GetString());
+            Assert.Equal("2026-09-23", json.RootElement.GetProperty("comparisonPeriod").GetProperty("from").GetString());
+            Assert.True(json.RootElement.TryGetProperty("filters", out _));
+            Assert.False(json.RootElement.TryGetProperty("finance", out _));
+            Assert.False(json.RootElement.TryGetProperty("messaging", out _));
+        }
+        Assert.Equal(new MessagingAnalysis(0, 0, 0), await coach.GetFromJsonAsync<MessagingAnalysis>("/api/v1/analyze/messaging"));
+        foreach (var section in new[] { "context", "messaging", "financial", "clients", "acquisition", "check-ins", "training" })
         {
             Assert.Equal(HttpStatusCode.OK, (await coach.GetAsync(
                 $"/api/v1/analyze/{section}?from=2026-10-01&to=2026-10-08&grouping=week")).StatusCode);
@@ -651,6 +701,24 @@ public sealed class AnalyticsTests
     {
         public Task<MessagingAnalysis> QueryAsync(AnalysisScope scope, CancellationToken ct) =>
             throw new InvalidOperationException("Section routes must not query overview messaging.");
+    }
+
+    private sealed class UnexpectedFinance : IFinanceAnalytics
+    {
+        public Task<FinancialAnalysis> QueryAsync(AnalysisScope scope, CancellationToken ct) =>
+            throw new InvalidOperationException("Unrelated sections must not query finance.");
+    }
+
+    private sealed class UnexpectedCheckIns : ICheckInsAnalytics
+    {
+        public Task<CheckInsAnalysis> QueryAsync(AnalysisScope scope, CancellationToken ct) =>
+            throw new InvalidOperationException("Unrelated sections must not query check-ins.");
+    }
+
+    private sealed class UnexpectedTraining : TrainFlow.Training.Contracts.ITrainingProgressReader
+    {
+        public Task<TrainFlow.Training.Contracts.TrainingProgressDto> ReadAsync(TrainFlow.Training.Contracts.TrainingProgressQuery query, CancellationToken ct) =>
+            throw new InvalidOperationException("Unrelated sections must not query training.");
     }
 
     private sealed class AnalyticsCommands : DbCommandInterceptor

@@ -20,3 +20,17 @@ it("does not offer a conflicting expiry field for subscriptions", () => {
   render(<Editor model="PeriodSubscription" />);
   expect(screen.queryByRole("textbox", { name: "Validity after payment (days)" })).not.toBeInTheDocument();
 });
+
+it("makes free pricing explicit and requires a price after choosing Paid", async () => {
+  render(<Editor />);
+  expect(screen.getByRole("radio", { name: "Free" })).toHaveAttribute("aria-checked", "true");
+  expect(screen.queryByRole("textbox", { name: "Total price" })).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("radio", { name: "Paid" }));
+  const price = screen.getByRole("textbox", { name: "Total price" });
+  await userEvent.type(price, "25"); await userEvent.tab();
+  expect(JSON.parse(screen.getByTestId("options").textContent!)[0].price).toBe(25);
+  await userEvent.click(screen.getByRole("radio", { name: "Free" }));
+  const option = JSON.parse(screen.getByTestId("options").textContent!)[0];
+  expect(option.price).toBe(0);
+  expect(option.sessionCount).toBe(5);
+});

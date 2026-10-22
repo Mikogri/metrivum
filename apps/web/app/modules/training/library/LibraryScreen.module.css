@@ -108,8 +108,8 @@
     background-color 120ms ease,
     border-color 120ms ease,
     transform var(--tf-duration-press) var(--tf-ease-out);
-  animation: rise 320ms var(--tf-ease-out) both;
-  animation-delay: calc(min(var(--i), 12) * 30ms);
+  /* No delay or stagger: content shows the moment the page does. */
+  animation: rise 200ms var(--tf-ease-out) both;
 }
 
 .card[data-kind="folder"] {

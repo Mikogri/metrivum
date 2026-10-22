@@ -1222,6 +1222,124 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/training/assignments/{id}/formula-snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignmentFormulaSnapshot"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/assignments/{id}/formula-snapshot/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignmentFormulaSnapshot"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/assignments/{id}/formula-snapshot/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RefreshFormulaSnapshotRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssignmentFormulaSnapshot"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/training/activity-options": {
         parameters: {
             query?: never;
@@ -1248,6 +1366,44 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["ActivityOptionsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/analysis-set-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    relationshipId?: string;
+                    days?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisSetOptionsDto"];
                     };
                 };
             };
@@ -1874,6 +2030,167 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/clients/{relationshipId}/variables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ClientVariablesDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/clients/{relationshipId}/exercise-maxes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ClientExerciseMaxRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ClientExerciseMaxDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/clients/{relationshipId}/exercise-maxes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    relationshipId: string;
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ClientExerciseMaxRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ClientExerciseMaxDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/programs/{id}/client-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ClientPreviewRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ClientFormulaPreview"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -3570,6 +3887,245 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analyses/{id}/workout-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisWorkoutLinkDto"];
+                    };
+                };
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AnalysisWorkoutLinkRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisWorkoutLinkDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/from-coach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    executionId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachAnalysisDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/from-coach/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachAnalysisDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/from-coach/{id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    repetition?: number | string;
+                    maxPoints?: number | string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisResult"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/from-coach/{id}/video-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CoachAnalysisVideoUrl"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analyses/{id}/cancel": {
         parameters: {
             query?: never;
@@ -3686,7 +4242,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/teams/{teamId}/clients": {
+    "/api/v1/analyses/{id}/share": {
         parameters: {
             query?: never;
             header?: never;
@@ -3696,6 +4252,300 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisShareDto"];
+                    };
+                };
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": null | components["schemas"]["ShareRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisShareDto"];
+                    };
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/shared/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SharedAnalysisDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/shared/{token}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/saved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SavedAnalysisDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/shared/{token}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    repetition?: number | string;
+                    maxPoints?: number | string;
+                };
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisResult"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyses/shared/{token}/video-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SharedVideoUrl"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{teamId}/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
                 header?: never;
                 path: {
                     teamId: string;
@@ -3855,7 +4705,10 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
                 header?: never;
                 path: {
                     teamId: string;
@@ -3917,7 +4770,10 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -4042,6 +4898,8 @@ export interface paths {
                     status?: components["schemas"]["RelationshipStatus"];
                     groupIds?: string[];
                     teamId?: string;
+                    offerId?: string;
+                    offerCategory?: string;
                 };
                 header?: never;
                 path?: never;
@@ -4700,6 +5558,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/forms/summaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    purpose: components["schemas"]["FormPurpose"];
+                    archived?: boolean;
+                    search?: string;
+                    sort?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormSummaryListDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/forms/{id}": {
         parameters: {
             query?: never;
@@ -5134,7 +6034,29 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch: {
@@ -6281,6 +7203,7 @@ export interface paths {
                 query?: {
                     search?: string;
                     limit?: number | string;
+                    page?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -6730,7 +7653,10 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    page?: number | string;
+                    limit?: number | string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -9205,7 +10131,10 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
                 header?: never;
                 path: {
                     id: string;
@@ -10280,6 +11209,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analyze/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    From?: string;
+                    To?: string;
+                    TimeZone?: string;
+                    Grouping?: string;
+                    GroupId?: string;
+                    OfferRevisionId?: string;
+                    Scope?: string;
+                    MemberId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AnalysisContext"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analyze/messaging": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    From?: string;
+                    To?: string;
+                    TimeZone?: string;
+                    Grouping?: string;
+                    GroupId?: string;
+                    OfferRevisionId?: string;
+                    Scope?: string;
+                    MemberId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessagingAnalysis"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analyze/financial": {
         parameters: {
             query?: never;
@@ -11132,6 +12149,469 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/ai-integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConnectionDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-integrations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConnectionDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-integrations/{id}/grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GrantUpdate"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConnectionDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/me/ai-integrations/{id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConnectionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-consent/{authorizationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    authorizationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConsentDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    authorizationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConsentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConsentResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-consent/{authorizationId}/deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    authorizationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RedirectResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PendingActionDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-actions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PendingActionDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-actions/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ActionDecision"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PendingActionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-actions/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ActionDecision"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PendingActionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-programming-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PreferencesDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PreferencesUpdate"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PreferencesDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -11191,6 +12671,10 @@ export interface components {
             pending: number | string;
             /** Format: double */
             conversionPercent: null | number | string;
+        };
+        ActionDecision: {
+            /** Format: int64 */
+            expectedVersion: number | string;
         };
         ActivityOptionsDto: {
             programs: components["schemas"]["ActivityProgramOption"][];
@@ -11262,6 +12746,12 @@ export interface components {
             /** @default unspecified */
             movement: string;
             tracking?: null | components["schemas"]["AnalysisTracking"];
+            exercise?: null | string;
+        };
+        AnalysisContext: {
+            period: components["schemas"]["AnalysisWindow"];
+            comparisonPeriod: components["schemas"]["AnalysisWindow"];
+            filters: components["schemas"]["AnalysisOptions"];
         };
         AnalysisDto: {
             /** Format: uuid */
@@ -11291,6 +12781,12 @@ export interface components {
             workoutExecutionId?: null | string;
             /** Format: uuid */
             setId?: null | string;
+        };
+        AnalysisExerciseOptionDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            sets: components["schemas"]["AnalysisSetOptionDto"][];
         };
         AnalysisOptions: {
             groups: components["schemas"]["GroupAnalysis"][];
@@ -11348,6 +12844,52 @@ export interface components {
             trajectory: components["schemas"]["TrajectoryPoint"][];
             warnings: string[];
         };
+        AnalysisSetOptionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            number: number | string;
+            skipped: boolean;
+            /** Format: int32 */
+            reps: null | number | string;
+            /** Format: double */
+            load: null | number | string;
+            loadUnit: null | string;
+            /** Format: double */
+            rpe: null | number | string;
+        };
+        AnalysisSetOptionsDto: {
+            workouts: components["schemas"]["AnalysisWorkoutOptionDto"][];
+        };
+        AnalysisSetReference: {
+            /** Format: uuid */
+            executionId: string;
+            /** Format: uuid */
+            setId: null | string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            clientId: string;
+            clientName: string;
+            /** Format: date */
+            performedDate: string;
+            workoutName: string;
+            exerciseName: null | string;
+            /** Format: int32 */
+            setNumber: null | number | string;
+            /** Format: int32 */
+            reps: null | number | string;
+            /** Format: double */
+            load: null | number | string;
+            loadUnit: null | string;
+        };
+        AnalysisShareDto: {
+            token: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @default false */
+            allowSave: boolean;
+        };
         AnalysisSourceVideo: {
             origin: string;
             /** Format: double */
@@ -11383,6 +12925,39 @@ export interface components {
             /** Format: date-time */
             end: string;
         };
+        AnalysisWorkoutLinkDto: {
+            set: components["schemas"]["AnalysisSetReference"];
+            sharedWithClient: boolean;
+        };
+        AnalysisWorkoutLinkRequest: {
+            /** Format: uuid */
+            workoutExecutionId: string;
+            /** Format: uuid */
+            setId: null | string;
+            /** @default false */
+            shareWithClient: boolean;
+        };
+        AnalysisWorkoutOptionDto: {
+            /** Format: uuid */
+            executionId: string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            clientId: string;
+            clientName: string;
+            /** Format: date */
+            performedDate: string;
+            workoutName: string;
+            status: string;
+            exercises: components["schemas"]["AnalysisExerciseOptionDto"][];
+        };
+        /** @enum {unknown} */
+        AnnotationKind: "Comment" | "Goal";
+        /**
+         * @default Coach
+         * @enum {unknown}
+         */
+        AnnotationVisibility: "Coach" | "Client";
         AnonymousTypeOfAnonymousTypeOfstringAndlongAndAnonymousTypeOfstringAndbooleanAndlong: {
             assignment: components["schemas"]["AnonymousTypeOfstringAndlong"];
             overrides: null | components["schemas"]["AnonymousTypeOfstringAndbooleanAndlong"][];
@@ -11439,7 +13014,7 @@ export interface components {
         ApplicationDetailDto: {
             application: components["schemas"]["ApplicationDto"];
             offerRevision: components["schemas"]["OfferRevisionDto"];
-            formVersion: components["schemas"]["FormVersionDto"];
+            formVersion: null | components["schemas"]["FormVersionDto"];
             answers: {
                 [key: string]: unknown;
             };
@@ -11486,6 +13061,7 @@ export interface components {
             /** Format: uuid */
             serviceId: null | string;
             allowedActions: string[];
+            offerCategory?: null | string;
         };
         /** @enum {unknown} */
         ApplicationSource: "Direct" | "Invitation";
@@ -11545,6 +13121,22 @@ export interface components {
             /** Format: int64 */
             version: number | string;
             allowedActions: string[];
+            /** Format: uuid */
+            clientId?: null | string;
+            clientDisplayName?: null | string;
+            clientUsername?: null | string;
+        };
+        AssignmentFormulaSnapshot: {
+            variables: {
+                [key: string]: components["schemas"]["Quantity"];
+            };
+            sourceVersions: {
+                [key: string]: string;
+            };
+            evaluations: {
+                [key: string]: components["schemas"]["FormulaEvaluation"];
+            };
+            stale: boolean;
         };
         AssignmentRecipientDto: {
             /** Format: uuid */
@@ -11667,6 +13259,18 @@ export interface components {
             name: string;
             description: string;
             cycles: components["schemas"]["Cycle"][];
+            exerciseMaxes?: null | components["schemas"]["BlockExerciseMax"][];
+        };
+        BlockExerciseMax: {
+            /** Format: uuid */
+            exerciseId: null | string;
+            /** Format: int32 */
+            reps: number | string;
+            load?: null | components["schemas"]["Quantity"];
+            loadFormula?: null | components["schemas"]["FormulaUse"];
+            loadUnit?: null | components["schemas"]["Unit"];
+            time?: null | components["schemas"]["Quantity"];
+            timeFormula?: null | components["schemas"]["FormulaUse"];
         };
         CalendarPageOfEventDto: {
             items: components["schemas"]["EventDto"][];
@@ -11806,6 +13410,41 @@ export interface components {
             /** Format: date-time */
             nextDueAtUtc: null | string;
         };
+        ClientExerciseMaxDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            exerciseId: string;
+            /** Format: int32 */
+            reps: number | string;
+            load: components["schemas"]["Quantity"];
+            /** Format: date */
+            recordedOn: string;
+            alias: string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        ClientExerciseMaxRequest: {
+            /** Format: uuid */
+            exerciseId: string;
+            /** Format: int32 */
+            reps: number | string;
+            load: components["schemas"]["Quantity"];
+            /** Format: date */
+            recordedOn: string;
+            alias: string;
+        };
+        ClientFormulaPreview: {
+            variables: {
+                [key: string]: components["schemas"]["Quantity"];
+            };
+            sourceVersions: {
+                [key: string]: string;
+            };
+            evaluations: {
+                [key: string]: components["schemas"]["FormulaEvaluation"];
+            };
+        };
         ClientPoint: {
             /** Format: date */
             date: string;
@@ -11817,6 +13456,11 @@ export interface components {
             reactivated: number | string;
             /** Format: int32 */
             departed: number | string;
+        };
+        ClientPreviewRequest: {
+            /** Format: uuid */
+            relationshipId: string;
+            document?: null | components["schemas"]["TrainingDocument"];
         };
         ClientRelationshipDto: {
             /** Format: uuid */
@@ -11848,6 +13492,24 @@ export interface components {
             retentionPercent: null | number | string;
             series: components["schemas"]["ClientPoint"][];
             groups: components["schemas"]["GroupAnalysis"][];
+        };
+        ClientVariablesDto: {
+            variables: {
+                [key: string]: components["schemas"]["Quantity"];
+            };
+            sourceVersions: {
+                [key: string]: string;
+            };
+            exerciseMaxes: components["schemas"]["ClientExerciseMaxDto"][];
+        };
+        CoachAnalysisDto: {
+            analysis: components["schemas"]["AnalysisDto"];
+            set: components["schemas"]["AnalysisSetReference"];
+        };
+        CoachAnalysisVideoUrl: {
+            url: string;
+            /** Format: date-time */
+            expiresAt: string;
         };
         CoachApplicationDetailDto: {
             detail: components["schemas"]["ApplicationDetailDto"];
@@ -11884,7 +13546,7 @@ export interface components {
             /** Format: uuid */
             offerRevisionId: string;
             /** Format: uuid */
-            formVersionId: string;
+            formVersionId: null | string;
             title: string;
         };
         /** @enum {unknown} */
@@ -11927,6 +13589,36 @@ export interface components {
             /** Format: int64 */
             expectedVersion: number | string;
             grantedFeatures: string[];
+        };
+        ConnectionDto: {
+            /** Format: uuid */
+            id: string;
+            clientId: string;
+            clientName: string;
+            grants: string[];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            lastUsedAt: null | string;
+            /** Format: date-time */
+            revokedAt: null | string;
+            /** Format: int64 */
+            version: number | string;
+        };
+        ConsentDetails: {
+            authorizationId: string;
+            clientId: string;
+            clientName: string;
+            redirectUri: string;
+            scopes: string[];
+            availableGrants: string[];
+        };
+        ConsentRequest: {
+            grants: string[];
+        };
+        ConsentResult: {
+            redirectUrl: string;
+            connection: components["schemas"]["ConnectionDto"];
         };
         ContactRequest: {
             /** Format: uuid */
@@ -12013,6 +13705,8 @@ export interface components {
             relationshipId: string;
             offerName: string;
             currentBilling: null | components["schemas"]["ServiceBillingState"];
+            coachingMode?: null | components["schemas"]["CoachingMode"];
+            offerCategory?: null | string;
         };
         Cycle: {
             /** Format: uuid */
@@ -12293,6 +13987,13 @@ export interface components {
             createdAt: string;
             primaryMuscleKeys: string[];
         };
+        ExerciseMaxesTable: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            blockId: null | string;
+            rows: components["schemas"]["BlockExerciseMax"][];
+        };
         ExerciseRevisionDto: {
             /** Format: int32 */
             version: number | string;
@@ -12437,6 +14138,31 @@ export interface components {
             /** Format: date-time */
             submittedAt: string;
         };
+        FormSummaryDto: {
+            /** Format: uuid */
+            id: string;
+            purpose: components["schemas"]["FormPurpose"];
+            name: string;
+            description: string;
+            /** Format: uuid */
+            currentPublishedVersionId: null | string;
+            archived: boolean;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number | string;
+            /** Format: int32 */
+            questionCount: number | string;
+        };
+        FormSummaryListDto: {
+            items: components["schemas"]["FormSummaryDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
+        };
         FormTemplateDto: {
             /** Format: uuid */
             id: string;
@@ -12489,6 +14215,12 @@ export interface components {
                 [key: string]: components["schemas"]["Quantity"];
             };
             result: components["schemas"]["Quantity"];
+            sourceVersions?: null | {
+                [key: string]: string;
+            };
+            fieldValues?: null | {
+                [key: string]: components["schemas"]["Quantity"];
+            };
         };
         FormulaListItem: {
             /** Format: uuid */
@@ -12511,6 +14243,11 @@ export interface components {
             inputs: {
                 [key: string]: components["schemas"]["Quantity"];
             };
+            expression?: null | string;
+            variableBindings?: null | {
+                [key: string]: string;
+            };
+            outputUnit?: null | components["schemas"]["Unit"];
         };
         FormVersionDto: {
             /** Format: uuid */
@@ -12657,6 +14394,11 @@ export interface components {
             setupSeconds: number | string;
             repetitionCounting: string;
         };
+        GrantUpdate: {
+            grants: string[];
+            /** Format: int64 */
+            expectedVersion: number | string;
+        };
         GroupAnalysis: {
             /** Format: uuid */
             id: string;
@@ -12773,6 +14515,11 @@ export interface components {
             exercises: {
                 [key: string]: string;
             };
+        };
+        McpMessageRecipient: {
+            /** Format: uuid */
+            userId: string;
+            displayName: string;
         };
         MeasurementDefinition: {
             key: string;
@@ -13049,7 +14796,7 @@ export interface components {
             category: string;
             coachingMode: components["schemas"]["CoachingMode"];
             /** Format: uuid */
-            applicationFormVersionId: string;
+            applicationFormVersionId: null | string;
             tags: string[];
             billingOptions: components["schemas"]["BillingOptionSnapshot"][];
             status: components["schemas"]["OfferStatus"];
@@ -13065,6 +14812,8 @@ export interface components {
             teamId?: null | string;
             teamName?: null | string;
             purpose?: components["schemas"]["OfferPurpose"];
+            /** @default false */
+            hasClientHistory: boolean;
         };
         OfferListDto: {
             items: components["schemas"]["OfferDto"][];
@@ -13086,7 +14835,7 @@ export interface components {
             category: string;
             coachingMode: components["schemas"]["CoachingMode"];
             /** Format: uuid */
-            applicationFormVersionId: string;
+            applicationFormVersionId: null | string;
             tags: string[];
             billingOptions: components["schemas"]["BillingOptionSnapshot"][];
             /** Format: uuid */
@@ -13122,7 +14871,7 @@ export interface components {
             coachingMode: components["schemas"]["CoachingMode"];
             tags: string[];
             /** Format: uuid */
-            applicationFormVersionId: string;
+            applicationFormVersionId: null | string;
             currency: string;
             billingOptions: components["schemas"]["BillingOptionSnapshot"][];
             /** Format: date-time */
@@ -13429,6 +15178,34 @@ export interface components {
             paymentMethodId: null | string;
             idempotencyKey: string;
         };
+        PendingActionDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            connectionId: string;
+            clientName: string;
+            type: string;
+            status: string;
+            /** Format: uuid */
+            conversationId: string;
+            conversationTitle: string;
+            recipients: components["schemas"]["McpMessageRecipient"][];
+            body: string;
+            payloadHash: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            approvedAt: null | string;
+            /** Format: date-time */
+            executedAt: null | string;
+            /** Format: uuid */
+            messageId: null | string;
+            /** Format: int64 */
+            version: number | string;
+            reviewUrl: string;
+        };
         /** @enum {unknown} */
         PeriodUnit: "Week" | "Month" | "Year" | null;
         PersonDto: {
@@ -13436,6 +15213,16 @@ export interface components {
             id: string;
             displayName: string;
             username: null | string;
+        };
+        PlanAnnotation: {
+            /** Format: uuid */
+            id: string;
+            kind: components["schemas"]["AnnotationKind"];
+            title: string;
+            content: string;
+            /** Format: uuid */
+            targetId?: null | string;
+            visibility?: components["schemas"]["AnnotationVisibility"];
         };
         PlanChangeDto: {
             /** Format: uuid */
@@ -13556,6 +15343,18 @@ export interface components {
             coaching: boolean;
             system: boolean;
         };
+        PreferencesDto: {
+            note: string;
+            shareWithIntegrations: boolean;
+            /** Format: int64 */
+            version: number | string;
+        };
+        PreferencesUpdate: {
+            note: string;
+            shareWithIntegrations: boolean;
+            /** Format: int64 */
+            expectedVersion: number | string;
+        };
         Prescription: {
             reps?: null | components["schemas"]["IntRange"];
             load?: null | components["schemas"]["QuantityRange"];
@@ -13572,6 +15371,10 @@ export interface components {
             distance?: null | components["schemas"]["Quantity"];
             comment?: null | string;
             loadFormula?: null | components["schemas"]["FormulaUse"];
+            loadUnit?: null | components["schemas"]["Unit"];
+            fieldFormulas?: null | {
+                [key: string]: components["schemas"]["FormulaUse"];
+            };
         };
         ProfileFieldsRequest: {
             values: {
@@ -13657,9 +15460,17 @@ export interface components {
         };
         /** @enum {unknown} */
         RecurrenceKind: "OneTime" | "EveryNDays" | "EveryNWeeks" | "Monthly" | "AssignedProgramCycle";
+        RedirectResult: {
+            redirectUrl: string;
+        };
         RefreshAssignmentRequest: {
             /** Format: uuid */
             revisionId: string;
+        };
+        RefreshFormulaSnapshotRequest: {
+            sourceVersions: {
+                [key: string]: string;
+            };
         };
         RegisterPushDeviceRequest: {
             expoPushToken: string;
@@ -13821,6 +15632,20 @@ export interface components {
             /** Format: uuid */
             setId?: null | string;
         };
+        SavedAnalysisDto: {
+            token: string;
+            /** Format: uuid */
+            analysisId: string;
+            name: string;
+            ownerName: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            completedAt: null | string;
+            /** Format: date-time */
+            savedAt: string;
+            hasVideo: boolean;
+        };
         SaveExecutionRequest: {
             /** Format: date */
             performedDate: string;
@@ -13945,11 +15770,36 @@ export interface components {
          * @enum {unknown}
          */
         SettlementMode: "Simulated" | "External";
+        SharedAnalysisDto: {
+            name: string;
+            configuration: components["schemas"]["AnalysisConfiguration"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            completedAt: null | string;
+            hasVideo: boolean;
+            sourceVideo: null | components["schemas"]["AnalysisSourceVideo"];
+            /** @default false */
+            allowSave: boolean;
+            /** @default false */
+            saved: boolean;
+            /** @default false */
+            own: boolean;
+            ownerName?: null | string;
+        };
+        SharedVideoUrl: {
+            url: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
         ShareOfferFormRequest: {
             /** Format: uuid */
             userId: string;
             /** Format: uuid */
             offerId: string;
+        };
+        ShareRequest: {
+            allowSave: boolean;
         };
         SimulatedMethodRequest: {
             label: string;
@@ -14003,7 +15853,7 @@ export interface components {
             };
         };
         /** @enum {unknown} */
-        SystemFieldKey: "Height" | "Weight" | "BodyFat" | "HrMax" | "TrainingExperience" | "ActivityLevel" | "AvailableEquipment" | "PreferredTrainingDays" | "SessionsPerWeek" | "AvailableSessionDuration" | "Sleep" | "Stress" | "InjuriesLimitationsPainNotes" | "AdditionalNotes" | null;
+        SystemFieldKey: "Height" | "Weight" | "BodyFat" | "HrMax" | "TrainingExperience" | "ActivityLevel" | "AvailableEquipment" | "PreferredTrainingDays" | "SessionsPerWeek" | "AvailableSessionDuration" | "Sleep" | "Stress" | "InjuriesLimitationsPainNotes" | "AdditionalNotes" | "Sex" | null;
         TagDto: {
             /** Format: uuid */
             id: string;
@@ -14289,6 +16139,8 @@ export interface components {
             /** Format: int32 */
             schemaVersion: number | string;
             blocks: components["schemas"]["Block"][];
+            maxesTables?: null | components["schemas"]["ExerciseMaxesTable"][];
+            annotations?: null | components["schemas"]["PlanAnnotation"][];
         };
         TrainingPerformancePoint: {
             /** Format: uuid */
@@ -14410,6 +16262,8 @@ export interface components {
             name: string;
             note: null | string;
             tags: string[];
+            movement?: null | string;
+            exercise?: null | string;
         };
         UpdateExerciseRequest: {
             /** Format: int32 */
@@ -14469,6 +16323,7 @@ export interface components {
             formulas: {
                 [key: string]: components["schemas"]["FormulaEvaluation"];
             };
+            annotations?: null | components["schemas"]["PlanAnnotation"][];
         };
     };
     responses: never;

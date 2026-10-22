@@ -28,6 +28,10 @@ import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { setArchived } from "../api";
 import { PublishDialog } from "../components/PublishDialog";
+import { useFormatRefusal } from "../components/FormatBanner";
+import { FormatIssues } from "../components/FormatIssues";
+import { DraftState } from "../components/DraftState";
+import { useDocumentIssues } from "../editor/useDocumentIssues";
 import { useExerciseNames } from "~/modules/exercises";
 import { SheetCanvas, usePersistentSheet } from "../editor/components/SheetCanvas";
 import { WeekView } from "../editor/components/WeekView";
@@ -64,6 +68,8 @@ function ProgramDetail() {
     storeMode(next);
   };
   const names = useExerciseNames(query.data ? uniqueExerciseIds(query.data.data.document) : []);
+  const issues = useDocumentIssues(query.data?.data.document, names);
+  const [refusal] = useFormatRefusal(programId);
 
   const archive = useMutation({
     mutationFn: (archived: boolean) => setArchived(api, programId, archived, query.data!.version),
@@ -153,6 +159,8 @@ function ProgramDetail() {
             {t.draft}
           </h2>
           <Badge size="sm">{m.common.version(version)}</Badge>
+          <DraftState planId={plan.id} draftVersion={version} />
+          <FormatIssues compact issues={[...issues, ...(refusal && !issues.length ? [refusal] : [])]} />
         </div>
         <dl className={styles.stats}>
           {[stats.blocks, stats.cycles, stats.days, stats.exercises].map((n, i) => {
@@ -232,7 +240,7 @@ function ProgramDetail() {
       </Card>
 
       {!isTemplate && <AssignmentList programId={plan.id} />}
-      <PublishDialog planId={plan.id} version={version} isOpen={publishOpen} onOpenChange={setPublishOpen} />
+      <PublishDialog planId={plan.id} version={version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={issues} />
       <ExportDialog planId={plan.id} planName={plan.name} isOpen={exportOpen} onOpenChange={setExportOpen} />
       <CopyPlanDialog
         plan={copyOpen ? { id: plan.id, name: plan.name, description: plan.description, kind: plan.kind, folderId: plan.folderId, archived: plan.archived, version, updatedAt: plan.updatedAt } : null}

@@ -18,6 +18,61 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class TeamCoachingTests
 {
+    [CatalogPostgresFact]
+    public async Task Team_lists_page_authorized_rows_with_stable_ties_and_preserve_legacy_arrays()
+    {
+        await using var f = new Fixture();
+        await f.Seed();
+        await using var admin = f.Scope(f.Admin);
+        var cases = Enumerable.Range(0, 3).Select(_ => new TeamClientCase
+        {
+            TeamId = f.Team, ClientId = Guid.NewGuid(), CreatedAt = f.Clock.Now
+        }).ToArray();
+        admin.Db.AddRange(cases);
+        admin.Db.Add(new TeamClientCase { TeamId = Guid.NewGuid(), ClientId = Guid.NewGuid(), CreatedAt = f.Clock.Now.AddDays(1) });
+        foreach (var row in cases.Take(2))
+            admin.Db.Add(new TeamCoachAssignment
+            {
+                TeamId = f.Team, TeamClientCaseId = row.Id, CoachId = f.Coach,
+                AssignedBy = f.Admin, StartedAt = f.Clock.Now
+            });
+        var requests = Enumerable.Range(0, 3).Select(i => new ClientTransferRequest
+        {
+            RelationshipId = f.Personal, TeamId = f.Team, ClientId = f.Client,
+            ProposedBy = i == 2 ? f.OtherCoach : f.Coach, Status = "Declined",
+            CreatedAt = f.Clock.Now, ExpiresAt = f.Clock.Now.AddDays(1)
+        }).ToArray();
+        admin.Db.AddRange(requests);
+        await admin.Db.SaveChangesAsync();
+
+        var allCases = await admin.Service.ListAsync(f.Team, default);
+        Assert.Equal(3, allCases.Length);
+        Assert.Equal(allCases.Take(2).Select(x => x.Id), (await admin.Service.ListAsync(f.Team, default, 1, 2)).Select(x => x.Id));
+        Assert.Equal(allCases.Skip(2).Select(x => x.Id), (await admin.Service.ListAsync(f.Team, default, 2, 2)).Select(x => x.Id));
+        Assert.Empty(await admin.Service.ListAsync(f.Team, default, 3, 2));
+        var allRequests = await admin.Service.RequestsAsync(f.Team, default);
+        Assert.Equal(3, allRequests.Length);
+        Assert.Equal(allRequests.Skip(2).Select(x => x.Id), (await admin.Service.RequestsAsync(f.Team, default, 2, 2)).Select(x => x.Id));
+
+        await using var coach = f.Scope(f.Coach);
+        var visibleCases = await coach.Service.ListAsync(f.Team, default);
+        Assert.Equal(2, visibleCases.Length);
+        Assert.Equal(visibleCases.Skip(1).Select(x => x.Id), (await coach.Service.ListAsync(f.Team, default, 2, 1)).Select(x => x.Id));
+        var visibleRequests = await coach.Service.RequestsAsync(f.Team, default);
+        Assert.Equal(2, visibleRequests.Length);
+        Assert.Equal(visibleRequests.Skip(1).Select(x => x.Id), (await coach.Service.RequestsAsync(f.Team, default, 2, 1)).Select(x => x.Id));
+        await using var client = f.Scope(f.Client);
+        var incoming = await client.Service.IncomingAsync(default);
+        Assert.Equal(3, incoming.Length);
+        Assert.Equal(incoming.Skip(2).Select(x => x.Id), (await client.Service.IncomingAsync(default, 2, 2)).Select(x => x.Id));
+        foreach (var (page, size) in new[] { (0, 25), (1000001, 25), (1, 0), (1, 101) })
+        {
+            Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => admin.Service.ListAsync(f.Team, default, page, size))).Status);
+            Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => admin.Service.RequestsAsync(f.Team, default, page, size))).Status);
+            Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => client.Service.IncomingAsync(default, page, size))).Status);
+        }
+    }
+
     [Fact]
     public void Organizational_cases_are_separate_from_unique_personal_relationships()
     {

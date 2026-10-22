@@ -6,13 +6,13 @@
 | --- | --- | --- |
 | Relationships | `/app/clients`, `/app/groups`, `/app/my-coaches` | Paged lists, group membership, explicit relationship status changes and history. |
 | Forms | `/app/forms`, `/app/forms/new`, `/app/forms/:formId` | Application/check-in builder, typed questions, preview, publish, duplicate and archive. |
-| Offers | `/app/offers`, `/app/coaches/:coachId/offers` | Billing-option editor and authenticated client browsing/application entry. |
+| Offers | `/app/offers`, `/app/coaches/:coachId/offers` | Billing-option editor and authenticated client browsing/application entry. Only a never-published draft can be deleted (`DELETE /api/v1/offers/{id}`); published offers keep immutable terms and are archived instead (409 `OFFER_PUBLISHED`). `hasClientHistory` explains why archiving is the only option once clients have used an offer. |
 | Intake | `/app/leads`, `/app/my-applications`, `/app/invitations`, `/app/my-invitations` | Private drafts, explicit submission, frozen terms, acceptance/rejection and in-app invitations. |
 | Services | `/app/clients/:relationshipId/services`, `/app/my-coaches/:relationshipId/services`, `/app/services/:serviceId` | Accepted terms and independent service completion; coach billing history. |
 | Check-ins | `/app/check-ins`, `/app/my-check-ins`, `/app/check-in-schedules` | Recipient selection, recurrence/timezone, typed answers, late status, review and private coach notes. |
 | Billing | `/app/payments`, `/app/earnings`, `/app/coaching-preferences` | Simulated methods/payment retries, external receipts, currency-separated totals and account currency. |
 
-Navigation follows server-owned account roles. Feature checks and returned `allowedActions` control writes. API errors remain visible; failed requests never fall back to mock data. A sole valid form/payment method is selected automatically, and missing prerequisites explain the next action.
+Navigation follows server-owned account roles. Feature checks and returned `allowedActions` control writes. API errors remain visible; failed requests never fall back to mock data. New offers default to **No application form**, even when a published form is available. Clients still submit explicitly and accept Team scope where required; coaches still accept or decline. Pricing explicitly selects **Free** or **Paid** per option, preserving session, package and validity rules. Other flows select a sole valid prerequisite automatically and explain missing prerequisites.
 
 Editors protect browser unload, in-app navigation and account switching. Clean editors refresh when server versions change; dirty inputs stay local until saved or explicitly discarded. A 412 offers reload with confirmation. Form choice values preserve booleans/zero/numbers and stable keys. Equipment keys use readable shared names with underscores; weekday profile fields use ISO 1–7, while schedule recurrence uses Sunday=0.
 

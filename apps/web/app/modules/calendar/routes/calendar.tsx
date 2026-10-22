@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Calendar — TrainFlow");
+
 import { useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { today } from "@internationalized/date";

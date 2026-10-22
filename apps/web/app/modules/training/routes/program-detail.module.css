@@ -110,8 +110,8 @@
 }
 
 .revisions li {
-  animation: rise 320ms var(--tf-ease-out) both;
-  animation-delay: calc(var(--i) * 40ms);
+  /* No delay or stagger: content shows the moment the page does. */
+  animation: rise 200ms var(--tf-ease-out) both;
 }
 
 @keyframes rise {
@@ -136,4 +136,8 @@
     padding-left: 0;
     border-left: 0;
   }
+}
+
+.formatBanner {
+  margin-bottom: var(--tf-space-4);
 }

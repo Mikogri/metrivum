@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Group details — TrainFlow");
+
 import { Archive, ArchiveRestore, MoreHorizontal, Pencil, UserMinus, UserPlus, UsersRound } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
@@ -7,6 +11,7 @@ import {
   Avatar,
   Badge,
   Button,
+  Alert,
   DataTable,
   Dialog,
   DialogFooter,
@@ -16,6 +21,7 @@ import {
   DropdownMenuTrigger,
   EmptyState,
   IconButton,
+  LinkButton,
   Option,
   PageHeader,
   Select,
@@ -27,7 +33,7 @@ import {
 import { RequireFeature } from "~/shared/access";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
-import { useCoachingMutation, useCoachingQuery, type Group, type Page, type Relationship } from "../api";
+import { groupInvalidation, useCoachingMutation, useCoachingQuery, type Group, type Page, type Relationship } from "../api";
 import { Failure, ListPagination, Loading, MutationError, StatusBadge } from "../components";
 import { GroupEditor } from "./clients";
 import styles from "../coaching.module.css";
@@ -43,12 +49,12 @@ function GroupDetail() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(false);
   const [removing, setRemoving] = useState<Relationship | null>(null);
-  const mutation = useCoachingMutation();
+  const mutation = useCoachingMutation(undefined, groupInvalidation);
   const { ask, dialog: confirmDialog } = useDangerConfirm();
   const remove = useCoachingMutation(() => {
     setRemoving(null);
     toast({ tone: "success", title: "Client removed from the group" });
-  });
+  }, groupInvalidation);
   if (group.isPending || members.isPending) return <Loading />;
   if (group.isError || members.isError) return <Failure error={group.error ?? members.error} retry={() => { void group.refetch(); void members.refetch(); }} />;
   const g = group.data;
@@ -180,20 +186,28 @@ function AddMemberDialog({ group, close }: { group: Group; close: () => void }) 
   const mutation = useCoachingMutation(() => {
     toast({ tone: "success", title: "Client added to the group" });
     close();
-  });
+  }, groupInvalidation);
   const available = clients.data?.items.filter((client) => !client.groupIds.includes(group.id)) ?? [];
   return (
     <Dialog isOpen title="Add a client" description={group.teamId ? "Choose one of your assigned Team coaching cases." : "Choose a client from your private coaching practice."} onOpenChange={(open) => { if (!open && !mutation.isPending) close(); }}>
       <form className={styles.form} onSubmit={(event) => { event.preventDefault(); mutation.mutate({ method: "PUT", path: `/api/v1/coaching/groups/${group.id}/members/${relationshipId}`, ifMatch: group.version }); }}>
-        {clients.isPending ? <Loading /> : clients.isError ? <Failure error={clients.error} retry={() => void clients.refetch()} /> : (
-          <Select label="Client" placeholder={available.length ? "Choose a client" : "Everyone is already in this group"} isRequired isDisabled={!available.length} selectedKey={relationshipId || null} onSelectionChange={(key) => setRelationship(String(key))}>
+        {clients.isPending ? <Loading /> : clients.isError ? <Failure error={clients.error} retry={() => void clients.refetch()} /> : !clients.data.items.length ? (
+          <Alert tone="info" title={group.teamId ? "No Team clients assigned to you" : "No active clients yet"} actions={group.teamId ? undefined : <LinkButton href="/app/clients" size="sm">Open clients</LinkButton>}>
+            {group.teamId ? "Only Team clients assigned to you can join this group." : "Groups contain your active clients. Invite a client or accept an application first."}
+          </Alert>
+        ) : !available.length ? (
+          <Alert tone="info" title="Everyone is already in this group">All {clients.data.items.length} of your active clients are members. New clients can be added once they join.</Alert>
+        ) : (
+          <Select label="Client" placeholder="Choose a client" isRequired selectedKey={relationshipId || null} onSelectionChange={(key) => setRelationship(String(key))}>
             {available.map((client) => <Option key={client.id} id={client.id}>{client.client.displayName || client.client.username}</Option>)}
           </Select>
         )}
         <MutationError error={mutation.error} />
         <DialogFooter>
-          <Button onPress={close} isDisabled={mutation.isPending}>Cancel</Button>
-          <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!relationshipId}>Add to group</Button>
+          {clients.data && !available.length ? <Button onPress={close}>Close</Button> : <>
+            <Button onPress={close} isDisabled={mutation.isPending}>Cancel</Button>
+            <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!relationshipId}>Add to group</Button>
+          </>}
         </DialogFooter>
       </form>
     </Dialog>

@@ -251,6 +251,10 @@ function Tasks({ data, currency }: { data: Overview | undefined; currency: strin
 
 /** A plan limit this large is no limit at all (the API sends the int64 maximum). */
 const UNLIMITED = 1e12;
+/** Discovery boosts are not live yet: the block stays in the code, hidden until the feature ships. */
+const SHOW_BOOST = false;
+/** The other plan limits listed under active clients (sizes in bytes are left to Settings). */
+const OTHER_LIMITS = ["training.documents", "training.formulas", "analysis.concurrent"];
 
 /**
  * Usage shows the one limit that shapes a coaching business: active clients. Under it, discovery
@@ -263,6 +267,7 @@ export function UsagePanel() {
   const access = useAccessSnapshot();
   const [boost, setBoost] = useState("7");
   const limit = access.data?.limits.find((l) => l.key === "coaching.active-clients");
+  const otherLimits = OTHER_LIMITS.map((key) => access.data?.limits.find((l) => l.key === key)).filter((l) => l != null);
   if (!access.isPending && !limit) return null;
   const used = Number(limit?.used ?? 0);
   const maximum = Number(limit?.maximum ?? 0);
@@ -296,7 +301,26 @@ export function UsagePanel() {
           ) : null}
         </div>
       )}
-      <div className={styles.boost}>
+      {otherLimits.length ? (
+        <div className={styles.limitList}>
+          <p className={styles.limitHead}>{t.planLimits}</p>
+          <ul>
+            {otherLimits.map((l) => {
+              const usedOf = Number(l.used), maxOf = Number(l.maximum), open = maxOf >= UNLIMITED;
+              const share = open || !maxOf ? 0 : Math.min(1, usedOf / maxOf);
+              return (
+                <li key={l.key}>
+                  <span className={styles.limitName}>{m.access.limits[l.key] ?? l.key}</span>
+                  <span className={styles.limitCount}>{formatNumber(locale, usedOf)}{open ? "" : ` / ${formatNumber(locale, maxOf)}`}</span>
+                  {!open ? <span className={styles.limitBar} data-high={share > 0.85 || undefined} aria-hidden="true"><span style={{ transform: `scaleX(${share})` }} /></span> : null}
+                </li>
+              );
+            })}
+          </ul>
+          <RouterLink to="/app/subscription" className={styles.limitLink}>{t.managePlan}<ArrowRight aria-hidden="true" /></RouterLink>
+        </div>
+      ) : null}
+      {SHOW_BOOST ? <div className={styles.boost}>
         <div className={styles.boostHead}>
           <span className={styles.boostIcon} aria-hidden="true">
             <Rocket strokeWidth={1.75} />
@@ -317,7 +341,7 @@ export function UsagePanel() {
         <Button size="sm" variant="primary" iconStart={<Rocket />} block>
           {t.boost.action}
         </Button>
-      </div>
+      </div> : null}
     </Section>
   );
 }

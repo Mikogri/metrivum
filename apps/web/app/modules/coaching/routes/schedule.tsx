@@ -1,3 +1,8 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = ({ location }: { location: { pathname: string } }) =>
+  privateMeta(`${location.pathname.endsWith("/new") ? "New check-in schedule" : "Check-in schedule"} — TrainFlow`);
+
 import { useCallback, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate, useParams, useSearchParams } from "react-router";

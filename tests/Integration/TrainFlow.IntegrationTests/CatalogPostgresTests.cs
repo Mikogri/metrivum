@@ -12,6 +12,27 @@ namespace TrainFlow.IntegrationTests;
 public sealed class CatalogPostgresTests
 {
     [CatalogPostgresFact]
+    public async Task Mcp_equipment_filter_uses_reviewed_metadata_without_hiding_custom_exercises_in_normal_search()
+    {
+        using var db = Context();
+        var service = Service(db);
+        var name = $"MCP equipment {Guid.NewGuid():N}";
+        var tag = await service.CreateTagAsync($"MCP tag {Guid.NewGuid():N}", default);
+        var created = await service.CreateAsync(new(name, "Custom catalogue entry", "Coach instructions", TagIds: [tag.Id]), default);
+        var adapter = new McpExerciseOperations(service);
+        var ordinary = await adapter.SearchAsync(name, null, null, false, 1, 1, default, tag.Id);
+        Assert.Equal(1, ordinary.Total);
+        Assert.Equal(created.Id, Assert.Single(ordinary.Items).Id);
+        Assert.Null((await adapter.GetAsync(created.Id, default)).GeneratorMetadata);
+        var equipment = await adapter.SearchAsync(name, null, null, false, 1, 1, default, tag.Id, []);
+        Assert.Empty(equipment.Items);
+        Assert.Equal(0, equipment.Total);
+        Assert.Equal("VALIDATION_FAILED", (await Assert.ThrowsAsync<ApiException>(() => adapter.SearchAsync(name,
+            null, null, false, 1, 1, default, availableEquipment: ["Unsafe equipment key!"]))).Code);
+        Assert.Equal(created.Id, Assert.Single((await service.ListAsync(new(Search: name, PageSize: 1), default)).Items).Id);
+    }
+
+    [CatalogPostgresFact]
     public async Task Detail_loads_favorite_with_parent_without_multiplying_child_collections()
     {
         using var setup = Context();

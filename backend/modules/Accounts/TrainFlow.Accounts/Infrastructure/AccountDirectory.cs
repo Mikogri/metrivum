@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using TrainFlow.Accounts.Contracts;
+using TrainFlow.BuildingBlocks;
 
 namespace TrainFlow.Accounts.Infrastructure;
 
-public sealed class AccountDirectory(AccountsDbContext db) : IAccountDirectory
+public sealed class AccountDirectory(AccountsDbContext db, IAccountContext? actor = null, IAbuseProtection? abuse = null) : IAccountDirectory
 {
     public Task<Guid[]> GetActiveUserIdsAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken)
     {
@@ -31,6 +32,7 @@ public sealed class AccountDirectory(AccountsDbContext db) : IAccountDirectory
 
     public Task<AccountSearchEntry[]> SearchAsync(string prefix, CancellationToken cancellationToken)
     {
+        if (actor != null) abuse?.Require(actor.UserId, AbusePolicies.Search);
         var normalized = prefix.Trim().TrimStart('@').ToUpperInvariant();
         if (normalized.Length < 2 || normalized.Length > 30)
             return Task.FromResult(Array.Empty<AccountSearchEntry>());

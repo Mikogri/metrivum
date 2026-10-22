@@ -2,61 +2,124 @@
   position: absolute;
   inset: 0;
   display: grid;
-  place-items: center;
+  grid-template-rows: auto 1fr auto;
+  padding: 0 clamp(var(--tf-space-8), 5vw, var(--tf-space-16));
 }
 
-.glow {
+/* A faint field of cycle days behind the copy, fading out towards the text. Static, one colour. */
+.days {
   position: absolute;
-  inset: auto -20% -30% -20%;
-  height: 70%;
-  background: radial-gradient(ellipse at 50% 100%, rgb(62 224 154 / 0.14), transparent 65%);
+  inset: 0;
+  background-image: radial-gradient(circle, var(--tf-color-border-strong) 1.5px, transparent 2px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 85% 20%, #000, transparent 70%);
+  mask-image: radial-gradient(ellipse 70% 60% at 85% 20%, #000, transparent 70%);
+  opacity: 0.7;
 }
 
-.grid {
+.logo {
+  position: relative;
+  align-self: center;
+  width: auto;
+  height: 1.375rem;
+  margin-block: calc((var(--tf-header-height) - 1.375rem) / 2);
+}
+
+.copy {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--cols), 1fr);
-  gap: 1.4rem;
-  transform: perspective(900px) rotateX(48deg) rotateZ(-18deg) scale(1.2);
-  mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 75%);
+  align-content: center;
+  justify-items: start;
+  gap: var(--tf-space-5);
+  animation: rise 700ms var(--tf-ease-out) both;
 }
 
-.dot {
-  width: 0.7rem;
-  height: 0.7rem;
+/* The landing page's status line: mono, with the data accent as a dot. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-1) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  color: var(--tf-color-text-secondary);
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-xs);
+}
+
+.badge span {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--tf-color-surface-hover);
+  background: var(--tf-color-accent);
 }
 
-.dot[data-on] {
-  animation: wave 4.8s var(--tf-ease-in-out) infinite;
-  animation-delay: calc(var(--d) * 160ms);
+.title {
+  max-width: 16ch;
+  color: var(--tf-color-text);
+  font-family: var(--tf-font-display);
+  font-size: clamp(2.25rem, 1.2rem + 3vw, 4rem);
+  font-weight: var(--tf-weight-bold);
+  letter-spacing: var(--tf-tracking-display);
+  line-height: 1;
+  text-wrap: balance;
 }
 
-@keyframes wave {
-  0%,
-  100% {
-    background: var(--tf-color-surface-hover);
-    box-shadow: none;
+.lead {
+  max-width: 32rem;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-lg);
+  line-height: var(--tf-leading-relaxed);
+}
+
+.facts {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--tf-space-5);
+  margin: 0;
+  padding: var(--tf-space-6) 0;
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.facts div {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.facts dt {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-lg);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-tight);
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
-  40%,
-  60% {
-    background: var(--tf-color-accent);
-    box-shadow: 0 0 14px rgb(62 224 154 / 0.6);
-  }
 }
 
-.mark {
-  position: absolute;
-  bottom: var(--tf-space-10);
-  left: var(--tf-space-10);
-  width: 2.5rem;
-  height: auto;
-  opacity: 0.8;
+/* A narrow panel keeps two facts per row. */
+@media (max-width: 80rem) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--tf-space-3) var(--tf-space-5);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dot[data-on] {
+  .copy {
     animation: none;
-    background: var(--tf-color-accent-deep);
   }
 }

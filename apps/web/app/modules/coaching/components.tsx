@@ -1,14 +1,14 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useBlocker } from "react-router";
-import { Alert, AlertDialog, Badge, Button, ErrorState, LoadingState, Pagination } from "@trainflow/ui-web";
+import { Alert, AlertDialog, Badge, Button, ErrorState, LinkButton, LoadingState, Pagination } from "@trainflow/ui-web";
 import { ApiError } from "~/shared/http";
-import type { Page } from "./api";
+import { useCoachingQuery, type Page } from "./api";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 
-export function StatusBadge({ status }: { status: string }) {
-  return <Badge dot tone={["Active", "Accepted", "Reviewed", "Paid"].includes(status) ? "success" : ["Suspended", "Overdue", "AwaitingPayment"].includes(status) ? "warning" : "neutral"}>{status.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ ([A-Z])/g, (_, c: string) => ` ${c.toLowerCase()}`)}</Badge>;
+export function StatusBadge({ status, size }: { status: string; size?: "sm" | "md" }) {
+  return <Badge dot size={size} tone={["Active", "Accepted", "Reviewed", "Paid"].includes(status) ? "success" : ["Suspended", "Overdue", "AwaitingPayment"].includes(status) ? "warning" : "neutral"}>{status.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ ([A-Z])/g, (_, c: string) => ` ${c.toLowerCase()}`)}</Badge>;
 }
 
 export function Failure({ error, retry }: { error: unknown; retry?: () => void }) {
@@ -48,4 +48,29 @@ export function DraftNavigationGuard({ dirty }: { dirty: boolean }) {
 export function ListPagination({ data, onChange }: { data: Page<unknown>; onChange: (page: number) => void }) {
   return <Pagination page={data.page} pageCount={Math.max(1, Math.ceil(data.total / data.pageSize))} onPageChange={onChange} pageSize={data.pageSize}
     labels={{ previous: "Previous", next: "Next", status: (p, n) => `Page ${p} of ${n}`, navigation: "Pagination", pageSize: (n) => `${n} rows per page` }} />;
+}
+
+/**
+ * In place of an empty offer picker: says why nothing can be chosen and what to do next.
+ * Invitations and application forms always carry an offer (its terms and price), so without an
+ * active one the coach needs to create, publish or reactivate one first.
+ */
+export function NoActiveOffers({ purpose }: { purpose: "invitation" | "form" }) {
+  const all = useCoachingQuery<Page<{ id: string; status: string }>>("/api/v1/offers", { pageSize: 50 });
+  const items = all.data?.items ?? [];
+  const drafts = items.filter((o) => o.status === "Draft").length;
+  const inactive = items.filter((o) => o.status === "Inactive").length;
+  const why = purpose === "invitation" ? "An invitation always includes one of your active offers: its terms and price." : "An application form is sent with one of your active offers, so the client knows what they apply for.";
+  const [title, next] = !all.data
+    ? ["No active offers", "Activate an offer to continue."]
+    : drafts + inactive === 0
+      ? ["You have no offers yet", "Create an offer, connect an application form and publish it."]
+      : drafts && !inactive
+        ? [`${drafts === 1 ? "Your offer is" : `${drafts} offers are`} still a draft`, "Publish one to make it active."]
+        : [`${inactive + drafts} ${inactive + drafts === 1 ? "offer is" : "offers are"} not active`, inactive ? "Reactivate an inactive offer or publish a draft." : "Publish a draft offer."];
+  return (
+    <Alert tone="info" title={title} actions={<LinkButton href={drafts + inactive === 0 && all.data ? "/app/offers?create=1" : "/app/offers"} size="sm">{drafts + inactive === 0 && all.data ? "Create offer" : "Open offers"}</LinkButton>}>
+      {why} {next}
+    </Alert>
+  );
 }

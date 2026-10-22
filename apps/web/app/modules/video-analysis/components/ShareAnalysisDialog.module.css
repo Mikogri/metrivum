@@ -1,0 +1,43 @@
+.body {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.intro {
+  margin: 0;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-relaxed);
+}
+
+.create {
+  justify-self: start;
+}
+
+.linkRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--tf-space-2);
+}
+
+.link {
+  flex: 1;
+  min-width: 0;
+}
+
+.link input {
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-xs);
+}
+
+.divider {
+  height: 1px;
+  background: var(--tf-color-border-subtle);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}

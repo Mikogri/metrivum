@@ -43,6 +43,7 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
         {
             e.Property(x => x.Role).HasMaxLength(16);
             e.Property(x => x.Status).HasMaxLength(16);
+            e.HasIndex(x => new { x.TeamId, x.JoinedAt, x.UserId }).HasFilter("\"Status\" = 'Active'");
             e.HasIndex(x => x.TeamId).IsUnique().HasFilter("\"Role\" = 'Owner' AND \"Status\" = 'Active'");
             e.ToTable("team_memberships", t => { t.HasCheckConstraint("CK_team_member_role", "\"Role\" IN ('Owner','Admin','Member')"); t.HasCheckConstraint("CK_team_member_status", "\"Status\" IN ('Active','Ended')"); });
         });

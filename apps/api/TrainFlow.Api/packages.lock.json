@@ -122,6 +122,11 @@
         "resolved": "10.0.12",
         "contentHash": "Kd4o2oO1A6dfKxjz5LS16QyLtpCFTUiFWwmBABETAXRsSImBdRdWeKjSgbbRhAMiV3a3/nWr95ZtzClT4uaADQ=="
       },
+      "Microsoft.Extensions.AI.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.8.3",
+        "contentHash": "K0B05oApxmviWalNHPMBBcRC7erKiDATz3ENNR/jqTR9JwIwLRefgDhj2jCRwL1aca99pXUe0qyQC73/xIuZig=="
+      },
       "Microsoft.Extensions.DependencyModel": {
         "type": "Transitive",
         "resolved": "10.0.12",
@@ -183,6 +188,22 @@
         "type": "Transitive",
         "resolved": "1.0.52",
         "contentHash": "oNv2JtYXhpdJrX63nibx1JT3uCESOBQ1LAk7Dtz/sr0+laW0KRM6eKp4CZ3MHDR2siIkKsY8MmUkeP5DKkQQ5w=="
+      },
+      "ModelContextProtocol": {
+        "type": "Transitive",
+        "resolved": "2.2.0",
+        "contentHash": "4Pb9u02Nwsp0poueDsqNdyGRojFxOYpljB7zDBsq+aHL+Afou3OgxlBc3GWFVnsRMRJrUtWqDh3s6k2JgPzmrQ==",
+        "dependencies": {
+          "ModelContextProtocol.Core": "[2.2.0]"
+        }
+      },
+      "ModelContextProtocol.Core": {
+        "type": "Transitive",
+        "resolved": "2.2.0",
+        "contentHash": "FeBfXU6T8k+jw4afg4sfxdEX2rL/e5oKOk9ROOGztu9k47+7Bz08sdaToYt2XvMY1opNbwxYQOFMj6wH9TInhA==",
+        "dependencies": {
+          "Microsoft.Extensions.AI.Abstractions": "10.8.3"
+        }
       },
       "Mono.TextTemplating": {
         "type": "Transitive",
@@ -336,9 +357,13 @@
           "TrainFlow.Access.Contracts": "[1.0.0, )",
           "TrainFlow.Accounts.Contracts": "[1.0.0, )",
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
+          "TrainFlow.Calendar.Contracts": "[1.0.0, )",
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.Notifications.Contracts": "[1.0.0, )"
         }
+      },
+      "trainflow.calendar.contracts": {
+        "type": "Project"
       },
       "trainflow.checkins": {
         "type": "Project",
@@ -348,10 +373,17 @@
           "TrainFlow.Accounts.Contracts": "[1.0.0, )",
           "TrainFlow.Analytics.Contracts": "[1.0.0, )",
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
+          "TrainFlow.CheckIns.Contracts": "[1.0.0, )",
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.Forms.Contracts": "[1.0.0, )",
           "TrainFlow.Notifications.Contracts": "[1.0.0, )",
           "TrainFlow.Training.Contracts": "[1.0.0, )"
+        }
+      },
+      "trainflow.checkins.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "TrainFlow.Forms.Contracts": "[1.0.0, )"
         }
       },
       "trainflow.clientdocumentation": {
@@ -417,6 +449,25 @@
           "TrainFlow.Accounts.Contracts": "[1.0.0, )"
         }
       },
+      "trainflow.integrations": {
+        "type": "Project",
+        "dependencies": {
+          "ModelContextProtocol.AspNetCore": "[2.2.0, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
+          "TrainFlow.Access.Contracts": "[1.0.0, )",
+          "TrainFlow.Accounts.Contracts": "[1.0.0, )",
+          "TrainFlow.Analytics.Contracts": "[1.0.0, )",
+          "TrainFlow.BuildingBlocks": "[1.0.0, )",
+          "TrainFlow.Calendar.Contracts": "[1.0.0, )",
+          "TrainFlow.CheckIns.Contracts": "[1.0.0, )",
+          "TrainFlow.Coaching.Contracts": "[1.0.0, )",
+          "TrainFlow.ExerciseCatalog.Contracts": "[1.0.0, )",
+          "TrainFlow.Forms.Contracts": "[1.0.0, )",
+          "TrainFlow.Messaging.Contracts": "[1.0.0, )",
+          "TrainFlow.Offers.Contracts": "[1.0.0, )",
+          "TrainFlow.Training.Contracts": "[1.0.0, )"
+        }
+      },
       "trainflow.media": {
         "type": "Project",
         "dependencies": {
@@ -440,8 +491,12 @@
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.Media.Contracts": "[1.0.0, )",
+          "TrainFlow.Messaging.Contracts": "[1.0.0, )",
           "TrainFlow.Notifications.Contracts": "[1.0.0, )"
         }
+      },
+      "trainflow.messaging.contracts": {
+        "type": "Project"
       },
       "trainflow.notifications": {
         "type": "Project",
@@ -475,14 +530,14 @@
           "CsvHelper": "[33.1.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
           "PDFsharp": "[6.2.2, )",
+          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
           "TrainFlow.Access.Contracts": "[1.0.0, )",
           "TrainFlow.Accounts.Contracts": "[1.0.0, )",
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.ExerciseCatalog.Contracts": "[1.0.0, )",
           "TrainFlow.Notifications.Contracts": "[1.0.0, )",
-          "TrainFlow.Training.Contracts": "[1.0.0, )",
-          "System.Security.Cryptography.Pkcs": "[10.0.13, )"
+          "TrainFlow.Training.Contracts": "[1.0.0, )"
         }
       },
       "trainflow.training.contracts": {
@@ -523,6 +578,15 @@
         "contentHash": "OiHmr8XzX96dbgMsYGe8qoqg4KxibdZG2r0QUVJBGktFInOp8IrABe8jvcbo5hrqeWfbwpK7fCEBiEPbY/ik4A==",
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "10.0.12"
+        }
+      },
+      "ModelContextProtocol.AspNetCore": {
+        "type": "CentralTransitive",
+        "requested": "[2.2.0, )",
+        "resolved": "2.2.0",
+        "contentHash": "3JelDMuFIwFzXybsh6K30G6wXu5gmqKnuRnieqgBMuR0FkqqXRv4B+NYZuPgthSyNq5UwRyvv2U2VJBE3RD3PQ==",
+        "dependencies": {
+          "ModelContextProtocol": "[2.2.0]"
         }
       },
       "Npgsql.EntityFrameworkCore.PostgreSQL": {

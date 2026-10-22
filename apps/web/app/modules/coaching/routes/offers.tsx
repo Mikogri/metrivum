@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Offers — TrainFlow");
+
 import { useRef } from "react";
 import { Link } from "react-router";
 import { BadgePercent, Plus, Tag } from "lucide-react";
@@ -11,7 +15,7 @@ import { Failure, ListPagination, Loading, StatusBadge } from "../components";
 import { OfferEditor } from "../offer-editor";
 import { money } from "../pricing";
 
-const categoryName = (key: string) => key.split("-").map((part, i) => (i === 0 ? part[0]!.toUpperCase() + part.slice(1) : part)).join(" ");
+import { CategoryTag, categoryTone } from "../offer-category";
 import { CardGrid, ListCard } from "~/shared/library/DataView";
 import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
 import styles from "../coaching.module.css";
@@ -87,20 +91,15 @@ function Offers() {
           {state.view === "cards" ? <CardGrid label="Offers">{list.data.items.map((o) => {
             const prices = o.billingOptions.map((b) => Number(b.price)).filter((p) => p > 0);
             const from = prices.length ? Math.min(...prices) : null;
-            return <ListCard key={o.id} href={`/app/offers/${o.id}`} title={o.name} subtitle={o.teamId ? `Team · ${o.teamName ?? "Organization"}` : categoryName(o.category)} icon={<Tag />} tone="orange" badge={<StatusBadge status={o.status} />} description={o.description || "No description yet."}
-              facts={[
-                { label: "From", value: from == null ? "—" : money(from, currency) },
-                { label: "Mode", value: o.coachingMode === "Offline" ? "In person" : o.coachingMode },
-                { label: "Options", value: o.billingOptions.length },
-              ]}
-              meta={[o.currentPublishedRevisionId ? "Published" : "Not published", `Updated ${new Date(o.updatedAt).toLocaleDateString()}`]} />;
+            return <ListCard key={o.id} href={`/app/offers/${o.id}`} title={o.name} subtitle={o.teamId ? `Team · ${o.teamName ?? "Organization"}` : o.purpose === "TrainingPlan" ? "Training plan" : "Coaching service"} icon={<Tag />} tone={categoryTone(o.category)} badge={<StatusBadge status={o.status} />} description={o.description || "No description yet."}
+              meta={[<CategoryTag key="type" category={o.category} />, o.coachingMode === "Offline" ? "In person" : o.coachingMode, from == null ? "No price" : `From ${money(from, currency)}`]} />;
           })}</CardGrid> : <DataTable
             label="Offers"
             rows={list.data.items}
             rowKey={(o) => o.id}
             columns={[
               { id: "name", header: "Offer", cell: (o) => <Link data-row-link to={`/app/offers/${o.id}`}>{o.name}</Link> },
-              { id: "category", header: "Category", cell: (o) => o.category, hideOnMobile: true, muted: true },
+              { id: "category", header: "Type", cell: (o) => <CategoryTag category={o.category} />, hideOnMobile: true, muted: true },
               { id: "mode", header: "Mode", cell: (o) => o.coachingMode },
               { id: "options", header: "Billing options", cell: (o) => o.billingOptions.length, hideOnMobile: true },
               { id: "status", header: "Status", cell: (o) => <StatusBadge status={o.status} /> },

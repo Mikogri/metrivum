@@ -6,6 +6,7 @@ namespace TrainFlow.Messaging.Infrastructure;
 
 public sealed class MessagingDbContext(DbContextOptions<MessagingDbContext> options) : DbContext(options)
 {
+    public DbSet<MessagingAbuseRecord> AbuseRecords => Set<MessagingAbuseRecord>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<ConversationMember> Members => Set<ConversationMember>();
     public DbSet<MembershipChange> MembershipChanges => Set<MembershipChange>();
@@ -19,6 +20,13 @@ public sealed class MessagingDbContext(DbContextOptions<MessagingDbContext> opti
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.HasDefaultSchema("messaging");
+        var abuse = b.Entity<MessagingAbuseRecord>();
+        abuse.ToTable("AbuseRecords");
+        abuse.HasKey(x => x.Id);
+        abuse.Property(x => x.Kind).HasMaxLength(16);
+        abuse.HasIndex(x => new { x.UserId, x.Kind, x.CreatedAt });
+        abuse.HasIndex(x => new { x.UserId, x.RecipientId }).IsUnique().HasFilter("\"Kind\" = 'contact'");
+
         b.Entity<MessagingPreference>().ToTable("Preferences").HasKey(x => x.UserId);
         var c = b.Entity<Conversation>();
         c.ToTable("Conversations", t => t.HasCheckConstraint("CK_Conversation_Pair", "(\"Type\" = 'Direct' AND \"PairFirst\" IS NOT NULL AND \"PairSecond\" IS NOT NULL AND \"PairFirst\" < \"PairSecond\" AND \"ClientGroupId\" IS NULL) OR (\"Type\" = 'Group' AND \"PairFirst\" IS NULL AND \"PairSecond\" IS NULL AND \"ClientGroupId\" IS NULL) OR (\"Type\" = 'ClientGroupLinked' AND \"PairFirst\" IS NULL AND \"PairSecond\" IS NULL AND \"ClientGroupId\" IS NOT NULL)"));

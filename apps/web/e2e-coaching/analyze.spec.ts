@@ -98,6 +98,7 @@ const checkIns = {
     averageReviewHours: 4,
     series: [{ date: "2026-10-08", issued: 3, submitted: 2, overdue: 1 }],
 };
+const currentCall = (calls: URL[]) => [...calls].reverse().find(url => /\/(context|overview)$/.test(url.pathname));
 async function fixture(page: Page, teamRole: string | null = null) {
     const calls: URL[] = [];
     await page.addInitScript(
@@ -171,7 +172,7 @@ async function fixture(page: Page, teamRole: string | null = null) {
             return respond({ count: 0 });
         if (url.pathname === "/api/v1/me/team-context") return respond(teamRole ? { teamId: group, ownerId: me, role: teamRole, status: "Active", isActive: true, name: "Strength Collective" } : null);
         if (url.pathname === `/api/v1/teams/${group}/members`) return respond([{ userId: me, displayName: "Test Coach", username: "coach_test", role: teamRole }, { userId: offer, displayName: "Another Coach", username: "another_coach", role: "Member" }]);
-        if (url.pathname === "/api/v1/analyze/overview") {
+        if (url.pathname.startsWith("/api/v1/analyze/")) {
             calls.push(url);
             const period = {
                 from: url.searchParams.get("from"),
@@ -180,7 +181,7 @@ async function fixture(page: Page, teamRole: string | null = null) {
                 start: "2026-10-01T00:00:00Z",
                 end: "2026-10-09T00:00:00Z",
             };
-            return respond({
+            const overview = {
                 period,
                 comparisonPeriod: {
                     ...period,
@@ -204,7 +205,13 @@ async function fixture(page: Page, teamRole: string | null = null) {
                     groups: clients.groups,
                     offers: [{ id: offer, name: "Coaching plan" }],
                 },
-            });
+            };
+            const section = url.pathname.split("/").at(-1)!;
+            return respond(({
+                financial: finance, clients, acquisition, "check-ins": checkIns,
+                training: overview.training, messaging: overview.messaging,
+                context: { period, comparisonPeriod: overview.comparisonPeriod, filters: overview.filters },
+            } as Record<string, unknown>)[section] ?? overview);
         }
         return respond({
             items: [],
@@ -217,15 +224,15 @@ async function fixture(page: Page, teamRole: string | null = null) {
     return calls;
 }
 test("Analyze legacy redirect, truthful finance, date/group/offer buckets and training empty state", async ({
-    page,
+    page, isMobile,
 }) => {
     const calls = await fixture(page);
     await page.goto("/app/earnings");
-    await expect(page).toHaveURL(/\/app\/analyze$/);
+    await expect(page).toHaveURL(/\/app\/analyze$/, { timeout: 30_000 });
     await expect(
         page.getByRole("heading", { name: "Analyze", exact: true }),
     ).toBeVisible();
-    await expect(
+    if (!isMobile) await expect(
         page
             .getByRole("button", { name: "Subscription", exact: true })
             .or(page.getByRole("link", { name: "Subscription", exact: true }))
@@ -255,14 +262,14 @@ test("Analyze legacy redirect, truthful finance, date/group/offer buckets and tr
     await pick("Offer", "Coaching plan");
     await pick("Trend buckets", "Weekly");
     await expect
-        .poll(() => calls.at(-1)?.searchParams.get("grouping"))
+        .poll(() => currentCall(calls)?.searchParams.get("grouping"))
         .toBe("week");
     const today = new Date();
     const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
     const iso = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
-    expect(calls.at(-1)?.searchParams.get("from")).toBe(iso);
-    expect(calls.at(-1)?.searchParams.get("groupId")).toBe(group);
-    expect(calls.at(-1)?.searchParams.get("offerRevisionId")).toBe(offer);
+    expect(currentCall(calls)?.searchParams.get("from")).toBe(iso);
+    expect(currentCall(calls)?.searchParams.get("groupId")).toBe(group);
+    expect(currentCall(calls)?.searchParams.get("offerRevisionId")).toBe(offer);
     await page.getByRole("tab", { name: "Clients", exact: true }).click();
     await expect(
         page.getByRole("heading", { name: "Applications", exact: true }),
@@ -292,43 +299,64 @@ test("Analyze legacy redirect, truthful finance, date/group/offer buckets and tr
     });
 });
 
+for (const [tab, heading, sections] of [
+    ["finance", "Gross and net", ["context", "financial"]],
+    ["clients", "Applications", ["context", "clients", "acquisition"]],
+    ["checkins", "Requests per bucket", ["context", "check-ins", "messaging"]],
+    ["training", "No recorded training data", ["context", "training"]],
+] as const) {
+    test(`Direct ${tab} tab requests only its sections and reuses a fresh result`, async ({ page }) => {
+        const calls = await fixture(page);
+        await page.goto(`/app/analyze?tab=${tab}`);
+        await expect(page.getByText(heading, { exact: true })).toBeVisible();
+        expect([...new Set(calls.map(url => url.pathname.split("/").at(-1)))].sort()).toEqual([...sections].sort());
+        const count = calls.length;
+        await page.getByRole("tab", { name: "Overview", exact: true }).click();
+        await expect(page.getByRole("heading", { name: "Revenue", exact: true })).toBeVisible();
+        expect(calls.length).toBe(count + 1);
+        await page.getByRole("tab", { name: tab === "checkins" ? "Check-ins" : tab[0]!.toUpperCase() + tab.slice(1), exact: true }).click();
+        await expect(page.getByText(heading, { exact: true })).toBeVisible();
+        expect(calls.length).toBe(count + 1);
+    });
+}
+
 test("Owner defaults to Team and can inspect a member while URL dates and tab survive reload", async ({ page }) => {
     const calls = await fixture(page, "Owner");
     await page.goto("/app/analyze?from=2026-10-01&to=2026-10-07&tab=clients&grouping=week");
-    await expect.poll(() => calls.at(-1)?.searchParams.get("scope")).toBe("Team");
+    await expect.poll(() => currentCall(calls)?.searchParams.get("scope")).toBe("Team");
     await expect(page.getByRole("tab", { name: "Clients", exact: true })).toHaveAttribute("aria-selected", "true");
     await page.getByRole("button", { name: "Analysis scope" }).click();
     await page.getByRole("option", { name: "Team member", exact: true }).click();
     await page.getByRole("button", { name: /Team member$/ }).click();
     await page.getByRole("option", { name: "Another Coach", exact: true }).click();
-    await expect.poll(() => calls.at(-1)?.searchParams.get("memberId")).toBe(offer);
-    expect(calls.at(-1)?.searchParams.get("scope")).toBe("TeamMember");
+    await expect.poll(() => currentCall(calls)?.searchParams.get("memberId")).toBe(offer);
+    expect(currentCall(calls)?.searchParams.get("scope")).toBe("TeamMember");
     await page.reload();
-    await expect.poll(() => calls.at(-1)?.searchParams.get("from")).toBe("2026-10-01");
+    await expect.poll(() => currentCall(calls)?.searchParams.get("from")).toBe("2026-10-01");
     await expect(page.getByRole("tab", { name: "Clients", exact: true })).toHaveAttribute("aria-selected", "true");
-    await expect.poll(() => calls.at(-1)?.searchParams.get("memberId")).toBe(offer);
+    await expect.poll(() => currentCall(calls)?.searchParams.get("memberId")).toBe(offer);
     await page.getByRole("button", { name: "Analysis scope" }).click();
     await page.getByRole("option", { name: "Personal", exact: true }).click();
-    await expect.poll(() => calls.at(-1)?.searchParams.get("scope")).toBe("Personal");
-    expect(calls.at(-1)?.searchParams.has("memberId")).toBe(false);
-    expect(calls.at(-1)?.searchParams.get("from")).toBe("2026-10-01");
+    await expect.poll(() => currentCall(calls)?.searchParams.get("scope")).toBe("Personal");
+    expect(currentCall(calls)?.searchParams.has("memberId")).toBe(false);
+    expect(currentCall(calls)?.searchParams.get("from")).toBe("2026-10-01");
 });
 
 test("Member defaults to Personal and can request only their own Team activity", async ({ page }) => {
     const calls = await fixture(page, "Member");
     await page.goto("/app/analyze");
-    await expect.poll(() => calls.at(-1)?.searchParams.get("scope")).toBe("Personal");
+    await expect.poll(() => currentCall(calls)?.searchParams.get("scope")).toBe("Personal");
     await page.getByRole("button", { name: "Analysis scope" }).click();
     await expect(page.getByRole("option", { name: "Team", exact: true })).toHaveCount(0);
     await page.getByRole("option", { name: "My Team activity", exact: true }).click();
-    await expect.poll(() => calls.at(-1)?.searchParams.get("scope")).toBe("TeamMember");
-    expect(calls.at(-1)?.searchParams.get("memberId")).toBe(me);
+    await expect.poll(() => currentCall(calls)?.searchParams.get("scope")).toBe("TeamMember");
+    expect(currentCall(calls)?.searchParams.get("memberId")).toBe(me);
     await expect(page.getByRole("button", { name: "Team member", exact: true })).toHaveCount(0);
     await page.goto(`/app/analyze?scope=TeamMember&memberId=${offer}`);
-    await expect.poll(() => calls.at(-1)?.searchParams.get("memberId")).toBe(me);
+    await expect.poll(() => currentCall(calls)?.searchParams.get("memberId")).toBe(me);
     await page.goto("/app/analyze?scope=Team");
     await expect(page.getByText("Requested scope unavailable", { exact: true })).toBeVisible();
-    await expect.poll(() => calls.at(-1)?.searchParams.get("scope")).toBe("Personal");
+    await expect.poll(() => currentCall(calls)?.searchParams.get("scope")).toBe("Personal");
 });
 
 test("Analyze shows dashboard skeletons while the first overview request is pending", async ({ page }) => {

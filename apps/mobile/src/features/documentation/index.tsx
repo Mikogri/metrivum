@@ -40,6 +40,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
     const [text, setText] = useState("");
     const [title, setTitle] = useState("");
     const [fileTitle, setFileTitle] = useState("");
+    const [visibility, setVisibility] = useState("CoachPrivate");
     const [error, setError] = useState<unknown>();
     const [uploading, setUploading] = useState(false);
     const [noteOpen, setNoteOpen] = useState(false);
@@ -61,6 +62,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
         setText("");
         setTitle("");
         setFileTitle("");
+        setVisibility("CoachPrivate");
         setNoteOpen(false);
         setFileOpen(false);
         void documents.refetch();
@@ -75,6 +77,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
         setError(undefined);
         try {
             const mediaId = await pickAndUpload(api, base, accountSignal);
+            if (accountSignal.aborted) return;
             if (mediaId)
                 mutation.mutate({
                     path: `${base}/documents`,
@@ -83,9 +86,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                         title: fileTitle || "Attachment",
                         description: null,
                         category: "Other",
-                        visibility: access.data?.coach
-                            ? "CoachPrivate"
-                            : "SharedWithClient",
+                        visibility,
                         text: null,
                         mediaId,
                         observedAt: new Date().toISOString(),
@@ -103,6 +104,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                 path: `${base}/documents/${id}/read-url`,
                 method: "POST",
             });
+            if (accountSignal.aborted) return;
             await Linking.openURL(result.data.url);
         } catch (failure) {
             setError(failure);
@@ -173,16 +175,12 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                             <FormSheet
                                 trigger={{ title: "Add a file", icon: "attach" }}
                                 title="Add a file or photo"
-                                subtitle={
-                                    access.data?.coach
-                                        ? "Private until you share it"
-                                        : "Shared with your coach"
-                                }
+                                subtitle="Choose who can see this file"
                                 size="content"
                                 dirty={!!fileTitle}
                                 open={fileOpen}
                                 onOpenChange={setFileOpen}
-                                onDiscard={() => setFileTitle("")}
+                                onDiscard={() => { setFileTitle(""); setVisibility("CoachPrivate"); }}
                                 footer={() => (
                                     <Button
                                         size="lg"
@@ -201,6 +199,14 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                                     value={fileTitle}
                                     onChangeText={setFileTitle}
                                 />
+                                <Choices
+                                    label="Visibility"
+                                    disabled={uploading || mutation.isPending}
+                                    values={["CoachPrivate", "SharedWithClient"]}
+                                    labels={{ CoachPrivate: "Only me", SharedWithClient: access.data?.coach ? "Shared with client" : "Shared with coach" }}
+                                    value={visibility}
+                                    onChange={setVisibility}
+                                />
                                 {!!error && <ErrorState error={error} />}
                             </FormSheet>
                         </View>
@@ -215,7 +221,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                     setPage(1);
                 }}
             />
-            <Section title="Documents">
+            <Section title="Files">
                 {documents.isPending ? (
                     <LoadingState />
                 ) : documents.error ? (
@@ -241,7 +247,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                                                 shared(item) ? "info" : "neutral"
                                             }
                                         >
-                                            {shared(item) ? "Shared" : "Private"}
+                                            {shared(item) ? (access.data?.coach ? "Shared with client" : "Shared with coach") : "Only me"}
                                         </Badge>
                                     }
                                     onPress={() => {
@@ -296,7 +302,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                         ? joinParts(
                               humanize(viewing.category),
                               formatDay(viewing.observedAt),
-                              shared(viewing) ? "Shared" : "Private",
+                              shared(viewing) ? (access.data?.coach ? "Shared with client" : "Shared with coach") : "Only me",
                           )
                         : undefined
                 }
@@ -323,8 +329,8 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                                 icon={shared(viewing) ? "lock" : "send"}
                                 title={
                                     shared(viewing)
-                                        ? "Make private"
-                                        : "Share with client"
+                                        ? "Make visible only to me"
+                                        : access.data?.coach ? "Share with client" : "Share with coach"
                                 }
                                 onPress={() =>
                                     shareMutation.mutate({

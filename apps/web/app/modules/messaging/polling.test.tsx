@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 const mock = vi.hoisted(() => ({
   accountKey: "0:one", generation: 1,
   api: vi.fn(async ({ path }: { path: string }) => ({ data: path.endsWith("unread-count") ? { count: 3 } : { items: [], total: 0 } })),
-  hubs: [] as Array<{ events: Record<string, () => void>; reconnecting: () => void; reconnected: () => void; close: () => void }>,
+  hubs: [] as Array<{ events: Record<string, (event?: { conversationId: string; userId?: string; typing?: boolean; expiresAt?: string }) => void>; reconnecting: () => void; reconnected: () => void; close: () => void }>,
 }));
 const manager = { getState: () => ({ activeSlot: "0", generation: mock.generation }), accessToken: async () => "token" };
 const lifecycles = new Map<number, { isCurrent: () => boolean; signal: () => AbortSignal; accessToken: () => Promise<string> }>();
@@ -55,6 +55,23 @@ afterEach(() => { cache.clear(); vi.useRealTimers(); });
 function wrapper({ children }: { children: ReactNode }) { return <QueryClientProvider client={cache}>{children}</QueryClientProvider>; }
 async function tick(ms = 1) { await act(async () => { await vi.advanceTimersByTimeAsync(ms); }); }
 const calls = (suffix: string) => mock.api.mock.calls.filter(([request]) => request.path.endsWith(suffix)).length;
+
+it("caches conversation pages per account and skips an inactive list", async () => {
+  const path = "/api/v1/messaging/conversations";
+  const { rerender } = renderHook(({ page, enabled }) => useChatQuery(path, { page, limit: 25, search: "" }, enabled), {
+    wrapper, initialProps: { page: 1, enabled: true },
+  });
+  await tick();
+  expect(cache.getQueryData(["0:one", "messaging", path, { page: 1, limit: 25, search: "" }])).toBeDefined();
+  rerender({ page: 2, enabled: true }); await tick();
+  expect(cache.getQueryData(["0:one", "messaging", path, { page: 2, limit: 25, search: "" }])).toBeDefined();
+  mock.accountKey = "0:two";
+  rerender({ page: 1, enabled: true }); await tick();
+  expect(cache.getQueryData(["0:two", "messaging", path, { page: 1, limit: 25, search: "" }])).toBeDefined();
+  mock.api.mockClear();
+  rerender({ page: 3, enabled: false }); await tick(60000);
+  expect(calls("/conversations")).toBe(0);
+});
 
 it("keeps the bell count live without downloading its closed list or preferences", async () => {
   const { result, rerender } = renderHook(({ open }) => useDurableNotifications("active", open), { wrapper, initialProps: { open: false } });
@@ -145,4 +162,52 @@ it("does not acknowledge a destination in a hidden tab, then catches up on visib
   act(() => document.dispatchEvent(new Event("visibilitychange"))); await tick();
   expect(calls("read-target")).toBe(1);
   vi.restoreAllMocks();
+});
+
+it("refreshes only the changed conversation and summaries, while reconnect reconciles every conversation", async () => {
+  renderHook(() => useRealtime(true), { wrapper }); await tick();
+  const affected = ["0:one", "messaging", "history", "one"];
+  const unrelated = ["0:one", "messaging", "history", "two"];
+  const details = ["0:one", "messaging", "/api/v1/messaging/conversations/one"];
+  const summaries = ["0:one", "messaging", "/api/v1/messaging/conversations", { search: "" }];
+  for (const key of [affected, unrelated, details, summaries]) cache.setQueryData(key, { items: [] });
+  act(() => mock.hubs[0]!.events.MembershipChanged!({ conversationId: "one" })); await tick();
+  expect(cache.getQueryState(affected)?.isInvalidated).toBe(true);
+  expect(cache.getQueryState(details)?.isInvalidated).toBe(true);
+  expect(cache.getQueryState(summaries)?.isInvalidated).toBe(true);
+  expect(cache.getQueryState(unrelated)?.isInvalidated).toBe(false);
+  act(() => mock.hubs[0]!.reconnected()); await tick();
+  expect(cache.getQueryState(unrelated)?.isInvalidated).toBe(true);
+});
+
+it("does not rerender the messaging provider every second when nobody is typing", async () => {
+  let renders = 0;
+  renderHook(() => { renders++; return useRealtime(true); }, { wrapper }); await tick();
+  const initial = renders;
+  await tick(5000);
+  expect(renders).toBe(initial);
+});
+
+it("refetches the summary and changed details without requesting another open conversation", async () => {
+  renderHook(() => {
+    useRealtime(true);
+    useChatQuery("/api/v1/messaging/conversations");
+    useChatQuery("/api/v1/messaging/conversations/one");
+    useChatQuery("/api/v1/messaging/conversations/two");
+  }, { wrapper }); await tick(); mock.api.mockClear();
+  act(() => mock.hubs[0]!.events.ConversationUpdated!({ conversationId: "one" })); await tick();
+  expect(calls("/conversations")).toBe(1);
+  expect(calls("/conversations/one")).toBe(1);
+  expect(calls("/conversations/two")).toBe(0);
+});
+
+it("still expires typing indicators and ignores events from a previous account", async () => {
+  const { result } = renderHook(() => useRealtime(true), { wrapper }); await tick();
+  act(() => mock.hubs[0]!.events.TypingChanged!({ conversationId: "one", userId: "other", typing: true, expiresAt: new Date(Date.now() + 2000).toISOString() }));
+  expect(result.current.typing.one).toHaveLength(1);
+  await tick(3000);
+  expect(result.current.typing.one).toBeUndefined();
+  mock.generation++;
+  act(() => mock.hubs[0]!.events.TypingChanged!({ conversationId: "one", userId: "other", typing: true, expiresAt: new Date(Date.now() + 5000).toISOString() }));
+  expect(result.current.typing.one).toBeUndefined();
 });

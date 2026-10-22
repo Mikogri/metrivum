@@ -138,3 +138,16 @@
 /* A small red dot centred in the panel header, at its trailing edge: the step waiting for the person. */
 .attention { position: relative; }
 .attention::after { content: ""; position: absolute; top: calc(3.25rem / 2 - 4px); right: var(--tf-space-4); width: 8px; height: 8px; border-radius: 50%; background: var(--tf-color-danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-color-danger) 22%, transparent); }
+/* An offer type: a colour dot and its name. */
+.categoryTag { display: inline-flex; align-items: center; gap: var(--tf-space-1-5); min-width: 0; }
+.categoryTag i { flex-shrink: 0; width: 0.4375rem; height: 0.4375rem; border-radius: 50%; }
+/* A check-in the client fills in: a narrow form column with a side column, aligned to the left. */
+.checkinLayout { display: grid; grid-template-columns: minmax(0, 38rem) minmax(16rem, 20rem); gap: var(--tf-space-5); align-items: start; justify-content: start; }
+@media (max-width: 60rem) { .checkinLayout { grid-template-columns: minmax(0, 1fr); } }
+.progress { height: 6px; overflow: hidden; border-radius: 3px; background: var(--tf-color-surface-overlay); }
+.progress span { display: block; height: 100%; border-radius: inherit; background: var(--tf-color-text); transition: width var(--tf-duration-base) var(--tf-ease-out); }
+.progressNote { margin-top: var(--tf-space-2); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+/* A plan status inside a card's details: coloured text the size of the words around it. */
+.planState { color: var(--tf-color-text-secondary); }
+.planState[data-tone="success"] { color: var(--tf-color-success); }
+.planState[data-tone="warning"] { color: var(--tf-color-warning); }

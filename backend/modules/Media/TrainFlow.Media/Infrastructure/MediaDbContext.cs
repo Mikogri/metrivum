@@ -25,6 +25,8 @@ public sealed class MediaFile
     {
         get; set;
     }
+    public long ReservedStorageBytes { get; set; }
+    public DateTimeOffset? AcceptedAt { get; set; }
     public string State { get; set; } = "Pending";
     public bool Pinned
     {
@@ -72,5 +74,6 @@ public sealed class MediaDbContext(DbContextOptions<MediaDbContext> options) : D
         file.HasIndex(x => new { x.Bucket, x.ObjectKey }).IsUnique();
         file.HasIndex(x => new { x.OwnerId, x.CreatedAt, x.Id });
         file.HasIndex(x => new { x.State, x.DeleteAfter });
+        file.HasIndex(x => new { x.OwnerId, x.AcceptedAt });
     }
 }

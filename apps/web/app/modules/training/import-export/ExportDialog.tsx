@@ -102,8 +102,8 @@ export function ExportDialog({ planId, planName, isOpen, onOpenChange }: { planI
     <Dialog isOpen={isOpen} onOpenChange={onOpenChange} title={t.title} description={t.body} placement="right" closeLabel={m.common.close}>
       <div className={styles.form}>
         {revisions.isPending ? <Spinner label={m.common.loading} /> : null}
-        {noRevisions ? <Alert tone="info" title={t.needsRevision} /> : null}
-        {revisions.isError ? <Alert tone="danger" title={errorText(m, revisions.error)} /> : null}
+        {noRevisions ? <Alert tone="info" title={t.needsRevision}>{t.needsRevisionBody}</Alert> : null}
+        {revisions.isError ? <Alert tone="danger" live="assertive" title={errorText(m, revisions.error)} /> : null}
         {revisions.data?.items.length ? (
           <>
             <Select label={t.revision} selectedKey={revision} onSelectionChange={(key) => setRevision(Number(key))}>

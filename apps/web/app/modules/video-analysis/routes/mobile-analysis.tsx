@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Video analysis — TrainFlow");
+
 import { useState } from "react";
 import type { AnalysisDto } from "@trainflow/api-client-web";
 import { Alert, Button, Dialog, EmptyState, PageHeader } from "@trainflow/ui-web";

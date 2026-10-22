@@ -17,20 +17,18 @@
   text-align: center;
 }
 
-/* Each line is clipped by its own box; descenders get a little room below. */
+/* One block per line, so the quiet second line can follow a beat later. */
 .mask {
   display: block;
-  overflow: clip;
-  padding-bottom: 0.12em;
-  margin-bottom: -0.12em;
 }
 
 .line {
   display: block;
   color: var(--tf-color-text);
   transition:
-    transform 1100ms var(--tf-ease-out),
-    opacity 700ms ease;
+    transform 700ms var(--tf-ease-out),
+    opacity 600ms ease,
+    filter 700ms var(--tf-ease-out);
 }
 
 /* The second line answers the first in the same face, a tone quieter. */
@@ -40,8 +38,10 @@
 }
 
 :global(html[data-motion]) .heading:not([data-inview]) .line {
+  /* Comes into focus in place instead of sliding up from under a mask. */
   opacity: 0;
-  transform: translateY(105%);
+  filter: blur(8px);
+  transform: translateY(0.25em);
 }
 
 @media (max-width: 40rem) {

@@ -162,6 +162,41 @@ public sealed class MobileBackendTests
     }
 
     [CatalogPostgresFact]
+    public async Task Client_results_with_private_video_are_persisted_pinned_and_retried_without_duplicate_writes()
+    {
+        using var factory = new ApiFactory(Database);
+        var owner = Guid.NewGuid(); var other = Guid.NewGuid(); var mediaId = Guid.NewGuid();
+        using var client = await Client(factory, owner);
+        using var stranger = await Client(factory, other);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var files = scope.ServiceProvider.GetRequiredService<TrainFlow.Media.Infrastructure.MediaDbContext>();
+            files.Files.Add(new() { Id = mediaId, OwnerId = owner, Name = "Local lift.mov", State = "Ready", ContentType = "video/quicktime", Size = 100, Bucket = "private", ObjectKey = "fixture/" + mediaId, DurationMs = 10000 });
+            await files.SaveChangesAsync();
+        }
+        var localId = Guid.NewGuid();
+        client.DefaultRequestHeaders.Add("Idempotency-Key", localId.ToString());
+        var first = await client.PostAsJsonAsync("/api/v1/analyses/client-results", Analysis(localId, mediaId: mediaId));
+        first.EnsureSuccessStatusCode();
+        var saved = await first.Content.ReadFromJsonAsync<JsonElement>();
+        var id = saved.GetProperty("id").GetGuid();
+        Assert.Equal(mediaId, saved.GetProperty("mediaId").GetGuid());
+        Assert.Equal("Completed", saved.GetProperty("status").GetString());
+        Assert.Equal("cloud", saved.GetProperty("sourceVideo").GetProperty("origin").GetString());
+        var retry = await client.PostAsJsonAsync("/api/v1/analyses/client-results", Analysis(localId, mediaId: mediaId));
+        Assert.Equal(id, (await retry.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid());
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync($"/api/v1/analyses/{id}/result")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await stranger.GetAsync($"/api/v1/analyses/{id}/result")).StatusCode);
+        using var verification = factory.Services.CreateScope();
+        var media = verification.ServiceProvider.GetRequiredService<TrainFlow.Media.Infrastructure.MediaDbContext>();
+        var file = await media.Files.AsNoTracking().SingleAsync(x => x.Id == mediaId);
+        Assert.True(file.Pinned);
+        Assert.Equal(2, file.Version);
+        var analyses = verification.ServiceProvider.GetRequiredService<VideoAnalysisDbContext>();
+        Assert.Equal(1, await analyses.Jobs.CountAsync(x => x.OwnerId == owner && x.LocalAnalysisId == localId));
+    }
+
+    [CatalogPostgresFact]
     public async Task Device_bindings_support_two_accounts_rotation_and_scoped_logout()
     {
         using var factory = new ApiFactory(Database);

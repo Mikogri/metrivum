@@ -40,9 +40,8 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
   const historyRef = useRef(history);
   const metaRef = useRef(meta);
   const versionRef = useRef(initialVersion);
-  const savedRef = useRef(serialize(plan.document, { name: plan.name, description: plan.description, folderId: plan.folderId }));
-  // Mirror of savedRef in state so `dirty` recomputes after every save.
-  const [savedBody, setSavedBody] = useState(savedRef.current);
+  const [savedBody, setSavedBody] = useState(() => serialize(plan.document, { name: plan.name, description: plan.description, folderId: plan.folderId }));
+  const savedRef = useRef(savedBody);
   const inFlight = useRef<Promise<void> | null>(null);
   const again = useRef(false);
   const statusRef = useRef<SaveStatus>("clean");
@@ -54,8 +53,11 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
     setStatus(next);
   };
 
-  const dirty = useMemo(() => serialize(history.present, meta) !== savedBody, [history.present, meta, savedBody]);
-  const isDirty = useCallback(() => serialize(historyRef.current.present, metaRef.current) !== savedRef.current || inFlight.current !== null, []);
+  const body = useMemo(() => serialize(history.present, meta), [history.present, meta]);
+  const bodyRef = useRef(body);
+  bodyRef.current = body;
+  const dirty = body !== savedBody;
+  const isDirty = useCallback(() => bodyRef.current !== savedRef.current || inFlight.current !== null, []);
 
   useEffect(() => {
     if (statusRef.current === "conflict" || statusRef.current === "saving") return;
@@ -75,7 +77,7 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
         again.current = false;
         const doc = historyRef.current.present;
         const snapshotMeta = metaRef.current;
-        const body = serialize(doc, snapshotMeta);
+        const body = bodyRef.current;
         if (body === savedRef.current) {
           setStatusBoth("clean");
           return;
@@ -100,7 +102,7 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
           setSavedBody(body);
           queryClient.setQueryData(trainingKeys.plan(accountKey, plan.id), result);
           void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(accountKey), refetchType: "none" });
-          const stillDirty = serialize(historyRef.current.present, metaRef.current) !== savedRef.current;
+          const stillDirty = bodyRef.current !== savedRef.current;
           setStatusBoth(stillDirty ? "dirty" : "saved");
         } catch (caught) {
           if (isAbortError(caught)) {

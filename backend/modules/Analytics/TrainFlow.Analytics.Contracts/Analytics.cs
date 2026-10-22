@@ -134,6 +134,12 @@ public sealed record AnalysisOptions(
 
 public sealed record OfferChoice(Guid Id, string Name);
 
+public sealed record AnalysisContext(
+    AnalysisWindow Period,
+    AnalysisWindow ComparisonPeriod,
+    AnalysisOptions Filters
+);
+
 public sealed record AnalysisOverview(
     AnalysisWindow Period,
     AnalysisWindow ComparisonPeriod,

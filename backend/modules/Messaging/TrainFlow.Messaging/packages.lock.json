@@ -217,6 +217,9 @@
       "trainflow.media.contracts": {
         "type": "Project"
       },
+      "trainflow.messaging.contracts": {
+        "type": "Project"
+      },
       "trainflow.notifications.contracts": {
         "type": "Project"
       },

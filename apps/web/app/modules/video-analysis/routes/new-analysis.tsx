@@ -1,30 +1,313 @@
-import { useEffect, useState } from 'react';
-import { Alert, Button, PageHeader, TextField } from '@trainflow/ui-web';
+import { Check, CircleAlert, Clock, FileVideo, Info, LoaderCircle, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { Alert, Breadcrumbs, Button, Card, IconButton, LinkButton, PageHeader, Switch, TextField, toast } from '@trainflow/ui-web';
 import { RequireFeature } from '~/shared/access';
+import { formatBytes, formatDateTime } from '~/shared/i18n/format';
+import { useLocale } from '~/shared/i18n/LocaleContext';
 import { useT } from '~/shared/i18n/AppLocale';
 import { privateMeta } from '~/shared/i18n/site';
+import { useAccountContext } from '~/shared/session/AccountScope';
 import { TrackingPicker, type TrackingSelection } from '../components/TrackingPicker';
+import { MovementField } from '../components/MovementField';
+import { engineMovement, rememberJobExercise } from '../movement';
+import { AnalyzerConnection } from '../components/AnalyzerConnection';
+import { AnalysisQueue } from '../components/AnalysisQueue';
 import { ACCEPTED_TYPES, DEFAULT_MAX_BYTES, videoContentType } from '../upload';
-import { LOCAL_ANALYZER_UNAVAILABLE } from '../local-analysis';
+import { enqueueJob, launchLocalAnalyzer, pairLocalAnalyzer, QUEUE_LIMIT, storedPairing, storePairing, waitForLocalAnalyzer, type CompanionState, type VideoTrim } from '../local-analysis';
+import { measureStability, type Stability } from '../stability';
+import { useAnalyzerJobs } from '../analyzer-jobs';
+import { jobStatus } from '../job-status';
+import { askForNotifications } from '../notify';
 import styles from './new-analysis.module.css';
 export const meta = () => privateMeta('New analysis — TrainFlow');
+
+/** A chosen video: its own name, movement and two marked points. */
+interface Draft {
+  key: string;
+  file: File;
+  src: string;
+  name: string;
+  /** The exercise from the catalog (any exercise); the engine gets the closest of its three lifts. */
+  movement: string;
+  tracking: TrackingSelection | null;
+  info?: { durationSeconds: number; width: number; height: number };
+  /** Set once it is in the analyzer: the video stays on the page, read-only, while it is analyzed. */
+  jobId?: string;
+  /** Only this part is analyzed (and saved). */
+  trim: VideoTrim | null;
+  /** The coach's choice; a moving camera makes it required (see stability). */
+  stabilize: boolean;
+  stability: Stability;
+}
+
+/** Stabilization is on when the coach asks for it or the camera moved. */
+const stabilizes = (draft: Draft) => draft.stabilize || draft.stability.state === 'unstable';
+
+const isReady = (draft: Draft) => !draft.jobId && Boolean(draft.movement) && draft.tracking?.points.length === 2 && Boolean(draft.info);
+
+/**
+ * Choose up to ten videos, mark the bar on each, and hand them to the analyzer on this computer. It analyzes them
+ * one after another in the background; the browser may close, and results are saved to the library when TrainFlow
+ * is open again (see AnalyzerJobsProvider). A sent video stays visible here until it is closed or replaced.
+ */
 function LocalAnalysis() {
-  const t = useT().video.new;
-  const [file, setFile] = useState<File>();
-  const [src, setSrc] = useState<string>();
-  const [tracking, setTracking] = useState<TrackingSelection | null>(null);
-  const [name, setName] = useState(''); const [error, setError] = useState('');
+  const m = useT();
+  const t = m.video.new;
+  const locale = useLocale();
+  const input = useRef<HTMLInputElement>(null);
+  const { lifecycle, account } = useAccountContext();
+  const queue = useAnalyzerJobs();
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [selected, setSelected] = useState<string>();
+  // No movement is assumed: the coach picks it for each video (the last choice is offered for the next one).
+  const [movement, setMovement] = useState('');
+  const [error, setError] = useState('');
+  const [dragging, setDragging] = useState(false);
+  // Paired once per browser and computer: the token is remembered (see AnalyzerConnection).
+  const [pairing, setPairing] = useState(() => (typeof window === 'undefined' ? '' : storedPairing()));
+  const [connection, setConnection] = useState<CompanionState>('unreachable');
+  const [sending, setSending] = useState<{ done: number; total: number; starting: boolean } | null>(null);
+  const controller = useRef<AbortController | null>(null);
+  const draftsRef = useRef(drafts);
+  draftsRef.current = drafts;
+  useEffect(() => () => { controller.current?.abort(); for (const draft of draftsRef.current) URL.revokeObjectURL(draft.src); }, []);
+
+  const current = drafts.find(draft => draft.key === selected) ?? drafts[0];
+  const inAnalyzer = queue.jobs.length;
+  // Sent videos are counted by the analyzer itself, not twice.
+  const unsent = drafts.filter(draft => !draft.jobId);
+  const room = Math.max(0, QUEUE_LIMIT - inAnalyzer - unsent.length);
+  const ready = drafts.filter(isReady);
+  const busy = sending !== null;
+  // The video is always in the middle; portrait videos are as tall as the window, landscape ones as wide as the column.
+  const portrait = Boolean(current?.info && current.info.height > current.info.width * 1.05);
+  const ratio = current?.info ? current.info.width / current.info.height : 16 / 9;
+
+  const update = (key: string, patch: Partial<Draft>) => setDrafts(list => list.map(draft => (draft.key === key ? { ...draft, ...patch } : draft)));
+  // A new trim outside the marked frame clears the points: they must be marked inside the analyzed part.
+  const changeTrim = (draft: Draft, trim: VideoTrim | null) => {
+    const at = draft.tracking?.timestampSeconds;
+    const outside = trim && at != null && (at < trim.startSeconds || at > trim.endSeconds);
+    update(draft.key, outside ? { trim, tracking: null } : { trim });
+  };
+
+  // Check whether the camera moved in the part that will be analyzed (shortly after the trim stops changing).
+  const stabilityKey = current && current.info && !current.jobId ? `${current.key}:${current.trim?.startSeconds ?? 0}:${current.trim?.endSeconds ?? 'end'}` : null;
   useEffect(() => {
-    if (!file) return;
-    const url = URL.createObjectURL(file); setSrc(url); setTracking(null);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-  return <><PageHeader title={t.title} /><Alert tone="warning" title="Local analysis unavailable">{LOCAL_ANALYZER_UNAVAILABLE}</Alert>
-    <div className={styles.layout}><section><label htmlFor="local-analysis-video">Video (MP4, MOV or WebM)</label><input id="local-analysis-video" type="file" accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm" onChange={event => {
-      const next = event.target.files?.[0]; if (!next) return;
-      if (!ACCEPTED_TYPES.includes(videoContentType(next)) || next.size > DEFAULT_MAX_BYTES) { setError('Choose a supported video within the file-size limit.'); return; }
-      setError(''); setFile(next); setName(next.name.replace(/\.[^.]+$/, ''));
-    }} />{error && <Alert tone="danger" title="Cannot use this video">{error}</Alert>}{src && <TrackingPicker key={src} src={src} value={tracking} onChange={setTracking} />}</section>
-    <section><TextField label={t.name} value={name} onChange={setName} maxLength={200} /><p>The video stays on this device. Preview and point selection are available; tracking and charts require a validated browser model.</p><Button isDisabled>Local analysis unavailable</Button></section></div></>;
+    if (!stabilityKey || !current?.info) return;
+    const draft = current;
+    const info = current.info;
+    const controller = new AbortController();
+    update(draft.key, { stability: { state: 'checking' } });
+    const timer = setTimeout(() => {
+      measureStability(draft.src, { start: draft.trim?.startSeconds ?? 0, end: draft.trim?.endSeconds ?? info.durationSeconds }, controller.signal)
+        .then(stability => { if (!controller.signal.aborted) update(draft.key, { stability }); })
+        .catch(() => {});
+    }, 600);
+    return () => { clearTimeout(timer); controller.abort(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stabilityKey]);
+  const drop = (key: string) => setDrafts(list => {
+    const gone = list.find(draft => draft.key === key);
+    if (gone) URL.revokeObjectURL(gone.src);
+    return list.filter(draft => draft.key !== key);
+  });
+
+  const pick = (files: FileList | File[] | null | undefined) => {
+    if (!files?.length || busy) return;
+    const accepted: Draft[] = [];
+    const problems: string[] = [];
+    for (const file of Array.from(files)) {
+      if (accepted.length >= room) { problems.push(`Up to ${QUEUE_LIMIT} videos at a time${inAnalyzer ? `, including ${inAnalyzer} already in the analyzer` : ''}.`); break; }
+      if (!ACCEPTED_TYPES.includes(videoContentType(file))) { problems.push(`${file.name}: ${t.wrongType}`); continue; }
+      if (file.size > DEFAULT_MAX_BYTES) { problems.push(`${file.name}: ${t.tooLarge(formatBytes(locale, DEFAULT_MAX_BYTES))}`); continue; }
+      // Named by when it was recorded (the file's date); renamed freely in the details.
+      const recorded = formatDateTime(locale, new Date(file.lastModified || Date.now()).toISOString());
+      accepted.push({ key: crypto.randomUUID(), file, src: URL.createObjectURL(file), name: recorded, movement, tracking: null, trim: null, stabilize: false, stability: { state: 'checking' } });
+    }
+    setError(problems.join(' '));
+    if (accepted.length) { setDrafts(list => [...list, ...accepted]); setSelected(accepted[0]!.key); }
+  };
+
+  const start = async () => {
+    if (!ready.length || busy) return;
+    const operation = new AbortController(); controller.current = operation;
+    const abort = () => operation.abort();
+    const accountSignal = lifecycle.signal(); accountSignal.addEventListener('abort', abort, { once: true });
+    if (accountSignal.aborted) operation.abort();
+    const batch = [...ready];
+    askForNotifications();
+    setError(''); setSending({ done: 0, total: batch.length, starting: false });
+    let queued = 0;
+    try {
+      // Start the installed analyzer if it is not running yet, and pair with it if this browser has not.
+      let token = pairing;
+      if (connection === 'unreachable' || connection === 'pairing_required') {
+        setSending({ done: 0, total: batch.length, starting: true });
+        if (connection === 'unreachable') launchLocalAnalyzer();
+        const state = await waitForLocalAnalyzer(token, operation.signal, 60000);
+        if (state === 'unreachable') throw new Error('The local analyzer did not start. Allow the browser to open TrainFlow Analyzer, or install it first.');
+        if (state === 'incompatible') throw new Error('This analyzer version cannot queue videos. Install the current version.');
+        if (state !== 'ready' && state !== 'analyzing') {
+          const paired = await pairLocalAnalyzer(operation.signal);
+          if (!paired) throw new Error('Pairing with the local analyzer failed. Open “Pair manually” and paste the token from its window.');
+          token = paired; storePairing(paired); setPairing(paired);
+        }
+      }
+      for (const draft of batch) {
+        setSending({ done: queued, total: batch.length, starting: false });
+        const job = await enqueueJob(draft.file, { name: draft.name.trim() || draft.file.name, account: account.userId, movement: engineMovement(draft.movement),
+          tracking: draft.tracking!, sourceVideo: draft.info!, trim: draft.trim, stabilize: stabilizes(draft) }, token, operation.signal);
+        rememberJobExercise(job.id, draft.movement);
+        if (!lifecycle.isCurrent()) return;
+        queued++;
+        update(draft.key, { jobId: job.id });
+        queue.refresh();
+      }
+      toast({ tone: 'success', title: queued === 1 ? 'Video sent to the analyzer' : `${queued} videos sent to the analyzer`,
+        description: 'You can add other videos, leave this page or close the browser. Results are saved to your library when they are ready.' });
+    } catch (failure) {
+      if (lifecycle.isCurrent() && !operation.signal.aborted) {
+        const reason = failure instanceof TypeError ? 'Connection to the local analyzer failed.' : failure instanceof Error ? failure.message : 'Sending videos failed.';
+        setError(queued ? `${queued} of ${batch.length} videos were sent. ${reason}` : reason);
+      }
+    } finally {
+      accountSignal.removeEventListener('abort', abort);
+      if (lifecycle.isCurrent()) setSending(null);
+      queue.refresh();
+    }
+  };
+
+  const points = current?.tracking?.points.length ?? 0;
+  const waiting = unsent.length - ready.length;
+  const sentJob = current?.jobId ? queue.jobs.find(job => job.id === current.jobId) : undefined;
+  const sentSaved = current?.jobId ? queue.saved.find(item => item.id === current.jobId) : undefined;
+  const sentStatus = sentJob ? jobStatus(sentJob, queue.saving[sentJob.id], queue.saveErrors[sentJob.id]) : null;
+
+  const chips = drafts.length ? <div className={styles.drafts} role="tablist" aria-label="Chosen videos" aria-orientation="vertical">
+    {drafts.map((draft, index) => {
+      const job = draft.jobId ? queue.jobs.find(item => item.id === draft.jobId) : undefined;
+      const saved = draft.jobId ? queue.saved.some(item => item.id === draft.jobId) : false;
+      const status = job ? jobStatus(job, queue.saving[job.id], queue.saveErrors[job.id]) : null;
+      const mark = saved ? <Check />
+        : status ? (status.state === 'queued' ? <Clock /> : status.state === 'failed' || status.state === 'save_failed' ? <CircleAlert /> : <LoaderCircle className={styles.spin} />)
+        : draft.jobId ? <Clock /> : isReady(draft) ? <Check /> : index + 1;
+      return <button key={draft.key} type="button" role="tab" aria-selected={draft.key === current?.key} className={styles.draft}
+        data-ready={isReady(draft) || saved || undefined} data-sent={draft.jobId ? (saved ? 'saved' : status?.state ?? 'sent') : undefined} onClick={() => setSelected(draft.key)}>
+        <span className={styles.draftMark} aria-hidden="true">{mark}</span>
+        <span className={styles.draftName}>{draft.name || draft.file.name}</span>
+        {status && status.state !== 'queued' && status.state !== 'failed' && !saved ? <span className={styles.draftPercent}>{status.percent}%</span> : null}
+        <span className="tf-visually-hidden">{draft.jobId ? ` — ${saved ? 'saved' : status?.text ?? 'in the analyzer'}` : isReady(draft) ? ' — points marked' : ' — mark points'}</span>
+      </button>;
+    })}
+    {room > 0 ? <button type="button" className={styles.draftAdd} onClick={() => input.current?.click()} disabled={busy}><Plus aria-hidden="true" />{drafts.some(draft => draft.jobId) ? 'Another video' : 'Add videos'}</button> : null}
+  </div> : null;
+
+  const details = current ? <Card as="section" padding="md" aria-labelledby="details-title" className={styles.card}>
+    <div className={styles.cardHead}>
+      <h2 id="details-title" className={styles.cardTitle}>{drafts.length > 1 ? `Video ${drafts.indexOf(current) + 1} of ${drafts.length}` : t.step.details}</h2>
+      {current.jobId ? null : <IconButton size="sm" variant="ghost" icon={<Trash2 />} label="Remove this video" isDisabled={busy} onPress={() => drop(current.key)} />}
+    </div>
+    {current.jobId ? <div className={styles.sent} data-state={sentSaved ? 'saved' : sentStatus?.state ?? 'sent'} role="status">
+      <span className={styles.sentHead}>
+        <strong>{current.name || current.file.name}</strong>
+        {sentStatus && sentStatus.state !== 'queued' && sentStatus.state !== 'failed' ? <span className={styles.sentPercent}>{sentStatus.percent}%</span> : null}
+      </span>
+      <span className={styles.sentText}>{sentSaved ? 'Saved in your library.' : sentStatus?.text ?? 'In the analyzer.'}</span>
+      {sentStatus && sentStatus.state !== 'queued' && sentStatus.state !== 'failed' ? <span className={styles.runBar} aria-hidden="true"><span style={{ transform: `scaleX(${sentStatus.percent / 100})` }} /></span> : null}
+      <span className={styles.sentActions}>
+        {sentSaved ? <LinkButton size="sm" variant="secondary" href={`/app/video-analyses/${sentSaved.analysisId}`}>Open analysis</LinkButton> : null}
+        {room > 0 ? <Button size="sm" variant="secondary" iconStart={<Plus />} isDisabled={busy} onPress={() => input.current?.click()}>Change video</Button> : null}
+        <Button size="sm" variant="ghost" iconStart={<X />} onPress={() => drop(current.key)}>Close</Button>
+      </span>
+      {sentSaved ? null : <span className={styles.hint}>Closing it here does not stop the analysis.</span>}
+    </div> : <>
+      <TextField placeholder={m.common.ph.analysisName} label={t.name} value={current.name} onChange={name => update(current.key, { name })} maxLength={200} isDisabled={busy} />
+      <MovementField isRequired value={current.movement || null} isDisabled={busy}
+        onChange={exercise => { update(current.key, { movement: exercise }); setMovement(exercise); }} />
+      {unsent.length > 1 && current.movement ? <Button size="sm" variant="ghost" isDisabled={busy} onPress={() => setDrafts(list => list.map(draft => (draft.jobId ? draft : { ...draft, movement: current.movement })))}>Same movement for all</Button> : null}
+      <StabilityControl draft={current} disabled={busy} onChange={stabilize => update(current.key, { stabilize })} />
+      <ol className={styles.checklist}>
+        <li data-done="" title={current.file.name}><span aria-hidden="true">✓</span><small>{current.file.name} · {formatBytes(locale, current.file.size)}</small></li>
+        <li data-done={current.movement ? '' : undefined}><span aria-hidden="true">{current.movement ? '✓' : '!'}</span><small>{current.movement ? 'Movement chosen' : 'Choose the movement'}</small></li>
+        <li data-done={points === 2 ? '' : undefined}><span aria-hidden="true">{points === 2 ? '✓' : '2'}</span><small>{points === 2 ? 'Points marked' : `Mark ${2 - points} more ${2 - points === 1 ? 'point' : 'points'}`}</small></li>
+      </ol>
+    </>}
+
+  </Card> : null;
+
+  const startBar = <section aria-label={t.start} className={styles.startBar}>
+    {sending ? <div className={styles.run}>
+      <div className={styles.runHead}>
+        <span className={styles.runLabel}>{sending.starting ? 'Starting the local analyzer…' : `Sending videos to the analyzer… ${sending.done + 1} of ${sending.total}`}</span>
+      </div>
+      <div className={styles.runBar} role="progressbar" aria-label="Sending videos" aria-valuemin={0} aria-valuemax={sending.total} aria-valuenow={sending.done}>
+        <span style={{ transform: `scaleX(${sending.starting ? 0.03 : Math.max(0.05, sending.done / sending.total)})` }} />
+      </div>
+    </div> : null}
+    <Button variant="primary" size="lg" block loading={busy} isDisabled={!ready.length || connection === 'runtime_missing' || connection === 'incompatible'} onPress={() => void start()}>
+      {ready.length > 1 ? `Analyze ${ready.length} videos` : t.start}
+    </Button>
+    {!busy && !unsent.length ? <p className={styles.hint}>{drafts.length ? 'Add another video to analyze it too.' : 'Choose one or more videos first.'}</p>
+      : !busy && waiting ? <p className={styles.hint}>{waiting === 1 ? '1 video needs' : `${waiting} videos need`} a movement and two points{ready.length ? '; it waits here.' : '.'}</p>
+      : !busy && connection === 'unreachable' ? <p className={styles.hint}>Starting the analysis also starts the local analyzer on this computer.</p> : null}
+    {busy ? <Button onPress={() => controller.current?.abort()}>Stop sending</Button> : null}
+    <p className={styles.notice}><Info aria-hidden="true" />Analyzed one by one on this computer.</p>
+  </section>;
+
+  return <>
+    <PageHeader
+      context={<Breadcrumbs items={[{ id: 'list', label: m.video.list.title, href: '/app/video-analyses' }, { id: 'new', label: t.title }]} />}
+      title={t.title}
+      description={`Analyze up to ${QUEUE_LIMIT} videos on this computer. They are processed in the background and saved privately in your TrainFlow library.`}
+    />
+    <input ref={input} id="local-analysis-video" type="file" multiple accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm" className="tf-visually-hidden" tabIndex={-1} aria-label={t.file}
+      onChange={event => { pick(event.target.files); event.target.value = ''; }} />
+    <div className={styles.layout} data-portrait={portrait || undefined} data-empty={!current || undefined} style={{ '--ratio': ratio } as CSSProperties}>
+      <Card as="section" padding="sm" aria-labelledby="video-title" className={styles.videoCard} data-dragging={dragging || undefined}
+        onDragOver={event => { event.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={event => { event.preventDefault(); setDragging(false); pick(event.dataTransfer.files); }}>
+        <h2 id="video-title" className="tf-visually-hidden">{t.step.file}</h2>
+        {current ? <div className={styles.pickerArea}>
+          <TrackingPicker key={current.key} src={current.src} value={current.tracking} disabled={busy || Boolean(current.jobId)} compact={portrait}
+            trim={current.trim} onTrimChange={current.jobId ? undefined : trim => changeTrim(current, trim)}
+            onChange={tracking => { if (!current.jobId) update(current.key, { tracking }); }} onMetadata={info => update(current.key, { info })} />
+        </div> : <div className={styles.empty}>
+          <span className={styles.emptyIcon} aria-hidden="true"><FileVideo /></span>
+          <p className={styles.emptyTitle}>{t.dropTitle}</p>
+          <Button variant="primary" iconStart={<Upload />} isDisabled={room === 0} onPress={() => input.current?.click()}>Choose videos</Button>
+          <p className={styles.hint}>{room === 0 ? `The analyzer already holds ${QUEUE_LIMIT} videos. Wait until some are saved.` : `Up to ${room} ${room === 1 ? 'video' : 'videos'} · ${t.fileHint}`}</p>
+        </div>}
+        {error ? <Alert tone="danger" title={error} /> : null}
+      </Card>
+
+      <div className={styles.left}>
+        {chips ? <Card padding="sm" className={styles.chipsCard}>{chips}</Card> : null}
+        {details}
+      </div>
+      <div className={styles.right}>
+        <AnalyzerConnection token={pairing} onTokenChange={setPairing} onStateChange={setConnection} />
+        {startBar}
+        <AnalysisQueue fill />
+      </div>
+    </div>
+  </>;
+}
+
+/**
+ * Stabilization: required when the quick check sees the camera move (the switch is then locked on), optional
+ * otherwise. When the check cannot run, the requirement is stated so the coach can decide.
+ */
+function StabilityControl({ draft, disabled, onChange }: { draft: Draft; disabled: boolean; onChange: (stabilize: boolean) => void }) {
+  const { stability } = draft;
+  const required = stability.state === 'unstable';
+  return <div className={styles.stability} data-state={stability.state}>
+    <Switch isSelected={stabilizes(draft)} isDisabled={disabled || required} onChange={onChange}>Stabilize video</Switch>
+    {required ? <p className={styles.stabilityNote} role="status"><ShieldAlert aria-hidden="true" />Camera moves: required.</p>
+      : stability.state === 'checking' ? <p className={styles.stabilityHint} role="status"><LoaderCircle aria-hidden="true" className={styles.spin} />Checking the camera…</p>
+      : stability.state === 'stable' ? <p className={styles.stabilityHint}>Camera looks still.</p>
+      : <p className={styles.stabilityNote}><ShieldAlert aria-hidden="true" />Needs a still camera; turn on if handheld.</p>}
+  </div>;
 }
 export default function NewAnalysisRoute() { return <RequireFeature feature="video.library.manage"><LocalAnalysis /></RequireFeature>; }

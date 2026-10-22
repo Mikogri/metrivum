@@ -150,3 +150,97 @@ a.cardTitle:focus-visible::after {
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
 }
+
+.queue {
+  margin-bottom: var(--tf-space-4);
+}
+
+.queue:empty {
+  display: none;
+}
+
+/* Shared with you: a short list under your own analyses. */
+.saved {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-6);
+}
+
+.savedTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: 0;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.savedTitle svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.savedList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  list-style: none;
+}
+
+.savedList li {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-2-5) var(--tf-space-3);
+}
+
+.savedList li + li {
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.savedName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.savedName:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.savedMeta {
+  flex: none;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+/* File names are cut with dots; the full name is in the tooltip. */
+.fileName {
+  display: block;
+  max-width: 14rem;
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jobName {
+  overflow: hidden;
+  font-weight: var(--tf-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card[data-analyzing] {
+  border-style: dashed;
+}

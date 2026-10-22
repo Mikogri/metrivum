@@ -1,11 +1,10 @@
 import type { BillingOption } from "./pricing";
 
 const positiveCount = (value: unknown) => typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 2147483647;
-export function validateOffer(value: { name: string; description: string; category: string; applicationFormVersionId: string; tags: string[]; billingOptions: BillingOption[]; purpose?: "CoachingService" | "TrainingPlan" }): string | null {
+export function validateOffer(value: { name: string; description: string; category: string; applicationFormVersionId: string | null; tags: string[]; billingOptions: BillingOption[]; purpose?: "CoachingService" | "TrainingPlan" }): string | null {
   if (!value.name.trim() || value.name.trim().length > 200) return "Enter an offer name up to 200 characters.";
   if (value.description.length > 4000) return "Keep the description within 4,000 characters.";
   if (!value.category || value.category.length > 60) return "Choose a category.";
-  if (!value.applicationFormVersionId) return "Publish and select an application form first.";
   if (value.tags.length > 30 || value.tags.some(raw => { const tag = raw.normalize("NFKC").trim().toLowerCase(); return tag.length > 60 || !/^[\p{L}\p{Nd} -]+$/u.test(tag); })) return "Use up to 30 tags, each up to 60 characters using letters, numbers, spaces and hyphens.";
   if (value.billingOptions.length < 1 || value.billingOptions.length > 20) return "Add between 1 and 20 billing options.";
   for (const [index, option] of value.billingOptions.entries()) {

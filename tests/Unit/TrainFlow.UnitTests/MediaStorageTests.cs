@@ -25,7 +25,7 @@ public class MediaStorageTests
         {
             Assert.Equal("secret-test-value", request.Headers.Authorization!.Parameter);
             if (request.RequestUri!.AbsolutePath.StartsWith("/storage/v1/bucket/"))
-                return Json("{\"public\":false}");
+                return Json("{\"public\":false,\"file_size_limit\":524288000}");
             Assert.Equal(HttpMethod.Post, request.Method);
             Assert.Equal("/storage/v1/object/upload/sign/test-private/owner/video.mp4", request.RequestUri.AbsolutePath);
             Assert.Equal("false", Assert.Single(request.Headers.GetValues("x-upsert")));
@@ -33,6 +33,20 @@ public class MediaStorageTests
         });
         var url = await Adapter(handler).CreateUploadUrlAsync("test-private", "owner/video.mp4", default);
         Assert.Equal("http://127.0.0.1:54321/storage/v1/object/upload/sign/test-private/owner/video.mp4?token=test", url);
+    }
+
+    [Theory]
+    [InlineData("{\"public\":false}")]
+    [InlineData("{\"public\":false,\"file_size_limit\":null}")]
+    [InlineData("{\"public\":false,\"file_size_limit\":\"524288000\"}")]
+    [InlineData("{\"public\":false,\"file_size_limit\":0}")]
+    [InlineData("{\"public\":false,\"file_size_limit\":524288001}")]
+    public async Task Missing_or_unsafe_bucket_cap_cannot_issue_upload_capability(string limits)
+    {
+        var handler = new StubHandler(_ => Json(limits));
+        var error = await Assert.ThrowsAsync<ApiException>(() => Adapter(handler).CreateUploadUrlAsync("test-private", "video.mp4", default));
+        Assert.Equal("STORAGE_BUCKET_LIMIT_REQUIRED", error.Code);
+        Assert.Equal(1, handler.Calls);
     }
 
     [Fact]

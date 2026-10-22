@@ -1,5 +1,4 @@
 using TrainFlow.Access.Contracts;
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -61,9 +60,8 @@ public sealed class MessagingUserIdProvider : IUserIdProvider
 }
 
 [Authorize]
-public sealed class MessagingHub(MessagingService service, IAccountContext accounts, MessagingDispatcher dispatcher, TimeProvider clock) : Hub
+public sealed class MessagingHub(MessagingService service, IAccountContext accounts, MessagingDispatcher dispatcher, TimeProvider clock, MessagingHubAbuse abuse) : Hub
 {
-    private static readonly ConcurrentDictionary<(string Connection, Guid Conversation), DateTimeOffset> LastTyping = new();
     public async Task Subscribe(Guid conversationId)
     {
         await service.ActiveAsync(conversationId, Context.ConnectionAborted);
@@ -72,11 +70,8 @@ public sealed class MessagingHub(MessagingService service, IAccountContext accou
     public async Task Typing(Guid conversationId, bool typing)
     {
         await service.ActiveAsync(conversationId, Context.ConnectionAborted);
-        var key = (Context.ConnectionId, conversationId);
+        if (!abuse.AdmitTypingEffect(accounts.UserId, conversationId)) return;
         var now = clock.GetUtcNow();
-        if (LastTyping.TryGetValue(key, out var last) && now - last < TimeSpan.FromMilliseconds(750))
-            return;
-        LastTyping[key] = now;
         await dispatcher.ConversationAsync(conversationId, "TypingChanged", new
         {
             ConversationId = conversationId,
@@ -86,10 +81,4 @@ public sealed class MessagingHub(MessagingService service, IAccountContext accou
         }, Context.ConnectionAborted, accounts.UserId);
     }
 
-    public override Task OnDisconnectedAsync(Exception? exception)
-    {
-        foreach (var key in LastTyping.Keys.Where(x => x.Connection == Context.ConnectionId))
-            LastTyping.TryRemove(key, out _);
-        return base.OnDisconnectedAsync(exception);
-    }
 }

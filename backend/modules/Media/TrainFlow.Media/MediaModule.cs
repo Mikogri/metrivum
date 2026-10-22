@@ -16,6 +16,9 @@ public static class MediaModule
     public static IServiceCollection AddMedia(this IServiceCollection services, IConfiguration config)
     {
         services.AddModuleDatabase<MediaDbContext>("media");
+        services.AddOptions<MediaQuotaOptions>().Bind(config.GetSection("AbuseProtection:Media"))
+            .Validate(x => x.UploadStartsPerHour is > 0 and <= 1000 && x.DailyBytes > 0 && x.GlobalStorageBytes >= x.DailyBytes
+                && x.StorageAlertPercent is > 0 and < 100 && x.CleanupBatchSize is > 0 and <= 100, "Invalid media quotas.").ValidateOnStart();
         services.AddOptions<StorageOptions>().Bind(config.GetSection("Storage"))
             .Validate(x => x.MaxAttachmentBytes is > 0 and <= 67108864 && x.MaxVoiceDurationMs is > 0 and <= 3600000 && x.AllowedAttachmentTypes.Length > 0, "Invalid messaging attachment limits.")
             .Validate(x => x.MaxVideoBytes is > 0 and <= 2147483648 && x.MaxPendingUploadsPerOwner is > 0 and <= 100 && x.ReadUrlSeconds is >= 30 and <= 600, "Invalid storage limits.").ValidateOnStart();

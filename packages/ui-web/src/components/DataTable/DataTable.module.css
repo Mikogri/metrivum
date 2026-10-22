@@ -5,7 +5,7 @@
   background: var(--tf-color-surface);
   transition: opacity var(--tf-duration-fast) ease;
   /* When loading ends the table settles in instead of popping. */
-  animation: table-in var(--tf-duration-settle) var(--tf-ease-settle);
+  animation: table-in 200ms var(--tf-ease-out);
 }
 
 @keyframes table-in {
@@ -74,8 +74,8 @@
 .table tbody tr {
   position: relative;
   transition: background-color 120ms ease;
-  animation: row-in 480ms var(--tf-ease-settle) both;
-  animation-delay: calc(80ms + min(var(--i), 10) * 28ms);
+  /* Rows are there the moment the page is: a short fade, no delay or stagger. */
+  animation: row-in 180ms var(--tf-ease-out) both;
 }
 
 @media (hover: hover) and (pointer: fine) {

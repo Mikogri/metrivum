@@ -1,17 +1,33 @@
 .on {
   color: var(--tf-color-danger);
   fill: currentColor;
-  animation: beat 360ms var(--tf-ease-spring);
+}
+
+/* Filled heart on a soft red disc; the colours cross-fade, only the heart itself pops. */
+.active,
+.active[data-hovered] {
+  background: var(--tf-color-danger-soft);
+  color: var(--tf-color-danger);
+}
+
+.on[data-beat] {
+  animation: beat 380ms var(--tf-ease-spring);
 }
 
 @keyframes beat {
-  40% {
-    transform: scale(1.25);
+  0% {
+    transform: scale(0.8);
+  }
+  45% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .on {
+  .on[data-beat] {
     animation: none;
   }
 }

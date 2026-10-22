@@ -4,6 +4,7 @@ import { MemoryRouter, useLocation } from "react-router";
 import { expect, it, vi } from "vitest";
 import ExercisesRoute from "./exercises";
 
+vi.mock("~/modules/anatomy", () => ({ MuscleExplorer: ({ children, muscleKey, onMuscleChange }: { children: ReactNode; muscleKey: string; onMuscleChange: (key: string) => void }) => <><button onClick={() => onMuscleChange(muscleKey ? "" : "quadriceps")}>Pick muscle</button>{children}</> }));
 vi.mock("~/shared/access", () => ({
   useFeatureAccess: () => ({ allowed: true }),
   FeatureGate: ({ children }: { children: ReactNode }) => children,
@@ -29,4 +30,12 @@ it("switches views without losing filters or page and preserves the card view wh
   expect(screen.getByTestId("url")).toHaveTextContent("q=Squat&page=2&sort=newest&view=cards");
   fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
   expect(screen.getByTestId("url")).toHaveTextContent("?sort=newest&view=cards");
+});
+
+it("uses the shared URL muscle filter for model selection and resets pagination", () => {
+  render(<MemoryRouter initialEntries={["/app/exercises?page=3&sort=newest"]}><ExercisesRoute /><Location /></MemoryRouter>);
+  fireEvent.click(screen.getByRole("button", { name: "Pick muscle" }));
+  expect(screen.getByTestId("url")).toHaveTextContent("?sort=newest&muscle=quadriceps");
+  fireEvent.click(screen.getByRole("button", { name: "Pick muscle" }));
+  expect(screen.getByTestId("url")).toHaveTextContent("?sort=newest");
 });

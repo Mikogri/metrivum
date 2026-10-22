@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { parseAbsolute, parseDate, parseDateTime, parseTime, parseZonedDateTime } from "@internationalized/date";
-import { Button, Combobox, DateField, DialogFooter, Option, Switch, TextArea, TextField, TimeField } from "@trainflow/ui-web";
+import { Alert, Button, Combobox, DateField, DialogFooter, Option, Switch, TextArea, TextField, TimeField } from "@trainflow/ui-web";
 import { MutationError, RecipientPicker, useCoachingMutation } from "~/modules/coaching";
 import { timeZones } from "~/modules/accounts";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
@@ -167,9 +167,7 @@ export function EventEditor({
       </section>
 
       {error ? (
-        <p role="alert" className={styles.error}>
-          {error}
-        </p>
+        <Alert tone="danger" live="assertive" title={error} />
       ) : null}
       <MutationError error={mutation.error} />
       <DialogFooter>

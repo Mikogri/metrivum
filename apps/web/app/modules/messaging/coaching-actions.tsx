@@ -3,10 +3,10 @@ import { Link } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, ClipboardList, MailOpen, MoreHorizontal } from "lucide-react";
 import type { Schema } from "@trainflow/api-client-web";
-import { Button, Dialog, DialogFooter, DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, IconButton, Option, Select, toast } from "@trainflow/ui-web";
+import { Alert, Button, Dialog, DialogFooter, DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, IconButton, Option, Select, toast } from "@trainflow/ui-web";
 import { useAccountContext } from "~/shared/session";
 import { useFeatureAccess } from "~/shared/access";
-import { InvitationDialog, OfferDialog, useCoachingQuery, type Page } from "~/modules/coaching";
+import { InvitationDialog, NoActiveOffers, OfferDialog, useCoachingQuery, type Page } from "~/modules/coaching";
 import { root } from "./api";
 import type { Message } from "./model";
 import styles from "./messaging.module.css";
@@ -104,9 +104,8 @@ function ShareOffer({ kind, conversationId, username, recipientId, close, onSent
     }
   }
   return <Dialog isOpen title={kind === "form" ? "Send application form" : "Send invitation"} description={`Send to @${username}. They can review the offer before applying.`} isDismissable={!pending} isKeyboardDismissDisabled={pending} onOpenChange={open => { if (!open && !pending) close(); }}>
-    {offers.isError ? <p role="alert">Could not load offers. <Button onPress={() => void offers.refetch()}>Retry</Button></p> : <Select label="Active offer" placeholder={offers.isPending ? "Loading offers…" : "Choose an offer"} selectedKey={offer?.id ?? null} isDisabled={pending || !offers.data?.items.length} onSelectionChange={key => setSelected(String(key))}>{(offers.data?.items ?? []).map(item => <Option key={item.id} id={item.id}>{item.name}</Option>)}</Select>}
-    {offers.data?.items.length === 0 && <p>Activate an offer with an application form in Library → Offers first.</p>}
-    {error && <p role="alert">{error}</p>}
-    <DialogFooter><Button isDisabled={pending} onPress={close}>Cancel</Button><Button variant="primary" loading={pending} isDisabled={!offer} onPress={() => void send()}>Send</Button></DialogFooter>
+    {offers.isError ? <Alert tone="danger" live="assertive" title="Could not load your offers" actions={<Button size="sm" onPress={() => void offers.refetch()}>Try again</Button>}>Check your connection and try again.</Alert> : offers.data?.items.length === 0 ? <NoActiveOffers purpose={kind} /> : <Select label="Active offer" placeholder={offers.isPending ? "Loading offers…" : "Choose an offer"} selectedKey={offer?.id ?? null} isDisabled={pending || !offers.data?.items.length} onSelectionChange={key => setSelected(String(key))}>{(offers.data?.items ?? []).map(item => <Option key={item.id} id={item.id}>{item.name}</Option>)}</Select>}
+    {error && <Alert tone="danger" live="assertive" title={kind === "form" ? "The application form was not sent" : "The invitation was not sent"}>{error}</Alert>}
+    <DialogFooter>{offers.data?.items.length === 0 ? <Button onPress={close}>Close</Button> : <><Button isDisabled={pending} onPress={close}>Cancel</Button><Button variant="primary" loading={pending} isDisabled={!offer} onPress={() => void send()}>{kind === "form" ? "Send form" : "Send invitation"}</Button></>}</DialogFooter>
   </Dialog>;
 }

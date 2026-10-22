@@ -75,6 +75,18 @@ export function useRealtime(enabled: boolean, onIncoming?: (event: { id: string;
                     queryKey: [accountKey, "messaging"],
                 });
         };
+        const refreshConversation = (event?: { conversationId?: string }) => {
+            if (!current()) return;
+            if (!event?.conversationId) { refresh(); return; }
+            const id = event.conversationId;
+            void cache.invalidateQueries({
+                queryKey: [accountKey, "messaging"],
+                predicate: ({ queryKey: key }) => key[2] === `${root}/conversations`
+                    || key[2] === `${root}/requests`
+                    || key[2] === `${root}/conversations/${id}`
+                    || (key[2] === "history" && key[3] === id),
+            });
+        };
         const hub = new HubConnectionBuilder()
             .withUrl(`${apiBaseUrl()}${root}/hub`, {
                 accessTokenFactory: async () => (await lifecycle.accessToken({ signal: controller.signal })) ?? "",
@@ -93,7 +105,7 @@ export function useRealtime(enabled: boolean, onIncoming?: (event: { id: string;
             "MembershipChanged",
             "MessageRequestUpdated",
         ])
-            hub.on(name, refresh);
+            hub.on(name, refreshConversation);
         hub.on("MessageRequestCreated", (request: { id: string; senderUserId: string }) => {
             if (!current()) return;
             refresh();
@@ -164,28 +176,25 @@ export function useRealtime(enabled: boolean, onIncoming?: (event: { id: string;
             .catch(() => {
                 if (current()) setStatus("Syncing periodically");
             });
-        const timer = window.setInterval(
-            () =>
-                current() && setTyping((old) =>
-                    Object.fromEntries(
-                        Object.entries(old).map(([id, people]) => [
-                            id,
-                            people.filter(
-                                (p) => Date.parse(p.expiresAt) > Date.now(),
-                            ),
-                        ]),
-                    ),
-                ),
-            1000,
-        );
         return () => {
             controller.abort();
             signal.removeEventListener("abort", stop);
-            clearInterval(timer);
             connection.current = null;
             void hub.stop();
         };
     }, [enabled, account.slot, account.userId, accountKey, lifecycle, cache]);
+    useEffect(() => {
+        const expiry = Math.min(...Object.values(typing).flatMap(people => people.map(p => Date.parse(p.expiresAt))));
+        if (!Number.isFinite(expiry)) return;
+        // Wake only when an indicator expires; idle chat must not rerender the app each second.
+        const timer = window.setTimeout(() => {
+            if (!lifecycle.isCurrent()) return;
+            setTyping(old => Object.fromEntries(Object.entries(old)
+                .map(([id, people]) => [id, people.filter(p => Date.parse(p.expiresAt) > Date.now())] as const)
+                .filter(([, people]) => people.length > 0)));
+        }, Math.max(0, expiry - Date.now()));
+        return () => window.clearTimeout(timer);
+    }, [typing, lifecycle]);
     return {
         status: MOCK_MODE ? "Preview" : status,
         typing,

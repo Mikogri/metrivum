@@ -1,0 +1,86 @@
+.list {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  transition: border-color 120ms ease;
+}
+
+.item:hover {
+  border-color: var(--tf-color-border-strong);
+}
+
+.icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--tf-radius-md);
+  background: color-mix(in srgb, var(--tf-color-violet) 14%, transparent);
+  color: var(--tf-color-violet);
+}
+
+.icon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* The whole card is clickable through the name link. */
+.name {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+  text-decoration: none;
+}
+
+.name::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.name:focus-visible {
+  outline: none;
+}
+
+.item:has(.name:focus-visible) {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.set {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.set svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.meta {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}

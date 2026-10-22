@@ -11,16 +11,16 @@ using TrainFlow.Offers.Infrastructure;
 namespace TrainFlow.Offers.Features;
 
 public sealed record OfferRequest(string Name, string Description, string Category, CoachingMode CoachingMode,
-    Guid ApplicationFormVersionId, IReadOnlyList<string> Tags, IReadOnlyList<BillingOptionSnapshot> BillingOptions, Guid? TeamId = null, OfferPurpose Purpose = OfferPurpose.CoachingService);
+    Guid? ApplicationFormVersionId, IReadOnlyList<string> Tags, IReadOnlyList<BillingOptionSnapshot> BillingOptions, Guid? TeamId = null, OfferPurpose Purpose = OfferPurpose.CoachingService);
 public sealed record OfferDto(Guid Id, Guid CoachId, string Name, string Description, string Category, CoachingMode CoachingMode,
-    Guid ApplicationFormVersionId, IReadOnlyList<string> Tags, IReadOnlyList<BillingOptionSnapshot> BillingOptions, OfferStatus Status,
-    Guid? CurrentPublishedRevisionId, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, long Version, Guid? TeamId = null, string? TeamName = null, OfferPurpose Purpose = OfferPurpose.CoachingService);
+    Guid? ApplicationFormVersionId, IReadOnlyList<string> Tags, IReadOnlyList<BillingOptionSnapshot> BillingOptions, OfferStatus Status,
+    Guid? CurrentPublishedRevisionId, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, long Version, Guid? TeamId = null, string? TeamName = null, OfferPurpose Purpose = OfferPurpose.CoachingService, bool HasClientHistory = false);
 public sealed record OfferListDto(IReadOnlyList<OfferDto> Items, int Page, int PageSize, int Total);
 public sealed record PublicOfferListDto(IReadOnlyList<OfferRevisionDto> Items, int Page, int PageSize, int Total);
 public sealed record OfferCategoryDto(string Key, string Name, bool Active);
 
 public sealed class OffersService(OffersDbContext db, IAccountContext accounts, IFeatureAccessService access,
-    IAccountProfileFields profiles, IFormLibrary forms, TimeProvider clock, ModuleTransaction transaction, ITeamContext? teams = null) : IOfferLibrary
+    IAccountProfileFields profiles, IFormLibrary forms, TimeProvider clock, ModuleTransaction transaction, ITeamContext? teams = null, IEnumerable<IOfferUsage>? usage = null) : IOfferLibrary
 {
     public async Task<OfferListDto> ListAsync(int page, int pageSize, OfferStatus? status, string? search, string sort, CancellationToken ct, Guid? teamId = null)
     {
@@ -134,7 +134,9 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
         {
             if (offer.CurrentPublishedRevisionId == null)
                 throw ApiException.Conflict("Publish the offer before activation.");
-            await forms.RequireUsableVersionAsync((await GetRevisionAsync(offer.CurrentPublishedRevisionId.Value, token)).ApplicationFormVersionId, offer.CoachId, FormPurpose.Application, token);
+            var revision = await GetRevisionAsync(offer.CurrentPublishedRevisionId.Value, token);
+            if (revision.ApplicationFormVersionId is { } formVersionId)
+                await forms.RequireUsableVersionAsync(formVersionId, offer.CoachId, FormPurpose.Application, token);
         }
         if (offer.Status != target)
         {
@@ -144,6 +146,42 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
         }
         return await DetailAsync(id, token);
     }, ct);
+    /// <summary>Removes an offer that was never published. Published offers, used or not, can only be archived.</summary>
+    public Task DeleteAsync(Guid id, long expected, CancellationToken ct) => transaction.RunAsync(async token =>
+    {
+        await Lock(id, token);
+        var offer = await Owned(id, token);
+        if (offer.TeamId != null)
+            await RequireTeam(offer.TeamId.Value, true, token);
+        Check(offer, expected);
+        // Published terms are immutable (database triggers on revisions) because applications, invitations and
+        // services keep pointing at them. Only an offer that was never published can be removed; it cannot have had
+        // applications or invitations, which require a published, Active offer.
+        if (offer.CurrentPublishedRevisionId != null || await db.Revisions.AnyAsync(x => x.OfferId == id, token))
+            throw new ApiException(409, "OFFER_PUBLISHED", "Published offers keep their terms. Archive the offer instead.");
+        var state = (await UsageAsync([id], token)).GetValueOrDefault(id) ?? new(false, false);
+        if (state.HadClients || state.HasOpenIntake)
+            throw ApiException.Conflict("Clients have used this offer, so it can only be archived.");
+        db.ChangeTracker.Clear();
+        await db.Options.Where(x => x.OfferId == id).ExecuteDeleteAsync(token);
+        await db.TagLinks.Where(x => x.OfferId == id).ExecuteDeleteAsync(token);
+        await db.Offers.Where(x => x.Id == id).ExecuteDeleteAsync(token);
+        return true;
+    }, ct);
+    private async Task<Dictionary<Guid, OfferUsage>> UsageAsync(Guid[] ids, CancellationToken ct)
+    {
+        var result = new Dictionary<Guid, OfferUsage>();
+        if (usage == null || ids.Length == 0)
+            return result;
+        var offerByRevision = await db.Revisions.AsNoTracking().Where(x => ids.Contains(x.OfferId)).ToDictionaryAsync(x => x.Id, x => x.OfferId, ct);
+        foreach (var source in usage)
+            foreach (var (offerId, state) in await source.GetAsync(ids, offerByRevision, ct))
+            {
+                var known = result.GetValueOrDefault(offerId) ?? new(false, false);
+                result[offerId] = new(known.HadClients || state.HadClients, known.HasOpenIntake || state.HasOpenIntake);
+            }
+        return result;
+    }
     public async Task<IReadOnlyList<OfferCategoryDto>> CategoriesAsync(CancellationToken ct)
     {
         await access.RequireAsync("offers.view-public", ct);
@@ -200,7 +238,8 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
                 throw ApiException.Conflict("This Team offer is not currently available.");
         }
         var revision = await GetRevisionAsync(offer.CurrentPublishedRevisionId ?? throw ApiException.Conflict("Offer has no published revision."), ct);
-        await forms.RequireUsableVersionAsync(revision.ApplicationFormVersionId, revision.CoachId, FormPurpose.Application, ct);
+        if (revision.ApplicationFormVersionId is { } formVersionId)
+            await forms.RequireUsableVersionAsync(formVersionId, revision.CoachId, FormPurpose.Application, ct);
         return revision;
     }
     public async Task<OfferRevisionDto> GetRevisionAsync(Guid revisionId, CancellationToken ct) => (await RevisionDtos([await db.Revisions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == revisionId, ct) ?? throw ApiException.NotFound()], ct))[0];
@@ -222,7 +261,8 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
             OfferRules.Validate(option);
         foreach (var tag in r.Tags)
             OfferRules.NormalizeTag(tag);
-        await forms.RequireUsableVersionAsync(r.ApplicationFormVersionId, formOwner ?? accounts.UserId, FormPurpose.Application, ct);
+        if (r.ApplicationFormVersionId is { } formVersionId)
+            await forms.RequireUsableVersionAsync(formVersionId, formOwner ?? accounts.UserId, FormPurpose.Application, ct);
     }
     private async Task SetChildren(Guid id, OfferRequest r, CancellationToken ct)
     {
@@ -277,7 +317,8 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
         var ids = rows.Select(x => x.Id).ToArray();
         var options = await db.Options.AsNoTracking().Where(x => ids.Contains(x.OfferId)).OrderBy(x => x.Name).ThenBy(x => x.Id).ToArrayAsync(ct);
         var tags = await (from l in db.TagLinks.AsNoTracking() join t in db.Tags.AsNoTracking() on l.TagId equals t.Id where ids.Contains(l.OfferId) orderby t.Name select new { l.OfferId, t.Name }).ToArrayAsync(ct);
-        return rows.Select(x => new OfferDto(x.Id, x.CoachId, x.Name, x.Description, x.Category, x.CoachingMode, x.ApplicationFormVersionId, tags.Where(t => t.OfferId == x.Id).Select(t => t.Name).ToArray(), options.Where(o => o.OfferId == x.Id).Select(OptionDto).ToArray(), x.Status, x.CurrentPublishedRevisionId, x.CreatedAt, x.UpdatedAt, x.Version, x.TeamId, x.TeamName, x.Purpose)).ToArray();
+        var used = await UsageAsync(ids, ct);
+        return rows.Select(x => new OfferDto(x.Id, x.CoachId, x.Name, x.Description, x.Category, x.CoachingMode, x.ApplicationFormVersionId, tags.Where(t => t.OfferId == x.Id).Select(t => t.Name).ToArray(), options.Where(o => o.OfferId == x.Id).Select(OptionDto).ToArray(), x.Status, x.CurrentPublishedRevisionId, x.CreatedAt, x.UpdatedAt, x.Version, x.TeamId, x.TeamName, x.Purpose, used.GetValueOrDefault(x.Id)?.HadClients ?? false)).ToArray();
     }
     private async Task<OfferRevisionDto[]> RevisionDtos(OfferRevision[] rows, CancellationToken ct)
     {

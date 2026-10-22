@@ -1,9 +1,9 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { AnalysisResult, TrajectoryPoint } from "@trainflow/api-client-web";
 import { expect, it, vi } from "vitest";
 import { ResultView } from "./ResultView";
-import { BarPathPlot, TimeSeriesChart } from "./charts";
+import { pathRuns, timeSeries } from "./charts";
 
 vi.mock("~/shared/session/AccountScope", () => ({ useApi: () => vi.fn() }));
 vi.mock("../api", () => ({ readUrl: async () => ({ url: "https://example.test/signed-video", expiresAt: "2099-01-01" }) }));
@@ -18,26 +18,53 @@ const result: AnalysisResult = {
   trajectory: [0, 0.5, 1, 1.5, 2, 2.5, 3].map((seconds) => ({ seconds, x: 20, y: seconds * 10, velocity: 7, quality: 1, occluded: false, segment: 0 })),
 };
 
-it("uses analyzer rep metrics, selects the reported phase and filters its velocity chart", () => {
+it("uses analyzer rep metrics and shows one phase's own numbers when only that phase is shown", () => {
   render(<QueryClientProvider client={new QueryClient()}><ResultView result={result} /></QueryClientProvider>);
   expect(screen.getByRole("table")).toHaveTextContent("120 px/s");
   expect(screen.getByRole("table")).toHaveTextContent("250 px/s");
-  fireEvent.click(screen.getByRole("radio", { name: /1/ }));
-  fireEvent.click(screen.getByRole("radio", { name: "Lifting" }));
+  fireEvent.click(within(screen.getByRole("group", { name: "Show phases" })).getByRole("button", { name: "Lowering" }));
+  fireEvent.click(within(screen.getByRole("group", { name: "Show phases" })).getByRole("button", { name: "Pause" }));
   expect(screen.getByRole("img", { name: /Lifting.*px\/s/ })).toBeInTheDocument();
-  expect(screen.getByRole("img", { name: /Lifting.*px\/s/ }).querySelector("path")?.getAttribute("d")?.match(/L/g)).toHaveLength(2);
-  expect(screen.getByText("Mean speed").nextElementSibling).toHaveTextContent("120 px/s");
-  fireEvent.click(screen.getByRole("radio", { name: "Pause" }));
-  expect(screen.getByText("Mean speed").nextElementSibling).toHaveTextContent("2 px/s");
-  expect(screen.getByRole("img", { name: /Pause.*px\/s/ })).toBeInTheDocument();
+  expect(screen.getAllByText("Mean speed").find((node) => node.tagName === "DT")!.nextElementSibling).toHaveTextContent("120 px/s");
 });
 
-it("seeks the authorized video preview when selecting a phase", async () => {
+it("shows only the repetitions ticked in the table and keeps at least one", () => {
+  const three = { ...result, repetitions: [0, 3, 6].map((start, i) => ({ ...result.repetitions[0]!, number: i + 1, startSeconds: start, endSeconds: start + 3,
+    phases: result.repetitions[0]!.phases.map((p) => ({ ...p, startSeconds: p.startSeconds + start, endSeconds: p.endSeconds + start })) })),
+    trajectory: Array.from({ length: 19 }, (_, i) => ({ seconds: i * 0.5, x: 20, y: i, velocity: 7, quality: 1, occluded: false, segment: 0 })) };
+  render(<QueryClientProvider client={new QueryClient()}><ResultView result={three} /></QueryClientProvider>);
+  expect(screen.getByRole("button", { name: /Repetitions: All repetitions/ })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("checkbox", { name: "Hide rep 2" }));
+  expect(screen.getByRole("button", { name: "Repetitions: Repetitions: 1, 3" })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("checkbox", { name: "Hide rep 3" }));
+  // The last ticked rep cannot be unticked.
+  expect(screen.getByRole("checkbox", { name: "Hide rep 1" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Repetitions: Rep 1" })).toBeInTheDocument();
+});
+
+it("colours speeds from red to green and sorts the table by a column", () => {
+  const reps = [1, 2, 3].map((n) => ({ ...result.repetitions[0]!, number: n, startSeconds: (n - 1) * 3, endSeconds: (n - 1) * 3 + 2 + n * 0.2, meanSpeed: 100 * n, peakSpeed: 200 * n }));
+  render(<QueryClientProvider client={new QueryClient()}><ResultView result={{ ...result, repetitions: reps }} /></QueryClientProvider>);
+  const fastest = screen.getByText("300 px/s");
+  expect(fastest).toHaveStyle({ color: "rgb(109, 255, 170)" });
+  expect(screen.getByText("100 px/s")).toHaveStyle({ color: "rgb(239, 83, 80)" });
+  fireEvent.click(screen.getByRole("button", { name: /Mean speed/ }));
+  const firstRow = screen.getAllByRole("row")[1]!;
+  expect(firstRow).toHaveTextContent("Rep 3");
+  expect(screen.getAllByRole("columnheader").some((cell) => cell.textContent?.includes("Lifting"))).toBe(true);
+});
+
+it("puts the analyzer's warnings and the calibration note behind one warning icon", () => {
+  render(<QueryClientProvider client={new QueryClient()}><ResultView result={{ ...result, warnings: ["Bar left the frame"] }} /></QueryClientProvider>);
+  expect(screen.getByRole("button", { name: "Analyzer warnings: 2" })).toBeInTheDocument();
+  expect(screen.queryByText("Bar left the frame")).not.toBeInTheDocument();
+});
+
+it("seeks the authorized video from the phase timeline", async () => {
   const { container } = render(<QueryClientProvider client={new QueryClient()}><ResultView result={result} mediaId="video-1" /></QueryClientProvider>);
   fireEvent.click(screen.getByRole("button", { name: /Load video/ }));
   await waitFor(() => expect(container.querySelector("video")).toBeInTheDocument());
-  fireEvent.click(screen.getByRole("radio", { name: /1/ }));
-  fireEvent.click(screen.getByRole("radio", { name: "Lifting" }));
+  fireEvent.click(screen.getByRole("button", { name: "Rep 1 · Lifting" }));
   expect(container.querySelector("video")!.currentTime).toBe(2);
 });
 
@@ -50,8 +77,12 @@ it("does not infer legacy aggregate metrics from sampled velocity", () => {
 
 it("breaks both charts at segment boundaries and occlusion", () => {
   const points: TrajectoryPoint[] = result.trajectory.map((p, i) => ({ ...p, segment: i < 2 ? 0 : 1, occluded: i === 4 }));
-  const { container } = render(<><TimeSeriesChart points={points} value={(p) => p.velocity ?? null} unit="px/s" label="Speed" timeLabel="Time" locale="en" /><BarPathPlot points={points} unit="px" label="Path" /></>);
-  const charts = container.querySelectorAll("svg");
-  expect(charts[0]!.querySelectorAll("path")).toHaveLength(3);
-  expect(charts[1]!.querySelectorAll("path")).toHaveLength(3);
+  // Time chart: a gap between the two segments and at the hidden sample.
+  const series = timeSeries(points, (p) => p.velocity ?? null);
+  expect(series.y.filter((v) => v === null)).toHaveLength(2);
+  expect(series.x).toEqual([...series.x].sort((a, b) => a - b));
+  // Bar path: separate pieces per segment, per hidden stretch and per phase.
+  const runs = pathRuns(points, result.repetitions);
+  expect(runs.map((run) => run.kind)).toEqual(["eccentric", "eccentric", "pause", "concentric"]);
+  expect(runs.flatMap((run) => run.points).some((p) => p.occluded)).toBe(false);
 });

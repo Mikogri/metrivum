@@ -25,7 +25,7 @@ public sealed class ClientAnalysisLibrary(VideoAnalysisDbContext db, IMediaLibra
             || source.Origin is not ("local" or "cloud") || (source.Origin == "cloud") != input.MediaId.HasValue
             || !double.IsFinite(source.DurationSeconds) || source.DurationSeconds is <= 0 or > 14400
             || source.Width is < 1 or > 16384 || source.Height is < 1 or > 16384
-            || input.Configuration.Movement is not ("unspecified" or "squat" or "deadlift" or "bench-press")
+            || !AnalysisLibrary.ValidMovement(input.Configuration.Movement, input.Configuration.Exercise)
             || input.Configuration.MetersPerPixel is { } scale && (!double.IsFinite(scale) || scale is <= 0 or > 100)
             || input.SetId.HasValue && !input.WorkoutExecutionId.HasValue
             || input.MediaId == Guid.Empty || input.WorkoutExecutionId == Guid.Empty || input.SetId == Guid.Empty)

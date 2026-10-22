@@ -90,10 +90,17 @@
           "TrainFlow.Accounts.Contracts": "[1.0.0, )",
           "TrainFlow.Analytics.Contracts": "[1.0.0, )",
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
+          "TrainFlow.CheckIns.Contracts": "[1.0.0, )",
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.Forms.Contracts": "[1.0.0, )",
           "TrainFlow.Notifications.Contracts": "[1.0.0, )",
           "TrainFlow.Training.Contracts": "[1.0.0, )"
+        }
+      },
+      "trainflow.checkins.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "TrainFlow.Forms.Contracts": "[1.0.0, )"
         }
       },
       "trainflow.coaching": {
@@ -153,8 +160,12 @@
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.Media.Contracts": "[1.0.0, )",
+          "TrainFlow.Messaging.Contracts": "[1.0.0, )",
           "TrainFlow.Notifications.Contracts": "[1.0.0, )"
         }
+      },
+      "trainflow.messaging.contracts": {
+        "type": "Project"
       },
       "trainflow.notifications": {
         "type": "Project",

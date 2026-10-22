@@ -59,6 +59,28 @@ public sealed class MediaAnalysisPostgresTests
     }
 
     [MediaPostgresFact]
+    public async Task Editing_relabels_the_movement_with_any_exercise_and_keeps_the_rest_of_the_configuration()
+    {
+        await using var test = await Database.CreateAsync();
+        var id = await test.EnqueueAsync();
+        await using var db = test.Analysis();
+        await using var files = test.Media();
+        var library = test.AnalysisLibrary(db, files);
+        var job = await db.Jobs.AsNoTracking().SingleAsync(x => x.Id == id);
+        var before = JsonSerializer.Deserialize<AnalysisConfiguration>(job.Configuration, AnalysisResults.Json)!;
+
+        await library.UpdateAsync(id, job.OwnerId, job.Version, new("Renamed", null, [], "squat", " Front squat "), default);
+        var edited = await library.GetAsync(id, job.OwnerId, default);
+        Assert.Equal(("squat", "Front squat"), (edited.Configuration.Movement, edited.Configuration.Exercise));
+        Assert.Equal(JsonSerializer.Serialize(before.Tracking, AnalysisResults.Json), JsonSerializer.Serialize(edited.Configuration.Tracking, AnalysisResults.Json));
+
+        // Without a movement the label stays; an unknown engine movement is rejected.
+        await library.UpdateAsync(id, job.OwnerId, edited.Version, new("Again", null, []), default);
+        Assert.Equal("Front squat", (await library.GetAsync(id, job.OwnerId, default)).Configuration.Exercise);
+        await Assert.ThrowsAsync<ApiException>(() => library.UpdateAsync(id, job.OwnerId, edited.Version + 1, new("Again", null, [], "overhead-press", "OHP"), default));
+    }
+
+    [MediaPostgresFact]
     public async Task Media_read_ticket_uses_one_owned_lookup_and_still_validates_stored_bytes()
     {
         await using var test = await Database.CreateAsync();
@@ -130,7 +152,7 @@ public sealed class MediaAnalysisPostgresTests
                 await test.Library(db).CreateAsync(owner, new("One", "video/mp4", 24), default);
                 return true;
             }
-            catch (ApiException error) when (error.Code == "LIMIT_EXCEEDED") { return false; }
+            catch (ApiException error) when (error.Status == 429) { return false; }
         }
         Assert.Single(await Task.WhenAll(Create(), Create()), x => x);
     }
@@ -219,17 +241,19 @@ public sealed class MediaAnalysisPostgresTests
     }
 
     [MediaPostgresFact]
-    public async Task DefaultAdmissionAllowsMoreThanTwoQueuedAnalysesWithoutFeatureQuota()
+    public async Task DefaultAdmissionHasTheSameTechnicalLimitForEveryOwner()
     {
         await using var test = await Database.CreateAsync();
         var owner = Guid.NewGuid();
         var id = await test.ReadyAsync(owner);
         await using var db = test.Analysis();
         await using var mediaDb = test.Media();
-        for (var i = 0; i < 3; i++)
-            await test.AnalysisLibrary(db, mediaDb).CreateAsync(owner, "unrestricted-" + i, Request(id), default);
-        Assert.Equal(3, await db.Jobs.CountAsync());
-        Assert.Empty(await new AnalysisLimitUsage(db, Options.Create(test.AnalysisOptions)).GetUsageAsync(owner, default));
+        for (var i = 0; i < 2; i++)
+            await test.AnalysisLibrary(db, mediaDb).CreateAsync(owner, "technical-" + i, Request(id), default);
+        var error = await Assert.ThrowsAsync<ApiException>(() => test.AnalysisLibrary(db, mediaDb).CreateAsync(owner, "third", Request(id), default));
+        Assert.Equal(429, error.Status);
+        Assert.Equal(2, await db.Jobs.CountAsync());
+        Assert.Single(await new AnalysisLimitUsage(db, Options.Create(test.AnalysisOptions)).GetUsageAsync(owner, default));
     }
 
     [MediaPostgresFact]
@@ -248,7 +272,7 @@ public sealed class MediaAnalysisPostgresTests
                 await test.AnalysisLibrary(db, mediaDb).CreateAsync(owner, key, Request(id), default);
                 return true;
             }
-            catch (ApiException error) when (error.Code == "LIMIT_EXCEEDED") { return false; }
+            catch (ApiException error) when (error.Status == 429) { return false; }
         }
         Assert.Single(await Task.WhenAll(Create("a"), Create("b")), x => x);
     }
@@ -362,6 +386,68 @@ public sealed class MediaAnalysisPostgresTests
         await db.Jobs.Where(x => x.Id == id).ExecuteUpdateAsync(u => u.SetProperty(x => x.LeaseExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1)));
         Assert.Null(await test.Queue(db).ClaimAsync(default));
         Assert.Equal("WORKER_ATTEMPTS_EXHAUSTED", (await db.Jobs.AsNoTracking().SingleAsync()).FailureCode);
+    }
+
+    [MediaPostgresFact]
+    public async Task Queue_admission_is_atomic_across_owners_and_idempotent_retries_do_not_enqueue()
+    {
+        await using var test = await Database.CreateAsync();
+        test.AnalysisOptions.MaxQueuedJobs = 1;
+        var owners = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var videos = new[] { await test.ReadyAsync(owners[0]), await test.ReadyAsync(owners[1]) };
+        async Task<bool> Enqueue(int index)
+        {
+            await using var db = test.Analysis(); await using var files = test.Media();
+            try { await test.AnalysisLibrary(db, files).CreateAsync(owners[index], "bounded", Request(videos[index]), default); return true; }
+            catch (ApiException error) when (error.Status == 429) { return false; }
+        }
+        var results = await Task.WhenAll(Enqueue(0), Enqueue(1));
+        Assert.Single(results, x => x);
+        var winner = Array.IndexOf(results, true);
+        Assert.True(await Enqueue(winner));
+        await using var check = test.Analysis();
+        Assert.Equal(1, await check.Jobs.CountAsync());
+    }
+
+    [MediaPostgresFact]
+    public async Task Shared_link_reads_one_completed_analysis_until_revoked()
+    {
+        await using var test = await Database.CreateAsync();
+        var id = await test.EnqueueAsync();
+        await using var db = test.Analysis();
+        await using var files = test.Media();
+        var owner = (await db.Jobs.AsNoTracking().SingleAsync(x => x.Id == id)).OwnerId;
+        var sharing = new AnalysisSharing(db, test.Library(files));
+
+        // Only a completed analysis can be shared, and only by its owner.
+        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => sharing.ShareAsync(id, owner, default))).Status);
+        await db.Jobs.Where(x => x.Id == id).ExecuteUpdateAsync(s => s
+            .SetProperty(x => x.Status, "Completed").SetProperty(x => x.Result, JsonSerializer.Serialize(Result(), AnalysisResults.Json)));
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => sharing.ShareAsync(id, Guid.NewGuid(), default))).Status);
+
+        var link = await sharing.ShareAsync(id, owner, default);
+        Assert.Equal(43, link.Token.Length);
+        Assert.Equal(link.Token, (await sharing.ShareAsync(id, owner, default)).Token);
+        Assert.Equal(link.Token, (await sharing.CurrentAsync(id, owner, default))!.Token);
+
+        // Anyone with the token reads the analysis, its result and a video URL charged to them.
+        var shared = await sharing.ReadAsync(link.Token, default);
+        Assert.Equal("Analysis", shared.Name);
+        Assert.True(shared.HasVideo);
+        Assert.Equal(2, (await sharing.ResultAsync(link.Token, null, 2, default)).Trajectory.Length);
+        Assert.False(string.IsNullOrEmpty((await sharing.VideoUrlAsync(link.Token, Guid.NewGuid(), default)).Url));
+
+        // Guesses and revoked links look the same: not found.
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => sharing.ReadAsync(new string('a', 43), default))).Status);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => sharing.ReadAsync("short", default))).Status);
+        await sharing.RevokeAsync(id, owner, default);
+        Assert.Null(await sharing.CurrentAsync(id, owner, default));
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => sharing.ResultAsync(link.Token, null, 2, default))).Status);
+
+        // Sharing again issues a new link; the revoked one stays dead.
+        var again = await sharing.ShareAsync(id, owner, default);
+        Assert.NotEqual(link.Token, again.Token);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => sharing.ReadAsync(link.Token, default))).Status);
     }
 
     private static CreateAnalysisRequest Request(Guid id) => new("Analysis", null, ["test"], id, new());

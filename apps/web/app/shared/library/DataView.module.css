@@ -1,7 +1,7 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
-  gap: var(--tf-space-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: var(--tf-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -12,28 +12,27 @@
   opacity: 0.6;
 }
 
+/* A card: a header row, a description of up to two lines, and a foot with details and the open arrow. */
+.item {
+  display: flex;
+  min-width: 0;
+}
+
 .card {
   position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: var(--tf-space-3);
   min-width: 0;
-  min-height: 11.5rem;
-  padding: var(--tf-space-4);
+  /* Every card is the same size, whatever it holds. */
+  height: 9.75rem;
+  padding: var(--tf-space-4) var(--tf-space-4) var(--tf-space-3);
   border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
+  border-radius: var(--tf-radius-xl);
   background: var(--tf-color-surface);
-  animation: card-in var(--tf-duration-settle, 480ms) var(--tf-ease-settle, ease-out) both;
   transition:
     border-color var(--tf-duration-fast) ease,
     background-color var(--tf-duration-fast) ease;
-}
-
-@keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(3px);
-  }
 }
 
 /* A linked card responds as one surface. */
@@ -45,37 +44,17 @@
 
   .card[data-link]:hover .arrow {
     color: var(--tf-color-text);
-    transform: translate(1px, -1px);
+    transform: translate(2px, -2px);
+  }
+
+  .action:hover {
+    color: var(--tf-color-text);
   }
 }
 
 .card:has(.link:focus-visible) {
   outline: 2px solid var(--tf-color-focus-ring);
   outline-offset: 2px;
-}
-
-/* Icon, title block and badge on one row. */
-.head {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--tf-space-3);
-  min-width: 0;
-}
-
-.heading {
-  display: grid;
-  flex: 1;
-  gap: 2px;
-  min-width: 0;
-  padding-top: 1px;
-}
-
-.subtitle {
-  overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .icon {
@@ -90,8 +69,8 @@
 }
 
 .icon svg {
-  width: 1rem;
-  height: 1rem;
+  width: 1.0625rem;
+  height: 1.0625rem;
 }
 
 .icon[data-tone="green"] { background: var(--tf-color-accent-soft); color: var(--tf-color-accent); }
@@ -100,26 +79,66 @@
 .icon[data-tone="orange"] { background: var(--tf-color-warning-soft); color: var(--tf-color-warning); }
 .icon[data-tone="rose"] { background: var(--tf-color-danger-soft); color: var(--tf-color-danger); }
 
-.badge {
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-/* An avatar used as the card icon fills the tile. */
+/* An avatar used as the card icon replaces the tile and fills it, whatever its own size. */
 .icon:has(> span[class]) {
   background: none;
 }
 
+.icon > span[class] {
+  width: 100%;
+  height: 100%;
+}
+
+/* Colour marks: a short segmented bar on the card's edge, level with the header. */
+.marks {
+  position: absolute;
+  z-index: 1;
+  top: var(--tf-space-4);
+  left: -1px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 3px;
+  height: 2.25rem;
+}
+
+.marks i {
+  flex: 1;
+  border-radius: 0 2px 2px 0;
+}
+
+/* The header is one row, centred on the icon: icon, title over subtitle, status. */
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-width: 0;
+  min-height: 2.25rem;
+}
+
+.heading {
+  display: grid;
+  flex: 1;
+  gap: 1px;
+  min-width: 0;
+}
+
 .title {
-  display: -webkit-box;
   min-width: 0;
   overflow: hidden;
+  color: var(--tf-color-text);
   font-size: var(--tf-text-md);
   font-weight: var(--tf-weight-semibold);
+  letter-spacing: var(--tf-tracking-tight);
   line-height: 1.3;
-  overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  flex-shrink: 0;
+  /* The status is a small marker beside the title, not a second headline. */
+  zoom: 0.84;
 }
 
 .link {
@@ -142,80 +161,123 @@
   border-radius: inherit;
 }
 
-.description {
-  display: -webkit-box;
+.subtitle {
   overflow: hidden;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-/* Key facts: label over value, in up to three columns. */
-.facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
-  gap: var(--tf-space-3);
-  margin: 0;
-  padding: var(--tf-space-3) 0 0;
-  border-top: 1px solid var(--tf-color-border-subtle);
-}
-
-.facts div {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.facts dt {
   color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.facts dd {
-  overflow: hidden;
-  margin: 0;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
-  font-variant-numeric: tabular-nums;
+  font-size: var(--tf-text-xs);
+  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* Up to two lines; longer text is cut off. */
+.description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: var(--tf-space-3);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* The foot of the card, under a hairline: details, actions, and the open arrow in the corner. */
 .foot {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--tf-space-3);
+  min-height: 1.5rem;
   margin-top: auto;
-  padding-top: var(--tf-space-1);
+  padding-top: var(--tf-space-2-5);
+  border-top: 1px solid var(--tf-color-border-subtle);
 }
 
-.meta {
+/* Details stay on one line; what does not fit is cut off. */
+.facts {
   display: flex;
   flex: 1;
-  flex-wrap: wrap;
-  gap: var(--tf-space-1) var(--tf-space-2);
+  align-items: center;
+  gap: var(--tf-space-2);
   min-width: 0;
+  margin: 0;
+  overflow: hidden;
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
+  line-height: 1.5;
+  white-space: nowrap;
+  /* Details that do not fit fade out instead of ending mid-word. */
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 1.25rem), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 1.25rem), transparent);
+}
+
+.facts div {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+
+.facts div:last-child {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.facts div + div::before {
+  content: "\00b7";
+  margin-right: var(--tf-space-1);
+  color: var(--tf-color-text-disabled);
+}
+
+.facts dt {
+  color: var(--tf-color-text-tertiary);
+}
+
+.facts dd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  font-weight: var(--tf-weight-medium);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
 }
 
 /* Actions sit above the stretched link. */
 .actions {
   position: relative;
   z-index: 1;
-  display: inline-flex;
-  gap: var(--tf-space-1);
-  margin-left: auto;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--tf-space-4);
+}
+
+.actions:first-child {
+  flex: 1;
+}
+
+.action {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  text-decoration: none;
+  transition: color var(--tf-duration-fast) ease;
+}
+
+.action:focus-visible {
+  border-radius: var(--tf-radius-sm);
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
 }
 
 .arrow {
   flex-shrink: 0;
-  width: 0.9375rem;
-  height: 0.9375rem;
+  width: 1rem;
+  height: 1rem;
   margin-left: auto;
   color: var(--tf-color-text-tertiary);
   transition:
@@ -224,25 +286,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card {
-    animation: none;
+  .arrow {
+    transition: none;
   }
-}
-
-.item {
-  display: flex;
-  min-width: 0;
-}
-
-.item > .card {
-  flex: 1;
-}
-
-/* Meta items read as one line separated by dots. */
-.meta > span + span::before {
-  content: "·";
-  margin-right: var(--tf-space-2);
-  color: var(--tf-color-text-disabled);
 }
 
 @media (max-width: 767px) {

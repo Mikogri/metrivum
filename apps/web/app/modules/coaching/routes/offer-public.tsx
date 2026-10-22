@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Coaching offer — TrainFlow");
+
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
@@ -32,7 +36,7 @@ export function StartApplication({ offer, invitationId, preselected }: { offer: 
     {offer.teamId && <Alert title={`${offer.purpose === "TrainingPlan" ? "Team offer" : "Organizational coaching"} · ${offer.teamName ?? "Team"}`}>{offer.purpose === "TrainingPlan" ? "You are buying an independent training plan copy from this Team. No coaching relationship is created." : "This offer creates a Team-owned coaching case. Authorized assigned coaches may work with you within the organization. You will review and accept this scope before submitting your application."}</Alert>}
     <Select label="Billing option" placeholder="Choose an option" isRequired isDisabled={Boolean(preselected) || start.isPending} selectedKey={optionId || null} onSelectionChange={(key) => { const id = String(key); setOption(id); setSessions(offer.billingOptions.find((o) => o.id === id)?.minSessions ?? 1); }}>{offer.billingOptions.map((o) => <Option key={o.id} id={o.id} textValue={o.name}>{`${o.name} — ${priceDescription(o, offer.currency)}`}</Option>)}</Select>
     {selected?.model === "CustomPackage" && <NumberInput label="Number of sessions" placeholder="e.g. 8" isRequired minValue={selected.minSessions ?? 1} maxValue={selected.maxSessions ?? undefined} step={1} value={Math.max(sessions, selected.minSessions ?? 1)} onChange={(value) => setSessions(Number.isFinite(value) ? value : selected.minSessions ?? 1)} />}
-    <MutationError error={start.error} /><Button type="submit" variant="primary" isDisabled={!selected} loading={start.isPending}>{invitationId ? "Fill out the form" : "Start application"}</Button><p className={styles.note}>You will review the questions and submit your application next.</p>
+    <MutationError error={start.error} /><Button type="submit" variant="primary" isDisabled={!selected} loading={start.isPending}>{invitationId && offer.applicationFormVersionId ? "Fill out the form" : "Start application"}</Button><p className={styles.note}>{offer.applicationFormVersionId ? "You will review the questions and submit your application next." : "No application form required. Review the terms and submit your application next."}</p>
   </form>;
 }
 
@@ -46,7 +50,7 @@ export default function PublicOffer() {
     <div className={styles.offerLayout}>
       <div className={styles.stack}>
         {offer.description ? <Panel title="About this offer"><p className={styles.prose}>{offer.description}</p></Panel> : null}
-        <Panel title="Pricing"><Facts items={offer.billingOptions.map((o) => ({ key: o.id, label: o.name, value: <span className={styles.priceCell}>{priceDescription(o, offer.currency)}<small>{o.paymentTerms?.rule ?? "Upfront"} payment</small></span> }))} /></Panel>
+        <Panel title="Pricing"><Facts items={offer.billingOptions.map((o) => ({ key: o.id, label: o.name, value: <span className={styles.priceCell}>{priceDescription(o, offer.currency)}<small>{o.price === 0 ? "No payment required" : `${o.paymentTerms?.rule ?? "Upfront"} payment`}</small></span> }))} /></Panel>
       </div>
       <Panel title="Apply for coaching"><StartApplication offer={offer} /></Panel>
     </div></>;

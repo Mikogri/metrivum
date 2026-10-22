@@ -14,7 +14,55 @@
   font-size: var(--tf-text-xs);
 }
 
+/* Where the person is in the three steps: three short bars and "Step 2 of 3". */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.steps ol {
+  display: flex;
+  gap: var(--tf-space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  width: 1.75rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--tf-color-border);
+}
+
+.steps li[data-state] {
+  background: var(--tf-color-text);
+}
+
+.steps li[data-state="done"] {
+  background: var(--tf-color-text-tertiary);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tf-space-3);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--tf-space-3);
+}
+
 @media (max-width: 30rem) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+
   .twoCols {
     grid-template-columns: 1fr;
   }

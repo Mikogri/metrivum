@@ -1,14 +1,21 @@
-import { CalendarDays, ClipboardCheck, CreditCard, Film, Settings, Users, UserRound } from "lucide-react";
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("More — TrainFlow");
+
+import { Dumbbell, CalendarDays, ClipboardCheck, CreditCard, Film, Settings, Users, UserRound } from "lucide-react";
 import { Link } from "react-router";
 import { Fragment } from "react";
 import { PageHeader, Segment, SegmentedControl } from "@trainflow/ui-web";
 import { NotificationBell } from "~/modules/messaging";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
+import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./mobile-home.module.css";
 
 export default function More() {
+  const m = useT();
   const { mode, canCoach, switchMode, switching } = useWorkspace();
   const tiles = [
+    { title: m.nav.exercises, to: "/app/exercises", icon: Dumbbell },
     { title: "Check-ins", to: mode === "coach" ? "/app/check-ins" : "/app/my-check-ins", icon: ClipboardCheck },
     ...(mode === "client" ? [{ title: "Calendar", to: "/app/calendar", icon: CalendarDays }] : []),
     { title: "Coaches & invitations", to: "/app/my-coaches", icon: UserRound },

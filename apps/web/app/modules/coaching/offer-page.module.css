@@ -275,3 +275,11 @@
     position: static;
   }
 }
+
+/* A quiet note under the actions. */
+.hint {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+  text-align: center;
+}

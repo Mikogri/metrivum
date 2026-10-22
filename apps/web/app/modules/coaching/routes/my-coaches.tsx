@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("My coaches — TrainFlow");
+
 import { Link } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, Button, EmptyState, LinkButton, Option, PageHeader, SearchInput, Select, Toolbar } from "@trainflow/ui-web";
@@ -6,7 +10,7 @@ import { useAccountKey } from "~/shared/session/AccountScope";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useCoachingMutation, useCoachingQuery, type ClientRelationship, type Page } from "../api";
 import { Failure, ListPagination, Loading, MutationError, StatusBadge } from "../components";
-import { DataView } from "~/shared/library/DataView";
+import { CardAction, DataView } from "~/shared/library/DataView";
 import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
 import styles from "../coaching.module.css";
 
@@ -25,7 +29,7 @@ export default function MyCoaches() {
       <Select aria-label="Sort coaches" selectedKey={state.sort} onSelectionChange={(key) => update({ sort: String(key), page: "1" })}><Option id="updated">Recently updated</Option><Option id="created">Recently started</Option><Option id="status">Status</Option></Select>
       <span className={styles.spacer} /><LibraryViewToggle value={state.view === "cards" ? "cards" : "list"} onChange={(view) => update({ view })} /></Toolbar>}
     {!client ? <><EmptyState title="Get started as a client" description="Enable your client profile to apply for coaching and receive invitations. Your coach tools stay available." actions={<Button variant="primary" loading={activate.isPending} onPress={() => activate.mutate({ method: "POST", path: "/api/v1/me/roles/client" })}>Enable client profile</Button>} /><MutationError error={activate.error} /></> : list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : !list.data.items.length ? filtered ? <EmptyState title="No coaches match" description="Try a different name or status." actions={<Button onPress={() => update({ q: "", status: "", page: "1" })}>Clear filters</Button>} /> : <EmptyState title="No coaching relationships yet" description="Apply using a coach's offer link or accept an invitation to begin." actions={<LinkButton href="/app/my-invitations" variant="primary">View invitations</LinkButton>} /> : <>
-      <DataView view={state.view === "cards" ? "cards" : "list"} card={(r) => ({ href: `/app/my-coaches/${r.id}/services`, title: r.coach.displayName || r.coach.username, subtitle: r.coach.username ? `@${r.coach.username}` : undefined, icon: <Avatar name={r.coach.displayName || r.coach.username || "Coach"} size="lg" decorative />, tone: "neutral", badge: <StatusBadge status={r.status} />, description: "Services, shared documents and your training with this coach.", actions: <><LinkButton size="sm" variant="ghost" href={`/app/my-coaches/${r.id}/documents`}>Documents</LinkButton><LinkButton size="sm" variant="ghost" href={`/app/my-training?relationshipId=${r.id}`}>Training</LinkButton></> })} label="My coaches" rows={list.data.items} rowKey={(r) => r.id} columns={[
+      <DataView view={state.view === "cards" ? "cards" : "list"} card={(r) => ({ href: `/app/my-coaches/${r.id}/services`, title: r.coach.displayName || r.coach.username, subtitle: r.coach.username ? `@${r.coach.username}` : undefined, icon: <Avatar name={r.coach.displayName || r.coach.username || "Coach"} size="md" decorative />, tone: "neutral", badge: <StatusBadge status={r.status} />, description: "Services, shared documents and your training with this coach.", actions: <><CardAction href={`/app/my-coaches/${r.id}/documents`}>Documents</CardAction><CardAction href={`/app/my-training?relationshipId=${r.id}`}>Training</CardAction></> })} label="My coaches" rows={list.data.items} rowKey={(r) => r.id} columns={[
         { id: "coach", header: "Coach", width: "30%", cell: (r) => { const name = r.coach.displayName || r.coach.username || "Coach"; return <span className={styles.person}><Avatar name={name} size="sm" decorative /><span className={styles.personText}><Link data-row-link to={`/app/my-coaches/${r.id}/services`}>{name}</Link>{r.coach.username ? <small>@{r.coach.username}</small> : null}</span></span>; } },
         { id: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
         { id: "links", header: <span className="tf-visually-hidden">Shortcuts</span>, align: "end", cell: (r) => <span className={styles.actions}><LinkButton size="sm" variant="ghost" href={`/app/my-coaches/${r.id}/documents`}>Documents</LinkButton><LinkButton size="sm" variant="ghost" href={`/app/my-training?relationshipId=${r.id}`}>Training</LinkButton><LinkButton size="sm" variant="ghost" href={`/app/coaches/${r.coach.id}/offers`}>Offers</LinkButton></span> },

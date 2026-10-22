@@ -222,7 +222,13 @@ namespace TrainFlow.Coaching.Infrastructure.Migrations
 
                     b.HasIndex("TeamClientCaseId", "TeamId");
 
+                    b.HasIndex("ClientId", "CreatedAt", "Id")
+                        .IsDescending(false, true, false);
+
                     b.HasIndex("ClientId", "Status", "CreatedAt");
+
+                    b.HasIndex("TeamId", "CreatedAt", "Id")
+                        .IsDescending(false, true, false);
 
                     b.HasIndex("TeamId", "Status", "CreatedAt");
 
@@ -271,7 +277,7 @@ namespace TrainFlow.Coaching.Infrastructure.Migrations
                     b.Property<Guid?>("FormSubmissionId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("FormVersionId")
+                    b.Property<Guid?>("FormVersionId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("InvitationId")
@@ -347,11 +353,13 @@ namespace TrainFlow.Coaching.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_Application_NoSelf", "\"CoachId\" <> \"ApplicantUserId\"");
 
+                            t.HasCheckConstraint("CK_Application_OptionalForm", "\"FormVersionId\" IS NOT NULL OR (\"FormSubmissionId\" IS NULL AND \"Answers\" = '{}'::jsonb)");
+
                             t.HasCheckConstraint("CK_Application_Source", "(\"Source\" = 'Direct' AND \"InvitationId\" IS NULL) OR (\"Source\" = 'Invitation' AND \"InvitationId\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_Application_Status", "\"Status\" IN ('InProgress','Submitted','Accepted','Rejected','Withdrawn')");
 
-                            t.HasCheckConstraint("CK_Application_Submission", "\"Status\" NOT IN ('Submitted','Accepted','Rejected') OR (\"SubmittedAt\" IS NOT NULL AND \"FormSubmissionId\" IS NOT NULL)");
+                            t.HasCheckConstraint("CK_Application_Submission", "\"Status\" NOT IN ('Submitted','Accepted','Rejected') OR (\"SubmittedAt\" IS NOT NULL AND (\"FormVersionId\" IS NULL OR \"FormSubmissionId\" IS NOT NULL))");
                         });
                 });
 
@@ -736,6 +744,9 @@ namespace TrainFlow.Coaching.Infrastructure.Migrations
 
                     b.HasIndex("TeamId", "ClientId")
                         .IsUnique();
+
+                    b.HasIndex("TeamId", "CreatedAt", "Id")
+                        .IsDescending(false, true, false);
 
                     b.HasIndex("TeamId", "Status", "CreatedAt");
 

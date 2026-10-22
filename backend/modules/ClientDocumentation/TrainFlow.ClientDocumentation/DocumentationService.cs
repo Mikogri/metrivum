@@ -181,22 +181,23 @@ public sealed class DocumentationService(DocumentationDbContext db, IAccountCont
         await Save(ct);
         return new(row.Id, row.Text, row.CreatedAt, row.UpdatedAt, row.Version, row.Title, row.AuthorId);
     }
-    private IQueryable<RelationshipDocument> Visible(Guid id, bool coach) => db.Documents.Where(x => x.RelationshipId == id && x.DeletedAt == null && (coach || x.Visibility == "SharedWithClient"));
-    private DocumentDto Document(RelationshipDocument x, bool coach, bool active) => new(x.Id, x.RelationshipId, x.Title, x.Description, x.Category, x.Visibility, x.Text, x.ContentType, x.MediaId.HasValue, x.AuthorId, x.Source, x.ObservedAt, x.CreatedAt, x.UpdatedAt, x.Version, active ? coach ? ["edit", "share", "delete"] : x.AuthorId == account.UserId ? ["edit", "delete"] : [] : [], x.Size);
+    // CoachPrivate is the legacy wire value for author-only privacy for either participant.
+    private IQueryable<RelationshipDocument> Visible(Guid id) => db.Documents.Where(x => x.RelationshipId == id && x.DeletedAt == null && (x.AuthorId == account.UserId || x.Visibility == "SharedWithClient"));
+    private DocumentDto Document(RelationshipDocument x, bool active) => new(x.Id, x.RelationshipId, x.Title, x.Description, x.Category, x.Visibility, x.Text, x.ContentType, x.MediaId.HasValue, x.AuthorId, x.Source, x.ObservedAt, x.CreatedAt, x.UpdatedAt, x.Version, active && x.AuthorId == account.UserId ? ["edit", "share", "delete"] : [], x.Size);
     public async Task<DocumentationPage<DocumentDto>> Documents(Guid id, string? search, string? category, int page, int size, CancellationToken ct)
     {
-        var (r, coach) = await Authorize(id, false, false, ct);
+        var (r, _) = await Authorize(id, false, false, ct);
         Page(page, size);
         var filter = Text(search, 200, "Search");
         Text(category, 60, "Category");
-        var query = Visible(id, coach).AsNoTracking();
+        var query = Visible(id).AsNoTracking();
         if (filter.Length > 0)
             query = query.Where(x => x.Title.Contains(filter));
         if (!string.IsNullOrWhiteSpace(category))
             query = category == "Files" ? query.Where(x => x.Category != "ProgressPhoto") : query.Where(x => x.Category == category);
         var count = await query.CountAsync(ct);
         var rows = await query.OrderByDescending(x => x.ObservedAt).ThenBy(x => x.Id).Skip((page - 1) * size).Take(size).ToListAsync(ct);
-        return new(rows.Select(x => Document(x, coach, r.Status == RelationshipStatus.Active)).ToArray(), page, size, count);
+        return new(rows.Select(x => Document(x, r.Status == RelationshipStatus.Active)).ToArray(), page, size, count);
     }
     private void DocumentFields(RelationshipDocument row, DocumentEdit input)
     {
@@ -220,8 +221,6 @@ public sealed class DocumentationService(DocumentationDbContext db, IAccountCont
     {
         var (r, coach) = await Authorize(id, true, false, ct);
         Visibility(input.Visibility);
-        if (!coach && input.Visibility != "SharedWithClient")
-            throw ApiException.Invalid("Client-provided material is shared with the relationship coach.");
         var row = new RelationshipDocument { Id = Guid.NewGuid(), RelationshipId = id, AuthorId = account.UserId, Source = coach ? "Coach" : "Client", Visibility = input.Visibility, MediaId = input.MediaId, CreatedAt = clock.GetUtcNow() };
         DocumentFields(row, new(input.Title, input.Description, input.Category, input.Text, input.ObservedAt));
         if (input.MediaId.HasValue)
@@ -240,13 +239,13 @@ public sealed class DocumentationService(DocumentationDbContext db, IAccountCont
         db.Documents.Add(row);
         await Save(ct);
         await Notify(row, r, coach, ct);
-        return Document(row, coach, true);
+        return Document(row, true);
     }
     public async Task<DocumentDto> EditDocument(Guid id, Guid documentId, DocumentEdit input, long version, CancellationToken ct)
     {
-        var (_, coach) = await Authorize(id, true, false, ct);
-        var row = await Visible(id, coach).SingleOrDefaultAsync(x => x.Id == documentId, ct) ?? throw ApiException.NotFound();
-        if (!coach && row.AuthorId != account.UserId)
+        await Authorize(id, true, false, ct);
+        var row = await Visible(id).SingleOrDefaultAsync(x => x.Id == documentId, ct) ?? throw ApiException.NotFound();
+        if (row.AuthorId != account.UserId)
             throw ApiException.NotFound();
         Version(row.Version, version);
         DocumentFields(row, input);
@@ -254,14 +253,14 @@ public sealed class DocumentationService(DocumentationDbContext db, IAccountCont
             throw ApiException.Invalid("Progress photos require an image file.");
         row.Version++;
         await Save(ct);
-        return Document(row, coach, true);
+        return Document(row, true);
     }
     public Task<DocumentDto> Share(Guid id, Guid documentId, VisibilityInput input, long version, CancellationToken ct) => transaction == null ? ShareCore(id, documentId, input, version, ct) : transaction.RunAsync(token => ShareCore(id, documentId, input, version, token), ct);
     public async Task DeleteDocument(Guid id, Guid documentId, long version, CancellationToken ct)
     {
-        var (_, coach) = await Authorize(id, true, false, ct);
-        var row = await Visible(id, coach).SingleOrDefaultAsync(x => x.Id == documentId, ct) ?? throw ApiException.NotFound();
-        if (!coach && row.AuthorId != account.UserId) throw ApiException.NotFound();
+        await Authorize(id, true, false, ct);
+        var row = await Visible(id).SingleOrDefaultAsync(x => x.Id == documentId, ct) ?? throw ApiException.NotFound();
+        if (row.AuthorId != account.UserId) throw ApiException.NotFound();
         Version(row.Version, version);
         // Retain the private file and record for retention; remove all documentation access.
         row.DeletedAt = row.UpdatedAt = clock.GetUtcNow();
@@ -270,18 +269,19 @@ public sealed class DocumentationService(DocumentationDbContext db, IAccountCont
     }
     private async Task<DocumentDto> ShareCore(Guid id, Guid documentId, VisibilityInput input, long version, CancellationToken ct)
     {
-        var (r, _) = await Authorize(id, true, true, ct);
+        var (r, coach) = await Authorize(id, true, false, ct);
         Visibility(input.Visibility);
-        var row = await Visible(id, true).SingleOrDefaultAsync(x => x.Id == documentId, ct) ?? throw ApiException.NotFound();
+        var row = await Visible(id).SingleOrDefaultAsync(x => x.Id == documentId, ct) ?? throw ApiException.NotFound();
+        if (row.AuthorId != account.UserId) throw ApiException.NotFound();
         Version(row.Version, version);
         if (row.Visibility == input.Visibility)
-            return Document(row, true, true);
+            return Document(row, true);
         row.Visibility = input.Visibility;
         row.Version++;
         row.UpdatedAt = clock.GetUtcNow();
         await Save(ct);
-        await Notify(row, r, true, ct);
-        return Document(row, true, true);
+        await Notify(row, r, coach, ct);
+        return Document(row, true);
     }
     private Task Notify(RelationshipDocument row, RelationshipRecipient r, bool coach, CancellationToken ct) => notifications == null || row.Visibility != "SharedWithClient" ? Task.CompletedTask : notifications.PublishAsync(new(coach ? r.ClientId : r.CoachId, $"documentation:{row.Id}:{row.Version}", "documentation.shared", "Coaching", SourceModule, row.Id, coach ? $"/app/my-coaches/{r.Id}/documents" : $"/app/clients/{r.Id}?tab=documentation"), ct);
     public async Task<bool> CanDeliverAsync(NotificationEvent notification, CancellationToken ct)
@@ -306,8 +306,8 @@ public sealed class DocumentationService(DocumentationDbContext db, IAccountCont
     }
     public async Task<DocumentReadUrl> ReadFile(Guid id, Guid documentId, CancellationToken ct)
     {
-        var (_, coach) = await Authorize(id, false, false, ct);
-        var row = await Visible(id, coach).AsNoTracking().SingleOrDefaultAsync(x => x.Id == documentId && x.MediaId != null, ct) ?? throw ApiException.NotFound();
+        await Authorize(id, false, false, ct);
+        var row = await Visible(id).AsNoTracking().SingleOrDefaultAsync(x => x.Id == documentId && x.MediaId != null, ct) ?? throw ApiException.NotFound();
         return await media.ReadDocumentAsync(id, row.AuthorId, row.MediaId!.Value, ct);
     }
 }

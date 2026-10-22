@@ -51,10 +51,21 @@ public sealed class TeamService(BillingDbContext db, IAccountContext accounts, I
             x.Status == "Pending" && x.ExpiresAt <= clock.GetUtcNow() ? "Expired" : x.Status,
             x.Status == "Pending" && x.ExpiresAt > clock.GetUtcNow() && x.UserId == accounts.UserId, x.Role, x.ExpiresAt)).ToArray());
     }
-    public async Task<TeamMemberDto[]> MembersAsync(Guid id, CancellationToken ct)
+    public async Task<TeamMemberDto[]> MembersAsync(Guid id, CancellationToken ct, int? page = null, int? pageSize = null)
     {
         await Visible(id, ct);
-        var members = await db.TeamMemberships.AsNoTracking().Where(x => x.TeamId == id && x.Status == "Active").OrderBy(x => x.JoinedAt).ToArrayAsync(ct);
+        var query = db.TeamMemberships.AsNoTracking().Where(x => x.TeamId == id && x.Status == "Active")
+            .OrderBy(x => x.JoinedAt).ThenBy(x => x.UserId).AsQueryable();
+        // Existing assignment selectors still consume the complete authorized roster.
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var number = page ?? 1;
+            var size = pageSize ?? 25;
+            if (number is < 1 or > 1000000 || size is < 1 or > 100)
+                throw ApiException.Invalid("Page must be 1 to 1000000 and pageSize 1 to 100.");
+            query = query.Skip((number - 1) * size).Take(size);
+        }
+        var members = await query.ToArrayAsync(ct);
         var people = await directory.GetAccountsAsync(members.Select(x => x.UserId).ToArray(), ct);
         return members.Select(x => new TeamMemberDto(x.UserId, people.GetValueOrDefault(x.UserId)?.DisplayName ?? "Member", people.GetValueOrDefault(x.UserId)?.Username, x.Role, x.JoinedAt)).ToArray();
     }

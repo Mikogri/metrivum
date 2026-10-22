@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 import {
   Dialog as AriaDialog,
@@ -33,6 +33,10 @@ export interface DialogProps extends Omit<ModalOverlayProps, "className" | "chil
   className?: string;
 }
 
+/** Exit animation lengths in Dialog.module.css. */
+const EXIT_MODAL_MS = 200;
+const EXIT_PANEL_MS = 260;
+
 export function Dialog({
   title,
   description,
@@ -49,9 +53,38 @@ export function Dialog({
   ...overlayProps
 }: DialogProps) {
   const side = placement ?? (size === "lg" || size === "xl" ? "right" : "center");
+  // Many dialogs are removed from the page the moment they close, which would cut the exit
+  // animation off. When that happens, a still copy of the panel plays the exit and is then removed.
+  const overlay = useRef<HTMLDivElement>(null);
+  const animationGeneration = useRef({ generation: 0 });
+  useLayoutEffect(() => {
+    const animation = animationGeneration.current;
+    const generation = ++animation.generation;
+    const node = overlay.current;
+    return () => {
+      if (!node?.isConnected || node.hasAttribute("data-exiting")) return;
+      // Only real browsers animate (not test DOMs), and never with reduced motion.
+      if (typeof window === "undefined" || typeof node.animate !== "function" || !window.matchMedia || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const ghost = node.cloneNode(true) as HTMLElement;
+      ghost.setAttribute("data-exiting", "");
+      ghost.setAttribute("aria-hidden", "true");
+      ghost.setAttribute("inert", "");
+      ghost.style.pointerEvents = "none";
+      ghost.querySelectorAll("[data-placement]").forEach((el) => el.setAttribute("data-exiting", ""));
+      const parent = node.parentNode;
+      const sibling = node.nextSibling;
+      // StrictMode replays effects on opening; only a real unmount gets an exit copy.
+      queueMicrotask(() => {
+        if (animation.generation !== generation || !parent?.isConnected) return;
+        parent.insertBefore(ghost, sibling?.parentNode === parent ? sibling : null);
+        setTimeout(() => ghost.remove(), side === "right" ? EXIT_PANEL_MS + 60 : EXIT_MODAL_MS + 60);
+      });
+    };
+  }, [side]);
   return (
     <ModalOverlay
       {...overlayProps}
+      ref={overlay}
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       isDismissable={isDismissable}

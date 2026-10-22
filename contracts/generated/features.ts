@@ -223,6 +223,94 @@ export const features = [
     "limits": []
   },
   {
+    "key": "integrations.mcp.connect",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.connect.title",
+    "descriptionKey": "integrations.mcp.connect.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.manage-checkins",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.manage-checkins.title",
+    "descriptionKey": "integrations.mcp.manage-checkins.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.prepare-message",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.prepare-message.title",
+    "descriptionKey": "integrations.mcp.prepare-message.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.read-analytics",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.read-analytics.title",
+    "descriptionKey": "integrations.mcp.read-analytics.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.read-calendar",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.read-calendar.title",
+    "descriptionKey": "integrations.mcp.read-calendar.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.read-checkins",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.read-checkins.title",
+    "descriptionKey": "integrations.mcp.read-checkins.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.read-clients",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.read-clients.title",
+    "descriptionKey": "integrations.mcp.read-clients.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.read-messages",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.read-messages.title",
+    "descriptionKey": "integrations.mcp.read-messages.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.read-training",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.read-training.title",
+    "descriptionKey": "integrations.mcp.read-training.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.send-approved-message",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.send-approved-message.title",
+    "descriptionKey": "integrations.mcp.send-approved-message.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "integrations.mcp.write-training-drafts",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.write-training-drafts.title",
+    "descriptionKey": "integrations.mcp.write-training-drafts.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
     "key": "messaging.attachments",
     "module": "Messaging",
     "titleKey": "messaging.attachments.title",

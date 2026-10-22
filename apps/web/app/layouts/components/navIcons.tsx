@@ -74,3 +74,5 @@ export const PaymentsIcon = icon([
 ]);
 
 export const DocumentsIcon = icon(["M14 3v4a1 1 0 0 0 1 1h4", "M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"]);
+
+export const AnatomyIcon = icon(["M10 4a2 2 0 1 0 4 0a2 2 0 0 0 -4 0", "M5 9l5 1v4l-3 7m12 -12l-5 1v4l3 7m-7 -11h4"]);

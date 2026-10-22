@@ -24,6 +24,9 @@ import { editText, formatDuration, formatEffort, formatLoad, formatReps, parseDu
 import { moveExerciseTo } from "../model/reorder";
 import type { EditorApi } from "../useEditor";
 import styles from "./SetGrid.module.css";
+import { InlinePrescriptionCell } from "./InlinePrescriptionCell";
+import { InlineLoadCell } from "./InlineLoadCell";
+import { formulaText } from "../model/inline-formula";
 
 const COLUMNS = ["exercise", "set", "kind", "reps", "load", "effort", "rest", "tempo", "notes"] as const;
 type Column = (typeof COLUMNS)[number];
@@ -50,6 +53,7 @@ interface Props {
   workout: Workout;
   names: Map<string, ExerciseLabel>;
   advancedAllowed: boolean;
+  customFormulas?: boolean;
   readOnly: boolean;
   onSelectionChange: (selection: GridSelection) => void;
 }
@@ -58,7 +62,7 @@ interface Props {
  * Spreadsheet-style set grid for one workout. Keyboard handling is scoped to the grid:
  * while a cell input is focused, keys belong to the input, never to sheet commands.
  */
-export function SetGrid({ editor, workout, names, advancedAllowed, readOnly, onSelectionChange }: Props) {
+export function SetGrid({ editor, workout, names, advancedAllowed, customFormulas = false, readOnly, onSelectionChange }: Props) {
   const m = useT();
   const locale = useLocale();
   const gridRef = useRef<HTMLDivElement>(null);
@@ -222,7 +226,7 @@ export function SetGrid({ editor, workout, names, advancedAllowed, readOnly, onS
       return;
     }
     if (!TEXT_COLUMNS.has(column)) return;
-    setEditing({ text: initial ?? editText(locale, column, activeRow.set.prescription), invalid: false });
+    setEditing({ text: initial ?? (column === "load" ? formulaText(activeRow.set.prescription.loadFormula) || editText(locale, column, activeRow.set.prescription) : editText(locale, column, activeRow.set.prescription)), invalid: false });
   }
 
   function commitEditing(nextRow: number, nextCol: number) {
@@ -301,7 +305,7 @@ export function SetGrid({ editor, workout, names, advancedAllowed, readOnly, onS
         if (row && column && TEXT_COLUMNS.has(column) && !applyText(row, column, value)) failed = true;
       });
     });
-    if (failed) toast({ tone: "warning", title: m.editor.pasteInvalid });
+    if (failed) toast({ tone: "danger", title: m.editor.pasteInvalid, duration: 6000 });
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -473,7 +477,15 @@ export function SetGrid({ editor, workout, names, advancedAllowed, readOnly, onS
                     }}
                     onDoubleClick={() => startEditing()}
                   >
-                    {editingHere && column === "kind" && row.set ? (
+                    {column === "load" && row.set && advancedAllowed ? (
+                      <InlineLoadCell exerciseId={row.exerciseId} customAllowed={customFormulas} prescription={row.set.prescription} readOnly={readOnly || locked} label={m.editor.columns.load} initialText={editingHere ? editing.text : undefined} onDone={() => setEditing(null)} onChange={(p) => editor.apply((doc) => setPrescription(doc, row.set!.id, p))} />
+                    ) : (column === "reps" || column === "rest") && row.set && advancedAllowed ? (
+                      <InlinePrescriptionCell field={column === "reps" ? "Reps" : "Rest"} prescription={row.set.prescription} exerciseId={row.exerciseId} customAllowed={customFormulas} readOnly={readOnly || locked} label={m.editor.columns[column]} initialText={editingHere ? editing.text : undefined} onDone={() => setEditing(null)}
+                        onChange={(formula, value, maximum) => editor.apply(doc => setPrescription(doc, row.set!.id, { ...row.set!.prescription,
+                          fieldFormulas: Object.fromEntries([...Object.entries(row.set!.prescription.fieldFormulas ?? {}).filter(([key]) => key !== (column === "reps" ? "Reps" : "Rest")), ...(formula ? [[column === "reps" ? "Reps" : "Rest", formula] as const] : [])]),
+                          ...(column === "reps" ? { reps: formula || !value ? null : { minimum: value.value, maximum: maximum ?? value.value } } : { rest: formula ? null : value })
+                        }))} />
+                    ) : editingHere && column === "kind" && row.set ? (
                       <select
                         autoFocus
                         className={styles.select}

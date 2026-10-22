@@ -6,8 +6,9 @@ import { useSessionManager } from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";
 import { AuthFooter, AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
-import { authErrorText } from "../lib/authErrors";
-import { callbackUrl, EMAIL_PATTERN, onboardingUrl, registrationRole, slotParam, type RegistrationRole } from "../lib/urls";
+import { authErrorText, isExistingAccount, passwordProblem } from "../lib/authErrors";
+import { callbackUrl, onboardingUrl, registrationRole, slotParam, type RegistrationRole } from "../lib/urls";
+import { isValidEmail, normalizeEmail } from "../lib/email";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Create account — TrainFlow");
@@ -34,23 +35,26 @@ export default function Register() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    if (!EMAIL_PATTERN.test(email) || password.length < 8 || slot === null) return;
+    if (!isValidEmail(email) || passwordProblem(m, password) || slot === null) return;
+    const address = normalizeEmail(email);
     setPending(true);
     setError(null);
     try {
       const { data, error: signUpError } = await manager.client(slot).auth.signUp({
-        email,
+        email: address,
         password,
-        options: { emailRedirectTo: callbackUrl(slot, onboardingUrl(role), email) },
+        options: { emailRedirectTo: callbackUrl(slot, onboardingUrl(role), address) },
       });
-      if (signUpError) throw signUpError;
-      if (data.session) {
+      // An address that already has an account continues like a new one, so this form cannot be used to
+      // find out who is registered. The owner gets no code and can sign in or reset the password instead.
+      if (signUpError && !isExistingAccount(signUpError)) throw signUpError;
+      if (data?.session) {
         // Email confirmation disabled in this environment: continue straight to onboarding.
         await manager.completeSignIn(slot, data.session);
         navigate(onboardingUrl(role), { replace: true });
         return;
       }
-      navigate(`/auth/verify?type=signup&slot=${slot}&email=${encodeURIComponent(email)}&role=${role}`);
+      navigate(`/auth/verify?type=signup&slot=${slot}&email=${encodeURIComponent(address)}&role=${role}`);
     } catch (caught) {
       setError(authErrorText(m, caught));
     } finally {
@@ -74,7 +78,7 @@ export default function Register() {
           value={email}
           onChange={setEmail}
           isRequired
-          isInvalid={submitted && !EMAIL_PATTERN.test(email)}
+          isInvalid={submitted && !isValidEmail(email)}
           errorMessage={m.auth.errors.emailInvalid}
           size="lg"
         />
@@ -86,8 +90,8 @@ export default function Register() {
           onChange={setPassword}
           isRequired
           description={t.passwordHint}
-          isInvalid={submitted && password.length < 8}
-          errorMessage={m.auth.errors.passwordShort}
+          isInvalid={submitted && Boolean(passwordProblem(m, password))}
+          errorMessage={passwordProblem(m, password) ?? undefined}
           size="lg"
         />
         <Button type="submit" variant="primary" size="lg" block loading={pending}>

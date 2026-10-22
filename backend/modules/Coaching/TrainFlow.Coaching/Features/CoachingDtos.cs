@@ -28,4 +28,14 @@ public sealed class CoachingListQuery
         get; set;
     }
     public Guid[] GroupIds { get; set; } = [];
+    /// <summary>Only clients whose current service comes from this offer.</summary>
+    public Guid? OfferId
+    {
+        get; set;
+    }
+    /// <summary>Only clients whose current service is in this offer category (strength, endurance...).</summary>
+    public string? OfferCategory
+    {
+        get; set;
+    }
 }

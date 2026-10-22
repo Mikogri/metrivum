@@ -1,0 +1,29 @@
+{
+  "scope": "in-memory HTTP TestServer; synthetic handlers; no business writes, DB, storage or network; elapsed process memory includes test host",
+  "baseline": {
+    "Enabled": false,
+    "Users": 100,
+    "Requests": 20000,
+    "NormalRejected": 0,
+    "BotRejected": 0,
+    "P50Milliseconds": 0.0863,
+    "P95Milliseconds": 0.2036,
+    "RequestsPerSecond": 57584.547071624234,
+    "ElapsedSeconds": 0.3473154,
+    "CpuMilliseconds": 1500,
+    "WorkingSetBytes": 122789888
+  },
+  "protectedRun": {
+    "Enabled": true,
+    "Users": 100,
+    "Requests": 20000,
+    "NormalRejected": 0,
+    "BotRejected": 700,
+    "P50Milliseconds": 0.1137,
+    "P95Milliseconds": 0.4125,
+    "RequestsPerSecond": 36797.25521913869,
+    "ElapsedSeconds": 0.5435188,
+    "CpuMilliseconds": 2593.75,
+    "WorkingSetBytes": 131764224
+  }
+}

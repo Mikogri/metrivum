@@ -1,7 +1,5 @@
 # Dependency remediation — 2026-10-14
 
-Publication scope: this security/dependency commit excludes the separate pending MCP, offer, collaboration-file and UI feature changes. Full-workspace test totals below include those local features. MCP middleware fixes/tests remain with that pending feature; they are not part of this published snapshot.
-
 The four outstanding npm advisories are addressed through three auditable private source forks and an official, scoped `uuid` update. See [mobile dependency review](../mobile/dependency-review.md) and each `vendor/*` provenance file. Expo SDK 57 is preserved; SDK-managed native packages were aligned with its recommended versions. Native dependency changes require rebuilding the development client.
 
 The voice module imports `requireOptionalNativeModule` through Expo's public export instead of relying on an undeclared, accidentally hoisted `expo-modules-core` dependency. A clean installation exposed this assumption; mobile TypeScript and all 53 mobile tests pass with the public import.
@@ -21,7 +19,3 @@ The full PostgreSQL suite previously exhausted Windows shared-memory reservation
 - Expo version check, Android/iOS Metro/Hermes exports and the native Android debug APK build passed (520 Gradle tasks; exit 0). APK: `.local/dependency-fixes-2026-10-14/trainflow-mobile-dev.apk`. Gradle/upstream deprecation warnings remain. iOS native compilation and device acceptance were not executed; an APK build does not prove runtime/device behavior.
 
 Reproduce using `npm ci --ignore-scripts`, `npm run test:security-dependencies`, `npm test`, `npm run typecheck`, `npm run lint`, `npm run build`, and the documented mobile build helper. Run the unfiltered Integration project with `TRAINFLOW_TEST_DATABASE` set to an explicit disposable local PostgreSQL database; provide the guarded local Supabase environment separately to execute the remaining two tests.
-
-## Published snapshot verification
-
-The isolated staged snapshot (without pending features) passed locked .NET restore, a warning-free solution build, 220 unit tests, eight architecture tests, four artifact/host isolation tests, clean npm installation, all 17 dependency regressions, 357 frontend/mobile tests, TypeScript and ESLint. Full-workspace PostgreSQL evidence above remains separate from these publication checks. Source secret-pattern checks passed; Gitleaks reported two reviewed generic-key heuristics in unchanged public upstream node-forge documentation/code, not application credentials.

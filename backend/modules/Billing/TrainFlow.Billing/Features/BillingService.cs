@@ -40,7 +40,7 @@ public sealed record ServiceSubscriptionDto(Guid Id, Guid ServiceId, bool AutoRe
 
 public sealed partial class BillingService(BillingDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IRelationshipAccessPolicy relationships, IOfferLibrary offers, IPaymentProvider provider, IConfiguration configuration,
-    TimeProvider clock, ModuleTransaction transaction, TrainFlow.Notifications.Contracts.INotificationPublisher notifications, ITrainingPurchases? trainingPurchases = null, ITeamContext? teams = null) : IBillingOrders
+    TimeProvider clock, ModuleTransaction transaction, TrainFlow.Notifications.Contracts.INotificationPublisher notifications, ITrainingPurchases? trainingPurchases = null, ITeamContext? teams = null, IAbuseProtection? abuse = null) : IBillingOrders
 {
     // Trusted Coaching read: the caller authorizes the exact relationship before supplying this bounded page.
     public async Task<IReadOnlyDictionary<Guid, ServiceBillingState>> GetServiceStatesAsync(IReadOnlyCollection<Guid> serviceIds, CancellationToken ct)
@@ -258,6 +258,7 @@ public sealed partial class BillingService(BillingDbContext db, IAccountContext 
     }
     public Task<PaymentResultDto> PayAsync(Guid id, PayRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
+        abuse?.Require(accounts.UserId, AbusePolicies.Payment);
         await Client("billing.pay-own", token);
         Key(request.IdempotencyKey);
         var due = await OwnedDue(id, false, token);

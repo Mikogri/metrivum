@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
+import { useDebounced } from "~/shared/lib/useDebounced";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useBlocker } from "react-router";
 import { Button as AriaButton, Dialog as AriaDialog, Modal, ModalOverlay } from "react-aria-components";
@@ -94,11 +95,16 @@ const dayLabel = (iso: string) => {
 };
 
 export default function Messages() {
+  const { accountKey } = useAccountContext();
   const mobile = useMobileLayout();
   const [params, setParams] = useSearchParams();
   const id = params.get("conversation");
   const requestedTab = params.get("tab");
-  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState({ accountKey, search: "", page: 1 });
+  if (filter.accountKey !== accountKey) setFilter({ accountKey, search: "", page: 1 });
+  const search = filter.accountKey === accountKey ? filter.search : "";
+  const settledSearch = useDebounced(search);
+  const page = filter.accountKey === accountKey && search === settledSearch ? filter.page : 1;
   const [create, setCreate] = useState(false);
   const draft = params.get("person") ? { userId: params.get("person")!, displayName: params.get("name") || "TrainFlow member", username: params.get("username") || "" } : null;
   const direct = useFeatureAccess("messaging.direct");
@@ -108,14 +114,14 @@ export default function Messages() {
   const allowed = direct.allowed || groups.allowed;
   const canCreate = direct.allowed || (groups.allowed && groupManage);
   const realtime = useMessagingRealtime();
-  const list = useChatQuery<Conversation[]>(`${root}/conversations`, { search, limit: 100 }, allowed);
+  const list = useChatQuery<Conversation[]>(`${root}/conversations`, { search: settledSearch, page, limit: 25 }, allowed && tab === "conversations" && search === settledSearch);
   const select = (value: string | null) => setParams(value ? { conversation: value } : { view: "list" });
   useEffect(() => {
     const first = list.data?.[0];
     // Phone history must return to the inbox without immediately reopening a thread.
-    if (mobile || !allowed || !first || id || tab !== "conversations" || params.has("person") || params.get("view") === "list" || create) return;
+    if (mobile || !allowed || !first || id || page !== 1 || search || tab !== "conversations" || params.has("person") || params.get("view") === "list" || create) return;
     setParams({ conversation: first.id }, { replace: true });
-  }, [mobile, allowed, create, id, list.data, params, tab, setParams]);
+  }, [mobile, allowed, create, id, list.data, page, search, params, tab, setParams]);
 
   if (direct.pending || groups.pending)
     return (
@@ -177,14 +183,18 @@ export default function Messages() {
             size="sm"
             className={styles.sections}
             selectedKeys={[tab]}
-            onSelectionChange={(keys) => setParams([...keys][0] === "conversations" ? {} : { tab: String([...keys][0]) }, { replace: true })}
+            onSelectionChange={(keys) => {
+              const value = String([...keys][0]);
+              if (value === "conversations") setFilter({ accountKey, search: "", page: 1 });
+              setParams(value === "conversations" ? {} : { tab: value }, { replace: true });
+            }}
           >
             <Segment id="conversations">Chats</Segment>
             <Segment id="blocked">Blocked</Segment>
           </SegmentedControl>
         ) : null}
-        <div className={styles.search}>
-          <SearchInput aria-label="Search conversations" placeholder="Search" size="sm" value={search} onChange={setSearch} />
+        {tab === "conversations" ? <><div className={styles.search}>
+          <SearchInput aria-label="Search conversations" placeholder="Search" size="sm" value={search} onChange={(value) => setFilter({ accountKey, search: value, page: 1 })} />
         </div>
         <div className={styles.list}>
           {list.isPending ? (
@@ -193,7 +203,7 @@ export default function Messages() {
             <Failure error={list.error} retry={() => void list.refetch()} />
           ) : list.data.length === 0 ? (
             <div className={styles.listState}>
-              <p>{search ? "No conversations match your search." : "No conversations yet."}</p>
+              <p>{page > 1 ? "No more conversations." : search ? "No conversations match your search." : "No conversations yet."}</p>
             </div>
           ) : (
             list.data.map((c) => {
@@ -225,6 +235,11 @@ export default function Messages() {
             })
           )}
         </div>
+        <nav className={styles.pagination} aria-label="Conversation pages">
+          <Button size="sm" variant="ghost" isDisabled={page === 1 || list.isFetching || search !== settledSearch} onPress={() => setFilter({ accountKey, search, page: page - 1 })}>Previous</Button>
+          <span aria-live="polite">Page {page}</span>
+          <Button size="sm" variant="ghost" isDisabled={list.isFetching || list.isError || search !== settledSearch || (list.data?.length ?? 0) < 25 || page >= 1000000} onPress={() => setFilter({ accountKey, search, page: page + 1 })}>Next</Button>
+        </nav></> : null}
       </aside>
 
       {create ? (

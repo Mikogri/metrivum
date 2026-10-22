@@ -10,17 +10,27 @@ import styles from "./team.module.css";
 
 type TeamClientCase = Schema<"TeamClientCaseDto">;
 type Transfer = Schema<"TeamClientTransferDto">;
+export const TEAM_PAGE_SIZE = 25;
+
+export function TeamPageControls({ label, page, count, loading, onChange }: { label: string; page: number; count: number; loading: boolean; onChange: (page: number) => void }) {
+  return <nav aria-label={`${label} pages`} className={styles.rowActions}>
+    <Button aria-label={`Previous ${label}`} isDisabled={loading || page <= 1} onPress={() => onChange(page - 1)}>Previous</Button>
+    <span className={styles.muted}>Page {page}</span>
+    <Button aria-label={`Next ${label}`} isDisabled={loading || count < TEAM_PAGE_SIZE} onPress={() => onChange(page + 1)}>Next</Button>
+  </nav>;
+}
 
 export function TransferRequests() {
   const client = useProfile().roles.includes("Client");
-  const requests = useCoachingQuery<Transfer[]>("/api/v1/me/team-client-transfer-requests", undefined, client);
+  const [page, setPage] = useState(1);
+  const requests = useCoachingQuery<Transfer[]>("/api/v1/me/team-client-transfer-requests", { page, pageSize: TEAM_PAGE_SIZE }, client);
   const [selected, setSelected] = useState<Transfer | null>(null);
   const { ask, dialog: confirmDialog } = useDangerConfirm();
   const mutation = useCoachingMutation();
   if (!client) return null;
   if (requests.isPending) return <Loading />;
   if (requests.isError) return <Failure error={requests.error} retry={() => void requests.refetch()} />;
-  if (!requests.data.length) return null;
+  if (!requests.data.length && page === 1) return null;
   return <section aria-labelledby="transfer-requests" className={styles.invites}>
     <div><h2 id="transfer-requests" className={styles.sectionTitle}>Client transfer requests</h2><p className={styles.muted}>A Team transfer changes who owns your coaching case. Review the exact consent before deciding.</p></div>
     <MutationError error={mutation.error} />
@@ -37,6 +47,7 @@ export function TransferRequests() {
         {request.allowedActions.includes("accept") && <Button variant="primary" isDisabled={mutation.isPending} onPress={() => setSelected(request)}>Review and accept transfer</Button>}
       </div>
     </Card>)}
+    <TeamPageControls label="Transfer requests" page={page} count={requests.data.length} loading={requests.isFetching || mutation.isPending} onChange={setPage} />
     <AlertDialog isOpen={!!selected} onOpenChange={(open) => { if (!open) setSelected(null); }} title="Accept transfer to Team?" confirmLabel="Accept transfer" cancelLabel="Keep reviewing" isConfirming={mutation.isPending} onConfirm={() => { if (selected) mutation.mutate({ method: "POST", path: `/api/v1/me/team-client-transfer-requests/${selected.id}/accept`, json: { version: selected.version } }, { onSuccess: () => setSelected(null) }); }}>
       <p>{selected?.consentText}</p><p>Consent version: {selected?.consentVersion}. Historical private records are not automatically shared with the Team.</p><MutationError error={mutation.error} />
     </AlertDialog>
@@ -45,8 +56,10 @@ export function TransferRequests() {
 
 export function TeamClients({ teamId, members, active }: { teamId: string; members: Member[]; active: boolean }) {
   const profile = useProfile();
-  const clients = useCoachingQuery<TeamClientCase[]>(`/api/v1/teams/${teamId}/clients`);
-  const transfers = useCoachingQuery<Transfer[]>(`/api/v1/teams/${teamId}/client-transfer-requests`);
+  const [clientPage, setClientPage] = useState(1);
+  const [transferPage, setTransferPage] = useState(1);
+  const clients = useCoachingQuery<TeamClientCase[]>(`/api/v1/teams/${teamId}/clients`, { page: clientPage, pageSize: TEAM_PAGE_SIZE });
+  const transfers = useCoachingQuery<Transfer[]>(`/api/v1/teams/${teamId}/client-transfer-requests`, { page: transferPage, pageSize: TEAM_PAGE_SIZE });
   const [relationshipId, setRelationship] = useState("");
   const [page, setPage] = useState(1);
   const privateClients = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { status: "Active", page, pageSize: 20 }, active && profile.roles.includes("Coach"));
@@ -61,6 +74,7 @@ export function TeamClients({ teamId, members, active }: { teamId: string; membe
       { id: "assigned", header: "Assigned coaches", cell: (client) => client.assignedCoachIds.length ? client.assignedCoachIds.map(coachName).join(", ") : <span className={styles.muted}>Awaiting assignment</span> },
       { id: "actions", header: <span className="tf-visually-hidden">Actions</span>, cell: (client) => <div className={styles.stack}>{client.relationshipId && <LinkButton size="sm" href={`/app/clients/${client.relationshipId}`}>Open Team coaching case</LinkButton>}{client.allowedActions.includes("assign-coach") && <AssignCoach key={`${client.id}:${client.version}`} client={client} members={members} />}</div> },
     ]} />}
+    {!clients.isError && <TeamPageControls label="Team clients" page={clientPage} count={clients.data?.length ?? 0} loading={clients.isFetching || mutation.isPending} onChange={setClientPage} />}
     {active && profile.roles.includes("Coach") && <form className={styles.inviteForm} onSubmit={(event) => { event.preventDefault(); mutation.mutate({ method: "POST", path: `/api/v1/teams/${teamId}/client-transfer-requests`, json: { relationshipId } }, { onSuccess: () => setRelationship("") }); }}>
       <div className={styles.grow} style={{ flexBasis: "100%" }}><h3 className={styles.sectionTitle}>Request a private client transfer</h3><p className={styles.muted}>The client must accept before any Team case is created. Existing private history remains private. Active private services and unpaid obligations must be resolved first.</p></div>
       {privateClients.isPending ? <Loading /> : privateClients.isError ? <Failure error={privateClients.error} retry={() => void privateClients.refetch()} /> : <>
@@ -72,6 +86,7 @@ export function TeamClients({ teamId, members, active }: { teamId: string; membe
       <Button type="submit" variant="primary" iconStart={<ArrowRightLeft />} isDisabled={!relationshipId || mutation.isPending}>Request client consent</Button>
     </form>}
     {transfers.isError ? <Failure error={transfers.error} retry={() => void transfers.refetch()} /> : !!transfers.data?.length && <section className={styles.stack}><h3 className={styles.sectionTitle}>Transfer status</h3><ul className={styles.requestList}>{transfers.data.map((transfer) => <li key={transfer.id}><span className={styles.grow}>Requested {new Date(transfer.createdAt).toLocaleDateString()} <span className={styles.muted}>· expires {new Date(transfer.expiresAt).toLocaleDateString()}</span></span><Badge size="sm">{transfer.status}</Badge></li>)}</ul></section>}
+    {!transfers.isError && (transferPage > 1 || !!transfers.data?.length) && <TeamPageControls label="Transfer status" page={transferPage} count={transfers.data?.length ?? 0} loading={transfers.isFetching || mutation.isPending} onChange={setTransferPage} />}
   </div>;
 }
 

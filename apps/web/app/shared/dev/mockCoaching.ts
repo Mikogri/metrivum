@@ -325,6 +325,7 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     return ok(group);
   }
   if ((m = path.match(/^\/api\/v1\/coaching\/groups\/([^/]+)\/members$/))) return ok(page(clients.filter((c) => c.groupIds.includes(m![1]!)), q));
+  if (path === "/api/v1/forms/summaries" && method === "GET") return ok(page(search(forms.filter((f) => !q.get("purpose") || f.purpose === q.get("purpose")), q).map(({ draft, ...form }) => ({ ...form, questionCount: draft.sections.reduce((sum, section) => sum + section.questions.length, 0) })), q));
   if (path === "/api/v1/forms" && method === "GET") return ok(page(search(forms.filter((f) => !q.get("purpose") || f.purpose === q.get("purpose")), q), q));
   if ((m = path.match(/^\/api\/v1\/forms\/([^/]+)$/)) && method === "GET") return ok(forms.find((f) => f.id === m![1]));
   if (path === "/api/v1/offers" && method === "GET") return ok(page(offers, q));

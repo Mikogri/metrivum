@@ -22,6 +22,7 @@ using TrainFlow.Accounts.Contracts;
 using TrainFlow.Accounts.Infrastructure;
 using TrainFlow.BuildingBlocks;
 using TrainFlow.CheckIns.Domain;
+using TrainFlow.CheckIns.Contracts;
 using TrainFlow.CheckIns.Features;
 using TrainFlow.CheckIns.Infrastructure;
 using TrainFlow.Coaching.Contracts;
@@ -36,6 +37,64 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class CheckInTests
 {
+    [CatalogPostgresFact]
+    public async Task Mcp_checkins_isolate_two_coaches_of_one_client_and_preview_never_assigns()
+    {
+        await using var a = await Fixture.CreateAsync();
+        await using var b = await Fixture.CreateAsync();
+        var formA = await a.FormAsync();
+        var formB = await b.FormAsync();
+        var relationshipA = await a.RelationshipAsync();
+        var relationshipB = await b.RelationshipAsync(clientId: relationshipA.ClientId);
+        await using (var shared = a.Provider.CreateAsyncScope())
+        {
+            var db = shared.ServiceProvider.GetRequiredService<CoachingDbContext>();
+            var relationships = await db.Relationships.AsNoTracking().Where(x => x.ClientId == relationshipA.ClientId).ToArrayAsync();
+            Assert.Equal(2, relationships.Length);
+            Assert.Contains(relationships, x => x.Id == relationshipA.Id && x.CoachId == a.CoachId);
+            Assert.Contains(relationships, x => x.Id == relationshipB.Id && x.CoachId == b.CoachId);
+        }
+        var groupA = await a.GroupAsync(relationshipA);
+        var groupB = await b.GroupAsync(relationshipB);
+        var proposal = new McpCheckInAssignment(formA.Id, "Preview", "Private proposal", "UTC",
+            new(McpRecurrenceKind.EveryNDays, 1, DateOnly.FromDateTime(a.Clock.GetUtcNow().DateTime), new(9, 0)), 24,
+            [relationshipA.Id], [groupA.Id]);
+        await using (var previewScope = a.Provider.CreateAsyncScope())
+        {
+            var adapter = new McpCheckInOperations(previewScope.ServiceProvider.GetRequiredService<CheckInsService>(), a.Account);
+            var preview = await adapter.ProposeAssignmentAsync(proposal, default);
+            Assert.Equal(relationshipA.Id, Assert.Single(preview.RelationshipIds));
+            Assert.False(preview.Executed);
+            var db = previewScope.ServiceProvider.GetRequiredService<CheckInsDbContext>();
+            Assert.False(await db.Schedules.AnyAsync(x => x.CoachId == a.CoachId));
+            Assert.False(await db.Requests.AnyAsync(x => x.CoachId == a.CoachId));
+            Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => adapter.ProposeAssignmentAsync(proposal with { GroupIds = [groupB.Id] }, default))).Status);
+        }
+        var scheduleA = await a.Coach(s => s.CreateAsync(a.Schedule(formA.Id, [relationshipA.Id], []), default));
+        var scheduleB = await b.Coach(s => s.CreateAsync(b.Schedule(formB.Id, [relationshipB.Id], []), default));
+        await a.Coach(s => s.GenerateDueAsync(100, default));
+        await b.Coach(s => s.GenerateDueAsync(100, default));
+        var requestA = Assert.Single(await a.RequestsAsync(scheduleA.Id));
+        var requestB = Assert.Single(await b.RequestsAsync(scheduleB.Id));
+        a.Account.UserId = relationshipA.ClientId;
+        await a.InScope(s => s.SubmitAsync(requestA.Id, new(Answers()), requestA.Version, default));
+        b.Account.UserId = relationshipA.ClientId;
+        await b.InScope(s => s.SubmitAsync(requestB.Id, new(Answers()), requestB.Version, default));
+        a.Account.UserId = a.CoachId;
+        await using var readScope = a.Provider.CreateAsyncScope();
+        var reads = new McpCheckInOperations(readScope.ServiceProvider.GetRequiredService<CheckInsService>(), a.Account);
+        Assert.Equal("Good", (await reads.SubmissionAsync(requestA.Id, default)).Answers!["answer"].GetString());
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => reads.SubmissionAsync(requestB.Id, default))).Status);
+        var page = await reads.ListAsync(null, a.Clock.GetUtcNow().AddDays(-1), a.Clock.GetUtcNow().AddDays(1), null, 1, 25, default);
+        Assert.Equal(requestA.Id, Assert.Single(page.Items).Id);
+        // A dual-role account may read its own answers through REST, but the coach MCP tool stays coach-owned.
+        a.Account.UserId = relationshipA.ClientId;
+        Assert.NotNull((await a.InScope(s => s.DetailAsync(requestA.Id, default))).Submission);
+        await using var dualScope = a.Provider.CreateAsyncScope();
+        var dual = new McpCheckInOperations(dualScope.ServiceProvider.GetRequiredService<CheckInsService>(), a.Account);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => dual.SubmissionAsync(requestA.Id, default))).Status);
+    }
+
     [CatalogPostgresFact]
     public async Task Metadata_only_schedule_edits_preserve_a_pending_release()
     {
@@ -818,11 +877,11 @@ public sealed class CheckInTests
             var draft = await service.CreateAsync(FormRequest(name), default);
             return await service.PublishAsync(draft.Id, draft.Version, default);
         }
-        public async Task<Relationship> RelationshipAsync(RelationshipStatus status = RelationshipStatus.Active, Guid? teamId = null)
+        public async Task<Relationship> RelationshipAsync(RelationshipStatus status = RelationshipStatus.Active, Guid? teamId = null, Guid? clientId = null)
         {
             await using var scope = Provider.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<CoachingDbContext>();
-            var r = new Relationship { CoachId = CoachId, ClientId = Guid.NewGuid(), WorkspaceId = CoachId, Status = status, ActivationSource = ActivationSource.DevFixture, StartedAt = Clock.GetUtcNow(), CreatedAt = Clock.GetUtcNow(), UpdatedAt = Clock.GetUtcNow() };
+            var r = new Relationship { CoachId = CoachId, ClientId = clientId ?? Guid.NewGuid(), WorkspaceId = CoachId, Status = status, ActivationSource = ActivationSource.DevFixture, StartedAt = Clock.GetUtcNow(), CreatedAt = Clock.GetUtcNow(), UpdatedAt = Clock.GetUtcNow() };
             if (teamId is { } organization)
             {
                 var clientCase = new TeamClientCase { TeamId = organization, ClientId = r.ClientId, CreatedAt = Clock.GetUtcNow() };

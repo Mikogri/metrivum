@@ -114,6 +114,17 @@
   text-align: center;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-1);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
 .conversation {
   display: flex;
   align-items: center;
@@ -1383,4 +1394,21 @@
   .actionLink:hover { border-color: var(--tf-color-border-strong); background: rgb(255 255 255 / 0.04); }
   .actionLink:hover svg { color: var(--tf-color-text); }
   .actionLink:hover svg { transform: translateX(2px); }
+}
+
+/* Send-to-chat block (e.g. sharing an analysis link): conversation picker and the send button in one row. */
+.sendToChat {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.sendToChatRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--tf-space-2);
+}
+
+.sendToChatSelect {
+  flex: 1;
+  min-width: 0;
 }

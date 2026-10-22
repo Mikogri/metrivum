@@ -1,3 +1,4 @@
+using TrainFlow.Training.Domain;
 using TrainFlow.BuildingBlocks;
 using TrainFlow.Training.Infrastructure;
 
@@ -46,8 +47,8 @@ public static class DeliveryRules
                             Name = workout.Name,
                             ScheduledDate = date,
                             Deadline = Deadline(date, assignment.TimeZone),
-                            Prescription = new(revision.Id, revision.Snapshot.Name, workout,
-                                revision.Snapshot.Exercises.Where(x => workout.Exercises.Any(e => e.ExerciseId == x.Key)).ToDictionary(), revision.Snapshot.Formulas)
+                            Prescription = new(revision.Id, revision.Snapshot.Name, PrescriptionFormulas.Freeze(workout, assignment.FormulaSnapshot?.Evaluations ?? revision.Snapshot.Formulas),
+                                revision.Snapshot.Exercises.Where(x => workout.Exercises.Any(e => e.ExerciseId == x.Key)).ToDictionary(), assignment.FormulaSnapshot?.Evaluations ?? revision.Snapshot.Formulas, revision.Snapshot.Document.Annotations == null ? null : DocumentRules.AnnotationsFor(revision.Snapshot.Document, block.Id, cycle.Id))
                         });
                     }
                 offset = checked(offset + cycle.DayCount);

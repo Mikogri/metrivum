@@ -1,0 +1,1120 @@
+{
+  "version": "bodyparts3d-4.0",
+  "existingCount": 80,
+  "existingMatched": 59,
+  "newMuscles": [
+    {
+      "key": "anatomy-fma37451",
+      "labelEn": "abductor digiti minimi of foot",
+      "labelPl": "abductor digiti minimi of foot",
+      "conceptId": "FMA37451"
+    },
+    {
+      "key": "anatomy-fma37382",
+      "labelEn": "abductor digiti minimi of hand",
+      "labelPl": "abductor digiti minimi of hand",
+      "conceptId": "FMA37382"
+    },
+    {
+      "key": "anatomy-fma37373",
+      "labelEn": "abductor pollicis brevis",
+      "labelPl": "abductor pollicis brevis",
+      "conceptId": "FMA37373"
+    },
+    {
+      "key": "anatomy-fma38515",
+      "labelEn": "abductor pollicis longus",
+      "labelPl": "abductor pollicis longus",
+      "conceptId": "FMA38515"
+    },
+    {
+      "key": "anatomy-fma43885",
+      "labelEn": "adductor minimus",
+      "labelPl": "adductor minimus",
+      "conceptId": "FMA43885"
+    },
+    {
+      "key": "anatomy-fma37704",
+      "labelEn": "anconeus",
+      "labelPl": "anconeus",
+      "conceptId": "FMA37704"
+    },
+    {
+      "key": "anatomy-fma46602",
+      "labelEn": "aryepiglotticus",
+      "labelPl": "aryepiglotticus",
+      "conceptId": "FMA46602"
+    },
+    {
+      "key": "anatomy-fma23082",
+      "labelEn": "cervical rotator",
+      "labelPl": "cervical rotator",
+      "conceptId": "FMA23082"
+    },
+    {
+      "key": "anatomy-fma19088",
+      "labelEn": "coccygeus",
+      "labelPl": "coccygeus",
+      "conceptId": "FMA19088"
+    },
+    {
+      "key": "anatomy-fma37664",
+      "labelEn": "coracobrachialis",
+      "labelPl": "coracobrachialis",
+      "conceptId": "FMA37664"
+    },
+    {
+      "key": "anatomy-fma46291",
+      "labelEn": "digastric",
+      "labelPl": "digastric",
+      "conceptId": "FMA46291"
+    },
+    {
+      "key": "anatomy-fma38503",
+      "labelEn": "extensor digiti minimi",
+      "labelPl": "extensor digiti minimi",
+      "conceptId": "FMA38503"
+    },
+    {
+      "key": "anatomy-fma38500",
+      "labelEn": "extensor digitorum",
+      "labelPl": "extensor digitorum",
+      "conceptId": "FMA38500"
+    },
+    {
+      "key": "anatomy-fma51141",
+      "labelEn": "extensor hallucis brevis",
+      "labelPl": "extensor hallucis brevis",
+      "conceptId": "FMA51141"
+    },
+    {
+      "key": "anatomy-fma38524",
+      "labelEn": "extensor indicis",
+      "labelPl": "extensor indicis",
+      "conceptId": "FMA38524"
+    },
+    {
+      "key": "anatomy-fma38518",
+      "labelEn": "extensor pollicis brevis",
+      "labelPl": "extensor pollicis brevis",
+      "conceptId": "FMA38518"
+    },
+    {
+      "key": "anatomy-fma38521",
+      "labelEn": "extensor pollicis longus",
+      "labelPl": "extensor pollicis longus",
+      "conceptId": "FMA38521"
+    },
+    {
+      "key": "anatomy-fma21930",
+      "labelEn": "External anal sphincter",
+      "labelPl": "External anal sphincter",
+      "conceptId": "FMA21930"
+    },
+    {
+      "key": "anatomy-fma9756",
+      "labelEn": "External intercostal muscle",
+      "labelPl": "External intercostal muscle",
+      "conceptId": "FMA9756"
+    },
+    {
+      "key": "anatomy-fma37479",
+      "labelEn": "first lumbrical of foot",
+      "labelPl": "first lumbrical of foot",
+      "conceptId": "FMA37479"
+    },
+    {
+      "key": "anatomy-fma37738",
+      "labelEn": "first plantar interosseous of foot",
+      "labelPl": "first plantar interosseous of foot",
+      "conceptId": "FMA37738"
+    },
+    {
+      "key": "anatomy-fma37452",
+      "labelEn": "flexor accessorius",
+      "labelPl": "flexor accessorius",
+      "conceptId": "FMA37452"
+    },
+    {
+      "key": "anatomy-fma37455",
+      "labelEn": "flexor digiti minimi brevis of foot",
+      "labelPl": "flexor digiti minimi brevis of foot",
+      "conceptId": "FMA37455"
+    },
+    {
+      "key": "anatomy-fma37383",
+      "labelEn": "flexor digiti minimi brevis of hand",
+      "labelPl": "flexor digiti minimi brevis of hand",
+      "conceptId": "FMA37383"
+    },
+    {
+      "key": "anatomy-fma38478",
+      "labelEn": "flexor digitorum profundus",
+      "labelPl": "flexor digitorum profundus",
+      "conceptId": "FMA38478"
+    },
+    {
+      "key": "anatomy-fma38469",
+      "labelEn": "flexor digitorum superficialis",
+      "labelPl": "flexor digitorum superficialis",
+      "conceptId": "FMA38469"
+    },
+    {
+      "key": "anatomy-fma37378",
+      "labelEn": "flexor pollicis brevis",
+      "labelPl": "flexor pollicis brevis",
+      "conceptId": "FMA37378"
+    },
+    {
+      "key": "anatomy-fma38481",
+      "labelEn": "flexor pollicis longus",
+      "labelPl": "flexor pollicis longus",
+      "conceptId": "FMA38481"
+    },
+    {
+      "key": "anatomy-fma37482",
+      "labelEn": "fourth lumbrical of foot",
+      "labelPl": "fourth lumbrical of foot",
+      "conceptId": "FMA37482"
+    },
+    {
+      "key": "anatomy-fma46690",
+      "labelEn": "genioglossus",
+      "labelPl": "genioglossus",
+      "conceptId": "FMA46690"
+    },
+    {
+      "key": "anatomy-fma46325",
+      "labelEn": "geniohyoid",
+      "labelPl": "geniohyoid",
+      "conceptId": "FMA46325"
+    },
+    {
+      "key": "anatomy-fma46691",
+      "labelEn": "hyoglossus",
+      "labelPl": "hyoglossus",
+      "conceptId": "FMA46691"
+    },
+    {
+      "key": "anatomy-fma19092",
+      "labelEn": "iliococcygeus",
+      "labelPl": "iliococcygeus",
+      "conceptId": "FMA19092"
+    },
+    {
+      "key": "anatomy-fma22704",
+      "labelEn": "iliocostalis cervicis",
+      "labelPl": "iliocostalis cervicis",
+      "conceptId": "FMA22704"
+    },
+    {
+      "key": "anatomy-fma22702",
+      "labelEn": "iliocostalis lumborum",
+      "labelPl": "iliocostalis lumborum",
+      "conceptId": "FMA22702"
+    },
+    {
+      "key": "anatomy-fma22703",
+      "labelEn": "iliocostalis thoracis",
+      "labelPl": "iliocostalis thoracis",
+      "conceptId": "FMA22703"
+    },
+    {
+      "key": "anatomy-fma49040",
+      "labelEn": "inferior oblique",
+      "labelPl": "inferior oblique",
+      "conceptId": "FMA49040"
+    },
+    {
+      "key": "anatomy-fma46623",
+      "labelEn": "inferior pharyngeal constrictor",
+      "labelPl": "inferior pharyngeal constrictor",
+      "conceptId": "FMA46623"
+    },
+    {
+      "key": "anatomy-fma49036",
+      "labelEn": "inferior rectus",
+      "labelPl": "inferior rectus",
+      "conceptId": "FMA49036"
+    },
+    {
+      "key": "anatomy-fma9758",
+      "labelEn": "Innermost intercostal muscle",
+      "labelPl": "Innermost intercostal muscle",
+      "conceptId": "FMA9758"
+    },
+    {
+      "key": "anatomy-fma9757",
+      "labelEn": "Internal intercostal muscle",
+      "labelPl": "Internal intercostal muscle",
+      "conceptId": "FMA9757"
+    },
+    {
+      "key": "anatomy-fma22846",
+      "labelEn": "interspinalis thoracis",
+      "labelPl": "interspinalis thoracis",
+      "conceptId": "FMA22846"
+    },
+    {
+      "key": "anatomy-fma46579",
+      "labelEn": "lateral crico-arytenoid",
+      "labelPl": "lateral crico-arytenoid",
+      "conceptId": "FMA46579"
+    },
+    {
+      "key": "anatomy-fma22850",
+      "labelEn": "Lateral lumbar intertransversarius",
+      "labelPl": "Lateral lumbar intertransversarius",
+      "conceptId": "FMA22850"
+    },
+    {
+      "key": "anatomy-fma49038",
+      "labelEn": "lateral rectus",
+      "labelPl": "lateral rectus",
+      "conceptId": "FMA49038"
+    },
+    {
+      "key": "anatomy-fma49041",
+      "labelEn": "levator palpebrae superioris",
+      "labelPl": "levator palpebrae superioris",
+      "conceptId": "FMA49041"
+    },
+    {
+      "key": "anatomy-fma46727",
+      "labelEn": "levator veli palatini",
+      "labelPl": "levator veli palatini",
+      "conceptId": "FMA46727"
+    },
+    {
+      "key": "anatomy-fma22714",
+      "labelEn": "longissimus capitis",
+      "labelPl": "longissimus capitis",
+      "conceptId": "FMA22714"
+    },
+    {
+      "key": "anatomy-fma22711",
+      "labelEn": "longissimus cervicis",
+      "labelPl": "longissimus cervicis",
+      "conceptId": "FMA22711"
+    },
+    {
+      "key": "anatomy-fma22709",
+      "labelEn": "longissimus thoracis",
+      "labelPl": "longissimus thoracis",
+      "conceptId": "FMA22709"
+    },
+    {
+      "key": "anatomy-fma46308",
+      "labelEn": "longus capitis",
+      "labelPl": "longus capitis",
+      "conceptId": "FMA46308"
+    },
+    {
+      "key": "anatomy-fma23084",
+      "labelEn": "lumbar rotator",
+      "labelPl": "lumbar rotator",
+      "conceptId": "FMA23084"
+    },
+    {
+      "key": "anatomy-fma22851",
+      "labelEn": "Medial lumbar intertransversarius",
+      "labelPl": "Medial lumbar intertransversarius",
+      "conceptId": "FMA22851"
+    },
+    {
+      "key": "anatomy-fma49037",
+      "labelEn": "medial rectus",
+      "labelPl": "medial rectus",
+      "conceptId": "FMA49037"
+    },
+    {
+      "key": "anatomy-fma46622",
+      "labelEn": "middle pharyngeal constrictor",
+      "labelPl": "middle pharyngeal constrictor",
+      "conceptId": "FMA46622"
+    },
+    {
+      "key": "anatomy-fma46320",
+      "labelEn": "mylohyoid",
+      "labelPl": "mylohyoid",
+      "conceptId": "FMA46320"
+    },
+    {
+      "key": "anatomy-fma46583",
+      "labelEn": "oblique arytenoid",
+      "labelPl": "oblique arytenoid",
+      "conceptId": "FMA46583"
+    },
+    {
+      "key": "anatomy-fma13342",
+      "labelEn": "omohyoid",
+      "labelPl": "omohyoid",
+      "conceptId": "FMA13342"
+    },
+    {
+      "key": "anatomy-fma86033",
+      "labelEn": "opponens digiti minimi of foot",
+      "labelPl": "opponens digiti minimi of foot",
+      "conceptId": "FMA86033"
+    },
+    {
+      "key": "anatomy-fma37384",
+      "labelEn": "opponens digiti minimi of hand",
+      "labelPl": "opponens digiti minimi of hand",
+      "conceptId": "FMA37384"
+    },
+    {
+      "key": "anatomy-fma37379",
+      "labelEn": "opponens pollicis",
+      "labelPl": "opponens pollicis",
+      "conceptId": "FMA37379"
+    },
+    {
+      "key": "anatomy-fma46666",
+      "labelEn": "palatopharyngeus",
+      "labelPl": "palatopharyngeus",
+      "conceptId": "FMA46666"
+    },
+    {
+      "key": "anatomy-fma38462",
+      "labelEn": "palmaris longus",
+      "labelPl": "palmaris longus",
+      "conceptId": "FMA38462"
+    },
+    {
+      "key": "anatomy-fma13109",
+      "labelEn": "pectoralis minor",
+      "labelPl": "pectoralis minor",
+      "conceptId": "FMA13109"
+    },
+    {
+      "key": "anatomy-fma22543",
+      "labelEn": "plantaris",
+      "labelPl": "plantaris",
+      "conceptId": "FMA22543"
+    },
+    {
+      "key": "anatomy-fma45738",
+      "labelEn": "platysma",
+      "labelPl": "platysma",
+      "conceptId": "FMA45738"
+    },
+    {
+      "key": "anatomy-fma22590",
+      "labelEn": "popliteus",
+      "labelPl": "popliteus",
+      "conceptId": "FMA22590"
+    },
+    {
+      "key": "anatomy-fma46576",
+      "labelEn": "posterior crico-arytenoid",
+      "labelPl": "posterior crico-arytenoid",
+      "conceptId": "FMA46576"
+    },
+    {
+      "key": "anatomy-fma19090",
+      "labelEn": "pubococcygeus",
+      "labelPl": "pubococcygeus",
+      "conceptId": "FMA19090"
+    },
+    {
+      "key": "anatomy-fma19091",
+      "labelEn": "puborectalis",
+      "labelPl": "puborectalis",
+      "conceptId": "FMA19091"
+    },
+    {
+      "key": "anatomy-fma46312",
+      "labelEn": "rectus capitis anterior",
+      "labelPl": "rectus capitis anterior",
+      "conceptId": "FMA46312"
+    },
+    {
+      "key": "anatomy-fma46316",
+      "labelEn": "rectus capitis lateralis",
+      "labelPl": "rectus capitis lateralis",
+      "conceptId": "FMA46316"
+    },
+    {
+      "key": "anatomy-fma46665",
+      "labelEn": "salpingopharyngeus",
+      "labelPl": "salpingopharyngeus",
+      "conceptId": "FMA46665"
+    },
+    {
+      "key": "anatomy-fma22353",
+      "labelEn": "sartorius",
+      "labelPl": "sartorius",
+      "conceptId": "FMA22353"
+    },
+    {
+      "key": "anatomy-fma37480",
+      "labelEn": "second lumbrical of foot",
+      "labelPl": "second lumbrical of foot",
+      "conceptId": "FMA37480"
+    },
+    {
+      "key": "anatomy-fma37739",
+      "labelEn": "second plantar interosseous of foot",
+      "labelPl": "second plantar interosseous of foot",
+      "conceptId": "FMA37739"
+    },
+    {
+      "key": "anatomy-fma22829",
+      "labelEn": "semispinalis cervicis",
+      "labelPl": "semispinalis cervicis",
+      "conceptId": "FMA22829"
+    },
+    {
+      "key": "anatomy-fma22828",
+      "labelEn": "semispinalis thoracis",
+      "labelPl": "semispinalis thoracis",
+      "conceptId": "FMA22828"
+    },
+    {
+      "key": "anatomy-fma13402",
+      "labelEn": "serratus posterior inferior",
+      "labelPl": "serratus posterior inferior",
+      "conceptId": "FMA13402"
+    },
+    {
+      "key": "anatomy-fma13401",
+      "labelEn": "serratus posterior superior",
+      "labelPl": "serratus posterior superior",
+      "conceptId": "FMA13401"
+    },
+    {
+      "key": "anatomy-fma22765",
+      "labelEn": "spinalis thoracis",
+      "labelPl": "spinalis thoracis",
+      "conceptId": "FMA22765"
+    },
+    {
+      "key": "anatomy-fma13341",
+      "labelEn": "sternohyoid",
+      "labelPl": "sternohyoid",
+      "conceptId": "FMA13341"
+    },
+    {
+      "key": "anatomy-fma13343",
+      "labelEn": "sternothyroid",
+      "labelPl": "sternothyroid",
+      "conceptId": "FMA13343"
+    },
+    {
+      "key": "anatomy-fma9625",
+      "labelEn": "stylohyoid",
+      "labelPl": "stylohyoid",
+      "conceptId": "FMA9625"
+    },
+    {
+      "key": "anatomy-fma46664",
+      "labelEn": "stylopharyngeus",
+      "labelPl": "stylopharyngeus",
+      "conceptId": "FMA46664"
+    },
+    {
+      "key": "anatomy-fma13410",
+      "labelEn": "subclavius",
+      "labelPl": "subclavius",
+      "conceptId": "FMA13410"
+    },
+    {
+      "key": "anatomy-fma49039",
+      "labelEn": "superior oblique",
+      "labelPl": "superior oblique",
+      "conceptId": "FMA49039"
+    },
+    {
+      "key": "anatomy-fma46621",
+      "labelEn": "superior pharyngeal constrictor",
+      "labelPl": "superior pharyngeal constrictor",
+      "conceptId": "FMA46621"
+    },
+    {
+      "key": "anatomy-fma49035",
+      "labelEn": "superior rectus",
+      "labelPl": "superior rectus",
+      "conceptId": "FMA49035"
+    },
+    {
+      "key": "anatomy-fma46730",
+      "labelEn": "tensor veli palatini",
+      "labelPl": "tensor veli palatini",
+      "conceptId": "FMA46730"
+    },
+    {
+      "key": "anatomy-fma37481",
+      "labelEn": "third lumbrical of foot",
+      "labelPl": "third lumbrical of foot",
+      "conceptId": "FMA37481"
+    },
+    {
+      "key": "anatomy-fma37740",
+      "labelEn": "third plantar interosseous of foot",
+      "labelPl": "third plantar interosseous of foot",
+      "conceptId": "FMA37740"
+    },
+    {
+      "key": "anatomy-fma23083",
+      "labelEn": "Thoracic rotator",
+      "labelPl": "Thoracic rotator",
+      "conceptId": "FMA23083"
+    },
+    {
+      "key": "anatomy-fma46588",
+      "labelEn": "thyro-arytenoid",
+      "labelPl": "thyro-arytenoid",
+      "conceptId": "FMA46588"
+    },
+    {
+      "key": "anatomy-fma13344",
+      "labelEn": "thyrohyoid",
+      "labelPl": "thyrohyoid",
+      "conceptId": "FMA13344"
+    },
+    {
+      "key": "anatomy-fma46582",
+      "labelEn": "Transverse arytenoid",
+      "labelPl": "Transverse arytenoid",
+      "conceptId": "FMA46582"
+    },
+    {
+      "key": "anatomy-fma9760",
+      "labelEn": "transversus thoracis",
+      "labelPl": "transversus thoracis",
+      "conceptId": "FMA9760"
+    },
+    {
+      "key": "anatomy-fma46733",
+      "labelEn": "Uvular muscle",
+      "labelPl": "Uvular muscle",
+      "conceptId": "FMA46733"
+    },
+    {
+      "key": "anatomy-fma46591",
+      "labelEn": "vocalis",
+      "labelPl": "vocalis",
+      "conceptId": "FMA46591"
+    }
+  ],
+  "missing": [
+    "abductor-digiti-minimi",
+    "back",
+    "chest",
+    "core",
+    "deep-neck-flexors",
+    "erector-spinae",
+    "finger-extensors",
+    "finger-flexors",
+    "foot-interossei",
+    "grip-muscles",
+    "hand-interossei",
+    "intrinsic-foot-muscles",
+    "intrinsic-hand-muscles",
+    "latissimus-dorsi",
+    "multifidus",
+    "quadratus-lumborum",
+    "rectus-abdominis",
+    "thenar-muscles",
+    "transversus-abdominis",
+    "wrist-extensors",
+    "wrist-flexors"
+  ],
+  "unresolved": [
+    {
+      "name": "anterior suboccipital",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA64875"
+      ]
+    },
+    {
+      "name": "constrictor of pharynx",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA46620"
+      ]
+    },
+    {
+      "name": "deep of anterior compartment of forearm",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA38475"
+      ]
+    },
+    {
+      "name": "deep of posterior compartment of forearm",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA38509"
+      ]
+    },
+    {
+      "name": "deep of posterior compartment of leg",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA65008"
+      ]
+    },
+    {
+      "name": "deep postvertebral",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA32561"
+      ]
+    },
+    {
+      "name": "extra-ocular",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA49033"
+      ]
+    },
+    {
+      "name": "extrinsic of tongue",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA46699"
+      ]
+    },
+    {
+      "name": "head of adductor hallucis",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA46012"
+      ]
+    },
+    {
+      "name": "head of organ",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA85453"
+      ]
+    },
+    {
+      "name": "hypothenar",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA64917"
+      ]
+    },
+    {
+      "name": "iliocostalis",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA77177"
+      ]
+    },
+    {
+      "name": "inferior oblique part of longus colli",
+      "reason": "Composite/subdivision needs review",
+      "conceptIds": [
+        "FMA46281",
+        "FMA46288"
+      ]
+    },
+    {
+      "name": "infrahyoid",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA13338"
+      ]
+    },
+    {
+      "name": "intercostal",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA13354"
+      ]
+    },
+    {
+      "name": "intermediate postvertebral",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA32560"
+      ]
+    },
+    {
+      "name": "interosseous of foot",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37456"
+      ]
+    },
+    {
+      "name": "interspinalis",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA22841"
+      ]
+    },
+    {
+      "name": "intertransversarius",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA22848"
+      ]
+    },
+    {
+      "name": "intrinsic of foot",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA65020"
+      ]
+    },
+    {
+      "name": "intrinsic of hand",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA42380"
+      ]
+    },
+    {
+      "name": "intrinsic of larynx",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA55226"
+      ]
+    },
+    {
+      "name": "intrinsic of plantar part of foot",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA65046"
+      ]
+    },
+    {
+      "name": "longissimus",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA77178"
+      ]
+    },
+    {
+      "name": "lumbar intertransversarius",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA22849"
+      ]
+    },
+    {
+      "name": "lumbrical of foot",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37453"
+      ]
+    },
+    {
+      "name": "oblique head of adductor hallucis",
+      "reason": "Composite/subdivision needs review",
+      "conceptIds": [
+        "FMA46014",
+        "FMA46018",
+        "FMA46019"
+      ]
+    },
+    {
+      "name": "oblique part of cricothyroid",
+      "reason": "Composite/subdivision needs review",
+      "conceptIds": [
+        "FMA46610",
+        "FMA46613",
+        "FMA46614"
+      ]
+    },
+    {
+      "name": "of anterior compartment of forearm",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA38456"
+      ]
+    },
+    {
+      "name": "of anterior compartment of thigh",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA22424"
+      ]
+    },
+    {
+      "name": "of face",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA46751"
+      ]
+    },
+    {
+      "name": "of foot",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37369"
+      ]
+    },
+    {
+      "name": "of forearm",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37371"
+      ]
+    },
+    {
+      "name": "of free lower limb",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37368"
+      ]
+    },
+    {
+      "name": "of free upper limb",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37348"
+      ]
+    },
+    {
+      "name": "of hand",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37372"
+      ]
+    },
+    {
+      "name": "of head",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA9616"
+      ]
+    },
+    {
+      "name": "of larynx",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA46562"
+      ]
+    },
+    {
+      "name": "of leg",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA22471"
+      ]
+    },
+    {
+      "name": "of lower limb",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA9622"
+      ]
+    },
+    {
+      "name": "of neck",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA9617"
+      ]
+    },
+    {
+      "name": "of palate",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA46726"
+      ]
+    },
+    {
+      "name": "of pectoral girdle",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37347"
+      ]
+    },
+    {
+      "name": "of pharynx",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA46619"
+      ]
+    },
+    {
+      "name": "of posterior compartment of leg",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA22474"
+      ]
+    },
+    {
+      "name": "of thigh",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA22470"
+      ]
+    },
+    {
+      "name": "of thorax",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA9619"
+      ]
+    },
+    {
+      "name": "of trunk",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA58274"
+      ]
+    },
+    {
+      "name": "of upper limb",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA9621"
+      ]
+    },
+    {
+      "name": "of vertebral column",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA22594"
+      ]
+    },
+    {
+      "name": "organ",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA5022"
+      ]
+    },
+    {
+      "name": "pectoral",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37349"
+      ]
+    },
+    {
+      "name": "plantar interosseous of foot",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA37458"
+      ]
+    },
+    {
+      "name": "postvertebral",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA32515"
+      ]
+    },
+    {
+      "name": "prevertebral",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA32514"
+      ]
+    },
+    {
+      "name": "rotator",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA23081"
+      ]
+    },
+    {
+      "name": "semispinalis",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA22823"
+      ]
+    },
+    {
+      "name": "serratus posterior",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA13400"
+      ]
+    },
+    {
+      "name": "spinalis",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA77179"
+      ]
+    },
+    {
+      "name": "straight part of cricothyroid",
+      "reason": "Composite/subdivision needs review",
+      "conceptIds": [
+        "FMA46609",
+        "FMA46611",
+        "FMA46612"
+      ]
+    },
+    {
+      "name": "superficial head of flexor pollicis brevis",
+      "reason": "Composite/subdivision needs review",
+      "conceptIds": [
+        "FMA46104",
+        "FMA65198",
+        "FMA65199"
+      ]
+    },
+    {
+      "name": "superficial postvertebral",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA32559"
+      ]
+    },
+    {
+      "name": "superior oblique part of longus colli",
+      "reason": "Composite/subdivision needs review",
+      "conceptIds": [
+        "FMA46280",
+        "FMA46284"
+      ]
+    },
+    {
+      "name": "transverse head of adductor hallucis",
+      "reason": "Composite/subdivision needs review",
+      "conceptIds": [
+        "FMA46015",
+        "FMA46020",
+        "FMA46021"
+      ]
+    },
+    {
+      "name": "vertical intermediate part of longus colli",
+      "reason": "Composite/subdivision needs review",
+      "conceptIds": [
+        "FMA46282",
+        "FMA46286"
+      ]
+    },
+    {
+      "name": "zone of cricothyroid",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA46608"
+      ]
+    },
+    {
+      "name": "zone of longus colli",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA46279"
+      ]
+    },
+    {
+      "name": "zone of organ",
+      "reason": "Anatomical class/composite, not an individual muscle",
+      "conceptIds": [
+        "FMA10474"
+      ]
+    }
+  ],
+  "archives": {
+    "isa_BP3D_4.0_obj_99.zip": "40665852c49f218326590e204db91064a1ecfc3c6f8cbd7bbbcaac62c7cd409e",
+    "partof_BP3D_4.0_obj_99.zip": "9fbc713fffeee924a5a657d9813d84d7eb957bded63adb854931dd5e3eb61c97"
+  },
+  "structureCount": 2234
+}

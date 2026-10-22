@@ -26,6 +26,7 @@ public static class ModuleRegistration
         services.AddScoped<TrainFlow.Coaching.Contracts.ITeamRelationshipLifecycle, TeamTrainingLifecycle>();
         services.AddModuleDatabase<TrainingDbContext>("training");
         services.AddScoped<TrainingService>();
+        services.AddScoped<IMcpTrainingOperations, McpTrainingOperations>();
         services.AddScoped<TrainingPurchaseService>();
         services.AddScoped<ITrainingPurchases>(sp => sp.GetRequiredService<TrainingPurchaseService>());
         services.AddScoped<TrainingDeliveryService>();
@@ -49,6 +50,11 @@ public static class ModuleRegistration
         endpoints.MapGet("/api/v1/training/purchases", (int? page, int? pageSize, TrainingPurchaseService service, CancellationToken ct) => service.ListAsync(page ?? 1, pageSize ?? 25, ct)).RequireAuthorization();
         var group = endpoints.MapGroup("/api/v1/training").WithTags("Training").RequireAuthorization();
         group.MapTrainingDelivery();
+        group.MapGet("/clients/{relationshipId:guid}/variables", (Guid relationshipId, TrainingService s, CancellationToken ct) => s.ClientVariablesAsync(relationshipId, ct));
+        group.MapPost("/clients/{relationshipId:guid}/exercise-maxes", (Guid relationshipId, ClientExerciseMaxRequest request, TrainingService s, CancellationToken ct) => s.SaveExerciseMaxAsync(relationshipId, null, request, null, ct));
+        group.MapPut("/clients/{relationshipId:guid}/exercise-maxes/{id:guid}", (Guid relationshipId, Guid id, ClientExerciseMaxRequest request, HttpContext h, TrainingService s, CancellationToken ct) => s.SaveExerciseMaxAsync(relationshipId, id, request, Version(h), ct));
+        group.MapPost("/programs/{id:guid}/client-preview", (Guid id, ClientPreviewRequest request, TrainingService s, CancellationToken ct) => s.PreviewClientAsync(id, request, ct));
+
         group.MapProgramGenerator();
         group.MapGet("/programs", (int? page, int? pageSize, string? search, string? sort, DocumentKind? kind, Guid? folderId, bool? rootOnly, bool? archived, TrainingService service, CancellationToken ct) =>
             service.ListAsync(new()

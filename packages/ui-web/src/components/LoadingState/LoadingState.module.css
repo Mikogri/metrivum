@@ -6,8 +6,8 @@
   padding: var(--tf-space-12) var(--tf-space-4);
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-sm);
-  /* Waits 150ms before showing: fast responses go straight to the content. */
-  animation: loading-in 200ms var(--tf-ease-out) 150ms backwards;
+  /* Shown at once (switching screens must answer immediately), with a short fade so it does not blink. */
+  animation: loading-in 120ms var(--tf-ease-out) backwards;
 }
 
 .sm {

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,8 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogger
             DbUpdateConcurrencyException => new ApiException(412, "VERSION_CONFLICT", "The resource changed. Reload and retry."),
             PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } => ApiException.Conflict("A record with these unique values already exists."),
             PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation } => ApiException.Invalid("A referenced resource is missing or still in use."),
+            BadHttpRequestException { StatusCode: 413 } => new ApiException(413, "REQUEST_TOO_LARGE", "The request exceeds the allowed body size."),
+            BadHttpRequestException { InnerException: JsonException { Path: { } path } } => ApiException.Invalid($"Invalid JSON value at {path}. Check the field format and API version."),
             BadHttpRequestException => ApiException.Invalid("The request body or parameters are invalid."),
             NpgsqlException or DbUpdateException => new ApiException(503, "DATABASE_UNAVAILABLE", "The database is temporarily unavailable."),
             HttpRequestException => new ApiException(503, "INTEGRATION_UNAVAILABLE", "An external integration is temporarily unavailable."),
@@ -27,6 +30,8 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogger
         if (error.Status >= 500)
             logger.LogError("Request failed: {Code}; exception type {ExceptionType}; trace {TraceId}", error.Code, exception.GetType().Name, http.TraceIdentifier);
         http.Response.StatusCode = error.Status;
+        if (error.RetryAfter is { } retryAfter)
+            http.Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(System.Globalization.CultureInfo.InvariantCulture);
         return await problems.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = http,

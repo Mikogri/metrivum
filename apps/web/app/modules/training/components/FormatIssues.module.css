@@ -1,0 +1,142 @@
+.marker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  height: 1.625rem;
+  padding: 0 var(--tf-space-2-5);
+  border: 1px solid color-mix(in srgb, var(--tf-color-danger) 40%, transparent);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-danger-soft);
+  color: var(--tf-color-danger);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.marker svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.marker[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.tooltip {
+  max-width: 28rem;
+  padding: var(--tf-space-3);
+}
+
+.tip {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  text-align: left;
+  white-space: normal;
+}
+
+.list {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  margin: 0;
+  padding: 0 0 0 var(--tf-space-4);
+  overflow-wrap: anywhere;
+  font-weight: var(--tf-weight-regular);
+  line-height: var(--tf-leading-snug);
+}
+
+.more {
+  list-style: none;
+  margin-left: calc(-1 * var(--tf-space-4));
+  color: var(--tf-color-text-tertiary);
+}
+
+/* Quiet but always there: a thin red-tinted line with the details behind the marker. */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: var(--tf-space-1-5) var(--tf-space-1-5) var(--tf-space-1-5) var(--tf-space-3);
+  border: 1px solid color-mix(in srgb, var(--tf-color-danger) 22%, transparent);
+  border-radius: var(--tf-radius-md);
+  background: color-mix(in srgb, var(--tf-color-danger) 6%, transparent);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.banner > svg {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-danger);
+}
+
+.bannerText {
+  flex: 1;
+  min-width: 0;
+}
+
+.bannerText strong {
+  color: var(--tf-color-danger);
+  font-weight: var(--tf-weight-medium);
+}
+
+.marker[data-compact] {
+  height: 1.5rem;
+  padding: 0 var(--tf-space-2);
+  gap: var(--tf-space-1);
+}
+
+.marker[data-compact] svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* Applied / draft: neutral pill, the icon carries the meaning. */
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  height: 1.5rem;
+  padding: 0 var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  white-space: nowrap;
+  cursor: default;
+  outline: none;
+}
+
+.state svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--tf-color-warning);
+}
+
+.state[data-applied] svg {
+  color: var(--tf-color-success);
+}
+
+.state[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* In a crowded editor header the compact state keeps only its icon; the tooltip says the rest. */
+@media (max-width: 96rem) {
+  .state[data-compact] {
+    width: 1.5rem;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .state[data-compact] .stateLabel {
+    display: none;
+  }
+}

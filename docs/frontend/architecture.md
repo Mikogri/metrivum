@@ -109,6 +109,9 @@ decides why (`LockedReason` explains it with a tooltip).
   never refreshes.
 - TanStack Query keys always start with the account key (`slot:userId`). Nothing is persisted to storage.
   Retries only for network/5xx. A `FEATURE_UNAVAILABLE` response invalidates the cached access snapshot.
+- Resource-scoped coaching invalidation matches complete URL path segments across pages and workspace modes. Group writes refresh group/client/relationship views; other mutations retain their existing dependency coverage.
+- Messaging events carrying a conversation ID refresh only that conversation and its summaries. Reconnect and events without an ID reconcile the whole messaging cache. Existing 60-second live / 15-second fallback polling remains a recovery mechanism; hidden-tab polling stays disabled by TanStack Query defaults. Typing expiry preserves state identity when nothing expires, avoiding idle provider renders.
+- The training editor serializes once per immutable document/metadata change and reuses that snapshot for dirty checks and saves. Status-only renders do not serialize the initial plan again; in-flight edits and version conflicts retain their existing behavior.
 - List state (search, filters, sort, folder, page) lives in the URL; changing a filter resets the page.
   Empty library, no results and server errors are separate states.
 - The editor keeps its working document outside the query cache, so a background refetch can never

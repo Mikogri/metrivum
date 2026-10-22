@@ -39,7 +39,7 @@ export { ContextMenu, type ContextMenuEntry, type ContextMenuProps } from "./com
 export { DataTable, type DataTableColumn, type DataTableProps } from "./components/DataTable/DataTable";
 export { Dialog, AlertDialog, DialogFooter, DialogTrigger, type DialogProps, type AlertDialogProps } from "./components/Dialog/Dialog";
 export { Popover, type PopoverProps } from "./components/Popover/Popover";
-export { Tooltip, TooltipTrigger, type TooltipProps } from "./components/Tooltip/Tooltip";
+export { Hint, Tooltip, TooltipTrigger, type TooltipProps } from "./components/Tooltip/Tooltip";
 export {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -70,7 +70,7 @@ export { List, ListRow, type ListRowProps } from "./components/List/List";
 // Feedback
 export { Badge, type BadgeProps, type BadgeTone } from "./components/Badge/Badge";
 export { Alert, type AlertProps } from "./components/Alert/Alert";
-export { Toaster, toast, dismissToast, clearToasts, type ToastOptions, type ToastTone, type ToasterProps } from "./components/Toast/Toast";
+export { Toaster, ToastView, toast, dismissToast, clearToasts, type ToastOptions, type ToastTone, type ToasterProps, type ToastViewProps } from "./components/Toast/Toast";
 export { Spinner, type SpinnerProps } from "./components/Spinner/Spinner";
 export { Skeleton, type SkeletonProps } from "./components/Skeleton/Skeleton";
 export { LoadingState, type LoadingStateProps } from "./components/LoadingState/LoadingState";
@@ -80,3 +80,5 @@ export { EmptyState, ErrorState, type EmptyStateProps, type ErrorStateProps } fr
 export { Avatar, type AvatarProps } from "./components/Avatar/Avatar";
 export { Kbd } from "./components/Kbd/Kbd";
 export { FileCard, type FileCardProps } from "./components/FileCard/FileCard";
+
+export { overlayPosition, overlayViewport } from "./lib/overlay-position";

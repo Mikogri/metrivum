@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, FunctionSquare, Pencil, Plus, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import type { FormulaDefinition, FormulaListItem, Quantity, Unit } from "@trainflow/api-client-web";
-import { UNITS } from "@trainflow/api-client-web";
-import { Alert, Badge, Button, Card, DataTable, Dialog, EmptyState, ErrorState, IconButton, LoadingState, NumberInput, Option, PageHeader, Pagination, SearchInput, Select, Skeleton, TextField, toast } from "@trainflow/ui-web";
+import { Copy, FunctionSquare, Pencil, Plus } from "lucide-react";
+import { FormulaMark } from "../components/FormulaMark";
+import { useEffect, useState } from "react";
+import type { FormulaListItem, Quantity, Unit } from "@trainflow/api-client-web";
+import { Alert, Badge, Button, Card, DataTable, Dialog, EmptyState, ErrorState, IconButton, LoadingState, NumberInput, PageHeader, Pagination, SearchInput, Skeleton, toast } from "@trainflow/ui-web";
 import { LockedReason, RequireFeature, useFeatureAccess } from "~/shared/access";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -12,10 +12,10 @@ import { useDebounced } from "~/shared/lib/useDebounced";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
-import { copyFormula, createFormula, evaluateFormula, updateFormula } from "../api";
+import { copyFormula, evaluateFormula } from "../api";
 import { formatQuantity } from "../editor/model/notation";
 import { formulaQueryOptions, trainingKeys, useBuiltInFormulas, useFormulaList } from "../queries";
-import { FormulaExpressionInput } from "../components/FormulaExpressionInput";
+import { FormulaDialog } from "../components/FormulaDialog";
 import styles from "./formulas.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 import { LibraryViewToggle, useLibraryView } from "~/shared/library/LibraryViewToggle";
@@ -25,7 +25,7 @@ const PAGE_SIZE = 20;
 
 export const meta = () => privateMeta("Formulas — TrainFlow");
 
-const NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]{0,79}$/;
+
 
 function TryFormula({ binding, inputs }: { binding: { builtIn: string | null; formulaId: string | null; version: number }; inputs: Record<string, Unit> }) {
   const m = useT();
@@ -37,7 +37,7 @@ function TryFormula({ binding, inputs }: { binding: { builtIn: string | null; fo
     mutationFn: () =>
       evaluateFormula(api, {
         ...binding,
-        inputs: Object.fromEntries(Object.entries(inputs).map(([name, unit]) => [name, { value: values[name] ?? 0, unit } satisfies Quantity])),
+        inputs: Object.fromEntries(Object.entries(inputs).filter(([name]) => Number.isFinite(values[name])).map(([name, unit]) => [name, { value: values[name]!, unit } satisfies Quantity])),
       }),
   });
   return (
@@ -64,115 +64,6 @@ function TryFormula({ binding, inputs }: { binding: { builtIn: string | null; fo
   );
 }
 
-function FormulaDialog({ formula, onClose }: { formula: FormulaListItem | "new" | null; onClose: () => void }) {
-  const m = useT();
-  const t = m.training.formulas;
-  const api = useApi();
-  const a = useAccountKey();
-  const queryClient = useQueryClient();
-  const [name, setName] = useState("");
-  const [expression, setExpression] = useState("");
-  const [inputs, setInputs] = useState<Array<{ name: string; unit: Unit }>>([]);
-  const [outputUnit, setOutputUnit] = useState<Unit>("Kg");
-  const [version, setVersion] = useState(0);
-  const existing = formula !== "new" ? formula : null;
-  const full = useQuery({ ...formulaQueryOptions(api, a, existing ?? { id: "", version: 0 }), enabled: Boolean(existing) });
-  const loading = Boolean(existing) && full.isPending;
-  const loadError = existing ? full.error : null;
-  const initialized = useRef(false);
-
-  useEffect(() => {
-    if (initialized.current) return;
-    if (formula === "new") {
-      initialized.current = true;
-      setName("");
-      setExpression("");
-      setInputs([{ name: "base", unit: "Kg" }]);
-      setOutputUnit("Kg");
-      setVersion(0);
-    } else if (formula && full.data) {
-      initialized.current = true;
-      const { data, version: v } = full.data;
-      setName(data.name);
-      setExpression(data.definition.expression);
-      setInputs(Object.entries(data.definition.inputs).map(([n, unit]) => ({ name: n, unit })));
-      setOutputUnit(data.definition.outputUnit);
-      setVersion(v);
-    }
-  }, [formula, full.data]);
-
-  const definition: FormulaDefinition = { expression: expression.trim(), inputs: Object.fromEntries(inputs.map((i) => [i.name.trim(), i.unit])), outputUnit };
-  const invalidNames = inputs.some((i) => !NAME_PATTERN.test(i.name.trim())) || new Set(inputs.map((i) => i.name.trim())).size !== inputs.length;
-  const save = useMutation({
-    mutationFn: () => (formula === "new" ? createFormula(api, { name: name.trim(), definition }) : updateFormula(api, (formula as FormulaListItem).id, { name: name.trim(), definition }, version)),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: trainingKeys.formulas(a) });
-      toast({ tone: "success", title: formula === "new" ? t.created : t.updated });
-      onClose();
-    },
-  });
-
-  return (
-    <Dialog
-      isOpen={formula !== null}
-      placement="right"
-      onOpenChange={(open) => !open && onClose()}
-      title={formula === "new" ? t.createTitle : t.editTitle}
-      description={formula === "new" ? undefined : t.editNote}
-      size="lg"
-      closeLabel={m.common.close}
-      footer={(close) => (
-        <>
-          <Button variant="secondary" onPress={close}>
-            {m.common.cancel}
-          </Button>
-          <Button variant="primary" loading={save.isPending} isDisabled={loading || Boolean(loadError) || !name.trim() || !expression.trim() || invalidNames} onPress={() => save.mutate()}>
-            {m.common.save}
-          </Button>
-        </>
-      )}
-    >
-      <div className={styles.form}>
-        {loadError ? <Alert tone="danger" title={errorText(m, loadError)} /> : null}
-        {save.error ? <Alert tone="danger" title={errorText(m, save.error)}>{(save.error as { problem?: { detail?: string } }).problem?.detail}</Alert> : null}
-        <TextField placeholder={m.common.ph.formulaName} label={t.name} value={name} onChange={setName} isRequired autoFocus maxLength={200} />
-        <FormulaExpressionInput label={t.expression} placeholder={m.common.ph.expression} value={expression} onChange={setExpression} inputNames={inputs.map((input) => input.name)} isRequired description={`base * percentage / 100 · ${t.help.hint}`} />
-        <fieldset className={styles.inputs}>
-          <legend className={styles.legend}>{t.inputs}</legend>
-          {inputs.map((input, index) => (
-            <div key={index} className={styles.inputRow}>
-              <TextField placeholder={m.common.ph.inputName}
-                label={t.inputName}
-                size="sm"
-                value={input.name}
-                isInvalid={!NAME_PATTERN.test(input.name.trim())}
-                onChange={(value) => setInputs((list) => list.map((item, i) => (i === index ? { ...item, name: value } : item)))}
-              />
-              <Select label={t.inputUnit} size="sm" selectedKey={input.unit} onSelectionChange={(key) => setInputs((list) => list.map((item, i) => (i === index ? { ...item, unit: key as Unit } : item)))}>
-                {UNITS.map((unit) => (
-                  <Option key={unit} id={unit}>
-                    {m.editor.units[unit] || unit}
-                  </Option>
-                ))}
-              </Select>
-              <IconButton label={t.removeInput(input.name)} icon={<Trash2 />} variant="danger" size="sm" onPress={() => setInputs((list) => list.filter((_, i) => i !== index))} />
-            </div>
-          ))}
-          <Button size="sm" variant="ghost" iconStart={<Plus />} onPress={() => setInputs((list) => [...list, { name: `input${list.length + 1}`, unit: "Scalar" }])}>
-            {t.addInput}
-          </Button>
-        </fieldset>
-        <Select label={t.outputUnit} selectedKey={outputUnit} onSelectionChange={(key) => setOutputUnit(key as Unit)} className={styles.narrow}>
-          {UNITS.map((unit) => (
-            <Option key={unit} id={unit}>
-              {m.editor.units[unit] || unit}
-            </Option>
-          ))}
-        </Select>
-      </div>
-    </Dialog>
-  );
-}
 
 function Formulas() {
   const m = useT();
@@ -232,7 +123,7 @@ function Formulas() {
             {builtIns.data.map((formula, i) => (
               <Card key={formula.key} padding="md" className={styles.builtIn} style={{ "--i": i } as React.CSSProperties}>
                 <div className={styles.builtInHead}>
-                  <FunctionSquare aria-hidden="true" />
+                  <FormulaMark size="lg" tone="accent" />
                   <h3>{t.builtInNames[formula.key ?? ""] ?? formula.key}</h3>
                   <Badge size="sm">{t.versionLabel(formula.version)}</Badge>
                 </div>
@@ -289,9 +180,7 @@ function Formulas() {
                   header: m.common.col.name,
                   cell: (formula) => (
                     <span className={styles.nameCell}>
-                      <span className={styles.formulaIcon} aria-hidden="true">
-                        <FunctionSquare />
-                      </span>
+                      <FormulaMark />
                       {formula.name}
                       {formula.archived ? (
                         <Badge size="sm" tone="warning">
@@ -366,7 +255,7 @@ function FormulaCard({ formula, canEdit, onEdit, onCopy, onTry }: { formula: For
   return (
     <li className={styles.formulaCard}>
       <header className={styles.formulaCardHead}>
-        <span className={styles.formulaIcon} aria-hidden="true"><FunctionSquare /></span>
+        <FormulaMark size="lg" />
         <h3>{formula.name}</h3>
         {formula.archived ? <Badge size="sm" tone="warning">{t.archivedBadge}</Badge> : <Badge size="sm">{t.versionLabel(formula.version)}</Badge>}
       </header>

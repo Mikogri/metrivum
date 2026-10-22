@@ -96,6 +96,9 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
                     b.Property<Guid?>("SetId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("SharedWithClient")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("SourceVideo")
                         .HasColumnType("jsonb");
 
@@ -117,6 +120,9 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("WorkoutExecutionId")
+                        .HasFilter("\"SharedWithClient\"");
+
                     b.HasIndex("OwnerId", "IdempotencyKey")
                         .IsUnique();
 
@@ -137,6 +143,103 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
 
                             t.HasCheckConstraint("ck_job_status", "\"Status\" IN ('Queued', 'Processing', 'Completed', 'Failed', 'Cancelled')");
                         });
+                });
+
+            modelBuilder.Entity("TrainFlow.VideoAnalysis.Infrastructure.AnalysisShare", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AllowSave")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("AnalysisId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(43)
+                        .HasColumnType("character varying(43)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnalysisId")
+                        .IsUnique()
+                        .HasFilter("\"RevokedAt\" IS NULL");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("analysis_shares", "video_analysis", t =>
+                        {
+                            t.HasCheckConstraint("ck_share_token", "char_length(\"Token\") = 43");
+                        });
+                });
+
+            modelBuilder.Entity("TrainFlow.VideoAnalysis.Infrastructure.SavedShare", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AnalysisId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("SavedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ShareId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnalysisId");
+
+                    b.HasIndex("ShareId");
+
+                    b.HasIndex("UserId", "AnalysisId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "SavedAt");
+
+                    b.ToTable("saved_shares", "video_analysis");
+                });
+
+            modelBuilder.Entity("TrainFlow.VideoAnalysis.Infrastructure.AnalysisShare", b =>
+                {
+                    b.HasOne("TrainFlow.VideoAnalysis.Infrastructure.AnalysisJob", null)
+                        .WithMany()
+                        .HasForeignKey("AnalysisId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.VideoAnalysis.Infrastructure.SavedShare", b =>
+                {
+                    b.HasOne("TrainFlow.VideoAnalysis.Infrastructure.AnalysisJob", null)
+                        .WithMany()
+                        .HasForeignKey("AnalysisId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrainFlow.VideoAnalysis.Infrastructure.AnalysisShare", null)
+                        .WithMany()
+                        .HasForeignKey("ShareId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

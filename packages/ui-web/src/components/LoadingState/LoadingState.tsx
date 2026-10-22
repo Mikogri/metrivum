@@ -10,8 +10,7 @@ export interface LoadingStateProps {
 }
 
 /**
- * Loading for lists, tables and cards (dynamic content): a spinner with its label, shown after a
- * short delay so quick responses never flash. Skeletons are kept for fixed layouts such as settings.
+ * Loading for lists, tables and cards (dynamic content): a spinner with its label, shown immediately. Skeletons are kept for fixed layouts such as settings.
  */
 export function LoadingState({ label = "Loading…", size = "md", className }: LoadingStateProps) {
   return (

@@ -16,8 +16,7 @@
   gap: var(--tf-space-3);
   padding: var(--tf-space-4);
   box-shadow: -1px 0 0 var(--tf-color-border-subtle);
-  animation: rise var(--tf-duration-settle) var(--tf-ease-settle) both;
-  animation-delay: calc(60ms + var(--i) * 50ms);
+  animation: rise 220ms var(--tf-ease-out) both;
 }
 
 .statHead {
@@ -118,8 +117,7 @@
     border-color var(--tf-duration-fast) ease,
     background-color var(--tf-duration-fast) ease,
     transform var(--tf-duration-press) var(--tf-ease-out);
-  animation: rise var(--tf-duration-settle) var(--tf-ease-settle) both;
-  animation-delay: calc(60ms + var(--i) * 50ms);
+  animation: rise 220ms var(--tf-ease-out) both;
 }
 
 .shortcut:active {
@@ -235,8 +233,7 @@
 }
 
 .rows li {
-  animation: rise var(--tf-duration-settle) var(--tf-ease-settle) both;
-  animation-delay: calc(60ms + var(--i) * 50ms);
+  animation: rise 220ms var(--tf-ease-out) both;
 }
 
 .row {
@@ -314,8 +311,7 @@
   gap: var(--tf-space-3);
   padding: var(--tf-space-4);
   box-shadow: -1px 0 0 var(--tf-color-border-subtle), 0 -1px 0 var(--tf-color-border-subtle);
-  animation: rise var(--tf-duration-settle) var(--tf-ease-settle) both;
-  animation-delay: calc(60ms + var(--i) * 50ms);
+  animation: rise 220ms var(--tf-ease-out) both;
 }
 
 .usageItem dt {
@@ -450,8 +446,7 @@
   background: var(--tf-color-surface);
   color: inherit;
   text-decoration: none;
-  animation: rise var(--tf-duration-settle) var(--tf-ease-settle) both;
-  animation-delay: calc(60ms + var(--i) * 50ms);
+  animation: rise 220ms var(--tf-ease-out) both;
   transition: border-color var(--tf-duration-fast) ease;
 }
 
@@ -680,8 +675,7 @@
   align-items: center;
   gap: var(--tf-space-3);
   padding: var(--tf-space-2);
-  animation: rise var(--tf-duration-settle) var(--tf-ease-settle) both;
-  animation-delay: calc(60ms + var(--i) * 50ms);
+  animation: rise 220ms var(--tf-ease-out) both;
 }
 
 .usageRing {
@@ -740,8 +734,7 @@
 }
 
 .quickList li {
-  animation: rise var(--tf-duration-settle) var(--tf-ease-settle) both;
-  animation-delay: calc(60ms + var(--i) * 50ms);
+  animation: rise 220ms var(--tf-ease-out) both;
 }
 
 .quickAction {
@@ -984,4 +977,88 @@
 
 .boost [role="radiogroup"] {
   width: 100%;
+}
+
+/* Under active clients: the other plan limits, one line each with a thin bar. */
+.limitList {
+  display: grid;
+  gap: var(--tf-space-2-5);
+  /* Same inset as the figure above it. */
+  margin: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2);
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.limitHead {
+  margin: 0;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.limitList ul {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.limitList li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--tf-space-1-5) var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+}
+
+.limitName {
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.limitCount {
+  color: var(--tf-color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.limitBar {
+  grid-column: 1 / -1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+}
+
+.limitBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-color-text-secondary);
+  transform-origin: left;
+}
+
+.limitBar[data-high] > span {
+  background: var(--tf-color-warning);
+}
+
+.limitLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  justify-self: start;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  text-decoration: none;
+}
+
+.limitLink:hover {
+  color: var(--tf-color-text);
+}
+
+.limitLink svg {
+  width: 0.875rem;
+  height: 0.875rem;
 }

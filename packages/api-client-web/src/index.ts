@@ -58,6 +58,9 @@ export type FolderRequest = Schema<"FolderRequest">;
 export type PagedOfFolderDto = Schema<"PagedOfFolderDto">;
 export type TrainingDocument = Schema<"TrainingDocument">;
 export type Block = Schema<"Block">;
+export type BlockExerciseMax = Schema<"BlockExerciseMax">;
+export type PlanAnnotation = Schema<"PlanAnnotation">;
+export type ExerciseMaxesTable = Schema<"ExerciseMaxesTable">;
 export type Cycle = Schema<"Cycle">;
 export type TrainingDay = Schema<"TrainingDay">;
 export type Workout = Schema<"Workout">;
@@ -101,10 +104,17 @@ export type AnalysisTrackingPoint = Schema<"AnalysisTrackingPoint">;
 export type CreateAnalysisRequest = Schema<"CreateAnalysisRequest">;
 export type UpdateAnalysisRequest = Schema<"UpdateAnalysisRequest">;
 export type AnalysisResult = Schema<"AnalysisResult">;
+export type SaveClientAnalysisRequest = Schema<"SaveClientAnalysisRequest">;
 export type AnalysisRepetition = Schema<"AnalysisRepetition">;
 export type AnalysisPhase = Schema<"AnalysisPhase">;
 export type TrajectoryPoint = Schema<"TrajectoryPoint">;
 export type AnalysisComparison = Schema<"AnalysisComparison">;
+export type AnalysisSetReference = Schema<"AnalysisSetReference">;
+export type AnalysisWorkoutLinkRequest = Schema<"AnalysisWorkoutLinkRequest">;
+export type AnalysisWorkoutLink = Schema<"AnalysisWorkoutLinkDto">;
+export type CoachAnalysis = Schema<"CoachAnalysisDto">;
+export type AnalysisSetOptions = Schema<"AnalysisSetOptionsDto">;
+export type AnalysisWorkoutOption = Schema<"AnalysisWorkoutOptionDto">;
 
 /** RFC 7807 body returned by the API (`application/problem+json`). */
 export interface ProblemDetails {
@@ -143,7 +153,12 @@ export type ApiErrorCode =
   | "TAG_MERGED"
   | "MEDIA_IN_USE"
   | "MEDIA_NOT_READY"
-  | "ANALYSIS_NOT_COMPLETED";
+  | "ANALYSIS_NOT_COMPLETED"
+  | "USERNAME_INVALID"
+  | "USERNAME_RESERVED"
+  | "USERNAME_TAKEN"
+  | "DISPLAY_NAME_INVALID"
+  | "OFFER_PUBLISHED";
 
 /** Reasons returned in FeatureDecision.reason (docs/features/access.md). */
 export type FeatureReason =

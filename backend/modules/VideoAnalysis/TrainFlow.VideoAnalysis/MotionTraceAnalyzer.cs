@@ -123,7 +123,9 @@ public sealed class MotionTraceAnalyzer(IOptions<MotionTraceOptions> configured,
                     catch (InvalidOperationException) when (process.HasExited) { }
                     await process.WaitForExitAsync(CancellationToken.None);
                 }
-                await Task.WhenAll(stdout, stderr).WaitAsync(token);
+                // Cancellation must not abandon pipe readers while the terminated process still holds handles.
+                try { await Task.WhenAll(stdout, stderr).WaitAsync(TimeSpan.FromSeconds(2)); }
+                catch (TimeoutException) when (token.IsCancellationRequested) { }
             }
             token.ThrowIfCancellationRequested();
             if (process.ExitCode != 0)
@@ -162,14 +164,20 @@ public sealed class MotionTraceAnalyzer(IOptions<MotionTraceOptions> configured,
             // Only this invocation's generated direct child may be removed.
             if (Path.GetDirectoryName(Path.GetFullPath(job)) == root && Path.GetFileName(job) == jobId)
             {
-                try
+                for (var attempt = 0; attempt < 6; attempt++)
                 {
-                    if (Directory.Exists(job))
-                        Directory.Delete(job, recursive: true);
-                }
-                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-                {
-                    logger.LogWarning("MotionTrace job {JobId} cleanup failed with {ErrorType}", jobId, error.GetType().Name);
+                    try
+                    {
+                        if (Directory.Exists(job)) Directory.Delete(job, recursive: true);
+                        break;
+                    }
+                    catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                    {
+                        // Windows can retain a killed child's file handles briefly after its parent exits.
+                        if (attempt == 5)
+                            logger.LogWarning("MotionTrace job {JobId} cleanup failed with {ErrorType}", jobId, error.GetType().Name);
+                        else await Task.Delay(100, CancellationToken.None);
+                    }
                 }
             }
         }

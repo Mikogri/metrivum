@@ -1,3 +1,7 @@
+import { privateMeta } from "~/shared/i18n/site";
+
+export const meta = () => privateMeta("Earnings — TrainFlow");
+
 import { redirect, type ClientLoaderFunctionArgs } from "react-router";
 
 export function clientLoader({ request }: ClientLoaderFunctionArgs) {

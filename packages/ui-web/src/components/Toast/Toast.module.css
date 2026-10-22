@@ -16,119 +16,131 @@
   list-style: none;
 }
 
+/* A calm grey card: coloured icon beside the title, grey text below, actions as a text row, close top-right. */
 .toast {
-  /* Type colour (neutral blue, green, amber, red) drives the stripe and the icon badge. */
-  --toast: var(--tf-color-info);
+  --toast: var(--tf-color-text-secondary);
+  --toast-bg: color-mix(in srgb, #fff 6%, var(--tf-color-surface-overlay));
+  --toast-title: var(--tf-color-text);
+  --toast-text: var(--tf-color-text-secondary);
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--tf-space-3);
-  min-height: 3.25rem;
-  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2) var(--tf-space-3);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: var(--tf-space-2-5);
+  padding: var(--tf-space-3) var(--tf-space-2) var(--tf-space-3) var(--tf-space-3);
   overflow: hidden;
-  border: 1px solid var(--tf-color-border-strong);
+  border: 1px solid rgb(255 255 255 / 0.09);
   border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface-overlay);
-  box-shadow: var(--tf-shadow-lg);
+  background: var(--toast-bg);
+  box-shadow: 0 16px 36px -14px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(0 0 0 / 0.35);
   pointer-events: auto;
+  /* Slides in from the right edge, leaves back to it. */
   opacity: 0;
-  transform: translateY(-12px);
-  /* Transitions, not keyframes: rapid toasts retarget instead of restarting. */
+  transform: translateX(calc(100% + var(--tf-space-6)));
   transition:
-    transform 180ms var(--tf-ease-out),
-    opacity 180ms var(--tf-ease-out);
-}
-
-/* Thin type stripe on the leading edge. */
-.toast::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: var(--toast);
+    transform 320ms var(--tf-ease-drawer, cubic-bezier(0.32, 0.72, 0, 1)),
+    opacity 200ms var(--tf-ease-out);
 }
 
 .toast[data-mounted] {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
 }
 
 .toast[data-dismissed] {
   opacity: 0;
-  transform: translateY(-8px) scale(0.98);
-  transition-duration: 200ms;
+  transform: translateX(calc(100% + var(--tf-space-6)));
+  transition-duration: 220ms, 180ms;
+  transition-timing-function: var(--tf-ease-in-out, ease-in), ease-in;
 }
+
+/* Only the icon carries the type colour. */
+.success { --toast: var(--tf-color-success); }
+.warning { --toast: var(--tf-color-warning); }
+.danger { --toast: var(--tf-color-danger); }
+.neutral { --toast: var(--tf-color-info); }
 
 .icon {
   display: grid;
   place-items: center;
-  flex-shrink: 0;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: var(--tf-radius-md);
-  background: color-mix(in srgb, var(--toast) 16%, transparent);
+  width: 1.25rem;
+  height: 1.375rem;
   color: var(--toast);
 }
 
 .icon svg {
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
-.success { --toast: var(--tf-color-success); }
-.warning { --toast: var(--tf-color-warning); }
-.danger { --toast: var(--tf-color-danger); }
-
 .body {
-  flex: 1;
   display: grid;
-  gap: 2px;
+  gap: var(--tf-space-1);
   min-width: 0;
 }
 
 .title {
+  color: var(--toast-title);
   font-size: var(--tf-text-sm);
   font-weight: var(--tf-weight-medium);
+  line-height: 1.375rem;
 }
 
 .description {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--toast-text);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
   overflow-wrap: anywhere;
 }
 
+.actions {
+  display: flex;
+  gap: var(--tf-space-4);
+  margin-top: var(--tf-space-2);
+}
+
 .action {
-  flex-shrink: 0;
-  height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-sm);
-  background: rgb(255 255 255 / 0.06);
-  font-size: var(--tf-text-xs);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--toast-title);
+  font-size: var(--tf-text-sm);
   font-weight: var(--tf-weight-medium);
+  cursor: pointer;
+  transition: opacity var(--tf-duration-fast) ease;
+}
+
+.action:hover {
+  opacity: 0.75;
+}
+
+.action:focus-visible,
+.close:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--tf-radius-xs);
 }
 
 .close {
-  align-self: center;
   display: grid;
   place-items: center;
-  flex-shrink: 0;
   width: 1.5rem;
   height: 1.5rem;
   padding: 0;
   border: 0;
   border-radius: var(--tf-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--toast-text);
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) ease;
 }
 
 .close svg {
-  width: 0.875rem;
-  height: 0.875rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 .close:hover {
-  color: var(--tf-color-text);
+  color: var(--toast-title);
 }
 
 @media (prefers-reduced-motion: reduce) {

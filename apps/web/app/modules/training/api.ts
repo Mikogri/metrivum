@@ -22,6 +22,8 @@ import type {
 } from "@trainflow/api-client-web";
 import type { Transport } from "~/shared/http/transport";
 
+import { storedDocument } from "./formula-values";
+
 const base = "/api/v1/training";
 const id = (value: string) => encodeURIComponent(value);
 
@@ -61,11 +63,11 @@ export async function getPlan(api: Transport, planId: string, signal?: AbortSign
 }
 
 export async function createPlan(api: Transport, body: CreatePlanRequest) {
-  return withVersion(await api<PlanDto>({ method: "POST", path: `${base}/programs`, json: body }));
+  return withVersion(await api<PlanDto>({ method: "POST", path: `${base}/programs`, json: { ...body, document: storedDocument(body.document) } }));
 }
 
 export async function saveDraft(api: Transport, planId: string, body: SavePlanRequest, version: number, signal?: AbortSignal) {
-  return withVersion(await api<PlanDto>({ method: "PUT", path: `${base}/programs/${id(planId)}/draft`, json: body, ifMatch: version, signal, timeoutMs: 30_000 }));
+  return withVersion(await api<PlanDto>({ method: "PUT", path: `${base}/programs/${id(planId)}/draft`, json: { ...body, document: storedDocument(body.document) }, ifMatch: version, signal, timeoutMs: 30_000 }));
 }
 
 export async function copyPlan(api: Transport, planId: string, body: CopyPlanRequest) {

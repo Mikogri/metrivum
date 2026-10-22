@@ -1,3 +1,4 @@
+import { displayNameValid, normalizeDisplayName } from "~/modules/accounts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, LogOut, Minus, Plus } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
@@ -5,6 +6,7 @@ import { useSearchParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
 import { Alert, Avatar, Badge, Button, Card, Checkbox, Combobox, List, ListRow, Option, PageHeader, Select, Skeleton, TextField, toast } from "@trainflow/ui-web";
 import { profileKey, timeZones, updateProfile, useProfile } from "~/modules/accounts";
+import { Integrations } from "~/modules/integrations";
 
 import { useAccessSnapshot } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
@@ -34,7 +36,7 @@ function ProfileForm() {
   const [timeZone, setTimeZone] = useState(profile.timeZone);
 
   const mutation = useMutation({
-    mutationFn: () => updateProfile(api, { displayName: displayName.trim(), locale: language, timeZone }, profile.version),
+    mutationFn: () => updateProfile(api, { displayName: normalizeDisplayName(displayName), locale: language, timeZone }, profile.version),
     onSuccess: (updated) => {
       queryClient.setQueryData(profileKey(a), updated);
       setLocale(updated.locale);
@@ -42,11 +44,11 @@ function ProfileForm() {
     },
   });
   const conflict = mutation.error instanceof ApiError && mutation.error.status === 412;
-  const dirty = displayName.trim() !== profile.displayName || language !== profile.locale || timeZone !== profile.timeZone;
+  const dirty = normalizeDisplayName(displayName) !== profile.displayName || language !== profile.locale || timeZone !== profile.timeZone;
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!displayName.trim()) return;
+    if (!displayNameValid(displayName)) return;
     mutation.mutate();
   }
 
@@ -80,7 +82,7 @@ function ProfileForm() {
           </div>
           <p className={styles.hint}>{t.readOnlyHint}</p>
         </div>
-        <TextField placeholder={m.common.ph.displayName} label={t.displayName} value={displayName} onChange={setDisplayName} isRequired isInvalid={!displayName.trim()} errorMessage={m.auth.errors.required} />
+        <TextField placeholder={m.common.ph.displayName} label={t.displayName} value={displayName} onChange={setDisplayName} isRequired isInvalid={!displayNameValid(displayName)} errorMessage={displayName.trim() ? m.onboarding.displayNameInvalid : m.auth.errors.required} />
         <div className={styles.twoCols}>
           <Select label={t.locale} selectedKey={language} onSelectionChange={(key) => setLanguage(String(key))}>
             <Option id="en">English</Option>
@@ -321,14 +323,14 @@ function CoachingPreferences() {
   );
 }
 
-type Section = "profile" | "accounts" | "coaching" | "access";
+type Section = "profile" | "accounts" | "coaching" | "access" | "integrations";
 
 export default function Settings() {
   const m = useT();
   const t = m.settings;
   const profile = useProfile();
   const [params, setParams] = useSearchParams();
-  const sections: Section[] = ["profile", "accounts", ...(profile.roles.includes("Coach") ? (["coaching"] as const) : []), "access"];
+  const sections: Section[] = ["profile", "accounts", ...(profile.roles.includes("Coach") ? (["coaching", "integrations"] as const) : []), "access"];
   const requested = params.get("section") as Section | null;
   const section = requested && sections.includes(requested) ? requested : "profile";
   return (
@@ -343,7 +345,7 @@ export default function Settings() {
           ))}
         </nav>
         <div className={styles.content} key={section}>
-          {section === "profile" ? <><ProfileForm /><MessagingPrivacy /></> : section === "accounts" ? <Accounts /> : section === "coaching" ? <CoachingPreferences /> : <AccessOverview />}
+          {section === "profile" ? <><ProfileForm /><MessagingPrivacy /></> : section === "accounts" ? <Accounts /> : section === "coaching" ? <CoachingPreferences /> : section === "integrations" ? <Integrations /> : <AccessOverview />}
         </div>
       </div>
     </>

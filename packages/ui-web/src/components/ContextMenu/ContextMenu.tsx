@@ -1,5 +1,6 @@
-import { Children, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Children, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type SyntheticEvent } from "react";
 import { createPortal } from "react-dom";
+import { overlayPosition, overlayViewport } from "../../lib/overlay-position";
 import { cx } from "../../lib/cx";
 import { useMobileLayout } from "../../lib/useMobileLayout";
 import { Dialog } from "../Dialog/Dialog";
@@ -23,6 +24,16 @@ export interface ContextMenuProps {
   className?: string;
 }
 
+const stopPropagation = (event: SyntheticEvent) => event.stopPropagation();
+const pointerBoundary = {
+  onPointerDown: stopPropagation,
+  onPointerMove: stopPropagation,
+  onPointerUp: stopPropagation,
+  onPointerCancel: stopPropagation,
+  onClick: stopPropagation,
+  onDoubleClick: stopPropagation,
+};
+
 /**
  * Menu opened at the pointer (right click) or at a focused element (Shift+F10 / Menu key).
  * Arrow keys move, Enter activates, Escape or a click outside closes and focus returns.
@@ -30,7 +41,7 @@ export interface ContextMenuProps {
 export function ContextMenu(props: ContextMenuProps) {
   const phone = useMobileLayout();
   if (!phone) return <DesktopContextMenu {...props} />;
-  return <Dialog isOpen title={props.label} onOpenChange={open => { if (!open) props.onClose(); }}>
+  return <div {...pointerBoundary} onKeyDown={stopPropagation} data-no-drag style={{ display: "contents" }}><Dialog isOpen title={props.label} onOpenChange={open => { if (!open) props.onClose(); }}>
     <div className={cx(styles.phoneActions, props.className)}>
       {props.items.map(item => {
         if (item.type === "separator") return <div key={item.id} role="separator" className={styles.separator} />;
@@ -43,7 +54,7 @@ export function ContextMenu(props: ContextMenuProps) {
       })}
       {Children.toArray(props.children).length > 0 ? <div className={styles.extra}>{props.children}</div> : null}
     </div>
-  </Dialog>;
+  </Dialog></div>;
 }
 
 function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, className }: ContextMenuProps) {
@@ -51,17 +62,23 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
   const extra = Children.toArray(children).length > 0;
   const ref = useRef<HTMLDivElement>(null);
   const returnTo = useRef<Element | null>(typeof document !== "undefined" ? document.activeElement : null);
-  const [position, setPosition] = useState({ left: x, top: y });
+  const anchor = useRef(typeof document !== 'undefined' ? document.elementFromPoint?.(x, y) : null);
+  const [position, setPosition] = useState<CSSProperties>({ left: 0, top: 0, visibility: 'hidden' });
 
   // Keep the menu inside the viewport.
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setPosition({
-      left: Math.max(8, Math.min(x, window.innerWidth - rect.width - 8)),
-      top: Math.max(8, Math.min(y, window.innerHeight - rect.height - 8)),
-    });
+    const measure = () => {
+      const viewport = overlayViewport(anchor.current);
+      setPosition({ ...overlayPosition({ left: x, right: x, top: y, bottom: y }, { width: el.offsetWidth, height: el.scrollHeight + 2 }, viewport, 0), maxWidth: viewport.width - 16, maxHeight: viewport.height - 16 });
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(el);
+    for (let node = anchor.current; node instanceof HTMLElement; node = node.parentElement) observer?.observe(node);
+    return () => { observer?.disconnect(); window.removeEventListener('resize', measure); };
   }, [x, y]);
 
   useEffect(() => {
@@ -71,16 +88,31 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
     (field ?? root)?.focus({ preventScroll: true });
     const back = returnTo.current;
     const onPointer = (event: PointerEvent) => {
-      if (!ref.current?.contains(event.target as Node)) onClose();
+      if (ref.current?.contains(event.target as Node)) return;
+      // Dismissal owns this press; it must not start a drag or activate the covered control.
+      event.preventDefault();
+      event.stopPropagation();
+      const finish = (tail: Event) => {
+        if (tail.type === "click" && (tail as MouseEvent).detail > 0) { tail.preventDefault(); tail.stopPropagation(); }
+        document.removeEventListener("click", finish, true);
+        document.removeEventListener("pointerdown", finish, true);
+        document.removeEventListener("pointercancel", finish, true);
+      };
+      document.addEventListener("click", finish, true);
+      document.addEventListener("pointerdown", finish, true);
+      document.addEventListener("pointercancel", finish, true);
+      onClose();
     };
     const onScroll = (event: Event) => {
-      if (!ref.current?.contains(event.target as Node)) onClose();
+      if (!(event.target instanceof Node) || !ref.current?.contains(event.target)) onClose();
     };
     document.addEventListener("pointerdown", onPointer, true);
-    window.addEventListener("scroll", onScroll, true);
+    // The opener may have scrolled into view during this gesture; observe only later scrolls.
+    const scrollFrame = requestAnimationFrame(() => window.addEventListener("scroll", onScroll, true));
     window.addEventListener("resize", onClose);
     return () => {
       document.removeEventListener("pointerdown", onPointer, true);
+      cancelAnimationFrame(scrollFrame);
       window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", onClose);
       if (back instanceof HTMLElement && document.contains(back)) back.focus({ preventScroll: true });
@@ -100,13 +132,16 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
   return createPortal(
     <div
       ref={ref}
+      {...pointerBoundary}
+      data-no-drag
       role="menu"
       aria-label={label}
       tabIndex={-1}
       className={cx(styles.menu, className)}
       style={position}
-      onContextMenu={(event) => event.preventDefault()}
+      onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); }}
       onKeyDown={(event) => {
+        event.stopPropagation();
         if (event.key === "Escape") {
           event.preventDefault();
           event.stopPropagation();

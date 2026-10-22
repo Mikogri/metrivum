@@ -72,7 +72,7 @@ public static class ModuleRegistration
         teams.MapPost("/{id:guid}/seats/confirm", (Guid id, TeamPaymentConfirmRequest r, TeamBillingService s, CancellationToken ct) => s.SeatConfirmAsync(id, r, ct));
         teams.MapPost("/{id:guid}/renewal", (Guid id, TeamRenewalRequest r, TeamBillingService s, CancellationToken ct) => s.RenewalAsync(id, r, ct));
         teams.MapPost("/{id:guid}/renewal/quote", (Guid id, TeamBillingService s, CancellationToken ct) => s.RenewalQuoteAsync(id, ct));
-        teams.MapGet("/{id:guid}/members", (Guid id, TeamService s, CancellationToken ct) => s.MembersAsync(id, ct));
+        teams.MapGet("/{id:guid}/members", (Guid id, int? page, int? pageSize, TeamService s, CancellationToken ct) => s.MembersAsync(id, ct, page, pageSize));
         teams.MapPatch("/{id:guid}", (Guid id, TeamUpdateRequest r, TeamService s, CancellationToken ct) => s.UpdateAsync(id, r, ct));
         teams.MapPost("/{id:guid}/invitations/{requestId:guid}/revoke", async (Guid id, Guid requestId, TeamService s, CancellationToken ct) => { await s.RevokeAsync(id, requestId, ct); return Results.NoContent(); });
         teams.MapPatch("/{id:guid}/members/{userId:guid}/role", async (Guid id, Guid userId, TeamRoleRequest r, TeamService s, CancellationToken ct) => { await s.ChangeRoleAsync(id, userId, r, ct); return Results.NoContent(); });

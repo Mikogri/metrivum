@@ -243,6 +243,10 @@ async function fixture(
             });
         if (path === "/api/v1/me/profile-fields")
             return respond({ currency: "EUR", values: {}, version: 1 });
+        if (path === "/api/v1/forms/summaries") {
+            const { draft, ...summary } = saved;
+            return respond(paged([{ ...summary, purpose: url.searchParams.get("purpose") || "Application", questionCount: draft.sections.reduce((sum, section) => sum + section.questions.length, 0) }]));
+        }
         if (path === "/api/v1/forms")
             return respond(
                 paged([

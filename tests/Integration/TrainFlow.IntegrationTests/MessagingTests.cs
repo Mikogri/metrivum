@@ -251,9 +251,13 @@ public sealed class MessagingTests
     [CatalogPostgresFact]
     public async Task Conversations_sort_by_last_received_message_before_applying_limit()
     {
+        var commands = new MessagingQueryLog();
         using var f = new ApiFactory(Database);
-        var owner = await User(f, "Coach");
-        var peer = await User(f, "Coach");
+        using var app = f.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            services.AddDbContext<MessagingDbContext>(options => options.AddInterceptors(commands))));
+        var owner = await User(f, "Coach", app.CreateClient);
+        var peer = await User(f, "Coach", app.CreateClient);
+        var outsider = await User(f, "Coach", app.CreateClient);
         var older = await Group(owner.Http, [peer.Id]);
         var newer = await Group(owner.Http, [peer.Id]);
         await Send(peer.Http, older, "Earlier incoming");
@@ -265,6 +269,37 @@ public sealed class MessagingTests
             rows.EnumerateArray().Select(x => x.GetProperty("id").GetGuid()).ToArray());
         var limited = await Ok(owner.Http.GetAsync(Root + "/conversations?limit=1"));
         Assert.Equal(newer, Assert.Single(limited.EnumerateArray()).GetProperty("id").GetGuid());
+        commands.Commands.Clear();
+        var second = await Ok(owner.Http.GetAsync(Root + "/conversations?limit=1&page=2"));
+        Assert.Equal(older, Assert.Single(second.EnumerateArray()).GetProperty("id").GetGuid());
+        Assert.Contains(commands.Commands, sql => sql.Contains("LIMIT") && sql.Contains("OFFSET"));
+        Assert.Equal(empty, Assert.Single((await Ok(owner.Http.GetAsync(Root + "/conversations?limit=1&page=3"))).EnumerateArray()).GetProperty("id").GetGuid());
+        Assert.Empty((await Ok(owner.Http.GetAsync(Root + "/conversations?limit=1&page=4"))).EnumerateArray());
+        Assert.Empty((await Ok(outsider.Http.GetAsync(Root + "/conversations?limit=1&page=2"))).EnumerateArray());
+        foreach (var query in new[] { "page=0", "page=1000001", "limit=0", "limit=101" })
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.Http.GetAsync(Root + "/conversations?" + query)).StatusCode);
+    }
+
+    [CatalogPostgresFact]
+    public async Task Request_pages_keep_legacy_arrays_and_filter_participants_before_paging()
+    {
+        using var f = new ApiFactory(Database);
+        var recipient = await User(f, "Coach");
+        var first = await User(f, "Client");
+        var second = await User(f, "Client");
+        var outsider = await User(f, "Client");
+        await Ok(recipient.Http.PutAsJsonAsync("/api/v1/me/messaging-preferences", new { requireApproval = true }));
+        await Ok(first.Http.PostAsJsonAsync(Root + "/requests", new { userId = recipient.Id, body = "First" }));
+        await Ok(second.Http.PostAsJsonAsync(Root + "/requests", new { userId = recipient.Id, body = "Second" }));
+        var legacy = (await Ok(recipient.Http.GetAsync(Root + "/requests"))).EnumerateArray().ToArray();
+        Assert.Equal(2, legacy.Length);
+        Assert.Equal(legacy[0].GetProperty("id").GetGuid(), Assert.Single((await Ok(recipient.Http.GetAsync(Root + "/requests?limit=1"))).EnumerateArray()).GetProperty("id").GetGuid());
+        Assert.Equal(legacy[1].GetProperty("id").GetGuid(), Assert.Single((await Ok(recipient.Http.GetAsync(Root + "/requests?page=2&limit=1"))).EnumerateArray()).GetProperty("id").GetGuid());
+        Assert.Single((await Ok(first.Http.GetAsync(Root + "/requests?page=1&limit=1"))).EnumerateArray());
+        Assert.Empty((await Ok(first.Http.GetAsync(Root + "/requests?page=2&limit=1"))).EnumerateArray());
+        Assert.Empty((await Ok(outsider.Http.GetAsync(Root + "/requests?page=1&limit=1"))).EnumerateArray());
+        foreach (var query in new[] { "page=0", "page=1000001", "limit=0", "limit=101" })
+            Assert.Equal(HttpStatusCode.BadRequest, (await recipient.Http.GetAsync(Root + "/requests?" + query)).StatusCode);
     }
 
     [CatalogPostgresFact]

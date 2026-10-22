@@ -14,6 +14,7 @@ internal static class TeamCoachingModel
             e.HasAlternateKey(x => new { x.Id, x.TeamId });
             e.HasIndex(x => new { x.TeamId, x.ClientId }).IsUnique();
             e.HasIndex(x => new { x.TeamId, x.Status, x.CreatedAt });
+            e.HasIndex(x => new { x.TeamId, x.CreatedAt, x.Id }).IsDescending(false, true, false);
             e.Property(x => x.Status).HasMaxLength(20);
             e.Property(x => x.Version).IsConcurrencyToken();
         });
@@ -38,6 +39,8 @@ internal static class TeamCoachingModel
             e.HasIndex(x => x.RelationshipId).IsUnique().HasFilter("\"Status\" = 'Pending'");
             e.HasIndex(x => new { x.ClientId, x.Status, x.CreatedAt });
             e.HasIndex(x => new { x.TeamId, x.Status, x.CreatedAt });
+            e.HasIndex(x => new { x.ClientId, x.CreatedAt, x.Id }).IsDescending(false, true, false);
+            e.HasIndex(x => new { x.TeamId, x.CreatedAt, x.Id }).IsDescending(false, true, false);
             e.Property(x => x.Status).HasMaxLength(20);
             e.Property(x => x.TeamName).HasMaxLength(200);
             e.Property(x => x.ConsentVersion).HasMaxLength(80);

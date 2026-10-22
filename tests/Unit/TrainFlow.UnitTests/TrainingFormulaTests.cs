@@ -6,7 +6,12 @@ public sealed class TrainingFormulaTests
 {
     [Theory]
     [InlineData("base1Rm * 0.8", 80)]
+    [InlineData("ROUND_TO_STEP_LOWER(base1Rm * .813, 2.5)", 80)]
+    [InlineData("ROUND_TO_STEP_UPPER(base1Rm * .813, 2.5)", 82.5)]
+    [InlineData("ROUND_TO_STEP_LOWER(-base1Rm * .813, 2.5 kg)", -82.5)]
+    [InlineData("ROUND_TO_STEP_UPPER(-base1Rm * .813, 2.5 kg)", -80)]
     [InlineData("ROUND_TO_STEP(base1Rm * 0.813, 2.5 kg)", 82.5)]
+    [InlineData("ROUND_TO_STEP(base1Rm * 0.813, 2.5)", 82.5)]
     [InlineData("MIN(base1Rm, 95 kg)", 95)]
     [InlineData("AVG(80 kg, base1Rm)", 90)]
     [InlineData("IF(base1Rm > 90 kg, 85 kg, 70 kg)", 85)]

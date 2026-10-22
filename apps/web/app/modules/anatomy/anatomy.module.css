@@ -1,0 +1,668 @@
+/* Anatomy explorer: a sticky 3D stage beside the exercise catalogue. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(19rem, 0.8fr) minmax(0, 1.5fr);
+  gap: var(--tf-space-6);
+  align-items: start;
+}
+
+.explorer {
+  /* Follows the page scroll and always fits the window: the model shrinks, nothing is cut off. */
+  position: sticky;
+  top: var(--tf-space-4);
+  height: var(--explorer-fit, calc(100dvh - var(--tf-appbar-height, 3.25rem) - 12rem));
+  min-height: 30rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+}
+
+.catalogue {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.catalogue > [role="toolbar"] {
+  position: sticky;
+  /* Stuck at the top it keeps the same gap above as the model column; the padding is offset so the
+     resting position does not move. */
+  top: 0;
+  z-index: 2;
+  margin-top: calc(-1 * var(--tf-space-4));
+  padding-top: var(--tf-space-4);
+  padding-bottom: var(--tf-space-3);
+  margin-bottom: var(--tf-space-1);
+  background: var(--tf-color-bg);
+}
+
+/* ── Stage ─────────────────────────────────────────────── */
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stage > :first-child {
+  flex: 1;
+}
+
+.selection,
+.panel {
+  flex: none;
+}
+
+.viewport,
+.placeholder {
+  position: relative;
+  height: 100%;
+  min-height: 16rem;
+  min-width: 0;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-xl);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 65% 55% at 50% 40%, color-mix(in srgb, var(--tf-color-text) 9%, transparent), transparent 72%),
+    linear-gradient(180deg, color-mix(in srgb, var(--tf-color-surface-raised) 70%, var(--tf-color-bg-sunken)), var(--tf-color-bg-sunken));
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+  cursor: grab;
+}
+
+.canvas:active {
+  cursor: grabbing;
+}
+
+.canvas:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--tf-color-focus-ring);
+  border-radius: inherit;
+}
+
+.canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--tf-color-bg-sunken) 55%, transparent);
+}
+
+.hoverLabel {
+  position: absolute;
+  left: 50%;
+  bottom: var(--tf-space-3);
+  translate: -50% 0;
+  max-width: calc(100% - 2 * var(--tf-space-3));
+  padding: var(--tf-space-1) var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--tf-color-surface-overlay) 82%, transparent);
+  backdrop-filter: blur(12px);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.viewerError {
+  position: absolute;
+  inset: var(--tf-space-3) var(--tf-space-3) auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2-5) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+  font-size: var(--tf-text-sm);
+}
+
+/* Floating controls: frosted, neutral; hover only lightens. */
+.views {
+  position: absolute;
+  top: var(--tf-space-3);
+  left: var(--tf-space-3);
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--tf-color-surface-overlay) 78%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.view {
+  height: 1.625rem;
+  padding: 0 var(--tf-space-2-5);
+  border: 0;
+  border-radius: var(--tf-radius-full);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out), background-color var(--tf-duration-fast) var(--tf-ease-out);
+}
+
+.view:hover {
+  color: var(--tf-color-text);
+}
+
+.view[data-active] {
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.view:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+.cameraTools {
+  position: absolute;
+  top: var(--tf-space-3);
+  right: var(--tf-space-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+
+.tool {
+  background: color-mix(in srgb, var(--tf-color-surface-overlay) 78%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.helpIcon {
+  display: grid;
+  place-items: center;
+  width: var(--tf-control-sm);
+  height: var(--tf-control-sm);
+  margin-top: var(--tf-space-1);
+  border-radius: var(--tf-radius-full);
+  color: var(--tf-color-text-tertiary);
+  cursor: default;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+}
+
+.helpIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.helpIcon:hover,
+.helpIcon:focus-visible {
+  color: var(--tf-color-text);
+}
+
+.helpIcon:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+}
+
+.helpTooltip {
+  max-width: 21rem;
+  padding: var(--tf-space-3);
+}
+
+.helpTip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-1-5);
+  padding-block: var(--tf-space-1);
+  line-height: var(--tf-leading-snug);
+  text-align: left;
+}
+
+.helpTip strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.helpTip > span:nth-child(2) {
+  color: var(--tf-color-text-secondary);
+  font-weight: var(--tf-weight-regular);
+  line-height: var(--tf-leading-normal);
+}
+
+.helpList {
+  display: grid;
+  gap: var(--tf-space-1);
+  margin-top: var(--tf-space-1);
+}
+
+.helpRow {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: var(--tf-space-2);
+  align-items: baseline;
+}
+
+.helpKey {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Exercise preview (read-only): fills whatever height its container gives it ── */
+
+.preview {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2-5);
+}
+
+.preview .viewport,
+.preview .placeholder {
+  min-height: 14rem;
+}
+
+/* -- Heatmap -- */
+
+.heatmap {
+  flex: none;
+}
+
+.heatmap .stage,
+.heatmap .stage > :first-child {
+  flex: none;
+}
+
+.heatmap .viewport,
+.heatmap .placeholder {
+  height: clamp(22rem, calc(100dvh - 26rem), 34rem);
+}
+
+.heatPick {
+  position: absolute;
+  left: var(--tf-space-3);
+  right: var(--tf-space-3);
+  bottom: var(--tf-space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-1) var(--tf-space-1) var(--tf-space-1) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--tf-color-surface-overlay) 85%, transparent);
+  backdrop-filter: blur(12px);
+  font-size: var(--tf-text-sm);
+}
+
+.heatSwatch {
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--tf-radius-full);
+  background: linear-gradient(135deg, #f6dd7a, #d8343a);
+}
+
+.heatSwatch[data-none] {
+  background: #7d7672;
+}
+
+.heatPickName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.heatPickValue {
+  color: var(--tf-color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.heatScale {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "none bar" ". ends";
+  column-gap: var(--tf-space-3);
+  row-gap: var(--tf-space-1);
+  align-items: center;
+  font-size: var(--tf-text-xs);
+}
+
+.heatNone {
+  grid-area: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  color: var(--tf-color-text-tertiary);
+}
+
+.heatNone span {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--tf-radius-full);
+  background: #7d7672;
+}
+
+.heatBar {
+  grid-area: bar;
+  height: 0.5rem;
+  border-radius: var(--tf-radius-full);
+  background: linear-gradient(90deg, #f6dd7a, #f29a3e, #d8343a);
+}
+
+.heatEnds {
+  grid-area: ends;
+  display: flex;
+  justify-content: space-between;
+  color: var(--tf-color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-1-5) var(--tf-space-4);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+}
+
+.legendDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--tf-radius-full);
+  background: #3ee09a;
+}
+
+.legendDot[data-kind="secondary"] {
+  background: #e0b04a;
+}
+
+.legend > .legendHint {
+  margin-left: auto;
+  color: var(--tf-color-text-tertiary);
+}
+
+/* ── Selection ─────────────────────────────────────────── */
+
+.selection {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: var(--tf-control-md);
+  padding: var(--tf-space-1) var(--tf-space-1) var(--tf-space-1) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  animation: rise var(--tf-duration-base) var(--tf-ease-out);
+}
+
+.selectionDot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--tf-radius-full);
+  background: #3ee09a;
+}
+
+.selectionText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.selectionMeta {
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  outline: none;
+}
+
+.selectionName {
+  overflow: hidden;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.selectionActions {
+  display: flex;
+  gap: 2px;
+}
+
+.toolOn {
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.notice {
+  margin: 0;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-relaxed);
+}
+
+/* ── Layers ────────────────────────────────────────────── */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2-5);
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.panelHead,
+.panelFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  min-height: var(--tf-control-sm);
+}
+
+.panelTitle {
+  color: var(--tf-color-text-tertiary);
+  font-family: var(--tf-font-label);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* One scrolling row keeps the sticky column short enough to fit the window. */
+.layers {
+  display: flex;
+  gap: var(--tf-space-1-5);
+  margin-inline: calc(-1 * var(--tf-space-3));
+  padding-inline: var(--tf-space-3);
+  padding-bottom: var(--tf-space-1-5);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tf-color-border-strong) transparent;
+  mask-image: linear-gradient(90deg, transparent, #000 var(--tf-space-3), #000 calc(100% - var(--tf-space-6)), transparent);
+}
+
+.layers::-webkit-scrollbar {
+  height: 4px;
+}
+
+.layer {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  height: 1.75rem;
+  padding: 0 var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-full);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  cursor: pointer;
+  outline: none;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out), background-color var(--tf-duration-fast) var(--tf-ease-out), border-color var(--tf-duration-fast) var(--tf-ease-out);
+}
+
+.layer[data-hovered] {
+  color: var(--tf-color-text);
+}
+
+.layer[data-selected] {
+  border-color: var(--tf-color-border);
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.layer[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+.layer[data-pressed] {
+  scale: 0.97;
+}
+
+.layerSwatch {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--swatch);
+  opacity: 0.45;
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
+}
+
+.layer[data-selected] .layerSwatch {
+  opacity: 1;
+}
+
+/* The viewer's material colours, so a chip says what it shows. */
+.layerSwatch[data-layer="muscles"] { --swatch: #a76c63; }
+.layerSwatch[data-layer="skeleton"] { --swatch: #d3c7ae; }
+.layerSwatch[data-layer="nervous"] { --swatch: #d9ba65; }
+.layerSwatch[data-layer="tendons"] { --swatch: #e2ddd0; }
+.layerSwatch[data-layer="ligaments"] { --swatch: #b7b9a5; }
+.layerSwatch[data-layer="skin"] { --swatch: #bda090; }
+.layerSwatch[data-layer="vascular"] { --swatch: #a45454; }
+.layerSwatch[data-layer="organs"] { --swatch: #927282; }
+.layerSwatch[data-layer="other"] { --swatch: #8b969b; }
+
+.count {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.panelFoot {
+  padding-top: var(--tf-space-2-5);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  font-size: var(--tf-text-sm);
+}
+
+.licenseLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tf-color-text-tertiary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  text-decoration: underline;
+  text-decoration-color: var(--tf-color-border-strong);
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.licenseLink:hover {
+  color: var(--tf-color-text);
+}
+
+.license {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-relaxed);
+}
+
+.license p {
+  margin: 0;
+}
+
+.license a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@keyframes rise {
+  from { opacity: 0; translate: 0 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selection { animation: none; }
+}
+
+/* One column: the model goes above the catalogue and stops following the scroll. */
+@media (max-width: 64rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--tf-space-5);
+  }
+
+  .explorer {
+    position: static;
+    height: auto;
+    min-height: 0;
+  }
+
+  .viewport,
+  .placeholder {
+    height: clamp(22rem, 60dvh, 32rem);
+  }
+}

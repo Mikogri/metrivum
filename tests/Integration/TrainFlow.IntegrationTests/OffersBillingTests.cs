@@ -178,7 +178,7 @@ public sealed partial class OffersBillingTests
         Assert.Equal("EUR", frozen.Currency);
         currency.Currency = "PLN";
         var draftDto = await service.DetailAsync(id, default);
-        var changed = await service.UpdateAsync(id, Request(frozen.ApplicationFormVersionId) with
+        var changed = await service.UpdateAsync(id, Request(frozen.ApplicationFormVersionId!.Value) with
         {
             Name = "Changed",
             BillingOptions = frozen.BillingOptions.Select(x => x with { Price = 77 }).ToArray()

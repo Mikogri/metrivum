@@ -1,0 +1,77 @@
+.queue {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* In a column of fixed height: the card fills it and only the list scrolls. */
+.queue[data-fill] {
+  flex: 1;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-1) var(--tf-space-3);
+}
+
+.head h2 {
+  flex: 1;
+  margin: 0;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.count {
+  padding: 1px var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.offline {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: 0 var(--tf-space-3) var(--tf-space-2);
+  padding: var(--tf-space-2);
+  border: 1px solid color-mix(in srgb, var(--tf-color-warning) 35%, transparent);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-warning-soft);
+  font-size: var(--tf-text-xs);
+}
+
+.offline > svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--tf-color-warning);
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0 var(--tf-space-3);
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: thin;
+}
+
+.empty,
+.note {
+  margin: 0;
+  padding: var(--tf-space-1) var(--tf-space-3) var(--tf-space-2);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.note {
+  margin-top: auto;
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}

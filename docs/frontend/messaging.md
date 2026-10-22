@@ -4,6 +4,8 @@ Entering Messages or returning to Chats from Blocked automatically opens the fir
 
 Open **Messages** in either Coach or Client mode, or `/app/messages`. The route uses the same account's conversations in both workspace modes. Inner navigation below the header contains Chats and Blocked. Desktop shows a list beside the conversation; mobile opens one view at a time with a back button.
 
+Chats requests one server page of 25 conversations. Previous/Next keep the selected thread open; search waits 250 ms and resets to page 1. A full page enables Next, including a possible final empty page with Previous available. Query keys include account, search and page. Blocked disables the route's conversation query; the shell's existing 100-summary recovery query remains active. Its unread badge covers those loaded summaries and is not a global unread total.
+
 `app/modules/messaging` contains the route, conversation dialogs, account-scoped queries/realtime connection, attachment composer and WAV recorder. It reuses the existing UI library, API transport, feature access, account scope and draft guards. `@microsoft/signalr` is the official client; database operations always use the TrainFlow API.
 
 - Start a chat by selecting a username autocomplete result. Direct conversations are open by default. Settings → Profile → Message privacy can require approval for new conversations. A pending introduction is an ordinary chat: its recipient accepts/declines inline, and its sender keeps a visible disabled composer. Opening a private draft sends nothing; the first message creates its conversation. Groups retain their separate creation flow.
@@ -33,7 +35,7 @@ The current backend treats people without an active coaching relationship or acc
 - Messaging unit tests also cover immediate summary-to-history synchronization, open-chat notification suppression and sound deduplication. Existing tests cover microsecond ordering/deduplication, file-type rules, actual PCM WAV header/sample bytes and disposal/stale callbacks on account changes.
 - With local `TRAINFLOW_TEST_DATABASE`, `dotnet test tests/Integration/TrainFlow.IntegrationTests -c Release --no-restore --filter 'FullyQualifiedName~Messaging' --nologo`: 22 PostgreSQL/transport/Media tests passed, including incoming-message conversation ordering before limits, exact-username requests and block enforcement.
 
-Browser tests use explicit mock sessions and intercepted API responses. They do not claim a live authenticated two-browser exchange or a physical microphone recording. Private Storage and backend persistence were independently verified in [Stage 03A](../coaching/messaging-verification.md). Current limits: one SignalR API instance, up to 100 conversation/contact summaries, supported attachment types from the backend, and no calls or transcription. No publication or Git push.
+Browser tests use explicit mock sessions and intercepted API responses. They do not claim a live authenticated two-browser exchange or a physical microphone recording. Private Storage and backend persistence were independently verified in [Stage 03A](../coaching/messaging-verification.md). Current limits: one SignalR API instance, up to 100 conversation/contact summaries in shell recovery polling (the Chats list is pageable), supported attachment types from the backend, and no calls or transcription. No publication or Git push.
 
 ## Notifications
 

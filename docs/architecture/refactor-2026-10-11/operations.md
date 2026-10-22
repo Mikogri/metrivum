@@ -25,6 +25,10 @@ Re-run audit after a compatible upstream patch; dependency counts and latest ver
 
 ## Read-only diagnostics
 
+For explicit `--migrate` runs through a session pooler using an administrator login, set `Migrations__UseMigratorRole=true` when the application schemas are owned by `trainflow_migrator`. The host opens the shared module connection and executes `SET ROLE trainflow_migrator` before any migration; startup connection `Options` may be ignored by the pooler. The flag defaults to false and is only used by `--migrate`. Apply `infra/runtime-grants.sql` as the schema owner after successful migrations. Ordinary API startup must retain its restricted runtime login.
+
+The development diagnostic role `claude_readonly` has SELECT on the 16 application schemas, excludes `auth`, defaults to read-only transactions and a 15-second statement timeout. Its connection is stored only in ignored `.local/claude-readonly.env`; no default privileges were added, so future tables require reviewed grants. It can inspect application data and must be treated as a sensitive credential.
+
 Use a restricted diagnostic/runtime connection with SELECT on the inspected private tables. Supply credentials through existing `PGSERVICE`/`PG*` configuration, not command arguments or a tracked file:
 
 ```sh

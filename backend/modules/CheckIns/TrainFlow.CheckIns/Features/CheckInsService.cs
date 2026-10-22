@@ -14,7 +14,7 @@ using TrainFlow.Forms.Contracts;
 namespace TrainFlow.CheckIns.Features;
 
 public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContext accounts, IFeatureAccessService access, IRelationshipRecipients recipients,
-    IRelationshipAccessPolicy relationshipPolicy, IFormLibrary forms, ModuleTransaction transaction, TimeProvider clock, INotificationPublisher notifications, ITeamContext? teams = null, IAssignedProgramCycles? assignedPrograms = null)
+    IRelationshipAccessPolicy relationshipPolicy, IFormLibrary forms, ModuleTransaction transaction, TimeProvider clock, INotificationPublisher notifications, ITeamContext? teams = null, IAssignedProgramCycles? assignedPrograms = null, IAbuseProtection? abuse = null)
 {
     public async Task<ScheduleDto> CreateAsync(ScheduleRequest request, CancellationToken ct)
     {
@@ -248,6 +248,7 @@ public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContex
             }
             if (r.Status == RequestStatus.Cancelled || r.AvailableAtUtc > clock.GetUtcNow())
                 throw ApiException.Conflict("This check-in cannot be submitted.");
+            abuse?.Require(accounts.UserId, AbusePolicies.CheckInAnswer);
             var submission = await forms.SubmitAsync(new(r.FormVersionId, r.ClientId, "checkin:" + r.Id, request.Answers), token);
             r.FormSubmissionId = submission.Id;
             r.SubmittedAt = clock.GetUtcNow();
@@ -371,7 +372,9 @@ public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContex
                     await forms.RequireUsableVersionAsync(version.Id, s.CoachId, FormPurpose.CheckIn, token);
                     var targets = await db.Targets.AsNoTracking().Where(x => x.ScheduleId == id).ToArrayAsync(token);
                     var people = await recipients.ResolveActiveAsync(s.CoachId, s.WorkspaceId, targets.Where(x => !x.IsGroup).Select(x => x.TargetId).ToArray(), targets.Where(x => x.IsGroup).Select(x => x.TargetId).ToArray(), token);
-                    RequireLockedTeam(people, lockedTeam);
+                    if (people.Select(p => p.ClientId).Distinct().Count() > 100)
+            throw ApiException.Invalid("A check-in operation supports at most 100 unique recipients.");
+        RequireLockedTeam(people, lockedTeam);
                     if (assignment != null && !people.Any(p => p.Id == assignment.RelationshipId))
                         throw ApiException.Conflict("The assigned program relationship is no longer active.");
                     var groupSources = await recipients.GetGroupSourcesAsync(s.CoachId, s.WorkspaceId, targets.Where(x => x.IsGroup).Select(x => x.TargetId).ToArray(), token);
@@ -489,6 +492,8 @@ public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContex
         var version = await forms.GetCurrentVersionAsync(request.FormTemplateId, ct);
         await forms.RequireUsableVersionAsync(version.Id, owner.UserId, FormPurpose.CheckIn, ct);
         var people = await recipients.ResolveActiveAsync(owner.UserId, owner.WorkspaceId, request.RelationshipIds, request.GroupIds, ct);
+        if (people.Select(p => p.ClientId).Distinct().Count() > 100)
+            throw ApiException.Invalid("A check-in operation supports at most 100 unique recipients.");
         RequireLockedTeam(people, lockedTeam);
         if (request.Recurrence.Kind != RecurrenceKind.AssignedProgramCycle) return null;
         var assignment = assignedPrograms == null ? null : await assignedPrograms.GetAsync(owner.UserId, request.Recurrence.AssignmentId!.Value, ct);
@@ -534,6 +539,7 @@ public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContex
     }
     private void AddTargets(CheckInSchedule s, ScheduleRequest r)
     {
+        abuse?.Require(s.CoachId, AbusePolicies.CheckInAssign);
         db.Targets.AddRange(r.RelationshipIds.Select(x => new ScheduleTarget { ScheduleId = s.Id, TargetId = x, CoachId = s.CoachId, WorkspaceId = s.WorkspaceId }));
         db.Targets.AddRange(r.GroupIds.Select(x => new ScheduleTarget { ScheduleId = s.Id, TargetId = x, IsGroup = true, CoachId = s.CoachId, WorkspaceId = s.WorkspaceId }));
     }
