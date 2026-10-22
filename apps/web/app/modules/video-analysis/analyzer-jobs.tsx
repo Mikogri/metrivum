@@ -183,7 +183,8 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
           void collect(next, token).finally(() => { collecting = false; if (!signal.aborted) void poll(); });
         }
         const active = list.some(job => job.state === 'queued' || job.state === 'analyzing') || collecting;
-        timer = setTimeout(() => void poll(), active ? FAST : SLOW);
+        // Live progress only while someone can see it; a background tab still collects finished videos.
+        timer = setTimeout(() => void poll(), active && document.visibilityState === 'visible' ? FAST : SLOW);
       } catch (failure) {
         if (signal.aborted) return;
         setReachable(failure instanceof AnalyzerError && failure.status === 401 ? null : false);
@@ -194,10 +195,13 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
     const changed = () => void poll();
     window.addEventListener(ANALYZER_CHANGED, changed);
     window.addEventListener('focus', changed);
+    const visible = () => { if (document.visibilityState === 'visible') void poll(); };
+    document.addEventListener('visibilitychange', visible);
     void poll();
     return () => {
       controller.abort(); clearTimeout(timer); account$.removeEventListener('abort', abort); pollNow.current = () => {};
       window.removeEventListener(ANALYZER_CHANGED, changed); window.removeEventListener('focus', changed);
+      document.removeEventListener('visibilitychange', visible);
     };
   }, [allowed, api, lifecycle, account.userId, accountKey, queryClient]);
 

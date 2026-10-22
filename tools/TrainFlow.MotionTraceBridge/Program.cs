@@ -46,22 +46,13 @@ public static class Program
         if (!File.Exists(request.VideoPath)) throw new FileNotFoundException("Video does not exist.");
         var root = Path.GetFullPath(request.MotionTraceRoot);
         var options = LoadOptions(root, request.SettingsPath);
-        // The source decoder applies rotation exactly as the tracking pipeline does.
-        var probe = "import sys,json;sys.path.insert(0,sys.argv[1]);from motiontrace_ai.video_decode import VideoDecoder;d=VideoDecoder(sys.argv[2]);print(json.dumps(dict(width=d.width,height=d.height,duration=d.duration)));d.close()";
-        var metadata = await Process(options.VisionExecutablePath, ["-c", probe, Path.Combine(root, "ai"), request.VideoPath], root, token);
-        using (var document = JsonDocument.Parse(metadata))
-        {
-            var video = document.RootElement;
-            if (video.GetProperty("width").GetInt32() != tracking.VideoWidth || video.GetProperty("height").GetInt32() != tracking.VideoHeight)
-                throw new InvalidDataException("Selected frame dimensions do not match the decoded video.");
-            if (video.GetProperty("duration").GetDouble() is > 0 and var duration && tracking.TimestampSeconds >= duration)
-                throw new InvalidDataException("Selected timestamp is outside the video.");
-        }
         var directory = Path.GetDirectoryName(output)!;
         Directory.CreateDirectory(directory);
         var target = output + ".target.json";
         var session = output + ".session.json";
-        await File.WriteAllTextAsync(target, JsonSerializer.Serialize(new { tracking.TimestampSeconds, tracking.Points }, Json), token);
+        // The expected size travels with the target: the points-only preparation checks it while it reads the video anyway,
+        // instead of a separate Python start just to probe the dimensions.
+        await File.WriteAllTextAsync(target, JsonSerializer.Serialize(new { tracking.TimestampSeconds, tracking.Points, tracking.VideoWidth, tracking.VideoHeight }, Json), token);
         var arguments = new List<string> { "-u", options.ComparisonScriptPath };
         void Add(string name, string value) { arguments.Add("--" + name); arguments.Add(value); }
         Add("input", Path.GetFullPath(request.VideoPath)); Add("output", session); Add("target", target);

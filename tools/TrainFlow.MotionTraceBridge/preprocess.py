@@ -30,7 +30,8 @@ def parse():
 def frames(ai, path, start, end):
     sys.path.insert(0, ai)
     from motiontrace_ai.video_decode import VideoDecoder  # same rotation and timestamps as the tracker
-    decoder = VideoDecoder(path)
+    # Frames before the trimmed part are decoded (their timestamps must be checked) but never turned into images.
+    decoder = VideoDecoder(path, materialize=lambda index, timestamp: timestamp >= start - 1e-6)
     try:
         for timestamp, image in decoder:
             if timestamp < start - 1e-6:
@@ -42,20 +43,15 @@ def frames(ai, path, start, end):
         decoder.close()
 
 
+def expected_frames(decoder, start, end):
+    """Frames in the chosen part, for the progress bar; read from the decoder that is already open."""
+    length = (min(end, decoder.duration) if decoder.duration else end) - start
+    return max(1, int(length * decoder.fps)) if math.isfinite(length) and length > 0 else max(1, int(decoder.count or 1))
+
+
 def progress(stage, fraction):
     """One JSON line per step; the analyzer turns them into the progress bar in TrainFlow."""
     print(json.dumps({'stage': stage, 'fraction': round(min(1., max(0., fraction)), 4)}), flush=True)
-
-
-def expected_frames(ai, path, start, end):
-    sys.path.insert(0, ai)
-    from motiontrace_ai.video_decode import VideoDecoder
-    decoder = VideoDecoder(path)
-    try:
-        length = (min(end, decoder.duration) if decoder.duration else end) - start
-        return max(1, int(length * decoder.fps)) if math.isfinite(length) and length > 0 else max(1, int(decoder.count or 1))
-    finally:
-        decoder.close()
 
 
 def small_gray(image, scale):
@@ -82,7 +78,7 @@ def main():
     args = parse()
     if not args.end > args.start:
         raise ValueError('The trim end must be after its start.')
-    total = expected_frames(args.ai, args.input, args.start, args.end)
+    total = None  # known once the video is open
     # Stabilizing reads the video twice: measuring movement is the first ~40 %.
     measure, write = (.4, .6) if args.stabilize else (0., 1.)
     label = 'Stabilizing video' if args.stabilize else 'Trimming video'
@@ -95,6 +91,7 @@ def main():
         chain = np.eye(3)
         for decoder, timestamp, image in frames(args.ai, args.input, args.start, args.end):
             width, height = decoder.width, decoder.height
+            total = total or expected_frames(decoder, args.start, args.end)
             scale = min(1., ANALYSIS_WIDTH / width)
             gray = small_gray(image, scale)
             if previous is not None:
@@ -121,6 +118,7 @@ def main():
     try:
         for decoder, timestamp, image in frames(args.ai, args.input, args.start, args.end):
             width, height = decoder.width, decoder.height
+            total = total or expected_frames(decoder, args.start, args.end)
             if stream is None:
                 if width % 2 or height % 2:
                     raise ValueError('Trimming or stabilizing needs a video with even width and height.')
