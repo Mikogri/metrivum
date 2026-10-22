@@ -124,3 +124,33 @@ export function Segment({ children, ...props }: SegmentProps) {
     </ToggleButton>
   );
 }
+
+export interface ChipGroupProps extends Omit<ToggleButtonGroupProps, "className" | "children" | "selectionMode"> {
+  children: ReactNode;
+  className?: string;
+  "aria-label"?: string;
+}
+
+/**
+ * A wrapping row of pill toggles with one choice (quick picks, filters). Unlike SegmentedControl, choosing the
+ * selected chip again clears it, unless `disallowEmptySelection` is set.
+ */
+export function ChipGroup({ children, className, ...props }: ChipGroupProps) {
+  return (
+    <ToggleButtonGroup {...props} selectionMode="single" className={cx(styles.chips, className)}>
+      {children}
+    </ToggleButtonGroup>
+  );
+}
+
+export interface ChipProps extends Omit<ToggleButtonProps, "className" | "children"> {
+  children: ReactNode;
+}
+
+export function Chip({ children, ...props }: ChipProps) {
+  return (
+    <ToggleButton {...props} className={styles.chip}>
+      {children}
+    </ToggleButton>
+  );
+}

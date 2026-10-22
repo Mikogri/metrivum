@@ -1,0 +1,348 @@
+/*
+ * Video player. Colours come from the theme tokens; the only fixed colours are the video backdrop (always black,
+ * like any video) and the white bar used over the picture in full screen. They are named once here.
+ *
+ * Inputs from the parent: --player-max-height caps the video area.
+ * The bar's colours are --bar-* variables with theme defaults where they are used; full screen sets them to white.
+ * The scrub bar and the buttons are shared with the tracking picker.
+ */
+.player,
+.placeholder {
+  --backdrop: #000;
+  --on-video: #fff;
+  --on-video-shade: rgb(0 0 0 / 0.8);
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border-strong);
+  border-radius: var(--tf-radius-lg);
+  outline: none;
+}
+
+.player[data-inset],
+.placeholder[data-inset] {
+  border: 0;
+  border-radius: 0;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  gap: var(--tf-space-2);
+  min-height: 14rem;
+  background: var(--tf-color-bg-sunken);
+}
+
+.placeholder[data-framed] {
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: var(--frame);
+  max-height: var(--player-max-height, none);
+}
+
+.error {
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+}
+
+.player {
+  display: grid;
+  background: var(--backdrop);
+}
+
+/* The overlay is positioned over the video; both share this box. */
+.screen {
+  position: relative;
+  display: grid;
+  background: var(--backdrop);
+}
+
+.video {
+  display: block;
+  width: 100%;
+  max-height: var(--player-max-height, 26rem);
+  background: var(--backdrop);
+  cursor: pointer;
+}
+
+/* Fixed frame: full width in the given proportions; the video fits inside, centred, with black bars. */
+.player[data-framed] .screen {
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--frame);
+  max-height: var(--player-max-height, none);
+}
+
+.player[data-framed] .video,
+.player[data-full] .video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+}
+
+/* Hidden video: only the bar stays. */
+.player[data-collapsed] .screen {
+  display: none;
+}
+
+.player[data-collapsed] .bar {
+  border-top: 0;
+}
+
+/* ---- Bar ---- */
+
+.bar {
+  container-type: inline-size;
+  display: grid;
+  gap: var(--tf-space-0-5);
+  padding: var(--tf-space-0-5) var(--tf-space-1-5) var(--tf-space-1-5);
+  border-top: 1px solid var(--tf-color-border);
+  background: var(--tf-color-surface);
+  color: var(--bar-text, var(--tf-color-text-secondary));
+}
+
+.scrub {
+  position: relative;
+  display: grid;
+  align-items: center;
+  height: var(--tf-space-5);
+  margin: 0 var(--tf-space-1-5);
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+}
+
+.track {
+  position: relative;
+  height: var(--tf-space-1);
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--bar-track, color-mix(in srgb, var(--tf-color-text) 22%, transparent));
+  transition: height var(--tf-duration-fast) var(--tf-ease-out);
+}
+
+.scrub[data-disabled] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.scrub:hover .track,
+.scrub:focus-visible .track {
+  height: var(--tf-space-1-5);
+}
+
+/* Repetitions as stronger spans on the track. */
+.marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--bar-marker, color-mix(in srgb, var(--tf-color-text) 40%, transparent));
+}
+
+.played {
+  position: absolute;
+  inset: 0;
+  background: var(--bar-strong, var(--tf-color-text));
+  transform-origin: left;
+}
+
+.handle {
+  position: absolute;
+  top: 50%;
+  width: var(--tf-space-3);
+  height: var(--tf-space-3);
+  border-radius: var(--tf-radius-full);
+  background: var(--bar-strong, var(--tf-color-text));
+  box-shadow: 0 0 0 2px var(--bar-ring, var(--tf-color-surface));
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+  pointer-events: none;
+}
+
+.scrub:hover .handle,
+.scrub:focus-visible .handle,
+.scrub:active .handle {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.scrub:focus-visible .handle {
+  box-shadow: 0 0 0 2px var(--tf-color-focus-ring);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+}
+
+.steps {
+  display: none;
+}
+
+.control,
+.speed {
+  display: grid;
+  flex: none;
+  place-items: center;
+  height: var(--tf-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--tf-radius-md);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease;
+}
+
+.control {
+  width: var(--tf-control-sm);
+}
+
+.control svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.speed {
+  min-width: var(--tf-control-md);
+  padding: 0 var(--tf-space-1-5);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.control[data-hovered],
+.speed[data-hovered] {
+  background: var(--bar-hover, var(--tf-color-surface-hover));
+  color: var(--bar-strong, var(--tf-color-text));
+}
+
+.control[aria-pressed="true"] {
+  color: var(--bar-strong, var(--tf-color-text));
+}
+
+.control[aria-pressed="false"] {
+  color: var(--bar-muted, var(--tf-color-text-tertiary));
+}
+
+.control[data-focus-visible],
+.speed[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: -2px;
+}
+
+.clock {
+  margin-left: var(--tf-space-1);
+  color: var(--bar-strong, var(--tf-color-text));
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.total {
+  display: none;
+  color: var(--bar-muted, var(--tf-color-text-tertiary));
+}
+
+.spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Narrow players keep play, time, speed and the tools; the total time and frame steps join when there is room. */
+@container (min-width: 17rem) {
+  .total { display: inline; }
+}
+
+@container (min-width: 21rem) {
+  .steps { display: inline-flex; gap: 1px; }
+}
+
+/* ---- Full screen ----
+   The video fills the screen in its own proportions (black bars, never stretched); the bar floats over the bottom
+   in white on a shade and hides while the video plays and the mouse rests. */
+.player[data-full] {
+  --bar-text: color-mix(in srgb, var(--on-video) 82%, transparent);
+  --bar-strong: var(--on-video);
+  --bar-muted: color-mix(in srgb, var(--on-video) 55%, transparent);
+  --bar-track: color-mix(in srgb, var(--on-video) 24%, transparent);
+  --bar-marker: color-mix(in srgb, var(--on-video) 40%, transparent);
+  --bar-hover: color-mix(in srgb, var(--on-video) 14%, transparent);
+  --bar-ring: var(--on-video-shade);
+  position: relative;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+}
+
+.player[data-full] .screen {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+.player[data-full] .bar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: var(--tf-space-12) max(var(--tf-space-6), calc((100vw - var(--tf-content-max)) / 2)) var(--tf-space-4);
+  border: 0;
+  background: linear-gradient(to bottom, transparent, var(--on-video-shade));
+  transition: opacity var(--tf-duration-base) ease;
+}
+
+.player[data-full] .control,
+.player[data-full] .speed {
+  height: var(--tf-control-lg);
+}
+
+.player[data-full] .control {
+  width: var(--tf-control-lg);
+}
+
+.player[data-full] .control svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.player[data-full] .clock,
+.player[data-full] .speed {
+  font-size: var(--tf-text-sm);
+}
+
+.player[data-full] .total {
+  display: inline;
+}
+
+.player[data-full] .steps {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.player[data-full][data-idle] {
+  cursor: none;
+}
+
+.player[data-full][data-idle] .bar {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .handle,
+  .player[data-full] .bar {
+    transition: none;
+  }
+}

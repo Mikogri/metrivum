@@ -114,6 +114,7 @@
   }
 }
 
+/* Hidden columns give their width back too (the <col> carries it in a fixed table layout). */
 @media (max-width: 48rem) {
   .table [data-mobile-hidden] {
     display: none;

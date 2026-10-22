@@ -86,7 +86,8 @@ function readPalette(element: HTMLElement): Palette {
     axis: v("--tf-color-border-strong", "rgba(128,128,128,.45)"),
     cursor: v("--tf-color-text", "#fff"),
     background: v("--tf-color-surface", "#111"),
-    phase: { eccentric: v("--phase-eccentric", "#7c6cf0"), pause: v("--phase-pause", "#7d8aa3"), concentric: v("--phase-concentric", "#2fae6e"), none: v("--phase-none", "#9a9a9a") },
+    // Defined once in ../phases.css; the fallback only shows if that file failed to load.
+    phase: { eccentric: v("--phase-eccentric", "gray"), pause: v("--phase-pause", "gray"), concentric: v("--phase-concentric", "gray"), none: v("--phase-none", "gray") },
   };
 }
 
@@ -251,13 +252,6 @@ export function TimeSeriesChart({
         ],
         series: [{}, {
           stroke, width: 2, spanGaps: false, points: { show: false },
-          // A faint wash under the line, fading towards the axis.
-          fill: (u: uPlot) => {
-            const { top, height: h } = u.bbox;
-            const wash = u.ctx.createLinearGradient(0, top, 0, top + h);
-            wash.addColorStop(0, alpha(palette.cursor, 0.09)); wash.addColorStop(1, alpha(palette.cursor, 0));
-            return wash;
-          },
         }],
         cursor: {
           drag: { x: false, y: false, setScale: false },
@@ -266,6 +260,20 @@ export function TimeSeriesChart({
           points: { size: 8, width: 2, stroke: palette.cursor, fill: (u) => { const idx = u.cursor.idx; const s = idx == null ? null : latest.current.series.source[idx]; return s ? palette.phase[phaseAt(reps, s.seconds)] : palette.phase.none; } },
         },
         hooks: {
+          // Phase colours behind the line: each lowering, pause and lifting span is tinted in its colour.
+          drawClear: [(u) => {
+            const { top, height: h } = u.bbox;
+            u.ctx.save();
+            for (const rep of reps) for (const phase of rep.phases) {
+              const kind = normalizePhase(phase.kind);
+              if (!shown(kind) || kind === "none") continue;
+              const x0 = u.valToPos(phase.startSeconds, "x", true);
+              const x1 = u.valToPos(phase.endSeconds, "x", true);
+              u.ctx.fillStyle = alpha(palette.phase[kind], 0.08);
+              u.ctx.fillRect(x0, top, Math.max(0, x1 - x0), h);
+            }
+            u.ctx.restore();
+          }],
           setCursor: [(u) => {
             const idx = u.cursor.idx;
             const now = latest.current;

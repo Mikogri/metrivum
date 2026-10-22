@@ -1,18 +1,16 @@
-import { useMutation } from "@tanstack/react-query";
-import { Info, Play, TriangleAlert } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { Crosshair, Info, TriangleAlert } from "lucide-react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { Button as AriaButton, ToggleButton } from "react-aria-components";
 import type { AnalysisRepetition, AnalysisResult, TrajectoryPoint } from "@trainflow/api-client-web";
-import { Button, Card, Switch, Tooltip, TooltipTrigger } from "@trainflow/ui-web";
+import { Card, Tooltip, TooltipTrigger } from "@trainflow/ui-web";
 import { RepSelect } from "./RepSelect";
 import { RepTable } from "./RepTable";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { formatNumber } from "~/shared/i18n/format";
-import { errorText } from "~/shared/lib/errorText";
-import { useApi } from "~/shared/session/AccountScope";
-import { readUrl } from "../api";
 import { BarPathPlot, PHASE_KINDS, PhaseTimeline, TimeSeriesChart, phaseAt, type PhaseKind } from "./charts";
+import { PlayerButton, VideoPlayer } from "./VideoPlayer";
 import styles from "./ResultView.module.css";
 
 const positionOf = (p: TrajectoryPoint) => p.y;
@@ -50,88 +48,8 @@ function TrackOverlay({ trajectory, repetitions, time, width, height, visible }:
   );
 }
 
-/** The lift itself, loaded on demand: signed URLs expire, so on error we ask for a fresh one instead of reusing it. */
-export function VideoPlayer({
-  mediaId,
-  videoRef,
-  cursor = null,
-  onTime,
-  source,
-  overlay,
-  autoLoad = false,
-  onSize,
-}: {
-  mediaId: string;
-  videoRef?: RefObject<HTMLVideoElement | null>;
-  cursor?: number | null;
-  onTime?: (seconds: number) => void;
-  /** Where the signed URL comes from; defaults to the owner's media read URL. */
-  source?: () => Promise<{ url: string; expiresAt: string }>;
-  /** Drawn over the video, synchronised with its current frame. */
-  overlay?: (time: number, width: number, height: number) => ReactNode;
-  autoLoad?: boolean;
-  onSize?: (width: number, height: number) => void;
-}) {
-  const m = useT();
-  const t = m.video.detail;
-  const api = useApi();
-  const own = useRef<HTMLVideoElement>(null);
-  const ref = videoRef ?? own;
-  const [ticket, setTicket] = useState<{ url: string; expiresAt: string } | null>(null);
-  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-  const [time, setTime] = useState(0);
-  const load = useMutation({ mutationFn: () => (source ? source() : readUrl(api, mediaId)), onSuccess: setTicket });
-  const loadRef = useRef(load.mutate);
-  loadRef.current = load.mutate;
-  useEffect(() => { if (autoLoad) loadRef.current(); }, [autoLoad, mediaId]);
-
-  // Follow the video frame by frame (not only the ~4 Hz timeupdate), so charts and overlay move smoothly.
-  useEffect(() => {
-    const video = ref.current;
-    if (!video || !ticket) return;
-    let handle = 0;
-    const frame = video as HTMLVideoElement & { requestVideoFrameCallback?: (cb: (now: number, meta: { mediaTime: number }) => void) => number; cancelVideoFrameCallback?: (id: number) => void };
-    const tick = () => {
-      setTime(video.currentTime);
-      onTime?.(video.currentTime);
-      handle = frame.requestVideoFrameCallback ? frame.requestVideoFrameCallback(tick) : requestAnimationFrame(tick);
-    };
-    handle = frame.requestVideoFrameCallback ? frame.requestVideoFrameCallback(tick) : requestAnimationFrame(tick);
-    return () => { if (frame.cancelVideoFrameCallback) frame.cancelVideoFrameCallback(handle); else cancelAnimationFrame(handle); };
-  }, [ticket, ref, onTime]);
-
-  return (
-    <Card padding="none" className={styles.player}>
-      {ticket ? (
-        <div className={styles.videoBox}>
-          <video
-            ref={ref}
-            src={ticket.url}
-            controls
-            playsInline
-            preload="auto"
-            className={styles.video}
-            onLoadedMetadata={(event) => {
-              setSize({ w: event.currentTarget.videoWidth, h: event.currentTarget.videoHeight });
-              onSize?.(event.currentTarget.videoWidth, event.currentTarget.videoHeight);
-              if (cursor !== null) event.currentTarget.currentTime = cursor;
-            }}
-            onSeeked={(event) => { setTime(event.currentTarget.currentTime); onTime?.(event.currentTarget.currentTime); }}
-            onError={() => setTicket(null)}
-          />
-          {overlay && size ? overlay(time, size.w, size.h) : null}
-        </div>
-      ) : (
-        <div className={styles.placeholder}>
-          {load.error ? <p className={styles.error}>{errorText(m, load.error)}</p> : null}
-          <Button iconStart={<Play />} loading={load.isPending} onPress={() => load.mutate()}>
-            {t.loadVideo}
-          </Button>
-        </div>
-      )}
-    </Card>
-  );
-}
+/** The detail page shows a video in one of two frames: 16:9 for landscape (and square) videos, 9:16 for portrait ones. */
+const frameOf = (ratio: number) => (ratio < 1 ? 9 / 16 : 16 / 9);
 
 /**
  * Renders only what the analyzer delivered: no derived speed, no invented phases.
@@ -148,6 +66,15 @@ export function ResultView({ result, mediaId, compact = false, aside, videoSourc
   const [selected, setSelected] = useState<ReadonlySet<number> | null>(null);
   const [visible, setVisible] = useState<ReadonlySet<PhaseKind>>(new Set(PHASE_KINDS));
   const [showOverlay, setShowOverlay] = useState(true);
+  // Hiding the video is remembered on this device.
+  const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem("trainflow.analysis.videoHidden") === "1"; } catch { return false; } });
+  const collapse = (next: boolean) => {
+    try { localStorage.setItem("trainflow.analysis.videoHidden", next ? "1" : "0"); } catch { /* private browsing */ }
+    // The video and the analysis glide to their new place (a portrait video's column also gives way to the analysis).
+    const transition = (document as Document & { startViewTransition?: (update: () => void) => unknown }).startViewTransition;
+    if (!transition || document.visibilityState !== "visible" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setCollapsed(next); return; }
+    transition.call(document, () => flushSync(() => setCollapsed(next)));
+  };
   const [ratio, setRatio] = useState(aspect);
 
   // Stable between video frames, so the charts are not rebuilt while the cursor moves.
@@ -314,18 +241,17 @@ export function ResultView({ result, mediaId, compact = false, aside, videoSourc
   const overlay = showOverlay
     ? (time: number, width: number, height: number) => <TrackOverlay trajectory={result.trajectory} repetitions={result.repetitions} time={time} width={width} height={height} visible={visible} />
     : undefined;
+  const sheet = aside !== undefined && !compact;
   const player = mediaId ? (
-    <div className={styles.playerStack}>
-      <VideoPlayer mediaId={mediaId} source={videoSource} videoRef={video} cursor={cursor} onTime={setCursor} overlay={overlay} autoLoad={aside !== undefined} onSize={(w, h) => setRatio(w / h)} />
-      <Switch isSelected={showOverlay} onChange={setShowOverlay} className={styles.overlaySwitch}>
-        {t.overlay}
-      </Switch>
-    </div>
+    <VideoPlayer mediaId={mediaId} source={videoSource} videoRef={video} cursor={cursor} onTime={setCursor} overlay={overlay} autoLoad={sheet} onSize={(w, h) => setRatio(w / h)}
+      markers={shownReps.map((rep) => ({ start: Number(rep.startSeconds), end: Number(rep.endSeconds), label: `${t.rep} ${rep.number}` }))}
+      frame={sheet ? frameOf(ratio) : undefined} collapsed={sheet && collapsed} onCollapse={sheet ? collapse : undefined}
+      tools={<PlayerButton label={t.overlay} pressed={showOverlay} onPress={() => setShowOverlay((on) => !on)}><Crosshair /></PlayerButton>} />
   ) : null;
 
-  if (aside !== undefined && !compact) {
+  if (sheet) {
     return (
-      <div className={styles.detail} style={{ "--ratio": ratio } as CSSProperties} data-portrait={ratio < 1 || undefined}>
+      <div className={styles.detail} data-portrait={ratio < 1 || undefined} data-collapsed={collapsed || undefined}>
         <div className={styles.videoCol}>{player}</div>
         <Card padding="none" className={styles.sheet}>
           <div className={styles.sheetSection}>{meta}</div>
@@ -363,8 +289,8 @@ export function ResultView({ result, mediaId, compact = false, aside, videoSourc
 export function AnalysisStage({ aside, mediaId, aspect = 9 / 16, children }: { aside: ReactNode; mediaId?: string; aspect?: number; children: ReactNode }) {
   const [ratio, setRatio] = useState(aspect);
   return (
-    <div className={styles.detail} style={{ "--ratio": ratio } as CSSProperties} data-portrait={ratio < 1 || undefined}>
-      <div className={styles.videoCol}>{mediaId ? <VideoPlayer mediaId={mediaId} autoLoad onSize={(w, h) => setRatio(w / h)} /> : null}</div>
+    <div className={styles.detail} data-portrait={ratio < 1 || undefined}>
+      <div className={styles.videoCol}>{mediaId ? <VideoPlayer mediaId={mediaId} autoLoad frame={frameOf(ratio)} onSize={(w, h) => setRatio(w / h)} /> : null}</div>
       <Card padding="none" className={styles.sheet}>
         <div className={styles.sheetSection}>{children}</div>
         <div className={styles.sheetSection}>{aside}</div>

@@ -51,11 +51,11 @@ function tone(v: number | null, min: number, max: number, better: 'low' | 'high'
   return `rgb(${from.map((c, i) => Math.round(c + (to[i]! - c) * k)).join(', ')})`;
 }
 
-/** Two small triangles; the one for the current direction is lit. */
+/** One chevron (Tabler icons), only on the sorted column: up ascending, down descending. */
 function SortIcon({ dir }: { dir: 1 | -1 | 0 }) {
-  return <svg className={styles.sortIcon} viewBox="0 0 8 12" aria-hidden="true">
-    <path d="M4 1 7 5H1z" data-on={dir === 1 || undefined} />
-    <path d="M4 11 1 7h6z" data-on={dir === -1 || undefined} />
+  if (!dir) return null;
+  return <svg className={styles.sortIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d={dir === 1 ? 'M6 15l6 -6l6 6' : 'M6 9l6 6l6 -6'} />
   </svg>;
 }
 

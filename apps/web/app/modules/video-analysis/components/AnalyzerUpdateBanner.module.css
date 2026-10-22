@@ -1,6 +1,6 @@
 /* Full-width notice at the very top of the app: amber tint, centred one-line message, close on the right. */
 .banner {
-  --notice: #e0a030;
+  --notice: var(--tf-color-warning);
   position: relative;
   grid-column: 1 / -1;
   grid-row: 1;
@@ -33,7 +33,7 @@
   height: 1.125rem;
   border-radius: 50%;
   background: var(--notice);
-  color: #1a1206;
+  color: var(--tf-color-text-inverse);
 }
 
 .badge svg {

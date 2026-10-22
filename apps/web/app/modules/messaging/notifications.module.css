@@ -150,30 +150,50 @@
     transition: background-color 120ms ease;
 }
 
-/* Analyzer update: amber round badge like the top banner, the next step as inline links. */
+/* Analyzer update: pinned at the top of the list, amber tint, compact; the icon sits in the same column as other icons. */
 .item[data-update] {
-    align-items: flex-start;
+    --update: var(--tf-color-warning);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    align-items: center;
     gap: var(--tf-space-3);
-    padding: var(--tf-space-2-5);
-    background: color-mix(in srgb, #e0a030 8%, transparent);
+    margin-bottom: var(--tf-space-1);
+    padding: var(--tf-space-2) var(--tf-space-2-5);
+    background: color-mix(in srgb, var(--update) 10%, var(--tf-color-surface-overlay, var(--tf-color-surface)));
 }
+/* Unread dot on the right, clear of the icon. */
+.item[data-unread][data-update]::before {
+    left: auto;
+    right: var(--tf-space-3);
+}
+.item[data-update] .text { padding-right: var(--tf-space-4); }
 .updateIcon {
     display: grid;
     flex-shrink: 0;
     place-items: center;
-    width: 1.375rem;
-    height: 1.375rem;
-    margin: 1px 0.3125rem 0;
-    border-radius: 50%;
-    background: #e0a030;
-    color: #1a1206;
+    width: 2rem;
 }
-.updateIcon svg { width: 0.8125rem; height: 0.8125rem; stroke-width: 3; }
-.item[data-update] .text strong { white-space: normal; }
+.updateIcon > span {
+    display: grid;
+    place-items: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 50%;
+    background: var(--update);
+    color: var(--tf-color-text-inverse);
+}
+.updateIcon svg { width: 0.6875rem; height: 0.6875rem; stroke-width: 3; }
+.item[data-update] .text { gap: 1px; }
+.item[data-update] .text strong { font-size: var(--tf-text-xs); white-space: normal; }
 
 @media (hover: hover) and (pointer: fine) {
     .item:hover {
         background: var(--tf-color-surface-hover);
+    }
+    /* Hover deepens the amber tint instead of turning grey. */
+    .item[data-update]:hover {
+        background: color-mix(in srgb, var(--update) 16%, var(--tf-color-surface-overlay, var(--tf-color-surface)));
     }
 }
 

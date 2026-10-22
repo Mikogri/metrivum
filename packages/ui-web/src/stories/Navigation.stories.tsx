@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Dumbbell, Heart, Video } from "lucide-react";
-import { Breadcrumbs, Button, Card, List, ListRow, PageHeader, Pagination, SectionHeader, Separator, Tab, TabList, TabPanel, Tabs } from "../index";
+import { Breadcrumbs, Button, Card, Disclosure, List, ListRow, PageHeader, Pagination, SectionHeader, Separator, Tab, TabList, TabPanel, Tabs } from "../index";
 import { pick } from "./copy";
 
 const meta = { title: "Navigation & structure" } satisfies Meta;
@@ -76,4 +76,14 @@ export const Lists: Story = {
       </div>
     );
   },
+};
+
+export const Disclosures: Story = {
+  render: () => (
+    <Card padding="none" style={{ maxWidth: 320 }}>
+      <Disclosure title="First time on this computer?">
+        <p style={{ margin: 0, padding: "0 12px 12px" }}>Install the analyzer, then start it once.</p>
+      </Disclosure>
+    </Card>
+  ),
 };

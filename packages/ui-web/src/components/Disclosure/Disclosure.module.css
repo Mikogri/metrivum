@@ -1,0 +1,77 @@
+.disclosure {
+  display: grid;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  width: 100%;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 0;
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) ease;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: -2px;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+}
+
+.chevron {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-text-tertiary);
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+}
+
+.disclosure[data-expanded] .chevron {
+  transform: rotate(180deg);
+}
+
+/* Height animates from 0 to the content's own height through the grid row; the content fades in with it. */
+.panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--tf-duration-base) var(--tf-ease-out);
+}
+
+.disclosure[data-expanded] .panel {
+  grid-template-rows: 1fr;
+}
+
+.content {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--tf-duration-base) var(--tf-ease-out);
+}
+
+.disclosure[data-expanded] .content {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .trigger:hover {
+    color: var(--tf-color-text);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .content,
+  .chevron {
+    transition: none;
+  }
+}

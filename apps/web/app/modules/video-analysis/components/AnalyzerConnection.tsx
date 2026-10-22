@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ChevronRight, CircleAlert, Download, Play, RefreshCcw, SquareTerminal } from 'lucide-react';
-import { Button as AriaButton, Disclosure, DisclosurePanel } from 'react-aria-components';
-import { Button, Card, IconButton, LinkButton, TextField } from '@trainflow/ui-web';
+import { CircleAlert, Download, CirclePower, RefreshCcw, SquareTerminal } from 'lucide-react';
+import { Button, Card, Disclosure, IconButton, LinkButton, TextField } from '@trainflow/ui-web';
 import { useAccountContext } from '~/shared/session/AccountScope';
 import { checkLocalAnalyzer, launchLocalAnalyzer, pairLocalAnalyzer, showAnalyzerWindow, storePairing, waitForLocalAnalyzer, type CompanionState } from '../local-analysis';
 import { ANALYZER_CHANGED } from '../analyzer-jobs';
@@ -94,7 +93,7 @@ export function AnalyzerConnection({ token, onTokenChange, onStateChange }: { to
 
   return <Card as="section" padding="none" className={styles.panel} aria-labelledby="analyzer-title" data-tone={tone}>
     <div className={styles.status}>
-      <span className={styles.dot} aria-hidden="true" data-pulse={state === 'analyzing' || looking || undefined} />
+      <span className={styles.dot} aria-hidden="true" />
       <span className={styles.statusText} role="status">
         <strong id="analyzer-title">{title}</strong>
         <span>{detail}</span>
@@ -103,30 +102,26 @@ export function AnalyzerConnection({ token, onTokenChange, onStateChange }: { to
       <IconButton size="sm" variant="ghost" icon={<RefreshCcw />} label="Check again" isPending={checking} onPress={() => { setChecking(true); setRefresh(value => value + 1); }} />
     </div>
 
-    {wrongSite && !working ? <p className={styles.note} data-tone="danger"><CircleAlert aria-hidden="true" /><span>This analyzer build only answers <code>{builtFor}</code>; TrainFlow is open at <code>{here}</code>.</span></p> : null}
-    {startFailed ? <p className={styles.note} data-tone="warning"><CircleAlert aria-hidden="true" /><span>It did not start. Allow the browser to open TrainFlow Analyzer, or install it first.</span></p> : null}
+    {wrongSite && !working ? <p className={styles.note} data-tone="danger"><CircleAlert aria-hidden="true" /><span>This build only works on <code>{builtFor}</code>.</span></p> : null}
+    {startFailed ? <p className={styles.note} data-tone="warning"><CircleAlert aria-hidden="true" /><span>It did not start. Allow the browser to open it, or install it.</span></p> : null}
 
     {state === 'unreachable' || state === 'runtime_missing' || state === 'incompatible' ? <div className={styles.actions}>
-      {state === 'unreachable' ? <Button size="sm" variant="primary" iconStart={<Play />} loading={starting} onPress={() => void start()}>Start</Button> : null}
+      {state === 'unreachable' ? <Button size="sm" variant="primary" iconStart={<CirclePower />} loading={starting} onPress={() => void start()}>Start</Button> : null}
       <LinkButton size="sm" href={DOWNLOAD} download iconStart={<Download />} variant={state === 'unreachable' ? 'secondary' : 'primary'}>{state === 'incompatible' ? 'Update' : state === 'runtime_missing' ? 'Repair' : 'Install'}</LinkButton>
     </div> : null}
 
-    {state === 'unreachable' ? <Disclosure className={styles.more}>
-      <AriaButton slot="trigger" className={styles.moreToggle}><ChevronRight aria-hidden="true" />First time on this computer?</AriaButton>
-      <DisclosurePanel className={styles.morePanel}>
-        <ol className={styles.steps}>
-          <li><span>Install</span>Windows x64, NVIDIA GPU, about 35 GB free. On “Windows protected your PC” choose More info → Run anyway (not code-signed yet).</li>
-          <li><span>Start</span>Start analysis does it for you and pairs once. Allow the browser to open TrainFlow Analyzer.</li>
-        </ol>
-      </DisclosurePanel>
+    {state === 'unreachable' ? <Disclosure className={styles.more} title="First time on this computer?">
+      <ol className={styles.steps}>
+        <li><strong>Install</strong> Windows x64, NVIDIA GPU, ~35 GB free. If Windows warns, choose More info → Run anyway.</li>
+        <li><strong>Start</strong> Start analysis opens it and pairs this browser once.</li>
+      </ol>
     </Disclosure> : null}
 
-    {state === 'pairing_required' ? <Disclosure className={styles.more}>
-      <AriaButton slot="trigger" className={styles.moreToggle}><ChevronRight aria-hidden="true" />Pair manually</AriaButton>
-      <DisclosurePanel className={styles.morePanel}>
+    {state === 'pairing_required' ? <Disclosure className={styles.more} title="Pair manually">
+      <div className={styles.moreBody}>
         <TextField label="Pairing token" description="Shown in the analyzer window." type="password" value={token}
           onChange={next => { setChecking(true); onStateChange('pairing_required'); onTokenChange(next); }} autoComplete="off" />
-      </DisclosurePanel>
+      </div>
     </Disclosure> : null}
   </Card>;
 }

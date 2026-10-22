@@ -20,12 +20,6 @@
   font-weight: var(--tf-weight-semibold);
 }
 
-.note {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-relaxed);
-}
-
 .zoomLevel {
   min-width: 3.25rem;
   color: var(--tf-color-text-secondary);
@@ -120,10 +114,6 @@
 
 .status[data-done] {
   color: var(--tf-color-success);
-}
-
-.meta {
-  color: var(--tf-color-text-tertiary);
 }
 
 @media (max-width: 48rem) {
@@ -229,7 +219,7 @@
   height: 1.125rem;
   border-radius: var(--tf-radius-full);
   background: var(--tf-color-warning);
-  color: #1a1206;
+  color: var(--tf-color-text-inverse);
   font-size: var(--tf-text-2xs);
   font-weight: var(--tf-weight-bold);
 }
@@ -500,4 +490,21 @@
 
 .trimThumb[data-dragging] {
   background: var(--tf-color-text-secondary);
+}
+
+/* Playback under the video: the shared scrub bar, then play and frame steps at the start of the control bar. */
+.playback {
+  padding: 0 var(--tf-space-1);
+}
+
+.clock {
+  margin-left: var(--tf-space-1);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.clock span {
+  color: var(--tf-color-text-tertiary);
 }

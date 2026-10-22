@@ -12,7 +12,8 @@ public sealed record ShareRequest(bool AllowSave);
 public sealed record SharedAnalysisDto(string Name, AnalysisConfiguration Configuration, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt, bool HasVideo, AnalysisSourceVideo? SourceVideo,
     bool AllowSave = false, bool Saved = false, bool Own = false, string? OwnerName = null);
 /// <summary>A shared analysis in the viewer's library: opened through its link, never copied.</summary>
-public sealed record SavedAnalysisDto(string Token, Guid AnalysisId, string Name, string OwnerName, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt, DateTimeOffset SavedAt, bool HasVideo);
+public sealed record SavedAnalysisDto(string Token, Guid AnalysisId, string Name, string OwnerName, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt, DateTimeOffset SavedAt, bool HasVideo,
+    AnalysisConfiguration? Configuration = null);
 public sealed record SharedVideoUrl(string Url, DateTimeOffset ExpiresAt);
 
 /// <summary>
@@ -126,10 +127,11 @@ public sealed class AnalysisSharing(VideoAnalysisDbContext db, IMediaLibrary med
                           join job in db.Jobs.AsNoTracking() on share.AnalysisId equals job.Id
                           where saved.UserId == viewer && share.RevokedAt == null && share.AllowSave && job.Status == "Completed"
                           orderby saved.SavedAt descending
-                          select new { share.Token, job.Id, job.Name, job.OwnerId, job.CreatedAt, job.CompletedAt, saved.SavedAt, HasVideo = job.MediaId != null })
+                          select new { share.Token, job.Id, job.Name, job.OwnerId, job.CreatedAt, job.CompletedAt, saved.SavedAt, HasVideo = job.MediaId != null, job.Configuration })
             .Take(200).ToArrayAsync(ct);
         var names = directory is null ? new Dictionary<Guid, AccountDirectoryEntry>() : await directory.GetAccountsAsync(rows.Select(x => x.OwnerId).Distinct().ToArray(), ct);
-        return rows.Select(x => new SavedAnalysisDto(x.Token, x.Id, x.Name, names.TryGetValue(x.OwnerId, out var owner) ? owner.DisplayName : "Shared", x.CreatedAt, x.CompletedAt, x.SavedAt, x.HasVideo)).ToArray();
+        return rows.Select(x => new SavedAnalysisDto(x.Token, x.Id, x.Name, names.TryGetValue(x.OwnerId, out var owner) ? owner.DisplayName : "Shared", x.CreatedAt, x.CompletedAt, x.SavedAt, x.HasVideo,
+            System.Text.Json.JsonSerializer.Deserialize<AnalysisConfiguration>(x.Configuration, AnalysisResults.Json) is { } c ? c with { Tracking = null } : null)).ToArray();
     }
 
     private async Task<string?> OwnerNameAsync(Guid owner, CancellationToken ct) =>

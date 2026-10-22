@@ -70,7 +70,7 @@
   font-weight: var(--tf-weight-medium);
   text-decoration: underline dotted;
   text-underline-offset: 3px;
-  cursor: help;
+  cursor: default;
   outline: none;
 }
 

@@ -54,6 +54,44 @@
   color: var(--tf-color-danger);
 }
 
+/* Analysis in progress: a stronger amber tile with a spinning icon. */
+.tableIcon[data-tone="working"] {
+  background: color-mix(in srgb, var(--tf-color-warning) 24%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tf-color-warning) 45%, transparent);
+  color: var(--tf-color-warning);
+}
+
+.spin {
+  animation: spin 1.1s linear infinite;
+}
+
+@keyframes spin {
+  to { rotate: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation-duration: 3s; }
+}
+
+/* Cards: the status sits top right, the actions bottom right. */
+.cardBottom {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin-top: auto;
+}
+
+.cardBottom > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Above the card-wide link, so the menu opens instead of the analysis. */
+.cardBottom > :last-child {
+  position: relative;
+  z-index: 1;
+}
+
 .formulaIcon {
   background: var(--tf-color-warning-soft);
   color: var(--tf-color-warning);

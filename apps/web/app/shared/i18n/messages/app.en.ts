@@ -1274,7 +1274,7 @@ export const appEn = {
         missing: (n: number) => (n === 2 ? "No points marked yet. Mark two points on the bar." : "One more point needed on the bar."),
         markHere: "Mark points on this frame",
         markHint: "Pause where the bar is clearly visible",
-        guide: (n: number) => (n === 1 ? "Click point 1 of 2 — one end of the bar" : "Click point 2 of 2 — the other end of the bar"),
+        guide: (n: number) => (n === 1 ? "Point 1 of 2 — a small mark on the bar end" : "Point 2 of 2 — right next to point 1"),
         guideDone: "Both points marked — you can start the analysis",
       },
       upload: "Upload video",

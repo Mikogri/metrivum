@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { parseDate } from "@internationalized/date";
 import { I18nProvider } from "react-aria-components";
-import { Checkbox, Combobox, DateField, NumberInput, Option, Radio, RadioGroup, SearchInput, Segment, SegmentedControl, Select, Switch, TextArea, TextField } from "../index";
+import { Checkbox, Chip, ChipGroup, Combobox, DateField, NumberInput, Option, Radio, RadioGroup, SearchInput, Segment, SegmentedControl, Select, Switch, TextArea, TextField } from "../index";
 import { pick } from "./copy";
 
 const meta = { title: "Forms/Fields" } satisfies Meta;
@@ -69,6 +69,11 @@ export const Choice: Story = {
           <Segment id="9">9</Segment>
           <Segment id="10">10</Segment>
         </SegmentedControl>
+        <ChipGroup aria-label="Lift" defaultSelectedKeys={["squat"]}>
+          <Chip id="squat">Squat</Chip>
+          <Chip id="bench">Bench press</Chip>
+          <Chip id="deadlift">Deadlift</Chip>
+        </ChipGroup>
       </div>
     );
   },

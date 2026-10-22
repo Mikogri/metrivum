@@ -20,11 +20,8 @@
 .videoBody {
   display: grid;
   min-height: 0;
-  background: #000;
-}
-
-.videoBody video {
-  max-height: 46dvh;
+  /* Cards stay the same size; the video area is never taller than about half the window. */
+  --player-max-height: 46dvh;
 }
 
 .videoHead {
@@ -79,7 +76,9 @@
 .noVideo {
   display: grid;
   place-items: center;
-  min-height: 10rem;
+  width: 100%;
+  aspect-ratio: var(--frame);
+  max-height: var(--player-max-height);
   margin: 0;
   background: var(--tf-color-bg-sunken);
   color: var(--tf-color-text-tertiary);
@@ -159,7 +158,9 @@
   gap: 2px;
 }
 
+/* Each segment measures itself: too narrow for its time, it shows only the colour (the tooltip has the time). */
 .phaseSegment {
+  container-type: inline-size;
   display: grid;
   flex-basis: 0;
   place-items: center;
@@ -175,12 +176,16 @@
   white-space: nowrap;
 }
 
-.phaseSegment[data-kind="eccentric"] { background: #7c6cf0; }
-.phaseSegment[data-kind="pause"] { background: #7d8aa3; }
-.phaseSegment[data-kind="concentric"] { background: #2fae6e; }
-.phaseKey [data-kind="eccentric"] { --key: #7c6cf0; }
-.phaseKey [data-kind="pause"] { --key: #7d8aa3; }
-.phaseKey [data-kind="concentric"] { --key: #2fae6e; }
+@container (max-width: 1.75rem) {
+  .phaseSegment > span { visibility: hidden; }
+}
+
+.phaseSegment[data-kind="eccentric"] { background: var(--phase-eccentric); }
+.phaseSegment[data-kind="pause"] { background: var(--phase-pause); }
+.phaseSegment[data-kind="concentric"] { background: var(--phase-concentric); }
+.phaseKey [data-kind="eccentric"] { --key: var(--phase-eccentric); }
+.phaseKey [data-kind="pause"] { --key: var(--phase-pause); }
+.phaseKey [data-kind="concentric"] { --key: var(--phase-concentric); }
 
 /* Legend swatches use the same colours as the phase segments. */
 .phaseKey {

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Ban, GitCompare, Pencil, Plus, Share2, X } from "lucide-react";
+import { Ban, GitCompare, Pencil, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Alert, AlertDialog, Breadcrumbs, Button, Dialog, EmptyState, ErrorState, PageHeader, Skeleton, Spinner, TextArea, TextField, toast } from "@trainflow/ui-web";
 import { ApiError } from "~/shared/http/errors";
 import { formatDateTime, formatNumber } from "~/shared/i18n/format";
@@ -15,7 +15,7 @@ import { cancelAnalysis, updateAnalysis } from "../api";
 import { AnalysisStage, ResultView } from "../components/ResultView";
 import { StatusBadge } from "../components/StatusBadge";
 import { ShareAnalysisDialog } from "../components/ShareAnalysisDialog";
-import { CompareDialog, CompareView, sourceKey, useCompareResults, type CompareSource } from "../components/Compare";
+import { CompareDialog, type CompareSource } from "../components/Compare";
 import { WorkoutLink } from "../components/WorkoutLink";
 import { MovementField } from "../components/MovementField";
 import { engineMovement, movementLabel } from "../movement";
@@ -26,25 +26,6 @@ import styles from "./analysis-detail.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Analysis — TrainFlow");
-
-/** This analysis next to the chosen ones: videos side by side, all reps in one table, ticked reps overlaid. */
-function Comparison({ current, others, onAdd, onStop, onRemove }: { current: CompareSource; others: CompareSource[]; onAdd: () => void; onStop: () => void; onRemove: (source: CompareSource) => void }) {
-  // "Vid 1" (this analysis) can be removed too; the others stay compared.
-  const [withCurrent, setWithCurrent] = useState(true);
-  const sources = withCurrent ? [current, ...others] : others;
-  const results = useCompareResults(sources);
-  return (
-    <section className={styles.section} aria-label="Comparison">
-      <div className={styles.compareBar}>
-        <span>Comparing {sources.length} analyses</span>
-        <Button size="sm" variant="ghost" iconStart={<Plus />} onPress={onAdd}>Add</Button>
-        <Button size="sm" variant="ghost" iconStart={<X />} onPress={onStop}>Stop comparing</Button>
-      </div>
-      <CompareView sources={sources} results={results.map((query) => query.data)}
-        onRemove={(source) => (sourceKey(source) === sourceKey(current) ? setWithCurrent(false) : onRemove(source))} />
-    </section>
-  );
-}
 
 export default function AnalysisDetail() {
   const { analysisId = "" } = useParams();
@@ -59,7 +40,7 @@ export default function AnalysisDetail() {
   const { mode } = useWorkspace();
   const [shareOpen, setShareOpen] = useState(false);
   // Other analyses compared with this one, in this page (their reps join the table and the charts).
-  const [comparing, setComparing] = useState<CompareSource[]>([]);
+  const navigate = useNavigate();
   const [compareOpen, setCompareOpen] = useState(false);
   const compareAccess = useFeatureAccess("video.analysis.compare");
   const query = useAnalysis(analysisId);
@@ -237,11 +218,14 @@ export default function AnalysisDetail() {
         </>}
       />
       {shareOpen ? <ShareAnalysisDialog analysisId={analysis.id} name={analysis.name} onClose={() => setShareOpen(false)} /> : null}
-      {compareOpen ? <CompareDialog exclude={[`own:${analysis.id}`]} initial={comparing} onClose={() => setCompareOpen(false)} onConfirm={setComparing} /> : null}
+      {compareOpen ? <CompareDialog exclude={[`own:${analysis.id}`]} initial={[]} onClose={() => setCompareOpen(false)}
+        onConfirm={(others) => {
+          // The comparison opens on its own page, starting with this analysis.
+          const sources: CompareSource[] = [{ kind: "own", id: analysis.id, name: analysis.name, mediaId: analysis.mediaId }, ...others];
+          navigate(`/app/video-analyses/compare?${new URLSearchParams({ with: encodeURIComponent(JSON.stringify(sources)) })}`);
+        }} /> : null}
 
-      {comparing.length && analysis.status === "Completed" ? <Comparison current={{ kind: "own", id: analysis.id, name: analysis.name, mediaId: analysis.mediaId }} others={comparing}
-        onAdd={() => setCompareOpen(true)} onStop={() => setComparing([])} onRemove={(source) => setComparing((list) => list.filter((item) => sourceKey(item) !== sourceKey(source)))} /> : null}
-      <section aria-labelledby="result-title" className={styles.section} hidden={comparing.length > 0 && analysis.status === "Completed"}>
+      <section aria-labelledby="result-title" className={styles.section}>
         <h2 id="result-title" className="tf-visually-hidden">
           {t.result}
         </h2>

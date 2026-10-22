@@ -1,3 +1,5 @@
+import './phases.css';
+
 /** Phase kinds as the charts colour them; "none" is time outside any reported phase. */
 export type PhaseKind = "eccentric" | "pause" | "concentric" | "none";
 export const PHASE_KINDS: PhaseKind[] = ["eccentric", "pause", "concentric", "none"];

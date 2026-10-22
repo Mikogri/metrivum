@@ -22,9 +22,9 @@ import { Button, Dialog, TextField, toast, Toaster } from "@trainflow/ui-web";
 | --- | --- |
 | Actions | `Button`, `LinkButton`, `IconButton` (required `label`, shown as tooltip), `Link` |
 | Typography | `Text`, `Heading`, `Label`, `Caption` |
-| Fields | `TextField`, `TextArea`, `NumberInput` (locale-aware), `DateField`, `SearchInput`, `Select`, `Combobox`, `Option`, `Checkbox`, `RadioGroup`/`Radio`, `Switch`, `SegmentedControl`/`Segment` |
+| Fields | `TextField`, `TextArea`, `NumberInput` (locale-aware), `DateField`, `SearchInput`, `Select`, `Combobox`, `Option`, `Checkbox`, `RadioGroup`/`Radio`, `Switch`, `SegmentedControl`/`Segment`, `ChipGroup`/`Chip` (pill toggles; choosing the selected one again clears it) |
 | Overlays | `Dialog`, `AlertDialog`, `DialogTrigger`, `Popover`, `Tooltip`/`TooltipTrigger`, `DropdownMenu*` |
-| Structure | `Tabs`/`TabList`/`Tab`/`TabPanel`, `Breadcrumbs`, `Card`, `Separator`, `PageHeader`, `SectionHeader`, `Toolbar`, `Pagination`, `List`/`ListRow` |
+| Structure | `Tabs`/`TabList`/`Tab`/`TabPanel`, `Breadcrumbs`, `Card`, `Separator`, `Disclosure` (row that expands smoothly), `PageHeader`, `SectionHeader`, `Toolbar`, `Pagination`, `List`/`ListRow` |
 | Feedback | `Badge`, `Alert`, `Toaster` + `toast()`, `Spinner`, `Skeleton`, `EmptyState`, `ErrorState` |
 | Display | `Avatar`, `Kbd`, `FileCard` |
 

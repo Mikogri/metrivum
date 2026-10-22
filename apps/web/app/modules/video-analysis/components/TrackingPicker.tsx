@@ -1,10 +1,11 @@
-import { ArrowLeftToLine, ArrowRightToLine, Check, Crosshair, Eraser, RotateCcw, Scan, Scissors, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeftToLine, ArrowRightToLine, Check, Crosshair, Eraser, Pause, Play, RotateCcw, Scan, Scissors, StepBack, StepForward, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Slider, SliderThumb, SliderTrack } from "react-aria-components";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { AnalysisTracking } from "@trainflow/api-client-web";
 import { Alert, Button, IconButton } from "@trainflow/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import type { VideoTrim } from "../local-analysis";
+import { FRAME, PlayerButton, Scrubber, clock as playClock } from "./VideoPlayer";
 import styles from "./TrackingPicker.module.css";
 
 export type TrackingSelection = AnalysisTracking;
@@ -37,6 +38,16 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
   const [duration, setDuration] = useState(0);
   const [now, setNow] = useState(0);
   const [view, setView] = useState({ z: 1, x: 0, y: 0 });
+  const [playing, setPlaying] = useState(false);
+  // While playing, the time follows every frame so the scrub bar moves smoothly.
+  useEffect(() => {
+    const player = video.current;
+    if (!playing || !player) return;
+    let handle = 0;
+    const tick = () => { setNow(player.currentTime); handle = requestAnimationFrame(tick); };
+    handle = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(handle);
+  }, [playing]);
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   // Coming back to a video that already has points: seek to their frame instead of clearing them.
   const restoring = useRef(false);
@@ -109,6 +120,9 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
     return () => el.removeEventListener("wheel", listener);
   }, []);
   const needed = value ? 2 - value.points.length : 2;
+  const togglePlay = () => { const player = video.current; if (!player || value || disabled) return; if (player.paused) void player.play(); else player.pause(); };
+  const seekTo = (seconds: number) => { const player = video.current; if (!player || value) return; player.currentTime = seconds; setNow(seconds); };
+  const step = (delta: number) => { const player = video.current; if (!player || value) return; player.pause(); seekTo(Math.min(duration, Math.max(0, player.currentTime + delta))); };
   const freeze = () => {
     const player = video.current;
     if (!player || player.seeking || !player.videoWidth || !player.videoHeight) return;
@@ -127,7 +141,7 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
 
     <div ref={frame} className={styles.frame} data-zoomed={view.z > 1 || undefined}>
       <div ref={stage} className={styles.stage} style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})`, "--z": view.z } as React.CSSProperties}>
-        <video ref={video} src={src} controls={!value && !disabled} playsInline preload="auto"
+        <video ref={video} src={src} playsInline preload="auto" onClick={togglePlay} onPause={() => setPlaying(false)}
           onLoadedData={event => {
             setReady(true); setFailed(false);
             const video = event.currentTarget;
@@ -148,7 +162,7 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
             // Playback stays inside the trimmed part.
             if (trim && !value && !player.paused && player.currentTime >= trim.endSeconds) { player.pause(); player.currentTime = trim.endSeconds; }
           }}
-          onPlay={(event) => { invalidate(); const player = event.currentTarget; if (trim && (player.currentTime < trim.startSeconds || player.currentTime >= trim.endSeconds - 0.05)) player.currentTime = trim.startSeconds; }}
+          onPlay={(event) => { setPlaying(true); invalidate(); const player = event.currentTarget; if (trim && (player.currentTime < trim.startSeconds || player.currentTime >= trim.endSeconds - 0.05)) player.currentTime = trim.startSeconds; }}
           onError={() => { setReady(false); setFailed(true); onChange(null); }} />
         {value ? <div role="button" tabIndex={disabled ? -1 : 0} aria-label={t.canvas} aria-disabled={disabled || value.points.length === 2}
           className={styles.overlay} data-full={value.points.length === 2 || undefined}
@@ -186,8 +200,18 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
       </div> : null}
     </div>
 
-    {/* One control bar: frame and point tools on the left, zoom on the right. */}
+    {/* Playback (the same bar as the analysis player), then one control bar: frame and point tools, zoom. */}
+    <div className={styles.playback}>
+      <Scrubber time={now} duration={duration} onSeek={seekTo} disabled={!ready || frozen || disabled}
+        markers={trim ? [{ start: trim.startSeconds, end: trim.endSeconds, label: "Analyzed part" }] : []} />
+    </div>
     <div className={styles.controls}>
+      <div className={styles.group} role="group" aria-label="Playback">
+        <PlayerButton label={playing ? "Pause" : "Play"} onPress={togglePlay}>{playing ? <Pause /> : <Play />}</PlayerButton>
+        <PlayerButton label="Previous frame" onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
+        <PlayerButton label="Next frame" onPress={() => step(FRAME)}><StepForward /></PlayerButton>
+        <span className={styles.clock}>{playClock(now)}<span> / {playClock(duration)}</span></span>
+      </div>
       <div className={styles.group} role="group" aria-label={t.frameTools}>
         <Button size="sm" variant={value ? "ghost" : "secondary"} iconStart={value ? <X /> : <Crosshair />} isDisabled={disabled || !ready} onPress={freeze}>
           {value ? "Cancel" : compact ? "Freeze" : t.freeze}
@@ -241,9 +265,5 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
       </Slider>
     </div> : null}
     {failed ? <Alert tone="danger" title={t.loadError} /> : null}
-    {compact ? null : <p className={styles.note}>
-      {t.hint} {t.pixels}
-      {value ? <span className={styles.meta}>{` ${value.timestampSeconds.toFixed(3)} s · ${value.videoWidth} × ${value.videoHeight} px`}</span> : null}
-    </p>}
   </section>;
 }

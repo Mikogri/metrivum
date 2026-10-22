@@ -32,32 +32,6 @@
   gap: var(--tf-space-3);
 }
 
-.player {
-  overflow: hidden;
-  background: #000;
-}
-
-.video {
-  display: block;
-  width: 100%;
-  max-height: 26rem;
-  background: #000;
-}
-
-.placeholder {
-  display: grid;
-  place-items: center;
-  gap: var(--tf-space-2);
-  min-height: 14rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
-}
-
-.error {
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
-}
-
 .note {
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-sm);
@@ -185,15 +159,20 @@
 
 
 /*
- * Detail page: the video as large as the window allows, in its own proportions, and one sheet beside it.
- * --ratio is width / height: a 9:16 video gets a tall narrow column, a 16:9 one a wide column.
+ * Detail page: two fixed frames. A landscape video (as wide as tall or wider) sits in a 16:9 frame above the
+ * analysis; a portrait one in a 9:16 frame beside it. The video fits inside with black bars (top and bottom,
+ * or the sides) when its own proportions differ.
  */
 .detail {
   --video-height: calc(100dvh - 10.5rem);
   display: grid;
-  grid-template-columns: min(42%, max(15rem, calc(var(--video-height) * 0.78 * var(--ratio)))) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: var(--tf-space-4);
+}
+
+.detail[data-portrait] {
+  grid-template-columns: min(42%, max(15rem, calc(var(--video-height) * 0.85 * 9 / 16))) minmax(0, 1fr);
 }
 
 .sheet {
@@ -228,22 +207,48 @@
 }
 
 .videoCol {
-  position: sticky;
-  top: var(--tf-space-3);
   display: grid;
   min-width: 0;
+  /* The landscape frame never gets taller than the window. */
+  --player-max-height: calc(100dvh - 14rem);
 }
 
-.videoCol .video {
-  width: 100%;
-  max-height: calc(var(--video-height) * 0.78);
-  object-fit: contain;
+/* Portrait: the frame stays in view while the analysis scrolls beside it. */
+.detail[data-portrait] .videoCol {
+  position: sticky;
+  top: var(--tf-space-3);
 }
 
-.videoCol .placeholder {
-  min-height: 0;
-  aspect-ratio: var(--ratio);
-  max-height: var(--video-height);
+/* Hiding or showing the video animates with a view transition: the player and the sheet move as their own layers.
+   The player is clipped from the top rather than squeezed, so the picture never stretches. */
+.detail .videoCol {
+  view-transition-name: analysis-player;
+}
+
+.detail .sheet {
+  view-transition-name: analysis-sheet;
+}
+
+:global(::view-transition-group(analysis-player)),
+:global(::view-transition-group(analysis-sheet)) {
+  animation-duration: var(--tf-duration-base);
+  animation-timing-function: var(--tf-ease-out);
+}
+
+:global(::view-transition-old(analysis-player)),
+:global(::view-transition-new(analysis-player)) {
+  height: 100%;
+  object-fit: none;
+  object-position: top;
+}
+
+/* Hidden video: the bar alone, full width above the analysis. */
+.detail[data-collapsed] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.detail[data-collapsed] .videoCol {
+  position: static;
 }
 
 @media (max-width: 80rem) {
@@ -253,16 +258,16 @@
 }
 
 @media (max-width: 56rem) {
-  .detail {
-    grid-template-columns: 1fr;
+  /* One column on narrow screens, also for portrait videos (their two-column rule is more specific). */
+  .detail,
+  .detail[data-portrait] {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .videoCol {
+  .detail[data-portrait] .videoCol {
     position: static;
-  }
-
-  .videoCol .video {
-    max-height: 70dvh;
+    justify-self: center;
+    width: min(100%, calc(65dvh * 9 / 16));
   }
 }
 
@@ -314,7 +319,7 @@
   border-color: color-mix(in srgb, var(--tf-color-warning) 35%, transparent);
   background: var(--tf-color-warning-soft);
   color: var(--tf-color-warning);
-  cursor: help;
+  cursor: default;
 }
 
 .caution svg,
@@ -347,21 +352,7 @@
   padding-left: var(--tf-space-4);
 }
 
-/* Phase colours, the same as the charts. */
-.result,
-.detail {
-  --phase-eccentric: #7c6cf0;
-  --phase-pause: #7d8aa3;
-  --phase-concentric: #2fae6e;
-  --phase-none: #9a9a9a;
-}
-
-/* The overlay shares the video element's box; "meet" scaling letterboxes it exactly like the video. */
-.videoBox {
-  position: relative;
-  display: grid;
-}
-
+/* The overlay covers the player's video box; "meet" scaling letterboxes it exactly like the video. */
 .overlay {
   position: absolute;
   inset: 0;
@@ -398,22 +389,6 @@
   stroke-opacity: 0.55;
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
-}
-
-.playerStack {
-  display: grid;
-  gap: var(--tf-space-2);
-  min-width: 0;
-}
-
-.overlaySwitch {
-  font-size: var(--tf-text-sm);
-}
-
-.overlayHint {
-  display: block;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
 }
 
 /* Phase filter: one chip per phase kind with its colour; switched-off chips fade. */

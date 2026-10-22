@@ -152,11 +152,10 @@ export function NotificationBell({ label, className }: { label?: string; classNa
                 ) : null}
                 <ul className={styles.list}>
                     {analyzerUpdate ? <li className={styles.item} data-unread data-update>
-                        <span className={styles.updateIcon} aria-hidden="true"><ArrowUp /></span>
+                        <span className={styles.updateIcon} aria-hidden="true"><span><ArrowUp /></span></span>
                         <span className={styles.text}>
                             <strong>Analyzer update available ({analyzerUpdate.version})</strong>
                             <AnalyzerUpdateActions className={styles.meta} />
-                            <span className={styles.meta}>Stays here until the analyzer is updated.</span>
                         </span>
                     </li> : null}
                     {notifications.items.map((item) => {

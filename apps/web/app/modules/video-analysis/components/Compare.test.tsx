@@ -4,7 +4,7 @@ import { expect, it, vi } from 'vitest';
 import { CompareView, type CompareSource } from './Compare';
 
 vi.mock('~/shared/session/AccountScope', () => ({ useApi: () => vi.fn(), useAccountKey: () => 'account' }));
-vi.mock('./ResultView', () => ({ VideoPlayer: () => <div data-testid="video" /> }));
+vi.mock('./VideoPlayer', () => ({ VideoPlayer: () => <div data-testid="video" /> }));
 
 const rep = (number: number, start: number, mean: number) => ({ number, startSeconds: start, endSeconds: start + 2, meanSpeed: mean, peakSpeed: mean * 2, phases: [] });
 const result = (reps: ReturnType<typeof rep>[]): AnalysisResult => ({

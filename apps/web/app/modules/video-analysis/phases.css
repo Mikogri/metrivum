@@ -1,0 +1,7 @@
+/* Phase colours of a lift: one source for charts, tables, the timeline, comparisons and the video overlay. */
+:root {
+  --phase-eccentric: #7c6cf0;
+  --phase-pause: #7d8aa3;
+  --phase-concentric: #2fae6e;
+  --phase-none: var(--tf-color-text-tertiary);
+}

@@ -13,11 +13,11 @@
 
 /* Portrait: the middle column is as wide as the video at full height. */
 .layout[data-portrait] {
-  grid-template-columns: minmax(12.5rem, 1fr) auto minmax(14rem, 1fr);
+  /* The video column is the widest; the side panels share the rest. */
+  grid-template-columns: minmax(14rem, 1fr) minmax(0, 1.6fr) minmax(14rem, 1fr);
 }
 
-.layout[data-portrait] .left { justify-self: end; width: min(100%, 15rem); }
-.layout[data-portrait] .right { justify-self: start; width: min(100%, 17rem); }
+/* Portrait video: it keeps its own width; the side panels share the rest of the row, so nothing is left empty. */
 
 /* No video chosen yet: no empty left column taking space. */
 .layout[data-empty] {
@@ -45,6 +45,13 @@
 .left > *,
 .right > * {
   flex: none;
+}
+
+/* The queue takes the rest of the right column. */
+.queueSlot {
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 
 /* The details card takes the rest of the left column; it scrolls only if its content is taller. */
@@ -84,9 +91,7 @@
 }
 
 /* As wide as the video's own proportions allow at full height (plus the header and toolbar around it). */
-.layout[data-portrait] .videoCard {
-  width: clamp(18rem, calc((var(--video-height) - 5.5rem) * var(--ratio) + 1.5rem), 42rem);
-}
+
 
 /* Many videos: the list scrolls, the details stay in view. */
 .chipsCard {
@@ -140,6 +145,8 @@
 }
 
 @media (max-width: 75rem) {
+  /* One side column beside the video, exactly as tall: the analyzer and start on top, the video details fill the rest
+     and scroll inside when longer. */
   .left,
   .right {
     height: auto;
@@ -148,7 +155,32 @@
   .layout,
   .layout[data-portrait] {
     grid-template-columns: minmax(0, 1fr) minmax(14rem, 17rem);
+    grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas: "video right" "video left";
+  }
+
+  .layout:not([data-empty]) {
+    height: var(--video-height);
+  }
+
+  /* The column is shared with the video details here, so the queue gives way (progress shows on each video and in
+     the analyzer menu). */
+  .layout:not([data-empty]) .queueSlot {
+    display: none;
+  }
+
+  .layout:not([data-empty]) .left {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  /* One scroll for the whole column instead of one per card. */
+  .layout:not([data-empty]) .left > .card,
+  .layout:not([data-empty]) .chipsCard {
+    flex: none;
+    max-height: none;
+    overflow: visible;
   }
 
   .layout[data-portrait] .left,
@@ -164,7 +196,22 @@
   .layout,
   .layout[data-portrait] {
     grid-template-columns: 1fr;
+    grid-template-rows: none;
     grid-template-areas: "video" "left" "right";
+  }
+
+  /* No video yet: the drop area, then the analyzer panel (the empty-page rule is more specific). */
+  .layout[data-empty] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "video" "right";
+  }
+
+  .layout:not([data-empty]) {
+    height: auto;
+  }
+
+  .layout:not([data-empty]) .queueSlot {
+    display: flex;
   }
 
   .left,
@@ -187,11 +234,11 @@
 .checklist li > span { display: grid; place-items: center; width: 1.375rem; height: 1.375rem; border: 1px solid var(--tf-color-border); border-radius: 50%; color: var(--tf-color-text-tertiary); font-size: var(--tf-text-2xs); }
 .checklist li[data-done] > span { border-color: var(--tf-color-accent-border); background: var(--tf-color-accent-soft); color: var(--tf-color-accent); }
 .checklist li:not([data-done]) > span { border-color: color-mix(in srgb, var(--tf-color-warning) 50%, transparent); color: var(--tf-color-warning); }
+.checklist li[data-error] > span { border-color: var(--tf-color-danger); color: var(--tf-color-danger); }
+.checklist li[data-error] small { color: var(--tf-color-danger); }
 .checklist small { display: block; min-width: 0; overflow: hidden; color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-regular); text-overflow: ellipsis; white-space: nowrap; }
 
 /* Why the start button is off: a quiet note, not an alarm. */
-.notice { display: flex; gap: var(--tf-space-2); margin: 0; color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); line-height: var(--tf-leading-normal); }
-.notice svg { flex-shrink: 0; width: 0.875rem; height: 0.875rem; margin-top: 2px; }
 
 /* One run, one bar: the estimate moves fast early and slows near the end; stages tick off underneath. */
 .run {
@@ -504,4 +551,82 @@
 
 .stabilityNote svg {
   color: var(--tf-color-warning);
+}
+
+.hint[data-error] {
+  color: var(--tf-color-danger);
+}
+
+/* How to mark the points: a short numbered list, folded by default. */
+.howTo {
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+}
+
+.howToSteps {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  margin: 0;
+  padding: 0 var(--tf-space-3) var(--tf-space-3) calc(var(--tf-space-3) + var(--tf-space-4));
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.howToSteps strong {
+  color: var(--tf-color-text-secondary);
+  font-weight: var(--tf-weight-semibold);
+}
+
+/* A chosen video with its remove button beside it; the button shows on hover or focus, and on the chosen video. */
+.draftItem {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  min-width: 0;
+}
+
+.draftItem .draft {
+  flex: 1;
+  max-width: none;
+  padding-right: var(--tf-space-8);
+}
+
+.draftRemove {
+  position: absolute;
+  right: var(--tf-space-0-5);
+  opacity: 0;
+  transition: opacity var(--tf-duration-fast) ease;
+}
+
+.draftItem:hover .draftRemove,
+.draftItem:focus-within .draftRemove,
+.draftItem:has(.draft[aria-selected="true"]) .draftRemove {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .draftRemove { opacity: 1; }
+}
+
+/* Add and remove side by side under the list. */
+.draftActions {
+  display: flex;
+  gap: var(--tf-space-1-5);
+}
+
+.draftActions .draftAdd {
+  flex: 1;
+  justify-content: center;
+  max-width: none;
+}
+
+.draftAdd[data-tone="danger"] {
+  border-style: solid;
+}
+
+.draftAdd[data-tone="danger"]:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--tf-color-danger) 50%, transparent);
+  color: var(--tf-color-danger);
 }

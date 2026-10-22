@@ -26,11 +26,15 @@ export {
   Switch,
   SegmentedControl,
   Segment,
+  ChipGroup,
+  Chip,
   type CheckboxProps,
   type RadioGroupProps,
   type RadioProps,
   type SwitchProps,
   type SegmentedControlProps,
+  type ChipGroupProps,
+  type ChipProps,
 } from "./primitives/Toggle/Toggle";
 export { FieldLabel, FieldFooter, type FieldChromeProps } from "./primitives/Field/FieldParts";
 
@@ -54,6 +58,7 @@ export {
 export { Tabs, TabList, Tab, TabPanel, type TabsProps, type TabProps } from "./components/Tabs/Tabs";
 export { Breadcrumbs, type BreadcrumbItem, type BreadcrumbsProps } from "./components/Breadcrumbs/Breadcrumbs";
 export { Card, Separator, type CardProps } from "./components/Card/Card";
+export { Disclosure, type DisclosureProps } from "./components/Disclosure/Disclosure";
 export {
   PageHeader,
   PageBackContext,

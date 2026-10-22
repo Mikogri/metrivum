@@ -38,7 +38,7 @@ export function DataTable<T>({ label, columns, rows, rowKey, stale, rowProps, cl
       <table className={styles.table} aria-label={label}>
         <colgroup>
           {columns.map((column) => (
-            <col key={column.id} style={column.width ? { width: column.width } : undefined} />
+            <col key={column.id} style={column.width ? { width: column.width } : undefined} data-mobile-hidden={column.hideOnMobile || undefined} />
           ))}
         </colgroup>
         <thead>

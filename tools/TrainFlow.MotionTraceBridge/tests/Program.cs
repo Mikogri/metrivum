@@ -26,10 +26,10 @@ Check(trajectory.All(p => p.GetProperty("x").GetDouble() == 150), "Midpoint coor
 Check(trajectory[59].GetProperty("segment").GetInt32() != trajectory[60].GetProperty("segment").GetInt32(), "Single-frame visibility gap must split continuity.");
 Check(trajectory.All(p => p.GetProperty("seconds").GetDouble() != 2), "Lost frame must not be fabricated.");
 var unknown = Convert(raw, "unspecified");
-Check(unknown.GetProperty("repetitions").GetArrayLength() == 0, "Unknown movement must not invent rep rules.");
-Check(unknown.GetProperty("trajectory")[0].GetProperty("velocity").ValueKind == JsonValueKind.Null, "Unknown movement velocity is unavailable.");
+// No classifier: an unspecified movement is measured from the points' motion like any down-then-up lift.
+Check(unknown.GetProperty("repetitions").GetArrayLength() == result.GetProperty("repetitions").GetArrayLength(), "Unspecified movement must be split into reps from the points' motion.");
 VerifyParity(raw);
-Console.WriteLine("PASS: exact midpoint, lost endpoint, continuity, classifier abstention, helper parity.");
+Console.WriteLine("PASS: exact midpoint, lost endpoint, continuity, points-only reps, helper parity.");
 if (args.Length >= 1)
 {
     await using var stream = File.OpenRead(args[0]);

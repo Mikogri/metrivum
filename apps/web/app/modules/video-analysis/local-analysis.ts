@@ -97,7 +97,7 @@ export interface AnalyzerJob {
   contentType?: string;
   trim?: VideoTrim | null;
   stabilize?: boolean;
-  /** What the analyzer is doing right now ("Stabilizing video", "Tracking the bar"), with real progress in `progress`. */
+  /** What the analyzer is doing right now ("Stabilizing video", "Tracking the points"), with real progress in `progress`. */
   stage?: string | null;
 }
 

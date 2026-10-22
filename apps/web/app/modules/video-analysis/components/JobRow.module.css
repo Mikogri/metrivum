@@ -4,11 +4,6 @@
   align-items: start;
   gap: var(--tf-space-2);
   padding: var(--tf-space-2) 0;
-  border-top: 1px solid var(--tf-color-border-subtle);
-}
-
-.row:first-child {
-  border-top: 0;
 }
 
 .icon {
@@ -81,7 +76,7 @@
   font-weight: var(--tf-weight-medium);
   text-decoration: underline dotted;
   text-underline-offset: 3px;
-  cursor: help;
+  cursor: default;
   outline: none;
 }
 

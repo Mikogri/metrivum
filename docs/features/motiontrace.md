@@ -2,7 +2,7 @@
 
 The desktop web analysis form freezes a selected frame and accepts two source-video points. New analyses use an explicitly paired [local companion](../../tools/TrainFlow.LocalAnalyzer/README.md), which runs MotionTrace's Python tracker and .NET correction, movement and phase helpers on the user's computer. After inference, the original video is uploaded to private Storage and its result is saved to the existing client-result library. No cloud GPU queue is used. Results show repetition lifting speeds and selectable phase charts in px/s. Browser-only ML remains unavailable without a validated model export.
 
-Both points must be visible to contribute a midpoint. Tracking gaps split chart lines. Signed vertical velocity is positive down; phase mean/peak speeds are positive and repetition speeds describe lifting. Pause speed metrics are omitted. An unclassified movement may return a trajectory without repetitions. There is no physical calibration or camera stabilization.
+Both points must be visible to contribute a midpoint. Tracking gaps split chart lines. Signed vertical velocity is positive down; phase mean/peak speeds are positive and repetition speeds describe lifting. Pause speed metrics are omitted. Only the two marked points are measured (no lifter detection, no exercise classification); an unspecified movement is split into repetitions as "down, then up". There is no physical calibration or camera stabilization.
 
 ## Existing server worker setup
 

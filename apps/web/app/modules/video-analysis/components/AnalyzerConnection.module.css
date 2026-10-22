@@ -20,21 +20,13 @@
 .panel[data-tone="warning"] { --dot: var(--tf-color-warning); }
 .panel[data-tone="danger"] { --dot: var(--tf-color-danger); }
 
+/* A plain status dot in the state's colour. */
 .dot {
   flex: none;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
+  width: var(--tf-space-2);
+  height: var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
   background: var(--dot);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 22%, transparent);
-}
-
-.dot[data-pulse] {
-  animation: pulse 1.6s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--dot) 8%, transparent); }
 }
 
 .statusText {
@@ -97,71 +89,23 @@
   border-top: 1px solid var(--tf-color-border-subtle);
 }
 
-.moreToggle {
-  display: flex;
-  align-items: center;
-  gap: var(--tf-space-1-5);
-  width: 100%;
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border: 0;
-  background: transparent;
-  color: var(--tf-color-text-secondary);
-  font: inherit;
-  font-size: var(--tf-text-xs);
-  text-align: left;
-  cursor: pointer;
-  outline: none;
-}
-
-.moreToggle svg {
-  width: 0.85rem;
-  height: 0.85rem;
-  transition: transform 160ms var(--tf-ease-out);
-}
-
-.moreToggle[data-hovered] {
-  color: var(--tf-color-text);
-  background: var(--tf-color-surface-hover);
-}
-
-.moreToggle[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
-  outline-offset: -2px;
-}
-
-.more[data-expanded] .moreToggle svg {
-  transform: rotate(90deg);
-}
-
-.morePanel {
+.moreBody {
   padding: 0 var(--tf-space-3) var(--tf-space-3);
 }
 
+/* Two short numbered steps, plain text. */
 .steps {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--tf-space-1-5);
   margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.steps li {
-  display: grid;
-  gap: 2px;
-  padding: var(--tf-space-2);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
+  padding: 0 var(--tf-space-3) var(--tf-space-3) calc(var(--tf-space-3) + var(--tf-space-4));
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
   line-height: var(--tf-leading-normal);
 }
 
-.steps li span {
-  color: var(--tf-color-text);
+.steps strong {
+  color: var(--tf-color-text-secondary);
   font-weight: var(--tf-weight-semibold);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .dot[data-pulse] { animation: none; }
-  .moreToggle svg { transition: none; }
-}

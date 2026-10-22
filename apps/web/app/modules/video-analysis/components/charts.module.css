@@ -5,12 +5,8 @@
   margin: 0;
 }
 
-/* Phase colours, shared by lines, the bar path, bands, the timeline and the video overlay. */
-.figure,
-.timeline {
-  --phase-eccentric: #7c6cf0;
-  --phase-pause: #7d8aa3;
-  --phase-concentric: #2fae6e;
+/* Phase colours come from ../phases.css; on charts the line outside repetitions is a little brighter. */
+.figure {
   --phase-none: var(--tf-color-text-secondary);
 }
 
@@ -139,13 +135,6 @@
 .tipSwatch[data-kind="eccentric"] { background: var(--phase-eccentric); }
 .tipSwatch[data-kind="pause"] { background: var(--phase-pause); }
 .tipSwatch[data-kind="concentric"] { background: var(--phase-concentric); }
-
-.timeline {
-  --phase-eccentric: #7c6cf0;
-  --phase-pause: #7d8aa3;
-  --phase-concentric: #2fae6e;
-  --phase-none: var(--tf-color-text-tertiary);
-}
 
 .square {
   width: 100%;

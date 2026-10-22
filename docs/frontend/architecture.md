@@ -92,8 +92,8 @@ never imports the app, Supabase, React Query or the API client, and nothing call
 Local package with React as a peer dependency, `sideEffects: ["**/*.css"]` for tree-shaking, and one explicit
 stylesheet import (`@trainflow/ui-web/styles.css`). Groups: actions (Button, LinkButton, IconButton, Link),
 typography, fields (TextField, TextArea, NumberInput, DateField, SearchInput, Select, Combobox, Checkbox,
-Radio, Switch, SegmentedControl), overlays (Dialog, AlertDialog, Popover, Tooltip, DropdownMenu),
-structure (Tabs, Breadcrumbs, Card, Separator, PageHeader, SectionHeader, Toolbar, Pagination, List/ListRow),
+Radio, Switch, SegmentedControl, ChipGroup), overlays (Dialog, AlertDialog, Popover, Tooltip, DropdownMenu),
+structure (Tabs, Breadcrumbs, Card, Separator, Disclosure, PageHeader, SectionHeader, Toolbar, Pagination, List/ListRow),
 feedback (Badge, Alert, Toast, Spinner, Skeleton, EmptyState, ErrorState) and display (Avatar, Kbd, FileCard).
 
 Domain components (set grid, exercise picker, formula picker, charts) live in their modules. `ui-web`

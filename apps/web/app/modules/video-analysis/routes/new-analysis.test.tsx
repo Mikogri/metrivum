@@ -31,7 +31,7 @@ function choose(files: File[]) {
   return view;
 }
 /** The movement has no default: pick one of the main lifts, then mark the two points. */
-const pickMovement = () => fireEvent.click(screen.getByRole('button', { name: 'Squat' }));
+const pickMovement = () => fireEvent.click(screen.getByRole('radio', { name: 'Squat' }));
 const markAll = () => {
   for (const tab of screen.getAllByRole('tab')) { fireEvent.click(tab); pickMovement(); fireEvent.click(screen.getByRole('button', { name: 'Mark points' })); }
 };
@@ -74,13 +74,16 @@ it('keeps the marked points when switching between videos', () => {
   expect(screen.getAllByRole('tab')[0]).toHaveTextContent('points marked');
 });
 
-it('needs a movement before a video can be analyzed', () => {
+it('says the exercise is missing when Start is pressed without it, and sends nothing', () => {
   choose([video('lift.mov')]);
   fireEvent.click(screen.getByRole('button', { name: 'Mark points' }));
-  expect(screen.getByRole('button', { name: /Start analysis/i })).toBeDisabled();
-  expect(screen.getAllByText('Choose the movement').length).toBeGreaterThan(0);
+  const startButton = screen.getByRole('button', { name: /Start analysis/i });
+  expect(startButton).toBeEnabled();
+  fireEvent.click(startButton);
+  expect(screen.getByText('Choose the exercise to analyze.')).toHaveAttribute('role', 'alert');
+  expect(state.enqueue).not.toHaveBeenCalled();
   pickMovement();
-  expect(screen.getByRole('button', { name: /Start analysis/i })).toBeEnabled();
+  expect(screen.queryByText('Choose the exercise to analyze.')).not.toBeInTheDocument();
 });
 
 it('accepts at most ten videos, counting those already in the analyzer', () => {

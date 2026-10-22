@@ -37,13 +37,13 @@ Request:
 
 Optional `settingsPath` must reference an existing MotionTrace `settings.json`. Otherwise `PythonOptions.Load()` uses the current user's settings/defaults, with the source repository's `.models/vision` preferred when present. Points/samurai model paths retain MotionTrace's resolution rules. Use a separate private job directory for each request; manifests, targets and intermediate tracker results contain private video data. The caller owns cleanup. Default cache is adjacent to the output, never inside MotionTrace.
 
-Coordinates are source-video pixels after decoder rotation, not CSS/display pixels. The selected timestamp is resolved by MotionTrace to the nearest decoded frame. Width/height mismatch is rejected before inference. `movement` accepts `squat`, `deadlift`, `bench-press`, or `unspecified` (shared classifier; abstention gives no reps or velocity).
+Coordinates are source-video pixels after decoder rotation, not CSS/display pixels. The selected timestamp is resolved by MotionTrace to the nearest decoded frame. Width/height mismatch is rejected before inference. `movement` accepts `squat`, `deadlift`, `bench-press`, or `unspecified`. Analysis is points only (`--points-only`): no lifter detection and no exercise classifier; `unspecified` is split into reps as "down, then up", and phases follow the direction the points move.
 
 The result uses schema version 1 with `positionUnit: "px"` and no metric calibration. Positions are exact two-visible-point midpoints. Velocity is signed vertical px/s, positive down; mean/peak speeds are positive phase speeds and rep metrics refer to lifting. Smoothing, gap handling, phase rules and rep boundaries come directly from `ProviderPreparation`/`MovementAnalyzer`. Missing endpoints omit that timestamp and split `segment`; they never become fake stationary points. `quality` is the smaller endpoint visibility confidence, not calibrated measurement accuracy. No camera stabilization is applied.
 
 Python processes use argument lists, offline model mode, bounded output tails and process-tree cancellation. Failed/NotInstalled session statuses produce a nonzero exit even when Python itself exits zero. The adapter must only accept a result after exit code zero.
 
-Verification includes exact midpoint and one-frame visibility-gap tests, classifier abstention, and parity with the MotionTrace helpers for all three movements. To verify an existing real **two-point** tracker result without running inference:
+Verification includes exact midpoint and one-frame visibility-gap tests, points-only reps for an unspecified movement, and parity with the MotionTrace helpers for all three movements. To verify an existing real **two-point** tracker result without running inference:
 
 ```powershell
 ./tools/TrainFlow.MotionTraceBridge/build.ps1 -Check -RawFixture C:/private/cache/tapnextpp/analysis.json

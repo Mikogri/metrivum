@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { liftTempo } from './tempo';
-import { engineMovement, movementLabel } from './movement';
+import { engineMovement, isLift, movementLabel } from './movement';
 
 const rep = (number: number, start: number, phases: [string, number, number][]) => ({
   number, startSeconds: start, endSeconds: start + phases.reduce((sum, [, a, b]) => sum + b - a, 0),
@@ -27,4 +27,12 @@ it('maps any exercise to the closest engine movement and labels it by the exerci
   expect(engineMovement('Overhead press')).toBe('unspecified');
   expect(movementLabel({ movement: 'squat', exercise: 'Front squat' })).toBe('Front squat');
   expect(movementLabel({ movement: 'bench-press' })).toBe('Bench press');
+});
+
+it('matches the five competition lifts', () => {
+  expect(isLift('Squat', { movement: 'squat' })).toBe(true);
+  expect(isLift('Deadlift', { movement: 'deadlift', exercise: 'Sumo deadlift' })).toBe(true);
+  expect(isLift('Clean and jerk', { movement: 'unspecified', exercise: 'Clean and jerk' })).toBe(true);
+  expect(isLift('Snatch', { movement: 'unspecified', exercise: 'Rwanie' })).toBe(true);
+  expect(isLift('Squat', { movement: 'unspecified', exercise: 'Overhead press' })).toBe(false);
 });

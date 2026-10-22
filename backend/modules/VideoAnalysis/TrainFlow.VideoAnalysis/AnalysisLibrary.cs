@@ -164,6 +164,51 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
             throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
     }
 
+    /// <summary>
+    /// Deletes an analysis in any state with its share links (database cascade). Its video is deleted too unless another
+    /// of the owner's analyses uses it. A worker still processing it loses its lease and stops without writing a result.
+    /// </summary>
+    public async Task DeleteAsync(Guid id, Guid owner, long version, CancellationToken ct)
+    {
+        var job = await OwnedAsync(id, owner, ct);
+        if (job.Version != version)
+            throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
+        if (await db.Jobs.Where(x => x.Id == id && x.OwnerId == owner && x.Version == version).ExecuteDeleteAsync(ct) != 1)
+            throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
+        // A separate module owns the file: if releasing it fails, the analysis is still gone and the file is only kept.
+        if (job.MediaId is { } mediaId && !await db.Jobs.AnyAsync(x => x.OwnerId == owner && x.MediaId == mediaId, ct))
+            await media.ReleaseVideoAsync(mediaId, owner, ct);
+    }
+
+    /// <summary>
+    /// Queues a failed or cancelled server analysis again with a fresh attempt budget. The same queue limits as a new
+    /// analysis apply; analyses run on the coach's computer are retried there instead.
+    /// </summary>
+    public async Task RetryAsync(Guid id, Guid owner, long version, CancellationToken ct)
+    {
+        var job = await OwnedAsync(id, owner, ct);
+        if (job.Version != version)
+            throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
+        if (job.Status is not ("Failed" or "Cancelled") || job.ExecutionLocation != "server" || job.MediaId is null)
+            throw ApiException.Conflict("Only a failed or cancelled analysis run on the server can be retried.");
+        if (!analyzer.IsConfigured)
+            throw new ApiException(503, "ANALYZER_NOT_CONFIGURED", "No video analysis engine is configured.");
+        using var transaction = new TransactionScope(TransactionScopeOption.Required,
+            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted, Timeout = TimeSpan.FromSeconds(30) }, TransactionScopeAsyncFlowOption.Enabled);
+        await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(743165208915)", ct);
+        if (await db.Jobs.CountAsync(x => x.Status == "Queued" || x.Status == "Processing", ct) >= options.MaxQueuedJobs)
+            throw new ApiException(429, "RATE_LIMIT_EXCEEDED", "The analysis queue is full. Try again later.", retryAfter: TimeSpan.FromSeconds(30));
+        if (options.MaxConcurrentPerOwner > 0 && await db.Jobs.CountAsync(x => x.OwnerId == owner && (x.Status == "Queued" || x.Status == "Processing"), ct) >= options.MaxConcurrentPerOwner)
+            throw new ApiException(429, "RATE_LIMIT_EXCEEDED", "Two analyses are already queued or running. Try again when one finishes.", retryAfter: TimeSpan.FromSeconds(30));
+        var now = DateTimeOffset.UtcNow;
+        if (await db.Jobs.Where(x => x.Id == id && x.OwnerId == owner && x.Version == version && (x.Status == "Failed" || x.Status == "Cancelled"))
+                .ExecuteUpdateAsync(update => update.SetProperty(x => x.Status, "Queued").SetProperty(x => x.Attempts, 0)
+                    .SetProperty(x => x.FailureCode, (string?)null).SetProperty(x => x.CompletedAt, (DateTimeOffset?)null)
+                    .SetProperty(x => x.AvailableAt, now).SetProperty(x => x.Version, x => x.Version + 1), ct) != 1)
+            throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
+        transaction.Complete();
+    }
+
     public async Task CancelAsync(Guid id, Guid owner, long version, CancellationToken ct)
     {
         var job = await OwnedAsync(id, owner, ct);

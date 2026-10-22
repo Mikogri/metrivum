@@ -67,6 +67,8 @@ public static class Program
         Add("input", Path.GetFullPath(request.VideoPath)); Add("output", session); Add("target", target);
         // The web result consumes TAPNext++ only; comparison trackers would waste local GPU/RAM.
         Add("providers", "tapnextpp");
+        // Only the two marked points are measured: no lifter detection, no exercise classification.
+        arguments.Add("--points-only");
         Add("cache", request.CacheDirectory ?? Path.Combine(directory, "motiontrace-cache"));
         Add("pose-python", options.ExecutablePath); Add("vision-python", options.VisionExecutablePath);
         Add("samurai-python", options.SamuraiExecutablePath); Add("points-python", options.PointsExecutablePath);
@@ -133,13 +135,15 @@ public static class Program
         if (samples.Count == 0) throw new InvalidDataException("No frames have two visible, usable tracked points.");
         var exercise = Exercise(movement);
         var prepared = ProviderPreparation.Prepare(raw, videoPath, token: token);
-        if (exercise == ExerciseType.Unknown) exercise = prepared.Exercises[owner].ExerciseType;
+        // No exercise classifier: an unspecified movement is split into reps as "down, then up" (most lifts). Phases
+        // themselves come from the direction the points move, whatever the exercise.
+        if (exercise == ExerciseType.Unknown) exercise = ExerciseType.Squat;
         var analysis = exercise is ExerciseType.BenchPress or ExerciseType.Squat or ExerciseType.Deadlift
             ? prepared.FindMovement(new(owner, exercise, MovementSource.Barbell, 1.5))?.Analysis : null;
         var points = analysis?.Points.ToDictionary(p => p.FrameIndex);
         var warnings = raw.Limitations.ToList();
         warnings.Add("Vertical image-space velocity is measured in px/s; camera motion is not removed and no metric calibration is applied.");
-        if (analysis is null) warnings.Add("Exercise classification abstained; select a movement to calculate phases, repetitions and velocity.");
+        if (analysis is null) warnings.Add("No repetitions were found in the motion of the marked points.");
         if (samples.Count < raw.Frames.Count) warnings.Add("Frames without two visible points are omitted; segments prevent bridging visibility gaps.");
         return new
         {
@@ -209,7 +213,7 @@ public static class Program
 
     /// <summary>
     /// Maps the MotionTrace session's JSON progress lines ({"stage", "fraction", "providerId"}) to one bar:
-    /// finding the lifter (pose), then the bar, then point tracking, which takes most of the time.
+    /// reading the video's timeline, then tracking the two marked points, which takes almost all of the time.
     /// </summary>
     private static Action<string> SessionProgress(IProgress<AnalysisProgress> progress)
     {
@@ -224,10 +228,10 @@ public static class Program
             var stage = data.TryGetProperty("stage", out var s) && s.ValueKind == JsonValueKind.String ? s.GetString() ?? "" : "";
             var provider = data.TryGetProperty("providerId", out var p) && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
             double? fraction = data.TryGetProperty("fraction", out var f) && f.ValueKind == JsonValueKind.Number ? f.GetDouble() : null;
-            if (stage.Contains("RTMPose", StringComparison.OrdinalIgnoreCase)) phase = ("Finding the lifter", .05, .45);
-            else if (stage.Contains("physical target", StringComparison.OrdinalIgnoreCase)) phase = ("Locating the bar", .45, .5);
+            // Points only: a short look at the video's timeline, then tracking the two points takes the rest.
+            if (stage.StartsWith("Preparing the video timeline", StringComparison.Ordinal)) phase = ("Reading the video", .02, .06);
             // "tapnextpp: Queued" comes first, before any work: switch only once tracking reports progress.
-            else if (provider == "tapnextpp" && fraction is not null && phase.Start < .5) phase = ("Tracking the bar", .5, .95);
+            else if (provider == "tapnextpp" && fraction is not null && phase.Start < .06) phase = ("Tracking the points", .06, .95);
             else if (provider == "tapnextpp") return;
             else if (stage.StartsWith("Session complete", StringComparison.Ordinal)) { progress.Report(new("Measuring repetitions", .97)); return; }
             var within = fraction is { } value && double.IsFinite(value) ? Math.Clamp(value, 0, 1) : 0;

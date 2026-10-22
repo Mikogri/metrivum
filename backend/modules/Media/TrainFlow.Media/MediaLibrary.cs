@@ -221,6 +221,14 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
         return await AttachmentValidation.WavDurationAsync(stream, actual.Size, options.MaxVoiceDurationMs, ct);
     }
 
+    public async Task ReleaseVideoAsync(Guid id, Guid ownerId, CancellationToken ct)
+    {
+        var now = DateTimeOffset.UtcNow;
+        await db.Files.Where(x => x.Id == id && x.OwnerId == ownerId && x.Purpose == "Video" && x.State != "Deleting" && x.State != "Deleted")
+            .ExecuteUpdateAsync(update => update.SetProperty(x => x.Pinned, false).SetProperty(x => x.State, "Deleting")
+                .SetProperty(x => x.DeleteAfter, (DateTimeOffset?)now).SetProperty(x => x.Version, x => x.Version + 1), ct);
+    }
+
     public async Task DeleteAsync(Guid id, Guid owner, long version, CancellationToken ct)
     {
         var file = await OwnedAsync(id, owner, ct);

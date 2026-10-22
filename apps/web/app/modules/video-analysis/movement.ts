@@ -38,3 +38,22 @@ export function forgetJobExercise(jobId: string) {
   delete all[jobId];
   try { localStorage.setItem(KEY, JSON.stringify(all)); } catch { /* private browsing */ }
 }
+
+export type AnalysisLabel = { movement?: string | null; exercise?: string | null } | null | undefined;
+
+/** The five competition lifts: powerlifting (squat, bench press, deadlift) and weightlifting (snatch, clean and jerk). */
+export const LIFTS = ['Squat', 'Bench press', 'Deadlift', 'Snatch', 'Clean and jerk'] as const;
+
+/** Whether an analysis shows the given lift, by its engine movement or the chosen exercise's name. */
+export function isLift(lift: string, configuration: AnalysisLabel): boolean {
+  const name = (configuration?.exercise ?? '').toLowerCase();
+  const engine = configuration?.exercise ? engineMovement(name) : configuration?.movement;
+  switch (lift) {
+    case 'Squat': return engine === 'squat';
+    case 'Bench press': return engine === 'bench-press';
+    case 'Deadlift': return engine === 'deadlift';
+    case 'Snatch': return /snatch|rwanie/.test(name);
+    case 'Clean and jerk': return /clean|jerk|podrzut|zarzut/.test(name);
+    default: return false;
+  }
+}

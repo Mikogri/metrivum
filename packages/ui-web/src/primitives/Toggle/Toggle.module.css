@@ -234,3 +234,51 @@
     color: var(--tf-color-text);
   }
 }
+
+/* Chips: pill toggles in a wrapping row. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1-5);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  height: var(--tf-control-sm);
+  padding: 0 var(--tf-space-2-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  cursor: pointer;
+  outline: none;
+  transition:
+    border-color var(--tf-duration-fast) ease,
+    color var(--tf-duration-fast) ease;
+}
+
+.chip[data-selected] {
+  border-color: var(--tf-color-text);
+  color: var(--tf-color-text);
+}
+
+.chip[data-disabled] {
+  color: var(--tf-color-text-disabled);
+  cursor: not-allowed;
+}
+
+.chip[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chip[data-hovered]:not([data-selected], [data-disabled]) {
+    border-color: var(--tf-color-border-strong);
+    color: var(--tf-color-text);
+  }
+}

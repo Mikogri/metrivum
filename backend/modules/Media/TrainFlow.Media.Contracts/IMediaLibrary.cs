@@ -16,4 +16,11 @@ public interface IMediaLibrary
     /// </summary>
     Task<MediaReadUrl> ReadUrlForAsync(Guid id, Guid ownerId, Guid viewerId, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
+
+    /// <summary>
+    /// Deletes an owner's analysis video that nothing uses any more (its analysis was deleted): unpinned and scheduled
+    /// for removal like a user delete. Missing or already deleted files are ignored.
+    /// </summary>
+    Task ReleaseVideoAsync(Guid id, Guid ownerId, CancellationToken cancellationToken) =>
+        throw new NotSupportedException();
 }

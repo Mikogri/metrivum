@@ -33,6 +33,16 @@ interface AnalyzerJobs {
   markSeen: () => void;
 }
 
+// Errors already shown on this device, so a reload or another tab does not repeat them.
+const ANNOUNCED = 'trainflow.analyzer.announced';
+function announceOnce(key: string, show: () => void) {
+  let seen: string[] = [];
+  try { seen = JSON.parse(localStorage.getItem(ANNOUNCED) ?? '[]') as string[]; } catch { /* private browsing: show it */ }
+  if (seen.includes(key)) return;
+  try { localStorage.setItem(ANNOUNCED, JSON.stringify([...seen, key].slice(-100))); } catch { /* still shown */ }
+  show();
+}
+
 const EMPTY: AnalyzerJobs = { jobs: [], reachable: null, saving: {}, saveErrors: {}, saved: [], refresh: () => {}, retry: async () => {}, remove: async () => {}, dismissSaved: () => {}, unseen: 0, markSeen: () => {} };
 const Context = createContext<AnalyzerJobs>(EMPTY);
 export const useAnalyzerJobs = () => useContext(Context);
@@ -95,6 +105,8 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let collecting = false;
 
+    // The exercise label is sent only when one was chosen (older analyses have none).
+    const exerciseOf = (id: string) => { const exercise = jobExercise(id); return exercise ? { exercise } : {}; };
     const collect = async (job: AnalyzerJob, token: string) => {
       const run = async () => {
         setSaving(state => ({ ...state, [job.id]: { stage: 'uploading', ratio: 0 } }));
@@ -106,7 +118,7 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
           const receipt: LocalAnalysisReceipt = {
             id: job.id, uploadedMediaId: job.mediaId ?? undefined,
             body: { name: job.name, note: null, tags: [], sourceVideo: { ...job.sourceVideo, origin: 'cloud' },
-              configuration: { movement: job.configuration.movement, exercise: jobExercise(job.id), tracking: job.configuration.tracking, metersPerPixel: null }, result },
+              configuration: { movement: job.configuration.movement, ...exerciseOf(job.id), tracking: job.configuration.tracking, metersPerPixel: null }, result },
           };
           const analysis = await persistLocalAnalysis(api, file, receipt, signal,
             stage => { if (stage !== 'saved') setSaving(state => ({ ...state, [job.id]: { stage, ratio: state[job.id]?.ratio ?? 0 } })); },
@@ -130,7 +142,13 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
         } catch (failure) {
           if (signal.aborted) return;
           retryAt.current.set(job.id, Date.now() + RETRY_SAVE);
-          setSaveErrors(state => ({ ...state, [job.id]: failure instanceof TypeError ? 'Connection failed.' : failure instanceof Error ? failure.message : 'Saving failed.' }));
+          const reason = failure instanceof TypeError ? 'Connection failed.' : failure instanceof Error ? failure.message : 'Saving failed.';
+          setSaveErrors(state => ({ ...state, [job.id]: reason }));
+          // Shown once per video and reason; the row in the queue keeps it while saving is retried.
+          announceOnce(`save:${job.id}:${reason}`, () => {
+            toast({ tone: 'danger', title: `Saving failed: ${job.name}`, description: `${reason} It is tried again automatically.` });
+            notifyInBackground(`Saving failed: ${job.name}`, reason);
+          });
         } finally {
           setSaving(state => without(state, job.id));
         }
@@ -151,11 +169,12 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
         setReachable(true); setJobs(list);
         for (const job of list) {
           const before = lastState.current.get(job.id);
-          if (job.state === 'failed' && before && before !== 'failed') {
+          // Every failure is announced once, also one that happened while TrainFlow was closed.
+          if (job.state === 'failed' && before !== 'failed') announceOnce(`failed:${job.id}:${job.error ?? ''}`, () => {
             setUnseen(count => count + 1);
-            toast({ tone: 'warning', title: `Analysis failed: ${job.name}`, description: job.error ?? 'You can retry it from the analyses menu.' });
+            toast({ tone: 'danger', title: `Analysis failed: ${job.name}`, description: job.error ?? 'You can retry it from the analyses menu.' });
             notifyInBackground(`Analysis failed: ${job.name}`, job.error ?? 'Open TrainFlow to retry it.');
-          }
+          });
           lastState.current.set(job.id, job.state);
         }
         const next = list.find(job => job.state === 'done' && (retryAt.current.get(job.id) ?? 0) <= Date.now());

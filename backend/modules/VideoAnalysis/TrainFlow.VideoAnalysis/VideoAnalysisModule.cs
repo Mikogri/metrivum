@@ -74,6 +74,12 @@ public static class VideoAnalysisModule
             await library.UpdateAsync(id, account.UserId, Version(request), input, ct);
             return Results.NoContent();
         }).Produces(StatusCodes.Status204NoContent);
+        group.MapDelete("/{id:guid}", async (Guid id, HttpRequest request, AnalysisLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
+        {
+            await features.RequireAsync("video.library.manage", ct);
+            await library.DeleteAsync(id, account.UserId, Version(request), ct);
+            return Results.NoContent();
+        }).Produces(StatusCodes.Status204NoContent);
         // The coach attaches the analysis to one logged set of a client (or a whole logged workout).
         group.MapGet("/{id:guid}/workout-link", async (Guid id, AnalysisWorkoutLinks links, IAccountContext account, CancellationToken ct) =>
         {
@@ -105,6 +111,12 @@ public static class VideoAnalysisModule
             Results.Ok(await links.ResultAsync(id, account.UserId, repetition, maxPoints, ct))).Produces<AnalysisResult>();
         group.MapPost("/from-coach/{id:guid}/video-url", async (Guid id, AnalysisWorkoutLinks links, IAccountContext account, CancellationToken ct) =>
             Results.Ok(await links.VideoUrlAsync(id, account.UserId, ct))).Produces<CoachAnalysisVideoUrl>();
+        group.MapPost("/{id:guid}/retry", async (Guid id, HttpRequest request, AnalysisLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
+        {
+            await features.RequireAsync("video.analysis.run", ct);
+            await library.RetryAsync(id, account.UserId, Version(request), ct);
+            return Results.NoContent();
+        }).Produces(StatusCodes.Status204NoContent);
         group.MapPost("/{id:guid}/cancel", async (Guid id, HttpRequest request, AnalysisLibrary library, IAccountContext account, CancellationToken ct) =>
         {
             await account.RequireCoachAsync(ct);

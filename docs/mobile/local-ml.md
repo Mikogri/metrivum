@@ -9,7 +9,7 @@ Milestone B, inspected 2026-10-10. **BLOCKED: there is no verified mobile or bro
 The existing full reference pipeline contains:
 
 1. PyAV video decoding and presentation timestamps, including rotation/edit lists.
-2. RTMPose preparation and target/athlete resolution; shared classification in `comparison/prepare.py`.
+2. Points-only timeline and target resolution in `comparison/points_prepare.py` (TrainFlow passes `--points-only`; no RTMPose or classification).
 3. TAPNext++ tracking of two independent physical points, carrying state across frames.
 4. Pair spike rejection, visibility gaps and source coordinate restoration.
 5. .NET temporal correction, `ProviderPreparation`, movement detection, phases and velocity.

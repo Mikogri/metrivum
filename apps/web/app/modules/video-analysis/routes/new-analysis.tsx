@@ -1,6 +1,6 @@
-import { Check, CircleAlert, Clock, FileVideo, Info, LoaderCircle, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react';
+import { Check, CircleAlert, Clock, FileVideo, LoaderCircle, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Alert, Breadcrumbs, Button, Card, IconButton, LinkButton, PageHeader, Switch, TextField, toast } from '@trainflow/ui-web';
+import { Alert, AlertDialog, Breadcrumbs, Button, Card, Disclosure, IconButton, LinkButton, PageHeader, Switch, TextField, toast } from '@trainflow/ui-web';
 import { RequireFeature } from '~/shared/access';
 import { formatBytes, formatDateTime } from '~/shared/i18n/format';
 import { useLocale } from '~/shared/i18n/LocaleContext';
@@ -62,6 +62,10 @@ function LocalAnalysis() {
   // No movement is assumed: the coach picks it for each video (the last choice is offered for the next one).
   const [movement, setMovement] = useState('');
   const [error, setError] = useState('');
+  // Set by pressing Start while a video still misses its movement or points: those fields then show what is missing.
+  const [checked, setChecked] = useState(false);
+  // Removing a video always asks first.
+  const [removing, setRemoving] = useState<Draft | null>(null);
   const [dragging, setDragging] = useState(false);
   // Paired once per browser and computer: the token is remembered (see AnalyzerConnection).
   const [pairing, setPairing] = useState(() => (typeof window === 'undefined' ? '' : storedPairing()));
@@ -130,7 +134,20 @@ function LocalAnalysis() {
   };
 
   const start = async () => {
-    if (!ready.length || busy) return;
+    if (busy) return;
+    if (!ready.length) {
+      // Nothing can be sent yet: show what is missing on the first video that needs it.
+      setChecked(true);
+      const first = unsent.find(draft => !isReady(draft));
+      if (first) setSelected(first.key);
+      // After the render that marks the field, bring it into view (it can be below the fold beside the video).
+      requestAnimationFrame(() => {
+        const field = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+        field?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        field?.focus({ preventScroll: true });
+      });
+      return;
+    }
     const operation = new AbortController(); controller.current = operation;
     const abort = () => operation.abort();
     const accountSignal = lifecycle.signal(); accountSignal.addEventListener('abort', abort, { once: true });
@@ -192,21 +209,28 @@ function LocalAnalysis() {
       const mark = saved ? <Check />
         : status ? (status.state === 'queued' ? <Clock /> : status.state === 'failed' || status.state === 'save_failed' ? <CircleAlert /> : <LoaderCircle className={styles.spin} />)
         : draft.jobId ? <Clock /> : isReady(draft) ? <Check /> : index + 1;
-      return <button key={draft.key} type="button" role="tab" aria-selected={draft.key === current?.key} className={styles.draft}
+      return <div key={draft.key} className={styles.draftItem}>
+      <button type="button" role="tab" aria-selected={draft.key === current?.key} className={styles.draft}
         data-ready={isReady(draft) || saved || undefined} data-sent={draft.jobId ? (saved ? 'saved' : status?.state ?? 'sent') : undefined} onClick={() => setSelected(draft.key)}>
         <span className={styles.draftMark} aria-hidden="true">{mark}</span>
         <span className={styles.draftName}>{draft.name || draft.file.name}</span>
         {status && status.state !== 'queued' && status.state !== 'failed' && !saved ? <span className={styles.draftPercent}>{status.percent}%</span> : null}
         <span className="tf-visually-hidden">{draft.jobId ? ` — ${saved ? 'saved' : status?.text ?? 'in the analyzer'}` : isReady(draft) ? ' — points marked' : ' — mark points'}</span>
-      </button>;
+      </button>
+      {draft.jobId ? null : <IconButton size="sm" variant="ghost" icon={<Trash2 />} label={`Remove ${draft.name || draft.file.name}`} isDisabled={busy}
+        className={styles.draftRemove} onPress={() => setRemoving(draft)} />}
+      </div>;
     })}
-    {room > 0 ? <button type="button" className={styles.draftAdd} onClick={() => input.current?.click()} disabled={busy}><Plus aria-hidden="true" />{drafts.some(draft => draft.jobId) ? 'Another video' : 'Add videos'}</button> : null}
+    <div className={styles.draftActions}>
+      {room > 0 ? <button type="button" className={styles.draftAdd} onClick={() => input.current?.click()} disabled={busy}><Plus aria-hidden="true" />{drafts.some(draft => draft.jobId) ? 'Another video' : 'Add videos'}</button> : null}
+      {current && !current.jobId ? <button type="button" className={styles.draftAdd} data-tone="danger" onClick={() => setRemoving(current)} disabled={busy}><Trash2 aria-hidden="true" />Remove</button> : null}
+    </div>
   </div> : null;
 
   const details = current ? <Card as="section" padding="md" aria-labelledby="details-title" className={styles.card}>
     <div className={styles.cardHead}>
       <h2 id="details-title" className={styles.cardTitle}>{drafts.length > 1 ? `Video ${drafts.indexOf(current) + 1} of ${drafts.length}` : t.step.details}</h2>
-      {current.jobId ? null : <IconButton size="sm" variant="ghost" icon={<Trash2 />} label="Remove this video" isDisabled={busy} onPress={() => drop(current.key)} />}
+      {current.jobId ? null : <IconButton size="sm" variant="ghost" icon={<Trash2 />} label="Remove this video" isDisabled={busy} onPress={() => setRemoving(current)} />}
     </div>
     {current.jobId ? <div className={styles.sent} data-state={sentSaved ? 'saved' : sentStatus?.state ?? 'sent'} role="status">
       <span className={styles.sentHead}>
@@ -223,15 +247,23 @@ function LocalAnalysis() {
       {sentSaved ? null : <span className={styles.hint}>Closing it here does not stop the analysis.</span>}
     </div> : <>
       <TextField placeholder={m.common.ph.analysisName} label={t.name} value={current.name} onChange={name => update(current.key, { name })} maxLength={200} isDisabled={busy} />
-      <MovementField isRequired value={current.movement || null} isDisabled={busy}
+      <MovementField isRequired value={current.movement || null} isDisabled={busy} errorMessage={checked && !current.movement ? 'Choose the exercise to analyze.' : undefined}
         onChange={exercise => { update(current.key, { movement: exercise }); setMovement(exercise); }} />
       {unsent.length > 1 && current.movement ? <Button size="sm" variant="ghost" isDisabled={busy} onPress={() => setDrafts(list => list.map(draft => (draft.jobId ? draft : { ...draft, movement: current.movement })))}>Same movement for all</Button> : null}
       <StabilityControl draft={current} disabled={busy} onChange={stabilize => update(current.key, { stabilize })} />
       <ol className={styles.checklist}>
         <li data-done="" title={current.file.name}><span aria-hidden="true">✓</span><small>{current.file.name} · {formatBytes(locale, current.file.size)}</small></li>
-        <li data-done={current.movement ? '' : undefined}><span aria-hidden="true">{current.movement ? '✓' : '!'}</span><small>{current.movement ? 'Movement chosen' : 'Choose the movement'}</small></li>
-        <li data-done={points === 2 ? '' : undefined}><span aria-hidden="true">{points === 2 ? '✓' : '2'}</span><small>{points === 2 ? 'Points marked' : `Mark ${2 - points} more ${2 - points === 1 ? 'point' : 'points'}`}</small></li>
+        <li data-done={current.movement ? '' : undefined} data-error={(checked && !current.movement) || undefined}><span aria-hidden="true">{current.movement ? '✓' : '!'}</span><small>{current.movement ? 'Movement chosen' : 'Choose the movement'}</small></li>
+        <li data-done={points === 2 ? '' : undefined} data-error={(checked && points < 2) || undefined}><span aria-hidden="true">{points === 2 ? '✓' : '2'}</span><small>{points === 2 ? 'Points marked' : `Mark ${2 - points} more ${2 - points === 1 ? 'point' : 'points'}`}</small></li>
       </ol>
+      <Disclosure className={styles.howTo} title="How to mark the points">
+        <ol className={styles.howToSteps}>
+          <li>Play to a moment where the end of the bar is sharp, then <strong>Freeze</strong>.</li>
+          <li>Zoom in and mark <strong>two points very close together</strong> on one small, contrasting spot — the end of the sleeve or the edge of a plate.</li>
+          <li>Pick a spot that <strong>stays visible for the whole lift</strong>: not covered by hands, plates or the body. The analyzer follows these two points frame by frame.</li>
+          <li>Wheel or + / − zooms, dragging moves the frame, arrows and Enter mark points. Speed is in px/s.</li>
+        </ol>
+      </Disclosure>
     </>}
 
   </Card> : null;
@@ -245,21 +277,18 @@ function LocalAnalysis() {
         <span style={{ transform: `scaleX(${sending.starting ? 0.03 : Math.max(0.05, sending.done / sending.total)})` }} />
       </div>
     </div> : null}
-    <Button variant="primary" size="lg" block loading={busy} isDisabled={!ready.length || connection === 'runtime_missing' || connection === 'incompatible'} onPress={() => void start()}>
+    <Button variant="primary" block loading={busy} isDisabled={!unsent.length || connection === 'runtime_missing' || connection === 'incompatible'} onPress={() => void start()}>
       {ready.length > 1 ? `Analyze ${ready.length} videos` : t.start}
     </Button>
-    {!busy && !unsent.length ? <p className={styles.hint}>{drafts.length ? 'Add another video to analyze it too.' : 'Choose one or more videos first.'}</p>
-      : !busy && waiting ? <p className={styles.hint}>{waiting === 1 ? '1 video needs' : `${waiting} videos need`} a movement and two points{ready.length ? '; it waits here.' : '.'}</p>
-      : !busy && connection === 'unreachable' ? <p className={styles.hint}>Starting the analysis also starts the local analyzer on this computer.</p> : null}
+    {!busy && unsent.length > 0 && waiting > 0 ? <p className={styles.hint} data-error={checked || undefined} role={checked ? 'alert' : undefined}>{waiting === 1 ? '1 video needs' : `${waiting} videos need`} a movement and two points.</p> : null}
     {busy ? <Button onPress={() => controller.current?.abort()}>Stop sending</Button> : null}
-    <p className={styles.notice}><Info aria-hidden="true" />Analyzed one by one on this computer.</p>
   </section>;
 
   return <>
     <PageHeader
       context={<Breadcrumbs items={[{ id: 'list', label: m.video.list.title, href: '/app/video-analyses' }, { id: 'new', label: t.title }]} />}
       title={t.title}
-      description={`Analyze up to ${QUEUE_LIMIT} videos on this computer. They are processed in the background and saved privately in your TrainFlow library.`}
+      description={`Up to ${QUEUE_LIMIT} videos, analyzed on this computer and saved privately.`}
     />
     <input ref={input} id="local-analysis-video" type="file" multiple accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm" className="tf-visually-hidden" tabIndex={-1} aria-label={t.file}
       onChange={event => { pick(event.target.files); event.target.value = ''; }} />
@@ -289,9 +318,13 @@ function LocalAnalysis() {
       <div className={styles.right}>
         <AnalyzerConnection token={pairing} onTokenChange={setPairing} onStateChange={setConnection} />
         {startBar}
-        <AnalysisQueue fill />
+        <div className={styles.queueSlot}><AnalysisQueue fill /></div>
       </div>
     </div>
+    <AlertDialog isOpen={removing !== null} onOpenChange={open => { if (!open) setRemoving(null); }} title="Remove this video?" tone="danger"
+      confirmLabel="Remove" cancelLabel="Keep it" onConfirm={() => { if (removing) drop(removing.key); setRemoving(null); }}>
+      <p>{removing ? `${removing.name || removing.file.name} and its marked points are removed from this list. The file on your computer stays.` : null}</p>
+    </AlertDialog>
   </>;
 }
 

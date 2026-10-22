@@ -115,6 +115,7 @@
 
 .list {
   display: grid;
+  gap: var(--tf-space-1);
   max-height: min(24rem, 60vh);
   margin: 0;
   padding: 0;
@@ -186,8 +187,8 @@
   width: 2rem;
   height: 2rem;
   border-radius: var(--tf-radius-md);
-  background: color-mix(in srgb, var(--tf-color-rose, #f7768e) 14%, transparent);
-  color: var(--tf-color-rose, #f7768e);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
 }
 
 .recentIcon svg {

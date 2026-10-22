@@ -1285,7 +1285,7 @@ export const appPl: AppMessages = {
         missing: (n: number) => (n === 2 ? "Nie zaznaczono jeszcze punktów. Zaznacz dwa punkty na sztandze." : "Brakuje jeszcze jednego punktu na sztandze."),
         markHere: "Zaznacz punkty na tej klatce",
         markHint: "Zatrzymaj tam, gdzie sztanga jest dobrze widoczna",
-        guide: (n: number) => (n === 1 ? "Kliknij punkt 1 z 2 — jeden koniec sztangi" : "Kliknij punkt 2 z 2 — drugi koniec sztangi"),
+        guide: (n: number) => (n === 1 ? "Punkt 1 z 2 — mały znak na końcu sztangi" : "Punkt 2 z 2 — tuż obok punktu 1"),
         guideDone: "Oba punkty zaznaczone — możesz uruchomić analizę",
       },
       upload: "Prześlij nagranie",

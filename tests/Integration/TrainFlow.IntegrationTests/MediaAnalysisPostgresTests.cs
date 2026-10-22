@@ -81,6 +81,55 @@ public sealed class MediaAnalysisPostgresTests
     }
 
     [MediaPostgresFact]
+    public async Task Deleting_an_analysis_releases_its_video_only_when_no_other_analysis_uses_it()
+    {
+        await using var test = await Database.CreateAsync();
+        var first = await test.EnqueueAsync();
+        await using var db = test.Analysis();
+        await using var files = test.Media();
+        var library = test.AnalysisLibrary(db, files);
+        var job = await db.Jobs.AsNoTracking().SingleAsync(x => x.Id == first);
+
+        var second = Guid.NewGuid();
+        db.Jobs.Add(new AnalysisJob { Id = second, OwnerId = job.OwnerId, MediaId = job.MediaId, Name = "Same video", Configuration = job.Configuration,
+            IdempotencyKey = "second", RequestHash = "second", CreatedAt = job.CreatedAt, AvailableAt = job.AvailableAt });
+        await db.SaveChangesAsync();
+        await db.Jobs.Where(x => x.Id == second).ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "Failed"));
+
+        // A queued (running) analysis can be deleted too; a stale version is refused.
+        await Assert.ThrowsAsync<ApiException>(() => library.DeleteAsync(first, job.OwnerId, job.Version + 5, default));
+        await library.DeleteAsync(first, job.OwnerId, job.Version, default);
+        Assert.False(await db.Jobs.AnyAsync(x => x.Id == first));
+        Assert.Equal("Ready", (await files.Files.AsNoTracking().SingleAsync(x => x.Id == job.MediaId)).State);
+
+        var last = await db.Jobs.AsNoTracking().SingleAsync(x => x.Id == second);
+        await library.DeleteAsync(second, job.OwnerId, last.Version, default);
+        var file = await files.Files.AsNoTracking().SingleAsync(x => x.Id == job.MediaId);
+        Assert.Equal(("Deleting", false), (file.State, file.Pinned));
+    }
+
+    [MediaPostgresFact]
+    public async Task A_failed_server_analysis_can_be_queued_again_once()
+    {
+        await using var test = await Database.CreateAsync();
+        var id = await test.EnqueueAsync();
+        await using var db = test.Analysis();
+        await using var files = test.Media();
+        var library = test.AnalysisLibrary(db, files);
+        var job = await db.Jobs.AsNoTracking().SingleAsync(x => x.Id == id);
+        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => library.RetryAsync(id, job.OwnerId, job.Version, default))).Status);
+
+        await db.Jobs.Where(x => x.Id == id).ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "Failed").SetProperty(x => x.Attempts, 3)
+            .SetProperty(x => x.FailureCode, "ANALYSIS_TIMEOUT").SetProperty(x => x.CompletedAt, DateTimeOffset.UtcNow));
+        var failed = await db.Jobs.AsNoTracking().SingleAsync(x => x.Id == id);
+        await library.RetryAsync(id, job.OwnerId, failed.Version, default);
+        var queued = await db.Jobs.AsNoTracking().SingleAsync(x => x.Id == id);
+        Assert.Equal(("Queued", 0, (string?)null, (DateTimeOffset?)null), (queued.Status, queued.Attempts, queued.FailureCode, queued.CompletedAt));
+        // The same version cannot queue it twice.
+        await Assert.ThrowsAsync<ApiException>(() => library.RetryAsync(id, job.OwnerId, failed.Version, default));
+    }
+
+    [MediaPostgresFact]
     public async Task Media_read_ticket_uses_one_owned_lookup_and_still_validates_stored_bytes()
     {
         await using var test = await Database.CreateAsync();

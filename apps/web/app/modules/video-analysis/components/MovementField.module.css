@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   gap: var(--tf-space-2);
-  height: 2.25rem;
+  height: var(--tf-control-md);
   padding: 0 var(--tf-space-3);
   border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-md);
@@ -66,39 +66,12 @@
   color: var(--tf-color-text-tertiary);
 }
 
-.quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
+.trigger[aria-invalid="true"] {
+  border-color: var(--tf-color-danger);
 }
 
-.quick button {
-  padding: 2px var(--tf-space-2-5, 10px);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  background: none;
-  color: var(--tf-color-text-secondary);
-  font: inherit;
+.error {
+  margin: 0;
+  color: var(--tf-color-danger);
   font-size: var(--tf-text-xs);
-  cursor: pointer;
-}
-
-.quick button:hover:not(:disabled) {
-  color: var(--tf-color-text);
-  border-color: var(--tf-color-border-strong);
-}
-
-.quick button[aria-pressed="true"] {
-  border-color: var(--tf-color-text);
-  color: var(--tf-color-text);
-}
-
-.quick button:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
-  outline-offset: 1px;
-}
-
-.quick button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
 }

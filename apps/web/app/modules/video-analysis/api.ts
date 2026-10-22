@@ -1,4 +1,4 @@
-import type { AnalysisComparison, AnalysisDto, AnalysisSetOptions, AnalysisWorkoutLink, AnalysisWorkoutLinkRequest, CoachAnalysis, AnalysisResult, CreateAnalysisRequest, MediaDto, MediaReadTicket, UpdateAnalysisRequest, UploadRequest, UploadTicket } from "@trainflow/api-client-web";
+import type { AnalysisDto, AnalysisSetOptions, AnalysisWorkoutLink, AnalysisWorkoutLinkRequest, CoachAnalysis, AnalysisResult, CreateAnalysisRequest, MediaDto, MediaReadTicket, UpdateAnalysisRequest, UploadRequest, UploadTicket } from "@trainflow/api-client-web";
 import type { Transport } from "~/shared/http/transport";
 import { requireLocalAnalyzer } from './local-analysis';
 
@@ -30,6 +30,16 @@ export async function updateAnalysis(api: Transport, analysisId: string, body: U
   await api({ method: "PUT", path: `/api/v1/analyses/${id(analysisId)}`, json: body, ifMatch: version, responseType: "none" });
 }
 
+/** Queues a failed or cancelled server analysis again. */
+export async function retryAnalysis(api: Transport, analysisId: string, version: number) {
+  await api({ method: "POST", path: `/api/v1/analyses/${id(analysisId)}/retry`, ifMatch: version, responseType: "none" });
+}
+
+/** Deletes the analysis, its share links and (when no other analysis uses it) its video. */
+export async function deleteAnalysis(api: Transport, analysisId: string, version: number) {
+  await api({ method: "DELETE", path: `/api/v1/analyses/${id(analysisId)}`, ifMatch: version, responseType: "none" });
+}
+
 export async function cancelAnalysis(api: Transport, analysisId: string, version: number) {
   await api({ method: "POST", path: `/api/v1/analyses/${id(analysisId)}/cancel`, ifMatch: version, responseType: "none" });
 }
@@ -42,14 +52,6 @@ export async function getResult(api: Transport, analysisId: string, options: { r
       signal,
     })
   ).data;
-}
-
-export async function compareAnalyses(
-  api: Transport,
-  q: { leftId: string; rightId: string; leftRepetition?: number; rightRepetition?: number; maxPoints?: number },
-  signal?: AbortSignal,
-) {
-  return (await api<AnalysisComparison>({ path: "/api/v1/analyses/compare", query: { ...q, maxPoints: q.maxPoints ?? 800 }, signal })).data;
 }
 
 // Link to a logged set: the coach attaches the analysis to one set (or a whole workout) of a client.
@@ -96,7 +98,7 @@ export interface SharedAnalysis {
   allowSave?: boolean; saved?: boolean; own?: boolean; ownerName?: string | null;
 }
 /** A shared analysis kept in the viewer's library: opened through its link. */
-export interface SavedAnalysis { token: string; analysisId: string; name: string; ownerName: string; createdAt: string; completedAt: string | null; savedAt: string; hasVideo: boolean }
+export interface SavedAnalysis { token: string; analysisId: string; name: string; ownerName: string; createdAt: string; completedAt: string | null; savedAt: string; hasVideo: boolean; configuration?: { movement?: string | null; exercise?: string | null } | null }
 
 export async function getShare(api: Transport, analysisId: string, signal?: AbortSignal): Promise<AnalysisShare | null> {
   const response = await api<AnalysisShare | undefined>({ path: `/api/v1/analyses/${id(analysisId)}/share`, signal });
@@ -145,11 +147,6 @@ export async function listMedia(api: Transport, q: { search?: string; state?: st
   return (await api<MediaDto[]>({ path: "/api/v1/media", query: q, signal })).data;
 }
 
-export async function getMedia(api: Transport, mediaId: string, signal?: AbortSignal) {
-  const response = await api<MediaDto>({ path: `/api/v1/media/${id(mediaId)}`, signal });
-  return { data: response.data, version: response.version ?? response.data.version };
-}
-
 export async function reserveUpload(api: Transport, body: UploadRequest, signal?: AbortSignal) {
   return (await api<UploadTicket>({ method: "POST", path: "/api/v1/media/uploads", json: body, signal })).data;
 }
@@ -162,6 +159,3 @@ export async function readUrl(api: Transport, mediaId: string) {
   return (await api<MediaReadTicket>({ method: "POST", path: `/api/v1/media/${id(mediaId)}/read-url` })).data;
 }
 
-export async function deleteMedia(api: Transport, mediaId: string, version: number) {
-  await api({ method: "DELETE", path: `/api/v1/media/${id(mediaId)}`, ifMatch: version, responseType: "none" });
-}

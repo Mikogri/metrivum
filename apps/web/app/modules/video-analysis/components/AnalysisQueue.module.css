@@ -52,7 +52,11 @@
   color: var(--tf-color-warning);
 }
 
+/* Rows are separated by space, not lines. */
 .list {
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-1);
   flex: 1;
   min-height: 0;
   margin: 0;
@@ -62,16 +66,10 @@
   scrollbar-width: thin;
 }
 
-.empty,
-.note {
+.empty {
   margin: 0;
   padding: var(--tf-space-1) var(--tf-space-3) var(--tf-space-2);
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
 }
 
-.note {
-  margin-top: auto;
-  padding-top: var(--tf-space-2);
-  border-top: 1px solid var(--tf-color-border-subtle);
-}

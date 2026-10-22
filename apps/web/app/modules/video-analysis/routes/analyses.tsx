@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { BookmarkCheck, GitCompare, Plus, SearchX, Share2, Video } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BookmarkCheck, GitCompare, LoaderCircle, MoreHorizontal, Plus, SearchX, Video } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link as RouterLink } from "react-router";
-import { Button, DataTable, EmptyState, ErrorState, IconButton, LinkButton, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, TextField, Toolbar } from "@trainflow/ui-web";
+import { Link as RouterLink, useNavigate } from "react-router";
+import { AlertDialog, Button, DataTable, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, ErrorState, IconButton, LinkButton, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, TextField, Toolbar, toast } from "@trainflow/ui-web";
 import { LockedReason, useFeatures } from "~/shared/access";
 import { formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
@@ -12,14 +12,14 @@ import { useDebounced } from "~/shared/lib/useDebounced";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { LibraryViewToggle, useLibraryView } from "~/shared/library/LibraryViewToggle";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
-import { listSaved } from "../api";
+import { deleteAnalysis, listSaved, retryAnalysis } from "../api";
 import { StatusBadge } from "../components/StatusBadge";
 import { useAnalyzerJobs } from "../analyzer-jobs";
 import { JobProgress } from "../components/JobProgress";
 import type { AnalysisDto } from "@trainflow/api-client-web";
 import type { AnalyzerJob } from "../local-analysis";
 import { ShareAnalysisDialog } from "../components/ShareAnalysisDialog";
-import { useAnalysisList, useMediaList } from "../queries";
+import { useAnalysisList, useMediaList, videoKeys } from "../queries";
 
 type Row = { kind: "job"; job: AnalyzerJob } | { kind: "analysis"; analysis: AnalysisDto };
 import styles from "./analyses.module.css";
@@ -87,6 +87,65 @@ export default function AnalysesRoute() {
   const jobs = page === 1 && !filtersActive ? queue.jobs.filter((job) => !queue.saved.some((item) => item.id === job.id)) : [];
   const rows: Row[] = [...jobs.map((job) => ({ kind: "job" as const, job })), ...(list.data ?? []).map((analysis) => ({ kind: "analysis" as const, analysis }))];
   const [sharing, setSharing] = useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState<AnalysisDto | null>(null);
+  const api = useApi();
+  const account = useAccountKey();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const remove = useMutation({
+    mutationFn: (analysis: AnalysisDto) => deleteAnalysis(api, analysis.id, Number(analysis.version)),
+    onSuccess: (_, analysis) => {
+      setDeleting(null);
+      void queryClient.invalidateQueries({ queryKey: videoKeys.all(account) });
+      toast({ tone: "success", title: `Deleted ${analysis.name}` });
+    },
+    onError: (error) => { setDeleting(null); toast({ tone: "danger", title: errorText(m, error) }); },
+  });
+  const retry = useMutation({
+    mutationFn: (analysis: AnalysisDto) => retryAnalysis(api, analysis.id, Number(analysis.version)),
+    onSuccess: (_, analysis) => { void queryClient.invalidateQueries({ queryKey: videoKeys.all(account) }); toast({ tone: "success", title: `Queued again: ${analysis.name}` }); },
+    onError: (error) => toast({ tone: "danger", title: errorText(m, error) }),
+  });
+  // Failed or cancelled analyses run on the server can be queued again (local ones are retried in the analyzer).
+  const retryable = (analysis: AnalysisDto) => (analysis.status === "Failed" || analysis.status === "Cancelled") && analysis.executionLocation === "server" && Boolean(analysis.mediaId);
+  const working = (analysis: AnalysisDto) => analysis.status === "Queued" || analysis.status === "Processing";
+  // One menu per analysis: open, share, compare and delete (a running analysis stops when it is deleted).
+  const actions = (analysis: AnalysisDto) => (
+    <DropdownMenuTrigger>
+      <IconButton size="sm" variant="ghost" label={`Actions for ${analysis.name}`} icon={<MoreHorizontal />} />
+      <DropdownMenu aria-label={`Actions for ${analysis.name}`} onAction={(key) => {
+        if (key === "open") navigate(`/app/video-analyses/${analysis.id}`);
+        else if (key === "share") setSharing({ id: analysis.id, name: analysis.name });
+        else if (key === "compare") navigate(`/app/video-analyses/compare?${new URLSearchParams({ with: encodeURIComponent(JSON.stringify([{ kind: "own", id: analysis.id, name: analysis.name, mediaId: analysis.mediaId }])) })}`);
+        else if (key === "retry") retry.mutate(analysis);
+        else if (key === "delete") setDeleting(analysis);
+      }}>
+        <DropdownMenuItem id="open">Open</DropdownMenuItem>
+        {retryable(analysis) && access["video.analysis.run"].allowed ? <DropdownMenuItem id="retry">Retry</DropdownMenuItem> : null}
+        {analysis.status === "Completed" ? <DropdownMenuItem id="share">{m.video.share.action}</DropdownMenuItem> : null}
+        {analysis.status === "Completed" && access["video.analysis.compare"].allowed ? <DropdownMenuItem id="compare">Compare</DropdownMenuItem> : null}
+        {access["video.library.manage"].allowed ? <DropdownMenuSeparator /> : null}
+        {access["video.library.manage"].allowed ? <DropdownMenuItem id="delete" tone="danger">{working(analysis) ? "Stop and delete" : "Delete"}</DropdownMenuItem> : null}
+      </DropdownMenu>
+    </DropdownMenuTrigger>
+  );
+  const [removingJob, setRemovingJob] = useState<AnalyzerJob | null>(null);
+  const jobActions = (job: AnalyzerJob) => (
+    <DropdownMenuTrigger>
+      <IconButton size="sm" variant="ghost" label={`Actions for ${job.name}`} icon={<MoreHorizontal />} />
+      <DropdownMenu aria-label={`Actions for ${job.name}`} onAction={(key) => {
+        if (key === "retry") void queue.retry(job.id).then(() => toast({ tone: "success", title: `Retrying ${job.name}` }), () => { queue.refresh(); toast({ tone: "danger", title: `Could not retry ${job.name}` }); });
+        else if (key === "remove") setRemovingJob(job);
+      }}>
+        {job.state === "failed" || queue.saveErrors[job.id] ? <DropdownMenuItem id="retry">Retry</DropdownMenuItem> : null}
+        <DropdownMenuItem id="remove" tone="danger">{job.state === "analyzing" ? "Stop and remove" : "Remove"}</DropdownMenuItem>
+      </DropdownMenu>
+    </DropdownMenuTrigger>
+  );
+  // Work in progress stands out: an amber tile with a spinning icon instead of the video icon.
+  const icon = (busy: boolean, tone: string) => (
+    <span className={styles.tableIcon} data-tone={busy ? "working" : tone} aria-hidden="true">{busy ? <LoaderCircle className={styles.spin} /> : <Video />}</span>
+  );
 
   return (
     <>
@@ -156,21 +215,27 @@ export default function AnalysesRoute() {
                   {rows.map((row) => row.kind === "job" ? (
                     <li key={row.job.id} className={styles.card} data-analyzing="">
                       <div className={styles.cardTop}>
-                        <span className={styles.tableIcon} data-tone="neutral" aria-hidden="true"><Video /></span>
+                        {icon(row.job.state !== "failed", "rose")}
                       </div>
                       <span className={styles.cardTitle}>{row.job.name}</span>
                       <span className={styles.fileName} title={row.job.fileName}>{row.job.fileName}</span>
-                      <JobProgress job={row.job} />
+                      <div className={styles.cardBottom}>
+                        <JobProgress job={row.job} />
+                        {jobActions(row.job)}
+                      </div>
                     </li>
                   ) : (
-                    <li key={row.analysis.id} className={styles.card}>
+                    <li key={row.analysis.id} className={styles.card} data-analyzing={working(row.analysis) || undefined}>
                       <div className={styles.cardTop}>
-                        <span className={styles.tableIcon} data-tone="rose" aria-hidden="true"><Video /></span>
+                        {icon(working(row.analysis), "rose")}
                         <StatusBadge status={row.analysis.status} size="sm" />
                       </div>
                       <RouterLink className={styles.cardTitle} to={`/app/video-analyses/${row.analysis.id}`}>{row.analysis.name}</RouterLink>
                       {fileOf(row.analysis) ? <span className={styles.fileName} title={fileOf(row.analysis)}>{fileOf(row.analysis)}</span> : null}
-                      <span className={styles.cardMeta}>{formatRelative(locale, row.analysis.createdAt)}</span>
+                      <div className={styles.cardBottom}>
+                        <span className={styles.cardMeta}>{formatRelative(locale, row.analysis.createdAt)}</span>
+                        {actions(row.analysis)}
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -185,9 +250,7 @@ export default function AnalysesRoute() {
                     header: m.common.col.name,
                     cell: (row) => (
                       <span className={styles.nameCell}>
-                        <span className={styles.tableIcon} data-tone={row.kind === "job" ? "neutral" : "rose"} aria-hidden="true">
-                          <Video />
-                        </span>
+                        {icon(row.kind === "job" ? row.job.state !== "failed" : working(row.analysis), "rose")}
                         {row.kind === "job" ? <span className={styles.jobName}>{row.job.name}</span> : (
                           <RouterLink to={`/app/video-analyses/${row.analysis.id}`} data-row-link>
                             {row.analysis.name}
@@ -203,16 +266,26 @@ export default function AnalysesRoute() {
                   { id: "status", header: m.common.col.status, width: "13rem", cell: (row) => (row.kind === "job" ? <JobProgress job={row.job} /> : <StatusBadge status={row.analysis.status} size="sm" />) },
                   { id: "created", header: m.common.col.created, width: "8rem", muted: true, hideOnMobile: true, cell: (row) => (row.kind === "job" ? "now" : formatRelative(locale, row.analysis.createdAt)) },
                   {
-                    id: "share",
+                    id: "actions",
                     header: <span className="tf-visually-hidden">{m.common.actions}</span>,
-                    width: "3rem",
-                    cell: (row) => row.kind === "analysis" && row.analysis.status === "Completed"
-                      ? <IconButton size="sm" label={m.video.share.action} icon={<Share2 />} onPress={() => setSharing({ id: row.analysis.id, name: row.analysis.name })} />
-                      : null,
+                    width: "3.5rem",
+                    cell: (row) => (row.kind === "analysis" ? actions(row.analysis) : jobActions(row.job)),
                   },
                 ]}
               />}
               {sharing ? <ShareAnalysisDialog analysisId={sharing.id} name={sharing.name} onClose={() => setSharing(null)} /> : null}
+              <AlertDialog isOpen={deleting !== null} onOpenChange={(open) => { if (!open) setDeleting(null); }} title="Delete this analysis?" tone="danger"
+                confirmLabel="Delete" cancelLabel="Keep it" isConfirming={remove.isPending} onConfirm={() => { if (deleting) remove.mutate(deleting); }}>
+                <p>{deleting ? `${deleting.name} ${working(deleting) ? "stops and is" : "is"} deleted with its results and share links. The video is deleted too unless another analysis uses it. This cannot be undone.` : null}</p>
+              </AlertDialog>
+              <AlertDialog isOpen={removingJob !== null} onOpenChange={(open) => { if (!open) setRemovingJob(null); }} tone="danger"
+                title={removingJob?.state === "analyzing" ? "Stop and remove this video?" : "Remove this video?"} confirmLabel="Remove" cancelLabel="Keep it"
+                onConfirm={() => {
+                  const job = removingJob; setRemovingJob(null);
+                  if (job) void queue.remove(job.id).then(() => toast({ tone: "success", title: `Removed ${job.name}` }), () => { queue.refresh(); toast({ tone: "danger", title: `Could not remove ${job.name}` }); });
+                }}>
+                <p>{removingJob ? `${removingJob.name} is deleted from the analyzer on this computer${removingJob.state === "analyzing" ? " and its analysis stops" : ""}. Nothing is saved to your library.` : null}</p>
+              </AlertDialog>
               <Pagination
                 page={page}
                 pageCount={null}

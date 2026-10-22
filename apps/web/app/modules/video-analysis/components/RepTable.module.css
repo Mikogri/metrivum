@@ -75,18 +75,9 @@
 }
 
 .sortIcon {
-  width: 0.5rem;
-  height: 0.75rem;
+  width: 0.875rem;
+  height: 0.875rem;
   flex: none;
-}
-
-.sortIcon path {
-  fill: currentColor;
-  opacity: 0.3;
-}
-
-.sortIcon path[data-on] {
-  opacity: 1;
 }
 
 /* Hover only brightens the label. */

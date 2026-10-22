@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { Check, Search, X } from 'lucide-react';
 import type { AnalysisResult } from '@trainflow/api-client-web';
-import { Alert, Button, Card, Dialog, IconButton, SearchInput, Skeleton } from '@trainflow/ui-web';
+import { Alert, Button, Card, Dialog, Chip, ChipGroup, IconButton, SearchInput, Skeleton } from '@trainflow/ui-web';
 import { formatNumber, formatRelative } from '~/shared/i18n/format';
 import type { Locale } from '~/shared/i18n/locale';
 import { useLocale } from '~/shared/i18n/LocaleContext';
@@ -11,10 +11,11 @@ import { useDebounced } from '~/shared/lib/useDebounced';
 import { useAccountKey, useApi } from '~/shared/session/AccountScope';
 import { getResult, getSharedResult, listSaved, sharedVideoUrl } from '../api';
 import { useAnalysisList } from '../queries';
+import { isLift, LIFTS, movementLabel, type AnalysisLabel } from '../movement';
 import { normalizePhase, OverlayChart, type OverlayLine } from './charts';
 
 const PHASE_NAMES = { eccentric: 'Lowering', pause: 'Pause', concentric: 'Lifting' } as const;
-import { VideoPlayer } from './ResultView';
+import { VideoPlayer } from './VideoPlayer';
 import { RepTable } from './RepTable';
 import styles from './Compare.module.css';
 
@@ -26,7 +27,7 @@ export type CompareSource =
 export const sourceKey = (source: CompareSource) => (source.kind === 'own' ? `own:${source.id}` : `shared:${source.token}`);
 
 /** One colour per video (the number badge over the video uses it too); at most four videos are compared. */
-export const MAX_COMPARED = 4;
+const MAX_COMPARED = 4;
 const VIDEO_COLORS = ['#3b6fe0', '#d6456f', '#1f9d82', '#c9741f'];
 
 /** The same hue for every rep of one video, lighter for each further rep. */
@@ -57,6 +58,9 @@ interface RepRow { id: string; source: CompareSource; sourceIndex: number; resul
  * its video), and the ticked repetitions drawn over each other, each measured from its own start.
  */
 export function CompareView({ sources, results, onRemove }: { sources: CompareSource[]; results: Array<AnalysisResult | undefined>; onRemove?: (source: CompareSource) => void }) {
+  // Width / height of each loaded video, by source.
+  const [ratios, setRatios] = useState<Record<string, number>>({});
+  const setRatio = (key: string, ratio: number) => setRatios(current => (current[key] === ratio ? current : { ...current, [key]: ratio }));
   const locale = useLocale();
   const api = useApi();
   const rows = useMemo(() => {
@@ -107,8 +111,12 @@ export function CompareView({ sources, results, onRemove }: { sources: CompareSo
   const speedUnit = (result: AnalysisResult) => (result.metersPerPixel ? 'm/s' : `${result.positionUnit}/s`);
   const loading = results.some(result => !result);
 
+  // Every video gets the same frame: 9:16 while any video is portrait (or not loaded yet), 16:9 when all are landscape.
+  // A video in the other proportions gets black bars; the cards never change size.
+  const frame = sources.length > 0 && sources.every(source => (ratios[sourceKey(source)] ?? 0) >= 1) ? 16 / 9 : 9 / 16;
+
   return <div className={styles.compare}>
-    <div className={styles.videos} style={{ '--count': Math.min(sources.length, MAX_COMPARED) } as React.CSSProperties}>
+    <div className={styles.videos} style={{ '--count': Math.min(sources.length, MAX_COMPARED), '--frame': frame } as React.CSSProperties}>
       {sources.map((source, index) => <Card key={sourceKey(source)} as="section" padding="none" className={styles.videoCard} aria-label={source.name}>
         <header className={styles.videoHead}>
           <span className={styles.videoIndex} style={{ background: VIDEO_COLORS[index % VIDEO_COLORS.length] }}>{index + 1}</span>
@@ -117,8 +125,8 @@ export function CompareView({ sources, results, onRemove }: { sources: CompareSo
           {onRemove && sources.length > 1 ? <IconButton size="sm" variant="ghost" icon={<X />} label={`Remove ${source.name}`} onPress={() => onRemove(source)} /> : null}
         </header>
         <div className={styles.videoBody}>
-          {source.kind === 'own' && source.mediaId ? <VideoPlayer mediaId={source.mediaId} />
-            : source.kind === 'shared' && source.hasVideo ? <VideoPlayer mediaId={source.token} source={() => sharedVideoUrl(api, source.token)} />
+          {source.kind === 'own' && source.mediaId ? <VideoPlayer mediaId={source.mediaId} inset frame={frame} onSize={(w, h) => setRatio(sourceKey(source), w / h)} />
+            : source.kind === 'shared' && source.hasVideo ? <VideoPlayer mediaId={source.token} inset frame={frame} onSize={(w, h) => setRatio(sourceKey(source), w / h)} source={() => sharedVideoUrl(api, source.token)} />
             : <p className={styles.noVideo}>No video</p>}
         </div>
       </Card>)}
@@ -158,7 +166,7 @@ function PhaseBars({ rows, locale }: { rows: RepRow[]; locale: Locale }) {
             const kind = normalizePhase(phase.kind);
             const time = phase.endSeconds - phase.startSeconds;
             return <span key={i} className={styles.phaseSegment} data-kind={kind} style={{ flexGrow: time }} title={`${PHASE_NAMES[kind as keyof typeof PHASE_NAMES] ?? 'Other'}: ${formatNumber(locale, time, 2)} s`}>
-              {formatNumber(locale, time, 1)}
+              <span>{formatNumber(locale, time, 1)}</span>
             </span>;
           })}
         </span>
@@ -178,14 +186,18 @@ export function CompareDialog({ exclude, initial, onClose, onConfirm }: { exclud
   const locale = useLocale();
   const [search, setSearch] = useState('');
   const query = useDebounced(search, 250);
-  const own = useAnalysisList({ status: 'Completed', sort: 'newest', pageSize: 50, search: query || undefined });
+  // One search box: it matches the analysis name or its exercise, so the lists are filtered here.
+  const own = useAnalysisList({ status: 'Completed', sort: 'newest', pageSize: 100 });
   const saved = useQuery({ queryKey: [account, 'video', 'saved'] as const, queryFn: ({ signal }) => listSaved(api, signal) });
+  const [lift, setLift] = useState<string | null>(null);
   const [chosen, setChosen] = useState<Map<string, CompareSource>>(() => new Map(initial.map(source => [sourceKey(source), source])));
-  const options: Array<{ source: CompareSource; meta: string }> = [
-    ...(own.data ?? []).map(item => ({ source: { kind: 'own' as const, id: item.id, name: item.name, mediaId: item.mediaId }, meta: formatRelative(locale as Locale, item.completedAt ?? item.createdAt) })),
-    ...(saved.data ?? []).filter(item => !query || item.name.toLowerCase().includes(query.toLowerCase()))
-      .map(item => ({ source: { kind: 'shared' as const, token: item.token, name: item.name, hasVideo: item.hasVideo }, meta: `Shared by ${item.ownerName}` })),
+  const all: Array<{ source: CompareSource; meta: string; movement: string; configuration: AnalysisLabel }> = [
+    ...(own.data ?? []).map(item => ({ source: { kind: 'own' as const, id: item.id, name: item.name, mediaId: item.mediaId }, meta: formatRelative(locale as Locale, item.completedAt ?? item.createdAt), movement: movementLabel(item.configuration), configuration: item.configuration })),
+    ...(saved.data ?? []).map(item => ({ source: { kind: 'shared' as const, token: item.token, name: item.name, hasVideo: item.hasVideo }, meta: `Shared by ${item.ownerName}`, movement: movementLabel(item.configuration), configuration: item.configuration ?? null })),
   ].filter(option => !exclude.includes(sourceKey(option.source)));
+  const text = query.trim().toLowerCase();
+  const options = all.filter(option => (!text || option.source.name.toLowerCase().includes(text) || option.movement.toLowerCase().includes(text))
+    && (!lift || isLift(lift, option.configuration)));
   // Four videos at most, counting the ones already on the page.
   const room = MAX_COMPARED - exclude.length;
   const flip = (source: CompareSource) => setChosen(current => {
@@ -201,17 +213,20 @@ export function CompareDialog({ exclude, initial, onClose, onConfirm }: { exclud
       <Button variant="primary" isDisabled={!chosen.size} onPress={() => { onConfirm([...chosen.values()]); close(); }}>{chosen.size > 1 ? `Compare ${chosen.size} analyses` : 'Compare'}</Button>
     </>}>
     <div className={styles.dialog}>
-      <SearchInput aria-label="Search analyses" placeholder={m.common.search} value={search} onChange={setSearch} />
+      <SearchInput aria-label="Search analyses" placeholder="Search by name or exercise" value={search} onChange={setSearch} />
+      <ChipGroup aria-label="Filter by lift" selectedKeys={lift ? [lift] : []} onSelectionChange={keys => { const key = [...keys][0]; setLift(key == null ? null : String(key)); }}>
+        {LIFTS.map(name => <Chip key={name} id={name}>{name}</Chip>)}
+      </ChipGroup>
       <p className={styles.hint}>Up to {MAX_COMPARED} videos at once{exclude.length ? `, including this one` : ''}: {chosen.size} of {room} chosen.</p>
-      {own.isPending ? <Skeleton height="12rem" radius="lg" /> : !options.length ? <p className={styles.hint}><Search aria-hidden="true" />No other completed analyses.</p>
+      {own.isPending ? <Skeleton height="12rem" radius="lg" /> : !options.length ? <p className={styles.hint}><Search aria-hidden="true" />{text || lift ? 'No matching analyses.' : 'No other completed analyses.'}</p>
         : <ul className={styles.options}>
-          {options.map(({ source, meta }) => {
+          {options.map(({ source, meta, movement }) => {
             const on = chosen.has(sourceKey(source));
             return <li key={sourceKey(source)}>
               <button type="button" className={styles.option} aria-pressed={on} disabled={!on && chosen.size >= room} onClick={() => flip(source)}>
                 <span className={styles.box} aria-hidden="true">{on ? <Check /> : null}</span>
                 <span className={styles.optionName}>{source.name}</span>
-                <span className={styles.optionMeta}>{meta}</span>
+                <span className={styles.optionMeta}>{movement} · {meta}</span>
               </button>
             </li>;
           })}
