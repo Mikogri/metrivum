@@ -107,6 +107,7 @@ export function pathCrumbs(m: AppMessages, pathname: string, mode: "coach" | "cl
   const rest = pathname.slice(section.to.length).split("/").filter(Boolean)[0];
   if (rest === "new") crumbs.push({ href: pathname, label: section.to === "/app/video-analyses" ? m.nav.crumbs.newAnalysis : m.nav.crumbs.create });
   else if (rest === "compare") crumbs.push({ href: pathname, label: m.nav.crumbs.compare });
+  else if (rest === "generate") crumbs.push({ href: pathname, label: m.nav.crumbs.generate });
   else if (rest) {
     const [, id, mode] = pathname.slice(section.to.length).split("/");
     crumbs.push({ href: `${section.to === "/app/templates" ? "/app/programs" : section.to}/${id}`, label: m.nav.crumbs.details });

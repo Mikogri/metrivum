@@ -493,7 +493,7 @@ export function MobileSession({ children }: PropsWithChildren) {
                     <Text>{t("auth.configurationHelp")}</Text>
                 </Screen>
             ) : loading || linkState === "working" ? (
-                <Screen title="TrainFlow">
+                <Screen title="Metrivum">
                     <LoadingState />
                 </Screen>
             ) : recovery ? (
@@ -782,7 +782,7 @@ function AccountScope({
         );
     if (!profile || !drafts)
         return (
-            <Screen title="TrainFlow">
+            <Screen title="Metrivum">
                 <LoadingState />
             </Screen>
         );
@@ -915,7 +915,7 @@ function AuthScreen({
     return (
         <Screen
             title={t(register ? "auth.create" : "auth.signIn")}
-            subtitle="TrainFlow"
+            subtitle="Metrivum"
         >
             {accounts.length > 0 && (
                 <Section>

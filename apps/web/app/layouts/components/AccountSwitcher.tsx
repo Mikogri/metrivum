@@ -1,4 +1,5 @@
-import { Check, ChevronsUpDown, LogOut, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react";
+import { useState } from "react";
 import { Button as AriaButton, Header, MenuSection } from "react-aria-components";
 import { useNavigate } from "react-router";
 import {
@@ -13,6 +14,7 @@ import { useProfile } from "~/modules/accounts";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useActiveAccount, useSessionState } from "~/shared/session/SessionProvider";
+import { SignOutDialog } from "~/shared/session/SignOutDialog";
 import { useAccountActions } from "~/shared/session/useAccountActions";
 import type { SlotId } from "~/shared/session/storage-keys";
 import { SettingsIcon } from "./navIcons";
@@ -27,6 +29,7 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
   const { confirm, dialog } = useDiscardConfirm();
   const actions = useAccountActions(confirm);
   const name = profile.displayName || profile.username || active?.email || "";
+  const [signingOut, setSigningOut] = useState(false);
 
   return (
     <>
@@ -47,8 +50,9 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
             const id = String(key);
             if (id.startsWith("slot:")) void actions.switchTo(Number(id.slice(5)) as SlotId);
             else if (id === "add") void actions.addAccount();
+            else if (id === "profile") navigate("/app/profile");
             else if (id === "settings") navigate("/app/settings");
-            else if (id === "signout" && active) void actions.signOut(active.slot);
+            else if (id === "signout") setSigningOut(true);
           }}
         >
           {/* Who is signed in, as a card above the actions. */}
@@ -81,14 +85,18 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
             </DropdownMenuItem>
           </DropdownMenuSection>
           <DropdownMenuSeparator />
+          <DropdownMenuItem id="profile" icon={<UserRound />}>
+            {m.accounts.viewProfile}
+          </DropdownMenuItem>
           <DropdownMenuItem id="settings" icon={<SettingsIcon />}>
             {m.nav.settings}
           </DropdownMenuItem>
           <DropdownMenuItem id="signout" icon={<LogOut />} tone="danger">
-            {m.accounts.signOut}
+            {m.accounts.signOut}…
           </DropdownMenuItem>
         </DropdownMenu>
       </DropdownMenuTrigger>
+      <SignOutDialog isOpen={signingOut} onOpenChange={setSigningOut} signOut={actions.signOut} signOutAll={actions.signOutAll} />
       {dialog}
     </>
   );

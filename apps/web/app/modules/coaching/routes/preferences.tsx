@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Coaching preferences — TrainFlow");
+export const meta = () => privateMeta("Coaching preferences — Metrivum");
 
 import { Navigate } from "react-router";
 

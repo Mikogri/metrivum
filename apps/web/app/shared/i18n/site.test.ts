@@ -5,8 +5,8 @@ import { privateMeta } from "./site";
 
 describe("page metadata", () => {
   it("keeps private page titles alongside the indexing restriction", () => {
-    expect(privateMeta("Calendar — TrainFlow")).toEqual([
-      { title: "Calendar — TrainFlow" },
+    expect(privateMeta("Calendar — Metrivum")).toEqual([
+      { title: "Calendar — Metrivum" },
       { name: "robots", content: "noindex, nofollow" },
     ]);
   });

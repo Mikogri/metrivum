@@ -24,6 +24,7 @@ afterEach(() => { localStorage.clear(); sessionStorage.clear(); vi.unstubAllGlob
 it("loads account queries through StrictMode effect cleanup and replay", async () => {
   const session = { access_token: "token", user: { id: "coach", email: "coach@example.test" } } as Session;
   const client = { auth: { getSession: async () => ({ data: { session }, error: null }),
+    getUser: async () => ({ data: { user: session.user }, error: null }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
   } } as unknown as SupabaseClient;
   localStorage.setItem(slotStorageKey(0), JSON.stringify(session));

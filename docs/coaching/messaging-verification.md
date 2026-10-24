@@ -23,7 +23,7 @@ OpenAPI, generated TypeScript/feature catalog, typed SignalR events, guarded fix
 | `dotnet format whitespace TrainFlow.slnx --no-restore --verify-no-changes --include <stage-3a paths>` | Passed for new/edited Messaging, Media, FeatureAudience, transaction, fixture and test paths after formatting. Whole-checkout verification also reports pre-existing Calendar formatting outside this stage. |
 | `powershell -NoProfile -File infra/scan-secrets.ps1`, equivalent tracked + untracked source scan, `git diff --check` | Passed. Ignored local credentials remain untracked. |
 | `graphify update .` | Graph rebuilt after code changes. |
-| Restarted TrainFlow API; `Invoke-WebRequest http://localhost:59120/health/ready` | 200 `{"status":"ready"}`; unauthenticated `/api/v1/messaging/conversations` returns 401. |
+| Restarted Metrivum API; `Invoke-WebRequest http://localhost:59120/health/ready` | 200 `{"status":"ready"}`; unauthenticated `/api/v1/messaging/conversations` returns 401. |
 
 PostgreSQL coverage includes concurrent pair creation/idempotent sends, accepted/declined/cancelled requests, blocking/history, account swapping, group-only grants, join/removal/rejoin cutoffs, manual-vs-synced members, ban precedence under concurrency, transactional rollback, suspended relationships, tied/frozen-clock cursors including rename, monotonic reads/unread, attachment ownership/cutoffs, report evidence, committed-before-event behavior, transport failure recovery and current recipient revocation. A real in-process JWT WebSocket exercises typing and removal. REST persistence is checked with a reopened API host; fixtures additionally survive a separate console process.
 
@@ -59,7 +59,7 @@ Exports: `infra/export-messaging.ps1 -Configuration Release` for the pinned curr
 
 ## APPLIED TO DEV
 
-Owner-confirmed Super Team / TrainFlow development project **`atclvdkpbccafakzpwls`**. Supabase migration `stage03a_persistent_messaging` applied successfully; all three EF history entries verified. `trainflow-private` created as a private bucket, allowed types configured and per-object limit set to 50 MiB. Server-only local Storage settings configured; no credentials added to source.
+Owner-confirmed Super Team / Metrivum development project **`atclvdkpbccafakzpwls`**. Supabase migration `stage03a_persistent_messaging` applied successfully; all three EF history entries verified. `trainflow-private` created as a private bucket, allowed types configured and per-object limit set to 50 MiB. Server-only local Storage settings configured; no credentials added to source.
 
 Actual TLS/VerifyFull runtime connection performed conversation/message insert and read inside a rolled-back transaction using `psql -X -w -v ON_ERROR_STOP=1 -f .local/messaging/runtime-smoke.sql`; zero smoke messages remained. Verified `trainflow_api` schema USAGE without CREATE, immutable message/report grants, and no Messaging schema access for Supabase anon/authenticated roles. Cloud counts remained 9 profiles and 482 exercises; Messaging contained zero messages after smoke rollback.
 

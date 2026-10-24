@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Subscription — TrainFlow");
+export const meta = () => privateMeta("Subscription — Metrivum");
 
 import { Offers } from "../SubscriptionPanel";
 import { useState } from "react";
@@ -97,7 +97,7 @@ export default function SubscriptionRoute() {
         <>
             <PageHeader
                 title="Subscription"
-                description="Your TrainFlow platform plan. Client service purchases are managed separately in My payments."
+                description="Your Metrivum platform plan. Client service purchases are managed separately in My payments."
                 meta={
                     <>
                         <Badge tone={paid ? "success" : "neutral"} dot>{subscription.planId}</Badge>

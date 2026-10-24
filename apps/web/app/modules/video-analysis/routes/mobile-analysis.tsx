@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Video analysis — TrainFlow");
+export const meta = () => privateMeta("Video analysis — Metrivum");
 
 import { useState } from "react";
 import type { AnalysisDto } from "@trainflow/api-client-web";

@@ -71,7 +71,7 @@ def stream_windows_wheel_libraries(files):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--version', default='1.4.0')
+    parser.add_argument('--version', default='1.7.0')
     parser.add_argument('--motiontrace', type=Path, required=True)
     parser.add_argument('--environments', type=Path, required=True)
     parser.add_argument('--host', type=Path, required=True)
@@ -85,6 +85,9 @@ def main():
                 args.motiontrace / '.models/vision/manifest.json', args.motiontrace / '.models/points/tapnextpp_ckpt.pt']
     if any(not path.is_file() for path in required):
         raise ValueError('Complete published host, MotionTrace source and offline models are required')
+    adapter = args.motiontrace / 'ai/comparison/tap_backends.py'
+    if '\nVERSION = "tap-points-8"\n' not in adapter.read_text():
+        raise ValueError('Apply the reviewed model-input-spool.patch and resident-worker.patch before packaging this analyzer.')
     probe = Path(__file__).resolve().parents[2] / 'infra/local-analysis/probe.py'
     subprocess.run([sys.executable, str(probe), '--model-root', str(args.motiontrace / '.models/points'),
                     '--output', str(args.output / 'tapnext-audit.json')], check=True, stdout=subprocess.DEVNULL)

@@ -34,9 +34,9 @@ function setup(role: string) {
 }
 async function account() {
   await userEvent.type(screen.getByLabelText(/^Username/), "new_client");
-  await userEvent.type(screen.getByLabelText(/^Display name/), "New Client");
+  await userEvent.type(screen.getByLabelText(/^First and last name/), "New Client");
   fireEvent.change(screen.getByLabelText("Date of birth"), { target: { value: "1990-01-01" } });
-  await userEvent.click(screen.getByText(/^I accept the TrainFlow terms/));
+  await userEvent.click(screen.getByText(/^I accept the Metrivum terms/));
   await userEvent.click(screen.getByRole("button", { name: "Continue" }));
   await screen.findByText("About you");
 }
@@ -58,22 +58,37 @@ it("asks a client for sex, height and weight before the account is created, then
   await userEvent.type(screen.getByLabelText(/^Weight/), "61.5");
   await userEvent.click(screen.getByRole("button", { name: "Continue" }));
 
+  // Heart rate: the estimate from the birth date fills the field.
+  await screen.findByText("Heart rate and recovery");
+  const estimate = screen.getByRole("button", { name: /^Use estimate/ });
+  const bpm = Number(/(\d+) bpm/.exec(estimate.textContent ?? "")![1]);
+  await userEvent.click(estimate);
+  await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+
   await screen.findByText("Your training");
   await userEvent.type(screen.getByLabelText(/^Training sessions per week/), "3");
+  await userEvent.click(screen.getByRole("button", { name: "Mon" }));
+  await userEvent.click(screen.getByRole("button", { name: "Wed" }));
+  await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+  await screen.findByText("Health and goals");
   await userEvent.click(screen.getByRole("button", { name: "Finish setup" }));
   await screen.findByText("Signed in");
 
   expect(calls("/api/v1/me/onboarding", "PUT")[0]!.json).toMatchObject({ username: "new_client", role: "Client", birthDate: "1990-01-01" });
   const saved = calls("/api/v1/me/profile-fields", "PATCH")[0]!;
   expect(saved.ifMatch).toBe(4);
-  expect(saved.json).toEqual({ values: { Sex: "Female", Height: 168, Weight: 61.5, SessionsPerWeek: 3 } });
+  expect(saved.json).toEqual({ values: { Sex: "Female", Height: 168, Weight: 61.5, HrMax: bpm, SessionsPerWeek: 3, PreferredTrainingDays: [1, 3] } });
 }, 20_000);
 
 it("lets a coach pass the extra steps empty and saves no profile details", async () => {
   setup("Coach");
   await account();
-  await userEvent.click(screen.getByRole("button", { name: "Continue" }));
-  await screen.findByText("Your training");
+  // Every extra step is optional for a coach: continue through all of them empty.
+  for (const title of ["Heart rate and recovery", "Your training", "Health and goals"]) {
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await screen.findByText(title);
+  }
   await userEvent.click(screen.getByRole("button", { name: "Finish setup" }));
   await screen.findByText("Signed in");
   await waitFor(() => expect(calls("/api/v1/me/onboarding", "PUT")).toHaveLength(1));
@@ -88,11 +103,34 @@ it("returns to the first step with a field error when the username is already ta
   });
   setup("Coach");
   await account();
-  await userEvent.click(screen.getByRole("button", { name: "Continue" }));
-  await screen.findByText("Your training");
+  // Every extra step is optional for a coach: continue through all of them empty.
+  for (const title of ["Heart rate and recovery", "Your training", "Health and goals"]) {
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await screen.findByText(title);
+  }
   await userEvent.click(screen.getByRole("button", { name: "Finish setup" }));
   expect(await screen.findByText("This username is already taken.")).toBeInTheDocument();
   expect(screen.getByLabelText(/^Username/)).toHaveValue("new_client");
+}, 20_000);
+
+it("skips a step without saving what was typed in it", async () => {
+  setup("Coach");
+  await account();
+  await userEvent.type(screen.getByLabelText(/^Weight/), "80");
+  await userEvent.click(screen.getByRole("button", { name: "Skip for now" }));
+  await screen.findByText("Heart rate and recovery");
+  await userEvent.type(screen.getByLabelText(/^Maximum heart rate/), "500");
+  await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+  // Out of range: the step stays until it is fixed or skipped.
+  expect(await screen.findByText("Enter a value between 100 and 230 bpm.")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Skip for now" }));
+  await screen.findByText("Your training");
+  await userEvent.click(screen.getByRole("button", { name: "Skip for now" }));
+  await screen.findByText("Health and goals");
+  await userEvent.type(screen.getByLabelText(/^Goals and other notes/), "First meet in June");
+  await userEvent.click(screen.getByRole("button", { name: "Finish setup" }));
+  await screen.findByText("Signed in");
+  expect(calls("/api/v1/me/profile-fields", "PATCH")[0]!.json).toEqual({ values: { AdditionalNotes: "First meet in June" } });
 }, 20_000);
 
 it("explains reserved usernames before calling the API", async () => {

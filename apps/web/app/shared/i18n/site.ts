@@ -34,7 +34,7 @@ export function publicPageMeta({ title, description, pathname, locale }: PageMet
     { tagName: "link" as const, rel: "canonical", href: canonical },
     ...alternates,
     { property: "og:type", content: "website" },
-    { property: "og:site_name", content: "TrainFlow" },
+    { property: "og:site_name", content: "Metrivum" },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
     { property: "og:url", content: canonical },

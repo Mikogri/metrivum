@@ -93,6 +93,8 @@ export default [
       route("video-analyses/shared/:token", "modules/video-analysis/routes/shared-analysis.tsx"),
       route("video-analyses/:analysisId", "modules/video-analysis/routes/analysis-detail.tsx"),
       route("settings", "modules/settings/routes/settings.tsx"),
+      route("profile", "modules/people/routes/profile.tsx", { id: "my-profile" }),
+      route("people/:username", "modules/people/routes/profile.tsx", { id: "person-profile" }),
       route("integrations/consent", "modules/integrations/consent.tsx"),
       route("integrations/actions/:actionId", "modules/integrations/action-approval.tsx"),
       // The editor fills the content area (route handle `workspace`), keeping the sidebar and app bar.

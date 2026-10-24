@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link as RouterLink } from "react-router";
-import { LinkButton } from "@trainflow/ui-web";
+import { LinkButton, LightRays } from "@trainflow/ui-web";
 import { localeFromPathname } from "~/shared/i18n/locale";
 import { publicPath } from "~/shared/i18n/public-routes";
 import { publicPageMeta } from "~/shared/i18n/site";
@@ -23,6 +23,8 @@ import { VideoDemo } from "../components/home/VideoDemo";
 import { publicMessages, usePublicMessages } from "../messages";
 import { usePublicSession } from "../usePublicSession";
 import styles from "./home.module.css";
+
+
 
 export function meta({ location }: Route.MetaArgs) {
   const locale = localeFromPathname(location.pathname);
@@ -118,7 +120,12 @@ export default function Home() {
   );
 
   return (
-    <div className={styles.page}>
+    <>
+      {/* Keep the decorative layer outside the clipped page so light can cross the header. */}
+      {/* React Bits "Light Rays": soft neutral white from the top; it does not react to the pointer. */}
+      <LightRays className={styles.rays} raysColor="#ffffff" lightSpread={0.8} rayLength={1.3} intensity={0.65} glow={0.3} haze={0.2}
+          atmosphere={0} saturation={0} raysSpeed={0.45} followMouse={false} cursorShadow={false} clickPulse={false} opacity={0.8} />
+      <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroCopy}>
           <p className={styles.badge}>
@@ -256,6 +263,7 @@ export default function Home() {
       </section>
 
       <CtaBand />
-    </div>
+      </div>
+    </>
   );
 }

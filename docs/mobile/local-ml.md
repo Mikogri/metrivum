@@ -9,7 +9,7 @@ Milestone B, inspected 2026-10-10. **BLOCKED: there is no verified mobile or bro
 The existing full reference pipeline contains:
 
 1. PyAV video decoding and presentation timestamps, including rotation/edit lists.
-2. Points-only timeline and target resolution in `comparison/points_prepare.py` (TrainFlow passes `--points-only`; no RTMPose or classification).
+2. Points-only timeline and target resolution in `comparison/points_prepare.py` (Metrivum passes `--points-only`; no RTMPose or classification).
 3. TAPNext++ tracking of two independent physical points, carrying state across frames.
 4. Pair spike rejection, visibility gaps and source coordinate restoration.
 5. .NET temporal correction, `ProviderPreparation`, movement detection, phases and velocity.
@@ -38,7 +38,7 @@ Checkpoint container size differs substantially from tensor size. Do not estimat
 
 ## Commands and observed results
 
-Run from the TrainFlow repository root, using the already installed MotionTrace interpreter:
+Run from the Metrivum repository root, using the already installed MotionTrace interpreter:
 
 ```powershell
 $pointsPython = 'C:/Users/Mikolaj/miniconda3/envs/motiontrace-points/python.exe'

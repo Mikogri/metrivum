@@ -7,6 +7,7 @@ import { useLocale } from "~/shared/i18n/LocaleContext";
 import { pageFromPathname, publicPath } from "~/shared/i18n/public-routes";
 import { usePublicMessages } from "../messages";
 import { Logo } from "./Logo";
+import { PublicAccountMenu } from "./PublicAccountMenu";
 import styles from "./PublicHeader.module.css";
 
 function LanguageSwitch() {
@@ -33,7 +34,7 @@ function LanguageSwitch() {
   );
 }
 
-export function PublicHeader({ hasSession }: { hasSession: boolean }) {
+export function PublicHeader({ hasSession, onSignedOut }: { hasSession: boolean; onSignedOut: () => void }) {
   const m = usePublicMessages();
   const locale = useLocale();
   const location = useLocation();
@@ -49,9 +50,12 @@ export function PublicHeader({ hasSession }: { hasSession: boolean }) {
   ];
 
   const actions = hasSession ? (
-    <LinkButton href="/app/dashboard" variant="primary" size="sm">
-      {m.nav.openApp}
-    </LinkButton>
+    <>
+      <LinkButton href="/app" variant="primary" size="sm">
+        {m.nav.openApp}
+      </LinkButton>
+      <PublicAccountMenu onChange={onSignedOut} />
+    </>
   ) : (
     <>
       <LinkButton href="/auth/login" variant="ghost" size="sm">

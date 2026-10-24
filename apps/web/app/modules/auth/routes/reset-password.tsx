@@ -9,7 +9,7 @@ import form from "../components/form.module.css";
 import { authErrorText, passwordProblem } from "../lib/authErrors";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Set new password — TrainFlow");
+export const meta = () => privateMeta("Set new password — Metrivum");
 
 export default function ResetPassword() {
   const m = useT();

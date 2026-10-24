@@ -148,7 +148,7 @@ export function AndroidVoiceRecorder({
     if (!TrainflowVoice)
         return (
             <Text tone="mutedText">
-                Recording needs the TrainFlow Android build. You can attach an
+                Recording needs the Metrivum Android build. You can attach an
                 existing WAV file instead.
             </Text>
         );

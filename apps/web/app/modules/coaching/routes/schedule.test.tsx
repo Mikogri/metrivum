@@ -46,5 +46,5 @@ it("offers ten cycle days only for an assigned program and sends its time zone",
 it("explains unavailable program cycles without allowing selection", () => {
   open();
   expect(screen.getByRole("radio", { name: "Program cycle" })).toBeDisabled();
-  expect(screen.getByText(/Select one client with an active assigned program/)).toBeVisible();
+  expect(screen.getByText(/Program cycle needs one client with an active assigned program/)).toBeVisible();
 });

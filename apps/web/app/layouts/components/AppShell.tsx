@@ -37,7 +37,7 @@ function Brand() {
   return (
     <a href="/" className={styles.brand} aria-label={m.nav.publicSite}>
       <img src="/brand/trainflow-mark.png" alt="" width={159} height={128} />
-      <span className={styles.brandText}>TrainFlow</span>
+      <span className={styles.brandText}>Metrivum</span>
     </a>
   );
 }
@@ -167,9 +167,7 @@ export function AppShell() {
   const fit = matches.some((match) => (match.handle as { fit?: boolean } | undefined)?.fit);
   const main = useRef<HTMLElement>(null);
   const navigate = useNavigate();
-  // While the next page's code is still loading, the old page leaves at once and a thin bar runs along
-  // the top. No spinner here: the page itself then shows its own loading (skeleton or spinner), so only
-  // one loading style is ever on screen. A search-param change on the same page keeps the page.
+  // Keep the current outlet mounted during navigation; destination pages load their own content.
   const navigation = useNavigation();
   const switching = navigation.state === "loading" && navigation.location.pathname !== location.pathname;
   const back = useBack(location.pathname, location.search, navigate, m.common.back);
@@ -254,8 +252,8 @@ export function AppShell() {
 
       <div className={styles.column}>
         {phone ? (!conversation && <header className={`${styles.appBar} ${styles.phoneBar}`}>
-          <Link to="/app/today" className={styles.phoneBrand}>TrainFlow</Link>
-          <div className={styles.appBarActions}><AnalyzerMenu /><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
+          <Link to="/app/today" className={styles.phoneBrand}>Metrivum</Link>
+          <div className={styles.appBarActions}><IconButton label={m.nav.commandPalette} icon={<Search strokeWidth={1.75} />} size="sm" variant="ghost" showTooltip={false} onPress={() => setPalette({ open: true, animated: true })} /><AnalyzerMenu /><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
         </header>) : <header className={styles.appBar}>
           <span className={styles.desktopOnly}>
             <IconButton
@@ -284,12 +282,12 @@ export function AppShell() {
 
         {MOCK_MODE ? (
           <p className={styles.mockBanner} role="note">
-            Developer mock data — not connected to the TrainFlow API (VITE_DEV_MOCKS=1).
+            Developer mock data — not connected to the Metrivum API (VITE_DEV_MOCKS=1).
           </p>
         ) : null}
-        <main id="app-main" ref={main} className={styles.main} tabIndex={-1} onScroll={event => scrollPositions.current.set(location.key, event.currentTarget.scrollTop)}>
+        <main id="app-main" ref={main} className={styles.main} aria-busy={switching || undefined} tabIndex={-1} onScroll={event => scrollPositions.current.set(location.key, event.currentTarget.scrollTop)}>
           <div className={styles.content}>
-            <PageBackContext.Provider value={back}>{phone && location.pathname === "/app/dashboard" ? <Navigate to="/app/today" replace /> : <WorkspaceRouteGuard>{switching ? <div className={styles.pageSwitching} role="status" aria-label={m.common.loading} /> : <Outlet />}</WorkspaceRouteGuard>}</PageBackContext.Provider>
+            <PageBackContext.Provider value={back}>{phone && location.pathname === "/app/dashboard" ? <Navigate to="/app/today" replace /> : <WorkspaceRouteGuard><Outlet /></WorkspaceRouteGuard>}</PageBackContext.Provider>
           </div>
         </main>
         {phone && !immersive && <div className={styles.phoneNav}><MobileNavigation /></div>}

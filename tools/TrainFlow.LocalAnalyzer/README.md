@@ -12,7 +12,7 @@ Paired `POST /update` accepts no URL or command arguments. The companion downloa
 
 Build with a monotonically increasing three-part `-Version`. The build publishes `update.json` last; upload that file only after all immutable assets and the installer are available. HTTPS releases require `-SigningCertificateThumbprint` and Windows SDK `signtool`. Serve `update.json` and the installer at the web origin's `/downloads/analyzer/` path; larger runtime assets may use the embedded release's separate base URL. There is no Windows service, scheduled task or silent background installation.
 
-Download **TrainFlowAnalyzerSetup.exe** from the connection card in New analysis. The per-user Windows x64 installer downloads hash-pinned runtime assets, relocates isolated Python environments and installs the offline models, self-contained .NET host and a Start menu shortcut. No developer checkout, Conda or separately installed .NET is required. Allow 35 GB free disk space; the current GPU runtime requires NVIDIA/CUDA compatibility and sufficient RAM/VRAM. Start **TrainFlow Analyzer** (New analysis can start it) and keep its window open; it pairs with the browser automatically once.
+Download **TrainFlowAnalyzerSetup.exe** from the connection card in New analysis. The per-user Windows x64 installer downloads hash-pinned runtime assets, relocates isolated Python environments and installs the offline models, self-contained .NET host and a Start menu shortcut. No developer checkout, Conda or separately installed .NET is required. Allow 35 GB free disk space; the current GPU runtime requires NVIDIA/CUDA compatibility and sufficient RAM/VRAM. Start **Metrivum Analyzer** (New analysis can start it) and keep its window open; it pairs with the browser automatically once.
 
 Connection states distinguish unreachable (not proof of being uninstalled), pairing required, ready, running, repair and incompatible protocol. Discovery discloses only the application/protocol/version; readiness requires pairing. An HTTPS production origin or exact local HTTP origin is allowed by explicit installed configuration. A phone's loopback address refers to the phone, so Windows companion installation does not enable native phone inference.
 
@@ -22,9 +22,9 @@ New analysis takes up to 10 videos at once; each gets its own two tracking point
 
 - **Limit:** 10 videos per computer, counting waiting, analyzing and analyzed-but-not-saved ones (`409` above that).
 - **Progress:** the analyzer reports an estimate per video (fast at first, slowing near the end, never 100 % before the result exists). The browser adds upload and save steps on the same bar.
-- **Saving:** while any TrainFlow page is open and signed in, the browser checks the queue (every 2 s while work is running, otherwise every 20 s), downloads each finished video and result from the analyzer, uploads the video to the private library, saves the result, shows a notification and removes the job (`DELETE /jobs/<id>`). Results finished while the browser was closed are saved the next time TrainFlow opens. Saving uses the job id as idempotency key, and the uploaded media id is stored with the job (`PUT /jobs/<id>/media`), so retries never create duplicates or upload twice. Failed saves (for example while the database is unavailable) keep the job and are retried every minute. Only one open tab saves a given job (Web Locks).
+- **Saving:** while any Metrivum page is open and signed in, the browser checks the queue (every 2 s while work is running, otherwise every 20 s), downloads each finished video and result from the analyzer, uploads the video to the private library, saves the result, shows a notification and removes the job (`DELETE /jobs/<id>`). Results finished while the browser was closed are saved the next time Metrivum opens. Saving uses the job id as idempotency key, and the uploaded media id is stored with the job (`PUT /jobs/<id>/media`), so retries never create duplicates or upload twice. Failed saves (for example while the database is unavailable) keep the job and are retried every minute. Only one open tab saves a given job (Web Locks).
 - **Accounts:** each job records the signed-in user id; a browser only lists and saves its own user's jobs.
-- **Why the analyzer does not save to the database itself:** that would require storing a TrainFlow session on the computer. Keeping results on disk until a signed-in browser saves them avoids that.
+- **Why the analyzer does not save to the database itself:** that would require storing a Metrivum session on the computer. Keeping results on disk until a signed-in browser saves them avoids that.
 - **Endpoints** (all require the pairing token and the exact Origin): `GET /jobs?account=`, `POST /jobs` (video body; settings in the URI-encoded `X-TrainFlow-Job` header), `GET /jobs/<id>/video`, `GET /jobs/<id>/result`, `PUT /jobs/<id>/media`, `POST /jobs/<id>/retry`, `DELETE /jobs/<id>`. Discovery advertises `features: ["jobs"]`; older analyzers are reported as needing an update.
 
 ## Trim and stabilization (analyzer 1.3+)
@@ -44,7 +44,7 @@ Discovery advertises the `preprocess` feature; the web app asks to update analyz
 
 The web page talks to the analyzer at `http://127.0.0.1:59121`. Every request must come from the **exact site address** the analyzer was configured for (`WebOrigin` in `analyzer.json` next to the installed program, taken from `release.json` at build time) and carry the current pairing token. New analysis shows which state applies:
 
-- **Not detected:** the analyzer is not running, is blocked, or was built for another address. A different origin (for example `http://localhost:5175` when the build says `http://localhost:5173`) is refused before CORS, so the browser cannot tell it from "not running"; New analysis compares `release.json` with the page address and says so. Fix: open TrainFlow at the configured address, or change `WebOrigin` in the installed `analyzer.json` and restart the analyzer (development), or rebuild the installer with `-WebOrigin`.
+- **Not detected:** the analyzer is not running, is blocked, or was built for another address. A different origin (for example `http://localhost:5175` when the build says `http://localhost:5173`) is refused before CORS, so the browser cannot tell it from "not running"; New analysis compares `release.json` with the page address and says so. Fix: open Metrivum at the configured address, or change `WebOrigin` in the installed `analyzer.json` and restart the analyzer (development), or rebuild the installer with `-WebOrigin`.
 - **Pairing:** analyzer 1.1+ pairs automatically: the page calls `POST /pair` once and keeps the token in the browser; the analyzer keeps the same token in `%LOCALAPPDATA%\TrainFlowAnalyzer\pairing-token` across restarts (delete it to unpair every browser). Older builds print a token that changes at every start; paste it under Pair manually.
 - **Starting from the browser:** the installer registers `trainflow-analyzer://`, so Start analysis can launch the installed analyzer (the browser asks once). A second start while it already runs exits quietly.
 - **Setup log:** the installer writes every step and any failure to `%LOCALAPPDATA%\TrainFlowAnalyzer-setup.log`.
@@ -53,7 +53,7 @@ The web page talks to the analyzer at `http://127.0.0.1:59121`. Every request mu
 
 ## Source development
 
-From the TrainFlow repository:
+From the Metrivum repository:
 
 ```powershell
 ./tools/TrainFlow.LocalAnalyzer/start.ps1
@@ -93,3 +93,53 @@ dotnet run --project infra/local-analysis/update-check --artifacts-path .local/a
 ```
 
 The HTTP checks do not run inference. Local resource inspection on 2026-10-17 found about 1.7 GiB free RAM and 6.2 GiB available Windows commit, below the existing TAPNext++ scheduler admission threshold (4,524 MiB free RAM, or 2,560 MiB free RAM plus 10,240 MiB commit). Fresh model inference was not verified on this resource-constrained host; no guard was bypassed.
+
+The updater runs as an analyzer child, so it terminates the analyzer process without killing its entire tree (which would include the installer and is rejected by .NET). Installed Python workers are stopped separately, scoped to this installation. Verified through the real `/update` endpoint: 1.4.0 to 1.5.0, preserved pairing and `ready` status.
+
+### 1.6: bounded I/O and retries
+
+Backward tracking spools the exact model-ready float32 tensors instead of source-resolution frames, retaining
+their dtype, device and strides. Model/checkpoint, precision, FPS, timestamps and phase rules are unchanged.
+Small GPU observations transfer to CPU in batches of 16; recurrent tracking itself is still sequential.
+Failed/interrupted jobs retain reusable stage receipts. Maintenance on startup and after attempts removes
+caches older than 24 hours and evicts oldest caches above 512 MiB total. Successful/deleted jobs remove their
+cache immediately; source videos and saved results are never evicted by cache maintenance. Python validates
+video, point/configuration, source and asset hashes before reuse. This does not checkpoint partially finished
+GPU inference or keep a model resident between videos.
+
+The MotionTrace adapter patch and parity evidence are in [patches](../TrainFlow.MotionTraceBridge/patches/README.md).
+Use `-OutputDirectory` to build a release in a staging folder before replacing the served download folder.
+
+Verified 2026-10-24: 18 tracker and 20 session tests passed in the installed runtime, 11 queue checks passed,
+and bridge midpoint/phase helper parity passed. Real RTX 3070 Ti inference on generated 24-frame sequences
+matched the pre-optimization observations exactly for seeds 0 and 9. The local 1.5-to-1.6 updater completed,
+retained the pairing token and returned `ready`; served installer and installed adapter hashes were checked.
+Full real-video throughput across different lengths/resolutions has not been benchmarked.
+
+### 1.7: reuse verified weights between queued videos
+
+The host owns one private stdin/stdout Python worker for the two-point pipeline. Preparation and tracking use
+the points environment without starting stage subprocesses. Weights are loaded once, while recurrent state,
+queries and observations are created anew for each video. Checkpoint/source integrity is still checked on each
+job. Native failure, cancellation or a failed protocol receipt recycles the process; shutdown also disposes it.
+The model is released after 30 idle seconds. `WorkerIdleSeconds` accepts 0-300; 0 releases it immediately.
+For metered server workers, choose idle retention for the expected queue: idle GPU residency may be billable.
+
+The pinned architecture is constructed on PyTorch's meta device and its complete checkpoint is memory-mapped,
+strictly assigned and moved to the configured device. This avoids random weight initialization and duplicate
+CPU parameter copies. Dtype/layout mismatches fail rather than silently changing precision. Cached weights
+are credited once in GPU admission; RAM checks and additional memory headroom remain in force.
+
+RTX 3070 Ti / Windows benchmark: two generated 1080p/30fps/3-second videos took 34.27/29.90 seconds through the
+legacy stage-process path, 24.74 seconds for a cold worker, and 13.86/13.14 seconds with resident weights.
+Fresh caches were used for every run. Full trajectories, velocities and repetition/phase JSON matched exactly
+across the different videos. The ~58% warm improvement is specific to these short clips and this machine;
+long recordings and cloud cost have not been benchmarked. The opt-in benchmark lives in `TrainFlow.AnalyzerChecks`.
+
+Release verification: 24 session/worker and 19 tracker tests passed in the installed 1.7 runtime. Queue and
+transport checks covered success, failure, cancellation, crash and idle recycling. The 512px checkpoint also
+matched the official loader's GPU observations exactly. Installer hashes and preserved pairing were verified.
+A repeat of the full benchmark after installation was refused by the unchanged memory admission guard when
+the machine had only 1.4-1.6 GiB free RAM; the successful full-pipeline timings above are from the development run.
+
+Point selection: choose a sharp frame where two distinct fixed physical locations on the bar are visible, preferably near opposite ends of its axis. Spread them apart; avoid two nearby pixels, hands, shadows, background and rotating plate-rim marks. In 1.5 the frame may be anywhere in the clip; tracking runs both ways. A clear frame near the beginning of the lift reduces backward-tracking uncertainty. Inspect the overlay against the real bar before interpreting the charts; the midpoint of the two tracks is measured, not automatically recognized chest/floor height.

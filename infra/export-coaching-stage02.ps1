@@ -18,7 +18,7 @@ BEGIN
     SELECT oid INTO migrator FROM pg_roles WHERE rolname = 'trainflow_migrator';
     IF migrator IS NULL OR NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'trainflow_api')
         OR NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'trainflow_worker') THEN
-        RAISE EXCEPTION 'Stage 02 requires the existing TrainFlow roles';
+        RAISE EXCEPTION 'Stage 02 requires the existing Metrivum roles';
     END IF;
     IF EXISTS (SELECT FROM pg_namespace WHERE nspname IN ('forms','offers','billing','checkins')) THEN
         RAISE EXCEPTION 'Stage 02 requires absent new module schemas';

@@ -380,3 +380,11 @@
   height: 3px;
   border-radius: 2px;
 }
+
+.title { display: inline-flex; align-items: center; gap: var(--tf-space-2); }
+
+.hoverVertical, .hoverHorizontal, .hoverPoint { position: absolute; pointer-events: none; z-index: 1; }
+.hoverVertical { top: 0; bottom: 0; border-left: 1px dashed var(--tf-color-text-tertiary); }
+.hoverPoint { width: 8px; height: 8px; border: 2px solid; border-radius: 50%; background: var(--tf-color-surface); transform: translate(-50%, -50%); }
+
+.hoverHorizontal { left: 0; right: 0; border-top: 1px dashed var(--tf-color-text-tertiary); }

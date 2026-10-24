@@ -37,6 +37,8 @@ public sealed class AccountIdentityPolicyTests
     [InlineData("root", "USERNAME_RESERVED")]
     [InlineData("trainflow", "USERNAME_RESERVED")]
     [InlineData("TrainFlow_Team", "USERNAME_RESERVED")]
+    [InlineData("metrivum", "USERNAME_RESERVED")]
+    [InlineData("Metrivum_Team", "USERNAME_RESERVED")]
     [InlineData("trainflowcoach", "USERNAME_RESERVED")]
     public void Rejects_unsafe_or_reserved_usernames(string username, string code)
     {

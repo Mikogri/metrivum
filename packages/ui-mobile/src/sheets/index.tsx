@@ -307,7 +307,7 @@ export interface BottomSheetProps {
 }
 
 /**
- * The one way TrainFlow presents its own modal content: a native sheet rising from the bottom.
+ * The one way Metrivum presents its own modal content: a native sheet rising from the bottom.
  * Content-sized by default; `half`/`full` scroll. Handles the close button, Android Back, the
  * swipe gesture when it is safe, and the discard question for unsaved work.
  */

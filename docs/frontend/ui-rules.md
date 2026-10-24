@@ -1,6 +1,6 @@
 # Zasady stylu — gotowy zestaw do nowej aplikacji
 
-Ogólne reguły i wartości, według których zbudowany jest interfejs TrainFlow. Nie opisują
+Ogólne reguły i wartości, według których zbudowany jest interfejs Metrivum. Nie opisują
 konkretnych komponentów, tylko decyzje, które powtarzają się wszędzie. Kto trzyma się tych
 zasad, dostaje aplikację o bardzo podobnym wyglądzie i zachowaniu bez kopiowania kodu.
 

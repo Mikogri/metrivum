@@ -13,7 +13,7 @@ export function supabaseConfigured(): boolean {
 /**
  * One Supabase Auth client per account slot, each with its own storage key, PKCE verifier
  * and refresh timer, so signing in a second account never overwrites the first.
- * Only Auth is used; business data comes from the TrainFlow API.
+ * Only Auth is used; business data comes from the Metrivum API.
  */
 export function authClient(slot: SlotId): SupabaseClient {
   if (typeof window === "undefined") throw new Error("Supabase Auth is browser-only and must not run during pre-rendering.");

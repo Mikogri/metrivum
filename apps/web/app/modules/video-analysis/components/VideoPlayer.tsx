@@ -255,9 +255,9 @@ export function VideoPlayer({
       <div className={styles.bar}>
         <Scrubber time={time} duration={duration} markers={markers} onSeek={seek} />
         <div className={styles.row}>
-          <PlayerButton label={paused ? "Play" : "Pause"} onPress={toggle}>{paused ? <Play /> : <Pause />}</PlayerButton>
-          <span className={styles.steps}>
+          <span className={styles.steps} role="group" aria-label="Playback">
             <PlayerButton label="Previous frame" onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
+            <PlayerButton label={paused ? "Play" : "Pause"} onPress={toggle}>{paused ? <Play /> : <Pause />}</PlayerButton>
             <PlayerButton label="Next frame" onPress={() => step(FRAME)}><StepForward /></PlayerButton>
           </span>
           <span className={styles.clock}>{clock(time)}<span className={styles.total}> / {clock(duration)}</span></span>

@@ -5,6 +5,7 @@ import { publicPath } from "~/shared/i18n/public-routes";
 import { publicMessages } from "../messages";
 import type { Route } from "./+types/not-found";
 import styles from "./not-found.module.css";
+import { Logo } from "../components/Logo";
 
 // Pre-rendered at /404/index.html; the host serves that file with a real 404 status for unknown public URLs.
 export function meta({ location }: Route.MetaArgs) {
@@ -22,7 +23,7 @@ function NotFoundView() {
   const m = publicMessages(locale);
   return (
     <main className={styles.page} lang={locale}>
-      <img src="/brand/trainflow-logo.png" alt="TrainFlow" width={548} height={96} className={styles.logo} />
+      <Logo />
       <p className={styles.code} aria-hidden="true">
         404
       </p>

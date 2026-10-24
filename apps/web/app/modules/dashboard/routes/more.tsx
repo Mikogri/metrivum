@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("More — TrainFlow");
+export const meta = () => privateMeta("More — Metrivum");
 
 import { Dumbbell, CalendarDays, ClipboardCheck, CreditCard, Film, Settings, Users, UserRound } from "lucide-react";
 import { Link } from "react-router";

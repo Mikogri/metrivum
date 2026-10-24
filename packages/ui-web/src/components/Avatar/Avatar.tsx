@@ -3,7 +3,7 @@ import styles from "./Avatar.module.css";
 
 export interface AvatarProps {
   name: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   /** Decorative avatars next to a visible name should be hidden from assistive tech. */
   decorative?: boolean;
   className?: string;

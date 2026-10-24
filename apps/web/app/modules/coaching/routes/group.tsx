@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Group details — TrainFlow");
+export const meta = () => privateMeta("Group details — Metrivum");
 
 import { Archive, ArchiveRestore, MoreHorizontal, Pencil, UserMinus, UserPlus, UsersRound } from "lucide-react";
 import { useState } from "react";

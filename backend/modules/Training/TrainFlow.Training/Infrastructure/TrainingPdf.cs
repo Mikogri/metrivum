@@ -23,9 +23,9 @@ public static class TrainingPdf
         }
         using var document = new PdfDocument();
         document.Info.Title = snapshot.Name;
-        document.Info.Author = "TrainFlow";
-        var font = new XFont("TrainFlow Noto Sans", 9, XFontStyleEx.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
-        var heading = new XFont("TrainFlow Noto Sans", 14, XFontStyleEx.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
+        document.Info.Author = "Metrivum";
+        var font = new XFont("Metrivum Noto Sans", 9, XFontStyleEx.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
+        var heading = new XFont("Metrivum Noto Sans", 14, XFontStyleEx.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
         XGraphics? graphics = null;
         double y = 0;
         var pageNumber = 0;
@@ -37,7 +37,7 @@ public static class TrainingPdf
             graphics = XGraphics.FromPdfPage(page);
             y = 44;
             pageNumber++;
-            graphics.DrawString($"TrainFlow · {pageNumber}", font, XBrushes.Gray, new XRect(40, page.Height.Point - 30, page.Width.Point - 80, 15), XStringFormats.TopLeft);
+            graphics.DrawString($"Metrivum · {pageNumber}", font, XBrushes.Gray, new XRect(40, page.Height.Point - 30, page.Width.Point - 80, 15), XStringFormats.TopLeft);
         }
         void Lines(string text, bool title = false)
         {
@@ -155,7 +155,7 @@ public static class TrainingPdf
     }
     private sealed class EmbeddedFontResolver : IFontResolver
     {
-        public FontResolverInfo? ResolveTypeface(string familyName, bool bold, bool italic) => familyName == "TrainFlow Noto Sans" ? new("noto-sans", false, false) : null;
+        public FontResolverInfo? ResolveTypeface(string familyName, bool bold, bool italic) => familyName == "Metrivum Noto Sans" ? new("noto-sans", false, false) : null;
         public byte[]? GetFont(string faceName)
         {
             if (faceName != "noto-sans")

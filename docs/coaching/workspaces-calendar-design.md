@@ -74,7 +74,7 @@ current client's records, even when that account also owns a coach workspace.
 ## Invitations
 
 Invite existing active clients individually or through
-the coach's groups, with Accept / Decline inside TrainFlow. Group selection
+the coach's groups, with Accept / Decline inside Metrivum. Group selection
 expands to a deduplicated recipient snapshot when invitations are saved;
 later membership changes do not silently change event attendance.
 

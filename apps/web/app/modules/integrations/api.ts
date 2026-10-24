@@ -11,7 +11,7 @@ export const grants = {
   manage_checkins: "Create private check-in form drafts",
   read_messages: "Read conversations and messages",
   prepare_messages: "Prepare messages for your review",
-  send_approved_messages: "Send messages you explicitly approve in TrainFlow",
+  send_approved_messages: "Send messages you explicitly approve in Metrivum",
   read_finances: "Read offers, leads and business analytics",
   read_calendar: "Read your calendar and meetings",
 } as const;

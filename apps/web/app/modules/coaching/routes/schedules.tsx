@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Check-in schedules — TrainFlow");
+export const meta = () => privateMeta("Check-in schedules — Metrivum");
 
 import { CalendarClock, Plus } from "lucide-react";
 import { Link } from "react-router";

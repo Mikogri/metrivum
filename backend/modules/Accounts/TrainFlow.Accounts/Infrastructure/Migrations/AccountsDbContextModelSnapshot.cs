@@ -32,6 +32,10 @@ namespace TrainFlow.Accounts.Infrastructure.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Bio")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<DateOnly?>("BirthDate")
                         .HasColumnType("date");
 
@@ -99,6 +103,8 @@ namespace TrainFlow.Accounts.Infrastructure.Migrations
 
                     b.ToTable("profiles", "accounts", t =>
                         {
+                            t.HasCheckConstraint("CK_profiles_bio", "\"Bio\" IS NULL OR (char_length(\"Bio\") BETWEEN 1 AND 500 AND \"Bio\" = btrim(\"Bio\"))");
+
                             t.HasCheckConstraint("CK_profiles_display_name", "char_length(\"DisplayName\") <= 100 AND \"DisplayName\" = btrim(\"DisplayName\")");
 
                             t.HasCheckConstraint("CK_profiles_username_normalized", "(\"Username\" IS NULL AND \"NormalizedUsername\" IS NULL) OR \"NormalizedUsername\" = upper(\"Username\")");

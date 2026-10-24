@@ -80,7 +80,7 @@ public sealed class ExpoPushTransport(HttpClient http, IOptions<ExpoPushOptions>
     {
         using var response = await PostAsync("send", new
         {
-            to = token, title = "TrainFlow", body = "You have a new notification.", sound = "default",
+            to = token, title = "Metrivum", body = "You have a new notification.", sound = "default",
             data = new { notificationId = notification.Id, accountId = notification.RecipientUserId, resourceType = notification.SourceModule, resourceId = notification.SourceId }
         }, ct);
         var data = Data(response);

@@ -2,7 +2,7 @@
   "name": "@trainflow/ui-web",
   "version": "0.1.0",
   "private": true,
-  "description": "TrainFlow web component library: tokens, styles and accessible React components.",
+  "description": "Metrivum web component library: tokens, styles and accessible React components.",
   "type": "module",
   "sideEffects": [
     "**/*.css"

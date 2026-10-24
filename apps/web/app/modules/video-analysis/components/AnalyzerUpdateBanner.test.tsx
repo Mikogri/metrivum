@@ -65,5 +65,6 @@ it('closing the banner does not resolve the pinned unread update', async () => {
 it('offers the installer to old analyzers without hiding the notice', async () => {
   features = []; const client = mount();
   expect(await screen.findByRole('link', { name: 'Download the installer' })).toHaveAttribute('href', '/downloads/analyzer/TrainFlowAnalyzerSetup.exe');
+  expect(screen.getByRole('link', { name: 'Download the installer' })).toHaveAttribute('download', 'MetrivumAnalyzerSetup.exe');
   expect(screen.queryByRole('button', { name: 'Update now' })).not.toBeInTheDocument(); client.clear();
 });

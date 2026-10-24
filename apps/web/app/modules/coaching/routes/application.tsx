@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Application details — TrainFlow");
+export const meta = () => privateMeta("Application details — Metrivum");
 
 import { PlanPurchaseStatus } from "../PlanPurchaseStatus";
 import { PlanDeliverySelector } from "../PlanDeliverySelector";
@@ -125,7 +125,7 @@ function ApplicationDetail({ applicationId }: { applicationId: string | undefine
         isConfirming={mutation.isPending}
         onConfirm={() => mutation.mutate({ method: "POST", path: `/api/v1/coaching/applications/${a.id}/accept`, ifMatch: a.version, json: { settlementMode: "Simulated", trainingPlanRevisionId } }, { onSuccess: () => setAccepting(false) })}
       >
-        <p className={styles.prose}>{a.amount === 0 ? (plan ? `Accept this free application and deliver the selected plan to ${a.applicant.displayName}. No payment is required.` : `Start the free coaching service with ${a.applicant.displayName}. No payment is required.`) : d.offerRevision.purpose === "TrainingPlan" ? `${a.applicant.displayName} is asked to pay ${(a.amount === 0 ? "Free" : money(a.amount, a.currency))} through TrainFlow. The plan is delivered after payment.` : `This starts the coaching service with ${a.applicant.displayName} on these terms, ${(a.amount === 0 ? "Free" : money(a.amount, a.currency))} paid through TrainFlow.`}</p>
+        <p className={styles.prose}>{a.amount === 0 ? (plan ? `Accept this free application and deliver the selected plan to ${a.applicant.displayName}. No payment is required.` : `Start the free coaching service with ${a.applicant.displayName}. No payment is required.`) : d.offerRevision.purpose === "TrainingPlan" ? `${a.applicant.displayName} is asked to pay ${(a.amount === 0 ? "Free" : money(a.amount, a.currency))} through Metrivum. The plan is delivered after payment.` : `This starts the coaching service with ${a.applicant.displayName} on these terms, ${(a.amount === 0 ? "Free" : money(a.amount, a.currency))} paid through Metrivum.`}</p>
         <MutationError error={mutation.error} />
       </AlertDialog>
       <AlertDialog

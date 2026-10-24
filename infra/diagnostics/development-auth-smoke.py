@@ -1,4 +1,4 @@
-"""Verify real development Supabase JWTs without creating TrainFlow business records."""
+"""Verify real development Supabase JWTs without creating Metrivum business records."""
 import argparse
 import json
 import secrets
@@ -67,7 +67,7 @@ def main():
             status, _ = request(path, headers={} if authorization is None else {"Authorization": "Bearer " + authorization})
             if status != expected:
                 raise RuntimeError(f"API authentication smoke expected HTTP {expected}, received {status}.")
-        print("Real Supabase sign-in/JWKS accepted; anonymous and tampered tokens rejected. No TrainFlow business records created.")
+        print("Real Supabase sign-in/JWKS accepted; anonymous and tampered tokens rejected. No Metrivum business records created.")
     finally:
         status, _ = request(origin + "/auth/v1/admin/users/" + user_id, "DELETE", headers=admin_headers)
         if status not in (200, 204, 404):

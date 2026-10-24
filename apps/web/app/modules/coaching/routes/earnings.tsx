@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Earnings — TrainFlow");
+export const meta = () => privateMeta("Earnings — Metrivum");
 
 import { redirect, type ClientLoaderFunctionArgs } from "react-router";
 

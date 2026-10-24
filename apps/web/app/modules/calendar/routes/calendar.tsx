@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Calendar — TrainFlow");
+export const meta = () => privateMeta("Calendar — Metrivum");
 
 import { useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";

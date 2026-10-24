@@ -50,7 +50,7 @@ def expected_frames(decoder, start, end):
 
 
 def progress(stage, fraction):
-    """One JSON line per step; the analyzer turns them into the progress bar in TrainFlow."""
+    """One JSON line per step; the analyzer turns them into the progress bar in Metrivum."""
     print(json.dumps({'stage': stage, 'fraction': round(min(1., max(0., fraction)), 4)}), flush=True)
 
 

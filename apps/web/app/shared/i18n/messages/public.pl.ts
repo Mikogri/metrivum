@@ -3,7 +3,7 @@ import type { PublicMessages } from "./public.en";
 // Treści witryny publicznej (PL). Muszą odpowiadać temu, co API faktycznie robi.
 export const publicPl: PublicMessages = {
   common: {
-    brand: "TrainFlow",
+    brand: "Metrivum",
     skipToContent: "Przejdź do treści",
     illustrativePreview: "Podgląd poglądowy",
     illustrativePreviewNote: "Przykładowe dane narysowane na potrzeby strony, nie prawdziwe konto.",
@@ -13,16 +13,24 @@ export const publicPl: PublicMessages = {
   },
   nav: {
     primary: "Główna nawigacja",
-    home: "Strona główna TrainFlow",
+    home: "Strona główna Metrivum",
     features: "Funkcje",
     programBuilder: "Kreator programów",
     videoAnalysis: "Analiza wideo",
     pricing: "Cennik",
     signIn: "Zaloguj się",
     getStarted: "Załóż konto",
-    openApp: "Otwórz TrainFlow",
+    openApp: "Otwórz Metrivum",
     openMenu: "Otwórz menu",
     closeMenu: "Zamknij menu",
+    accountMenu: (email: string) => `Menu konta ${email}`,
+    accounts: "Zalogowane konta",
+    signOut: "Wyloguj",
+    signOutTitle: "Wyloguj",
+    signOutChoose: "Wybierz konto, z którego chcesz się wylogować. Pozostałe konta zostaną zalogowane.",
+    signOutOf: (email: string) => `Wyloguj z ${email}`,
+    inUse: "W użyciu",
+    cancel: "Anuluj",
   },
   footer: {
     tagline: "Przestrzeń robocza dla trenerów, którzy piszą programy treningowe.",
@@ -31,11 +39,11 @@ export const publicPl: PublicMessages = {
     register: "Załóż konto",
     signIn: "Zaloguj się",
     legalPending: "Polityka prywatności i regulamin zostaną opublikowane tutaj przed otwarciem publicznej rejestracji.",
-    copyright: (year: number) => `© ${year} TrainFlow`,
+    copyright: (year: number) => `© ${year} Metrivum`,
   },
   home: {
     meta: {
-      title: "TrainFlow — arkusz treningowy zbudowany od nowa dla trenerów",
+      title: "Metrivum — arkusz treningowy zbudowany od nowa dla trenerów",
       description:
         "Buduj programy z bloków, cykli i dni, zapisuj serie z zakresami, %1RM, RPE i formułami, eksportuj CSV lub PDF. Analiza nagrań liftów w tym samym miejscu.",
     },
@@ -44,7 +52,7 @@ export const publicPl: PublicMessages = {
       lead: "Buduj programy z bloków, cykli i dni. Zapisuj każdą serię zakresem, %1RM, RPE albo formułą, trzymaj szablony w folderach i eksportuj wynik do CSV lub PDF.",
       primary: "Załóż konto",
       secondary: "Zaloguj się",
-      openApp: "Otwórz TrainFlow",
+      openApp: "Otwórz Metrivum",
       tertiary: "Zobacz kreator programów",
       badge: "8 typów serii / formuły / csv + pdf",
     },
@@ -156,14 +164,14 @@ export const publicPl: PublicMessages = {
       title: "Analiza liftów obok programu",
       body: "Prześlij nagranie do prywatnej biblioteki, uruchom analizę i śledź jej status. Gdy podłączony jest analizator, dostajesz powtórzenia, czasy faz i tor ruchu sztangi, a dwa lifty możesz porównać obok siebie.",
       honesty:
-        "Pomiary pochodzą z usługi analizatora podłączonej do Twojego wdrożenia TrainFlow. Dopóki nie jest podłączona, nowe analizy kończą się statusem „analizator nieskonfigurowany” — TrainFlow nigdy nie pokazuje symulowanych wyników.",
+        "Pomiary pochodzą z usługi analizatora podłączonej do Twojego wdrożenia Metrivum. Dopóki nie jest podłączona, nowe analizy kończą się statusem „analizator nieskonfigurowany” — Metrivum nigdy nie pokazuje symulowanych wyników.",
       statuses: { Queued: "W kolejce", Processing: "Przetwarzanie", Completed: "Zakończona" },
       repLabel: (n: number) => `Powt. ${n}`,
       phases: { eccentric: "Ekscentryczna", concentric: "Koncentryczna" },
       pathLabel: "Tor sztangi",
     },
     workflow: {
-      title: "Jak przebiega praca w TrainFlow",
+      title: "Jak przebiega praca w Metrivum",
       steps: [
         { title: "Przygotuj przestrzeń", body: "Załóż konto, potwierdź e-mail i przejdź krótki onboarding." },
         { title: "Zbuduj lub zaimportuj", body: "Zacznij od zera, od szablonu albo od pliku CSV, który już masz." },
@@ -175,11 +183,11 @@ export const publicPl: PublicMessages = {
       title: "Pytania, które zadają trenerzy",
       items: [
         {
-          q: "Dla kogo jest TrainFlow?",
+          q: "Dla kogo jest Metrivum?",
           a: "Dla trenerów, którzy piszą programy treningowe, i dla ich podopiecznych. Trener buduje programy i prowadzi praktykę; podopieczny wypełnia check-iny, czyta wiadomości i śledzi swój kalendarz.",
         },
         {
-          q: "Czy mogę wysyłać programy zawodnikom z TrainFlow?",
+          q: "Czy mogę wysyłać programy zawodnikom z Metrivum?",
           a: "Nie w samej aplikacji. Wyeksportuj opublikowaną rewizję do PDF lub CSV i udostępnij ją tak jak dotychczas.",
         },
         {
@@ -264,7 +272,7 @@ export const publicPl: PublicMessages = {
       heroNote: "Analiza wideo liftów w tej samej przestrzeni",
       statement: {
         lead: "Inny rodzaj narzędzia treningowego.",
-        rest: "Stworzony dla trenerów, którzy piszą programy, z blokami, cyklami i typowanymi seriami w centrum. TrainFlow zachowuje szybkość arkusza i dodaje strukturę, której potrzebuje program.",
+        rest: "Stworzony dla trenerów, którzy piszą programy, z blokami, cyklami i typowanymi seriami w centrum. Metrivum zachowuje szybkość arkusza i dodaje strukturę, której potrzebuje program.",
       },
       pillars: [
         { title: "Zbudowany jak plan treningowy", body: "Bloki, cykle o dowolnej długości i numerowane dni: struktura, w której trenerzy i tak myślą." },
@@ -291,17 +299,17 @@ export const publicPl: PublicMessages = {
       },
     },
     finalCta: {
-      title: "Zacznij kolejny blok w TrainFlow",
+      title: "Zacznij kolejny blok w Metrivum",
       body: "Załóż konto, przejdź onboarding i zbuduj pierwszy program.",
     },
   },
   features: {
     meta: {
-      title: "Funkcje — TrainFlow",
+      title: "Funkcje — Metrivum",
       description:
-        "Co TrainFlow robi dziś: baza ćwiczeń, foldery i szablony, arkuszowy edytor programów z formułami, eksport CSV/PDF i analiza nagrań liftów.",
+        "Co Metrivum robi dziś: baza ćwiczeń, foldery i szablony, arkuszowy edytor programów z formułami, eksport CSV/PDF i analiza nagrań liftów.",
     },
-    title: "Co TrainFlow robi dziś",
+    title: "Co Metrivum robi dziś",
     lead: "Wszystko poniżej jest częścią obecnego produktu. Niektóre funkcje mogą być włączane per konto; aplikacja pokazuje, co jest dla Ciebie dostępne.",
     groups: [
       {
@@ -363,20 +371,20 @@ export const publicPl: PublicMessages = {
         ],
       },
     ],
-    scopeTitle: "Czym TrainFlow nie jest",
+    scopeTitle: "Czym Metrivum nie jest",
     scopeBody:
-      "TrainFlow to przestrzeń robocza trenera. Nie zarządza podopiecznymi, płatnościami, wiadomościami ani kalendarzem i nie ma aplikacji mobilnej.",
+      "Metrivum to przestrzeń robocza trenera. Nie zarządza podopiecznymi, płatnościami, wiadomościami ani kalendarzem i nie ma aplikacji mobilnej.",
     detailLinks: { programBuilder: "Kreator programów w szczegółach", videoAnalysis: "Analiza wideo w szczegółach" },
   },
   programBuilder: {
     meta: {
-      title: "Kreator programów — TrainFlow",
+      title: "Kreator programów — Metrivum",
       description:
-        "Bloki, cykle dowolnej długości, numerowane dni, osiem typów serii, formuły i CSV/PDF generowane na serwerze. Jak działa edytor programów TrainFlow.",
+        "Bloki, cykle dowolnej długości, numerowane dni, osiem typów serii, formuły i CSV/PDF generowane na serwerze. Jak działa edytor programów Metrivum.",
     },
     eyebrowBack: "Wszystkie funkcje",
     title: "Edytor programów, który rozumie serie",
-    lead: "TrainFlow przechowuje program jako typowane dane, nie tekst w komórkach. Jednostki, powiązania i identyfikatory przetrwają kopiowanie, import i eksport.",
+    lead: "Metrivum przechowuje program jako typowane dane, nie tekst w komórkach. Jednostki, powiązania i identyfikatory przetrwają kopiowanie, import i eksport.",
     structureTitle: "Struktura",
     structureBody: "Każdy poziom zawiera kolejny. Puste poziomy są poprawne w szkicu, więc możesz najpierw naszkicować, a potem uzupełnić.",
     structure: [
@@ -415,16 +423,16 @@ export const publicPl: PublicMessages = {
   },
   videoAnalysis: {
     meta: {
-      title: "Analiza wideo — TrainFlow",
+      title: "Analiza wideo — Metrivum",
       description:
-        "Prywatna biblioteka nagrań, trwałe zadania analizy, powtórzenia, fazy, tor ruchu i porównania. Jak działa analiza wideo w TrainFlow i czego wymaga.",
+        "Prywatna biblioteka nagrań, trwałe zadania analizy, powtórzenia, fazy, tor ruchu i porównania. Jak działa analiza wideo w Metrivum i czego wymaga.",
     },
     eyebrowBack: "Wszystkie funkcje",
     title: "Analiza liftów w Twojej przestrzeni",
     lead: "Trzymaj nagrania prywatnie, uruchamiaj analizy jako zadania w tle i czytaj wyniki obok programów.",
     flowTitle: "Od przesłania do wyniku",
     flow: [
-      { title: "Prześlij", body: "Wybierz plik MP4, WebM lub MOV. TrainFlow rezerwuje przesyłanie, a plik trafia prosto do prywatnego magazynu." },
+      { title: "Prześlij", body: "Wybierz plik MP4, WebM lub MOV. Metrivum rezerwuje przesyłanie, a plik trafia prosto do prywatnego magazynu." },
       { title: "Weryfikacja", body: "Serwer sprawdza typ i rozmiar zapisanego pliku, zanim nagranie będzie gotowe." },
       { title: "Analizuj", body: "Uruchom analizę z nazwą, tagami i notatką. Działa w tle i przetrwa odświeżenie strony." },
       { title: "Przeglądaj", body: "Czytaj powtórzenia, czasy faz i tor ruchu albo porównaj dwie analizy." },
@@ -438,14 +446,14 @@ export const publicPl: PublicMessages = {
     ],
     statusTitle: "Status analizatora",
     statusBody:
-      "Pomiary wymagają usługi analizatora podłączonej do wdrożenia TrainFlow. Gdy jej brak, nowe analizy kończą się statusem „analizator nieskonfigurowany”. Ten stan jest pokazywany wprost — bez zastępczych wykresów i symulowanych liczb.",
+      "Pomiary wymagają usługi analizatora podłączonej do wdrożenia Metrivum. Gdy jej brak, nowe analizy kończą się statusem „analizator nieskonfigurowany”. Ten stan jest pokazywany wprost — bez zastępczych wykresów i symulowanych liczb.",
     privacyTitle: "Domyślnie prywatne",
     privacyBody:
       "Nagrania są przechowywane w prywatnym buckecie. Odtwarzanie korzysta z krótkotrwałych podpisanych linków, które wygasają po kilku minutach i nigdy nie są traktowane jako stałe adresy.",
     limitsNote: "Domyślne limity: MP4, WebM lub MOV do 256 MiB, pięć przesyłań w toku jednocześnie. Twoje wdrożenie może mieć inne limity.",
   },
   notFound: {
-    meta: { title: "Nie znaleziono strony — TrainFlow", description: "Ta strona nie istnieje." },
+    meta: { title: "Nie znaleziono strony — Metrivum", description: "Ta strona nie istnieje." },
     title: "Ta strona nie istnieje",
     body: "Sprawdź adres albo wróć na start.",
     home: "Przejdź na stronę główną",

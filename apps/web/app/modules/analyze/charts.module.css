@@ -43,8 +43,8 @@
   border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-lg);
   background: var(--tf-color-surface);
-  animation: rise 560ms var(--tf-ease-out) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
+  animation: rise 400ms var(--tf-ease-out) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
 }
 
 .kpi header {
@@ -119,10 +119,10 @@
   stroke: currentColor;
   stroke-width: 1.75;
   stroke-dasharray: 1;
-  animation: draw 1100ms var(--tf-ease-out) both;
+  animation: draw 700ms var(--tf-ease-out) both;
   /* New data morphs the line instead of jumping. */
   transition: d 700ms var(--tf-ease-out);
-  animation-delay: calc(200ms + var(--i, 0) * 60ms);
+  animation-delay: calc(100ms + var(--i, 0) * 40ms);
 }
 
 
@@ -159,7 +159,7 @@
   stroke-linejoin: round;
   stroke-dasharray: 1;
   /* Draws in once; afterwards new data morphs the same path. */
-  animation: draw 1300ms var(--tf-ease-out) both;
+  animation: draw 800ms var(--tf-ease-out) both;
   transition: d 700ms var(--tf-ease-out);
 }
 
@@ -172,7 +172,7 @@
 .fill {
   fill: currentColor;
   fill-opacity: 0.08;
-  animation: fill-in 1000ms var(--tf-ease-out) 250ms both;
+  animation: fill-in 600ms var(--tf-ease-out) 150ms both;
   transition: d 700ms var(--tf-ease-out);
 }
 
@@ -313,8 +313,8 @@
   overflow: hidden;
   border-radius: 3px 3px 0 0;
   transform-origin: bottom;
-  animation: grow 760ms var(--tf-ease-out) backwards;
-  animation-delay: calc(var(--i) * min(30ms, 600ms / var(--n)));
+  animation: grow 500ms var(--tf-ease-out) backwards;
+  animation-delay: calc(var(--i) * min(15ms, 250ms / var(--n)));
   transition: transform 600ms var(--tf-ease-out);
 }
 
@@ -356,8 +356,8 @@
 .gain,
 .loss {
   border-radius: 3px;
-  animation: grow 700ms var(--tf-ease-out) backwards;
-  animation-delay: calc(var(--i) * 25ms);
+  animation: grow 500ms var(--tf-ease-out) backwards;
+  animation-delay: calc(var(--i) * 12ms);
   transition: transform 600ms var(--tf-ease-out);
 }
 
@@ -408,8 +408,8 @@
   stroke: currentColor;
   stroke-width: 12;
   stroke-linecap: butt;
-  animation: sweep 1100ms var(--tf-ease-out) backwards;
-  animation-delay: calc(var(--i) * 160ms);
+  animation: sweep 700ms var(--tf-ease-out) backwards;
+  animation-delay: calc(var(--i) * 60ms);
   transition:
     stroke-dasharray 700ms var(--tf-ease-out),
     stroke-dashoffset 700ms var(--tf-ease-out);
@@ -454,8 +454,8 @@
   align-items: center;
   column-gap: var(--tf-space-2);
   font-size: var(--tf-text-sm);
-  animation: rise 500ms var(--tf-ease-out) both;
-  animation-delay: calc(300ms + var(--i) * 80ms);
+  animation: rise 400ms var(--tf-ease-out) both;
+  animation-delay: calc(150ms + var(--i) * 40ms);
 }
 
 .legend li span {
@@ -503,7 +503,7 @@
   stroke: currentColor;
   stroke-width: 8;
   stroke-linecap: round;
-  animation: sweep 1200ms var(--tf-ease-out) 150ms backwards;
+  animation: sweep 750ms var(--tf-ease-out) 80ms backwards;
   transition: stroke-dasharray 700ms var(--tf-ease-out);
 }
 
@@ -533,8 +533,8 @@
 .rank li {
   display: grid;
   gap: var(--tf-space-1-5);
-  animation: rise 500ms var(--tf-ease-out) both;
-  animation-delay: calc(var(--i) * 90ms);
+  animation: rise 400ms var(--tf-ease-out) both;
+  animation-delay: calc(var(--i) * 40ms);
 }
 
 .funnelHead,
@@ -581,8 +581,8 @@
   border-radius: inherit;
   background: currentColor;
   transform-origin: left;
-  animation: grow-x 900ms var(--tf-ease-out) backwards;
-  animation-delay: calc(150ms + var(--i) * 110ms);
+  animation: grow-x 600ms var(--tf-ease-out) backwards;
+  animation-delay: calc(80ms + var(--i) * 40ms);
   transition: transform 700ms var(--tf-ease-out);
 }
 
@@ -602,7 +602,7 @@
   border-radius: var(--tf-radius-full);
   background: currentColor;
   transform-origin: left;
-  animation: grow-x 900ms var(--tf-ease-out) backwards;
+  animation: grow-x 600ms var(--tf-ease-out) backwards;
   transition: flex-grow 700ms var(--tf-ease-out);
 }
 
@@ -629,7 +629,8 @@
 /* Panels and rows move into place; nothing fades. */
 @keyframes rise {
   from {
-    transform: translateY(8px);
+    opacity: 0;
+    transform: translateY(3px);
   }
 }
 
@@ -644,19 +645,22 @@
 
 @keyframes fill-in {
   from {
-    transform: translateY(12px);
+    opacity: 0;
+    transform: translateY(4px);
   }
 }
 
 @keyframes grow {
   from {
-    transform: scaleY(0);
+    opacity: 0;
+    transform: scaleY(0.4);
   }
 }
 
 @keyframes grow-x {
   from {
-    transform: scaleX(0);
+    opacity: 0;
+    transform: scaleX(0.3);
   }
 }
 

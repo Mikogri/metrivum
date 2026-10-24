@@ -70,7 +70,7 @@ export default function App() {
 /** Shown while a SPA route (served from __spa-fallback.html) hydrates. Deliberately empty of private data. */
 export function HydrateFallback() {
   return (
-    <BootSkeleton label="Loading TrainFlow" />
+    <BootSkeleton label="Loading Metrivum" />
   );
 }
 

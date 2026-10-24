@@ -19,7 +19,7 @@ import { useAnalyzerJobs } from '../analyzer-jobs';
 import { jobStatus } from '../job-status';
 import { askForNotifications } from '../notify';
 import styles from './new-analysis.module.css';
-export const meta = () => privateMeta('New analysis — TrainFlow');
+export const meta = () => privateMeta('New analysis — Metrivum');
 
 /** A chosen video: its own name, movement and two marked points. */
 interface Draft {
@@ -47,7 +47,7 @@ const isReady = (draft: Draft) => !draft.jobId && Boolean(draft.movement) && dra
 
 /**
  * Choose up to ten videos, mark the bar on each, and hand them to the analyzer on this computer. It analyzes them
- * one after another in the background; the browser may close, and results are saved to the library when TrainFlow
+ * one after another in the background; the browser may close, and results are saved to the library when Metrivum
  * is open again (see AnalyzerJobsProvider). A sent video stays visible here until it is closed or replaced.
  */
 function LocalAnalysis() {
@@ -163,7 +163,7 @@ function LocalAnalysis() {
         setSending({ done: 0, total: batch.length, starting: true });
         if (connection === 'unreachable') launchLocalAnalyzer();
         const state = await waitForLocalAnalyzer(token, operation.signal, 60000);
-        if (state === 'unreachable') throw new Error('The local analyzer did not start. Allow the browser to open TrainFlow Analyzer, or install it first.');
+        if (state === 'unreachable') throw new Error('The local analyzer did not start. Allow the browser to open Metrivum Analyzer, or install it first.');
         if (state === 'incompatible') throw new Error('This analyzer version cannot queue videos. Install the current version.');
         if (state !== 'ready' && state !== 'analyzing') {
           const paired = await pairLocalAnalyzer(operation.signal);

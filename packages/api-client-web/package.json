@@ -2,7 +2,7 @@
   "name": "@trainflow/api-client-web",
   "version": "0.1.0",
   "private": true,
-  "description": "Typed TrainFlow API contract for the web app. Types come from contracts/generated (never edited by hand).",
+  "description": "Typed Metrivum API contract for the web app. Types come from contracts/generated (never edited by hand).",
   "type": "module",
   "sideEffects": false,
   "exports": {

@@ -83,6 +83,7 @@ export { EmptyState, ErrorState, type EmptyStateProps, type ErrorStateProps } fr
 
 // Display
 export { Avatar, type AvatarProps } from "./components/Avatar/Avatar";
+export { LightRays, type LightRaysProps, type RaysOrigin } from "./components/LightRays/LightRays";
 export { Kbd } from "./components/Kbd/Kbd";
 export { FileCard, type FileCardProps } from "./components/FileCard/FileCard";
 

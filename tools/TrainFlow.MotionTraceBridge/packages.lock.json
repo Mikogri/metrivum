@@ -8,9 +8,10 @@
       "motiontrace.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "MotionTrace.Core": "[1.0.0, )"
+          "MotionTrace.Core": "[1.7.0, )"
         }
       }
-    }
+    },
+    "net10.0/win-x64": {}
   }
 }

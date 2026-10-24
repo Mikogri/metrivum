@@ -1,4 +1,4 @@
-# TrainFlow API endpoint reference
+# Metrivum API endpoint reference
 
 Training assignments, schedules, actual execution and progress are described in [Stage 5 training](coaching/stage-05-training.md). See [generator](coaching/stage-05-generator.md) for preview/replace/reshuffle/draft endpoints and [documentation](coaching/stage-05-documentation.md) for relationship records and private files. Generated OpenAPI includes current DTOs, `view=coach|client`, numeric ETags and idempotency headers.
 
@@ -132,7 +132,7 @@ Example **200** response with `ETag: "2"` (IDs/versions are illustrative):
 
 POST `/api/v1/media/uploads` with `{"name":"Squat set","contentType":"video/mp4","size":1048576}` where size is the actual byte length. MP4 and WebM are supported. The default maximum is 256 MiB and the default pending reservation limit is 5; deployments can configure these.
 
-The **201** JSON ticket has `file`, `uploadUrl`, `expiresAt`, `method`. PUT raw bytes to the signed `uploadUrl` with the declared Content-Type. This is a Storage URL; do not attach the TrainFlow bearer token to it. Then POST `/api/v1/media/{file.id}/finalize`. Request `/read-url` when playback is needed; use its `url` until `expiresAt` (default read lifetime 120 seconds). Signed URLs must be treated as temporary credentials.
+The **201** JSON ticket has `file`, `uploadUrl`, `expiresAt`, `method`. PUT raw bytes to the signed `uploadUrl` with the declared Content-Type. This is a Storage URL; do not attach the Metrivum bearer token to it. Then POST `/api/v1/media/{file.id}/finalize`. Request `/read-url` when playback is needed; use its `url` until `expiresAt` (default read lifetime 120 seconds). Signed URLs must be treated as temporary credentials.
 
 ## Endpoint catalog
 

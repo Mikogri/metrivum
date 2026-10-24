@@ -146,7 +146,8 @@ const search = <T extends { name?: string; title?: string }>(items: T[], q: URLS
   const term = q.get("search")?.toLowerCase();
   return term ? items.filter((x) => (x.name ?? x.title ?? "").toLowerCase().includes(term)) : items;
 };
-const profileFields = { currency: "PLN", values: {}, version: 1 };
+const messagingPreferences = { requireApproval: false };
+const profileFields: { currency: string; values: Record<string, unknown>; version: number } = { currency: "PLN", values: { Sex: "Male", Height: 182, Weight: 84.5, HrMax: 188, SessionsPerWeek: 4, PreferredTrainingDays: [1, 3, 5] }, version: 1 };
 
 const capabilities = ["Programs and templates", "Clients and groups", "Check-ins and forms", "Messages and calendar", "Offers and payments", "Video analysis", "Analyze"];
 const platformPlans = ["Free", "Pro", "Team"].map((id, i) => ({
@@ -336,7 +337,30 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
   }
   if ((m = path.match(/^\/api\/v1\/offers\/([^/]+)$/)) && m[1] !== "categories") return ok(offers.find((o) => o.id === m![1]));
   if (path === "/api/v1/offers/categories") return ok([{ key: "online-coaching", name: "Online coaching", active: true }, { key: "running", name: "Running", active: true }, { key: "strength", name: "Strength training", active: true }]);
+  if (path === "/api/v1/me/profile-fields" && method === "PATCH") {
+    // Merge like the API: null removes a value.
+    const values = { ...profileFields.values };
+    for (const [key, value] of Object.entries((body?.values ?? {}) as Record<string, unknown>)) {
+      if (value === null) delete values[key];
+      else values[key] = value;
+    }
+    profileFields.values = values;
+    profileFields.version++;
+    return ok(profileFields);
+  }
   if (path === "/api/v1/me/profile-fields") return ok(profileFields);
+  if (path === "/api/v1/me/messaging-preferences") {
+    if (method === "PUT") messagingPreferences.requireApproval = Boolean(body?.requireApproval);
+    return ok(messagingPreferences);
+  }
+  if ((m = path.match(/^\/api\/v1\/accounts\/people\/([^/]+)$/))) {
+    const name = decodeURIComponent(m[1]!).replace(/^@/, "").toLowerCase();
+    if (name === "demo_coach" || name === "demo.coach") return ok({ userId: me, username: "demo_coach", displayName: "Demo Coach", bio: null, roles: ["Coach"], isSelf: true });
+    const person = people.find((p) => p.username.toLowerCase() === name);
+    return person
+      ? ok({ userId: person.id, username: person.username, displayName: person.displayName, bio: "Training for my first half marathon. Lifting three times a week.", roles: ["Client"], isSelf: false })
+      : { status: 404, body: { status: 404, title: "RESOURCE_NOT_FOUND", code: "RESOURCE_NOT_FOUND" } };
+  }
   if (path === "/api/v1/me/currency" && method === "PATCH") {
     profileFields.currency = String(body?.currency ?? profileFields.currency);
     profileFields.version++;

@@ -86,7 +86,7 @@ export function AnalyzerUpdateActions({ className }: { className?: string }) {
   const first = notice.offline ? <button type="button" className={styles.link} onClick={launchLocalAnalyzer}>Open the analyzer</button>
     : notice.updates ? <button type="button" className={styles.link} disabled={notice.starting} onClick={() => void notice.update()}>{notice.starting ? 'Starting the update…' : 'Update now'}</button> : null;
   return <span className={className}>
-    {first}{first ? ' or ' : ''}<a className={styles.link} href={DOWNLOAD} download>{first ? 'download the installer' : 'Download the installer'}</a>
+    {first}{first ? ' or ' : ''}<a className={styles.link} href={DOWNLOAD} download="MetrivumAnalyzerSetup.exe">{first ? 'download the installer' : 'Download the installer'}</a>
   </span>;
 }
 

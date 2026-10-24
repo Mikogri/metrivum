@@ -13,7 +13,7 @@ import { getShared, getSharedResult, saveShared, sharedVideoUrl, unsaveShared } 
 import { ResultView } from "../components/ResultView";
 import styles from "./analysis-detail.module.css";
 
-export const meta = () => privateMeta("Shared analysis — TrainFlow");
+export const meta = () => privateMeta("Shared analysis — Metrivum");
 
 /** What someone sees when they open a shared analysis link: the result and the video, read-only. */
 export default function SharedAnalysis() {

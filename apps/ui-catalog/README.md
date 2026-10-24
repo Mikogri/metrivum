@@ -1,4 +1,4 @@
-# TrainFlow UI catalog
+# Metrivum UI catalog
 
 Developer Storybook for `@trainflow/ui-web`. Runs without a backend; stories use static data only.
 It is not deployed with the public site.

@@ -7,7 +7,7 @@ import { useIntegrationMutation, useIntegrationQuery, type Action } from "./api"
 import { IntegrationError } from "./integrations";
 import styles from "./integrations.module.css";
 
-export const meta = () => privateMeta("Review assistant action — TrainFlow");
+export const meta = () => privateMeta("Review assistant action — Metrivum");
 
 export default function ActionApproval() {
   const { actionId = "" } = useParams();

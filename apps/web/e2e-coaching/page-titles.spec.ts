@@ -19,6 +19,6 @@ test("browser tabs identify the current page", async ({ page }) => {
     ["/app/training-plans", "Training plans"],
   ]) {
     await page.goto(path!, { waitUntil: "domcontentloaded" });
-    await expect(page).toHaveTitle(`${title} — TrainFlow`);
+    await expect(page).toHaveTitle(`${title} — Metrivum`);
   }
 });

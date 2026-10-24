@@ -4,7 +4,7 @@ Source review: 11 October 2026. This describes the working tree, including pre-e
 
 | Spec | State | Evidence and remaining work |
 |---|---|---|
-| 1 Sources/adaptation | ALREADY SATISFIED | [Source map](source-map.md) separates RaceTrace source reuse/identity ideas from TrainFlow requirements. RaceTrace was read only. |
+| 1 Sources/adaptation | ALREADY SATISFIED | [Source map](source-map.md) separates RaceTrace source reuse/identity ideas from Metrivum requirements. RaceTrace was read only. |
 | 2 Invariants | ASSESSED | Contracts/module ownership, historical Billing snapshots, explicit Team scopes and account providers retained. Local ML remains blocked; no Free/Pro rule, settlement rate, store checkout or remote-ML fallback added. |
 | 3 Baseline | IMPLEMENTED | Initial dirty-tree snapshot and plan are parent-owned. Targeted failing import regression and current verification are in benchmarks; older audit numbers remain historical. |
 | 4 Boundaries | IMPLEMENTED | Recursive .NET signature/provider checks, contract assembly dependencies, documented endpoint entity graph test, TypeScript AST imports, UI web/mobile and portable-client checks. Analyze now uses Coaching's existing public exports. Five routes exposed three persisted types; Offers/Billing now project compatible response DTOs. Private implementation dependencies inside one assembly are not exhaustively proven. |
@@ -39,7 +39,7 @@ Source review: 11 October 2026. This describes the working tree, including pre-e
 | Scenario | Evidence / limitation |
 |---|---|
 | Boundary violation fails | `architecture.test.ts` initially found two previously invisible relative feature imports; fixed via existing public exports. Nested provider signature fixtures cover generic/array types; documented endpoint DTO graphs checked against EF models. |
-| Export without production configuration/workers | `ContractExportIsolationTests` uses malformed local JSON, invalid deployment connection/Auth values and explicit worker enable; expects successful export. Simultaneous `--migrate` must fail. Testing host checks no TrainFlow hosted services. |
+| Export without production configuration/workers | `ContractExportIsolationTests` uses malformed local JSON, invalid deployment connection/Auth values and explicit worker enable; expects successful export. Simultaneous `--migrate` must fail. Testing host checks no Metrivum hosted services. |
 | Partial detail not presented as complete | `TrainingDeliveryPostgresTests.Progress_reports_partial_client_details_without_truncating_totals`: 201 relationships, 402 occurrences, 200 returned client details; narrowing removes partial flag. |
 | Account switch during callback | `queries.test.ts` aborts before and while awaiting success; no late cache invalidation, feedback or haptic. Chat write does not invalidate finance/training. |
 | Dry run cannot write DB | `ConsistencyDiagnosticTests` runs ten rules and attempts a zero-row UPDATE inside the same read-only transaction; PostgreSQL must reject SQLSTATE 25006. |

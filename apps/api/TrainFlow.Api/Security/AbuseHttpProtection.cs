@@ -16,7 +16,7 @@ public static class AbuseHttpProtection
         if (method == "PUT" && route.StartsWith("/api/v1/training/programs/", StringComparison.Ordinal)
             && route.EndsWith("/draft", StringComparison.Ordinal)) return AbusePolicies.Autosave;
         if (method == "GET" && (route == "/api/v1/accounts/people" || route == "/api/v1/messaging/people"
-            || route == "/api/v1/exercises")) return AbusePolicies.Search;
+            || route == "/api/v1/exercises" || route.StartsWith("/api/v1/accounts/people/", StringComparison.Ordinal))) return AbusePolicies.Search;
         return method is "GET" or "HEAD" or "OPTIONS" ? AbusePolicies.Read : AbusePolicies.Write;
     }
 

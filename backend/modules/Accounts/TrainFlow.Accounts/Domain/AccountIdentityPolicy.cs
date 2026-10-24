@@ -37,7 +37,8 @@ public static partial class AccountIdentityPolicy
         if (string.IsNullOrEmpty(username) || !UsernamePattern().IsMatch(username) || username.Contains("__", StringComparison.Ordinal))
             throw UsernameError("USERNAME_INVALID",
                 $"Username must be {UsernameMinLength}-{UsernameMaxLength} characters: letters, digits and single underscores, starting with a letter and not ending with an underscore.");
-        if (ReservedUsernames.Contains(username) || username.StartsWith("trainflow", StringComparison.OrdinalIgnoreCase))
+        if (ReservedUsernames.Contains(username) || username.StartsWith("trainflow", StringComparison.OrdinalIgnoreCase)
+            || username.StartsWith("metrivum", StringComparison.OrdinalIgnoreCase))
             throw UsernameError("USERNAME_RESERVED", "This username is reserved. Choose another one.");
     }
 
@@ -76,6 +77,44 @@ public static partial class AccountIdentityPolicy
             throw DisplayNameError($"Display name must contain 1-{DisplayNameMaxLength} characters.");
         return normalized;
     }
+
+    public const int BioMaxLength = 500;
+
+    /// <summary>
+    /// The profile introduction: NFC, line breaks kept (CRLF becomes LF, at most one empty line in a row), tabs as
+    /// spaces, trimmed. The same characters as display names are refused, so text cannot be hidden or reversed.
+    /// Empty means "no introduction" (null).
+    /// </summary>
+    public static string? NormalizeBio(string? bio)
+    {
+        if (bio is null)
+            return null;
+        if (!IsWellFormed(bio))
+            throw BioError("The introduction must contain valid Unicode text.");
+        var builder = new StringBuilder(bio.Length);
+        var newlines = 0;
+        foreach (var rune in bio.Normalize(NormalizationForm.FormC).Replace("\r\n", "\n").Replace('\r', '\n').EnumerateRunes())
+        {
+            if (rune.Value == '\n')
+            {
+                newlines++;
+                continue;
+            }
+            if (!IsAllowedDisplayRune(rune) && rune.Value != '\t')
+                throw BioError("The introduction cannot contain control, invisible or text-direction characters.");
+            if (newlines > 0 && builder.Length > 0)
+                builder.Append(newlines > 1 ? "\n\n" : "\n");
+            newlines = 0;
+            builder.Append(rune.Value == '\t' ? " " : rune.ToString());
+        }
+        var normalized = string.Join('\n', builder.ToString().Split('\n').Select(line => line.Trim())).Trim();
+        if (normalized.Length > BioMaxLength)
+            throw BioError($"The introduction must be at most {BioMaxLength} characters.");
+        return normalized.Length == 0 ? null : normalized;
+    }
+
+    private static ApiException BioError(string message) => new(400, "BIO_INVALID", message,
+        new Dictionary<string, string[]> { ["bio"] = [message] });
 
     private static bool IsAllowedDisplayRune(Rune rune)
     {

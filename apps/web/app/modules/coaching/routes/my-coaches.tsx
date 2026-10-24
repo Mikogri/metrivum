@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("My coaches — TrainFlow");
+export const meta = () => privateMeta("My coaches — Metrivum");
 
 import { Link } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";

@@ -64,9 +64,9 @@ function without<T>(record: Record<string, T>, id: string) {
 }
 
 /**
- * Watches the local analyzer's queue for the signed-in user while TrainFlow is open (on any page) and saves each
+ * Watches the local analyzer's queue for the signed-in user while Metrivum is open (on any page) and saves each
  * finished video and result to the library. The analyzer keeps finished work on disk, so anything that finished
- * while the browser was closed is saved the next time TrainFlow opens. One tab saves a given video at a time.
+ * while the browser was closed is saved the next time Metrivum opens. One tab saves a given video at a time.
  */
 export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
   const { api, lifecycle, account, accountKey } = useAccountContext();
@@ -138,7 +138,7 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
           setUnseen(count => count + 1);
           toast({ tone: 'success', title: `Analysis ready: ${job.name}`, description: 'The video and results are saved in your library.',
             action: { label: 'Open', onAction: open } });
-          notifyInBackground(`Analysis ready: ${job.name}`, 'The video and results are saved in your TrainFlow library.', open);
+          notifyInBackground(`Analysis ready: ${job.name}`, 'The video and results are saved in your Metrivum library.', open);
         } catch (failure) {
           if (signal.aborted) return;
           retryAt.current.set(job.id, Date.now() + RETRY_SAVE);
@@ -169,11 +169,11 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
         setReachable(true); setJobs(list);
         for (const job of list) {
           const before = lastState.current.get(job.id);
-          // Every failure is announced once, also one that happened while TrainFlow was closed.
+          // Every failure is announced once, also one that happened while Metrivum was closed.
           if (job.state === 'failed' && before !== 'failed') announceOnce(`failed:${job.id}:${job.error ?? ''}`, () => {
             setUnseen(count => count + 1);
             toast({ tone: 'danger', title: `Analysis failed: ${job.name}`, description: job.error ?? 'You can retry it from the analyses menu.' });
-            notifyInBackground(`Analysis failed: ${job.name}`, job.error ?? 'Open TrainFlow to retry it.');
+            notifyInBackground(`Analysis failed: ${job.name}`, job.error ?? 'Open Metrivum to retry it.');
           });
           lastState.current.set(job.id, job.state);
         }

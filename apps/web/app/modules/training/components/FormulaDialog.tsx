@@ -1,3 +1,4 @@
+import { isUnavailableResource } from "~/shared/lib/ResourceError";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -85,7 +86,7 @@ export function FormulaDialog({ formula, onClose }: { formula: FormulaListItem |
       )}
     >
       <div className={styles.form}>
-        {loadError ? <Alert tone="danger" title={errorText(m, loadError)} /> : null}
+        {loadError ? <Alert tone="danger" title={isUnavailableResource(loadError) ? m.errors.byCode.RESOURCE_NOT_FOUND! : errorText(m, loadError)} /> : null}
         {save.error ? <Alert tone="danger" title={errorText(m, save.error)}>{(save.error as { problem?: { detail?: string } }).problem?.detail}</Alert> : null}
         <TextField placeholder={m.common.ph.formulaName} label={t.name} value={name} onChange={setName} isRequired autoFocus maxLength={200} />
         <FormulaExpressionInput label={t.expression} placeholder={m.common.ph.expression} value={expression} onChange={(value) => {

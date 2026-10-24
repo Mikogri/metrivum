@@ -9,6 +9,6 @@ maestro test apps/mobile/e2e/client-smoke.yaml
 maestro test apps/mobile/e2e/coach-role-switch.yaml
 ```
 
-Run separately on an authorized Android device and iOS simulator/device with the [official Maestro CLI](https://docs.maestro.dev/). Do not use `clearState` or `clearKeychain` on a user's installation. Flows restart only TrainFlow and do not create messages, submit workouts, or change backend records. Permission prompts remain unset; neither flow needs microphone or notification permission. Use disposable data because the runner's failure artifacts may contain visible account information.
+Run separately on an authorized Android device and iOS simulator/device with the [official Maestro CLI](https://docs.maestro.dev/). Do not use `clearState` or `clearKeychain` on a user's installation. Flows restart only Metrivum and do not create messages, submit workouts, or change backend records. Permission prompts remain unset; neither flow needs microphone or notification permission. Use disposable data because the runner's failure artifacts may contain visible account information.
 
 Passing these smoke flows would prove only native tab/role navigation and retained login across app restarts. They do not cover multi-account races, workout durability, encryption, push, recording, private files or local ML. Those scenarios remain mandatory acceptance work.

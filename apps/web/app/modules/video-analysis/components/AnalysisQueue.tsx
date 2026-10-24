@@ -9,7 +9,7 @@ import styles from './AnalysisQueue.module.css';
 
 /**
  * Videos the local analyzer is working through for this user. It keeps going with this page (or the browser)
- * closed; finished videos are saved to the library from whichever TrainFlow page is open next.
+ * closed; finished videos are saved to the library from whichever Metrivum page is open next.
  * With `fill`, the card takes the height it is given and only the list scrolls.
  */
 export function AnalysisQueue({ hideWhenEmpty = false, fill = false }: { hideWhenEmpty?: boolean; fill?: boolean }) {

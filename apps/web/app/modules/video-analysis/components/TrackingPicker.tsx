@@ -207,8 +207,8 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
     </div>
     <div className={styles.controls}>
       <div className={styles.group} role="group" aria-label="Playback">
-        <PlayerButton label={playing ? "Pause" : "Play"} onPress={togglePlay}>{playing ? <Pause /> : <Play />}</PlayerButton>
         <PlayerButton label="Previous frame" onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
+        <PlayerButton label={playing ? "Pause" : "Play"} onPress={togglePlay}>{playing ? <Pause /> : <Play />}</PlayerButton>
         <PlayerButton label="Next frame" onPress={() => step(FRAME)}><StepForward /></PlayerButton>
         <span className={styles.clock}>{playClock(now)}<span> / {playClock(duration)}</span></span>
       </div>

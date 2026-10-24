@@ -46,6 +46,15 @@ public sealed class JwtTests
     }
 
     [Fact]
+    public async Task Deleted_or_revoked_sessions_are_rejected_before_profile_provisioning()
+    {
+        using var factory = new ApiFactory { SessionActive = false };
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(Guid.NewGuid()));
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/me")).StatusCode);
+    }
+
+    [Fact]
     public async Task Missing_token_is_unauthorized_and_liveness_is_public()
     {
         using var factory = new ApiFactory();
@@ -60,6 +69,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     private readonly RSA rsa = RSA.Create(2048);
     private readonly string? database;
     public ApiFactory(string? database = null) => this.database = database;
+    public bool SessionActive { get; set; } = true;
     public RsaSecurityKey Key => new(rsa) { KeyId = "test-key" };
     public IConfigurationManager<OpenIdConnectConfiguration>? KeyManager
     {
@@ -73,6 +83,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.ConfigureServices(services => services.AddSingleton<IAuthSessionValidator>(new TestSessionValidator(this)));
         builder.ConfigureServices(services => services.AddSingleton<TrainFlow.Billing.Infrastructure.IPlatformCurrencyConverter>(new TestCurrencyConverter()));
         foreach (var setting in new Dictionary<string, string?>
         {
@@ -87,6 +98,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             config.SigningKeys.Add(Key);
             options.ConfigurationManager = KeyManager ?? new StaticConfigurationManager<OpenIdConnectConfiguration>(config);
         }));
+    }
+
+    private sealed class TestSessionValidator(ApiFactory factory) : IAuthSessionValidator
+    {
+        public Task<bool> IsActiveAsync(Guid userId, Guid sessionId, CancellationToken ct) => Task.FromResult(factory.SessionActive);
     }
 
     private sealed class TestCurrencyConverter : TrainFlow.Billing.Infrastructure.IPlatformCurrencyConverter

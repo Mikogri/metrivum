@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Info } from "lucide-react";
+import { IconButton, Tooltip as InfoTooltip, TooltipTrigger } from "@trainflow/ui-web";
 import { createPortal } from "react-dom";
 import type uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
@@ -24,6 +26,11 @@ export function nearest(points: TrajectoryPoint[], seconds: number): TrajectoryP
   let best: TrajectoryPoint | null = null;
   for (const p of points) if (!best || Math.abs(p.seconds - seconds) < Math.abs(best.seconds - seconds)) best = p;
   return best;
+}
+
+/** Speed is a magnitude; retain raw signed image-axis velocity in analyzer results. */
+export function movementSpeed(point: TrajectoryPoint): number | null {
+  return point.velocity == null ? null : Math.abs(point.velocity);
 }
 
 /**
@@ -143,11 +150,15 @@ function drawFrame(u: uPlot, color: string) {
   ctx.restore();
 }
 
-interface Tip { left: number; top: number; flip: boolean; title: string; rows: Array<{ label: string; value: string; kind?: PhaseKind; color?: string }> }
+interface Tip { crosshair?: boolean; points?: Array<{ left: number; top: number; color: string }>; left: number; top: number; flip: boolean; title: string; rows: Array<{ label: string; value: string; kind?: PhaseKind; color?: string }> }
 
 function Tooltip({ tip }: { tip: Tip | null }) {
   if (!tip) return null;
   return (
+    <>
+    <div className={styles.hoverVertical} style={{ left: tip.left }} aria-hidden="true" />
+    {tip.crosshair ? <div className={styles.hoverHorizontal} style={{ top: tip.top }} aria-hidden="true" /> : null}
+    {tip.points?.map((point, i) => <i key={i} className={styles.hoverPoint} style={{ left: point.left, top: point.top, borderColor: point.color }} aria-hidden="true" />)}
     <div className={styles.tooltip} style={{ left: tip.left, top: tip.top, translate: tip.flip ? "calc(-100% - 12px) 0" : "12px 0" }} role="presentation">
       <strong>{tip.title}</strong>
       {tip.rows.map((row) => (
@@ -158,6 +169,7 @@ function Tooltip({ tip }: { tip: Tip | null }) {
         </span>
       ))}
     </div>
+    </>
   );
 }
 
@@ -282,7 +294,7 @@ export function TimeSeriesChart({
             if (!sample || v == null || u.cursor.left == null || u.cursor.left < 0) { setTip(null); return; }
             const kind = phaseAt(now.reps, sample.seconds);
             setTip({
-              left: u.cursor.left, top: Math.max(0, u.valToPos(v, "y")), flip: u.cursor.left > u.over.clientWidth - 180,
+              left: u.valToPos(sample.seconds, "x"), top: Math.max(0, u.valToPos(v, "y")), flip: u.cursor.left > u.over.clientWidth - 180,
               title: `${formatNumber(now.locale, sample.seconds, 2)} s`,
               rows: [
                 { label: now.label, value: `${formatNumber(now.locale, v, 2)} ${now.unit}` },
@@ -444,7 +456,7 @@ export function BarPathPlot({ points, unit, label, cursor, repetitions = [], vis
         if (!best) { setTip(null); return; }
         const kind = phaseAt(now.repetitions, best.seconds);
         setTip({
-          left: chart.valToPos(best.x, "x"), top: chart.valToPos(best.y, "y"), flip: chart.valToPos(best.x, "x") > over.clientWidth - 180,
+          crosshair: true, left: chart.valToPos(best.x, "x"), top: chart.valToPos(best.y, "y"), flip: chart.valToPos(best.x, "x") > over.clientWidth - 180,
           title: `${formatNumber(now.locale, best.seconds, 2)} s`,
           rows: [
             { label: "x", value: `${formatNumber(now.locale, best.x, 1)} ${now.unit}` },
@@ -515,7 +527,7 @@ export function PhaseTimeline({ repetitions, phaseLabel, repLabel, locale, curso
                   className={styles.phase}
                   data-kind={normalizePhase(phase.kind)}
                   style={{ width: `${((phase.endSeconds - phase.startSeconds) / total) * 100}%` }}
-                  aria-label={`${repLabel(rep.number)} · ${phaseLabel(phase.kind)}`}
+                  aria-label={`${repLabel(rep.number)} · ${phaseLabel(phase.kind)}${rep.phases.filter(p => normalizePhase(p.kind) === normalizePhase(phase.kind)).length > 1 ? ` ${rep.phases.slice(0, index + 1).filter(p => normalizePhase(p.kind) === normalizePhase(phase.kind)).length}` : ''}`}
                   onClick={() => onSeek?.(phase.startSeconds)}
                   disabled={!onSeek}
                 >
@@ -536,7 +548,7 @@ export function PhaseTimeline({ repetitions, phaseLabel, repLabel, locale, curso
 
 /** One line on an overlay chart: its own x and y values, colour and label. */
 export interface OverlayLine {
-  id: string; label: string; color: string; x: number[]; y: number[];
+  id: string; label: string; color: string; x: number[]; y: Array<number | null>;
   /** Points where one phase ends and the next begins (drawn as dots on the line). */
   marks?: Array<{ x: number; y: number }>;
 }
@@ -545,15 +557,17 @@ export interface OverlayLine {
  * Several repetitions on one chart (from one video or several): each line is drawn against its own x values,
  * so reps of different lengths and from different videos overlap from their start.
  */
-export function OverlayChart({ lines, label, unit, xUnit = "s", locale, height = 322, square = false, invertY = false }: {
+export function OverlayChart({ lines, label, unit, xUnit = "s", locale, height = 322, square = false, invertY = false, timeOrigin = "rep", description }: {
+  description?: string;
+  timeOrigin?: "rep" | "phase";
   lines: OverlayLine[]; label: string; unit: string; xUnit?: string; locale: Locale; height?: number; square?: boolean; invertY?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [over, setOver] = useState<HTMLElement | null>(null);
   const [tip, setTip] = useState<Tip | null>(null);
   const theme = useThemeVersion();
-  const latest = useRef({ lines, locale, unit, xUnit, label });
-  latest.current = { lines, locale, unit, xUnit, label };
+  const latest = useRef({ lines, locale, unit, xUnit, label, timeOrigin });
+  latest.current = { lines, locale, unit, xUnit, label, timeOrigin };
   const key = lines.map((line) => `${line.id}:${line.color}:${line.x.length}`).join("|");
 
   useEffect(() => {
@@ -566,7 +580,7 @@ export function OverlayChart({ lines, label, unit, xUnit = "s", locale, height =
       if (disposed || !host.current) return;
       const palette = readPalette(element);
       const xs = lines.flatMap((line) => line.x);
-      const ys = lines.flatMap((line) => line.y);
+      const ys = lines.flatMap((line) => line.y).filter((v): v is number => v != null && Number.isFinite(v));
       const range = (values: number[], pad = 0.06): [number, number] => {
         let min = Math.min(...values); let max = Math.max(...values);
         if (!Number.isFinite(min) || !Number.isFinite(max)) return [0, 1];
@@ -574,6 +588,7 @@ export function OverlayChart({ lines, label, unit, xUnit = "s", locale, height =
         const p = (max - min) * pad; return [min - p, max + p];
       };
       let xRange = range(xs, 0.02); let yRange = range(ys);
+      if (ys.length && ys.every(v => v >= 0)) yRange[0] = Math.max(0, yRange[0]);
       if (square) {
         // Same scale on both axes so bar paths keep their shape.
         const span = Math.max(xRange[1] - xRange[0], yRange[1] - yRange[0]);
@@ -607,19 +622,22 @@ export function OverlayChart({ lines, label, unit, xUnit = "s", locale, height =
         if (!chart) return;
         const rect = area.getBoundingClientRect();
         const px = event.clientX - rect.left;
+        const py = event.clientY - rect.top;
         const at = chart.posToVal(px, "x");
         const now = latest.current;
         // Each line's value at the pointer's x (nearest sample), listed in the tooltip.
         const rows = now.lines.map((line) => {
           let best = -1; let distance = Infinity;
           for (let i = 0; i < line.x.length; i++) { const d = Math.abs(line.x[i]! - at); if (d < distance) { distance = d; best = i; } }
-          return best < 0 ? null : { line, value: line.y[best]!, y: chart!.valToPos(line.y[best]!, "y") };
+          const value = best < 0 ? null : line.y[best];
+          return value == null ? null : { line, value, seconds: line.x[best]!, x: chart!.valToPos(line.x[best]!, "x"), y: chart!.valToPos(value, "y") };
         }).filter((row): row is NonNullable<typeof row> => row !== null);
         if (!rows.length) { setTip(null); return; }
         setTip({
-          left: px, top: rows.reduce((sum, row) => sum + row.y, 0) / rows.length, flip: px > area.clientWidth - 200,
-          title: now.xUnit === "s" ? `${formatNumber(now.locale, at, 2)} s into the rep` : now.label,
-          rows: rows.map((row) => ({ label: row.line.label, value: `${formatNumber(now.locale, row.value, 2)} ${now.unit}`, color: row.line.color })),
+          crosshair: square, points: rows.map(row => ({ left: row.x, top: row.y, color: row.line.color })),
+          left: px, top: py, flip: px > area.clientWidth - 200,
+          title: now.xUnit === "s" ? `${formatNumber(now.locale, at, 2)} s into the ${now.timeOrigin}` : now.label,
+          rows: rows.map((row) => ({ label: now.xUnit === "s" ? `${row.line.label} (${formatNumber(now.locale, row.seconds, 2)} s)` : row.line.label, value: `${formatNumber(now.locale, row.value, 2)} ${now.unit}`, color: row.line.color })),
         });
       });
       area.addEventListener("pointerleave", () => setTip(null));
@@ -638,7 +656,13 @@ export function OverlayChart({ lines, label, unit, xUnit = "s", locale, height =
   return (
     <figure className={styles.figure}>
       <figcaption className={styles.head}>
-        <span className={styles.title}>{label}</span>
+        <span className={styles.title}>
+          {description ? <TooltipTrigger delay={150}>
+            <IconButton size="sm" variant="ghost" label={`About ${label}`} icon={<Info />} showTooltip={false} />
+            <InfoTooltip placement="top">{description}</InfoTooltip>
+          </TooltipTrigger> : null}
+          {label}
+        </span>
         <span className={styles.unit}>{unit}</span>
       </figcaption>
       <div className={styles.chart} role="img" aria-label={`${label} (${unit}), ${lines.length} repetitions`}>

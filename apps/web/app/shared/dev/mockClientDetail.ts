@@ -87,6 +87,18 @@ export function mockClientDetail(path: string, method: string, q: URLSearchParam
   }
   if (path === "/api/v1/check-ins/requests") return ok(page(checkIns.filter((c) => !q.get("status") || c.status === q.get("status")), q));
   let m: RegExpMatchArray | null;
+  // One check-in with its form and, once submitted, the answers.
+  if ((m = path.match(/^\/api\/v1\/check-ins\/(?:relationships\/([^/]+)\/)?requests\/([^/]+)$/))) {
+    const found = checkIns.find((c) => c.id === m![2]) ?? checkIns[0]!;
+    const request = { ...found, relationshipId: m[1] ?? found.relationshipId };
+    const questions = [["energy", "How was your energy this week?"], ["sleep", "How did you sleep?"]].map(([key, label], order) => ({ key, label, type: "ShortText", required: order === 0, order, helpText: null }));
+    return ok({
+      request,
+      form: { coachId: "00000000-0000-4000-8000-000000000000", definition: { sections: [{ key: "week", title: "This week", order: 0, questions }] } },
+      submission: request.submittedAt ? { answers: { energy: "Good, a bit tired on Friday.", sleep: "7 hours on average." } } : null,
+      coachPrivateNotes: null,
+    });
+  }
   if (path.match(/^\/api\/v1\/check-ins\/relationships\/[^/]+\/summary$/)) return ok({ awaitingReview: 1, overdue: 1, submitted: 5, reviewed: 4, lastCheckIn: checkIns[0], nextDueAtUtc: iso(-4) });
   if ((m = path.match(/^\/api\/v1\/coaching\/relationships\/([^/]+)\/(.+)$/))) {
     const rest = m[2]!;

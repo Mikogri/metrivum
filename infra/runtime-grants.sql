@@ -28,7 +28,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON training.folders, training.plans, traini
 GRANT SELECT, INSERT ON training.revisions, training.formula_versions TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE ON training.client_exercise_maxes TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE, DELETE ON media.files TO trainflow_api;
-GRANT SELECT, INSERT, UPDATE ON video_analysis.jobs TO trainflow_api;
+-- Owner/version checks in AnalysisLibrary govern deletion; shares cascade with their analysis.
+GRANT SELECT, INSERT, UPDATE, DELETE ON video_analysis.jobs TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE ON video_analysis.analysis_shares TO trainflow_api;
 GRANT SELECT, INSERT, DELETE ON video_analysis.saved_shares TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE ON coaching."Relationships", coaching."Groups" TO trainflow_api;

@@ -67,8 +67,9 @@
   outline-offset: 1px;
 }
 
+/* The title keeps a readable width: below it, the actions wrap onto their own line instead of squeezing it. */
 .lead[data-back] {
-  flex: 1;
+  flex: 1 1 18rem;
 }
 
 .titles {

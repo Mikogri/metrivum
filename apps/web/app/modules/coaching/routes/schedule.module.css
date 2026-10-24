@@ -1,0 +1,138 @@
+/* Check-in schedule editor: numbered steps, one explanation per choice and a live preview. */
+.stepNo {
+  display: inline-grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin-right: var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: 50%;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  vertical-align: 1px;
+}
+
+.explain {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  max-width: 40rem;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.explain svg {
+  flex-shrink: 0;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  margin-top: 0.1875rem;
+  color: var(--tf-color-text-secondary);
+}
+
+.note {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.quick {
+  display: grid;
+  gap: var(--tf-space-1-5);
+}
+
+/* The preview: what is set up, in words, and the next release dates as small date chips. */
+.preview {
+  display: grid;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface-raised);
+}
+
+.previewMain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
+.previewIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-text-secondary);
+}
+
+.previewIcon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.previewText {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 12rem;
+}
+
+.previewText strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.previewText span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.previewWho {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.previewWho svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.upcoming {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upcoming li {
+  padding: 2px var(--tf-space-2);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-full);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.upcoming li:first-child {
+  border-color: var(--tf-color-border-strong);
+  color: var(--tf-color-text);
+}
+
+/* A field with its explanation underneath the input. */
+.field {
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-1-5);
+  min-width: 0;
+}

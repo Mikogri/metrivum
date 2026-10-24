@@ -1,9 +1,9 @@
+import { isUnavailableResource } from "~/shared/lib/ResourceError";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ban, GitCompare, Pencil, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Alert, AlertDialog, Breadcrumbs, Button, Dialog, EmptyState, ErrorState, PageHeader, Skeleton, Spinner, TextArea, TextField, toast } from "@trainflow/ui-web";
-import { ApiError } from "~/shared/http/errors";
 import { formatDateTime, formatNumber } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -25,7 +25,7 @@ import { useAnalysis, useAnalysisResult, videoKeys } from "../queries";
 import styles from "./analysis-detail.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Analysis — TrainFlow");
+export const meta = () => privateMeta("Analysis — Metrivum");
 
 export default function AnalysisDetail() {
   const { analysisId = "" } = useParams();
@@ -94,7 +94,7 @@ export default function AnalysisDetail() {
     );
   }
   if (query.isError || !analysis) {
-    const notFound = query.error instanceof ApiError && query.error.status === 404;
+    const notFound = isUnavailableResource(query.error);
     return (
       <ErrorState
         title={notFound ? t.notFound : errorText(m, query.error)}

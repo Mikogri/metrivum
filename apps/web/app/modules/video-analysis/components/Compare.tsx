@@ -12,7 +12,7 @@ import { useAccountKey, useApi } from '~/shared/session/AccountScope';
 import { getResult, getSharedResult, listSaved, sharedVideoUrl } from '../api';
 import { useAnalysisList } from '../queries';
 import { isLift, LIFTS, movementLabel, type AnalysisLabel } from '../movement';
-import { normalizePhase, OverlayChart, type OverlayLine } from './charts';
+import { normalizePhase, OverlayChart, movementSpeed, type OverlayLine } from './charts';
 
 const PHASE_NAMES = { eccentric: 'Lowering', pause: 'Pause', concentric: 'Lifting' } as const;
 import { VideoPlayer } from './VideoPlayer';
@@ -80,34 +80,36 @@ export function CompareView({ sources, results, onRemove }: { sources: CompareSo
   const toggle = (id: string, on: boolean) => setPicked(() => { const next = new Set(selected); if (on) next.add(id); else next.delete(id); return next; });
   const units = new Set(chosen.map(row => row.result.positionUnit));
 
-  const lines = useMemo(() => {
-    const position: OverlayLine[] = []; const velocity: OverlayLine[] = []; const path: OverlayLine[] = [];
-    for (const row of chosen) {
-      const samples = row.result.trajectory.filter(p => !p.occluded && p.seconds >= row.rep.startSeconds && p.seconds <= row.rep.endSeconds);
-      if (!samples.length) continue;
-      const first = samples[0]!;
-      const label = `Vid ${row.sourceIndex + 1} · Rep ${row.rep.number}`;
-      const rel = (p: typeof first) => p.seconds - row.rep.startSeconds;
-      position.push({ id: row.id, label, color: row.color, x: samples.map(rel), y: samples.map(p => first.y - p.y) });
-      const moving = samples.filter(p => p.velocity != null);
-      if (moving.length) velocity.push({ id: row.id, label, color: row.color, x: moving.map(rel), y: moving.map(p => p.velocity!) });
-      path.push({ id: row.id, label, color: row.color, x: samples.map(p => p.x - first.x), y: samples.map(p => p.y - first.y) });
-    }
-    // One chart per phase: each rep's line starts where that phase starts (speed when measured, else height).
-    const phases = (['eccentric', 'pause', 'concentric'] as const).map(kind => ({ kind, lines: chosen.flatMap(row => {
-      const phase = row.rep.phases.find(p => normalizePhase(p.kind) === kind);
-      if (!phase) return [];
-      const part = row.result.trajectory.filter(p => !p.occluded && p.seconds >= phase.startSeconds && p.seconds <= phase.endSeconds);
-      if (part.length < 2) return [];
-      const speed = part.every(p => p.velocity != null);
-      return [{ id: `${row.id}:${kind}`, label: `Vid ${row.sourceIndex + 1} · Rep ${row.rep.number}`, color: row.color,
-        x: part.map(p => p.seconds - phase.startSeconds), y: part.map(p => (speed ? p.velocity! : part[0]!.y - p.y)) }];
-    }) })).filter(phase => phase.lines.length);
-    return { position, velocity, path, phases };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chosen.map(row => row.id).join()]);
-
+  const position: OverlayLine[] = [];
+  const path: OverlayLine[] = [];
+  for (const row of chosen) {
+    const samples = row.result.trajectory.filter(p => !p.occluded && p.seconds >= row.rep.startSeconds && p.seconds <= row.rep.endSeconds);
+    if (!samples.length) continue;
+    // Chest contact is not tracked: use the lifting start, or the lowest tracked position as a fallback.
+    const lifting = row.rep.phases.find(p => normalizePhase(p.kind) === 'concentric');
+    const zero = lifting
+      ? samples.reduce((best, p) => Math.abs(p.seconds - lifting.startSeconds) < Math.abs(best.seconds - lifting.startSeconds) ? p : best)
+      : samples.reduce((lowest, p) => p.y > lowest.y ? p : lowest);
+    const first = samples[0]!;
+    const common = { id: row.id, label: `Vid ${row.sourceIndex + 1} / Rep ${row.rep.number}`, color: row.color };
+    position.push({ ...common, x: samples.map(p => p.seconds - row.rep.startSeconds), y: samples.map(p => zero.y - p.y) });
+    path.push({ ...common, x: samples.map(p => p.x - first.x), y: samples.map(p => p.y - first.y) });
+  }
   const unit = units.size === 1 ? [...units][0]! : 'px';
+
+  // Compare corresponding occurrences, never silently discard repeated phases of the same kind.
+  const phases = (['eccentric', 'pause', 'concentric'] as const).flatMap(kind => {
+    const count = Math.max(0, ...chosen.map(row => row.rep.phases.filter(p => normalizePhase(p.kind) === kind).length));
+    return Array.from({ length: count }, (_, occurrence) => ({ kind, occurrence, count, lines: chosen.flatMap(row => {
+      const phase = row.rep.phases.filter(p => normalizePhase(p.kind) === kind)[occurrence];
+      if (!phase) return [];
+      const part = row.result.trajectory.filter(p => p.seconds >= phase.startSeconds && p.seconds <= phase.endSeconds);
+      if (part.length < 2 || !part.some(p => !p.occluded && p.velocity != null)) return [];
+      return [{ id: `${row.id}:${kind}:${occurrence}`, label: `Vid ${row.sourceIndex + 1} / Rep ${row.rep.number}`, color: row.color,
+        x: part.map(p => p.seconds - phase.startSeconds), y: part.map(p => p.occluded ? null : movementSpeed(p)) }];
+    }) })).filter(phase => phase.lines.length);
+  });
+
   const speedUnit = (result: AnalysisResult) => (result.metersPerPixel ? 'm/s' : `${result.positionUnit}/s`);
   const loading = results.some(result => !result);
 
@@ -141,12 +143,13 @@ export function CompareView({ sources, results, onRemove }: { sources: CompareSo
       : !loading ? <p className={styles.hint}>The analyzer found no repetitions in these videos.</p> : null}
 
     {chosen.length ? <Card padding="md" className={styles.charts}>
-      <OverlayChart lines={lines.position} label="Height from the start of the rep" unit={unit} locale={locale} />
-      {lines.velocity.length ? <OverlayChart lines={lines.velocity} label="Velocity" unit={chosen[0] ? speedUnit(chosen[0].result) : 'px/s'} locale={locale} /> : null}
-      {lines.phases.map(phase => <OverlayChart key={phase.kind} lines={phase.lines} label={`${PHASE_NAMES[phase.kind]} · from the start of the phase`}
-        unit={chosen.every(row => row.result.trajectory.some(p => p.velocity != null)) ? (chosen[0] ? speedUnit(chosen[0].result) : 'px/s') : unit} locale={locale} height={253} />)}
+      <OverlayChart lines={position} label="Bar height" unit={unit} locale={locale}
+        description="Vertical bar displacement relative to the start of lifting (an approximation of the bar at the chest). Without a lifting phase, the lowest tracked position is zero. Positive values are above zero; negative values are below it. Time starts at the beginning of each repetition." />
+      {phases.map(phase => <OverlayChart key={`${phase.kind}:${phase.occurrence}`} lines={phase.lines} label={`${PHASE_NAMES[phase.kind]}${phase.count > 1 ? ` ${phase.occurrence + 1}` : ''} from the start of the phase`} description={`Bar speed during ${PHASE_NAMES[phase.kind].toLowerCase()} only. Time starts at the beginning of that phase for each repetition. Speed is nonnegative; missing measurements appear as gaps. Patterns from different repetitions are overlaid.`}
+        unit={chosen[0] ? speedUnit(chosen[0].result) : 'px/s'} locale={locale} height={253} timeOrigin="phase" />)}
       <div className={styles.pathRow}>
-        <div className={styles.path}><OverlayChart lines={lines.path} label="Bar path" unit={unit} xUnit={unit} locale={locale} square invertY /></div>
+        <div className={styles.path}><OverlayChart lines={path} label="Bar path" unit={unit} xUnit={unit} locale={locale} square invertY
+          description="The tracked bar path over the full repetition. Each path starts at zero; horizontal and vertical axes use the same scale. Down on the plot means down in the video." /></div>
         <PhaseBars rows={chosen} locale={locale} />
       </div>
     </Card> : rows.length ? <p className={styles.hint}>Tick repetitions in the table to draw them.</p> : null}
@@ -165,7 +168,9 @@ function PhaseBars({ rows, locale }: { rows: RepRow[]; locale: Locale }) {
           {row.rep.phases.map((phase, i) => {
             const kind = normalizePhase(phase.kind);
             const time = phase.endSeconds - phase.startSeconds;
-            return <span key={i} className={styles.phaseSegment} data-kind={kind} style={{ flexGrow: time }} title={`${PHASE_NAMES[kind as keyof typeof PHASE_NAMES] ?? 'Other'}: ${formatNumber(locale, time, 2)} s`}>
+            const same = row.rep.phases.filter(p => normalizePhase(p.kind) === kind);
+            const ordinal = same.length > 1 ? ` ${same.indexOf(phase) + 1}` : '';
+            return <span key={i} className={styles.phaseSegment} data-kind={kind} style={{ flexGrow: time }} title={`${PHASE_NAMES[kind as keyof typeof PHASE_NAMES] ?? 'Other'}${ordinal}: ${formatNumber(locale, time, 2)} s`}>
               <span>{formatNumber(locale, time, 1)}</span>
             </span>;
           })}

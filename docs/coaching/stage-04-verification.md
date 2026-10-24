@@ -37,7 +37,7 @@ Each migration lives in its owning module's `Infrastructure/Migrations` director
 
 ## APPLIED TO DEV
 
-All six migrations are recorded in EF histories on the owner-confirmed Supabase development project `atclvdkpbccafakzpwls` (TrainFlow, eu-west-1). Project identity, migration baseline and application ownership were checked before applying. Two Supabase wrapper migrations recorded the EF-generated batches. Existing messages remained present; local upgrade fixtures verified exact preservation of original fields and historical fee amounts.
+All six migrations are recorded in EF histories on the owner-confirmed Supabase development project `atclvdkpbccafakzpwls` (Metrivum, eu-west-1). Project identity, migration baseline and application ownership were checked before applying. Two Supabase wrapper migrations recorded the EF-generated batches. Existing messages remained present; local upgrade fixtures verified exact preservation of original fields and historical fee amounts.
 
 The actual restricted `trainflow_api` TLS connection successfully inserted, updated and read a notification in a rolled-back transaction. It has schema USAGE without CREATE; financial/price histories remain immutable. No managed Auth or Storage schema was changed and no remote customer fixture data was inserted.
 

@@ -59,3 +59,21 @@ Verified references: [Supabase signed upload](https://supabase.com/docs/referenc
 API readiness does not start the separate analysis worker. Store `ConnectionStrings:WorkerDatabase` in .NET User Secrets for `workers/TrainFlow.Worker` (ID `trainflow-worker-development`), then run the script above. The script defaults to Development, where secrets override local JSON; environment variables and command-line arguments still take precedence. Testing never reads local secrets. User Secrets are outside the repository but are not encrypted. Media cleanup failures are logged and retried without starving queued analysis claims. Never substitute the API/migration login for the worker or mark jobs completed without processing.
 
 On 2026-10-08, the owner authorized resetting only the dedicated worker password. Its new credential was stored in User Secrets, the old connection removed from project-local JSON, and authenticated queue reads and worker startup were verified. PostgreSQL tests independently verified job admission, lease/cancellation fencing and actual execution with a test-only adapter; this does not claim the user's uploaded videos were processed.
+
+Web comparison shows one speed chart per phase, aligned to that phase’s start; the phase-time bars retain the full repetition. Speed charts use the magnitude of the stored signed velocity, preserve missing/occluded samples as gaps and never substitute displacement for missing speed. Stored analyzer results remain unchanged.
+
+Comparison retains bar path and height charts. Height zero approximates chest position using lifting onset (or the lowest tracked position without a lifting phase); signed displacement is retained. Chart headers expose explanatory information tooltips.
+
+Hover guides mark the tooltip position and comparison samples; each comparison row includes its measured sample time. API owns result validation, authorization, media ownership, idempotency and transactional persistence. The browser coordinates local jobs and uploads; inference, repetition/phase detection and measurements run in the local companion. Client results are validated input, not independently verified inference.
+
+Repeated phase kinds are preserved: comparison aligns occurrence N with occurrence N and labels repeated phases by ordinal. API accepts chronological repeated phase kinds (up to its existing phase budget). Limitation: the current MotionTrace MovementRep detector still models one lowering/lifting pair and does not identify a complete clean-and-jerk or snatch sequence as a multi-stroke repetition. UI support is not proof of compound-lift detection.
+
+Private comparison queries terminate on failure instead of rendering indefinite loading. Inaccessible (403/404) resources use a neutral not-found state with no retry or API detail; transient failures offer an explicit retry. Ownership remains enforced by API queries, and intentional shared-link access retains its existing contract.
+
+Analyzer 1.5 supersedes the single-pair limitation above for unspecified movements: it tracks the whole clip bidirectionally and measures directional sequences with repeated phases and pauses. Cycles separate on return to initial height; technique and semantic completion are not classified. Existing results are not rewritten. Explicit bench/squat/deadlift paths retain MotionTrace parity.
+
+Runtime deletion requires DELETE on video_analysis.jobs for trainflow_api (not the worker); keep infra/runtime-grants.sql applied after migrations. AnalysisLibrary retains owner/version checks, cascading shares and media cleanup. Verified against the development runtime role using a failed job inside a rolled-back transaction.
+
+Analyzer 1.6 preserves model inputs/results while reducing prefix spool I/O and batching tiny GPU-to-CPU observations. Completed stage caches survive failures within a 24-hour / 512 MiB retention budget, with hash validation before reuse. This saves repeated work, not partial GPU-inference state. See the local analyzer README.
+
+Analyzer 1.7 reuses verified GPU weights in a private sequential worker, with new recurrent state for every video. Strict meta/mapped loading avoids duplicate CPU weights; idle residency defaults to 30 seconds and is configurable. Cold and warm timing plus full trajectory/phase parity evidence are recorded in the local analyzer README.

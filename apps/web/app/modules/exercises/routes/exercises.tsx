@@ -21,7 +21,7 @@ import { privateMeta } from "~/shared/i18n/site";
 /** Rows per page in lists. */
 const PAGE_SIZE = 20;
 
-export const meta = () => privateMeta("Exercises — TrainFlow");
+export const meta = () => privateMeta("Exercises — Metrivum");
 
 const DEFAULTS = { q: "", tag: "", muscle: "", pattern: "", fav: "", sort: "name", page: "1", view: "list" };
 

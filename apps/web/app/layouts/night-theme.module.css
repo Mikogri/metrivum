@@ -1,42 +1,47 @@
 /*
- * Night palette for the public site: a neutral (slightly warm, never blue) near-black, white for text and the primary action,
- * hairline borders. Green is the brand's data accent: status dots, drawn product visuals, markers.
+ * Night palette for the public site and the sign-in pages: a neutral near-black, glossy graphite surfaces with a
+ * light top edge, white-to-grey type, and one muted green for the main action and data accents.
  */
 :global([data-public-theme="night"]) {
   color-scheme: dark;
 
-  --tf-color-bg: #090909;
-  --tf-color-bg-sunken: #060606;
-  --tf-color-surface: #101010;
-  --tf-color-surface-raised: #151515;
-  --tf-color-surface-overlay: #1b1b1b;
-  --tf-color-field: rgb(255 255 255 / 0.05);
-  --tf-color-field-hover: rgb(255 255 255 / 0.08);
+  --tf-color-bg: #050505;
+  --tf-color-bg-sunken: #030303;
+  --tf-color-surface: #0d0d0d;
+  --tf-color-surface-raised: #141414;
+  --tf-color-surface-overlay: #1a1a1a;
+  --tf-color-field: rgb(255 255 255 / 0.04);
+  --tf-color-field-hover: rgb(255 255 255 / 0.07);
   --tf-color-surface-hover: rgb(255 255 255 / 0.05);
   --tf-color-surface-selected: rgb(255 255 255 / 0.08);
 
   --tf-color-border-subtle: rgb(255 255 255 / 0.06);
-  --tf-color-border: rgb(255 255 255 / 0.09);
-  --tf-color-border-strong: rgb(255 255 255 / 0.16);
+  --tf-color-border: rgb(255 255 255 / 0.1);
+  --tf-color-border-strong: rgb(255 255 255 / 0.18);
 
-  --tf-color-text: #f5f5f4;
-  --tf-color-text-secondary: #9b9a97;
-  --tf-color-text-tertiary: #6e6d6a;
+  --tf-color-text: #ededec;
+  --tf-color-text-secondary: #8f8f8d;
+  --tf-color-text-tertiary: #626260;
 
-  --tf-color-primary: #e6e6e6;
-  --tf-color-primary-hover: #ffffff;
-  --tf-color-primary-border: #e6e6e6;
-  --tf-color-primary-border-hover: #ffffff;
-  --tf-color-on-primary: #090909;
-  --tf-color-accent: #57f29f;
-  --tf-color-accent-strong: #8ff9c4;
-  --tf-color-accent-soft: rgb(87 242 159 / 0.1);
-  --tf-color-accent-border: rgb(87 242 159 / 0.32);
-  --tf-color-focus-ring: #f5f5f4;
+  /* The main action: dark green glass with a light green edge. */
+  --tf-color-primary: #16301f;
+  --tf-color-primary-hover: #1c3c28;
+  --tf-color-primary-border: rgb(110 231 160 / 0.38);
+  --tf-color-primary-border-hover: rgb(110 231 160 / 0.55);
+  --tf-color-on-primary: #d6f5e2;
+  --tf-color-accent: #6ee7a0;
+  --tf-color-accent-strong: #a7f3c9;
+  --tf-color-accent-soft: rgb(110 231 160 / 0.1);
+  --tf-color-accent-border: rgb(110 231 160 / 0.3);
+  --tf-color-focus-ring: #d4d4d2;
 
-  --tf-glass: rgb(21 21 21 / 0.7);
-  --tf-glass-border: rgb(255 255 255 / 0.08);
-  --tf-glass-blur: blur(18px) saturate(120%);
+  /* Glossy panels: a faint light from the top edge over graphite. */
+  --tf-gloss: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.015) 38%, transparent 70%);
+  --tf-gloss-edge: inset 0 1px 0 rgb(255 255 255 / 0.09);
+
+  --tf-glass: rgb(18 18 18 / 0.72);
+  --tf-glass-border: rgb(255 255 255 / 0.09);
+  --tf-glass-blur: blur(20px) saturate(120%);
   /* Product visuals on the public site use no blue: "info" reads as a quiet neutral here. */
   --tf-color-info: #c9c7c2;
   --tf-color-info-soft: rgb(255 255 255 / 0.07);

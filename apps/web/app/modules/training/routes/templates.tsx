@@ -2,7 +2,7 @@ import { RequireFeature } from "~/shared/access";
 import { LibraryScreen } from "../library/LibraryScreen";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Templates — TrainFlow");
+export const meta = () => privateMeta("Templates — Metrivum");
 
 export default function TemplatesRoute() {
   return (

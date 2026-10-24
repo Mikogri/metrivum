@@ -5,6 +5,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";
+import { AddAccountSwitch } from "../components/AddAccountSwitch";
 import { AuthFooter, AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
 import { authErrorText, isEmailNotConfirmed, isUnknownAccount } from "../lib/authErrors";
@@ -12,7 +13,7 @@ import { callbackUrl, slotParam } from "../lib/urls";
 import { isValidEmail, normalizeEmail } from "../lib/email";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Sign in — TrainFlow");
+export const meta = () => privateMeta("Sign in — Metrivum");
 
 export default function Login() {
   const m = useT();
@@ -84,6 +85,7 @@ export default function Login() {
   return (
     <>
       <AuthHeader title={adding ? t.addingTitle : t.title} subtitle={adding ? t.addingSubtitle : t.subtitle} />
+      {adding ? <AddAccountSwitch current="login" slot={slot} /> : null}
       {error ? (
         <Alert tone="danger" title={error.text} live="assertive">
           {error.unconfirmed ? (
@@ -137,7 +139,7 @@ export default function Login() {
       )}
       {adding ? (
         <AuthFooter>
-          <RouterLink to="/app/dashboard">{m.common.cancel}</RouterLink>
+          <RouterLink to="/app">{m.common.cancel}</RouterLink>
         </AuthFooter>
       ) : null}
     </>

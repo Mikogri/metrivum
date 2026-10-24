@@ -1,5 +1,5 @@
 /**
- * System notifications for finished analyses, shown only while TrainFlow is in a background tab (in the
+ * System notifications for finished analyses, shown only while Metrivum is in a background tab (in the
  * foreground the in-app toast says the same). The permission is asked once, when videos are sent, never on load.
  */
 export function askForNotifications() {

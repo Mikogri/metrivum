@@ -22,7 +22,7 @@ export type UsernameProblem = "invalid" | "reserved" | null;
 export function usernameProblem(value: string): UsernameProblem {
   if (!USERNAME.test(value) || value.includes("__")) return "invalid";
   const lower = value.toLowerCase();
-  return RESERVED.has(lower) || lower.startsWith("trainflow") ? "reserved" : null;
+  return RESERVED.has(lower) || lower.startsWith("trainflow") || lower.startsWith("metrivum") ? "reserved" : null;
 }
 
 /** Trimmed, NFC, whitespace runs collapsed: what the server will store. */

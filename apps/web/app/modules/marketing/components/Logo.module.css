@@ -1,9 +1,19 @@
-.md {
-  width: auto;
-  height: 1.375rem;
+.md,
+.sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.sm {
+.md { font-size: 1.375rem; }
+.sm { font-size: 1.125rem; }
+
+.md img,
+.sm img {
   width: auto;
-  height: 1.125rem;
+  height: 1em;
 }

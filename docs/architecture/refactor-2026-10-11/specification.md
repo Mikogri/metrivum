@@ -1,8 +1,8 @@
-# TrainFlow — refaktoryzacja architektury i wdrożenie poprawek systemowych
+# Metrivum — refaktoryzacja architektury i wdrożenie poprawek systemowych
 
 ## 0. Zadanie i sposób pracy
 
-Przeprowadź przegląd ISTNIEJĄCEGO TrainFlow, a następnie wdrażaj uzasadnione poprawki architektury, jakości kodu, bezpieczeństwa, spójności danych, wydajności i niezawodności. Zakres obejmuje ASP.NET Core API, PostgreSQL/Supabase, istniejące workery, React web oraz istniejącą aplikację React Native + Expo.
+Przeprowadź przegląd ISTNIEJĄCEGO Metrivum, a następnie wdrażaj uzasadnione poprawki architektury, jakości kodu, bezpieczeństwa, spójności danych, wydajności i niezawodności. Zakres obejmuje ASP.NET Core API, PostgreSQL/Supabase, istniejące workery, React web oraz istniejącą aplikację React Native + Expo.
 
 To zadanie implementacyjne, nie sam audyt ani propozycja nowej architektury. Oczekuję działających zmian, migracji tam, gdzie są potrzebne, testów oraz raportu wyników. Pracuj w etapach, nie jako jeden wielki refaktor.
 
@@ -18,28 +18,28 @@ Przyjęcie tego zadania nie upoważnia do zmiany reguł biznesowych, kasowania d
 
 ### 1.1. Dokument referencyjny RaceTrace
 
-Przeczytaj dołączony `RACETRACE_ARCHITECTURE.md`. Jest materiałem referencyjnym z innego projektu, NIE opisem aktualnego kodu TrainFlow.
+Przeczytaj dołączony `RACETRACE_ARCHITECTURE.md`. Jest materiałem referencyjnym z innego projektu, NIE opisem aktualnego kodu Metrivum.
 
-Dokument opisuje audyt źródeł z 10 października 2026 i dopisek publikacyjny z 11 października. Dopisek potwierdza późniejsze zastosowanie dwóch migracji w RaceTrace Analytics, ale nie potwierdza uruchomienia flag runtime. Sam audyt nie weryfikował produkcyjnej wydajności ani nie uruchamiał ponownie wymienionych testów. Nie przenoś jego ustaleń jako faktów o TrainFlow.
+Dokument opisuje audyt źródeł z 10 października 2026 i dopisek publikacyjny z 11 października. Dopisek potwierdza późniejsze zastosowanie dwóch migracji w RaceTrace Analytics, ale nie potwierdza uruchomienia flag runtime. Sam audyt nie weryfikował produkcyjnej wydajności ani nie uruchamiał ponownie wymienionych testów. Nie przenoś jego ustaleń jako faktów o Metrivum.
 
 Źródłowe mechanizmy do oceny i adaptacji:
 
-| RaceTrace — sekcja | Co faktycznie opisano | Zastosowanie proponowane dla TrainFlow |
+| RaceTrace — sekcja | Co faktycznie opisano | Zastosowanie proponowane dla Metrivum |
 |---|---|---|
 | 5.3, 14.2 | Odczyty pod zastosowanie, reuse wejść, wspólny kontekst szczegółów | Małe projekcje, odczyty zbiorcze, współdzielone dane nagłówka i lazy loading zakładek |
 | 6.1, 6.9 | Wspólne kalkulatory, wersje i zależności konfiguracji | Spójne metryki Progress/Analyze, generator i pochodzenie wyników ML |
 | 7–9 | Warstwy cache, SingleFlight, rewizje i kontrola publikacji | Wybrane cache i obliczenia z jednoznaczną tożsamością oraz zakresem dostępu |
 | 10 | OpenAPI → TypeScript + runtime Zod, z częściowym pokryciem | Kontrakty web/mobile i automatyczna kontrola rozjazdów |
-| 11.2 | Dzierżawy, heartbeat, fencing, trwałe artefakty | Odporne zadania istniejących modułów TrainFlow |
+| 11.2 | Dzierżawy, heartbeat, fencing, trwałe artefakty | Odporne zadania istniejących modułów Metrivum |
 | 12 | Rozdzielona telemetria warstw i jej ograniczenia | Pomiar API, Npgsql/SQL, obliczeń, kolejek i lokalnego ML |
 | 13 | Query keys, stany UI, tokeny stylowania i niepełne granice feature’ów | Uporządkowanie adapterów, komponentów i izolacji kont |
 | 15, 17, 18 | Luki wdrożeniowe, kontrola wersji, parity tests i rekomendacje | CI, bezpieczne migracje, kontrolowane uruchamianie i testy zgodności |
 
-W szczegółowej sekcji 5.3 aktualna normalna ścieżka v3 korzysta z pakietów danych źródłowych, a nie dawnych wyników `prepared_payload`. W raporcie są też opisy starszych warstw i ścieżek kompatybilności. Nie wyciągaj wniosku, że należy materializować każdy wynik TrainFlow albo przenieść całą historyczną strukturę RaceTrace.
+W szczegółowej sekcji 5.3 aktualna normalna ścieżka v3 korzysta z pakietów danych źródłowych, a nie dawnych wyników `prepared_payload`. W raporcie są też opisy starszych warstw i ścieżek kompatybilności. Nie wyciągaj wniosku, że należy materializować każdy wynik Metrivum albo przenieść całą historyczną strukturę RaceTrace.
 
-### 1.2. Dodatkowe wymagania TrainFlow, nie ustalenia audytu RaceTrace
+### 1.2. Dodatkowe wymagania Metrivum, nie ustalenia audytu RaceTrace
 
-Następujące elementy są projektowanymi rozszerzeniami TrainFlow, a nie twierdzeniem, że już działają w RaceTrace:
+Następujące elementy są projektowanymi rozszerzeniami Metrivum, a nie twierdzeniem, że już działają w RaceTrace:
 - automatyczne testy granic architektury;
 - staging i atomowa publikacja większych zmian;
 - ujednolicony transactional outbox i deduplikacja odbiorców;
@@ -60,13 +60,13 @@ Nie kopiuj z RaceTrace:
 - PostgREST/RPC jako zamiennika obecnego EF Core/Npgsql;
 - centralnego, wielozadaniowego `DomainQueryService`;
 - wszystkich TTL, wszystkich warstw cache i wszystkich domyślnych limitów;
-- zasady wykonywania wszystkich obliczeń na backendzie — ML TrainFlow ma być lokalne;
+- zasady wykonywania wszystkich obliczeń na backendzie — ML Metrivum ma być lokalne;
 - luźnych granic modułów, dynamicznego JSON bez kontraktu ani braku CI;
 - pięciosekundowej świeżości rewizji jako gwarancji natychmiastowego odebrania uprawnień.
 
 Nie zmieniaj technologii, ORM, systemu kont ani całej struktury repo na wzór innego projektu.
 
-## 2. Nienaruszalne założenia TrainFlow
+## 2. Nienaruszalne założenia Metrivum
 
 Zachowaj dotychczasowe reguły i interfejsy, chyba że wykryta luka wymaga uzasadnionej, wstecznie bezpiecznej korekty.
 
@@ -561,7 +561,7 @@ Testy wydajności:
 
 Test obciążeniowy uruchamiaj lokalnie/na dedykowanym DEV w bezpiecznym budżecie. Nie obciążaj współdzielonego Supabase lub płatnej usługi bez potwierdzenia. Dla braku środowiska przygotuj reprodukowalny harness i oznacz wyniki jako niezmierzone.
 
-Nie przepisuj starych wyników testów RaceTrace lub TrainFlow jako świeżych pomiarów. Redukcja 20 requestów do 1 nie oznacza automatycznie 20-krotnego skrócenia latencji.
+Nie przepisuj starych wyników testów RaceTrace lub Metrivum jako świeżych pomiarów. Redukcja 20 requestów do 1 nie oznacza automatycznie 20-krotnego skrócenia latencji.
 
 ## 22. Testy zgodności wyników i regresji
 
@@ -779,7 +779,7 @@ Brak modelu ML, urządzenia, sekretu albo potwierdzonego DEV blokuje tylko daną
 
 Dopasuj lokalizację do repo, np. `docs/refactor/system-hardening/`:
 - `plan.md` — etapy i checklista wszystkich obszarów;
-- `source-map.md` — inspiracje RaceTrace vs propozycje TrainFlow vs ustalenia z kodu;
+- `source-map.md` — inspiracje RaceTrace vs propozycje Metrivum vs ustalenia z kodu;
 - `decisions.md` — konkretne decyzje techniczne i otwarte biznesowe;
 - `metrics.md` — definicje, źródła i wersjonowanie;
 - `consistency.md` — publikacja, outbox, idempotencja i granice gwarancji;
@@ -814,11 +814,11 @@ Nie twierdź, że:
 - sam hash zapewnia odtworzenie lub autentyczność;
 - obecność polityki oznacza faktyczne odebranie już pobranych danych.
 
-Wynik ma być rzeczywistą poprawą istniejącego TrainFlow: mniej powielonej logiki i obejść, jasne kontrakty, bezpieczne zapisy, testowalne reguły, przewidywalne obliczenia, kontrolowany koszt i możliwość odzyskania działania po awarii.
+Wynik ma być rzeczywistą poprawą istniejącego Metrivum: mniej powielonej logiki i obejść, jasne kontrakty, bezpieczne zapisy, testowalne reguły, przewidywalne obliczenia, kontrolowany koszt i możliwość odzyskania działania po awarii.
 
 ## 30. Materiały pomocnicze i weryfikacja wersji
 
-Główny materiał źródłowy: `RACETRACE_ARCHITECTURE.md`, w szczególności sekcje 5.3, 6.1/6.9, 7–12, 13.2/13.6, 15 i 18. Dodatkowe wymagania tej specyfikacji są propozycjami dostosowania do TrainFlow, nie potwierdzeniem kodu RaceTrace.
+Główny materiał źródłowy: `RACETRACE_ARCHITECTURE.md`, w szczególności sekcje 5.3, 6.1/6.9, 7–12, 13.2/13.6, 15 i 18. Dodatkowe wymagania tej specyfikacji są propozycjami dostosowania do Metrivum, nie potwierdzeniem kodu RaceTrace.
 
 Przed użyciem konkretnego API lub nowej zależności sprawdź jej dokumentację dla wersji faktycznie użytej w projekcie. Przykładowe oficjalne punkty odniesienia:
 
@@ -839,4 +839,4 @@ Expo — zgodność runtime aktualizacji:
 https://docs.expo.dev/eas-update/runtime-versions/
 ```
 
-Materiały Microsoft opisujące eventy w architekturze mikroserwisowej są źródłem mechanizmu, nie poleceniem przejścia TrainFlow na mikroserwisy. Nie instaluj wszystkich bibliotek wymienionych jako kandydaci.
+Materiały Microsoft opisujące eventy w architekturze mikroserwisowej są źródłem mechanizmu, nie poleceniem przejścia Metrivum na mikroserwisy. Nie instaluj wszystkich bibliotek wymienionych jako kandydaci.

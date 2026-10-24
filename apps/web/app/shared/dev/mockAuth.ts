@@ -21,6 +21,7 @@ export function mockAuthClient(slot: SlotId): SupabaseClient {
   const ok = (session: Session | null) => ({ data: { session, user: session?.user ?? null }, error: null });
   const auth = {
     getSession: async () => ok(read()),
+    getUser: async () => ({ data: { user: read()?.user ?? null }, error: null }),
     refreshSession: async () => ok(read()),
     signInWithPassword: async ({ email }: { email: string }) => {
       const session = make(email);

@@ -100,7 +100,7 @@ export const english = {
     "onboarding.username": "Username",
     "onboarding.birth": "Birth date (YYYY-MM-DD)",
     "onboarding.coach": "Coach account",
-    "onboarding.terms": "I accept the TrainFlow terms",
+    "onboarding.terms": "I accept the Metrivum terms",
     "onboarding.acceptTerms": "Accept terms",
 } as const;
 export type TranslationKey = keyof typeof english;
@@ -206,7 +206,7 @@ export const polish: Record<TranslationKey, string> = {
     "onboarding.username": "Nazwa użytkownika",
     "onboarding.birth": "Data urodzenia (RRRR-MM-DD)",
     "onboarding.coach": "Konto trenera",
-    "onboarding.terms": "Akceptuję regulamin TrainFlow",
+    "onboarding.terms": "Akceptuję regulamin Metrivum",
     "onboarding.acceptTerms": "Akceptuję regulamin",
 };
 export function resolveLocale(value?: string | null): Locale | undefined {

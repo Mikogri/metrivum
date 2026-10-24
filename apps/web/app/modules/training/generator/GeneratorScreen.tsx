@@ -1,12 +1,10 @@
-import { privateMeta } from "~/shared/i18n/site";
-
-export const meta = () => privateMeta("Generate program — TrainFlow");
-
-import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { CalendarDays, Check, Clock, Dumbbell, Info, RefreshCw, Save, Shuffle, Target, WandSparkles } from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PlanDto } from "@trainflow/api-client-web";
-import { Alert, Button, Checkbox, LoadingState, Option, PageHeader, Select, TextField } from "@trainflow/ui-web";
+import { Alert, Button, Checkbox, Chip, ChipGroup, Disclosure, EmptyState, LoadingState, NumberInput, Option, PageHeader, Select, TextField } from "@trainflow/ui-web";
+import { privateMeta } from "~/shared/i18n/site";
 import { RequireFeature } from "~/shared/access";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { newIdempotencyKey } from "~/shared/http/transport";
@@ -15,6 +13,8 @@ import { errorText } from "~/shared/lib/errorText";
 import { trainingKeys } from "../queries";
 import type { GenerationLevel, GenerationMode, GenerationOptions, GenerationPreview, GenerationRequest, GenerationState } from "./contracts";
 import styles from "./GeneratorScreen.module.css";
+
+export const meta = () => privateMeta("Generate program — Metrivum");
 
 const base = "/api/v1/training/generator";
 const initial: GenerationRequest = { mode: "Strength", level: "Beginner", sessionMinutes: 60, cycleDays: 7, daySlots: [1, 3, 5], cycles: 3, seed: 42,
@@ -32,7 +32,6 @@ export function GeneratorForm() {
   const navigate = useNavigate();
   const messages = useT();
   const [input, setInput] = useState(initial);
-  const [days, setDays] = useState("1, 3, 5");
   const [name, setName] = useState("Generated program");
   const [preview, setPreview] = useState<GenerationPreview | null>(null);
   const [issues, setIssues] = useState<GenerationPreview["issues"]>([]);
@@ -57,12 +56,9 @@ export function GeneratorForm() {
   function update<K extends keyof GenerationRequest>(key: K, value: GenerationRequest[K]) {
     setInput(current => ({ ...current, [key]: value })); setFormChanged(true); setIssues([]);
   }
-  function toggle(key: "equipment" | "skills" | "excludedExercises" | "priorityMuscles" | "preferredFamilies", value: string, selected: boolean) {
-    update(key, selected ? [...input[key], value] : input[key].filter(x => x !== value));
-  }
   function regenerate() {
     setIssues([]);
-    action.mutate({ path: "preview", body: { ...input, daySlots: days.split(",").map(x => Number(x.trim())) } });
+    action.mutate({ path: "preview", body: { ...input, daySlots: input.daySlots.filter(day => day >= 1 && day <= input.cycleDays) } });
   }
   function lock(slot: string, selected: boolean) {
     if (!preview?.state) return;
@@ -78,85 +74,181 @@ export function GeneratorForm() {
       && x.requiredSkills.every(s => state.input.skills.includes(s))
       && x.equipmentAnyOf.some(branch => branch.allOf.every(e => state.input.equipment.includes(e)))) ?? [];
   }
-  return <main className={styles.page}>
-    <PageHeader title="Program generator" description="Choose a reviewed recipe, inspect the result, then continue in the existing program builder." />
-    <Link to="/app/programs">← Programs</Link>
+  const daySlots = input.daySlots.filter((day) => day >= 1 && day <= input.cycleDays);
+  return <div className={styles.page}>
+    <PageHeader title="Program generator" description="Choose a goal and your schedule, review the generated program, then continue in the program builder." />
     {options.isPending ? <LoadingState label="Loading reviewed exercise options…" /> : null}
     {options.error ? <Alert tone="danger" title={errorText(messages, options.error)}><Button variant="secondary" onPress={() => void options.refetch()}>Retry</Button></Alert> : null}
     {options.data?.exercises.length === 0 ? <Alert tone="warning" title="No reviewed exercises are available in this catalog. Ask the coach administrator to restore or review the canonical exercise records." /> : null}
-    {options.data && options.data.exercises.length > 0 ? <>
-      <form className={styles.form} onSubmit={event => { event.preventDefault(); regenerate(); }}>
-        <fieldset disabled={busy} className={styles.fields}>
-          <legend>Recipe and schedule</legend>
-          <Select label="Training goal" selectedKey={input.mode} onSelectionChange={key => update("mode", key as GenerationMode)}>
-            {["Strength", "Hypertrophy", "Cardio", "Mixed"].map(x => <Option key={x} id={x}>{x}</Option>)}
-          </Select>
-          <Select label="Experience" selectedKey={input.level} onSelectionChange={key => update("level", key as GenerationLevel)}>
-            {["Beginner", "Intermediate", "Advanced"].map(x => <Option key={x} id={x}>{x}</Option>)}
-          </Select>
-          <TextField label="Minutes per session" placeholder="60" description="10–180 minutes" type="number" value={String(input.sessionMinutes)} onChange={v => update("sessionMinutes", Number(v))} />
-          <TextField label="Days per cycle" placeholder="7" description="1–28 days" type="number" value={String(input.cycleDays)} onChange={v => update("cycleDays", Number(v))} />
-          <TextField label="Workout day positions" placeholder="1, 3, 5" description="Comma-separated positions in each cycle, such as 1, 4, 8 for a 10-day cycle." value={days} onChange={v => { setDays(v); setFormChanged(true); }} />
-          <TextField label="Number of cycles" placeholder="4" description="1–12 cycles" type="number" value={String(input.cycles)} onChange={v => update("cycles", Number(v))} />
-          <TextField label="Seed" placeholder="Any number" type="number" value={String(input.seed)} onChange={v => update("seed", Number(v))} />
-          <Checkbox isSelected={input.progressRepetitions} onChange={v => update("progressRepetitions", v)}>Add up to two repetitions across subsequent cycles</Checkbox>
+    {options.data && options.data.exercises.length > 0 ? <div className={styles.layout}>
+      {/* Settings on the left, kept in view while the preview on the right scrolls. */}
+      <form className={styles.settings} onSubmit={event => { event.preventDefault(); regenerate(); }}>
+        <fieldset disabled={busy} className={styles.section}>
+          <legend className={styles.sectionTitle}><Target aria-hidden="true" />Goal</legend>
+          <ChipField label="Training goal">
+            {(id) => <ChipGroup aria-labelledby={id} disallowEmptySelection selectedKeys={[input.mode]} onSelectionChange={keys => { const key = [...keys][0]; if (key) update("mode", key as GenerationMode); }}>
+              {["Strength", "Hypertrophy", "Cardio", "Mixed"].map(x => <Chip key={x} id={x}>{x}</Chip>)}
+            </ChipGroup>}
+          </ChipField>
+          <ChipField label="Experience">
+            {(id) => <ChipGroup aria-labelledby={id} disallowEmptySelection selectedKeys={[input.level]} onSelectionChange={keys => { const key = [...keys][0]; if (key) update("level", key as GenerationLevel); }}>
+              {["Beginner", "Intermediate", "Advanced"].map(x => <Chip key={x} id={x}>{x}</Chip>)}
+            </ChipGroup>}
+          </ChipField>
         </fieldset>
-        <fieldset disabled={busy} className={styles.checks}><legend>Available equipment and space</legend>
-          {options.data.equipment.map(x => <Checkbox key={x} isSelected={input.equipment.includes(x)} onChange={v => toggle("equipment", x, v)}>{label(x)}</Checkbox>)}
+
+        <fieldset disabled={busy} className={styles.section}>
+          <legend className={styles.sectionTitle}><CalendarDays aria-hidden="true" />Schedule</legend>
+          <div className={styles.numbers}>
+            <NumberInput label="Session length" unit="min" placeholder="60" minValue={10} maxValue={180} value={input.sessionMinutes} onChange={v => update("sessionMinutes", v)} formatOptions={{ maximumFractionDigits: 0 }} />
+            <NumberInput label="Days per cycle" placeholder="7" minValue={1} maxValue={28} value={input.cycleDays} onChange={v => update("cycleDays", v)} formatOptions={{ maximumFractionDigits: 0 }} />
+            <NumberInput label="Cycles" placeholder="4" minValue={1} maxValue={12} value={input.cycles} onChange={v => update("cycles", v)} formatOptions={{ maximumFractionDigits: 0 }} />
+          </div>
+          <ChipField label="Workout days" hint="Days of each cycle with a workout.">
+            {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={daySlots.map(String)} onSelectionChange={keys => update("daySlots", [...keys].map(Number).sort((a, b) => a - b))}>
+              {Array.from({ length: Math.max(1, Math.min(28, Number.isFinite(input.cycleDays) ? input.cycleDays : 7)) }, (_, i) => i + 1).map(day => <Chip key={day} id={String(day)} aria-label={`Day ${day}`}>{day}</Chip>)}
+            </ChipGroup>}
+          </ChipField>
+          <Checkbox isSelected={input.progressRepetitions} onChange={v => update("progressRepetitions", v)}>Add up to two repetitions across later cycles</Checkbox>
         </fieldset>
-        <details><summary>Skills, priorities and exclusions</summary>
-          <fieldset disabled={busy} className={styles.checks}><legend>Confirmed exercise skills</legend>
-            {options.data.skills.map(x => <Checkbox key={x} isSelected={input.skills.includes(x)} onChange={v => toggle("skills", x, v)}>{label(x)}</Checkbox>)}
+
+        <fieldset disabled={busy} className={styles.section}>
+          <legend className={styles.sectionTitle}><Dumbbell aria-hidden="true" />Equipment and space</legend>
+          <ChipField label="Available">
+            {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.equipment} onSelectionChange={keys => update("equipment", options.data!.equipment.filter(x => keys.has(x)))}>
+              {options.data.equipment.map(x => <Chip key={x} id={x}>{label(x)}</Chip>)}
+            </ChipGroup>}
+          </ChipField>
+        </fieldset>
+
+        <Disclosure title="Skills, priorities and exclusions" className={styles.more}>
+          <fieldset disabled={busy} className={styles.section}>
+            {options.data.skills.length ? <ChipField label="Confirmed exercise skills">
+              {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.skills} onSelectionChange={keys => update("skills", options.data!.skills.filter(x => keys.has(x)))}>
+                {options.data.skills.map(x => <Chip key={x} id={x}>{label(x)}</Chip>)}
+              </ChipGroup>}
+            </ChipField> : null}
+            {options.data.muscles.length ? <ChipField label="Priority muscles" hint="Up to 3. Movement roles stay balanced.">
+              {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.priorityMuscles} onSelectionChange={keys => { const next = options.data!.muscles.filter(x => keys.has(x)); if (next.length <= 3) update("priorityMuscles", next); }}>
+                {options.data.muscles.map(x => <Chip key={x} id={x} isDisabled={!input.priorityMuscles.includes(x) && input.priorityMuscles.length >= 3}>{label(x)}</Chip>)}
+              </ChipGroup>}
+            </ChipField> : null}
+            {options.data.families.length ? <ChipField label="Preferred exercise families">
+              {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.preferredFamilies} onSelectionChange={keys => update("preferredFamilies", options.data!.families.filter(x => keys.has(x)))}>
+                {options.data.families.map(x => <Chip key={x} id={x}>{label(x)}</Chip>)}
+              </ChipGroup>}
+            </ChipField> : null}
+            <ChipField label="Exclude exercises">
+              {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.excludedExercises} onSelectionChange={keys => update("excludedExercises", options.data!.exercises.filter(x => keys.has(x.id)).map(x => x.id))}>
+                {options.data.exercises.map(x => <Chip key={x.id} id={x.id}>{x.name}</Chip>)}
+              </ChipGroup>}
+            </ChipField>
+            <NumberInput label="Seed" description="The same seed and settings always give the same program." placeholder="42" value={input.seed} onChange={v => update("seed", v)} formatOptions={{ maximumFractionDigits: 0, useGrouping: false }} />
           </fieldset>
-          <fieldset disabled={busy} className={styles.checks}><legend>Priority muscles (up to 3; balanced movement roles remain)</legend>
-            {options.data.muscles.map(x => <Checkbox key={x} isSelected={input.priorityMuscles.includes(x)} isDisabled={!input.priorityMuscles.includes(x) && input.priorityMuscles.length >= 3} onChange={v => toggle("priorityMuscles", x, v)}>{label(x)}</Checkbox>)}
-          </fieldset>
-          <fieldset disabled={busy} className={styles.checks}><legend>Preferred exercise families</legend>
-            {options.data.families.map(x => <Checkbox key={x} isSelected={input.preferredFamilies.includes(x)} onChange={v => toggle("preferredFamilies", x, v)}>{label(x)}</Checkbox>)}
-          </fieldset>
-          <fieldset disabled={busy} className={styles.checks}><legend>Exclude exercises</legend>
-            {options.data.exercises.map(x => <Checkbox key={x.id} isSelected={input.excludedExercises.includes(x.id)} onChange={v => toggle("excludedExercises", x.id, v)}>{x.name}</Checkbox>)}
-          </fieldset>
-        </details>
-        {preview ? <p>Regenerate structure applies these form settings and clears all locks and exercise choices.</p> : null}
-        <Button type="submit" variant="primary" loading={action.isPending} isDisabled={save.isPending}>{preview ? "Regenerate structure" : "Preview program"}</Button>
-      </form>
-      {action.error || save.error ? <Alert tone="danger" title={errorText(messages, action.error ?? save.error)} /> : null}
-      {issues.length > 0 ? <div role="alert">{issues.map((x, index) => <Alert key={`${x.target}-${index}`} tone="warning" title={`${x.code}: ${x.message}`} />)}</div> : null}
-      {preview?.state ? <section className={styles.preview} aria-label="Program preview">
-        <h2>Preview · {preview.state.input.mode}</h2>
-        <p>{preview.state.input.cycles} cycles × {preview.state.input.cycleDays} days · workout positions {preview.state.input.daySlots.join(", ")} · seed {preview.state.input.seed}. Prescriptions below show the final cycle.</p>
-        {formChanged ? <Alert tone="warning" title="Form settings changed. Regenerate the structure to apply them before saving." /> : null}
-        <Button variant="secondary" isDisabled={busy || formChanged} onPress={() => action.mutate({ path: "reshuffle", body: { state: preview.state, seed: preview.state!.selectionSeed + 1 } })}>Reshuffle unlocked exercises</Button>
-        {preview.state.input.daySlots.map((day, index) => {
-          const duration = preview.durations.find(x => x.dayNumber === day)!;
-          return <article className={styles.session} key={day}>
-            <h3>Day {day} · approximately {Math.ceil(duration.totalSeconds / 60)} min</h3>
-            <details><summary>Time breakdown (longest cycle)</summary><p>General warm-up {duration.generalWarmupSeconds / 60} min · specific warm-up {duration.specificWarmupSeconds / 60} min · work {(duration.workSeconds / 60).toFixed(1)} min · rest {(duration.restSeconds / 60).toFixed(1)} min · setup {(duration.setupSeconds / 60).toFixed(1)} min · buffer {duration.bufferSeconds / 60} min</p></details>
-            {preview.slots.filter(x => x.key.startsWith(`session-${index + 1}/`)).map(slot => {
-              const available = alternatives(preview.state!, slot.role, slot.exerciseId);
-              return <div key={slot.key} className={styles.slot}>
-                <div><strong>{slot.name}</strong><p>{label(slot.role)} · {slot.prescription}{slot.repetitionCounting === "per-side" ? " · per side" : ""}</p><small>{slot.muscles.map(label).join(", ")} · equipment: {slot.equipment.map(label).join(", ") || "none"}</small></div>
-                <div className={styles.actions}>
-                  <Checkbox aria-label={`Lock ${slot.name} on day ${day}`} isSelected={slot.locked} isDisabled={busy || formChanged} onChange={v => lock(slot.key, v)}>Lock exercise</Checkbox>
-                  <Select label={`Alternative for ${slot.name}`} selectedKey={replacements[slot.key] ?? "auto"} isDisabled={busy || slot.locked || formChanged || available.length === 0}
-                    onSelectionChange={key => setReplacements(current => ({ ...current, [slot.key]: String(key) }))}>
-                    <Option id="auto">Choose eligible alternative</Option>{available.map(x => <Option key={x.id} id={x.id}>{x.name}</Option>)}
-                  </Select>
-                  <Button variant="secondary" isDisabled={busy || slot.locked || formChanged || available.length === 0} onPress={() => action.mutate({ path: "replace-exercise", body: { state: preview.state, slot: slot.key, exerciseId: replacements[slot.key] && replacements[slot.key] !== "auto" ? replacements[slot.key] : null, seed: preview.state!.selectionSeed + 1 } })}>Replace exercise</Button>
-                  {!slot.locked && available.length === 0 ? <small>No eligible alternative for the current constraints.</small> : null}
-                </div>
-              </div>;
-            })}
-          </article>;
-        })}
-        <details><summary>Recipe assumptions and reproducibility</summary><ul>{preview.assumptions.map(x => <li key={x}>{x}</li>)}</ul><p>Recipe: {preview.state.recipeVersion}<br />Metadata: {preview.state.metadataVersion}<br />Dataset: <code className={styles.hash}>{preview.state.datasetVersion}</code></p></details>
-        <div className={styles.save}>
-          <TextField label="Program name" placeholder="e.g. Strength block A" value={name} maxLength={200} onChange={value => { setName(value); setSaveKey(newIdempotencyKey()); }} isDisabled={busy} />
-          <p>Save creates a private draft. Continue editing sets, loads and structure in the program builder, then apply changes and assign.</p>
-          <Button variant="primary" loading={save.isPending} isDisabled={action.isPending || formChanged || !preview.feasible || !name.trim()} onPress={() => save.mutate()}>Save draft and open builder</Button>
+        </Disclosure>
+
+        <div className={styles.submit}>
+          {preview ? <p className={styles.muted}>Regenerating applies these settings and clears all locks and exercise choices.</p> : null}
+          <Button type="submit" variant="primary" iconStart={preview ? <RefreshCw /> : <WandSparkles />} loading={action.isPending} isDisabled={save.isPending || daySlots.length === 0} block>{preview ? "Regenerate structure" : "Preview program"}</Button>
         </div>
-      </section> : null}
-    </> : null}
-  </main>;
+      </form>
+
+      <div className={styles.result}>
+        {action.error || save.error ? <Alert tone="danger" title={errorText(messages, action.error ?? save.error)} /> : null}
+        {issues.length > 0 ? <div role="alert" className={styles.issues}>{issues.map((x, index) => <Alert key={`${x.target}-${index}`} tone="warning" title={`${x.code}: ${x.message}`} />)}</div> : null}
+        {!preview?.state ? <div className={styles.empty}><EmptyState icon={<WandSparkles />} title="Your program appears here" description="Pick a goal, the workout days and your equipment, then preview. Nothing is saved until you choose to." /></div> : <section className={styles.preview} aria-label="Program preview">
+          <header className={styles.previewHead}>
+            <div>
+              <h2>Preview · {preview.state.input.mode}</h2>
+              <p className={styles.muted}>{preview.state.input.cycles} cycles × {preview.state.input.cycleDays} days · workouts on days {preview.state.input.daySlots.join(", ")} · seed {preview.state.input.seed}. Prescriptions show the final cycle.</p>
+            </div>
+            <Button variant="secondary" iconStart={<Shuffle />} isDisabled={busy || formChanged} onPress={() => action.mutate({ path: "reshuffle", body: { state: preview.state, seed: preview.state!.selectionSeed + 1 } })}>Reshuffle unlocked exercises</Button>
+          </header>
+          {formChanged ? <Alert tone="warning" title="Settings changed. Regenerate the structure to apply them before saving." /> : null}
+          {preview.state.input.daySlots.map((day, index) => {
+            const duration = preview.durations.find(x => x.dayNumber === day)!;
+            return <article className={styles.session} key={day}>
+              <header className={styles.sessionHead}>
+                <h3>Day {day}</h3>
+                <span className={styles.duration}><Clock aria-hidden="true" />about {Math.ceil(duration.totalSeconds / 60)} min</span>
+              </header>
+              {preview.slots.filter(x => x.key.startsWith(`session-${index + 1}/`)).map(slot => {
+                const available = alternatives(preview.state!, slot.role, slot.exerciseId);
+                return <div key={slot.key} className={styles.slot} data-locked={slot.locked || undefined}>
+                  <div className={styles.slotText}>
+                    <strong>{slot.name}</strong>
+                    <span className={styles.prescription}>{slot.prescription}{slot.repetitionCounting === "per-side" ? " · per side" : ""}</span>
+                    <small className={styles.muted}>{label(slot.role)}{slot.muscles.length ? ` · ${slot.muscles.map(label).join(", ")}` : ""} · {slot.equipment.map(label).join(", ") || "no equipment"}</small>
+                  </div>
+                  <div className={styles.slotActions}>
+                    <Checkbox aria-label={`Lock ${slot.name} on day ${day}`} isSelected={slot.locked} isDisabled={busy || formChanged} onChange={v => lock(slot.key, v)}>Lock</Checkbox>
+                    <Select aria-label={`Alternative for ${slot.name}`} selectedKey={replacements[slot.key] ?? "auto"} isDisabled={busy || slot.locked || formChanged || available.length === 0}
+                      onSelectionChange={key => setReplacements(current => ({ ...current, [slot.key]: String(key) }))}>
+                      <Option id="auto">Any eligible alternative</Option>{available.map(x => <Option key={x.id} id={x.id}>{x.name}</Option>)}
+                    </Select>
+                    <Button variant="secondary" size="sm" isDisabled={busy || slot.locked || formChanged || available.length === 0} onPress={() => action.mutate({ path: "replace-exercise", body: { state: preview.state, slot: slot.key, exerciseId: replacements[slot.key] && replacements[slot.key] !== "auto" ? replacements[slot.key] : null, seed: preview.state!.selectionSeed + 1 } })}>Replace exercise</Button>
+                  </div>
+                </div>;
+              })}
+              <TimeBar duration={duration} />
+            </article>;
+          })}
+          {/* What the recipe assumed, always visible: short notes, then the versions that reproduce this result. */}
+          <section className={styles.notes} aria-labelledby="generator-notes">
+            <h3 id="generator-notes" className={styles.notesTitle}><Info aria-hidden="true" />How this program was built</h3>
+            <ul className={styles.assumptions}>
+              {preview.assumptions.map(x => <li key={x}><Check aria-hidden="true" /><span>{x}</span></li>)}
+            </ul>
+            <dl className={styles.versions}>
+              <div><dt>Recipe</dt><dd>{preview.state.recipeVersion}</dd></div>
+              <div><dt>Metadata</dt><dd>{preview.state.metadataVersion}</dd></div>
+              <div><dt>Dataset</dt><dd title={preview.state.datasetVersion}>{preview.state.datasetVersion}</dd></div>
+              <div><dt>Seed</dt><dd>{preview.state.input.seed}</dd></div>
+            </dl>
+          </section>
+          <div className={styles.save}>
+            <div className={styles.saveText}>
+              <h3>Save as a draft</h3>
+              <p className={styles.muted}>A private draft opens in the program builder, where you set loads and assign it.</p>
+            </div>
+            <TextField label="Program name" placeholder="e.g. Strength block A" value={name} maxLength={200} onChange={value => { setName(value); setSaveKey(newIdempotencyKey()); }} isDisabled={busy} />
+            <Button variant="primary" iconStart={<Save />} loading={save.isPending} isDisabled={action.isPending || formChanged || !preview.feasible || !name.trim()} onPress={() => save.mutate()}>Save draft and open builder</Button>
+          </div>
+        </section>}
+      </div>
+    </div> : null}
+  </div>;
+}
+
+/** A label above a chip row, tied to it for assistive technology. */
+function ChipField({ label, hint, children }: { label: string; hint?: string; children: (labelId: string) => ReactNode }) {
+  const id = useId();
+  return <div className={styles.chipField}>
+    <span id={id} className={styles.label}>{label}</span>
+    {children(id)}
+    {hint ? <span className={styles.hint}>{hint}</span> : null}
+  </div>;
+}
+
+const TIME_PARTS = [
+  ["generalWarmupSeconds", "Warm-up", "warmup"],
+  ["specificWarmupSeconds", "Ramp-up sets", "ramp"],
+  ["workSeconds", "Work", "work"],
+  ["restSeconds", "Rest", "rest"],
+  ["setupSeconds", "Setup", "setup"],
+  ["bufferSeconds", "Buffer", "buffer"],
+] as const;
+
+/** Where the session's time goes: one proportional bar with the minutes listed under it. */
+function TimeBar({ duration }: { duration: GenerationPreview["durations"][number] }) {
+  const total = TIME_PARTS.reduce((sum, [key]) => sum + duration[key], 0) || 1;
+  const minutes = (seconds: number) => `${Math.max(1, Math.round(seconds / 60))} min`;
+  return <div className={styles.time}>
+    <div className={styles.timeBar} aria-hidden="true">
+      {TIME_PARTS.map(([key, , tone]) => duration[key] > 0 ? <span key={key} data-tone={tone} style={{ flexGrow: duration[key] / total }} /> : null)}
+    </div>
+    <ul className={styles.timeLegend} aria-label="Time per session">
+      {TIME_PARTS.map(([key, name, tone]) => duration[key] > 0 ? <li key={key}><span className={styles.swatch} data-tone={tone} aria-hidden="true" />{name} <strong>{minutes(duration[key])}</strong></li> : null)}
+    </ul>
+  </div>;
 }

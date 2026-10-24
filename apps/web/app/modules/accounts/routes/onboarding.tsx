@@ -1,9 +1,9 @@
 import { parseDate, today, type CalendarDate } from "@internationalized/date";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import type { ProfileResponse, Schema } from "@trainflow/api-client-web";
-import { Alert, Button, Checkbox, Combobox, DateField, NumberInput, Option, Select, TextArea, TextField } from "@trainflow/ui-web";
+import { Alert, Button, Checkbox, Combobox, DateField, Option, Select, TextField } from "@trainflow/ui-web";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { ApiError } from "~/shared/http/errors";
@@ -12,14 +12,18 @@ import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import { AuthHeader, registrationRole, type RegistrationRole } from "~/modules/auth";
 import { AccountGate } from "../components/AccountGate";
 import { completeOnboarding } from "../api/profile";
+import { DETAIL_GROUPS, DetailFields, detailProblems, detailsToValues, emptyDetails, type DetailGroup, type DetailKey, type Details } from "../components/ProfileDetails";
 import { profileKey } from "../api/useProfile";
 import { timeZones } from "../lib/timeZones";
 import { displayNameValid, normalizeDisplayName, USERNAME_MAX, usernameProblem } from "../lib/identity";
 import styles from "./onboarding.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Set up your account — TrainFlow");
+export const meta = () => privateMeta("Set up your account — Metrivum");
 
+
+type Step = 1 | 2 | 3 | 4 | 5;
+const TOTAL_STEPS = 5;
 
 function ageOn(date: CalendarDate, now: CalendarDate) {
   let age = now.year - date.year;
@@ -45,21 +49,15 @@ function OnboardingForm() {
   const [timeZone, setTimeZone] = useState<string>(() => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
   const [accepted, setAccepted] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  // Steps after the account itself: 2 is the body (sex, height, weight), 3 is training habits.
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [sex, setSex] = useState("");
-  const [height, setHeight] = useState(NaN);
-  const [weight, setWeight] = useState(NaN);
-  const [bodyChecked, setBodyChecked] = useState(false);
-  const [experience, setExperience] = useState("");
-  const [activity, setActivity] = useState("");
-  const [sessions, setSessions] = useState(NaN);
-  const [injuries, setInjuries] = useState("");
+  // Steps after the account itself: body, heart rate and recovery, training, then health and goals.
+  const [step, setStep] = useState<Step>(1);
+  const [details, setDetails] = useState<Details>(emptyDetails);
+  const [checked, setChecked] = useState<Partial<Record<DetailGroup, boolean>>>({});
   // The account is created once; a failed save of the extra details retries only that part.
   const created = useRef<ProfileResponse | null>(null);
 
   const mutation = useMutation({
-    mutationFn: async (includeBody: boolean) => {
+    mutationFn: async (input: Details) => {
       created.current ??= await completeOnboarding(api, {
         username: username.trim(),
         role,
@@ -69,14 +67,9 @@ function OnboardingForm() {
         locale: language,
         timeZone,
       });
-      const values: Record<string, unknown> = {};
-      if (includeBody && sex) values.Sex = sex;
-      if (includeBody && !Number.isNaN(height)) values.Height = height;
-      if (includeBody && !Number.isNaN(weight)) values.Weight = weight;
-      if (experience) values.TrainingExperience = experience;
-      if (activity) values.ActivityLevel = activity;
-      if (!Number.isNaN(sessions)) values.SessionsPerWeek = sessions;
-      if (injuries.trim()) values.InjuriesLimitationsPainNotes = injuries.trim();
+      // Only valid groups are saved; a skipped or invalid optional group is left out rather than blocking setup.
+      const keys = (Object.keys(DETAIL_GROUPS) as DetailGroup[]).filter((group) => !Object.keys(detailProblems(m, input, DETAIL_GROUPS[group], requiredFor(group))).length).flatMap((group) => DETAIL_GROUPS[group]);
+      const values = detailsToValues(input, keys, false);
       if (Object.keys(values).length) {
         const fields = (await api<Schema<"AccountProfileFields">>({ path: "/api/v1/me/profile-fields" })).data;
         await api({ method: "PATCH", path: "/api/v1/me/profile-fields", ifMatch: fields.version, json: { values } });
@@ -110,15 +103,28 @@ function OnboardingForm() {
     setStep(2);
   }
 
-  // Clients give the three body details; for coaches they are optional.
+  // Clients give sex, height and weight; everything else (and everything for coaches) is optional.
   const client = role === "Client";
-  const heightOk = Number.isNaN(height) ? !client : height >= 100 && height <= 250;
-  const weightOk = Number.isNaN(weight) ? !client : weight >= 30 && weight <= 300;
-  const bodyOk = (sex !== "" || !client) && heightOk && weightOk;
-  function onBody(event: FormEvent) {
+  const requiredFor = (group: DetailGroup): DetailKey[] => (client && group === "body" ? ["Sex", "Height", "Weight"] : []);
+  const age = birthDate ? ageOn(birthDate, now) : null;
+  const GROUP_OF: Record<Exclude<Step, 1>, DetailGroup> = { 2: "body", 3: "heart", 4: "training", 5: "health" };
+  function next(event: FormEvent) {
     event.preventDefault();
-    setBodyChecked(true);
-    if (bodyOk) setStep(3);
+    if (step === 1) return;
+    const group = GROUP_OF[step];
+    setChecked((value) => ({ ...value, [group]: true }));
+    if (Object.keys(detailProblems(m, details, DETAIL_GROUPS[group], requiredFor(group))).length) return;
+    if (step === TOTAL_STEPS) mutation.mutate(details);
+    else setStep((step + 1) as Step);
+  }
+  // "Skip" clears the step's fields, so nothing half-typed is saved.
+  function skip() {
+    if (step === 1) return;
+    const cleared = { ...details };
+    for (const key of DETAIL_GROUPS[GROUP_OF[step]]) (cleared as Record<string, unknown>)[key] = emptyDetails[key];
+    setDetails(cleared);
+    if (step === TOTAL_STEPS) mutation.mutate(cleared);
+    else setStep((step + 1) as Step);
   }
 
   const error = mutation.error;
@@ -127,90 +133,58 @@ function OnboardingForm() {
   const usernameError = conflict
     ? (error.code === "USERNAME_TAKEN" ? t.usernameTaken : t.identityMismatch)
     : (fieldError(error, "username") ?? (usernameProblem(username.trim()) === "reserved" ? t.usernameReserved : t.usernameHint));
+  // Steps slide in from the side they come from: forward from the right, back from the left.
+  const shown = useRef(step);
+  const direction = step >= shown.current ? "forward" : "back";
+  useEffect(() => {
+    // A new step starts at its top (the first step is taller than most screens).
+    if (shown.current !== step) window.scrollTo({ top: 0, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    shown.current = step;
+  }, [step]);
+
   const progress = (
     <div className={styles.steps}>
       <ol aria-hidden="true">
-        {[1, 2, 3].map((n) => (
+        {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((n) => (
           <li key={n} data-state={n < step ? "done" : n === step ? "current" : undefined} />
         ))}
       </ol>
-      <span>{t.step(step, 3)}</span>
+      <span>{t.step(step, TOTAL_STEPS)}</span>
     </div>
   );
 
-  if (step === 2)
+  if (step !== 1) {
+    const group = GROUP_OF[step];
+    const header = { body: [t.bodyTitle, client ? t.bodyLead : t.bodyLeadCoach], heart: [t.heartTitle, t.heartLead], training: [t.trainingTitle, t.trainingLead], health: [t.healthTitle, t.healthLead] }[group];
+    const optional = requiredFor(group).length === 0;
+    const last = step === TOTAL_STEPS;
     return (
-      <>
-        <AuthHeader title={t.bodyTitle} subtitle={client ? t.bodyLead : t.bodyLeadCoach} />
-        {progress}
-        <form className={styles.form} onSubmit={onBody} noValidate>
-          <Select label={t.sex} placeholder={t.choose} selectedKey={sex || null} onSelectionChange={(key) => setSex(String(key))} isRequired={client} isInvalid={bodyChecked && client && !sex} errorMessage={m.auth.errors.required}>
-            {["Male", "Female", "Other"].map((key) => (
-              <Option key={key} id={key}>
-                {t.sexOptions[key]}
-              </Option>
-            ))}
-          </Select>
-          <div className={styles.pair}>
-            <NumberInput label={t.height} unit="cm" placeholder="175" value={height} onChange={setHeight} minValue={0} isRequired={client} isInvalid={bodyChecked && !heightOk} errorMessage={Number.isNaN(height) ? m.auth.errors.required : t.heightRange} />
-            <NumberInput label={t.weight} unit="kg" placeholder="70" value={weight} onChange={setWeight} minValue={0} formatOptions={{ maximumFractionDigits: 1 }} isRequired={client} isInvalid={bodyChecked && !weightOk} errorMessage={Number.isNaN(weight) ? m.auth.errors.required : t.weightRange} />
-          </div>
-          <div className={styles.row}>
-            <Button size="lg" onPress={() => setStep(1)}>
-              {t.back}
-            </Button>
-            <Button type="submit" variant="primary" size="lg">
-              {t.continue}
-            </Button>
-          </div>
-        </form>
-      </>
-    );
-
-  if (step === 3)
-    return (
-      <>
-        <AuthHeader title={t.trainingTitle} subtitle={t.trainingLead} />
+      <div key={step} className={styles.step} data-direction={direction}>
+        <AuthHeader title={header[0]!} subtitle={header[1]} />
         {progress}
         {error ? <Alert tone="danger" title={created.current ? t.detailsFailed : errorText(m, error)} live="assertive" /> : null}
-        <form
-          className={styles.form}
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault();
-            mutation.mutate(bodyOk);
-          }}
-        >
-          <Select label={t.experience} placeholder={t.choose} selectedKey={experience || null} onSelectionChange={(key) => setExperience(String(key))}>
-            {t.experienceOptions.map((option) => (
-              <Option key={option} id={option}>
-                {option}
-              </Option>
-            ))}
-          </Select>
-          <Select label={t.activity} placeholder={t.choose} selectedKey={activity || null} onSelectionChange={(key) => setActivity(String(key))}>
-            {t.activityOptions.map((option) => (
-              <Option key={option} id={option}>
-                {option}
-              </Option>
-            ))}
-          </Select>
-          <NumberInput label={t.sessions} placeholder="3" value={sessions} onChange={setSessions} minValue={0} maxValue={21} formatOptions={{ maximumFractionDigits: 0 }} />
-          <TextArea label={t.injuries} placeholder={t.injuriesPlaceholder} value={injuries} onChange={setInjuries} maxLength={4000} />
-          <div className={styles.row}>
-            <Button size="lg" isDisabled={mutation.isPending} onPress={() => setStep(2)}>
+        <form className={styles.form} onSubmit={next} noValidate>
+          <DetailFields group={group} value={details} onChange={setDetails} required={requiredFor(group)} age={age} problems={checked[group] ? detailProblems(m, details, DETAIL_GROUPS[group], requiredFor(group)) : {}} />
+          <div className={styles.actions}>
+            <Button size="lg" isDisabled={mutation.isPending} onPress={() => setStep((step - 1) as Step)}>
               {t.back}
             </Button>
-            <Button type="submit" variant="primary" size="lg" loading={mutation.isPending}>
-              {t.submit}
+            {optional ? (
+              <Button size="lg" variant="ghost" isDisabled={mutation.isPending} onPress={skip}>
+                {t.skip}
+              </Button>
+            ) : null}
+            <Button type="submit" variant="primary" size="lg" loading={mutation.isPending} className={styles.primary}>
+              {last ? t.finish : t.continue}
             </Button>
           </div>
         </form>
-      </>
+      </div>
     );
+  }
 
   return (
-    <>
+    <div key={step} className={styles.step} data-direction={direction}>
       <AuthHeader title={t.title} subtitle={t.body} />
       {progress}
       {error && !conflict ? <Alert tone="danger" title={errorText(m, error)} live="assertive" /> : null}
@@ -273,7 +247,7 @@ function OnboardingForm() {
           {t.continue}
         </Button>
       </form>
-    </>
+    </div>
   );
 }
 

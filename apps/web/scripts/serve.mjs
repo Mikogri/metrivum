@@ -40,6 +40,10 @@ function send(res, status, path, extraHeaders = {}) {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "X-Frame-Options": "DENY",
+    // Origins for scripts and requests depend on the deployment (see docs/frontend/hosting.md); these parts do not.
+    "Content-Security-Policy": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
+    "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
     ...extraHeaders,
   });
   createReadStream(full).pipe(res);
@@ -62,5 +66,5 @@ createServer((req, res) => {
   }
   return send(res, 404, "/404/index.html", { "X-Robots-Tag": "noindex" });
 }).listen(port, () => {
-  console.log(`TrainFlow build served at http://localhost:${port}`);
+  console.log(`Metrivum build served at http://localhost:${port}`);
 });

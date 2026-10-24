@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Invitations — TrainFlow");
+export const meta = () => privateMeta("Invitations — Metrivum");
 
 import { Mail } from "lucide-react";
 import { HubNavigation } from "~/shared/navigation/HubNavigation";
@@ -35,7 +35,7 @@ export default function Invitations() {
   const coach = useWorkspace().mode === "coach";
   const [state, update] = useUrlState({ view: "list", page: "1", status: "" });
   const list = useCoachingQuery<Page<Schema<"InvitationDto">>>(`/api/v1/coaching/${coach ? "invitations" : "my-invitations"}`, { page: pageFromParam(state.page), pageSize: 20, status: state.status || undefined });
-  return <><PageHeader title={coach ? "Invitations" : "My invitations"} description={coach ? "Invite an existing TrainFlow user to apply for your offer." : "Review the coach and terms before you accept an invitation."} actions={coach ? <ClientHubActions /> : undefined} /><HubNavigation />
+  return <><PageHeader title={coach ? "Invitations" : "My invitations"} description={coach ? "Invite an existing Metrivum user to apply for your offer." : "Review the coach and terms before you accept an invitation."} actions={coach ? <ClientHubActions /> : undefined} /><HubNavigation />
     <Toolbar aria-label="Filter invitations" className={styles.toolbar}><Select aria-label="Invitation status" selectedKey={state.status || "all"} onSelectionChange={(k) => update({ status: k === "all" ? "" : String(k) })}><Option id="all">All invitations</Option>{["Pending", "Accepted", "Declined", "Revoked"].map((s) => <Option id={s} key={s}>{s}</Option>)}</Select><LibraryViewToggle value={state.view === "cards" ? "cards" : "list"} onChange={(view) => update({ view })} /></Toolbar>
     {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : !list.data.items.length ? <EmptyState icon={<Mail />} title="No invitations" description={coach ? "Send an invitation by searching for the person's username." : "Invitations from your coaches will appear here."} /> : <><DataView view={state.view === "cards" ? "cards" : "list"} card={(i) => ({ href: `/app/invitations/${i.id}`, title: coach ? i.target.displayName : i.coach.displayName, icon: <Mail />, tone: "blue", badge: <StatusBadge status={i.status} />, subtitle: i.offerRevision.name, description: i.message?.trim() || (coach ? sentNote : receivedNote)[i.status], meta: [`Sent ${elapsed(i.createdAt)}`, ...(i.respondedAt ? [`Answered ${elapsed(i.respondedAt)}`] : [])] })} label="Invitations" rows={list.data.items} rowKey={(i) => i.id} columns={[
       { id: "person", header: coach ? "Client" : "Coach", cell: (i) => <Link data-row-link to={`/app/invitations/${i.id}`}>{coach ? i.target.displayName : i.coach.displayName}</Link> },

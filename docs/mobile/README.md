@@ -1,10 +1,10 @@
-# TrainFlow mobile
+# Metrivum mobile
 
 Native React Native / Expo application at `apps/mobile`, using the existing ASP.NET API and Supabase **Auth only**. Business permissions, relationships, training rules, prices and billing remain server-owned. Mobile contains no checkout or payment mutation. The shared `@trainflow/api-client-web` package keeps its historical name, but its `transport` and generated contracts are platform-neutral.
 
 ## Interface
 
-The mobile theme and components live in `packages/ui-mobile` and are independent of the web styling. Everything TrainFlow presents modally is a bottom sheet built on the native sheet of `@expo/ui`; there are no context menus or centred dialogs. See [visual direction](visual-direction.md) for the decisions and [verification](verification.md#uiux-pass--2026-10-10) for what was and was not checked on devices. A development-only component catalog is at the `/components` route.
+The mobile theme and components live in `packages/ui-mobile` and are independent of the web styling. Everything Metrivum presents modally is a bottom sheet built on the native sheet of `@expo/ui`; there are no context menus or centred dialogs. See [visual direction](visual-direction.md) for the decisions and [verification](verification.md#uiux-pass--2026-10-10) for what was and was not checked on devices. A development-only component catalog is at the `/components` route.
 
 ## Run locally
 

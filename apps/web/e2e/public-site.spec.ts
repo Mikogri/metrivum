@@ -9,7 +9,7 @@ test.describe("public site (pre-rendered)", () => {
     expect(response.status()).toBe(200);
     const html = await response.text();
     expect(textOf(html)).toContain("The training spreadsheet, rebuilt for coaches");
-    expect(html).toMatch(/<title>TrainFlow — the training spreadsheet, rebuilt for coaches<\/title>/);
+    expect(html).toMatch(/<title>Metrivum — the training spreadsheet, rebuilt for coaches<\/title>/);
     expect(html).toContain('rel="canonical"');
     expect(html.toLowerCase()).toContain('hreflang="pl"');
     expect(html).toContain('property="og:title"');

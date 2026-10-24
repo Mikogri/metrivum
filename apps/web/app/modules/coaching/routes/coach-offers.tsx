@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Coach offers — TrainFlow");
+export const meta = () => privateMeta("Coach offers — Metrivum");
 
 import { Tag } from "lucide-react";
 import { useParams } from "react-router";

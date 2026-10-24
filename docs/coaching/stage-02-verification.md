@@ -29,7 +29,7 @@ Accounts: `ProfileSystemFields`; Access: `StageTwoFeatures`; Forms: `InitialForm
 
 ## Applied to dev
 
-Confirmed project: Super Team / TrainFlow, `atclvdkpbccafakzpwls`. Supabase history records:
+Confirmed project: Super Team / Metrivum, `atclvdkpbccafakzpwls`. Supabase history records:
 
 - `20261006222821_coaching_stage02_offers_forms_leads_checkins_billing` — ten EF migrations plus explicit grants.
 - `20261006223048_coaching_stage02_checkin_foreign_key_indexes` — five covering FK indexes and one EF history entry.

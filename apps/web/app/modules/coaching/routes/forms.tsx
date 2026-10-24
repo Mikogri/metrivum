@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Forms — TrainFlow");
+export const meta = () => privateMeta("Forms — Metrivum");
 
 import { ClipboardCheck, FileText, Plus } from "lucide-react";
 import { Link, Navigate } from "react-router";

@@ -1,19 +1,19 @@
 # Sources and ownership
 
-RaceTrace reference: sibling `racetrace-api/docs/architecture/RACETRACE_ARCHITECTURE.md`, source audit dated 10 October and publication note dated 11 October 2026. It is not evidence of TrainFlow runtime behavior; this work did not modify that repository.
+RaceTrace reference: sibling `racetrace-api/docs/architecture/RACETRACE_ARCHITECTURE.md`, source audit dated 10 October and publication note dated 11 October 2026. It is not evidence of Metrivum runtime behavior; this work did not modify that repository.
 
-| Reference | Useful mechanism | TrainFlow evidence / decision |
+| Reference | Useful mechanism | Metrivum evidence / decision |
 |---|---|---|
 | 5.3, 14.2 | Reuse source inputs and screen-specific reads | Existing module analytics projections and Training Progress reader; retain EF/Npgsql and explicit owners. No universal query service or copied PostgREST package. |
 | 6.1, 6.9 | Shared definitions and calculation identity | Analyze already calls owning-module contracts. Generator has recipe/dataset identity; full Progress provenance remains incomplete. |
-| 7–9 | Separate source facts, derived artifacts, result caches and publication guards | No measured need for new TrainFlow cache/SingleFlight. Historical payments remain facts. |
+| 7–9 | Separate source facts, derived artifacts, result caches and publication guards | No measured need for new Metrivum cache/SingleFlight. Historical payments remain facts. |
 | 10 | Backend DTO → generated client and external-boundary validation | Existing export and shared client retained; export isolation and CI strengthened. Runtime schemas remain partial. |
 | 11.2 | Durable leases and stale-writer rejection | Existing legacy analysis queue uses DB-clock token guards. Do not infer the same mechanism exists in every scheduler or enable server video analysis. |
 | 12 | Measure layers separately | Existing EF/Npgsql surfaces are the correct SQL boundary. No Supabase HTTP timer copied. Local diagnostics count consistency/lag, not throughput. |
 | 13.2, 13.6 | Client scopes and feature boundaries | AST import guard closes relative/dynamic import blind spots; mobile chat invalidation avoids unrelated reports. |
-| 15, 17, 18 | Honest rollout, tests and operational limitations | TrainFlow already has CI, restricted roles and health endpoints. Restore worker opt-out and mobile bundles improve this repository's actual gaps. |
+| 15, 17, 18 | Honest rollout, tests and operational limitations | Metrivum already has CI, restricted roles and health endpoints. Restore worker opt-out and mobile bundles improve this repository's actual gaps. |
 
-Architecture tests, restore controls, administrative consistency scan, client edit lifecycle and device model management are TrainFlow requirements from the specification, not claims about RaceTrace.
+Architecture tests, restore controls, administrative consistency scan, client edit lifecycle and device model management are Metrivum requirements from the specification, not claims about RaceTrace.
 
 ## Current responsibility map
 

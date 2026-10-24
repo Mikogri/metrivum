@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Workout — TrainFlow");
+export const meta = () => privateMeta("Workout — Metrivum");
 
 import { useState } from "react";
 import { Link, useParams } from "react-router";

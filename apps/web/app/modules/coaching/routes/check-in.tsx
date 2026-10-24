@@ -1,12 +1,13 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Check-in details — TrainFlow");
+export const meta = () => privateMeta("Check-in details — Metrivum");
 
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
 import { Alert, Button, PageHeader, TextArea } from "@trainflow/ui-web";
+import { QuickMessage, type QuickTemplate } from "~/modules/messaging";
 import { useProfile } from "~/modules/accounts";
 import { LockedReason, useFeatureAccess } from "~/shared/access";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
@@ -16,6 +17,7 @@ import { DraftNavigationGuard, Failure, Loading, MutationError, StatusBadge } fr
 import { AnswerReview, FormAnswerFields, type Answers } from "../form-fields";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import styles from "../coaching.module.css";
+import detail from "./check-in.module.css";
 
 export function CheckInDetail({ requestId, relationshipId, embedded = false, onDirtyChange }: { requestId: string | undefined; relationshipId?: string; embedded?: boolean; onDirtyChange?: (dirty: boolean) => void }) {
   const profile = useProfile();
@@ -25,6 +27,9 @@ export function CheckInDetail({ requestId, relationshipId, embedded = false, onD
   const cancelAccess = manage.allowed ? review : manage;
   const { mode } = useWorkspace();
   const query = useCoachingQuery<Schema<"CheckInDetailDto">>(relationshipId ? `/api/v1/check-ins/relationships/${relationshipId}/requests/${requestId}` : `/api/v1/check-ins/requests/${requestId}`);
+  // The client of this check-in, for the coach's quick message.
+  const collaboration = relationshipId ?? query.data?.request.relationshipId;
+  const client = useCoachingQuery<Schema<"CoachRelationshipDto">>(`/api/v1/coaching/clients/${collaboration}`, undefined, mode === "coach" && Boolean(collaboration));
   const [answers, setAnswers] = useState<Answers>({});
   const [reply, setReply] = useState("");
   const [notes, setNotes] = useState("");
@@ -62,7 +67,7 @@ export function CheckInDetail({ requestId, relationshipId, embedded = false, onD
     : r.status === "Scheduled" ? "The form opens on the date shown above. You will get a notification then."
     : "Only your coach sees your answers. After you submit, they review them and can reply here.";
   const content = <>
-    {r.status === "Overdue" && <Alert tone="warning" title="This check-in is overdue">{coach ? "The client can still submit a response." : "You can still submit your response."}</Alert>}
+    {r.status === "Overdue" && !(embedded && coach) && <Alert tone="warning" title="This check-in is overdue">{coach ? "The client can still submit a response." : "You can still submit your response."}</Alert>}
     {d.submission ? <Panel title={coach ? "Client response" : "Your response"}><AnswerReview definition={d.form.definition} answers={d.submission.answers as Answers} /></Panel> : !coach && pending ? <Panel title="Your response"><form className={styles.form} onSubmit={(e) => { e.preventDefault(); if (respond.allowed) mutation.mutate({ method: "POST", path: `/api/v1/check-ins/requests/${r.id}/submit`, ifMatch: r.version, json: { answers } }); }}><FormAnswerFields definition={d.form.definition} answers={answers} disabled={mutation.isPending || !respond.allowed} onChange={(a) => { setAnswers(a); setDirty(true); }} /><MutationError error={mutation.error} /><LockedReason access={respond}><Button type="submit" variant="primary" isDisabled={!respond.allowed} loading={mutation.isPending}>Submit check-in</Button></LockedReason></form></Panel> : <Alert title={r.status === "Cancelled" ? "This check-in was cancelled" : r.status === "Scheduled" ? "This check-in is not available yet" : "Waiting for the client's response"} />}
     {r.clientReply && <Panel title="Coach reply"><p className={styles.prose}>{r.clientReply}</p></Panel>}
     {coach && d.coachPrivateNotes && <Panel title="Private notes" description="Only you see these notes."><p className={styles.prose}>{d.coachPrivateNotes}</p></Panel>}
@@ -87,7 +92,20 @@ export function CheckInDetail({ requestId, relationshipId, embedded = false, onD
       </div>
     ) : (
       <div className={styles.stack}>
-    {embedded ? <Panel title={r.scheduleName} actions={<><StatusBadge status={r.status} />{cancel}</>}>{timeline}</Panel> : <Panel title="Timeline">{timeline}</Panel>}
+        {embedded ? (
+          <section className={detail.summary} aria-label="Check-in summary">
+            <div className={detail.summaryHead}>
+              <div className={detail.summaryTitle}>
+                <h3>{r.scheduleName}</h3>
+                <span className={detail.due} data-tone={r.status === "Overdue" ? "late" : undefined}>{dueText(r)}</span>
+              </div>
+              <StatusBadge status={r.status} />
+            </div>
+            <Steps request={r} when={when} />
+            {cancel ? <div className={detail.summaryActions}>{cancel}</div> : null}
+          </section>
+        ) : <Panel title="Timeline">{timeline}</Panel>}
+        {coach && client.data ? <QuickMessage person={client.data.client} title="Message" templates={messageTemplates(r, client.data.client.displayName, when)} /> : null}
         {content}
       </div>
     )}
@@ -97,4 +115,55 @@ export function CheckInDetail({ requestId, relationshipId, embedded = false, onD
 export default function CheckIn() {
   const { requestId } = useParams();
   return <CheckInDetail key={requestId} requestId={requestId} />;
+}
+
+type Request = Schema<"CheckInDetailDto">["request"];
+
+/** "Due in 3 days", "Due today", "2 days overdue", "Submitted 1 day late" — the one fact a coach scans for. */
+function dueText(r: Request) {
+  const day = 86_400_000;
+  const days = Math.round((new Date(r.dueAtUtc).getTime() - Date.now()) / day);
+  if (r.status === "Reviewed") return "Reviewed";
+  if (r.status === "Cancelled") return "Cancelled";
+  if (r.submittedAt) return r.wasLate ? "Submitted late" : "Submitted on time";
+  if (r.status === "Scheduled") return `Opens ${new Date(r.availableAtUtc).toLocaleDateString([], { dateStyle: "medium" })}`;
+  if (days < 0) return `${-days} ${-days === 1 ? "day" : "days"} overdue`;
+  if (days === 0) return "Due today";
+  return `Due in ${days} ${days === 1 ? "day" : "days"}`;
+}
+
+/** Opened, due, submitted and reviewed as four steps; the current one is marked, a missed due date in amber. */
+function Steps({ request: r, when }: { request: Request; when: (value: string) => string }) {
+  const now = Date.now();
+  const steps = [
+    { label: "Opened", value: r.availableAtUtc, done: new Date(r.availableAtUtc).getTime() <= now },
+    { label: "Due", value: r.dueAtUtc, done: Boolean(r.submittedAt) || new Date(r.dueAtUtc).getTime() <= now, late: !r.submittedAt && r.status === "Overdue" },
+    { label: "Submitted", value: r.submittedAt, done: Boolean(r.submittedAt), late: r.wasLate },
+    { label: "Reviewed", value: r.reviewedAt, done: Boolean(r.reviewedAt) },
+  ];
+  const current = r.status === "Cancelled" ? -1 : steps.findIndex((step) => !step.done);
+  return (
+    <ol className={detail.steps}>
+      {steps.map((step, index) => (
+        <li key={step.label} data-state={step.done ? "done" : index === current ? "current" : undefined} data-late={step.late || undefined}>
+          <span className={detail.dot} aria-hidden="true" />
+          <span className={detail.stepLabel}>{step.label}</span>
+          <span className={detail.stepValue}>{step.value ? when(step.value) : "—"}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Prepared texts for the coach, the most fitting first for the check-in's state. */
+function messageTemplates(r: Request, name: string, when: (value: string) => string): QuickTemplate[] {
+  const first = name.split(/\s+/)[0] || name;
+  const reminder: QuickTemplate = r.status === "Overdue"
+    ? { id: "reminder", label: "Late reminder", text: `Hi ${first}, a quick reminder: your check-in "${r.scheduleName}" was due ${when(r.dueAtUtc)}. Could you fill it in when you get a moment? Thanks!` }
+    : r.status === "Scheduled"
+      ? { id: "reminder", label: "Heads-up", text: `Hi ${first}, heads-up: your check-in "${r.scheduleName}" opens ${when(r.availableAtUtc)}.` }
+      : { id: "reminder", label: "Reminder", text: `Hi ${first}, your check-in "${r.scheduleName}" is open. Please fill it in by ${when(r.dueAtUtc)}. Thanks!` };
+  const thanks: QuickTemplate = { id: "thanks", label: "Thanks", text: `Thanks for your check-in, ${first}! I'll go through it and get back to you.` };
+  const question: QuickTemplate = { id: "question", label: "Question", text: `Hi ${first}, a quick question about your check-in "${r.scheduleName}": ` };
+  return r.submittedAt ? [thanks, question, reminder] : [reminder, question, thanks];
 }

@@ -70,7 +70,7 @@ def obj_geometry(text):
 
 
 def glb(meshes):
-    doc = {"asset": {"version": "2.0", "generator": "TrainFlow BodyParts3D lossless topology converter", "copyright": CREDIT},
+    doc = {"asset": {"version": "2.0", "generator": "Metrivum BodyParts3D lossless topology converter", "copyright": CREDIT},
            "scene": 0, "scenes": [{"nodes": []}], "nodes": [], "meshes": [], "accessors": [], "bufferViews": []}
     binary = bytearray()
 

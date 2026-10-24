@@ -48,7 +48,7 @@ public static class IntegrationGrants
     public static string[] Validate(string[]? grants)
     {
         if (grants is null || grants.Length > All.Length || grants.Any(x => !All.Contains(x, StringComparer.Ordinal)))
-            throw TrainFlow.BuildingBlocks.ApiException.Invalid("Select supported TrainFlow permissions.");
+            throw TrainFlow.BuildingBlocks.ApiException.Invalid("Select supported Metrivum permissions.");
         return grants.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
     }
 }

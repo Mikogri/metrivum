@@ -153,7 +153,7 @@ public static class McpHosting
         var settings = endpoints.ServiceProvider.GetRequiredService<McpHostingOptions>();
         if (!settings.Enabled) return endpoints;
         var auth = endpoints.ServiceProvider.GetRequiredService<SupabaseAuthOptions>();
-        var metadata = new { resource = settings.PublicResourceUrl, authorization_servers = new[] { auth.Issuer }, scopes_supported = new[] { "openid", "profile", "email" }, bearer_methods_supported = new[] { "header" }, resource_name = "TrainFlow", resource_documentation = settings.WebUrl.TrimEnd('/') + "/app/settings?section=integrations" };
+        var metadata = new { resource = settings.PublicResourceUrl, authorization_servers = new[] { auth.Issuer }, scopes_supported = new[] { "openid", "profile", "email" }, bearer_methods_supported = new[] { "header" }, resource_name = "Metrivum", resource_documentation = settings.WebUrl.TrimEnd('/') + "/app/settings?section=integrations" };
         endpoints.MapGet("/.well-known/oauth-protected-resource/mcp", () => Results.Json(metadata)).AllowAnonymous();
         endpoints.MapGet("/.well-known/oauth-protected-resource", () => Results.Json(metadata)).AllowAnonymous();
         endpoints.MapMcp("/mcp").RequireAuthorization().RequireRateLimiting("mcp");

@@ -17,7 +17,7 @@ public sealed partial class CatalogService
     }
 }
 
-/// <summary>Canonical IDs and descriptions verified against TrainFlow development catalog on 2026-10-08.
+/// <summary>Canonical IDs and descriptions verified against Metrivum development catalog on 2026-10-08.
 /// Eligibility and setup estimates are deliberately narrow recipe assumptions, not clinical claims.</summary>
 public static class ReviewedGeneratorCatalog
 {

@@ -33,7 +33,7 @@ public static class TrainingCsv
                 throw new TrainingValidationException("CSV is empty.");
             reader.ReadHeader();
             if (reader.HeaderRecord is null || !reader.HeaderRecord.SequenceEqual(Columns))
-                throw new TrainingValidationException("Expected TrainFlow CSV v1 columns in the documented order.");
+                throw new TrainingValidationException("Expected Metrivum CSV v1 columns in the documented order.");
             var rows = new List<CsvRow>();
             while (reader.Read())
             {

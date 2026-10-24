@@ -73,7 +73,7 @@ Settlement calculates `validUntil = settledAt + validityDays * 24 hours`, includ
 
 Billing currently has no session-consumption ledger (`remainingSessions` is null), and calendar meetings are not deducted from purchased packages. The expiry records the purchased entitlement's deadline; it does not cancel a relationship or block unrelated meetings. A future consumption operation must check this deadline server-side before deducting a session.
 
-Verification (2026-10-10): 214 unit tests, 34 Offers/Billing integration tests on local PostgreSQL, and 15 targeted frontend tests passed; production frontend build passed. Both SessionValidity migrations were applied to the TrainFlow DEV project and column/runtime privileges were verified. Existing full-repository lint issue: TextField.tsx no-useless-assignment; changed coaching files pass lint.
+Verification (2026-10-10): 214 unit tests, 34 Offers/Billing integration tests on local PostgreSQL, and 15 targeted frontend tests passed; production frontend build passed. Both SessionValidity migrations were applied to the Metrivum DEV project and column/runtime privileges were verified. Existing full-repository lint issue: TextField.tsx no-useless-assignment; changed coaching files pass lint.
 
 ### Training-plan sales
 

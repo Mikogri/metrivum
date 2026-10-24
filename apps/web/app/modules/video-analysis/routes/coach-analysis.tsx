@@ -14,7 +14,7 @@ import { ResultView } from '../components/ResultView';
 import { describeLink } from '../components/WorkoutLink';
 import styles from './analysis-detail.module.css';
 
-export const meta = () => privateMeta('Coach analysis — TrainFlow');
+export const meta = () => privateMeta('Coach analysis — Metrivum');
 
 /** Client view of an analysis the coach shared at one of their sets: the same result page, read-only. */
 export default function CoachAnalysis() {

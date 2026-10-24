@@ -25,7 +25,7 @@ BEGIN;
 DO $$ BEGIN
     IF EXISTS (SELECT FROM pg_namespace WHERE nspname IN
         ('accounts','access','exercise_catalog','training','media','video_analysis','coaching','forms','offers','billing','checkins','calendar','messaging','notifications','client_documentation','integrations')) THEN
-        RAISE EXCEPTION 'Initial deployment requires absent TrainFlow schemas';
+        RAISE EXCEPTION 'Initial deployment requires absent Metrivum schemas';
     END IF;
 END $$;
 '@)

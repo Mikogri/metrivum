@@ -73,7 +73,7 @@
   .spin { animation-duration: 3s; }
 }
 
-/* Cards: the status sits top right, the actions bottom right. */
+/* Cards: the actions sit top right, the status bottom right. */
 .cardBottom {
   display: flex;
   align-items: center;

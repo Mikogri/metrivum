@@ -1572,6 +1572,15 @@ button.tile[data-kind="rest"]:hover {
   justify-self: start;
 }
 
+.volumeHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2) var(--tf-space-3);
+  margin-bottom: var(--tf-space-1);
+}
+
 .heatControls {
   display: flex;
   flex-wrap: wrap;

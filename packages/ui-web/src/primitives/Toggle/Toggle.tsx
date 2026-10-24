@@ -129,15 +129,17 @@ export interface ChipGroupProps extends Omit<ToggleButtonGroupProps, "className"
   children: ReactNode;
   className?: string;
   "aria-label"?: string;
+  /** `single` (default): one choice. `multiple`: any number of chips, e.g. weekdays or equipment. */
+  selectionMode?: "single" | "multiple";
 }
 
 /**
- * A wrapping row of pill toggles with one choice (quick picks, filters). Unlike SegmentedControl, choosing the
+ * A wrapping row of pill toggles (quick picks, filters). With one choice, unlike SegmentedControl, choosing the
  * selected chip again clears it, unless `disallowEmptySelection` is set.
  */
-export function ChipGroup({ children, className, ...props }: ChipGroupProps) {
+export function ChipGroup({ children, className, selectionMode = "single", ...props }: ChipGroupProps) {
   return (
-    <ToggleButtonGroup {...props} selectionMode="single" className={cx(styles.chips, className)}>
+    <ToggleButtonGroup {...props} selectionMode={selectionMode} className={cx(styles.chips, className)}>
       {children}
     </ToggleButtonGroup>
   );

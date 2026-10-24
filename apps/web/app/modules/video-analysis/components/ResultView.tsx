@@ -9,12 +9,11 @@ import { RepTable } from "./RepTable";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { formatNumber } from "~/shared/i18n/format";
-import { BarPathPlot, PHASE_KINDS, PhaseTimeline, TimeSeriesChart, phaseAt, type PhaseKind } from "./charts";
+import { BarPathPlot, PHASE_KINDS, PhaseTimeline, TimeSeriesChart, phaseAt, movementSpeed, type PhaseKind } from "./charts";
 import { PlayerButton, VideoPlayer } from "./VideoPlayer";
 import styles from "./ResultView.module.css";
 
 const positionOf = (p: TrajectoryPoint) => p.y;
-const velocityOf = (p: TrajectoryPoint) => p.velocity ?? null;
 
 /** How much of the path trails behind the point on the video. */
 const TRAIL_SECONDS = 1;
@@ -101,7 +100,10 @@ export function ResultView({ result, mediaId, compact = false, aside, videoSourc
   }, [result.repetitions]);
   // With one phase kind shown in one repetition, its own numbers are shown too.
   const onlyKind = kinds.filter((k) => visible.has(k) && k !== "none");
-  const phase = repetition && onlyKind.length === 1 ? repetition.phases.find((p) => phaseAt([{ ...repetition, phases: [p] }], (p.startSeconds + p.endSeconds) / 2) === onlyKind[0]) ?? null : null;
+  const matchingPhases = repetition && onlyKind.length === 1
+    ? repetition.phases.filter(p => phaseAt([{ ...repetition, phases: [p] }], (p.startSeconds + p.endSeconds) / 2) === onlyKind[0]) : [];
+  // A repeated kind has no single phase metric; do not mislabel the first occurrence as the whole kind.
+  const phase = matchingPhases.length === 1 ? matchingPhases[0]! : null;
   const hasVelocity = points.some((p) => p.velocity !== null && p.velocity !== undefined);
   const unit = result.positionUnit;
   const velocityUnit = result.metersPerPixel ? "m/s" : `${unit}/s`;
@@ -225,7 +227,7 @@ export function ResultView({ result, mediaId, compact = false, aside, videoSourc
         phaseLabel={phaseLabel}
       />
       {hasVelocity ? (
-        <TimeSeriesChart points={points} value={velocityOf} unit={velocityUnit} label={phase ? `${phaseLabel(phase.kind)} · ${t.velocity}` : t.velocity} cursor={cursor} onSeek={withPlayer ? seek : undefined} repetitions={shownReps} visible={visible} timeLabel={t.time} locale={locale} phaseLabel={phaseLabel} />
+        <TimeSeriesChart points={points} value={movementSpeed} unit={velocityUnit} label={phase ? `${phaseLabel(phase.kind)} · ${t.velocity}` : t.velocity} cursor={cursor} onSeek={withPlayer ? seek : undefined} repetitions={shownReps} visible={visible} timeLabel={t.time} locale={locale} phaseLabel={phaseLabel} />
       ) : (
         <p className={styles.note}>{t.noVelocity}</p>
       )}

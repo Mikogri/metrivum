@@ -36,4 +36,20 @@ public sealed class ClientAnalysisValidationTests
         Assert.Throws<ApiException>(() => ClientAnalysisLibrary.Validate(valid with { Configuration = new(Exercise: new string('x', 201)) }, new()));
         Assert.Throws<ApiException>(() => ClientAnalysisLibrary.Validate(valid with { Configuration = new(Exercise: "  ") }, new()));
     }
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void Accepts_repeated_phase_kinds_but_rejects_overlapping_intervals(int count)
+    {
+        var valid = Request();
+        var phases = Enumerable.Range(0, count * 2)
+            .Select(i => new AnalysisPhase(i % 2 == 0 ? "concentric" : "eccentric", i, i + 1)).ToArray();
+        var input = valid with { Result = valid.Result with { Repetitions = [new(1, 0, count * 2, phases)] } };
+        ClientAnalysisLibrary.Validate(input, new());
+        var overlapping = phases.ToArray();
+        overlapping[1] = overlapping[1] with { StartSeconds = .5 };
+        Assert.Throws<ApiException>(() => ClientAnalysisLibrary.Validate(input with {
+            Result = input.Result with { Repetitions = [new(1, 0, count * 2, overlapping)] }
+        }, new()));
+    }
 }

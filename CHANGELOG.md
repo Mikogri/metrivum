@@ -67,7 +67,7 @@
 - Reduce repeated account/access reads, scope Analyze section queries, consolidate aggregates and precompute client status intervals. Add measured query indexes and SQL-side conversation name filtering. Load notification history on demand and reduce polling while realtime is connected; see `docs/architecture/query-performance.md`.
 
 - Add durable recipient-scoped notifications, preferences, read state and retryable realtime delivery with scheduled check-in/payment reminders. Preserve the open-chat sound and suppress its bell entry.
-- Add separate Free/Pro TrainFlow subscriptions using the existing simulated billing ledger, optional explicit renewal, immutable price/fee history and manual payment confirmation. Both plans retain all implemented capabilities; unconfigured Pro prices stay unavailable.
+- Add separate Free/Pro Metrivum subscriptions using the existing simulated billing ledger, optional explicit renewal, immutable price/fee history and manual payment confirmation. Both plans retain all implemented capabilities; unconfigured Pro prices stay unavailable.
 - Replace Earnings with Analyze and the coach header action with Subscription. Aggregate currency-separated finances, unique clients/acquisition and check-ins on the server; show unavailable training execution data honestly.
 
 - Widen the app-bar search and use the shared secondary icon-button style for notifications.
@@ -110,7 +110,7 @@
 - Add frontend lint, typecheck, unit, Storybook build and Playwright checks, plus a separate Frontend CI workflow.
 - Document frontend architecture, design reference, API integration map, API gaps/release blockers and hosting rules.
 - Document every API operation, JSON type, access requirement, success response, concurrency rule and representative client workflow.
-- Apply and verify the initial TrainFlow cloud database in Super Team with explicit authorization.
+- Apply and verify the initial Metrivum cloud database in Super Team with explicit authorization.
 - Support managed PostgreSQL role ownership during bootstrap and add a reproducible initial SQL exporter.
 - Fix the immutable Training trigger's search path through an incremental EF migration; Supabase security advisor reports no findings.
 

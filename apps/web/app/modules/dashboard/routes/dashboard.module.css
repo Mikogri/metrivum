@@ -16,7 +16,7 @@
   gap: var(--tf-space-3);
   padding: var(--tf-space-4);
   box-shadow: -1px 0 0 var(--tf-color-border-subtle);
-  animation: rise 220ms var(--tf-ease-out) both;
+  animation: rise 320ms var(--tf-ease-out) both;
 }
 
 .statHead {
@@ -117,7 +117,7 @@
     border-color var(--tf-duration-fast) ease,
     background-color var(--tf-duration-fast) ease,
     transform var(--tf-duration-press) var(--tf-ease-out);
-  animation: rise 220ms var(--tf-ease-out) both;
+  animation: rise 320ms var(--tf-ease-out) both;
 }
 
 .shortcut:active {
@@ -233,7 +233,7 @@
 }
 
 .rows li {
-  animation: rise 220ms var(--tf-ease-out) both;
+  animation: rise 320ms var(--tf-ease-out) both;
 }
 
 .row {
@@ -311,7 +311,7 @@
   gap: var(--tf-space-3);
   padding: var(--tf-space-4);
   box-shadow: -1px 0 0 var(--tf-color-border-subtle), 0 -1px 0 var(--tf-color-border-subtle);
-  animation: rise 220ms var(--tf-ease-out) both;
+  animation: rise 320ms var(--tf-ease-out) both;
 }
 
 .usageItem dt {
@@ -363,7 +363,7 @@
   border-radius: inherit;
   transform-origin: left;
   transition: transform 700ms var(--tf-ease-out);
-  animation: meter-in 900ms var(--tf-ease-out) both;
+  animation: meter-in 600ms var(--tf-ease-out) both;
 }
 
 .meter[data-tone="green"] span { background: var(--tf-color-accent); }
@@ -385,8 +385,7 @@
 @keyframes rise {
   from {
     opacity: 0;
-    filter: blur(2px);
-    transform: translateY(4px);
+    transform: translateY(2px);
   }
 }
 
@@ -446,7 +445,7 @@
   background: var(--tf-color-surface);
   color: inherit;
   text-decoration: none;
-  animation: rise 220ms var(--tf-ease-out) both;
+  animation: rise 320ms var(--tf-ease-out) both;
   transition: border-color var(--tf-duration-fast) ease;
 }
 
@@ -675,7 +674,7 @@
   align-items: center;
   gap: var(--tf-space-3);
   padding: var(--tf-space-2);
-  animation: rise 220ms var(--tf-ease-out) both;
+  animation: rise 320ms var(--tf-ease-out) both;
 }
 
 .usageRing {
@@ -734,7 +733,7 @@
 }
 
 .quickList li {
-  animation: rise 220ms var(--tf-ease-out) both;
+  animation: rise 320ms var(--tf-ease-out) both;
 }
 
 .quickAction {

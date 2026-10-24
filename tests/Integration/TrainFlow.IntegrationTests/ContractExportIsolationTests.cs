@@ -19,7 +19,7 @@ public sealed class ContractExportIsolationTests
         using var factory = new ApiFactory();
         using var client = factory.CreateClient();
         Assert.DoesNotContain(factory.Services.GetServices<IHostedService>(),
-            service => service.GetType().Namespace?.StartsWith("TrainFlow", StringComparison.Ordinal) == true);
+            service => service.GetType().Namespace?.StartsWith("Metrivum", StringComparison.Ordinal) == true);
     }
 
     [Theory]

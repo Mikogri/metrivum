@@ -1,4 +1,4 @@
-# TrainFlow v1 implementation plan
+# Metrivum v1 implementation plan
 
 **Goal:** Deliver the coach-only API, database migrations, tests and maintainable English documentation described in the supplied specification.
 

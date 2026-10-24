@@ -1,15 +1,15 @@
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = ({ location }: { location: { pathname: string } }) =>
-  privateMeta(`${location.pathname.endsWith("/new") ? "New check-in schedule" : "Check-in schedule"} — TrainFlow`);
+  privateMeta(`${location.pathname.endsWith("/new") ? "New check-in schedule" : "Check-in schedule"} — Metrivum`);
 
 import { useCallback, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-import { Info } from "lucide-react";
+import { CalendarClock, Info, Users } from "lucide-react";
 import { parseDate } from "@internationalized/date";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Button, Combobox, DateField, Dialog, DialogFooter, LinkButton, NumberInput, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, Tooltip, TooltipTrigger, toast } from "@trainflow/ui-web";
+import { Alert, Button, Chip, ChipGroup, Combobox, DateField, Dialog, DialogFooter, LinkButton, NumberInput, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, toast } from "@trainflow/ui-web";
 import { useDangerConfirm, useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { RequireFeature } from "~/shared/access";
 import { timeZones } from "~/modules/accounts";
@@ -18,6 +18,8 @@ import { useCoachingMutation, useCoachingQuery, type Page } from "../api";
 import { DraftNavigationGuard, EditableResource, Failure, Loading, MutationError, StatusBadge } from "../components";
 import { RecipientPicker } from "../recipients";
 import styles from "../coaching.module.css";
+import sched from "./schedule.module.css";
+import { describeRecurrence, describeWindow, nextReleases } from "../schedule-summary";
 
 type Schedule = Schema<"ScheduleDto">;
 type Kind = Schedule["recurrence"]["kind"];
@@ -121,7 +123,7 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
 
         <section className={styles.section}>
           <header className={styles.sectionHead}>
-            <h2>Details</h2>
+            <h2><span className={sched.stepNo}>1</span>Details</h2>
             <p>What clients see in their check-in list.</p>
           </header>
           <div className={styles.sectionBody}>
@@ -153,7 +155,7 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
 
         <section className={styles.section}>
           <header className={styles.sectionHead}>
-            <h2>When</h2>
+            <h2><span className={sched.stepNo}>2</span>When</h2>
             <p>Release time in the chosen time zone. Clients answer within the response window.</p>
           </header>
           <div className={styles.sectionBody}>
@@ -172,27 +174,36 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
                   <Segment key={k.id} id={k.id} isDisabled={k.id === "AssignedProgramCycle" && !programs.length}>{k.label}</Segment>
                 ))}
               </SegmentedControl>
-              <div className={styles.actions}>{KINDS.map((k) => <TooltipTrigger key={k.id}><Button variant="ghost" size="sm" aria-label={`Explain ${k.label}`}><Info size={14} />{k.label}</Button><Tooltip>{k.explanation}</Tooltip></TooltipTrigger>)}</div>
-              {!programs.length && <p>Select one client with an active assigned program to use program-cycle days.</p>}
+              <p className={sched.explain}><Info aria-hidden="true" />{kind.explanation}</p>
+              {!programs.length && <p className={sched.note}>Program cycle needs one client with an active assigned program.</p>}
               {assignments.isError && <Failure error={assignments.error} retry={() => void assignments.refetch()} />}
               {recurrence.kind === "AssignedProgramCycle" && <>
                 <Select label="Assigned program" isRequired isDisabled={locked} selectedKey={recurrence.assignmentId ?? null} onSelectionChange={(id) => change({ assignmentId: String(id), cycleDays: [1] })}>
                   {programs.map((p) => <Option key={p.assignmentId} id={p.assignmentId}>{p.programName}</Option>)}
                 </Select>
-                <p>Day 1 starts on the assignment date. Choose days within each actual cycle; this schedule ends with the assigned program.</p>
+                <p className={sched.note}>Day 1 starts on the assignment date. Choose days within each actual cycle; this schedule ends with the assigned program.</p>
                 <div className={styles.weekdays} role="group" aria-label="Program cycle days">{Array.from({ length: cycleLength }, (_, i) => i + 1).map((day) => <button key={day} type="button" className={styles.weekday} aria-pressed={cycleDays.includes(day)} disabled={locked} onClick={() => change({ cycleDays: cycleDays.includes(day) ? cycleDays.filter((d) => d !== day) : [...cycleDays, day] })}>Day {day}</button>)}</div>
-                {assignment && <p>Assignment time zone: {assignment.timeZone}. For cycles of different lengths, choose days present in every cycle.</p>}
+                {assignment && <p className={sched.note}>Assignment time zone: {assignment.timeZone}. For cycles of different lengths, choose days present in every cycle.</p>}
               </>}
             </div>
             <div className={styles.columns}>
-              <DateField label={recurrence.kind === "OneTime" ? "Date" : "Starts on"} isRequired isDisabled={locked} value={parseDate(recurrence.startDate)} onChange={(v) => v && change({ startDate: v.toString() })} />
-              <TextField label="Release time" type="time" isRequired isDisabled={locked} value={recurrence.releaseTime.slice(0, 5)} onChange={(v) => change({ releaseTime: v ? `${v}:00` : "" })} description="Editable local time in the selected time zone." labelAside={<TooltipTrigger><Button slot={null} variant="ghost" size="sm" aria-label="Explain release time"><Info size={14} /></Button><Tooltip>The form becomes available at this local time. Daylight-saving clock changes preserve the local schedule.</Tooltip></TooltipTrigger>} />
+              <div className={sched.field}>
+                <DateField label={recurrence.kind === "OneTime" ? "Date" : "Starts on"} isRequired isDisabled={locked} value={parseDate(recurrence.startDate)} onChange={(v) => v && change({ startDate: v.toString() })} />
+                <p className={sched.note}>{recurrence.kind === "OneTime" ? "The day the check-in is sent." : "The first possible release day."}</p>
+              </div>
+              <div className={sched.field}>
+                <TextField label="Release time" type="time" isRequired isDisabled={locked} value={recurrence.releaseTime.slice(0, 5)} onChange={(v) => change({ releaseTime: v ? `${v}:00` : "" })} />
+                <p className={sched.note}>Local time in the selected time zone when the form opens.</p>
+              </div>
             </div>
             {kind.unit ? (
               <div className={styles.columns}>
                 <NumberInput label="Every" placeholder="1" isRequired isDisabled={locked} minValue={1} maxValue={365} step={1} value={interval} unit={interval === 1 ? kind.unit[0] : kind.unit[1]} onChange={(v) => change({ interval: Number.isFinite(v) ? v : 1 })} />
                 {recurrence.kind === "Monthly" ? (
-                  <NumberInput label="Day of the month" placeholder="1" description="Shorter months use their last day." isRequired isDisabled={locked} minValue={1} maxValue={31} step={1} value={Number(recurrence.dayOfMonth ?? 1)} onChange={(v) => change({ dayOfMonth: Number.isFinite(v) ? v : 1 })} />
+                  <div className={sched.field}>
+                    <NumberInput label="Day of the month" placeholder="1" isRequired isDisabled={locked} minValue={1} maxValue={31} step={1} value={Number(recurrence.dayOfMonth ?? 1)} onChange={(v) => change({ dayOfMonth: Number.isFinite(v) ? v : 1 })} />
+                    <p className={sched.note}>Shorter months use their last day.</p>
+                  </div>
                 ) : null}
               </div>
             ) : null}
@@ -216,25 +227,37 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
               </div>
             ) : null}
             <div className={styles.columns}>
-              <Combobox
-                label="Time zone"
-                placeholder="Search time zones"
-                isRequired
-                isDisabled={locked || recurrence.kind === "AssignedProgramCycle"}
-                defaultItems={zones.map((z) => ({ id: z }))}
-                selectedKey={recurrence.kind === "AssignedProgramCycle" ? assignment?.timeZone ?? zone : zone}
-                onSelectionChange={(key) => { if (key) { setZone(String(key)); setDirty(true); } }}
-              >
-                {(item: { id: string }) => <Option id={item.id}>{item.id.replace(/_/g, " ")}</Option>}
-              </Combobox>
-              <NumberInput label="Response window" placeholder="48" isRequired isDisabled={locked} minValue={1} maxValue={8760} step={1} value={hours} description="Hours after release during which the client can answer on time." labelAside={<TooltipTrigger><Button slot={null} variant="ghost" size="sm" aria-label="Explain response window"><Info size={14} /></Button><Tooltip>The deadline is the release instant plus this many hours. Existing released requests keep their deadlines.</Tooltip></TooltipTrigger>} unit={hours === 1 ? "hour" : "hours"} onChange={(v) => { setHours(Number.isFinite(v) ? v : 48); setDirty(true); }} />
+              <div className={sched.field}>
+                <Combobox
+                  label="Time zone"
+                  placeholder="Search time zones"
+                  isRequired
+                  isDisabled={locked || recurrence.kind === "AssignedProgramCycle"}
+                  defaultItems={zones.map((z) => ({ id: z }))}
+                  selectedKey={recurrence.kind === "AssignedProgramCycle" ? assignment?.timeZone ?? zone : zone}
+                  onSelectionChange={(key) => { if (key) { setZone(String(key)); setDirty(true); } }}
+                >
+                  {(item: { id: string }) => <Option id={item.id}>{item.id.replace(/_/g, " ")}</Option>}
+                </Combobox>
+                <p className={sched.note}>Release times use this zone. Clocks changing for daylight saving keep the same local time.</p>
+              </div>
+              <div className={sched.field}>
+                <NumberInput label="Response window" placeholder="48" isRequired isDisabled={locked} minValue={1} maxValue={8760} step={1} value={hours} unit={hours === 1 ? "hour" : "hours"} onChange={(v) => { setHours(Number.isFinite(v) ? v : 48); setDirty(true); }} />
+                <p className={sched.note}>Hours after release to answer on time. Requests already sent keep their deadlines.</p>
+              </div>
+            </div>
+            <div className={sched.quick}>
+              <span className={styles.fieldLabel}>Quick response window</span>
+              <ChipGroup aria-label="Quick response window" selectedKeys={[String(hours)]} onSelectionChange={(keys) => { const next = Number([...keys][0]); if (next) { setHours(next); setDirty(true); } }} isDisabled={locked}>
+                {[24, 48, 72, 168].map((h) => <Chip key={h} id={String(h)}>{describeWindow(h)}</Chip>)}
+              </ChipGroup>
             </div>
           </div>
         </section>
 
         <section className={styles.section}>
           <header className={styles.sectionHead}>
-            <h2>Recipients</h2>
+            <h2><span className={sched.stepNo}>3</span>Recipients</h2>
             <p>Only active clients get requests. Group members are resolved at each release; anyone selected twice gets one request.</p>
           </header>
           <div className={styles.sectionBody}>
@@ -251,6 +274,17 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
             />
           </div>
         </section>
+
+        <SchedulePreview
+          recurrence={recurrence}
+          time={recurrence.releaseTime.slice(0, 5)}
+          zone={recurrence.kind === "AssignedProgramCycle" ? assignment?.timeZone ?? zone : zone}
+          hours={hours}
+          clients={relationships.length}
+          groups={groups.length}
+          programName={assignment?.programName}
+          cycleDays={cycleDays}
+        />
 
         {/* In the side panel the actions are the dialog's own footer: fixed at the bottom edge, opaque and
             edge to edge, so the form never shows through or scrolls past it. */}
@@ -282,6 +316,38 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
         )}
       </form>
     </>
+  );
+}
+
+/** What the schedule will do, in words, with the next release dates: updates as the form changes. */
+function SchedulePreview({ recurrence, time, zone, hours, clients, groups, programName, cycleDays }: {
+  recurrence: Schedule["recurrence"]; time: string; zone: string; hours: number; clients: number; groups: number; programName?: string; cycleDays: number[];
+}) {
+  const today = new Date().toLocaleDateString("en-CA");
+  const draft = { ...recurrence, interval: Number(recurrence.interval), weekDays: recurrence.weekDays?.map(Number) ?? null, dayOfMonth: recurrence.dayOfMonth == null ? null : Number(recurrence.dayOfMonth) };
+  const upcoming = recurrence.kind === "AssignedProgramCycle" ? [] : nextReleases(draft, today, 4);
+  const date = (value: string) => new Date(`${value}T00:00:00`).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
+  const who = [clients ? `${clients} ${clients === 1 ? "client" : "clients"}` : "", groups ? `${groups} ${groups === 1 ? "group" : "groups"}` : ""].filter(Boolean).join(" and ") || "no one yet";
+  return (
+    <section className={sched.preview} aria-label="Schedule preview">
+      <div className={sched.previewMain}>
+        <span className={sched.previewIcon} aria-hidden="true"><CalendarClock /></span>
+        <div className={sched.previewText}>
+          <strong>{describeRecurrence(draft, programName, cycleDays)} at {time || "--:--"}</strong>
+          <span>{zone.replace(/_/g, " ")} · {describeWindow(hours)} to answer</span>
+        </div>
+        <span className={sched.previewWho}><Users aria-hidden="true" />{who}</span>
+      </div>
+      {recurrence.kind === "AssignedProgramCycle" ? (
+        <p className={sched.note}>Dates follow the assigned program's cycles.</p>
+      ) : upcoming.length ? (
+        <ol className={sched.upcoming} aria-label="Next releases">
+          {upcoming.map((value) => <li key={value}>{date(value)}</li>)}
+        </ol>
+      ) : (
+        <p className={sched.note}>No upcoming release: check the start date{recurrence.kind === "EveryNWeeks" ? " and weekdays" : ""}.</p>
+      )}
+    </section>
   );
 }
 

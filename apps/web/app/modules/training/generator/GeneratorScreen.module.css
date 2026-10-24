@@ -1,13 +1,420 @@
-.page { display: grid; gap: 1.25rem; max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
-.form, .preview { display: grid; gap: 1.25rem; }
-.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; border: 0; padding: 0; }
-.fields legend, .checks legend { font-weight: 600; margin-bottom: .75rem; }
-.checks { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; border: 0; padding: 0; margin: 1rem 0; }
-.session { border: 1px solid var(--color-border, #d9dce2); border-radius: 12px; padding: 1.25rem; }
-.slot { display: grid; grid-template-columns: 1fr minmax(210px, 300px); gap: 1.5rem; padding: 1rem 0; border-bottom: 1px solid var(--color-border, #d9dce2); }
-.slot:last-child { border-bottom: 0; }
-.slot p { margin: .4rem 0; }
-.actions, .save { display: grid; gap: .75rem; }
-.save { padding-top: 1rem; max-width: 620px; }
-.hash { overflow-wrap: anywhere; }
-@media (max-width: 640px) { .page { padding: 1rem; } .slot { grid-template-columns: 1fr; gap: 1rem; } }
+.page {
+  display: grid;
+  gap: var(--tf-space-5);
+  max-width: 76rem;
+}
+
+/* Settings on the left (sticky), the preview on the right. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(20rem, 26rem) minmax(0, 1fr);
+  gap: var(--tf-space-6);
+  align-items: start;
+}
+
+.settings {
+  position: sticky;
+  top: var(--tf-space-4);
+  display: grid;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-xl);
+  background: var(--tf-color-surface);
+}
+
+.section {
+  display: grid;
+  gap: var(--tf-space-4);
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 var(--tf-space-4);
+  border: 0;
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.more .section {
+  padding: var(--tf-space-3) 0 0;
+  border-bottom: 0;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-1);
+  padding: 0;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.sectionTitle svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-text-tertiary);
+  stroke-width: 1.75;
+}
+
+.numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--tf-space-3);
+  align-items: start;
+}
+
+.chipField {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.label {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.hint,
+.muted {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.submit {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.result {
+  display: grid;
+  gap: var(--tf-space-4);
+  min-width: 0;
+}
+
+.issues {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.empty {
+  display: grid;
+  min-height: 24rem;
+  place-items: center;
+  border: 1px dashed var(--tf-color-border);
+  border-radius: var(--tf-radius-xl);
+}
+
+.preview {
+  display: grid;
+  gap: var(--tf-space-4);
+  animation: preview-in 320ms var(--tf-ease-out) both;
+}
+
+@keyframes preview-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.previewHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+}
+
+.previewHead h2 {
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.session {
+  display: grid;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-xl);
+  background: var(--tf-color-surface);
+  overflow: hidden;
+}
+
+.sessionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  background: var(--tf-color-surface-raised);
+}
+
+.sessionHead h3 {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.duration {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.duration svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* One exercise: name and prescription, then lock / alternative / replace on the right. */
+.slot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.slot[data-locked] {
+  background: var(--tf-color-surface-selected);
+}
+
+.slotText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.slotText strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.prescription {
+  font-size: var(--tf-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.slotActions {
+  display: grid;
+  grid-template-columns: auto minmax(11rem, 14rem) auto;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+/* Time per session: one bar split by part (neutral tones, warm-up in amber), minutes listed below. */
+.time {
+  display: grid;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);
+}
+
+.timeBar {
+  display: flex;
+  gap: 2px;
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+}
+
+.timeBar span {
+  min-width: 2px;
+}
+
+.timeBar [data-tone],
+.swatch[data-tone] {
+  background: var(--tf-color-border-strong);
+}
+
+.timeBar [data-tone="work"],
+.swatch[data-tone="work"] {
+  background: var(--tf-color-text);
+}
+
+.timeBar [data-tone="rest"],
+.swatch[data-tone="rest"] {
+  background: var(--tf-color-text-tertiary);
+}
+
+.timeBar [data-tone="warmup"],
+.timeBar [data-tone="ramp"],
+.swatch[data-tone="warmup"],
+.swatch[data-tone="ramp"] {
+  background: var(--tf-color-warning);
+}
+
+.timeLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1) var(--tf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.timeLegend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+}
+
+.timeLegend strong {
+  color: var(--tf-color-text-secondary);
+  font-weight: var(--tf-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.swatch {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+}
+
+/* How the program was built: notes with ticks, then the reproducibility facts in one row. */
+.notes {
+  display: grid;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-xl);
+}
+
+.notesTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.notesTitle svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.assumptions {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--tf-text-sm);
+}
+
+.assumptions li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  color: var(--tf-color-text-secondary);
+}
+
+.assumptions svg {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: 0.1875rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.versions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.versions div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.versions dt {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.versions dd {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Saving: the last card of the preview, in the page flow. */
+.save {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--tf-space-3) var(--tf-space-4);
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-xl);
+  background: var(--tf-color-surface-raised);
+}
+
+.saveText {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: var(--tf-space-1);
+}
+
+.saveText h3 {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+@media (max-width: 64rem) {
+  .versions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 64rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings {
+    position: static;
+  }
+
+  .slot {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .slotActions {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 40rem) {
+  .numbers,
+  .save,
+  .versions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .slotActions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .empty {
+    min-height: 14rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview {
+    animation: none;
+  }
+}

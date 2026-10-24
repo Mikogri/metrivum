@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Home — TrainFlow");
+export const meta = () => privateMeta("Home — Metrivum");
 
 import { Navigate } from "react-router";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";

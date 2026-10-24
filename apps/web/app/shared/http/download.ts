@@ -23,5 +23,5 @@ export function safeFileName(name: string): string {
     .trim()
     .replace(/\s+/g, "-")
     .toLowerCase();
-  return cleaned.slice(0, 80) || "trainflow-export";
+  return cleaned.slice(0, 80) || "metrivum-export";
 }

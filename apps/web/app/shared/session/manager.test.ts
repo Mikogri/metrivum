@@ -12,6 +12,7 @@ function fakeClient(initial: Session | null) {
   let current = initial;
   return {
     auth: {
+      getUser: vi.fn(async () => ({ data: { user: current?.user ?? null }, error: null })),
       getSession: vi.fn(async () => ({ data: { session: current } })),
       refreshSession: vi.fn(async () => ({ data: { session: current }, error: null })),
       signOut: vi.fn(async () => {
@@ -45,6 +46,61 @@ describe("SessionManager (three independent accounts)", () => {
     expect(state.phase).toBe("ready");
     expect(state.accounts.map((a) => a.email)).toEqual(["a@example.test"]);
     expect(state.activeSlot).toBe(0);
+  });
+
+  it("removes a stored session whose Auth user was deleted", async () => {
+    vi.mocked(clients.get(0)!.auth.getUser).mockResolvedValue({ data: { user: null }, error: { status: 401 } } as never);
+    await manager.start();
+    expect(manager.getState().accounts).toEqual([]);
+    expect(clients.get(0)!.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(localStorage.getItem(slotStorageKey(0))).toBeNull();
+  });
+
+  it("does not confuse a re-created account with the old ID sharing its email", async () => {
+    await manager.start();
+    await manager.completeSignIn(1, session("new-id", "A@example.test"));
+    expect(manager.getState().accounts.map(a => a.userId)).toEqual(["new-id"]);
+    expect(manager.getState().activeSlot).toBe(1);
+    expect(clients.get(0)!.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("retains credentials without granting a session when Auth is temporarily rate limited", async () => {
+    vi.mocked(clients.get(0)!.auth.getUser).mockResolvedValue({ data: { user: null }, error: { status: 429 } } as never);
+    await manager.start();
+    expect(manager.getState().accounts).toEqual([]);
+    expect(localStorage.getItem(slotStorageKey(0))).not.toBeNull();
+    expect(clients.get(0)!.auth.signOut).not.toHaveBeenCalled();
+  });
+
+  it("does not restore a deleted identity from a deferred initial Auth event", async () => {
+    vi.mocked(clients.get(0)!.auth.onAuthStateChange).mockImplementation(callback => {
+      callback("INITIAL_SESSION", session("u1", "a@example.test"));
+      return { data: { subscription: { id: "test", callback, unsubscribe: vi.fn() } } };
+    });
+    vi.mocked(clients.get(0)!.auth.getUser).mockResolvedValue({ data: { user: null }, error: { status: 401 } } as never);
+    await manager.start();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(manager.getState().accounts).toEqual([]);
+  });
+
+  it("does not restore a slot after sign-out while another-tab identity is being verified", async () => {
+    await manager.start();
+    let release!: (value: never) => void;
+    vi.mocked(clients.get(0)!.auth.getUser).mockImplementation(() => new Promise(resolve => { release = resolve; }));
+    const event = vi.mocked(clients.get(0)!.auth.onAuthStateChange).mock.calls[0]![0];
+    event("SIGNED_IN", session("u2", "b@example.test"));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await manager.signOut(0);
+    release({ data: { user: session("u2", "b@example.test").user }, error: null } as never);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(manager.getState().accounts).toEqual([]);
+  });
+
+  it("deduplicates restored slots by Auth ID", async () => {
+    clients.set(1, fakeClient(session("u1", "a@example.test")));
+    localStorage.setItem(slotStorageKey(1), JSON.stringify({ refresh_token: "rt-u1" }));
+    await manager.start();
+    expect(manager.getState().accounts).toHaveLength(1);
   });
 
   it("adds a second account in a free slot without touching the first", async () => {
@@ -113,6 +169,7 @@ describe("SessionManager (three independent accounts)", () => {
     event("TOKEN_REFRESHED", session("u1", "a@example.test"));
     await new Promise(resolve => setTimeout(resolve, 0));
     expect(manager.getState().generation).toBe(generation);
+    vi.mocked(clients.get(0)!.auth.getUser).mockResolvedValue({ data: { user: session("u2", "b@example.test").user }, error: null });
     event("SIGNED_IN", session("u2", "b@example.test"));
     await vi.waitFor(() => expect(manager.getState().accounts[0]!.userId).toBe("u2"));
     expect(manager.getState().generation).toBe(generation + 1);

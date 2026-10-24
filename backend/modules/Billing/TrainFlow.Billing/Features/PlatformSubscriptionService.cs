@@ -271,7 +271,7 @@ public sealed class PlatformSubscriptionService(BillingDbContext db, BillingServ
             subscription.PendingDueId = existing.Id;
             return;
         }
-        var order = new Order { Id = Guid.NewGuid(), Context = BillingContext.Platform, ServiceId = Guid.NewGuid(), CoachId = subscription.OwnerId, ClientId = subscription.OwnerId, Name = "TrainFlow " + price.PlanId, Amount = price.Amount, Currency = price.Currency, CoachNetAmount = price.Amount, SettlementMode = SettlementMode.Simulated, StartedAt = start, CreatedAt = clock.GetUtcNow(), OptionSnapshot = System.Text.Json.JsonSerializer.Serialize(new { price.PlanId, price.Version, price.TermsVersion, BillingInterval = "Month" }) };
+        var order = new Order { Id = Guid.NewGuid(), Context = BillingContext.Platform, ServiceId = Guid.NewGuid(), CoachId = subscription.OwnerId, ClientId = subscription.OwnerId, Name = "Metrivum " + price.PlanId, Amount = price.Amount, Currency = price.Currency, CoachNetAmount = price.Amount, SettlementMode = SettlementMode.Simulated, StartedAt = start, CreatedAt = clock.GetUtcNow(), OptionSnapshot = System.Text.Json.JsonSerializer.Serialize(new { price.PlanId, price.Version, price.TermsVersion, BillingInterval = "Month" }) };
         var due = new PaymentDue { Id = Guid.NewGuid(), Context = BillingContext.Platform, OrderId = order.Id, ServiceId = order.ServiceId, CoachId = subscription.OwnerId, ClientId = subscription.OwnerId, PeriodStart = start, PeriodEnd = start.AddMonths(1), DueAt = start, Amount = price.Amount, Currency = price.Currency, CoachNetAmount = price.Amount, SettlementMode = SettlementMode.Simulated, CreatedAt = clock.GetUtcNow() };
         db.Orders.Add(order);
         db.Dues.Add(due);

@@ -12,7 +12,7 @@ import { consumeCallbackAttempt } from "../lib/callback-attempt";
 import styles from "./callback.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Signing in — TrainFlow");
+export const meta = () => privateMeta("Signing in — Metrivum");
 
 const OTP_TYPES: EmailOtpType[] = ["signup", "invite", "magiclink", "recovery", "email_change", "email"];
 

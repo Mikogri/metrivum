@@ -12,7 +12,7 @@ Daily SQL aggregates are bucketed on the server; weeks begin Monday and months b
 
 ## Finance
 
-- Source: exactly one immutable `Payment` per settled due, including explicit simulated and external settlement modes. Only `Context=CoachingService` contributes. A coach's TrainFlow platform plan purchase is excluded even though they own the account.
+- Source: exactly one immutable `Payment` per settled due, including explicit simulated and external settlement modes. Only `Context=CoachingService` contributes. A coach's Metrivum platform plan purchase is excluded even though they own the account.
 - Gross, fee and net use payment snapshots, not the current plan. `gross = fee + net`. Amounts stay decimal and currencies remain separate. There is no FX conversion or combined multi-currency total.
 - Period selection uses `Payment.SettledAt`, grouped in the selected time zone. Payment count is settled due payments, not distinct orders (renewals are separate settlements).
 - Pending = currently AwaitingPayment dues whose due date falls within the selected range. It is an outstanding-current-state metric, not revenue or a reconstructed historic receivable snapshot.

@@ -23,7 +23,7 @@ public sealed class SupabaseAuthTests
             "Use a loopback Supabase project origin (without /auth/v1) whose configured JWT issuer matches that origin.");
         var databaseHost = new NpgsqlConnectionStringBuilder(database).Host;
         Assert.True(databaseHost == "localhost" || (IPAddress.TryParse(databaseHost, out var address) && IPAddress.IsLoopback(address)),
-            "This test requires a disposable, migrated loopback TrainFlow database.");
+            "This test requires a disposable, migrated loopback Metrivum database.");
 
         // Public discovery uses the same endpoint as production JWT validation, without an admin key.
         using var discovery = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(15) };
@@ -80,7 +80,7 @@ public sealed class SupabaseAuthTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using var response = await client.GetAsync("/api/v1/me");
             Assert.True(response.StatusCode == HttpStatusCode.OK,
-                $"TrainFlow rejected the real local Supabase session with HTTP {(int)response.StatusCode}. Check the configured issuer and asymmetric signing key; JWT validation is not bypassed.");
+                $"Metrivum rejected the real local Supabase session with HTTP {(int)response.StatusCode}. Check the configured issuer and asymmetric signing key; JWT validation is not bypassed.");
             var profile = await response.Content.ReadFromJsonAsync<JsonElement>();
             Assert.Equal(userId, profile.GetProperty("id").GetGuid());
             Assert.False(profile.GetProperty("onboarded").GetBoolean());

@@ -24,7 +24,7 @@ public sealed class SupabaseOAuthConsent(HttpClient client, IConfiguration confi
                 || string.IsNullOrWhiteSpace(key) || !key.StartsWith("sb_publishable_", StringComparison.Ordinal)
                 || bearer is null || !bearer.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogWarning("Supabase OAuth grant revocation skipped because consent configuration is unavailable; TrainFlow access was revoked.");
+                logger.LogWarning("Supabase OAuth grant revocation skipped because consent configuration is unavailable; Metrivum access was revoked.");
                 return;
             }
             using var request = new HttpRequestMessage(HttpMethod.Delete, origin!.TrimEnd('/') + "/auth/v1/user/oauth/grants?client_id=" + Uri.EscapeDataString(clientId));
@@ -32,11 +32,11 @@ public sealed class SupabaseOAuthConsent(HttpClient client, IConfiguration confi
             request.Headers.Add("apikey", key);
             using var response = await client.SendAsync(request, ct);
             if (!response.IsSuccessStatusCode)
-                logger.LogWarning("Supabase OAuth grant revocation returned status {Status}; TrainFlow access remains revoked.", (int)response.StatusCode);
+                logger.LogWarning("Supabase OAuth grant revocation returned status {Status}; Metrivum access remains revoked.", (int)response.StatusCode);
         }
         catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException)
         {
-            logger.LogWarning("Supabase OAuth grant revocation was unavailable; TrainFlow access remains revoked.");
+            logger.LogWarning("Supabase OAuth grant revocation was unavailable; Metrivum access remains revoked.");
         }
     }
     public async Task<ConsentDetails> DetailsAsync(string authorizationId, CancellationToken ct)
@@ -45,7 +45,7 @@ public sealed class SupabaseOAuthConsent(HttpClient client, IConfiguration confi
         if (!data.TryGetProperty("authorization_id", out var verifiedId) || verifiedId.GetString() != authorizationId
             || !data.TryGetProperty("user", out var user) || !user.TryGetProperty("id", out var userId)
             || !Guid.TryParse(userId.GetString(), out var subject) || subject != accounts.UserId)
-            throw new ApiException(409, "OAUTH_CONSENT_UNAVAILABLE", "This authorization cannot be used to grant TrainFlow permissions. Start a new connection request.");
+            throw new ApiException(409, "OAUTH_CONSENT_UNAVAILABLE", "This authorization cannot be used to grant Metrivum permissions. Start a new connection request.");
         var app = data.GetProperty("client");
         var clientId = app.GetProperty("id").GetString();
         var name = app.TryGetProperty("name", out var clientName) ? clientName.GetString() : null;
@@ -83,7 +83,7 @@ public sealed class SupabaseOAuthConsent(HttpClient client, IConfiguration confi
             throw new ApiException(503, "OAUTH_NOT_CONFIGURED", "OAuth consent requires the configured Supabase project and publishable key.");
         var bearer = http.HttpContext?.Request.Headers.Authorization.ToString();
         if (bearer is null || !bearer.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            throw new ApiException(401, "UNAUTHENTICATED", "A valid TrainFlow session is required.");
+            throw new ApiException(401, "UNAUTHENTICATED", "A valid Metrivum session is required.");
         using var request = new HttpRequestMessage(action is null ? HttpMethod.Get : HttpMethod.Post,
             origin!.TrimEnd('/') + "/auth/v1/oauth/authorizations/" + Uri.EscapeDataString(authorizationId) + (action is null ? "" : "/consent"));
         request.Headers.Authorization = AuthenticationHeaderValue.Parse(bearer);

@@ -95,8 +95,36 @@
 
 .label {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
   font-size: var(--tf-text-sm);
   font-weight: var(--tf-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* @username or a team role, after the name. */
+.detail {
+  flex-shrink: 0;
+  max-width: 40%;
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* People show their initials: the avatar fills the tile without the tile's frame. */
+.icon[data-avatar] {
+  border-color: transparent;
+  background: transparent;
+}
+
+.tip {
+  padding: var(--tf-space-1-5) var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
 }
 
 .enter {
@@ -137,5 +165,16 @@
 @media (prefers-reduced-motion: reduce) {
   .overlay[data-animated][data-entering] .modal {
     animation-name: palette-fade;
+  }
+}
+
+/* On a phone the search sits at the top, full width, with room for the keyboard below. */
+@media (max-width: 40rem) {
+  .overlay {
+    padding: max(var(--tf-space-2), env(safe-area-inset-top)) var(--tf-space-2) var(--tf-space-2);
+  }
+
+  .list {
+    max-height: 55dvh;
   }
 }

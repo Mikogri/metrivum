@@ -1,6 +1,6 @@
 /**
  * Uploads bytes to the signed Storage URL with real progress. The URL is a temporary Storage
- * credential: no TrainFlow bearer token is attached and it is never logged or persisted.
+ * credential: no Metrivum bearer token is attached and it is never logged or persisted.
  */
 export function uploadToSignedUrl(url: string, file: File, contentType: string, onProgress: (ratio: number) => void, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {

@@ -36,7 +36,7 @@ public static class Program
         }
     }
 
-    public static async Task<object> AnalyzeAsync(Request request, string output, CancellationToken token, IProgress<AnalysisProgress>? progress = null)
+    public static async Task<object> AnalyzeAsync(Request request, string output, CancellationToken token, IProgress<AnalysisProgress>? progress = null, PythonAnalysisSession? worker = null)
     {
         var tracking = request.Configuration.Tracking;
         if (tracking.Points.Length != 2 || tracking.Points[0] == tracking.Points[1] || tracking.VideoWidth <= 0 || tracking.VideoHeight <= 0 ||
@@ -68,7 +68,11 @@ public static class Program
         Add("crop-padding", options.CropPadding.ToString(CultureInfo.InvariantCulture)); Add("tapnext-resolution", options.TapNextResolution.ToString(CultureInfo.InvariantCulture));
         if (!string.IsNullOrWhiteSpace(options.EffectiveTapNextCheckpoint)) Add("tapnext-checkpoint", options.EffectiveTapNextCheckpoint);
         progress?.Report(new("Preparing the analysis", 0));
-        await Process(options.VisionExecutablePath, arguments, root, token, progress is null ? null : SessionProgress(progress));
+        if (worker is null)
+            await Process(options.VisionExecutablePath, arguments, root, token, progress is null ? null : SessionProgress(progress));
+        else
+            await worker.RunAsync(options.PointsExecutablePath, options.ComparisonScriptPath, arguments.Skip(2).ToArray(), root,
+                token, progress is null ? null : SessionProgress(progress));
         progress?.Report(new("Measuring repetitions", .97));
         using var manifest = JsonDocument.Parse(await File.ReadAllTextAsync(session, token));
         var provider = manifest.RootElement.GetProperty("providers").EnumerateArray().Single(p => p.GetProperty("providerId").GetString() == "tapnextpp");
@@ -126,25 +130,22 @@ public static class Program
         if (samples.Count == 0) throw new InvalidDataException("No frames have two visible, usable tracked points.");
         var exercise = Exercise(movement);
         var prepared = ProviderPreparation.Prepare(raw, videoPath, token: token);
-        // No exercise classifier: an unspecified movement is split into reps as "down, then up" (most lifts). Phases
-        // themselves come from the direction the points move, whatever the exercise.
-        if (exercise == ExerciseType.Unknown) exercise = ExerciseType.Squat;
-        var analysis = exercise is ExerciseType.BenchPress or ExerciseType.Squat or ExerciseType.Deadlift
-            ? prepared.FindMovement(new(owner, exercise, MovementSource.Barbell, 1.5))?.Analysis : null;
+        // Reuse MotionTrace signal preparation; unspecified movements do not inherit squat rep boundaries.
+        var analysis = prepared.FindMovement(new(owner, exercise == ExerciseType.Unknown ? ExerciseType.Squat : exercise, MovementSource.Barbell, 1.5))?.Analysis;
+        var sequences = exercise == ExerciseType.Unknown && analysis != null
+            ? DirectionalSequences.Detect(analysis.Points, raw.Video.Height) : null;
         var points = analysis?.Points.ToDictionary(p => p.FrameIndex);
         var warnings = raw.Limitations.ToList();
         warnings.Add("Vertical image-space velocity is measured in px/s; camera motion is not removed and no metric calibration is applied.");
+        if (exercise == ExerciseType.Unknown) warnings.Add("Direction-only sequences: returning to the initial height separates sequences; no exercise classification or completion judgement is made.");
         if (analysis is null) warnings.Add("No repetitions were found in the motion of the marked points.");
         if (samples.Count < raw.Frames.Count) warnings.Add("Frames without two visible points are omitted; segments prevent bridging visibility gaps.");
         return new
         {
-            schemaVersion = 1, engineVersion = raw.Versions.EngineVersion + "/" + ProviderPreparation.Version,
+            schemaVersion = 1, engineVersion = raw.Versions.EngineVersion + "/" + ProviderPreparation.Version + (exercise == ExerciseType.Unknown ? "/directional-1" : ""),
             modelVersion = raw.Versions.BarbellModelVersion, method = "tapnextpp-two-point-midpoint", positionUnit = "px", metersPerPixel = (double?)null,
-            repetitions = analysis?.Reps.Select(rep => new
-            {
-                number = rep.Number, startSeconds = rep.Start, endSeconds = rep.End, meanSpeed = rep.Lifting.MeanSpeed, peakSpeed = rep.Lifting.PeakSpeed,
-                phases = Phases(rep)
-            }).ToArray() ?? [],
+            repetitions = sequences ?? analysis?.Reps.Select(rep => new MotionSequence(rep.Number, rep.Start, rep.End, rep.Lifting.MeanSpeed, rep.Lifting.PeakSpeed,
+                Phases(rep))).ToArray() ?? [],
             trajectory = samples.Select(sample =>
             {
                 MovementPoint? point = null;
@@ -155,17 +156,16 @@ public static class Program
         };
     }
 
-    private static object[] Phases(MovementRep rep)
+    private static SequencePhase[] Phases(MovementRep rep)
     {
         var moving = new[] { rep.Lowering, rep.Lifting }.OfType<MovementPhase>().OrderBy(p => p.Start).ToArray();
-        var phases = new List<object>();
+        var phases = new List<SequencePhase>();
         for (var i = 0; i < moving.Length; i++)
         {
             if (i > 0 && moving[i].Start > moving[i - 1].End)
-                phases.Add(new { kind = "pause", startSeconds = moving[i - 1].End, endSeconds = moving[i].Start, meanSpeed = (double?)null, peakSpeed = (double?)null });
+                phases.Add(new("pause", moving[i - 1].End, moving[i].Start, null, null));
             var phase = moving[i];
-            phases.Add(new { kind = phase.Upward ? "concentric" : "eccentric", startSeconds = phase.Start, endSeconds = phase.End,
-                meanSpeed = (double?)phase.MeanSpeed, peakSpeed = (double?)phase.PeakSpeed });
+            phases.Add(new(phase.Upward ? "concentric" : "eccentric", phase.Start, phase.End, phase.MeanSpeed, phase.PeakSpeed));
         }
         return phases.ToArray();
     }

@@ -1,4 +1,4 @@
-# TrainFlow system hardening and unified delivery
+# Metrivum system hardening and unified delivery
 
 Source: [specification](specification.md), amended by the user's explicit messaging/check-in requirements and authorization to publish one GitHub repository. The user-facing instructions override the source document's no-push restriction. No production/store deployment or destructive database change is authorized.
 

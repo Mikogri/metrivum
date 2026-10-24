@@ -2,11 +2,11 @@
 
 ## Identity and authorization
 
-Supabase Auth owns credentials, email verification/OTP and sessions. TrainFlow accepts an asymmetric RS256/ES256 access token for the configured issuer/audience, a UUID subject/session, `role=authenticated` and `is_anonymous=false`. The configured JWKS endpoint is independent of untrusted token headers. Microsoft IdentityModel caches keys, refreshes periodically and rate-limits refresh after an unknown key. There is no symmetric fallback.
+Supabase Auth owns credentials, email verification/OTP and sessions. Metrivum accepts an asymmetric RS256/ES256 access token for the configured issuer/audience, a UUID subject/session, `role=authenticated` and `is_anonymous=false`. The configured JWKS endpoint is independent of untrusted token headers. Microsoft IdentityModel caches keys, refreshes periodically and rate-limits refresh after an unknown key. There is no symmetric fallback.
 
 Business roles live in `accounts.user_roles`; `user_metadata` and JWT role claims do not grant application permissions. Each request checks account state. Onboarding requires accepted terms and a declared age of 18; this is not document-based identity verification. Private operations derive identity/workspace from the validated subject and query by owner. Missing and foreign private resources return the same 404.
 
-Local JWT validation does not immediately revoke a Supabase token after logout. Keep the Supabase access-token lifetime short (for example 15 minutes), revoke Supabase sessions when appropriate and disable the TrainFlow account or remove its admin role for immediate application-level denial. Sensitive access administration rechecks database-controlled roles and account state on every request. TrainFlow does not maintain its own refresh-token/session store.
+Local JWT validation does not immediately revoke a Supabase token after logout. Keep the Supabase access-token lifetime short (for example 15 minutes), revoke Supabase sessions when appropriate and disable the Metrivum account or remove its admin role for immediate application-level denial. Sensitive access administration rechecks database-controlled roles and account state on every request. Metrivum does not maintain its own refresh-token/session store.
 
 ## Account identity rules
 
@@ -19,7 +19,30 @@ Local JWT validation does not immediately revoke a Supabase token after logout. 
 - **Email, passwords, sign-in**: owned by Supabase Auth. The web client trims addresses, checks RFC 5321 lengths and refuses control/invisible characters before calling Supabase, and limits passwords to 8–72 characters (bcrypt ignores bytes after 72). Passwordless sign-in for an unknown address and sign-up for a registered address continue exactly like the success path, so these forms do not reveal who is registered; password reset was already neutral. Email changes and their re-verification are Supabase's secure email-change flow; the app offers no email-change form.
 - **Supabase project settings to enable before public release** (remote configuration, not changed by the application): CAPTCHA on sign-up/sign-in/reset, leaked-password protection, a minimum password length of at least 8 with character requirements as desired, "Secure email change" (confirm both addresses), Auth rate limits for emails and sign-ins, and a short access-token lifetime.
 
+### Public profiles
+
+`GET /api/v1/accounts/people/{username}` returns only user id, username, display name, introduction (`bio`) and the
+Coach/Client roles of an active, onboarded account; missing, disabled and unfinished accounts all answer 404. It needs
+an active signed-in account and shares the people-search rate limit. Birth date, phone, email and body data are never
+part of it; body and training details stay private to the owner and the coaches they work with. The introduction is
+at most 500 characters after NFC and trimming; line breaks are kept, while control, invisible and text-direction
+characters are refused like in display names (database CHECK on length and trimming as a backstop).
+
 ## Database boundary
+
+Before deploying the API, run `infra/auth-session-validation.sql` as the Supabase database administrator.
+Every authenticated API request checks the signed JWT's exact `(sub, session_id)` against live Auth state.
+The narrow, fixed-search-path `SECURITY DEFINER` function returns only a boolean; the runtime role cannot
+read Auth tables. Deleted users, removed/expired sessions, anonymous users and currently banned users fail
+before profile provisioning. There is no positive cache. Existing WebSocket connections still expire at
+token expiry; this check runs on their authentication handshake, not continuously on open sockets.
+The disposable PostgreSQL regression probe is `infra/diagnostics/test-auth-session-validation.sql`.
+
+Web startup validates saved identities with Auth `getUser`, rather than trusting local session data.
+Authentication identity is always the immutable Auth subject, never an email. A newly registered subject
+reusing an email removes the old browser slot without transferring its profile, plans or history.
+Deleting a profile row alone does not delete an Auth user; use Auth administration to revoke access.
+Orphan profiles can be deactivated while retaining their owned records for explicit recovery.
 
 All business tables belong to non-exposed schemas: `accounts`, `access`, `coaching`, `exercise_catalog`, `training`, `media`, `video_analysis`, `billing`, `forms`, `offers`, `calendar`, `checkins`, `messaging`, `notifications`, `client_documentation` and `integrations`. No PostgREST integration exists. Disable Data API in Supabase; accidental re-enabling is also constrained by revoked schema/table privileges for `anon` and `authenticated`.
 

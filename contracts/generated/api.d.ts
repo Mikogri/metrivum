@@ -107,6 +107,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/people/{username}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    username: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonProfileResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/access": {
         parameters: {
             query?: never;
@@ -15268,6 +15305,15 @@ export interface components {
             displayName: string;
             username: null | string;
         };
+        PersonProfileResponse: {
+            /** Format: uuid */
+            userId: string;
+            username: string;
+            displayName: string;
+            bio: null | string;
+            roles: components["schemas"]["AccountRole"][];
+            isSelf: boolean;
+        };
         PlanAnnotation: {
             /** Format: uuid */
             id: string;
@@ -15453,6 +15499,7 @@ export interface components {
             contexts: components["schemas"]["AccountRole"][];
             phone: null | string;
             phoneVisibleToCoach: boolean;
+            bio?: null | string;
         };
         PublicOfferListDto: {
             items: components["schemas"]["OfferRevisionDto"][];
@@ -16332,6 +16379,7 @@ export interface components {
             timeZone: string;
             phone?: null | string;
             phoneVisibleToCoach?: null | boolean;
+            bio?: null | string;
         };
         UploadRequest: {
             name: string;

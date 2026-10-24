@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Coaching offer — TrainFlow");
+export const meta = () => privateMeta("Coaching offer — Metrivum");
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";

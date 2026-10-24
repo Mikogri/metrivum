@@ -178,7 +178,9 @@
 }
 
 .steps {
-  display: none;
+  display: inline-flex;
+  gap: 1px;
+  flex: none;
 }
 
 .control,

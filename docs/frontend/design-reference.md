@@ -6,7 +6,7 @@ The visual direction comes from eleven inspiration screenshots supplied with the
 
 ## What the inspirations show
 
-| # | Screen | What TrainFlow takes from it |
+| # | Screen | What Metrivum takes from it |
 | --- | --- | --- |
 | 1 | Projects page with a notifications popover (General / Mentions / Inbox / Archive pills, file cards with size and download icon) | Pill tabs, **file cards** (name, size/meta, type glyph, action) used for CSV/PDF exports, revisions and videos; folder cards above the list in the library |
 | 2 | Command palette (Jump / Favorites / Tools tabs, icon squares, keyboard hints) | ⌘K palette in the app shell, underline tabs, `Kbd`, icon-square list rows |
@@ -58,7 +58,7 @@ Status is never conveyed by colour alone: badges have a dot **and** text, errors
 
 ## Typography
 
-- **Saira** (variable) for display headlines. Its squared, rounded geometry echoes the TrainFlow wordmark in
+- **Saira** (variable) for display headlines. Its squared, rounded geometry echoes the Metrivum wordmark in
   `trainflow.png` and reads athletic without being a cliché sports face.
 - **Geist** (variable) for UI and body text; tabular numerals for all numbers (sets, loads, sizes).
 - **Geist Mono** only for formula expressions.

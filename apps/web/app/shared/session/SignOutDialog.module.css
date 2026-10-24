@@ -1,0 +1,74 @@
+.list {
+  display: grid;
+  gap: var(--tf-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each account is one large target: avatar, email, "in use", and the sign-out icon. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+  padding: var(--tf-space-2-5) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: transparent;
+  color: var(--tf-color-text);
+  font: inherit;
+  text-align: left;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.email {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--tf-color-text-tertiary);
+  transition: color 120ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover:not(:disabled) {
+    border-color: var(--tf-color-border);
+    background: var(--tf-color-surface-hover);
+  }
+
+  .row:hover:not(:disabled) .icon {
+    color: var(--tf-color-danger);
+  }
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.row:disabled {
+  opacity: 0.6;
+}
+
+.note {
+  margin-top: var(--tf-space-3);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--tf-space-3);
+}

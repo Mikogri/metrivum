@@ -7,7 +7,7 @@ import { useIntegrationMutation, useIntegrationQuery, type ConsentDetails } from
 import { IntegrationError, PermissionChoices } from "./integrations";
 import styles from "./integrations.module.css";
 
-export const meta = () => privateMeta("Connect an AI assistant — TrainFlow");
+export const meta = () => privateMeta("Connect an AI assistant — Metrivum");
 
 export function verifiedRedirect(redirectUrl: string, registeredUri: string) {
   const redirect = new URL(redirectUrl);
@@ -32,14 +32,14 @@ function ConsentRequest({ authorizationId }: { authorizationId: string }) {
   });
   return <div className={`${styles.stack} ${styles.page}`}>
     {!authorizationId ? <Alert tone="danger" title="Missing authorization request. Start the connection from your assistant." /> : query.isPending ? <Skeleton height="10rem" /> : query.error ? <><IntegrationError error={query.error} /><Button onPress={() => void query.refetch()}>Retry authorization request</Button></> : <>
-      <PageHeader title={`Connect ${query.data.clientName}`} description={`Signed in as ${account.email ?? "your TrainFlow account"}`} />
+      <PageHeader title={`Connect ${query.data.clientName}`} description={`Signed in as ${account.email ?? "your Metrivum account"}`} />
       <Card as="section" padding="lg" className={styles.card}>
         <p className={styles.identity}>Client ID: {query.data.clientId}</p>
         <p className={styles.hint}>Registered callback</p><p className={styles.identity}>{query.data.redirectUri}</p>
         <p className={styles.hint}>Identity scopes: {query.data.scopes.join(", ") || "None"}</p>
-        <h2 className={styles.heading}>Choose TrainFlow permissions</h2>
+        <h2 className={styles.heading}>Choose Metrivum permissions</h2>
         <PermissionChoices available={query.data.availableGrants} selected={selected} onChange={setSelected} disabled={save.isPending} />
-        <p className={styles.hint}>The assistant can see private content returned by these tools. Drafts stay private. Sending messages always requires your separate approval in TrainFlow. You can change permissions or disconnect in Settings → Integrations.</p>
+        <p className={styles.hint}>The assistant can see private content returned by these tools. Drafts stay private. Sending messages always requires your separate approval in Metrivum. You can change permissions or disconnect in Settings → Integrations.</p>
         <IntegrationError error={save.error ?? redirectError} />
         <div className={styles.actions}><Button variant="primary" isDisabled={!selected.length || save.isPending} onPress={() => save.mutate({ method: "POST", path, json: { grants: selected } })}>Allow selected permissions</Button><Button isDisabled={save.isPending} onPress={() => save.mutate({ method: "POST", path: `${path}/deny` })}>Deny</Button></div>
       </Card>

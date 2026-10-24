@@ -56,7 +56,7 @@ EF `20261010155332_ClientAnalysisResults` and `20261010155339_MobilePushTranspor
 
 ## APPLIED TO DEV
 
-Applied to user-confirmed TrainFlow Supabase DEV `atclvdkpbccafakzpwls` after checking project identity, exact module history and SQL. Verified both history entries, nullable media and narrow grants. A transaction using the actual `trainflow_api` connection performed device registration CRUD and rolled back successfully. Browser/worker token reads remain denied. See [deployment evidence](backend.md). No managed Auth/Storage schema or production change, no Git push/store publication.
+Applied to user-confirmed Metrivum Supabase DEV `atclvdkpbccafakzpwls` after checking project identity, exact module history and SQL. Verified both history entries, nullable media and narrow grants. A transaction using the actual `trainflow_api` connection performed device registration CRUD and rolled back successfully. Browser/worker token reads remain denied. See [deployment evidence](backend.md). No managed Auth/Storage schema or production change, no Git push/store publication.
 
 ## BLOCKED
 

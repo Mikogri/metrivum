@@ -1,4 +1,4 @@
-# TrainFlow exercise index
+# Metrivum exercise index
 
 Names below match the JSON exactly. Categories are documentation only and are not extra fields in the exercise payload.
 

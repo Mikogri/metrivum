@@ -42,6 +42,18 @@
   background: var(--tf-color-text);
 }
 
+/* The current bar fills from the left when its step opens. */
+.steps li[data-state="current"] {
+  transform-origin: left;
+  animation: bar-fill 420ms var(--tf-ease-out) both;
+}
+
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
 .steps li[data-state="done"] {
   background: var(--tf-color-text-tertiary);
 }
@@ -65,5 +77,48 @@
 
   .twoCols {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Back on the left; Skip and Continue on the right, Continue taking the remaining width. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3);
+}
+
+.primary {
+  flex: 1;
+}
+
+/* One step at a time, sliding in from the direction of travel. */
+.step {
+  display: grid;
+  gap: var(--tf-space-6);
+  animation: step-forward 360ms var(--tf-ease-out) both;
+}
+
+.step[data-direction="back"] {
+  animation-name: step-back;
+}
+
+@keyframes step-forward {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step,
+  .steps li[data-state="current"] {
+    animation: none;
   }
 }

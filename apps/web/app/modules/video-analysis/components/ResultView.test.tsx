@@ -1,9 +1,10 @@
+import userEvent from "@testing-library/user-event";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { AnalysisResult, TrajectoryPoint } from "@trainflow/api-client-web";
 import { expect, it, vi } from "vitest";
 import { ResultView } from "./ResultView";
-import { pathRuns, timeSeries } from "./charts";
+import { OverlayChart, pathRuns, timeSeries, movementSpeed } from "./charts";
 
 vi.mock("~/shared/session/AccountScope", () => ({ useApi: () => vi.fn() }));
 vi.mock("../api", () => ({ readUrl: async () => ({ url: "https://example.test/signed-video", expiresAt: "2099-01-01" }) }));
@@ -85,4 +86,19 @@ it("breaks both charts at segment boundaries and occlusion", () => {
   const runs = pathRuns(points, result.repetitions);
   expect(runs.map((run) => run.kind)).toEqual(["eccentric", "eccentric", "pause", "concentric"]);
   expect(runs.flatMap((run) => run.points).some((p) => p.occluded)).toBe(false);
+});
+
+it("displays speed magnitudes without filling missing samples or mutating analyzer data", () => {
+  const raw = [-12, 0, 8, null, -3];
+  const points = raw.map((velocity, i) => ({ ...result.trajectory[0]!, seconds: i, velocity }));
+  expect(timeSeries(points, movementSpeed).y).toEqual([12, 0, 8, null, 3]);
+  expect(points.map(p => p.velocity)).toEqual(raw);
+});
+
+it("explains a chart through its information button", async () => {
+  render(<OverlayChart lines={[]} label="Bar height" unit="px" locale="en" description="Height relative to lifting onset." />);
+  const button = screen.getByRole("button", { name: "About Bar height" });
+  await userEvent.setup().tab();
+  expect(button).toHaveFocus();
+  await waitFor(() => expect(screen.getByRole("tooltip")).toHaveTextContent("Height relative to lifting onset."));
 });

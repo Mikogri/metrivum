@@ -4,7 +4,7 @@ using System.Text;
 
 /// <summary>
 /// The analyzer's own window. It may have been started without one (by another program or hidden); "Show analyzer
-/// window" in TrainFlow, or starting the analyzer a second time, then opens a console and replays the recent log.
+/// window" in Metrivum, or starting the analyzer a second time, then opens a console and replays the recent log.
 /// </summary>
 internal static class ConsoleWindow
 {

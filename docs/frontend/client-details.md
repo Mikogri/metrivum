@@ -21,7 +21,7 @@ The route `/app/clients/:relationshipId` identifies a coaching relationship, nev
 
 ## Migrations
 
-`20261009145839_PreserveCheckInAssignmentSource`, `20261009145726_ClientDetailsMeasurementsAndNotes`, and `20261009150700_DocumentRetentionDeletion` are additive. Applied and verified on local PostgreSQL and the user-confirmed TrainFlow DEV project `atclvdkpbccafakzpwls`. Existing rows are retained; historical unknown source/size stays null.
+`20261009145839_PreserveCheckInAssignmentSource`, `20261009145726_ClientDetailsMeasurementsAndNotes`, and `20261009150700_DocumentRetentionDeletion` are additive. Applied and verified on local PostgreSQL and the user-confirmed Metrivum DEV project `atclvdkpbccafakzpwls`. Existing rows are retained; historical unknown source/size stays null.
 
 ## Verification
 

@@ -5,7 +5,7 @@ import { usePublicMessages } from "../../messages";
 import styles from "./TransferDiagram.module.css";
 
 /**
- * Import and export as one flow, left to right: the raw spreadsheet, what TrainFlow does with it
+ * Import and export as one flow, left to right: the raw spreadsheet, what Metrivum does with it
  * (steps, matched exercises, the check), and the files a published revision produces.
  */
 export function TransferDiagram() {

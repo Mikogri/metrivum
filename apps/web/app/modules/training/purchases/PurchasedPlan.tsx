@@ -1,7 +1,7 @@
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = ({ location }: { location: { pathname: string } }) =>
-  privateMeta(`${location.pathname.endsWith("/edit") ? "Edit training plan" : "Training plan"} — TrainFlow`);
+  privateMeta(`${location.pathname.endsWith("/edit") ? "Edit training plan" : "Training plan"} — Metrivum`);
 
 import { useLocation, useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";

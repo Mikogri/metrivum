@@ -36,7 +36,7 @@ The subsequent [dependency remediation](dependency-remediation-2026-10-14.md) re
   - <https://github.com/advisories/GHSA-w5hq-g745-h8pq>
 - Decoder/ML processes retain worker OS identity and filesystem/network access. Timeout/input/output limits do not provide memory, decompression, disk or subprocess quotas. Production needs a dedicated unprivileged worker and OS/container resource and network policy.
 - Native device, real email/password recovery, live OAuth/PKCE/refresh, live Storage attack scenarios, actual ML decoding and OS/native-library vulnerability checks were not exercised. Package audits do not audit the installed SDK, operating system or external MotionTrace environment.
-- JWT logout revocation remains bounded by token expiry; disabled TrainFlow accounts and integration revocation are checked server-side. This review did not add an online Supabase session lookup per request.
+- JWT logout revocation remains bounded by token expiry; disabled Metrivum accounts and integration revocation are checked server-side. This review did not add an online Supabase session lookup per request.
 - No production deployment, remote data mutation, credential rotation or history rewrite was performed.
 
 ## Verification

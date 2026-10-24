@@ -8,7 +8,7 @@
 
 **Tech stack:** React Router, TypeScript, React Aria, existing ui-web tokens, TanStack Query, Vitest and Playwright.
 
-**Spec:** User-provided “TrainFlow — Mobile Responsive Web UI”, attachment `654cf8ee-eea0-47ab-a41a-bd792f80c766`.
+**Spec:** User-provided “Metrivum — Mobile Responsive Web UI”, attachment `654cf8ee-eea0-47ab-a41a-bd792f80c766`.
 
 ## Constraints and review focus
 

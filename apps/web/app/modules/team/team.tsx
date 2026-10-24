@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Team — TrainFlow");
+export const meta = () => privateMeta("Team — Metrivum");
 
 import { UserAutocomplete } from "~/modules/accounts";
 import { useState } from "react";

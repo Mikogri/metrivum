@@ -12,7 +12,7 @@ import { trainingKeys } from "../queries";
 import styles from "./program-editor.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Editor — TrainFlow");
+export const meta = () => privateMeta("Editor — Metrivum");
 
 /** Read by AppShell: the editor takes the whole content area instead of the padded page column. */
 export const handle = { workspace: true };

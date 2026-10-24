@@ -86,7 +86,7 @@ public sealed class EndpointContractBoundaryTests
     }
 
     private static Type[] ModuleContexts() => typeof(Program).Assembly.GetReferencedAssemblies()
-        .Where(x => x.Name?.StartsWith("TrainFlow.", StringComparison.Ordinal) == true)
+        .Where(x => x.Name?.StartsWith("Metrivum.", StringComparison.Ordinal) == true)
         .Select(Assembly.Load).SelectMany(x => x.GetTypes())
         .Where(x => !x.IsAbstract && typeof(DbContext).IsAssignableFrom(x)).ToArray();
 
@@ -101,7 +101,7 @@ public sealed class EndpointContractBoundaryTests
         foreach (var argument in type.GetGenericArguments())
             foreach (var nested in ResponseTypes(argument, seen))
                 yield return nested;
-        if (type.Namespace?.StartsWith("TrainFlow.", StringComparison.Ordinal) == true)
+        if (type.Namespace?.StartsWith("Metrivum.", StringComparison.Ordinal) == true)
             foreach (var property in type.GetProperties())
                 foreach (var nested in ResponseTypes(property.PropertyType, seen))
                     yield return nested;

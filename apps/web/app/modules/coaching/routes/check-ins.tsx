@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Check-ins — TrainFlow");
+export const meta = () => privateMeta("Check-ins — Metrivum");
 
 import { ClipboardCheck } from "lucide-react";
 import { HubNavigation } from "~/shared/navigation/HubNavigation";

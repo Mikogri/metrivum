@@ -1,20 +1,19 @@
+import { ResourceError } from "~/shared/lib/ResourceError";
 import { useEffect, useState, type ReactNode } from "react";
 import { useBlocker } from "react-router";
-import { Alert, AlertDialog, Badge, Button, ErrorState, LinkButton, LoadingState, Pagination } from "@trainflow/ui-web";
+import { Alert, AlertDialog, Badge, Button, LinkButton, LoadingState, Pagination } from "@trainflow/ui-web";
 import { ApiError } from "~/shared/http";
 import { useCoachingQuery, type Page } from "./api";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
-import { errorText, traceIdOf } from "~/shared/lib/errorText";
+import { errorText } from "~/shared/lib/errorText";
 
 export function StatusBadge({ status, size }: { status: string; size?: "sm" | "md" }) {
   return <Badge dot size={size} tone={["Active", "Accepted", "Reviewed", "Paid"].includes(status) ? "success" : ["Suspended", "Overdue", "AwaitingPayment"].includes(status) ? "warning" : "neutral"}>{status.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ ([A-Z])/g, (_, c: string) => ` ${c.toLowerCase()}`)}</Badge>;
 }
 
 export function Failure({ error, retry }: { error: unknown; retry?: () => void }) {
-  const m = useT();
-  const message = error instanceof ApiError && error.status < 500 && error.status !== 412 ? error.message : errorText(m, error);
-  return <ErrorState title={message} reference={traceIdOf(error)} actions={retry && <Button onPress={retry}>Reload</Button>} />;
+  return <ResourceError error={error} retry={retry} />;
 }
 
 export function MutationError({ error }: { error: unknown }) {

@@ -1,7 +1,14 @@
 .week {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 27rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.weekMain {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-width: 0;
   min-height: 0;
 }
 
@@ -205,7 +212,7 @@
 .body {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 27rem;
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
 }
 
@@ -226,7 +233,7 @@
 }
 
 @media (max-width: 80rem) {
-  .body {
+  .week {
     grid-template-columns: minmax(0, 1fr) 23rem;
   }
 }
@@ -345,7 +352,8 @@
 
 @media (max-width: 767px) {
   .week, .panel, .body, .side { min-width: 0; }
-  .week { height: auto; }
+  .week { height: auto; grid-template-columns: minmax(0, 1fr); }
+  .weekMain { min-height: auto; }
   .strip { grid-template-columns: repeat(7, minmax(5rem, 1fr)); }
   .body { grid-template-columns: minmax(0, 1fr); }
   .side { border-left: 0; border-top: 1px solid var(--tf-color-border-subtle); overflow: visible; }

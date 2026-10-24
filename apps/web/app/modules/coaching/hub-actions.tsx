@@ -26,10 +26,11 @@ export function ClientHubActions() {
   );
 }
 
-export function InvitationEditor({ close }: { close: () => void }) {
+/** Invite one person to apply for an offer. `username` pre-fills the person (from their profile page). */
+export function InvitationEditor({ close, username: initialUsername = "" }: { close: () => void; username?: string }) {
   const profile = useProfile();
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(initialUsername);
   const [offerId, setOffer] = useState("");
   const [option, setOption] = useState("");
   const [message, setMessage] = useState("");
@@ -45,8 +46,8 @@ export function InvitationEditor({ close }: { close: () => void }) {
       <DialogFooter><Button onPress={close}>Close</Button></DialogFooter>
     </Dialog>;
   }
-  return <Dialog isOpen title="Invite a client" description="The invitation shows up in their TrainFlow account. No email or push notification is sent." onOpenChange={(v) => { if (!v) close(); }}><form className={styles.form} onSubmit={(e) => { e.preventDefault(); mutation.mutate({ method: "POST", path: "/api/v1/coaching/invitations", json: { username: username.trim().replace(/^@/, ""), offerId: selectedOffer, billingOptionId: option || null, message: message || null } }); }}>
-    <UserAutocomplete label="Client username" isRequired value={username} onChange={setUsername} autoFocus isDisabled={mutation.isPending} />
+  return <Dialog isOpen title="Invite a client" description="The invitation shows up in their Metrivum account. No email or push notification is sent." onOpenChange={(v) => { if (!v) close(); }}><form className={styles.form} onSubmit={(e) => { e.preventDefault(); mutation.mutate({ method: "POST", path: "/api/v1/coaching/invitations", json: { username: username.trim().replace(/^@/, ""), offerId: selectedOffer, billingOptionId: option || null, message: message || null } }); }}>
+    <UserAutocomplete label="Client username" isRequired value={username} onChange={setUsername} autoFocus={!initialUsername} isDisabled={mutation.isPending} />
     {offers.isError ? <Failure error={offers.error} retry={() => void offers.refetch()} /> : <Select label="Offer" description={offerItems.length > 1 && !selectedOffer ? "The client sees this offer's terms and price before accepting." : undefined} placeholder={offers.isPending ? "Loading offers…" : "Choose an active offer"} isRequired isDisabled={!offerItems.length} selectedKey={selectedOffer || null} onSelectionChange={(key) => { setOffer(String(key)); setOption(""); }}>{offerItems.map((o) => <Option key={o.id} id={o.id}>{o.name}</Option>)}</Select>}
     {revision.data ? <Select label="Billing option" selectedKey={option || "any"} onSelectionChange={(key) => setOption(key === "any" ? "" : String(key))}><Option id="any">Let the client choose</Option>{revision.data.billingOptions.map((o) => <Option key={o.id} id={o.id}>{o.name}</Option>)}</Select> : null}
     <TextArea label="Message" placeholder="Optional, a short note for the client" value={message} onChange={setMessage} maxLength={1000} />

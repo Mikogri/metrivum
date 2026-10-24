@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "TrainFlow API",
+    "title": "Metrivum API",
     "version": "v1"
   },
   "paths": {
@@ -54,6 +54,40 @@
                   "items": {
                     "$ref": "#/components/schemas/AccountSearchEntry"
                   }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/accounts/people/{username}": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonProfileResponse"
                 }
               }
             }
@@ -25996,6 +26030,45 @@
         },
         "additionalProperties": false
       },
+      "PersonProfileResponse": {
+        "required": [
+          "userId",
+          "username",
+          "displayName",
+          "bio",
+          "roles",
+          "isSelf"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "bio": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountRole"
+            }
+          },
+          "isSelf": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "PlanAnnotation": {
         "required": [
           "id",
@@ -26788,6 +26861,12 @@
           },
           "phoneVisibleToCoach": {
             "type": "boolean"
+          },
+          "bio": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         },
         "additionalProperties": false
@@ -30261,6 +30340,12 @@
             "type": [
               "null",
               "boolean"
+            ]
+          },
+          "bio": {
+            "type": [
+              "null",
+              "string"
             ]
           }
         },

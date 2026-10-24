@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Services — TrainFlow");
+export const meta = () => privateMeta("Services — Metrivum");
 
 import { Receipt } from "lucide-react";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";

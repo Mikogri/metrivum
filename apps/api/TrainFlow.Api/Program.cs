@@ -132,7 +132,7 @@ builder.Services.AddOpenApi(options => options.AddSchemaTransformer((schema, con
     return Task.CompletedTask;
 }).AddDocumentTransformer((document, context, ct) =>
 {
-    document.Info.Title = "TrainFlow API";
+    document.Info.Title = "Metrivum API";
     document.Info.Version = "v1";
     document.Components ??= new OpenApiComponents();
     document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
@@ -243,6 +243,11 @@ app.Use(async (http, next) =>
 {
     http.Response.Headers.CacheControl = "no-store";
     http.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    // The API answers JSON and files only: nothing it returns may run scripts, be framed or leak the URL onward.
+    http.Response.Headers.ContentSecurityPolicy = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
+    http.Response.Headers["X-Frame-Options"] = "DENY";
+    http.Response.Headers["Referrer-Policy"] = "no-referrer";
+    http.Response.Headers["Cross-Origin-Opener-Policy"] = "same-origin";
     await next(http);
 });
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();

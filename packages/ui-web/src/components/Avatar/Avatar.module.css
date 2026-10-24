@@ -14,3 +14,4 @@
 .sm { width: 1.5rem; height: 1.5rem; font-size: 0.625rem; }
 .md { width: 2rem; height: 2rem; font-size: var(--tf-text-2xs); }
 .lg { width: 2.75rem; height: 2.75rem; font-size: var(--tf-text-sm); }
+.xl { width: 4.5rem; height: 4.5rem; font-size: var(--tf-text-xl); }

@@ -2,8 +2,9 @@ import { useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
 import { Alert, Button, Option, Select, TextField } from "@trainflow/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
-import { useSessionManager } from "~/shared/session/SessionProvider";
+import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";
+import { AddAccountSwitch } from "../components/AddAccountSwitch";
 import { AuthFooter, AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
 import { authErrorText, isExistingAccount, passwordProblem } from "../lib/authErrors";
@@ -11,13 +12,15 @@ import { callbackUrl, onboardingUrl, registrationRole, slotParam, type Registrat
 import { isValidEmail, normalizeEmail } from "../lib/email";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Create account — TrainFlow");
+export const meta = () => privateMeta("Create account — Metrivum");
 
 export default function Register() {
   const m = useT();
   const t = m.auth.register;
   const [params] = useSearchParams();
   const manager = useSessionManager();
+  const state = useSessionState();
+  const adding = params.get("add") === "1" || state.accounts.length > 0;
   const navigate = useNavigate();
   const [role, setRole] = useState<RegistrationRole>(() => registrationRole(params.get("role")));
   const [email, setEmail] = useState("");
@@ -29,13 +32,15 @@ export default function Register() {
   if (!supabaseConfigured()) {
     return <Alert tone="danger" title={m.shell.notConfiguredTitle}>{m.shell.notConfiguredBody}</Alert>;
   }
-  const slot = manager.slotForNewSignIn(slotParam(params.get("slot")));
+  // A new account never takes a slot that already holds someone: a requested slot is used only when free.
+  const requested = slotParam(params.get("slot"));
+  const slot = manager.slotForNewSignIn(requested !== null && !state.accounts.some((a) => a.slot === requested) ? requested : undefined);
   if (slot === null) return <Alert tone="warning" title={m.auth.login.full} />;
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    if (!isValidEmail(email) || passwordProblem(m, password) || slot === null) return;
+    if (!isValidEmail(email) || passwordProblem(m, password, email) || slot === null) return;
     const address = normalizeEmail(email);
     setPending(true);
     setError(null);
@@ -64,7 +69,8 @@ export default function Register() {
 
   return (
     <>
-      <AuthHeader title={t.title} subtitle={t.subtitle} />
+      <AuthHeader title={adding ? t.addingTitle : t.title} subtitle={adding ? t.addingSubtitle : t.subtitle} />
+      {adding ? <AddAccountSwitch current="register" slot={slot} /> : null}
       {error ? <Alert tone="danger" title={error} live="assertive" /> : null}
       <form className={form.form} onSubmit={onSubmit} noValidate>
         <Select label={t.accountType} selectedKey={role} onSelectionChange={(key) => setRole(registrationRole(String(key)))} isDisabled={pending}>
@@ -90,8 +96,8 @@ export default function Register() {
           onChange={setPassword}
           isRequired
           description={t.passwordHint}
-          isInvalid={submitted && Boolean(passwordProblem(m, password))}
-          errorMessage={passwordProblem(m, password) ?? undefined}
+          isInvalid={submitted && Boolean(passwordProblem(m, password, email))}
+          errorMessage={passwordProblem(m, password, email) ?? undefined}
           size="lg"
         />
         <Button type="submit" variant="primary" size="lg" block loading={pending}>
@@ -99,9 +105,15 @@ export default function Register() {
         </Button>
       </form>
       <Alert tone="info" title={t.termsPending} />
-      <AuthFooter>
-        {t.haveAccount} <RouterLink to="/auth/login">{t.signIn}</RouterLink>
-      </AuthFooter>
+      {adding ? (
+        <AuthFooter>
+          <RouterLink to="/app">{m.common.cancel}</RouterLink>
+        </AuthFooter>
+      ) : (
+        <AuthFooter>
+          {t.haveAccount} <RouterLink to="/auth/login">{t.signIn}</RouterLink>
+        </AuthFooter>
+      )}
     </>
   );
 }

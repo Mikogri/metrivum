@@ -30,7 +30,7 @@ Built-ins (all v1): `percentage-1rm` (`base1Rm * percentage`), `previous-cycle-i
 4. `POST /imports/{id}/validate` builds and validates the authoritative server-held rows, mapping, units, hierarchy, formula versions and feature access.
 5. `POST /imports/{id}/commit` with `If-Match`, `Idempotency-Key` and `{name,kind,folderId}` repeats validation and atomically creates one independent document. Commit does not trust a client-submitted preview document. A retry returns the existing plan; changed content under a reused key returns `IDEMPOTENCY_CONFLICT`. A failed commit creates no partial plan. Expired sessions return 410; successful commits can still be replayed idempotently.
 
-Only structured TrainFlow CSV v1 is supported, not arbitrary spreadsheets or PDF import. Export a revision as a starting template. Exact header order:
+Only structured Metrivum CSV v1 is supported, not arbitrary spreadsheets or PDF import. Export a revision as a starting template. Exact header order:
 
 ```text
 format_version,row_kind,program_name,program_description,block_id,block_name,block_description,cycle_id,cycle_name,cycle_description,cycle_days,day_id,day_number,workout_id,workout_name,workout_description,instance_id,exercise_name,comment,sets_json,groups_json,exercise_snapshot_json,formula_snapshots_json

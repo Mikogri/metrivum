@@ -24,7 +24,7 @@ public sealed class IntegrationAccess(IntegrationsDbContext db, IAccountContext 
     public async Task RequireOwnerSessionAsync(CancellationToken ct)
     {
         if (http.HttpContext?.User.HasClaim(x => x.Type == "client_id") == true)
-            throw new ApiException(403, "HUMAN_SESSION_REQUIRED", "Use your TrainFlow account session to manage integrations and approve actions.");
+            throw new ApiException(403, "HUMAN_SESSION_REQUIRED", "Use your Metrivum account session to manage integrations and approve actions.");
         await accounts.RequireCoachAsync(ct);
         await features.RequireAsync(IntegrationGrants.Feature("connect"), ct);
     }

@@ -381,7 +381,7 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
             ServiceId = Guid.NewGuid(),
             CoachId = quote.OwnerId,
             ClientId = quote.OwnerId,
-            Name = "TrainFlow Team " + quote.Kind,
+            Name = "Metrivum Team " + quote.Kind,
             Amount = quote.AmountDue,
             CoachNetAmount = quote.AmountDue,
             Currency = quote.Currency,

@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("My training — TrainFlow");
+export const meta = () => privateMeta("My training — Metrivum");
 
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useState } from "react";

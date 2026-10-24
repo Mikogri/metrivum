@@ -70,7 +70,7 @@ public sealed class IntegrationService(IntegrationsDbContext db, IAccountContext
     {
         await access.RequireOwnerSessionAsync(ct);
         var grants = IntegrationGrants.Validate(request.Grants);
-        if (grants.Length == 0) throw ApiException.Invalid("Select at least one TrainFlow permission, or deny this request.");
+        if (grants.Length == 0) throw ApiException.Invalid("Select at least one Metrivum permission, or deny this request.");
         foreach (var grant in grants) await features.RequireAsync(IntegrationGrants.Feature(grant), ct);
         var details = await oauth.DetailsAsync(authorizationId, ct);
         return await tx.RunAsync(async token =>
@@ -186,7 +186,7 @@ public sealed class IntegrationService(IntegrationsDbContext db, IAccountContext
             if (action.Status == "Executed") return new SendApprovedResult(action.Id, action.MessageId!.Value, action.TargetId, action.Status);
             ValidAction(action, connection);
             if (action.Status != "Approved" || action.ApprovedBy != accounts.UserId || action.ApprovedAt == null)
-                throw new ApiException(409, "APPROVAL_REQUIRED", "Review and approve this exact action in TrainFlow first.");
+                throw new ApiException(409, "APPROVAL_REQUIRED", "Review and approve this exact action in Metrivum first.");
             var payload = Payload(action);
             var messageId = await messaging.SendAsync(payload.ConversationId, payload.Body, payload.ContextHash, "mcp-action:" + action.Id, token);
             action.Status = "Executed";

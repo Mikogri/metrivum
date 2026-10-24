@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Payments — TrainFlow");
+export const meta = () => privateMeta("Payments — Metrivum");
 
 import { useRef, useState } from "react";
 import { Link } from "react-router";
@@ -242,7 +242,7 @@ function Payments() {
                                             {
                                                 id: "mode",
                                                 header: "Settlement",
-                                                cell: (o) => (o.settlementMode === "External" ? "With your coach" : "In TrainFlow"),
+                                                cell: (o) => (o.settlementMode === "External" ? "With your coach" : "In Metrivum"),
                                             },
                                             {
                                                 id: "amount",

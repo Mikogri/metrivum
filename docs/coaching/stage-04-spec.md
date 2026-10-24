@@ -1,13 +1,13 @@
-# TrainFlow — Stage 4: Notifications, Free/Pro Subscriptions, Simulated Payments & Analyze
+# Metrivum — Stage 4: Notifications, Free/Pro Subscriptions, Simulated Payments & Analyze
 
 ## Mission
 
-Implement this as the NEXT END-TO-END STAGE in the EXISTING TrainFlow project. Extend the current ASP.NET Core modular monolith, Supabase PostgreSQL (EF Core/Npgsql), Supabase Auth, existing React/TypeScript web UI and design system. Reuse Stage 1 relationships/groups, Stage 2 offers, forms, check-ins and simulated billing, and Stage 3A durable messaging/SignalR. VERIFY what was actually implemented first; previous prompts are not evidence that code exists.
+Implement this as the NEXT END-TO-END STAGE in the EXISTING Metrivum project. Extend the current ASP.NET Core modular monolith, Supabase PostgreSQL (EF Core/Npgsql), Supabase Auth, existing React/TypeScript web UI and design system. Reuse Stage 1 relationships/groups, Stage 2 offers, forms, check-ins and simulated billing, and Stage 3A durable messaging/SignalR. VERIFY what was actually implemented first; previous prompts are not evidence that code exists.
 
 Requested outcome:
 1. Durable in-app **Notifications** for check-ins, chat messages, invitations, leads, offers, payments, platform subscriptions and other events from real implemented modules.
 2. Complete the simulated purchase experience: show normal configured price; user clicks **Confirm payment**; real backend payment/order/transaction state is persisted and treated as successfully paid, but **no real funds move**.
-3. Add/manage **TrainFlow platform plans Free and Pro**, distinct from clients buying coach offers/subscriptions.
+3. Add/manage **Metrivum platform plans Free and Pro**, distinct from clients buying coach offers/subscriptions.
 4. **Both Free and Pro currently unlock ALL product features/capabilities.** Do not gate CheckIns, Messaging, Analytics, Programs, Export, VideoAnalysis, etc. behind Pro.
 5. Coach app top-right: **REPLACE** `New Program` with a **Subscription** button linking to the platform subscription page. Program creation must remain possible from Programs.
 6. Replace **Earnings** navigation/page with **Analyze**, a full analytics workspace: finance, revenue, client growth/acquisition, funnels, retention, active client counts, check-ins, engagement and actual logged training/client progress where available.
@@ -23,7 +23,7 @@ Work in order: audit -> plan/subscription model -> checkout and billing -> notif
 
 ## 2. Two types of subscription MUST be separated
 
-A. `PlatformSubscription`: a COACH paying TrainFlow for Free/Pro plan; this is a TrainFlow platform commercial relationship. Not revenue for that coach's client services.
+A. `PlatformSubscription`: a COACH paying Metrivum for Free/Pro plan; this is a Metrivum platform commercial relationship. Not revenue for that coach's client services.
 
 B. `CoachingServiceSubscription`: a CLIENT paying a coach for a PeriodSubscription OFFER; this belongs to the coach's services/orders/payment dues and is income attributable to that coach.
 
@@ -55,7 +55,7 @@ Manual flow: person may click Confirm payment WITHOUT saving any fake card. Opti
 
 Double-click, concurrent confirmation and retry must produce exactly ONE settlement. Use domain idempotency keys, DB uniqueness, transaction boundaries and concurrency tokens. Monetary values must be decimal/numeric, with centralized rounding and currency precision. Client-service sales record gross, fee %, fee amount, coach net and currency in immutable history. Existing Free 10% / Pro 5% fees are charged according to server-side rate at the relevant settlement, NOT frontend values, and remain unchanged if coach later upgrades.
 
-VERY IMPORTANT: paying for TrainFlow Pro is the COACH paying TrainFlow; it must NEVER incur a coach marketplace commission, and must NEVER show as that coach's earnings. Relationship Active is NOT synonymous with Service Paid. Services/relationships may be active before payment is due according to accepted terms. Do not suspend all of a coach's client relationships because a single due is unpaid.
+VERY IMPORTANT: paying for Metrivum Pro is the COACH paying Metrivum; it must NEVER incur a coach marketplace commission, and must NEVER show as that coach's earnings. Relationship Active is NOT synonymous with Service Paid. Services/relationships may be active before payment is due according to accepted terms. Do not suspend all of a coach's client relationships because a single due is unpaid.
 
 ## 6. Subscription UI / top-right header
 
@@ -63,7 +63,7 @@ In the existing coach AppLayout top-right, replace `New Program` with a primary/
 
 Build `/app/subscription` integrated with REAL API: current Free/Pro status, plan comparison, ALL capabilities shown available in BOTH tiers, differences in commission and any existing quantitative limits, server-configured real price/currency, period dates, paid-through date, auto-renew, upgrade/downgrade/cancel, payment/plan history and due invoices/records only if they truly exist. For paid checkout, show summary and **Confirm payment**. Display pending, success, failure, retry-safe states. Show successful change only AFTER backend confirms. Do not fabricate card form, card numbers, prices, receipts or paid status. Show simulated-mode explanation.
 
-If current account has both roles, ensure the platform plan belongs to the correct account context; do not confuse client's purchased coaching service with user's TrainFlow plan. Reuse existing components, typography, spacing, colors, responsiveness and accessibility.
+If current account has both roles, ensure the platform plan belongs to the correct account context; do not confuse client's purchased coaching service with user's Metrivum plan. Reuse existing components, typography, spacing, colors, responsiveness and accessibility.
 
 ## 7. Durable in-app notifications: data and delivery
 

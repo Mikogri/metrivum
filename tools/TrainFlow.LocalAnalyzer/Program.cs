@@ -92,8 +92,8 @@ app.MapGet("/status", () =>
     catch (Exception error) when (error is IOException or InvalidDataException or JsonException or UnauthorizedAccessException)
     { return Results.Ok(new { state = "runtime_missing", protocolVersion = 1, version = AnalyzerUpdate.Version }); }
 });
-// "Show analyzer window" in TrainFlow (and a second start of the analyzer) bring this window up, creating it if needed.
-app.MapPost("/window", () => { ConsoleWindow.Show("TrainFlow Analyzer"); return Results.NoContent(); });
+// "Show analyzer window" in Metrivum (and a second start of the analyzer) bring this window up, creating it if needed.
+app.MapPost("/window", () => { ConsoleWindow.Show("Metrivum Analyzer"); return Results.NoContent(); });
 app.MapGet("/jobs", (string? account) => queue.List(account).Select(queue.View).ToArray());
 app.MapPost("/jobs", async (HttpContext context) =>
 {
@@ -103,7 +103,7 @@ app.MapPost("/jobs", async (HttpContext context) =>
     catch (Exception error) when (error is JsonException or UriFormatException) { return Results.BadRequest(new { detail = "Invalid analysis settings." }); }
     if (request?.Tracking?.Points is not { Length: 2 }) return Results.BadRequest(new { detail = "Mark two tracking points before starting." });
     if (request.Movement is not ("squat" or "bench-press" or "deadlift" or "unspecified")) return Results.BadRequest(new { detail = "Choose a movement." });
-    if (string.IsNullOrWhiteSpace(request.Account) || request.Account.Length > 128) return Results.BadRequest(new { detail = "Sign in to TrainFlow before queuing videos." });
+    if (string.IsNullOrWhiteSpace(request.Account) || request.Account.Length > 128) return Results.BadRequest(new { detail = "Sign in to Metrivum before queuing videos." });
     if (request.SourceVideo is not { Width: > 0, Height: > 0 } source || !double.IsFinite(source.DurationSeconds) || source.DurationSeconds < 0)
         return Results.BadRequest(new { detail = "Video details are missing." });
     if (request.Trim is { } trim && (!double.IsFinite(trim.StartSeconds) || !double.IsFinite(trim.EndSeconds) || trim.StartSeconds < 0
@@ -175,6 +175,9 @@ app.MapDelete("/jobs/{id}", (string id) =>
     queue.Remove(job);
     return Results.NoContent();
 });
+var workerIdleSeconds = builder.Configuration.GetValue<int?>("WorkerIdleSeconds") ?? 30;
+if (workerIdleSeconds is < 0 or > 300) throw new InvalidOperationException("WorkerIdleSeconds must be between 0 and 300.");
+await using var analysisWorker = new PythonAnalysisSession(TimeSpan.FromSeconds(workerIdleSeconds));
 app.Lifetime.ApplicationStarted.Register(() => _ = Task.Run(() => queue.RunAsync(
     async (job, cache, token) =>
     {
@@ -201,12 +204,12 @@ app.Lifetime.ApplicationStarted.Register(() => _ = Task.Run(() => queue.RunAsync
             configuration = configuration with { Tracking = configuration.Tracking with { TimestampSeconds = shifted } };
         }
         return await Bridge.AnalyzeAsync(new Request(video, configuration, root, SettingsPath: settings, CacheDirectory: cache), Path.Combine(cache, "result.raw.json"), token,
-            new Progress<AnalysisProgress>(step => Step(step, share, 1)));
+            new Progress<AnalysisProgress>(step => Step(step, share, 1)), analysisWorker);
     },
     app.Lifetime.ApplicationStopping)));
 Console.WriteLine($"Local analyzer: http://127.0.0.1:59121 | Web origin: {origin}");
 Console.WriteLine($"Pairing token: {pairing}");
-Console.WriteLine("Keep this window open: queued videos are analyzed here, even with the browser closed. Results are saved to TrainFlow the next time it is open.");
+Console.WriteLine("Keep this window open: queued videos are analyzed here, even with the browser closed. Results are saved to Metrivum the next time it is open.");
 Console.WriteLine($"Videos in the queue: {queue.List(null).Count()}");
 try
 {

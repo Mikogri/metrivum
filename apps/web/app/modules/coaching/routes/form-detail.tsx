@@ -1,7 +1,7 @@
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = ({ location }: { location: { pathname: string } }) =>
-  privateMeta(`${location.pathname.endsWith("/new") ? "New form" : "Edit form"} — TrainFlow`);
+  privateMeta(`${location.pathname.endsWith("/new") ? "New form" : "Edit form"} — Metrivum`);
 
 import { CalendarDays, MoreHorizontal, Monitor, PenLine, Play, Plus, Smartphone, Trash2, X } from "lucide-react";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";

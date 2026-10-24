@@ -1,7 +1,7 @@
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = ({ location }: { location: { pathname: string } }) =>
-  privateMeta(`${location.pathname === "/app/leads" ? "Leads" : "My applications"} — TrainFlow`);
+  privateMeta(`${location.pathname === "/app/leads" ? "Leads" : "My applications"} — Metrivum`);
 
 import { Inbox } from "lucide-react";
 import { HubNavigation } from "~/shared/navigation/HubNavigation";

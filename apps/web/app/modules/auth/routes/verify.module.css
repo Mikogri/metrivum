@@ -1,0 +1,53 @@
+/* A mail tile above the heading: this page is about one thing, opening the email. */
+.icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+}
+
+.icon svg {
+  width: 1.375rem;
+  height: 1.375rem;
+  stroke-width: 1.75;
+}
+
+.waiting {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.hint {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.codeForm {
+  padding-top: var(--tf-space-4);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  animation: code-in 200ms var(--tf-ease-out);
+}
+
+@keyframes code-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .codeForm {
+    animation: none;
+  }
+}

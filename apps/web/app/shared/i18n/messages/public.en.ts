@@ -1,7 +1,7 @@
 // Public site copy (EN). Every claim must match what the API actually does today.
 export const publicEn = {
   common: {
-    brand: "TrainFlow",
+    brand: "Metrivum",
     skipToContent: "Skip to content",
     illustrativePreview: "Illustrative preview",
     illustrativePreviewNote: "Sample data drawn for this page, not a live account.",
@@ -11,16 +11,24 @@ export const publicEn = {
   },
   nav: {
     primary: "Primary",
-    home: "TrainFlow home",
+    home: "Metrivum home",
     features: "Features",
     programBuilder: "Program builder",
     videoAnalysis: "Video analysis",
     pricing: "Pricing",
     signIn: "Sign in",
     getStarted: "Create account",
-    openApp: "Open TrainFlow",
+    openApp: "Open Metrivum",
     openMenu: "Open menu",
     closeMenu: "Close menu",
+    accountMenu: (email: string) => `Account menu for ${email}`,
+    accounts: "Signed in",
+    signOut: "Sign out",
+    signOutTitle: "Sign out",
+    signOutChoose: "Choose the account to sign out of. Your other accounts stay signed in.",
+    signOutOf: (email: string) => `Sign out of ${email}`,
+    inUse: "In use",
+    cancel: "Cancel",
   },
   footer: {
     tagline: "A workspace for coaches who write training programs.",
@@ -29,11 +37,11 @@ export const publicEn = {
     register: "Create account",
     signIn: "Sign in",
     legalPending: "Privacy policy and terms will be published here before public registration opens.",
-    copyright: (year: number) => `© ${year} TrainFlow`,
+    copyright: (year: number) => `© ${year} Metrivum`,
   },
   home: {
     meta: {
-      title: "TrainFlow — the training spreadsheet, rebuilt for coaches",
+      title: "Metrivum — the training spreadsheet, rebuilt for coaches",
       description:
         "Build training programs from blocks, cycles and days, write sets with ranges, %1RM, RPE and formulas, and export CSV or PDF. Lift video analysis in the same workspace.",
     },
@@ -42,7 +50,7 @@ export const publicEn = {
       lead: "Build programs from blocks, cycles and days. Write every set with ranges, %1RM, RPE or a formula, keep templates in folders and export the result to CSV or PDF.",
       primary: "Create an account",
       secondary: "Sign in",
-      openApp: "Open TrainFlow",
+      openApp: "Open Metrivum",
       tertiary: "See the program builder",
       badge: "8 set types / formulas / csv + pdf",
     },
@@ -154,14 +162,14 @@ export const publicEn = {
       title: "Lift analysis next to the program",
       body: "Upload a lift to your private video library, start an analysis and follow its status. With an analyzer connected you get repetitions, phase timings and the bar path, and you can compare two lifts side by side.",
       honesty:
-        "Measurements come from an analyzer service connected to your TrainFlow deployment. Until one is connected, new analyses stop with an “analyzer not configured” status — TrainFlow never shows simulated results.",
+        "Measurements come from an analyzer service connected to your Metrivum deployment. Until one is connected, new analyses stop with an “analyzer not configured” status — Metrivum never shows simulated results.",
       statuses: { Queued: "Queued", Processing: "Processing", Completed: "Completed" },
       repLabel: (n: number) => `Rep ${n}`,
       phases: { eccentric: "Eccentric", concentric: "Concentric" },
       pathLabel: "Bar path",
     },
     workflow: {
-      title: "How work moves through TrainFlow",
+      title: "How work moves through Metrivum",
       steps: [
         { title: "Set up your workspace", body: "Create an account, confirm your email and finish a short onboarding." },
         { title: "Build or import", body: "Start from scratch, from a template or from a CSV file you already have." },
@@ -173,12 +181,12 @@ export const publicEn = {
       title: "Questions coaches ask",
       items: [
         {
-          q: "Who is TrainFlow for?",
+          q: "Who is Metrivum for?",
           a: "Coaches who write training programs, and the clients they work with. Coaches build programs and run their practice; clients answer check-ins, read messages and follow their calendar.",
         },
         {
-          q: "Can I send programs to athletes from TrainFlow?",
-          a: "Not inside TrainFlow. Export a published revision to PDF or CSV and share it the way you already do.",
+          q: "Can I send programs to athletes from Metrivum?",
+          a: "Not inside Metrivum. Export a published revision to PDF or CSV and share it the way you already do.",
         },
         {
           q: "Do cycles have to be one week long?",
@@ -262,7 +270,7 @@ export const publicEn = {
       heroNote: "Lift video analysis in the same workspace",
       statement: {
         lead: "A different kind of training tool.",
-        rest: "Purpose-built for coaches who write programs, with blocks, cycles and typed sets at its core. TrainFlow keeps the speed of a spreadsheet and adds the structure a program needs.",
+        rest: "Purpose-built for coaches who write programs, with blocks, cycles and typed sets at its core. Metrivum keeps the speed of a spreadsheet and adds the structure a program needs.",
       },
       pillars: [
         { title: "Built like a training plan", body: "Blocks, cycles of any length and numbered days: the structure coaches already think in." },
@@ -289,17 +297,17 @@ export const publicEn = {
       },
     },
     finalCta: {
-      title: "Start your next block in TrainFlow",
+      title: "Start your next block in Metrivum",
       body: "Create an account, finish onboarding and build your first program.",
     },
   },
   features: {
     meta: {
-      title: "Features — TrainFlow",
+      title: "Features — Metrivum",
       description:
-        "What TrainFlow does today: exercise library, folders and templates, a spreadsheet-style program editor with formulas, CSV/PDF export and lift video analysis.",
+        "What Metrivum does today: exercise library, folders and templates, a spreadsheet-style program editor with formulas, CSV/PDF export and lift video analysis.",
     },
-    title: "What TrainFlow does today",
+    title: "What Metrivum does today",
     lead: "Everything below is part of the current product. Some features may be enabled per account; the app shows what is available to you.",
     groups: [
       {
@@ -361,20 +369,20 @@ export const publicEn = {
         ],
       },
     ],
-    scopeTitle: "What TrainFlow is not",
+    scopeTitle: "What Metrivum is not",
     scopeBody:
-      "TrainFlow is a coach's workspace. It does not manage clients, payments, messaging or calendars, and there is no mobile app.",
+      "Metrivum is a coach's workspace. It does not manage clients, payments, messaging or calendars, and there is no mobile app.",
     detailLinks: { programBuilder: "Program builder in detail", videoAnalysis: "Video analysis in detail" },
   },
   programBuilder: {
     meta: {
-      title: "Program builder — TrainFlow",
+      title: "Program builder — Metrivum",
       description:
-        "Blocks, cycles of any length, numbered days, eight set types, formulas and server-generated CSV/PDF. How the TrainFlow program editor works.",
+        "Blocks, cycles of any length, numbered days, eight set types, formulas and server-generated CSV/PDF. How the Metrivum program editor works.",
     },
     eyebrowBack: "All features",
     title: "A program editor that understands sets",
-    lead: "TrainFlow stores a program as typed data, not as text in cells. Units, references and IDs survive copying, importing and exporting.",
+    lead: "Metrivum stores a program as typed data, not as text in cells. Units, references and IDs survive copying, importing and exporting.",
     structureTitle: "Structure",
     structureBody: "Each level holds the next one. Empty levels are valid in a draft, so you can sketch first and fill in later.",
     structure: [
@@ -413,16 +421,16 @@ export const publicEn = {
   },
   videoAnalysis: {
     meta: {
-      title: "Video analysis — TrainFlow",
+      title: "Video analysis — Metrivum",
       description:
-        "Private lift video library, durable analysis jobs, repetitions, phases, bar path and comparisons. How TrainFlow video analysis works and what it needs.",
+        "Private lift video library, durable analysis jobs, repetitions, phases, bar path and comparisons. How Metrivum video analysis works and what it needs.",
     },
     eyebrowBack: "All features",
     title: "Lift analysis in your workspace",
     lead: "Keep lift videos private, run analyses as background jobs and read results next to your programs.",
     flowTitle: "From upload to result",
     flow: [
-      { title: "Upload", body: "Choose an MP4, WebM or MOV file. TrainFlow reserves the upload and the file goes straight to private storage." },
+      { title: "Upload", body: "Choose an MP4, WebM or MOV file. Metrivum reserves the upload and the file goes straight to private storage." },
       { title: "Verify", body: "The server checks the stored file type and size before the video becomes ready." },
       { title: "Analyse", body: "Start an analysis with a name, tags and notes. It runs in the background and survives a page refresh." },
       { title: "Review", body: "Read repetitions, phase timings and the bar path, or compare two analyses." },
@@ -436,14 +444,14 @@ export const publicEn = {
     ],
     statusTitle: "Analyzer status",
     statusBody:
-      "Measurements require an analyzer service connected to your TrainFlow deployment. When none is connected, new analyses end with “analyzer not configured”. That state is shown as it is — there are no placeholder charts or simulated numbers.",
+      "Measurements require an analyzer service connected to your Metrivum deployment. When none is connected, new analyses end with “analyzer not configured”. That state is shown as it is — there are no placeholder charts or simulated numbers.",
     privacyTitle: "Private by default",
     privacyBody:
       "Videos are stored in a private bucket. Playback uses short-lived signed links that expire after a couple of minutes and are never treated as permanent addresses.",
     limitsNote: "Default limits: MP4, WebM or MOV up to 256 MiB, five uploads in progress at a time. Your deployment may configure different limits.",
   },
   notFound: {
-    meta: { title: "Page not found — TrainFlow", description: "This page does not exist." },
+    meta: { title: "Page not found — Metrivum", description: "This page does not exist." },
     title: "This page does not exist",
     body: "Check the address or go back to the start.",
     home: "Go to the home page",

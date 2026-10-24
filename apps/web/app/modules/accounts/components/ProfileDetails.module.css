@@ -1,0 +1,39 @@
+.fields {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tf-space-3);
+  align-items: start;
+}
+
+/* The heart-rate field with its "use estimate" action underneath, aligned to the field. */
+.withAction {
+  display: grid;
+  justify-items: start;
+  gap: var(--tf-space-1);
+}
+
+.withAction > :first-child {
+  width: 100%;
+}
+
+.chipField {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.label {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+@media (max-width: 30rem) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+}

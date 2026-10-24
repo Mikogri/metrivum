@@ -1,0 +1,143 @@
+/* Check-in details (the coach's side panel): a summary card with the due state and the four steps. */
+.summary {
+  display: grid;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.summaryHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+}
+
+.summaryTitle {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.summaryTitle h3 {
+  font-size: var(--tf-text-lg);
+  font-weight: var(--tf-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.due {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.due[data-tone="late"] {
+  color: var(--tf-color-warning);
+  font-weight: var(--tf-weight-medium);
+}
+
+.summaryActions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+/* Four steps on a line: a dot each, joined by a rule that fills as the check-in moves on. */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding-top: var(--tf-space-4);
+}
+
+.steps li::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: var(--tf-color-border);
+}
+
+.steps li:first-child::before {
+  left: 6px;
+}
+
+.steps li:last-child::before {
+  right: auto;
+  width: 6px;
+}
+
+.steps li[data-state="done"]::before {
+  background: var(--tf-color-text-tertiary);
+}
+
+.dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--tf-color-border-strong);
+  border-radius: 50%;
+  background: var(--tf-color-surface);
+}
+
+.steps li[data-state="done"] .dot {
+  border-color: var(--tf-color-text-secondary);
+  background: var(--tf-color-text-secondary);
+}
+
+.steps li[data-state="current"] .dot {
+  border-color: var(--tf-color-text);
+  box-shadow: 0 0 0 4px var(--tf-color-surface-selected);
+}
+
+.steps li[data-late] .dot {
+  border-color: var(--tf-color-warning);
+}
+
+.steps li[data-late][data-state="done"] .dot {
+  background: var(--tf-color-warning);
+}
+
+.stepLabel {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.steps li[data-state="current"] .stepLabel {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+}
+
+.stepValue {
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.steps li[data-late] .stepValue {
+  color: var(--tf-color-warning);
+}
+
+@media (max-width: 30rem) {
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: var(--tf-space-3);
+  }
+}

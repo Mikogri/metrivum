@@ -23,6 +23,7 @@ public static class SupabaseAuthentication
             (projectUri.Scheme != "https" && !projectUri.IsLoopback) || string.IsNullOrWhiteSpace(settings.Audience))
             throw new InvalidOperationException("Configure a trusted HTTPS Supabase Auth project URL and audience (loopback HTTP only in Development/Testing).");
         services.AddSingleton(settings);
+        services.AddSingleton<IAuthSessionValidator, AuthSessionValidator>();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
             options.MapInboundClaims = false;
@@ -49,15 +50,20 @@ public static class SupabaseAuthentication
                         context.Token = context.Request.Query["access_token"];
                     return Task.CompletedTask;
                 },
-                OnTokenValidated = context =>
+                OnTokenValidated = async context =>
                 {
                     var principal = context.Principal!;
                     if (!Guid.TryParse(principal.FindFirst("sub")?.Value, out var id) || id == Guid.Empty ||
                         principal.FindFirst("role")?.Value != "authenticated" ||
                         principal.FindFirst("is_anonymous")?.Value != "false" ||
                         !Guid.TryParse(principal.FindFirst("session_id")?.Value, out var session) || session == Guid.Empty)
+                    {
                         context.Fail("A non-anonymous Supabase user session is required.");
-                    return Task.CompletedTask;
+                        return;
+                    }
+                    var validator = context.HttpContext.RequestServices.GetRequiredService<IAuthSessionValidator>();
+                    if (!await validator.IsActiveAsync(id, session, context.HttpContext.RequestAborted))
+                        context.Fail("The user session is no longer active.");
                 }
             };
         });

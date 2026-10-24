@@ -28,7 +28,7 @@ export async function registerPush(
     }
     if (Platform.OS === "android")
         await Notifications.setNotificationChannelAsync("default", {
-            name: "TrainFlow",
+            name: "Metrivum",
             importance: Notifications.AndroidImportance.DEFAULT,
         });
     const permission = requestPermission

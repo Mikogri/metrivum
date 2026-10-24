@@ -17,7 +17,7 @@ import { ProgramsIcon } from "~/layouts/components/navIcons";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { CoachDashboard, UsagePanel } from "./CoachPulse";
 
-export const meta = () => privateMeta("Dashboard — TrainFlow");
+export const meta = () => privateMeta("Dashboard — Metrivum");
 
 function Panel({ title, href, viewAll, children }: { title: string; href: string; viewAll: string; children: ReactNode }) {
   return (

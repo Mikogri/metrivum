@@ -53,12 +53,12 @@ export function Integrations() {
       <p className={styles.hint}>Connect from your assistant using OAuth and choose which data it may read or private drafts it may create. Returned private content is shared with that assistant. Messages require your review and explicit approval here. Disconnecting blocks the next tool request.</p>
       <p className={styles.identity}>MCP endpoint: <code>{endpoint}</code></p>
       <details className={styles.guide}><summary>Connect to ChatGPT</summary>
-        <ol><li>Enable developer mode on ChatGPT web if your plan and workspace allow it.</li><li>Open Apps → Create, enter the MCP endpoint above and select OAuth.</li><li>Sign in to TrainFlow, choose permissions, then scan the tools and create the app.</li></ol>
-        <p className={styles.hint}>Pro supports read/fetch MCP apps in developer mode. Full modify/write support is available in beta for Business, Enterprise and Edu, subject to workspace administrator permissions. If write tools are unavailable, review and edit drafts in TrainFlow.</p>
+        <ol><li>Enable developer mode on ChatGPT web if your plan and workspace allow it.</li><li>Open Apps → Create, enter the MCP endpoint above and select OAuth.</li><li>Sign in to Metrivum, choose permissions, then scan the tools and create the app.</li></ol>
+        <p className={styles.hint}>Pro supports read/fetch MCP apps in developer mode. Full modify/write support is available in beta for Business, Enterprise and Edu, subject to workspace administrator permissions. If write tools are unavailable, review and edit drafts in Metrivum.</p>
         <a href="https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt" target="_blank" rel="noreferrer">Current ChatGPT requirements</a>
       </details>
       <details className={styles.guide}><summary>Connect to Claude</summary>
-        <ol><li>Open Customize → Connectors → Add custom connector. Workspace owners may need to add it first.</li><li>Enter the public HTTPS MCP endpoint above, review the detected OAuth settings and sign in.</li><li>Review the TrainFlow permissions, then enable the connector for your conversation.</li></ol>
+        <ol><li>Open Customize → Connectors → Add custom connector. Workspace owners may need to add it first.</li><li>Enter the public HTTPS MCP endpoint above, review the detected OAuth settings and sign in.</li><li>Review the Metrivum permissions, then enable the connector for your conversation.</li></ol>
         <p className={styles.hint}>Remote custom connectors support Free, Pro, Max, Team and Enterprise; Free is limited to one custom connector. Workspace policies may restrict access. The server must be publicly reachable.</p>
         <a href="https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp" target="_blank" rel="noreferrer">Current Claude requirements</a>
       </details>

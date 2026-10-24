@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Groups — TrainFlow");
+export const meta = () => privateMeta("Groups — Metrivum");
 
 import { RequireFeature } from "~/shared/access";
 import { Groups } from "./clients";

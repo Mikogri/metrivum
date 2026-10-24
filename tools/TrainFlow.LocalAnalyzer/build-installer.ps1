@@ -5,12 +5,13 @@ param(
     [string]$PackagingTools = '',
     [string]$BaseUrl = 'http://localhost:5173/downloads/analyzer',
     [string]$WebOrigin = 'http://localhost:5173',
-    [string]$Version = '1.4.0',
+    [string]$Version = '1.7.0',
+    [string]$OutputDirectory = '',
     [string]$SigningCertificateThumbprint = ''
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$output = Join-Path $root 'apps/web/public/downloads/analyzer'
+$output = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $root 'apps/web/public/downloads/analyzer' }
 $published = Join-Path $root '.local/analyzer-published'
 $artifacts = Join-Path $root '.local/analyzer-release-artifacts'
 $savedPythonPath = $env:PYTHONPATH

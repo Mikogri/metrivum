@@ -101,7 +101,7 @@ Frontend: **148 tests across 39 files**, **50 distinct desktop/mobile browser ca
 
 `infra/test-stage06-migrations.ps1` passed clean installation and baseline upgrade, preserving seeded Personal relationships, group memberships and programs. Development fingerprints of 11 affected tables matched before/after. `infra/team-runtime-smoke.sql` passed using the actual restricted API connection (the managed administrator cannot impersonate this role); all fixture writes were rolled back. API cannot update/delete credit history, worker has no Team access, and Supabase anonymous/authenticated roles have no business-schema access.
 
-Only the local TrainFlow API was rebuilt/restarted. HTTP `/health/live` returned 200 and `/health/ready` returned `ready`; startup logs were clean. No production data, deployment, commit or push was performed.
+Only the local Metrivum API was rebuilt/restarted. HTTP `/health/live` returned 200 and `/health/ready` returned `ready`; startup logs were clean. No production data, deployment, commit or push was performed.
 
 Supabase security advisor reported no new database findings. It retains an Auth warning for disabled [leaked-password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection); this stage does not change Auth configuration.
 

@@ -1,0 +1,348 @@
+--- a/ai/comparison/analyze_session.py
++++ b/ai/comparison/analyze_session.py
+@@ -127,9 +127,77 @@
+     except (OSError,TypeError,AttributeError):return False
+ 
+ 
++def code_identity(root):
++    return {str(p.relative_to(root)):file_digest(p) for folder in ('comparison','vision','motiontrace_ai') for p in sorted((root/folder).glob('*.py'))}
++
++
++def load_resident_weights(checkpoint, device, resolution):
++    """Build the pinned architecture without random weight allocation or a second CPU weight copy."""
++    import torch
++    from tapnet.tapnext import tapnext_torch
++    from tapnet.tapnextpp.votsp2026.model import TAPNextPP
++    with torch.device('meta'):
++        inner = tapnext_torch.TAPNext(image_size=(TAPNextPP.MODEL_SIZE, TAPNextPP.MODEL_SIZE))
++    checkpoint_data = torch.load(checkpoint, map_location='cpu', weights_only=True, mmap=True)
++    state = {k.removeprefix('tapnext.'): v for k, v in checkpoint_data.get('state_dict', checkpoint_data).items()}
++    expected = inner.state_dict()
++    for name, value in state.items():
++        target = expected.get(name)
++        if target is not None and (value.dtype != target.dtype or value.stride() != target.stride()):
++            raise ValueError('Checkpoint dtype/layout differs from the reviewed model architecture')
++    inner.load_state_dict(state, strict=True, assign=True)
++    inner = inner.to(device).eval()
++    return TAPNextPP(inner, torch.device(device), input_resolution=resolution)
++
++
++class ResidentTracker:
++    """One verified weight set, never recurrent state or observations from a previous video."""
++    def __init__(self, root=None):
++        self.model = self.key = None
++        self.gpu_mib = 0
++        self.sources = code_identity(root) if root else None
++
++    def clear(self):
++        import gc
++        self.model = self.key = None
++        self.gpu_mib = 0
++        gc.collect()
++        torch = sys.modules.get('torch')
++        if torch is not None and torch.cuda.is_initialized():
++            torch.cuda.empty_cache()
++
++    def load(self, checkpoint, device, resolution):
++        key = (str(Path(checkpoint).resolve()), device, resolution)
++        if self.key != key:
++            self.clear()
++            import torch
++            before = torch.cuda.memory_allocated(device) if str(device).startswith('cuda') else 0
++            self.model = load_resident_weights(checkpoint, device, resolution)
++            self.key = key
++            if str(device).startswith('cuda'):
++                self.gpu_mib = max(0, torch.cuda.memory_allocated(device) - before) // (1024 * 1024)
++        return self.model
++
++    def track(self, *args, **kwargs):
++        from comparison import tap_backends
++        failure = None
++        try:
++            return tap_backends.run(*args, **kwargs, model_loader=self.load)
++        except Exception as error:
++            import traceback
++            traceback.print_exc(file=sys.stderr)
++            failure = str(error)
++        # Drop exception frames before releasing CUDA memory, including the scheduler's OOM retry.
++        self.clear()
++        raise RuntimeError(failure)
++
++    def remaining_budget(self, job):
++        return dict(job, gpuMiB=max(0, job['gpuMiB'] - self.gpu_mib))
++
++
+ def inference_identity(args, target, root, model_roots, interpreters):
+     inference_target={k:v for k,v in target.items() if k not in ('calibration','calibrationVersion')}
+-    sources={str(p.relative_to(root)):file_digest(p) for folder in ('comparison','vision','motiontrace_ai') for p in sorted((root/folder).glob('*.py'))}
++    sources=code_identity(root)
+     weights=Path(args.pose_weights) if args.pose_weights else None
+     pose_config=Path(args.pose_model)
+     return dict(videoHash=file_digest(args.input),target=inference_target,sources=sources,
+@@ -152,16 +220,20 @@
+     return target
+ 
+ 
+-def run(args):
++def run(args, resident=None):
+     root=Path(__file__).resolve().parents[1]
+     target=json.loads(Path(args.target).read_text(encoding='utf-8-sig'))
+     two_points = 'points' in target
++    if resident is not None and (not two_points or not getattr(args, 'points_only', False)):
++        raise ValueError('The resident worker accepts only the two-point pipeline')
+     if two_points:
+         from comparison.tap_backends import target_points, installation
+         target_points(target)
+         # Reject the wrong model/resolution before spending time on pose extraction.
+-        installation(args.points_models_root,'tapnextpp',getattr(args,'tapnext_resolution',256),
+-                     getattr(args,'tapnext_checkpoint',None))
++        checkpoint, _ = installation(args.points_models_root,'tapnextpp',getattr(args,'tapnext_resolution',256),
++                                     getattr(args,'tapnext_checkpoint',None))
++        if resident is not None and resident.key != (str(Path(checkpoint).resolve()), args.device, getattr(args,'tapnext_resolution',256)):
++            resident.clear()
+     elif not target.get('point'):raise ValueError('Mark the physical bar end / plate axis before Analyze.')
+     providers = ('tapnextpp',) if two_points else PROVIDERS
+     interpreters=dict(grounding_dino_sam2=args.vision_python,samurai=args.samurai_python,tapnextpp=args.points_python,bootstapir=args.points_python)
+@@ -171,6 +243,8 @@
+         model_roots = {p:model_roots[p] for p in providers}
+     # Calibration changes affect prepared metrics, not tracking inference.
+     identity=inference_identity(args,target,root,model_roots,interpreters)
++    if resident is not None and resident.sources is not None and resident.sources != identity['sources']:
++        raise RuntimeError('Analyzer sources changed; restart the worker before retrying')
+     key=hashlib.sha256(json.dumps(identity,sort_keys=True).encode()).hexdigest()
+     directory=Path(args.cache).resolve()/'comparisons'/key;directory.mkdir(parents=True,exist_ok=True)
+     manifest_path=directory/'session.json'
+@@ -212,8 +286,13 @@
+         if not valid_assets(shared_assets) and two_points and getattr(args,'points_only',False):
+             # Points only: no lifter detection and no exercise classification; the marked points are all that is measured.
+             emit('Preparing the video timeline (points only)')
+-            process([args.vision_python,'-u',str(root/'comparison/points_prepare.py'),'--input',args.input,'--target',args.target,
+-                '--resolved-target',str(resolved),'--output',str(prepared)])
++            if resident is None:
++                process([args.vision_python,'-u',str(root/'comparison/points_prepare.py'),'--input',args.input,'--target',args.target,
++                    '--resolved-target',str(resolved),'--output',str(prepared)])
++            else:
++                from comparison import points_prepare
++                points_prepare.run(argparse.Namespace(input=args.input, target=args.target,
++                    resolved_target=str(resolved), output=str(prepared)))
+             atomic_json(shared_receipt,{str(prepared):file_digest(prepared),str(resolved):file_digest(resolved)})
+         elif not valid_assets(shared_assets):
+             pose=directory/'pose.json'
+@@ -231,6 +310,9 @@
+         from motiontrace_ai.video_decode import validate_analysis_frames
+         validate_analysis_frames(shared)
+         jobs=[job_budget(job['providerId'],len(shared['frames'])) for job in jobs]
++        if resident is not None:
++            # Already allocated weights are absent from free VRAM: count only the remaining job budget.
++            jobs = [resident.remaining_budget(job) for job in jobs]
+         save()
+         def execute(job):
+             provider=job['providerId']; out=directory/provider/'analysis.json';out.parent.mkdir(parents=True,exist_ok=True)
+@@ -241,7 +323,14 @@
+             if provider == 'tapnextpp':
+                 command+=['--tapnext-resolution',str(getattr(args,'tapnext_resolution',256))]
+                 if getattr(args,'tapnext_checkpoint',None):command+=['--tapnext-checkpoint',args.tapnext_checkpoint]
+-            started=time.perf_counter();process(command,provider)
++            started=time.perf_counter()
++            if resident is None:
++                process(command,provider)
++            else:
++                resident.track(provider, args.input, str(prepared), str(resolved), str(out), model_roots[provider],
++                    args.device, lambda value, message: emit(message, fraction=value, providerId=provider),
++                    tapnext_resolution=getattr(args,'tapnext_resolution',256),
++                    tapnext_checkpoint=getattr(args,'tapnext_checkpoint',None))
+             if file_digest(args.input)!=identity['videoHash']:raise ValueError('Video changed during analysis')
+             tracking=json.loads(out.read_text(encoding='utf-8-sig'))
+             validate_analysis_frames(tracking)
+@@ -266,8 +355,7 @@
+     emit('Session complete',fraction=1,sessionPath=str(manifest_path))
+ 
+ 
+-if __name__=='__main__':
+-    for sig in (signal.SIGINT,signal.SIGTERM):signal.signal(sig,lambda *_:STOP.set())
++def parser():
+     p=argparse.ArgumentParser()
+     for name in ('input','output','cache','target','pose-python','vision-python','samurai-python','points-python','models-root','samurai-models-root','points-models-root'):
+         p.add_argument('--'+name,required=True)
+@@ -277,6 +365,44 @@
+     p.add_argument('--tapnext-resolution',type=int,choices=(256,512),default=256)
+     p.add_argument('--tapnext-checkpoint',default=None)
+     p.add_argument('--points-only',action='store_true',help='Two-point tracking without pose detection or exercise classification')
+-    try:run(p.parse_args())
++    return p
++
++
++def worker_loop():
++    resident = ResidentTracker(Path(__file__).resolve().parents[1])
++    try:
++        for line in sys.stdin:
++            request = None
++            try:
++                command = json.loads(line)
++                request = command['request']
++                arguments = parser().parse_args(command['arguments'])
++                if Path(arguments.points_python).resolve() != Path(sys.executable).resolve():
++                    raise ValueError('The resident worker must run in the configured points environment')
++                STOP.clear()
++                run(arguments, resident)
++                manifest = json.loads(Path(arguments.output).read_text(encoding='utf-8-sig'))
++                ok = all(row['status'] in ('Ready','TrackingReady') for row in manifest['providers'])
++                torch = sys.modules.get('torch')
++                if torch is not None and torch.cuda.is_initialized():
++                    torch.cuda.empty_cache()  # Keep weights, release per-video allocator scratch.
++                print(json.dumps(dict(workerRequest=request, ok=ok)), flush=True)
++                if not ok:
++                    return
++            except (Exception, SystemExit):
++                import traceback
++                traceback.print_exc(file=sys.stderr)
++                print(json.dumps(dict(workerRequest=request, ok=False)), flush=True)
++                return
++    finally:
++        resident.clear()
++
++
++if __name__=='__main__':
++    for sig in (signal.SIGINT,signal.SIGTERM):signal.signal(sig,lambda *_:STOP.set())
++    if sys.argv[1:] == ['--worker']:
++        worker_loop()
++        sys.exit(0)
++    try:run(parser().parse_args())
+     except Exception:
+         import traceback;traceback.print_exc(file=sys.stderr);sys.exit(1)
+--- a/ai/comparison/tap_backends.py
++++ b/ai/comparison/tap_backends.py
+@@ -17,7 +17,7 @@
+     "tapnextpp": ("tapnextpp_ckpt.pt", "cb96a43444ccb4fbdb25d800b88c7ba196179a526e78f01b021a16b1c1eff6da", 2532282370),
+     "bootstapir": ("bootstapir_checkpoint_v2.pt", "8493c7a69e02c85b9382fbb3c7b8b539b36bc08ede744b9e99feb739a0129f4b", 218886140),
+ }
+-VERSION = "tap-points-7"
++VERSION = "tap-points-8"
+ TAPNEXT_CHECKPOINTS = {
+     256: CHECKPOINTS['tapnextpp'],
+     512: ('tapnextpp_512.ckpt', '6cd0e793fdcface3063d63f8ed3819bcf74c2c0468fe1fef85acee4de2f3609f', 2532283010),
+@@ -209,13 +209,14 @@
+             yield True, index, array
+ 
+ 
+-def tapnext(video, pose, target, checkpoint, device, progress, resolution=256, timings=None):
++def tapnext(video, pose, target, checkpoint, device, progress, resolution=256, timings=None, model=None):
+     import numpy as np
+     import torch
+     from tapnet.tapnextpp.votsp2026.model import TAPNextPP
+     from tapnet.tapnextpp.votsp2026 import utils
+     started = time.perf_counter()
+-    model = TAPNextPP.from_checkpoint(checkpoint, device=device, input_resolution=resolution)
++    if model is None:
++        model = TAPNextPP.from_checkpoint(checkpoint, device=device, input_resolution=resolution)
+     timings = timings if timings is not None else {}
+     timings.update(modelLoadSeconds=time.perf_counter()-started, decodeWaitSeconds=0., inferenceSeconds=0.)
+     state = None
+@@ -332,7 +333,7 @@
+ 
+ 
+ def run(provider, input_video, pose_json, target_json, output_json, models_root, device="cuda:0", progress=lambda p, m: None,
+-        tapnext_resolution=256, tapnext_checkpoint=None):
++        tapnext_resolution=256, tapnext_checkpoint=None, model_loader=None):
+     from motiontrace_ai.video_decode import validate_analysis_frames
+     import torch
+     start = time.perf_counter()
+@@ -348,7 +349,9 @@
+         torch.cuda.init()
+         torch.cuda.reset_peak_memory_stats(device)
+     tracking_timings = {}
+-    rows = tapnext(input_video, pose, target, checkpoint, device, progress, resolution, tracking_timings) if provider == 'tapnextpp' else bootstapir(input_video, pose, target, checkpoint, device, progress)
++    # Integrity validation above runs on every job, including when weights are already resident.
++    model = model_loader(checkpoint, device, resolution) if provider == 'tapnextpp' and model_loader else None
++    rows = tapnext(input_video, pose, target, checkpoint, device, progress, resolution, tracking_timings, model) if provider == 'tapnextpp' else bootstapir(input_video, pose, target, checkpoint, device, progress)
+     if len(rows) != len(pose["frames"]):
+         raise ValueError("Point tracker returned an incomplete timeline")
+     if 'points' in target and any(len(objects) != 2 for objects in rows):
+--- a/ai/tests/test_comparison_session.py
++++ b/ai/tests/test_comparison_session.py
+@@ -276,4 +276,61 @@
+         self.assertEqual(3,sum(status=='Cancelled' for status,_ in result.values()))
+ 
+ 
++class ResidentTrackerTests(unittest.TestCase):
++    def test_resident_credit_does_not_double_count_owned_weights_or_relax_ram(self):
++        resident=session.ResidentTracker()
++        resident.gpu_mib=1200
++        job=dict(providerId='tapnextpp',gpuMiB=3000,ramMiB=3500)
++        self.assertEqual(dict(providerId='tapnextpp',gpuMiB=1800,ramMiB=3500),resident.remaining_budget(job))
++        self.assertEqual(3000,job['gpuMiB'])
++        resident.gpu_mib=4000
++        self.assertEqual(0,resident.remaining_budget(job)['gpuMiB'])
++
++    def test_weights_are_reused_only_for_the_same_checkpoint_device_and_resolution(self):
++        from types import SimpleNamespace
++        calls=[]
++        resident=session.ResidentTracker()
++        torch=SimpleNamespace(cuda=SimpleNamespace(is_initialized=lambda:False,memory_allocated=lambda _:0))
++        with patch.dict(sys.modules,{'torch':torch}),\
++             patch.object(session,'load_resident_weights',side_effect=lambda *a: calls.append(a) or object()):
++            first=resident.load('a.pt','cuda',256)
++            self.assertIs(first,resident.load('a.pt','cuda',256))
++            self.assertIsNot(first,resident.load('a.pt','cuda',512))
++            resident.load('b.pt','cuda',512)
++            resident.load('b.pt','cpu',512)
++        self.assertEqual(4,len(calls))
++        resident.clear()
++        self.assertIsNone(resident.model)
++
++    def test_failed_tracking_drops_model_and_original_exception_frames(self):
++        import io
++        from comparison import tap_backends
++        resident=session.ResidentTracker()
++        resident.model=object();resident.key='old'
++        with patch.object(tap_backends,'run',side_effect=RuntimeError('CUDA out of memory')),patch.object(sys,'stderr',io.StringIO()):
++            with self.assertRaisesRegex(RuntimeError,'out of memory') as error:
++                resident.track('tapnextpp')
++        self.assertIsNone(resident.model)
++        self.assertIsNone(resident.key)
++        self.assertIsNone(error.exception.__context__)
++
++    def test_worker_keeps_one_resident_for_sequential_receipted_requests(self):
++        import io
++        with tempfile.TemporaryDirectory() as folder:
++            output=Path(folder)/'session.json'
++            output.write_text(json.dumps({'providers':[{'status':'TrackingReady'}]}))
++            args=SimpleNamespace(points_python=sys.executable, output=str(output))
++            incoming=io.StringIO(''.join(json.dumps({'request':str(i),'arguments':[]})+'\n' for i in range(2)))
++            outgoing=io.StringIO()
++            with patch.object(session,'parser',return_value=SimpleNamespace(parse_args=lambda _:args)),\
++                 patch.object(session,'run') as run,patch.object(session,'ResidentTracker') as tracker,\
++                 patch.object(sys,'stdin',incoming),patch.object(sys,'stdout',outgoing):
++                session.worker_loop()
++            self.assertEqual(2,run.call_count)
++            self.assertIs(run.call_args_list[0].args[1],run.call_args_list[1].args[1])
++            tracker.return_value.clear.assert_called_once()
++            self.assertEqual([{'workerRequest':'0','ok':True},{'workerRequest':'1','ok':True}],
++                             [json.loads(line) for line in outgoing.getvalue().splitlines()])
++
++
+ if __name__=='__main__':unittest.main()
+--- a/ai/tests/test_tap_backends.py
++++ b/ai/tests/test_tap_backends.py
+@@ -47,6 +47,21 @@
+         self.assertEqual([(back, i) for back, i, _ in tap_backends.bidirectional_frames(((0, np.zeros((1, 1, 3))),), 0)], [(False, 0)])
+ 
+ class PointTrackerContractTests(unittest.TestCase):
++    def test_resident_weights_are_not_used_before_checkpoint_integrity_validation(self):
++        from unittest.mock import Mock
++        loader=Mock()
++        pose=copy.deepcopy(self.pose)
++        pose['video'].update(framesPerSecond=25,durationSeconds=.13)
++        with tempfile.TemporaryDirectory() as folder:
++            root=Path(folder)
++            (root/'pose.json').write_text(json.dumps(pose))
++            (root/'target.json').write_text(json.dumps(self.target))
++            (root/'manifest.json').write_text(json.dumps({'repositoryRevision':'tampered'}))
++            with self.assertRaisesRegex(ValueError,'revision mismatch'):
++                tap_backends.run('tapnextpp','unused.mp4',root/'pose.json',root/'target.json',root/'out.json',root,
++                                 device='cpu',model_loader=loader)
++            loader.assert_not_called()
++
+     def test_pair_guard_rejects_isolated_one_point_jump_preserving_raw(self):
+         target=dict(targetId='bar',athleteTrackId=1)
+         def pair(a,b):

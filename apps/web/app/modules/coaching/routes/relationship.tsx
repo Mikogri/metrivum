@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Client details — TrainFlow");
+export const meta = () => privateMeta("Client details — Metrivum");
 
 import { ArrowRight, CheckCircle2, Handshake, MoreHorizontal, PauseCircle, PlayCircle, Repeat2, UsersRound } from "lucide-react";
 import { useState } from "react";

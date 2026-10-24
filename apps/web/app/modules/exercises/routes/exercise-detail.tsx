@@ -35,7 +35,7 @@ import listStyles from "./exercises.module.css";
 import styles from "./exercise-detail.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Exercise — TrainFlow");
+export const meta = () => privateMeta("Exercise — Metrivum");
 
 function safeHttps(url: string | null): string | null {
   if (!url) return null;

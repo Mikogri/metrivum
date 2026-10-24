@@ -1,4 +1,4 @@
-# TrainFlow Android PCM voice recorder
+# Metrivum Android PCM voice recorder
 
 A local Android-only Expo module. iOS keeps `expo-audio` PCM recording. Expo autolinking discovers this directory under `apps/mobile/modules`; there are no hand edits in generated `android/` projects or new backend formats.
 

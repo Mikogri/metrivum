@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { TrainingDocument, Workout } from "@trainflow/api-client-web";
 import { IconButton, Option, Segment, SegmentedControl, Select } from "@trainflow/ui-web";
 import { MuscleHeatmap } from "~/modules/anatomy";
@@ -23,7 +23,7 @@ export interface VolumeSection {
  * muscle or movement pattern. Primary and secondary muscles are counted separately. Each section
  * shows its workouts (optionally one table each) and a total; nothing scrolls sideways.
  */
-export function VolumeContent({ sections, names }: { sections: VolumeSection[]; names: Map<string, ExerciseLabel> }) {
+export function VolumeContent({ sections, names, title }: { sections: VolumeSection[]; names: Map<string, ExerciseLabel>; title?: ReactNode }) {
   const m = useT();
   const t = m.editor.sheet.volume;
   const locale = useLocale();
@@ -97,11 +97,13 @@ export function VolumeContent({ sections, names }: { sections: VolumeSection[]; 
       <Segment id="heatmap">{t.heatmap}</Segment>
     </SegmentedControl>
   );
+  // With a title, Table / Heatmap sits beside it and the view's own switches go underneath.
+  const head = title ? <div className={styles.volumeHeader}>{title}{modeSwitch}</div> : modeSwitch;
 
   if (mode === "heatmap") {
     return (
       <div className={styles.volumeContent}>
-        {modeSwitch}
+        {head}
         <div className={styles.heatControls}>
           <SegmentedControl aria-label={t.metric} size="sm" selectedKeys={[metric]} onSelectionChange={(keys) => setMetric(([...keys][0] as "sets" | "hardSets") ?? "sets")}>
             <Segment id="sets">{t.sets}</Segment>
@@ -125,7 +127,7 @@ export function VolumeContent({ sections, names }: { sections: VolumeSection[]; 
 
   return (
     <div className={styles.volumeContent}>
-      {modeSwitch}
+      {head}
       <SegmentedControl aria-label={t.by} size="sm" selectedKeys={[by]} onSelectionChange={(keys) => setBy(([...keys][0] as VolumeBy) ?? "primary")} className={styles.volumeBy}>
         <Segment id="primary">{t.primary}</Segment>
         <Segment id="secondary">{t.secondary}</Segment>

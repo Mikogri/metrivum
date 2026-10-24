@@ -10,7 +10,7 @@ import { callbackUrl, slotParam } from "../lib/urls";
 import { isValidEmail, normalizeEmail } from "../lib/email";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Reset password — TrainFlow");
+export const meta = () => privateMeta("Reset password — Metrivum");
 
 export default function ForgotPassword() {
   const m = useT();

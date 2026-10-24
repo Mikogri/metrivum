@@ -1,38 +1,46 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
-import { Outlet, Link as RouterLink } from "react-router";
-import { Segment, SegmentedControl } from "@trainflow/ui-web";
+import { Outlet, Link as RouterLink, useLocation } from "react-router";
+import { LightRays, Segment, SegmentedControl } from "@trainflow/ui-web";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
-import { PublicMessagesProvider } from "~/modules/marketing/messages";
-import { AuthVisual } from "./components/AuthVisual";
+import { Logo } from "~/modules/marketing/components/Logo";
 import "./night-theme.module.css";
 import styles from "./auth-layout.module.css";
 
+
+
+/**
+ * Sign-in, registration and onboarding: one glossy card under soft beams of light from the top. The card
+ * is keyed by the page, so switching between sign-in and registration plays the entrance again.
+ */
 export default function AuthLayout() {
   const m = useT();
   const { locale, setLocale } = useAppLocale();
-  // The sign-in pages continue the public site: same night palette, also for menus rendered in portals.
+  const { pathname } = useLocation();
+  // Setting up the profile holds more fields: a wider card.
+  const wide = pathname === "/onboarding";
+  // The night palette also applies to menus rendered in portals.
   useEffect(() => {
     document.documentElement.setAttribute("data-public-theme", "night");
     return () => document.documentElement.removeAttribute("data-public-theme");
   }, []);
+  const home = locale === "pl" ? "/pl" : "/";
   return (
     <div className={styles.page} data-public-theme="night">
-      {/* A drawn product preview with the site's headline: decorative here, the form is the page. */}
-      <aside className={styles.visual} aria-hidden="true">
-        <PublicMessagesProvider locale={locale === "pl" ? "pl" : "en"}>
-          <AuthVisual />
-        </PublicMessagesProvider>
-      </aside>
-      <div className={styles.side}>
-        <header className={styles.top}>
-          <RouterLink to={locale === "pl" ? "/pl" : "/"} className={styles.back}>
+      <div className={styles.backdrop} aria-hidden="true">
+        {/* React Bits "Light Rays" from the top: soft neutral white; it does not react to the pointer. */}
+        <LightRays className={styles.light} raysColor="#ffffff" lightSpread={0.85} rayLength={1.2} intensity={0.65} glow={0.3} haze={0.2}
+            atmosphere={0} saturation={0} raysSpeed={0.45} followMouse={false} cursorShadow={false} clickPulse={false} opacity={0.8} />
+        <span className={styles.grid} />
+      </div>
+      <header className={styles.top}>
+        <RouterLink to={home} className={styles.brand} aria-label={m.auth.backToSite}>
+          <Logo />
+        </RouterLink>
+        <div className={styles.topEnd}>
+          <RouterLink to={home} className={styles.back}>
             <ArrowLeft aria-hidden="true" />
             {m.auth.backToSite}
-          </RouterLink>
-          {/* On a phone the left panel is gone: the logo takes the place of the back link and leads home. */}
-          <RouterLink to={locale === "pl" ? "/pl" : "/"} className={styles.home} aria-label={m.auth.backToSite}>
-            <img src="/brand/trainflow-logo.png" alt="TrainFlow" width={548} height={96} />
           </RouterLink>
           <SegmentedControl
             size="sm"
@@ -46,14 +54,14 @@ export default function AuthLayout() {
             <Segment id="en">EN</Segment>
             <Segment id="pl">PL</Segment>
           </SegmentedControl>
-        </header>
-        <main id="main" className={styles.main}>
-          <div className={styles.card}>
-            <Outlet />
-          </div>
-        </main>
-        <p className={styles.tagline}>{m.auth.brandLine}</p>
-      </div>
+        </div>
+      </header>
+      <main id="main" className={styles.main} data-wide={wide || undefined}>
+        <div className={styles.card} key={pathname}>
+          <Outlet />
+        </div>
+      </main>
+      <p className={styles.tagline}>{m.auth.brandLine}</p>
     </div>
   );
 }

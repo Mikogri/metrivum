@@ -2,14 +2,20 @@
   display: block;
   min-width: 0;
   max-width: 100%;
+  /* A soft, wide highlight that eases across, so the sweep reads as a calm glow, not a scanning bar. */
   background: linear-gradient(
-    90deg,
-    var(--tf-color-surface-raised) 0%,
-    var(--tf-color-surface-hover) 40%,
-    var(--tf-color-surface-raised) 80%
+    100deg,
+    var(--tf-color-surface-raised) 30%,
+    color-mix(in srgb, var(--tf-color-surface-hover) 70%, var(--tf-color-surface-raised)) 45%,
+    var(--tf-color-surface-hover) 50%,
+    color-mix(in srgb, var(--tf-color-surface-hover) 70%, var(--tf-color-surface-raised)) 55%,
+    var(--tf-color-surface-raised) 70%
   );
-  background-size: 300% 100%;
-  animation: shimmer 1.6s linear infinite;
+  background-size: 250% 100%;
+  /* Fades in after a short delay, so fast loads never flash a placeholder. */
+  animation:
+    skeleton-in 300ms var(--tf-ease-out) 120ms backwards,
+    shimmer 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .sm { border-radius: var(--tf-radius-xs); }
@@ -19,10 +25,16 @@
 
 @keyframes shimmer {
   from {
-    background-position: 100% 0;
+    background-position: 125% 0;
   }
   to {
-    background-position: -50% 0;
+    background-position: -25% 0;
+  }
+}
+
+@keyframes skeleton-in {
+  from {
+    opacity: 0;
   }
 }
 

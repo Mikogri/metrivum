@@ -28,7 +28,7 @@ import { privateMeta } from "~/shared/i18n/site";
 /** Rows per page in lists. */
 const PAGE_SIZE = 20;
 
-export const meta = () => privateMeta("Video analyses — TrainFlow");
+export const meta = () => privateMeta("Video analyses — Metrivum");
 
 const DEFAULTS = { q: "", status: "", tag: "", sort: "newest", page: "1", view: "list" };
 
@@ -216,25 +216,25 @@ export default function AnalysesRoute() {
                     <li key={row.job.id} className={styles.card} data-analyzing="">
                       <div className={styles.cardTop}>
                         {icon(row.job.state !== "failed", "rose")}
+                        {jobActions(row.job)}
                       </div>
                       <span className={styles.cardTitle}>{row.job.name}</span>
                       <span className={styles.fileName} title={row.job.fileName}>{row.job.fileName}</span>
                       <div className={styles.cardBottom}>
                         <JobProgress job={row.job} />
-                        {jobActions(row.job)}
                       </div>
                     </li>
                   ) : (
                     <li key={row.analysis.id} className={styles.card} data-analyzing={working(row.analysis) || undefined}>
                       <div className={styles.cardTop}>
                         {icon(working(row.analysis), "rose")}
-                        <StatusBadge status={row.analysis.status} size="sm" />
+                        {actions(row.analysis)}
                       </div>
                       <RouterLink className={styles.cardTitle} to={`/app/video-analyses/${row.analysis.id}`}>{row.analysis.name}</RouterLink>
                       {fileOf(row.analysis) ? <span className={styles.fileName} title={fileOf(row.analysis)}>{fileOf(row.analysis)}</span> : null}
                       <div className={styles.cardBottom}>
                         <span className={styles.cardMeta}>{formatRelative(locale, row.analysis.createdAt)}</span>
-                        {actions(row.analysis)}
+                        <StatusBadge status={row.analysis.status} size="sm" />
                       </div>
                     </li>
                   ))}

@@ -74,6 +74,8 @@ export function WeekView({
 
   return (
     <div className={styles.week}>
+      {/* Left: cycle, days and the selected day. Right: the cycle's volume, from the top beside the days. */}
+      <div className={styles.weekMain}>
       {cycles.length > 1 ? (
         <div className={styles.cycleBar}>
           <Select
@@ -202,18 +204,17 @@ export function WeekView({
             </div>
           )}
         </section>
+      </div>
+      </div>
 
         <aside className={styles.side} aria-label={m.editor.sheet.volume.title}>
-          <h2 className={styles.sideTitle}>{m.editor.sheet.volume.title}</h2>
+          {/* Volume of the whole selected cycle (not of one day). */}
           <VolumeContent
             names={names}
-            sections={[
-              { id: "day", title: dayName(current), workouts: (day?.workouts ?? []).map((w) => ({ workout: w })), perWorkout: true },
-              ...(cycle ? [{ id: "cycle", title: m.editor.sheet.volume.cycleTotal, workouts: cycleWorkouts(cycle), perWorkout: false }] : []),
-            ]}
+            title={<h2 className={styles.sideTitle}>{m.editor.sheet.volume.title}</h2>}
+            sections={cycle ? [{ id: "cycle", title: `${m.editor.sheet.volume.cycleTotal} · ${cycle.name}`, workouts: cycleWorkouts(cycle), perWorkout: false }] : []}
           />
         </aside>
-      </div>
     </div>
   );
 }

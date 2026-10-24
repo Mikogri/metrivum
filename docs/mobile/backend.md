@@ -74,7 +74,7 @@ Verified locally: 217 unit tests, 2 architecture tests, 4 new mobile PostgreSQL 
 
 ### DEV migration review and application
 
-Read-only connector verification on 2026-10-10 confirmed the user-designated DEV project `atclvdkpbccafakzpwls`, TrainFlow, `eu-west-1`, `ACTIVE_HEALTHY`, database host `db.atclvdkpbccafakzpwls.supabase.co`. The verified predecessor EF heads were `20261005125107_InitialVideoAnalysis` and `20261008103734_QueryPerformanceIndexes`. Both mobile migrations and their target tables were absent before application.
+Read-only connector verification on 2026-10-10 confirmed the user-designated DEV project `atclvdkpbccafakzpwls`, Metrivum, `eu-west-1`, `ACTIVE_HEALTHY`, database host `db.atclvdkpbccafakzpwls.supabase.co`. The verified predecessor EF heads were `20261005125107_InitialVideoAnalysis` and `20261008103734_QueryPerformanceIndexes`. Both mobile migrations and their target tables were absent before application.
 
 Prepared `.local/mobile/dev-migrations.sql` contains only the two EF-generated idempotent deltas, their original EF-history inserts, predecessor/role/privacy guards, and narrowly scoped operational grants. It executes as `trainflow_migrator`, the existing schema/table owner. The reviewed script was applied successfully through the Supabase migration connector as `ef_mobile_client_results_and_push`. EF remains the schema source of truth; the connector executed its generated deltas and original module-history records. Script SHA-256: `A26A89135E7FEAF0B01BD8144D5C4FC3F26698AD01CC10F1F1835D942BA06C1E`.
 

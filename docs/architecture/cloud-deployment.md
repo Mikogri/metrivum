@@ -2,7 +2,7 @@
 
 Applied on 2026-10-05 after explicit user authorization.
 
-- Organization/project: **Super Team / TrainFlow** (`atclvdkpbccafakzpwls`).
+- Organization/project: **Super Team / Metrivum** (`atclvdkpbccafakzpwls`).
 - PostgreSQL: 17.11. Preflight found no existing application schemas or public tables.
 - Supabase migration records: `20261005135119_trainflow_initial_backend` and `20261005135334_trainflow_harden_immutable_trigger_search_path`.
 - EF remains the schema source of truth: all eight migration IDs are recorded in the six module-owned `__EFMigrationsHistory` tables.
@@ -45,7 +45,7 @@ The privilege integration test also passed, including HTTP onboarding after deli
 
 For subsequent deployments, generate incremental SQL from each module's recorded EF migration ID, execute as `trainflow_migrator`, and keep the generated EF history inserts. Do not replay the initial bundle or maintain a second independent schema model.
 
-The cloud `trainflow_api` role now has a generated runtime password. Local API configuration is stored in ignored `apps/api/TrainFlow.Api/appsettings.Local.json`; it uses the IPv4 session pooler on port 5432, a pool limit of 10, and `SSL Mode=VerifyFull` with the Supabase CA certificate in ignored `.local/certificates/supabase-ca.crt`. Auth points to the TrainFlow project. Neither credentials nor local configuration belong in Git.
+The cloud `trainflow_api` role now has a generated runtime password. Local API configuration is stored in ignored `apps/api/TrainFlow.Api/appsettings.Local.json`; it uses the IPv4 session pooler on port 5432, a pool limit of 10, and `SSL Mode=VerifyFull` with the Supabase CA certificate in ignored `.local/certificates/supabase-ca.crt`. Auth points to the Metrivum project. Neither credentials nor local configuration belong in Git.
 
 Local startup was verified on 2026-10-05: `/health/live` and `/health/ready` returned 200, unauthenticated `/api/v1/me` returned 401, and CORS accepted `http://localhost:5173`. When moving to another machine, provision local secrets and obtain the [Supabase CA certificate](https://supabase.com/docs/guides/platform/ssl-enforcement) again; the certificate path in the connection string is machine-specific.
 

@@ -23,7 +23,7 @@ GitHub Actions repeats the PostgreSQL checks on Linux and rejects generated-cont
 
 ## External dependencies
 
-- The Super Team / TrainFlow project was discovered successfully. Its live public JWKS endpoint exposes ES256. This read-only check does not prove successful real-user Auth or Storage flows.
+- The Super Team / Metrivum project was discovered successfully. Its live public JWKS endpoint exposes ES256. This read-only check does not prove successful real-user Auth or Storage flows.
 - No local Supabase instance is available on this Windows host (Docker/WSL are not installed). Live Auth/Storage tests are opt-in and must be run against a local/test instance before deployment. No production credentials or data are used by tests.
 - Runtime PostgreSQL role passwords and the private Storage backend secret have not been provisioned for the cloud project. MCP administrative access does not replace runtime credentials.
 - No ML engine or model was supplied. The durable analysis infrastructure is tested using an adapter confined to tests. Production reports `ANALYZER_NOT_CONFIGURED`.

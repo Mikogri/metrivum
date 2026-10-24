@@ -1,4 +1,4 @@
-# TrainFlow API JSON types
+# Metrivum API JSON types
 
 Client-role and Coaching additions are described in [stage 01](coaching/stage-01.md) and [stage 02](coaching/stage-02.md); the complete current types are generated in `contracts/generated/api.d.ts`. Form answers and profile values are dynamic JSON dictionaries, with their values validated by the selected form/system field.
 

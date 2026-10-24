@@ -107,8 +107,8 @@
   border-radius: var(--tf-radius-lg);
   background: var(--tf-color-surface);
   /* Cards settle in one after another when a tab opens. */
-  animation: panel-in 820ms var(--tf-ease-settle) both;
-  animation-delay: calc(80ms + var(--i, 0) * 60ms);
+  animation: panel-in 420ms var(--tf-ease-out) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
 }
 
 .panel[data-wide] {
@@ -117,7 +117,8 @@
 
 @keyframes panel-in {
   from {
-    transform: translateY(6px);
+    opacity: 0;
+    transform: translateY(3px);
   }
 }
 
@@ -390,6 +391,24 @@
   grid-column: 1 / -1;
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
+}
+
+/* "How these numbers are calculated": an info button opening the full definition. */
+.definition {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.definitionText {
+  max-width: 32rem;
+  padding: var(--tf-space-3);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-relaxed);
 }
 
 @media (max-width: 40rem) {

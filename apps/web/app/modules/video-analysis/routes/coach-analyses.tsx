@@ -12,7 +12,7 @@ import { listFromCoach } from '../api';
 import { describeLink } from '../components/WorkoutLink';
 import styles from './coach-analyses.module.css';
 
-export const meta = () => privateMeta('Coach analyses — TrainFlow');
+export const meta = () => privateMeta('Coach analyses — Metrivum');
 
 /** Client view: video analyses a coach shared at one of the client's logged sets. */
 export default function CoachAnalyses() {

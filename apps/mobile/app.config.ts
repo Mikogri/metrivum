@@ -1,7 +1,7 @@
 import type { ExpoConfig } from "expo/config";
 
 const config: ExpoConfig = {
-    name: "TrainFlow",
+    name: "Metrivum",
     slug: "trainflow",
     scheme: "trainflow",
     version: "0.1.0",
@@ -20,14 +20,14 @@ const config: ExpoConfig = {
             "expo-audio",
             {
                 microphonePermission:
-                    "Allow TrainFlow to record voice messages.",
+                    "Allow Metrivum to record voice messages.",
             },
         ],
         [
             "expo-image-picker",
             {
                 photosPermission:
-                    "Choose a photo or video to share in TrainFlow.",
+                    "Choose a photo or video to share in Metrivum.",
             },
         ],
     ],

@@ -54,6 +54,12 @@ Policy must allow:
 
 No service worker, analytics or monitoring is included.
 
+`scripts/serve.mjs` sends the deployment-independent part on every response: `Content-Security-Policy:
+frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'`, `Cross-Origin-Opener-Policy:
+same-origin-allow-popups` and a `Permissions-Policy` that turns off camera, microphone, geolocation, payment and USB.
+A real host adds the origin lists above. The API sends `default-src 'none'`, `X-Frame-Options: DENY` and
+`Referrer-Policy: no-referrer` on its own responses (JSON and files only).
+
 ## Environment variables (build time, public)
 
 | Variable | Example | Purpose |

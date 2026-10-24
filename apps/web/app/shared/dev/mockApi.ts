@@ -288,6 +288,13 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   let m: RegExpMatchArray | null;
 
   if (path === "/api/v1/me" && method === "GET") return json(200, db.profile, db.profile.version);
+  // Onboarding on mock data (the profile lives in memory until the page reloads).
+  if (path === "/api/v1/me/onboarding" && method === "PUT") {
+    const role = body?.role === "Client" ? "Client" : "Coach";
+    db.profile = { ...db.profile, username: body?.username, displayName: body?.displayName, birthDate: body?.birthDate, locale: body?.locale ?? "en", timeZone: body?.timeZone ?? "UTC",
+      onboarded: true, roles: [role], contexts: [role], version: db.profile.version + 1 } as ProfileResponse;
+    return json(200, db.profile, db.profile.version);
+  }
   if (path === "/api/v1/me/roles/client" && method === "POST") {
     db.profile = { ...db.profile, roles: [...new Set([...db.profile.roles, "Client"])], version: db.profile.version + 1 } as ProfileResponse;
     return json(200, db.profile, db.profile.version);
@@ -418,7 +425,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     return json(200, { id: uid(), number: Number(m[2]), draftVersion: plan.version, publishedAt: now(), snapshot: { schemaVersion: 1, name: plan.name, description: plan.description, kind: plan.kind, document: plan.document, exercises: {}, formulas: {} } });
   }
   if (path.match(/\/revisions\/\d+\/export$/)) {
-    return new Response(`Developer mock export (${q.get("format")}) — not a real TrainFlow file.`, { status: 200, headers: { "content-type": "text/plain" } });
+    return new Response(`Developer mock export (${q.get("format")}) — not a real Metrivum file.`, { status: 200, headers: { "content-type": "text/plain" } });
   }
   if (path === "/api/v1/training/folders" && method === "GET") {
     const parent = q.get("parentId");
@@ -440,6 +447,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     Object.assign(folder, { name: body.name, parentId: body.parentId, position: body.position, version: folder.version + 1 });
     return json(200, folder, folder.version);
   }
+  if (path.startsWith("/api/v1/training/generator/")) return mockGenerator(path.slice("/api/v1/training/generator/".length), body);
   if (path === "/api/v1/training/formulas/built-in") return json(200, BUILT_INS);
   if (path === "/api/v1/training/formulas" && method === "GET") return json(200, page(db.formulas.map((f) => ({ id: f.id, name: f.name, version: f.version, archived: f.archived })), q));
   if (path === "/api/v1/training/formulas" && method === "POST") {
@@ -546,4 +554,48 @@ function mockTone() {
     view.setInt16(44 + i * 2, Math.round(Math.sin(2 * Math.PI * 220 * t) * Math.abs(Math.sin(Math.PI * 3 * t)) * 6000), true);
   }
   return view.buffer;
+}
+
+/** Developer stand-in for the program generator: a small fixed catalog and a plain round-robin pick. */
+const generatorExercises = [
+  ["goblet-squat", "Goblet squat", "squat", ["quadriceps", "glutes"], ["dumbbells"]],
+  ["split-squat", "Split squat", "squat", ["quadriceps", "glutes"], []],
+  ["db-rdl", "Dumbbell Romanian deadlift", "hinge", ["hamstrings", "glutes"], ["dumbbells"]],
+  ["hip-thrust", "Hip thrust", "hinge", ["glutes"], ["incline-bench"]],
+  ["db-press", "Dumbbell bench press", "push", ["chest", "triceps"], ["dumbbells", "incline-bench"]],
+  ["push-up", "Push-up", "push", ["chest", "triceps"], []],
+  ["db-row", "One-arm dumbbell row", "pull", ["lats", "biceps"], ["dumbbells", "incline-bench"]],
+  ["band-row", "Band row", "pull", ["lats"], ["resistance-band"]],
+  ["dead-bug", "Dead bug", "core", ["abdominals"], []],
+  ["side-plank", "Side plank", "core", ["obliques"], []],
+].map(([id, name, role, muscles, equipment]) => ({ id, name, catalogVersion: 1, family: role, role, muscles, equipmentAnyOf: [{ allOf: equipment }], minimumLevel: 0,
+  requiredSkills: [], status: "candidate", reviewed: true, prescriptionMode: "reps", setupSeconds: 30, repetitionCounting: id === "split-squat" || id === "side-plank" ? "per-side" : "total" })) as {
+  id: string; name: string; role: string; muscles: string[]; equipmentAnyOf: { allOf: string[] }[]; repetitionCounting: string }[];
+
+function mockGenerator(action: string, body: Record<string, unknown> | undefined) {
+  if (action === "options") return json(200, { recipeVersion: "mock-recipe-1", metadataVersion: "mock-meta-1", datasetVersion: "mock-dataset", equipment: ["dumbbells", "incline-bench", "resistance-band", "clear-walking-route"],
+    skills: ["single-leg-balance"], muscles: ["quadriceps", "glutes", "hamstrings", "chest", "lats", "abdominals"], families: ["squat", "hinge", "push", "pull", "core"], exercises: generatorExercises });
+  if (action === "save-draft") return json(200, { id: "p1" });
+  type State = { input: { daySlots: number[]; equipment: string[]; excludedExercises: string[]; seed: number; level: string }; selectionSeed: number; lockedSlots: string[]; selections: Record<string, string> };
+  const previous = body?.state as State | undefined;
+  const input = (previous?.input ?? body) as State["input"];
+  const seed = Number(body?.seed ?? input.seed ?? 1);
+  const roles = ["squat", "hinge", "push", "pull", "core"];
+  const usable = (role: string) => generatorExercises.filter((x) => x.role === role && !input.excludedExercises.includes(x.id) && x.equipmentAnyOf.some((b) => b.allOf.every((e) => input.equipment.includes(e))));
+  const locked = new Set(previous?.lockedSlots ?? []);
+  const selections: Record<string, string> = {};
+  const slots = input.daySlots.flatMap((_, session) => roles.map((role, index) => {
+    const key = `session-${session + 1}/${role}`;
+    const pool = usable(role);
+    const kept = previous?.selections[key];
+    const chosen = locked.has(key) && kept ? kept : action === "replace-exercise" && body?.slot === key && body?.exerciseId ? String(body.exerciseId) : pool[(seed + session + index) % Math.max(1, pool.length)]?.id;
+    const exercise = generatorExercises.find((x) => x.id === chosen) ?? pool[0];
+    if (!exercise) return null;
+    selections[key] = exercise.id;
+    return { key, role, exerciseId: exercise.id, name: exercise.name, family: role, muscles: exercise.muscles, equipment: exercise.equipmentAnyOf[0]!.allOf, locked: locked.has(key),
+      prescription: role === "core" ? "3 × 10–12" : "3 × 6–8 · RIR 2", repetitionCounting: exercise.repetitionCounting };
+  }).filter((x) => x !== null));
+  const state = { input, recipeVersion: "mock-recipe-1", metadataVersion: "mock-meta-1", datasetVersion: "mock-dataset", selectionSeed: seed, setsPerExercise: 3, includeAccessory: true, cardioSeconds: 0, selections, lockedSlots: [...locked] };
+  return json(200, { feasible: true, state, document: { schemaVersion: 1, blocks: [] }, slots, issues: [], assumptions: ["Loads stay empty: set them in the program builder.", "Rest is 2 minutes between work sets."],
+    durations: input.daySlots.map((dayNumber) => ({ dayNumber, generalWarmupSeconds: 300, specificWarmupSeconds: 180, workSeconds: 1500, restSeconds: 1800, setupSeconds: 150, bufferSeconds: 300, totalSeconds: 4230 })) });
 }

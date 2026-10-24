@@ -1,6 +1,6 @@
 import { HubNavigation } from "~/shared/navigation/HubNavigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Copy, Folder, FolderInput, FolderPlus, FolderUp, LayoutGrid, LayoutTemplate, MoreVertical, Pencil, Plus, RefreshCw, SearchX, Table2, Trash2, Upload } from "lucide-react";
+import { Archive, ArchiveRestore, Copy, Folder, FolderInput, FolderPlus, FolderUp, LayoutGrid, LayoutTemplate, MoreVertical, Pencil, Plus, RefreshCw, SearchX, Table2, Trash2, Upload, WandSparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
@@ -437,7 +437,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
           description={folderId ? undefined : texts.description}
           actions={
             <>
-              {!isTemplate && <LinkButton href="/app/programs/generate">Generate program</LinkButton>}
+              {!isTemplate && <LinkButton href="/app/programs/generate" iconStart={<WandSparkles />}>Generate program</LinkButton>}
               {canFolders ? (
                 <Button iconStart={<FolderPlus />} onPress={() => setFolderDialog({ mode: "create", parentId: folderId })}>
                   {t.newFolder}

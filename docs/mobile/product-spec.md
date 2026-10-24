@@ -1,8 +1,8 @@
-# TrainFlow — aplikacja mobilna React Native, natywne UI i lokalna analiza ML
+# Metrivum — aplikacja mobilna React Native, natywne UI i lokalna analiza ML
 
 ## 1. Zadanie i nadrzędne decyzje
 
-Rozwijasz ISTNIEJĄCE repozytorium TrainFlow. Zaimplementuj aplikację mobilną na iOS i Android w React Native + Expo + TypeScript, korzystającą z obecnego ASP.NET Core API, Supabase Auth i istniejących modeli biznesowych.
+Rozwijasz ISTNIEJĄCE repozytorium Metrivum. Zaimplementuj aplikację mobilną na iOS i Android w React Native + Expo + TypeScript, korzystającą z obecnego ASP.NET Core API, Supabase Auth i istniejących modeli biznesowych.
 
 To zadanie implementacyjne, nie wykonanie makiety. Dostarcz działające przepływy, kod, kontrakty, testy i dokumentację. Pracuj w spójnych, odbieralnych etapach, zgodnie z instrukcjami repozytorium.
 

@@ -11,9 +11,11 @@ using TrainFlow.BuildingBlocks;
 namespace TrainFlow.Accounts.Features;
 
 public sealed record ProfileResponse(Guid Id, Guid WorkspaceId, string? Username, string DisplayName, DateOnly? BirthDate,
-    string Locale, string TimeZone, bool Onboarded, long Version, IReadOnlyList<AccountRole> Roles, IReadOnlyList<AccountRole> Contexts, string? Phone, bool PhoneVisibleToCoach);
+    string Locale, string TimeZone, bool Onboarded, long Version, IReadOnlyList<AccountRole> Roles, IReadOnlyList<AccountRole> Contexts, string? Phone, bool PhoneVisibleToCoach, string? Bio = null);
+/// <summary>What any signed-in person may see about another account: no birth date, phone, email or body data.</summary>
+public sealed record PersonProfileResponse(Guid UserId, string Username, string DisplayName, string? Bio, IReadOnlyList<AccountRole> Roles, bool IsSelf);
 public sealed record OnboardingRequest(string Username, string DisplayName, DateOnly BirthDate, bool AcceptedTerms, string Locale, string TimeZone, AccountRole Role = AccountRole.Coach, string? Phone = null, bool? PhoneVisibleToCoach = null);
-public sealed record UpdateProfileRequest(string DisplayName, string Locale, string TimeZone, string? Phone = null, bool? PhoneVisibleToCoach = null);
+public sealed record UpdateProfileRequest(string DisplayName, string Locale, string TimeZone, string? Phone = null, bool? PhoneVisibleToCoach = null, string? Bio = null);
 
 /// <summary>Rate-limit policy names registered by the API host for identity-sensitive endpoints.</summary>
 public static class AccountRateLimits
@@ -33,6 +35,21 @@ public static class ProfileEndpoints
             await account.GetRolesAsync(ct);
             return (await directory.SearchAsync(search, ct)).Where(person => person.UserId != account.UserId).ToArray();
         }).WithTags("Accounts").RequireAuthorization().RequireRateLimiting(AccountRateLimits.Directory);
+        // One public profile by exact username. Missing, inactive and unfinished accounts all answer 404 alike.
+        endpoints.MapGet("/api/v1/accounts/people/{username}", async (string username, AccountsDbContext db, IAccountContext account, CancellationToken ct) =>
+        {
+            await account.GetRolesAsync(ct);
+            var normalized = username.Trim().TrimStart('@').ToUpperInvariant();
+            if (normalized.Length is < 3 or > 32)
+                throw ApiException.NotFound();
+            var person = await db.Profiles.AsNoTracking()
+                .Where(x => x.NormalizedUsername == normalized && x.Active && x.Onboarded && x.Username != null)
+                .Select(x => new { x.Id, x.Username, x.DisplayName, x.Bio }).SingleOrDefaultAsync(ct)
+                ?? throw ApiException.NotFound();
+            var roles = (await db.Roles.AsNoTracking().Where(x => x.UserId == person.Id && (x.Role == "Coach" || x.Role == "Client"))
+                .Select(x => x.Role).ToArrayAsync(ct)).Select(Enum.Parse<AccountRole>).Order().ToArray();
+            return new PersonProfileResponse(person.Id, person.Username!, person.DisplayName, person.Bio, roles, person.Id == account.UserId);
+        }).WithTags("Accounts").RequireAuthorization().RequireRateLimiting(AccountRateLimits.Directory).Produces<PersonProfileResponse>();
         var group = endpoints.MapGroup("/api/v1/me").WithTags("Accounts");
         group.MapGet("/profile-fields", async (IAccountProfileFields fields, HttpContext http, CancellationToken ct) => ProfileFieldsResponse(http, await fields.GetOwnAsync(ct)));
         group.MapPatch("/profile-fields", async (ProfileFieldsRequest request, IAccountProfileFields fields, HttpContext http, CancellationToken ct) => ProfileFieldsResponse(http, await fields.UpdateOwnAsync(request.Values, ProfileFieldsVersion(http), ct)));
@@ -140,6 +157,8 @@ public static class ProfileEndpoints
                 profile.Phone = request.Phone.Length == 0 ? null : request.Phone;
             if (request.PhoneVisibleToCoach is { } visible)
                 profile.PhoneVisibleToCoach = visible;
+            if (request.Bio is not null)
+                profile.Bio = AccountIdentityPolicy.NormalizeBio(request.Bio);
             profile.DisplayName = AccountIdentityPolicy.NormalizeDisplayName(request.DisplayName);
             profile.Locale = request.Locale;
             profile.TimeZone = request.TimeZone;
@@ -154,7 +173,7 @@ public static class ProfileEndpoints
         http.Response.Headers.ETag = $"\"{profile.Version}\"";
         var workspace = await db.Workspaces.SingleAsync(x => x.OwnerId == profile.Id, ct);
         var roles = (await db.Roles.AsNoTracking().Where(x => x.UserId == profile.Id && (x.Role == "Coach" || x.Role == "Client")).Select(x => x.Role).ToArrayAsync(ct)).Select(Enum.Parse<AccountRole>).Order().ToArray();
-        return new(profile.Id, workspace.Id, profile.Username, profile.DisplayName, profile.BirthDate, profile.Locale, profile.TimeZone, profile.Onboarded, profile.Version, roles, roles, profile.Phone, profile.PhoneVisibleToCoach);
+        return new(profile.Id, workspace.Id, profile.Username, profile.DisplayName, profile.BirthDate, profile.Locale, profile.TimeZone, profile.Onboarded, profile.Version, roles, roles, profile.Phone, profile.PhoneVisibleToCoach, profile.Bio);
     }
     /// <summary>The unique index on the normalized username (see the Accounts migrations).</summary>
     private const string UsernameIndex = "IX_profiles_NormalizedUsername";

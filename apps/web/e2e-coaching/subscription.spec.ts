@@ -16,7 +16,7 @@ test("responsive checkout preserves quote review and payment at narrow widths", 
     await page.goto("/app/subscription");
     await page.getByRole("button", { name: "Pay for Team", exact: true }).click();
     const checkout = page.getByRole("region", { name: "Team checkout" });
-    await checkout.getByLabel("Team name", { exact: true }).fill("TrainFlow Test Team");
+    await checkout.getByLabel("Team name", { exact: true }).fill("Metrivum Test Team");
     await checkout.getByLabel("Purchased seats", { exact: true }).fill("3");
     await checkout.getByRole("button", { name: "Review quote", exact: true }).click();
     await expect(checkout.getByText(/Amount due:.*209[.,]69/)).toBeVisible();
@@ -43,7 +43,7 @@ async function fixture(page: Page, configured = true, role = "Coach", teamRole: 
     let purchasedSeats = 3;
     let billingVersion = 1;
     const teamId = "70000000-0000-4000-8000-000000000001";
-    const quote = { id: dueId, teamId, teamName: "TrainFlow Test Team", kind: "Initial", status: "Quoted", purchasedSeats: 3, unitPrice: 78.23, grossAmount: 234.69, creditAmount: 25, amountDue: 209.69, currency: "PLN", priceVersion: "team-e2e-v1", termsVersion: "v1", createdAt: now, expiresAt: "2099-10-08T10:00:00Z", dueId: null, confirmedAt: null };
+    const quote = { id: dueId, teamId, teamName: "Metrivum Test Team", kind: "Initial", status: "Quoted", purchasedSeats: 3, unitPrice: 78.23, grossAmount: 234.69, creditAmount: 25, amountDue: 209.69, currency: "PLN", priceVersion: "team-e2e-v1", termsVersion: "v1", createdAt: now, expiresAt: "2099-10-08T10:00:00Z", dueId: null, confirmedAt: null };
     const billing = () => ({ teamId, status: "Active", purchasedSeats, occupiedSeats: 1, pendingSeats: null, periodStart: now, periodEnd: "2026-11-08T09:00:00Z", autoRenew: false, version: billingVersion, unitPrice: 78.23, currency: "PLN", renewalMethodEligible: false, history: [] });
     const subscription = {
         id: owner,
@@ -271,7 +271,7 @@ test("coach reviews seat quote and Pro credit before confirming simulated Team p
     await page.getByRole("button", { name: "Subscription", exact: true }).click();
     const panel = page.getByRole("dialog", { name: "Plans" });
     await panel.getByRole("button", { name: "Pay for Team", exact: true }).click();
-    await panel.getByLabel("Team name", { exact: true }).fill("TrainFlow Test Team");
+    await panel.getByLabel("Team name", { exact: true }).fill("Metrivum Test Team");
     await panel.getByLabel("Purchased seats", { exact: true }).fill("3");
     await panel.getByRole("button", { name: "Review quote", exact: true }).click();
     await expect(panel.getByText(/Unused Pro credit:.*25/)).toBeVisible();
@@ -279,7 +279,7 @@ test("coach reviews seat quote and Pro credit before confirming simulated Team p
     await panel.getByRole("button", { name: "Confirm payment", exact: true }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: `../../.local/stage06/team-quote-${test.info().project.name}.png`, fullPage: true, animations: "disabled" });
     expect(state.settlements()).toBe(0);
-    expect(state.writes.find(w => w.path.endsWith("/checkout-quote"))?.body).toMatchObject({ teamName: "TrainFlow Test Team", purchasedSeats: 3, priceVersion: "team-e2e-v1" });
+    expect(state.writes.find(w => w.path.endsWith("/checkout-quote"))?.body).toMatchObject({ teamName: "Metrivum Test Team", purchasedSeats: 3, priceVersion: "team-e2e-v1" });
     await panel.getByRole("button", { name: "Confirm payment", exact: true }).click();
     await expect(panel.getByRole("status")).toContainText("Team is active");
     expect(state.writes.find(w => w.path.endsWith("/confirm-purchase"))?.body).toMatchObject({ quoteId: dueId });

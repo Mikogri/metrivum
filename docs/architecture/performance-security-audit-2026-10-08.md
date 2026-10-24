@@ -58,7 +58,7 @@ Frontend: **159 Vitest + 2 Node hosting tests passed**; all workspace type check
 - Runtime/migrator/worker roles have no superuser, BYPASSRLS, CREATE ROLE or CREATE DATABASE. No `anon`, `authenticated` or PUBLIC table grants were found in the checked business schemas.
 - Actual `trainflow_api` connection passed Team insert/update/read with deferred constraints and messaging insert/reverse lookup. Both fixtures rolled back; runtime migration-history writes remain forbidden.
 - Real private Storage smoke: PNG/PDF/MP4/WAV signed upload/read passed; overwrite and public reads denied; only this run's generated objects were removed.
-- Real Supabase password sign-in and asymmetric JWKS were accepted by the running API; absent/tampered JWTs rejected. `infra/diagnostics/development-auth-smoke.py` creates and removes one random Auth fixture without email or TrainFlow business records.
+- Real Supabase password sign-in and asymmetric JWKS were accepted by the running API; absent/tampered JWTs rejected. `infra/diagnostics/development-auth-smoke.py` creates and removes one random Auth fixture without email or Metrivum business records.
 - npm and NuGet (including transitive dependencies across 35 projects) reported no known advisories at audit time. A known-secret scan of non-ignored files under 2 MB found no matches for the configured private database/Storage secrets. This is not a complete historical-secret or supply-chain audit.
 - Rebuilt and restarted the local API after verification; `/health/ready` and a fresh real Auth/JWKS smoke passed on the updated runtime.
 
@@ -66,7 +66,7 @@ Frontend: **159 Vitest + 2 Node hosting tests passed**; all workspace type check
 
 1. Which Team screens should retain read-only history after subscription expiry? Calendar/case gates currently differ from Training/check-ins. Should completing outstanding services remain allowed to resolve obligations?
 2. Is the short validity window of already-issued document URLs acceptable after unsharing/suspension, or is immediate revocation required? New URL requests recheck permissions; existing Storage capabilities expire naturally.
-3. Must Supabase logout revoke existing access JWTs immediately? Current local validation accepts them until expiry; TrainFlow account disablement is checked by business operations.
+3. Must Supabase logout revoke existing access JWTs immediately? Current local validation accepts them until expiry; Metrivum account disablement is checked by business operations.
 4. What infrastructure guard should cap analysis backlog/concurrency fairly while Free retains all features? The existing default intentionally leaves per-owner admission uncapped; per-instance HTTP limiting is not a global abuse budget.
 
 Supabase's security advisor still reports **leaked-password protection disabled**. Enable it before public onboarding; see [Supabase password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). No Auth settings were changed during this audit.

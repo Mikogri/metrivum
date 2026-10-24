@@ -19,7 +19,7 @@ import { LibraryViewToggle } from "~/shared/library/LibraryViewToggle";
 import { ResponsiveFilters } from "~/shared/library/ResponsiveFilters";
 import styles from "../coaching.module.css";
 
-export const meta = () => privateMeta("Clients — TrainFlow");
+export const meta = () => privateMeta("Clients — Metrivum");
 
 type CurrentService = Schema<"CurrentRelationshipServiceDto">;
 const modeName = (mode?: string | null) => (mode === "Offline" ? "In person" : mode ?? null);

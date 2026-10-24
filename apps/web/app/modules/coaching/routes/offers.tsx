@@ -1,6 +1,6 @@
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Offers — TrainFlow");
+export const meta = () => privateMeta("Offers — Metrivum");
 
 import { useRef } from "react";
 import { Link } from "react-router";

@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({ signUp: vi.fn(), signInWithOtp: vi.fn(), signI
 vi.mock("~/shared/session/supabase", () => ({ supabaseConfigured: () => true }));
 vi.mock("~/shared/session/SessionProvider", () => ({
   useSessionManager: () => ({ slotForNewSignIn: () => 0, client: () => ({ auth: mocks }), completeSignIn: mocks.completeSignIn }),
-  useSessionState: () => ({ phase: "ready", activeSlot: null }),
+  useSessionState: () => ({ phase: "ready", activeSlot: null, accounts: [] }),
 }));
 
 function Destination() {
@@ -36,9 +36,9 @@ describe("forms that must not reveal whether an account exists", () => {
   it("continues to code entry when a passwordless sign-in names an unknown address", async () => {
     mocks.signInWithOtp.mockResolvedValue({ data: {}, error: authError("otp_disabled") });
     setup("/auth/login");
-    await userEvent.click(screen.getByRole("button", { name: "Sign in with a code instead" }));
+    await userEvent.click(screen.getByRole("button", { name: "Sign in with an email link instead" }));
     await userEvent.type(screen.getByLabelText(/^Email/), "  nobody@example.com ");
-    await userEvent.click(screen.getByRole("button", { name: "Email me a code" }));
+    await userEvent.click(screen.getByRole("button", { name: "Email me a sign-in link" }));
     expect(await screen.findByText(/^\/auth\/verify\?type=email/)).toHaveTextContent("email=nobody%40example.com");
     expect(mocks.signInWithOtp.mock.calls[0]![0].email).toBe("nobody@example.com");
   });
@@ -46,9 +46,9 @@ describe("forms that must not reveal whether an account exists", () => {
   it("still reports other passwordless failures", async () => {
     mocks.signInWithOtp.mockResolvedValue({ data: {}, error: authError("over_email_send_rate_limit", 429) });
     setup("/auth/login");
-    await userEvent.click(screen.getByRole("button", { name: "Sign in with a code instead" }));
+    await userEvent.click(screen.getByRole("button", { name: "Sign in with an email link instead" }));
     await userEvent.type(screen.getByLabelText(/^Email/), "someone@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Email me a code" }));
+    await userEvent.click(screen.getByRole("button", { name: "Email me a sign-in link" }));
     expect(await screen.findByRole("alert")).not.toHaveTextContent("server text");
     expect(screen.queryByText(/^\/auth\/verify/)).toBeNull();
   });

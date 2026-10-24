@@ -23,7 +23,7 @@ import { LibraryViewToggle, useLibraryView } from "~/shared/library/LibraryViewT
 /** Rows per page in lists. */
 const PAGE_SIZE = 20;
 
-export const meta = () => privateMeta("Formulas — TrainFlow");
+export const meta = () => privateMeta("Formulas — Metrivum");
 
 
 

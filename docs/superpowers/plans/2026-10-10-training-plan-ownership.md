@@ -84,7 +84,7 @@
 
 - [ ] Verify fresh local migrations and roll-forward against an existing local database; verify legacy revisions, nullable references, owner indexes and financial immutability triggers.
 - [ ] Run .NET unit tests and all affected Training/Offers/Billing/Coaching integration suites. Add HTTP integration checks for new routes and purchase privacy, including manipulated identifiers and exports.
-- [ ] Confirm DEV project identity and migration histories; apply only the reviewed additive migrations to authorized TrainFlow DEV, then check schema ownership and representative runtime grants. Do not apply production migrations.
+- [ ] Confirm DEV project identity and migration histories; apply only the reviewed additive migrations to authorized Metrivum DEV, then check schema ownership and representative runtime grants. Do not apply production migrations.
 - [ ] Document autosave/apply, today's update boundary, purchase ownership, payment gating and API compatibility. Run `graphify update .` and whitespace checks.
 - [ ] Review the exact diff against the starting dirty tree; report tests, migration status and any remaining limitation. Commit only task-owned changes after the selective staged diff is verified, never unrelated preexisting edits.
 

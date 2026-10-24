@@ -40,7 +40,7 @@ import { VoicePlayer, VoicePreview, VoiceRecorder } from "./voice";
 import { optimisticRead } from "./read-cache";
 import styles from "./messaging.module.css";
 
-export const meta = () => privateMeta("Messages — TrainFlow");
+export const meta = () => privateMeta("Messages — Metrivum");
 // The chat fills the content area below the app bar, like the plan editor.
 export const handle = { workspace: true };
 
@@ -106,7 +106,7 @@ export default function Messages() {
   const settledSearch = useDebounced(search);
   const page = filter.accountKey === accountKey && search === settledSearch ? filter.page : 1;
   const [create, setCreate] = useState(false);
-  const draft = params.get("person") ? { userId: params.get("person")!, displayName: params.get("name") || "TrainFlow member", username: params.get("username") || "" } : null;
+  const draft = params.get("person") ? { userId: params.get("person")!, displayName: params.get("name") || "Metrivum member", username: params.get("username") || "" } : null;
   const direct = useFeatureAccess("messaging.direct");
   const groups = useFeatureAccess("messaging.groups");
   const tab = direct.allowed && requestedTab === "blocked" ? requestedTab : "conversations";

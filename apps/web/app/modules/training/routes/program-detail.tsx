@@ -1,3 +1,4 @@
+import { isUnavailableResource } from "~/shared/lib/ResourceError";
 import { AssignProgramButton, AssignmentList } from "../delivery/Assignments";
 import { Archive, ArchiveRestore, Copy, Download, Pencil, Rocket } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,7 +20,6 @@ import {
   SegmentedControl,
 } from "@trainflow/ui-web";
 import { LockedReason, RequireFeature, useFeatures } from "~/shared/access";
-import { ApiError } from "~/shared/http/errors";
 import { formatDateTime, formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -44,7 +44,7 @@ import { trainingKeys, usePlan, useRevisions } from "../queries";
 import styles from "./program-detail.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
-export const meta = () => privateMeta("Program — TrainFlow");
+export const meta = () => privateMeta("Program — Metrivum");
 
 function ProgramDetail() {
   const { programId = "" } = useParams();
@@ -90,7 +90,7 @@ function ProgramDetail() {
     );
   }
   if (query.isError) {
-    const notFound = query.error instanceof ApiError && query.error.status === 404;
+    const notFound = isUnavailableResource(query.error);
     return (
       <ErrorState
         title={notFound ? t.notFound : errorText(m, query.error)}

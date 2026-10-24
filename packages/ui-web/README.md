@@ -1,6 +1,6 @@
 # @trainflow/ui-web
 
-TrainFlow's web component library: design tokens, base styles and accessible React components built on
+Metrivum's web component library: design tokens, base styles and accessible React components built on
 React Aria Components. Used by both the public site and the app. Not published to npm.
 
 ```tsx

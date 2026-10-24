@@ -5,7 +5,7 @@ Screen → operation → contract → required feature → handled errors → st
 
 **Status legend.** *Implemented* means the call is wired with typed request/response, error handling and UI
 states, type-checked against the generated contract and exercised in the developer mock mode. **No call has
-been verified against a running TrainFlow API or Supabase project in this change** (none was available);
+been verified against a running Metrivum API or Supabase project in this change** (none was available);
 see [api-gaps.md](api-gaps.md) for what that verification must cover.
 
 Common to every private call: `Authorization: Bearer` of the active account, 401 → one refresh and replay for

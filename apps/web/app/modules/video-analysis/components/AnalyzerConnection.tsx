@@ -107,7 +107,7 @@ export function AnalyzerConnection({ token, onTokenChange, onStateChange }: { to
 
     {state === 'unreachable' || state === 'runtime_missing' || state === 'incompatible' ? <div className={styles.actions}>
       {state === 'unreachable' ? <Button size="sm" variant="primary" iconStart={<CirclePower />} loading={starting} onPress={() => void start()}>Start</Button> : null}
-      <LinkButton size="sm" href={DOWNLOAD} download iconStart={<Download />} variant={state === 'unreachable' ? 'secondary' : 'primary'}>{state === 'incompatible' ? 'Update' : state === 'runtime_missing' ? 'Repair' : 'Install'}</LinkButton>
+      <LinkButton size="sm" href={DOWNLOAD} download="MetrivumAnalyzerSetup.exe" iconStart={<Download />} variant={state === 'unreachable' ? 'secondary' : 'primary'}>{state === 'incompatible' ? 'Update' : state === 'runtime_missing' ? 'Repair' : 'Install'}</LinkButton>
     </div> : null}
 
     {state === 'unreachable' ? <Disclosure className={styles.more} title="First time on this computer?">

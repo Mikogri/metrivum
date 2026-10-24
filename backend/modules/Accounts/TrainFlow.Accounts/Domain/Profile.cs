@@ -15,6 +15,11 @@ public sealed class Profile
         get; set;
     }
     public string DisplayName { get; set; } = "";
+    /// <summary>A short public introduction shown on the profile page (at most 500 characters).</summary>
+    public string? Bio
+    {
+        get; set;
+    }
     public string? Phone
     {
         get; set;

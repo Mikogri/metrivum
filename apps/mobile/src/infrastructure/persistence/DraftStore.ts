@@ -37,7 +37,7 @@ export async function openDraftStore(accountId: string) {
         );
         if (!cipher || !Object.values(cipher).some(Boolean))
             throw Error(
-                "Encrypted storage requires the TrainFlow development build.",
+                "Encrypted storage requires the Metrivum development build.",
             );
         await db.execAsync(
             "CREATE TABLE IF NOT EXISTS drafts (key TEXT PRIMARY KEY, payload TEXT NOT NULL, version INTEGER NOT NULL, updated INTEGER NOT NULL);",

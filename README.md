@@ -1,6 +1,10 @@
-# TrainFlow
+# Metrivum
 
-TrainFlow is one monorepo: ASP.NET Core API, React web and Expo native mobile. PostgreSQL stores application data; Supabase provides Auth and private Storage. Both clients use the same API; business tables are never accessed through the Supabase Data API.
+Metrivum is one monorepo: ASP.NET Core API, React web and Expo native mobile. PostgreSQL stores application data; Supabase provides Auth and private Storage. Both clients use the same API; business tables are never accessed through the Supabase Data API.
+
+The product was renamed from TrainFlow to Metrivum. Existing `TrainFlow.*` project paths, `@trainflow/*` packages,
+database roles, session keys, mobile application IDs and analyzer protocol/install paths remain stable for compatibility.
+Mobile display names and analyzer/installer branding take effect when their updated builds are installed.
 
 The application includes profiles, coaching/client management, shared exercises, training programs/templates, messaging, calendar, simulated billing, analytics and private videos. New video analysis targets on-device execution; the real portable model/runtime is not available yet, so this feature remains explicitly blocked. The legacy server worker is retained for history and compatibility; it is not a fallback for mobile analysis. See [mobile setup and limitations](docs/mobile/README.md).
 

@@ -53,7 +53,7 @@ internal static class Program
 internal sealed class SetupForm : Form
 {
     private readonly Release release;
-    private readonly Label status = new() { AutoSize = true, MaximumSize = new Size(540, 0), Text = "Install the local Python environments, offline models and TrainFlow analyzer. An NVIDIA CUDA-compatible GPU and sufficient free memory are required. Videos are analyzed locally; the web app stores completed videos and results privately." };
+    private readonly Label status = new() { AutoSize = true, MaximumSize = new Size(540, 0), Text = "Install the local Python environments, offline models and Metrivum analyzer. An NVIDIA CUDA-compatible GPU and sufficient free memory are required. Videos are analyzed locally; the web app stores completed videos and results privately." };
     private readonly ProgressBar progress = new() { Width = 540 };
     private readonly Button install = new() { Text = "Install", AutoSize = true };
     private readonly Button cancel = new() { Text = "Close", AutoSize = true };
@@ -72,14 +72,14 @@ internal sealed class SetupForm : Form
         this.release = release;
         // A previous update that stopped half way: put the old installation back before anything else.
         try { if (!Directory.Exists(destination) && Directory.Exists(Previous)) Directory.Move(Previous, destination); } catch (IOException) { } catch (UnauthorizedAccessException) { }
-        Text = "TrainFlow Local Analyzer Setup"; Width = 620; Height = 450; MinimumSize = new Size(620, 450); StartPosition = FormStartPosition.CenterScreen;
+        Text = "Metrivum Local Analyzer Setup"; Width = 620; Height = 450; MinimumSize = new Size(620, 450); StartPosition = FormStartPosition.CenterScreen;
         var layout = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, Padding = new Padding(24), WrapContents = false, AutoScroll = true };
         layout.Controls.Add(status);
         var changed = Changed();
         if (Existing)
         {
             install.Text = "Update";
-            status.Text = "TrainFlow Analyzer is already installed. Update replaces it with this version: a running analyzer is closed first, "
+            status.Text = "Metrivum Analyzer is already installed. Update replaces it with this version: a running analyzer is closed first, "
                 + "videos in its queue and the pairing with your browser are kept, and the current version stays in place if anything fails.";
         }
         var size = changed.Sum(a => a.Size) / 1073741824d;
@@ -124,7 +124,7 @@ internal sealed class SetupForm : Form
             if (automaticUpdate) { status.Text = $"At least {needed / 1073741824d:F0} GB of free disk space is required. The installed version is unchanged."; return; }
             // Not enough room to keep the current version while the new one is unpacked: offer a clean reinstall instead.
             var answer = MessageBox.Show(this, $"Updating next to the current version needs {needed / 1073741824d:F0} GB free.\n\nRemove the current version first and install this one from scratch? "
-                + "Videos in the queue and the browser pairing are kept. If the installation then fails, install it again.", "TrainFlow Analyzer", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                + "Videos in the queue and the browser pairing are kept. If the installation then fails, install it again.", "Metrivum Analyzer", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (answer != DialogResult.Yes) { status.Text = $"At least {needed / 1073741824d:F0} GB of free disk space is required to update."; Log("Stopped: not enough space to update side by side"); return; }
             install.Enabled = false;
             try
@@ -248,7 +248,7 @@ internal sealed class SetupForm : Form
                 await Task.Run(() => { try { Directory.Delete(old, true); } catch (IOException) { } catch (UnauthorizedAccessException) { } });
             }
             Log(update ? "Updated" : "Installed");
-            status.Text = (update ? "Updated. " : "Installed. ") + "TrainFlow starts the analyzer for you when you analyze a video; you can also start it from the Start menu.";
+            status.Text = (update ? "Updated. " : "Installed. ") + "Metrivum starts the analyzer for you when you analyze a video; you can also start it from the Start menu.";
             progress.Value = progress.Maximum; cancel.Text = "Close";
             install.Enabled = false;
             if (automaticUpdate)
@@ -339,8 +339,27 @@ internal sealed class SetupForm : Form
                 try { path = process.MainModule?.FileName; } catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException) { continue; }
                 if (path is null || !string.Equals(Path.GetFullPath(path), executable, StringComparison.OrdinalIgnoreCase)) continue;
                 Log("Closing the running analyzer");
-                try { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token); }
-                catch (InvalidOperationException) { }
+                try { // The updater is a child of this analyzer. Killing its whole tree would include
+                    // this installer; .NET rejects that operation and leaves the analyzer alive.
+                    process.Kill();
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+                    await process.WaitForExitAsync(timeout.Token); }
+                catch (InvalidOperationException) when (process.HasExited) { }
+            }
+        }
+        // Manual installation may interrupt inference. Stop only workers from this installation,
+        // never the updater or unrelated Python environments.
+        var environmentRoot = Path.GetFullPath(Path.Combine(destination, "env")) + Path.DirectorySeparatorChar;
+        foreach (var worker in Process.GetProcessesByName("python"))
+        {
+            using (worker)
+            {
+                string? path;
+                try { path = worker.MainModule?.FileName; }
+                catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException) { continue; }
+                if (path is null || !Path.GetFullPath(path).StartsWith(environmentRoot, StringComparison.OrdinalIgnoreCase)) continue;
+                try { worker.Kill(entireProcessTree: true); await worker.WaitForExitAsync(); }
+                catch (InvalidOperationException) when (worker.HasExited) { }
             }
         }
         // Windows releases file handles a moment after the process ends.
@@ -351,7 +370,7 @@ internal sealed class SetupForm : Form
     private void RegisterLink()
     {
         using var key = Registry.CurrentUser.CreateSubKey(@"Software\Classes\trainflow-analyzer");
-        key.SetValue("", "URL:TrainFlow Analyzer"); key.SetValue("URL Protocol", "");
+        key.SetValue("", "URL:Metrivum Analyzer"); key.SetValue("URL Protocol", "");
         using var command = key.CreateSubKey(@"shell\open\command");
         command.SetValue("", $"\"{Path.Combine(destination, "TrainFlow.LocalAnalyzer.exe")}\"");
     }
@@ -387,8 +406,10 @@ internal sealed class SetupForm : Form
         // Windows Script Host creates a standard per-user shortcut without administrator privileges.
         var shellType = Type.GetTypeFromProgID("WScript.Shell")!;
         dynamic shell = Activator.CreateInstance(shellType)!;
-        dynamic shortcut = shell.CreateShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "TrainFlow Analyzer.lnk"));
+        dynamic shortcut = shell.CreateShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "Metrivum Analyzer.lnk"));
         shortcut.TargetPath = Path.Combine(destination, "TrainFlow.LocalAnalyzer.exe"); shortcut.WorkingDirectory = destination; shortcut.Save();
+        var previousShortcut = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "TrainFlow Analyzer.lnk");
+        if (File.Exists(previousShortcut)) File.Delete(previousShortcut);
     }
 
     private void RegisterUninstall()
@@ -396,14 +417,14 @@ internal sealed class SetupForm : Form
         var script = "param()\n$target = Join-Path $env:LOCALAPPDATA 'Programs/TrainFlowAnalyzer'\n" +
             "$expected = [IO.Path]::GetFullPath($target)\nif($expected -ne [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'Programs/TrainFlowAnalyzer'))){throw 'Invalid installation path'}\n" +
             "Get-Process -Name TrainFlow.LocalAnalyzer -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq (Join-Path $expected 'TrainFlow.LocalAnalyzer.exe') } | Stop-Process\n" +
-            "Remove-Item -LiteralPath $expected -Recurse -Force\nRemove-Item -LiteralPath (Join-Path ([Environment]::GetFolderPath('Programs')) 'TrainFlow Analyzer.lnk') -ErrorAction SilentlyContinue\n" +
+            "Remove-Item -LiteralPath $expected -Recurse -Force\nRemove-Item -LiteralPath (Join-Path ([Environment]::GetFolderPath('Programs')) 'Metrivum Analyzer.lnk') -ErrorAction SilentlyContinue\n" +
             "Remove-Item -LiteralPath 'HKCU:/Software/Microsoft/Windows/CurrentVersion/Uninstall/TrainFlowAnalyzer' -ErrorAction SilentlyContinue\n" +
             "Remove-Item -LiteralPath 'HKCU:/Software/Classes/trainflow-analyzer' -Recurse -ErrorAction SilentlyContinue\n";
         // The uninstall script lives outside the directory it removes, so no shell self-deletion is needed.
         var uninstall = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Uninstall-TrainFlowAnalyzer.ps1");
         File.WriteAllText(uninstall, script);
         using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\TrainFlowAnalyzer");
-        key.SetValue("DisplayName", "TrainFlow Local Analyzer"); key.SetValue("DisplayVersion", release.Version);
+        key.SetValue("DisplayName", "Metrivum Local Analyzer"); key.SetValue("DisplayVersion", release.Version);
         key.SetValue("InstallLocation", destination); key.SetValue("UninstallString", $"powershell.exe -NoProfile -File \"{uninstall}\"");
     }
 }

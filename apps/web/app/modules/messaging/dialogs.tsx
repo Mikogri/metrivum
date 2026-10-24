@@ -178,7 +178,7 @@ export function BlockedPeople() {
     const blocked = useChatQuery<string[]>("/api/v1/me/blocked-users");
     const contacts = useContacts();
     const action = useChatAction();
-    const name = (id: string) => contacts.people.find((p) => p.id === id)?.displayName || "TrainFlow member";
+    const name = (id: string) => contacts.people.find((p) => p.id === id)?.displayName || "Metrivum member";
     return (
             <>
                 {action.error && <Failure error={action.error} />}

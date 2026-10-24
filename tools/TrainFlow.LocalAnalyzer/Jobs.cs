@@ -48,6 +48,8 @@ public sealed class JobQueue
 {
     public const int Limit = 10;
     public const long MaxVideoBytes = 268435456;
+    private const long RetainedCacheBytes = 512L * 1024 * 1024;
+    private static readonly TimeSpan CacheLifetime = TimeSpan.FromHours(24);
     private readonly string root;
     private readonly JsonSerializerOptions json;
     private readonly ConcurrentDictionary<string, AnalysisJob> jobs = new();
@@ -78,6 +80,7 @@ public sealed class JobQueue
                 Console.Error.WriteLine("Skipped an unreadable queued analysis.");
             }
         }
+        PruneCaches();
     }
 
     public bool Busy => runningId is not null;
@@ -247,7 +250,8 @@ public sealed class JobQueue
                 job.FinishedAt = state is "done" or "failed" ? DateTimeOffset.UtcNow : null;
                 if (state == "queued") job.StartedAt = null;
             }
-            TryDelete(cache);
+            if (state == "done" || !jobs.ContainsKey(job.Id)) TryDelete(cache);
+            PruneCaches();
             if (jobs.ContainsKey(job.Id)) lock (sync) Save(job);
             else TryDelete(Folder(job.Id));
         }
@@ -260,6 +264,37 @@ public sealed class JobQueue
         var temporary = Path.Combine(folder, "job.json.tmp");
         File.WriteAllText(temporary, JsonSerializer.Serialize(job, json));
         File.Move(temporary, Path.Combine(folder, "job.json"), overwrite: true);
+    }
+
+    private void PruneCaches()
+    {
+        var retained = new List<(string Path, long Bytes, DateTime LastWrite)>();
+        var oldest = DateTime.UtcNow - CacheLifetime;
+        foreach (var job in jobs.Values.Where(job => job.State != "analyzing"))
+        {
+            var cache = Path.Combine(Folder(job.Id), "cache");
+            try
+            {
+                if (!Directory.Exists(cache)) continue;
+                if ((File.GetAttributes(cache) & FileAttributes.ReparsePoint) != 0) { TryDelete(cache); continue; }
+                var files = new DirectoryInfo(cache).EnumerateFiles("*", new EnumerationOptions {
+                    RecurseSubdirectories = true, AttributesToSkip = FileAttributes.ReparsePoint
+                }).ToArray();
+                var lastWrite = files.Select(file => file.LastWriteTimeUtc).Append(Directory.GetLastWriteTimeUtc(cache)).Max();
+                if (job.State == "done" || lastWrite < oldest) { TryDelete(cache); continue; }
+                retained.Add((cache, files.Sum(file => file.Length), lastWrite));
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            { Console.Error.WriteLine("Could not inspect a retained analysis cache."); }
+        }
+        // Cache is private to the immutable job; Python still verifies video/config/source hashes before reuse.
+        var bytes = retained.Sum(cache => cache.Bytes);
+        foreach (var cache in retained.OrderBy(cache => cache.LastWrite))
+        {
+            if (bytes <= RetainedCacheBytes) break;
+            TryDelete(cache.Path);
+            bytes -= cache.Bytes;
+        }
     }
 
     public static void TryDelete(string path)

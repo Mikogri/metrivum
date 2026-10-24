@@ -205,7 +205,7 @@ public sealed class TrainFlowTools(IntegrationAccess access, IntegrationService 
     }
 
     [McpServerTool(Name = "propose_checkin_assignment", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
-    [Description("Validate and preview a check-in schedule using the real form/relationship/group/scheduling rules. Deduplicates overlapping recipients. Returns preview only and a TrainFlow review path; creates no schedule, pending approval or requests. Coach completes assignment in TrainFlow.")]
+    [Description("Validate and preview a check-in schedule using the real form/relationship/group/scheduling rules. Deduplicates overlapping recipients. Returns preview only and a Metrivum review path; creates no schedule, pending approval or requests. Coach completes assignment in Metrivum.")]
     public async Task<McpAssignmentPreview> ProposeCheckinAssignment(McpCheckInAssignment assignment, CancellationToken ct)
     {
         await access.RequireAsync("manage_checkins", ct);
@@ -262,7 +262,7 @@ public sealed class TrainFlowTools(IntegrationAccess access, IntegrationService 
     }
 
     [McpServerTool(Name = "prepare_message", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
-    [Description("Persist a private pending outbound message action with exact recipients and immutable body for real human review. Does not send any message. Coach must approve the exact payload in the authenticated TrainFlow approval UI. UUID idempotency key prevents duplicate pending actions.")]
+    [Description("Persist a private pending outbound message action with exact recipients and immutable body for real human review. Does not send any message. Coach must approve the exact payload in the authenticated Metrivum approval UI. UUID idempotency key prevents duplicate pending actions.")]
     public async Task<PendingActionDto> PrepareMessage(Guid conversationId, string body, Guid idempotencyKey, CancellationToken ct)
     {
         await access.RequireAsync("prepare_messages", ct);
@@ -297,7 +297,7 @@ public sealed class TrainFlowTools(IntegrationAccess access, IntegrationService 
     }
 
     [McpServerTool(Name = "send_approved_message", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
-    [Description("Execute only a message action independently approved by the account owner in TrainFlow. No model confirmation flag or text can approve it. Revalidates integration, recipients, context and immutable payload; retries return the existing sent message without duplicating.")]
+    [Description("Execute only a message action independently approved by the account owner in Metrivum. No model confirmation flag or text can approve it. Revalidates integration, recipients, context and immutable payload; retries return the existing sent message without duplicating.")]
     public async Task<SendApprovedResult> SendApprovedMessage(Guid actionId, CancellationToken ct)
     {
         await access.RequireAsync("send_approved_messages", ct);
