@@ -8,6 +8,7 @@ import {
   DETAIL_GROUPS, DetailFields, ageFrom, detailProblems, detailsFromValues, detailsToValues, displayNameValid, normalizeDisplayName, profileFieldsKey,
   profileKey, timeZones, updateProfile, useProfile, type DetailGroup, type Details,
 } from "~/modules/accounts";
+import { CoachSpecializationsCard } from "~/modules/coaching";
 import { Integrations } from "~/modules/integrations";
 
 import { useAccessSnapshot } from "~/shared/access";
@@ -291,7 +292,7 @@ function AccessOverview() {
   const features = access.data?.features ?? [];
   const available = features.filter((f) => f.available).length;
   const groups = [...AREAS, "other"].map((area) => ({ area, items: features.filter((f) => areaOf(f.key) === area) })).filter((g) => g.items.length);
-  const limits = (access.data?.limits ?? []).filter((limit) => Number(limit.maximum) > 0);
+  const limits = access.data?.limits ?? [];
   return (
     <div className={styles.stack}>
       <Card as="section" padding="lg" aria-labelledby="access-title">
@@ -348,18 +349,19 @@ function AccessOverview() {
             {limits.map((limit) => {
               const used = Number(limit.used);
               const maximum = Number(limit.maximum);
+              const unlimited = limit.maximum == null;
               const bytes = limit.key.toLowerCase().includes("bytes");
-              const ratio = Math.min(1, used / maximum);
+              const ratio = maximum > 0 ? Math.min(1, used / maximum) : 0;
               const label = m.access.limits[limit.key] ?? limit.key;
               return (
                 <div key={limit.key} className={styles.limit}>
                   <dt>{label}</dt>
                   <dd>
-                    {bytes ? (
+                    {unlimited ? <span className={styles.limitValue}>{used} / {m.dashboard.coach.unlimited}</span> : bytes ? (
                       <span className={styles.limitValue}>{formatBytes(locale, maximum)}</span>
                     ) : (
                       <>
-                        <span className={styles.meter} role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={maximum} aria-valuenow={used}>
+                        <span className={styles.meter} role={maximum > 0 ? "meter" : undefined} aria-label={label} aria-valuemin={maximum > 0 ? 0 : undefined} aria-valuemax={maximum > 0 ? maximum : undefined} aria-valuenow={maximum > 0 ? Math.min(used, maximum) : undefined}>
                           <span style={{ transform: `scaleX(${ratio})` }} data-high={ratio >= 0.8 || undefined} />
                         </span>
                         <span className={styles.limitValue}>{t.usageValue(used, maximum)}</span>
@@ -484,7 +486,7 @@ export default function Settings() {
           </nav>
         </aside>
         <div className={styles.content} key={section}>
-          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "accounts" ? <Accounts /> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <CoachingPreferences /> : section === "integrations" ? <Integrations /> : <AccessOverview />}
+          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "accounts" ? <Accounts /> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <><CoachSpecializationsCard editable initialEditing /><CoachingPreferences /></> : section === "integrations" ? <Integrations /> : <AccessOverview />}
         </div>
       </div>
     </>

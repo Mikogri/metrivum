@@ -3,6 +3,7 @@ namespace TrainFlow.Billing.Domain;
 
 public sealed class TeamPlatformSubscription
 {
+    public string? PendingPlanId { get; set; }
     public Guid TeamId
     {
         get; set;

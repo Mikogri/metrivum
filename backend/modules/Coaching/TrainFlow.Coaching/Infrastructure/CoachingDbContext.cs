@@ -15,6 +15,15 @@ public sealed class CoachingDbContext(DbContextOptions<CoachingDbContext> option
     public DbSet<CoachingInvitation> Invitations => Set<CoachingInvitation>();
     public DbSet<RelationshipService> Services => Set<RelationshipService>();
     public DbSet<ApplicationStatusChanged> ApplicationChanges => Set<ApplicationStatusChanged>();
+    public DbSet<CoachShowcase> Showcases => Set<CoachShowcase>();
+    public DbSet<CoachPortfolioItem> PortfolioItems => Set<CoachPortfolioItem>();
+    public DbSet<CoachDiscoveryProfile> DiscoveryProfiles => Set<CoachDiscoveryProfile>();
+    public DbSet<DiscoveryPublicationChanged> DiscoveryPublicationChanges => Set<DiscoveryPublicationChanged>();
+    public DbSet<SpecializationCategory> SpecializationCategories => Set<SpecializationCategory>();
+    public DbSet<Specialization> Specializations => Set<Specialization>();
+    public DbSet<CoachSpecializationProfile> CoachSpecializationProfiles => Set<CoachSpecializationProfile>();
+    public DbSet<CoachSpecialization> CoachSpecializations => Set<CoachSpecialization>();
+    public DbSet<CoachSpecializationsChanged> CoachSpecializationChanges => Set<CoachSpecializationsChanged>();
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.HasDefaultSchema("coaching");
@@ -65,6 +74,9 @@ public sealed class CoachingDbContext(DbContextOptions<CoachingDbContext> option
         a.HasOne<Relationship>().WithMany().HasForeignKey(x => x.RelationshipId).OnDelete(DeleteBehavior.Restrict);
         ConfigureIntake(model);
         TeamCoachingModel.Configure(model);
+        ShowcaseModel.Configure(model);
+        DiscoveryModel.Configure(model);
+        SpecializationModel.Configure(model);
     }
 
     private static void ConfigureIntake(ModelBuilder model)

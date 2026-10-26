@@ -1,0 +1,53 @@
+/* Circular usage meter: a conic fill in the state colour around an inner disc. */
+.ring {
+  --c: var(--tf-color-accent);
+  --size: 2.5rem;
+  --track: 4px;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: conic-gradient(var(--c) calc(var(--p, 0) * 360deg), var(--tf-color-surface-overlay) 0);
+}
+
+.ring[data-size="sm"] {
+  --size: 2rem;
+  --track: 3px;
+}
+
+.ring[data-size="lg"] {
+  --size: 9rem;
+  --track: 10px;
+}
+
+.ring[data-state="near"] { --c: var(--tf-color-warning); }
+.ring[data-state="full"] { --c: var(--tf-color-danger); }
+.ring[data-state="cap"] { --c: var(--tf-color-info); }
+.ring[data-state="unlimited"] { --c: var(--tf-color-violet); }
+
+/* Neutral: one quiet colour whatever the state (the state is told in words beside it). */
+.ring[data-neutral] {
+  --c: var(--tf-color-text);
+}
+
+.ring[data-neutral] .inner {
+  color: var(--tf-color-text-secondary);
+}
+
+.inner {
+  display: grid;
+  place-items: center;
+  width: calc(100% - 2 * var(--track));
+  height: calc(100% - 2 * var(--track));
+  border-radius: 50%;
+  background: var(--tf-color-surface);
+  color: var(--c);
+  text-align: center;
+}
+
+.inner svg {
+  width: 45%;
+  height: 45%;
+}

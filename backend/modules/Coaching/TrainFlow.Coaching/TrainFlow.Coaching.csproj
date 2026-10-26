@@ -12,6 +12,7 @@
     <ProjectReference Include="../../Offers/TrainFlow.Offers.Contracts/TrainFlow.Offers.Contracts.csproj" />
     <ProjectReference Include="../../Forms/TrainFlow.Forms.Contracts/TrainFlow.Forms.Contracts.csproj" />
     <ProjectReference Include="../../Billing/TrainFlow.Billing.Contracts/TrainFlow.Billing.Contracts.csproj" />
+    <ProjectReference Include="../../Media/TrainFlow.Media.Contracts/TrainFlow.Media.Contracts.csproj" />
   </ItemGroup>
 <ItemGroup><ProjectReference Include="../../Analytics/TrainFlow.Analytics.Contracts/TrainFlow.Analytics.Contracts.csproj" /></ItemGroup><ItemGroup><ProjectReference Include="../../Notifications/TrainFlow.Notifications.Contracts/TrainFlow.Notifications.Contracts.csproj" /></ItemGroup>
 </Project>

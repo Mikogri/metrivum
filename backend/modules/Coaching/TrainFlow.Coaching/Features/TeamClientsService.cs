@@ -13,7 +13,7 @@ namespace TrainFlow.Coaching.Features;
 public sealed class TeamClientsService(CoachingDbContext db, IAccountContext accounts, IAccountDirectory directory,
     ITeamContext teams, IFeatureAccessService features, IBillingOrders billing, ModuleTransaction transaction,
     INotificationPublisher notifications, TimeProvider clock, CoachingService personalRelationships,
-    IEnumerable<ITeamRelationshipLifecycle>? lifecycles = null) : ITeamLifecycle, ITeamCaseAccess, INotificationDeliveryPolicy
+    IEnumerable<ITeamRelationshipLifecycle>? lifecycles = null, ClientCapacity? capacity = null) : ITeamLifecycle, ITeamCaseAccess, INotificationDeliveryPolicy
 {
     public string SourceModule => "TeamCoaching";
     public const string ConsentText = "Your future organizational coaching registration will belong to this Team. " +
@@ -426,6 +426,7 @@ public sealed class TeamClientsService(CoachingDbContext db, IAccountContext acc
 
     private async Task<Relationship> EnsureTeamRelationship(TeamClientCase row, Guid coachId, CancellationToken ct)
     {
+        if (capacity != null) await capacity.RequireAsync(coachId, row.ClientId, row.TeamId, ct);
         var relationship = await db.Relationships.SingleOrDefaultAsync(x => x.TeamClientCaseId == row.Id && x.CoachId == coachId, ct);
         if (relationship == null)
         {

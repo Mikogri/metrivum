@@ -47,6 +47,9 @@ public sealed class FormsRulesTests
         Assert.Throws<ApiException>(() => SystemFieldRules.Validate(new Dictionary<SystemFieldKey, JsonElement> { [SystemFieldKey.Weight] = JsonSerializer.SerializeToElement(-1) }));
         Assert.Throws<ApiException>(() => SystemFieldRules.Validate(new Dictionary<SystemFieldKey, JsonElement> { [SystemFieldKey.PreferredTrainingDays] = JsonSerializer.SerializeToElement(new[] { "Monday" }) }));
         SystemFieldRules.Validate(new Dictionary<SystemFieldKey, JsonElement> { [SystemFieldKey.Weight] = JsonSerializer.SerializeToElement(80), [SystemFieldKey.AdditionalNotes] = JsonSerializer.SerializeToElement("Private") });
+        SystemFieldRules.Validate(new Dictionary<SystemFieldKey, JsonElement> { [SystemFieldKey.Country] = JsonSerializer.SerializeToElement("PL"), [SystemFieldKey.City] = JsonSerializer.SerializeToElement("Kraków"), [SystemFieldKey.PostalCode] = JsonSerializer.SerializeToElement("30-001") });
+        Assert.Throws<ApiException>(() => SystemFieldRules.Validate(new Dictionary<SystemFieldKey, JsonElement> { [SystemFieldKey.Country] = JsonSerializer.SerializeToElement("Poland") }));
+        Assert.Throws<ApiException>(() => SystemFieldRules.Validate(new Dictionary<SystemFieldKey, JsonElement> { [SystemFieldKey.PostalCode] = JsonSerializer.SerializeToElement(new string('9', 17)) }));
     }
     [Fact]
     public void Attachments_duplicate_keys_and_fractional_scales_are_rejected()

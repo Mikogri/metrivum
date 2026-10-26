@@ -1,5 +1,6 @@
 -- Run after migrations as the migration owner or database administrator.
 -- Deliberately no default runtime grants: new tables require an explicit review.
+-- Canonical plans, metered jobs and opt-in coach discovery use narrowly scoped runtime grants below.
 -- Schema access is required in addition to table privileges. Apply as the schema owner.
 DO $$
 DECLARE schema_name text;
@@ -8,6 +9,25 @@ BEGIN
         EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA %I FROM trainflow_api, trainflow_worker', schema_name);
         EXECUTE format('REVOKE CREATE ON SCHEMA %I FROM trainflow_api, trainflow_worker', schema_name);
     END LOOP;
+END $$;
+
+DO $$ BEGIN
+IF to_regclass('coaching."Specializations"') IS NOT NULL THEN
+    GRANT SELECT ON coaching."SpecializationCategories", coaching."Specializations" TO trainflow_api;
+    GRANT SELECT, INSERT, UPDATE ON coaching."CoachSpecializationProfiles" TO trainflow_api;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON coaching."CoachSpecializations" TO trainflow_api;
+    GRANT SELECT, INSERT ON coaching."CoachSpecializationChanges" TO trainflow_api;
+    REVOKE ALL ON coaching."SpecializationCategories", coaching."Specializations", coaching."CoachSpecializationProfiles",
+        coaching."CoachSpecializations", coaching."CoachSpecializationChanges" FROM PUBLIC, trainflow_worker;
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname='anon') THEN
+        REVOKE ALL ON coaching."SpecializationCategories", coaching."Specializations", coaching."CoachSpecializationProfiles",
+            coaching."CoachSpecializations", coaching."CoachSpecializationChanges" FROM anon;
+    END IF;
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname='authenticated') THEN
+        REVOKE ALL ON coaching."SpecializationCategories", coaching."Specializations", coaching."CoachSpecializationProfiles",
+            coaching."CoachSpecializations", coaching."CoachSpecializationChanges" FROM authenticated;
+    END IF;
+END IF;
 END $$;
 
 GRANT USAGE ON SCHEMA accounts, access, exercise_catalog, training, media, video_analysis, coaching, forms, offers, billing, checkins TO trainflow_api;
@@ -33,6 +53,12 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON video_analysis.jobs TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE ON video_analysis.analysis_shares TO trainflow_api;
 GRANT SELECT, INSERT, DELETE ON video_analysis.saved_shares TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE ON coaching."Relationships", coaching."Groups" TO trainflow_api;
+DO $$ BEGIN
+IF to_regclass('coaching."Showcases"') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON coaching."Showcases" TO trainflow_api;
+    GRANT SELECT, INSERT, DELETE ON coaching."PortfolioItems" TO trainflow_api;
+END IF;
+END $$;
 GRANT SELECT, INSERT, DELETE ON coaching."Memberships" TO trainflow_api;
 GRANT SELECT, INSERT ON coaching."StatusChanges", coaching."MembershipChanges" TO trainflow_api;
 GRANT SELECT, INSERT, UPDATE ON forms.templates TO trainflow_api;
@@ -246,5 +272,27 @@ IF to_regclass('integrations."Connections"') IS NOT NULL THEN
         REVOKE ALL ON SCHEMA integrations FROM authenticated;
         REVOKE ALL ON ALL TABLES IN SCHEMA integrations FROM authenticated;
     END IF;
+END IF;
+END $$;
+
+DO $$ BEGIN
+IF to_regclass('access.usage_reservations') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON access.usage_reservations TO trainflow_api, trainflow_worker;
+    GRANT USAGE ON SCHEMA access, billing TO trainflow_worker;
+    GRANT SELECT ("OwnerId", "PlanId", "Status", "PeriodStart", "PeriodEnd") ON billing.platform_subscriptions TO trainflow_worker;
+    GRANT SELECT ("TeamId", "Status", "PeriodStart", "PeriodEnd", "AcceptedPriceId") ON billing.team_platform_subscriptions TO trainflow_worker;
+    GRANT SELECT ("TeamId", "UserId", "Role", "Status") ON billing.team_memberships TO trainflow_worker;
+    GRANT SELECT ("Id", "OwnerId", "Name", "Status") ON billing.teams TO trainflow_worker;
+    GRANT SELECT ("Id", "PlanId") ON billing.plan_prices TO trainflow_worker;
+END IF;
+IF to_regclass('billing.service_renewal_changes') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON billing.service_renewal_changes TO trainflow_api;
+END IF;
+IF to_regclass('billing.simulated_refunds') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON billing.simulated_refunds TO trainflow_api;
+END IF;
+IF to_regclass('coaching."DiscoveryProfiles"') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON coaching."DiscoveryProfiles" TO trainflow_api;
+    GRANT SELECT, INSERT ON coaching."DiscoveryPublicationChanges" TO trainflow_api;
 END IF;
 END $$;

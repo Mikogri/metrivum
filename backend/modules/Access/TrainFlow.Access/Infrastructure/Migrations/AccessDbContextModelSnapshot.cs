@@ -135,6 +135,67 @@ namespace TrainFlow.Access.Infrastructure.Migrations
                     b.ToTable("overrides", "access");
                 });
 
+            modelBuilder.Entity("TrainFlow.Access.Domain.UsageReservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Consumer")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("PeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("PeriodStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ScopeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "Key", "Operation")
+                        .IsUnique();
+
+                    b.HasIndex("ScopeId", "Key", "PeriodStart", "Status", "ExpiresAt");
+
+                    b.ToTable("usage_reservations", "access", t =>
+                        {
+                            t.HasCheckConstraint("CK_usage_amount", "\"Amount\" >= 0");
+
+                            t.HasCheckConstraint("CK_usage_status", "\"Status\" IN ('Reserved','Settled','Released')");
+                        });
+                });
+
             modelBuilder.Entity("TrainFlow.Access.Domain.AccessAssignment", b =>
                 {
                     b.HasOne("TrainFlow.Access.Domain.AccessConfiguration", null)

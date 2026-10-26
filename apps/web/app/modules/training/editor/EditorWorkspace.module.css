@@ -1,8 +1,171 @@
 .workspace {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
+}
+
+/* Everything of the editor page; blurred and inert while the advanced editor is locked. */
+.lockable {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  transition: filter 240ms ease;
+}
+
+.workspace[data-locked] .lockable {
+  filter: blur(14px) saturate(0.6) brightness(0.8);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The notice over the blurred editor; the app menu and app bar stay usable. */
+.lock {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: var(--tf-space-4);
+  background: color-mix(in srgb, var(--tf-color-bg) 55%, transparent);
+  animation: lock-in 220ms var(--tf-ease-out, ease-out) both;
+}
+
+@keyframes lock-in {
+  from { opacity: 0; }
+}
+
+.lockCard {
+  position: relative;
+  display: grid;
+  width: min(100%, 30rem);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 45%, var(--tf-color-border));
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  box-shadow: 0 30px 80px -24px rgb(0 0 0 / 0.75);
+  text-align: center;
+}
+
+/* Head of the notice: the lock, a Pro tag and the message on a soft violet wash. */
+.lockHead {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-6, 1.5rem) var(--tf-space-6, 1.5rem) var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  background: color-mix(in srgb, var(--tf-color-violet) 10%, var(--tf-color-surface));
+}
+
+.lockClose {
+  position: absolute;
+  top: var(--tf-space-2);
+  right: var(--tf-space-2);
+}
+
+.lockBadge {
+  position: absolute;
+  top: var(--tf-space-3);
+  left: var(--tf-space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet);
+  color: #fff;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lockBadge svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.lockIcon {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-bottom: var(--tf-space-1);
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 45%, transparent);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+
+.lockIcon svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.lockTitle {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-2xl);
+  font-weight: var(--tf-weight-semibold);
+  line-height: 1.2;
+}
+
+.lockBody {
+  max-width: 24rem;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.lockList {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: var(--tf-space-4) var(--tf-space-6, 1.5rem) 0;
+  list-style: none;
+  text-align: left;
+}
+
+.lockList li {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+}
+
+.lockCheck {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+
+.lockCheck svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.lockActions {
+  display: grid;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-5) var(--tf-space-6, 1.5rem) var(--tf-space-5);
+}
+
+.lockNote {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lock { animation: none; }
+  .lockable { transition: none; }
 }
 
 .toolbar {

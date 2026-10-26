@@ -10,10 +10,27 @@ public sealed class AccessDbContext(DbContextOptions<AccessDbContext> options) :
     public DbSet<FeatureOverride> Overrides => Set<FeatureOverride>();
     public DbSet<FeatureFlag> Flags => Set<FeatureFlag>();
     public DbSet<AccessAudit> Audit => Set<AccessAudit>();
+    public DbSet<UsageReservation> Usage => Set<UsageReservation>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.HasDefaultSchema("access");
+        model.Entity<UsageReservation>(e =>
+        {
+            e.ToTable("usage_reservations", t =>
+            {
+                t.HasCheckConstraint("CK_usage_amount", "\"Amount\" >= 0");
+                t.HasCheckConstraint("CK_usage_status", "\"Status\" IN ('Reserved','Settled','Released')");
+            });
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Key).HasMaxLength(100);
+            e.Property(x => x.Operation).HasMaxLength(100);
+            e.Property(x => x.Status).HasMaxLength(16);
+            e.Property(x => x.Consumer).HasMaxLength(100);
+            // An operation remains unique across periods so retries cannot charge next month's budget.
+            e.HasIndex(x => new { x.OwnerId, x.Key, x.Operation }).IsUnique();
+            e.HasIndex(x => new { x.ScopeId, x.Key, x.PeriodStart, x.Status, x.ExpiresAt });
+        });
         model.Entity<AccessConfiguration>(e =>
         {
             e.ToTable("configurations");

@@ -39,6 +39,9 @@ namespace TrainFlow.Accounts.Infrastructure.Migrations
                     b.Property<DateOnly?>("BirthDate")
                         .HasColumnType("date");
 
+                    b.Property<string>("CoverStyle")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("Currency")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -100,6 +103,11 @@ namespace TrainFlow.Accounts.Infrastructure.Migrations
 
                     b.HasIndex("NormalizedUsername")
                         .IsUnique();
+
+                    b.HasIndex(new[] { "NormalizedUsername" }, "IX_profiles_ActiveUsernamePrefix")
+                        .HasFilter("\"Active\" AND \"Onboarded\" AND \"NormalizedUsername\" IS NOT NULL");
+
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex(new[] { "NormalizedUsername" }, "IX_profiles_ActiveUsernamePrefix"), new[] { "varchar_pattern_ops" });
 
                     b.ToTable("profiles", "accounts", t =>
                         {

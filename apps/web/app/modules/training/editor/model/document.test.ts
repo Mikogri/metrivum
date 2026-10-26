@@ -46,7 +46,7 @@ describe("document model", () => {
     expect(days).toEqual([1, 3]);
   });
 
-  it("links a back-off to an earlier top set and repairs it when the top set is removed", () => {
+  it("links a back-off to an earlier top set and keeps its marker when the source is removed", () => {
     const base = workoutDoc();
     const squat = base.squat;
     let doc = base.doc;
@@ -56,8 +56,14 @@ describe("document model", () => {
     const sets = () => findWorkout(doc, doc.blocks[0]!.cycles[0]!.days[0]!.workouts[0]!.id)!.exercises[0]!.sets;
     expect(sets()[1]!.sourceSetId).toBe(squat.setId);
     doc = removeNode(doc, squat.setId!);
-    expect(sets()[0]!.kind).toBe("Standard");
+    expect(sets()[0]!.kind).toBe("BackOff");
     expect(sets()[0]!.sourceSetId).toBeUndefined();
+  });
+
+  it("does not create groups with duplicate or foreign exercise instances", () => {
+    const { doc, workoutId, squat } = workoutDoc();
+    expect(makeGroup(doc, workoutId, [squat.id!, squat.id!], "Superset")).toBe(doc);
+    expect(makeGroup(doc, workoutId, [squat.id!, "foreign"], "Superset")).toBe(doc);
   });
 
   it("creates 2 segments for segmented kinds and drops them when switching back", () => {

@@ -1,0 +1,85 @@
+/* App bar usage button and its quick view. */
+.trigger {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--tf-color-surface);
+  border-radius: 50%;
+  background: var(--tf-color-warning);
+}
+
+.panel {
+  width: min(20rem, calc(100vw - 1.5rem));
+}
+
+.panel > [role="dialog"] {
+  display: grid;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+}
+
+.head span,
+.muted {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.warning {
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.list {
+  display: grid;
+  gap: var(--tf-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2-5);
+  padding: var(--tf-space-1-5) var(--tf-space-1);
+  font-size: var(--tf-text-sm);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value {
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.value small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-regular);
+}

@@ -4,6 +4,27 @@ namespace TrainFlow.UnitTests;
 
 public sealed class TrainingDocumentTests
 {
+    [Theory]
+    [InlineData(SetKind.Warmup)]
+    [InlineData(SetKind.BackOff)]
+    public void Basic_set_markers_do_not_require_advanced_structures(SetKind kind)
+    {
+        var document = Example();
+        var workout = document.Blocks[0].Cycles[0].Days[0].Workouts[0];
+        var exercise = workout.Exercises[0];
+        exercise.Sets[0] = exercise.Sets[0] with { Kind = kind };
+        DocumentRules.Validate(document, new());
+        Assert.False(DocumentRules.IsAdvancedSet(kind));
+    }
+
+    [Fact]
+    public void An_explicit_back_off_source_still_has_to_be_an_earlier_top_set()
+    {
+        var document = Example();
+        var workout = document.Blocks[0].Cycles[0].Days[0].Workouts[0];
+        workout.Exercises[0].Sets[0] = workout.Exercises[0].Sets[0] with { Kind = SetKind.BackOff, SourceSetId = Guid.NewGuid() };
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.Validate(document, new()));
+    }
     [Fact]
     public void Rejects_day_outside_non_week_cycle()
     {

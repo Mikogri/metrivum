@@ -17,6 +17,9 @@ public sealed class AnalysisJob
         get; set;
     }
     public string ExecutionLocation { get; set; } = "server";
+    public Guid? TeamId { get; set; }
+    public string? CloudBudgetOperation { get; set; }
+    public long? CloudBudgetSeconds { get; set; }
     public Guid? LocalAnalysisId
     {
         get; set;
@@ -157,6 +160,8 @@ public sealed class VideoAnalysisDbContext(DbContextOptions<VideoAnalysisDbConte
         });
         job.HasKey(x => x.Id);
         job.Property(x => x.ExecutionLocation).HasMaxLength(10).HasDefaultValue("server");
+        job.Property(x => x.CloudBudgetOperation).HasMaxLength(100);
+        job.ToTable("jobs", table => table.HasCheckConstraint("ck_job_cloud_budget", "(\"CloudBudgetOperation\" IS NULL AND \"CloudBudgetSeconds\" IS NULL) OR (\"CloudBudgetOperation\" IS NOT NULL AND \"CloudBudgetSeconds\" > 0 AND \"CloudBudgetSeconds\" <= 3600)"));
         job.Property(x => x.SourceVideo).HasColumnType("jsonb");
         job.HasIndex(x => new { x.OwnerId, x.LocalAnalysisId }).IsUnique();
         job.Property(x => x.Name).HasMaxLength(200);
@@ -179,6 +184,8 @@ public sealed class VideoAnalysisDbContext(DbContextOptions<VideoAnalysisDbConte
         share.Property(x => x.Token).HasMaxLength(43);
         share.HasIndex(x => x.Token).IsUnique();
         share.HasIndex(x => x.AnalysisId).IsUnique().HasFilter("\"RevokedAt\" IS NULL");
+        // The active-share uniqueness index cannot cover FK checks on revoked shares.
+        share.HasIndex(x => new { x.AnalysisId, x.RevokedAt });
         share.HasOne<AnalysisJob>().WithMany().HasForeignKey(x => x.AnalysisId).OnDelete(DeleteBehavior.Cascade);
         var saved = model.Entity<SavedShare>();
         saved.ToTable("saved_shares");

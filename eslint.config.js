@@ -14,6 +14,8 @@ export default tseslint.config(
       "**/test-results/**",
       "**/playwright-report/**",
       "contracts/generated/**",
+      // Vendored React Bits backgrounds for the profile cover, copied unchanged (and their generated catalog).
+      "apps/web/app/shared/ui/cover/backgrounds/**",
       "vendor/**",
       "graphify-out/**",
       "backend/**",

@@ -171,6 +171,7 @@ public sealed class WorkoutOccurrence
 public sealed record WorkoutPrescription(Guid RevisionId, string ProgramName, Workout Workout, Dictionary<Guid, ExerciseSnapshot> Exercises, Dictionary<Guid, FormulaEvaluation> Formulas, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] PlanAnnotation[]? Annotations = null);
 public sealed class WorkoutExecution
 {
+    public WorkoutFeedback? Feedback { get; set; }
     public Guid Id
     {
         get; set;
@@ -366,6 +367,8 @@ public static class DeliveryModel
         e.Property(x => x.Version).IsConcurrencyToken();
         e.Property(x => x.Status).HasConversion<string>();
         Json(e.Property(x => x.Prescription));
+        e.Property(x => x.Feedback).HasConversion(v => v == null ? null : TrainingJson.Serialize(v),
+            v => v == null ? null : TrainingJson.Deserialize<WorkoutFeedback>(v)).HasColumnType("jsonb");
         e.HasOne<WorkoutOccurrence>().WithMany().HasForeignKey(x => x.OccurrenceId).OnDelete(DeleteBehavior.Restrict);
         e.HasMany(x => x.Exercises).WithOne().HasForeignKey(x => x.ExecutionId).OnDelete(DeleteBehavior.Cascade);
         var ex = model.Entity<ExerciseExecution>();

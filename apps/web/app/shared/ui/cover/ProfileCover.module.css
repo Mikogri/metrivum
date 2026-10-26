@@ -1,0 +1,40 @@
+/* The banner at the top of a profile: a photo or the animated default. */
+.cover {
+  position: relative;
+  height: 11rem;
+  overflow: hidden;
+  background: var(--tf-color-surface-raised);
+  isolation: isolate;
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: cover-in 400ms var(--tf-ease-out) both;
+}
+
+@keyframes cover-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 40rem) {
+  .cover {
+    height: 8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    animation: none;
+  }
+}

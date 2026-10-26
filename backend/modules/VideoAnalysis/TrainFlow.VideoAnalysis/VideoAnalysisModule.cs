@@ -29,6 +29,7 @@ public static class VideoAnalysisModule
             return analyzer.IsConfigured ? analyzer : new UnavailableVideoAnalyzer();
         });
         services.AddScoped<AnalysisLibrary>();
+        services.AddScoped<CloudAnalysisBudget>();
         services.AddScoped<AnalysisQueue>();
         services.AddScoped<AnalysisSharing>();
         services.AddScoped<ILimitUsageProvider, AnalysisLimitUsage>();
@@ -38,21 +39,22 @@ public static class VideoAnalysisModule
     }
 
     public static IServiceCollection AddClientAnalysis(this IServiceCollection services)
-        => services.AddScoped<ClientAnalysisLibrary>().AddScoped<AnalysisWorkoutLinks>();
+        => services.AddScoped<ClientAnalysisLibrary>().AddScoped<AnalysisWorkoutLinks>().AddScoped<LocalAnalysisAuthorization>();
 
     public static IEndpointRouteBuilder MapVideoAnalysis(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/v1/analyses").RequireAuthorization().WithTags("VideoAnalysis");
+        group.MapPost("/local-authorizations", (LocalAnalysisPermitRequest input, LocalAnalysisAuthorization service, CancellationToken ct) => service.AuthorizeAsync(input, ct));
+        group.MapDelete("/local-authorizations/{id:guid}", async (Guid id, LocalAnalysisAuthorization service, CancellationToken ct) => { await service.ReleaseAsync(id, ct); return Results.NoContent(); });
         group.MapPost("/client-results", async (SaveClientAnalysisRequest input, HttpRequest request, ClientAnalysisLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
         {
-            var roles = await account.GetRolesAsync(ct);
-            if (!roles.Contains(AccountRole.Client))
-                await features.RequireAsync("video.analysis.run", ct);
+            await account.GetRolesAsync(ct);
+            await features.RequireAsync("video.analysis.local", ct);
             return Results.Ok(await library.SaveAsync(account.UserId, request.Headers["Idempotency-Key"].ToString(), input, ct));
         }).Produces<AnalysisDto>();
         group.MapPost("/", async (CreateAnalysisRequest input, HttpRequest request, AnalysisLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
         {
-            await features.RequireAsync("video.analysis.run", ct);
+            await features.RequireAsync("video.analysis.cloud", ct);
             var job = await library.CreateAsync(account.UserId, request.Headers["Idempotency-Key"].ToString(), input, ct);
             return Results.Accepted($"/api/v1/analyses/{job.Id}", job);
         }).Produces<AnalysisDto>(StatusCodes.Status202Accepted);
@@ -113,7 +115,7 @@ public static class VideoAnalysisModule
             Results.Ok(await links.VideoUrlAsync(id, account.UserId, ct))).Produces<CoachAnalysisVideoUrl>();
         group.MapPost("/{id:guid}/retry", async (Guid id, HttpRequest request, AnalysisLibrary library, IAccountContext account, IFeatureAccessService features, CancellationToken ct) =>
         {
-            await features.RequireAsync("video.analysis.run", ct);
+            await features.RequireAsync("video.analysis.cloud", ct);
             await library.RetryAsync(id, account.UserId, Version(request), ct);
             return Results.NoContent();
         }).Produces(StatusCodes.Status204NoContent);

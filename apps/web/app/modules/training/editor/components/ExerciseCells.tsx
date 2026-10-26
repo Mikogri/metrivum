@@ -1,7 +1,9 @@
 import { useCellValidation } from "../cell-validation";
 import { Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { ExerciseInstance, TrainingDocument } from "@trainflow/api-client-web";
+import type { ExerciseInstance, TrainingDocument, Workout } from "@trainflow/api-client-web";
+import type { ExerciseLabel } from "~/modules/exercises";
+import { ExerciseTools } from "./ExerciseTools";
 import { ContextMenu } from "@trainflow/ui-web";
 import { useDictionaryLabel, useExerciseList } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
@@ -348,6 +350,8 @@ export type ExerciseColumn = "exercise" | "sets" | "reps" | "load" | "time" | "r
  */
 export function ExerciseRow({
   instance,
+  workout,
+  names,
   name,
   cells,
   readOnly,
@@ -359,6 +363,8 @@ export function ExerciseRow({
   children,
 }: {
   instance: ExerciseInstance;
+  workout: Workout;
+  names: Map<string, ExerciseLabel>;
   name: string;
   cells: Record<ExerciseColumn, React.CSSProperties>;
   readOnly: boolean;
@@ -378,8 +384,8 @@ export function ExerciseRow({
   const values = exerciseRow(locale, instance, (key) => m.training.formulas.builtInNames[key] ?? key);
   const mixed = values.mixed ? styles.mixedCell : undefined;
   const p = instance.sets[0]?.prescription;
-  const formulaCell = (field: FormulaField, column: ExerciseColumn) => <InlinePrescriptionCell field={field} prescription={p ?? {}} count={instance.sets.length} exerciseId={instance.exerciseId}
-    label={t.columns[column]} style={cells[column]} className={`${styles.cell} ${mixed ?? ""}`} readOnly={readOnly} formulaAllowed={formulaAllowed} customAllowed={customFormulas}
+  const formulaCell = (field: FormulaField, column: ExerciseColumn, extra?: React.CSSProperties) => <InlinePrescriptionCell field={field} prescription={p ?? {}} count={instance.sets.length} exerciseId={instance.exerciseId}
+    label={t.columns[column]} style={extra ? { ...cells[column], ...extra } : cells[column]} className={`${styles.cell} ${mixed ?? ""}`} readOnly={readOnly} formulaAllowed={formulaAllowed} customAllowed={customFormulas}
     onChange={(formula, value, maximum) => apply?.(doc => {
       let next = doc;
       if (!instance.sets.length) next = addSet(next, instance.id).doc;
@@ -412,7 +418,9 @@ export function ExerciseRow({
       }}
     >
       <ExerciseCell name={name} mode="replace" readOnly={readOnly} style={cells.exercise} onPick={(exerciseId) => apply?.((doc) => updateNode(doc, instance.id, { exerciseId }))} />
-      {formulaCell("Sets", "sets")}
+      {/* Set types and supersets live in the Sets column, at its right edge. */}
+      {formulaCell("Sets", "sets", { paddingRight: 44 })}
+      <ExerciseTools workout={workout} instance={instance} names={names} apply={apply} advancedAllowed={formulaAllowed} style={cells.sets} />
       {formulaCell("Reps", "reps")}
       <InlineLoadCell
         exerciseId={instance.exerciseId}

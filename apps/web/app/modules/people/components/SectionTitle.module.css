@@ -1,0 +1,63 @@
+/* Card heads on the profile: toned icon chip, title and sub line, actions on the right. */
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
+}
+
+.text {
+  display: grid;
+  flex: 1;
+  gap: 0;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+  line-height: var(--tf-leading-tight);
+}
+
+.sub {
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+/* Same tones as the dashboard's stat chips. */
+.chip {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--tf-radius-md);
+}
+
+.chip[data-size="sm"] {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.chip svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.chip[data-tone="green"] { background: var(--tf-color-accent-deep); color: var(--tf-color-accent); }
+.chip[data-tone="violet"] { background: var(--tf-color-violet-soft); color: var(--tf-color-violet); }
+.chip[data-tone="blue"] { background: var(--tf-color-info-soft); color: var(--tf-color-info); }
+.chip[data-tone="orange"] { background: var(--tf-color-warning-soft); color: var(--tf-color-warning); }
+.chip[data-tone="rose"] { background: var(--tf-color-danger-soft); color: var(--tf-color-danger); }

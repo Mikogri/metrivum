@@ -55,14 +55,13 @@ public sealed partial class OffersBillingTests
         var before = await owner.GetFromJsonAsync<JsonElement>("/api/v1/me/access");
         Assert.DoesNotContain(before.GetProperty("features").EnumerateArray(),
             feature => feature.GetProperty("reason").GetString() is "not_granted" or "dependency_unavailable");
-        var checkout = await owner.PostAsJsonAsync("/api/v1/me/platform-subscription/checkout", new PlatformCheckoutRequest("Pro", "http-stage4"));
+        var checkout = await owner.PostAsJsonAsync("/api/v1/me/platform-subscription/checkout", new PlatformCheckoutRequest("Pro", "eur-monthly-v3-Pro"));
         Assert.Equal(HttpStatusCode.OK, checkout.StatusCode);
         var due = (await checkout.Content.ReadFromJsonAsync<PlatformSubscriptionDto>())!.PendingDue!.Id;
         Assert.Equal(HttpStatusCode.NotFound, (await stranger.PostAsJsonAsync("/api/v1/me/platform-subscription/confirm-payment", new PlatformConfirmRequest(due, "alien"))).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await owner.PostAsJsonAsync("/api/v1/me/platform-subscription/confirm-payment", new PlatformConfirmRequest(due, "owner"))).StatusCode);
         var after = await owner.GetFromJsonAsync<JsonElement>("/api/v1/me/access");
-        Assert.Equal(before.GetProperty("features").GetRawText(), after.GetProperty("features").GetRawText());
-        Assert.Equal(before.GetProperty("limits").GetRawText(), after.GetProperty("limits").GetRawText());
+        Assert.Contains(after.GetProperty("features").EnumerateArray(), x => x.GetProperty("key").GetString() == "training.export.pdf" && x.GetProperty("available").GetBoolean());
     }
 
     [CatalogPostgresFact]
@@ -73,7 +72,7 @@ public sealed partial class OffersBillingTests
         await using var scope = services.CreateAsyncScope();
         var service = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
         Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => service.CheckoutAsync(new("Pro", "outdated"), default))).Status);
-        var checkout = await service.CheckoutAsync(new("Pro", "test-v1"), default);
+        var checkout = await service.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro"), default);
         var due = checkout.PendingDue!.Id;
         var cancelled = await service.ChangeAsync(new("Free", checkout.Version), default);
         Assert.Equal("Free", cancelled.PlanId);
@@ -81,7 +80,7 @@ public sealed partial class OffersBillingTests
         Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => service.ConfirmAsync(new(due, "stale"), default))).Status);
         var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
         config["Billing:PlatformPlans:Pro:Amount"] = "99.99";
-        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => service.PlansAsync(default))).Status);
+        Assert.Equal(24m, (await service.PlansAsync(default)).Single(x => x.Id == "Pro").Amount);
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         Assert.Empty(await db.Payments.ToArrayAsync());
         var price = Assert.Single(await db.PlanPrices.Where(x => x.PlanId == "Pro").ToArrayAsync());
@@ -97,8 +96,8 @@ public sealed partial class OffersBillingTests
         var service = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
         var plans = await service.PlansAsync(default);
         Assert.Equal(plans[0].Capabilities, plans[1].Capabilities);
-        Assert.False(plans[1].PriceConfigured);
-        Assert.Null(plans[1].Amount);
+        Assert.True(plans[1].PriceConfigured);
+        Assert.Equal(9m, plans[1].Amount);
         Assert.Equal("Free", (await service.CurrentAsync(default)).PlanId);
         Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => service.CheckoutAsync(new("Pro", "unknown"), default))).Status);
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
@@ -118,8 +117,8 @@ public sealed partial class OffersBillingTests
         await using (var scope = services.CreateAsyncScope())
         {
             var service = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
-            Assert.Equal(39.99m, (await service.PlansAsync(default))[1].Amount);
-            due = (await service.CheckoutAsync(new("Pro", "test-v1"), default)).PendingDue!.Id;
+            Assert.Equal(24m, (await service.PlansAsync(default)).Single(x => x.Id == "Pro").Amount);
+            due = (await service.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro"), default)).PendingDue!.Id;
         }
         async Task<PlatformSubscriptionDto> Confirm(string key)
         {
@@ -134,7 +133,7 @@ public sealed partial class OffersBillingTests
         var db = verify.ServiceProvider.GetRequiredService<BillingDbContext>();
         var payment = Assert.Single(await db.Payments.ToArrayAsync());
         Assert.Equal(BillingContext.Platform, payment.Context);
-        Assert.Equal(39.99m, payment.GrossAmount);
+        Assert.Equal(24m, payment.GrossAmount);
         Assert.Equal(0m, payment.FeeAmount);
         Assert.Null(Assert.Single(await db.Attempts.ToArrayAsync()).PaymentMethodId);
         Assert.Equal("Simulated", Assert.Single(await db.Transactions.ToArrayAsync()).Provider);
@@ -167,7 +166,7 @@ public sealed partial class OffersBillingTests
         {
             var service = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
             await scope.ServiceProvider.GetRequiredService<BillingService>().AddMethodAsync(new("Optional"), default);
-            var checkout = await service.CheckoutAsync(new("Pro", "test-v1"), default);
+            var checkout = await service.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro"), default);
             await service.ConfirmAsync(new(checkout.PendingDue!.Id, "initial"), default);
         }
         clock.Now = clock.Now.AddMonths(1);
@@ -201,9 +200,9 @@ public sealed partial class OffersBillingTests
         await using (var scope = services.CreateAsyncScope())
         {
             var service = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
-            Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => service.CheckoutAsync(new("Pro", "test-v1", true), default))).Status);
+            Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => service.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro", true), default))).Status);
             var method = await scope.ServiceProvider.GetRequiredService<BillingService>().AddMethodAsync(new("Explicit renewal"), default);
-            var checkout = await service.CheckoutAsync(new("Pro", "test-v1", true, method.Id), default);
+            var checkout = await service.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro", true, method.Id), default);
             await service.ConfirmAsync(new(checkout.PendingDue!.Id, "initial"), default);
         }
         clock.Now = clock.Now.AddMonths(1);
@@ -265,15 +264,15 @@ public sealed partial class OffersBillingTests
         await using (var scope = coachServices.CreateAsyncScope())
         {
             var service = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
-            var checkout = await service.CheckoutAsync(new("Pro", "test-v1"), default);
+            var checkout = await service.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro"), default);
             await service.ConfirmAsync(new(checkout.PendingDue!.Id, "upgrade"), default);
         }
         await using (var scope = buyerServices.CreateAsyncScope())
         {
             var billing = scope.ServiceProvider.GetRequiredService<BillingService>();
             var proPayment = await billing.PayAsync(second.PaymentDueId, new(null, "pro-fee"), default);
-            Assert.Equal(0.05m, proPayment.Payment!.FeeRate);
-            Assert.Equal(0.5m, proPayment.Payment.FeeAmount);
+            Assert.Equal(0.10m, proPayment.Payment!.FeeRate);
+            Assert.Equal(1m, proPayment.Payment.FeeAmount);
             Assert.Equal(0.10m, (await billing.PayAsync(first.PaymentDueId, new(null, "free-fee"), default)).Payment!.FeeRate);
         }
     }
@@ -289,7 +288,7 @@ public sealed partial class OffersBillingTests
         await using var services = TeamServices(owner, isolated.Connection, clock);
         await using var scope = services.CreateAsyncScope();
         var billing = TeamBilling(scope);
-        var quote = await billing.QuoteAsync(new("Private team", 2, "team-v1"), default);
+        var quote = await billing.QuoteAsync(new("Private team", 3, "eur-monthly-v3-Team"), default);
         var paid = await billing.ConfirmAsync(new(quote.Id, "initial"), default);
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         var directory = new TeamDirectory(member);
@@ -333,7 +332,7 @@ public sealed partial class OffersBillingTests
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Billing:PlatformPlans:Pro:Amount"] = amount,
-            ["Billing:PlatformPlans:Pro:PriceVersion"] = "test-v1",
+            ["Billing:PlatformPlans:Pro:PriceVersion"] = "eur-monthly-v3-Pro",
             ["Billing:PlatformPlans:Pro:Currency"] = "EUR"
         }).Build();
         var services = new ServiceCollection();

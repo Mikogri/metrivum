@@ -228,6 +228,8 @@ public sealed class McpApprovalTests
         var http = factory.CreateClient();
         http.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(id));
         await Ok(http.PutAsJsonAsync("/api/v1/me/onboarding", new { username = $"i{id:N}"[..30], displayName = "Integration " + role, birthDate = "1990-01-01", acceptedTerms = true, locale = "en", timeZone = "UTC", role }));
+        if (role == "Coach")
+            await TestPlans.ActivateProAsync(http);
         return (id, http);
     }
     private static async Task<Guid> Conversation(HttpClient http, Guid recipient) =>

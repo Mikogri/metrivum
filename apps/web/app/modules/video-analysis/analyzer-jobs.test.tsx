@@ -6,7 +6,7 @@ import { AnalyzerJobsProvider, useAnalyzerJobs } from './analyzer-jobs';
 
 const state = vi.hoisted(() => ({ list: vi.fn(), video: vi.fn(), result: vi.fn(), media: vi.fn(), remove: vi.fn(), persist: vi.fn(), toast: vi.fn(), token: 'local-token' }));
 vi.mock('~/shared/access', () => ({ useFeatureAccess: () => ({ allowed: true }) }));
-const scope = vi.hoisted(() => ({ api: () => {}, account: { userId: 'user-1' }, accountKey: '0:user-1', lifecycle: { signal: () => new AbortController().signal, isCurrent: () => true } }));
+const scope = vi.hoisted(() => ({ api: vi.fn(), account: { userId: 'user-1' }, accountKey: '0:user-1', lifecycle: { signal: () => new AbortController().signal, isCurrent: () => true } }));
 vi.mock('~/shared/session/AccountScope', () => ({ useAccountContext: () => scope }));
 vi.mock('@trainflow/ui-web', () => ({ toast: state.toast }));
 vi.mock('./save-local-analysis', () => ({ persistLocalAnalysis: state.persist }));
@@ -27,6 +27,7 @@ const mount = () => render(<QueryClientProvider client={new QueryClient()}><Memo
 
 beforeEach(() => {
   sessionStorage.clear(); state.token = 'local-token';
+  localStorage.clear(); scope.api.mockReset().mockResolvedValue({ data: {} });
   for (const mock of [state.list, state.video, state.result, state.media, state.remove, state.persist, state.toast]) mock.mockReset();
   state.video.mockResolvedValue(new File(['v'], 'squat.mov'));
   state.result.mockResolvedValue({ schemaVersion: 1, trajectory: [], repetitions: [], warnings: [] });
@@ -69,4 +70,22 @@ it('never contacts the analyzer from a browser that was never paired', async () 
   mount();
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('reachable:null'));
   expect(state.list).not.toHaveBeenCalled();
+});
+
+it('synchronizes a finished result with its online authorization ID', async () => {
+  localStorage.setItem('trainflow.analyzer.authorizations:user-1', JSON.stringify({ 'job-1': { id: 'permit-1', teamId: 'team-1' } }));
+  state.list.mockResolvedValueOnce([done]).mockResolvedValue([]);
+  state.persist.mockResolvedValue({ id: 'analysis-1' });
+  mount();
+  await waitFor(() => expect(state.persist).toHaveBeenCalledOnce());
+  expect(state.persist.mock.calls[0]![2].body.authorizationId).toBe('permit-1');
+});
+
+it('releases a known failed run while retaining its workspace scope for a future retry', async () => {
+  localStorage.setItem('trainflow.analyzer.authorizations:user-1', JSON.stringify({ 'job-1': { id: 'permit-1', teamId: 'team-1' } }));
+  state.list.mockResolvedValue([{ ...done, state: 'failed', error: 'Failed inference' }]);
+  mount();
+  await waitFor(() => expect(scope.api).toHaveBeenCalledWith(expect.objectContaining({ method: 'DELETE', path: '/api/v1/analyses/local-authorizations/permit-1' })));
+  await waitFor(() => expect(JSON.parse(localStorage.getItem('trainflow.analyzer.authorizations:user-1')!)).toEqual({ 'job-1': { teamId: 'team-1' } }));
+  expect(state.persist).not.toHaveBeenCalled();
 });

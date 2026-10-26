@@ -3,8 +3,8 @@ import { Copy, FunctionSquare, Pencil, Plus } from "lucide-react";
 import { FormulaMark } from "../components/FormulaMark";
 import { useEffect, useState } from "react";
 import type { FormulaListItem, Quantity, Unit } from "@trainflow/api-client-web";
-import { Alert, Badge, Button, Card, DataTable, Dialog, EmptyState, ErrorState, IconButton, LoadingState, NumberInput, PageHeader, Pagination, SearchInput, Skeleton, toast } from "@trainflow/ui-web";
-import { LockedReason, RequireFeature, useFeatureAccess } from "~/shared/access";
+import { Badge, Button, Card, DataTable, Dialog, EmptyState, ErrorState, IconButton, LoadingState, NumberInput, PageHeader, Pagination, SearchInput, Skeleton, toast } from "@trainflow/ui-web";
+import { LockedArea, LockedReason, RequireFeature, useFeatureAccess } from "~/shared/access";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
@@ -99,6 +99,8 @@ function Formulas() {
 
   return (
     <>
+      {/* Without custom formulas the whole screen sits behind the Pro notice. */}
+      <LockedArea variant="page" locked={!custom.pending && !custom.allowed} title={t.lockedTitle} body={t.lockedBody} points={t.lockedPoints}>
       <PageHeader
         title={t.title}
         description={t.description}
@@ -148,7 +150,6 @@ function Formulas() {
           <SearchInput aria-label={t.searchLabel} placeholder={m.common.search} value={search} onChange={setSearch} size="sm" className={styles.search} />
           <LibraryViewToggle value={view === "cards" ? "cards" : "list"} onChange={(view) => update({ view })} />
         </div>
-        {!custom.allowed && !custom.pending ? <Alert tone="info" title={t.lockedCustom} /> : null}
         {list.isPending ? (
           <LoadingState label={m.common.loading} />
         ) : list.isError ? (
@@ -228,6 +229,7 @@ function Formulas() {
           </>
         )}
       </section>
+      </LockedArea>
       <FormulaDialog key={editing === "new" ? "new" : editing?.id ?? "closed"} formula={editing} onClose={() => setEditing(null)} />
       <Dialog isOpen={trying !== null} onOpenChange={(open) => !open && setTrying(null)} title={t.try} size="sm" closeLabel={m.common.close}>
         {trying ? <TryFormula binding={{ builtIn: null, formulaId: trying.id, version: trying.version }} inputs={trying.inputs} /> : null}

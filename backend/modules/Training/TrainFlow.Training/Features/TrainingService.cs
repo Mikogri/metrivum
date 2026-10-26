@@ -56,7 +56,7 @@ public sealed record FormulaDto(Guid Id, string Name, int Version, bool Archived
 public sealed record FormulaListItem(Guid Id, string Name, int Version, bool Archived);
 
 public sealed partial class TrainingService(TrainingDbContext db, IAccountContext accounts, IFeatureAccessService access,
-    IExerciseCatalog catalog, IOptions<TrainingOptions> options, TimeProvider clock, IRelationshipAccessPolicy relationshipPolicy, ModuleTransaction transaction, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers, IAccountProfileFields? profileFields = null, IRelationshipRecipients? metricRelationships = null, IAbuseProtection? abuse = null)
+    IExerciseCatalog catalog, IOptions<TrainingOptions> options, TimeProvider clock, IRelationshipAccessPolicy relationshipPolicy, ModuleTransaction transaction, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers, IAccountProfileFields? profileFields = null, IRelationshipRecipients? metricRelationships = null, IAbuseProtection? abuse = null, IUsageReservations? usage = null)
 {
     private readonly TrainingOptions limits = options.Value;
     private FormulaEngine Engine => new(limits.Formula);
@@ -347,7 +347,7 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         foreach (var workout in DocumentRules.Workouts(document))
         {
             if (!formulas)
-                foreach (var group in workout.Groups)
+                foreach (var group in workout.Groups.Where(g => g.Kind != GroupKind.Superset))
                     result.Add(group.Id, Hash(new
                     {
                         WorkoutId = workout.Id,
@@ -357,7 +357,7 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
             foreach (var exercise in workout.Exercises)
                 foreach (var set in exercise.Sets)
                 {
-                    if (!formulas && set.Kind != SetKind.Standard)
+                    if (!formulas && DocumentRules.IsAdvancedSet(set.Kind))
                         result.Add(set.Id, Hash(new
                         {
                             WorkoutId = workout.Id,

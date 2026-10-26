@@ -1,7 +1,7 @@
 import { Activity, ArrowRight, Dumbbell, FilePlus2, FileText, Layers, LayoutTemplate, Sigma, Upload, Video } from "lucide-react";
 import type { ReactNode } from "react";
-import { Link as RouterLink } from "react-router";
-import { Card, EmptyState, LoadingState, PageHeader, Skeleton } from "@trainflow/ui-web";
+import { Link as RouterLink, useSearchParams } from "react-router";
+import { Card, EmptyState, LoadingState, PageHeader, Skeleton, Tab, TabList, TabPanel, Tabs } from "@trainflow/ui-web";
 import { useProfile } from "~/modules/accounts";
 import { useExerciseList } from "~/modules/exercises";
 import { usePlanList } from "~/modules/training";
@@ -16,6 +16,7 @@ import { privateMeta } from "~/shared/i18n/site";
 import { ProgramsIcon } from "~/layouts/components/navIcons";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { CoachDashboard, UsagePanel } from "./CoachPulse";
+import { Discovery } from "./Discovery";
 
 export const meta = () => privateMeta("Dashboard — Metrivum");
 
@@ -163,6 +164,8 @@ export default function Dashboard() {
   const analysis = useFeatureAccess("video.library.manage");
   const browse = useFeatureAccess("exercises.browse");
   const { mode } = useWorkspace();
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") === "discovery" ? "discovery" : "overview";
 
   const shortcuts = [
     { tone: "green", href: "/app/programs?create=1", icon: FilePlus2, title: t.newProgram, body: t.newProgramBody, access: create },
@@ -186,7 +189,18 @@ export default function Dashboard() {
     return (
       <>
         <PageHeader title={t.greeting(profile.displayName || profile.username || "")} description={t.coach.range} />
-        <CoachDashboard recent={recent} />
+        <Tabs selectedKey={tab} onSelectionChange={(key) => setParams(key === "discovery" ? { tab: "discovery" } : {}, { replace: true })}>
+          <TabList aria-label={t.tabs.label}>
+            <Tab id="overview">{t.tabs.overview}</Tab>
+            <Tab id="discovery">{t.tabs.discovery}</Tab>
+          </TabList>
+          <TabPanel id="overview">
+            <CoachDashboard recent={recent} />
+          </TabPanel>
+          <TabPanel id="discovery">
+            <Discovery />
+          </TabPanel>
+        </Tabs>
       </>
     );
   }

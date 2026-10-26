@@ -30,7 +30,7 @@ export function decide(features: Array<{ key: string; available: boolean; reason
   if (!features) return { state: "loading", allowed: false, pending: true };
   const decision = features.find((f) => f.key === key);
   if (!decision) return { state: "unknown", allowed: false, pending: false };
-  const known = ["available", "not_granted", "explicit_deny", "operationally_disabled", "dependency_unavailable", "limit_reached"];
+  const known = ["available", "feature_not_in_plan", "not_granted", "explicit_deny", "operationally_disabled", "dependency_unavailable", "limit_reached"];
   const state = (known.includes(decision.reason) ? decision.reason : "unknown") as FeatureState;
   return { state, allowed: decision.available === true && decision.reason === "available", pending: false };
 }

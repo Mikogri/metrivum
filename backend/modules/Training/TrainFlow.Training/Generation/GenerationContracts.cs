@@ -17,7 +17,7 @@ public enum GenerationLevel
 
 public sealed record GenerationRequest(GenerationMode Mode, GenerationLevel Level, int SessionMinutes, int CycleDays,
     int[] DaySlots, int Cycles, int Seed, string[] Equipment, string[] Skills, Guid[] ExcludedExercises,
-    string[] PriorityMuscles, string[] PreferredFamilies, bool ProgressRepetitions = false);
+    string[] PriorityMuscles, string[] PreferredFamilies, bool ProgressRepetitions = false, Guid? TeamId = null);
 public sealed record GenerationState(GenerationRequest Input, string RecipeVersion, string MetadataVersion,
     string DatasetVersion, int SelectionSeed, int SetsPerExercise, bool IncludeAccessory, int CardioSeconds,
     Dictionary<string, Guid> Selections, string[] LockedSlots);

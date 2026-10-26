@@ -52,6 +52,7 @@ public sealed class AccountDirectory(AccountsDbContext db, IAccountContext? acto
     }
     public async Task<IReadOnlyDictionary<Guid, AccountDirectoryEntry>> GetAccountsAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken)
     {
+        if (userIds.Count == 0) return new Dictionary<Guid, AccountDirectoryEntry>();
         var ids = userIds.Distinct().ToArray();
         var profiles = await (from profile in db.Profiles.AsNoTracking()
                               join workspace in db.Workspaces.AsNoTracking() on profile.Id equals workspace.OwnerId
@@ -65,7 +66,8 @@ public sealed class AccountDirectory(AccountsDbContext db, IAccountContext? acto
                                   SharedPhone = profile.PhoneVisibleToCoach ? profile.Phone : null
                               }).ToArrayAsync(cancellationToken);
         var roles = await db.Roles.AsNoTracking().Where(x => ids.Contains(x.UserId) && (x.Role == "Coach" || x.Role == "Client")).ToArrayAsync(cancellationToken);
+        var rolesByUser = roles.ToLookup(x => x.UserId, x => Enum.Parse<AccountRole>(x.Role));
         return profiles.ToDictionary(x => x.Id, x => new AccountDirectoryEntry(x.Id, x.workspaceId, x.Username, x.DisplayName,
-            roles.Where(r => r.UserId == x.Id).Select(r => Enum.Parse<AccountRole>(r.Role)).Order().ToArray(), x.SharedPhone));
+            rolesByUser[x.Id].Order().ToArray(), x.SharedPhone));
     }
 }

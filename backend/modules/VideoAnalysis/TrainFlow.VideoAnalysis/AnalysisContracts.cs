@@ -25,7 +25,8 @@ public sealed record AnalysisTracking(double TimestampSeconds, int VideoWidth, i
 public sealed record AnalysisConfiguration(double? MetersPerPixel = null, string Movement = "unspecified",
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] AnalysisTracking? Tracking = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Exercise = null);
-public sealed record CreateAnalysisRequest(string Name, string? Note, string[] Tags, Guid MediaId, AnalysisConfiguration Configuration);
+public sealed record CreateAnalysisRequest(string Name, string? Note, string[] Tags, Guid MediaId, AnalysisConfiguration Configuration,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Guid? TeamId = null);
 /// <summary>Movement null keeps the movement and exercise; otherwise both are replaced (a null Exercise clears it).
 /// It relabels the analysis; the result is not recalculated.</summary>
 public sealed record UpdateAnalysisRequest(string Name, string? Note, string[] Tags, string? Movement = null, string? Exercise = null);

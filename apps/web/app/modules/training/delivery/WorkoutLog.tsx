@@ -4,7 +4,7 @@ export const meta = () => privateMeta("Workout — Metrivum");
 
 import { useState } from "react";
 import { Link, useParams } from "react-router";
-import type { PlanAnnotation, ExerciseSnapshot, Prescription, Workout } from "@trainflow/api-client-web";
+import type { Schema, PlanAnnotation, ExerciseSnapshot, Prescription, Workout } from "@trainflow/api-client-web";
 import { Alert, Button, Checkbox, EmptyState, NumberInput, PageHeader, TextArea, TextField } from "@trainflow/ui-web";
 import { ExercisePicker } from "~/modules/exercises";
 import { useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
@@ -14,10 +14,11 @@ import { localDate } from "./Assignments";
 import { CoachAnalysisChips } from "~/modules/video-analysis";
 import type { Occurrence } from "./TrainingHome";
 import styles from "./delivery.module.css";
+import { WorkoutFeedbackForm, WorkoutComparisonPanel } from "./WorkoutReview";
 
 type ActualSet = { id?: string; prescribedSetId: string | null; prescribedSegmentId: string | null; skipped: boolean; reps: number | null; load: number | null; loadUnit: string | null; loadMeaning: string; rpe: number | null; rir: number | null; durationSeconds: number | null; distanceMeters: number | null; restSeconds: number | null; tempo: string | null; comment: string | null };
 type ActualExercise = { prescribedInstanceId: string | null; exerciseId: string; name?: string; comment: string; sets: ActualSet[] };
-interface Execution { startedAt: string; completedAt: string | null; id: string; version: number; status: string; performedDate: string; comment: string; durationSeconds: number | null; exercises: ActualExercise[]; allowedActions: string[] }
+interface Execution { feedback?: Schema<"WorkoutFeedback"> | null; startedAt: string; completedAt: string | null; id: string; version: number; status: string; performedDate: string; comment: string; durationSeconds: number | null; exercises: ActualExercise[]; allowedActions: string[] }
 interface Detail { occurrence: Occurrence; prescription: { annotations?: PlanAnnotation[]; workout: Workout; exercises: Record<string, ExerciseSnapshot>; formulas: Record<string, { result: { value: number; unit: string } }> }; execution: Execution | null }
 const blankSet = (prescribedSetId: string | null = null, prescribedSegmentId: string | null = null): ActualSet => ({ prescribedSetId, prescribedSegmentId, skipped: false, reps: null, load: null, loadUnit: "kg", loadMeaning: "TotalExternal", rpe: null, rir: null, durationSeconds: null, distanceMeters: null, restSeconds: null, tempo: null, comment: "" });
 function describe(p: Prescription) {
@@ -75,7 +76,7 @@ export function WorkoutDetail({ occurrenceId, relationshipId }: { occurrenceId: 
   const detail = query.data;
   return <><PageHeader title={detail.occurrence.name} description={`${detail.occurrence.programName} · Scheduled ${detail.occurrence.scheduledDate} · ${detail.occurrence.status}`} /><MutationError error={mutate.error} /><p className={styles.muted}>Prescription snapshot: {detail.occurrence.revisionId} · <Link to={`/app/programs/${detail.occurrence.programId}`}>View program</Link></p>{detail.execution && <p className={styles.muted}>Performed {detail.execution.performedDate} · Started {new Date(detail.execution.startedAt).toLocaleString()} · Finished {detail.execution.completedAt ? new Date(detail.execution.completedAt).toLocaleString() : "Not completed"} · Duration {detail.execution.durationSeconds == null ? "Not recorded" : `${detail.execution.durationSeconds}s`}</p>}
     {detail.prescription.annotations?.map(note => <section className={styles.card} key={note.id}><small>{note.kind}</small><h2>{note.title}</h2><p style={{ whiteSpace: "pre-wrap" }}>{note.content}</p></section>)}
-    {detail.execution && detail.execution.status !== "Skipped" ? <><CoachAnalysisChips executionId={detail.execution.id} enabled={!relationshipId} /><ExecutionEditor key={`${detail.execution.id}:${detail.execution.status}`} detail={detail} execution={detail.execution} own={!relationshipId} /></> : <div className={styles.stack}>
+    {detail.execution && detail.execution.status !== "Skipped" ? <><CoachAnalysisChips executionId={detail.execution.id} enabled={!relationshipId} /><ExecutionEditor key={`${detail.execution.id}:${detail.execution.status}`} detail={detail} execution={detail.execution} own={!relationshipId} /><WorkoutFeedbackForm key={`feedback:${detail.execution.id}:${detail.execution.version}`} execution={detail.execution} own={!relationshipId} /><WorkoutComparisonPanel executionId={detail.execution.id} /></> : <div className={styles.stack}>
       {detail.execution?.comment && <p>Session comment: {detail.execution.comment}</p>}
       {detail.prescription.workout.exercises.map(exercise => <section key={exercise.id} className={styles.card}><h2>{detail.prescription.exercises[exercise.exerciseId]?.name}</h2>{exercise.sets.map((set, i) => <p key={set.id}>{i + 1}. {set.kind}: {describe(set.prescription)}</p>)}</section>)}
       {detail.occurrence.allowedActions.includes("start") ? <Button variant="primary" loading={mutate.isPending} onPress={() => mutate.mutate({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/start` })}>Start workout</Button> : <EmptyState title="Read-only workout" description="The assignment or coaching relationship does not currently allow starting this workout." />}

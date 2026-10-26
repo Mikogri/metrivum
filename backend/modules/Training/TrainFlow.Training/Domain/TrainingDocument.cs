@@ -6,7 +6,7 @@ namespace TrainFlow.Training.Domain;
 [JsonConverter(typeof(JsonStringEnumConverter<SetKind>))]
 public enum SetKind
 {
-    Standard, Amrap, Ramp, TopSet, BackOff, DropSet, RestPause, Cluster
+    Standard, Amrap, Ramp, TopSet, BackOff, DropSet, RestPause, Cluster, Warmup
 }
 [JsonConverter(typeof(JsonStringEnumConverter<GroupKind>))]
 public enum GroupKind
@@ -69,7 +69,8 @@ public static class DocumentRules
     public static PlanAnnotation[] AnnotationsFor(TrainingDocument document, Guid blockId, Guid cycleId) => (document.Annotations ?? []).Where(n => n.TargetId == null || n.TargetId == blockId || n.TargetId == cycleId).ToArray();
     public static IEnumerable<Workout> Workouts(TrainingDocument document) => document.Blocks.SelectMany(b => b.Cycles).SelectMany(c => c.Days).SelectMany(d => d.Workouts);
     public static IEnumerable<TrainingSet> Sets(TrainingDocument document) => Workouts(document).SelectMany(w => w.Exercises).SelectMany(e => e.Sets);
-    public static bool HasAdvanced(TrainingDocument document) => Workouts(document).Any(w => w.Groups.Length > 0) || Sets(document).Any(s => s.Kind != SetKind.Standard);
+    public static bool IsAdvancedSet(SetKind kind) => kind is not (SetKind.Standard or SetKind.Warmup or SetKind.BackOff);
+    public static bool HasAdvanced(TrainingDocument document) => Workouts(document).Any(w => w.Groups.Any(g => g.Kind != GroupKind.Superset)) || Sets(document).Any(s => IsAdvancedSet(s.Kind));
     public static bool HasCustomFormulas(TrainingDocument document) => Prescriptions(document).Any(p => PrescriptionFormulas.Uses(p).Any(f => f.FormulaId != null || f.Expression != null || f.VariableBindings?.Count > 0));
     public static IEnumerable<Prescription> Prescriptions(TrainingDocument document) => Sets(document).SelectMany(s => new[] { s.Prescription }.Concat((s.Segments ?? []).Select(x => x.Prescription))).Concat(BlockMaxes.Rows(document).SelectMany(r => new[] { new Prescription(LoadFormula: r.LoadFormula, LoadUnit: r.LoadUnit), new Prescription(LoadFormula: r.TimeFormula) }));
     public static void Validate(TrainingDocument document, DocumentLimits limits)
@@ -152,7 +153,7 @@ public static class DocumentRules
                                 ValidateSet(set, limits.MaximumSegments);
                                 if (set.Kind == SetKind.TopSet)
                                     priorTopSets.Add(set.Id);
-                                if (set.Kind == SetKind.BackOff && (set.SourceSetId is null || !priorTopSets.Contains(set.SourceSetId.Value)))
+                                if (set.Kind == SetKind.BackOff && set.SourceSetId is {} source && !priorTopSets.Contains(source))
                                     throw new TrainingValidationException("Back-off must reference an earlier top set of the same exercise.");
                                 foreach (var segment in set.Segments ?? [])
                                     Id(segment.Id);

@@ -194,6 +194,7 @@ public sealed class MobileWorkoutAnalysisTests
     {
         var http = factory.CreateClient(); http.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(id));
         await Body(await http.PutAsJsonAsync("/api/v1/me/onboarding", new { username = "mwork" + id.ToString("N")[..16], displayName = "Mobile workout", birthDate = "1990-01-01", acceptedTerms = true, locale = "en", timeZone = "UTC", role }));
+        if (role == "Coach") await TestPlans.ActivateProAsync(http);
         return http;
     }
     private static async Task<JsonElement> Body(HttpResponseMessage response)

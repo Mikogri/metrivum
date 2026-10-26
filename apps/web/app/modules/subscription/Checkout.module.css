@@ -1,0 +1,758 @@
+/* Checkout covers the whole app: a slim bar with the way back, then the plan and the order summary. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--tf-color-bg);
+  color: var(--tf-color-text);
+  animation: checkout-in 220ms var(--tf-ease-out, ease-out) both;
+}
+
+@keyframes checkout-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+  }
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  height: 3.5rem;
+  padding: 0 var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  background: var(--tf-color-surface);
+}
+
+.barTitle {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+/* Plan, payment, done: where the person is in the purchase. */
+.steps {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.steps li + li::before {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  margin-right: var(--tf-space-1);
+  background: var(--tf-color-border);
+}
+
+.stepDot {
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.stepDot svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.steps li[data-state="current"] {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+}
+
+.steps li[data-state="current"] .stepDot {
+  border-color: var(--tf-color-violet);
+  background: var(--tf-color-violet);
+  color: #fff;
+}
+
+.steps li[data-state="done"] .stepDot {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.secure {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.secure svg {
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+.mark {
+  width: auto;
+  height: 1.125rem;
+  color: var(--tf-color-text-secondary);
+}
+
+.scroll {
+  overflow-y: auto;
+}
+
+.content {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: var(--tf-space-6, 1.5rem) var(--tf-space-4) var(--tf-space-8, 3rem);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 23rem);
+  gap: var(--tf-space-5);
+  align-items: start;
+}
+
+.main {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+/* The plan hero: name and price, then what grows compared with the current plan. */
+/* The plan hero wears the same look as the best plan cards: a violet head with a slowly drifting gradient. */
+.hero {
+  --plan-tone: var(--tf-color-violet);
+  display: grid;
+  overflow: hidden;
+  border: 1.5px solid color-mix(in srgb, var(--tf-color-violet) 70%, transparent);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.heroTop {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  overflow: hidden;
+  padding: var(--tf-space-5);
+  background: linear-gradient(115deg, #5b3dff, #7c4dff, var(--tf-color-violet), #e070ff, #ff7ad9, #7c4dff, #5b3dff);
+  background-size: 400% 100%;
+  color: #fff;
+  animation: hero-flow 11s ease-in-out infinite alternate;
+}
+
+.heroTop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.2) 50%, transparent 70%);
+  transform: translateX(-130%);
+  animation: hero-shine 7s ease-in-out infinite;
+}
+
+@keyframes hero-flow {
+  to { background-position: 100% 50%; }
+}
+
+@keyframes hero-shine {
+  0%, 55% { transform: translateX(-130%) skewX(-12deg); }
+  85%, 100% { transform: translateX(130%) skewX(-12deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroTop,
+  .heroTop::after {
+    animation: none;
+  }
+}
+
+.heroTop .eyebrow,
+.heroTop .tagline,
+.heroTop .planPrice span {
+  color: rgb(255 255 255 / 0.8);
+}
+
+.heroTop .planName,
+.heroTop .planPrice strong {
+  color: #fff;
+}
+
+.eyebrow {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.planName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-1);
+  color: var(--plan-tone);
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-3xl);
+  font-weight: var(--tf-weight-semibold);
+  line-height: 1.1;
+}
+
+.bestTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.1875rem 0.625rem;
+  border-radius: var(--tf-radius-full);
+  background: rgb(255 255 255 / 0.18);
+  color: #fff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: var(--tf-font-sans, inherit);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.bestTag svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.tagline {
+  margin-top: var(--tf-space-1);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.planPrice {
+  display: grid;
+  justify-items: end;
+}
+
+.planPrice strong {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-3xl);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.planPrice span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.raised {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-5);
+  list-style: none;
+}
+
+.raised li {
+  display: grid;
+  gap: 2px;
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+}
+
+.raisedLabel {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.raisedValues {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.was {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.raisedValues svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.raisedValues strong {
+  color: var(--plan-tone);
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.block {
+  display: grid;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.blockTitle {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+/* "Everything included": a header row and a panel that grows open (grid rows from 0fr to 1fr). */
+.disclosure {
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.disclosureHead {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-5);
+  border: 0;
+  background: transparent;
+  color: var(--tf-color-text);
+  font: inherit;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.disclosureHead:hover {
+  background: var(--tf-color-surface-raised);
+}
+
+.disclosureHead:focus-visible {
+  outline: 2px solid var(--tf-color-accent);
+  outline-offset: -2px;
+}
+
+.chevron {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-text-tertiary);
+  transition: transform 260ms var(--tf-ease-out, ease-out);
+}
+
+.disclosure[data-open] .chevron {
+  transform: rotate(180deg);
+}
+
+.disclosureBody {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms var(--tf-ease-out, ease-out);
+}
+
+.disclosure[data-open] .disclosureBody {
+  grid-template-rows: 1fr;
+}
+
+.disclosureInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.disclosureInner > .allFeatures {
+  padding: var(--tf-space-1) var(--tf-space-5) var(--tf-space-5);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 220ms ease, transform 280ms var(--tf-ease-out, ease-out);
+}
+
+.disclosure[data-open] .disclosureInner > .allFeatures {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosureBody,
+  .chevron,
+  .disclosureInner > .allFeatures {
+    transition: none;
+  }
+}
+
+
+
+.allFeatures ul {
+  padding-top: var(--tf-space-4);
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  column-gap: var(--tf-space-5);
+  font-size: var(--tf-text-sm);
+}
+
+.unlocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--tf-space-2) var(--tf-space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--tf-text-sm);
+}
+
+.unlocks li {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.unlocks li > span {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.unlocks svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.summary {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.summaryTitle {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.method {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+}
+
+.methodIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.methodIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.methodText {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.methodText strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.methodText small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.lines {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+}
+
+.lines > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.lines dd {
+  margin: 0;
+  color: var(--tf-color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.lines > .total {
+  margin-top: var(--tf-space-2);
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.total dd {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+}
+
+.renews,
+.fine {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.confirm {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+/* After paying: one card that rises in, the plan's violet head with a self-drawing check, then what is unlocked. */
+.success {
+  display: grid;
+  max-width: 34rem;
+  margin: var(--tf-space-8, 3rem) auto;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 45%, var(--tf-color-border));
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.7);
+  text-align: center;
+  animation: success-rise 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.successHead {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  gap: var(--tf-space-2);
+  overflow: hidden;
+  padding: var(--tf-space-8, 2.5rem) var(--tf-space-6, 1.5rem) var(--tf-space-6, 1.5rem);
+  background: linear-gradient(115deg, #5b3dff, #7c4dff, var(--tf-color-violet), #e070ff, #7c4dff);
+  background-size: 300% 100%;
+  color: #fff;
+  animation: hero-flow 11s ease-in-out infinite alternate;
+}
+
+.successMark {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: rgb(255 255 255 / 0.16);
+  animation: success-pop 520ms 160ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.successMark svg {
+  width: 3.25rem;
+  height: 3.25rem;
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.successMark circle {
+  stroke-width: 2;
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  opacity: 0.6;
+  animation: success-draw 600ms 300ms ease-out forwards;
+}
+
+.successMark path {
+  stroke-width: 3.5;
+  stroke-dasharray: 36;
+  stroke-dashoffset: 36;
+  animation: success-draw 360ms 760ms ease-out forwards;
+}
+
+.successEyebrow {
+  color: rgb(255 255 255 / 0.8);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.successTitle {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-3xl);
+  font-weight: var(--tf-weight-semibold);
+  line-height: 1.1;
+}
+
+.successBody {
+  max-width: 24rem;
+  color: rgb(255 255 255 / 0.85);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.successList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--tf-space-2) var(--tf-space-4);
+  margin: 0;
+  padding: var(--tf-space-5) var(--tf-space-6, 1.5rem) 0;
+  list-style: none;
+  text-align: left;
+}
+
+.successList li {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+  animation: success-item 360ms calc(900ms + var(--i, 0) * 60ms) ease-out both;
+}
+
+.successList li > span {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+
+.successList svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+@keyframes success-rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+}
+
+@keyframes success-pop {
+  from { opacity: 0; transform: scale(0.5); }
+}
+
+@keyframes success-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes success-item {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .success,
+  .successHead,
+  .successMark,
+  .successList li {
+    animation: none;
+  }
+
+  .successMark circle,
+  .successMark path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+.successActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-5) var(--tf-space-6, 1.5rem) var(--tf-space-6, 1.5rem);
+}
+
+@media (max-width: 56rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .summary {
+    position: static;
+  }
+
+  .secure,
+  .steps li:not([data-state="current"]) {
+    display: none;
+  }
+}
+
+
+/* "Plan" in the steps: one step back, to choosing the plan. */
+.stepBack {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: 2px var(--tf-space-2) 2px 2px;
+  border: 0;
+  border-radius: var(--tf-radius-full);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.stepBack:hover {
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+}
+
+.stepBack:focus-visible {
+  outline: 2px solid var(--tf-color-accent);
+}

@@ -15,6 +15,7 @@ public static class TeamBillingModel
             e.HasKey(x => x.TeamId);
             e.Property(x => x.Version).IsConcurrencyToken();
             e.Property(x => x.Status).HasMaxLength(32);
+            e.Property(x => x.PendingPlanId).HasMaxLength(16);
             e.HasIndex(x => new { x.Status, x.PeriodEnd });
             e.HasOne<Team>().WithOne().HasForeignKey<TeamPlatformSubscription>(x => x.TeamId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<PlanPrice>().WithMany().HasForeignKey(x => x.AcceptedPriceId).OnDelete(DeleteBehavior.Restrict);

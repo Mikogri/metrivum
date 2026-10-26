@@ -5,9 +5,9 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";
 import { AddAccountSwitch } from "../components/AddAccountSwitch";
-import { AuthFooter, AuthHeader } from "../components/AuthHeader";
+import { AuthFooter, AuthFormError, AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
-import { authErrorText, isExistingAccount, passwordProblem } from "../lib/authErrors";
+import { authErrorField, authErrorText, isExistingAccount, passwordProblem } from "../lib/authErrors";
 import { callbackUrl, onboardingUrl, registrationRole, slotParam, type RegistrationRole } from "../lib/urls";
 import { isValidEmail, normalizeEmail } from "../lib/email";
 import { privateMeta } from "~/shared/i18n/site";
@@ -26,7 +26,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ text: string; field: "email" | "password" | null; exists?: boolean } | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   if (!supabaseConfigured()) {
@@ -50,9 +50,13 @@ export default function Register() {
         password,
         options: { emailRedirectTo: callbackUrl(slot, onboardingUrl(role), address) },
       });
-      // An address that already has an account continues like a new one, so this form cannot be used to
-      // find out who is registered. The owner gets no code and can sign in or reset the password instead.
-      if (signUpError && !isExistingAccount(signUpError)) throw signUpError;
+      // An address that already has a confirmed account: Supabase sends no email and returns a user without
+      // identities (or an "exists" error). Say so under the email field and point to sign-in and reset.
+      if (isExistingAccount(signUpError) || (!signUpError && data?.user && !data.session && (data.user.identities?.length ?? 0) === 0)) {
+        setError({ text: m.auth.errors.userExists, field: "email", exists: true });
+        return;
+      }
+      if (signUpError) throw signUpError;
       if (data?.session) {
         // Email confirmation disabled in this environment: continue straight to onboarding.
         await manager.completeSignIn(slot, data.session);
@@ -61,7 +65,7 @@ export default function Register() {
       }
       navigate(`/auth/verify?type=signup&slot=${slot}&email=${encodeURIComponent(address)}&role=${role}`);
     } catch (caught) {
-      setError(authErrorText(m, caught));
+      setError({ text: authErrorText(m, caught), field: authErrorField(caught) });
     } finally {
       setPending(false);
     }
@@ -69,9 +73,8 @@ export default function Register() {
 
   return (
     <>
-      <AuthHeader title={adding ? t.addingTitle : t.title} subtitle={adding ? t.addingSubtitle : t.subtitle} />
+      <AuthHeader title={adding ? t.addingTitle : t.title} subtitle={adding ? t.addingSubtitle : t.subtitle} back={adding ? { to: "/app", label: m.common.back } : undefined} />
       {adding ? <AddAccountSwitch current="register" slot={slot} /> : null}
-      {error ? <Alert tone="danger" title={error} live="assertive" /> : null}
       <form className={form.form} onSubmit={onSubmit} noValidate>
         <Select label={t.accountType} selectedKey={role} onSelectionChange={(key) => setRole(registrationRole(String(key)))} isDisabled={pending}>
           <Option id="Client">{t.client}</Option>
@@ -82,10 +85,10 @@ export default function Register() {
           type="email"
           autoComplete="email"
           value={email}
-          onChange={setEmail}
+          onChange={(value) => { setEmail(value); if (error?.field) setError(null); }}
           isRequired
-          isInvalid={submitted && !isValidEmail(email)}
-          errorMessage={m.auth.errors.emailInvalid}
+          isInvalid={(submitted && !isValidEmail(email)) || error?.field === "email"}
+          errorMessage={submitted && !isValidEmail(email) ? m.auth.errors.emailInvalid : error?.text}
           size="lg"
         />
         <TextField placeholder={m.common.ph.newPassword}
@@ -93,23 +96,22 @@ export default function Register() {
           type="password"
           autoComplete="new-password"
           value={password}
-          onChange={setPassword}
+          onChange={(value) => { setPassword(value); if (error?.field) setError(null); }}
           isRequired
           description={t.passwordHint}
-          isInvalid={submitted && Boolean(passwordProblem(m, password, email))}
-          errorMessage={passwordProblem(m, password, email) ?? undefined}
+          isInvalid={(submitted && Boolean(passwordProblem(m, password, email))) || error?.field === "password"}
+          errorMessage={(submitted ? passwordProblem(m, password, email) : null) ?? error?.text}
           size="lg"
         />
         <Button type="submit" variant="primary" size="lg" block loading={pending}>
           {t.submit}
         </Button>
+        {error && !error.field ? <AuthFormError>{error.text}</AuthFormError> : null}
+        {error?.exists ? (
+          <RouterLink className={form.textButton} to={`/auth/login?slot=${slot}${adding ? "&add=1" : ""}`}>{t.signInInstead}</RouterLink>
+        ) : null}
       </form>
-      <Alert tone="info" title={t.termsPending} />
-      {adding ? (
-        <AuthFooter>
-          <RouterLink to="/app">{m.common.cancel}</RouterLink>
-        </AuthFooter>
-      ) : (
+      {adding ? null : (
         <AuthFooter>
           {t.haveAccount} <RouterLink to="/auth/login">{t.signIn}</RouterLink>
         </AuthFooter>

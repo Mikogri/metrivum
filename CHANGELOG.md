@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Add canonical coach specializations (5 English categories, 27 choices), versioned selections and relevance-first Discovery with equal Pro/Team/Studio priority. Share the selector across coach setup/settings/profile; batch reads, debounce search and add measured query/FK indexes.
+
+- Share quick superset pairing/unlinking and individual set-type controls across both plan editors. Add Warmup, allow standalone BackOff markers, and retain validation of optional top-set references; basic markers and supersets do not require advanced-set access.
+
+- Add canonical Free/Starter/Pro/Team/Studio plans, durable simulated checkout/refunds, shared entitlement guards and transaction-safe monthly usage reservations. Preserve paid history and existing data after downgrade; expose explicit Personal/Team budgets and opt-in, paid-priority coach Discovery.
+- Add optional completed-workout feedback and frozen Planned vs Actual comparisons in workout/history screens and Analyze. Add a filtered, paginated financial history of payments, attempts, renewals, cancellations and refunds, with clear simulated-payment labels. Cloud analysis requires a configured trusted GPU meter; no production meter is supplied.
+
+- Profile covers: every account picks one of 22 animated React Bits backgrounds (default: grey silk, each tuned for the banner, pointer reactions on), tunes its settings and the banner colour behind it, saved on the account (`PUT /api/v1/me/cover-style`, values bounded server-side and clamped to each setting's range when shown; no free text or URLs). Coaches on Pro can use a photo instead. The own profile gains an edit mode (cover, name, introduction, headline, experience, competencies, portfolio in place) and a preview of exactly what others see. Coach profiles show client counts, joined date, offers with prices, competencies and a portfolio of certificates and client results. Needs the `ProfileCoverStyle` (Accounts), `CoachShowcase` and `CoachShowcaseCover` (Coaching) migrations.
+
 - Unify direct chat consent: open by default, opt-in approval, ordinary inbox for pending chats and a disabled composer while waiting. Persist invitation and offer-form cards in the business transaction, with retry-safe keys across web/mobile.
 - Add assigned-program cycle check-ins, editable local release time and scheduling explanations. Retain issued history and re-align future scheduling with effective plan changes.
 - Harden contract export and worker opt-out, architecture boundaries, bounded diagnostics, mobile mutation lifecycle/invalidation and partial-progress disclosure. Publish API, web and native mobile together; see `docs/architecture/refactor-2026-10-11/` for evidence and remaining limits.

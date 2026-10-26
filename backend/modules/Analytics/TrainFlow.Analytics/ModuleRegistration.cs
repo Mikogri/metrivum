@@ -37,6 +37,7 @@ public static class ModuleRegistration
             .MapGroup("/api/v1/analyze")
             .WithTags("Analytics")
             .RequireAuthorization();
+        routes.MapGet("/basic", ([AsParameters] AnalysisQuery q, AnalysisService s, CancellationToken ct) => s.BasicAsync(q, ct)).Produces<BasicAnalysis>();
         routes
             .MapGet(
                 "/overview",
@@ -144,10 +145,11 @@ public sealed class AnalysisService(
     ITeamContext? teams = null
 )
 {
-    private async Task<AnalysisScope> ScopeAsync(AnalysisQuery q, CancellationToken ct)
+    private async Task<AnalysisScope> ScopeAsync(AnalysisQuery q, CancellationToken ct, bool advanced = false)
     {
         var owner = await accounts.RequireCoachAsync(ct);
         await access.RequireAsync("analytics.view", ct);
+        if (advanced) await access.RequireAsync("analytics.advanced", ct);
         var today = AnalysisDates.Today(q.TimeZone ?? "UTC", DateTimeOffset.UtcNow);
         var window = AnalysisDates.Create(
             q.From ?? today.AddDays(-29),
@@ -204,7 +206,7 @@ public sealed class AnalysisService(
 
     public async Task<AnalysisContext> ContextAsync(AnalysisQuery q, CancellationToken ct)
     {
-        var scope = await ScopeAsync(q, ct);
+        var scope = await ScopeAsync(q, ct, advanced: true);
         return new(scope.Window, AnalysisDates.Previous(scope.Window), await Options(scope, ct));
     }
 
@@ -220,20 +222,20 @@ public sealed class AnalysisService(
         scope.TeamId is null ? await messaging.QueryAsync(scope, ct) : new(0, 0, 0);
 
     public async Task<FinancialAnalysis> FinancialAsync(AnalysisQuery q, CancellationToken ct) =>
-        await finance.QueryAsync(await ScopeAsync(q, ct), ct);
+        await finance.QueryAsync(await ScopeAsync(q, ct, advanced: true), ct);
 
     public async Task<ClientsAnalysis> ClientsAsync(AnalysisQuery q, CancellationToken ct) =>
-        await coaching.ClientsAsync(await ScopeAsync(q, ct), ct);
+        await coaching.ClientsAsync(await ScopeAsync(q, ct, advanced: true), ct);
 
     public async Task<AcquisitionAnalysis> AcquisitionAsync(AnalysisQuery q, CancellationToken ct) =>
-        await coaching.AcquisitionAsync(await ScopeAsync(q, ct), ct);
+        await coaching.AcquisitionAsync(await ScopeAsync(q, ct, advanced: true), ct);
 
     public async Task<CheckInsAnalysis> CheckInsAsync(AnalysisQuery q, CancellationToken ct) =>
         await checkins.QueryAsync(await ScopeAsync(q, ct), ct);
 
     public async Task<TrainingAnalysis> TrainingAsync(AnalysisQuery q, CancellationToken ct)
     {
-        return await Training(await ScopeAsync(q, ct), ct);
+        return await Training(await ScopeAsync(q, ct, advanced: true), ct);
     }
 
     private async Task<TrainingAnalysis> Training(AnalysisScope scope, CancellationToken ct) => training is null
@@ -243,7 +245,7 @@ public sealed class AnalysisService(
 
     public async Task<AnalysisOverview> QueryAsync(AnalysisQuery q, CancellationToken ct)
     {
-        var scope = await ScopeAsync(q, ct);
+        var scope = await ScopeAsync(q, ct, advanced: true);
         var window = scope.Window;
         var previous = AnalysisDates.Previous(window);
         var prior = scope with
@@ -267,4 +269,16 @@ public sealed class AnalysisService(
             await Messaging(scope, ct)
         );
     }
+
+    public async Task<BasicAnalysis> BasicAsync(AnalysisQuery q, CancellationToken ct)
+    {
+        var scope = await ScopeAsync(q, ct);
+        var clients = await coaching.ClientsAsync(scope, ct);
+        var financial = BasicAnalysisProjection.Finance(await finance.QueryAsync(scope, ct));
+        return new(scope.Window, new(clients.Active, clients.Suspended, clients.Completed), financial,
+            await checkins.QueryAsync(scope, ct), await Messaging(scope, ct));
+    }
+
+    public async Task<BasicFinancialAnalysis> BasicFinancialAsync(AnalysisQuery q, CancellationToken ct) =>
+        BasicAnalysisProjection.Finance(await finance.QueryAsync(await ScopeAsync(q, ct), ct));
 }

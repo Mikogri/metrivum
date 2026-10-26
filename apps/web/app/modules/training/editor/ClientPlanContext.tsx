@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Users } from "lucide-react";
+import { UserSearch, Users } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, Button, Combobox, Dialog, DialogFooter, Hint, NumberInput, Option, SearchInput, TextField, toast } from "@trainflow/ui-web";
 import { Failure, ListPagination, useCoachingQuery, type Page, type Relationship } from "~/modules/coaching";
@@ -43,7 +43,14 @@ export function usePlanClientContext(programId: string, enabled: boolean) {
     <div className={styles.joined}>
     <Combobox size="sm" aria-label="Client perspective" placeholder="View as…" inputValue={search} onInputChange={setSearch}
       selectedKey={client?.id ?? null} onSelectionChange={key => { const next = clients.data?.items.find(item => item.id === key); if (next) choose(next); }}
-      defaultFilter={() => true} menuTrigger="input" allowsEmptyCollection className={styles.picker}>
+      defaultFilter={() => true} menuTrigger="input" allowsEmptyCollection menuWidth="sm" className={styles.picker}
+      emptyState={<span className={styles.pickerEmpty}>
+        <UserSearch aria-hidden="true" />
+        {clients.isLoading || term !== search ? <strong>Loading clients…</strong>
+          : clients.isError ? <><strong>Couldn't load clients</strong><span>Try again in a moment.</span></>
+          : term ? <><strong>No clients match “{term}”</strong><span>Only active clients can be previewed.</span></>
+          : <><strong>No active clients yet</strong><span>Once a client joins, you can see the plan as they will.</span></>}
+      </span>}>
       {[...(client && !clients.data?.items.some(item => item.id === client.id) ? [client] : []), ...(clients.data?.items ?? [])].map(item => <Option key={item.id} id={item.id} textValue={nameOf(item)}>{nameOf(item)}{item.client.username ? ` · @${item.client.username}` : ""}</Option>)}
     </Combobox>
     <Hint label="Assigned clients"><Button size="sm" variant="secondary" iconStart={<Users />} aria-label={`Assigned clients${assignments.data ? `: ${assignments.data.total}` : ""}`} onPress={() => setAssignedOpen(true)}>{assignments.data ? assignments.data.total : "–"}</Button></Hint>

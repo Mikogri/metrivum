@@ -1,0 +1,211 @@
+/* Trigger in the Sets column: the set types in use (W, B, D…) or a quiet chooser icon, and the group mark. */
+.trigger {
+  align-self: center;
+  justify-self: end;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 22px;
+  height: 22px;
+  margin-right: 4px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-color-text-tertiary);
+  background: transparent;
+  font-size: 10px;
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.trigger svg {
+  width: 12px;
+  height: 12px;
+}
+
+.trigger[data-marked],
+.trigger[data-grouped] {
+  color: var(--tf-color-text);
+  background: var(--tf-color-surface-raised);
+}
+
+.groupMark {
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+
+.trigger:hover {
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+}
+
+.content {
+  display: grid;
+  gap: var(--tf-space-5);
+}
+
+.section {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.section + .section {
+  padding-top: var(--tf-space-5);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.sectionHead h3 {
+  margin: 0;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.sectionHead span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+/* Option list in the style of a menu: one row per type, a check on the chosen one. */
+.kindList {
+  display: grid;
+  margin: 0;
+  padding: var(--tf-space-1);
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface);
+  list-style: none;
+}
+
+.kindRow {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  min-height: 2.5rem;
+  padding: 0 var(--tf-space-3);
+  border: 0;
+  border-radius: calc(var(--tf-radius-md) - 2px);
+  background: transparent;
+  color: var(--tf-color-text);
+  font: inherit;
+  font-size: var(--tf-text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.kindRow:hover:not(:disabled) {
+  background: var(--tf-color-surface-raised);
+}
+
+.kindRow[aria-pressed="true"],
+.kindRow[aria-checked="true"] {
+  background: var(--tf-color-surface-selected, var(--tf-color-surface-raised));
+  font-weight: var(--tf-weight-medium);
+}
+
+.kindRow:disabled {
+  color: var(--tf-color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.kindRow:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: -2px;
+}
+
+.kindCheck,
+.kindLock {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+}
+
+.kindCheck {
+  color: var(--tf-color-text);
+}
+
+.kindLock {
+  color: var(--tf-color-text-tertiary);
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--tf-space-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  font-size: var(--tf-text-sm);
+  cursor: pointer;
+}
+
+.linkButton:hover {
+  color: var(--tf-color-text);
+}
+
+.linkButton svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: transform 200ms var(--tf-ease-out, ease-out);
+}
+
+.linkButton svg[data-open] {
+  transform: rotate(180deg);
+}
+
+.perSet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--tf-space-2);
+}
+
+.note {
+  margin: 0;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.groupCard {
+  display: grid;
+  gap: 2px;
+  padding: var(--tf-space-3);
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 40%, transparent);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-violet-soft);
+}
+
+.groupCard strong {
+  font-size: var(--tf-text-sm);
+}
+
+.groupCard span {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.partners {
+  display: grid;
+  gap: var(--tf-space-2);
+}

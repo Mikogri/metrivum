@@ -60,7 +60,7 @@
   cursor: progress;
 }
 
-/* The view's own icon on a small tinted tile: violet for coaching, amber for your own training. */
+/* The view's own icon on a small tinted tile: violet for coaching, green for your own training. */
 .tile {
   display: grid;
   flex: none;
@@ -219,9 +219,9 @@
 }
 
 [data-view="coach"] {
-  --view: #5b6cf0;
+  --view: #7c4dff;
 }
 
 [data-view="client"] {
-  --view: #d9792b;
+  --view: #22b07d;
 }

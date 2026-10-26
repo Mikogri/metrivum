@@ -33,6 +33,7 @@ export function connectBounds(source: Bounds, target: Bounds) {
 }
 export function cablePath(from: Port, to: Port, plug = true): string {
   const a = normal[from.side]; const b = normal[to.side];
+  // The cable meets the back of the plug, which sits flush against the card edge.
   const end = { x: to.x + b[0] * (plug ? 9 : 0), y: to.y + b[1] * (plug ? 9 : 0) };
   const bend = Math.max(24, Math.hypot(end.x - from.x, end.y - from.y) * .4);
   return `M ${from.x} ${from.y} C ${from.x + a[0] * bend} ${from.y + a[1] * bend}, ${end.x + b[0] * bend} ${end.y + b[1] * bend}, ${end.x} ${end.y}`;

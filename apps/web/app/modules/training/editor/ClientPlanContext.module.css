@@ -35,3 +35,9 @@
 .context { flex-wrap: nowrap; min-width: 0; flex-shrink: 1; }
 .context > :not(.picker) { flex-shrink: 0; }
 .hint { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); margin: 0; }
+
+/* "View as" with nothing to list: a short note instead of an empty menu. */
+.pickerEmpty { display: grid; justify-items: center; gap: var(--tf-space-1); padding: var(--tf-space-2) var(--tf-space-1); text-align: center; }
+.pickerEmpty svg { width: 1.125rem; height: 1.125rem; margin-bottom: var(--tf-space-1); color: var(--tf-color-text-tertiary); }
+.pickerEmpty strong { color: var(--tf-color-text); font-size: var(--tf-text-sm); font-weight: var(--tf-weight-medium); }
+.pickerEmpty span { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); line-height: var(--tf-leading-normal); }

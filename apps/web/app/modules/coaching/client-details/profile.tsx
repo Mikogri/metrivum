@@ -1,7 +1,8 @@
 import type { Schema } from "@trainflow/api-client-web";
 import { Dumbbell, FileText, UserRound } from "lucide-react";
-import { Avatar, Badge, Button, DataTable, Dialog, EmptyState } from "@trainflow/ui-web";
+import { Avatar, Button, DataTable, Dialog, EmptyState } from "@trainflow/ui-web";
 import { Facts, Panel } from "~/shared/ui/Panel";
+import { BodySummary, detailsFromValues } from "~/modules/accounts";
 import { pageFromParam } from "~/shared/lib/useUrlState";
 import { useCoachingQuery, type Page, type Relationship } from "../api";
 import { Failure, ListPagination, Loading, StatusBadge } from "../components";
@@ -9,15 +10,6 @@ import { AnswerReview, type Answers } from "../form-fields";
 import { useClientDetailsUrl } from "./url";
 import styles from "./client-details.module.css";
 
-const trainingFields = ["TrainingExperience", "ActivityLevel", "AvailableEquipment", "PreferredTrainingDays", "SessionsPerWeek", "AvailableSessionDuration", "Sleep", "Stress", "InjuriesLimitationsPainNotes", "AdditionalNotes"] as const;
-const LABELS: Record<string, string> = { InjuriesLimitationsPainNotes: "Injuries & limitations", AvailableSessionDuration: "Session length", PreferredTrainingDays: "Preferred days", AvailableEquipment: "Equipment" };
-const label = (name: string) => LABELS[name] ?? name.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/(?<= )[A-Z]/g, (c) => c.toLowerCase());
-function display(value: unknown): string {
-  if (value === null || value === undefined || value === "") return "Not provided";
-  if (Array.isArray(value)) return value.map(display).join(", ") || "Not provided";
-  if (typeof value === "object") return Object.entries(value).map(([k, v]) => `${label(k)}: ${display(v)}`).join("\n");
-  return String(value);
-}
 export function ClientProfile({ relationship }: { relationship: Relationship }) {
   const { params, update } = useClientDetailsUrl();
   const profile = useCoachingQuery<Schema<"RelationshipProfileDto">>(`/api/v1/coaching/relationships/${relationship.id}/profile`);
@@ -44,9 +36,9 @@ export function ClientProfile({ relationship }: { relationship: Relationship }) 
             { label: "Client since", value: new Date(relationship.startedAt).toLocaleDateString() },
           ]} />
         </Panel>
-        <Panel title="Training information" icon={<Dumbbell />} tone="green" description="What the client currently shares with you.">
+        <Panel title="Body and training" icon={<Dumbbell />} tone="green" description="What the client currently shares with you.">
           {profile.isPending ? <Loading /> : profile.isError ? <Failure error={profile.error} retry={() => void profile.refetch()} /> : (
-            <Facts columns={2} items={trainingFields.map((key) => ({ key, label: label(key), value: <ProfileValue value={profile.data.currentAllowedProfile[key]} tone={key === "PreferredTrainingDays" ? "success" : key === "InjuriesLimitationsPainNotes" ? "warning" : "info"} /> }))} />
+            <BodySummary details={detailsFromValues(profile.data.currentAllowedProfile as Record<string, unknown>)} empty="The client has not shared any training or body details yet." />
           )}
         </Panel>
       </div>
@@ -74,12 +66,6 @@ export function ClientProfile({ relationship }: { relationship: Relationship }) 
   );
 }
 
-/** Lists become small tags; empty values read as "Not provided". */
-function ProfileValue({ value, tone = "info" }: { value: unknown; tone?: "info" | "success" | "violet" | "warning" }) {
-  if (Array.isArray(value) && value.length) return <span className={styles.tags}>{value.map((item, i) => <Badge key={i} size="sm" tone={tone}>{display(item)}</Badge>)}</span>;
-  const text = display(value);
-  return text === "Not provided" ? <span className={styles.muted}>{text}</span> : <>{text}</>;
-}
 function ApplicationResponses({ id, relationshipId }: { id: string; relationshipId: string }) {
   const query = useCoachingQuery<Schema<"CoachApplicationDetailDto">>(`/api/v1/coaching/relationships/${relationshipId}/applications/${id}`);
   if (query.isPending) return <Loading />;

@@ -130,7 +130,7 @@ Example **200** response with `ETag: "2"` (IDs/versions are illustrative):
 
 ### Upload a video
 
-POST `/api/v1/media/uploads` with `{"name":"Squat set","contentType":"video/mp4","size":1048576}` where size is the actual byte length. MP4 and WebM are supported. The default maximum is 256 MiB and the default pending reservation limit is 5; deployments can configure these.
+POST `/api/v1/media/uploads` with `{"name":"Squat set","contentType":"video/mp4","size":1048576}` where size is the actual byte length. MP4, WebM and MOV are supported. Accepted videos are capped at 50 MiB with at most 3 concurrent upload reservations; stricter deployment limits still apply. Signed-upload liabilities reserve the configured physical bucket maximum until server-verified acceptance.
 
 The **201** JSON ticket has `file`, `uploadUrl`, `expiresAt`, `method`. PUT raw bytes to the signed `uploadUrl` with the declared Content-Type. This is a Storage URL; do not attach the Metrivum bearer token to it. Then POST `/api/v1/media/{file.id}/finalize`. Request `/read-url` when playback is needed; use its `url` until `expiresAt` (default read lifetime 120 seconds). Signed URLs must be treated as temporary credentials.
 

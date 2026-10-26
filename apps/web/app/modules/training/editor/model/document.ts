@@ -208,13 +208,13 @@ function withSiblings(doc: TrainingDocument, id: string, fn: <T extends { id: st
   });
 }
 
-/** A back-off whose top set disappeared or moved after it becomes a standard set. */
+/** Removing a source clears the reference while preserving the coach's back-off marker. */
 function repairBackOffs(sets: TrainingSet[]): TrainingSet[] {
   const earlierTops = new Set<string>();
   return sets.map((set) => {
     if (set.kind === "TopSet") earlierTops.add(set.id);
     if (set.kind === "BackOff" && (!set.sourceSetId || !earlierTops.has(set.sourceSetId))) {
-      const repaired: TrainingSet = { ...set, kind: "Standard" };
+      const repaired: TrainingSet = { ...set };
       delete repaired.sourceSetId;
       return repaired;
     }
@@ -438,6 +438,7 @@ export function makeGroup(doc: TrainingDocument, workoutId: string, instanceIds:
   const workout = findWorkout(doc, workoutId);
   if (!workout) return doc;
   if (instanceIds.length < 2 || (kind === "Superset" && instanceIds.length !== 2)) return doc;
+  if (new Set(instanceIds).size !== instanceIds.length || instanceIds.some(id => !workout.exercises.some(e => e.id === id))) return doc;
   if (instanceIds.some((id) => groupOf(workout, id))) return doc;
   const group: ExerciseGroup = { id: newId(), kind, exerciseIds: instanceIds, rounds: kind === "Circuit" ? 3 : 1, restSeconds: 90 };
   return updateNode(doc, workoutId, { groups: [...workout.groups, group] });
@@ -489,5 +490,5 @@ export function documentStats(doc: TrainingDocument) {
 
 /** Whether a document uses constructs gated by `training.sets.advanced`. */
 export function setIsAdvanced(set: TrainingSet): boolean {
-  return set.kind !== "Standard";
+  return !["Standard", "Warmup", "BackOff"].includes(set.kind);
 }

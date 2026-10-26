@@ -50,6 +50,11 @@ public sealed class Profile
     public long Version { get; set; } = 1;
     public string Currency { get; set; } = "EUR";
     public string SystemValues { get; set; } = "{}";
+    /// <summary>The animated profile cover the person chose: {"background": name, "props": {...}} (null = default).</summary>
+    public string? CoverStyle
+    {
+        get; set;
+    }
 }
 
 public sealed class Workspace

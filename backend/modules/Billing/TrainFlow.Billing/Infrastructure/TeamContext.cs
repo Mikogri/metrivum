@@ -21,7 +21,8 @@ public sealed class TeamContext(BillingDbContext db, TimeProvider clock) : ITeam
     public async Task<TeamAccess> RequireAsync(Guid teamId, Guid userId, bool administrative, CancellationToken ct)
     {
         var context = await GetForUserAsync(userId, ct);
-        if (context is null || context.TeamId != teamId || !context.IsActive || administrative && context.Role is not ("Owner" or "Admin"))
+        // Membership keeps historical records accessible after billing expiry; writes check IsActive in their owning module.
+        if (context is null || context.TeamId != teamId || administrative && context.Role is not ("Owner" or "Admin"))
             throw ApiException.NotFound();
         return context;
     }

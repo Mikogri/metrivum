@@ -1,6 +1,8 @@
-import { useId } from "react";
-import { Button, Chip, ChipGroup, NumberInput, Option, Select, TextArea } from "@trainflow/ui-web";
-import { useT } from "~/shared/i18n/AppLocale";
+import { useId, useMemo, useState } from "react";
+import { LocateFixed, MapPin } from "lucide-react";
+import { Alert, Button, Chip, ChipGroup, Combobox, NumberInput, Option, Select, TextArea, TextField } from "@trainflow/ui-web";
+import { countryNames, locateMe } from "../lib/location";
+import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import type { AppMessages } from "~/shared/i18n/messages/app.en";
 import styles from "./ProfileDetails.module.css";
 
@@ -24,11 +26,16 @@ export type Details = {
   AvailableEquipment: string[];
   InjuriesLimitationsPainNotes: string;
   AdditionalNotes: string;
+  Country: string;
+  Region: string;
+  City: string;
+  PostalCode: string;
 };
 export type DetailKey = keyof Details;
-export type DetailGroup = "body" | "heart" | "training" | "health";
+export type DetailGroup = "location" | "body" | "heart" | "training" | "health";
 
 export const DETAIL_GROUPS: Record<DetailGroup, DetailKey[]> = {
+  location: ["Country", "Region", "City", "PostalCode"],
   body: ["Sex", "Height", "Weight", "BodyFat"],
   heart: ["HrMax", "Sleep", "Stress"],
   training: ["TrainingExperience", "ActivityLevel", "SessionsPerWeek", "AvailableSessionDuration", "PreferredTrainingDays", "AvailableEquipment"],
@@ -38,6 +45,7 @@ export const DETAIL_GROUPS: Record<DetailGroup, DetailKey[]> = {
 export const emptyDetails: Details = {
   Sex: "", Height: NaN, Weight: NaN, BodyFat: NaN, HrMax: NaN, Sleep: NaN, Stress: NaN, TrainingExperience: "", ActivityLevel: "",
   SessionsPerWeek: NaN, AvailableSessionDuration: NaN, PreferredTrainingDays: [], AvailableEquipment: [], InjuriesLimitationsPainNotes: "", AdditionalNotes: "",
+  Country: "", Region: "", City: "", PostalCode: "",
 };
 
 const NUMBER_KEYS = new Set<DetailKey>(["Height", "Weight", "BodyFat", "HrMax", "Sleep", "Stress", "SessionsPerWeek", "AvailableSessionDuration"]);
@@ -176,6 +184,8 @@ export function DetailFields({ group, value, onChange, problems = {}, required =
   );
   const u = m.profile.units;
 
+  if (group === "location") return <LocationFields value={value} onChange={onChange} />;
+
   if (group === "body")
     return (
       <div className={styles.fields}>
@@ -257,6 +267,62 @@ export function DetailFields({ group, value, onChange, problems = {}, required =
     <div className={styles.fields}>
       <TextArea label={t.injuries} placeholder={t.injuriesPlaceholder} value={value.InjuriesLimitationsPainNotes} onChange={(next) => set("InjuriesLimitationsPainNotes", next)} maxLength={4000} />
       <TextArea label={t.notes} placeholder={t.notesPlaceholder} value={value.AdditionalNotes} onChange={(next) => set("AdditionalNotes", next)} maxLength={4000} />
+    </div>
+  );
+}
+
+/**
+ * Country, region, city and postal code. "Use my location" asks the browser for the position and fills the fields
+ * from a reverse lookup; nothing is saved until the person saves the form.
+ */
+function LocationFields({ value, onChange }: { value: Details; onChange: (next: Details) => void }) {
+  const m = useT();
+  const t = m.onboarding.location;
+  const { locale } = useAppLocale();
+  const countries = useMemo(() => countryNames(locale), [locale]);
+  const [locating, setLocating] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const set = (key: "Country" | "Region" | "City" | "PostalCode", next: string) => onChange({ ...value, [key]: next });
+  async function locate() {
+    setLocating(true);
+    setProblem(null);
+    try {
+      const found = await locateMe(locale);
+      onChange({ ...value, Country: found.country || value.Country, Region: found.region || value.Region, City: found.city || value.City, PostalCode: found.postalCode || value.PostalCode });
+    } catch (error) {
+      setProblem(error instanceof GeolocationPositionError && error.code === error.PERMISSION_DENIED ? t.denied : t.failed);
+    } finally {
+      setLocating(false);
+    }
+  }
+  return (
+    <div className={styles.fields}>
+      <div className={styles.discovery}>
+        <MapPin aria-hidden="true" />
+        <p>{t.why}</p>
+      </div>
+      <div className={styles.locate}>
+        <Button size="sm" iconStart={<LocateFixed />} loading={locating} onPress={() => void locate()}>
+          {t.useMine}
+        </Button>
+      </div>
+      {problem ? <Alert tone="warning" title={problem} /> : null}
+      <Combobox
+        label={t.country}
+        placeholder={t.countryPlaceholder}
+        defaultItems={countries}
+        selectedKey={value.Country || null}
+        onSelectionChange={(key) => set("Country", key === null ? "" : String(key))}
+      >
+        {(item: { id: string; name: string }) => <Option id={item.id}>{item.name}</Option>}
+      </Combobox>
+      <div className={styles.pair}>
+        <TextField label={t.region} placeholder={t.regionPlaceholder} value={value.Region} onChange={(next) => set("Region", next)} maxLength={100} autoComplete="address-level1" />
+        <TextField label={t.city} placeholder={t.cityPlaceholder} value={value.City} onChange={(next) => set("City", next)} maxLength={100} autoComplete="address-level2" />
+      </div>
+      <div className={styles.pair}>
+        <TextField label={t.postalCode} placeholder={t.postalCodePlaceholder} value={value.PostalCode} onChange={(next) => set("PostalCode", next)} maxLength={16} autoComplete="postal-code" />
+      </div>
     </div>
   );
 }

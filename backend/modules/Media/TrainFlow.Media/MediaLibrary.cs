@@ -16,11 +16,13 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
 {
     private readonly StorageOptions options = configured.Value;
     private readonly MediaQuotaOptions quotas = quotaOptions?.Value ?? new();
+    /// <summary>Files owned by a workflow (relationship documentation, coach portfolio): never reachable through the generic media endpoints.</summary>
+    private static bool WorkflowOwned(string purpose) => purpose is "Documentation" or "Portfolio";
     private static MediaDto Dto(MediaFile file) => new(file.Id, file.Name, file.ContentType, file.Size, file.State, file.Pinned, file.CreatedAt, file.Version, file.DurationMs);
     public async Task<MediaDto> GetAsync(Guid id, Guid owner, CancellationToken ct)
     {
         var file = await OwnedAsync(id, owner, ct);
-        if (file.Purpose == "Documentation")
+        if (WorkflowOwned(file.Purpose))
             throw ApiException.NotFound();
         return Dto(file);
     }
@@ -45,12 +47,12 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
 
     public Task<UploadTicket> CreateAsync(Guid owner, UploadRequest input, CancellationToken ct) => CreateCoreAsync(owner, input, false, ct);
     public Task<UploadTicket> CreateMessagingAsync(Guid owner, UploadRequest input, CancellationToken ct) => CreateCoreAsync(owner, input, true, ct);
-    private async Task<UploadTicket> CreateCoreAsync(Guid owner, UploadRequest input, bool messaging, CancellationToken ct, Guid? documentationRelationship = null)
+    private async Task<UploadTicket> CreateCoreAsync(Guid owner, UploadRequest input, bool messaging, CancellationToken ct, Guid? documentationRelationship = null, bool portfolio = false)
     {
         if (messaging && !options.AllowedAttachmentTypes.Contains(input.ContentType, StringComparer.Ordinal))
             throw ApiException.Invalid("This attachment type is not enabled.");
         var extension = messaging ? AttachmentValidation.Extension(input.ContentType) : VideoFileValidation.Extension(input.ContentType);
-        if (string.IsNullOrWhiteSpace(input.Name) || input.Name.Length > 200 || input.Size <= 0 || input.Size > (messaging ? options.MaxAttachmentBytes : options.MaxVideoBytes))
+        if (string.IsNullOrWhiteSpace(input.Name) || input.Name.Length > 200 || input.Size <= 0 || input.Size > (messaging ? options.MaxAttachmentBytes : options.AcceptedVideoBytes))
             throw ApiException.Invalid("Provide a name of up to 200 characters and a file within the configured size limit.");
         abuse?.Require(owner, AbusePolicies.UploadStart);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
@@ -81,14 +83,14 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
         if (physicalReservation > quotas.GlobalStorageBytes - global)
             throw QuotaExceeded("storage-global");
         // Deletion cannot revoke an issued upload URL; retain its reservation until the capability expires.
-        if (await db.Files.CountAsync(x => x.OwnerId == owner && (x.State == "Pending" || x.State == "Deleting") && x.UploadExpiresAt > now, ct) >= options.MaxPendingUploadsPerOwner)
+        if (await db.Files.CountAsync(x => x.OwnerId == owner && (x.State == "Pending" || x.State == "Deleting") && x.UploadExpiresAt > now, ct) >= options.AcceptedPendingUploads)
             throw QuotaExceeded("upload-concurrent");
         var file = new MediaFile
         {
             Id = Guid.NewGuid(),
             OwnerId = owner,
             Name = input.Name.Trim(),
-            Purpose = documentationRelationship.HasValue ? "Documentation" : messaging ? "Messaging" : "Video",
+            Purpose = documentationRelationship.HasValue ? "Documentation" : portfolio ? "Portfolio" : messaging ? "Messaging" : "Video",
             Bucket = options.Bucket,
             ContentType = input.ContentType,
             Size = input.Size,
@@ -96,7 +98,7 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
             CreatedAt = now,
             UploadExpiresAt = now.AddHours(2).AddMinutes(5)
         };
-        file.ObjectKey = owner.ToString("N") + (documentationRelationship.HasValue ? $"/documentation/{documentationRelationship:N}/" : messaging ? "/attachments/" : "/videos/") + file.Id.ToString("N") + "." + extension;
+        file.ObjectKey = owner.ToString("N") + (documentationRelationship.HasValue ? $"/documentation/{documentationRelationship:N}/" : portfolio ? "/portfolio/" : messaging ? "/attachments/" : "/videos/") + file.Id.ToString("N") + "." + extension;
         // Persist the reservation before issuing a transport capability. A failed signer leaves a reclaimable pending reservation.
         db.Files.Add(file);
         await db.SaveChangesAsync(ct);
@@ -121,10 +123,10 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
 
     public Task<MediaDto> FinalizeAsync(Guid id, Guid owner, CancellationToken ct) => FinalizeCoreAsync(id, owner, ct);
 
-    private async Task<MediaDto> FinalizeCoreAsync(Guid id, Guid owner, CancellationToken ct, bool documentation = false)
+    private async Task<MediaDto> FinalizeCoreAsync(Guid id, Guid owner, CancellationToken ct, bool workflow = false)
     {
         var file = await OwnedAsync(id, owner, ct);
-        if (file.Purpose == "Documentation" && !documentation)
+        if (WorkflowOwned(file.Purpose) && !workflow)
             throw ApiException.NotFound();
         if (file.State == "Ready")
             return Dto(file);
@@ -159,7 +161,7 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
     private async Task<MediaFile> RequireReadableFileAsync(Guid id, Guid ownerId, CancellationToken cancellationToken)
     {
         var file = await OwnedAsync(id, ownerId, cancellationToken);
-        if (file.Purpose == "Documentation")
+        if (WorkflowOwned(file.Purpose))
             throw ApiException.NotFound();
         if (file.State != "Ready")
             throw new ApiException(409, "MEDIA_NOT_READY", "The source file is not ready.");
@@ -209,9 +211,9 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
 
     private async Task<long?> ValidateAsync(MediaFile file, StoredObject actual, CancellationToken ct)
     {
-        if (file.Purpose is not ("Messaging" or "Documentation"))
+        if (file.Purpose is not ("Messaging" or "Documentation" or "Portfolio"))
         {
-            VideoFileValidation.Validate(file.ContentType, file.Size, actual.Size, actual.Prefix, options.MaxVideoBytes);
+            VideoFileValidation.Validate(file.ContentType, file.Size, actual.Size, actual.Prefix, options.AcceptedVideoBytes);
             return null;
         }
         AttachmentValidation.Validate(file.ContentType, file.Size, actual, options);
@@ -253,7 +255,7 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
     {
         if (page < 1 || page > 100000 || pageSize is < 1 or > 100 || search?.Length > 200 || state is not (null or "Pending" or "Ready" or "Deleting"))
             throw ApiException.Invalid("Invalid list filters or pagination.");
-        var query = db.Files.AsNoTracking().Where(x => x.OwnerId == owner && x.State != "Deleted" && x.Purpose != "Documentation");
+        var query = db.Files.AsNoTracking().Where(x => x.OwnerId == owner && x.State != "Deleted" && x.Purpose != "Documentation" && x.Purpose != "Portfolio");
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(x => x.Name.ToLower().Contains(search.ToLower()));
         if (state != null)

@@ -12,7 +12,7 @@ using TrainFlow.Coaching.Infrastructure;
 
 namespace TrainFlow.Coaching.Features;
 
-public sealed class CoachingService(CoachingDbContext db, IAccountContext accounts, IAccountDirectory directory, IFeatureAccessService access, TimeProvider clock, IHostEnvironment environment, ModuleTransaction? moduleTransaction = null, IEnumerable<ICoachingMessagingObserver>? messagingObservers = null, INotificationPublisher? notifications = null, ITeamContext? teams = null) : IRelationshipAccessPolicy, IRelationshipActivation
+public sealed class CoachingService(CoachingDbContext db, IAccountContext accounts, IAccountDirectory directory, IFeatureAccessService access, TimeProvider clock, IHostEnvironment environment, ModuleTransaction? moduleTransaction = null, IEnumerable<ICoachingMessagingObserver>? messagingObservers = null, INotificationPublisher? notifications = null, ITeamContext? teams = null, ClientCapacity? capacity = null) : IRelationshipAccessPolicy, IRelationshipActivation
 {
     private readonly Dictionary<Guid, TeamAccess> teamScopes = [];
     public async Task<RelationshipAccessDecision> DecideAsync(Guid id, RelationshipOperation operation, CancellationToken ct) =>
@@ -131,6 +131,8 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
             // Serialize pair activation and returning-client reactivation across API instances.
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({coachId.ToString() + ":" + clientId.ToString()}, 0))", token);
             var existing = await db.Relationships.FromSqlInterpolated($"SELECT * FROM coaching.\"Relationships\" WHERE \"CoachId\"={coachId} AND \"ClientId\"={clientId} AND \"TeamId\" IS NULL FOR UPDATE").SingleOrDefaultAsync(token);
+            if (capacity != null && existing?.Status != RelationshipStatus.Active)
+                await capacity.RequireAsync(coachId, clientId, null, token);
             var now = clock.GetUtcNow();
             if (existing != null)
             {
@@ -215,7 +217,11 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
         var owner = await db.Relationships.AsNoTracking().AnyAsync(x => x.Id == id && x.CoachId == accounts.UserId, ct);
         return owner ? await ClientAsync(id, ct) : await RelationshipAsync(id, ct);
     }
-    public async Task<CoachRelationshipDto> ChangeStatusAsync(Guid id, RelationshipStatus target, StatusRequest request, long version, CancellationToken ct)
+    public Task<CoachRelationshipDto> ChangeStatusAsync(Guid id, RelationshipStatus target, StatusRequest request, long version, CancellationToken ct) =>
+        moduleTransaction == null ? ChangeStatusCoreAsync(id, target, request, version, ct)
+        : moduleTransaction.RunAsync(token => ChangeStatusCoreAsync(id, target, request, version, token), ct);
+
+    private async Task<CoachRelationshipDto> ChangeStatusCoreAsync(Guid id, RelationshipStatus target, StatusRequest request, long version, CancellationToken ct)
     {
         var owner = await CoachAsync("coaching.clients.manage", ct);
         var r = await OwnedRelationshipAsync(id, owner, ct);
@@ -230,6 +236,8 @@ public sealed class CoachingService(CoachingDbContext db, IAccountContext accoun
         if (!((r.Status == RelationshipStatus.Active && target is RelationshipStatus.Suspended or RelationshipStatus.Completed) || (r.Status == RelationshipStatus.Suspended && target == RelationshipStatus.Active)))
             throw ApiException.Conflict("This status transition is not supported.");
         var previous = r.Status;
+        if (target == RelationshipStatus.Active && capacity != null)
+            await capacity.RequireAsync(owner.UserId, r.ClientId, null, ct);
         var now = clock.GetUtcNow();
         r.Status = target;
         r.Version++;

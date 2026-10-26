@@ -45,8 +45,8 @@ Recommended for HTML responses: `X-Content-Type-Options: nosniff`, `Referrer-Pol
 strict-origin-when-cross-origin`, `X-Frame-Options: DENY` (or `frame-ancestors 'none'`). A Content Security
 Policy must allow:
 
-- `connect-src`: the API origin, the Supabase project origin (Auth) and the Storage origin used by signed
-  upload URLs;
+- `connect-src`: the API origin, the Supabase project origin (Auth), the Storage origin used by signed
+  upload URLs and `https://api.bigdatacloud.net` (reverse geocoding for "Use my location" in the profile);
 - `media-src`: the Storage origin (signed read URLs);
 - `script-src 'self'` plus the inline hydration scripts React Router writes (use hashes or `'unsafe-inline'`)
   and the one-line motion flag in `root.tsx`;
@@ -56,7 +56,8 @@ No service worker, analytics or monitoring is included.
 
 `scripts/serve.mjs` sends the deployment-independent part on every response: `Content-Security-Policy:
 frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'`, `Cross-Origin-Opener-Policy:
-same-origin-allow-popups` and a `Permissions-Policy` that turns off camera, microphone, geolocation, payment and USB.
+same-origin-allow-popups` and a `Permissions-Policy` that turns off camera, microphone, payment and USB and allows geolocation only for the
+app itself (the profile's "Use my location").
 A real host adds the origin lists above. The API sends `default-src 'none'`, `X-Frame-Options: DENY` and
 `Referrer-Policy: no-referrer` on its own responses (JSON and files only).
 

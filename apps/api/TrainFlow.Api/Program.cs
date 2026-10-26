@@ -320,12 +320,25 @@ if (exportContracts)
     var output = Environment.GetEnvironmentVariable("TRAINFLOW_CONTRACT_OUTPUT") ?? Path.Combine(Directory.GetCurrentDirectory(), "contracts", "generated");
     Directory.CreateDirectory(output);
     using var http = new HttpClient();
-    await File.WriteAllTextAsync(Path.Combine(output, "openapi.json"), await http.GetStringAsync(app.Urls.Single() + "/openapi/v1.json"));
+    await WriteContractAsync("openapi.json", await http.GetStringAsync(app.Urls.Single() + "/openapi/v1.json"));
     var features = JsonSerializer.Serialize(app.Services.GetRequiredService<FeatureCatalog>().Definitions.Values.OrderBy(x => x.Key), new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
-    await File.WriteAllTextAsync(Path.Combine(output, "features.json"), features + "\n");
-    await File.WriteAllTextAsync(Path.Combine(output, "features.ts"), "// Generated from module feature definitions. Do not edit.\nexport const features = " + features + " as const;\nexport type FeatureKey = (typeof features)[number]['key'];\n");
+    await WriteContractAsync("features.json", features + "\n");
+    await WriteContractAsync("features.ts", "// Generated from module feature definitions. Do not edit.\nexport const features = " + features + " as const;\nexport type FeatureKey = (typeof features)[number]['key'];\n");
     await app.StopAsync();
     return;
+
+    async Task WriteContractAsync(string name, string content)
+    {
+        // Replace rather than truncate: editor/indexer mappings on Windows may keep the old file open.
+        var path = Path.Combine(output, name);
+        var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await File.WriteAllTextAsync(temporary, content);
+            File.Move(temporary, path, overwrite: true);
+        }
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+    }
 }
 if (!builder.Environment.IsEnvironment("Testing"))
     await RuntimeDatabaseGuard.ValidateAsync(app.Services.GetRequiredService<NpgsqlDataSource>(), CancellationToken.None);

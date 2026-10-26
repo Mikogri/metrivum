@@ -22,6 +22,9 @@ public sealed partial class OffersBillingTests
 
         static async Task Check(DbContext db, string baseline, string schema, int count)
         {
+            // Isolate this migration's delta from tables/indexes introduced by later features.
+            var target = db.GetService<IMigrationsAssembly>().Migrations.Keys.Single(x => x.EndsWith("_PagedTeamReadIndexes", StringComparison.Ordinal));
+            await db.GetService<IMigrator>().MigrateAsync(target);
             var names = schema == "billing"
                 ? new[] { "IX_team_memberships_TeamId_JoinedAt_UserId" }
                 : new[] { "IX_TeamClientCases_TeamId_CreatedAt_Id", "IX_ClientTransferRequests_ClientId_CreatedAt_Id", "IX_ClientTransferRequests_TeamId_CreatedAt_Id" };

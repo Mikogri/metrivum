@@ -22,7 +22,7 @@ public sealed partial class OffersBillingTests
         await using var services = TeamServices(owner, isolated.Connection, clock);
         await using var scope = services.CreateAsyncScope();
         var billing = TeamBilling(scope);
-        var quote = await billing.QuoteAsync(new("Ownership authorization", 2, "team-v1"), default);
+        var quote = await billing.QuoteAsync(new("Ownership authorization", 3, "eur-monthly-v3-Team"), default);
         var paid = await billing.ConfirmAsync(new(quote.Id, "create"), default);
         var admin = Organization(scope, owner, clock);
         var invite = await admin.RequestAsync(paid.TeamId, new(member.ToString()), default);
@@ -109,9 +109,12 @@ public sealed partial class OffersBillingTests
         await using (var scope = services.CreateAsyncScope())
         {
             var billing = TeamBilling(scope);
-            var quote = await billing.QuoteAsync(new("Atomic seats", 2, "team-v1"), default);
+            var quote = await billing.QuoteAsync(new("Atomic seats", 3, "eur-monthly-v3-Team"), default);
             teamId = (await billing.ConfirmAsync(new(quote.Id, "create"), default)).TeamId;
             var team = Organization(scope, owner, clock);
+            var occupiedUser = Guid.NewGuid();
+            var occupiedInvite = await team.RequestAsync(teamId, new(occupiedUser.ToString()), default);
+            await Organization(scope, occupiedUser, clock).DecideAsync(occupiedInvite.Id, true, default);
             inviteA = (await team.RequestAsync(teamId, new(a.ToString()), default)).Id;
             inviteB = (await team.RequestAsync(teamId, new(b.ToString()), default)).Id;
         }
@@ -131,7 +134,7 @@ public sealed partial class OffersBillingTests
         var winner = accepted[0] ? a : b;
         await using var verify = services.CreateAsyncScope();
         var db = verify.ServiceProvider.GetRequiredService<BillingDbContext>();
-        Assert.Equal(2, await db.TeamMemberships.CountAsync(x => x.TeamId == teamId && x.Status == "Active"));
+        Assert.Equal(3, await db.TeamMemberships.CountAsync(x => x.TeamId == teamId && x.Status == "Active"));
         Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => Organization(verify, winner, clock).RequestAsync(teamId, new(Guid.NewGuid().ToString()), default))).Status);
         var context = await new TeamContext(db, clock).GetForUserAsync(winner, default);
         Assert.True(context!.IsActive);
@@ -148,7 +151,7 @@ public sealed partial class OffersBillingTests
         await using var services = TeamServices(owner, isolated.Connection, clock);
         await using var scope = services.CreateAsyncScope();
         var billing = TeamBilling(scope);
-        var quote = await billing.QuoteAsync(new("Ownership", 2, "team-v1"), default);
+        var quote = await billing.QuoteAsync(new("Ownership", 3, "eur-monthly-v3-Team"), default);
         var paid = await billing.ConfirmAsync(new(quote.Id, "create"), default);
         var admin = Organization(scope, owner, clock);
         var recipient = Organization(scope, member, clock);
@@ -178,7 +181,7 @@ public sealed partial class OffersBillingTests
         await using (var scope = services.CreateAsyncScope())
         {
             var billing = TeamBilling(scope);
-            var quote = await billing.QuoteAsync(new("Lifecycle", 1, "team-v1"), default);
+            var quote = await billing.QuoteAsync(new("Lifecycle", 3, "eur-monthly-v3-Team"), default);
             var paid = await billing.ConfirmAsync(new(quote.Id, "create"), default);
             id = paid.TeamId;
             end = paid.PeriodEnd;
@@ -222,7 +225,7 @@ public sealed partial class OffersBillingTests
             await using var provider = TeamServices(owner, isolated.Connection, clock);
             await using var scope = provider.CreateAsyncScope();
             var billing = TeamBilling(scope);
-            var quote = await billing.QuoteAsync(new("Independent lifecycle", 1, "team-v1"), default);
+            var quote = await billing.QuoteAsync(new("Independent lifecycle", 3, "eur-monthly-v3-Team"), default);
             var paid = await billing.ConfirmAsync(new(quote.Id, "create"), default);
             ids.Add(paid.TeamId);
             end = paid.PeriodEnd;

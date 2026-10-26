@@ -36,6 +36,7 @@ internal static class TeamCoachingModel
             e.HasKey(x => x.Id);
             e.HasOne<Relationship>().WithMany().HasForeignKey(x => x.RelationshipId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<TeamClientCase>().WithMany().HasForeignKey(x => new { x.TeamClientCaseId, x.TeamId }).HasPrincipalKey(x => new { x.Id, x.TeamId }).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.RelationshipId, "IX_ClientTransferRequests_RelationshipId_All");
             e.HasIndex(x => x.RelationshipId).IsUnique().HasFilter("\"Status\" = 'Pending'");
             e.HasIndex(x => new { x.ClientId, x.Status, x.CreatedAt });
             e.HasIndex(x => new { x.TeamId, x.Status, x.CreatedAt });

@@ -10,7 +10,8 @@ using TrainFlow.VideoAnalysis.Infrastructure;
 
 namespace TrainFlow.VideoAnalysis;
 
-public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary media, IVideoAnalyzer analyzer, IOptions<AnalysisOptions> configured)
+public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary media, IVideoAnalyzer analyzer, IOptions<AnalysisOptions> configured,
+    ICloudGpuMeter? gpuMeter = null, ModuleTransaction? transaction = null, CloudAnalysisBudget? cloudBudget = null)
 {
     private readonly AnalysisOptions options = configured.Value;
     private static readonly Expression<Func<AnalysisJob, AnalysisJob>> Metadata = x => new AnalysisJob
@@ -27,7 +28,8 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         FailureCode = x.FailureCode,
         Attempts = x.Attempts,
         Version = x.Version,
-        RequestHash = x.RequestHash, ExecutionLocation = x.ExecutionLocation, LocalAnalysisId = x.LocalAnalysisId, SourceVideo = x.SourceVideo, WorkoutExecutionId = x.WorkoutExecutionId, SetId = x.SetId
+        RequestHash = x.RequestHash, ExecutionLocation = x.ExecutionLocation, LocalAnalysisId = x.LocalAnalysisId, SourceVideo = x.SourceVideo, WorkoutExecutionId = x.WorkoutExecutionId, SetId = x.SetId,
+        TeamId = x.TeamId, CloudBudgetOperation = x.CloudBudgetOperation, CloudBudgetSeconds = x.CloudBudgetSeconds
     };
     internal static AnalysisDto Dto(AnalysisJob job) => new(job.Id, job.Name, job.Note, job.Tags, job.MediaId,
         JsonSerializer.Deserialize<AnalysisConfiguration>(job.Configuration, AnalysisResults.Json)!, job.Status,
@@ -62,10 +64,8 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
             throw ApiException.Invalid("Select two distinct points on one video frame.");
         var hash = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(input, AnalysisResults.Json)));
 
-        // All operations use the same data source and close connections between statements. Npgsql reuses the
-        // connection enlisted in this ambient transaction, including Media's pin; no distributed transaction is needed.
-        using var transaction = new TransactionScope(TransactionScopeOption.Required,
-            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted, Timeout = TimeSpan.FromSeconds(30) }, TransactionScopeAsyncFlowOption.Enabled);
+        return await InTransaction(async () =>
+        {
         var lockKey = "analysis-create:" + owner;
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({lockKey}, 0))", ct);
         var previous = await db.Jobs.AsNoTracking().Where(x => x.OwnerId == owner && x.IdempotencyKey == idempotencyKey).Select(Metadata).SingleOrDefaultAsync(ct);
@@ -73,9 +73,10 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         {
             if (previous.RequestHash != hash)
                 throw new ApiException(409, "IDEMPOTENCY_CONFLICT", "This key was already used for different content.");
-            transaction.Complete();
             return Dto(previous);
         }
+        if (gpuMeter is not { IsConfigured: true } || cloudBudget == null || transaction == null)
+            throw new ApiException(503, "CLOUD_ANALYSIS_UNAVAILABLE", "Cloud analysis is unavailable until a trusted GPU-metered worker is configured. Use local analysis.");
         if (!analyzer.IsConfigured)
             throw new ApiException(503, "ANALYZER_NOT_CONFIGURED", "No video analysis engine is configured.");
         analyzer.ValidateConfiguration(input.Configuration);
@@ -88,9 +89,10 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
         var source = await media.RequireReadyAsync(input.MediaId, owner, ct);
         if (source.ContentType is not ("video/mp4" or "video/webm" or "video/quicktime"))
             throw ApiException.Invalid("Video analysis requires an MP4, WebM or MOV video.");
-        // Verify the actual storage object before queue admission, without buffering the video in memory.
-        await using (await media.OpenReadAsync(input.MediaId, owner, ct))
+        // A trusted probe inspects the actual video; uploaded/client duration is not an admission authority.
+        await using (var stream = await media.OpenReadAsync(input.MediaId, owner, ct))
         {
+            CloudAnalysisBudget.ValidateVideo(source.Size, await gpuMeter.InspectVideoAsync(stream, ct));
         }
         await media.PinAsync(input.MediaId, owner, ct);
         var now = DateTimeOffset.UtcNow;
@@ -106,12 +108,16 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
             IdempotencyKey = idempotencyKey,
             RequestHash = hash,
             CreatedAt = now,
-            AvailableAt = now
+            AvailableAt = now,
+            TeamId = input.TeamId,
+            CloudBudgetSeconds = Math.Min(options.MaxRunSeconds, 3600)
         };
+        job.CloudBudgetOperation = job.Id + ":admission";
+        await cloudBudget.ReserveAsync(owner, job.TeamId, job.CloudBudgetOperation, job.CloudBudgetSeconds.Value, ct);
         db.Jobs.Add(job);
         await db.SaveChangesAsync(ct);
-        transaction.Complete();
         return Dto(job);
+        }, ct);
     }
 
     public async Task<AnalysisDto> GetAsync(Guid id, Guid owner, CancellationToken ct) => Dto(await OwnedAsync(id, owner, ct));
@@ -170,14 +176,19 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
     /// </summary>
     public async Task DeleteAsync(Guid id, Guid owner, long version, CancellationToken ct)
     {
+        var mediaId = await InTransaction(async () =>
+        {
         var job = await OwnedAsync(id, owner, ct);
         if (job.Version != version)
             throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
         if (await db.Jobs.Where(x => x.Id == id && x.OwnerId == owner && x.Version == version).ExecuteDeleteAsync(ct) != 1)
             throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
+        if (cloudBudget != null) await cloudBudget.ReleaseAsync(owner, job.CloudBudgetOperation, ct);
+        return job.MediaId;
+        }, ct);
         // A separate module owns the file: if releasing it fails, the analysis is still gone and the file is only kept.
-        if (job.MediaId is { } mediaId && !await db.Jobs.AnyAsync(x => x.OwnerId == owner && x.MediaId == mediaId, ct))
-            await media.ReleaseVideoAsync(mediaId, owner, ct);
+        if (mediaId is { } sourceId && !await db.Jobs.AnyAsync(x => x.OwnerId == owner && x.MediaId == sourceId, ct))
+            await media.ReleaseVideoAsync(sourceId, owner, ct);
     }
 
     /// <summary>
@@ -187,30 +198,40 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
     public async Task RetryAsync(Guid id, Guid owner, long version, CancellationToken ct)
     {
         var job = await OwnedAsync(id, owner, ct);
+        if (gpuMeter is not { IsConfigured: true } || cloudBudget == null || transaction == null)
+            throw new ApiException(503, "CLOUD_ANALYSIS_UNAVAILABLE", "Cloud analysis requires a trusted GPU-metered worker.");
         if (job.Version != version)
             throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
         if (job.Status is not ("Failed" or "Cancelled") || job.ExecutionLocation != "server" || job.MediaId is null)
             throw ApiException.Conflict("Only a failed or cancelled analysis run on the server can be retried.");
         if (!analyzer.IsConfigured)
             throw new ApiException(503, "ANALYZER_NOT_CONFIGURED", "No video analysis engine is configured.");
-        using var transaction = new TransactionScope(TransactionScopeOption.Required,
-            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted, Timeout = TimeSpan.FromSeconds(30) }, TransactionScopeAsyncFlowOption.Enabled);
+        await InTransaction(async () =>
+        {
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(743165208915)", ct);
         if (await db.Jobs.CountAsync(x => x.Status == "Queued" || x.Status == "Processing", ct) >= options.MaxQueuedJobs)
             throw new ApiException(429, "RATE_LIMIT_EXCEEDED", "The analysis queue is full. Try again later.", retryAfter: TimeSpan.FromSeconds(30));
         if (options.MaxConcurrentPerOwner > 0 && await db.Jobs.CountAsync(x => x.OwnerId == owner && (x.Status == "Queued" || x.Status == "Processing"), ct) >= options.MaxConcurrentPerOwner)
             throw new ApiException(429, "RATE_LIMIT_EXCEEDED", "Two analyses are already queued or running. Try again when one finishes.", retryAfter: TimeSpan.FromSeconds(30));
         var now = DateTimeOffset.UtcNow;
+        var operation = id + ":retry:" + Guid.NewGuid().ToString("N");
+        await cloudBudget.ReleaseAsync(owner, job.CloudBudgetOperation, ct);
+        var seconds = Math.Min(options.MaxRunSeconds, 3600);
+        await cloudBudget.ReserveAsync(owner, job.TeamId, operation, seconds, ct);
         if (await db.Jobs.Where(x => x.Id == id && x.OwnerId == owner && x.Version == version && (x.Status == "Failed" || x.Status == "Cancelled"))
                 .ExecuteUpdateAsync(update => update.SetProperty(x => x.Status, "Queued").SetProperty(x => x.Attempts, 0)
                     .SetProperty(x => x.FailureCode, (string?)null).SetProperty(x => x.CompletedAt, (DateTimeOffset?)null)
-                    .SetProperty(x => x.AvailableAt, now).SetProperty(x => x.Version, x => x.Version + 1), ct) != 1)
+                    .SetProperty(x => x.AvailableAt, now).SetProperty(x => x.Version, x => x.Version + 1)
+                    .SetProperty(x => x.CloudBudgetOperation, operation).SetProperty(x => x.CloudBudgetSeconds, (long?)seconds), ct) != 1)
             throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
-        transaction.Complete();
+        return true;
+        }, ct);
     }
 
     public async Task CancelAsync(Guid id, Guid owner, long version, CancellationToken ct)
     {
+        await InTransaction(async () =>
+        {
         var job = await OwnedAsync(id, owner, ct);
         if (job.Version != version)
             throw new ApiException(412, "VERSION_CONFLICT", "The analysis has changed.");
@@ -221,6 +242,19 @@ public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary med
             .ExecuteUpdateAsync(update => update.SetProperty(x => x.Status, "Cancelled").SetProperty(x => x.LeaseToken, (Guid?)null)
                 .SetProperty(x => x.LeaseExpiresAt, (DateTimeOffset?)null).SetProperty(x => x.CompletedAt, now).SetProperty(x => x.Version, x => x.Version + 1), ct) != 1)
             throw new ApiException(412, "VERSION_CONFLICT", "The analysis changed before cancellation.");
+        if (cloudBudget != null) await cloudBudget.ReleaseAsync(owner, job.CloudBudgetOperation, ct);
+        return true;
+        }, ct);
+    }
+
+    private async Task<T> InTransaction<T>(Func<Task<T>> action, CancellationToken ct)
+    {
+        if (transaction != null) return await transaction.RunAsync(_ => action(), ct);
+        using var legacy = new TransactionScope(TransactionScopeOption.Required,
+            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted, Timeout = TimeSpan.FromSeconds(30) }, TransactionScopeAsyncFlowOption.Enabled);
+        var result = await action();
+        legacy.Complete();
+        return result;
     }
 
     public async Task<AnalysisResult> ResultAsync(Guid id, Guid owner, int? repetition, int maxPoints, CancellationToken ct)

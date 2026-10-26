@@ -44,7 +44,7 @@ export function SimpleWorkoutTable({ workout, names, apply }: { workout: Workout
     <div className={styles.table} role="grid" aria-label={workout.name || m.editor.untitled} data-readonly={readOnly || undefined}>
       <div role="row" style={{ display: "contents" }}>
         {COLUMNS.map((c, i) => (
-          <div key={c} role="columnheader" className={`${sheet.cell} ${styles.head}`} style={at(i, 0)}>
+          <div key={c} role="columnheader" className={`${sheet.cell} ${styles.head} ${c === "comment" ? sheet.commentHead : ""}`} style={at(i, 0)}>
             {t.columns[c]}
           </div>
         ))}
@@ -58,6 +58,8 @@ export function SimpleWorkoutTable({ workout, names, apply }: { workout: Workout
           <ExerciseRow
             key={instance.id}
             instance={instance}
+            workout={workout}
+            names={names}
             name={names.get(instance.exerciseId)?.name ?? "—"}
             cells={cells}
             readOnly={readOnly}

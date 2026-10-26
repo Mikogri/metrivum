@@ -16,7 +16,7 @@ public sealed partial class OffersBillingTests
         await using var services = TeamServices(owner, isolated.Connection, clock);
         await using var scope = services.CreateAsyncScope();
         var billing = TeamBilling(scope);
-        var quote = await billing.QuoteAsync(new("Paged roster", 3, "team-v1"), default);
+        var quote = await billing.QuoteAsync(new("Paged roster", 3, "eur-monthly-v3-Team"), default);
         var teamId = (await billing.ConfirmAsync(new(quote.Id, "create"), default)).TeamId;
         var team = Organization(scope, owner, clock);
         foreach (var user in new[] { Guid.NewGuid(), Guid.NewGuid() })

@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PlanDto } from "@trainflow/api-client-web";
 import { Alert, Button, Checkbox, Chip, ChipGroup, Disclosure, EmptyState, LoadingState, NumberInput, Option, PageHeader, Select, TextField } from "@trainflow/ui-web";
 import { privateMeta } from "~/shared/i18n/site";
-import { RequireFeature } from "~/shared/access";
+import { QuotaContextField, RequireFeature, useQuotaContext } from "~/shared/access";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { newIdempotencyKey } from "~/shared/http/transport";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -31,6 +31,8 @@ export function GeneratorForm() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const messages = useT();
+  const quotaContext = useQuotaContext();
+  const quota = quotaContext.usage.data?.usage?.find(limit => limit.key === "training.generator.runs_per_period");
   const [input, setInput] = useState(initial);
   const [name, setName] = useState("Generated program");
   const [preview, setPreview] = useState<GenerationPreview | null>(null);
@@ -43,6 +45,8 @@ export function GeneratorForm() {
   const action = useMutation({
     mutationFn: async ({ path, body }: { path: string; body: unknown }) => (await api<GenerationPreview>({ method: "POST", path: `${base}/${path}`, json: body })).data,
     onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: [account, "usage"] });
+      void queryClient.invalidateQueries({ queryKey: [account, "access"] });
       setIssues(result.issues);
       if (result.feasible) { setPreview(result); setFormChanged(false); setSaveKey(newIdempotencyKey()); setReplacements({}); }
     },
@@ -58,7 +62,7 @@ export function GeneratorForm() {
   }
   function regenerate() {
     setIssues([]);
-    action.mutate({ path: "preview", body: { ...input, daySlots: input.daySlots.filter(day => day >= 1 && day <= input.cycleDays) } });
+    action.mutate({ path: "preview", body: { ...input, teamId: quotaContext.teamId, daySlots: input.daySlots.filter(day => day >= 1 && day <= input.cycleDays) } });
   }
   function lock(slot: string, selected: boolean) {
     if (!preview?.state) return;
@@ -77,6 +81,8 @@ export function GeneratorForm() {
   const daySlots = input.daySlots.filter((day) => day >= 1 && day <= input.cycleDays);
   return <div className={styles.page}>
     <PageHeader title="Program generator" description="Choose a goal and your schedule, review the generated program, then continue in the program builder." />
+    <QuotaContextField context={{ ...quotaContext, setTeamId: teamId => { quotaContext.setTeamId(teamId); setPreview(null); setFormChanged(true); } }} disabled={busy} />
+    {quota && <Alert title={messages.access.limits[quota.key] ?? quota.key}>{quota.used} / {quota.maximum == null ? messages.dashboard.coach.unlimited : quota.maximum}</Alert>}
     {options.isPending ? <LoadingState label="Loading reviewed exercise options…" /> : null}
     {options.error ? <Alert tone="danger" title={errorText(messages, options.error)}><Button variant="secondary" onPress={() => void options.refetch()}>Retry</Button></Alert> : null}
     {options.data?.exercises.length === 0 ? <Alert tone="warning" title="No reviewed exercises are available in this catalog. Ask the coach administrator to restore or review the canonical exercise records." /> : null}

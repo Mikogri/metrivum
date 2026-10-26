@@ -1,0 +1,140 @@
+/* Cover editor: background picker on top, then one row per setting in two columns. */
+.editor {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.picker {
+  width: 14rem;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.count {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.params {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: var(--tf-space-1) var(--tf-space-5);
+  max-height: 22rem;
+  padding-right: var(--tf-space-1);
+  overflow-y: auto;
+}
+
+.param {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: 2.25rem;
+  font-size: var(--tf-text-sm);
+}
+
+.param:has(> label:only-child),
+.param:not(:has(.name)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.name {
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.param[data-changed] .name {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.range {
+  flex: 1;
+  min-width: 5rem;
+  accent-color: var(--tf-color-text);
+}
+
+.number {
+  width: 4.75rem;
+  height: 1.75rem;
+  padding: 0 var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.color {
+  width: 2rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+.hex {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+}
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tf-color-text-tertiary);
+  cursor: pointer;
+}
+
+.remove svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  font-size: var(--tf-text-xs);
+}
+
+.number:focus-visible,
+.color:focus-visible,
+.range:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}

@@ -29,8 +29,9 @@ const MOTION_FLAG_SCRIPT =
   "if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.setAttribute('data-motion','')";
 
 export const links: Route.LinksFunction = () => [
-  { rel: "icon", type: "image/png", href: "/favicon.png" },
-  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+  { rel: "icon", type: "image/svg+xml", href: "/brand/metrivum-mark.svg?v=3" },
+  { rel: "icon", type: "image/png", href: "/favicon.png?v=3" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=3" },
 ];
 
 export function Layout({ children }: { children: ReactNode }) {

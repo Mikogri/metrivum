@@ -7,6 +7,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using TrainFlow.BuildingBlocks;
+using TrainFlow.Access.Contracts;
+using TrainFlow.Access.Infrastructure;
+using TrainFlow.Billing.Contracts;
 using TrainFlow.Media;
 using TrainFlow.Media.Contracts;
 using TrainFlow.Media.Infrastructure;
@@ -17,6 +20,28 @@ namespace TrainFlow.IntegrationTests;
 
 public sealed class MediaAnalysisPostgresTests
 {
+    [MediaPostgresFact]
+    public async Task Trusted_gpu_settlement_is_fenced_and_invalid_meter_values_roll_back_the_result()
+    {
+        await using var test = await Database.CreateAsync();
+        var id = await test.EnqueueAsync();
+        await using var services = test.WorkerServices(new FakeAnalyzer());
+        await using var scope = services.CreateAsyncScope();
+        var queue = scope.ServiceProvider.GetRequiredService<AnalysisQueue>();
+        var job = await queue.ClaimAsync(default);
+        Assert.NotNull(job);
+        Assert.False(await queue.CompleteAsync(id, Guid.NewGuid(), Result(), default, 1));
+        Assert.Equal("GPU_METER_INVALID", (await Assert.ThrowsAsync<ApiException>(() => queue.CompleteAsync(id, job.LeaseToken!.Value, Result(), default, job.CloudBudgetSeconds!.Value + 1))).Code);
+        await using var db = test.Analysis();
+        Assert.Equal("Processing", (await db.Jobs.AsNoTracking().SingleAsync(x => x.Id == id)).Status);
+        Assert.True(await queue.CompleteAsync(id, job.LeaseToken!.Value, Result(), default, 1));
+        Assert.False(await queue.CompleteAsync(id, job.LeaseToken.Value, Result(), default, 1));
+        var access = scope.ServiceProvider.GetRequiredService<AccessDbContext>();
+        var receipt = await access.Usage.AsNoTracking().SingleAsync(x => x.Status == "Settled" && x.OwnerId == job.OwnerId);
+        Assert.Equal(1, receipt.Amount);
+        Assert.Equal("cloud:" + id, receipt.Consumer);
+        Assert.DoesNotContain(await access.Usage.AsNoTracking().Where(x => x.OwnerId == job.OwnerId).ToArrayAsync(), x => x.Status == "Reserved");
+    }
     [MediaPostgresFact]
     public async Task Metadata_reads_exclude_results_and_comparison_loads_each_result_once()
     {
@@ -334,7 +359,7 @@ public sealed class MediaAnalysisPostgresTests
         var id = await test.ReadyAsync(owner);
         await using var db = test.Analysis();
         await using var mediaDb = test.Media();
-        var service = new AnalysisLibrary(db, new ThrowAfterPin(test.Library(mediaDb)), new FakeAnalyzer(), Options.Create(test.AnalysisOptions));
+        var service = test.AnalysisLibrary(db, mediaDb, library => new ThrowAfterPin(library));
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.CreateAsync(owner, "rollback", Request(id), default));
         Assert.False((await mediaDb.Files.AsNoTracking().SingleAsync()).Pinned);
         Assert.Empty(await db.Jobs.AsNoTracking().ToListAsync());
@@ -397,14 +422,14 @@ public sealed class MediaAnalysisPostgresTests
         await using var db = test.Analysis();
         await using var files = test.Media();
         var library = new AnalysisLibrary(db, test.Library(files), new UnavailableVideoAnalyzer(), Options.Create(test.AnalysisOptions));
-        Assert.Equal("ANALYZER_NOT_CONFIGURED", (await Assert.ThrowsAsync<ApiException>(() => library.CreateAsync(Guid.NewGuid(), "missing", Request(Guid.NewGuid()), default))).Code);
+        Assert.Equal("CLOUD_ANALYSIS_UNAVAILABLE", (await Assert.ThrowsAsync<ApiException>(() => library.CreateAsync(Guid.NewGuid(), "missing", Request(Guid.NewGuid()), default))).Code);
         Assert.Empty(await db.Jobs.AsNoTracking().ToListAsync());
         var id = await test.EnqueueAsync();
         await using var services = test.WorkerServices(new UnavailableVideoAnalyzer());
-        Assert.True(await services.GetRequiredService<AnalysisWorkerRunner>().RunOnceAsync(default));
+        Assert.False(await services.GetRequiredService<AnalysisWorkerRunner>().RunOnceAsync(default));
         var job = await db.Jobs.AsNoTracking().SingleAsync(x => x.Id == id);
-        Assert.Equal("Failed", job.Status);
-        Assert.Equal("ANALYZER_NOT_CONFIGURED", job.FailureCode);
+        Assert.Equal("Queued", job.Status);
+        Assert.Null(job.FailureCode);
         Assert.Null(job.Result);
     }
 
@@ -507,6 +532,23 @@ public sealed class MediaAnalysisPostgresTests
         public bool IsConfigured => true;
         public Task<AnalysisResult> AnalyzeAsync(Stream source, AnalysisConfiguration configuration, CancellationToken ct) => Task.FromResult(Result());
     }
+    private sealed class TestGpuMeter(IVideoAnalyzer analyzer) : ICloudGpuMeter
+    {
+        public bool IsConfigured => analyzer.IsConfigured;
+        public Task<CloudVideoMetadata> InspectVideoAsync(Stream source, CancellationToken ct) => Task.FromResult(new CloudVideoMetadata(10));
+        public async Task<CloudGpuExecution> ExecuteAsync(Stream source, AnalysisConfiguration configuration, long maximumGpuSeconds, CancellationToken ct) =>
+            new(await analyzer.AnalyzeAsync(source, configuration, ct), 1);
+    }
+    private sealed class TestCloudPlans : IPlanEntitlementsProvider
+    {
+        public Task<PlanEntitlements> GetAsync(Guid userId, CancellationToken ct)
+        {
+            var period = PlanCatalog.FreePeriod(DateTimeOffset.UtcNow);
+            var pro = PlanCatalog.Get("Pro");
+            return Task.FromResult(new PlanEntitlements("Pro", userId, period.Start, period.End, pro.PremiumFeatures, pro.Limits));
+        }
+        public Task<PlanEntitlements> GetForTeamAsync(Guid userId, Guid teamId, CancellationToken ct) => throw ApiException.NotFound();
+    }
     private sealed class ThrowAfterPin(IMediaLibrary inner) : IMediaLibrary
     {
         public Task<ReadyMedia> RequireReadyAsync(Guid id, Guid ownerId, CancellationToken ct) => inner.RequireReadyAsync(id, ownerId, ct);
@@ -541,6 +583,8 @@ public sealed class MediaAnalysisPostgresTests
 
     private sealed class Database(NpgsqlDataSource source, string adminConnection, string name) : IAsyncDisposable
     {
+        private ServiceProvider? interactive;
+        private readonly List<IServiceScope> operationScopes = [];
         public FakeStorage Storage { get; } = new();
         public StorageOptions StorageOptions { get; } = new() { Bucket = "test-private" };
         public AnalysisOptions AnalysisOptions { get; } = new();
@@ -548,7 +592,15 @@ public sealed class MediaAnalysisPostgresTests
         public MediaDbContext Media() => new(new DbContextOptionsBuilder<MediaDbContext>().UseNpgsql(source, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "media")).AddInterceptors(Counter).Options);
         public VideoAnalysisDbContext Analysis() => new(new DbContextOptionsBuilder<VideoAnalysisDbContext>().UseNpgsql(source, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "video_analysis")).AddInterceptors(Counter).Options);
         public MediaLibrary Library(MediaDbContext db) => new(db, Storage, Options.Create(StorageOptions));
-        public AnalysisLibrary AnalysisLibrary(VideoAnalysisDbContext db, MediaDbContext files) => new(db, Library(files), new FakeAnalyzer(), Options.Create(AnalysisOptions));
+        public AnalysisLibrary AnalysisLibrary(VideoAnalysisDbContext db, MediaDbContext files, Func<IMediaLibrary, IMediaLibrary>? wrap = null)
+        {
+            // Admission, pinning and budget settlement now exercise the production shared transaction.
+            interactive ??= WorkerServices(new FakeAnalyzer());
+            var scope = interactive.CreateScope(); operationScopes.Add(scope);
+            var services = scope.ServiceProvider;
+            var media = services.GetRequiredService<IMediaLibrary>();
+            return ActivatorUtilities.CreateInstance<AnalysisLibrary>(services, wrap == null ? media : wrap(media));
+        }
         public AnalysisQueue Queue(VideoAnalysisDbContext db) => new(db, Options.Create(AnalysisOptions));
         public async Task<Guid> ReadyAsync(Guid owner)
         {
@@ -570,10 +622,19 @@ public sealed class MediaAnalysisPostgresTests
         {
             var services = new ServiceCollection();
             services.AddLogging();
+            services.AddSingleton(source);
+            services.AddSingleton<TimeProvider>(TimeProvider.System);
             services.AddSingleton(Options.Create(AnalysisOptions));
             services.AddSingleton(analyzer);
-            services.AddScoped(_ => Analysis());
-            services.AddScoped(_ => Media());
+            services.AddSingleton<ICloudGpuMeter>(new TestGpuMeter(analyzer));
+            services.AddSingleton<IPlanEntitlementsProvider, TestCloudPlans>();
+            services.AddModuleDatabase<VideoAnalysisDbContext>("video_analysis");
+            services.ConfigureDbContext<VideoAnalysisDbContext>(options => options.AddInterceptors(Counter));
+            services.AddModuleDatabase<MediaDbContext>("media");
+            services.ConfigureDbContext<MediaDbContext>(options => options.AddInterceptors(Counter));
+            services.AddModuleDatabase<AccessDbContext>("access");
+            services.AddScoped<IUsageReservations, UsageReservations>();
+            services.AddScoped<CloudAnalysisBudget>();
             services.AddScoped<AnalysisQueue>();
             services.AddScoped<IMediaLibrary>(sp => Library(sp.GetRequiredService<MediaDbContext>()));
             services.AddSingleton<AnalysisWorkerRunner>();
@@ -590,15 +651,21 @@ public sealed class MediaAnalysisPostgresTests
                 await command.ExecuteNonQueryAsync();
             }
             var builder = new NpgsqlConnectionStringBuilder(admin) { Database = name };
-            var test = new Database(NpgsqlDataSource.Create(builder.ConnectionString), admin, name);
+            var dataSource = NpgsqlDataSource.Create(builder.ConnectionString);
+            var test = new Database(dataSource, admin, name);
             await using var media = test.Media();
             await media.Database.MigrateAsync();
             await using var analysis = test.Analysis();
             await analysis.Database.MigrateAsync();
+            await using var access = new AccessDbContext(new DbContextOptionsBuilder<AccessDbContext>()
+                .UseNpgsql(dataSource, options => options.MigrationsHistoryTable("__EFMigrationsHistory", "access")).Options);
+            await access.Database.MigrateAsync();
             return test;
         }
         public async ValueTask DisposeAsync()
         {
+            foreach (var scope in operationScopes) scope.Dispose();
+            if (interactive != null) await interactive.DisposeAsync();
             await source.DisposeAsync();
             await using var connection = new NpgsqlConnection(adminConnection);
             await connection.OpenAsync();

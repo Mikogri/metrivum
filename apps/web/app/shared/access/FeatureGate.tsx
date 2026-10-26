@@ -1,10 +1,11 @@
 import { Lock } from "lucide-react";
 import type { ReactNode } from "react";
 import type { FeatureKey } from "@trainflow/api-client-web";
-import { EmptyState, Skeleton, Tooltip, TooltipTrigger } from "@trainflow/ui-web";
+import { EmptyState, LinkButton, Skeleton, Tooltip, TooltipTrigger } from "@trainflow/ui-web";
 import { Focusable } from "react-aria-components";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useFeatureAccess, type FeatureAccess } from "./useFeatureAccess";
+import { LockedArea } from "./LockedArea";
 import styles from "./FeatureGate.module.css";
 
 export function useFeatureReasonText() {
@@ -25,16 +26,17 @@ export function FeatureGate({ feature, children, fallback = null }: { feature: F
 /** Wraps a disabled control with a tooltip explaining why it is unavailable. */
 export function LockedReason({ access, children }: { access: FeatureAccess; children: ReactNode }) {
   const reason = useFeatureReasonText();
+  const m = useT();
   if (access.allowed) return <>{children}</>;
   return (
-    <TooltipTrigger delay={200}>
+    <span className={styles.lockedGroup}><TooltipTrigger delay={200}>
       <Focusable>
         <span className={styles.lockedWrap} tabIndex={0} aria-label={reason(access)}>
           {children}
         </span>
       </Focusable>
       <Tooltip>{reason(access)}</Tooltip>
-    </TooltipTrigger>
+    </TooltipTrigger>{access.state === "feature_not_in_plan" && <LinkButton href="/app/subscription" size="sm" variant="ghost">{m.access.upgradeToPro}</LinkButton>}</span>
   );
 }
 
@@ -51,9 +53,13 @@ export function RequireFeature({ feature, children }: { feature: FeatureKey; chi
       </div>
     );
   }
+  if (!access.allowed && access.state === "feature_not_in_plan") {
+    const name = m.access.features[feature] ?? feature;
+    return <LockedArea locked variant="page" title={m.access.proTitle(name)} body={m.access.proBody}>{children}</LockedArea>;
+  }
   if (!access.allowed) {
     const name = m.access.features[feature] ?? feature;
-    return <EmptyState icon={<Lock />} title={m.access.lockedTitle(name)} description={reason(access)} />;
+    return <EmptyState icon={<Lock />} title={m.access.lockedTitle(name)} description={reason(access)} actions={access.state === "feature_not_in_plan" ? <LinkButton href="/app/subscription">{m.access.upgradeToPro}</LinkButton> : undefined} />;
   }
   return <>{children}</>;
 }

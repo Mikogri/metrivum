@@ -90,11 +90,60 @@
 }
 
 .profile {
-  display: flex;
-  align-items: center;
+  display: grid;
   gap: var(--tf-space-3);
   padding: var(--tf-space-3);
   border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-width: 0;
+}
+
+/* Profile completeness under the name: a label with the percentage and a thin bar. */
+.progress {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.progressHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-regular);
+}
+
+.progressHead strong {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.progressBar {
+  display: block;
+  height: 0.3125rem;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-overlay);
+}
+
+.progressBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-color-warning);
+  transform-origin: left;
+  transition: transform 400ms var(--tf-ease-out, ease-out);
+}
+
+.progress[data-complete] .progressBar > span {
+  background: var(--tf-color-accent);
 }
 
 .profileText {

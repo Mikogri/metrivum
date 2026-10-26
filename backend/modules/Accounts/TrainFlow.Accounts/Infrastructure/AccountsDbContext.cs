@@ -26,6 +26,8 @@ public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> option
             });
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.NormalizedUsername).IsUnique();
+            e.HasIndex(x => x.NormalizedUsername, "IX_profiles_ActiveUsernamePrefix")
+                .HasOperators("varchar_pattern_ops").HasFilter("\"Active\" AND \"Onboarded\" AND \"NormalizedUsername\" IS NOT NULL");
             e.Property(x => x.Username).HasMaxLength(32);
             e.Property(x => x.NormalizedUsername).HasMaxLength(32);
             e.Property(x => x.DisplayName).HasMaxLength(100);
@@ -37,6 +39,7 @@ public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> option
             e.Property(x => x.Version).IsConcurrencyToken();
             e.Property(x => x.Currency).HasMaxLength(3).HasDefaultValue("EUR");
             e.Property(x => x.SystemValues).HasColumnType("jsonb").HasDefaultValueSql("'{}'::jsonb");
+            e.Property(x => x.CoverStyle).HasColumnType("jsonb");
         });
         model.Entity<Workspace>(e =>
         {

@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\backend\modules\Accounts\TrainFlow.Accounts\TrainFlow.Accounts.csproj" />
     <ProjectReference Include="..\..\..\backend\modules\Access\TrainFlow.Access\TrainFlow.Access.csproj" />
+    <ProjectReference Include="../../../backend/modules/Analytics/TrainFlow.Analytics/TrainFlow.Analytics.csproj" />
     <ProjectReference Include="..\..\..\backend\modules\ExerciseCatalog\TrainFlow.ExerciseCatalog\TrainFlow.ExerciseCatalog.csproj" />
     <ProjectReference Include="..\..\..\backend\modules\Training\TrainFlow.Training\TrainFlow.Training.csproj" />
     <ProjectReference Include="..\..\..\backend\modules\Media\TrainFlow.Media\TrainFlow.Media.csproj" />

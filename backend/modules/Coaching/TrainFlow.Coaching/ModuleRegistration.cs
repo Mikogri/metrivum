@@ -10,6 +10,7 @@ using TrainFlow.Access.Contracts;
 using TrainFlow.Accounts.Contracts;
 using TrainFlow.BuildingBlocks;
 using TrainFlow.Coaching.Contracts;
+using TrainFlow.Coaching.Domain;
 using TrainFlow.Coaching.Features;
 using TrainFlow.Coaching.Infrastructure;
 using TrainFlow.Notifications.Contracts;
@@ -22,8 +23,12 @@ public static class ModuleRegistration
     {
         services.AddModuleDatabase<CoachingDbContext>("coaching");
         services.AddScoped<CoachingService>();
+        services.AddScoped<ClientCapacity>();
         services.AddScoped<IMcpClientOperations, TrainFlow.Coaching.Features.McpClientOperations>();
         services.AddScoped<TeamClientsService>();
+        services.AddScoped<CoachShowcaseService>();
+        services.AddScoped<CoachDiscoveryService>();
+        services.AddScoped<CoachSpecializationsService>();
         services.AddScoped<ITeamLifecycle>(p => p.GetRequiredService<TeamClientsService>());
         services.AddScoped<ITeamCaseAccess>(p => p.GetRequiredService<TeamClientsService>());
         services.AddScoped<INotificationDeliveryPolicy>(p => p.GetRequiredService<TeamClientsService>());
@@ -37,11 +42,41 @@ public static class ModuleRegistration
         services.TryAddSingleton(TimeProvider.System);
         foreach (var key in new[] { "coaching.clients.view", "coaching.clients.manage", "coaching.groups.manage", "coaching.relationships.read-own" })
             services.AddSingleton(new FeatureDefinition(key, "Coaching", key + ".title", key + ".description", key == "coaching.clients.manage" ? ["coaching.clients.view"] : [], []));
+        foreach (var key in new[] { "discovery.coaches.search", "discovery.coach-profile.publish", "discovery.ranking.priority" })
+            services.AddSingleton(new FeatureDefinition(key, "Coaching", key + ".title", key + ".description", [], []));
         return services;
     }
+    /// <summary>The coach's public profile extras and portfolio: read by any signed-in person, edited by the coach.</summary>
+    private static void MapShowcase(IEndpointRouteBuilder endpoints)
+    {
+        var coaches = endpoints.MapGroup("/api/v1/coaches/{coachId:guid}/showcase").WithTags("Coach showcase").RequireAuthorization();
+        coaches.MapGet("", (Guid coachId, CoachShowcaseService service, CancellationToken ct) => service.GetAsync(coachId, ct)).Produces<CoachShowcaseDto>();
+        coaches.MapPost("/cover/read-url", (Guid coachId, CoachShowcaseService service, CancellationToken ct) => service.ReadCoverAsync(coachId, ct)).Produces<TrainFlow.Media.Contracts.DocumentReadUrl>();
+        coaches.MapPost("/portfolio/{itemId:guid}/read-url", (Guid coachId, Guid itemId, CoachShowcaseService service, CancellationToken ct) => service.ReadAsync(coachId, itemId, ct)).Produces<TrainFlow.Media.Contracts.DocumentReadUrl>();
+        var own = endpoints.MapGroup("/api/v1/me/coach-showcase").WithTags("Coach showcase").RequireAuthorization();
+        own.MapPut("", (ShowcaseRequest request, CoachShowcaseService service, CancellationToken ct) => service.UpdateAsync(request, ct)).Produces<CoachShowcaseDto>();
+        own.MapPost("/cover/uploads", (PortfolioUploadRequest request, CoachShowcaseService service, CancellationToken ct) => service.StartCoverUploadAsync(request, ct)).Produces<TrainFlow.Media.Contracts.DocumentUpload>();
+        own.MapPut("/cover", (CoverRequest request, CoachShowcaseService service, CancellationToken ct) => service.SetCoverAsync(request, ct)).Produces<CoachShowcaseDto>();
+        own.MapDelete("/cover", (CoachShowcaseService service, CancellationToken ct) => service.RemoveCoverAsync(ct)).Produces<CoachShowcaseDto>();
+        own.MapPost("/portfolio/uploads", (PortfolioUploadRequest request, CoachShowcaseService service, CancellationToken ct) => service.StartUploadAsync(request, ct)).Produces<TrainFlow.Media.Contracts.DocumentUpload>();
+        own.MapPost("/portfolio", (PortfolioItemRequest request, CoachShowcaseService service, CancellationToken ct) => service.AddAsync(request, ct)).Produces<PortfolioItemDto>();
+        own.MapDelete("/portfolio/{itemId:guid}", async (Guid itemId, CoachShowcaseService service, CancellationToken ct) => { await service.RemoveAsync(itemId, ct); return Results.NoContent(); });
+    }
+
     public static IEndpointRouteBuilder MapCoaching(this IEndpointRouteBuilder endpoints)
     {
         MapTeamClients(endpoints);
+        MapShowcase(endpoints);
+        endpoints.MapGet("/api/v1/coaching/specializations", (CoachSpecializationsService service, CancellationToken ct) => service.TaxonomyAsync(ct)).RequireAuthorization().WithTags("Coaching specializations").Produces<IReadOnlyList<SpecializationCategoryDto>>();
+        var specializations = endpoints.MapGroup("/api/v1/me/coaching-specializations").RequireAuthorization().WithTags("Coaching specializations");
+        specializations.MapGet("", (CoachSpecializationsService service, CancellationToken ct) => service.OwnAsync(ct)).Produces<CoachSpecializationsDto>();
+        specializations.MapPut("", (CoachSpecializationsRequest request, CoachSpecializationsService service, CancellationToken ct) => service.SaveAsync(request, ct)).Produces<CoachSpecializationsDto>();
+        var discovery = endpoints.MapGroup("/api/v1/discovery").WithTags("Discovery").RequireAuthorization().RequireRateLimiting("account-directory");
+        discovery.MapGet("/coaches", (int? page, int? pageSize, string? search, string? specialization, string? specializations, string? mode, string? language, string? location, bool? hasOffers, string? offerCategory, CoachDiscoveryService service, CancellationToken ct) =>
+            service.SearchAsync(page ?? 1, pageSize ?? 20, search, specialization, mode, language, location, hasOffers ?? false, offerCategory, ct, specializations)).Produces<CoachDiscoveryPage>();
+        var ownDiscovery = endpoints.MapGroup("/api/v1/me/discovery").WithTags("Discovery").RequireAuthorization();
+        ownDiscovery.MapGet("", (CoachDiscoveryService service, CancellationToken ct) => service.OwnAsync(ct)).Produces<DiscoveryProfileDto>();
+        ownDiscovery.MapPut("", (DiscoveryProfileRequest request, CoachDiscoveryService service, CancellationToken ct) => service.SaveAsync(request, ct)).Produces<DiscoveryProfileDto>();
         var group = endpoints.MapGroup("/api/v1/coaching").WithTags("Coaching").RequireAuthorization();
         group.MapGet("/clients", (int? page, int? pageSize, string? search, string? sort, RelationshipStatus? status, Guid[]? groupIds, Guid? teamId, Guid? offerId, string? offerCategory, CoachingService service, CancellationToken ct) => service.ClientsAsync(Query(page, pageSize, search, sort, status, groupIds, teamId, offerId, offerCategory), ct));
         group.MapGet("/clients/{id:guid}", async (Guid id, CoachingService service, HttpContext http, CancellationToken ct) => Versioned(http, await service.ClientAsync(id, ct))).Produces<CoachRelationshipDto>();
@@ -94,7 +129,19 @@ public static class ModuleRegistration
         return Results.Ok(value);
     }
 }
-internal sealed class CoachingUsageProvider(CoachingDbContext db) : ILimitUsageProvider
+internal sealed class CoachingUsageProvider(CoachingDbContext db, IPlanEntitlementsProvider plans) : ILimitUsageProvider
 {
-    public async Task<IReadOnlyList<LimitDecision>> GetUsageAsync(Guid ownerId, CancellationToken ct) => [new("coaching.active-clients", long.MaxValue, await db.Relationships.LongCountAsync(x => x.CoachId == ownerId && x.Status == RelationshipStatus.Active, ct))];
+    public async Task<IReadOnlyList<LimitDecision>> GetScopedUsageAsync(Guid ownerId, Guid? teamId, CancellationToken ct)
+    {
+        if (teamId == null) return await GetUsageAsync(ownerId, ct);
+        var plan = await plans.GetForTeamAsync(ownerId, teamId.Value, ct);
+        var count = await db.Set<TeamClientCase>().Where(x => x.TeamId == teamId && x.Status == "Active").Select(x => x.ClientId).Distinct().LongCountAsync(ct);
+        return [new("coaching.active_clients", plan.Limits["coaching.active_clients"], count)];
+    }
+    public async Task<IReadOnlyList<LimitDecision>> GetUsageAsync(Guid ownerId, CancellationToken ct)
+    {
+        var plan = await plans.GetAsync(ownerId, ct);
+        var count = await db.Relationships.Where(x => x.CoachId == ownerId && x.TeamId == null && x.Status == RelationshipStatus.Active).Select(x => x.ClientId).Distinct().LongCountAsync(ct);
+        return [new("coaching.active-clients", plan.Limits["coaching.active_clients"], count), new("coaching.active_clients", plan.Limits["coaching.active_clients"], count)];
+    }
 }

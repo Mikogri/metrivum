@@ -32,7 +32,7 @@ const authError = (code: string, status = 422) => new AuthError("server text tha
 
 beforeEach(() => vi.clearAllMocks());
 
-describe("forms that must not reveal whether an account exists", () => {
+describe("account existence in the sign-in and sign-up forms", () => {
   it("continues to code entry when a passwordless sign-in names an unknown address", async () => {
     mocks.signInWithOtp.mockResolvedValue({ data: {}, error: authError("otp_disabled") });
     setup("/auth/login");
@@ -53,14 +53,27 @@ describe("forms that must not reveal whether an account exists", () => {
     expect(screen.queryByText(/^\/auth\/verify/)).toBeNull();
   });
 
-  it("treats sign-up for a registered address like a new one", async () => {
+  it("says under the email field when sign-up names an address that already has an account", async () => {
     mocks.signUp.mockResolvedValue({ data: { user: null, session: null }, error: authError("user_already_exists") });
     setup("/auth/register");
     await userEvent.type(screen.getByLabelText(/^Email/), "taken@example.com");
     await userEvent.type(screen.getByLabelText(/^Password/), "test-password-123");
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
-    expect(await screen.findByText(/^\/auth\/verify\?type=signup/)).toBeInTheDocument();
+    expect(await screen.findByText("This email already has an account.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sign in to this account instead" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Forgot password?" })).toBeNull();
+    expect(screen.queryByText(/^\/auth\/verify/)).toBeNull();
     expect(mocks.completeSignIn).not.toHaveBeenCalled();
+  });
+
+  it("detects a confirmed account that Supabase returns without identities", async () => {
+    mocks.signUp.mockResolvedValue({ data: { user: { id: "u1", identities: [] }, session: null }, error: null });
+    setup("/auth/register");
+    await userEvent.type(screen.getByLabelText(/^Email/), "taken@example.com");
+    await userEvent.type(screen.getByLabelText(/^Password/), "test-password-123");
+    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText("This email already has an account.")).toBeInTheDocument();
+    expect(screen.queryByText(/^\/auth\/verify/)).toBeNull();
   });
 
   it("rejects malformed addresses and over-long passwords before calling Supabase", async () => {

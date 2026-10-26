@@ -6,9 +6,9 @@ import NewAnalysisRoute from './new-analysis';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
-const state = vi.hoisted(() => ({ enqueue: vi.fn(), launch: vi.fn(), wait: vi.fn(), pair: vi.fn(), refresh: vi.fn(), connection: 'ready', current: true, account: new AbortController(), jobs: [] as unknown[] }));
-vi.mock('~/shared/access', () => ({ RequireFeature: ({ children }: { children: ReactNode }) => children }));
-vi.mock('~/shared/session/AccountScope', () => ({ useAccountContext: () => ({ account: { userId: 'user-1' }, lifecycle: { signal: () => state.account.signal, isCurrent: () => state.current } }) }));
+const state = vi.hoisted(() => ({ enqueue: vi.fn(), api: vi.fn(), launch: vi.fn(), wait: vi.fn(), pair: vi.fn(), refresh: vi.fn(), connection: 'ready', current: true, account: new AbortController(), jobs: [] as unknown[] }));
+vi.mock('~/shared/access', () => ({ RequireFeature: ({ children }: { children: ReactNode }) => children, AccessNotice: () => null, QuotaContextField: () => null, useFeatureAccess: () => ({ allowed: true }), useLimit: () => undefined, useQuotaContext: () => ({ teamId: undefined, usage: {} }) }));
+vi.mock('~/shared/session/AccountScope', () => ({ useAccountContext: () => ({ api: state.api, account: { userId: 'user-1' }, accountKey: '0:user-1', lifecycle: { signal: () => state.account.signal, isCurrent: () => state.current } }) }));
 vi.mock('../local-analysis', () => ({ QUEUE_LIMIT: 10, enqueueJob: state.enqueue, storedPairing: () => 'local-token', storePairing: () => {}, launchLocalAnalyzer: state.launch, waitForLocalAnalyzer: state.wait, pairLocalAnalyzer: state.pair }));
 vi.mock('../analyzer-jobs', () => ({ useAnalyzerJobs: () => ({ jobs: state.jobs, refresh: state.refresh, saved: [], saving: {}, saveErrors: {} }) }));
 vi.mock('../stability', () => ({ measureStability: async () => ({ state: 'stable', shift: 0 }) }));
@@ -21,6 +21,7 @@ vi.mock('../components/TrackingPicker', () => ({ TrackingPicker: ({ onChange, on
 beforeEach(() => {
   state.current = true; state.account = new AbortController(); state.connection = 'ready'; state.jobs = [];
   state.enqueue.mockReset().mockImplementation(async () => ({ id: crypto.randomUUID(), state: 'queued' }));
+  state.api.mockReset().mockResolvedValue({ data: {} });
   state.launch.mockReset(); state.wait.mockReset().mockResolvedValue('ready'); state.pair.mockReset().mockResolvedValue(null); state.refresh.mockReset();
   URL.createObjectURL = vi.fn(() => 'blob:local-video'); URL.revokeObjectURL = vi.fn();
 });
@@ -46,6 +47,8 @@ it('queues several videos with their own points for the signed-in user and keeps
   // Named by the recording date; trimmed and stabilized only when the coach asks (or the camera moved).
   expect(request).toMatchObject({ name: expect.stringMatching(/Oct 2026/), account: 'user-1', movement: 'squat', sourceVideo: { durationSeconds: 10 }, trim: null, stabilize: false });
   expect(token).toBe('local-token');
+  expect(state.api.mock.calls[0]![0]).toMatchObject({ method: 'POST', path: '/api/v1/analyses/local-authorizations', json: { durationSeconds: 10 } });
+  expect(state.api.mock.invocationCallOrder[0]).toBeLessThan(state.enqueue.mock.invocationCallOrder[0]!);
   // The videos stay visible while they are analyzed; the coach can change to another one.
   await waitFor(() => expect(screen.getAllByRole('tab').every(tab => tab.dataset.sent)).toBe(true));
   expect(screen.getAllByRole('tab')).toHaveLength(2);
@@ -123,4 +126,20 @@ it('stops sending when the page closes or the account changes', async () => {
   state.current = false; state.account.abort();
   expect(signal.aborted).toBe(true);
   view.unmount();
+});
+
+it('does not enqueue a video when the server rejects its monthly quota reservation', async () => {
+  state.api.mockRejectedValue(new Error('Monthly local analysis limit reached.'));
+  choose([video('lift.mov')]); markAll();
+  fireEvent.click(screen.getByRole('button', { name: /Start analysis/i }));
+  expect(await screen.findByText('Monthly local analysis limit reached.')).toBeInTheDocument();
+  expect(state.enqueue).not.toHaveBeenCalled();
+});
+
+it('releases its reservation after a companion enqueue failure', async () => {
+  state.enqueue.mockRejectedValue(new Error('Companion rejected this video.'));
+  choose([video('lift.mov')]); markAll();
+  fireEvent.click(screen.getByRole('button', { name: /Start analysis/i }));
+  await screen.findByText('Companion rejected this video.');
+  expect(state.api.mock.calls.map(call => call[0].method)).toEqual(['POST', 'DELETE']);
 });

@@ -39,8 +39,8 @@ public sealed record ServiceRenewalRequest(bool AutoRenew, Guid? PaymentMethodId
 public sealed record ServiceSubscriptionDto(Guid Id, Guid ServiceId, bool AutoRenew, Guid? PaymentMethodId, DateTimeOffset NextPeriodAt, bool Active);
 
 public sealed partial class BillingService(BillingDbContext db, IAccountContext accounts, IFeatureAccessService access,
-    IRelationshipAccessPolicy relationships, IOfferLibrary offers, IPaymentProvider provider, IConfiguration configuration,
-    TimeProvider clock, ModuleTransaction transaction, TrainFlow.Notifications.Contracts.INotificationPublisher notifications, ITrainingPurchases? trainingPurchases = null, ITeamContext? teams = null, IAbuseProtection? abuse = null) : IBillingOrders
+    IRelationshipAccessPolicy relationships, IOfferLibrary offers, IPaymentProvider provider,
+    TimeProvider clock, ModuleTransaction transaction, TrainFlow.Notifications.Contracts.INotificationPublisher notifications, ITrainingPurchases? trainingPurchases = null, ITeamContext? teams = null, IAbuseProtection? abuse = null) : IBillingOrders, IPlatformPlans
 {
     // Trusted Coaching read: the caller authorizes the exact relationship before supplying this bounded page.
     public async Task<IReadOnlyDictionary<Guid, ServiceBillingState>> GetServiceStatesAsync(IReadOnlyCollection<Guid> serviceIds, CancellationToken ct)
@@ -66,6 +66,7 @@ public sealed partial class BillingService(BillingDbContext db, IAccountContext 
     }
     public Task SetServiceRenewalAsync(Guid id, ServiceRenewalRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
+        await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({"billing:service-renewal:" + id}, 0))", token);
         await Client("billing.pay-own", token);
         await Lock("subscription:" + id, token);
         var subscription = await db.Subscriptions.SingleOrDefaultAsync(x => x.Id == id && x.ClientId == accounts.UserId && x.Active, token) ?? throw ApiException.NotFound();
@@ -73,6 +74,9 @@ public sealed partial class BillingService(BillingDbContext db, IAccountContext 
         await Relation(order.RelationshipId, RelationshipOperation.ProtectedWrite, token);
         if (request.AutoRenew && (request.PaymentMethodId == null || !await db.Methods.AnyAsync(x => x.Id == request.PaymentMethodId && x.ClientId == accounts.UserId && x.Active, token)))
             throw ApiException.Invalid("Automatic renewal requires an explicitly selected active simulated method.");
+        await db.Entry(subscription).ReloadAsync(token);
+        if (subscription.AutoRenew && !request.AutoRenew)
+            db.Set<ServiceRenewalChange>().Add(new() { Id = Guid.NewGuid(), SubscriptionId = id, ActorId = accounts.UserId, CreatedAt = clock.GetUtcNow() });
         subscription.AutoRenew = request.AutoRenew;
         subscription.PaymentMethodId = request.AutoRenew ? request.PaymentMethodId : null;
         await db.SaveChangesAsync(token);
@@ -537,24 +541,38 @@ public sealed partial class BillingService(BillingDbContext db, IAccountContext 
         var subscription = await db.Subscriptions.AsNoTracking().Where(x => x.OrderId == o.Id).Select(x => (Guid?)x.Id).SingleOrDefaultAsync(ct);
         return new(o.Id, due.Id, o.Amount, o.Currency, o.FeeRate, o.FeeAmount, o.CoachNetAmount, due.DueAt, subscription);
     }
-    private async Task<decimal> FeeRateAsync(Guid coach, CancellationToken ct, Guid? sellerTeamId = null)
+    public async Task<bool> HasProAsync(Guid userId, CancellationToken ct)
     {
-        var pro = await db.PlatformSubscriptions.AsNoTracking().AnyAsync(x => x.OwnerId == coach && (x.PlanId == "Pro" || x.PlanId == "Team") && x.PeriodEnd > clock.GetUtcNow(), ct);
+        var coach = userId;
+        var pro = await db.PlatformSubscriptions.AsNoTracking().AnyAsync(x => x.OwnerId == coach && (x.PlanId == "Pro" || x.PlanId == "Team" || x.PlanId == "Studio") && x.PeriodEnd > clock.GetUtcNow(), ct);
         pro = pro || await (from member in db.TeamMemberships
                             join team in db.Teams on member.TeamId equals team.Id
                             join subscription in db.Set<TeamPlatformSubscription>() on team.Id equals subscription.TeamId
                             where member.UserId == coach && member.Status == "Active" && (team.Status == "Active" || team.Status == "DissolutionScheduled")
                                 && subscription.Status == "Active" && subscription.PeriodEnd > clock.GetUtcNow()
                             select team.Id).AnyAsync(ct);
-        if (sellerTeamId is { } teamId)
-            pro = await (from team in db.Teams
-                         join subscription in db.Set<TeamPlatformSubscription>() on team.Id equals subscription.TeamId
-                         where team.Id == teamId && (team.Status == "Active" || team.Status == "DissolutionScheduled") && subscription.Status == "Active" && subscription.PeriodEnd > clock.GetUtcNow()
-                         select team.Id).AnyAsync(ct);
-        var rate = configuration.GetValue<decimal?>("Billing:CoachFeeRates:" + coach) ?? configuration.GetValue<decimal?>("Billing:PlatformFeeRate") ?? (pro ? 0.05m : 0.10m);
-        BillingRules.Split(0, rate);
-        return rate;
+        return pro;
     }
+    public async Task<IReadOnlySet<Guid>> GetPriorityCoachIdsAsync(IReadOnlyCollection<Guid> userIds, CancellationToken ct)
+    {
+        if (userIds.Count == 0) return new HashSet<Guid>();
+        var now = clock.GetUtcNow();
+        var personal = db.PlatformSubscriptions.AsNoTracking()
+            .Where(x => userIds.Contains(x.OwnerId) && (x.PlanId == "Pro" || x.PlanId == "Team" || x.PlanId == "Studio")
+                && (x.Status == "Active" || x.Status == "AwaitingPayment") && x.PeriodStart <= now && x.PeriodEnd > now)
+            .Select(x => x.OwnerId);
+        var members = from member in db.TeamMemberships.AsNoTracking()
+                             join team in db.Teams.AsNoTracking() on member.TeamId equals team.Id
+                             join subscription in db.Set<TeamPlatformSubscription>().AsNoTracking() on team.Id equals subscription.TeamId
+                             where userIds.Contains(member.UserId) && member.Status == "Active"
+                                 && (team.Status == "Active" || team.Status == "DissolutionScheduled")
+                                 && subscription.Status == "Active" && subscription.PeriodStart <= now && subscription.PeriodEnd > now
+                             select member.UserId;
+        // One SQL UNION deduplicates personal/seat entitlements without a second database round trip.
+        return (await personal.Union(members).ToArrayAsync(ct)).ToHashSet();
+    }
+    private static Task<decimal> FeeRateAsync(Guid coach, CancellationToken ct, Guid? sellerTeamId = null) => Task.FromResult(PlanCatalog.ServiceCommissionRate);
+
     public async Task<bool> HasOutstandingPersonalObligationsAsync(Guid relationshipId, CancellationToken ct) =>
         await db.Dues.AnyAsync(x => x.RelationshipId == relationshipId && x.TeamId == null && x.Status == DueStatus.AwaitingPayment, ct)
         || await (from subscription in db.Subscriptions

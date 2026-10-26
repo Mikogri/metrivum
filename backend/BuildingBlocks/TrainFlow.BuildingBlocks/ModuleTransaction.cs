@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Microsoft.Extensions.Logging;
 
 namespace TrainFlow.BuildingBlocks;
 /// <summary>One physical transaction across module contracts within a request or worker scope.</summary>
-public sealed class ModuleTransaction(NpgsqlDataSource dataSource) : IDisposable, IAsyncDisposable
+public sealed class ModuleTransaction(NpgsqlDataSource dataSource, ILogger<ModuleTransaction>? logger = null) : IDisposable, IAsyncDisposable
 {
     private readonly List<DbContext> contexts = [];
     private NpgsqlTransaction? transaction;
@@ -45,7 +46,16 @@ public sealed class ModuleTransaction(NpgsqlDataSource dataSource) : IDisposable
         }
         catch
         {
-            await current.RollbackAsync(CancellationToken.None);
+            // A provider may already have aborted and detached the transaction. Preserve the
+            // original failure instead of replacing it with "transaction has completed".
+            if (current.Connection is not null)
+            {
+                try { await current.RollbackAsync(CancellationToken.None); }
+                catch (Exception rollback) when (rollback is InvalidOperationException or NpgsqlException)
+                {
+                    logger?.LogWarning("Rollback failed with {FailureType}; preserving the original operation failure", rollback.GetType().Name);
+                }
+            }
             foreach (var context in contexts)
                 context.ChangeTracker.Clear();
             throw;

@@ -325,10 +325,43 @@
         "resolved": "10.0.12",
         "contentHash": "sOZM+VyRj1pg/ItlHsvrSbjws6oGqZveTzTNBGZ9ziwRDyKsOF3ub6vhvOdxotCIqtlnyHAIwP5sLNvgiZC+pQ=="
       },
+      "trainflow.access": {
+        "type": "Project",
+        "dependencies": {
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
+          "TrainFlow.Access.Contracts": "[1.0.0, )",
+          "TrainFlow.Accounts.Contracts": "[1.0.0, )",
+          "TrainFlow.BuildingBlocks": "[1.0.0, )"
+        }
+      },
       "trainflow.access.contracts": {
         "type": "Project"
       },
       "trainflow.accounts.contracts": {
+        "type": "Project"
+      },
+      "trainflow.analytics.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "TrainFlow.Training.Contracts": "[1.0.0, )"
+        }
+      },
+      "trainflow.billing": {
+        "type": "Project",
+        "dependencies": {
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
+          "TrainFlow.Access.Contracts": "[1.0.0, )",
+          "TrainFlow.Accounts.Contracts": "[1.0.0, )",
+          "TrainFlow.Analytics.Contracts": "[1.0.0, )",
+          "TrainFlow.Billing.Contracts": "[1.0.0, )",
+          "TrainFlow.BuildingBlocks": "[1.0.0, )",
+          "TrainFlow.Coaching.Contracts": "[1.0.0, )",
+          "TrainFlow.Notifications.Contracts": "[1.0.0, )",
+          "TrainFlow.Offers.Contracts": "[1.0.0, )",
+          "TrainFlow.Training.Contracts": "[1.0.0, )"
+        }
+      },
+      "trainflow.billing.contracts": {
         "type": "Project"
       },
       "trainflow.buildingblocks": {
@@ -338,6 +371,9 @@
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.12, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
+      },
+      "trainflow.coaching.contracts": {
+        "type": "Project"
       },
       "trainflow.media": {
         "type": "Project",
@@ -362,6 +398,9 @@
         }
       },
       "trainflow.notifications.contracts": {
+        "type": "Project"
+      },
+      "trainflow.offers.contracts": {
         "type": "Project"
       },
       "trainflow.training.contracts": {

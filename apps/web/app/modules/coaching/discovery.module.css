@@ -1,0 +1,389 @@
+.page,
+.listing {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+/* Pro edge in the page header: one short line, never taller than the header's own buttons. */
+.edge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  height: 2rem;
+  padding: 0 var(--tf-space-3);
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 40%, transparent);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 160ms ease;
+}
+
+.edge > svg:first-child {
+  flex-shrink: 0;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  color: var(--tf-color-violet);
+}
+
+.edgeArrow {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-violet);
+  transition: transform 160ms ease;
+}
+
+.edge[data-on] {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-accent-soft);
+}
+
+.edge[data-on] > svg:first-child {
+  color: var(--tf-color-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a.edge:hover {
+    border-color: var(--tf-color-violet);
+  }
+
+  a.edge:hover .edgeArrow {
+    transform: translateX(2px);
+  }
+}
+
+/* The coach's own listing: a header row that opens into the editor. */
+.listingCard {
+  overflow: hidden;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-5);
+  cursor: pointer;
+  list-style: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summaryIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.summaryIcon svg {
+  width: 1.0625rem;
+  height: 1.0625rem;
+}
+
+.summaryText {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.summaryText strong {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.summaryText small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.chevron {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-text-tertiary);
+  transition: transform 200ms var(--tf-ease-out, ease-out);
+}
+
+details[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.listingBody {
+  padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-5);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.editor {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--tf-space-3);
+  align-items: start;
+}
+
+.modes {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.modes legend {
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.modeOptions,
+.formActions,
+.tags,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.notice {
+  max-width: 75ch;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.success {
+  color: var(--tf-color-success-text, var(--tf-color-text));
+}
+
+/* Filters: search across the top, the narrower fields in a row, then the toggle, the count and clearing. */
+.filterCard {
+  overflow: hidden;
+}
+
+.searchRow {
+  padding: var(--tf-space-4) var(--tf-space-5) 0;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--tf-space-3);
+  align-items: end;
+  padding: var(--tf-space-4) var(--tf-space-5);
+}
+
+.filterFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-5);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  background: var(--tf-color-surface-raised);
+}
+
+.count {
+  margin-left: auto;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.sectionHead {
+  display: grid;
+  gap: 2px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-text-lg);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.sectionSub {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.featuredIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--tf-color-violet);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: var(--tf-space-4);
+}
+
+/* Coach card: who, what they focus on, where and how, the cheapest offer, then the actions at the bottom. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  min-width: 0;
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  transition: border-color 160ms ease;
+}
+
+.card[data-featured] {
+  border-color: color-mix(in srgb, var(--tf-color-violet) 45%, transparent);
+  background: color-mix(in srgb, var(--tf-color-violet) 5%, var(--tf-color-surface));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    border-color: var(--tf-color-border-strong);
+  }
+
+  .card[data-featured]:hover {
+    border-color: var(--tf-color-violet);
+  }
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
+.personText {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.featuredTag {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+  align-self: flex-start;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.featuredTag svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.bio {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.facts {
+  display: grid;
+  gap: var(--tf-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.facts li {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.facts svg {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.offer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  font-size: var(--tf-text-sm);
+}
+
+.offer span {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--tf-color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.offer strong {
+  flex-shrink: 0;
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  margin-top: auto;
+  padding-top: var(--tf-space-1);
+}
+
+@media (max-width: 40rem) {
+  .summary,
+  .searchRow,
+  .filters,
+  .filterFoot,
+  .listingBody {
+    padding-inline: var(--tf-space-4);
+  }
+
+  .edge {
+    white-space: normal;
+  }
+}
+
+.specializationFilter { padding: var(--tf-space-4); }
+.specializationFilter summary { cursor: pointer; font-weight: var(--tf-weight-semibold); margin-bottom: var(--tf-space-3); }

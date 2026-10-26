@@ -11,7 +11,7 @@ import { ApiError } from "~/shared/http/errors";
 import Onboarding from "./onboarding";
 
 const mocks = vi.hoisted(() => ({ api: vi.fn<(request: ApiRequest) => Promise<unknown>>() }));
-vi.mock("~/shared/session/AccountScope", () => ({ useApi: () => mocks.api, useAccountKey: () => "account" }));
+vi.mock("~/shared/session/AccountScope", () => ({ useApi: () => mocks.api, useAccountKey: () => "account", useAccountContext: () => ({ lifecycle: { isCurrent: () => true } }) }));
 // The segmented date field does not take typed keys in jsdom; a plain date input stands in for it.
 vi.mock("@trainflow/ui-web", async (original) => ({
   ...(await original<typeof Ui>()),
@@ -32,16 +32,20 @@ function setup(role: string) {
     </QueryClientProvider>,
   );
 }
-async function account() {
+async function account(city?: string) {
   await userEvent.type(screen.getByLabelText(/^Username/), "new_client");
   await userEvent.type(screen.getByLabelText(/^First and last name/), "New Client");
   fireEvent.change(screen.getByLabelText("Date of birth"), { target: { value: "1990-01-01" } });
   await userEvent.click(screen.getByText(/^I accept the Metrivum terms/));
   await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+  // Location comes right after the account, explained as worth it for discovery.
+  await screen.findByText("Where are you based?");
+  if (city) await userEvent.type(screen.getByLabelText(/^City/), city);
+  await userEvent.click(screen.getByRole("button", { name: "Continue" }));
   await screen.findByText("About you");
 }
 beforeEach(() => {
-  mocks.api.mockReset().mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/me/profile-fields" ? { currency: "EUR", values: {}, version: 4 } : { id: "user", onboarded: true } }));
+  mocks.api.mockReset().mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/coaching/specializations" ? [] : path === "/api/v1/me/profile-fields" ? { currency: "EUR", values: {}, version: 4 } : { id: "user", onboarded: true } }));
 });
 
 it("asks a client for sex, height and weight before the account is created, then saves them", async () => {
@@ -81,6 +85,39 @@ it("asks a client for sex, height and weight before the account is created, then
   expect(saved.json).toEqual({ values: { Sex: "Female", Height: 168, Weight: 61.5, HrMax: bpm, SessionsPerWeek: 3, PreferredTrainingDays: [1, 3] } });
 }, 20_000);
 
+it("saves the location typed right after the account", async () => {
+  setup("Coach");
+  await account("Kraków");
+  for (const title of ["Heart rate and recovery", "Your training", "Health and goals"]) {
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await screen.findByText(title);
+  }
+  await userEvent.click(screen.getByRole("button", { name: "Finish setup" }));
+  await screen.findByText("Signed in");
+  expect(calls("/api/v1/me/profile-fields", "PATCH")[0]!.json).toEqual({ values: { City: "Kraków" } });
+}, 20_000);
+
+it("saves optional coach specializations only after the coach account is established", async () => {
+  mocks.api.mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/coaching/specializations"
+    ? [{ code: "strength_muscle", name: "Strength & Muscle", sortOrder: 1, specializations: [{ code: "powerlifting", name: "Powerlifting", sortOrder: 1 }] }]
+    : path === "/api/v1/me/coaching-specializations" ? { selectedCodes: [], primaryCodes: [], version: 0 }
+      : { id: "coach", onboarded: true } }));
+  setup("Coach");
+  await account();
+  for (const title of ["Heart rate and recovery", "Your training", "Health and goals"]) {
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await screen.findByText(title);
+  }
+  await userEvent.click(await screen.findByRole("checkbox", { name: "Powerlifting" }));
+  await userEvent.click(screen.getByRole("checkbox", { name: "Mark Powerlifting as primary" }));
+  expect(calls("/api/v1/me/coaching-specializations", "PUT")).toHaveLength(0);
+  await userEvent.click(screen.getByRole("button", { name: "Finish setup" }));
+  await screen.findByText("Signed in");
+  const requests = mocks.api.mock.calls.map(([request]) => request);
+  expect(requests.findIndex(request => request.path === "/api/v1/me/onboarding")).toBeLessThan(requests.findIndex(request => request.path === "/api/v1/me/coaching-specializations"));
+  expect(calls("/api/v1/me/coaching-specializations", "PUT")[0]?.json).toEqual({ selectedCodes: ["powerlifting"], primaryCodes: ["powerlifting"], version: 0 });
+}, 20_000);
+
 it("lets a coach pass the extra steps empty and saves no profile details", async () => {
   setup("Coach");
   await account();
@@ -99,7 +136,7 @@ it("lets a coach pass the extra steps empty and saves no profile details", async
 it("returns to the first step with a field error when the username is already taken", async () => {
   mocks.api.mockImplementation(async ({ path }: ApiRequest) => {
     if (path === "/api/v1/me/onboarding") throw new ApiError(409, { status: 409, title: "USERNAME_TAKEN", code: "USERNAME_TAKEN", detail: "This username is already taken." } as never);
-    return { data: {} };
+    return { data: path === "/api/v1/coaching/specializations" ? [] : {} };
   });
   setup("Coach");
   await account();

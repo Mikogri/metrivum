@@ -61,6 +61,8 @@ export interface ComboboxProps<T extends object>
   size?: "sm" | "md" | "lg";
   /** Rendered inside the list when no option matches. */
   emptyState?: ReactNode;
+  /** Width of the list; by default it matches the field. Use a wider one when the field is narrow. */
+  menuWidth?: "trigger" | "sm" | "md";
   className?: string;
 }
 
@@ -73,6 +75,7 @@ export function Combobox<T extends object>({
   children,
   size = "md",
   emptyState,
+  menuWidth = "trigger",
   className,
   ...props
 }: ComboboxProps<T>) {
@@ -86,7 +89,7 @@ export function Combobox<T extends object>({
         </Button>
       </Group>
       <FieldFooter description={description} errorMessage={errorMessage} />
-      <Popover width="trigger" asDialog={false} placement="bottom start">
+      <Popover width={menuWidth} asDialog={false} placement="bottom start">
         <ListBox className={styles.listbox} renderEmptyState={emptyState ? () => <div className={styles.empty}>{emptyState}</div> : undefined}>
           {children}
         </ListBox>

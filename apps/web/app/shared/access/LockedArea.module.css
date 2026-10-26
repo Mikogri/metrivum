@@ -1,0 +1,215 @@
+/* Locked content: the real screen or block, blurred, with the upgrade notice centred on top. */
+.area {
+  position: relative;
+  isolation: isolate;
+}
+
+.area[data-variant="page"] {
+  overflow: hidden;
+  border-radius: var(--tf-radius-lg);
+}
+
+.area[data-variant="section"] {
+  min-height: 26rem;
+  overflow: hidden;
+  border-radius: var(--tf-radius-lg);
+}
+
+/* The screen behind stays only as a soft hint of its shape. */
+.content {
+  filter: blur(18px) saturate(0.5);
+  opacity: 0.35;
+  pointer-events: none;
+  user-select: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: var(--tf-space-4);
+  background: color-mix(in srgb, var(--tf-color-bg) 35%, transparent);
+  animation: locked-in 220ms var(--tf-ease-out, ease-out) both;
+}
+
+
+
+@keyframes locked-in {
+  from { opacity: 0; }
+}
+
+.card {
+  position: relative;
+  display: grid;
+  width: min(100%, 30rem);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 45%, var(--tf-color-border));
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  box-shadow: 0 30px 80px -24px rgb(0 0 0 / 0.75);
+  text-align: center;
+}
+
+.head {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-6, 1.5rem) var(--tf-space-6, 1.5rem) var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+  background: color-mix(in srgb, var(--tf-color-violet) 10%, var(--tf-color-surface));
+}
+
+.close {
+  position: absolute;
+  top: var(--tf-space-2);
+  right: var(--tf-space-2);
+}
+
+.badge {
+  position: absolute;
+  top: var(--tf-space-3);
+  left: var(--tf-space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet);
+  color: #fff;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-bottom: var(--tf-space-1);
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 45%, transparent);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+
+.icon svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.title {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-2xl);
+  font-weight: var(--tf-weight-semibold);
+  line-height: 1.2;
+}
+
+.body {
+  max-width: 24rem;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.points {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: var(--tf-space-4) var(--tf-space-6, 1.5rem) 0;
+  list-style: none;
+  text-align: left;
+}
+
+.points li {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-text-sm);
+}
+
+.check {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+
+.check svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.actions {
+  display: grid;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-5) var(--tf-space-6, 1.5rem);
+}
+
+.note {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+/* Upgrade link: the same look as the app bar's Upgrade button. */
+.upgrade.upgrade {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 70%, white);
+  background: linear-gradient(110deg, #7c4dff, var(--tf-color-violet), #d16bff, #7c4dff);
+  background-size: 300% 100%;
+  color: #fff;
+  font-weight: var(--tf-weight-semibold);
+  box-shadow: 0 4px 16px -6px #7c4dff;
+  animation: upgrade-drift 16s ease-in-out infinite alternate;
+  transition: transform 160ms var(--tf-ease-out, ease-out), filter 160ms ease;
+}
+
+.upgrade.upgrade::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 35%, rgb(255 255 255 / 0.18) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: upgrade-shine 9s ease-in-out infinite;
+}
+
+.upgrade.upgrade[data-hovered] {
+  filter: brightness(1.08);
+}
+
+.upgrade.upgrade[data-pressed] {
+  transform: scale(0.97);
+}
+
+@keyframes upgrade-drift {
+  to { background-position: 100% 0; }
+}
+
+@keyframes upgrade-shine {
+  0%, 80% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .upgrade.upgrade,
+  .upgrade.upgrade::after {
+    animation: none;
+  }
+}

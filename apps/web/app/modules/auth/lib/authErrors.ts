@@ -84,3 +84,20 @@ export function isUnknownAccount(error: unknown): boolean {
 export function isEmailNotConfirmed(error: unknown): boolean {
   return error instanceof AuthError && error.code === "email_not_confirmed";
 }
+
+/** The field a server error refers to, so the message sits under that input; null for errors about the whole form. */
+export function authErrorField(error: unknown): "email" | "password" | null {
+  if (!(error instanceof AuthError)) return null;
+  switch (error.code) {
+    case "invalid_credentials":
+    case "weak_password":
+      return "password";
+    case "email_not_confirmed":
+    case "email_address_invalid":
+    case "user_already_exists":
+    case "email_exists":
+      return "email";
+    default:
+      return null;
+  }
+}

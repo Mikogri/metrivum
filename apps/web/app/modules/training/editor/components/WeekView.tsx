@@ -1,12 +1,12 @@
 import { effectiveBlock } from "../model/maxes";
-import { Moon, Plus } from "lucide-react";
+import { Copy, MessageSquare, Moon, Plus, Target } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button, Option, Select } from "@trainflow/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { addWorkout, newWorkout, updateNode } from "../model/document";
-import { WEEK_DAYS, ensureWeekday, ensureWeekdayWorkout } from "../model/structure";
+import { WEEK_DAYS, copyDay, ensureWeekday, ensureWeekdayWorkout, swapDays } from "../model/structure";
 import { cycleWorkouts, setDayNote } from "../model/workouts";
 import type { TrainingDocument } from "@trainflow/api-client-web";
 import { BlockFormulaScope } from "../block-maxes";
@@ -62,6 +62,26 @@ export function WeekView({
   const day = dayOf(current);
   const workout = day?.workouts[Math.min(workoutIndex, (day?.workouts.length ?? 1) - 1)] ?? null;
   const dayName = (n: number) => (week ? weekdays[n - 1]!.long : t.day(n));
+  const notes = (doc.annotations ?? []).filter((note) => !note.targetId || note.targetId === cycle?.id || note.targetId === cycles.find((item) => item.cycle.id === cycle?.id)?.block.id);
+  // Moving and copying days: drag a day onto another to swap them; "copy" then a day to paste onto it.
+  const [dragging, setDragging] = useState<number | null>(null);
+  const [over, setOver] = useState<number | null>(null);
+  const [copying, setCopying] = useState<number | null>(null);
+  const dropDay = (from: number, to: number) => {
+    if (!cycle || from === to) return;
+    edit((doc) => swapDays(doc, cycle.id, from, to));
+    setDayNumber(to);
+    setWorkoutIndex(0);
+  };
+  const pasteDay = (to: number) => {
+    if (!cycle || copying === null) return;
+    const from = copying;
+    setCopying(null);
+    if (from === to) return;
+    edit((doc) => copyDay(doc, cycle.id, from, to));
+    setDayNumber(to);
+    setWorkoutIndex(0);
+  };
 
   const planDay = () => {
     edit((doc) => {
@@ -71,6 +91,25 @@ export function WeekView({
     });
     setWorkoutIndex(0);
   };
+
+  // Comments and goals for this cycle (or the whole plan): compact cards under the day's table.
+  const notesBlock = notes.length ? (
+        <ul className={styles.planNotes} aria-label={t.notes}>
+          {notes.map((note) => (
+            <li key={note.id} className={styles.planNote} data-kind={note.kind}>
+              <span className={styles.planNoteIcon} aria-hidden="true">{note.kind === "Goal" ? <Target /> : <MessageSquare />}</span>
+              <span className={styles.planNoteText}>
+                <span className={styles.planNoteMeta}>
+                  {note.kind === "Goal" ? t.goal : t.comment}
+                  <span className={styles.planNoteAudience}>{note.visibility === "Client" ? t.visibleToClient : t.coachOnly}</span>
+                </span>
+                {note.title && note.title !== note.kind ? <strong className={styles.planNoteTitle}>{note.title}</strong> : null}
+                {note.content ? <span className={styles.planNoteBody} title={note.content}>{note.content}</span> : <span className={styles.planNoteEmpty}>{t.noteEmpty}</span>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null;
 
   return (
     <div className={styles.week}>
@@ -98,20 +137,39 @@ export function WeekView({
         </div>
       ) : null}
 
-      <div className={styles.strip} role="tablist" aria-label={t.label} style={week ? undefined : { gridTemplateColumns: `repeat(${length}, minmax(7.5rem, 1fr))` }}>
+      {copying !== null ? (
+        <div className={styles.copyHint} role="status">
+          <span>{t.copyHint(dayName(copying))}</span>
+          <button type="button" className={styles.copyCancel} onClick={() => setCopying(null)}>{m.common.cancel}</button>
+        </div>
+      ) : null}
+      <div className={styles.strip} role="tablist" aria-label={t.label} data-copying={copying !== null || undefined} style={week ? undefined : { gridTemplateColumns: `repeat(${length}, minmax(7.5rem, 1fr))` }}
+        onKeyDown={(event) => { if (event.key === "Escape") setCopying(null); }}>
         {Array.from({ length }, (_, index) => {
           const number = index + 1;
           const d = dayOf(number);
           const count = d?.workouts.reduce((sum, w) => sum + w.exercises.length, 0) ?? 0;
+          const movable = !readOnly && !!cycle && !!(d?.workouts.length || d?.note);
           return (
+            <div key={number} className={styles.daySlot}>
             <button
-              key={number}
               type="button"
               role="tab"
               aria-selected={number === current}
               className={styles.day}
               data-planned={d?.workouts.length ? true : undefined}
+              data-dragging={dragging === number || undefined}
+              data-over={(over === number && dragging !== null && dragging !== number) || undefined}
+              data-paste={(copying !== null && copying !== number) || undefined}
+              draggable={movable}
+              title={movable ? t.dragHint : undefined}
+              onDragStart={(event) => { setDragging(number); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", String(number)); }}
+              onDragEnd={() => { setDragging(null); setOver(null); }}
+              onDragOver={(event) => { if (dragging !== null && !readOnly) { event.preventDefault(); setOver(number); } }}
+              onDragLeave={() => setOver((value) => (value === number ? null : value))}
+              onDrop={(event) => { event.preventDefault(); if (dragging !== null) dropDay(dragging, number); setDragging(null); setOver(null); }}
               onClick={() => {
+                if (copying !== null) { pasteDay(number); return; }
                 setDayNumber(number);
                 setWorkoutIndex(0);
               }}
@@ -123,11 +181,16 @@ export function WeekView({
               <span className={styles.dayMeta}>{d?.workouts.length ? d.workouts.map((w) => w.name).join(", ") : d?.note || t.rest}</span>
               {count ? <span className={styles.dayCount}>{t.exercises(count)}</span> : null}
             </button>
+            {movable && copying === null ? (
+              <button type="button" className={styles.dayCopy} aria-label={t.copyDay(dayName(number))} title={t.copyDay(dayName(number))} onClick={() => setCopying(number)}>
+                <Copy aria-hidden="true" />
+              </button>
+            ) : null}
+            </div>
           );
         })}
       </div>
 
-      {(doc.annotations ?? []).filter(note => !note.targetId || note.targetId === cycle?.id || note.targetId === cycles.find(item => item.cycle.id === cycle?.id)?.block.id).map(note => <section key={note.id} className={styles.panel}><small>{note.kind} · {note.visibility === "Coach" ? "Coach only" : "Coach & client"}</small><strong>{note.title}</strong><p style={{ whiteSpace: "pre-wrap" }}>{note.content}</p></section>)}
       <div className={styles.body}>
         <section className={styles.panel} role="tabpanel" aria-label={dayName(current)}>
           {workout && day ? (
@@ -170,6 +233,7 @@ export function WeekView({
               <div className={styles.editorArea}>
                 <BlockFormulaScope block={effectiveBlock(doc, cycles.find(item => item.cycle.id === cycle?.id)?.block)}><SimpleWorkoutTable key={workout.id} workout={workout} names={names} apply={apply} /></BlockFormulaScope>
               </div>
+              {notesBlock}
             </>
           ) : (
             <div className={styles.rest}>
@@ -201,6 +265,7 @@ export function WeekView({
                   </label>
                 ) : null}
               </div>
+              {notesBlock}
             </div>
           )}
         </section>

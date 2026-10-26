@@ -7,6 +7,8 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 using TrainFlow.Media;
 using TrainFlow.VideoAnalysis;
+using TrainFlow.Access;
+using TrainFlow.Billing;
 
 var builder = Host.CreateApplicationBuilder(args);
 if (!builder.Environment.IsEnvironment("Testing"))
@@ -33,6 +35,8 @@ connection.Timeout = 10;
 connection.CommandTimeout = 30;
 connection.IncludeErrorDetail = false;
 builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connection.ConnectionString));
+builder.Services.AddPlanEntitlements();
+builder.Services.AddUsageReservations();
 builder.Services.AddMedia(builder.Configuration);
 builder.Services.AddNotificationPublishing(builder.Configuration);
 builder.Services.AddVideoAnalysis(builder.Configuration);
@@ -44,7 +48,10 @@ await using (var command = host.Services.GetRequiredService<NpgsqlDataSource>().
       AND NOT has_database_privilege(current_database(), 'CREATE')
       AND NOT EXISTS (SELECT 1 FROM pg_namespace n WHERE n.nspname IN ('public','media','video_analysis','notifications') AND has_schema_privilege(n.oid, 'CREATE'))
       AND NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-        WHERE n.nspname IN ('accounts','access','training','exercise_catalog') AND c.relkind IN ('r','p') AND has_table_privilege(c.oid, 'SELECT,INSERT,UPDATE,DELETE'))
+        WHERE n.nspname IN ('accounts','access','training','exercise_catalog','billing','auth') AND c.relkind IN ('r','p')
+          AND NOT (n.nspname='access' AND c.relname='usage_reservations')
+          AND has_table_privilege(c.oid, 'SELECT,INSERT,UPDATE,DELETE'))
+      AND NOT has_table_privilege('access.usage_reservations', 'DELETE')
     FROM pg_roles WHERE rolname=current_user
     """))
 {

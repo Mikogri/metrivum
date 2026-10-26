@@ -35,13 +35,16 @@ public sealed class FeatureCatalog
 
     public FeatureDecision Decide(string key, IReadOnlyCollection<string> grants, IReadOnlyCollection<string> denies, IReadOnlyCollection<string> disabled)
     {
-        if (!Definitions.TryGetValue(key, out var definition))
+        // Keep the established exercise permission and its new public name as one policy.
+        var canonical = PlanFeaturePolicy.Canonical(key);
+        var definitionKey = key == "exercises.custom.create" ? "exercises.create" : key;
+        if (!Definitions.TryGetValue(definitionKey, out var definition))
             return new(key, false, "unknown_feature");
-        if (denies.Contains(key))
+        if (denies.Any(x => PlanFeaturePolicy.Canonical(x) == canonical))
             return new(key, false, "explicit_deny");
-        if (disabled.Contains(key))
+        if (disabled.Any(x => PlanFeaturePolicy.Canonical(x) == canonical))
             return new(key, false, "operationally_disabled");
-        if (!grants.Contains(key))
+        if (!grants.Any(x => PlanFeaturePolicy.Canonical(x) == canonical))
             return new(key, false, "not_granted");
         if (definition.Dependencies.Any(x => !Decide(x, grants, denies, disabled).Available))
             return new(key, false, "dependency_unavailable");

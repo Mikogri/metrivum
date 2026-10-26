@@ -1,38 +1,36 @@
 .page {
   display: grid;
-  gap: var(--tf-space-5);
-  max-width: 64rem;
+  gap: var(--tf-space-4);
+  max-width: 80rem;
 }
 
-/* The header card: a soft cover band, the avatar overlapping its lower edge, then the identity and actions. */
+/* The header card: cover on top, the avatar overlapping its lower edge, actions on the right, identity below. */
 .hero {
-  position: relative;
   overflow: hidden;
   border: 1px solid var(--tf-color-border-subtle);
   border-radius: var(--tf-radius-xl);
   background: var(--tf-color-surface);
 }
 
-.cover {
-  height: 6.5rem;
-  background:
-    radial-gradient(60% 140% at 15% 0%, var(--tf-color-surface-selected), transparent 70%),
-    radial-gradient(50% 120% at 85% 10%, var(--tf-color-accent-soft), transparent 70%),
-    var(--tf-color-surface-raised);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
-}
-
 .heroBody {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: end;
-  gap: var(--tf-space-3) var(--tf-space-5);
-  padding: 0 var(--tf-space-6) var(--tf-space-5);
+  gap: var(--tf-space-3);
+  padding: 0 var(--tf-space-5) var(--tf-space-5);
+}
+
+.heroTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
 }
 
 .avatarRing {
+  position: relative;
+  z-index: 1;
   display: inline-grid;
-  margin-top: -2.25rem;
+  margin-top: -3rem;
   padding: 4px;
   border-radius: 50%;
   background: var(--tf-color-surface);
@@ -40,27 +38,57 @@
 
 .identity {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--tf-space-1);
   min-width: 0;
-  padding-top: var(--tf-space-3);
 }
 
-.name {
-  overflow: hidden;
-  font-size: var(--tf-text-2xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: -0.01em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.handle {
+.nameRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.headline {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-md);
+  line-height: var(--tf-leading-normal);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1) var(--tf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
   color: var(--tf-color-text-secondary);
   font-size: var(--tf-text-sm);
+}
+
+.meta li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  min-width: 0;
+}
+
+.meta svg {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--tf-text-3xl);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: -0.015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .actions {
@@ -68,13 +96,35 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--tf-space-2);
+  padding-top: var(--tf-space-3);
 }
 
-.columns {
+/* Sections in two equal columns; cards in one row share its height, wide ones take the whole row. */
+.grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--tf-space-4);
-  align-items: start;
+}
+
+.grid > *,
+.grid > div > section {
+  min-width: 0;
+  height: 100%;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+/* A section with nothing to show leaves no gap. */
+.grid > :empty {
+  display: none;
+}
+
+/* Edit mode: the header is framed in the warning tone, matching the notice at the top. */
+.page[data-editing] .hero {
+  border-color: color-mix(in srgb, var(--tf-color-warning) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-color-warning) 18%, transparent);
 }
 
 .cardHead {
@@ -82,7 +132,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--tf-space-3);
-  margin-bottom: var(--tf-space-4);
+  margin-bottom: var(--tf-space-3);
 }
 
 .title {
@@ -92,6 +142,9 @@
 }
 
 .bio {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-md);
+  line-height: var(--tf-leading-relaxed);
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
@@ -150,20 +203,20 @@
 }
 
 @media (max-width: 56rem) {
-  .columns {
+  .grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
+/* With the sidebar open the header gets narrow early: actions move under the identity before the name is squeezed. */
+
 @media (max-width: 40rem) {
   .heroBody {
-    grid-template-columns: auto minmax(0, 1fr);
     padding: 0 var(--tf-space-4) var(--tf-space-4);
   }
 
-  .actions {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
+  .avatarRing {
+    margin-top: -2.5rem;
   }
 
   .name {
@@ -171,11 +224,6 @@
   }
 }
 
-.stack {
-  display: grid;
-  gap: var(--tf-space-4);
-  align-content: start;
-}
 
 /* Completeness: percentage, a meter and a short checklist with links to what is missing. */
 .percent {
@@ -334,4 +382,42 @@
   font-size: var(--tf-text-xs);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.offerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1);
+  margin-top: var(--tf-space-1);
+}
+
+.offerPrice {
+  display: grid;
+  flex-shrink: 0;
+  justify-items: end;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.offerPrice small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-regular);
+}
+
+/* Empty offers: compact, with no extra space under it inside the card. */
+/* A card whose content grows to its full height (the row may be taller than it). */
+.fillCard {
+  display: flex;
+  flex-direction: column;
+}
+
+.offersEmpty {
+  flex: 1;
+  align-content: center;
+  padding: var(--tf-space-5) var(--tf-space-4);
+  border: 1px dashed var(--tf-color-border-strong);
+  border-radius: var(--tf-radius-lg);
 }

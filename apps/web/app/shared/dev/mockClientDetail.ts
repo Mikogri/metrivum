@@ -106,7 +106,7 @@ export function mockClientDetail(path: string, method: string, q: URLSearchParam
     if (rest === "billing")
       return ok({ dues: { items: [], page: 1, pageSize: 1, total: 0 }, orders: [], attempts: [], payments: [], transactions: [], summary: { lastSettlement: { grossAmount: 450, currency: "PLN", settledAt: iso(10), mode: "Platform" }, overdueByCurrency: [], nextDue: { amount: 450, currency: "PLN", dueAt: iso(-20) } } });
     if (rest === "profile")
-      return ok({ currentAllowedProfile: { TrainingExperience: "4 years of strength training", ActivityLevel: "Moderately active", AvailableEquipment: ["Barbell", "Dumbbells", "Pull-up bar"], PreferredTrainingDays: ["Mon", "Wed", "Fri", "Sat"], SessionsPerWeek: 4, AvailableSessionDuration: "60–75 min", Sleep: "7 h", Stress: "Medium", InjuriesLimitationsPainNotes: "Old left knee meniscus repair", AdditionalNotes: null } });
+      return ok({ currentAllowedProfile: { Sex: "Male", Height: 178, Weight: 81, BodyFat: 17, HrMax: 186, TrainingExperience: "4 years of strength training", ActivityLevel: "Moderately active", AvailableEquipment: ["Barbell", "Dumbbells", "Pull-up bar"], PreferredTrainingDays: [1, 3, 5, 6], SessionsPerWeek: 4, AvailableSessionDuration: 70, Sleep: 7, Stress: 5, InjuriesLimitationsPainNotes: "Old left knee meniscus repair", AdditionalNotes: "Half marathon under 1:45 in spring." } });
     if (rest === "applications")
       return ok(page([{ id: "app-1", offerName: "12-week online coaching", submittedAt: iso(82), status: "Accepted", relationshipId: m[1] }], q));
     if (rest === "documentation/") return ok({ status: "Active", coach: true, allowedActions: ["create", "measure"] });

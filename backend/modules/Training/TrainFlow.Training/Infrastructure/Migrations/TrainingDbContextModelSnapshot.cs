@@ -285,6 +285,9 @@ namespace TrainFlow.Training.Infrastructure.Migrations
                     b.Property<int?>("DurationSeconds")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Feedback")
+                        .HasColumnType("jsonb");
+
                     b.Property<Guid>("OccurrenceId")
                         .HasColumnType("uuid");
 

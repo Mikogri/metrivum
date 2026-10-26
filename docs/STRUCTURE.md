@@ -1,5 +1,10 @@
 # Repository structure
 
+- `docs/coaching/plan-entitlements.md`: canonical five-plan catalog, explicit quota scopes, simulated subscription lifecycle and metered-job boundaries.
+- `docs/coaching/discovery.md`: opt-in coach discovery, canonical English specializations owned by Coaching, privacy filters and relevance-first paid ranking.
+- `docs/features/workout-review.md`: optional session feedback, frozen Planned vs Actual comparisons and progress observations.
+- `docs/coaching/transaction-history.md`: one paginated history over Billing's existing obligations, attempts, payments and refunds.
+
 - `apps/web/app/modules/anatomy`: lazy BodyParts3D viewer embedded in Exercises, shared muscle filter and attribution. `infra/anatomy` prepares verified assets and additive catalogue data; see [Anatomy Explorer](features/anatomy.md).
 
 - `apps/api/TrainFlow.Api`: HTTP host, JWT, ProblemDetails, CORS, health and OpenAPI.
@@ -49,7 +54,7 @@ The [2026-10-11 review](architecture/refactor-2026-10-11/plan.md) records the cu
 
 `backend/modules/Calendar` owns events, attendee responses and immutable audit in the private `calendar` schema. `apps/web/app/modules/calendar` renders the calendar; `shared/session/WorkspaceScope.tsx` owns the Coach/Client UI mode. Check-in projections stay in CheckIns. See [calendar](coaching/calendar.md).
 
-Billing owns Team roles/memberships, organizational subscriptions, frozen seat quotes, proration credit and durable transitions. Coaching owns Team cases, assignments, client consent and scoped groups; downstream modules consume contracts only. Web `modules/team` is shared by coach/client views. See [Team organizations](coaching/team-organizations.md) and `infra/export-stage06.ps1`. Server currency conversion remains in `Infrastructure/PlatformCurrencyConverter.cs`.
+Billing owns Team roles/memberships, organizational subscriptions, frozen quotes, legacy credit history and durable transitions. Current Team/Studio checkout buys a workspace bundle without proration. Coaching owns Team cases, assignments, client consent and scoped groups; downstream modules consume contracts only. Web `modules/team` is shared by coach/client views. See [Team organizations](coaching/team-organizations.md), [plan entitlements](coaching/plan-entitlements.md) and `infra/export-stage06.ps1`. Server currency conversion remains in `Infrastructure/PlatformCurrencyConverter.cs`.
 
 ## Native mobile
 

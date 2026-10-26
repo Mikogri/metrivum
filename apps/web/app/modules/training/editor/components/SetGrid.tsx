@@ -401,7 +401,7 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
     setDropIndex(null);
   }
 
-  const kindOptions = SET_KINDS.filter((kind) => kind === "Standard" || advancedAllowed);
+  const kindOptions = SET_KINDS.filter((kind) => ["Standard", "Warmup", "BackOff"].includes(kind) || advancedAllowed);
 
   return (
     <div className={styles.wrap}>

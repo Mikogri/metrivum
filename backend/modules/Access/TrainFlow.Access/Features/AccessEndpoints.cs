@@ -15,12 +15,23 @@ public sealed record ConfigurationRequest(long ExpectedVersion, string[] Granted
 public sealed record OverrideRequest(long ExpectedVersion, bool Granted);
 public sealed record FlagRequest(long ExpectedVersion, bool Enabled);
 public sealed record AssignmentRequest(long ExpectedVersion, string ConfigurationId);
+public sealed record PlanUsageDto(string PlanId, Guid ScopeId, DateTimeOffset PeriodStart, DateTimeOffset PeriodEnd, IReadOnlyList<LimitDecision> Usage);
 
 public static class AccessEndpoints
 {
     public static void Map(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("/api/v1/me/access", (IFeatureAccessService access, CancellationToken ct) => access.GetAsync(ct)).WithTags("Access");
+        endpoints.MapGet("/api/v1/me/usage", async (Guid? teamId, IAccountContext account, IPlanEntitlementsProvider plans, IEnumerable<ILimitUsageProvider> providers, CancellationToken ct) =>
+        {
+            await account.GetRolesAsync(ct);
+            var plan = teamId is {} team ? await plans.GetForTeamAsync(account.UserId, team, ct) : await plans.GetAsync(account.UserId, ct);
+            var usage = new List<LimitDecision>();
+            foreach (var provider in providers) usage.AddRange(await provider.GetScopedUsageAsync(account.UserId, teamId, ct));
+            return new PlanUsageDto(plan.PlanId, plan.ScopeId, plan.PeriodStart, plan.PeriodEnd,
+                plan.Limits.Select(x => new LimitDecision(x.Key, x.Value, usage.FirstOrDefault(u => u.Key == x.Key)?.Used ?? 0,
+                    x.Key.EndsWith("_per_period", StringComparison.Ordinal) ? plan.PeriodEnd : null)).ToArray());
+        }).RequireAuthorization().WithTags("Access");
         endpoints.MapGet("/api/v1/features", async (IAccountContext account, FeatureCatalog catalog, CancellationToken ct) =>
         {
             await account.RequireCoachAsync(ct);

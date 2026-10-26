@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Metrivum</title>
+  <rect width="512" height="512" rx="112" fill="#0d0f0e"/>
+  <g transform="translate(256 256) scale(0.48) translate(-766 -511)" fill="#ffffff">
+    <polygon points="415,235 765,497 950,365 946,505 755,650 535,478 533,787 415,695"/>
+    <polygon points="970,345 1117,235 1117,370 972,478"/>
+    <polygon points="778,682 1117,418 1117,580 868,772"/>
+  </g>
+</svg>

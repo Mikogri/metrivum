@@ -10,6 +10,7 @@ vi.mock("~/shared/session/AccountScope", () => ({ useAccountKey: () => "0:coach"
 vi.mock("~/shared/access", () => ({
   RequireFeature: ({ children }: { children: ReactNode }) => children,
   LockedReason: ({ children }: { children: ReactNode }) => children,
+  LockedArea: ({ children }: { children: ReactNode }) => children,
   useFeatureAccess: () => ({ allowed: true, pending: false }),
 }));
 vi.mock("~/shared/lib/useUrlState", () => ({ pageFromParam: () => 1, useUrlState: () => [{ q: "", page: "1", view: mocks.view }, vi.fn()] }));

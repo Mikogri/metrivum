@@ -223,6 +223,9 @@
           "TrainFlow.Accounts.Contracts": "[1.0.0, )"
         }
       },
+      "trainflow.media.contracts": {
+        "type": "Project"
+      },
       "trainflow.notifications.contracts": {
         "type": "Project"
       },

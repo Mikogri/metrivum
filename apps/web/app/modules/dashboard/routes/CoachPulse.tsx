@@ -1,10 +1,10 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Activity, ArrowRight, Banknote, CalendarClock, ChevronRight, ClipboardCheck, ClipboardList, FilePlus2, Inbox, MapPin, Receipt, Rocket, Tag, Upload, UserPlus, UsersRound, Video } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Activity, ArrowRight, Banknote, CalendarClock, ChevronRight, ClipboardCheck, ClipboardList, FilePlus2, Inbox, MapPin, Receipt, Tag, Upload, UserPlus, UsersRound, Video } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Link as RouterLink } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Button, Card, EmptyState, LoadingState, Segment, SegmentedControl, Skeleton } from "@trainflow/ui-web";
+import { Card, EmptyState, LoadingState, Segment, SegmentedControl, Skeleton } from "@trainflow/ui-web";
 import { AreaChart, Delta, Sparkline, type Overview } from "~/modules/analyze";
 import { useCalendarRange, type CalendarEvent } from "~/modules/calendar";
 import { money, useCoachingQuery, type Page, type Relationship } from "~/modules/coaching";
@@ -17,6 +17,7 @@ import styles from "./dashboard.module.css";
 
 type Tone = "green" | "violet" | "blue" | "orange" | "rose";
 type Lead = Schema<"ApplicationDto">;
+type PulseData = Overview | Schema<"BasicAnalysis">;
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 function lastDays(days: number) {
@@ -28,14 +29,14 @@ function lastDays(days: number) {
 
 /** The same overview the Analyze page reads, for a window ending today. */
 function useOverview(days: number, enabled: boolean) {
+  const advanced = useFeatureAccess("analytics.advanced");
   const api = useApi();
   const account = useAccountKey();
   const range = lastDays(days);
   return useQuery({
-    queryKey: [account, "coaching", "analyze", "dashboard", range],
-    enabled,
-    queryFn: async ({ signal }) => (await api<Overview>({ path: "/api/v1/analyze/overview", query: { ...range, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, grouping: days > 120 ? "month" : days > 31 ? "week" : "day" }, signal })).data,
-    placeholderData: keepPreviousData,
+    queryKey: [account, "coaching", "analyze", "dashboard", advanced.allowed, range],
+    enabled: enabled && !advanced.pending,
+    queryFn: async ({ signal }) => (await api<PulseData>({ path: advanced.allowed ? "/api/v1/analyze/overview" : "/api/v1/analyze/basic", query: { ...range, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, grouping: days > 120 ? "month" : days > 31 ? "week" : "day" }, signal })).data,
   });
 }
 
@@ -97,10 +98,11 @@ function Income({ currency }: { currency: string }) {
   const [days, setDays] = useState("90");
   const overview = useOverview(Number(days), true);
   const data = overview.data;
+  const advanced = data && "previousFinance" in data ? data : undefined;
   const series = data?.finance.series.filter((x) => x.currency === currency) ?? [];
-  const previous = data?.previousFinance.series.filter((x) => x.currency === currency) ?? [];
+  const previous = advanced?.previousFinance.series.filter((x) => x.currency === currency) ?? [];
   const total = data?.finance.totals.find((x) => x.currency === currency);
-  const before = data?.previousFinance.totals.find((x) => x.currency === currency);
+  const before = advanced?.previousFinance.totals.find((x) => x.currency === currency);
   return (
     <Section
       className={styles.income}
@@ -192,11 +194,11 @@ function Sessions() {
 
 /* ----------------------------------------------------------------- tasks */
 
-function Tasks({ data, currency }: { data: Overview | undefined; currency: string }) {
+function Tasks({ data, currency }: { data: PulseData | undefined; currency: string }) {
   const t = useT().dashboard.coach;
   const access = useAccessSnapshot();
   const running = Number(access.data?.limits.find((l) => l.key === "analysis.concurrent")?.used ?? 0);
-  const a = data?.acquisition;
+  const a = data && "acquisition" in data ? data.acquisition : undefined;
   const pendingLeads = a ? Math.max(0, a.submitted - a.accepted - a.rejected) : 0;
   const pendingMoney = data?.finance.totals.find((x) => x.currency === currency)?.pending ?? 0;
   const tasks = [
@@ -249,29 +251,21 @@ function Tasks({ data, currency }: { data: Overview | undefined; currency: strin
 
 /* ----------------------------------------------------------------- usage */
 
-/** A plan limit this large is no limit at all (the API sends the int64 maximum). */
-const UNLIMITED = 1e12;
-/** Discovery boosts are not live yet: the block stays in the code, hidden until the feature ships. */
-const SHOW_BOOST = false;
 /** The other plan limits listed under active clients (sizes in bytes are left to Settings). */
 const OTHER_LIMITS = ["training.documents", "training.formulas", "analysis.concurrent"];
 
-/**
- * Usage shows the one limit that shapes a coaching business: active clients. Under it, discovery
- * boosts; the feature isn't live yet, so the buttons are only the shape of it.
- */
+/** Usage shows the one limit that shapes a coaching business: active clients, then the other plan limits. */
 export function UsagePanel() {
   const m = useT();
   const t = m.dashboard.coach;
   const locale = useLocale();
   const access = useAccessSnapshot();
-  const [boost, setBoost] = useState("7");
-  const limit = access.data?.limits.find((l) => l.key === "coaching.active-clients");
+  const limit = access.data?.limits.find((l) => l.key === "coaching.active_clients") ?? access.data?.limits.find((l) => l.key === "coaching.active-clients");
   const otherLimits = OTHER_LIMITS.map((key) => access.data?.limits.find((l) => l.key === key)).filter((l) => l != null);
   if (!access.isPending && !limit) return null;
   const used = Number(limit?.used ?? 0);
   const maximum = Number(limit?.maximum ?? 0);
-  const unlimited = maximum >= UNLIMITED;
+  const unlimited = limit?.maximum == null;
   const ratio = unlimited || !maximum ? 0 : Math.min(1, used / maximum);
   return (
     <Section title={m.dashboard.usage} sub={t.usageSub}>
@@ -306,12 +300,12 @@ export function UsagePanel() {
           <p className={styles.limitHead}>{t.planLimits}</p>
           <ul>
             {otherLimits.map((l) => {
-              const usedOf = Number(l.used), maxOf = Number(l.maximum), open = maxOf >= UNLIMITED;
+              const usedOf = Number(l.used), maxOf = Number(l.maximum), open = l.maximum == null;
               const share = open || !maxOf ? 0 : Math.min(1, usedOf / maxOf);
               return (
                 <li key={l.key}>
                   <span className={styles.limitName}>{m.access.limits[l.key] ?? l.key}</span>
-                  <span className={styles.limitCount}>{formatNumber(locale, usedOf)}{open ? "" : ` / ${formatNumber(locale, maxOf)}`}</span>
+                  <span className={styles.limitCount}>{formatNumber(locale, usedOf)}{open ? ` / ${t.unlimited}` : ` / ${formatNumber(locale, maxOf)}`}</span>
                   {!open ? <span className={styles.limitBar} data-high={share > 0.85 || undefined} aria-hidden="true"><span style={{ transform: `scaleX(${share})` }} /></span> : null}
                 </li>
               );
@@ -320,28 +314,6 @@ export function UsagePanel() {
           <RouterLink to="/app/subscription" className={styles.limitLink}>{t.managePlan}<ArrowRight aria-hidden="true" /></RouterLink>
         </div>
       ) : null}
-      {SHOW_BOOST ? <div className={styles.boost}>
-        <div className={styles.boostHead}>
-          <span className={styles.boostIcon} aria-hidden="true">
-            <Rocket strokeWidth={1.75} />
-          </span>
-          <div>
-            <p className={styles.boostTitle}>
-              {t.boost.title}
-              <span className={styles.soon}>{t.boost.soon}</span>
-            </p>
-            <p className={styles.rowSub}>{t.boost.body}</p>
-          </div>
-        </div>
-        <SegmentedControl size="sm" aria-label={t.boost.length} selectedKeys={[boost]} onSelectionChange={(keys) => setBoost(String([...keys][0] ?? "7"))}>
-          <Segment id="3">{t.boost.days(3)}</Segment>
-          <Segment id="7">{t.boost.days(7)}</Segment>
-          <Segment id="30">{t.boost.days(30)}</Segment>
-        </SegmentedControl>
-        <Button size="sm" variant="primary" iconStart={<Rocket />} block>
-          {t.boost.action}
-        </Button>
-      </div> : null}
     </Section>
   );
 }
@@ -376,7 +348,7 @@ function Leads() {
   );
 }
 
-function Clients({ data }: { data: Overview | undefined }) {
+function Clients({ data }: { data: PulseData | undefined }) {
   const t = useT().dashboard.coach;
   const locale = useLocale();
   const list = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { page: 1, pageSize: 4, sort: "created" });
@@ -397,7 +369,7 @@ function Clients({ data }: { data: Overview | undefined }) {
               <span data-tone="neutral" style={{ flexGrow: 1 }} />
             )}
           </div>
-          <dl className={styles.mini}>
+          {"newClients" in c && <dl className={styles.mini}>
             <div>
               <dt>{t.newClients}</dt>
               <dd data-tone="up">+{formatNumber(locale, c.newClients + c.reactivated)}</dd>
@@ -410,7 +382,7 @@ function Clients({ data }: { data: Overview | undefined }) {
               <dt>{t.retention}</dt>
               <dd>{c.retentionPercent == null ? "—" : `${c.retentionPercent}%`}</dd>
             </div>
-          </dl>
+          </dl>}
         </>
       ) : (
         <Skeleton height="3.5rem" />
@@ -487,11 +459,12 @@ export function CoachDashboard({ recent }: { recent: ReactNode }) {
   const analytics = useFeatureAccess("analytics.view");
   const overview = useOverview(30, analytics.allowed);
   const data = overview.data;
-  const currency = data?.finance.totals.slice().sort((a, b) => b.net - a.net)[0]?.currency ?? data?.previousFinance.totals[0]?.currency ?? "EUR";
+  const advanced = data && "previousFinance" in data ? data : undefined;
+  const currency = data?.finance.totals.slice().sort((a, b) => b.net - a.net)[0]?.currency ?? advanced?.previousFinance.totals[0]?.currency ?? "EUR";
   const now = data?.finance.totals.find((x) => x.currency === currency);
-  const before = data?.previousFinance.totals.find((x) => x.currency === currency);
-  const a = data?.acquisition;
-  const pa = data?.previousAcquisition;
+  const before = advanced?.previousFinance.totals.find((x) => x.currency === currency);
+  const a = advanced?.acquisition;
+  const pa = advanced?.previousAcquisition;
   const value = (v: ReactNode) => (data ? v : <Skeleton width="4rem" height="1.75rem" />);
 
   return (
@@ -517,21 +490,36 @@ export function CoachDashboard({ recent }: { recent: ReactNode }) {
               label={t.activeClients}
               href="/app/clients"
               value={value(formatNumber(locale, data?.clients.active ?? 0))}
-              delta={data ? <Delta current={data.clients.active} previous={data.previousClients.active} /> : null}
-              spark={data?.clients.series.map((x) => x.active)}
+              delta={advanced ? <Delta current={advanced.clients.active} previous={advanced.previousClients.active} /> : null}
+              spark={advanced?.clients.series.map((x) => x.active)}
               sparkTone="info"
             />
-            <Metric
-              index={2}
-              tone="violet"
-              icon={Inbox}
-              label={t.leads}
-              href="/app/leads"
-              value={value(formatNumber(locale, a?.submitted ?? 0))}
-              delta={a && pa ? <Delta current={a.submitted} previous={pa.submitted} /> : null}
-              spark={data?.clients.series.map((x) => x.newClients)}
-              sparkTone="violet"
-            />
+            {/* Leads need advanced analytics; without it the third tile shows check-ins, which every plan has. */}
+            {a || !data ? (
+              <Metric
+                index={2}
+                tone="violet"
+                icon={Inbox}
+                label={t.leads}
+                href="/app/leads"
+                value={value(formatNumber(locale, a?.submitted ?? 0))}
+                delta={a && pa ? <Delta current={a.submitted} previous={pa.submitted} /> : null}
+                spark={advanced?.clients.series.map((x) => x.newClients)}
+                sparkTone="violet"
+              />
+            ) : (
+              <Metric
+                index={2}
+                tone="violet"
+                icon={ClipboardCheck}
+                label={t.checkInsSubmitted}
+                href="/app/check-ins"
+                value={formatNumber(locale, Number(data.checkIns.submitted))}
+                delta={data.checkIns.submissionRate == null ? <span>{t.range}</span> : <span>{t.submissionRate(Math.round(Number(data.checkIns.submissionRate)))}</span>}
+                spark={data.checkIns.series.map((x) => Number(x.submitted))}
+                sparkTone="violet"
+              />
+            )}
           </div>
         ) : null}
 

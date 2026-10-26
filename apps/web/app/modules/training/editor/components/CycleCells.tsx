@@ -109,7 +109,7 @@ export function CycleCells({
     <div className={styles.cells2} style={{ gridTemplateColumns: `var(--sheet-columns, repeat(${WORKOUT_COLS}, var(--cell-w)))` }} role="grid" aria-label={cycle.name} data-no-drag>
       <div role="row" className={styles.headRow}>
         {WORKOUT_COLUMNS.map((c) => (
-          <div key={c.id} role="columnheader" onContextMenu={event => onColumnContextMenu?.(COL_START[c.id]! + c.span - 1, event)} className={`${styles.cell} ${styles.colHead}`} style={place(COL_START[c.id]!, 0, c.span)}>
+          <div key={c.id} role="columnheader" onContextMenu={event => onColumnContextMenu?.(COL_START[c.id]! + c.span - 1, event)} className={`${styles.cell} ${styles.colHead} ${c.id === "comment" ? styles.commentHead : ""}`} style={place(COL_START[c.id]!, 0, c.span)}>
             {t.columns[c.id]}
             {renderColumnResize?.(COL_START[c.id]! + c.span - 1, t.columns[c.id])}
           </div>
@@ -199,6 +199,8 @@ export function CycleCells({
             <ExerciseRow
               key={instance.id}
               instance={instance}
+              workout={workout}
+              names={names}
               formulaAllowed={advancedAllowed}
               customFormulas={customFormulas}
               name={names.get(instance.exerciseId)?.name ?? "—"}

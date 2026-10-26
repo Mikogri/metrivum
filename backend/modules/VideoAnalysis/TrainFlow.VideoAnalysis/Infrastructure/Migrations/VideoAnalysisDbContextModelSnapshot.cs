@@ -35,6 +35,13 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("AvailableAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CloudBudgetOperation")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<long?>("CloudBudgetSeconds")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -111,6 +118,9 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text[]");
 
+                    b.Property<Guid?>("TeamId")
+                        .HasColumnType("uuid");
+
                     b.Property<long>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("bigint");
@@ -136,6 +146,8 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
                     b.ToTable("jobs", "video_analysis", t =>
                         {
                             t.HasCheckConstraint("ck_job_attempts", "\"Attempts\" >= 0");
+
+                            t.HasCheckConstraint("ck_job_cloud_budget", "(\"CloudBudgetOperation\" IS NULL AND \"CloudBudgetSeconds\" IS NULL) OR (\"CloudBudgetOperation\" IS NOT NULL AND \"CloudBudgetSeconds\" > 0 AND \"CloudBudgetSeconds\" <= 3600)");
 
                             t.HasCheckConstraint("ck_job_lease", "(\"Status\" = 'Processing') = (\"LeaseToken\" IS NOT NULL AND \"LeaseExpiresAt\" IS NOT NULL)");
 
@@ -179,6 +191,8 @@ namespace TrainFlow.VideoAnalysis.Infrastructure.Migrations
 
                     b.HasIndex("Token")
                         .IsUnique();
+
+                    b.HasIndex("AnalysisId", "RevokedAt");
 
                     b.ToTable("analysis_shares", "video_analysis", t =>
                         {

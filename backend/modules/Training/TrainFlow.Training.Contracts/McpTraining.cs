@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace TrainFlow.Training.Contracts;
 
 [JsonConverter(typeof(JsonStringEnumConverter<McpSetKind>))]
-public enum McpSetKind { Standard, Amrap, Ramp, TopSet, BackOff, DropSet, RestPause, Cluster }
+public enum McpSetKind { Standard, Amrap, Ramp, TopSet, BackOff, DropSet, RestPause, Cluster, Warmup }
 [JsonConverter(typeof(JsonStringEnumConverter<McpGroupKind>))]
 public enum McpGroupKind { Superset, Circuit }
 [JsonConverter(typeof(JsonStringEnumConverter<McpUnit>))]

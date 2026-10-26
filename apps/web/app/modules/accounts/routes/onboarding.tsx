@@ -4,11 +4,12 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import type { ProfileResponse, Schema } from "@trainflow/api-client-web";
 import { Alert, Button, Checkbox, Combobox, DateField, Option, Select, TextField } from "@trainflow/ui-web";
-import { useAccountKey, useApi } from "~/shared/session/AccountScope";
+import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { ApiError } from "~/shared/http/errors";
 import { errorText, fieldError } from "~/shared/lib/errorText";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
+import { SpecializationPicker, emptySpecializations, type SpecializationDraft } from "~/modules/coaching";
 import { AuthHeader, registrationRole, type RegistrationRole } from "~/modules/auth";
 import { AccountGate } from "../components/AccountGate";
 import { completeOnboarding } from "../api/profile";
@@ -22,8 +23,8 @@ import { privateMeta } from "~/shared/i18n/site";
 export const meta = () => privateMeta("Set up your account — Metrivum");
 
 
-type Step = 1 | 2 | 3 | 4 | 5;
-const TOTAL_STEPS = 5;
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
+const TOTAL_STEPS = 6;
 
 function ageOn(date: CalendarDate, now: CalendarDate) {
   let age = now.year - date.year;
@@ -36,6 +37,7 @@ function OnboardingForm() {
   const t = m.onboarding;
   const { locale } = useAppLocale();
   const api = useApi();
+  const { lifecycle } = useAccountContext();
   const accountKey = useAccountKey();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -49,15 +51,16 @@ function OnboardingForm() {
   const [timeZone, setTimeZone] = useState<string>(() => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
   const [accepted, setAccepted] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  // Steps after the account itself: body, heart rate and recovery, training, then health and goals.
+  // Steps after the account itself: location (for discovery), body, heart rate and recovery, training, then health and goals.
   const [step, setStep] = useState<Step>(1);
+  const [specializations, setSpecializations] = useState<SpecializationDraft>(emptySpecializations);
   const [details, setDetails] = useState<Details>(emptyDetails);
   const [checked, setChecked] = useState<Partial<Record<DetailGroup, boolean>>>({});
   // The account is created once; a failed save of the extra details retries only that part.
   const created = useRef<ProfileResponse | null>(null);
 
   const mutation = useMutation({
-    mutationFn: async (input: Details) => {
+    mutationFn: async ({ input, selections }: { input: Details; selections: SpecializationDraft }) => {
       created.current ??= await completeOnboarding(api, {
         username: username.trim(),
         role,
@@ -74,9 +77,14 @@ function OnboardingForm() {
         const fields = (await api<Schema<"AccountProfileFields">>({ path: "/api/v1/me/profile-fields" })).data;
         await api({ method: "PATCH", path: "/api/v1/me/profile-fields", ifMatch: fields.version, json: { values } });
       }
+      if (role === "Coach" && selections.selectedCodes.length) {
+        const current = (await api<Schema<"CoachSpecializationsDto">>({ path: "/api/v1/me/coaching-specializations" })).data;
+        await api({ method: "PUT", path: "/api/v1/me/coaching-specializations", json: { ...selections, version: current.version } });
+      }
       return created.current;
     },
     onSuccess: (profile) => {
+      if (!lifecycle.isCurrent()) return;
       queryClient.setQueryData(profileKey(accountKey), profile);
       navigate(sanitizeReturnTo(params.get("returnTo")), { replace: true });
     },
@@ -107,23 +115,24 @@ function OnboardingForm() {
   const client = role === "Client";
   const requiredFor = (group: DetailGroup): DetailKey[] => (client && group === "body" ? ["Sex", "Height", "Weight"] : []);
   const age = birthDate ? ageOn(birthDate, now) : null;
-  const GROUP_OF: Record<Exclude<Step, 1>, DetailGroup> = { 2: "body", 3: "heart", 4: "training", 5: "health" };
+  const GROUP_OF: Record<Exclude<Step, 1>, DetailGroup> = { 2: "location", 3: "body", 4: "heart", 5: "training", 6: "health" };
   function next(event: FormEvent) {
     event.preventDefault();
     if (step === 1) return;
     const group = GROUP_OF[step];
     setChecked((value) => ({ ...value, [group]: true }));
     if (Object.keys(detailProblems(m, details, DETAIL_GROUPS[group], requiredFor(group))).length) return;
-    if (step === TOTAL_STEPS) mutation.mutate(details);
+    if (step === TOTAL_STEPS) mutation.mutate({ input: details, selections: specializations });
     else setStep((step + 1) as Step);
   }
   // "Skip" clears the step's fields, so nothing half-typed is saved.
   function skip() {
     if (step === 1) return;
+    if (step === TOTAL_STEPS) setSpecializations(emptySpecializations);
     const cleared = { ...details };
     for (const key of DETAIL_GROUPS[GROUP_OF[step]]) (cleared as Record<string, unknown>)[key] = emptyDetails[key];
     setDetails(cleared);
-    if (step === TOTAL_STEPS) mutation.mutate(cleared);
+    if (step === TOTAL_STEPS) mutation.mutate({ input: cleared, selections: emptySpecializations });
     else setStep((step + 1) as Step);
   }
 
@@ -155,7 +164,7 @@ function OnboardingForm() {
 
   if (step !== 1) {
     const group = GROUP_OF[step];
-    const header = { body: [t.bodyTitle, client ? t.bodyLead : t.bodyLeadCoach], heart: [t.heartTitle, t.heartLead], training: [t.trainingTitle, t.trainingLead], health: [t.healthTitle, t.healthLead] }[group];
+    const header = { location: [t.locationTitle, t.locationLead], body: [t.bodyTitle, client ? t.bodyLead : t.bodyLeadCoach], heart: [t.heartTitle, t.heartLead], training: [t.trainingTitle, t.trainingLead], health: [t.healthTitle, t.healthLead] }[group];
     const optional = requiredFor(group).length === 0;
     const last = step === TOTAL_STEPS;
     return (
@@ -165,6 +174,10 @@ function OnboardingForm() {
         {error ? <Alert tone="danger" title={created.current ? t.detailsFailed : errorText(m, error)} live="assertive" /> : null}
         <form className={styles.form} onSubmit={next} noValidate>
           <DetailFields group={group} value={details} onChange={setDetails} required={requiredFor(group)} age={age} problems={checked[group] ? detailProblems(m, details, DETAIL_GROUPS[group], requiredFor(group)) : {}} />
+          {group === "health" && !client && <section aria-label={m.specializations.title}>
+            <h2>{m.specializations.title}</h2><p>{m.specializations.optional}</p><p>{m.specializations.description}</p>
+            <SpecializationPicker value={specializations} onChange={setSpecializations} disabled={mutation.isPending} />
+          </section>}
           <div className={styles.actions}>
             <Button size="lg" isDisabled={mutation.isPending} onPress={() => setStep((step - 1) as Step)}>
               {t.back}

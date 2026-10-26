@@ -12,7 +12,7 @@ describe("feature decisions", () => {
     expect(decide([{ key: "training.export.pdf", available: true, reason: "something_new" }], "training.export.pdf")).toMatchObject({ allowed: false, state: "unknown" });
   });
 
-  it.each(["not_granted", "explicit_deny", "operationally_disabled", "dependency_unavailable", "limit_reached"])("keeps reason %s", (reason) => {
+  it.each(["feature_not_in_plan", "not_granted", "explicit_deny", "operationally_disabled", "dependency_unavailable", "limit_reached"])("keeps reason %s", (reason) => {
     expect(decide([{ key: "video.analysis.run", available: false, reason }], "video.analysis.run")).toEqual({ state: reason, allowed: false, pending: false });
   });
 });

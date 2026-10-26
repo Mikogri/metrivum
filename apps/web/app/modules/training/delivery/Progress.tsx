@@ -1,3 +1,4 @@
+import type { Schema } from "@trainflow/api-client-web";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -9,12 +10,13 @@ import { useCoachingQuery } from "~/modules/coaching";
 import { Failure } from "~/modules/coaching";
 import { ExercisePicker } from "~/modules/exercises";
 import { localDate } from "./Assignments";
+import { ComparisonReport } from "./WorkoutReview";
 import { PerformanceChart } from "./PerformanceChart";
 import type { ActivityOptions } from "./Activity";
 import styles from "./delivery.module.css";
 
 interface Performance { occurrenceId?: string | null; exerciseId: string; name: string; performedDate: string; loadMeaning: string; sets: number; reps: number; volumeKg: number | null; bestLoadKg: number | null; averageRpe: number | null; averageRir: number | null; substitutionSets: number }
-export interface ProgressData { from: string; to: string; planned: number; due: number; completed: number; skipped: number; missed: number; inProgress: number; completionPercentage: number | null; loggedLate: number; activeAssignments: number; actualSets: number; actualReps: number; volumeKg: number | null; programs: { programId: string; programName: string; completed: number }[]; clients: { relationshipId: string; due: number; completed: number; missed: number; latestCompletedAt: string | null }[]; performance: Performance[]; metricDefinition: string; clientsHasMore?: boolean; performanceHasMore?: boolean; totalTrainingSeconds?: number | null; averageSessionSeconds?: number | null; sessionsPerWeek?: number | null; weeks?: { weekStart: string; scheduled: number; completed: number; completionPercentage: number | null }[] | null }
+export interface ProgressData { feedback?: Schema<"TrainingFeedbackPoint">[] | null; feedbackHasMore?: boolean; from: string; to: string; planned: number; due: number; completed: number; skipped: number; missed: number; inProgress: number; completionPercentage: number | null; loggedLate: number; activeAssignments: number; actualSets: number; actualReps: number; volumeKg: number | null; programs: { programId: string; programName: string; completed: number }[]; clients: { relationshipId: string; due: number; completed: number; missed: number; latestCompletedAt: string | null }[]; performance: Performance[]; metricDefinition: string; clientsHasMore?: boolean; performanceHasMore?: boolean; totalTrainingSeconds?: number | null; averageSessionSeconds?: number | null; sessionsPerWeek?: number | null; weeks?: { weekStart: string; scheduled: number; completed: number; completionPercentage: number | null }[] | null }
 
 export function TrainingProgress({ relationshipId, programId, groupId, from: fixedFrom, to: fixedTo, coach = false, report }: { relationshipId?: string; programId?: string; groupId?: string; from?: string; to?: string; coach?: boolean; report?: ProgressData }) {
   const [params, setParams] = useSearchParams();
@@ -81,6 +83,10 @@ export function TrainingProgress({ relationshipId, programId, groupId, from: fix
           <details className={styles.details}><summary>Sessions ({points.length})</summary><div className={styles.scroll}><table className={styles.table}><thead><tr><th>Date</th><th>Sets / reps</th><th>Best load (kg)</th><th>Volume</th><th>RPE / RIR</th></tr></thead><tbody>{points.map(point => <tr key={point.performedDate}><td>{point.occurrenceId && relationshipId ? <Link to={workoutLink(point)}>{point.performedDate}</Link> : point.performedDate}</td><td>{point.sets} / {point.reps}</td><td>{point.bestLoadKg ?? "—"}</td><td>{point.volumeKg ?? "—"}</td><td>{point.averageRpe ?? "—"} / {point.averageRir ?? "—"}</td></tr>)}</tbody></table></div></details>
         </Panel>;
       })}</div>}
+      {!!data.feedback?.length && <Panel title="Workout feedback" description="Recorded session RPE, wellbeing and sleep. One observation per completed workout; missing feedback stays missing.">
+        {data.feedbackHasMore && <Alert tone="warning" title="Showing the latest 1000 feedback entries. Narrow the dates for detail." />}
+        {(["sessionRpe", "wellbeing", "sleepQuality"] as const).map(field => <section key={field}><h3>{field === "sessionRpe" ? "Session RPE (0–10)" : field === "wellbeing" ? "Wellbeing (1–5)" : "Sleep quality (1–5)"}</h3><PerformanceChart label={field} points={data.feedback!.map(point => ({ date: point.date, value: point[field] }))} /></section>)}
+      </Panel>}
       {coach && data.clients.length > 0 && <Panel title="Client summary" flush><DataTable label="Client summary" rows={data.clients} rowKey={c => c.relationshipId} columns={[
         { id: "client", header: "Client", cell: c => <Link data-row-link to={`/app/clients/${c.relationshipId}?tab=progress`}>Open client progress</Link> },
         { id: "done", header: "Completed / due", cell: c => `${c.completed} / ${c.due}` },
@@ -88,5 +94,6 @@ export function TrainingProgress({ relationshipId, programId, groupId, from: fix
         { id: "last", header: "Last completion", cell: c => c.latestCompletedAt ? new Date(c.latestCompletedAt).toLocaleString() : "—" },
       ]} /></Panel>}
     </>}
+    {!report && <ComparisonReport key={`${from}:${to}:${selectedProgram}:${blockId}:${cycleId}`} from={fixedFrom || from} to={fixedTo || to} relationshipId={relationshipId} programId={programId || selectedProgram || undefined} blockId={blockId || undefined} cycleId={cycleId || undefined} view={mode} />}
   </section>;
 }

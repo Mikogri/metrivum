@@ -104,6 +104,8 @@ public sealed class DatabasePrivilegeTests
             await Denied(runtime, "SELECT * FROM auth.users");
             await Denied(runtime, "CREATE TABLE coaching.forbidden (id int)");
             await Denied(runtime, "UPDATE coaching.\"StatusChanges\" SET \"InternalReason\" = 'tampered'");
+            await Denied(runtime, "UPDATE coaching.\"Specializations\" SET \"Name\"='tampered' WHERE false");
+            await Denied(runtime, "UPDATE coaching.\"CoachSpecializationChanges\" SET \"Version\"=0 WHERE false");
             await Denied(runtime, "SELECT * FROM coaching.\"__EFMigrationsHistory\"");
             foreach (var schema in new[] { "forms", "offers", "billing", "checkins" })
             {
@@ -146,9 +148,16 @@ public sealed class DatabasePrivilegeTests
             await Denied(worker, "SELECT * FROM accounts.profiles");
             await Denied(worker, "SELECT * FROM training.plans");
             await Denied(worker, "SELECT * FROM coaching.\"Relationships\"");
+            await Denied(worker, "SELECT * FROM coaching.\"CoachSpecializations\"");
             await Denied(worker, "SELECT * FROM forms.submissions");
             await Denied(worker, "SELECT * FROM billing.payments");
             await Denied(worker, "SELECT * FROM billing.team_platform_subscriptions");
+            await Denied(worker, "SELECT \"PaymentMethodId\" FROM billing.platform_subscriptions");
+            await Denied(worker, "DELETE FROM access.usage_reservations");
+            await using (var entitlement = worker.CreateCommand("SELECT \"OwnerId\", \"PlanId\", \"Status\", \"PeriodStart\", \"PeriodEnd\" FROM billing.platform_subscriptions LIMIT 1"))
+                await entitlement.ExecuteScalarAsync();
+            await using (var holds = worker.CreateCommand("SELECT count(*) FROM access.usage_reservations"))
+                await holds.ExecuteScalarAsync();
             await Denied(worker, "SELECT * FROM coaching.\"TeamClientCases\"");
             await Denied(worker, "SELECT * FROM checkins.\"Requests\"");
             await using var allowed = worker.CreateCommand("SELECT count(*) FROM video_analysis.jobs");

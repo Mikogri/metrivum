@@ -192,8 +192,8 @@ export function applyProgression(doc: TrainingDocument, blockId: string, exercis
         kind: set.kind,
         prescription: progressed(set.prescription, rule, k),
       })) as TrainingSet[];
-      // Back-off references point at the source cycle's sets; keep the shape simple and standard.
-      const repaired = sets.map((s) => (s.kind === "BackOff" ? ({ ...s, kind: "Standard" } as TrainingSet) : s)).map((s) => {
+      // Cross-cycle source IDs cannot be copied; standalone back-off markers remain valid.
+      const repaired = sets.map((s) => {
         const copy = { ...s };
         delete copy.sourceSetId;
         delete copy.segments;

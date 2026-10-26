@@ -216,6 +216,8 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                     b.HasIndex("CoachId", "SettledAt")
                         .HasFilter("\"Context\" = 'CoachingService'");
 
+                    b.HasIndex("ClientId", "SettledAt", "Id");
+
                     b.HasIndex("CoachId", "Currency", "SettledAt");
 
                     b.HasIndex("TeamId", "CoachId", "SettledAt");
@@ -268,6 +270,8 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
 
                     b.HasIndex("DueId", "IdempotencyKey")
                         .IsUnique();
+
+                    b.HasIndex("DueId", "CreatedAt", "Id");
 
                     b.ToTable("payment_attempts", "billing");
                 });
@@ -384,6 +388,10 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                     b.HasIndex("CoachId", "RelationshipId", "DueAt");
 
                     b.HasIndex("TeamId", "CoachId", "DueAt");
+
+                    b.HasIndex("ClientId", "Context", "CreatedAt", "Id");
+
+                    b.HasIndex("CoachId", "TeamId", "CreatedAt", "Id");
 
                     b.ToTable("payment_dues", "billing", t =>
                         {
@@ -590,15 +598,27 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                         },
                         new
                         {
+                            Id = "Starter",
+                            CommissionRate = 0.10m,
+                            Name = "Starter"
+                        },
+                        new
+                        {
                             Id = "Pro",
-                            CommissionRate = 0.05m,
+                            CommissionRate = 0.10m,
                             Name = "Pro"
                         },
                         new
                         {
                             Id = "Team",
-                            CommissionRate = 0.05m,
+                            CommissionRate = 0.10m,
                             Name = "Team"
+                        },
+                        new
+                        {
+                            Id = "Studio",
+                            CommissionRate = 0.10m,
+                            Name = "Studio"
                         });
                 });
 
@@ -637,6 +657,9 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
 
+                    b.Property<Guid?>("PendingPriceId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset?>("PeriodEnd")
                         .HasColumnType("timestamp with time zone");
 
@@ -670,6 +693,8 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                     b.HasIndex("PaymentMethodId");
 
                     b.HasIndex("PendingDueId");
+
+                    b.HasIndex("PendingPriceId");
 
                     b.HasIndex("PlanId", "PeriodEnd");
 
@@ -760,6 +785,69 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("renewal_failures", "billing");
+                });
+
+            modelBuilder.Entity("TrainFlow.Billing.Domain.ServiceRenewalChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SubscriptionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId", "CreatedAt", "Id");
+
+                    b.ToTable("service_renewal_changes", "billing");
+                });
+
+            modelBuilder.Entity("TrainFlow.Billing.Domain.SimulatedRefund", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(28, 2)
+                        .HasColumnType("numeric(28,2)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "CreatedAt");
+
+                    b.HasIndex("OwnerId", "CreatedAt", "Id");
+
+                    b.ToTable("simulated_refunds", "billing");
                 });
 
             modelBuilder.Entity("TrainFlow.Billing.Domain.Subscription", b =>
@@ -1075,6 +1163,10 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                     b.Property<Guid?>("PaymentMethodId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("PendingPlanId")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
                     b.Property<int?>("PendingSeats")
                         .HasColumnType("integer");
 
@@ -1153,9 +1245,13 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("InviterId", "CreatedAt");
+
                     b.HasIndex("TeamId", "UserId", "Kind")
                         .IsUnique()
                         .HasFilter("\"Status\" = 'Pending'");
+
+                    b.HasIndex("TeamId", "Kind", "CreatedAt", "Id");
 
                     b.ToTable("team_requests", "billing");
                 });
@@ -1252,6 +1348,11 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                         .HasForeignKey("PendingDueId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("TrainFlow.Billing.Domain.PlanPrice", null)
+                        .WithMany()
+                        .HasForeignKey("PendingPriceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("TrainFlow.Billing.Domain.PlatformPlan", null)
                         .WithMany()
                         .HasForeignKey("PlanId")
@@ -1291,6 +1392,24 @@ namespace TrainFlow.Billing.Infrastructure.Migrations
                     b.HasOne("TrainFlow.Billing.Domain.Subscription", null)
                         .WithMany()
                         .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Billing.Domain.ServiceRenewalChange", b =>
+                {
+                    b.HasOne("TrainFlow.Billing.Domain.Subscription", null)
+                        .WithMany()
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TrainFlow.Billing.Domain.SimulatedRefund", b =>
+                {
+                    b.HasOne("TrainFlow.Billing.Domain.Payment", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

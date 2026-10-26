@@ -458,7 +458,7 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
             Eligible(a);
         return (e, a);
     }
-    private IQueryable<WorkoutExecution> ExecutionQuery() => Executions.Include(x => x.Exercises).ThenInclude(x => x.Sets);
+    private IQueryable<WorkoutExecution> ExecutionQuery() => Executions.Include(x => x.Exercises).ThenInclude(x => x.Sets).AsSplitQuery();
     private async Task ActiveRelationship(ProgramAssignment a, CancellationToken ct)
     {
         if ((await relationships.GetAsync(a.RelationshipId, ct))?.Status != RelationshipStatus.Active)
@@ -538,7 +538,7 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
     private static ExecutionDto ExecutionDto(WorkoutExecution e, bool active) => new(e.Id, e.OccurrenceId, e.Status, e.PerformedDate, e.StartedAt, e.CompletedAt, e.UpdatedAt,
         e.Comment, e.DurationSeconds, e.Version, e.Exercises.OrderBy(x => x.Position).Select(x => new ExerciseExecutionDto(x.Id, x.PrescribedInstanceId, x.ExerciseId, x.Name, x.Comment,
             x.Sets.OrderBy(s => s.Position).Select(s => new ActualSet(s.PrescribedSetId, s.PrescribedSegmentId, s.Skipped, s.Reps, s.Load, s.LoadUnit, s.LoadMeaning, s.Rpe, s.Rir, s.DurationSeconds,
-                s.DistanceMeters, s.RestSeconds, s.Tempo, s.Comment, s.Id)).ToArray())).ToArray(), active ? e.Status == ExecutionStatus.Completed ? ["save"] : e.Status == ExecutionStatus.InProgress ? ["save", "complete"] : [] : []);
+                s.DistanceMeters, s.RestSeconds, s.Tempo, s.Comment, s.Id)).ToArray())).ToArray(), active ? e.Status == ExecutionStatus.Completed ? ["save"] : e.Status == ExecutionStatus.InProgress ? ["save", "complete"] : [] : [], e.Feedback);
     private static void Page(int page, int size)
     {
         if (page is < 1 or > 100000 || size is < 1 or > 100)

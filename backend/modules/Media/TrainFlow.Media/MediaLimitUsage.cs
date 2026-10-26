@@ -11,6 +11,6 @@ public sealed class MediaLimitUsage(MediaDbContext db, IOptions<StorageOptions> 
     {
         var now = DateTimeOffset.UtcNow;
         var pending = await db.Files.CountAsync(x => x.OwnerId == ownerId && (x.State == "Pending" || x.State == "Deleting") && x.UploadExpiresAt > now, cancellationToken);
-        return [new("media.maxVideoBytes", options.Value.MaxVideoBytes, 0), new("media.maxPendingUploads", options.Value.MaxPendingUploadsPerOwner, pending)];
+        return [new("media.maxVideoBytes", options.Value.AcceptedVideoBytes, 0), new("media.maxPendingUploads", options.Value.AcceptedPendingUploads, pending)];
     }
 }

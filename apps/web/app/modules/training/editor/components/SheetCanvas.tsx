@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronRight,
   Copy,
+  Hand,
   Info,
   LayoutGrid,
   Link2,
@@ -21,6 +22,7 @@ import {
   RotateCcw,
   Repeat,
   Sigma,
+  SquareDashedMousePointer,
   Trash2,
   TrendingUp,
   Unlink,
@@ -28,7 +30,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { Block, Cycle, ExerciseInstance, FormulaUse, TrainingDocument, Workout } from "@trainflow/api-client-web";
-import { Button, ContextMenu, IconButton, Tooltip, TooltipTrigger, type ContextMenuEntry } from "@trainflow/ui-web";
+import { Button, ContextMenu, IconButton, Segment, SegmentedControl, Tooltip, TooltipTrigger, type ContextMenuEntry } from "@trainflow/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -143,7 +145,9 @@ type Drag = {
   group: Record<string, Cell>;
 };
 type Marquee = { pointerId: number; x0: number; y0: number; x1: number; y1: number };
-type Link = { kind: "cycle" | "maxes" | "annotation"; targetId?: string; hoveredId?: string; blockId: string; pointerId: number; x: number; y: number };
+type Link = { kind: "cycle" | "maxes" | "annotation"; targetId?: string; hoveredId?: string; blockId: string; pointerId: number; x: number; y: number;
+  /** Set when an attached plug is picked up: the edge it came from, so dropping elsewhere moves it and dropping on nothing unplugs it. */
+  rewire?: { edgeId: string; target: string } };
 type Menu =
   | { kind: "column"; x: number; y: number; col: number; owner?: string }
   | { kind: "canvas"; x: number; y: number; cell: Cell }
@@ -162,6 +166,8 @@ type Menu =
  *
  * Without `apply` the sheet is a read-only preview (pan, zoom, expand only).
  */
+const DRAG_MODE_KEY = "tf.sheet.dragMode";
+
 export function SheetCanvas({
   doc,
   apply,
@@ -202,7 +208,8 @@ export function SheetCanvas({
   const [menu, setMenu] = useState<Menu | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
   const [hoverNode, setHoverNode] = useState<string | null>(null);
-  const [nodeHeights, setNodeHeights] = useState<Record<string, number>>({});
+  // Each card's real box on the sheet (offset from its cell and size), so cables meet the card edges exactly.
+  const [nodeBoxes, setNodeBoxes] = useState<Record<string, { dx: number; dy: number; w: number; h: number }>>({});
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
   const [selected, setSelected] = useState<string[]>([]);
   const [marquee, setMarquee] = useState<Marquee | null>(null);
@@ -467,19 +474,70 @@ export function SheetCanvas({
     place(id, { col: Math.max(0, at.col + delta[0]!), row: Math.max(0, at.row + delta[1]!) });
   };
 
-  // Selecting an area: drag on empty cells to select every card the rectangle touches. ---------
+  // Empty cells: dragging moves the view around the sheet; with Ctrl (⌘ on a Mac) held it selects every card the
+  // rectangle touches. -------------------------------------------------------------------------
+  const pan = useRef<{ pointerId: number; x: number; y: number; left: number; top: number } | null>(null);
+  const [panning, setPanning] = useState(false);
+  // What a plain drag on the empty sheet does; Ctrl / ⌘ always does the other one. Remembered in this browser.
+  const [dragMode, setDragModeState] = useState<"pan" | "select">(() => {
+    try { return typeof window !== "undefined" && window.localStorage.getItem(DRAG_MODE_KEY) === "select" ? "select" : "pan"; } catch { return "pan"; }
+  });
+  const setDragMode = (mode: "pan" | "select") => {
+    setDragModeState(mode);
+    try { window.localStorage.setItem(DRAG_MODE_KEY, mode); } catch { /* storage unavailable */ }
+  };
+  // Holding Ctrl / ⌘ switches the cursor to the selection crosshair.
+  const [selectKey, setSelectKey] = useState(false);
+  useEffect(() => {
+    const sync = (event: KeyboardEvent) => setSelectKey(event.ctrlKey || event.metaKey);
+    const clear = () => setSelectKey(false);
+    window.addEventListener("keydown", sync);
+    window.addEventListener("keyup", sync);
+    window.addEventListener("blur", clear);
+    return () => { window.removeEventListener("keydown", sync); window.removeEventListener("keyup", sync); window.removeEventListener("blur", clear); };
+  }, []);
   const startMarquee = (event: ReactPointerEvent) => {
-    if (readOnly || menu || event.button !== 0 || !event.currentTarget.contains(event.target as Node) || (event.target as HTMLElement).closest("[data-node], [data-edge], [data-no-drag], [role=menu], [role=dialog], button, input, textarea")) return;
+    if (menu || event.button !== 0 || !event.currentTarget.contains(event.target as Node) || (event.target as HTMLElement).closest("[data-node], [data-edge], [data-no-drag], [role=menu], [role=dialog], button, input, textarea")) return;
+    const select = (event.ctrlKey || event.metaKey) !== (dragMode === "select");
+    if (!select || readOnly) {
+      const el = scrollerRef.current;
+      if (!el) return;
+      event.preventDefault();
+      capturePointer(event);
+      pan.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, left: el.scrollLeft, top: el.scrollTop };
+      setPanning(true);
+      return;
+    }
     capturePointer(event);
     const p = toBoard(event.clientX, event.clientY);
     setMarquee({ pointerId: event.pointerId, x0: p.x, y0: p.y, x1: p.x, y1: p.y });
   };
+  const endPan = (event: ReactPointerEvent) => {
+    const grab = pan.current;
+    if (!grab || event.pointerId !== grab.pointerId) return false;
+    // A click on the empty sheet, without moving it, clears the selection as before.
+    if (Math.abs(event.clientX - grab.x) < 4 && Math.abs(event.clientY - grab.y) < 4 && selected.length) setSelected([]);
+    pan.current = null;
+    setPanning(false);
+    cancelPointer();
+    return true;
+  };
   const moveMarquee = (event: ReactPointerEvent) => {
+    const grab = pan.current;
+    if (grab && event.pointerId === grab.pointerId) {
+      const el = scrollerRef.current;
+      if (el) {
+        el.scrollLeft = grab.left - (event.clientX - grab.x);
+        el.scrollTop = grab.top - (event.clientY - grab.y);
+      }
+      return;
+    }
     if (!marquee || event.pointerId !== marquee.pointerId) return;
     const p = toBoard(event.clientX, event.clientY);
     setMarquee({ ...marquee, x1: p.x, y1: p.y });
   };
   const endMarquee = (event: ReactPointerEvent) => {
+    if (endPan(event)) return;
     if (!marquee || event.pointerId !== marquee.pointerId) return;
     const left = Math.min(marquee.x0, marquee.x1);
     const right = Math.max(marquee.x0, marquee.x1);
@@ -516,11 +574,11 @@ export function SheetCanvas({
     setLoose((cycles) => [...cycles.filter((c) => c.id !== cycle.id), cycle]);
     update((s) => ({ ...s, expanded: s.expanded.filter((x) => x !== cycle.id) }));
   };
-  const startLink = (event: ReactPointerEvent, blockId: string, kind: Link["kind"] = "cycle") => {
+  const startLink = (event: ReactPointerEvent, blockId: string, kind: Link["kind"] = "cycle", rewire?: Link["rewire"]) => {
     if (readOnly || menu || event.button !== 0) return;
     event.stopPropagation();
     capturePointer(event);
-    setLink({ kind, blockId, pointerId: event.pointerId, ...toBoard(event.clientX, event.clientY) });
+    setLink({ kind, blockId, pointerId: event.pointerId, rewire, ...toBoard(event.clientX, event.clientY) });
   };
   const eligibleTarget = (kind: Link["kind"], source: string, target: string) => {
     if (source === target) return false;
@@ -539,11 +597,20 @@ export function SheetCanvas({
   };
   const endLink = (event: ReactPointerEvent) => {
     if (!link || event.pointerId !== link.pointerId) return;
-    const { targetId } = linkHit(event, link);
-    if (targetId) {
-      if (link.kind === "cycle") connect(link.blockId, targetId);
-      else if (link.kind === "annotation") apply?.(current => ({ ...current, annotations: (current.annotations ?? []).map(n => n.id === link.blockId ? { ...n, targetId } : n) }));
+    const { targetId, hoveredId } = linkHit(event, link);
+    const old = link.rewire?.target;
+    if (targetId && targetId !== old) {
+      if (link.kind === "cycle") {
+        // Moving the plug to another cycle: the old one comes off the block, the new one goes on.
+        if (old) disconnect(old);
+        connect(link.blockId, targetId);
+      } else if (link.kind === "annotation") apply?.(current => ({ ...current, annotations: (current.annotations ?? []).map(n => n.id === link.blockId ? { ...n, targetId } : n) }));
       else apply?.(current => withMaxesTables(current, maxesTables(current).map(t => t.id === link.blockId ? { ...t, blockId: targetId } : t)));
+    } else if (old && !targetId && !hoveredId) {
+      // A plug pulled out and dropped on the empty sheet is unplugged.
+      if (link.kind === "cycle") disconnect(old);
+      else if (link.kind === "annotation") apply?.(current => ({ ...current, annotations: (current.annotations ?? []).map(n => n.id === link.blockId ? { ...n, targetId: null } : n) }));
+      else apply?.(current => withMaxesTables(current, maxesTables(current).map(t => t.id === link.blockId ? { ...t, blockId: null } : t)));
     }
     cancelPointer();
   };
@@ -577,20 +644,48 @@ export function SheetCanvas({
   useLayoutEffect(() => {
     const nodes = [...(boardRef.current?.querySelectorAll<HTMLElement>("[data-node-id]") ?? [])];
     const measure = () => {
-      const next = Object.fromEntries(nodes.map(node => [node.dataset.nodeId!, node.offsetHeight]));
-      setNodeHeights(current => Object.keys(current).length === Object.keys(next).length && Object.entries(next).every(([id, height]) => current[id] === height) ? current : next);
+      const next = Object.fromEntries(nodes.map(node => {
+        // The card sits in its cell inset by its own margin. Read the margin, not the live position: right after a drop
+        // the card is still gliding to its cell, and measuring it mid-way would leave the cable short of the card.
+        const style = getComputedStyle(node);
+        return [node.dataset.nodeId!, { dx: parseFloat(style.marginLeft) || 0, dy: parseFloat(style.marginTop) || 0, w: node.offsetWidth, h: node.offsetHeight }];
+      }));
+      const same = (a: { dx: number; dy: number; w: number; h: number } | undefined, b: { dx: number; dy: number; w: number; h: number }) => !!a && a.dx === b.dx && a.dy === b.dy && a.w === b.w && a.h === b.h;
+      setNodeBoxes(current => Object.keys(current).length === Object.keys(next).length && Object.entries(next).every(([id, box]) => same(current[id], box)) ? current : next);
     };
     measure();
     const observer = new ResizeObserver(measure);
     nodes.forEach(node => observer.observe(node));
     return () => observer.disconnect();
-  }, [doc, expanded, loose]);
+  }, [doc, expanded, loose, layout, widths, collapsedCards]);
+
+  // While cards glide to their new cells (after a drop or a reflow), the cables follow the cards frame by frame
+  // instead of jumping straight to where the cards will end up.
+  const [glide, setGlide] = useState<Record<string, { left: number; top: number }> | null>(null);
+  const dragging = Boolean(drag?.moved);
+  useEffect(() => {
+    if (dragging) return;
+    const nodes = [...(boardRef.current?.querySelectorAll<HTMLElement>("[data-node-id]") ?? [])];
+    let frame = 0;
+    const end = performance.now() + 380;
+    const tick = () => {
+      setGlide(Object.fromEntries(nodes.map(node => [node.dataset.nodeId!, { left: node.offsetLeft, top: node.offsetTop }])));
+      if (performance.now() < end) frame = requestAnimationFrame(tick);
+      else setGlide(null);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(frame); setGlide(null); };
+  }, [layout, widths, dragging]);
 
   const bounds = (id: string): Bounds => {
     const p = pos(id); const cellSize = sizes[id]!;
+    const box = nodeBoxes[id];
+    const live = glide?.[id];
+    if (box && live) return { left: live.left, top: live.top, width: box.w, height: box.h };
+    if (box) return { left: p.left + box.dx, top: p.top + box.dy, width: box.w, height: box.h };
     const isTable = maxesTables(doc).some(t => t.id === id);
     const open = isTable || (doc.annotations ?? []).some(n => n.id === id) || expanded.has(id);
-    return { left: p.left + (open ? -1 : 4), top: p.top + (open ? -1 : 4), width: p.width + (open ? 2 : -8), height: nodeHeights[id] || cellSize.rows * CELL_H + (open ? 2 : -8) };
+    return { left: p.left + (open ? -1 : 4), top: p.top + (open ? -1 : 4), width: p.width + (open ? 2 : -8), height: cellSize.rows * CELL_H + (open ? 2 : -8) };
   };
   const edges = [
     ...doc.blocks.flatMap(block => block.cycles.map(cycle => ({ id: `${block.id}-${cycle.id}`, sourceId: block.id, targetId: cycle.id, cycleId: cycle.id, tableId: undefined as string | undefined, annotationId: undefined as string | undefined }))),
@@ -779,7 +874,7 @@ export function SheetCanvas({
     >
       {maxesMenu ? <ContextMenu x={maxesMenu.x} y={maxesMenu.y} label="Table connection" onClose={() => setMaxesMenu(null)} items={[{ id: "disconnect", label: "Disconnect" }]} onAction={ () => { apply?.(current => withMaxesTables(current, maxesTables(current).map(t => t.id === maxesMenu.id ? { ...t, blockId: null } : t))); setMaxesMenu(null); }} /> : null}
       <div className={styles.tools}>
-        <Button size="sm" variant="ghost" iconStart={<RotateCcw />} onPress={() => update(s => ({ ...s, columnWidths: {}, elementWidths: {} }))}>Reset all column widths</Button>
+        <div className={styles.toolsMain}>
         {!readOnly ? (
           <>
             <Button size="sm" iconStart={<Plus />} onPress={() => addBlockAt(null)}>
@@ -805,6 +900,22 @@ export function SheetCanvas({
           <IconButton label="Sheet help" icon={<Info />} size="sm" variant="ghost" className={styles.help} showTooltip={false} />
           <Tooltip>{doc.blocks.length || loose.length ? `${t.openCycle} · ${t.zoomHint}` : t.empty}</Tooltip>
         </TooltipTrigger> : null}
+        </div>
+        <div className={styles.toolsEnd}>
+          {!readOnly ? (
+            <SegmentedControl size="sm" aria-label={t.dragMode} className={styles.dragMode} selectedKeys={[dragMode]} onSelectionChange={keys => setDragMode([...keys][0] === "select" ? "select" : "pan")}>
+              <TooltipTrigger delay={300}>
+                <Segment id="pan"><span className={styles.dragModeItem}><Hand aria-hidden="true" />{t.dragPan}</span></Segment>
+                <Tooltip>{t.dragPanHint}</Tooltip>
+              </TooltipTrigger>
+              <TooltipTrigger delay={300}>
+                <Segment id="select"><span className={styles.dragModeItem}><SquareDashedMousePointer aria-hidden="true" />{t.dragSelect}</span></Segment>
+                <Tooltip>{t.dragSelectHint}</Tooltip>
+              </TooltipTrigger>
+            </SegmentedControl>
+          ) : null}
+          <IconButton label={t.resetWidths} icon={<RotateCcw />} size="sm" variant="ghost" onPress={() => update(s => ({ ...s, columnWidths: {}, elementWidths: {} }))} />
+        </div>
       </div>
 
       <div ref={scrollerRef} className={styles.scroller}>
@@ -815,6 +926,8 @@ export function SheetCanvas({
             role="group"
             aria-label={t.label}
             data-dragging={drag?.moved || undefined}
+            data-panning={panning || undefined}
+            data-select-key={(selectKey !== (dragMode === "select") && !readOnly) || undefined}
             style={
               {
                 width: boardW,
@@ -860,10 +973,11 @@ export function SheetCanvas({
               </div>
               <svg className={styles.edges} width={xAt(cols)} height={rows * CELL_H} aria-hidden="true">
                 {edges.map((edge) => {
-                  // The cable stops at the plug; the plug's pins disappear under the cycle card.
+                  // The cable ends in a plug pressed against the card; grab the plug to move or pull it out.
                   const d = cablePath(edge.from, edge.to);
+                  const kind: Link["kind"] = edge.annotationId ? "annotation" : edge.tableId ? "maxes" : "cycle";
                   return (
-                    <g key={edge.id} data-edge data-maxes-connection={edge.tableId} data-annotation-connection={edge.annotationId} data-live={edge.live || undefined} className={styles.edgeGroup}>
+                    <g key={edge.id} data-edge data-maxes-connection={edge.tableId} data-annotation-connection={edge.annotationId} data-live={edge.live || undefined} data-rewiring={edge.id === link?.rewire?.edgeId || undefined} className={styles.edgeGroup}>
                       <path d={d} className={styles.edgeHit} onPointerEnter={() => setHoverEdge(edge.id)} onPointerLeave={() => setHoverEdge(null)}
                         onContextMenu={(event) => {
                           event.preventDefault();
@@ -875,14 +989,17 @@ export function SheetCanvas({
                       />
                       <path d={d} className={styles.edge} />
                       {edge.live ? <path d={d} className={styles.edgeCurrent} /> : null}
-                      <g data-plug-side={edge.to.side} transform={`translate(${edge.to.x} ${edge.to.y}) rotate(${plugRotation(edge.to.side)})`}>
-                        <rect x={-10} y={-4.5} width={7} height={9} rx={2} className={styles.plug} />
-                        <path d="M -3 -2 h 4 M -3 2 h 4" className={styles.plugPins} />
+                      <g data-plug-side={edge.to.side} data-plug-grab={!readOnly || undefined} className={styles.plugGroup} transform={`translate(${edge.to.x} ${edge.to.y}) rotate(${plugRotation(edge.to.side)})`}
+                        onPointerDown={readOnly ? undefined : (event) => startLink(event, edge.sourceId, kind, { edgeId: edge.id, target: edge.targetId })}
+                        onPointerMove={moveLink} onPointerUp={endLink}>
+                        <title>{t.plugHint}</title>
+                        <rect x={-14} y={-9} width={14} height={18} className={styles.plugHit} />
+                        <rect x={-9} y={-4.5} width={9} height={9} rx={2} className={styles.plug} />
                       </g>
                     </g>
                   );
                 })}
-                {draftCable ? <g data-link-preview data-target-id={link?.targetId}><path d={cablePath(draftCable.from, draftCable.to, true)} className={styles.edgeDraft} /><g data-preview-side={draftCable.to.side} transform={`translate(${draftCable.to.x} ${draftCable.to.y}) rotate(${plugRotation(draftCable.to.side)})`}><rect x={-10} y={-4.5} width={7} height={9} rx={2} className={styles.plug} /><path d="M -3 -2 h 4 M -3 2 h 4" className={styles.plugPins} /></g></g> : null}
+                {draftCable ? <g data-link-preview data-target-id={link?.targetId}><path d={cablePath(draftCable.from, draftCable.to, true)} className={styles.edgeDraft} /><g data-preview-side={draftCable.to.side} transform={`translate(${draftCable.to.x} ${draftCable.to.y}) rotate(${plugRotation(draftCable.to.side)})`}><rect x={-9} y={-4.5} width={9} height={9} rx={2} className={styles.plug} /></g></g> : null}
               </svg>
 
               {marquee ? (

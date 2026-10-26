@@ -8,7 +8,7 @@ public static class SystemFieldRules
 {
     public static void Validate(IReadOnlyDictionary<SystemFieldKey, JsonElement> values)
     {
-        if (values is null || values.Count > 15)
+        if (values is null || values.Count > 19)
             throw ApiException.Invalid("Profile fields are required and bounded.");
         foreach (var (key, value) in values)
         {
@@ -45,6 +45,18 @@ public static class SystemFieldRules
                 case SystemFieldKey.Sex:
                     if (value.ValueKind != JsonValueKind.String || value.GetString() is not ("Male" or "Female" or "Other"))
                         throw ApiException.Invalid("Sex must be Male, Female, or Other.");
+                    break;
+                case SystemFieldKey.Country:
+                    if (value.ValueKind != JsonValueKind.String || value.GetString() is not { Length: 2 } code || !code.All(char.IsAsciiLetterUpper))
+                        throw ApiException.Invalid("Country must be an ISO 3166-1 alpha-2 code.");
+                    break;
+                case SystemFieldKey.Region or SystemFieldKey.City:
+                    if (value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()) || value.GetString()!.Length > 100)
+                        throw ApiException.Invalid("Region and city must be at most 100 characters.");
+                    break;
+                case SystemFieldKey.PostalCode:
+                    if (value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()) || value.GetString()!.Length > 16)
+                        throw ApiException.Invalid("Postal code must be at most 16 characters.");
                     break;
                 case SystemFieldKey.PreferredTrainingDays:
                     if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() > 7 || value.EnumerateArray().Any(x => x.ValueKind != JsonValueKind.Number || !x.TryGetInt32(out var day) || day < 1 || day > 7) || value.EnumerateArray().Select(x => x.GetInt32()).Distinct().Count() != value.GetArrayLength())

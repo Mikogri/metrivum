@@ -18,6 +18,7 @@ public static class ModuleRegistration
     {
         services.AddModuleDatabase<OffersDbContext>("offers");
         services.AddScoped<OffersService>();
+        services.AddScoped<IDiscoveryOffers, DiscoveryOffers>();
         services.AddScoped<IMcpOfferOperations, McpOfferOperations>();
         services.AddScoped<IOfferLibrary>(p => p.GetRequiredService<OffersService>());
         services.TryAddSingleton(TimeProvider.System);

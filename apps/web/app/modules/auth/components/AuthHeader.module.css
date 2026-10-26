@@ -25,3 +25,46 @@
   color: var(--tf-color-text);
   font-weight: var(--tf-weight-medium);
 }
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+/* Back arrow: a quiet round button before the title. */
+.back {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin-left: calc(var(--tf-space-2) * -1);
+  border-radius: var(--tf-radius-full);
+  color: var(--tf-color-text-secondary);
+  transition: background-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease;
+}
+
+.back:hover {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+
+.back svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.formError {
+  margin-top: calc(var(--tf-space-2) * -1);
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+}
+
+.formError a {
+  color: inherit;
+  font-weight: var(--tf-weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

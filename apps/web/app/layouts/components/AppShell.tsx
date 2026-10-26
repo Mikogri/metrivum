@@ -3,9 +3,10 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 import { Link, Navigate, Outlet, useLocation, useMatches, useNavigate, useNavigation, useNavigationType } from "react-router";
 import { Hint, IconButton, Kbd, PageBackContext, useMobileLayout, type PageBack } from "@trainflow/ui-web";
-import { useAccessSnapshot } from "~/shared/access";
+import { UsageButton, useAccessSnapshot } from "~/shared/access";
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
+import { TOP_NOTICE_ID } from "~/shared/ui/TopNotice";
 import { useT } from "~/shared/i18n/AppLocale";
 import { NotificationBell, useNotifications } from "~/modules/messaging";
 import { AnalyzerMenu, AnalyzerUpdateBanner } from "~/modules/video-analysis";
@@ -21,6 +22,7 @@ import { clientSection } from "~/shared/session/workspace-model";
 import { WorkspaceSelect } from "./WorkspaceSelect";
 import { MobileNavigation } from "./MobileNavigation";
 import { immersiveMobileRoute, mobileViewport } from "./mobile-navigation";
+import { BrandMark } from "~/shared/ui/BrandMark";
 
 const COLLAPSED_KEY = "tf.sidebar.collapsed";
 
@@ -36,7 +38,7 @@ function Brand() {
   const m = useT();
   return (
     <a href="/" className={styles.brand} aria-label={m.nav.publicSite}>
-      <img src="/brand/trainflow-mark.png" alt="" width={159} height={128} />
+      <BrandMark className={styles.brandMark} />
       <span className={styles.brandText}>Metrivum</span>
     </a>
   );
@@ -243,6 +245,9 @@ export function AppShell() {
       </a>
       {/* Full width above the sidebar and the page, like a status notice. */}
       {!MOCK_MODE ? <AnalyzerUpdateBanner /> : null}
+      {/* Pages put their own full-width notice here (e.g. the profile preview), in the same top row. */}
+      <div id={TOP_NOTICE_ID} style={{ display: "contents" }} />
+
       {!phone && <aside className={styles.sidebar}>
         <div className={styles.logo}>
           <Brand />
@@ -253,7 +258,7 @@ export function AppShell() {
       <div className={styles.column}>
         {phone ? (!conversation && <header className={`${styles.appBar} ${styles.phoneBar}`}>
           <Link to="/app/today" className={styles.phoneBrand}>Metrivum</Link>
-          <div className={styles.appBarActions}><IconButton label={m.nav.commandPalette} icon={<Search strokeWidth={1.75} />} size="sm" variant="ghost" showTooltip={false} onPress={() => setPalette({ open: true, animated: true })} /><AnalyzerMenu /><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
+          <div className={styles.appBarActions}><IconButton label={m.nav.commandPalette} icon={<Search strokeWidth={1.75} />} size="sm" variant="ghost" showTooltip={false} onPress={() => setPalette({ open: true, animated: true })} /><AnalyzerMenu /><UsageButton /><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
         </header>) : <header className={styles.appBar}>
           <span className={styles.desktopOnly}>
             <IconButton
@@ -275,6 +280,7 @@ export function AppShell() {
               <Kbd>⌘K</Kbd>
             </button>
             <AnalyzerMenu />
+            <UsageButton />
             <NotificationBell />
             <SubscriptionButton label={m.nav.subscription} />
           </div>

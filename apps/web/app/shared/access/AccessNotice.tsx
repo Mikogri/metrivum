@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Alert } from "@trainflow/ui-web";
+import { Alert, LinkButton } from "@trainflow/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import type { FeatureAccess } from "./useFeatureAccess";
 
@@ -12,7 +12,7 @@ export function AccessNotice({ access, actions, className }: { access: FeatureAc
   if (access.allowed || access.pending) return null;
   const limit = access.state === "limit_reached";
   return (
-    <Alert tone="warning" title={m.access.reasons[access.state] ?? m.access.reasons.unknown} actions={limit ? actions : undefined} className={className}>
+    <Alert tone="warning" title={m.access.reasons[access.state] ?? m.access.reasons.unknown} actions={access.state === "feature_not_in_plan" ? <LinkButton href="/app/subscription" size="sm">{m.access.upgradeToPro}</LinkButton> : limit ? actions ?? <LinkButton href="/app/subscription" size="sm">{m.access.seePlans}</LinkButton> : undefined} className={className}>
       {limit ? m.access.limitHelp : undefined}
     </Alert>
   );

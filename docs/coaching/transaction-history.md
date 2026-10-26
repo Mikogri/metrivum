@@ -1,0 +1,9 @@
+# Financial operation history
+
+`GET /api/v1/me/transactions` projects immutable payments, failed/pending attempts, outstanding dues, simulated refunds and recorded platform cancellations. It does not write a second ledger. Filtering and pagination happen in PostgreSQL; account display names are loaded once for the returned page. Detail lookup applies the same ownership scope and returns 404 for other users' entries.
+
+Personal history combines the user's outgoing payments and their personal coaching income. An explicit Team scope requires Owner/Admin access. Platform subscription purchases are expenses, not coaching income. Refunds reverse the direction; pending obligations and failed attempts have `isSettlement=false` and must never be summed as settled income. Gross, fee rate/amount and recipient net come from historical snapshots. The service fee is included in gross, not added again. Platform subscriptions have no service commission.
+
+All simulated entries are explicitly marked `Simulated`; manually reported external settlements remain `External` and unverified. No invoice or real gateway is generated. Free enrollment and unpriced GPU add-ons do not create synthetic payment records. Service auto-renewal cancellation now appends a dated immutable event atomically with the preference change. Earlier cancellations without an event timestamp are not backdated or invented; their current state remains in the existing service view.
+
+Filters include dates (UTC; inclusive from/exclusive to), amount range, currency, direction, status, type, counterparty, service, offer revision, subscription and platform plan. `/app/transactions` is available in both account perspectives. Prices and financial decisions remain in Billing.

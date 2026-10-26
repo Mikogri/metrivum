@@ -630,3 +630,10 @@
   border-color: color-mix(in srgb, var(--tf-color-danger) 50%, transparent);
   color: var(--tf-color-danger);
 }
+
+/* Quota choice, notices and limits above the work area, evenly spaced. */
+.intro {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-4);
+}

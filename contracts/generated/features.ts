@@ -1,10 +1,26 @@
 // Generated from module feature definitions. Do not edit.
 export const features = [
   {
+    "key": "analytics.advanced",
+    "module": "Access",
+    "titleKey": "analytics.advanced.title",
+    "descriptionKey": "analytics.advanced.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
     "key": "analytics.view",
     "module": "Analytics",
     "titleKey": "analytics.view.title",
     "descriptionKey": "analytics.view.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "automation.advanced",
+    "module": "Access",
+    "titleKey": "automation.advanced.title",
+    "descriptionKey": "automation.advanced.description",
     "dependencies": [],
     "limits": []
   },
@@ -179,6 +195,30 @@ export const features = [
     "limits": []
   },
   {
+    "key": "discovery.coach-profile.publish",
+    "module": "Coaching",
+    "titleKey": "discovery.coach-profile.publish.title",
+    "descriptionKey": "discovery.coach-profile.publish.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "discovery.coaches.search",
+    "module": "Coaching",
+    "titleKey": "discovery.coaches.search.title",
+    "descriptionKey": "discovery.coaches.search.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "discovery.ranking.priority",
+    "module": "Coaching",
+    "titleKey": "discovery.ranking.priority.title",
+    "descriptionKey": "discovery.ranking.priority.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
     "key": "exercises.browse",
     "module": "ExerciseCatalog",
     "titleKey": "features.exercises.browse.title",
@@ -194,6 +234,14 @@ export const features = [
     "dependencies": [
       "exercises.browse"
     ],
+    "limits": []
+  },
+  {
+    "key": "exercises.custom.create",
+    "module": "Access",
+    "titleKey": "exercises.custom.create.title",
+    "descriptionKey": "exercises.custom.create.description",
+    "dependencies": [],
     "limits": []
   },
   {
@@ -375,10 +423,26 @@ export const features = [
     "limits": []
   },
   {
+    "key": "organization.workspace.manage",
+    "module": "Access",
+    "titleKey": "organization.workspace.manage.title",
+    "descriptionKey": "organization.workspace.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
     "key": "training.assignments.manage",
     "module": "Training",
     "titleKey": "training.assignments.manage.title",
     "descriptionKey": "training.assignments.manage.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "training.builder.advanced",
+    "module": "Access",
+    "titleKey": "training.builder.advanced.title",
+    "descriptionKey": "training.builder.advanced.description",
     "dependencies": [],
     "limits": []
   },
@@ -529,10 +593,26 @@ export const features = [
     "limits": []
   },
   {
+    "key": "video.analysis.cloud",
+    "module": "Access",
+    "titleKey": "video.analysis.cloud.title",
+    "descriptionKey": "video.analysis.cloud.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
     "key": "video.analysis.compare",
     "module": "VideoAnalysis",
     "titleKey": "features.video.analysis.compare.title",
     "descriptionKey": "features.video.analysis.compare.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
+    "key": "video.analysis.local",
+    "module": "Access",
+    "titleKey": "video.analysis.local.title",
+    "descriptionKey": "video.analysis.local.description",
     "dependencies": [],
     "limits": []
   },

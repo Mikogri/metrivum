@@ -2,13 +2,13 @@ import { flushSync } from "react-dom";
 import { CellValidationContext } from "./cell-validation";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Download, Redo2, Rocket, Save, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, Download, Lock, Redo2, Rocket, Save, Sparkles, Undo2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useBlocker, useNavigate } from "react-router";
 import type { PlanDto } from "@trainflow/api-client-web";
 import { Alert, Badge, Button, IconButton, Segment, SegmentedControl, Tooltip, TooltipTrigger, toast } from "@trainflow/ui-web";
 import { useExerciseNames } from "~/modules/exercises";
-import { useFeatures } from "~/shared/access";
+import { UpgradeLink, useFeatures } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
@@ -52,7 +52,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
   const api = useApi();
   const a = useAccountKey();
   const queryClient = useQueryClient();
-  const access = useFeatures(["training.programs.manage", "training.templates.manage", "training.sets.advanced", "training.formulas.custom"] as const);
+  const access = useFeatures(["training.programs.manage", "training.templates.manage", "training.sets.advanced", "training.formulas.custom", "training.builder.advanced"] as const);
   const canEdit = access["training.programs.manage"].allowed && (plan.kind === "Program" || access["training.templates.manage"].allowed);
   const readOnly = !canEdit || plan.archived;
   const editor = useEditor(plan, version, { readOnly });
@@ -64,6 +64,9 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
     storeMode(next);
   };
   const activeMode = mode;
+  // The advanced editor needs the advanced builder (Pro and above). Without it the page is blurred behind a notice.
+  const builder = access["training.builder.advanced"];
+  const builderLocked = activeMode === "advanced" && !builder.pending && !builder.allowed;
   // Sheet arrangement: remembered in this browser per plan (disconnected cycles stay in memory only).
   const [sheet, setSheet] = usePersistentSheet(plan.id);
   const [editNode, setEditNode] = useState<string | null>(null);
@@ -145,7 +148,8 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
 
   return (
     <CellValidationContext.Provider value={reportInvalid}><ClientFormulaContext.Provider value={clientContext.value}>
-    <div className={styles.workspace}>
+    <div className={styles.workspace} data-locked={builderLocked || undefined}>
+      <div className={styles.lockable} inert={builderLocked} aria-hidden={builderLocked || undefined}>
       <header className={styles.toolbar} role="toolbar" aria-label={t.toolbar}>
         <RouterLink to={detailPath} className={styles.back} aria-label={t.back}>
           <ArrowLeft aria-hidden="true" />
@@ -233,6 +237,29 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
           />
         )}
       </div>
+      </div>
+
+      {builderLocked ? (
+        <div className={styles.lock} role="dialog" aria-modal="true" aria-labelledby="advanced-lock-title">
+          <div className={styles.lockCard}>
+            <div className={styles.lockHead}>
+              <IconButton className={styles.lockClose} label={m.common.close} icon={<X />} variant="ghost" size="sm" onPress={() => setMode("simple")} />
+              <span className={styles.lockBadge}><Sparkles aria-hidden="true" />Pro</span>
+              <span className={styles.lockIcon} aria-hidden="true"><Lock /></span>
+              <h2 id="advanced-lock-title" className={styles.lockTitle}>{t.locked.title}</h2>
+              <p className={styles.lockBody}>{t.locked.body}</p>
+            </div>
+            <ul className={styles.lockList}>
+              {t.locked.points.map((point) => <li key={point}><span className={styles.lockCheck} aria-hidden="true"><Check /></span>{point}</li>)}
+            </ul>
+            <div className={styles.lockActions}>
+              <UpgradeLink href="/app/checkout?plan=Pro" size="lg">{t.locked.upgrade}</UpgradeLink>
+              <Button variant="ghost" onPress={() => setMode("simple")}>{t.locked.simple}</Button>
+              <p className={styles.lockNote}>{t.locked.note}</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <NodeDialog editor={editor} nodeId={editNode} onClose={() => setEditNode(null)} />
       <PublishDialog planId={plan.id} version={editor.version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={[...docIssues, ...invalidCells.values()]} />

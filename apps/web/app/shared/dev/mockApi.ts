@@ -123,11 +123,16 @@ function demoDocument(): TrainingDocument {
   const top = set("TopSet", { reps: { minimum: 3, maximum: 3 }, loadPercent: 85, baseValue: { value: 140, unit: "Kg" }, rpe: 8, rest: { value: 4, unit: "Minutes" } });
   const squatId = uid();
   const rdlId = uid();
+  const blockId = uid();
   return {
+    annotations: [
+      { id: uid(), kind: "Goal", title: "Squat 160 kg by June", content: "Peak at the end of block 2; keep RPE under 9 until then.", targetId: blockId, visibility: "Client" },
+      { id: uid(), kind: "Comment", title: "Comment", content: "Watch the knee on deep squats; swap to box squats if it flares up.", targetId: null, visibility: "Coach" },
+    ],
     schemaVersion: 1,
     blocks: [
       {
-        id: uid(),
+        id: blockId,
         name: "Accumulation",
         description: "",
         cycles: [
@@ -278,6 +283,12 @@ function mockLinkReference(link: { executionId: string; setId: string | null; sh
     performedDate: workout.performedDate, workoutName: workout.workoutName, exerciseName: exercise?.name ?? null, setNumber: set?.number ?? null, reps: set?.reps ?? null, load: set?.load ?? null, loadUnit: set?.loadUnit ?? null };
 }
 
+/** Pro features switched off when previewing a Free account in mock mode. */
+const MOCK_PRO_FEATURES = new Set(["training.builder.advanced", "training.sets.advanced", "training.formulas.custom", "training.export.pdf", "training.export.csv", "training.import.csv", "exercises.custom.create", "video.analysis.cloud", "analytics.advanced", "automation.advanced", "discovery.ranking.priority"]);
+function mockFree() {
+  try { return localStorage.getItem("tf-mock-free") === "1"; } catch { return false; }
+}
+
 export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   await new Promise((resolve) => setTimeout(resolve, 180 + Math.random() * 220));
   const url = new URL(String(input));
@@ -299,6 +310,10 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     db.profile = { ...db.profile, roles: [...new Set([...db.profile.roles, "Client"])], version: db.profile.version + 1 } as ProfileResponse;
     return json(200, db.profile, db.profile.version);
   }
+  if (path === "/api/v1/me/cover-style" && method === "PUT") {
+    db.profile = { ...db.profile, coverStyle: body?.style ?? null };
+    return json(200, db.profile, db.profile.version);
+  }
   if (path === "/api/v1/me" && method === "PATCH") {
     if (ifMatch(init) !== db.profile.version) return problem(412, "VERSION_CONFLICT");
     db.profile = { ...db.profile, ...body, version: db.profile.version + 1 };
@@ -307,7 +322,8 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   if (path === "/api/v1/me/access") {
     return json(200, {
       version: "mock",
-      features: featureDefinitions.map((f) => ({ key: f.key, available: true, reason: "available" })),
+      // localStorage "tf-mock-free" = "1" previews a Free account: Pro features answer "plan_required".
+      features: featureDefinitions.map((f) => (mockFree() && MOCK_PRO_FEATURES.has(f.key) ? { key: f.key, available: false, reason: "feature_not_in_plan" } : { key: f.key, available: true, reason: "available" })),
       limits: [
         { key: "training.documents", maximum: 1000, used: db.plans.length },
         { key: "training.folders", maximum: 1000, used: db.folders.length },

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Diagnostics.Metrics;
 using Microsoft.EntityFrameworkCore;
 using TrainFlow.Access.Contracts;
 using TrainFlow.Access.Domain;
@@ -11,19 +12,22 @@ namespace TrainFlow.Access.Infrastructure;
 
 public sealed class FeatureAccessService : IFeatureAccessService
 {
+    private static readonly Counter<long> Denials = new Meter("Metrivum.Access").CreateCounter<long>("metrivum.feature.denied");
     private readonly AccessDbContext db;
     private readonly FeatureCatalog catalog;
     private readonly IAccountContext account;
     private readonly IEnumerable<ILimitUsageProvider> usageProviders;
+    private readonly IPlanEntitlementsProvider? plans;
     private Policy? policy;
 
     public FeatureAccessService(AccessDbContext db, FeatureCatalog catalog, IAccountContext account,
-        IEnumerable<ILimitUsageProvider> usageProviders)
+        IEnumerable<ILimitUsageProvider> usageProviders, IPlanEntitlementsProvider? plans = null)
     {
         this.db = db;
         this.catalog = catalog;
         this.account = account;
         this.usageProviders = usageProviders;
+        this.plans = plans;
         // Request-local only: configuration changes take effect on the next request or after a local write.
         db.SavedChanges += (_, _) => policy = null;
     }
@@ -33,7 +37,12 @@ public sealed class FeatureAccessService : IFeatureAccessService
         var snapshot = await EvaluateAsync(false, cancellationToken);
         var decision = snapshot.Features.SingleOrDefault(x => x.Key == key);
         if (decision is not { Available: true })
-            throw new ApiException(403, "FEATURE_UNAVAILABLE", $"Feature '{key}' is unavailable: {decision?.Reason ?? "unknown_feature"}.");
+        {
+            Denials.Add(1, new KeyValuePair<string, object?>("feature", catalog.Definitions.ContainsKey(key) ? key : "unknown"),
+                new KeyValuePair<string, object?>("reason", decision?.Reason ?? "unknown_feature"));
+            throw new ApiException(403, decision?.Reason == "feature_not_in_plan" ? "FEATURE_NOT_IN_PLAN" : "FEATURE_UNAVAILABLE", $"Feature '{key}' is unavailable: {decision?.Reason ?? "unknown_feature"}.",
+                decision?.Reason == "feature_not_in_plan" ? new Dictionary<string, string[]> { ["feature"] = [key], ["requiredPlan"] = [key == "organization.workspace.manage" ? "Team" : "Pro"], ["currentPlan"] = [snapshot.PlanId ?? "Free"] } : null);
+        }
         // Resource reservations enforce quotas under their own DB transaction, not in this advisory snapshot.
     }
 
@@ -43,7 +52,7 @@ public sealed class FeatureAccessService : IFeatureAccessService
     {
         // Training content operations still require owner-scoped resource authorization.
         "training.programs.read" or "training.programs.manage" or "training.sets.advanced" or "training.export.csv" or "training.export.pdf" or
-        "exercises.browse" or "messaging.direct" or "messaging.groups" or "messaging.attachments" or "messaging.voice" or "messaging.report" or "messaging.group.manage" or "offers.view-public" => roles.Contains(AccountRole.Client) || roles.Contains(AccountRole.Coach),
+        "exercises.browse" or "messaging.direct" or "messaging.groups" or "messaging.attachments" or "messaging.voice" or "messaging.report" or "messaging.group.manage" or "offers.view-public" or "discovery.coaches.search" or "video.analysis.local" => roles.Contains(AccountRole.Client) || roles.Contains(AccountRole.Coach),
         "coaching.relationships.read-own" or "coaching.applications.submit-own" or
         "coaching.invitations.respond-own" or "coaching.services.read-own" or
         "calendar.events.read-own" or "calendar.invitations.respond-own" or "checkins.respond-own" or "billing.read-own" or "billing.pay-own" or
@@ -64,17 +73,21 @@ public sealed class FeatureAccessService : IFeatureAccessService
         var denies = overrides.Where(x => !x.Granted).Select(x => x.Key).ToArray();
         var disabled = flags.Where(x => !x.Enabled).Select(x => x.Key).ToArray();
         var features = catalog.Definitions.Keys.Order(StringComparer.Ordinal).Select(key => RoleAllows(key, roles) ? catalog.Decide(key, grants, denies, disabled) : new FeatureDecision(key, false, "role_required")).ToArray();
+        var entitlements = plans == null ? null : await plans.GetForFeaturesAsync(userId, cancellationToken);
+        if (entitlements != null)
+            features = features.Select(x => x.Available && !PlanFeaturePolicy.Allows(entitlements, x.Key)
+                ? x with { Available = false, Reason = "feature_not_in_plan" } : x).ToArray();
         var limits = new List<LimitDecision>();
         if (includeUsage && roles.Contains(AccountRole.Coach))
         {
             foreach (var provider in usageProviders)
                 limits.AddRange(await provider.GetUsageAsync(userId, cancellationToken));
             features = features.Select(decision => decision.Available && catalog.Definitions[decision.Key].Limits.Any(key =>
-                limits.Any(limit => limit.Key == key && limit.Used >= limit.Maximum))
+                limits.Any(limit => limit.Key == key && limit.Maximum is {} maximum && limit.Used >= maximum))
                 ? new FeatureDecision(decision.Key, false, "limit_reached") : decision).ToArray();
         }
         if (!includeUsage)
-            return new("", features, limits);
+            return new("", features, limits, entitlements?.PlanId);
         var versionInput = JsonSerializer.Serialize(new
         {
             userId,
@@ -83,11 +96,12 @@ public sealed class FeatureAccessService : IFeatureAccessService
             assignment,
             overrides,
             flags,
+            plan = entitlements == null ? null : new { entitlements.PlanId, entitlements.ScopeId, entitlements.PeriodStart, entitlements.PeriodEnd },
             catalog = catalog.Definitions.Values.OrderBy(x => x.Key),
             features,
             limits
         });
-        return new(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(versionInput))), features, limits);
+        return new(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(versionInput))), features, limits, entitlements?.PlanId);
     }
 
     private async Task<Policy> GetPolicyAsync(Guid userId, CancellationToken cancellationToken)

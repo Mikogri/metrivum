@@ -6,9 +6,9 @@ import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";
 import { AddAccountSwitch } from "../components/AddAccountSwitch";
-import { AuthFooter, AuthHeader } from "../components/AuthHeader";
+import { AuthFooter, AuthFormError, AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
-import { authErrorText, isEmailNotConfirmed, isUnknownAccount } from "../lib/authErrors";
+import { authErrorField, authErrorText, isEmailNotConfirmed, isUnknownAccount } from "../lib/authErrors";
 import { callbackUrl, slotParam } from "../lib/urls";
 import { isValidEmail, normalizeEmail } from "../lib/email";
 import { privateMeta } from "~/shared/i18n/site";
@@ -28,7 +28,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"password" | "code">("password");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<{ text: string; unconfirmed?: boolean } | null>(null);
+  const [error, setError] = useState<{ text: string; field: "email" | "password" | null; unconfirmed?: boolean } | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   if (!supabaseConfigured()) {
@@ -76,7 +76,8 @@ export default function Login() {
       await manager.completeSignIn(slot, data.session);
       navigate(returnTo, { replace: true });
     } catch (caught) {
-      setError({ text: authErrorText(m, caught), unconfirmed: isEmailNotConfirmed(caught) });
+      const field = authErrorField(caught);
+      setError({ text: authErrorText(m, caught), field: field === "password" && mode !== "password" ? "email" : field, unconfirmed: isEmailNotConfirmed(caught) });
     } finally {
       setPending(false);
     }
@@ -84,15 +85,8 @@ export default function Login() {
 
   return (
     <>
-      <AuthHeader title={adding ? t.addingTitle : t.title} subtitle={adding ? t.addingSubtitle : t.subtitle} />
+      <AuthHeader title={adding ? t.addingTitle : t.title} subtitle={adding ? t.addingSubtitle : t.subtitle} back={adding ? { to: "/app", label: m.common.back } : undefined} />
       {adding ? <AddAccountSwitch current="login" slot={slot} /> : null}
-      {error ? (
-        <Alert tone="danger" title={error.text} live="assertive">
-          {error.unconfirmed ? (
-            <RouterLink to={`/auth/verify?type=signup&slot=${slot}&email=${encodeURIComponent(email)}`}>{m.auth.verify.title}</RouterLink>
-          ) : null}
-        </Alert>
-      ) : null}
       <form className={form.form} onSubmit={onSubmit} noValidate>
         <TextField placeholder={m.common.ph.email}
           label={m.auth.email}
@@ -100,10 +94,10 @@ export default function Login() {
           name="email"
           autoComplete="username"
           value={email}
-          onChange={setEmail}
+          onChange={(value) => { setEmail(value); if (error?.field) setError(null); }}
           isRequired
-          isInvalid={emailInvalid}
-          errorMessage={m.auth.errors.emailInvalid}
+          isInvalid={emailInvalid || error?.field === "email"}
+          errorMessage={emailInvalid ? m.auth.errors.emailInvalid : error?.text}
           size="lg"
         />
         {mode === "password" ? (
@@ -113,10 +107,10 @@ export default function Login() {
             name="password"
             autoComplete="current-password"
             value={password}
-            onChange={setPassword}
+            onChange={(value) => { setPassword(value); if (error?.field) setError(null); }}
             isRequired
-            isInvalid={submitted && !password}
-            errorMessage={m.auth.errors.required}
+            isInvalid={(submitted && !password) || error?.field === "password"}
+            errorMessage={submitted && !password ? m.auth.errors.required : error?.text}
             size="lg"
             labelAside={
               <RouterLink className={form.link} to={`/auth/forgot-password?slot=${slot}`}>
@@ -128,6 +122,12 @@ export default function Login() {
         <Button type="submit" variant="primary" size="lg" block loading={pending}>
           {mode === "password" ? t.submit : t.sendCode}
         </Button>
+        {error && (!error.field || error.unconfirmed) ? (
+          <AuthFormError>
+            {error.field ? null : error.text}
+            {error.unconfirmed ? <RouterLink to={`/auth/verify?type=signup&slot=${slot}&email=${encodeURIComponent(email)}`}>{m.auth.verify.title}</RouterLink> : null}
+          </AuthFormError>
+        ) : null}
         <button type="button" className={form.textButton} onClick={() => setMode(mode === "password" ? "code" : "password")}>
           {mode === "password" ? t.useCode : t.usePassword}
         </button>
@@ -137,11 +137,6 @@ export default function Login() {
           {t.noAccount} <RouterLink to={`/auth/register${params.get("returnTo") ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`}>{t.register}</RouterLink>
         </AuthFooter>
       )}
-      {adding ? (
-        <AuthFooter>
-          <RouterLink to="/app">{m.common.cancel}</RouterLink>
-        </AuthFooter>
-      ) : null}
     </>
   );
 }

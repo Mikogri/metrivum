@@ -9,6 +9,9 @@ import { persistLocalAnalysis, type LocalAnalysisReceipt } from './save-local-an
 import { videoKeys } from './queries';
 import { notifyInBackground } from './notify';
 import { forgetJobExercise, jobExercise } from './movement';
+import { authorizeLocalJob, forgetJobAuthorization, jobAuthorization, jobAuthorizationTeam, releaseJobAuthorization } from './local-authorizations';
+import { ApiError } from '~/shared/http/errors';
+import type { AnalysisDto } from '@trainflow/api-client-web';
 
 export interface SavingState { stage: 'uploading' | 'saving'; ratio: number }
 export interface SavedJob { id: string; name: string; analysisId: string; savedAt: number }
@@ -117,23 +120,37 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
           ]);
           const receipt: LocalAnalysisReceipt = {
             id: job.id, uploadedMediaId: job.mediaId ?? undefined,
-            body: { name: job.name, note: null, tags: [], sourceVideo: { ...job.sourceVideo, origin: 'cloud' },
+            body: { name: job.name, note: null, tags: [], authorizationId: jobAuthorization(account.userId, job.id), sourceVideo: { ...job.sourceVideo, origin: 'cloud' },
               configuration: { movement: job.configuration.movement, ...exerciseOf(job.id), tracking: job.configuration.tracking, metersPerPixel: null }, result },
           };
-          const analysis = await persistLocalAnalysis(api, file, receipt, signal,
+          const saveResult = () => persistLocalAnalysis(api, file, receipt, signal,
             stage => { if (stage !== 'saved') setSaving(state => ({ ...state, [job.id]: { stage, ratio: state[job.id]?.ratio ?? 0 } })); },
             undefined,
             ratio => setSaving(state => ({ ...state, [job.id]: { stage: 'uploading', ratio } })),
             mediaId => rememberJobMedia(token, job.id, mediaId, signal));
+          let analysis: AnalysisDto;
+          try { analysis = await saveResult(); }
+          catch (failure) {
+            if (!(failure instanceof ApiError) || failure.code !== 'USAGE_RESERVATION_EXPIRED') throw failure;
+            // The browser can be closed overnight while the companion retains a completed video.
+            // Reauthorize the sync against today's allowance without repeating inference or upload.
+            await authorizeLocalJob(api, account.userId, job.sourceVideo.durationSeconds, async () => ({ id: job.id }), signal,
+              () => lifecycle.isCurrent(), jobAuthorizationTeam(account.userId, job.id));
+            receipt.body.authorizationId = jobAuthorization(account.userId, job.id);
+            analysis = await saveResult();
+          }
           if (signal.aborted || !lifecycle.isCurrent()) return;
           // Saved under this job's id (idempotent), so removing it can safely fail and be repeated later.
           await removeJob(token, job.id, signal).catch(() => {});
           retryAt.current.delete(job.id);
           forgetJobExercise(job.id);
+          forgetJobAuthorization(account.userId, job.id);
           setSaveErrors(state => without(state, job.id));
           setJobs(state => state.filter(item => item.id !== job.id));
           setSaved(state => [{ id: job.id, name: job.name, analysisId: analysis.id, savedAt: Date.now() }, ...state.filter(item => item.id !== job.id)].slice(0, 10));
           void queryClient.invalidateQueries({ queryKey: videoKeys.all(accountKey) });
+          void queryClient.invalidateQueries({ queryKey: [accountKey, 'access'] });
+          void queryClient.invalidateQueries({ queryKey: [accountKey, 'usage'] });
           const open = () => navigateRef.current(`/app/video-analyses/${analysis.id}`);
           setUnseen(count => count + 1);
           toast({ tone: 'success', title: `Analysis ready: ${job.name}`, description: 'The video and results are saved in your library.',
@@ -168,6 +185,14 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
         if (signal.aborted || !lifecycle.isCurrent()) return;
         setReachable(true); setJobs(list);
         for (const job of list) {
+          if (job.state === 'failed' && jobAuthorization(account.userId, job.id)) {
+            try {
+              await releaseJobAuthorization(api, account.userId, job.id, signal);
+              void queryClient.invalidateQueries({ queryKey: [accountKey, 'access'] });
+              void queryClient.invalidateQueries({ queryKey: [accountKey, 'usage'] });
+            } catch { /* Keep the permit so the next poll retries its release; abandoned reservations also expire server-side. */ }
+            if (signal.aborted || !lifecycle.isCurrent()) return;
+          }
           const before = lastState.current.get(job.id);
           // Every failure is announced once, also one that happened while Metrivum was closed.
           if (job.state === 'failed' && before !== 'failed') announceOnce(`failed:${job.id}:${job.error ?? ''}`, () => {
@@ -208,14 +233,30 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(() => pollNow.current(), []);
   const retry = useCallback(async (id: string) => {
     if (saveErrors[id]) { retryAt.current.delete(id); setSaveErrors(state => without(state, id)); refresh(); return; }
-    await retryJob(storedPairing(), id, signalRef.current ?? new AbortController().signal);
+    const job = jobs.find(item => item.id === id);
+    if (!job || !lifecycle.isCurrent()) return;
+    const signal = signalRef.current ?? lifecycle.signal();
+    const teamId = jobAuthorizationTeam(account.userId, id);
+    await releaseJobAuthorization(api, account.userId, id, signal);
+    const duration = job.trim ? job.trim.endSeconds - job.trim.startSeconds : job.sourceVideo.durationSeconds;
+    await authorizeLocalJob(api, account.userId, duration, async () => { await retryJob(storedPairing(), id, signal); return { id }; }, signal, lifecycle.isCurrent, teamId);
+    if (!lifecycle.isCurrent()) return;
+    void queryClient.invalidateQueries({ queryKey: [accountKey, 'access'] });
+    void queryClient.invalidateQueries({ queryKey: [accountKey, 'usage'] });
     refresh();
-  }, [saveErrors, refresh]);
+  }, [saveErrors, refresh, jobs, api, account.userId, accountKey, lifecycle, queryClient]);
   const remove = useCallback(async (id: string) => {
-    await removeJob(storedPairing(), id, signalRef.current ?? new AbortController().signal);
+    const signal = signalRef.current ?? lifecycle.signal();
+    await removeJob(storedPairing(), id, signal);
+    if (!lifecycle.isCurrent()) return;
+    await releaseJobAuthorization(api, account.userId, id, signal);
+    if (!lifecycle.isCurrent()) return;
+    forgetJobAuthorization(account.userId, id);
     setJobs(state => state.filter(job => job.id !== id));
+    void queryClient.invalidateQueries({ queryKey: [accountKey, 'access'] });
+    void queryClient.invalidateQueries({ queryKey: [accountKey, 'usage'] });
     refresh();
-  }, [refresh]);
+  }, [refresh, api, account.userId, accountKey, lifecycle, queryClient]);
   const dismissSaved = useCallback((id: string) => setSaved(state => state.filter(item => item.id !== id)), []);
   const markSeen = useCallback(() => setUnseen(0), []);
 

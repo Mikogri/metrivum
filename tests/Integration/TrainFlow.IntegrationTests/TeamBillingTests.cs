@@ -17,14 +17,14 @@ public sealed partial class OffersBillingTests
         config["Billing:PlatformPlans:Pro:Currency"] = "PLN";
         config["Billing:PlatformPlans:Team:Amount"] = "100";
         config["Billing:PlatformPlans:Team:Currency"] = "PLN";
-        config["Billing:PlatformPlans:Team:PriceVersion"] = "team-v1";
+        config["Billing:PlatformPlans:Team:PriceVersion"] = "eur-monthly-v3-Team";
         ((Profiles)services.GetRequiredService<IAccountProfileFields>()).Currency = "PLN";
         return services;
     }
     private static TeamBillingService TeamBilling(AsyncServiceScope scope) => ActivatorUtilities.CreateInstance<TeamBillingService>(scope.ServiceProvider);
 
     [CatalogPostgresFact]
-    public async Task Team_pro_credit_100_50_300_250_settles_once_with_full_new_period()
+    public async Task Team_workspace_bundle_settles_once_without_proration_and_preserves_personal_paid_period()
     {
         await using var isolated = await IsolatedDatabase.CreateAsync();
         var clock = new Clock(new(2026, 2, 1, 0, 0, 0, TimeSpan.Zero));
@@ -32,7 +32,7 @@ public sealed partial class OffersBillingTests
         await using (var scope = services.CreateAsyncScope())
         {
             var pro = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
-            var checkout = await pro.CheckoutAsync(new("Pro", "test-v1"), default);
+            var checkout = await pro.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro"), default);
             await pro.ConfirmAsync(new(checkout.PendingDue!.Id, "pro"), default);
         }
         clock.Now = clock.Now.AddDays(14);
@@ -41,11 +41,11 @@ public sealed partial class OffersBillingTests
         await using (var scope = services.CreateAsyncScope())
         {
             var team = TeamBilling(scope);
-            quote = await team.QuoteAsync(new("Coaches", 3, "team-v1"), default);
-            other = await team.QuoteAsync(new("Other tab", 3, "team-v1"), default);
-            Assert.Equal(300m, quote.GrossAmount);
-            Assert.Equal(50m, quote.CreditAmount);
-            Assert.Equal(250m, quote.AmountDue);
+            quote = await team.QuoteAsync(new("Coaches", 3, "eur-monthly-v3-Team"), default);
+            other = await team.QuoteAsync(new("Other tab", 3, "eur-monthly-v3-Team"), default);
+            Assert.Equal(69m, quote.GrossAmount);
+            Assert.Equal(0m, quote.CreditAmount);
+            Assert.Equal(69m, quote.AmountDue);
             Assert.Empty(await scope.ServiceProvider.GetRequiredService<BillingDbContext>().Teams.ToArrayAsync());
         }
         clock.Now = clock.Now.AddMinutes(1);
@@ -60,12 +60,12 @@ public sealed partial class OffersBillingTests
         var db = verify.ServiceProvider.GetRequiredService<BillingDbContext>();
         Assert.Single(await db.Teams.ToArrayAsync());
         Assert.Equal(2, await db.Payments.CountAsync());
-        Assert.Equal(50m, (await db.Set<ProrationCredit>().SingleAsync()).Amount);
+        Assert.Empty(await db.Set<ProrationCredit>().ToArrayAsync());
         var individual = await db.PlatformSubscriptions.SingleAsync();
-        Assert.Equal("Upgraded", individual.Status);
-        Assert.Equal("Free", individual.PlanId);
+        Assert.Equal("Active", individual.Status);
+        Assert.Equal("Pro", individual.PlanId);
         Assert.False(individual.AutoRenew);
-        Assert.Equal(clock.Now, individual.PeriodEnd);
+        Assert.Equal(DateTimeOffset.Parse("2026-03-01T00:00:00Z"), individual.PeriodEnd);
         Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => TeamBilling(verify).ConfirmAsync(new(other.Id, "other"), default))).Status);
         Assert.Empty(await verify.ServiceProvider.GetRequiredService<BillingService>().EarningsAsync(default));
     }
@@ -78,21 +78,22 @@ public sealed partial class OffersBillingTests
         await using var services = TeamServices(Guid.NewGuid(), isolated.Connection, clock);
         await using var scope = services.CreateAsyncScope();
         var service = TeamBilling(scope);
-        var quote = await service.QuoteAsync(new("Seats", 2, "team-v1"), default);
+        var quote = await service.QuoteAsync(new("Seats", 3, "eur-monthly-v3-Team"), default);
         Assert.Equal(0m, quote.CreditAmount);
         var active = await service.ConfirmAsync(new(quote.Id, "initial"), default);
         var end = active.PeriodEnd;
         clock.Now = clock.Now.AddDays(14);
-        var increase = await service.SeatQuoteAsync(active.TeamId, new(4, active.Version), default);
-        Assert.Equal(100m, increase.AmountDue);
+        var increase = await service.SeatQuoteAsync(active.TeamId, new(10, active.Version), default);
+        Assert.Equal(159m, increase.AmountDue);
         active = await service.SeatConfirmAsync(active.TeamId, new(increase.Id, "seats"), default);
-        Assert.Equal(end, active.PeriodEnd);
-        Assert.Equal(4, active.PurchasedSeats);
-        var decrease = await service.SeatQuoteAsync(active.TeamId, new(1, active.Version), default);
+        Assert.Equal(clock.Now.AddMonths(1), active.PeriodEnd);
+        end = active.PeriodEnd;
+        Assert.Equal(10, active.PurchasedSeats);
+        var decrease = await service.SeatQuoteAsync(active.TeamId, new(3, active.Version), default);
         Assert.Null((await service.BillingAsync(active.TeamId, default)).PendingSeats);
         active = await service.SeatConfirmAsync(active.TeamId, new(decrease.Id, "decrease"), default);
-        Assert.Equal(4, active.PurchasedSeats);
-        Assert.Equal(1, active.PendingSeats);
+        Assert.Equal(10, active.PurchasedSeats);
+        Assert.Equal(3, active.PendingSeats);
         active = await service.RenewalAsync(active.TeamId, new(active.Version, false), default);
         Assert.Equal("Active", active.Status);
         clock.Now = end;
@@ -102,10 +103,10 @@ public sealed partial class OffersBillingTests
         Assert.Equal("BillingInactive", (await db.Teams.SingleAsync()).Status);
         Assert.Equal(2, await db.Payments.CountAsync());
         var renew = await service.RenewalQuoteAsync(active.TeamId, default);
-        Assert.Equal(100m, renew.AmountDue);
+        Assert.Equal(69m, renew.AmountDue);
         active = await service.SeatConfirmAsync(active.TeamId, new(renew.Id, "renew"), default);
         Assert.Equal("Active", active.Status);
-        Assert.Equal(1, active.PurchasedSeats);
+        Assert.Equal(3, active.PurchasedSeats);
     }
 
     [CatalogPostgresFact]
@@ -116,7 +117,7 @@ public sealed partial class OffersBillingTests
         await using var services = TeamServices(Guid.NewGuid(), isolated.Connection, clock);
         await using var scope = services.CreateAsyncScope();
         var pro = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
-        var quote = await pro.CheckoutAsync(new("Pro", "test-v1"), default);
+        var quote = await pro.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro"), default);
         clock.Now = clock.Now.AddDays(2);
         var active = await pro.ConfirmAsync(new(quote.PendingDue!.Id, "confirm"), default);
         Assert.Equal(clock.Now, active.PeriodStart);
@@ -125,11 +126,11 @@ public sealed partial class OffersBillingTests
         Assert.Equal("Pro", scheduled.PlanId);
         Assert.Equal("Free", scheduled.PendingPlanId);
         clock.Now = clock.Now.AddDays(14);
-        Assert.True((await TeamBilling(scope).QuoteAsync(new("Paid cancelled Pro", 3, "team-v1"), default)).CreditAmount > 0);
+        Assert.Equal(0m, (await TeamBilling(scope).QuoteAsync(new("Paid cancelled Pro", 3, "eur-monthly-v3-Team"), default)).CreditAmount);
     }
 
     [CatalogPostgresFact]
-    public async Task Team_missing_price_currency_mismatch_excess_credit_and_expired_quotes_are_blocked()
+    public async Task Team_canonical_bundle_rejects_extra_seats_stale_prices_and_expired_quotes()
     {
         await using var isolated = await IsolatedDatabase.CreateAsync();
         var clock = new Clock(new(2026, 2, 1, 0, 0, 0, TimeSpan.Zero));
@@ -138,44 +139,34 @@ public sealed partial class OffersBillingTests
         var team = TeamBilling(scope);
         var config = services.GetRequiredService<IConfiguration>();
         config["Billing:PlatformPlans:Team:Amount"] = null;
-        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => team.QuoteAsync(new("Missing", 1, "team-v1"), default))).Status);
-        config["Billing:PlatformPlans:Team:Amount"] = "100";
-        var freeQuote = await team.QuoteAsync(new("Expired", 1, "team-v1"), default);
+        Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => team.QuoteAsync(new("Extra seats", 4, "eur-monthly-v3-Team"), default))).Status);
+        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => team.QuoteAsync(new("Stale price", 3, "team-low"), default))).Status);
+        var freeQuote = await team.QuoteAsync(new("Expired", 3, "eur-monthly-v3-Team"), default);
+        Assert.Equal(69m, freeQuote.AmountDue);
+        Assert.Equal("EUR", freeQuote.Currency);
         clock.Now = clock.Now.AddMinutes(16);
         Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => team.ConfirmAsync(new(freeQuote.Id, "expired"), default))).Status);
-        var pro = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
-        var checkout = await pro.CheckoutAsync(new("Pro", "test-v1"), default);
-        await pro.ConfirmAsync(new(checkout.PendingDue!.Id, "pro"), default);
-        ((Profiles)services.GetRequiredService<IAccountProfileFields>()).Currency = "EUR";
-        config["Billing:PlatformPlans:Team:Currency"] = "EUR";
-        config["Billing:PlatformPlans:Team:PriceVersion"] = "team-eur";
-        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => team.QuoteAsync(new("FX", 1, "team-eur"), default))).Status);
-        ((Profiles)services.GetRequiredService<IAccountProfileFields>()).Currency = "PLN";
-        config["Billing:PlatformPlans:Team:Currency"] = "PLN";
-        config["Billing:PlatformPlans:Team:Amount"] = "10";
-        config["Billing:PlatformPlans:Team:PriceVersion"] = "team-low";
-        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => team.QuoteAsync(new("Credit", 1, "team-low"), default))).Status);
     }
 
     [CatalogPostgresFact]
-    public async Task Team_billing_is_owner_only_and_zero_due_credit_is_settled_without_bank_transaction()
+    public async Task Team_billing_is_owner_only_and_bundle_charge_has_zero_platform_commission()
     {
         await using var isolated = await IsolatedDatabase.CreateAsync();
         var clock = new Clock(new(2026, 2, 1, 0, 0, 0, TimeSpan.Zero));
         await using var services = TeamServices(Guid.NewGuid(), isolated.Connection, clock);
         await using var scope = services.CreateAsyncScope();
         var pro = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
-        var checkout = await pro.CheckoutAsync(new("Pro", "test-v1"), default);
+        var checkout = await pro.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro"), default);
         await pro.ConfirmAsync(new(checkout.PendingDue!.Id, "pro"), default);
         var service = TeamBilling(scope);
-        var quote = await service.QuoteAsync(new("Credit funded", 1, "team-v1"), default);
-        Assert.Equal(0m, quote.AmountDue);
-        Assert.Equal(100m, quote.CreditAmount);
+        var quote = await service.QuoteAsync(new("Workspace", 3, "eur-monthly-v3-Team"), default);
+        Assert.Equal(69m, quote.AmountDue);
+        Assert.Equal(0m, quote.CreditAmount);
         var active = await service.ConfirmAsync(new(quote.Id, "credit"), default);
         Assert.Equal("Active", active.Status);
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         Assert.Equal(2, await db.Payments.CountAsync());
-        Assert.Equal(1, await db.Transactions.CountAsync());
+        Assert.Equal(2, await db.Transactions.CountAsync());
         Assert.Equal(2, await db.Attempts.CountAsync());
         await using var stranger = TeamServices(Guid.NewGuid(), isolated.Connection, clock);
         await using var strangerScope = stranger.CreateAsyncScope();
@@ -193,9 +184,9 @@ public sealed partial class OffersBillingTests
         {
             var method = await scope.ServiceProvider.GetRequiredService<BillingService>().AddMethodAsync(new("Explicit renewal"), default);
             var service = TeamBilling(scope);
-            var quote = await service.QuoteAsync(new("Renew", 3, "team-v1", true, method.Id), default);
+            var quote = await service.QuoteAsync(new("Renew", 10, "eur-monthly-v3-Studio", true, method.Id, "Studio"), default);
             var active = await service.ConfirmAsync(new(quote.Id, "first", method.Id), default);
-            var decrease = await service.SeatQuoteAsync(active.TeamId, new(1, active.Version), default);
+            var decrease = await service.SeatQuoteAsync(active.TeamId, new(3, active.Version), default);
             await service.SeatConfirmAsync(active.TeamId, new(decrease.Id, "decrease"), default);
         }
         clock.Now = clock.Now.AddMonths(1);
@@ -209,10 +200,10 @@ public sealed partial class OffersBillingTests
         await using var verify = services.CreateAsyncScope();
         var db = verify.ServiceProvider.GetRequiredService<BillingDbContext>();
         var subscription = await db.Set<TeamPlatformSubscription>().SingleAsync();
-        Assert.Equal(1, subscription.PurchasedSeats);
+        Assert.Equal(3, subscription.PurchasedSeats);
         Assert.Equal(clock.Now.AddMonths(1), subscription.PeriodEnd);
         Assert.Equal(2, await db.Payments.CountAsync());
-        Assert.Equal(400m, await db.Payments.SumAsync(x => x.GrossAmount));
+        Assert.Equal(998m, await db.Payments.SumAsync(x => x.GrossAmount));
     }
 
     [CatalogPostgresFact]
@@ -259,11 +250,11 @@ public sealed partial class OffersBillingTests
         await using var services = TeamServices(Guid.NewGuid(), isolated.Connection, clock);
         await using var scope = services.CreateAsyncScope();
         var pro = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
-        var checkout = await pro.CheckoutAsync(new("Pro", "test-v1"), default);
+        var checkout = await pro.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro"), default);
         await pro.ConfirmAsync(new(checkout.PendingDue!.Id, "pro"), default);
         clock.Now = clock.Now.AddDays(14);
         var service = TeamBilling(scope);
-        var quote = await service.QuoteAsync(new("Retry", 3, "team-v1"), default);
+        var quote = await service.QuoteAsync(new("Retry", 3, "eur-monthly-v3-Team"), default);
         var method = await scope.ServiceProvider.GetRequiredService<BillingService>().AddMethodAsync(new("Declined", SimulatedOutcome.Decline), default);
         var failed = await service.ConfirmAsync(new(quote.Id, "decline", method.Id), default);
         Assert.Equal("PaymentFailed", failed.Status);
@@ -276,7 +267,7 @@ public sealed partial class OffersBillingTests
         Assert.Equal("Active", retry.Status);
         Assert.Equal(due, retry.History.Single().DueId);
         Assert.Single(await db.Teams.ToArrayAsync());
-        Assert.Single(await db.Set<ProrationCredit>().ToArrayAsync());
+        Assert.Empty(await db.Set<ProrationCredit>().ToArrayAsync());
         Assert.Equal(2, await db.Attempts.CountAsync(x => x.DueId == due));
         Assert.Equal(1, await db.Payments.CountAsync(x => x.DueId == due));
         Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => service.ConfirmAsync(new(quote.Id, "success", method.Id), default))).Status);
@@ -299,14 +290,14 @@ public sealed partial class OffersBillingTests
         await using var services = TeamServices(Guid.NewGuid(), isolated.Connection, clock, new AdvancingPaymentProvider(clock));
         await using var scope = services.CreateAsyncScope();
         var pro = scope.ServiceProvider.GetRequiredService<PlatformSubscriptionService>();
-        var checkout = await pro.CheckoutAsync(new("Pro", "test-v1"), default);
+        var checkout = await pro.CheckoutAsync(new("Pro", "eur-monthly-v3-Pro"), default);
         var paidPro = await pro.ConfirmAsync(new(checkout.PendingDue!.Id, "pro-delayed"), default);
         Assert.Equal(clock.Now, paidPro.PeriodStart);
         Assert.Equal(clock.Now.AddMonths(1), paidPro.PeriodEnd);
         clock.Now = clock.Now.AddDays(14);
         var billing = TeamBilling(scope);
-        var quote = await billing.QuoteAsync(new("Delayed settlement", 3, "team-v1"), default);
-        Assert.Equal(50m, quote.CreditAmount);
+        var quote = await billing.QuoteAsync(new("Delayed settlement", 3, "eur-monthly-v3-Team"), default);
+        Assert.Equal(0m, quote.CreditAmount);
         var paidTeam = await billing.ConfirmAsync(new(quote.Id, "team-delayed"), default);
         Assert.Equal(clock.Now, paidTeam.PeriodStart);
         Assert.Equal(clock.Now.AddMonths(1), paidTeam.PeriodEnd);
@@ -315,7 +306,7 @@ public sealed partial class OffersBillingTests
         var due = await db.Dues.AsNoTracking().SingleAsync(x => x.Id == dueId);
         var payment = await db.Payments.AsNoTracking().SingleAsync(x => x.DueId == dueId);
         Assert.Equal(payment.SettledAt, due.PeriodStart);
-        Assert.Equal(payment.SettledAt, (await db.PlatformSubscriptions.AsNoTracking().SingleAsync()).PeriodEnd);
+        Assert.True((await db.PlatformSubscriptions.AsNoTracking().SingleAsync()).PeriodEnd > payment.SettledAt);
     }
 
     [CatalogPostgresFact]
@@ -327,11 +318,11 @@ public sealed partial class OffersBillingTests
         await using var services = TeamServices(owner, isolated.Connection, clock);
         await using var scope = services.CreateAsyncScope();
         var billing = TeamBilling(scope);
-        var quote = await billing.QuoteAsync(new("Notified", 3, "team-v1"), default);
+        var quote = await billing.QuoteAsync(new("Notified", 10, "eur-monthly-v3-Studio", PlanId: "Studio"), default);
         var paid = await billing.ConfirmAsync(new(quote.Id, "paid"), default);
-        var decrease = await billing.SeatQuoteAsync(paid.TeamId, new(1, paid.Version), default);
+        var decrease = await billing.SeatQuoteAsync(paid.TeamId, new(3, paid.Version), default);
         paid = await billing.SeatConfirmAsync(paid.TeamId, new(decrease.Id, "decrease"), default);
-        var cancelDecrease = await billing.SeatQuoteAsync(paid.TeamId, new(3, paid.Version), default);
+        var cancelDecrease = await billing.SeatQuoteAsync(paid.TeamId, new(10, paid.Version), default);
         paid = await billing.SeatConfirmAsync(paid.TeamId, new(cancelDecrease.Id, "cancel-decrease"), default);
         paid = await billing.RenewalAsync(paid.TeamId, new(paid.Version, false), default);
         var method = await scope.ServiceProvider.GetRequiredService<BillingService>().AddMethodAsync(new("Renew"), default);

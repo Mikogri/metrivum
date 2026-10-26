@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react";
+import { Check, ChevronsUpDown, ListChecks, LogOut, Plus, UserRound } from "lucide-react";
 import { useState } from "react";
 import { Button as AriaButton, Header, MenuSection } from "react-aria-components";
 import { useNavigate } from "react-router";
@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@trainflow/ui-web";
-import { useProfile } from "~/modules/accounts";
+import { useProfile, useProfileCompleteness } from "~/modules/accounts";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useActiveAccount, useSessionState } from "~/shared/session/SessionProvider";
@@ -30,6 +30,8 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
   const actions = useAccountActions(confirm);
   const name = profile.displayName || profile.username || active?.email || "";
   const [signingOut, setSigningOut] = useState(false);
+  const completeness = useProfileCompleteness();
+  const next = completeness.items.find((item) => !item.done);
 
   return (
     <>
@@ -51,6 +53,7 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
             if (id.startsWith("slot:")) void actions.switchTo(Number(id.slice(5)) as SlotId);
             else if (id === "add") void actions.addAccount();
             else if (id === "profile") navigate("/app/profile");
+            else if (id === "complete") navigate(next?.href ?? "/app/profile");
             else if (id === "settings") navigate("/app/settings");
             else if (id === "signout") setSigningOut(true);
           }}
@@ -58,13 +61,31 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
           {/* Who is signed in, as a card above the actions. */}
           <MenuSection className={styles.profileSection}>
             <Header className={styles.profile}>
-              <Avatar name={name} size="lg" decorative />
-              <span className={styles.profileText}>
-                <strong>{name}</strong>
-                <small>{active?.email}</small>
+              <span className={styles.profileRow}>
+                <Avatar name={name} size="lg" decorative />
+                <span className={styles.profileText}>
+                  <strong>{name}</strong>
+                  <small>{active?.email}</small>
+                </span>
               </span>
+              {completeness.pending ? null : (
+                <span className={styles.progress} data-complete={completeness.percent === 100 || undefined}>
+                  <span className={styles.progressHead}>
+                    <span>{m.accounts.profileComplete}</span>
+                    <strong>{completeness.percent}%</strong>
+                  </span>
+                  <span className={styles.progressBar} role="meter" aria-label={m.accounts.profileComplete} aria-valuemin={0} aria-valuemax={100} aria-valuenow={completeness.percent}>
+                    <span style={{ transform: `scaleX(${completeness.percent / 100})` }} />
+                  </span>
+                </span>
+              )}
             </Header>
           </MenuSection>
+          {!completeness.pending && completeness.percent < 100 ? (
+            <DropdownMenuItem id="complete" icon={<ListChecks />} description={m.accounts.stepsLeft(completeness.items.length - completeness.done)}>
+              {m.accounts.finishProfile}
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuSection title={m.accounts.signedIn}>
             {state.accounts.map((account) => (
               <DropdownMenuItem

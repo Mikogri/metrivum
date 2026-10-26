@@ -14,6 +14,7 @@ public sealed class ApiBoundaryTests
         using var discoveryClient = discovery.CreateClient();
         var routes = discovery.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
             .Where(x => x.RoutePattern.RawText!.StartsWith("/api/", StringComparison.Ordinal) || x.RoutePattern.RawText.StartsWith("/openapi/", StringComparison.Ordinal))
+            .Where(x => x.RoutePattern.RawText != "/api/v1/subscriptions/catalog") // Deliberate public price list; no account data.
             .SelectMany(endpoint => (endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods ?? ["GET"]).Select(method =>
             {
                 var segments = endpoint.RoutePattern.PathSegments.Select(segment => string.Concat(segment.Parts.Select(part => part switch

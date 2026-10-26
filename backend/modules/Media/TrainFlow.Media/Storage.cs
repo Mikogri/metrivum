@@ -20,6 +20,10 @@ public sealed class StorageOptions
     public long MaxVoiceDurationMs { get; set; } = 300000;
     public string[] AllowedAttachmentTypes { get; set; } = ["image/png", "image/jpeg", "image/gif", "image/webp", "application/pdf", "text/plain", "application/zip", "video/mp4", "video/webm", "audio/wav"];
     public long MaxVideoBytes { get; set; } = 524288000;
+    // Keep the configured physical bucket liability for signed-upload reservations. The
+    // accepted analysis-video limit is stricter and must not under-reserve an issued token.
+    public long AcceptedVideoBytes => Math.Min(MaxVideoBytes, 52428800);
+    public int AcceptedPendingUploads => Math.Min(MaxPendingUploadsPerOwner, 3);
     public int MaxPendingUploadsPerOwner { get; set; } = 3;
     public int ReadUrlSeconds { get; set; } = 120;
 }

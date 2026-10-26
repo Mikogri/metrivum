@@ -38,6 +38,8 @@
 
 .error {
   display: flex;
+  /* Right under the input it refers to. */
+  margin-top: calc(var(--tf-space-1) * -1);
   line-height: var(--tf-leading-normal);
   align-items: flex-start;
   gap: var(--tf-space-1);
@@ -79,8 +81,9 @@
 .control:has(:focus-visible),
 .control[data-focus-within],
 .control[data-focus-visible] {
-  border-color: var(--tf-color-accent-border);
-  box-shadow: 0 0 0 3px var(--tf-color-accent-soft);
+  /* One clear green edge on focus, without a second faint halo around it. */
+  border-color: color-mix(in srgb, var(--tf-color-accent) 70%, transparent);
+  box-shadow: none;
 }
 
 .control[data-invalid],
@@ -155,8 +158,9 @@
 
 .textarea[data-focus-visible],
 .textarea:focus-visible {
-  border-color: var(--tf-color-accent-border);
-  box-shadow: 0 0 0 3px var(--tf-color-accent-soft);
+  /* One clear green edge on focus, without a second faint halo around it. */
+  border-color: color-mix(in srgb, var(--tf-color-accent) 70%, transparent);
+  box-shadow: none;
 }
 
 .textarea[data-invalid] {

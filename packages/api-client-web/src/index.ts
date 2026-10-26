@@ -163,13 +163,14 @@ export type ApiErrorCode =
 /** Reasons returned in FeatureDecision.reason (docs/features/access.md). */
 export type FeatureReason =
   | "available"
+  | "feature_not_in_plan"
   | "not_granted"
   | "explicit_deny"
   | "operationally_disabled"
   | "dependency_unavailable"
   | "limit_reached";
 
-export const SET_KINDS = ["Standard", "Amrap", "Ramp", "TopSet", "BackOff", "DropSet", "RestPause", "Cluster"] as const satisfies readonly SetKind[];
+export const SET_KINDS = ["Standard", "Warmup", "Amrap", "Ramp", "TopSet", "BackOff", "DropSet", "RestPause", "Cluster"] as const satisfies readonly SetKind[];
 export const SEGMENTED_SET_KINDS = ["Ramp", "DropSet", "RestPause", "Cluster"] as const satisfies readonly SetKind[];
 export const UNITS = ["Scalar", "Kg", "Lb", "Seconds", "Minutes", "Meters", "Kilometers", "Percent"] as const satisfies readonly Unit[];
 export const ANALYSIS_STATUSES = ["Queued", "Processing", "Completed", "Failed", "Cancelled"] as const;

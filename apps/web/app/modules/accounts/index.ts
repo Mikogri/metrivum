@@ -9,3 +9,5 @@ export { UserAutocomplete, type UserSuggestion } from "./components/UserAutocomp
 export { displayNameValid, normalizeDisplayName, usernameProblem } from "./lib/identity";
 export { DETAIL_GROUPS, DetailFields, ageFrom, detailProblems, detailsFromValues, detailsToValues, emptyDetails, type DetailGroup, type DetailKey, type Details } from "./components/ProfileDetails";
 export { getPerson, personKey, profileFieldsKey, type Person } from "./api/people";
+export { BodySummary } from "./components/BodySummary";
+export { useProfileCompleteness, type CompletenessItem } from "./api/useCompleteness";

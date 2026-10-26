@@ -4,7 +4,7 @@ export const meta = () => privateMeta("Payments — Metrivum");
 
 import { useRef, useState } from "react";
 import { Link } from "react-router";
-import { Check, CreditCard, Repeat, Wallet } from "lucide-react";
+import { ArrowLeftRight, Check, CreditCard, Repeat, Wallet } from "lucide-react";
 import { Label, Radio, RadioGroup } from "react-aria-components";
 import type { Schema } from "@trainflow/api-client-web";
 import {
@@ -67,6 +67,7 @@ function Payments() {
         page: "1",
         status: "",
         ordersPage: "1",
+        historyPage: "1",
     });
     const dues = useCoachingQuery<Page<Due>>("/api/v1/me/payment-dues", {
         page: pageFromParam(state.page),
@@ -81,6 +82,10 @@ function Payments() {
     const orders = useCoachingQuery<Page<Schema<"OrderDto">>>(
         "/api/v1/me/orders",
         { page: pageFromParam(state.ordersPage), pageSize: 20 },
+    );
+    const history = useCoachingQuery<Page<Schema<"PaymentDto">>>(
+        "/api/v1/me/payment-history",
+        { page: pageFromParam(state.historyPage), pageSize: 20 },
     );
     const methods = useCoachingQuery<Method[]>("/api/v1/me/payment-methods");
     const subscriptions = useCoachingQuery<ServiceSubscription[]>(
@@ -255,6 +260,40 @@ function Payments() {
                                     <ListPagination
                                         data={orders.data}
                                         onChange={(ordersPage) => update({ ordersPage: String(ordersPage) })}
+                                    />
+                                </>
+                            )}
+                        </Panel>
+                        <Panel
+                            title="Transactions"
+                            icon={<ArrowLeftRight />}
+                            tone="violet"
+                            description="Every settled payment, newest first, with the platform fee and what reached the coach."
+                            flush
+                        >
+                            {history.isPending ? (
+                                <Loading />
+                            ) : history.isError ? (
+                                <Failure error={history.error} retry={() => void history.refetch()} />
+                            ) : !history.data.items.length ? (
+                                <EmptyState size="sm" icon={<ArrowLeftRight strokeWidth={1.5} />} title="No transactions yet" description="Payments appear here once they are settled." />
+                            ) : (
+                                <>
+                                    <DataTable
+                                        label="Transactions"
+                                        rows={history.data.items}
+                                        rowKey={(p) => p.id}
+                                        columns={[
+                                            { id: "date", header: "Date", cell: (p) => date(p.settledAt) },
+                                            { id: "source", header: "Method", muted: true, cell: (p) => p.source || p.mode },
+                                            { id: "fee", header: "Platform fee", align: "end", muted: true, hideOnMobile: true, cell: (p) => money(Number(p.feeAmount), p.currency) },
+                                            { id: "net", header: "To coach", align: "end", muted: true, hideOnMobile: true, cell: (p) => money(Number(p.coachNetAmount), p.currency) },
+                                            { id: "amount", header: "Amount", align: "end", cell: (p) => <strong>{money(Number(p.grossAmount), p.currency)}</strong> },
+                                        ]}
+                                    />
+                                    <ListPagination
+                                        data={history.data}
+                                        onChange={(historyPage) => update({ historyPage: String(historyPage) })}
                                     />
                                 </>
                             )}

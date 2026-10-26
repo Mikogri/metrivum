@@ -66,6 +66,9 @@ public sealed class MessagingAbuseTests
         var key = Guid.NewGuid().ToString();
         var policy = factory.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<AbuseProtectionOptions>>().Value.Policies[AbusePolicies.Message];
         Assert.Equal(40, policy.Permits); Assert.Equal(60, policy.WindowSeconds); Assert.Equal(30, policy.Refill);
+        // The shared-budget assertion must not race gradual token replenishment during real SQL writes.
+        // Keep the production defaults asserted above, but lengthen this isolated host's test window.
+        policy.WindowSeconds = 3600;
         Assert.Same(factory.Services.GetRequiredService<AbuseProtection>(), factory.Services.GetRequiredService<IAbuseProtection>());
         for (var i = 0; i < 40; i++) await Ok(Send(sender.Http, i % 2 == 0 ? chat : otherChat, i == 0 ? key : Guid.NewGuid().ToString()));
         await Ok(Send(sender.Http, chat, key));

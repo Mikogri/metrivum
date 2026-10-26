@@ -9,7 +9,8 @@ import { ArrowRight, Info } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Alert, DateField, DialogTrigger, EmptyState, IconButton, Option, Popover, PageHeader, Segment, SegmentedControl, Select, Skeleton, Tab, TabList, TabPanel, Tabs } from "@trainflow/ui-web";
-import { RequireFeature } from "~/shared/access";
+import { RequireFeature, useFeatureAccess } from "~/shared/access";
+import { BasicAnalyze } from "./basic-analyze";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { useUrlState } from "~/shared/lib/useUrlState";
 import { Failure, money, useCoachingQuery } from "~/modules/coaching";
@@ -563,9 +564,10 @@ function CheckInsTab({ data }: { data: CheckInsData }) {
 }
 
 export default function AnalyzePage() {
+  const advanced = useFeatureAccess("analytics.advanced");
   return (
     <RequireFeature feature="analytics.view">
-      <Workspace />
+      {advanced.pending ? <AnalyzeSkeleton /> : advanced.allowed ? <Workspace /> : <BasicAnalyze />}
     </RequireFeature>
   );
 }

@@ -16,6 +16,33 @@ const day = (offset: number) => {
 
 const COACH = "00000000-0000-4000-8000-0000000000c0";
 let mockInvitationStatus = "Pending";
+const OTHER_COACH = "00000000-0000-4000-8000-0000000000c2";
+type MockShowcase = { hasCover: boolean; coachId: string; headline: string | null; yearsExperience: number | null; competencies: string[]; activeClients: number; clientsCoached: number; portfolio: { id: string; kind: string; title: string; description: string | null; contentType: string; size: number; createdAt: string }[]; version: number };
+const showcases = new Map<string, MockShowcase>();
+function showcaseOf(id: string, me: string): MockShowcase {
+  let found = showcases.get(id);
+  if (!found) {
+    found = id === me
+      ? { hasCover: false, coachId: id, headline: null, yearsExperience: null, competencies: [], activeClients: 3, clientsCoached: 5, portfolio: [], version: 0 }
+      : {
+          hasCover: false, coachId: id, headline: "Strength coach for runners and busy parents", yearsExperience: 8, competencies: ["Strength training", "Running economy", "Mobility", "Nutrition basics", "Return from injury"], activeClients: 14, clientsCoached: 61, version: 3,
+          portfolio: [
+            { id: "pf1", kind: "Certificate", title: "NSCA CSCS", description: "Certified Strength and Conditioning Specialist, 2019.", contentType: "image/png", size: 210000, createdAt: "2026-03-10T10:00:00Z" },
+            { id: "pf2", kind: "ClientResult", title: "Half marathon in 1:39", description: "Anna went from 2:05 to 1:39 in 9 months with two strength sessions a week.", contentType: "image/jpeg", size: 380000, createdAt: "2026-06-02T10:00:00Z" },
+            { id: "pf3", kind: "Certificate", title: "Precision Nutrition L1", description: null, contentType: "application/pdf", size: 120000, createdAt: "2026-04-21T10:00:00Z" },
+          ],
+        };
+    showcases.set(id, found);
+  }
+  return found;
+}
+/** A small generated image standing in for an uploaded portfolio file. */
+function portfolioImage(id: string) {
+  const hue = [...id].reduce((sum, c) => sum + c.charCodeAt(0), 0) % 360;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="hsl(${hue} 25% 22%)"/><text x="200" y="160" fill="hsl(${hue} 30% 70%)" font-family="sans-serif" font-size="22" text-anchor="middle">Portfolio file</text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 const people = [
   { id: "22222222-0000-4000-8000-000000000001", displayName: "Kazik Kowalski", username: "kazik_kowal" },
   { id: "22222222-0000-4000-8000-000000000002", displayName: "Anna Nowak", username: "anna.runs" },
@@ -149,18 +176,44 @@ const search = <T extends { name?: string; title?: string }>(items: T[], q: URLS
 const messagingPreferences = { requireApproval: false };
 const profileFields: { currency: string; values: Record<string, unknown>; version: number } = { currency: "PLN", values: { Sex: "Male", Height: 182, Weight: 84.5, HrMax: 188, SessionsPerWeek: 4, PreferredTrainingDays: [1, 3, 5] }, version: 1 };
 
-const capabilities = ["Programs and templates", "Clients and groups", "Check-ins and forms", "Messages and calendar", "Offers and payments", "Video analysis", "Analyze"];
-const platformPlans = ["Free", "Pro", "Team"].map((id, i) => ({
-  id,
-  name: id,
-  amount: [0, 25, 20][i],
-  currency: "USD",
-  priceVersion: "2026-10",
+// Mirrors the server catalog: personal (Free, Starter, Pro) and workspace (Team, Studio) ladders with their tiers.
+const professional = ["training.builder.advanced", "training.export.pdf", "training.export.csv", "training.import.csv", "training.formulas.custom", "training.sets.advanced", "exercises.custom.create", "video.analysis.cloud", "analytics.advanced", "automation.advanced", "discovery.ranking.priority", "integrations.mcp.write-training-drafts"];
+const planLimits = (seats: number, clients: number, runs: number, local: number | null, gpu: number) => ({
+  "coaching.active_clients": clients, "organization.coach_seats": seats, "training.generator.runs_per_period": runs, "video.local_analyses_per_period": local, "video.cloud_gpu_seconds_per_period": gpu,
+});
+const platformPlans = [
+  { id: "Free", amount: 0, scope: "Account", tier: 1, top: 3, commission: 0.1, caps: [] as string[], limits: planLimits(1, 3, 3, 2, 0) },
+  { id: "Starter", amount: 9, scope: "Account", tier: 2, top: 3, commission: 0.1, caps: [] as string[], limits: planLimits(1, 8, 15, 5, 0) },
+  { id: "Pro", amount: 24, scope: "Account", tier: 3, top: 3, commission: 0.1, caps: professional, limits: planLimits(1, 60, 500, null, 7200) },
+  { id: "Team", amount: 69, scope: "Workspace", tier: 1, top: 2, commission: 0.1, caps: [...professional, "organization.workspace.manage"], limits: planLimits(3, 200, 2000, null, 30000) },
+  { id: "Studio", amount: 159, scope: "Workspace", tier: 2, top: 2, commission: 0.1, caps: [...professional, "organization.workspace.manage"], limits: planLimits(10, 600, 5000, null, 90000) },
+].map((plan) => ({
+  id: plan.id,
+  name: plan.id,
+  amount: plan.amount,
+  currency: "EUR",
+  billingInterval: "Month",
+  priceVersion: "eur-monthly-v3",
   termsVersion: "2026-10",
-  commissionRate: [0.08, 0.05, 0.03][i],
+  commissionRate: plan.commission,
   priceConfigured: true,
-  capabilities,
+  capabilities: plan.caps,
+  limits: plan.limits,
+  simulated: true,
+  priceScope: plan.scope,
+  upgradePolicy: "Immediate new monthly period; no proration",
+  tier: plan.tier,
+  topTier: plan.top,
 }));
+/** Discovery: the coach's own listing and a page of coaches, two of them featured (Pro and above). */
+const discoveryListing = { published: true, specializations: ["Strength", "Powerlifting"], languages: ["pl", "en"], modes: ["Online", "Hybrid"], location: "Warszawa", version: 1 };
+const discoveryCoaches = [
+  { name: "Ola Trener", user: "ola.coach", bio: "Strength and powerlifting coach. I help lifters reach their first meet with a clear plan and weekly video feedback.", tags: ["Strength", "Powerlifting"], langs: ["pl", "en"], modes: ["Online", "Hybrid"], location: "Warszawa", featured: true, offer: ["12-week meet prep", 349] },
+  { name: "Marek Lis", user: "marek.runs", bio: "Running coach for 10K to marathon. Structured plans built around your week.", tags: ["Running", "Endurance"], langs: ["pl"], modes: ["Online"], location: "Kraków", featured: true, offer: ["Marathon block", 249] },
+  { name: "Kasia Nowak", user: "kasia.moves", bio: "Mobility and general fitness for busy people.", tags: ["Mobility", "Fitness"], langs: ["pl", "en"], modes: ["Offline"], location: "Gdańsk", featured: false, offer: ["Monthly coaching", 199] },
+  { name: "Tom Becker", user: "tom.lifts", bio: "Hypertrophy and body recomposition, evidence-based.", tags: ["Hypertrophy"], langs: ["en", "de"], modes: ["Online"], location: "Berlin", featured: false, offer: null },
+  { name: "Ania Wójcik", user: "ania.fit", bio: null, tags: ["Pre- and postnatal"], langs: ["pl"], modes: ["Hybrid"], location: "Poznań", featured: false, offer: ["Postnatal return", 179] },
+].map((c, i) => ({ coachId: `99999999-0000-4000-8000-00000000000${i + 1}`, username: c.user, displayName: c.name, bio: c.bio, specializations: c.tags, languages: c.langs, modes: c.modes, location: c.location, featured: c.featured, offer: c.offer ? { offerId: `99999999-1111-4000-8000-00000000000${i + 1}`, coachId: `99999999-0000-4000-8000-00000000000${i + 1}`, name: c.offer[0], currency: "PLN", minimumPrice: c.offer[1], mode: c.modes[0], category: c.tags[0] } : null }));
 const platformSubscription = { id: uid(), planId: "Free", status: "Active", periodStart: null, periodEnd: null, nextDueAt: null, autoRenew: false, renewalMethodEligible: false, pendingPlanId: null, version: 1, pendingDue: null, acceptedPriceVersion: null, acceptedTermsVersion: null };
 
 /** Deterministic but lively fake analytics for the requested window. */
@@ -290,7 +343,7 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
   const team = { id: "t1", name: "North Strength Collective", isOwner: true, isMember: true, members: 3, role: "Owner", status: "Active", description: "Strength and conditioning coaches in Gdańsk.", version: 1, purchasedSeats: 5, occupiedSeats: 3, periodEnd: null, dissolutionAt: null, allowedActions: ["teams.invite", "teams.manage", "teams.clients", "teams.analyze", "teams.settings", "teams.transfer-ownership"], pendingOwnerId: null };
   if (path === "/api/v1/accounts/people" || path === "/api/v1/messaging/people") {
     const prefix = (q.get("search") ?? "").trim().replace(/^@/, "").toLowerCase();
-    return ok(prefix.length < 2 ? [] : people.filter(person => person.username.toLowerCase().startsWith(prefix)).map(person => ({ userId: person.id, username: person.username, displayName: person.displayName })));
+    return ok(prefix.length < 2 ? [] : [...people, { id: OTHER_COACH, displayName: "Ola Zielińska", username: "ola.trains" }].filter(person => person.username.toLowerCase().startsWith(prefix)).map(person => ({ userId: person.id, username: person.username, displayName: person.displayName })));
   }
   if (path === "/api/v1/teams/mine") return ok({ teams: [team], requests: [{ id: "tr1", teamId: "t1", teamName: team.name, displayName: "Ola Zielińska", kind: "Invite", status: "Pending", canDecide: false, role: "Member", expiresAt: new Date(Date.now() + 5 * 86400000).toISOString() }] });
   if (path === "/api/v1/teams/t1/members") return ok([
@@ -353,9 +406,30 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     if (method === "PUT") messagingPreferences.requireApproval = Boolean(body?.requireApproval);
     return ok(messagingPreferences);
   }
+  // Coach showcases: the demo coach's own (editable) and one other coach to look at.
+  if ((m = path.match(/^\/api\/v1\/coaches\/([^/]+)\/showcase$/)) && method === "GET") return ok(showcaseOf(m[1]!, me));
+  if (path === "/api/v1/me/coach-showcase" && method === "PUT") {
+    const current = showcaseOf(me, me);
+    Object.assign(current, { headline: body?.headline ?? null, yearsExperience: body?.yearsExperience ?? null, competencies: body?.competencies ?? [], version: current.version + 1 });
+    return ok(current);
+  }
+  if ((m = path.match(/^\/api\/v1\/me\/coach-showcase\/portfolio\/([^/]+)$/)) && method === "DELETE") {
+    const current = showcaseOf(me, me);
+    current.portfolio = current.portfolio.filter((item) => item.id !== m![1]);
+    return { status: 204, body: null };
+  }
+  if ((m = path.match(/^\/api\/v1\/coaches\/[^/]+\/showcase\/portfolio\/([^/]+)\/read-url$/))) return ok({ url: portfolioImage(m[1]!), expiresAt: at(1, 0) });
+  if ((m = path.match(/^\/api\/v1\/coaches\/([^/]+)\/showcase\/cover\/read-url$/))) return showcaseOf(m[1]!, me).hasCover ? ok({ url: portfolioImage("cover-" + m[1]!), expiresAt: at(1, 0) }) : { status: 404, body: { status: 404, title: "RESOURCE_NOT_FOUND", code: "RESOURCE_NOT_FOUND" } };
+  if (path === "/api/v1/me/coach-showcase/cover" && method === "DELETE") {
+    const current = showcaseOf(me, me);
+    current.hasCover = false;
+    current.version++;
+    return ok(current);
+  }
   if ((m = path.match(/^\/api\/v1\/accounts\/people\/([^/]+)$/))) {
     const name = decodeURIComponent(m[1]!).replace(/^@/, "").toLowerCase();
-    if (name === "demo_coach" || name === "demo.coach") return ok({ userId: me, username: "demo_coach", displayName: "Demo Coach", bio: null, roles: ["Coach"], isSelf: true });
+    if (name === "demo_coach" || name === "demo.coach") return ok({ userId: me, username: "demo_coach", displayName: "Demo Coach", bio: null, roles: ["Coach"], isSelf: true, memberSince: "2026-05-12T09:00:00Z" });
+    if (name === "ola.trains") return ok({ userId: OTHER_COACH, username: "ola.trains", displayName: "Ola Zielińska", bio: "Strength and conditioning coach in Gdańsk. I help runners and busy parents get strong without living in the gym.", roles: ["Coach"], isSelf: false, memberSince: "2026-03-04T10:00:00Z" });
     const person = people.find((p) => p.username.toLowerCase() === name);
     return person
       ? ok({ userId: person.id, username: person.username, displayName: person.displayName, bio: "Training for my first half marathon. Lifting three times a week.", roles: ["Client"], isSelf: false })
@@ -410,6 +484,18 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
   if (path === "/api/v1/me/blocked-users") return ok([]);
   if (path === "/api/v1/analyze/overview") return ok(analyzeOverview(q));
   if (path === "/api/v1/subscriptions/plans") return ok(platformPlans);
+  if (path === "/api/v1/me/ai-integrations" && method === "GET") return ok([]);
+  if (path === "/api/v1/me/ai-actions" && method === "GET") return ok([]);
+  if (path === "/api/v1/me/discovery" && method === "GET") return ok(discoveryListing);
+  if (path === "/api/v1/me/discovery" && method === "PUT") return ok(Object.assign(discoveryListing, body ?? {}, { version: discoveryListing.version + 1 }));
+  if (path === "/api/v1/discovery/coaches") {
+    const search = (q.get("search") ?? "").toLowerCase();
+    const items = discoveryCoaches.filter((c) => !search || [c.displayName, c.username, c.bio ?? "", ...c.specializations].join(" ").toLowerCase().includes(search));
+    return ok({ items, page: 1, pageSize: 18, total: items.length });
+  }
+  // Quota context for new analyses: no Team, personal plan usage this month.
+  if (path === "/api/v1/me/team-context" && method === "GET") return ok(null);
+  if (path === "/api/v1/me/usage" && method === "GET") return ok({ planId: platformSubscription.planId, scopeId: me, periodStart: "2026-10-01T00:00:00Z", periodEnd: "2026-11-01T00:00:00Z", usage: [{ key: "video.local_analyses_per_period", maximum: 30, used: 7 }] });
   if (path === "/api/v1/me/platform-subscription" && method === "GET") return ok(platformSubscription);
   if ((m = path.match(/^\/api\/v1\/me\/platform-subscription\/(checkout|confirm-payment|change-plan)$/)) && method === "POST") {
     const s = platformSubscription as Record<string, unknown>;
@@ -444,10 +530,42 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     { orderId: "po1", name: "Hypertrophy 10-day · self-guided", planId: "44444444-0000-4000-8000-000000000003" },
     { orderId: "po2", name: "Spring 10K plan", planId: null },
   ], q));
+  // Transactions: a mix of settled income, plan payments, refunds and open dues (three past due).
+  if (path === "/api/v1/me/transactions/summary") {
+    // The last 30 days are quiet in the demo, to show the empty summary.
+    if (q.get("from") && Date.parse(q.get("from")!) > Date.now() - 31 * 86_400_000) return ok({ currencies: [], settled: 0, upcoming: 0, overdueIncoming: 0, overdueOutgoing: 0, nextDueAt: null });
+    return ok({ currencies: [{ currency: "EUR", earned: 2484.5, paid: 72, fees: 276.05, toReceive: 698, toPay: 24, overdueIncoming: 897, overdueOutgoing: 0 }], settled: 14, upcoming: 3, overdueIncoming: 3, overdueOutgoing: 0, nextDueAt: at(4, 9) });
+  }
+  if (path === "/api/v1/me/transactions") {
+    const tx = (i: number, name: string, direction: string, status: string, gross: number, date: string, extra: Record<string, unknown> = {}) => ({ id: `97979797-0000-4000-8000-0000000000${String(i).padStart(2, "0")}`, dueId: uid(), paymentId: status === "Succeeded" ? uid() : null, attemptId: null, orderId: uid(), type: "CoachingSubscription", status, direction, name, grossAmount: gross, feeRate: 0.1, feeAmount: gross * 0.1, netAmount: gross * 0.9, currency: "EUR", date, coachId: SELF, clientId: people[1]!.id, serviceId: null, offerId: null, planId: null, failureCode: null, mode: "Simulated", isSettlement: status === "Succeeded" || status === "Refunded", coachName: "Demo Coach", clientName: "Anna Nowak", dueAt: null, overdue: false, ...extra });
+    const all = [
+      tx(1, "12-week online coaching · Monthly", "Incoming", "Pending", 349, ago(40), { dueAt: ago(9), overdue: true, clientName: "Piotr Zieliński" }),
+      tx(2, "Meet prep · Monthly", "Incoming", "Pending", 299, ago(35), { dueAt: ago(5), overdue: true, clientName: "Marta Wiśniewska" }),
+      tx(3, "Technique review", "Incoming", "Pending", 249, ago(20), { dueAt: ago(2), overdue: true, clientName: "Kazik Kowalski" }),
+      tx(4, "12-week online coaching · Monthly", "Incoming", "Pending", 349, ago(3), { dueAt: at(4, 9) }),
+      tx(5, "Meet prep · Monthly", "Incoming", "Pending", 349, ago(2), { dueAt: at(12, 9), clientName: "Marta Wiśniewska" }),
+      tx(6, "Metrivum Pro", "Outgoing", "Pending", 24, ago(1), { dueAt: at(20, 9), type: "PlatformSubscription", coachName: "Metrivum", feeAmount: 0, netAmount: 24, feeRate: 0 }),
+      tx(7, "12-week online coaching · Monthly", "Incoming", "Succeeded", 349, ago(6)),
+      tx(8, "Technique review", "Incoming", "Succeeded", 249, ago(11), { clientName: "Kazik Kowalski" }),
+      tx(9, "Metrivum Pro", "Outgoing", "Succeeded", 24, ago(14), { type: "PlatformSubscription", feeAmount: 0, netAmount: 24, feeRate: 0 }),
+      tx(10, "Meet prep · Monthly", "Incoming", "Succeeded", 299, ago(18), { clientName: "Marta Wiśniewska" }),
+      tx(11, "Hypertrophy 10-day plan", "Outgoing", "Succeeded", 48, ago(22), { type: "TrainingPlan", coachName: "Ola Trener" }),
+      tx(12, "Technique review", "Incoming", "Failed", 249, ago(25), { clientName: "Piotr Zieliński", failureCode: "card_declined" }),
+      tx(13, "12-week online coaching · Monthly", "Incoming", "Succeeded", 349, ago(36)),
+      tx(14, "Meet prep · Monthly", "Outgoing", "Refunded", 299, ago(40), { type: "Refund", clientName: "Marta Wiśniewska" }),
+    ];
+    const items = all.filter((t) => (!q.get("status") || t.status === q.get("status")) && (!q.get("direction") || t.direction === q.get("direction")) && (!q.get("type") || t.type === q.get("type")) && (!q.get("search") || t.name.toLowerCase().includes(q.get("search")!.toLowerCase())));
+    return ok(page(items, q));
+  }
+  if ((m = path.match(/^\/api\/v1\/me\/transactions\/([^/]+)$/))) return ok({ id: m[1], dueId: uid(), paymentId: null, attemptId: null, orderId: uid(), type: "CoachingSubscription", status: "Pending", direction: "Incoming", name: "12-week online coaching · Monthly", grossAmount: 349, feeRate: 0.1, feeAmount: 34.9, netAmount: 314.1, currency: "EUR", date: ago(40), coachId: SELF, clientId: people[1]!.id, serviceId: null, offerId: null, planId: null, failureCode: null, mode: "Simulated", isSettlement: false, coachName: "Demo Coach", clientName: "Piotr Zieliński", dueAt: ago(9), overdue: true });
   if (path === "/api/v1/me/payment-dues") {
     const due = (i: number, status: string, dueAt: string, extra: Record<string, unknown> = {}) => ({ id: `99999999-0000-4000-8000-00000000000${i}`, orderId: "o1", serviceId: "s1", relationshipId: "r1", coachId: COACH, clientId: SELF, sequence: i, periodStart: dueAt, periodEnd: null, dueAt, status, amount: 349, currency: "PLN", settlementMode: "Simulated", settledAt: status === "Paid" ? dueAt : null, overdue: false, ...extra });
     const dues = [due(4, "AwaitingPayment", at(5, 9)), due(3, "AwaitingPayment", ago(3), { overdue: true }), due(2, "Paid", ago(33)), due(1, "Paid", ago(63))];
     return ok(page(dues.filter((d) => !q.get("status") || d.status === q.get("status")), q));
+  }
+  if (path === "/api/v1/me/payment-history") {
+    const paid = (i: number, settledAt: string) => ({ id: `98989898-0000-4000-8000-00000000000${i}`, dueId: `99999999-0000-4000-8000-00000000000${i}`, attemptId: null, grossAmount: 349, feeRate: 0.05, feeAmount: 17.45, coachNetAmount: 331.55, currency: "PLN", mode: "Simulated", source: "Simulated card", actorId: SELF, settledAt });
+    return ok(page([paid(2, ago(33)), paid(1, ago(63))], q));
   }
   if (path === "/api/v1/me/payment-methods" && method === "GET") return ok([{ id: "pm1", label: "Personal card", active: true, createdAt: ago(40) }]);
   if (path === "/api/v1/me/service-subscriptions") return ok([{ id: "sub1", serviceId: "s1", autoRenew: false, paymentMethodId: null, nextPeriodAt: at(5, 9), active: true }]);

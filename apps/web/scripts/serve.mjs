@@ -43,7 +43,7 @@ function send(res, status, path, extraHeaders = {}) {
     // Origins for scripts and requests depend on the deployment (see docs/frontend/hosting.md); these parts do not.
     "Content-Security-Policy": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
     "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
-    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()",
     ...extraHeaders,
   });
   createReadStream(full).pipe(res);

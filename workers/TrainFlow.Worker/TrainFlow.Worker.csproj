@@ -7,6 +7,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../../backend/modules/Access/TrainFlow.Access/TrainFlow.Access.csproj" />
+    <ProjectReference Include="../../backend/modules/Billing/TrainFlow.Billing/TrainFlow.Billing.csproj" />
     <ProjectReference Include="..\..\backend\modules\VideoAnalysis\TrainFlow.VideoAnalysis\TrainFlow.VideoAnalysis.csproj" />
     <ProjectReference Include="..\..\backend\modules\Media\TrainFlow.Media\TrainFlow.Media.csproj" />
   </ItemGroup>

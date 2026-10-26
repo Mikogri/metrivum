@@ -8,10 +8,123 @@
   font-size: var(--tf-text-xs);
 }
 
+.switches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+}
+
+/* Plan ladder switch: two option cards side by side, neutral, the chosen one lifted with its own colour on the icon. */
+.kind {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tf-space-1);
+  width: min(100%, 34rem);
+  padding: var(--tf-space-1);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-bg, var(--tf-color-surface));
+}
+
+.kindOption {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-width: 0;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 1px solid transparent;
+  border-radius: calc(var(--tf-radius-lg) - 4px);
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.kindIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-tertiary);
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.kindIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.kindText {
+  display: grid;
+  min-width: 0;
+}
+
+.kindText strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.kindText small {
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kindOption[data-hovered]:not([data-selected]) {
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text);
+}
+
+.kindOption[data-focus-visible] {
+  border-color: var(--tf-color-accent-border);
+}
+
+.kindOption[data-selected] {
+  border-color: var(--tf-color-border-strong);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+}
+
+.kindOption[data-selected] .kindIcon {
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.kindOption[data-kind="workspace"][data-selected] .kindIcon {
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+
+.save {
+  margin-left: var(--tf-space-1);
+  color: var(--tf-color-accent);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+}
+
+/* One ladder at a time: as many equal columns as plans; room above for the raised best plan. */
 .offers {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--tf-space-3);
+  grid-template-columns: repeat(var(--count, 3), minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--tf-space-4);
+  padding-top: var(--tf-space-4);
+}
+
+@media (max-width: 48rem) {
+  .offers {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Each offer is a tall card: name, price, what it is for, a few highlights, then the action. */
@@ -29,18 +142,144 @@
   transition: border-color 160ms ease;
 }
 
-.offer[data-featured] {
-  border-color: var(--tf-color-accent-border);
-  box-shadow: 0 0 0 1px var(--tf-color-accent-border) inset;
+
+
+/* The best plan of the ladder: brighter border, a touch larger and raised. */
+/* Each ladder has its colour: green for personal plans, violet for workspaces (Team, Studio). */
+.offer {
+  --plan-tone: var(--tf-color-accent);
 }
 
-.offer[data-current]::before {
+.offer[data-kind="workspace"] {
+  --plan-tone: var(--tf-color-violet);
+}
+
+.offer[data-kind="workspace"] .highlights svg:not([data-off] svg) {
+  color: var(--tf-color-violet);
+}
+
+/* The plan name and price sit together at the top of every card. */
+.top {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+/* The best plan of each ladder wears the Upgrade button's look: a violet head with the same slow-drifting
+   gradient and faint shine, a violet border and the violet action button. */
+.offer[data-featured] {
+  --plan-tone: var(--tf-color-violet);
+  z-index: 1;
+  border: 1.5px solid color-mix(in srgb, var(--tf-color-violet) 70%, transparent);
+  transform: translateY(calc(-1 * var(--tf-space-2)));
+}
+
+.offer[data-featured] .top {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: calc(-1 * var(--tf-space-5)) calc(-1 * var(--tf-space-5)) 0;
+  padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-1);
+  background: linear-gradient(115deg, #5b3dff, #7c4dff, var(--tf-color-violet), #e070ff, #ff7ad9, #7c4dff, #5b3dff);
+  background-size: 400% 100%;
+  color: #fff;
+  animation: plan-flow 11s ease-in-out infinite alternate;
+}
+
+/* The gradient travels across the whole head and back, a little faster than the app bar button. */
+@keyframes plan-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* A shine that sweeps across every few seconds. */
+@keyframes plan-shine {
+  0%, 55% { transform: translateX(-130%) skewX(-12deg); }
+  85%, 100% { transform: translateX(130%) skewX(-12deg); }
+}
+
+/* The sparkle in the tag twinkles. */
+@keyframes plan-twinkle {
+  0%, 70%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  80% { transform: scale(1.15) rotate(12deg); opacity: 0.85; }
+  90% { transform: scale(0.9) rotate(-10deg); opacity: 1; }
+}
+
+.offer[data-featured] .top::after {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  background: var(--tf-color-accent);
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.2) 50%, transparent 70%);
+  transform: translateX(-130%);
+  animation: plan-shine 7s ease-in-out infinite;
 }
+
+.offer[data-featured] .bestTag svg {
+  animation: plan-twinkle 7s ease-in-out infinite;
+}
+
+/* The card lifts a little more on hover, with its border brightening. */
+.offer[data-featured] {
+  transition: transform 220ms var(--tf-ease-out, ease-out), border-color 220ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .offer[data-featured]:hover {
+    border-color: var(--tf-color-violet);
+    transform: translateY(calc(-1 * var(--tf-space-3)));
+  }
+
+}
+
+.offer[data-featured] .price {
+  border-bottom: 0;
+}
+
+.offer[data-featured] .head h3,
+.offer[data-featured] .price strong {
+  color: #fff;
+}
+
+.offer[data-featured] .price span {
+  color: rgb(255 255 255 / 0.78);
+}
+
+.bestTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  justify-self: start;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--tf-radius-full);
+  background: rgb(255 255 255 / 0.18);
+  color: #fff;
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offer[data-featured] .top,
+  .offer[data-featured] .top::after,
+  .offer[data-featured] .bestTag svg {
+    animation: none;
+  }
+}
+
+.bestTag svg {
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+
+@media (max-width: 48rem) {
+  .offer[data-featured] {
+    transform: none;
+  }
+}
+
+
 
 @media (hover: hover) and (pointer: fine) {
   .offer:not([data-featured]):hover {
@@ -103,11 +342,80 @@
   gap: var(--tf-space-2);
 }
 
+.highlights li > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.highlights li > strong {
+  color: var(--tf-color-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.highlights li[data-off] {
+  color: var(--tf-color-text-tertiary);
+  opacity: 0.6;
+}
+
 .highlights svg {
   width: 0.8125rem;
   height: 0.8125rem;
   flex-shrink: 0;
-  color: var(--tf-color-accent);
+  color: var(--plan-tone, var(--tf-color-accent));
+}
+
+.highlights li[data-off] svg {
+  color: var(--tf-color-text-tertiary);
+}
+
+/* App bar upgrade: violet, a slowly drifting gradient, a shine that sweeps across and a soft breathing glow. */
+.upgrade.upgrade {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 70%, white);
+  background: linear-gradient(110deg, #7c4dff, var(--tf-color-violet), #d16bff, #7c4dff);
+  background-size: 300% 100%;
+  color: #fff;
+  font-weight: var(--tf-weight-semibold);
+  box-shadow: 0 4px 16px -6px #7c4dff;
+  animation: upgrade-drift 16s ease-in-out infinite alternate;
+  transition: transform 160ms var(--tf-ease-out, ease-out), filter 160ms ease;
+}
+
+.upgrade.upgrade::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 35%, rgb(255 255 255 / 0.18) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: upgrade-shine 9s ease-in-out infinite;
+}
+
+.upgrade.upgrade[data-hovered] {
+  filter: brightness(1.08);
+}
+
+.upgrade.upgrade[data-pressed] {
+  transform: scale(0.97);
+}
+
+@keyframes upgrade-drift {
+  to { background-position: 100% 0; }
+}
+
+@keyframes upgrade-shine {
+  0%, 80% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upgrade.upgrade,
+  .upgrade.upgrade::after {
+    animation: none;
+  }
 }
 
 /* The action always sits at the bottom of the card. */
@@ -212,6 +520,8 @@
 .checkoutActions { display: flex; flex-wrap: wrap; gap: var(--tf-space-3); }
 
 @media (max-width: 767px) {
+  .kind { width: 100%; }
+  .kindText small { display: none; }
   .panel, .offer, .checkout { min-width: 0; overflow-wrap: anywhere; }
   .offer, .checkout { padding: var(--tf-space-4); }
   .head { flex-wrap: wrap; }

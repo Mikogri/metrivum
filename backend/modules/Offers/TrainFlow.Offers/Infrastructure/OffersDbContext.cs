@@ -22,6 +22,8 @@ public sealed class OffersDbContext(DbContextOptions<OffersDbContext> options) :
         model.Entity<OfferBillingOption>().ToTable("billing_options", t => t.HasCheckConstraint("CK_option_validity", "\"ValidityDays\" IS NULL OR (\"ValidityDays\" BETWEEN 1 AND 36500 AND \"Model\" NOT IN ('PeriodSubscription','OneTime'))"));
         model.Entity<RevisionBillingOption>().ToTable("revision_billing_options", t => t.HasCheckConstraint("CK_revision_option_validity", "\"ValidityDays\" IS NULL OR (\"ValidityDays\" BETWEEN 1 AND 36500 AND \"Model\" NOT IN ('PeriodSubscription','OneTime'))"));
         model.Entity<Offer>().HasIndex(x => new { x.TeamId, x.Status, x.UpdatedAt });
+        model.Entity<Offer>().HasIndex(x => new { x.CoachId, x.Id }).HasDatabaseName("IX_offers_PublishedCoachCard")
+            .HasFilter("\"Status\" = 'Active' AND \"CurrentPublishedRevisionId\" IS NOT NULL");
         model.Entity<Offer>().Property(x => x.TeamName).HasMaxLength(200);
         model.Entity<OfferRevision>().Property(x => x.TeamName).HasMaxLength(200);
         model.Entity<OfferCategory>(e => { e.ToTable("categories"); e.HasKey(x => x.Key); e.Property(x => x.Key).HasMaxLength(60); e.Property(x => x.Name).HasMaxLength(120); e.HasData(new[] { "strength", "hypertrophy", "endurance", "general-fitness", "conditioning" }.Select(x => new OfferCategory { Key = x, Name = x, Active = true })); });

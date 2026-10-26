@@ -18,21 +18,33 @@ public static class ModuleRegistration
 {
     public static IServiceCollection AddBilling(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddModuleDatabase<BillingDbContext>("billing");
+        services.AddPlanEntitlements();
         services.AddScoped<BillingService>();
+        services.AddScoped<TransactionHistoryService>();
         services.AddScoped<PlatformSubscriptionService>();
+        services.AddScoped<PlatformRefundService>();
         services.AddScoped<TeamService>();
         services.AddScoped<TeamBillingService>();
-        services.AddScoped<TrainFlow.Accounts.Contracts.ITeamContext, TeamContext>();
         services.AddMemoryCache();
         services.AddHttpClient<IPlatformCurrencyConverter, PlatformCurrencyConverter>(http => { http.BaseAddress = new Uri("https://api.frankfurter.dev/"); http.Timeout = TimeSpan.FromSeconds(10); });
         services.AddScoped<TrainFlow.Notifications.Contracts.INotificationDeliveryPolicy, BillingNotificationPolicy>();
         services.AddScoped<IFinanceAnalytics, BillingAnalytics>();
         services.AddScoped<IBillingOrders>(p => p.GetRequiredService<BillingService>());
+        services.AddScoped<IPlatformPlans>(p => p.GetRequiredService<BillingService>());
+        services.AddScoped<ILimitUsageProvider, CoachSeatUsage>();
         services.TryAddSingleton<IPaymentProvider, SimulatedPaymentProvider>();
         services.TryAddSingleton(TimeProvider.System);
         foreach (var key in new[] { "billing.manage", "billing.read-own", "billing.pay-own" })
             services.AddSingleton(new FeatureDefinition(key, "Billing", key + ".title", key + ".description", [], []));
+        return services;
+    }
+    // Workers read entitlement projections without registering payment or HTTP-facing services.
+    public static IServiceCollection AddPlanEntitlements(this IServiceCollection services)
+    {
+        services.AddModuleDatabase<BillingDbContext>("billing");
+        services.AddScoped<TrainFlow.Accounts.Contracts.ITeamContext, TeamContext>();
+        services.AddScoped<IPlanEntitlementsProvider, PlanEntitlementsProvider>();
+        services.TryAddSingleton(TimeProvider.System);
         return services;
     }
     // Host explicitly invokes this only outside Testing; the worker is a driver for persisted schedules.
@@ -44,6 +56,9 @@ public static class ModuleRegistration
     public static IEndpointRouteBuilder MapBilling(this IEndpointRouteBuilder endpoints)
     {
         var me = endpoints.MapGroup("/api/v1/me").WithTags("Billing").RequireAuthorization();
+        me.MapGet("/transactions", ([AsParameters] TransactionHistoryQuery query, TransactionHistoryService service, CancellationToken ct) => service.ListAsync(query, ct));
+        me.MapGet("/transactions/summary", (DateTimeOffset? from, DateTimeOffset? to, Guid? teamId, TransactionHistoryService service, CancellationToken ct) => service.SummaryAsync(from, to, teamId, ct));
+        me.MapGet("/transactions/{id:guid}", (Guid id, Guid? teamId, TransactionHistoryService service, CancellationToken ct) => service.DetailAsync(id, teamId, ct));
         me.MapGet("/payment-methods", (BillingService s, CancellationToken ct) => s.MethodsAsync(ct));
         me.MapPost("/payment-methods/simulated-card", (SimulatedMethodRequest r, BillingService s, CancellationToken ct) => s.AddMethodAsync(r, ct));
         me.MapDelete("/payment-methods/{id:guid}", async (Guid id, BillingService s, CancellationToken ct) => { await s.RemoveMethodAsync(id, ct); return Results.NoContent(); });
@@ -57,12 +72,14 @@ public static class ModuleRegistration
         me.MapPost("/payment-dues/{id:guid}/confirm-payment", (Guid id, PayRequest r, BillingService s, CancellationToken ct) => s.PayAsync(id, r, ct));
         me.MapPost("/payment-dues/{id:guid}/pay", (Guid id, PayRequest r, BillingService s, CancellationToken ct) => s.PayAsync(id, r, ct));
         endpoints.MapGet("/api/v1/subscriptions/plans", (PlatformSubscriptionService s, CancellationToken ct) => s.PlansAsync(ct)).WithTags("PlatformSubscriptions").RequireAuthorization();
+        endpoints.MapGet("/api/v1/subscriptions/catalog", (PlatformSubscriptionService s) => s.Catalog()).WithTags("PlatformSubscriptions").AllowAnonymous();
         me.MapGet("/platform-subscription", (PlatformSubscriptionService s, CancellationToken ct) => s.CurrentAsync(ct));
         me.MapPost("/platform-subscription/checkout", (PlatformCheckoutRequest r, PlatformSubscriptionService s, CancellationToken ct) => s.CheckoutAsync(r, ct));
         me.MapPost("/platform-subscription/confirm-payment", (PlatformConfirmRequest r, PlatformSubscriptionService s, CancellationToken ct) => s.ConfirmAsync(r, ct));
         me.MapPost("/platform-subscription/change-plan", (PlatformChangeRequest r, PlatformSubscriptionService s, CancellationToken ct) => s.ChangeAsync(r, ct));
         me.MapPost("/platform-subscription/renewal", (PlatformRenewalRequest r, PlatformSubscriptionService s, CancellationToken ct) => s.RenewalAsync(r, ct));
         me.MapPost("/platform-subscription/cancel-renewal", (PlatformVersionRequest r, PlatformSubscriptionService s, CancellationToken ct) => s.CancelAsync(r, ct));
+        me.MapPost("/platform-payments/{paymentId:guid}/simulated-refund", (Guid paymentId, SimulatedRefundRequest r, PlatformRefundService s, CancellationToken ct) => s.RefundAsync(paymentId, r, ct));
         me.MapGet("/platform-subscription/history", (PlatformSubscriptionService s, CancellationToken ct) => s.HistoryAsync(ct));
         var teams = endpoints.MapGroup("/api/v1/teams").WithTags("Teams").RequireAuthorization();
         teams.MapPost("/checkout-quote", (TeamCheckoutQuoteRequest r, TeamBillingService s, CancellationToken ct) => s.QuoteAsync(r, ct));

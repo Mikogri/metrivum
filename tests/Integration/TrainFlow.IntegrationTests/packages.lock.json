@@ -644,6 +644,7 @@
           "TrainFlow.BuildingBlocks": "[1.0.0, )",
           "TrainFlow.Coaching.Contracts": "[1.0.0, )",
           "TrainFlow.Forms.Contracts": "[1.0.0, )",
+          "TrainFlow.Media.Contracts": "[1.0.0, )",
           "TrainFlow.Notifications.Contracts": "[1.0.0, )",
           "TrainFlow.Offers.Contracts": "[1.0.0, )"
         }

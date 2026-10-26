@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TrainFlow.BuildingBlocks;
+using TrainFlow.Access.Contracts;
 using TrainFlow.Media.Contracts;
 using TrainFlow.Training.Contracts;
 using TrainFlow.VideoAnalysis.Infrastructure;
@@ -12,10 +13,10 @@ namespace TrainFlow.VideoAnalysis;
 public sealed record AnalysisSourceVideo(string Origin, double DurationSeconds, int Width, int Height);
 public sealed record SaveClientAnalysisRequest(Guid LocalAnalysisId, string ExecutionLocation, string Name, string? Note,
     string[] Tags, AnalysisConfiguration Configuration, AnalysisSourceVideo SourceVideo, AnalysisResult Result,
-    Guid? MediaId = null, Guid? WorkoutExecutionId = null, Guid? SetId = null);
+    Guid? MediaId = null, Guid? WorkoutExecutionId = null, Guid? SetId = null, Guid? AuthorizationId = null);
 
 public sealed class ClientAnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary media, IAnalysisWorkoutReferences workouts,
-    ModuleTransaction transaction, IOptions<AnalysisOptions> options)
+    ModuleTransaction transaction, IOptions<AnalysisOptions> options, IUsageReservations? usage = null)
 {
     public static void Validate(SaveClientAnalysisRequest input, AnalysisOptions options)
     {
@@ -23,7 +24,7 @@ public sealed class ClientAnalysisLibrary(VideoAnalysisDbContext db, IMediaLibra
         var source = input.SourceVideo;
         if (input.LocalAnalysisId == Guid.Empty || input.ExecutionLocation != "client" || input.Configuration == null || source == null
             || source.Origin is not ("local" or "cloud") || (source.Origin == "cloud") != input.MediaId.HasValue
-            || !double.IsFinite(source.DurationSeconds) || source.DurationSeconds is <= 0 or > 14400
+            || !double.IsFinite(source.DurationSeconds) || source.DurationSeconds is <= 0 or > 60
             || source.Width is < 1 or > 16384 || source.Height is < 1 or > 16384
             || !AnalysisLibrary.ValidMovement(input.Configuration.Movement, input.Configuration.Exercise)
             || input.Configuration.MetersPerPixel is { } scale && (!double.IsFinite(scale) || scale is <= 0 or > 100)
@@ -62,6 +63,16 @@ public sealed class ClientAnalysisLibrary(VideoAnalysisDbContext db, IMediaLibra
             return AnalysisLibrary.Dto(previous);
         }
         if (input.WorkoutExecutionId is { } execution) await workouts.RequireOwnedAsync(owner, execution, input.SetId, token);
+        if (usage != null)
+        {
+            var operation = (input.AuthorizationId ?? input.LocalAnalysisId).ToString();
+            // Legacy clients authorize at sync time. They cannot bypass the server's successful-result quota.
+            if (input.AuthorizationId == null)
+                await usage.ReserveAsync(owner, "video.local_analyses_per_period", operation, 1, TimeSpan.FromMinutes(5), token);
+            // Bind the durable receipt to content as well as identity: deleting a library row
+            // must not let a caller recycle its local ID/permit for a different inference.
+            await usage.SettleAsync(owner, "video.local_analyses_per_period", operation, 1, token, "local:" + hash);
+        }
         if (input.MediaId is { } mediaId)
         {
             var file = await media.RequireReadyAsync(mediaId, owner, token);

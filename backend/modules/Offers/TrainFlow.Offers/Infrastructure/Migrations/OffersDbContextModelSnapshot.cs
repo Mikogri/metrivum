@@ -93,6 +93,10 @@ namespace TrainFlow.Offers.Infrastructure.Migrations
 
                     b.HasIndex("CurrentPublishedRevisionId");
 
+                    b.HasIndex("CoachId", "Id")
+                        .HasDatabaseName("IX_offers_PublishedCoachCard")
+                        .HasFilter("\"Status\" = 'Active' AND \"CurrentPublishedRevisionId\" IS NOT NULL");
+
                     b.HasIndex("CoachId", "Status", "UpdatedAt");
 
                     b.HasIndex("TeamId", "Status", "UpdatedAt");

@@ -3,7 +3,7 @@ import type { ExerciseGroup, FormulaUse, Prescription, SetKind, TrainingSet, Uni
 import { SET_KINDS } from "@trainflow/api-client-web";
 import { Alert, Button, IconButton, NumberInput, Option, SegmentedControl, Segment, Select, TextArea, TextField } from "@trainflow/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
-import { changeSetKind, findSet, groupOf, makeGroup, newSegment, removeGroup, setPrescription, updateGroup, updateNode, updateSegments, SEGMENTED } from "../model/document";
+import { changeSetKind, findSet, groupOf, makeGroup, newSegment, removeGroup, setIsAdvanced, setPrescription, updateGroup, updateNode, updateSegments, SEGMENTED } from "../model/document";
 import { TEMPO_PATTERN } from "../model/notation";
 import type { EditorApi } from "../useEditor";
 import { FormulaPicker } from "./FormulaPicker";
@@ -256,12 +256,12 @@ export function DetailsPanel({
         <div className={styles.groupBox}>
           <span className={styles.groupLabel}>{t.groups}</span>
           {group ? (
-            <GroupEditor group={group} workoutId={workout.id} editor={editor} disabled={readOnly || !advancedAllowed} />
+            <GroupEditor group={group} workoutId={workout.id} editor={editor} disabled={readOnly || (group.kind !== "Superset" && !advancedAllowed)} />
           ) : (
             <div className={styles.inline}>
               <Button
                 size="sm"
-                isDisabled={readOnly || !advancedAllowed || !next || Boolean(next && groupOf(workout, next.id))}
+                isDisabled={readOnly || !next || Boolean(next && groupOf(workout, next.id))}
                 onPress={() => next && editor.apply((doc) => makeGroup(doc, workout.id, [instance.id, next.id], "Superset"))}
               >
                 {t.makeSuperset}
@@ -291,7 +291,7 @@ export function DetailsPanel({
             selectedKey={set.kind}
             isDisabled={readOnly}
             onSelectionChange={(key) => editor.apply((doc) => changeSetKind(doc, set.id, key as SetKind))}
-            disabledKeys={advancedAllowed ? [] : SET_KINDS.filter((kind) => kind !== "Standard" && kind !== set.kind)}
+            disabledKeys={advancedAllowed ? [] : SET_KINDS.filter((kind) => setIsAdvanced({ ...set, kind }) && kind !== set.kind)}
           >
             {SET_KINDS.map((kind) => (
               <Option key={kind} id={kind}>

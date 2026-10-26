@@ -1,5 +1,5 @@
 import type { Cycle, TrainingDocument } from "@trainflow/api-client-web";
-import { locate, newBlock, newCycle, newDay, newWorkout, updateNode } from "./document";
+import { cloneWithNewIds, locate, newBlock, newCycle, newDay, newWorkout, updateNode } from "./document";
 
 // ---------------------------------------------------------------------------------------------
 // Sheet connections. The API stores a strict tree, so a cycle "connected" to a block simply lives
@@ -103,4 +103,35 @@ export function ensureWeekdayWorkout(
   if (dayNode.workouts[0]) return { doc: day.doc, workoutId: dayNode.workouts[0].id };
   const workout = newWorkout(names.workout);
   return { doc: updateNode(day.doc, day.dayId, { workouts: [workout] }), workoutId: workout.id };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Day slots. Days are numbered slots in a cycle; moving a day swaps two slots, copying fills one.
+
+function withCycle(doc: TrainingDocument, cycleId: string, change: (cycle: Cycle) => Cycle): TrainingDocument {
+  return { ...doc, blocks: doc.blocks.map((block) => ({ ...block, cycles: block.cycles.map((cycle) => (cycle.id === cycleId ? change(cycle) : cycle)) })) };
+}
+
+/** Swaps the contents of two day slots (dragging a day onto another). An empty slot simply takes the day. */
+export function swapDays(doc: TrainingDocument, cycleId: string, from: number, to: number): TrainingDocument {
+  if (from === to) return doc;
+  return withCycle(doc, cycleId, (cycle) => ({
+    ...cycle,
+    days: cycle.days
+      .map((day) => (Number(day.dayNumber) === from ? { ...day, dayNumber: to } : Number(day.dayNumber) === to ? { ...day, dayNumber: from } : day))
+      .sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber)),
+  }));
+}
+
+/** Copies a day's workouts and note onto another slot, replacing what was there. Copies get new ids. */
+export function copyDay(doc: TrainingDocument, cycleId: string, from: number, to: number): TrainingDocument {
+  if (from === to) return doc;
+  return withCycle(doc, cycleId, (cycle) => {
+    const source = cycle.days.find((day) => Number(day.dayNumber) === from);
+    if (!source) return cycle;
+    const copy = { ...cloneWithNewIds(source), dayNumber: to };
+    const target = cycle.days.find((day) => Number(day.dayNumber) === to);
+    const days = target ? cycle.days.map((day) => (day === target ? { ...copy, id: target.id } : day)) : [...cycle.days, copy];
+    return { ...cycle, days: days.sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber)) };
+  });
 }

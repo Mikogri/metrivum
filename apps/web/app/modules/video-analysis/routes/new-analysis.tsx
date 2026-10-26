@@ -1,7 +1,8 @@
 import { Check, CircleAlert, Clock, FileVideo, LoaderCircle, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Alert, AlertDialog, Breadcrumbs, Button, Card, Disclosure, IconButton, LinkButton, PageHeader, Switch, TextField, toast } from '@trainflow/ui-web';
-import { RequireFeature } from '~/shared/access';
+import { AccessNotice, NEAR_LIMIT, QuotaContextField, RequireFeature, useFeatureAccess, useLimit, useQuotaContext } from '~/shared/access';
 import { formatBytes, formatDateTime } from '~/shared/i18n/format';
 import { useLocale } from '~/shared/i18n/LocaleContext';
 import { useT } from '~/shared/i18n/AppLocale';
@@ -18,6 +19,7 @@ import { measureStability, type Stability } from '../stability';
 import { useAnalyzerJobs } from '../analyzer-jobs';
 import { jobStatus } from '../job-status';
 import { askForNotifications } from '../notify';
+import { authorizeLocalJob } from '../local-authorizations';
 import styles from './new-analysis.module.css';
 export const meta = () => privateMeta('New analysis — Metrivum');
 
@@ -55,7 +57,13 @@ function LocalAnalysis() {
   const t = m.video.new;
   const locale = useLocale();
   const input = useRef<HTMLInputElement>(null);
-  const { lifecycle, account } = useAccountContext();
+  const { lifecycle, account, accountKey, api } = useAccountContext();
+  const queryClient = useQueryClient();
+  const localAccess = useFeatureAccess('video.analysis.local');
+  const quotaContext = useQuotaContext();
+  const quota = quotaContext.usage.data?.usage?.find(limit => limit.key === 'video.local_analyses_per_period');
+  const maxDuration = useLimit('video.max_duration_seconds');
+  const canRun = localAccess.allowed || (!!quotaContext.teamId && localAccess.state === 'limit_reached');
   const queue = useAnalyzerJobs();
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [selected, setSelected] = useState<string>();
@@ -134,7 +142,7 @@ function LocalAnalysis() {
   };
 
   const start = async () => {
-    if (busy) return;
+    if (busy || !canRun) return;
     if (!ready.length) {
       // Nothing can be sent yet: show what is missing on the first video that needs it.
       setChecked(true);
@@ -173,10 +181,15 @@ function LocalAnalysis() {
       }
       for (const draft of batch) {
         setSending({ done: queued, total: batch.length, starting: false });
-        const job = await enqueueJob(draft.file, { name: draft.name.trim() || draft.file.name, account: account.userId, movement: engineMovement(draft.movement),
-          tracking: draft.tracking!, sourceVideo: draft.info!, trim: draft.trim, stabilize: stabilizes(draft) }, token, operation.signal);
-        rememberJobExercise(job.id, draft.movement);
+        const duration = draft.trim ? draft.trim.endSeconds - draft.trim.startSeconds : draft.info!.durationSeconds;
+        const maximumDuration = Number(maxDuration?.maximum ?? 60);
+        if (duration > maximumDuration) throw new Error(t.maxDuration(maximumDuration));
+        const job = await authorizeLocalJob(api, account.userId, duration, () => enqueueJob(draft.file, { name: draft.name.trim() || draft.file.name, account: account.userId, movement: engineMovement(draft.movement),
+          tracking: draft.tracking!, sourceVideo: draft.info!, trim: draft.trim, stabilize: stabilizes(draft) }, token, operation.signal), operation.signal, lifecycle.isCurrent, quotaContext.teamId);
         if (!lifecycle.isCurrent()) return;
+        void queryClient.invalidateQueries({ queryKey: [accountKey, 'access'] });
+        void queryClient.invalidateQueries({ queryKey: [accountKey, 'usage'] });
+        rememberJobExercise(job.id, draft.movement);
         queued++;
         update(draft.key, { jobId: job.id });
         queue.refresh();
@@ -277,7 +290,8 @@ function LocalAnalysis() {
         <span style={{ transform: `scaleX(${sending.starting ? 0.03 : Math.max(0.05, sending.done / sending.total)})` }} />
       </div>
     </div> : null}
-    <Button variant="primary" block loading={busy} isDisabled={!unsent.length || connection === 'runtime_missing' || connection === 'incompatible'} onPress={() => void start()}>
+    {!canRun && <AccessNotice access={localAccess} />}
+    <Button variant="primary" block loading={busy} isDisabled={!canRun || !unsent.length || connection === 'runtime_missing' || connection === 'incompatible'} onPress={() => void start()}>
       {ready.length > 1 ? `Analyze ${ready.length} videos` : t.start}
     </Button>
     {!busy && unsent.length > 0 && waiting > 0 ? <p className={styles.hint} data-error={checked || undefined} role={checked ? 'alert' : undefined}>{waiting === 1 ? '1 video needs' : `${waiting} videos need`} a movement and two points.</p> : null}
@@ -290,6 +304,14 @@ function LocalAnalysis() {
       title={t.title}
       description={`Up to ${QUEUE_LIMIT} videos, analyzed on this computer and saved privately.`}
     />
+    <div className={styles.intro}>
+    <QuotaContextField context={quotaContext} disabled={busy} />
+    {/* Limits live on the usage page; here only a warning once the period's analyses are nearly used up. */}
+    {quota && quota.maximum != null && Number(quota.maximum) > 0 && Number(quota.used) / Number(quota.maximum) >= NEAR_LIMIT ? (
+      <Alert tone={Number(quota.used) >= Number(quota.maximum) ? 'danger' : 'warning'} title={t.limits.nearTitle(Number(quota.used), Number(quota.maximum))}
+        actions={<LinkButton size="sm" href="/app/usage">{t.limits.seeUsage}</LinkButton>}>{t.limits.nearBody}</Alert>
+    ) : null}
+    </div>
     <input ref={input} id="local-analysis-video" type="file" multiple accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm" className="tf-visually-hidden" tabIndex={-1} aria-label={t.file}
       onChange={event => { pick(event.target.files); event.target.value = ''; }} />
     <div className={styles.layout} data-portrait={portrait || undefined} data-empty={!current || undefined} style={{ '--ratio': ratio } as CSSProperties}>

@@ -10,16 +10,16 @@ using TrainFlow.Offers.Contracts;
 
 namespace TrainFlow.Billing.Features;
 
-public sealed record TeamCheckoutQuoteRequest(string TeamName, int PurchasedSeats, string PriceVersion, bool AutoRenew = false, Guid? PaymentMethodId = null);
+public sealed record TeamCheckoutQuoteRequest(string TeamName, int PurchasedSeats, string PriceVersion, bool AutoRenew = false, Guid? PaymentMethodId = null, string PlanId = "Team");
 public sealed record TeamPaymentConfirmRequest(Guid QuoteId, string IdempotencyKey, Guid? PaymentMethodId = null);
-public sealed record TeamSeatQuoteRequest(int PurchasedSeats, long Version);
+public sealed record TeamSeatQuoteRequest(int PurchasedSeats, long Version, string? PlanId = null);
 public sealed record TeamRenewalRequest(long Version, bool AutoRenew, Guid? PaymentMethodId = null);
 public sealed record TeamBillingQuoteDto(Guid Id, Guid TeamId, string TeamName, string Kind, string Status, int PurchasedSeats,
     decimal UnitPrice, decimal GrossAmount, decimal CreditAmount, decimal AmountDue, string Currency, string PriceVersion,
-    string TermsVersion, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, Guid? DueId, DateTimeOffset? ConfirmedAt);
+    string TermsVersion, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, Guid? DueId, DateTimeOffset? ConfirmedAt, string PlanId = "Team", bool Simulated = true, string PriceScope = "Workspace");
 public sealed record TeamBillingDto(Guid TeamId, string Status, int PurchasedSeats, int OccupiedSeats, int? PendingSeats,
     DateTimeOffset PeriodStart, DateTimeOffset PeriodEnd, bool AutoRenew, long Version, decimal UnitPrice, string Currency,
-    bool RenewalMethodEligible, IReadOnlyList<TeamBillingQuoteDto> History);
+    bool RenewalMethodEligible, IReadOnlyList<TeamBillingQuoteDto> History, string PlanId = "Team", string? PendingPlanId = null, bool OverSeatLimit = false, bool Simulated = true);
 
 public sealed class TeamBillingService(BillingDbContext db, BillingService billing, PlatformSubscriptionService platform,
     IAccountContext accounts, ModuleTransaction transaction, TimeProvider clock, INotificationPublisher notifications, IAbuseProtection? abuse = null)
@@ -27,13 +27,13 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
     public Task<TeamBillingQuoteDto> QuoteAsync(TeamCheckoutQuoteRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
         await accounts.RequireCoachAsync(token);
-        Seats(request.PurchasedSeats);
+        var definition = Bundle(request.PlanId, request.PurchasedSeats);
         if (string.IsNullOrWhiteSpace(request.TeamName) || request.TeamName.Trim().Length > 80)
             throw ApiException.Invalid("A Team name of up to 80 characters is required.");
         await UserLock(token);
         await NoMembership(token);
-        var pro = await Personal(token);
-        var price = await platform.ConfiguredPrice(token, "Team") ?? throw ApiException.Conflict("Team seat price is not configured.");
+        _ = await Personal(token);
+        var price = await platform.ConfiguredPrice(token, definition.Id) ?? throw ApiException.Conflict("Team seat price is not configured.");
         if (price.Version != request.PriceVersion)
             throw ApiException.Conflict("Team price changed. Review the current price.");
         await RenewalMethod(request.AutoRenew, request.PaymentMethodId, accounts.UserId, token);
@@ -41,32 +41,6 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
         quote.TeamName = request.TeamName.Trim();
         quote.AutoRenew = request.AutoRenew;
         quote.PaymentMethodId = request.PaymentMethodId;
-        if (pro is { PlanId: "Pro", PeriodStart: not null, PeriodEnd: not null } && pro.PeriodEnd > quote.CreatedAt)
-        {
-            quote.SourceSubscriptionId = pro.Id;
-            quote.SourcePeriodStart = pro.PeriodStart;
-            quote.SourcePeriodEnd = pro.PeriodEnd;
-            var source = await (from change in db.PlanChanges.AsNoTracking()
-                                join due in db.Dues.AsNoTracking() on change.DueId equals due.Id
-                                join payment in db.Payments.AsNoTracking() on due.Id equals payment.DueId
-                                where change.SubscriptionId == pro.Id && change.Type == "Activated" && change.PlanId == "Pro"
-                                    && due.PeriodStart == pro.PeriodStart && due.PeriodEnd == pro.PeriodEnd
-                                    && payment.Context == BillingContext.Platform && payment.ClientId == accounts.UserId && payment.AttemptId != null
-                                orderby payment.SettledAt descending
-                                select payment).FirstOrDefaultAsync(token);
-            if (source != null && source.GrossAmount > 0)
-            {
-                if (source.Currency != price.Currency)
-                    throw ApiException.Conflict("Pro and Team currencies differ. Upgrade requires compatible currencies; no currency conversion is applied to credit.");
-                if (await db.Set<ProrationCredit>().AnyAsync(x => x.SourcePaymentId == source.Id, token))
-                    throw ApiException.Conflict("This Pro paid period has already funded an upgrade.");
-                quote.SourceSubscriptionId = pro.Id;
-                quote.SourcePaymentId = source.Id;
-                quote.SourcePeriodStart = pro.PeriodStart;
-                quote.SourcePeriodEnd = pro.PeriodEnd;
-                quote.CreditAmount = TeamBillingRules.UnusedValue(source.GrossAmount, pro.PeriodStart.Value, pro.PeriodEnd.Value, quote.CreatedAt);
-            }
-        }
         quote.AmountDue = TeamBillingRules.AmountDue(quote.GrossAmount, quote.CreditAmount);
         db.Set<TeamBillingQuote>().Add(quote);
         await db.SaveChangesAsync(token);
@@ -83,12 +57,13 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey) || request.IdempotencyKey.Length > 100)
             throw ApiException.Invalid("A bounded idempotency key is required.");
         await UserLock(token);
-        var personal = await Personal(token);
+        _ = await Personal(token);
         var quote = await db.Set<TeamBillingQuote>().SingleOrDefaultAsync(x => x.Id == request.QuoteId && x.OwnerId == accounts.UserId, token) ?? throw ApiException.NotFound();
         await db.Entry(quote).ReloadAsync(token);
         if (requestedTeam != null && quote.TeamId != requestedTeam || requestedTeam == null && quote.Kind != "Initial")
             throw ApiException.NotFound();
         await TeamLock(quote.TeamId, token);
+        if (quote.Status == "Refunded") throw ApiException.Conflict("This simulated payment was refunded. Start a new checkout.");
         if (quote.Status == "Confirmed")
         {
             await OwnedTeam(quote.TeamId, token);
@@ -105,22 +80,19 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
         var price = await db.PlanPrices.SingleAsync(x => x.Id == quote.PriceId, token);
         if (quote.Kind == "Initial")
         {
-            var currentPrice = await platform.ConfiguredPrice(token, "Team") ?? throw ApiException.Conflict("Team seat price is not configured.");
+            var currentPrice = await platform.ConfiguredPrice(token, price.PlanId) ?? throw ApiException.Conflict("Team seat price is not configured.");
             if (currentPrice.Id != price.Id)
                 throw ApiException.Conflict("Team price changed. Request a new quote.");
             await RenewalMethod(quote.AutoRenew, quote.PaymentMethodId, accounts.UserId, token);
         }
+        var bundle = Bundle(price.PlanId, quote.PurchasedSeats);
+        if (price.Version != PlanCatalog.PriceVersion(price.PlanId) || quote.CreditAmount != 0 || quote.GrossAmount != (quote.Kind == "Decrease" ? 0 : bundle.MonthlyPriceEur))
+            throw ApiException.Conflict("Legacy seat or prorated quotes cannot be activated. Request a workspace bundle quote.");
         TeamPlatformSubscription? subscription = null;
         if (quote.Kind == "Initial")
         {
             await NoMembership(token);
-            if (quote.SourceSubscriptionId != null && (personal == null || personal.Id != quote.SourceSubscriptionId || personal.PlanId != "Pro" || personal.PeriodStart != quote.SourcePeriodStart || personal.PeriodEnd != quote.SourcePeriodEnd || personal.PeriodEnd <= clock.GetUtcNow()))
-                throw ApiException.Conflict("The quoted Pro paid period changed. Request a new quote.");
-            if (quote.SourcePaymentId != null && await db.Set<ProrationCredit>().AnyAsync(x => x.SourcePaymentId == quote.SourcePaymentId, token))
-                throw ApiException.Conflict("This Pro paid period has already been credited.");
-            // A newly paid Pro period must be quoted before it can be terminated by an upgrade.
-            if (quote.SourceSubscriptionId == null && personal is { PlanId: "Pro", PeriodEnd: not null } && personal.PeriodEnd > clock.GetUtcNow())
-                throw ApiException.Conflict("Your Pro subscription changed or has no eligible settlement. Review a new quote before upgrading.");
+
         }
         else
         {
@@ -130,15 +102,17 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
                 throw ApiException.Conflict("Team billing changed. Request a new quote.");
             if (team.Status == "DissolutionScheduled")
                 throw ApiException.Conflict("Cancel scheduled dissolution before changing billing.");
-            if (quote.Kind == "Seats" && (subscription.PeriodEnd <= clock.GetUtcNow() || subscription.Status != "Active"))
+            if (quote.Kind is "Seats" or "Upgrade" or "Decrease" && (subscription.PeriodEnd <= clock.GetUtcNow() || subscription.Status != "Active"))
                 throw ApiException.Conflict("The paid Team period ended. Renew before buying seats.");
-            var occupied = await Occupied(team.Id, token);
-            if (quote.PurchasedSeats < occupied)
-                throw ApiException.Conflict("Purchased seats cannot be lower than occupied seats.");
+
         }
         if (quote.Kind == "Decrease")
         {
-            subscription!.PendingSeats = quote.PurchasedSeats == subscription.PurchasedSeats ? null : quote.PurchasedSeats;
+            if (subscription == null) throw ApiException.Conflict("Workspace subscription unavailable.");
+            var activePrice = await db.PlanPrices.SingleAsync(x => x.Id == subscription.AcceptedPriceId, token);
+            var cancelChange = activePrice.PlanId == price.PlanId && subscription.PurchasedSeats == quote.PurchasedSeats;
+            subscription.PendingSeats = cancelChange ? null : quote.PurchasedSeats;
+            subscription.PendingPlanId = cancelChange ? null : price.PlanId;
             subscription.Version++;
             quote.Status = "Confirmed";
             quote.ConfirmedAt = clock.GetUtcNow();
@@ -175,51 +149,16 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
             db.TeamMemberships.Add(new TeamMembership { TeamId = quote.TeamId, UserId = accounts.UserId, Role = "Owner", Status = "Active", JoinedAt = at });
             subscription = new TeamPlatformSubscription { TeamId = quote.TeamId, PurchasedSeats = quote.PurchasedSeats, AcceptedPriceId = price.Id, PeriodStart = due.PeriodStart, PeriodEnd = due.PeriodEnd!.Value, AutoRenew = quote.AutoRenew, PaymentMethodId = quote.PaymentMethodId };
             db.Set<TeamPlatformSubscription>().Add(subscription);
-            if (quote.SourcePaymentId is { } source && personal != null)
-                db.Set<ProrationCredit>().Add(new()
-                {
-                    Id = Guid.NewGuid(),
-                    QuoteId = quote.Id,
-                    OrderId = due.OrderId,
-                    SourceSubscriptionId = personal.Id,
-                    SourcePaymentId = source,
-                    SourcePeriodStart = quote.SourcePeriodStart!.Value,
-                    SourcePeriodEnd = quote.SourcePeriodEnd!.Value,
-                    Amount = quote.CreditAmount,
-                    Currency = quote.Currency,
-                    CreatedAt = at
-                });
-            if (personal is { PlanId: "Pro" })
-            {
-                personal.PlanId = "Free";
-                personal.Status = "Upgraded";
-                personal.PeriodEnd = at;
-                personal.NextDueAt = null;
-                personal.AutoRenew = false;
-                personal.PendingPlanId = null;
-                if (personal.PendingDueId is { } pending)
-                    await notifications.CancelScheduledAsync("Billing", pending, token);
-                personal.PendingDueId = null;
-                personal.Version++;
-                personal.UpdatedAt = at;
-                db.PlanChanges.Add(new()
-                {
-                    Id = Guid.NewGuid(),
-                    SubscriptionId = personal.Id,
-                    Type = "Upgraded",
-                    PlanId = "Team",
-                    DueId = due.Id,
-                    CreatedAt = at,
-                    EffectiveAt = at
-                });
-            }
+
         }
         else
         {
             subscription!.PurchasedSeats = quote.PurchasedSeats;
             subscription.PendingSeats = null;
+            subscription.PendingPlanId = null;
+            subscription.AcceptedPriceId = price.Id;
             subscription.Version++;
-            if (quote.Kind == "Renewal")
+            if (quote.Kind is "Renewal" or "Upgrade")
             {
                 subscription.PeriodStart = due.PeriodStart;
                 subscription.PeriodEnd = due.PeriodEnd!.Value;
@@ -247,24 +186,23 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
     public Task<TeamBillingQuoteDto> SeatQuoteAsync(Guid teamId, TeamSeatQuoteRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
         await accounts.RequireCoachAsync(token);
-        Seats(request.PurchasedSeats);
+        var target = request.PlanId ?? (request.PurchasedSeats == 10 ? "Studio" : "Team");
+        var bundle = Bundle(target, request.PurchasedSeats);
         await TeamLock(teamId, token);
         var team = await OwnedTeam(teamId, token);
         var subscription = await Subscription(teamId, token);
         if (subscription.Version != request.Version)
             throw ApiException.Conflict("Team billing changed. Refresh before updating.");
-        if (team.Status == "DissolutionScheduled")
-            throw ApiException.Conflict("Cancel scheduled dissolution before changing seats.");
-        if (subscription.PeriodEnd <= clock.GetUtcNow())
-            throw ApiException.Conflict("Renew the Team before changing seats.");
-        if (request.PurchasedSeats < await Occupied(teamId, token))
-            throw ApiException.Conflict("Purchased seats cannot be lower than occupied seats.");
-        if (request.PurchasedSeats == subscription.PurchasedSeats && subscription.PendingSeats == null)
-            throw ApiException.Invalid("Choose a different seat quantity.");
-        var price = await db.PlanPrices.SingleAsync(x => x.Id == subscription.AcceptedPriceId, token);
-        var quote = NewQuote(teamId, request.PurchasedSeats <= subscription.PurchasedSeats ? "Decrease" : "Seats", request.PurchasedSeats, price, clock.GetUtcNow());
+        if (team.Status == "DissolutionScheduled" || subscription.PeriodEnd <= clock.GetUtcNow())
+            throw ApiException.Conflict("An active workspace is required before changing the plan.");
+        var previous = await db.PlanPrices.SingleAsync(x => x.Id == subscription.AcceptedPriceId, token);
+        if (previous.PlanId == target && subscription.PurchasedSeats == bundle.CoachSeats && subscription.PendingPlanId == null)
+            throw ApiException.Invalid("Choose a different workspace plan.");
+        var price = await platform.ConfiguredPrice(token, target) ?? throw ApiException.Conflict("Workspace price unavailable.");
+        var decrease = bundle.MonthlyPriceEur <= PlanCatalog.Get(previous.PlanId).MonthlyPriceEur;
+        var quote = NewQuote(teamId, decrease ? "Decrease" : "Upgrade", bundle.CoachSeats, price, clock.GetUtcNow());
         quote.SubscriptionVersion = subscription.Version;
-        quote.GrossAmount = quote.Kind == "Decrease" ? 0 : TeamBillingRules.UnusedValue(price.Amount * (request.PurchasedSeats - subscription.PurchasedSeats), subscription.PeriodStart, subscription.PeriodEnd, quote.CreatedAt);
+        quote.GrossAmount = decrease ? 0 : bundle.MonthlyPriceEur;
         quote.AmountDue = quote.GrossAmount;
         quote.TeamName = team.Name;
         db.Set<TeamBillingQuote>().Add(quote);
@@ -283,8 +221,9 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
         if (subscription.PeriodEnd > clock.GetUtcNow())
             throw ApiException.Conflict("The current Team period is still paid.");
         await Expire(subscription, token);
-        var price = await db.PlanPrices.SingleAsync(x => x.Id == subscription.AcceptedPriceId, token);
-        var quote = NewQuote(teamId, "Renewal", Math.Max(subscription.PendingSeats ?? subscription.PurchasedSeats, await Occupied(teamId, token)), price, clock.GetUtcNow());
+        var currentPrice = await db.PlanPrices.SingleAsync(x => x.Id == subscription.AcceptedPriceId, token);
+        var price = await platform.ConfiguredPrice(token, subscription.PendingPlanId ?? currentPrice.PlanId) ?? throw ApiException.Conflict("Workspace price unavailable.");
+        var quote = NewQuote(teamId, "Renewal", PlanCatalog.Get(price.PlanId).CoachSeats, price, clock.GetUtcNow());
         quote.TeamName = team.Name;
         quote.SubscriptionVersion = subscription.Version;
         db.Set<TeamBillingQuote>().Add(quote);
@@ -329,8 +268,9 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
                 var method = await db.Methods.AsNoTracking().SingleOrDefaultAsync(x => x.Id == methodId && x.ClientId == team.OwnerId && x.Active, token);
                 if (method != null)
                 {
-                    var price = await db.PlanPrices.SingleAsync(x => x.Id == subscription.AcceptedPriceId, token);
-                    var quote = NewQuote(id, "Renewal", Math.Max(subscription.PendingSeats ?? subscription.PurchasedSeats, await Occupied(id, token)), price, clock.GetUtcNow(), team.OwnerId);
+                    var currentPrice = await db.PlanPrices.SingleAsync(x => x.Id == subscription.AcceptedPriceId, token);
+                    var price = await platform.ConfiguredPrice(token, subscription.PendingPlanId ?? currentPrice.PlanId) ?? throw ApiException.Conflict("Workspace price unavailable.");
+                    var quote = NewQuote(id, "Renewal", PlanCatalog.Get(price.PlanId).CoachSeats, price, clock.GetUtcNow(), team.OwnerId);
                     quote.OwnerId = team.OwnerId;
                     quote.TeamName = team.Name;
                     quote.SubscriptionVersion = subscription.Version;
@@ -343,6 +283,8 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
                         subscription.PeriodEnd = due.PeriodEnd!.Value;
                         subscription.PurchasedSeats = quote.PurchasedSeats;
                         subscription.PendingSeats = null;
+                        subscription.PendingPlanId = null;
+                        subscription.AcceptedPriceId = price.Id;
                         subscription.Version++;
                         quote.Status = "Confirmed";
                         quote.ConfirmedAt = due.SettledAt;
@@ -388,7 +330,7 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
             SettlementMode = SettlementMode.Simulated,
             StartedAt = start,
             CreatedAt = start,
-            OptionSnapshot = JsonSerializer.Serialize(new { PlanId = "Team", quote.TeamId, quote.Id, quote.Kind, quote.PurchasedSeats, UnitPrice = price.Amount, quote.GrossAmount, quote.CreditAmount, quote.AmountDue, price.Version, price.TermsVersion, quote.SourcePaymentId })
+            OptionSnapshot = JsonSerializer.Serialize(new { PlanId = price.PlanId, quote.TeamId, quote.Id, quote.Kind, quote.PurchasedSeats, UnitPrice = price.Amount, quote.GrossAmount, quote.CreditAmount, quote.AmountDue, price.Version, price.TermsVersion, quote.SourcePaymentId })
         };
         var due = new PaymentDue { Id = Guid.NewGuid(), Context = BillingContext.Platform, OrderId = order.Id, ServiceId = order.ServiceId, CoachId = quote.OwnerId, ClientId = quote.OwnerId, Amount = quote.AmountDue, CoachNetAmount = quote.AmountDue, Currency = quote.Currency, SettlementMode = SettlementMode.Simulated, PeriodStart = start, PeriodEnd = end, DueAt = start, CreatedAt = start };
         db.Orders.Add(order);
@@ -398,7 +340,7 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
         await db.SaveChangesAsync(ct);
         return due;
     }
-    private TeamBillingQuote NewQuote(Guid team, string kind, int seats, PlanPrice price, DateTimeOffset at, Guid? owner = null) => new() { Id = Guid.NewGuid(), OwnerId = owner ?? accounts.UserId, TeamId = team, Kind = kind, PurchasedSeats = seats, PriceId = price.Id, GrossAmount = price.Amount * seats, AmountDue = price.Amount * seats, Currency = price.Currency, CreatedAt = at, ExpiresAt = at.AddMinutes(15) };
+    private TeamBillingQuote NewQuote(Guid team, string kind, int seats, PlanPrice price, DateTimeOffset at, Guid? owner = null) => new() { Id = Guid.NewGuid(), OwnerId = owner ?? accounts.UserId, TeamId = team, Kind = kind, PurchasedSeats = seats, PriceId = price.Id, GrossAmount = price.Amount, AmountDue = price.Amount, Currency = price.Currency, CreatedAt = at, ExpiresAt = at.AddMinutes(15) };
     private async Task<TeamBillingDto> Dto(Guid id, CancellationToken ct)
     {
         var subscription = await Subscription(id, ct);
@@ -407,9 +349,13 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
         var prices = await db.PlanPrices.Where(x => quotes.Select(q => q.PriceId).Contains(x.Id)).ToDictionaryAsync(x => x.Id, ct);
         var team = await db.Teams.SingleAsync(x => x.Id == id, ct);
         var eligible = subscription.PaymentMethodId != null && await db.Methods.AnyAsync(x => x.Id == subscription.PaymentMethodId && x.ClientId == team.OwnerId && x.Active, ct);
-        return new(id, subscription.PeriodEnd <= clock.GetUtcNow() ? "BillingInactive" : subscription.Status, subscription.PurchasedSeats, await Occupied(id, ct), subscription.PendingSeats, subscription.PeriodStart, subscription.PeriodEnd, subscription.AutoRenew, subscription.Version, price.Amount, price.Currency, eligible, quotes.Select(x => QuoteDto(x, prices[x.PriceId])).ToArray());
+        var dueIds = quotes.Where(x => x.DueId.HasValue).Select(x => x.DueId!.Value).ToArray();
+        var refunded = await (from refund in db.Set<SimulatedRefund>().AsNoTracking() join payment in db.Payments on refund.PaymentId equals payment.Id
+            where dueIds.Contains(payment.DueId) select payment.DueId).ToArrayAsync(ct);
+        var occupied = await Occupied(id, ct);
+        return new(id, subscription.PeriodEnd <= clock.GetUtcNow() ? "BillingInactive" : subscription.Status, subscription.PurchasedSeats, occupied, subscription.PendingSeats, subscription.PeriodStart, subscription.PeriodEnd, subscription.AutoRenew, subscription.Version, price.Amount, price.Currency, eligible, quotes.Select(x => QuoteDto(x, prices[x.PriceId], x.DueId is {} due && refunded.Contains(due))).ToArray(), price.PlanId, subscription.PendingPlanId, occupied > subscription.PurchasedSeats);
     }
-    private static TeamBillingQuoteDto QuoteDto(TeamBillingQuote q, PlanPrice p) => new(q.Id, q.TeamId, q.TeamName, q.Kind, q.Status, q.PurchasedSeats, p.Amount, q.GrossAmount, q.CreditAmount, q.AmountDue, q.Currency, p.Version, p.TermsVersion, q.CreatedAt, q.ExpiresAt, q.DueId, q.ConfirmedAt);
+    private static TeamBillingQuoteDto QuoteDto(TeamBillingQuote q, PlanPrice p, bool refunded = false) => new(q.Id, q.TeamId, q.TeamName, q.Kind, refunded ? "Refunded" : q.Status, q.PurchasedSeats, p.Amount, q.GrossAmount, q.CreditAmount, q.AmountDue, q.Currency, p.Version, p.TermsVersion, q.CreatedAt, q.ExpiresAt, q.DueId, q.ConfirmedAt, p.PlanId);
     private async Task<Team> OwnedTeam(Guid id, CancellationToken ct)
     {
         var team = await db.Teams.SingleOrDefaultAsync(x => x.Id == id && x.OwnerId == accounts.UserId && x.Status != "Dissolved", ct) ?? throw ApiException.NotFound();
@@ -450,10 +396,14 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
         if (method is { } id)
             _ = await Method(id, owner, ct);
     }
-    private static void Seats(int seats)
+    private static PlanDefinition Bundle(string id, int seats)
     {
-        if (seats is < 1 or > 10000)
-            throw ApiException.Invalid("Choose between 1 and 10000 purchased seats.");
+        if (id is not ("Team" or "Studio"))
+            throw ApiException.Invalid("Choose Team or Studio for an organization.");
+        var plan = PlanCatalog.Get(id);
+        if (seats != plan.CoachSeats)
+            throw ApiException.Invalid($"{id} includes exactly {plan.CoachSeats} coach seats. Extra seats are not sold.");
+        return plan;
     }
     private DateTimeOffset UtcNow() => new(clock.GetUtcNow().UtcTicks / 10 * 10, TimeSpan.Zero);
 }

@@ -12,6 +12,8 @@ public sealed class TrainingHttpTests
         using var factory = new ApiFactory(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"));
         using var owner = await Coach(factory);
         using var other = await Coach(factory);
+        await TestPlans.ActivateProAsync(owner);
+        await TestPlans.ActivateProAsync(other);
         var create = await owner.PostAsJsonAsync("/api/v1/training/programs", new
         {
             name = "Zażółć gęślą jaźń",

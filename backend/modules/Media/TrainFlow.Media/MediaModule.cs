@@ -26,6 +26,7 @@ public static class MediaModule
         services.AddScoped<MediaLibrary>();
         services.AddScoped<IMediaLibrary>(provider => provider.GetRequiredService<MediaLibrary>());
         services.AddScoped<IDocumentMedia>(provider => provider.GetRequiredService<MediaLibrary>());
+        services.AddScoped<IPortfolioMedia>(provider => provider.GetRequiredService<MediaLibrary>());
         services.AddScoped<ILimitUsageProvider, MediaLimitUsage>();
         services.AddSingleton(new FeatureDefinition("video.library.manage", "Media", "features.video.library.title", "features.video.library.description", [], ["media.maxVideoBytes", "media.maxPendingUploads"]));
         return services;

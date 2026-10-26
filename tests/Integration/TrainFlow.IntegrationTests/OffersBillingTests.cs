@@ -223,8 +223,8 @@ public sealed partial class OffersBillingTests
             var billing = seed.ServiceProvider.GetRequiredService<BillingService>();
             order = await billing.CreateForServiceAsync(command, default);
             Assert.Equal(order.OrderId, (await billing.CreateForServiceAsync(command, default)).OrderId);
-            Assert.Equal(1.50m, order.FeeAmount);
-            Assert.Equal(8.51m, order.CoachNetAmount);
+            Assert.Equal(1m, order.FeeAmount);
+            Assert.Equal(9.01m, order.CoachNetAmount);
         }
         await using var buyerP = Services(client, fee: "0.9");
         Guid good;
@@ -245,7 +245,7 @@ public sealed partial class OffersBillingTests
         }
         var results = await Task.WhenAll(Pay(), Pay());
         Assert.Equal(results[0].Payment!.Id, results[1].Payment!.Id);
-        Assert.Equal(0.9m, results[0].Payment!.FeeRate);
+        Assert.Equal(0.10m, results[0].Payment!.FeeRate);
         await using (var check = buyerP.CreateAsyncScope())
         {
             var db = check.ServiceProvider.GetRequiredService<BillingDbContext>();
@@ -304,7 +304,7 @@ public sealed partial class OffersBillingTests
             Assert.False(await db.Transactions.AnyAsync(x => x.PaymentId == result.Payment.Id));
             Assert.False(await db.Attempts.AnyAsync(x => x.DueId == ext.PaymentDueId));
             var earnings = Assert.Single(await b.EarningsAsync(default));
-            Assert.Equal(11.01m, earnings.CoachNetAmount);
+            Assert.Equal(19.02m, earnings.CoachNetAmount);
         }
         await using var alien = Services(Guid.NewGuid());
         await using var alienScope = alien.CreateAsyncScope();
@@ -406,7 +406,7 @@ public sealed partial class OffersBillingTests
             var db = verify.ServiceProvider.GetRequiredService<BillingDbContext>();
             var due = await db.Dues.AsNoTracking().SingleAsync(x => x.OrderId == order.OrderId && x.Sequence == 2);
             Assert.Equal(DueStatus.Paid, due.Status);
-            Assert.Contains(due.FeeRate, new[] { 0m, 0.8m });
+            Assert.Equal(0.10m, due.FeeRate);
             Assert.Equal(3, await db.Dues.CountAsync(x => x.OrderId == order.OrderId));
             Assert.Equal(1, await db.Payments.CountAsync(x => x.DueId == due.Id));
             await verify.ServiceProvider.GetRequiredService<IBillingOrders>().EndServiceAsync(command.ServiceId, default);

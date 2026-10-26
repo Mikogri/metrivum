@@ -14,6 +14,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
           { to: "/app/exercises", label: m.nav.exercises, icon: ExercisesIcon },
           { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
           { to: "/app/messages", label: "Messages", icon: MessagesIcon },
+          { to: "/app/transactions", label: m.nav.transactions, icon: PaymentsIcon },
         ],
       },
       {
@@ -21,6 +22,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
         label: "Coaching",
         items: [
           { to: "/app/my-coaches", label: "Coaches", icon: ClientsIcon },
+          { to: "/app/discover", label: m.discovery.title, icon: ClientsIcon },
           ...(roles.includes("Client")
             ? [
                 { to: "/app/my-applications", label: "Applications", icon: FormsIcon },
@@ -50,6 +52,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
       label: m.nav.groups.overview,
       items: [
         { to: "/app/dashboard", label: m.nav.dashboard, icon: DashboardIcon },
+        { to: "/app/discover", label: m.discovery.title, icon: ClientsIcon },
         { to: "/app/analyze", label: "Analyze", icon: AnalyzeIcon },
       ],
     },
@@ -78,6 +81,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
         { to: "/app/clients", label: "Clients", icon: ClientsIcon },
         { to: "/app/calendar", label: "Calendar", icon: CalendarIcon },
         { to: "/app/messages", label: "Messages", icon: MessagesIcon },
+          { to: "/app/transactions", label: m.nav.transactions, icon: PaymentsIcon },
         { to: "/app/team", label: "Team", icon: ClientsIcon },
         // Temporary design page (see routes.ts).
       ],
@@ -96,6 +100,7 @@ export function settingsNavItem(m: AppMessages) {
 /** Labels for the app bar path, from the URL alone (entity names stay in each page's own header). */
 export function pathCrumbs(m: AppMessages, pathname: string, mode: "coach" | "client" = "coach") {
   if (pathname === "/app/subscription") return [{ href: pathname, label: m.nav.subscription }];
+  if (pathname === "/app/checkout") return [{ href: "/app/subscription", label: m.nav.subscription }, { href: pathname, label: "Checkout" }];
   const hub = mode === "coach" && clientSection(pathname);
   if (hub) return [{ href: "/app/clients", label: "Clients" }, { href: hub, label: clientSections.find(([, url]) => url === hub)![0] }, ...(pathname === hub ? [] : [{ href: pathname, label: "Details" }])];
   if (mode === "coach" && pathname === "/app/templates") return [{ href: "/app/programs", label: m.nav.programs }, { href: pathname, label: m.nav.templates }];

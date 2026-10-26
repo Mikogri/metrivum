@@ -4,7 +4,7 @@ import { pageFromPathname, publicPath } from "./public-routes";
 /** Public origin for canonical/hreflang/sitemap. Configure VITE_SITE_URL per environment. */
 export const SITE_URL = (import.meta.env.VITE_SITE_URL ?? "http://localhost:5173").replace(/\/+$/, "");
 
-export const OG_IMAGE_PATH = "/og-image.png";
+export const OG_IMAGE_PATH = "/og-image.png?v=3";
 
 interface PageMetaInput {
   title: string;

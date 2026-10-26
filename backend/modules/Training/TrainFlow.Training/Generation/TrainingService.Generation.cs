@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TrainFlow.BuildingBlocks;
+using TrainFlow.Access.Contracts;
 using TrainFlow.Training.Domain;
 using TrainFlow.Training.Generation;
 
@@ -22,13 +23,17 @@ public sealed partial class TrainingService
     public async Task<GenerationPreview> PreviewGenerationAsync(GenerationRequest request, CancellationToken ct)
     {
         await GeneratorAccessAsync(ct);
-        return ProgramGenerator.Preview(request, await catalog.GeneratorPoolAsync(ct));
+        var preview = ProgramGenerator.Preview(request, await catalog.GeneratorPoolAsync(ct));
+        await CountGeneration(preview, PreviewOperation(request, preview), ct);
+        return preview;
     }
 
     public async Task<GenerationPreview> ReshuffleGenerationAsync(GenerationEditRequest request, CancellationToken ct)
     {
         await GeneratorAccessAsync(ct);
-        return ProgramGenerator.Reshuffle(request, await catalog.GeneratorPoolAsync(ct));
+        var preview = ProgramGenerator.Reshuffle(request, await catalog.GeneratorPoolAsync(ct));
+        await CountGeneration(preview, "reshuffle:" + Hash(new { request, preview.State?.DatasetVersion, preview.State?.RecipeVersion }), ct);
+        return preview;
     }
 
     public async Task<GenerationPreview> ReplaceGeneratedExerciseAsync(GenerationReplaceRequest request, CancellationToken ct)
@@ -60,6 +65,7 @@ public sealed partial class TrainingService
             var preview = ProgramGenerator.Restore(request.State, await catalog.GeneratorPoolAsync(ct));
             if (!preview.Feasible || preview.Document == null)
                 throw new ApiException(422, "GENERATOR_CONSTRAINTS", string.Join(" ", preview.Issues.Select(x => $"{x.Code}: {x.Message}")));
+            await CountGeneration(preview, PreviewOperation(request.State.Input, preview), ct);
             await ValidateContentAsync(preview.Document, null, account, ct);
             var plan = await CreateInternalAsync(request.Name, request.Description, DocumentKind.Program, request.FolderId, preview.Document, account, ct);
             db.Set<ProgramGenerationRecord>().Add(new()
@@ -83,4 +89,13 @@ public sealed partial class TrainingService
         await accounts.RequireCoachAsync(ct);
         await access.RequireAsync("training.generator.use", ct);
     }
+
+    private Task CountGeneration(GenerationPreview preview, string operation, CancellationToken ct) => transaction.RunAsync(async token =>
+    {
+        // Only feasible successful automatic runs cost a credit; a retry of the same seeded input is free.
+        if (!preview.Feasible || usage == null) return;
+        await usage.ReserveAsync(accounts.UserId, "training.generator.runs_per_period", operation, 1, TimeSpan.FromMinutes(5), token, preview.State?.Input.TeamId);
+        await usage.SettleAsync(accounts.UserId, "training.generator.runs_per_period", operation, 1, token);
+    }, ct);
+    private static string PreviewOperation(GenerationRequest input, GenerationPreview preview) => "preview:" + Hash(new { input, preview.State?.DatasetVersion, preview.State?.RecipeVersion });
 }

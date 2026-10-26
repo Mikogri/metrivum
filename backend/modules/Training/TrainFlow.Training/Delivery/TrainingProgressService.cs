@@ -103,6 +103,12 @@ public sealed partial class TrainingDeliveryService
                                   Average = g.Average(e => (double?)e.DurationSeconds)
                               }).SingleOrDefaultAsync(ct);
         var days = await rows.GroupBy(x => x.ScheduledDate).Select(g => new { Date = g.Key, Scheduled = g.Count(), Completed = g.Count(x => x.Status == ExecutionStatus.Completed), Due = g.Count(x => x.Deadline <= now), CompletedDue = g.Count(x => x.Deadline <= now && x.Status == ExecutionStatus.Completed) }).ToArrayAsync(ct);
+        var feedback = await (from e in Executions.AsNoTracking()
+            join o in Occurrences on e.OccurrenceId equals o.Id join a in assignments on o.AssignmentId equals a.Id
+            where e.Status == ExecutionStatus.Completed && e.Feedback != null && e.PerformedDate >= request.From && e.PerformedDate <= request.To
+                && (request.BlockId == null || o.BlockId == request.BlockId) && (request.CycleId == null || o.CycleId == request.CycleId)
+            orderby e.PerformedDate descending, e.Id descending
+            select new { e.OccurrenceId, e.PerformedDate, e.Feedback }).Take(1001).ToArrayAsync(ct);
         var weeks = days.GroupBy(x => x.Date.AddDays(-((int)x.Date.DayOfWeek + 6) % 7)).OrderBy(g => g.Key)
             .Select(g => new TrainingWeekProgress(g.Key, g.Sum(x => x.Scheduled), g.Sum(x => x.Completed), g.Sum(x => x.Due), g.Sum(x => x.CompletedDue),
                 g.Sum(x => x.Due) > 0 ? decimal.Round(100m * g.Sum(x => x.CompletedDue) / g.Sum(x => x.Due), 2) : null)).ToArray();
@@ -112,6 +118,7 @@ public sealed partial class TrainingDeliveryService
             programs, clients.Take(200).ToArray(), performance.Take(1000).ToArray(),
             "Completion = completed due occurrences / due occurrences. Future sessions never lower completion. Due means schedule-zone midnight after planned date has passed; missed means not logged by deadline. In-progress is reported separately. Superseded (cancelled or replaced future) occurrences are excluded. Planned-date attendance and performed-date performance use the requested inclusive dates. Volume is kg * reps for explicitly TotalExternal loads only; per-hand, bodyweight, assisted and missing loads are excluded. Best load is maximum recorded external load, not an estimated 1RM. Duration includes recorded completed sessions only; frequency uses completed executions per seven calendar days. Performance is limited to the latest 1000 exercise/date/meaning groups; filter exercise for detail.",
             duration?.Recorded > 0 ? duration.Total : null, duration?.Average, duration == null ? null : decimal.Round(7m * duration.Count / (request.To.DayNumber - request.From.DayNumber + 1), 2), weeks,
-            ClientsHasMore: clients.Length > 200, PerformanceHasMore: performance.Length > 1000);
+            ClientsHasMore: clients.Length > 200, PerformanceHasMore: performance.Length > 1000,
+            Feedback: feedback.Take(1000).OrderBy(x => x.PerformedDate).Select(x => new TrainingFeedbackPoint(x.OccurrenceId, x.PerformedDate, x.Feedback!.Rating, x.Feedback.SessionRpe, x.Feedback.Wellbeing, x.Feedback.SleepQuality)).ToArray(), FeedbackHasMore: feedback.Length > 1000);
     }
 }

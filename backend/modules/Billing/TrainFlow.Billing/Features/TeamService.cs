@@ -76,6 +76,9 @@ public sealed class TeamService(BillingDbContext db, IAccountContext accounts, I
             throw ApiException.Conflict("Ask a Team administrator for an invitation.");
         var team = await Locked(id, token);
         var actor = await Admin(team, token);
+        var subscription = await Active(team, token);
+        if (await db.TeamMemberships.CountAsync(x => x.TeamId == team.Id && x.Status == "Active", token) >= subscription.PurchasedSeats)
+            throw new ApiException(409, "TEAM_SEATS_FULL", "The workspace coach seat limit is reached.");
         Role(invite.Role);
         if (invite.Role == "Admin" && actor.Role != "Owner")
             throw ApiException.NotFound();
@@ -121,8 +124,8 @@ public sealed class TeamService(BillingDbContext db, IAccountContext accounts, I
             var subscription = await Active(team, token);
             if (await db.TeamMemberships.AnyAsync(x => x.UserId == accounts.UserId && x.Status == "Active", token))
                 throw ApiException.Conflict("Leave your current Team before accepting another invitation.");
-            if (await db.TeamMemberships.CountAsync(x => x.TeamId == team.Id && x.Status == "Active", token) >= Math.Min(subscription.PurchasedSeats, subscription.PendingSeats ?? subscription.PurchasedSeats))
-                throw new ApiException(409, "TEAM_SEATS_FULL", "The Team owner must purchase another seat or cancel the scheduled seat reduction before you can join.");
+            if (await db.TeamMemberships.CountAsync(x => x.TeamId == team.Id && x.Status == "Active", token) >= subscription.PurchasedSeats)
+                throw new ApiException(409, "TEAM_SEATS_FULL", "The workspace coach seat limit is reached. Upgrade the workspace or remove an unused membership.");
             var member = await db.TeamMemberships.SingleOrDefaultAsync(x => x.TeamId == team.Id && x.UserId == accounts.UserId, token);
             if (member is null)
                 db.TeamMemberships.Add(new()

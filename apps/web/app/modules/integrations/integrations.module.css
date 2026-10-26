@@ -7,6 +7,147 @@
 .preview { white-space: pre-wrap; overflow-wrap: anywhere; padding: var(--tf-space-4); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); background: var(--tf-color-bg-sunken); }
 .page { width: 100%; max-width: 48rem; }
 .grants { display: grid; gap: var(--tf-space-2); }
-.guide { display: grid; gap: var(--tf-space-2); }
-.guide ol { padding-left: var(--tf-space-5); }
-.guide a { color: var(--tf-color-accent); text-decoration: underline; }
+/* Connection guides: one card per assistant with a header row that folds the steps open. */
+.guides {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.guide {
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+}
+
+.guideHead {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: 0;
+  background: transparent;
+  color: var(--tf-color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.guideHead:hover {
+  background: var(--tf-color-surface-hover, var(--tf-color-surface));
+}
+
+.guideHead:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring, var(--tf-color-accent));
+  outline-offset: -2px;
+}
+
+.guideIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text-secondary);
+}
+
+.guideIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.guideText {
+  display: grid;
+  flex: 1;
+  gap: 1px;
+  min-width: 0;
+}
+
+.guideText strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.guideText small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.guideChevron {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-text-tertiary);
+  transition: transform 240ms var(--tf-ease-out, ease-out);
+}
+
+.guide[data-open] .guideChevron {
+  transform: rotate(180deg);
+}
+
+.guideBody {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 260ms var(--tf-ease-out, ease-out);
+}
+
+.guide[data-open] .guideBody {
+  grid-template-rows: 1fr;
+}
+
+.guideClip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.guideInner {
+  display: grid;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  font-size: var(--tf-text-sm);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.guide[data-open] .guideInner {
+  opacity: 1;
+}
+
+.guideInner ol {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding-left: var(--tf-space-5);
+  line-height: var(--tf-leading-normal);
+}
+
+.guideInner a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  justify-self: start;
+  color: var(--tf-color-accent);
+  text-decoration: none;
+}
+
+.guideInner a:hover {
+  text-decoration: underline;
+}
+
+.guideInner a svg {
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guideBody,
+  .guideInner,
+  .guideChevron {
+    transition: none;
+  }
+}

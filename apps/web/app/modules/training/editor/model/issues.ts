@@ -69,7 +69,7 @@ function setIssues(set: TrainingSet, earlierTopSets: Set<string>): IssueCode[] {
   const segments = set.segments ?? [];
   if (SEGMENTED.has(set.kind) ? segments.length < 2 || segments.length > MAX_SEGMENTS : segments.length !== 0) found.push("segments");
   if (set.kind === "Amrap" && set.prescription?.reps) found.push("amrapReps");
-  if (set.kind === "BackOff" && (!set.sourceSetId || !earlierTopSets.has(set.sourceSetId))) found.push("backOffSource");
+  if (set.kind === "BackOff" && set.sourceSetId && !earlierTopSets.has(set.sourceSetId)) found.push("backOffSource");
   for (const segment of segments) for (const code of prescriptionIssues(segment.prescription)) if (!found.includes(code)) found.push(code);
   return found;
 }

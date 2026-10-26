@@ -82,6 +82,15 @@ public sealed class TrainingDeliveryHttpTests
         var saved = await Body(save);
         Assert.Equal("\"2\"", save.Headers.ETag?.Tag);
         await Body(await Send(client, HttpMethod.Post, $"/api/v1/training/executions/{executionId}/complete", null, saved.GetProperty("version").GetInt64()));
+        var finished = (await Body(await client.GetAsync($"/api/v1/training/workouts/{occurrenceId}"))).GetProperty("execution");
+        var feedbackVersion = finished.GetProperty("version").GetInt64();
+        var feedback = new { rating = 4, sessionRpe = 7.5m, wellbeing = 4, sleepQuality = 3, note = "Good workout" };
+        Assert.Equal(HttpStatusCode.NotFound, (await Send(coach, HttpMethod.Put, $"/api/v1/training/executions/{executionId}/feedback", feedback, feedbackVersion)).StatusCode);
+        await Body(await Send(client, HttpMethod.Put, $"/api/v1/training/executions/{executionId}/feedback", feedback, feedbackVersion));
+        Assert.Equal(HttpStatusCode.Conflict, (await Send(client, HttpMethod.Put, $"/api/v1/training/executions/{executionId}/feedback", feedback, feedbackVersion)).StatusCode);
+        var comparison = await Body(await coach.GetAsync($"/api/v1/training/executions/{executionId}/comparison"));
+        Assert.Equal(7.5m, comparison.GetProperty("feedback").GetProperty("sessionRpe").GetDecimal());
+        Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/api/v1/training/executions/{executionId}/comparison")).StatusCode);
         var report = await Body(await coach.GetAsync($"/api/v1/training/progress?from={yesterday:yyyy-MM-dd}&to={today:yyyy-MM-dd}&relationshipId={relationship}"));
         Assert.Equal(1, report.GetProperty("completed").GetInt32());
         Assert.Equal(100, report.GetProperty("completionPercentage").GetDecimal());
@@ -93,8 +102,7 @@ public sealed class TrainingDeliveryHttpTests
         Assert.Equal(1, analysis.GetProperty("progress").GetProperty("completed").GetInt32());
         var foreignAnalysis = await Body(await other.GetAsync($"/api/v1/analyze/training?from={yesterday:yyyy-MM-dd}&to={today:yyyy-MM-dd}&timeZone=UTC"));
         Assert.Equal(0, foreignAnalysis.GetProperty("progress").GetProperty("completed").GetInt32());
-        var personalCoachAnalysis = await Body(await client.GetAsync($"/api/v1/analyze/training?from={yesterday:yyyy-MM-dd}&to={today:yyyy-MM-dd}&timeZone=UTC"));
-        Assert.Equal(0, personalCoachAnalysis.GetProperty("progress").GetProperty("completed").GetInt32());
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync($"/api/v1/analyze/training?from={yesterday:yyyy-MM-dd}&to={today:yyyy-MM-dd}&timeZone=UTC")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/api/v1/training/workouts/{occurrenceId}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/api/v1/training/progress?from={yesterday:yyyy-MM-dd}&to={today:yyyy-MM-dd}&relationshipId={relationship}")).StatusCode);
         using (var scope = factory.Services.CreateScope())
@@ -128,6 +136,11 @@ public sealed class TrainingDeliveryHttpTests
             timeZone = "UTC",
             role
         }));
+        if (role == "Coach")
+        {
+            var checkout = await Body(await http.PostAsJsonAsync("/api/v1/me/platform-subscription/checkout", new { planId = "Pro", priceVersion = "eur-monthly-v3-Pro" }));
+            await Body(await http.PostAsJsonAsync("/api/v1/me/platform-subscription/confirm-payment", new { dueId = checkout.GetProperty("pendingDue").GetProperty("id").GetGuid(), idempotencyKey = "delivery-fixture-pro" }));
+        }
         return http;
     }
     private static async Task<HttpResponseMessage> Send(HttpClient client, HttpMethod method, string path, object? body, long? version = null, string? key = null)

@@ -19,5 +19,5 @@ public sealed record ActualExercise(Guid? PrescribedInstanceId, Guid ExerciseId,
 public sealed record SaveExecutionRequest(DateOnly PerformedDate, string? Comment, int? DurationSeconds, ActualExercise[] Exercises);
 public sealed record ExerciseExecutionDto(Guid Id, Guid? PrescribedInstanceId, Guid ExerciseId, string Name, string Comment, ActualSet[] Sets);
 public sealed record ExecutionDto(Guid Id, Guid OccurrenceId, ExecutionStatus Status, DateOnly PerformedDate, DateTimeOffset StartedAt,
-    DateTimeOffset? CompletedAt, DateTimeOffset UpdatedAt, string Comment, int? DurationSeconds, long Version, ExerciseExecutionDto[] Exercises, string[] AllowedActions);
+    DateTimeOffset? CompletedAt, DateTimeOffset UpdatedAt, string Comment, int? DurationSeconds, long Version, ExerciseExecutionDto[] Exercises, string[] AllowedActions, WorkoutFeedback? Feedback = null);
 public sealed record WorkoutDetailDto(OccurrenceDto Occurrence, WorkoutPrescription Prescription, ExecutionDto? Execution);

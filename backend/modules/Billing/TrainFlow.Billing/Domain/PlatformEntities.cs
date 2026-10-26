@@ -48,6 +48,7 @@ public sealed class PlatformSubscription
     }
     public string PlanId { get; set; } = "Free";
     public string Status { get; set; } = "Active";
+    public Guid? PendingPriceId { get; set; }
     public Guid? AcceptedPriceId
     {
         get; set;

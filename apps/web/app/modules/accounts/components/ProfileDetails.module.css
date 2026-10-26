@@ -21,6 +21,30 @@
   width: 100%;
 }
 
+/* Why location matters: a quiet note, not an alert. */
+.discovery {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.discovery svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.125rem;
+}
+
+.locate {
+  display: flex;
+}
+
 .chipField {
   display: grid;
   gap: var(--tf-space-2);

@@ -24,7 +24,20 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
     protected override void OnModelCreating(ModelBuilder m)
     {
         m.HasDefaultSchema("billing");
+        m.Entity<ServiceRenewalChange>(e =>
+        {
+            e.ToTable("service_renewal_changes"); e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.SubscriptionId, x.CreatedAt, x.Id });
+            e.HasOne<Subscription>().WithMany().HasForeignKey(x => x.SubscriptionId).OnDelete(DeleteBehavior.Restrict);
+        });
+        m.Entity<PaymentDue>().HasIndex(x => new { x.ClientId, x.Context, x.CreatedAt, x.Id });
+        m.Entity<PaymentDue>().HasIndex(x => new { x.CoachId, x.TeamId, x.CreatedAt, x.Id });
+        m.Entity<PaymentAttempt>().HasIndex(x => new { x.DueId, x.CreatedAt, x.Id });
+        m.Entity<Payment>().HasIndex(x => new { x.ClientId, x.SettledAt, x.Id });
+        m.Entity<SimulatedRefund>().HasIndex(x => new { x.OwnerId, x.CreatedAt, x.Id });
         m.Entity<Order>().HasIndex(x => x.ApplicationId).IsUnique();
+        m.Entity<TeamRequest>().HasIndex(x => new { x.TeamId, x.Kind, x.CreatedAt, x.Id });
+        m.Entity<TeamRequest>().HasIndex(x => new { x.InviterId, x.CreatedAt });
         m.Entity<Order>().ToTable("orders", t => t.HasCheckConstraint("CK_order_purchase_context", "(\"Context\" = 'TrainingPlan' AND \"ServiceId\" IS NULL AND \"RelationshipId\" IS NULL AND \"ApplicationId\" IS NOT NULL AND \"TrainingPlanRevisionId\" IS NOT NULL) OR (\"Context\" <> 'TrainingPlan' AND (\"Context\" = 'Platform' OR (\"ServiceId\" IS NOT NULL AND \"RelationshipId\" IS NOT NULL)) AND \"ApplicationId\" IS NULL AND \"TrainingPlanRevisionId\" IS NULL)"));
 
         m.Entity<PaymentDue>().ToTable("payment_dues", t => t.HasCheckConstraint("CK_due_validity", "(\"ValidityDays\" IS NULL AND \"ValidUntil\" IS NULL) OR (\"ValidityDays\" BETWEEN 1 AND 36500 AND ((\"SettledAt\" IS NULL AND \"ValidUntil\" IS NULL) OR (\"SettledAt\" IS NOT NULL AND \"ValidUntil\" = \"SettledAt\" + \"ValidityDays\" * interval '24 hours'))) IS TRUE"));
@@ -32,6 +45,16 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
         m.Entity<TeamMembership>(e => { e.ToTable("team_memberships"); e.HasKey(x => new { x.TeamId, x.UserId }); e.HasIndex(x => x.UserId).IsUnique().HasFilter("\"Status\" = 'Active'"); e.HasOne<Team>().WithMany().HasForeignKey(x => x.TeamId).OnDelete(DeleteBehavior.Restrict); });
         m.Entity<TeamRequest>(e => { e.ToTable("team_requests"); e.HasKey(x => x.Id); e.HasIndex(x => x.UserId); e.HasIndex(x => new { x.TeamId, x.UserId, x.Kind }).IsUnique().HasFilter("\"Status\" = 'Pending'"); e.Property(x => x.Kind).HasMaxLength(16); e.Property(x => x.Status).HasMaxLength(16); e.HasOne<Team>().WithMany().HasForeignKey(x => x.TeamId).OnDelete(DeleteBehavior.Restrict); });
         TeamBillingModel.Configure(m);
+        m.Entity<SimulatedRefund>(e =>
+        {
+            e.ToTable("simulated_refunds"); e.HasKey(x => x.Id);
+            e.HasIndex(x => x.PaymentId).IsUnique();
+            e.HasIndex(x => new { x.OwnerId, x.CreatedAt });
+            e.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            e.Property(x => x.Amount).HasPrecision(28, 2);
+            e.Property(x => x.Currency).HasMaxLength(3);
+            e.HasOne<Payment>().WithMany().HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.Restrict);
+        });
         m.Entity<Team>(e =>
         {
             e.Property(x => x.Description).HasMaxLength(1000);
@@ -66,7 +89,7 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
             e.Property(x => x.Id).HasMaxLength(16);
             e.Property(x => x.Name).HasMaxLength(80);
             e.Property(x => x.CommissionRate).HasPrecision(7, 6);
-            e.HasData(new PlatformPlan { Id = "Free", Name = "Free", CommissionRate = 0.10m }, new PlatformPlan { Id = "Pro", Name = "Pro", CommissionRate = 0.05m }, new PlatformPlan { Id = "Team", Name = "Team", CommissionRate = 0.05m });
+            e.HasData(TrainFlow.Billing.Contracts.PlanCatalog.All.Select(x => new PlatformPlan { Id = x.Id, Name = x.Name, CommissionRate = TrainFlow.Billing.Contracts.PlanCatalog.ServiceCommissionRate }).ToArray());
         });
         m.Entity<PlanPrice>(e =>
         {
@@ -92,6 +115,7 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
             e.Property(x => x.Version).IsConcurrencyToken();
             e.HasOne<PlatformPlan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<PlanPrice>().WithMany().HasForeignKey(x => x.AcceptedPriceId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<PlanPrice>().WithMany().HasForeignKey(x => x.PendingPriceId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<PaymentDue>().WithMany().HasForeignKey(x => x.PendingDueId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<PaymentMethod>().WithMany().HasForeignKey(x => x.PaymentMethodId).OnDelete(DeleteBehavior.Restrict);
         });
@@ -121,7 +145,7 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
         {
             if (e.Entity is TeamBillingQuote && e.State == EntityState.Modified && e.Properties.Any(p => p.IsModified && p.Metadata.Name is not ("Status" or "DueId" or "ConfirmedAt")))
                 throw new InvalidOperationException("Accepted quote amounts and terms are immutable.");
-            if (e.Entity is Order or Payment or PaymentTransaction or PlanPrice or PlanChange or ProrationCredit or TeamAudit && e.State is EntityState.Modified or EntityState.Deleted)
+            if (e.Entity is Order or Payment or PaymentTransaction or PlanPrice or PlanChange or ProrationCredit or TeamAudit or SimulatedRefund && e.State is EntityState.Modified or EntityState.Deleted)
                 throw new InvalidOperationException("Financial snapshots and settlements are immutable.");
             if (e.Entity is PaymentAttempt && e.State is EntityState.Modified or EntityState.Deleted && (AttemptStatus)e.OriginalValues[nameof(PaymentAttempt.Status)]! != AttemptStatus.Pending)
                 throw new InvalidOperationException("Completed payment attempts are immutable.");

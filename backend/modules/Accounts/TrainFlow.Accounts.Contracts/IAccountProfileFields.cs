@@ -8,7 +8,9 @@ public enum SystemFieldKey
 {
     Height, Weight, BodyFat, HrMax, TrainingExperience, ActivityLevel, AvailableEquipment,
     PreferredTrainingDays, SessionsPerWeek, AvailableSessionDuration, Sleep, Stress,
-    InjuriesLimitationsPainNotes, AdditionalNotes, Sex
+    InjuriesLimitationsPainNotes, AdditionalNotes, Sex,
+    // Where the account is based: used to find coaches nearby.
+    Country, Region, City, PostalCode
 }
 
 public sealed record AccountProfileFields(string Currency, IReadOnlyDictionary<SystemFieldKey, JsonElement> Values, long Version);

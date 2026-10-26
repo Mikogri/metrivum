@@ -42,6 +42,7 @@ public sealed class McpProtocolTests
         human.DefaultRequestHeaders.Authorization = new("Bearer", source.Token(coach));
         clientUser.DefaultRequestHeaders.Authorization = new("Bearer", source.Token(recipient));
         await Onboard(human, coach, "Coach");
+        await TestPlans.ActivateProAsync(human);
         await Onboard(clientUser, recipient, "Client");
         var response = await human.PostAsJsonAsync("/api/v1/messaging/conversations/direct", new { userId = recipient });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

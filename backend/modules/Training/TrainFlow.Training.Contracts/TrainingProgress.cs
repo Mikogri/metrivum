@@ -6,11 +6,12 @@ public sealed record TrainingClientProgress(Guid RelationshipId, int Due, int Co
 public sealed record TrainingPerformancePoint(Guid ExerciseId, string Name, DateOnly PerformedDate, string LoadMeaning, int Sets, int Reps,
     decimal? VolumeKg, decimal? BestLoadKg, decimal? AverageRpe, decimal? AverageRir, int SubstitutionSets, Guid? OccurrenceId = null);
 public sealed record TrainingWeekProgress(DateOnly WeekStart, int Scheduled, int Completed, int Due, int CompletedDue, decimal? CompletionPercentage);
+public sealed record TrainingFeedbackPoint(Guid OccurrenceId, DateOnly Date, int Rating, decimal SessionRpe, int Wellbeing, int SleepQuality);
 public sealed record TrainingProgressDto(DateOnly From, DateOnly To, int Planned, int Due, int Completed, int Skipped, int Missed, int InProgress,
     decimal? CompletionPercentage, int LoggedLate, int ActiveAssignments, int ActualSets, int ActualReps, decimal? VolumeKg,
     TrainingProgramProgress[] Programs, TrainingClientProgress[] Clients, TrainingPerformancePoint[] Performance, string MetricDefinition,
     long? TotalTrainingSeconds = null, double? AverageSessionSeconds = null, decimal? SessionsPerWeek = null, TrainingWeekProgress[]? Weeks = null,
-    bool ClientsHasMore = false, bool PerformanceHasMore = false);
+    bool ClientsHasMore = false, bool PerformanceHasMore = false, TrainingFeedbackPoint[]? Feedback = null, bool FeedbackHasMore = false);
 public interface ITrainingProgressReader
 {
     Task<TrainingProgressDto> ReadAsync(TrainingProgressQuery query, CancellationToken cancellationToken);
