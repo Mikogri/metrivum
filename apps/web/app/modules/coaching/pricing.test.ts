@@ -11,7 +11,8 @@ it("prompts for a price while a paid option is incomplete", () => {
 
 describe("session validity disclosure", () => {
   it("shows the payment-based validity with the price", () => {
-    expect(priceDescription({ ...newOption("FixedPackage"), validityDays: 30 }, "USD")).toContain("Valid for 30 days after payment");
+    expect(priceDescription({ ...newOption("FixedPackage"), validityDays: 30 }, "USD")).toContain("Valid for 1 month after payment");
+    expect(priceDescription({ ...newOption("FixedPackage"), validityDays: 45 }, "USD")).toContain("Valid for 45 days after payment");
   });
 });
 

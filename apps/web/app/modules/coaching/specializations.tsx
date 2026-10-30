@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Badge, Button, Card, Checkbox, SearchInput } from "@trainflow/ui-web";
+import { Star, X } from "lucide-react";
+import { Alert, Badge, Button, Card, Combobox, Option } from "@trainflow/ui-web";
 import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -23,7 +24,15 @@ export function useSpecializationCatalog() {
     queryFn: async ({ signal }) => (await api<Category[]>({ path: "/api/v1/coaching/specializations", signal })).data });
 }
 
-/** Canonical English labels come from the API in both UI languages. */
+/** How many specializations a coach may list, and how many of them may be primary (the API enforces the same). */
+export const MAX_SPECIALIZATIONS = 10;
+export const MAX_PRIMARY = 5;
+
+/**
+ * Pick specializations from a searchable list; the chosen ones form a short list underneath. A new pick is primary by
+ * default while there is room, and primary rows stand out (accent and a filled star). Canonical English labels come
+ * from the API in both UI languages. `filter` (search for coaches) has no primary choice.
+ */
 export function SpecializationSelector({ categories, value, onChange, filter = false, disabled = false }: {
   categories: Category[]; value: SpecializationDraft; onChange: (next: SpecializationDraft) => void; filter?: boolean; disabled?: boolean;
 }) {
@@ -31,37 +40,54 @@ export function SpecializationSelector({ categories, value, onChange, filter = f
   const t = m.specializations;
   const [search, setSearch] = useState("");
   const term = search.trim().toLowerCase();
-  const visible = categories.map(category => ({ ...category, specializations: category.specializations.filter(item =>
-    `${item.name} ${item.code} ${item.code.replaceAll("_", " ")} ${category.name}`.toLowerCase().includes(term)) })).filter(category => category.specializations.length);
-  const all = categories.flatMap(category => category.specializations);
-  const select = (code: string, checked: boolean) => {
-    if (disabled || (checked && value.selectedCodes.length >= 5)) return;
-    onChange({ selectedCodes: checked ? [...value.selectedCodes, code] : value.selectedCodes.filter(item => item !== code), primaryCodes: value.primaryCodes.filter(item => checked || item !== code) });
+  const all = categories.flatMap(category => category.specializations.map(item => ({ ...item, category: category.name })));
+  const byCode = new Map(all.map(item => [item.code, item]));
+  const full = value.selectedCodes.length >= MAX_SPECIALIZATIONS;
+  const options = all.filter(item => !value.selectedCodes.includes(item.code)
+    && `${item.name} ${item.code} ${item.code.replaceAll("_", " ")} ${item.category}`.toLowerCase().includes(term));
+
+  const add = (code: string) => {
+    if (disabled || full || value.selectedCodes.includes(code)) return;
+    const primary = !filter && value.primaryCodes.length < MAX_PRIMARY;
+    onChange({ selectedCodes: [...value.selectedCodes, code], primaryCodes: primary ? [...value.primaryCodes, code] : value.primaryCodes });
+    setSearch("");
   };
-  const primary = (code: string, checked: boolean) => {
-    if (disabled || !value.selectedCodes.includes(code) || (checked && value.primaryCodes.length >= 3)) return;
-    onChange({ ...value, primaryCodes: checked ? [...value.primaryCodes, code] : value.primaryCodes.filter(item => item !== code) });
+  const remove = (code: string) => {
+    if (disabled) return;
+    onChange({ selectedCodes: value.selectedCodes.filter(item => item !== code), primaryCodes: value.primaryCodes.filter(item => item !== code) });
   };
+  const togglePrimary = (code: string) => {
+    if (disabled) return;
+    const isPrimary = value.primaryCodes.includes(code);
+    if (!isPrimary && value.primaryCodes.length >= MAX_PRIMARY) return;
+    onChange({ ...value, primaryCodes: isPrimary ? value.primaryCodes.filter(item => item !== code) : [...value.primaryCodes, code] });
+  };
+
   return <div className={styles.selector}>
-    <SearchInput aria-label={t.search} placeholder={t.search} value={search} onChange={setSearch} isDisabled={disabled} />
-    <div className={styles.counts} role="status"><span>{t.selected(value.selectedCodes.length)}</span>{!filter && <span>{t.primaryCount(value.primaryCodes.length)}</span>}</div>
-    <p className={styles.hint}>{filter ? t.filterHint : t.limit}</p>
-    {value.selectedCodes.length > 0 && <ul className={styles.chips} aria-label={t.title}>{value.selectedCodes.map(code => {
-      const name = all.find(item => item.code === code)?.name ?? code;
-      return <li key={code}><Badge tone={value.primaryCodes.includes(code) ? "violet" : "neutral"}>{name}</Badge><Button size="sm" variant="ghost" aria-label={t.remove(name)} isDisabled={disabled} onPress={() => select(code, false)}>×</Button></li>;
-    })}</ul>}
-    <div className={styles.groups}>{visible.map(category => <fieldset className={styles.group} key={category.code} disabled={disabled}>
-      <legend>{category.name}</legend>
-      {category.specializations.map(item => {
-        const selected = value.selectedCodes.includes(item.code);
-        const isPrimary = value.primaryCodes.includes(item.code);
-        return <div className={styles.option} key={item.code}>
-          <Checkbox isSelected={selected} onChange={checked => select(item.code, checked)} isDisabled={disabled || (!selected && value.selectedCodes.length >= 5)}>{item.name}</Checkbox>
-          {!filter && selected && <Checkbox aria-label={t.markPrimary(item.name)} isSelected={isPrimary} onChange={checked => primary(item.code, checked)} isDisabled={disabled || (!isPrimary && value.primaryCodes.length >= 3)}>{t.primary}</Checkbox>}
-        </div>;
-      })}
-    </fieldset>)}</div>
-    {!visible.length && <p role="status">{m.common.noResults}</p>}
+    {/* Re-created after every pick so it closes, empties and stays ready for the next one. */}
+    <Combobox key={value.selectedCodes.length} label={t.add} placeholder={full ? t.full : t.search} inputValue={search} onInputChange={setSearch} selectedKey={null}
+      onSelectionChange={key => { if (key !== null) add(String(key)); }} isDisabled={disabled || full} allowsEmptyCollection
+      defaultFilter={() => true} emptyState={m.common.noResults} description={filter ? t.filterHint : undefined}>
+      {options.map(item => <Option key={item.code} id={item.code} textValue={item.name} description={item.category}>{item.name}</Option>)}
+    </Combobox>
+    <div className={styles.counts} role="status">
+      <span className={styles.count} data-full={full || undefined}><strong>{value.selectedCodes.length}</strong>/{MAX_SPECIALIZATIONS} {t.selectedWord}</span>
+      {!filter && <span className={styles.count} data-kind="primary" data-full={value.primaryCodes.length >= MAX_PRIMARY || undefined}><Star aria-hidden="true" /><strong>{value.primaryCodes.length}</strong>/{MAX_PRIMARY} {t.primaryWord}</span>}
+      {!filter && value.selectedCodes.length > 0 && <span className={styles.countHint}>{t.toggleHint}</span>}
+    </div>
+    {value.selectedCodes.length > 0 ? <ul className={styles.chipList} aria-label={t.title}>{value.selectedCodes.map(code => {
+      const item = byCode.get(code);
+      const name = item?.name ?? code;
+      const isPrimary = value.primaryCodes.includes(code);
+      const locked = !isPrimary && value.primaryCodes.length >= MAX_PRIMARY;
+      return <li key={code} className={styles.chip} data-primary={(!filter && isPrimary) || undefined} title={item?.category}>
+        {!filter ? <button type="button" className={styles.chipToggle} aria-pressed={isPrimary} aria-label={t.markPrimary(name)}
+          disabled={disabled} aria-disabled={locked || undefined} title={locked ? t.primaryFull : undefined} onClick={() => togglePrimary(code)}>
+          <Star aria-hidden="true" /><span>{name}</span>
+        </button> : <span className={styles.chipLabel}>{name}</span>}
+        <button type="button" className={styles.chipRemove} aria-label={t.remove(name)} disabled={disabled} onClick={() => remove(code)}><X aria-hidden="true" /></button>
+      </li>;
+    })}</ul> : <p className={styles.hint}>{filter ? t.filterEmpty : t.empty}</p>}
   </div>;
 }
 

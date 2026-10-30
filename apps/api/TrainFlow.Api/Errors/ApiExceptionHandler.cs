@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +8,7 @@ using TrainFlow.BuildingBlocks;
 
 namespace TrainFlow.Api.Errors;
 
-public sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExceptionHandler> logger) : IExceptionHandler
+public sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExceptionHandler> logger, IHostEnvironment environment) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext http, Exception exception, CancellationToken cancellationToken)
     {
@@ -28,7 +28,13 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogger
             _ => new ApiException(500, "INTERNAL_ERROR", "An unexpected error occurred.")
         };
         if (error.Status >= 500)
-            logger.LogError("Request failed: {Code}; exception type {ExceptionType}; trace {TraceId}", error.Code, exception.GetType().Name, http.TraceIdentifier);
+        {
+            // Development keeps the whole exception so unexpected failures can be diagnosed; elsewhere only the type.
+            if (environment.IsDevelopment())
+                logger.LogError(exception, "Request failed: {Code}; {Method} {Path}; trace {TraceId}", error.Code, http.Request.Method, http.Request.Path, http.TraceIdentifier);
+            else
+                logger.LogError("Request failed: {Code}; exception type {ExceptionType}; trace {TraceId}", error.Code, exception.GetType().Name, http.TraceIdentifier);
+        }
         http.Response.StatusCode = error.Status;
         if (error.RetryAfter is { } retryAfter)
             http.Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(System.Globalization.CultureInfo.InvariantCulture);

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using TrainFlow.Accounts.Contracts;
 using TrainFlow.Billing.Domain;
@@ -98,7 +98,9 @@ public sealed class TransactionHistoryService(BillingDbContext db, IAccountConte
                        Name = x.order.Name, Gross = p.GrossAmount, FeeRate = p.FeeRate, Fee = p.FeeAmount, Net = p.CoachNetAmount,
                        Currency = p.Currency, Date = p.SettledAt, Coach = p.CoachId, Client = p.ClientId, ServiceId = p.Context == BillingContext.Platform ? null : x.due.ServiceId,
                        OfferId = x.order.OfferRevisionId == Guid.Empty ? null : x.order.OfferRevisionId, Snapshot = x.order.OptionSnapshot,
-                       Mode = p.Mode == SettlementMode.Simulated ? "Simulated" : "External", Failure = null, IsSettlement = true
+                       Mode = p.Mode == SettlementMode.Simulated ? "Simulated" : "External", Failure = null, IsSettlement = true,
+                       // Every branch of the union below projects the same members, DueAt included.
+                       DueAt = null
                    };
         var attempts = from x in source join a in db.Attempts.AsNoTracking() on x.due.Id equals a.DueId
                        where a.Status != AttemptStatus.Succeeded
@@ -110,7 +112,8 @@ public sealed class TransactionHistoryService(BillingDbContext db, IAccountConte
                            Name = x.order.Name, Gross = x.due.Amount, FeeRate = x.due.FeeRate, Fee = x.due.FeeAmount, Net = x.due.CoachNetAmount,
                            Currency = x.due.Currency, Date = a.CreatedAt, Coach = x.due.CoachId, Client = x.due.ClientId, ServiceId = x.due.Context == BillingContext.Platform ? null : x.due.ServiceId,
                            OfferId = x.order.OfferRevisionId == Guid.Empty ? null : x.order.OfferRevisionId, Snapshot = x.order.OptionSnapshot,
-                           Mode = "Simulated", Failure = a.FailureCode, IsSettlement = false
+                           Mode = "Simulated", Failure = a.FailureCode, IsSettlement = false,
+                           DueAt = x.due.DueAt
                        };
         var pending = from x in source
                       where x.due.Status == DueStatus.AwaitingPayment
@@ -133,7 +136,8 @@ public sealed class TransactionHistoryService(BillingDbContext db, IAccountConte
                           Type = "Refund", Status = "Refunded", Direction = x.due.ClientId == user ? "Incoming" : "Outgoing",
                           Name = x.order.Name, Gross = refund.Amount, FeeRate = p.FeeRate, Fee = p.FeeAmount, Net = p.CoachNetAmount,
                           Currency = refund.Currency, Date = refund.CreatedAt, Coach = p.CoachId, Client = p.ClientId, ServiceId = x.due.Context == BillingContext.Platform ? null : x.due.ServiceId,
-                          OfferId = x.order.OfferRevisionId == Guid.Empty ? null : x.order.OfferRevisionId, Snapshot = x.order.OptionSnapshot, Mode = "Simulated", Failure = null, IsSettlement = true
+                          OfferId = x.order.OfferRevisionId == Guid.Empty ? null : x.order.OfferRevisionId, Snapshot = x.order.OptionSnapshot, Mode = "Simulated", Failure = null, IsSettlement = true,
+                          DueAt = null
                       };
         var cancellations = from change in db.PlanChanges.AsNoTracking()
                             join subscription in db.PlatformSubscriptions on change.SubscriptionId equals subscription.Id
@@ -145,7 +149,8 @@ public sealed class TransactionHistoryService(BillingDbContext db, IAccountConte
                                 Id = change.Id, DueId = Guid.Empty, PaymentId = null, AttemptId = null, OrderId = Guid.Empty,
                                 Type = "SubscriptionChange", Status = "Cancelled", Direction = "Outgoing", Name = "Auto-renewal cancellation scheduled",
                                 Gross = 0, FeeRate = 0, Fee = 0, Net = 0, Currency = PlanCatalog.Currency, Date = change.CreatedAt, Coach = user, Client = user,
-                                ServiceId = null, OfferId = null, Snapshot = "{}", Mode = "Simulated", Failure = null, IsSettlement = false
+                                ServiceId = null, OfferId = null, Snapshot = "{}", Mode = "Simulated", Failure = null, IsSettlement = false,
+                                DueAt = null
                             };
         var serviceCancellations = from change in db.Set<ServiceRenewalChange>().AsNoTracking()
                                    join subscription in db.Subscriptions on change.SubscriptionId equals subscription.Id
@@ -160,7 +165,8 @@ public sealed class TransactionHistoryService(BillingDbContext db, IAccountConte
                                        Type = "SubscriptionChange", Status = "Cancelled", Direction = order.ClientId == user ? "Outgoing" : "Incoming",
                                        Name = order.Name, Gross = 0, FeeRate = 0, Fee = 0, Net = 0, Currency = order.Currency, Date = change.CreatedAt,
                                        Coach = order.CoachId, Client = order.ClientId, ServiceId = order.ServiceId, OfferId = order.OfferRevisionId,
-                                       Snapshot = order.OptionSnapshot, Mode = "Simulated", Failure = null, IsSettlement = false
+                                       Snapshot = order.OptionSnapshot, Mode = "Simulated", Failure = null, IsSettlement = false,
+                                       DueAt = null
                                    };
         var query = paid.Concat(attempts).Concat(pending).Concat(refunds).Concat(cancellations).Concat(serviceCancellations);
         if (r.From is {} from) query = query.Where(x => x.Date >= from);

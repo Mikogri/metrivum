@@ -7,6 +7,23 @@ export function SessionProvider({ children, manager = sessionManager() }: { chil
   useEffect(() => {
     void manager.start();
   }, [manager]);
+  // Accounts deleted elsewhere disappear when the tab comes back into view, and at the latest after five minutes.
+  useEffect(() => {
+    let last = Date.now();
+    const check = () => {
+      if (document.visibilityState !== "visible" || Date.now() - last < 30_000) return;
+      last = Date.now();
+      void manager.revalidate?.();
+    };
+    const timer = window.setInterval(() => { last = 0; check(); }, 5 * 60_000);
+    document.addEventListener("visibilitychange", check);
+    window.addEventListener("focus", check);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", check);
+      window.removeEventListener("focus", check);
+    };
+  }, [manager]);
   return <ManagerContext.Provider value={manager}>{children}</ManagerContext.Provider>;
 }
 

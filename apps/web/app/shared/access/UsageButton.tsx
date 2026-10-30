@@ -74,7 +74,7 @@ function Row({ item, label, locale }: { item: UsageItem; label: string; locale: 
   const value = (n: number) => (/bytes/i.test(item.key) ? formatBytes(locale as never, n) : new Intl.NumberFormat(locale).format(n));
   return (
     <li className={styles.row} data-state={usageState(item)}>
-      <UsageRing item={item} size="sm" neutral>
+      <UsageRing item={item} size="sm">
         <Icon />
       </UsageRing>
       <span className={styles.name}>{label}</span>

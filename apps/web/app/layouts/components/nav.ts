@@ -1,6 +1,7 @@
 import { clientSection, clientSections } from "~/shared/session/workspace-model";
 import { AnalyzeIcon, CalendarIcon, CheckInsIcon, ClientsIcon, DashboardIcon, DocumentsIcon, InvitationsIcon, PaymentsIcon, ExercisesIcon, FormsIcon, FormulasIcon, MessagesIcon, OffersIcon, ProgramsIcon, SettingsIcon, VideoAnalysesIcon } from "./navIcons";
 import type { AppMessages } from "~/shared/i18n/messages/app.en";
+import { DISCOVERY_ENABLED } from "~/shared/features";
 
 export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach", "Client"]) {
   const coach = roles.includes("Coach");
@@ -22,7 +23,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
         label: "Coaching",
         items: [
           { to: "/app/my-coaches", label: "Coaches", icon: ClientsIcon },
-          { to: "/app/discover", label: m.discovery.title, icon: ClientsIcon },
+          ...(DISCOVERY_ENABLED ? [{ to: "/app/discover", label: m.discovery.title, icon: ClientsIcon }] : []),
           ...(roles.includes("Client")
             ? [
                 { to: "/app/my-applications", label: "Applications", icon: FormsIcon },
@@ -52,7 +53,7 @@ export function appNavGroups(m: AppMessages, roles: readonly string[] = ["Coach"
       label: m.nav.groups.overview,
       items: [
         { to: "/app/dashboard", label: m.nav.dashboard, icon: DashboardIcon },
-        { to: "/app/discover", label: m.discovery.title, icon: ClientsIcon },
+        ...(DISCOVERY_ENABLED ? [{ to: "/app/discover", label: m.discovery.title, icon: ClientsIcon }] : []),
         { to: "/app/analyze", label: "Analyze", icon: AnalyzeIcon },
       ],
     },

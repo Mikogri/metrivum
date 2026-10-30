@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace TrainFlow.Accounts.Contracts;
@@ -10,7 +10,9 @@ public enum SystemFieldKey
     PreferredTrainingDays, SessionsPerWeek, AvailableSessionDuration, Sleep, Stress,
     InjuriesLimitationsPainNotes, AdditionalNotes, Sex,
     // Where the account is based: used to find coaches nearby.
-    Country, Region, City, PostalCode
+    Country, Region, City, PostalCode,
+    // Maximal oxygen uptake in ml/kg/min, from a test or a watch estimate.
+    Vo2Max
 }
 
 public sealed record AccountProfileFields(string Currency, IReadOnlyDictionary<SystemFieldKey, JsonElement> Values, long Version);

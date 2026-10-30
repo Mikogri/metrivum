@@ -54,6 +54,9 @@ a.itemTitle:hover { text-decoration: underline; text-underline-offset: 3px; }
 .table th { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-medium); }
 .sectionTitle { margin-top: var(--tf-space-2); font-size: var(--tf-text-md); font-weight: var(--tf-weight-semibold); }
 .hint { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+/* No applied version yet: the notice, then its one action centred under it. */
+.applyFirst { display: grid; justify-items: center; gap: var(--tf-space-3); padding-bottom: var(--tf-space-2); }
+.applyFirst > :first-child { justify-self: stretch; }
 .formRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--tf-space-3); }
 .pickSection { display: grid; gap: var(--tf-space-2); padding-top: var(--tf-space-4); border-top: 1px solid var(--tf-color-border-subtle); }
 .pickSection > header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--tf-space-2); }
@@ -109,4 +112,309 @@ a.rowLink { text-decoration: none; }
   .saveStatus { display: block; color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); }
   .workoutActions > .saveStatus { min-height: auto; }
   .workoutActions > * { flex: 1 1 100%; min-height: 44px; }
+}
+
+/* Progress report: one card per completed workout, opening to the planned-vs-actual comparison. */
+.report {
+  display: grid;
+  gap: var(--tf-space-4);
+  min-width: 0;
+}
+
+.reportHead h2 {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.reportHead p {
+  margin-top: 2px;
+  max-width: 44rem;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.reportList {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reportItem {
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  transition: border-color 140ms ease;
+}
+
+.reportItem[open] {
+  border-color: var(--tf-color-border-strong);
+}
+
+.reportItem > summary {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  cursor: pointer;
+  list-style: none;
+}
+
+.reportItem > summary::-webkit-details-marker {
+  display: none;
+}
+
+.reportItem > :not(summary) {
+  margin: 0 var(--tf-space-4) var(--tf-space-4);
+}
+
+.reportDate {
+  display: grid;
+  justify-items: center;
+  padding: var(--tf-space-1);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+}
+
+.reportDate strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  white-space: nowrap;
+}
+
+.reportDate span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  text-transform: capitalize;
+}
+
+.reportMain {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--tf-space-1) var(--tf-space-3);
+  min-width: 0;
+}
+
+.reportMain strong {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reportBar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-overlay);
+}
+
+.reportBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-color-accent);
+  transform-origin: left;
+}
+
+.reportSets {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.reportChips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--tf-space-1);
+}
+
+.reportChips > span {
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  white-space: nowrap;
+}
+
+.reportChips b {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.reportNote {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  font-style: italic;
+}
+
+@media (max-width: 40rem) {
+  .reportItem > summary {
+    grid-template-columns: 3rem minmax(0, 1fr);
+  }
+
+  .reportChips {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+/* A planned workout's two decisions, small and side by side. */
+.workoutDecision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+/* Schedule & history: the list/cards switch at the end of the filters. */
+.viewToggle {
+  margin-left: auto;
+}
+
+.scheduleTable td,
+.scheduleTable th {
+  padding-block: var(--tf-space-3);
+}
+
+.scheduleDate {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.scheduleStatus {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+}
+
+.scheduleStatus small,
+.workoutCardStatus small {
+  color: var(--tf-color-warning);
+  font-size: var(--tf-text-2xs);
+}
+
+/* Cards view: one card per workout, with its date as a block on the left. */
+.workoutCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workoutCard {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--tf-space-3);
+  height: 100%;
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 140ms ease, transform 140ms var(--tf-ease-out, ease-out);
+}
+
+.workoutCard:hover {
+  border-color: var(--tf-color-border-strong);
+  transform: translateY(-1px);
+}
+
+.workoutCard:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.workoutCard[data-status="Completed"] .workoutCardDate {
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.workoutCard[data-status="Missed"] .workoutCardDate,
+.workoutCard[data-status="Skipped"] .workoutCardDate {
+  opacity: 0.6;
+}
+
+.workoutCardDate {
+  display: grid;
+  justify-items: center;
+  padding: var(--tf-space-1-5) 0;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  line-height: 1.1;
+}
+
+.workoutCardDate strong {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.workoutCardDate span,
+.workoutCardDate small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  text-transform: capitalize;
+}
+
+.workoutCardBody {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.workoutCardBody > strong {
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workoutCardProgram {
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workoutCardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1) var(--tf-space-3);
+  margin-top: var(--tf-space-1-5);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.workoutCardMeta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.workoutCardMeta svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.workoutCardStatus {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
 }

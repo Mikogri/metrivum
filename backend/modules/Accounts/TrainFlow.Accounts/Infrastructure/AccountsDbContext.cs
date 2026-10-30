@@ -22,6 +22,8 @@ public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> option
                 t.HasCheckConstraint("CK_profiles_username_shape", "\"Username\" IS NULL OR \"Username\" ~ '^[A-Za-z0-9_]{3,32}$'");
                 t.HasCheckConstraint("CK_profiles_username_normalized", "(\"Username\" IS NULL AND \"NormalizedUsername\" IS NULL) OR \"NormalizedUsername\" = upper(\"Username\")");
                 t.HasCheckConstraint("CK_profiles_display_name", "char_length(\"DisplayName\") <= 100 AND \"DisplayName\" = btrim(\"DisplayName\")");
+                t.HasCheckConstraint("CK_profiles_first_name", "\"FirstName\" IS NULL OR (char_length(\"FirstName\") BETWEEN 1 AND 50 AND \"FirstName\" = btrim(\"FirstName\"))");
+                t.HasCheckConstraint("CK_profiles_last_name", "\"LastName\" IS NULL OR (char_length(\"LastName\") BETWEEN 1 AND 50 AND \"LastName\" = btrim(\"LastName\"))");
                 t.HasCheckConstraint("CK_profiles_bio", "\"Bio\" IS NULL OR (char_length(\"Bio\") BETWEEN 1 AND 500 AND \"Bio\" = btrim(\"Bio\"))");
             });
             e.HasKey(x => x.Id);
@@ -31,6 +33,8 @@ public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> option
             e.Property(x => x.Username).HasMaxLength(32);
             e.Property(x => x.NormalizedUsername).HasMaxLength(32);
             e.Property(x => x.DisplayName).HasMaxLength(100);
+            e.Property(x => x.FirstName).HasMaxLength(50);
+            e.Property(x => x.LastName).HasMaxLength(50);
             e.Property(x => x.Bio).HasMaxLength(500);
             e.Property(x => x.Locale).HasMaxLength(2);
             e.Property(x => x.TimeZone).HasMaxLength(100);

@@ -36,6 +36,34 @@ public sealed class TrainingDocumentTests
     }
 
     [Fact]
+    public void Applying_leaves_out_inactive_blocks_and_what_is_tied_to_them()
+    {
+        var active = Example().Blocks[0];
+        var inactive = active with { Id = Guid.NewGuid(), Name = "Off", Cycles = [active.Cycles[0] with { Id = Guid.NewGuid(), Days = [] }], Inactive = true };
+        var note = new PlanAnnotation(Guid.NewGuid(), AnnotationKind.Comment, "Note", "", inactive.Id);
+        var global = new PlanAnnotation(Guid.NewGuid(), AnnotationKind.Goal, "Goal", "");
+        var document = new TrainingDocument(1, [active, inactive], [new(Guid.NewGuid(), inactive.Id, [])], [global, note]);
+        var applied = DocumentRules.ActiveOnly(document);
+        Assert.Equal([active.Id], applied.Blocks.Select(b => b.Id));
+        Assert.Equal([global.Id], applied.Annotations!.Select(n => n.Id));
+        Assert.Empty(applied.MaxesTables!);
+        var plain = Example();
+        Assert.Same(plain, DocumentRules.ActiveOnly(plain));
+        Assert.DoesNotContain("inactive", TrainingJson.Serialize(applied), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Drafts_keep_wrong_formats_that_applying_refuses()
+    {
+        var instance = new ExerciseInstance(Guid.NewGuid(), Guid.NewGuid(), "", [new(Guid.NewGuid(), SetKind.Ramp, new(Reps: new(8, 5), Rpe: 8, Rir: 2, Tempo: "fast"))]);
+        var document = new TrainingDocument(1, [new(Guid.NewGuid(), "", "", [new(Guid.NewGuid(), "", "", 7, [new(Guid.NewGuid(), 1, [new(Guid.NewGuid(), "", "", [instance], [])])])])]);
+        DocumentRules.ValidateDraft(document, new());
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.Validate(document, new()));
+        var unbounded = document with { Blocks = [document.Blocks[0] with { Cycles = [document.Blocks[0].Cycles[0] with { DayCount = 10_000 }] }] };
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidateDraft(unbounded, new()));
+    }
+
+    [Fact]
     public void Rejects_conflicting_load_and_rpe_rir()
     {
         var set = new TrainingSet(Guid.NewGuid(), SetKind.Standard, new Prescription(Reps: new(5, 5), Load: new(new(80, Unit.Kg), new(90, Unit.Kg)), LoadPercent: 80));

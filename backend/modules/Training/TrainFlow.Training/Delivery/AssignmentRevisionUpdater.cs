@@ -36,8 +36,9 @@ internal static class AssignmentRevisionUpdater
         var started = await db.Set<WorkoutExecution>().Where(e => db.Set<WorkoutOccurrence>().Any(o => o.Id == e.OccurrenceId && o.AssignmentId == assignment.Id)).Select(e => e.OccurrenceId).ToArrayAsync(ct);
         foreach (var occurrence in existing.Where(x => x.ScheduledDate >= today && !started.Contains(x.Id))) occurrence.Superseded = true;
         // An execution reserves its original workout identity even when structural edits move it.
-        var retained = existing.Where(x => !x.Superseded).Select(x => x.WorkoutId).ToHashSet();
-        db.AddRange(DeliveryRules.Resolve(assignment, revision).Where(x => x.ScheduledDate >= today && !retained.Contains(x.WorkoutId)));
+        // A repeated cycle has the same workout once per run, so a run is part of the identity.
+        var retained = existing.Where(x => !x.Superseded).Select(x => (x.WorkoutId, x.Repetition)).ToHashSet();
+        db.AddRange(DeliveryRules.Resolve(assignment, revision).Where(x => x.ScheduledDate >= today && !retained.Contains((x.WorkoutId, x.Repetition))));
         assignment.EffectiveRevisionId = revision.Id;
         assignment.ProgramName = revision.Snapshot.Name;
         assignment.Version++;

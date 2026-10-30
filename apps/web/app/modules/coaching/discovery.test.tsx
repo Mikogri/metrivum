@@ -76,13 +76,16 @@ it("sends canonical multi-select OR filters and composes existing filters", asyn
   setup();
   await screen.findByText("Free coach");
   await userEvent.click(screen.getByText("Specialization", { selector: "summary" }));
-  await userEvent.click(await screen.findByRole("checkbox", { name: "Powerlifting" }));
-  await userEvent.click(screen.getByRole("checkbox", { name: "Hypertrophy" }));
+  for (const name of ["Powerlifting", "Hypertrophy"]) {
+    await userEvent.click(await screen.findByRole("combobox", { name: /specialization/i }));
+    await userEvent.type(screen.getByRole("combobox", { name: /specialization/i }), name);
+    await userEvent.click(await screen.findByRole("option", { name: new RegExp(`^${name}`) }));
+  }
   await userEvent.type(screen.getByRole("textbox", { name: "Public location" }), "Warsaw");
   await userEvent.click(screen.getByRole("checkbox", { name: "Has published offers" }));
   await waitFor(() => expect(mocks.api.mock.calls.filter(([request]) => request.path === "/api/v1/discovery/coaches").at(-1)?.[0].query).toMatchObject({ specializations: "powerlifting,hypertrophy", location: "Warsaw", hasOffers: true, page: 1 }));
   await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
-  expect(screen.getByText("0/5 selected")).toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("0/10 selected");
 });
 
 it("debounces text search instead of requesting every typed character", async () => {

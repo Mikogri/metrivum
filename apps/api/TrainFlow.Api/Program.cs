@@ -32,6 +32,7 @@ using TrainFlow.CheckIns;
 using TrainFlow.CheckIns.Infrastructure;
 using TrainFlow.Billing;
 using TrainFlow.Billing.Infrastructure;
+using TrainFlow.Api.Development;
 using TrainFlow.Api.Errors;
 using TrainFlow.Api.Security;
 using TrainFlow.ExerciseCatalog;
@@ -71,6 +72,15 @@ else
     if (!builder.Environment.IsEnvironment("Testing"))
         builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
     builder.Configuration.AddEnvironmentVariables();
+}
+// Development tool: `-- --delete-account <email or user id> [--confirm]` removes one account with everything tied to it.
+var deleteAccount = Array.IndexOf(args, "--delete-account");
+if (deleteAccount >= 0)
+{
+    if (deleteAccount + 1 >= args.Length || args[deleteAccount + 1].StartsWith("--", StringComparison.Ordinal))
+        throw new InvalidOperationException("Usage: --delete-account <email or user id> [--confirm]");
+    Environment.ExitCode = await AccountEraser.RunAsync(builder.Configuration, builder.Environment, args[deleteAccount + 1], args.Contains("--confirm"));
+    return;
 }
 var connectionString = builder.Configuration.GetConnectionString(migrate ? "MigrationDatabase" : "Database");
 if (string.IsNullOrWhiteSpace(connectionString)) throw new InvalidOperationException("Set ConnectionStrings__Database (or ConnectionStrings__MigrationDatabase for the explicit --migrate command).");
@@ -284,6 +294,7 @@ app.MapNotifications();
 app.MapAnalyticsModule();
 app.MapClientDocumentation();
 app.MapIntegrations();
+app.MapDevelopmentTools();
 app.MapTrainFlowMcp();
 
 if (migrate)

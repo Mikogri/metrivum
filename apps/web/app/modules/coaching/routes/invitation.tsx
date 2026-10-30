@@ -44,7 +44,7 @@ export default function Invitation() {
       actions={<>
         <OpenConversationButton person={person} />
         {actions.filter((a) => a !== "accept").map((action) => <Button key={action} variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await ask(action === "revoke" ? { title: "Revoke this invitation?", body: "The client can no longer accept it. You can send a new invitation later.", confirmLabel: "Revoke invitation", cancelLabel: "Keep invitation" } : { title: "Decline this invitation?", body: "The coach is told you declined. You can still apply to their offers later.", confirmLabel: "Decline invitation", cancelLabel: "Keep invitation" })) act(action); }}>{action === "revoke" ? "Revoke invitation" : "Decline invitation"}</Button>)}
-        {actions.includes("accept") ? <Button variant="primary" loading={mutation.isPending} onPress={() => act("accept")}>Accept invitation</Button> : null}
+        {actions.includes("accept") ? <Button variant="success" loading={mutation.isPending} onPress={() => act("accept")}>Accept invitation</Button> : null}
       </>}
     />
     <MutationError error={mutation.error} />

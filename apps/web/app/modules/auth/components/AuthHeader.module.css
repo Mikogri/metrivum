@@ -16,14 +16,27 @@
   font-size: var(--tf-text-sm);
 }
 
+/* "New to Metrivum? Create an account": one quiet centred line, the link underlined like the form's text links. */
 .footer {
+  padding-top: var(--tf-space-4);
+  border-top: 1px solid var(--tf-color-border-subtle);
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-sm);
+  text-align: center;
 }
 
 .footer a {
+  margin-left: 0.25rem;
+  color: var(--tf-color-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--tf-color-border-strong);
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.footer a:hover {
   color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  text-decoration-color: currentColor;
 }
 
 .titleRow {
@@ -32,7 +45,7 @@
   gap: var(--tf-space-2);
 }
 
-/* Back arrow: a quiet round button before the title. */
+/* Back arrow before the title: on hover it steps back a little and brightens, no background. */
 .back {
   display: grid;
   flex-shrink: 0;
@@ -40,14 +53,26 @@
   width: 2rem;
   height: 2rem;
   margin-left: calc(var(--tf-space-2) * -1);
-  border-radius: var(--tf-radius-full);
-  color: var(--tf-color-text-secondary);
-  transition: background-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease;
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-color-text-tertiary);
+  transition: color 160ms ease, transform 200ms var(--tf-ease-out, ease-out);
 }
 
 .back:hover {
-  background: var(--tf-color-surface-hover);
   color: var(--tf-color-text);
+  transform: translateX(-3px);
+}
+
+.back:active {
+  transform: translateX(-5px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back,
+  .back:hover,
+  .back:active {
+    transform: none;
+  }
 }
 
 .back svg {

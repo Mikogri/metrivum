@@ -8,7 +8,7 @@ import { useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
 import { Alert, AlertDialog, Avatar, Badge, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton, PageHeader, Tab, TabList, Tabs, TextArea, toast, useMobileLayout } from "@trainflow/ui-web";
 import { BodyMeasurements, RelationshipDocumentation } from "~/modules/client-documentation";
-import { AssignedProgramsSummary, TrainingActivity, TrainingProgress } from "~/modules/training";
+import { AssignedProgramsSummary, AssignmentList, TrainingActivity, TrainingProgress } from "~/modules/training";
 import { OpenConversationButton } from "~/modules/messaging";
 import { RequireFeature, useFeatureAccess } from "~/shared/access";
 import { Facts, Panel, PanelGrid } from "~/shared/ui/Panel";
@@ -26,8 +26,8 @@ const ACTION_LABEL: Record<string, string> = { resume: "Resume coaching", suspen
 const ACTION_ICON: Record<string, React.ReactNode> = { resume: <PlayCircle />, suspend: <PauseCircle />, complete: <CheckCircle2 /> };
 /** Actions that end or pause the collaboration read as destructive. */
 const DANGER = new Set(["suspend", "complete"]);
-const TABS = ["overview", "activity", "progress", "profile", "documentation", "check-ins"] as const;
-const TAB_LABEL: Record<(typeof TABS)[number], string> = { overview: "Overview", activity: "Activity", progress: "Progress", profile: "Profile", documentation: "Documentation", "check-ins": "Check-ins" };
+const TABS = ["overview", "plans", "activity", "progress", "profile", "documentation", "check-ins"] as const;
+const TAB_LABEL: Record<(typeof TABS)[number], string> = { overview: "Overview", plans: "Plans", activity: "Activity", progress: "Progress", profile: "Profile", documentation: "Documentation", "check-ins": "Check-ins" };
 
 function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
   const mobile = useMobileLayout();
@@ -118,7 +118,13 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
           ))}
         </TabList>
       </Tabs>
-      {tab === "activity" ? (
+      {tab === "plans" ? (
+        // The client's plans: what runs now (with progress and Assign), then every assignment so far.
+        <div className={styles.stack}>
+          <AssignedProgramsSummary relationshipId={r.id} teamId={r.teamId} canManage={canTraining.allowed && r.status === "Active"} />
+          <AssignmentList relationshipId={r.id} title="Plan history" description="Every program assigned to this client, newest first, with its status." />
+        </div>
+      ) : tab === "activity" ? (
         <TrainingActivity relationshipId={r.id} />
       ) : tab === "progress" ? (
         <div className={styles.stack}>

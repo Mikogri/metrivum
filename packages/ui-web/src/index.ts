@@ -44,6 +44,7 @@ export { DataTable, type DataTableColumn, type DataTableProps } from "./componen
 export { Dialog, AlertDialog, DialogFooter, DialogTrigger, type DialogProps, type AlertDialogProps } from "./components/Dialog/Dialog";
 export { Popover, type PopoverProps } from "./components/Popover/Popover";
 export { Hint, Tooltip, TooltipTrigger, type TooltipProps } from "./components/Tooltip/Tooltip";
+export { InfoTip } from "./components/InfoTip/InfoTip";
 export {
   DropdownMenu,
   DropdownMenuTrigger,

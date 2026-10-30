@@ -4,7 +4,7 @@ import {
     LogLevel,
     type HubConnection,
 } from "@microsoft/signalr";
-import { type InfiniteData, type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type InfiniteData, type QueryClient, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     useAccountContext,
     useApi,
@@ -54,6 +54,43 @@ export function useChatQuery<T>(
         refetchInterval: path.startsWith(`${root}/`) ? (interval ?? messagingInterval) : 15000,
     });
 }
+/**
+ * Several pages of one list, each cached exactly like a single useChatQuery page (same key shape and data), so the
+ * live updates that patch list caches keep working. Only the first page polls; the rest refresh on invalidation.
+ */
+export function useChatPages<T extends { id: string }>(path: string, query: Record<string, QueryValue>, pageSize: number, pages: number, enabled = true) {
+    const api = useApi();
+    const account = useAccountKey();
+    const messagingInterval = useContext(MessagingPollingContext);
+    const results = useQueries({
+        queries: Array.from({ length: pages }, (_, index) => {
+            const pageQuery = { ...query, page: index + 1, limit: pageSize };
+            return {
+                queryKey: [account, "messaging", path, pageQuery],
+                enabled,
+                queryFn: async ({ signal }: { signal: AbortSignal }) => (await api<T[]>({ path, query: pageQuery, signal })).data,
+                refetchInterval: index === 0 ? messagingInterval : false as const,
+            };
+        }),
+    });
+    const loaded = results.filter(result => result.data);
+    // Pages can overlap when a conversation moves up between requests: keep each item once, in first-seen order.
+    const seen = new Set<string>();
+    const items = loaded.flatMap(result => result.data!).filter(item => (seen.has(item.id) ? false : (seen.add(item.id), true)));
+    const last = results[results.length - 1];
+    return {
+        items,
+        isPending: results[0]?.isPending ?? true,
+        isError: results[0]?.isError ?? false,
+        error: results[0]?.error ?? null,
+        refetch: () => results.forEach(result => void result.refetch()),
+        /** The newest page is still on its way. */
+        isLoadingMore: pages > 1 && Boolean(last?.isPending),
+        /** The last page came back full, so there may be more. */
+        hasMore: Boolean(last?.data && last.data.length >= pageSize),
+    };
+}
+
 export function useRealtime(enabled: boolean, onIncoming?: (event: { id: string; senderUserId: string; conversationId?: string | null }) => void) {
     const incoming = useRef(onIncoming);
     useEffect(() => { incoming.current = onIncoming; }, [onIncoming]);

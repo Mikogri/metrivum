@@ -15,6 +15,8 @@ export interface NumberFieldProps extends Omit<AriaNumberFieldProps, "className"
   size?: "sm" | "md" | "lg";
   /** Unit shown after the value, e.g. "kg". */
   unit?: ReactNode;
+  /** An interactive element at the end of the field instead of a plain unit, e.g. a unit switch. */
+  endSlot?: ReactNode;
   showSteppers?: boolean;
   incrementLabel?: string;
   decrementLabel?: string;
@@ -33,6 +35,7 @@ export function NumberInput({
   placeholder,
   size = "md",
   unit,
+  endSlot,
   showSteppers = false,
   incrementLabel = "Increase",
   decrementLabel = "Decrease",
@@ -54,6 +57,7 @@ export function NumberInput({
             {unit}
           </span>
         ) : null}
+        {endSlot}
         {showSteppers ? (
           <Button slot="increment" className={styles.stepper} aria-label={incrementLabel}>
             <Plus aria-hidden="true" />

@@ -20,6 +20,7 @@ public static class ModuleRegistration
         services.AddScoped<FormsService>();
         services.AddScoped<IMcpFormOperations, TrainFlow.Forms.Features.McpFormOperations>();
         services.AddScoped<IFormLibrary>(p => p.GetRequiredService<FormsService>());
+        services.AddScoped<TrainFlow.Accounts.Contracts.ICoachOnboardingObserver, TrainFlow.Forms.Features.StarterFormOnboarding>();
         services.TryAddSingleton(TimeProvider.System);
         foreach (var key in new[] { "forms.application.manage", "forms.checkin.manage" })
             services.AddSingleton(new FeatureDefinition(key, "Forms", key + ".title", key + ".description", [], []));

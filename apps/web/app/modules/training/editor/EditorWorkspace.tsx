@@ -8,7 +8,7 @@ import { Link as RouterLink, useBlocker, useNavigate } from "react-router";
 import type { PlanDto } from "@trainflow/api-client-web";
 import { Alert, Badge, Button, IconButton, Segment, SegmentedControl, Tooltip, TooltipTrigger, toast } from "@trainflow/ui-web";
 import { useExerciseNames } from "~/modules/exercises";
-import { UpgradeLink, useFeatures } from "~/shared/access";
+import { UpgradeBanner, UpgradeLink, useFeatures } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
@@ -34,6 +34,8 @@ import { SheetCanvas, usePersistentSheet } from "./components/SheetCanvas";
 import { WeekView } from "./components/WeekView";
 import { locate, uniqueExerciseIds } from "./model/document";
 import { isSimpleShape } from "./model/structure";
+import { usesProFeatures } from "./model/pro-features";
+import { hasActiveWorkout } from "./model/workouts";
 import { storedMode, storeMode, type EditorMode } from "./mode-preference";
 import { useEditor } from "./useEditor";
 import { ClientFormulaContext } from "./client-context";
@@ -54,18 +56,26 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
   const queryClient = useQueryClient();
   const access = useFeatures(["training.programs.manage", "training.templates.manage", "training.sets.advanced", "training.formulas.custom", "training.builder.advanced"] as const);
   const canEdit = access["training.programs.manage"].allowed && (plan.kind === "Program" || access["training.templates.manage"].allowed);
-  const readOnly = !canEdit || plan.archived;
+  // A plan made with Pro tools (custom cycles, formulas, maxes, advanced sets…) can't be edited without them:
+  // it opens read-only rather than half-editable, until the plan includes the advanced builder again.
+  const builderAccess = access["training.builder.advanced"];
+  const proLocked = !builderAccess.pending && !builderAccess.allowed && usesProFeatures(plan.document);
+  const readOnly = !canEdit || plan.archived || proLocked;
   const editor = useEditor(plan, version, { readOnly });
   // The last mode picked in this browser wins; without one, plans shaped like one week open in simple
   // mode and others in advanced. Simple only limits what can be created, it never changes the structure.
   const [mode, setModeState] = useState<EditorMode>(() => storedMode() ?? (isSimpleShape(plan.document) ? "simple" : "advanced"));
+  // Picked on this page: without the advanced builder the plan opens as a table, and the sheet shows its notice
+  // only when someone picks it here.
+  const [picked, setPicked] = useState(false);
   const setMode = (next: EditorMode) => {
+    setPicked(true);
     setModeState(next);
     storeMode(next);
   };
-  const activeMode = mode;
-  // The advanced editor needs the advanced builder (Pro and above). Without it the page is blurred behind a notice.
+  // The sheet needs the advanced builder (Pro and above). Without it the page is blurred behind a notice.
   const builder = access["training.builder.advanced"];
+  const activeMode: EditorMode = !picked && !builder.pending && !builder.allowed ? "simple" : mode;
   const builderLocked = activeMode === "advanced" && !builder.pending && !builder.allowed;
   // Sheet arrangement: remembered in this browser per plan (disconnected cycles stay in memory only).
   const [sheet, setSheet] = usePersistentSheet(plan.id);
@@ -85,7 +95,8 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
 
   // Cycles disconnected on the sheet exist only in memory; leaving would lose them like unsaved edits.
   const looseRef = useRef(false);
-  looseRef.current = sheet.loose.some((cycle) => cycle.days.length > 0 && !locate(editor.doc, cycle.id));
+  looseRef.current = sheet.loose.some((cycle) => cycle.days.length > 0 && !locate(editor.doc, cycle.id))
+    || (sheet.looseWorkouts ?? []).some((workout) => workout.exercises.length > 0 && !locate(editor.doc, workout.id));
   const hasUnsavedWork = useCallback(() => editor.isDirty() || looseRef.current, [editor]);
   useUnsavedWorkGuard(hasUnsavedWork);
 
@@ -144,7 +155,10 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
     if (invalid ? current.get(id) === detail : !current.has(id)) return current;
     const next = new Map(current); if (invalid) next.set(id, detail); else next.delete(id); return next;
   }), []);
-  const validation = editor.status === "error" && editor.error instanceof ApiError && editor.error.status === 400;
+  // A failed save shows next to the save state with the plan's other problems, never as a page-wide banner.
+  const saveFailure = editor.status !== "error" ? null
+    : editor.error instanceof ApiError && editor.error.status === 400 ? editor.error.problem?.detail ?? m.editor.issues.title
+    : errorText(m, editor.error);
 
   return (
     <CellValidationContext.Provider value={reportInvalid}><ClientFormulaContext.Provider value={clientContext.value}>
@@ -171,7 +185,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
           {/* Only the save state here; format problems and applied/draft sit next to "View as". */}
           <SaveStatus status={editor.status} />
           <span className={styles.planState}>
-            <FormatIssues compact issues={[...docIssues, ...invalidCells.values(), ...(validation && editor.error instanceof ApiError ? [editor.error.problem?.detail ?? m.editor.issues.title] : []), ...(refusal && !docIssues.length ? [refusal] : [])]} />
+            <FormatIssues compact issues={[...docIssues, ...invalidCells.values(), ...(saveFailure ? [saveFailure] : []), ...(refusal && !docIssues.length ? [refusal] : [])]} />
             {plan.kind === "Program" ? <DraftState compact planId={plan.id} draftVersion={editor.version} /> : null}
           </span>
         </div>
@@ -200,6 +214,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
           <IconButton label={t.redo} icon={<Redo2 />} onPress={editor.redo} isDisabled={readOnly || !editor.canRedo} />
           <KeyboardHelp />
           <IconButton size="sm" label={t.export} icon={<Download />} onPress={() => setExportOpen(true)} />
+          {clientContext.assign}
           <TooltipTrigger delay={200}>
             <Button size="sm" iconStart={<Rocket />} isDisabled={readOnly || editor.status === "saving"} onPress={async () => { await saveDraft(); if (!editor.isDirty()) setPublishOpen(true); }}>
               {t.publish}
@@ -215,14 +230,13 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
       {clientContext.banners}
 
       {plan.archived ? <Alert tone="warning" title={t.readOnly} className={styles.banner} /> : null}
-      {!validation && editor.status === "error" ? (
-        <Alert tone="danger" title={errorText(m, editor.error)} className={styles.banner} />
-      ) : null}
+      {proLocked && !plan.archived ? <div className={styles.banner}><UpgradeBanner title={t.proLocked.title} body={t.proLocked.body} action={t.proLocked.action} /></div> : null}
       {editor.status === "offline" ? <Alert tone="warning" title={m.errors.network} className={styles.banner} /> : null}
 
       <div className={styles.body}>
         {activeMode === "simple" ? (
-          <WeekView doc={editor.doc} apply={readOnly ? undefined : editor.apply} names={names} />
+          <WeekView doc={editor.doc} apply={readOnly ? undefined : editor.apply} names={names}
+            pro={builder.allowed ? { editor, advancedAllowed: access["training.sets.advanced"].allowed, customFormulas: access["training.formulas.custom"].allowed, onEditNode: setEditNode } : undefined} />
         ) : (
           <SheetCanvas
             doc={editor.doc}
@@ -262,7 +276,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
       ) : null}
 
       <NodeDialog editor={editor} nodeId={editNode} onClose={() => setEditNode(null)} />
-      <PublishDialog planId={plan.id} version={editor.version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={[...docIssues, ...invalidCells.values()]} />
+      <PublishDialog planId={plan.id} version={editor.version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={[...(hasActiveWorkout(editor.doc) ? [] : [t.issues.noWorkouts]), ...docIssues, ...invalidCells.values()]} />
       <ExportDialog planId={plan.id} planName={editor.meta.name || plan.name} isOpen={exportOpen} onOpenChange={setExportOpen} />
       <ConflictDialog
         isOpen={editor.status === "conflict"}

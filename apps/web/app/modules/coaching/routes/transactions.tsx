@@ -6,7 +6,8 @@ import { Alert, Badge, Button, DataTable, Dialog, EmptyState, LinkButton, Option
 import { ResponsiveFilters } from "~/shared/library/ResponsiveFilters";
 import { UserAutocomplete } from "~/modules/accounts";
 import { ApiError } from "~/shared/http/errors";
-import { useAppLocale } from "~/shared/i18n/AppLocale";
+import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
+import { errorText } from "~/shared/lib/errorText";
 import { privateMeta } from "~/shared/i18n/site";
 import { useUrlState } from "~/shared/lib/useUrlState";
 import { useDebounced } from "~/shared/lib/useDebounced";
@@ -41,15 +42,44 @@ function TransactionDetails({ id, teamId, close }: { id: string; teamId?: string
   const pl = useAppLocale().locale === "pl";
   const query = useCoachingQuery<Transaction>(`/api/v1/me/transactions/${id}`, { teamId });
   const value = query.data;
-  return <Dialog isOpen title={pl ? "Szczegóły operacji" : "Transaction details"} onOpenChange={open => !open && close()}>
-    {query.isPending ? <Loading /> : query.error ? <Failure error={query.error} /> : value && <div className={coaching.form}>
-      <Alert tone="warning" title={value.mode === "Simulated" ? (pl ? "Płatność symulowana — bez rzeczywistego przepływu środków" : "Simulated payment — no real money moved") : (pl ? "Rozliczenie zgłoszone ręcznie, niezweryfikowane przez operatora" : "Manually reported settlement, unverified by a provider")} />
-      <strong>{value.name}</strong><p>{value.status} · {value.type} · {new Date(value.date).toLocaleString()}</p>
-      <dl><dt>{pl ? "Kwota usługi / planu" : "Service / plan amount"}</dt><dd>{money(Number(value.grossAmount), value.currency)}</dd><dt>{pl ? "Opłata platformowa (w kwocie, nie doliczana)" : "Platform fee (included, not added)"}</dt><dd>{money(Number(value.feeAmount), value.currency)} ({Number(value.feeRate) * 100}%)</dd><dt>{pl ? "Łączna kwota klienta" : "Client total"}</dt><dd>{money(Number(value.grossAmount), value.currency)}</dd><dt>{pl ? "Kwota netto odbiorcy" : "Recipient net"}</dt><dd>{money(Number(value.netAmount), value.currency)}</dd>
-        {value.dueAt && <><dt>{pl ? "Termin płatności" : "Due date"}</dt><dd>{new Date(value.dueAt).toLocaleDateString()}</dd></>}
-        <dt>{pl ? "Trener / odbiorca" : "Coach / recipient"}</dt><dd>{value.type === "PlatformSubscription" ? "Metrivum" : value.coachName || value.coachId}</dd><dt>{pl ? "Klient / płatnik" : "Client / payer"}</dt><dd>{value.clientName || value.clientId}</dd><dt>ID</dt><dd style={{ overflowWrap: "anywhere" }}>{value.id}</dd>{value.paymentId && <><dt>Payment ID</dt><dd>{value.paymentId}</dd></>}{value.serviceId && <><dt>Service ID</dt><dd>{value.serviceId}</dd></>}{value.offerId && <><dt>Offer revision ID</dt><dd>{value.offerId}</dd></>}{value.planId && <><dt>Plan</dt><dd>{value.planId}</dd></>}
-      </dl>{value.failureCode && <p role="status">{value.failureCode}</p>}
-      {!value.isSettlement && <p>{pl ? "To zdarzenie lub zobowiązanie, nie rozliczona płatność." : "This is an event or obligation, not a settled payment."}</p>}
+  const row = (label: string, content: React.ReactNode, mono = false) => <div className={styles.detailRow}><dt>{label}</dt><dd data-mono={mono || undefined}>{content}</dd></div>;
+  return <Dialog isOpen placement="right" size="md" title={pl ? "Szczegóły operacji" : "Transaction details"} onOpenChange={open => !open && close()}>
+    {query.isPending ? <Loading /> : query.error ? <Failure error={query.error} /> : value && <div className={styles.details}>
+      {/* What it is and how much, first. */}
+      <header className={styles.detailHead}>
+        <span className={styles.detailDir} data-dir={value.direction} aria-hidden="true">{value.direction === "Incoming" ? <ArrowDownLeft /> : <ArrowUpRight />}</span>
+        <span className={styles.detailTitle}><strong>{value.name}</strong><span>{new Date(value.date).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</span></span>
+      </header>
+      <p className={styles.detailAmount} data-dir={value.direction}>{value.direction === "Incoming" ? "+" : "−"}{money(Number(value.direction === "Incoming" ? value.netAmount : value.grossAmount), value.currency)}</p>
+      <div className={styles.detailBadges}><Badge size="sm" tone={value.status === "Succeeded" ? "success" : value.status === "Pending" ? "warning" : value.status === "Failed" ? "danger" : "neutral"}>{value.status}</Badge><Badge size="sm">{value.type.replace(/([a-z])([A-Z])/g, "$1 $2")}</Badge>{value.mode === "Simulated" ? <Badge size="sm" tone="warning">{pl ? "Symulacja" : "Simulated"}</Badge> : null}</div>
+      <section className={styles.detailSection}>
+        <h3>{pl ? "Kwoty" : "Amounts"}</h3>
+        <dl>
+          {row(pl ? "Kwota usługi / planu" : "Service / plan amount", money(Number(value.grossAmount), value.currency))}
+          {row(pl ? "Opłata platformowa (w kwocie)" : "Platform fee (included)", `${money(Number(value.feeAmount), value.currency)} · ${Number(value.feeRate) * 100}%`)}
+          {row(pl ? "Kwota netto odbiorcy" : "Recipient net", <strong>{money(Number(value.netAmount), value.currency)}</strong>)}
+          {value.dueAt ? row(pl ? "Termin płatności" : "Due date", new Date(value.dueAt).toLocaleDateString([], { dateStyle: "medium" })) : null}
+        </dl>
+      </section>
+      <section className={styles.detailSection}>
+        <h3>{pl ? "Strony" : "Parties"}</h3>
+        <dl>
+          {row(pl ? "Trener / odbiorca" : "Coach / recipient", value.type === "PlatformSubscription" ? "Metrivum" : value.coachName || value.coachId)}
+          {row(pl ? "Klient / płatnik" : "Client / payer", value.clientName || value.clientId)}
+        </dl>
+      </section>
+      <section className={styles.detailSection}>
+        <h3>{pl ? "Identyfikatory" : "References"}</h3>
+        <dl>
+          {row("ID", value.id, true)}
+          {value.paymentId ? row("Payment ID", value.paymentId, true) : null}
+          {value.serviceId ? row("Service ID", value.serviceId, true) : null}
+          {value.offerId ? row("Offer revision ID", value.offerId, true) : null}
+          {value.planId ? row("Plan", value.planId) : null}
+        </dl>
+      </section>
+      {value.failureCode ? <Alert tone="danger" title={value.failureCode} /> : null}
+      <p className={styles.detailNote}>{value.mode === "Simulated" ? (pl ? "Płatność symulowana — bez rzeczywistego przepływu środków." : "Simulated payment — no real money moved.") : (pl ? "Rozliczenie zgłoszone ręcznie, niezweryfikowane przez operatora." : "Manually reported settlement, unverified by a provider.")}{!value.isSettlement ? (pl ? " To zdarzenie lub zobowiązanie, nie rozliczona płatność." : " This is an event or obligation, not a settled payment.") : ""}</p>
     </div>}
   </Dialog>;
 }
@@ -63,6 +93,7 @@ function Tile({ tone, icon: Icon, label, value, note, alert }: { tone: string; i
 }
 
 export default function Transactions() {
+  const m = useT();
   const { locale } = useAppLocale();
   const pl = locale === "pl";
   const [filters, setFilters] = useUrlState({ view: "all", period: "90", direction: "", status: "", type: "", search: "", from: "", to: "", minimum: "", maximum: "", currency: "", personId: "", serviceId: "", offerId: "", subscriptionId: "", planId: "", teamId: "", page: "1", record: "" });
@@ -92,6 +123,9 @@ export default function Transactions() {
   const s = summary.data;
   // A server without the summary endpoint (an older API build) answers 404: the page then shows the list only.
   const noSummary = summary.error instanceof ApiError && summary.error.status === 404;
+  // When nothing could be loaded, one error for the whole page (with one retry) instead of one per section.
+  const allFailed = query.isError && (summary.isError || noSummary);
+  const retryAll = () => { void query.refetch(); if (!noSummary) void summary.refetch(); };
   const periodName = filters.from || filters.to ? (pl ? "Wybrane daty" : "Selected dates") : filters.period === "30" ? (pl ? "Ostatnie 30 dni" : "Last 30 days") : filters.period === "365" ? (pl ? "Ostatnie 12 miesięcy" : "Last 12 months") : filters.period === "all" ? (pl ? "Od początku" : "All time") : (pl ? "Ostatnie 90 dni" : "Last 90 days");
   const overdue = s ? Number(s.overdueIncoming) + Number(s.overdueOutgoing) : 0;
   const currencies = s?.currencies ?? [];
@@ -125,6 +159,7 @@ export default function Transactions() {
       </TabList>
     </Tabs>
 
+    {allFailed ? <div className={styles.pageError}><Failure error={query.error} retry={retryAll} /></div> : <>
     {noSummary ? null : <>
     <div className={styles.summaryHead}>
       <div>
@@ -136,7 +171,14 @@ export default function Transactions() {
       </SegmentedControl>
     </div>
     <div className={styles.tiles}>
-      {summary.isPending ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} height="6.5rem" radius="lg" />) : summary.isError ? <Failure error={summary.error} retry={() => void summary.refetch()} /> : quiet ? (
+      {summary.isPending ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} height="6.5rem" radius="lg" />) : summary.isError ? (
+        // Only the summary failed: one quiet line across the tiles, the list below still works.
+        <div className={styles.summaryError} role="alert">
+          <AlertTriangle aria-hidden="true" />
+          <span>{pl ? "Nie udało się wczytać podsumowania." : "The summary couldn't be loaded."} <span className={styles.summaryErrorDetail}>{errorText(m, summary.error)}</span></span>
+          <Button size="sm" variant="secondary" onPress={() => void summary.refetch()}>{pl ? "Spróbuj ponownie" : "Try again"}</Button>
+        </div>
+      ) : quiet ? (
         <div className={styles.emptySummary}>
           <span className={styles.emptyIcon} aria-hidden="true"><Wallet /></span>
           <span className={styles.emptyText}>
@@ -162,19 +204,19 @@ export default function Transactions() {
           {view === "all" ? <Select aria-label={pl ? "Kierunek" : "Direction"} selectedKey={filters.direction || "all"} onSelectionChange={key => update({ direction: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Przychody i wydatki" : "In and out"}</Option><Option id="Incoming">{pl ? "Otrzymane" : "Incoming"}</Option><Option id="Outgoing">{pl ? "Wydane" : "Outgoing"}</Option></Select> : null}
           {view === "all" ? <Select aria-label="Status" selectedKey={filters.status || "all"} onSelectionChange={key => update({ status: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Każdy status" : "All statuses"}</Option>{["Succeeded", "Pending", "Failed", "Refunded", "Cancelled"].map(value => <Option id={value} key={value}>{value}</Option>)}</Select> : null}
         </ResponsiveFilters>
-        <Button variant="ghost" iconEnd={<ChevronDown className={styles.chevron} data-open={more || undefined} />} onPress={() => setMore(value => !value)} aria-expanded={more}>{pl ? "Więcej" : "More"}</Button>
+        <Button variant="ghost" iconEnd={<ChevronDown className={styles.chevron} data-open={more || undefined} />} onPress={() => setMore(value => !value)} aria-expanded={more}>{pl ? "Więcej filtrów" : "More filters"}</Button>
         {filtered ? <Button variant="ghost" onPress={() => { setUsername(""); update({ search: "", type: "", from: "", to: "", direction: "", status: "", minimum: "", maximum: "", currency: "", personId: "", planId: "", serviceId: "", offerId: "", subscriptionId: "" }); }}>{pl ? "Wyczyść" : "Clear"}</Button> : null}
       </Toolbar>
-      {more ? <div className={styles.more}>
+      <div className={styles.moreWrap} data-open={more || undefined} aria-hidden={!more || undefined} inert={!more || undefined}><div className={styles.moreInner}><div className={styles.more}>
         <TextField label={pl ? "Od" : "From"} type="date" value={filters.from} onChange={from => update({ from })} />
         <TextField label={pl ? "Do" : "To"} type="date" value={filters.to} onChange={to => update({ to })} />
         <UserAutocomplete label={pl ? "Klient lub trener" : "Client or coach"} value={username} onChange={name => { setUsername(name); if (!name) update({ personId: "" }); }} onSelect={person => update({ personId: person.userId })} />
-        <TextField label={pl ? "Kwota od" : "Minimum amount"} type="number" value={filters.minimum} onChange={minimum => update({ minimum })} />
-        <TextField label={pl ? "Kwota do" : "Maximum amount"} type="number" value={filters.maximum} onChange={maximum => update({ maximum })} />
-        <TextField label={pl ? "Waluta (np. EUR)" : "Currency (e.g. EUR)"} maxLength={3} value={filters.currency} onChange={currency => update({ currency })} />
-        <Select label={pl ? "Plan platformy" : "Platform plan"} selectedKey={filters.planId || "all"} onSelectionChange={key => update({ planId: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Wszystkie" : "All"}</Option>{plans.data?.map(plan => <Option key={plan.id} id={plan.id}>{plan.name}</Option>)}</Select>
+        <TextField label={pl ? "Kwota od" : "Minimum amount"} placeholder="0" type="number" value={filters.minimum} onChange={minimum => update({ minimum })} />
+        <TextField label={pl ? "Kwota do" : "Maximum amount"} placeholder={pl ? "Bez limitu" : "No limit"} type="number" value={filters.maximum} onChange={maximum => update({ maximum })} />
+        <TextField label={pl ? "Waluta" : "Currency"} placeholder="EUR" maxLength={3} value={filters.currency} onChange={currency => update({ currency })} />
+        <Select label={pl ? "Plan platformy" : "Platform plan"} placeholder={pl ? "Wszystkie" : "All"} selectedKey={filters.planId || "all"} onSelectionChange={key => update({ planId: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Wszystkie" : "All"}</Option>{plans.data?.map(plan => <Option key={plan.id} id={plan.id}>{plan.name}</Option>)}</Select>
         {team.data?.isActive && ["Owner", "Admin"].includes(team.data.role) && <Select label={pl ? "Zakres historii" : "History scope"} selectedKey={filters.teamId || "mine"} onSelectionChange={key => update({ teamId: key === "mine" ? "" : String(key) })}><Option id="mine">{pl ? "Moje operacje" : "My transactions"}</Option><Option id={team.data.teamId}>{team.data.name}</Option></Select>}
-      </div> : null}
+      </div></div></div>
 
       {query.isPending ? <Loading /> : query.error ? <Failure error={query.error} retry={() => void query.refetch()} /> : !rows.length ? (
         <EmptyState icon={view === "overdue" ? <RotateCcw /> : <Wallet />}
@@ -201,6 +243,7 @@ export default function Transactions() {
         {!open && query.data ? <ListPagination data={query.data} onChange={page => setFilters({ page: String(page) })} /> : null}
       </>}
     </div>
+    </>}
     {filters.record && <TransactionDetails id={filters.record} teamId={optional(filters.teamId)} close={() => setFilters({ record: "" })} />}
   </section>;
 }

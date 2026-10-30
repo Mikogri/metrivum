@@ -123,11 +123,15 @@ public sealed class FormsTests
         Assert.Equal("\"1\"", created.Headers.ETag?.Tag);
         var form = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
         var summaries = await owner.GetFromJsonAsync<JsonElement>("/api/v1/forms/summaries?purpose=Application");
-        var summary = Assert.Single(summaries.GetProperty("items").EnumerateArray());
-        Assert.Equal(form, summary.GetProperty("id").GetGuid());
+        // Onboarding as a coach already created the published starter application form; the new form sits beside it.
+        var items = summaries.GetProperty("items").EnumerateArray().ToArray();
+        Assert.Equal(2, items.Length);
+        Assert.Contains(items, x => x.GetProperty("name").GetString() == TrainFlow.Forms.Features.StarterForms.ApplicationName && x.GetProperty("currentPublishedVersionId").ValueKind != JsonValueKind.Null);
+        var summary = Assert.Single(items, x => x.GetProperty("id").GetGuid() == form);
         Assert.Equal(1, summary.GetProperty("questionCount").GetInt32());
         Assert.False(summary.TryGetProperty("draft", out _));
-        Assert.Empty((await stranger.GetFromJsonAsync<JsonElement>("/api/v1/forms/summaries?purpose=Application")).GetProperty("items").EnumerateArray());
+        // A coach with no forms of their own sees only the starter application form.
+        Assert.Equal(TrainFlow.Forms.Features.StarterForms.ApplicationName, Assert.Single((await stranger.GetFromJsonAsync<JsonElement>("/api/v1/forms/summaries?purpose=Application")).GetProperty("items").EnumerateArray()).GetProperty("name").GetString());
         Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().GetAsync("/api/v1/forms/summaries?purpose=Application")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/forms/summaries?purpose=Application")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await stranger.GetAsync($"/api/v1/forms/{form}")).StatusCode);

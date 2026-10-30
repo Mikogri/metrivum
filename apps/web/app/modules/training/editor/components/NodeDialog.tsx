@@ -15,7 +15,6 @@ export function NodeDialog({ editor, nodeId, onClose }: { editor: EditorApi; nod
   const node = at ? resolve(doc, at) : null;
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [dayCount, setDayCount] = useState(7);
   const [dayNumber, setDayNumber] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +22,6 @@ export function NodeDialog({ editor, nodeId, onClose }: { editor: EditorApi; nod
     if (!node) return;
     setName("name" in node ? node.name : "");
     setDescription("description" in node ? node.description : "");
-    if ("dayCount" in node) setDayCount(node.dayCount);
     if ("dayNumber" in node) setDayNumber(node.dayNumber);
     setError(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -50,16 +48,7 @@ export function NodeDialog({ editor, nodeId, onClose }: { editor: EditorApi; nod
       setError(m.auth.errors.required);
       return;
     }
-    if (isCycle && cycle) {
-      const maxDay = Math.max(0, ...cycle.days.map((d) => d.dayNumber));
-      if (dayCount < Math.max(1, maxDay) || dayCount > 366) {
-        setError(t.dayTaken);
-        return;
-      }
-      editor.apply((current) => updateNode(current, nodeId, { name: name.trim(), description, dayCount }));
-    } else {
-      editor.apply((current) => updateNode(current, nodeId, { name: name.trim(), description }));
-    }
+    editor.apply((current) => updateNode(current, nodeId, { name: name.trim(), description }));
     onClose();
   }
 
@@ -89,7 +78,6 @@ export function NodeDialog({ editor, nodeId, onClose }: { editor: EditorApi; nod
           <>
             <TextField placeholder={m.common.ph.programName} label={m.training.library.folder.name} value={name} onChange={setName} isRequired autoFocus maxLength={200} />
             <TextArea placeholder={m.common.ph.description} label={m.training.library.createDialog.description} value={description} onChange={setDescription} rows={3} maxLength={4000} />
-            {isCycle ? <NumberInput placeholder={m.common.ph.number} label={t.cycleLength} minValue={1} maxValue={366} value={dayCount} onChange={(v) => setDayCount(Number.isNaN(v) ? 1 : v)} /> : null}
           </>
         )}
       </div>

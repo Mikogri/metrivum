@@ -164,18 +164,22 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         }
         CheckVersion(plan.Version, expectedVersion);
         Active(plan);
-        Validate(() => DocumentRules.Validate(plan.Draft, limits.Document));
+        // Inactive blocks stay in the draft only: clients get the active part, which must be complete.
+        var applied = DocumentRules.ActiveOnly(plan.Draft);
+        Validate(() => DocumentRules.Validate(applied, limits.Document));
+        if (!DocumentRules.Workouts(applied).Any())
+            throw ApiException.Invalid("Add at least one workout before applying changes.");
         var effective = await db.Revisions.AsNoTracking().Where(x => x.PlanId == id).OrderByDescending(x => x.Number).FirstOrDefaultAsync(ct);
         if (effective?.DraftVersion == plan.Version) return Dto(effective);
         var count = await db.Revisions.CountAsync(x => x.PlanId == id, ct);
         Limit(count < limits.MaximumRevisionsPerDocument, "Revision limit exceeded.");
-        var exerciseIds = DocumentRules.Workouts(plan.Draft).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).Concat(BlockMaxes.Rows(plan.Draft).Where(x => x.ExerciseId.HasValue).Select(x => x.ExerciseId!.Value)).Distinct().ToArray();
+        var exerciseIds = DocumentRules.Workouts(applied).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).Concat(BlockMaxes.Rows(applied).Where(x => x.ExerciseId.HasValue).Select(x => x.ExerciseId!.Value)).Distinct().ToArray();
         var snapshots = await catalog.SnapshotAsync(exerciseIds, ct);
         if (snapshots.Count != exerciseIds.Length)
             throw ApiException.Invalid("Some exercises are unavailable.");
-        if (BlockMaxes.Rows(plan.Draft).Any(r => r.ExerciseId == null || r.Load == null && r.LoadFormula == null && r.Time == null && r.TimeFormula == null)) throw ApiException.Invalid("Invalid format: every exercise max requires an exercise and a value or variable.");
-        var formulas = await EvaluateDocumentAsync(plan.Draft, account, ct);
-        var revision = new TrainingRevision { Id = Guid.NewGuid(), PlanId = id, Number = count + 1, DraftVersion = plan.Version, PublishedAt = clock.GetUtcNow(), IdempotencyKey = idempotencyKey, RequestHash = hash, Snapshot = new(1, plan.Name, plan.Description, plan.Kind, TrainingJson.Deserialize<TrainingDocument>(TrainingJson.Serialize(plan.Draft)), new(snapshots), formulas) };
+        if (BlockMaxes.Rows(applied).Any(r => r.ExerciseId == null || r.Load == null && r.LoadFormula == null && r.Time == null && r.TimeFormula == null)) throw ApiException.Invalid("Invalid format: every exercise max requires an exercise and a value or variable.");
+        var formulas = await EvaluateDocumentAsync(applied, account, ct);
+        var revision = new TrainingRevision { Id = Guid.NewGuid(), PlanId = id, Number = count + 1, DraftVersion = plan.Version, PublishedAt = clock.GetUtcNow(), IdempotencyKey = idempotencyKey, RequestHash = hash, Snapshot = new(1, plan.Name, plan.Description, plan.Kind, TrainingJson.Deserialize<TrainingDocument>(TrainingJson.Serialize(applied)), new(snapshots), formulas) };
         db.Revisions.Add(revision);
         await db.SaveChangesAsync(ct);
         await AssignmentRevisionUpdater.ApplyAsync(db, revision, relationshipPolicy, clock, assignmentObservers, ct, this);
@@ -319,7 +323,8 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
     }
     private async Task ValidateContentAsync(TrainingDocument content, TrainingDocument? old, AccountIdentity account, CancellationToken ct)
     {
-        Validate(() => DocumentRules.Validate(content, limits.Document));
+        // Drafts keep unfinished formats; "Apply changes" validates the whole document before a revision exists.
+        Validate(() => DocumentRules.ValidateDraft(content, limits.Document));
         if (HasChangedContent(ContentFingerprints(content, false), old == null ? [] : ContentFingerprints(old, false)))
             await access.RequireAsync("training.sets.advanced", ct);
         if (HasChangedContent(ContentFingerprints(content, true), old == null ? [] : ContentFingerprints(old, true)))

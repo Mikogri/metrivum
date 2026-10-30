@@ -9,7 +9,8 @@ export function errorText(m: AppMessages, error: unknown): string {
     if (error.code && m.errors.byCode[error.code]) return m.errors.byCode[error.code]!;
     if (error.status === 404) return m.errors.byCode.RESOURCE_NOT_FOUND!;
     if (error.status === 412) return m.errors.byCode.VERSION_CONFLICT!;
-    if (error.status >= 500) return m.errors.byCode.INTEGRATION_UNAVAILABLE!;
+    // A 5xx without a known code is our own failure, not a connected service.
+    if (error.status >= 500) return m.errors.byCode.INTERNAL_ERROR!;
   }
   return m.errors.generic;
 }

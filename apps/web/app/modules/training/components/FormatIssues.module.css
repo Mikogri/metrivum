@@ -123,6 +123,14 @@
   color: var(--tf-color-success);
 }
 
+/* Never published: clients can't get the plan, so it stands out in a warning colour. */
+.state[data-unpublished] {
+  border-color: color-mix(in srgb, var(--tf-color-warning) 55%, transparent);
+  background: color-mix(in srgb, var(--tf-color-warning) 22%, transparent);
+  color: var(--tf-color-warning);
+  font-weight: var(--tf-weight-semibold);
+}
+
 .state[data-focus-visible] {
   outline: 2px solid var(--tf-color-focus-ring);
   outline-offset: 2px;

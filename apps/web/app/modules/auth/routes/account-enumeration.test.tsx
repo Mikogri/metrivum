@@ -58,6 +58,7 @@ describe("account existence in the sign-in and sign-up forms", () => {
     setup("/auth/register");
     await userEvent.type(screen.getByLabelText(/^Email/), "taken@example.com");
     await userEvent.type(screen.getByLabelText(/^Password/), "test-password-123");
+    await userEvent.click(screen.getByRole("checkbox", { name: /I accept the/ }));
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText("This email already has an account.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Sign in to this account instead" })).toBeInTheDocument();
@@ -71,6 +72,7 @@ describe("account existence in the sign-in and sign-up forms", () => {
     setup("/auth/register");
     await userEvent.type(screen.getByLabelText(/^Email/), "taken@example.com");
     await userEvent.type(screen.getByLabelText(/^Password/), "test-password-123");
+    await userEvent.click(screen.getByRole("checkbox", { name: /I accept the/ }));
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText("This email already has an account.")).toBeInTheDocument();
     expect(screen.queryByText(/^\/auth\/verify/)).toBeNull();
@@ -80,6 +82,7 @@ describe("account existence in the sign-in and sign-up forms", () => {
     setup("/auth/register");
     await userEvent.type(screen.getByLabelText(/^Email/), "anna@example..com");
     await userEvent.type(screen.getByLabelText(/^Password/), "x".repeat(73));
+    await userEvent.click(screen.getByRole("checkbox", { name: /I accept the/ }));
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText("Use at most 72 characters (fewer with emoji or accented letters).")).toBeInTheDocument();
     expect(mocks.signUp).not.toHaveBeenCalled();

@@ -481,3 +481,67 @@
     animation: none;
   }
 }
+
+/* Development: delete the signed-in account. */
+.danger {
+  border-color: color-mix(in srgb, var(--tf-color-danger) 35%, var(--tf-color-border));
+}
+
+.dangerHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-4);
+}
+
+.dangerHead > div {
+  flex: 1 1 18rem;
+}
+
+.eraseBody {
+  display: grid;
+  gap: var(--tf-space-4);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.eraseSummary {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.eraseSummary strong {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+}
+
+.eraseTables {
+  display: grid;
+  max-height: 12rem;
+  margin: 0;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  overflow-y: auto;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-bg-sunken);
+  list-style: none;
+  font-size: var(--tf-text-xs);
+}
+
+.eraseTables li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  padding: 2px 0;
+}
+
+.eraseTables code {
+  color: var(--tf-color-text-secondary);
+}
+
+.eraseTables span {
+  color: var(--tf-color-text);
+  font-variant-numeric: tabular-nums;
+}

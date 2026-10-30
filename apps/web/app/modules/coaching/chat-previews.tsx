@@ -69,7 +69,7 @@ export function InvitationDialog({ invitationId, close }: { invitationId: string
       footer={i && (actions.length || i.applicationId) ? () => <>
         {actions.filter((a) => a !== "accept").map((action) => <Button key={action} variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await ask(action === "revoke" ? { title: "Revoke this invitation?", body: "The client can no longer accept it. You can send a new invitation later.", confirmLabel: "Revoke invitation", cancelLabel: "Keep invitation" } : { title: "Decline this invitation?", body: "The coach is told you declined. You can still apply to their offers later.", confirmLabel: "Decline invitation", cancelLabel: "Keep invitation" })) act(action); }}>{action === "revoke" ? "Revoke invitation" : "Decline"}</Button>)}
         {i.applicationId ? <LinkButton href={`/app/applications/${i.applicationId}`}>Open application</LinkButton> : null}
-        {actions.includes("accept") ? <Button variant="primary" loading={mutation.isPending} onPress={() => act("accept")}>Accept invitation</Button> : null}
+        {actions.includes("accept") ? <Button variant="success" loading={mutation.isPending} onPress={() => act("accept")}>Accept invitation</Button> : null}
       </> : undefined}
     >
       {query.isPending ? <Loading /> : query.isError ? <Failure error={query.error} retry={() => void query.refetch()} /> : i && person ? <div className={styles.stack}>

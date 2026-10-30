@@ -1,15 +1,16 @@
 import { Banknote } from "lucide-react";
 import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Card, EmptyState, LinkButton, PageHeader, Segment, SegmentedControl } from "@trainflow/ui-web";
+import { Card, EmptyState, LinkButton, PageHeader, Segment, SegmentedControl } from "@trainflow/ui-web";
 import { Failure, Loading, useCoachingQuery } from "~/modules/coaching";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { AreaChart, Kpi } from "./charts";
+import { UpgradeBanner } from "~/shared/access";
 import styles from "./analyze.module.css";
 
 const copy = {
-  en: { title: "Basic Analyze", description: "Client counts, recorded payments and check-ins for your personal coaching activity.", active: "Active clients", suspended: "Suspended clients", completed: "Completed clients", checkins: "Submitted check-ins", overdue: "Overdue check-ins", review: "Awaiting review", finance: "Payments", simulated: "Simulated payments", paymentNote: "Platform payments are test transactions. External payments are recorded separately; no real funds are collected.", upgrade: "Advanced Analyze with Pro", advanced: "Retention, acquisition, period comparisons, simulated MRR and reports are available with Pro, Team and Studio.", plans: "View plans", net: "Net", pending: "Pending", empty: "No recorded payments in this period", emptyBody: "Payments from clients for your offers will show up here, with net income after fees.", days: (n: number) => `${n} days`, period: "Period" },
-  pl: { title: "Podstawowe Analyze", description: "Liczba klientów, zapisane płatności i check-iny Twojej działalności indywidualnej.", active: "Aktywni klienci", suspended: "Wstrzymani klienci", completed: "Zakończone współprace", checkins: "Przesłane check-iny", overdue: "Zaległe check-iny", review: "Do sprawdzenia", finance: "Płatności", simulated: "Płatności symulowane", paymentNote: "Płatności na platformie są transakcjami testowymi. Płatności zewnętrzne są zapisywane osobno; nie pobieramy prawdziwych środków.", upgrade: "Zaawansowane Analyze z Pro", advanced: "Retencja, pozyskiwanie klientów, porównania okresów, symulowane MRR i raporty są dostępne w Pro, Team i Studio.", plans: "Zobacz plany", net: "Netto", pending: "Oczekujące", empty: "Brak zapisanych płatności w tym okresie", emptyBody: "Tu pojawią się płatności klientów za Twoje oferty, z przychodem netto po opłatach.", days: (n: number) => `${n} dni`, period: "Okres" },
+  en: { title: "Basic Analyze", description: "Client counts, recorded payments and check-ins for your personal coaching activity.", active: "Active clients", suspended: "Suspended clients", completed: "Completed clients", checkins: "Submitted check-ins", overdue: "Overdue check-ins", review: "Awaiting review", finance: "Payments", simulated: "Simulated payments", paymentNote: "Platform payments are test transactions. External payments are recorded separately; no real funds are collected.", upgrade: "Advanced Analyze with Pro", advanced: "Retention, acquisition, period comparisons, simulated MRR and reports are available with Pro, Team and Studio.", plans: "View plans", upgradeAction: "Upgrade to Pro", net: "Net", pending: "Pending", empty: "No recorded payments in this period", emptyBody: "Payments from clients for your offers will show up here, with net income after fees.", days: (n: number) => `${n} days`, period: "Period" },
+  pl: { title: "Podstawowe Analyze", description: "Liczba klientów, zapisane płatności i check-iny Twojej działalności indywidualnej.", active: "Aktywni klienci", suspended: "Wstrzymani klienci", completed: "Zakończone współprace", checkins: "Przesłane check-iny", overdue: "Zaległe check-iny", review: "Do sprawdzenia", finance: "Płatności", simulated: "Płatności symulowane", paymentNote: "Płatności na platformie są transakcjami testowymi. Płatności zewnętrzne są zapisywane osobno; nie pobieramy prawdziwych środków.", upgrade: "Zaawansowane Analyze z Pro", advanced: "Retencja, pozyskiwanie klientów, porównania okresów, symulowane MRR i raporty są dostępne w Pro, Team i Studio.", plans: "Zobacz plany", upgradeAction: "Przejdź na Pro", net: "Netto", pending: "Oczekujące", empty: "Brak zapisanych płatności w tym okresie", emptyBody: "Tu pojawią się płatności klientów za Twoje oferty, z przychodem netto po opłatach.", days: (n: number) => `${n} dni`, period: "Okres" },
 };
 
 export function BasicAnalyze() {
@@ -24,10 +25,9 @@ export function BasicAnalyze() {
   const data = report.data;
   return <div className={styles.workspace}>
     <PageHeader title={t.title} description={t.description} actions={<SegmentedControl aria-label={t.period} selectedKeys={[days]} onSelectionChange={keys => setDays(String([...keys][0] ?? "30"))}>{[7, 30, 90].map(n => <Segment key={n} id={String(n)}>{t.days(n)}</Segment>)}</SegmentedControl>} />
-    <Alert tone="info" title={t.upgrade}>{t.advanced} <LinkButton href="/app/subscription" size="sm" variant="ghost">{t.plans}</LinkButton></Alert>
+    <UpgradeBanner title={t.upgrade} body={t.advanced} action={t.upgradeAction} />
     {report.isPending ? <Loading /> : report.isError ? <Failure error={report.error} retry={report.refetch} /> : data && <>
       <div className={styles.kpis}><Kpi label={t.active} value={data.clients.active} /><Kpi label={t.suspended} value={data.clients.suspended} /><Kpi label={t.completed} value={data.clients.completed} /><Kpi label={t.checkins} value={data.checkIns.submitted} /><Kpi label={t.overdue} value={data.checkIns.overdue} /><Kpi label={t.review} value={data.checkIns.pendingReview} /></div>
-      <Alert tone="info" title={t.simulated}>{t.paymentNote}</Alert>
       {data.finance.totals.length === 0 ? <EmptyState icon={<Banknote />} title={t.empty} description={t.emptyBody} actions={<LinkButton href="/app/offers" variant="secondary" size="sm">Offers</LinkButton>} /> : data.finance.totals.map(total => {
         const points = data.finance.series.filter(point => point.currency === total.currency);
         const money = (value: number) => new Intl.NumberFormat(locale, { style: "currency", currency: total.currency }).format(value);

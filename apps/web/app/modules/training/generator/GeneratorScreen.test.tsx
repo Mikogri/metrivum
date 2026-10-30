@@ -56,7 +56,7 @@ describe("generator workflow", () => {
     await userEvent.click(screen.getByRole("button", { name: "Reshuffle unlocked exercises" }));
     await waitFor(() => expect(api.mock.calls.find(([r]) => r.path.endsWith("reshuffle"))?.[0].json.state.lockedSlots).toEqual(["session-1/core"]));
     await waitFor(() => expect(screen.getByRole("button", { name: "Regenerate structure" })).not.toHaveAttribute("data-disabled"));
-    await userEvent.click(screen.getByRole("button", { name: "Day 4" }));
+    await userEvent.click(screen.getByRole("button", { name: "Thursday" }));
     expect(screen.getByRole("button", { name: "Save draft and open builder" })).toBeDisabled();
   });
 

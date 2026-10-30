@@ -584,6 +584,43 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/me/username-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    username: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UsernameAvailabilityResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/onboarding": {
         parameters: {
             query?: never;
@@ -14488,6 +14525,7 @@ export interface components {
             description: string;
             cycles: components["schemas"]["Cycle"][];
             exerciseMaxes?: null | components["schemas"]["BlockExerciseMax"][];
+            inactive?: null | boolean;
         };
         BlockExerciseMax: {
             /** Format: uuid */
@@ -14992,6 +15030,8 @@ export interface components {
             /** Format: int32 */
             dayCount: number | string;
             days: components["schemas"]["TrainingDay"][];
+            /** Format: int32 */
+            repeats?: null | number | string;
         };
         DictionariesDto: {
             muscles: components["schemas"]["DictionaryEntryDto"][];
@@ -16287,7 +16327,7 @@ export interface components {
         OfferStatus: "Draft" | "Active" | "Inactive" | "Archived";
         OnboardingRequest: {
             username: string;
-            displayName: string;
+            displayName: null | string;
             /** Format: date */
             birthDate: string;
             acceptedTerms: boolean;
@@ -16296,6 +16336,8 @@ export interface components {
             role?: components["schemas"]["AccountRole"];
             phone?: null | string;
             phoneVisibleToCoach?: null | boolean;
+            firstName?: null | string;
+            lastName?: null | string;
         };
         OrderDto: {
             /** Format: uuid */
@@ -16881,6 +16923,8 @@ export interface components {
             phoneVisibleToCoach: boolean;
             bio?: null | string;
             coverStyle?: unknown;
+            firstName?: null | string;
+            lastName?: null | string;
         };
         PublicOfferListDto: {
             items: components["schemas"]["OfferRevisionDto"][];
@@ -17407,7 +17451,7 @@ export interface components {
             };
         };
         /** @enum {unknown} */
-        SystemFieldKey: "Height" | "Weight" | "BodyFat" | "HrMax" | "TrainingExperience" | "ActivityLevel" | "AvailableEquipment" | "PreferredTrainingDays" | "SessionsPerWeek" | "AvailableSessionDuration" | "Sleep" | "Stress" | "InjuriesLimitationsPainNotes" | "AdditionalNotes" | "Sex" | "Country" | "Region" | "City" | "PostalCode" | null;
+        SystemFieldKey: "Height" | "Weight" | "BodyFat" | "HrMax" | "TrainingExperience" | "ActivityLevel" | "AvailableEquipment" | "PreferredTrainingDays" | "SessionsPerWeek" | "AvailableSessionDuration" | "Sleep" | "Stress" | "InjuriesLimitationsPainNotes" | "AdditionalNotes" | "Sex" | "Country" | "Region" | "City" | "PostalCode" | "Vo2Max" | null;
         TagDto: {
             /** Format: uuid */
             id: string;
@@ -17895,12 +17939,14 @@ export interface components {
             instructions: string;
         };
         UpdateProfileRequest: {
-            displayName: string;
+            displayName: null | string;
             locale: string;
             timeZone: string;
             phone?: null | string;
             phoneVisibleToCoach?: null | boolean;
             bio?: null | string;
+            firstName?: null | string;
+            lastName?: null | string;
         };
         UploadRequest: {
             name: string;
@@ -17927,6 +17973,9 @@ export interface components {
             maximum: null | number | string;
             /** Format: date-time */
             resetAt: string;
+        };
+        UsernameAvailabilityResponse: {
+            available: boolean;
         };
         UsernameContactRequest: {
             username: string;

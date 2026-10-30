@@ -361,6 +361,8 @@ export function ExerciseRow({
   formulaAllowed = false,
   customFormulas = false,
   children,
+  lead,
+  rowProps,
 }: {
   instance: ExerciseInstance;
   workout: Workout;
@@ -376,6 +378,10 @@ export function ExerciseRow({
   customFormulas?: boolean;
   /** Extra cells after the comment (e.g. the row's ⋮ menu in the simple editor). */
   children?: React.ReactNode;
+  /** Cells before the exercise (e.g. the drag handle in the simple editor). */
+  lead?: React.ReactNode;
+  /** Extra attributes and handlers on the row (e.g. drop target for reordering). */
+  rowProps?: React.HTMLAttributes<HTMLDivElement> & { [key: `data-${string}`]: string | boolean | undefined };
 }) {
   const m = useT();
   const t = m.editor.sheet;
@@ -407,6 +413,7 @@ export function ExerciseRow({
 
   return (
     <div
+      {...rowProps}
       role="row"
       style={{ display: "contents" }}
       data-enter={entering || undefined}
@@ -417,6 +424,7 @@ export function ExerciseRow({
         onContextMenu(event);
       }}
     >
+      {lead}
       <ExerciseCell name={name} mode="replace" readOnly={readOnly} style={cells.exercise} onPick={(exerciseId) => apply?.((doc) => updateNode(doc, instance.id, { exerciseId }))} />
       {/* Set types and supersets live in the Sets column, at its right edge. */}
       {formulaCell("Sets", "sets", { paddingRight: 44 })}

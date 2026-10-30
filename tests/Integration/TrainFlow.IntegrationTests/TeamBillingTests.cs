@@ -203,7 +203,7 @@ public sealed partial class OffersBillingTests
         Assert.Equal(3, subscription.PurchasedSeats);
         Assert.Equal(clock.Now.AddMonths(1), subscription.PeriodEnd);
         Assert.Equal(2, await db.Payments.CountAsync());
-        Assert.Equal(998m, await db.Payments.SumAsync(x => x.GrossAmount));
+        Assert.Equal(228m, await db.Payments.SumAsync(x => x.GrossAmount)); // Studio 159 € + renewal as Team (3 seats) 69 €
     }
 
     [CatalogPostgresFact]

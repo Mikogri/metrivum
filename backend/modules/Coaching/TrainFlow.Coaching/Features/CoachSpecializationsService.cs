@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TrainFlow.Accounts.Contracts;
 using TrainFlow.BuildingBlocks;
 using TrainFlow.Coaching.Domain;
@@ -32,13 +32,16 @@ public sealed class CoachSpecializationsService(CoachingDbContext db, IAccountCo
         var rows = await db.CoachSpecializations.AsNoTracking().Where(x => x.CoachId == coach).OrderBy(x => x.SpecializationCode).ToArrayAsync(ct);
         return new(rows.Select(x => x.SpecializationCode).ToArray(), rows.Where(x => x.IsPrimary).Select(x => x.SpecializationCode).ToArray(), version);
     }
+    /// <summary>A coach lists up to ten specializations and marks up to five of them as primary.</summary>
+    public const int MaxSelected = 10;
+    public const int MaxPrimary = 5;
     public static void Validate(CoachSpecializationsRequest request)
     {
-        if (request.SelectedCodes is null || request.PrimaryCodes is null || request.Version < 0 || request.SelectedCodes.Count > 5 || request.PrimaryCodes.Count > 3 ||
+        if (request.SelectedCodes is null || request.PrimaryCodes is null || request.Version < 0 || request.SelectedCodes.Count > MaxSelected || request.PrimaryCodes.Count > MaxPrimary ||
             request.SelectedCodes.Any(x => string.IsNullOrWhiteSpace(x) || x.Length > 80) || request.PrimaryCodes.Any(x => string.IsNullOrWhiteSpace(x) || x.Length > 80) ||
             request.SelectedCodes.Distinct(StringComparer.Ordinal).Count() != request.SelectedCodes.Count ||
             request.PrimaryCodes.Distinct(StringComparer.Ordinal).Count() != request.PrimaryCodes.Count || request.PrimaryCodes.Except(request.SelectedCodes, StringComparer.Ordinal).Any())
-            throw ApiException.Invalid("Choose up to 5 distinct specializations and up to 3 primary specializations from your selection.");
+            throw ApiException.Invalid($"Choose up to {MaxSelected} distinct specializations and up to {MaxPrimary} primary specializations from your selection.");
     }
     public async Task<CoachSpecializationsDto> SaveAsync(CoachSpecializationsRequest request, CancellationToken ct)
     {

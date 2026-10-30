@@ -10,7 +10,7 @@ function Editor({ model = "FixedPackage" }: { model?: BillingOption["model"] }) 
 }
 it("sets and clears expiry without converting unlimited validity to zero", async () => {
   render(<Editor />);
-  const input = screen.getByRole("textbox", { name: "Validity after payment (days)" });
+  const input = screen.getByRole("textbox", { name: "Validity after payment" });
   await userEvent.type(input, "30"); await userEvent.tab();
   expect(JSON.parse(screen.getByTestId("options").textContent!)[0].validityDays).toBe(30);
   await userEvent.clear(input); await userEvent.tab();
@@ -18,7 +18,7 @@ it("sets and clears expiry without converting unlimited validity to zero", async
 });
 it("does not offer a conflicting expiry field for subscriptions", () => {
   render(<Editor model="PeriodSubscription" />);
-  expect(screen.queryByRole("textbox", { name: "Validity after payment (days)" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("textbox", { name: "Validity after payment" })).not.toBeInTheDocument();
 });
 
 it("makes free pricing explicit and requires a price after choosing Paid", async () => {

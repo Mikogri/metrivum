@@ -18,7 +18,7 @@ it("loads only Basic API and offers advanced reports without requesting premium 
   render(<QueryClientProvider client={cache}><MemoryRouter><BasicAnalyze /></MemoryRouter></QueryClientProvider>);
   await screen.findByText("Active clients");
   expect(mocks.api.mock.calls.map(([request]) => request.path)).toEqual(["/api/v1/analyze/basic"]);
-  expect(screen.getByRole("link", { name: "View plans" })).toHaveAttribute("href", "/app/subscription");
+  expect(screen.getByRole("link", { name: "Upgrade to Pro" })).toHaveAttribute("href", "/app/checkout?plan=Pro");
   expect(screen.getByText("No recorded payments in this period")).toBeInTheDocument();
   expect(screen.queryByText("Retention")).not.toBeInTheDocument();
 });

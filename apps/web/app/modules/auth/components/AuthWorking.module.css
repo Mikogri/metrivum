@@ -1,0 +1,103 @@
+.working {
+  display: grid;
+  justify-items: center;
+  gap: var(--tf-space-5);
+  padding: var(--tf-space-6) 0 var(--tf-space-4);
+  text-align: center;
+}
+
+/* The mark: its three pieces rise in one after another, hold, and fade out again, on a slow loop. */
+.mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.mark svg {
+  position: relative;
+  width: 3.25rem;
+  height: auto;
+  overflow: visible;
+}
+
+.piece {
+  fill: var(--tf-color-text);
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: piece-cycle 2.4s calc(var(--i) * 160ms) var(--tf-ease-out, ease-out) infinite;
+}
+
+
+.text {
+  display: grid;
+  gap: var(--tf-space-1-5, 0.375rem);
+}
+
+.title {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: -0.01em;
+}
+
+.step {
+  min-height: 1.25rem;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  animation: step-in 320ms var(--tf-ease-out, ease-out) both;
+}
+
+/* A thin indeterminate bar: a short highlight sweeping across a faint track. */
+.track {
+  position: relative;
+  width: min(12rem, 70%);
+  height: 2px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-border-subtle);
+}
+
+.track span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--tf-color-accent), transparent);
+  animation: track-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes piece-cycle {
+  0% { opacity: 0; transform: translateY(6px) scale(0.96); }
+  18%, 70% { opacity: 1; transform: none; }
+  100% { opacity: 0.12; transform: none; }
+}
+
+
+@keyframes step-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+@keyframes track-sweep {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(260%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .piece {
+    opacity: 1;
+    animation: none;
+  }
+
+  .step {
+    animation: none;
+  }
+
+  .track span {
+    width: 100%;
+    opacity: 0.5;
+    animation: none;
+  }
+}

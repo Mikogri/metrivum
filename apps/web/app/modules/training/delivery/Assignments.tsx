@@ -1,8 +1,8 @@
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { Link } from "react-router";
 import { useState } from "react";
-import { Dumbbell, MoreHorizontal, Plus } from "lucide-react";
-import { Alert, Avatar, Button, Checkbox, DataTable, Dialog, DialogFooter, DialogTrigger, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, IconButton, LinkButton, Option, SearchInput, Select, TextField, useMobileLayout } from "@trainflow/ui-web";
+import { Dumbbell, MoreHorizontal, Plus, UserPlus } from "lucide-react";
+import { Alert, Avatar, Button, Checkbox, DataTable, Dialog, DialogFooter, DialogTrigger, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, IconButton, LinkButton, Option, SearchInput, Select, TextField, toast, useMobileLayout } from "@trainflow/ui-web";
 import { Panel } from "~/shared/ui/Panel";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { useCoachingMutation, useCoachingQuery, type Page, type Relationship, type Group } from "~/modules/coaching";
@@ -30,7 +30,11 @@ function AssignForm({ programId, groupId, relationshipId, teamId, onAssigned }: 
   const groupList = useCoachingQuery<Page<Group>>("/api/v1/coaching/groups", { teamId: teamId ?? undefined, pageSize: 100 });
   const revisions = useCoachingQuery<Page<Revision>>(`/api/v1/training/programs/${programId}/revisions`, { pageSize: 100 });
   const preview = useCoachingMutation<Array<{ id: string; clientId: string; displayName: string; username: string | null }>>(undefined, { invalidate: false });
-  const save = useCoachingMutation(onAssigned);
+  const save = useCoachingMutation(() => {
+    // Assigning always confirms itself.
+    toast({ tone: "success", title: "Program assigned", description: preview.data?.length ? `${preview.data.length} ${preview.data.length === 1 ? "client gets" : "clients get"} it from ${startDate}.` : undefined });
+    onAssigned();
+  });
   const plan = useCoachingQuery<{ version: number }>(`/api/v1/training/programs/${programId}`);
   const apply = useCoachingMutation();
   const body = { relationshipIds: relationships, groupIds: groups, startDate, timeZone, revisionId: revision || revisions.data?.items[0]?.id };
@@ -43,7 +47,7 @@ function AssignForm({ programId, groupId, relationshipId, teamId, onAssigned }: 
     {noRecipients ? <Alert tone="info" title={teamId ? "No Team clients to assign to" : "No clients to assign to yet"} actions={teamId ? undefined : <LinkButton href="/app/clients" size="sm">Open clients</LinkButton>}>{teamId ? "Programs go to the Team clients assigned to you. Ask the Team owner to assign clients to you." : "Programs go to active clients. Invite a client or accept an application, then assign the program."}</Alert> : null}
     <p className={styles.hint}>{teamId ? "Recipients are your assigned Team clients and Team groups. The program stays in your personal library." : "Recipients are your private clients and personal groups."} New group members are not included automatically.</p>
     {revisions.isError && <Failure error={revisions.error} />}
-    {revisions.data && !revisions.data.items.length ? <div><EmptyState title="Apply changes before assigning" description="Create the first applied version, then choose clients." /><Button loading={apply.isPending} isDisabled={!plan.data} onPress={() => apply.mutate({ method: "POST", path: `/api/v1/training/programs/${programId}/apply`, ifMatch: plan.data!.version, idempotencyKey: key })}>Apply changes</Button><MutationError error={apply.error} /></div> : <div className={styles.formRow}>
+    {revisions.data && !revisions.data.items.length ? <div className={styles.applyFirst}><EmptyState title="Apply changes before assigning" description="Create the first applied version, then choose clients." /><Button loading={apply.isPending} isDisabled={!plan.data} onPress={() => apply.mutate({ method: "POST", path: `/api/v1/training/programs/${programId}/apply`, ifMatch: plan.data!.version, idempotencyKey: key })}>Apply changes</Button><MutationError error={apply.error} /></div> : <div className={styles.formRow}>
       <Select label="Applied version" selectedKey={revision || revisions.data?.items[0]?.id || null} onSelectionChange={key => { setRevision(String(key)); changed(); }}>
         {(revisions.data?.items.slice(0, 1) ?? []).map(item => <Option key={item.id} id={item.id}>{`Revision ${item.number}`}</Option>)}
       </Select>
@@ -76,19 +80,23 @@ function AssignForm({ programId, groupId, relationshipId, teamId, onAssigned }: 
     </section>
     <MutationError error={preview.error ?? save.error} />
     {previewed && (preview.data?.length ? <Alert tone="info" title={`${preview.data.length} ${preview.data.length === 1 ? "client" : "unique active clients"} will receive this program, starting ${startDate} (${timeZone}).`}>{preview.data.map(person => person.displayName || person.username || "Client").join(", ")}</Alert> : <Alert tone="warning" title="Nobody would receive this program">The selected groups have no active clients. Choose clients directly or add members to the group.</Alert>)}
-    {!previewed && nothingChosen && !noRecipients ? <p className={styles.hint}>Choose at least one client or group, then preview who receives the program.</p> : null}
-    <DialogFooter><Button isDisabled={!body.revisionId || !startDate || !relationships.length && !groups.length || save.isPending} loading={preview.isPending} onPress={() => preview.mutate({ method: "POST", path: `/api/v1/training/programs/${programId}/assignments/preview`, json: body })}>Preview recipients</Button>
-      <Button variant="primary" isDisabled={!previewed} loading={save.isPending} onPress={() => save.mutate({ method: "POST", path: `/api/v1/training/programs/${programId}/assignments`, json: body, idempotencyKey: key })}>Assign program</Button></DialogFooter>
+    {!previewed && nothingChosen && !noRecipients ? <p className={styles.hint}>Choose at least one client or group, then continue to see who receives the program.</p> : null}
+    {/* One action: Continue shows who receives the program; once that's shown, the same button assigns it. */}
+    <DialogFooter>{previewed
+      ? <Button variant="primary" isDisabled={!preview.data?.length} loading={save.isPending} onPress={() => save.mutate({ method: "POST", path: `/api/v1/training/programs/${programId}/assignments`, json: body, idempotencyKey: key })}>Assign program</Button>
+      : <Button variant="primary" isDisabled={!body.revisionId || !startDate || !relationships.length && !groups.length || save.isPending} loading={preview.isPending} onPress={() => preview.mutate({ method: "POST", path: `/api/v1/training/programs/${programId}/assignments/preview`, json: body })}>Continue</Button>}
+    </DialogFooter>
   </div>;
 }
 
 export function localDate(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
-export function AssignProgramButton({ programId, groupId, relationshipId, teamId, size }: { programId: string; groupId?: string; relationshipId?: string; teamId?: string | null; size?: "sm" | "md" }) {
+/** `assigned`: how many clients have the program, shown in brackets after the label when known. */
+export function AssignProgramButton({ programId, groupId, relationshipId, teamId, size, assigned }: { programId: string; groupId?: string; relationshipId?: string; teamId?: string | null; size?: "sm" | "md"; assigned?: number }) {
   const [open, setOpen] = useState(false);
-  return <DialogTrigger isOpen={open} onOpenChange={setOpen}><Button size={size}>Assign program</Button><Dialog title="Assign program" size="lg"><AssignForm programId={programId} groupId={groupId} relationshipId={relationshipId} teamId={teamId} onAssigned={() => setOpen(false)} /></Dialog></DialogTrigger>;
+  return <DialogTrigger isOpen={open} onOpenChange={setOpen}><Button size={size} iconStart={<UserPlus />}>{assigned === undefined ? "Assign program" : `Assign program (${assigned})`}</Button><Dialog title="Assign program" size="lg"><AssignForm programId={programId} groupId={groupId} relationshipId={relationshipId} teamId={teamId} onAssigned={() => setOpen(false)} /></Dialog></DialogTrigger>;
 }
 
-export function AssignmentList({ programId, relationshipId, groupId, coach = true, assign }: { programId?: string; relationshipId?: string; groupId?: string; coach?: boolean; assign?: { relationshipId?: string; groupId?: string; teamId?: string | null } }) {
+export function AssignmentList({ programId, relationshipId, groupId, coach = true, assign, title = "Assigned programs", description }: { programId?: string; relationshipId?: string; groupId?: string; coach?: boolean; assign?: { relationshipId?: string; groupId?: string; teamId?: string | null }; title?: string; description?: string }) {
   const mobile = useMobileLayout();
   const [page, setPage] = useState(1);
   const { mode } = useWorkspace();
@@ -101,7 +109,7 @@ export function AssignmentList({ programId, relationshipId, groupId, coach = tru
   };
   const STATUS_LABEL: Record<string, string> = { Active: "Resume", Paused: "Pause", Completed: "Complete", Cancelled: "Cancel / exclude" };
   return (
-    <Panel title="Assigned programs" flush actions={assign ? <AssignProgramPicker {...assign} /> : undefined}>
+    <Panel title={title} description={description} flush actions={assign ? <AssignProgramPicker {...assign} /> : undefined}>
       <MutationError error={mutate.error} />
       {confirmDialog}
       {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : !list.data.items.length ? (

@@ -283,3 +283,55 @@
   line-height: var(--tf-leading-snug);
   text-align: center;
 }
+
+/* Publishing: whether clients can see the offer, in one coloured line above the steps. */
+.publishState {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2-5);
+  margin-bottom: var(--tf-space-3);
+  padding: var(--tf-space-2-5) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.publishState > svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 1px;
+}
+
+.publishState > span {
+  display: grid;
+  color: var(--tf-color-text-secondary);
+}
+
+.publishState strong {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.publishState[data-state="unpublished"] {
+  border-color: color-mix(in srgb, var(--tf-color-warning) 55%, transparent);
+  background: color-mix(in srgb, var(--tf-color-warning) 16%, transparent);
+  color: var(--tf-color-warning);
+}
+
+.publishState[data-state="unpublished"] strong {
+  color: var(--tf-color-warning);
+}
+
+.publishState[data-state="active"] {
+  border-color: color-mix(in srgb, var(--tf-color-success) 45%, transparent);
+  background: var(--tf-color-success-soft, color-mix(in srgb, var(--tf-color-success) 12%, transparent));
+  color: var(--tf-color-success);
+}
+
+.publishState[data-state="inactive"] {
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-tertiary);
+}

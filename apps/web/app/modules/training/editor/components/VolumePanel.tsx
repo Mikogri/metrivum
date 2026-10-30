@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { TrainingDocument, Workout } from "@trainflow/api-client-web";
-import { IconButton, Option, Segment, SegmentedControl, Select } from "@trainflow/ui-web";
+import { IconButton, InfoTip, Option, Segment, SegmentedControl, Select } from "@trainflow/ui-web";
 import { MuscleHeatmap } from "~/modules/anatomy";
 import { useDictionaryLabel, type ExerciseLabel } from "~/modules/exercises";
 import { formatNumber } from "~/shared/i18n/format";
@@ -97,8 +97,12 @@ export function VolumeContent({ sections, names, title }: { sections: VolumeSect
       <Segment id="heatmap">{t.heatmap}</Segment>
     </SegmentedControl>
   );
+  // How the numbers are counted: behind a small info button beside the switch, not a paragraph under the tables.
+  const info = <InfoTip label={t.noteLabel} placement="bottom end">{t.note}</InfoTip>;
   // With a title, Table / Heatmap sits beside it and the view's own switches go underneath.
-  const head = title ? <div className={styles.volumeHeader}>{title}{modeSwitch}</div> : modeSwitch;
+  const head = title
+    ? <div className={styles.volumeHeader}>{title}<span className={styles.volumeHeadEnd}>{info}{modeSwitch}</span></div>
+    : <span className={styles.volumeHeadEnd}>{modeSwitch}{info}</span>;
 
   if (mode === "heatmap") {
     return (
@@ -172,7 +176,6 @@ export function VolumeContent({ sections, names, title }: { sections: VolumeSect
           </section>
         );
       })}
-      <p className={styles.volumeNote}>{t.note}</p>
     </div>
   );
 }

@@ -97,7 +97,7 @@ public sealed partial class OffersBillingTests
         var billing = TeamBilling(scope);
         var method = await scope.ServiceProvider.GetRequiredService<BillingService>().AddMethodAsync(new("Simulated renewal"), default);
         var quote = await billing.QuoteAsync(new("Studio", 10, PlanCatalog.PriceVersion("Studio"), true, method.Id, "Studio"), default);
-        Assert.Equal(699, quote.GrossAmount);
+        Assert.Equal(159, quote.GrossAmount); // Studio, euro catalog
         var active = await billing.ConfirmAsync(new(quote.Id, "studio", method.Id), default);
         var organization = Organization(scope, owner, clock);
         var members = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };

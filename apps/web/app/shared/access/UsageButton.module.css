@@ -16,6 +16,7 @@
 }
 
 .panel {
+  --ring-bg: var(--tf-color-surface-raised);
   width: min(20rem, calc(100vw - 1.5rem));
 }
 
@@ -50,7 +51,7 @@
 
 .list {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--tf-space-0-5);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -59,9 +60,13 @@
 .row {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2-5);
-  padding: var(--tf-space-1-5) var(--tf-space-1);
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-2) var(--tf-space-1);
   font-size: var(--tf-text-sm);
+}
+
+.row + .row {
+  border-top: 1px solid var(--tf-color-border-subtle);
 }
 
 .name {

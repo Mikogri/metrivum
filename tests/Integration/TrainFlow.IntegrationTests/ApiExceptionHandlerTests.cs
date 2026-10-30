@@ -16,7 +16,7 @@ public sealed class ApiExceptionHandlerTests
         await using var services = new ServiceCollection().AddLogging().AddProblemDetails().BuildServiceProvider();
         var http = new DefaultHttpContext { RequestServices = services };
         http.Response.Body = new MemoryStream();
-        var handler = new ApiExceptionHandler(services.GetRequiredService<IProblemDetailsService>(), NullLogger<ApiExceptionHandler>.Instance);
+        var handler = new ApiExceptionHandler(services.GetRequiredService<IProblemDetailsService>(), NullLogger<ApiExceptionHandler>.Instance, new Microsoft.Extensions.Hosting.Internal.HostingEnvironment { EnvironmentName = "Testing" });
         var error = new BadHttpRequestException("private body", new JsonException("private value", "$.document.maxesTables[0].rows[0].loadUnit", null, null));
         await handler.TryHandleAsync(http, error, default);
         http.Response.Body.Position = 0;
@@ -38,7 +38,7 @@ public sealed class ApiExceptionHandlerTests
         await using var services = new ServiceCollection().AddLogging().AddProblemDetails().BuildServiceProvider();
         var http = new DefaultHttpContext { RequestServices = services };
         http.Response.Body = new MemoryStream();
-        var handler = new ApiExceptionHandler(services.GetRequiredService<IProblemDetailsService>(), NullLogger<ApiExceptionHandler>.Instance);
+        var handler = new ApiExceptionHandler(services.GetRequiredService<IProblemDetailsService>(), NullLogger<ApiExceptionHandler>.Instance, new Microsoft.Extensions.Hosting.Internal.HostingEnvironment { EnvironmentName = "Testing" });
         Exception error = new PostgresException("private database detail", "ERROR", "ERROR", sqlState);
         if (wrapped) error = new DbUpdateException("private EF detail", error);
 

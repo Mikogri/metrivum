@@ -43,7 +43,7 @@ export function usePlanClientContext(programId: string, enabled: boolean) {
     <div className={styles.joined}>
     <Combobox size="sm" aria-label="Client perspective" placeholder="View as…" inputValue={search} onInputChange={setSearch}
       selectedKey={client?.id ?? null} onSelectionChange={key => { const next = clients.data?.items.find(item => item.id === key); if (next) choose(next); }}
-      defaultFilter={() => true} menuTrigger="input" allowsEmptyCollection menuWidth="sm" className={styles.picker}
+      defaultFilter={() => true} allowsEmptyCollection menuWidth="sm" className={styles.picker}
       emptyState={<span className={styles.pickerEmpty}>
         <UserSearch aria-hidden="true" />
         {clients.isLoading || term !== search ? <strong>Loading clients…</strong>
@@ -57,7 +57,6 @@ export function usePlanClientContext(programId: string, enabled: boolean) {
     </div>
     {client ? <Button size="sm" variant="ghost" onPress={() => choose(null)}>Template view</Button> : null}
     
-    <AssignProgramButton programId={programId} size="sm" />
     {client ? <Button size="sm" onPress={() => setMetricsOpen(true)}>Client data</Button> : null}
   </div> : null;
   const banners = enabled && client ? <SelectedClient key={`${account}:${programId}:${client.id}:${assigned?.id ?? "preview"}`} programId={programId} client={client}
@@ -74,7 +73,9 @@ export function usePlanClientContext(programId: string, enabled: boolean) {
     </Dialog>
     {client && metricsOpen ? <ClientMetrics key={`${account}:${client.id}`} relationshipId={client.id} title={nameOf(client)} onClose={() => setMetricsOpen(false)} /> : null}
   </>;
-  return { value: selectedValue, toolbar, banners, dialogs };
+  // Sits next to "Apply changes" in the editor's tools: apply, then assign.
+  const assign = enabled ? <AssignProgramButton programId={programId} size="sm" assigned={assignments.data?.total} /> : null;
+  return { value: selectedValue, toolbar, banners, dialogs, assign };
 }
 
 function AssignedClient({ assignment, onChoose }: { assignment: Assignment; onChoose: (client: PlanClient) => void }) {

@@ -120,6 +120,26 @@ export class SessionManager {
     this.setState({ phase: "ready", accounts, activeSlot, generation: this.state.generation + 1 });
   }
 
+  /**
+   * Asks Auth again whether every signed-in account still exists. An account deleted elsewhere (another tab, the
+   * dashboard, the development eraser) keeps a valid-looking JWT in this browser until then; this signs it out and
+   * removes its stored session. Network errors keep the account.
+   */
+  async revalidate() {
+    if (this.state.phase !== "ready") return;
+    for (const account of [...this.state.accounts]) {
+      const client = this.clientFor(account.slot);
+      const { data } = await client.auth.getSession();
+      if (!data.session) continue;
+      const verified = await client.auth.getUser(data.session.access_token);
+      const gone = verified.error ? [400, 401, 403, 404].includes(verified.error.status ?? 0) : verified.data.user?.id !== account.userId;
+      if (gone) {
+        await this.signOut(account.slot);
+        forgetSlot(account.slot);
+      }
+    }
+  }
+
   /** Keeps the account list in sync with refreshes, sign-outs and other tabs. */
   private watch(slot: SlotId, client: SupabaseClient) {
     if (this.subscriptions.has(slot)) return;

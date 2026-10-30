@@ -34,13 +34,15 @@ describe("registration account choice", () => {
       expect(screen.getByRole("button", { name: /Account type/ })).toHaveTextContent(role);
       await userEvent.type(screen.getByLabelText(/^Email/), "account@example.com");
       await userEvent.type(screen.getByLabelText(/^Password/), "test-password-123");
+      await userEvent.click(screen.getByRole("checkbox", { name: /I accept the/ }));
       await userEvent.click(screen.getByRole("button", { name: "Create account" }));
       // The link is the main way: the page waits for it and offers a new one after a minute.
       await screen.findByText("Waiting for you to open the link…");
       const request = mocks.signUp.mock.calls[0]![0];
       const next = new URL(request.options.emailRedirectTo).searchParams.get("next");
       expect(sanitizeReturnTo(next)).toBe(`/onboarding?role=${role}`);
-      expect(request.options.data).toBeUndefined();
+      // Only the terms acceptance travels with the sign-in account; the role stays in the redirect.
+      expect(Object.keys(request.options.data).sort()).toEqual(["terms_accepted_at", "terms_version"]);
       expect(screen.getByRole("button", { name: /^New link in/ })).toBeDisabled();
       await act(() => vi.advanceTimersByTimeAsync(61_000));
       await userEvent.click(await screen.findByRole("button", { name: "Send a new link" }));
@@ -69,6 +71,7 @@ describe("registration account choice", () => {
     setup("/auth/register?role=Coach");
     await userEvent.type(screen.getByLabelText(/^Email/), "account@example.com");
     await userEvent.type(screen.getByLabelText(/^Password/), "test-password-123");
+    await userEvent.click(screen.getByRole("checkbox", { name: /I accept the/ }));
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
     await screen.findByText("/onboarding?role=Coach");
   });

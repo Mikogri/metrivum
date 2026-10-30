@@ -37,9 +37,13 @@ public sealed class CoachSpecializationTests
         Assert.Equal(1, (await save.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("version").GetInt64());
         Assert.Equal(HttpStatusCode.PreconditionFailed, (await coach.PutAsJsonAsync("/api/v1/me/coaching-specializations", new { selectedCodes = codes, primaryCodes = primary, version = 0 })).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.PutAsJsonAsync("/api/v1/me/coaching-specializations", new { selectedCodes = codes, primaryCodes = primary, version = 0 })).StatusCode);
-        foreach (var invalid in new[] { codes.Append("strongman").ToArray(), new[] { "unknown" }, new[] { "powerlifting", "powerlifting" } })
+        // Eleven codes: one more than the limit of ten selected specializations.
+        var eleven = new[] { "strength_training", "powerlifting", "olympic_weightlifting", "hypertrophy", "bodybuilding", "strongman", "calisthenics", "aerobic_conditioning", "anaerobic_conditioning", "interval_training", "endurance_training" };
+        foreach (var invalid in new[] { eleven, new[] { "unknown" }, new[] { "powerlifting", "powerlifting" } })
             Assert.Equal(HttpStatusCode.BadRequest, (await coach.PutAsJsonAsync("/api/v1/me/coaching-specializations", new { selectedCodes = invalid, primaryCodes = Array.Empty<string>(), version = 1 })).StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, (await coach.PutAsJsonAsync("/api/v1/me/coaching-specializations", new { selectedCodes = codes, primaryCodes = codes.Take(4).ToArray(), version = 1 })).StatusCode);
+        // Six primary specializations: one more than the limit of five.
+        var six = codes.Append("strongman").ToArray();
+        Assert.Equal(HttpStatusCode.BadRequest, (await coach.PutAsJsonAsync("/api/v1/me/coaching-specializations", new { selectedCodes = six, primaryCodes = six, version = 1 })).StatusCode);
         using (var scope = factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<CoachingDbContext>();

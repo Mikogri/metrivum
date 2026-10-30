@@ -2,7 +2,8 @@ import type { BlockExerciseMax, FormulaUse, Prescription, TrainingDocument } fro
 
 /** Stored bindings identify sources; resolved values belong only to evaluation requests. */
 export function storedFormula<T extends FormulaUse>(formula: T): T {
-  return { ...formula, inputs: Object.fromEntries(Object.entries(formula.inputs).filter(([name]) => !formula.variableBindings?.[name])) };
+  // A formula still being typed may not have its inputs yet; saving the draft must not fail on it.
+  return { ...formula, inputs: Object.fromEntries(Object.entries(formula.inputs ?? {}).filter(([name]) => !formula.variableBindings?.[name])) };
 }
 
 export function storedDocument(document: TrainingDocument): TrainingDocument {

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TrainFlow.Training.Contracts;
+using TrainFlow.Training.Domain;
 using TrainFlow.Training.Infrastructure;
 
 namespace TrainFlow.Training.Delivery;
@@ -33,11 +34,13 @@ public sealed class AssignedProgramCyclesReader(TrainingDbContext db) : IAssigne
     {
         var start = assignment.StartDate;
         var cycles = new List<AssignedProgramCycle>();
-        foreach (var cycle in revision.Snapshot.Document.Blocks.SelectMany(b => b.Cycles))
-        {
-            cycles.Add(new(cycle.Id, start, cycle.DayCount));
-            start = start.AddDays(cycle.DayCount);
-        }
+        var document = revision.Snapshot.Document;
+        foreach (var cycle in document.Blocks.SelectMany(b => b.Cycles))
+            for (var run = 0; run < DocumentRules.RunsOf(document, cycle); run++)
+            {
+                cycles.Add(new(cycle.Id, start, cycle.DayCount));
+                start = start.AddDays(cycle.DayCount);
+            }
         return new(assignment.Id, assignment.RelationshipId, assignment.ProgramName, assignment.TimeZone, assignment.Status == AssignmentStatus.Active, cycles, assignment.Status is AssignmentStatus.Completed or AssignmentStatus.Cancelled);
     }
 }

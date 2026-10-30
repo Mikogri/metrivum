@@ -230,10 +230,7 @@
   transition: border-color var(--tf-duration-fast) ease;
 }
 
-/* No frame: the name reads as a title; focus shows a quiet background instead of a border. */
-.title:focus-visible {
-  background: var(--tf-color-surface-hover);
-}
+/* No frame and no fill on focus: the name reads as a title, only the caret shows it is being edited. */
 
 .tools {
   display: flex;

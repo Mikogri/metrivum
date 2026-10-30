@@ -37,6 +37,7 @@ function formatDetail(m: AppMessages, locale: string, key: DetailKey, details: D
       case "Weight": return `${number(value)} ${u.kg}`;
       case "BodyFat": return `${number(value)} ${u.percent}`;
       case "HrMax": return `${number(value, 0)} ${u.bpm}`;
+      case "Vo2Max": return `${number(value)} ${u.vo2}`;
       case "Sleep": return `${number(value)} ${u.hours}`;
       case "Stress": return `${number(value, 0)}/10`;
       case "AvailableSessionDuration": return `${number(value, 0)} ${u.minutes}`;

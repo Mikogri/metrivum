@@ -29,6 +29,8 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
   const { confirm, dialog } = useDiscardConfirm();
   const actions = useAccountActions(confirm);
   const name = profile.displayName || profile.username || active?.email || "";
+  // The second line names the account by its username; the email only stands in until a username exists.
+  const handle = profile.username ? `@${profile.username}` : active?.email ?? "";
   const [signingOut, setSigningOut] = useState(false);
   const completeness = useProfileCompleteness();
   const next = completeness.items.find((item) => !item.done);
@@ -41,7 +43,7 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
           {/* Kept in the DOM while the sidebar collapses so the text can fade instead of popping. */}
           <span className={styles.who} aria-hidden={compact || undefined}>
             <span className={styles.name}>{name}</span>
-            <span className={styles.email}>{active?.email}</span>
+            <span className={styles.email}>{handle}</span>
           </span>
           <ChevronsUpDown aria-hidden="true" className={styles.chevron} />
         </AriaButton>
@@ -65,7 +67,7 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
                 <Avatar name={name} size="lg" decorative />
                 <span className={styles.profileText}>
                   <strong>{name}</strong>
-                  <small>{active?.email}</small>
+                  <small>{handle}</small>
                 </span>
               </span>
               {completeness.pending ? null : (
@@ -96,7 +98,7 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
                 description={account.slot === state.activeSlot ? m.accounts.current : undefined}
               >
                 <span className={styles.accountRow}>
-                  <span className={styles.accountEmail}>{account.email}</span>
+                  <span className={styles.accountEmail}>{account.slot === state.activeSlot && profile.username ? handle : account.email}</span>
                   {account.slot === state.activeSlot ? <Check aria-hidden="true" className={styles.current} /> : null}
                 </span>
               </DropdownMenuItem>

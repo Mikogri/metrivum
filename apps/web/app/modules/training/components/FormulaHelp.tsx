@@ -1,5 +1,5 @@
 import { ChevronDown, Info } from "lucide-react";
-import { IconButton, Tooltip, TooltipTrigger } from "@trainflow/ui-web";
+import { InfoTip } from "@trainflow/ui-web";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { FORMULA_FUNCTIONS } from "./FormulaExpressionInput";
@@ -12,16 +12,7 @@ export function FormulaHelp({ compact = false }: { compact?: boolean }) {
   const title = locale === "pl" ? "Jak pisać formuły" : "Formula help";
   const text = locale === "pl" ? "Zacznij od =, np. =80 * 0.8 lub =maxBench1r * 80%. Używaj + − * / oraz nawiasów. = podpowiada funkcje i formuły; / podpowiada dane klienta, np. oneRepMax i hrMax. Brakujące parametry trzeba uzupełnić. Wynik oblicza serwer." : "Start with =, e.g. =80 * 0.8 or =maxBench1r * 80%. Use + − * / and parentheses. = suggests functions and formulas; / suggests client data such as oneRepMax and hrMax. Complete missing parameters. The server calculates the result.";
   if (compact)
-    return (
-      <TooltipTrigger delay={150}>
-        <IconButton size="sm" label={title} icon={<Info />} showTooltip={false} />
-        <Tooltip placement="bottom">
-          <strong>{title}</strong>
-          <br />
-          {text}
-        </Tooltip>
-      </TooltipTrigger>
-    );
+    return <InfoTip label={title}>{text}</InfoTip>;
   // In the formula dialog: a quiet collapsible card with examples, operators and functions.
   const pl = locale === "pl";
   return (

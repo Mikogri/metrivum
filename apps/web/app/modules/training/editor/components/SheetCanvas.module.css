@@ -207,6 +207,21 @@
   color: var(--tf-color-info);
 }
 
+.chip[data-kind="workout"] {
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+
+/* Workout cards: a summary line when folded, the unsaved warning when not plugged into a cycle. */
+.workoutLoose {
+  padding: var(--tf-space-1) var(--tf-space-2);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.card[data-link-target][data-kind="workout"] {
+  border-color: rgb(62 224 154 / 0.5);
+}
+
 .kind {
   flex: 1;
   overflow: hidden;
@@ -601,6 +616,10 @@ textarea.multiline {
 
 .minimapSvg rect[data-kind="cycle"] {
   fill: rgb(121 168 255 / 0.5);
+}
+
+.minimapSvg rect[data-kind="workout"] {
+  fill: color-mix(in srgb, var(--tf-color-violet) 50%, transparent);
 }
 
 .minimapSvg .minimapView {
@@ -1038,8 +1057,13 @@ button.cell:disabled {
 }
 
 .volumeNote {
-  margin-top: var(--tf-space-4);
   line-height: var(--tf-leading-normal);
+}
+
+.volumeHeadEnd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1481,7 +1505,7 @@ span[data-rename]:hover {
   position: relative;
   display: grid;
   place-items: center;
-  height: 34px;
+  height: 24px;
   padding: 0;
   border: 1px solid transparent;
   border-radius: var(--tf-radius-sm);
@@ -1532,7 +1556,7 @@ button.tile[data-kind="rest"]:hover {
   display: flex;
   align-items: center;
   gap: var(--tf-space-2);
-  height: 20px;
+  height: 18px;
   min-width: 0;
   font-size: var(--tf-text-2xs);
 }
@@ -1962,7 +1986,6 @@ button.tile[data-kind="workout"]:hover {
   gap: var(--tf-space-1);
   margin-left: auto;
   padding-left: var(--tf-space-2);
-  border-left: 1px solid var(--tf-color-border-subtle);
 }
 
 .dragModeItem {
@@ -1974,4 +1997,128 @@ button.tile[data-kind="workout"]:hover {
 .dragModeItem svg {
   width: 0.875rem;
   height: 0.875rem;
+}
+
+/* "+" tile at the end of a cycle's days: adds one. */
+.tile[data-kind="add"] {
+  border: 1px dashed var(--tf-color-border);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  cursor: pointer;
+}
+
+.tile[data-kind="add"]:hover {
+  border-color: var(--tf-color-border-strong);
+  color: var(--tf-color-text);
+}
+
+/* A folded workout is only its header: one cell high, a cycle card wide. */
+.card[data-kind="workout"][data-collapsed] .cardHead {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  border-bottom: 0;
+}
+
+.card[data-kind="workout"][data-collapsed] .cardHead > :last-child {
+  grid-column: auto;
+}
+
+/* Inactive blocks, with their cycles and workouts, stay on the sheet but fade back. */
+.card[data-inactive] {
+  opacity: 0.5;
+}
+
+.card[data-inactive]:hover,
+.card[data-inactive]:focus-within {
+  opacity: 0.8;
+}
+
+/* Cycle card: the name beside its chip, one quiet line of facts, compact day strip and the workouts by day. */
+.card[data-kind="cycle"] {
+  gap: var(--tf-space-1-5);
+}
+
+.cycleName {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cycleMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--tf-space-2);
+  padding: 0 var(--tf-space-1);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+}
+
+.cycleMeta > span + span::before {
+  content: "·";
+  margin-right: var(--tf-space-2);
+  color: var(--tf-color-text-disabled);
+}
+
+.cycleRuns {
+  color: var(--tf-color-info);
+  font-weight: var(--tf-weight-medium);
+}
+
+.card[data-kind="cycle"] .tiles {
+  gap: 2px;
+  margin-top: 0;
+  padding: 3px;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: rgb(0 0 0 / 0.15);
+}
+
+.card[data-kind="cycle"] .tile {
+  height: 22px;
+  border-radius: var(--tf-radius-xs);
+}
+
+.card[data-kind="cycle"] .tile[data-kind="rest"] {
+  border-color: transparent;
+  background: transparent;
+}
+
+.card[data-kind="cycle"] .tile[data-kind="workout"] {
+  border-color: transparent;
+  background: var(--tf-color-info);
+  color: var(--tf-color-bg);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.card[data-kind="cycle"] .legend {
+  gap: 2px;
+  margin: 0;
+}
+
+.card[data-kind="cycle"] .legend li {
+  gap: var(--tf-space-2);
+  height: 18px;
+}
+
+.card[data-kind="cycle"] .legendDay {
+  display: grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1rem;
+  padding: 0 3px;
+  border-radius: var(--tf-radius-xs);
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+  font-size: var(--tf-text-2xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--tf-weight-semibold);
+}
+
+.card[data-kind="cycle"][data-collapsed] .cycleMeta {
+  overflow: hidden;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }

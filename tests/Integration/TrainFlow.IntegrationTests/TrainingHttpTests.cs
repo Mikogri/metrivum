@@ -23,7 +23,9 @@ public sealed class TrainingHttpTests
             document = new
             {
                 schemaVersion = 1,
-                blocks = Array.Empty<object>()
+                // One empty workout: a plan needs at least one before its changes can be applied.
+                blocks = new object[] { new { id = Guid.NewGuid(), name = "Block", description = "", cycles = new object[] { new { id = Guid.NewGuid(), name = "Cycle", description = "", dayCount = 7,
+                    days = new object[] { new { id = Guid.NewGuid(), dayNumber = 1, workouts = new object[] { new { id = Guid.NewGuid(), name = "Workout", description = "", exercises = Array.Empty<object>(), groups = Array.Empty<object>() } } } } } } } }
             }
         });
         Assert.Equal(HttpStatusCode.OK, create.StatusCode);

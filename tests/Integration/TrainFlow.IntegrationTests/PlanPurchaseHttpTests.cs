@@ -28,7 +28,10 @@ public sealed partial class CoachingIntakeTests
         var client = await Onboard(factory, original, "Client");
         var stranger = await Onboard(factory, original, "Client");
         var offer = await PublishOffer(coach.Http, "Plan sale", 25, OfferPurpose.TrainingPlan);
-        var sourceResponse = await coach.Http.PostAsJsonAsync("/api/v1/training/programs", new { name = "Private source", description = "Private draft", kind = "Program", document = new { schemaVersion = 1, blocks = Array.Empty<object>() } });
+        var sourceResponse = await coach.Http.PostAsJsonAsync("/api/v1/training/programs", new { name = "Private source", description = "Private draft", kind = "Program", document = new { schemaVersion = 1,
+            // One empty workout: a plan needs at least one before its changes can be applied.
+            blocks = new object[] { new { id = Guid.NewGuid(), name = "Block", description = "", cycles = new object[] { new { id = Guid.NewGuid(), name = "Cycle", description = "", dayCount = 7,
+                days = new object[] { new { id = Guid.NewGuid(), dayNumber = 1, workouts = new object[] { new { id = Guid.NewGuid(), name = "Workout", description = "", exercises = Array.Empty<object>(), groups = Array.Empty<object>() } } } } } } } } } });
         Assert.Equal(HttpStatusCode.OK, sourceResponse.StatusCode);
         var source = await Body(sourceResponse);
         var sourceId = source.GetProperty("id").GetGuid();

@@ -10,7 +10,7 @@ vi.mock("@trainflow/ui-web", async (original) => ({ ...await original<typeof UiW
 vi.mock("~/shared/access", () => ({ useFeatureAccess: () => ({ allowed: true, pending: false }) }));
 vi.mock("~/shared/session", () => ({ useAccountContext: () => ({ account: { userId: "self" }, accountKey: "self", api: vi.fn(), lifecycle: { isCurrent: () => true } }), useApi: () => vi.fn(), useUnsavedWorkGuard: vi.fn() }));
 vi.mock("./provider", () => ({ useMessagingRealtime: () => ({ typing: [] }) }));
-vi.mock("./api", () => ({ root: "/api/v1/messaging", useChatQuery: (path: string) => path.endsWith("/conversations") ? { data: [{ id: "chat-1", title: "Alex", type: "Direct", unreadCount: 0, membershipState: "Active" }] } : { isPending: true }, cacheMessage: vi.fn() }));
+vi.mock("./api", () => ({ root: "/api/v1/messaging", useChatQuery: () => ({ isPending: true }), useChatPages: () => ({ items: [{ id: "chat-1", title: "Alex", type: "Direct", unreadCount: 0, membershipState: "Active" }], isPending: false, isError: false, error: null, refetch: () => undefined, isLoadingMore: false, hasMore: false }), cacheMessage: vi.fn() }));
 
 beforeEach(() => { state.mobile = true; });
 function setup(url = "/app/messages") {

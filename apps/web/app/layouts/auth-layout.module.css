@@ -118,9 +118,9 @@
 
   position: relative;
   display: grid;
-  gap: var(--tf-space-6);
+  gap: var(--tf-space-5);
   width: min(27rem, 100%);
-  padding: var(--tf-space-10) var(--tf-space-8);
+  padding: var(--tf-space-6) var(--tf-space-8);
   border: 1px solid var(--tf-glass-border);
   border-radius: var(--tf-radius-xl);
   background: var(--tf-gloss), var(--tf-glass);
@@ -236,7 +236,7 @@
   }
 
   .card {
-    padding: var(--tf-space-8) var(--tf-space-5);
+    padding: var(--tf-space-6) var(--tf-space-5);
   }
 
 

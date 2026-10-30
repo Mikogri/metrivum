@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import { Alert, Button, Option, Select, TextField } from "@trainflow/ui-web";
+import { Alert, Button, Checkbox, Option, Select, TextField } from "@trainflow/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";
@@ -14,6 +14,9 @@ import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Create account — Metrivum");
 
+/** The version of the terms a new account accepts; onboarding records the same version. */
+const TERMS_VERSION = "v1";
+
 export default function Register() {
   const m = useT();
   const t = m.auth.register;
@@ -26,6 +29,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
+  const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState<{ text: string; field: "email" | "password" | null; exists?: boolean } | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
@@ -40,7 +44,7 @@ export default function Register() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    if (!isValidEmail(email) || passwordProblem(m, password, email) || slot === null) return;
+    if (!isValidEmail(email) || passwordProblem(m, password, email) || !accepted || slot === null) return;
     const address = normalizeEmail(email);
     setPending(true);
     setError(null);
@@ -48,7 +52,7 @@ export default function Register() {
       const { data, error: signUpError } = await manager.client(slot).auth.signUp({
         email: address,
         password,
-        options: { emailRedirectTo: callbackUrl(slot, onboardingUrl(role), address) },
+        options: { emailRedirectTo: callbackUrl(slot, onboardingUrl(role), address), data: { terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() } },
       });
       // An address that already has a confirmed account: Supabase sends no email and returns a user without
       // identities (or an "exists" error). Say so under the email field and point to sign-in and reset.
@@ -89,7 +93,6 @@ export default function Register() {
           isRequired
           isInvalid={(submitted && !isValidEmail(email)) || error?.field === "email"}
           errorMessage={submitted && !isValidEmail(email) ? m.auth.errors.emailInvalid : error?.text}
-          size="lg"
         />
         <TextField placeholder={m.common.ph.newPassword}
           label={m.auth.password}
@@ -101,9 +104,14 @@ export default function Register() {
           description={t.passwordHint}
           isInvalid={(submitted && Boolean(passwordProblem(m, password, email))) || error?.field === "password"}
           errorMessage={(submitted ? passwordProblem(m, password, email) : null) ?? error?.text}
-          size="lg"
         />
-        <Button type="submit" variant="primary" size="lg" block loading={pending}>
+        <div className={form.terms}>
+          <Checkbox isSelected={accepted} onChange={setAccepted} isInvalid={submitted && !accepted} isDisabled={pending}>
+            {t.acceptPrefix} <a href="/terms" target="_blank" rel="noreferrer">{t.termsLink}</a> {t.acceptAnd} <a href="/privacy" target="_blank" rel="noreferrer">{t.privacyLink}</a>
+          </Checkbox>
+          {submitted && !accepted ? <p className={form.fieldError}>{t.termsRequired}</p> : null}
+        </div>
+        <Button type="submit" variant="primary" block loading={pending}>
           {t.submit}
         </Button>
         {error && !error.field ? <AuthFormError>{error.text}</AuthFormError> : null}

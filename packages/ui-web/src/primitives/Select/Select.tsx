@@ -77,10 +77,12 @@ export function Combobox<T extends object>({
   emptyState,
   menuWidth = "trigger",
   className,
+  menuTrigger = "focus",
   ...props
 }: ComboboxProps<T>) {
+  // The list opens as soon as the field is focused (clicked or tabbed into), not only from the arrow button.
   return (
-    <AriaComboBox {...props} className={cx(fieldStyles.field, className)}>
+    <AriaComboBox {...props} menuTrigger={menuTrigger} className={cx(fieldStyles.field, className)}>
       <FieldLabel label={label} isRequired={props.isRequired} labelAside={labelAside} />
       <Group className={cx(fieldStyles.control, fieldStyles[size])}>
         <Input className={fieldStyles.input} placeholder={placeholder} />

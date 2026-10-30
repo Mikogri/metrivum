@@ -30,7 +30,7 @@ import { useAccountContext, useApi, useUnsavedWorkGuard } from "~/shared/session
 import { useFeatureAccess } from "~/shared/access";
 import { saveBlob, type ApiRequest } from "~/shared/http";
 import { privateMeta } from "~/shared/i18n/site";
-import { cacheMessage, root, useChatQuery, type useRealtime } from "./api";
+import { cacheMessage, root, useChatPages, useChatQuery, type useRealtime } from "./api";
 import { mergeMessages, messageKind, messageWasRead, type LocalOutgoing, type Conversation, type Message } from "./model";
 import { useMessagingRealtime } from "./provider";
 import { DraftChat } from "./draft-chat";
@@ -39,6 +39,9 @@ import { CoachingActions, CoachingCard, coachingCard, MessageText } from "./coac
 import { VoicePlayer, VoicePreview, VoiceRecorder } from "./voice";
 import { optimisticRead } from "./read-cache";
 import styles from "./messaging.module.css";
+
+/** Conversations per request; scrolling to the end of the list loads the next batch. */
+const CONVERSATIONS_PAGE = 15;
 
 export const meta = () => privateMeta("Messages — Metrivum");
 // The chat fills the content area below the app bar, like the plan editor.
@@ -102,6 +105,7 @@ export default function Messages() {
   const requestedTab = params.get("tab");
   const [filter, setFilter] = useState({ accountKey, search: "", page: 1 });
   if (filter.accountKey !== accountKey) setFilter({ accountKey, search: "", page: 1 });
+  // Conversations load 15 at a time; reaching the bottom of the list loads the next 15.
   const search = filter.accountKey === accountKey ? filter.search : "";
   const settledSearch = useDebounced(search);
   const page = filter.accountKey === accountKey && search === settledSearch ? filter.page : 1;
@@ -114,14 +118,28 @@ export default function Messages() {
   const allowed = direct.allowed || groups.allowed;
   const canCreate = direct.allowed || (groups.allowed && groupManage);
   const realtime = useMessagingRealtime();
-  const list = useChatQuery<Conversation[]>(`${root}/conversations`, { search: settledSearch, page, limit: 25 }, allowed && tab === "conversations" && search === settledSearch);
+  const list = useChatPages<Conversation>(`${root}/conversations`, { search: settledSearch }, CONVERSATIONS_PAGE, page, allowed && tab === "conversations" && search === settledSearch);
+  const listRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+  const canLoadMore = list.hasMore && !list.isLoadingMore && !list.isError && search === settledSearch;
+  // One more batch per batch shown, however many scroll events arrive before it renders.
+  const loadNext = () => setFilter((current) => (current.page === page ? { ...current, page: page + 1 } : current));
+  useEffect(() => {
+    const end = endRef.current;
+    if (!end || !canLoadMore) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) setFilter((current) => (current.page === page ? { ...current, page: page + 1 } : current));
+    }, { root: listRef.current, rootMargin: "0px 0px 120px 0px" });
+    observer.observe(end);
+    return () => observer.disconnect();
+  }, [canLoadMore, page]);
   const select = (value: string | null) => setParams(value ? { conversation: value } : { view: "list" });
   useEffect(() => {
-    const first = list.data?.[0];
+    const first = list.items[0];
     // Phone history must return to the inbox without immediately reopening a thread.
-    if (mobile || !allowed || !first || id || page !== 1 || search || tab !== "conversations" || params.has("person") || params.get("view") === "list" || create) return;
+    if (mobile || !allowed || !first || id || search || tab !== "conversations" || params.has("person") || params.get("view") === "list" || create) return;
     setParams({ conversation: first.id }, { replace: true });
-  }, [mobile, allowed, create, id, list.data, page, search, params, tab, setParams]);
+  }, [mobile, allowed, create, id, list.items, search, params, tab, setParams]);
 
   if (direct.pending || groups.pending)
     return (
@@ -196,17 +214,21 @@ export default function Messages() {
         {tab === "conversations" ? <><div className={styles.search}>
           <SearchInput aria-label="Search conversations" placeholder="Search" size="sm" value={search} onChange={(value) => setFilter({ accountKey, search: value, page: 1 })} />
         </div>
-        <div className={styles.list}>
+        <div className={styles.list} ref={listRef} onScroll={(event) => {
+          // Near the bottom of the list: fetch the next batch (the end marker below covers lists that cannot scroll yet).
+          const el = event.currentTarget;
+          if (canLoadMore && el.scrollTop + el.clientHeight >= el.scrollHeight - 120) loadNext();
+        }}>
           {list.isPending ? (
             <LoadingState size="sm" label="Loading conversations" />
           ) : list.isError ? (
-            <Failure error={list.error} retry={() => void list.refetch()} />
-          ) : list.data.length === 0 ? (
+            <Failure error={list.error} retry={() => list.refetch()} />
+          ) : list.items.length === 0 ? (
             <div className={styles.listState}>
-              <p>{page > 1 ? "No more conversations." : search ? "No conversations match your search." : "No conversations yet."}</p>
+              <p>{search ? "No conversations match your search." : "No conversations yet."}</p>
             </div>
           ) : (
-            list.data.map((c) => {
+            list.items.map((c) => {
               const unread = Number(c.unreadCount);
               return (
                 <button key={c.id} type="button" className={styles.conversation} aria-current={c.id === id} onClick={() => select(c.id)}>
@@ -234,12 +256,10 @@ export default function Messages() {
               );
             })
           )}
+          {list.isLoadingMore ? <div className={styles.loadingMore}><LoadingState size="sm" label="Loading more conversations" /></div> : null}
+          <div ref={endRef} className={styles.listEnd} aria-hidden="true" />
         </div>
-        <nav className={styles.pagination} aria-label="Conversation pages">
-          <Button size="sm" variant="ghost" isDisabled={page === 1 || list.isFetching || search !== settledSearch} onPress={() => setFilter({ accountKey, search, page: page - 1 })}>Previous</Button>
-          <span aria-live="polite">Page {page}</span>
-          <Button size="sm" variant="ghost" isDisabled={list.isFetching || list.isError || search !== settledSearch || (list.data?.length ?? 0) < 25 || page >= 1000000} onPress={() => setFilter({ accountKey, search, page: page + 1 })}>Next</Button>
-        </nav></> : null}
+        </> : null}
       </aside>
 
       {create ? (
@@ -479,7 +499,11 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
                       {!mine && firstOfRun && c.type !== "Direct" ? <span className={styles.sender}>{name}</span> : null}
                       <div className={styles.bubbleRow}>
                         <div className={styles.messageContent}>
-                        {card ? <CoachingCard card={card} mine={mine} /> : message.deletedAt || message.body || message.replyToMessageId || message.attachments.some(a => !a.contentType.startsWith("image/")) ? <div className={styles.bubble}>
+                        {card ? <>
+                          {/* A personal note sent with an invitation or a form shows as a message above its card. */}
+                          {message.coachingEntry && message.body && message.body.trim() !== message.coachingEntry.title ? <div className={styles.bubble}><MessageText body={message.body} /></div> : null}
+                          <CoachingCard card={card} mine={mine} />
+                        </> : message.deletedAt || message.body || message.replyToMessageId || message.attachments.some(a => !a.contentType.startsWith("image/")) ? <div className={styles.bubble}>
                           {!message.deletedAt && message.replyToMessageId ? <blockquote className={styles.reply}>{(messages.find((m) => m.id === message.replyToMessageId)?.deletedAt ? "This message was deleted" : messages.find((m) => m.id === message.replyToMessageId)?.body) || "Reply to an earlier message"}</blockquote> : null}
                           {message.deletedAt ? <em className={styles.deletedMessage}>This message was deleted</em> : <MessageText body={message.body ?? ""} />}
                           {!message.deletedAt && message.attachments.filter(a => !a.contentType.startsWith("image/")).map((a) => (

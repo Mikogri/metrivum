@@ -98,7 +98,6 @@ export default function Login() {
           isRequired
           isInvalid={emailInvalid || error?.field === "email"}
           errorMessage={emailInvalid ? m.auth.errors.emailInvalid : error?.text}
-          size="lg"
         />
         {mode === "password" ? (
           <TextField placeholder={m.common.ph.password}
@@ -111,7 +110,6 @@ export default function Login() {
             isRequired
             isInvalid={(submitted && !password) || error?.field === "password"}
             errorMessage={submitted && !password ? m.auth.errors.required : error?.text}
-            size="lg"
             labelAside={
               <RouterLink className={form.link} to={`/auth/forgot-password?slot=${slot}`}>
                 {t.forgot}
@@ -119,7 +117,7 @@ export default function Login() {
             }
           />
         ) : null}
-        <Button type="submit" variant="primary" size="lg" block loading={pending}>
+        <Button type="submit" variant="primary" block loading={pending}>
           {mode === "password" ? t.submit : t.sendCode}
         </Button>
         {error && (!error.field || error.unconfirmed) ? (

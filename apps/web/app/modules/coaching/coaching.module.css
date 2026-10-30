@@ -151,3 +151,47 @@
 .planState { color: var(--tf-color-text-secondary); }
 .planState[data-tone="success"] { color: var(--tf-color-success); }
 .planState[data-tone="warning"] { color: var(--tf-color-warning); }
+
+/* A unit picked inside a number field (validity, subscription period): text-like, at the field's end. */
+.unitPick {
+  flex-shrink: 0;
+  height: 1.5rem;
+  margin-right: calc(var(--tf-space-1) * -1);
+  padding: 0 var(--tf-space-1);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  font-size: var(--tf-text-xs);
+  cursor: pointer;
+}
+
+.unitPick:hover:not(:disabled) {
+  border-color: var(--tf-color-border-strong);
+  color: var(--tf-color-text);
+}
+
+.unitPick:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+}
+
+/* Not published: a filled warning badge, so drafts stand out in lists and headers. */
+.notPublished.notPublished {
+  border-color: color-mix(in srgb, var(--tf-color-warning) 55%, transparent);
+  background: color-mix(in srgb, var(--tf-color-warning) 22%, transparent);
+  color: var(--tf-color-warning);
+  font-weight: var(--tf-weight-semibold);
+}
+
+/* A form answer's own problem, in red right under it (choice lists draw it themselves). */
+.question {
+  display: grid;
+  min-width: 0;
+}
+
+.fieldError {
+  margin-top: var(--tf-space-1);
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+}

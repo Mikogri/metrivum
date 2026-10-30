@@ -69,7 +69,6 @@ export default function ResetPassword() {
           description={m.auth.register.passwordHint}
           isInvalid={submitted && Boolean(passwordProblem(m, password))}
           errorMessage={passwordProblem(m, password) ?? undefined}
-          size="lg"
         />
         <TextField placeholder={m.common.ph.confirmPassword}
           label={t.confirm}
@@ -80,9 +79,8 @@ export default function ResetPassword() {
           isRequired
           isInvalid={submitted && confirm !== password}
           errorMessage={t.mismatch}
-          size="lg"
         />
-        <Button type="submit" variant="primary" size="lg" block loading={pending}>
+        <Button type="submit" variant="primary" block loading={pending}>
           {t.submit}
         </Button>
       </form>

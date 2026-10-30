@@ -15,6 +15,16 @@ public sealed class Profile
         get; set;
     }
     public string DisplayName { get; set; } = "";
+    /// <summary>Given name, entered on its own. DisplayName is "FirstName LastName" (null on accounts named before the split).</summary>
+    public string? FirstName
+    {
+        get; set;
+    }
+    /// <summary>Family name, entered on its own.</summary>
+    public string? LastName
+    {
+        get; set;
+    }
     /// <summary>A short public introduction shown on the profile page (at most 500 characters).</summary>
     public string? Bio
     {

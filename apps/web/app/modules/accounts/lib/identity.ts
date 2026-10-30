@@ -30,6 +30,22 @@ export function normalizeDisplayName(value: string): string {
   return value.normalize("NFC").replace(/[ \t\p{Zs}]+/gu, " ").trim();
 }
 
+export const NAME_PART_MAX = 50;
+
+/** A first or last name: the same text rules as the display name, at most 50 characters. */
+export function namePartValid(value: string): boolean {
+  const normalized = normalizeDisplayName(value);
+  return normalized.length > 0 && normalized.length <= NAME_PART_MAX && !HIDDEN.test(normalized);
+}
+
+/** First and last name of a profile; accounts named before the split get theirs from the display name. */
+export function nameParts(profile: { displayName: string; firstName?: string | null; lastName?: string | null }): { first: string; last: string } {
+  if (profile.firstName || profile.lastName) return { first: profile.firstName ?? "", last: profile.lastName ?? "" };
+  const name = profile.displayName.trim();
+  const space = name.indexOf(" ");
+  return space < 0 ? { first: name, last: "" } : { first: name.slice(0, space), last: name.slice(space + 1) };
+}
+
 export function displayNameValid(value: string): boolean {
   const normalized = normalizeDisplayName(value);
   return normalized.length > 0 && normalized.length <= DISPLAY_NAME_MAX && !HIDDEN.test(normalized);

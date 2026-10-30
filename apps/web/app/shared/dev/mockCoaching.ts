@@ -155,6 +155,15 @@ for (const [i, c] of [...conversations, groupChat].entries()) {
   messages.set(c.id, list);
 }
 
+// Older chats, so the conversation list has more than one batch to scroll through.
+const archiveNames = ["Ola Lewandowska", "Tomek Kamiński", "Ewa Zając", "Bartek Szymański", "Kasia Woźniak", "Michał Dąbrowski", "Natalia Kozłowska", "Jakub Mazur", "Zuza Krawczyk", "Filip Piotrowski", "Ania Grabowska", "Kuba Nowicki", "Ida Pawłowska", "Adam Michalski", "Lena Król", "Szymon Wieczorek", "Maja Jabłońska", "Oskar Wróbel", "Hania Majewska", "Igor Olszewski", "Julia Stępień", "Wiktor Malinowski", "Zosia Jaworska", "Leon Adamczyk", "Nina Dudek", "Antek Nowakowski", "Pola Pawlak", "Kacper Górski", "Iga Witkowska", "Borys Walczak"];
+const archive = archiveNames.map((displayName, i) => {
+  const peer = { id: `22222222-0000-4000-8000-1${String(i).padStart(11, "0")}`, displayName, username: displayName.toLowerCase().split(" ")[0]! + i };
+  const c = { id: uid(), type: "Direct", title: displayName, clientGroupId: null, membershipState: "Active", peer, unread: 0 };
+  messages.set(c.id, [{ id: uid(), conversationId: c.id, senderUserId: i % 2 ? SELF : peer.id, type: "Text", body: i % 2 ? "Plan for next week is up. Let me know how the first session feels." : "Thanks, see you next week!", replyToMessageId: null, createdAt: new Date(Date.now() - (2 + i) * 86_400_000).toISOString(), cursor: "0", attachments: [] }]);
+  return c;
+});
+
 const resolve = (me: string) => (m: Msg) => (m.senderUserId === SELF ? { ...m, senderUserId: me } : m);
 const member = (userId: string, displayName: string, role = "Member") => ({ userId, displayName, role, source: "Direct", state: "Active", excluded: false, joinedAt: ago(30), removedAt: null, lastReadMessageId: null });
 function conversationDto(c: (typeof conversations)[number] | typeof groupChat, me: string) {
@@ -460,9 +469,14 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     return ok(found);
   }
 
-  if (path === "/api/v1/messaging/conversations" && method === "GET") return ok(search([...conversations, groupChat], q).map((c) => conversationDto(c, me)));
+  if (path === "/api/v1/messaging/conversations" && method === "GET") {
+    // Pages like the API: `limit` per page, `page` from 1.
+    const limit = Math.min(100, Number(q.get("limit") ?? 25));
+    const page = Math.max(1, Number(q.get("page") ?? 1));
+    return ok(search([...conversations, groupChat, ...archive], q).slice((page - 1) * limit, page * limit).map((c) => conversationDto(c as typeof conversations[number], me)));
+  }
   if ((m = path.match(/^\/api\/v1\/messaging\/conversations\/([^/]+)$/))) {
-    const c = [...conversations, groupChat].find((x) => x.id === m![1]);
+    const c = [...conversations, groupChat, ...archive].find((x) => x.id === m![1]);
     return c ? ok(conversationDto(c, me)) : null;
   }
   if ((m = path.match(/^\/api\/v1\/messaging\/conversations\/([^/]+)\/messages$/))) {

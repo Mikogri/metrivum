@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using TrainFlow.Access.Contracts;
 using TrainFlow.Accounts.Contracts;
@@ -25,6 +25,7 @@ public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IF
     public async Task<FormSummaryListDto> SummariesAsync(int page, int pageSize, FormPurpose purpose, bool archived, string? search, string sort, CancellationToken ct)
     {
         await Authorize(purpose, ct);
+        if (purpose == FormPurpose.Application && !archived) await EnsureStarterAsync(ct);
         if (page < 1 || page > 100000 || pageSize is < 1 or > 100 || search?.Length > 200 || sort is not ("updated" or "name"))
             throw ApiException.Invalid("Invalid form list query.");
         var term = search?.Trim().ToLowerInvariant() ?? "";
@@ -50,6 +51,7 @@ public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IF
     public async Task<FormListDto> ListAsync(int page, int pageSize, FormPurpose purpose, bool archived, string? search, string sort, CancellationToken ct)
     {
         await Authorize(purpose, ct);
+        if (purpose == FormPurpose.Application && !archived) await EnsureStarterAsync(ct);
         if (page < 1 || page > 100000 || pageSize is < 1 or > 100 || search?.Length > 200 || sort is not ("updated" or "name"))
             throw ApiException.Invalid("Invalid form list query.");
         var query = db.Templates.AsNoTracking().Where(x => x.CoachId == accounts.UserId && x.Purpose == purpose && x.Archived == archived);
@@ -206,6 +208,37 @@ public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IF
         await Authorize(t.Purpose, ct);
         return t;
     }
+    /// <summary>A coach who has just onboarded starts with the published starter application form.</summary>
+    public Task EnsureStarterForNewCoachAsync(CancellationToken ct) => EnsureStarterAsync(ct);
+
+    /// <summary>
+    /// A coach without any form yet (active or archived, of any purpose) gets the starter application form, published
+    /// so it can go on an offer right away, once: a lock per coach keeps two first visits from creating it twice.
+    /// </summary>
+    private async Task EnsureStarterAsync(CancellationToken ct)
+    {
+        var owner = accounts.UserId;
+        if (await db.Templates.AnyAsync(x => x.CoachId == owner, ct))
+            return;
+        await transaction.RunAsync(async token =>
+        {
+            await Lock("starter:" + owner, token);
+            if (await db.Templates.AnyAsync(x => x.CoachId == owner, token))
+                return;
+            var starter = StarterForms.Application();
+            FormRules.ValidateDefinition(starter.Purpose, starter.Name, starter.Description, starter.Draft);
+            var template = New(starter);
+            db.Templates.Add(template);
+            await db.SaveChangesAsync(token);
+            var version = new FormVersion { Id = Guid.NewGuid(), TemplateId = template.Id, CoachId = template.CoachId, Purpose = template.Purpose, Name = template.Name, Description = template.Description, Definition = template.Draft, Number = 1, DraftVersion = template.Version, PublishedAt = clock.GetUtcNow() };
+            db.Versions.Add(version);
+            await db.SaveChangesAsync(token);
+            template.CurrentPublishedVersionId = version.Id;
+            Touch(template);
+            await db.SaveChangesAsync(token);
+        }, ct);
+    }
+
     private async Task Authorize(FormPurpose purpose, CancellationToken ct)
     {
         if (!Enum.IsDefined(purpose))

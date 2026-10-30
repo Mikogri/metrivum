@@ -5,7 +5,8 @@ export const meta = () => privateMeta("Workout — Metrivum");
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import type { Schema, PlanAnnotation, ExerciseSnapshot, Prescription, Workout } from "@trainflow/api-client-web";
-import { Alert, Button, Checkbox, EmptyState, NumberInput, PageHeader, TextArea, TextField } from "@trainflow/ui-web";
+import { Alert, AlertDialog, Button, Checkbox, EmptyState, NumberInput, PageHeader, TextArea, TextField, toast } from "@trainflow/ui-web";
+import { Check, SkipForward } from "lucide-react";
 import { ExercisePicker } from "~/modules/exercises";
 import { useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { DraftNavigationGuard, Failure, Loading, MutationError } from "~/modules/coaching";
@@ -71,6 +72,13 @@ export function WorkoutDetail({ occurrenceId, relationshipId }: { occurrenceId: 
   const query = useCoachingQuery<Detail>(`/api/v1/training/workouts/${occurrenceId}`, { relationshipId });
   const mutate = useCoachingMutation();
   const [reason, setReason] = useState("");
+  const [skipping, setSkipping] = useState(false);
+  // "Mark as done" starts and completes the workout in one go; the sets can still be corrected afterwards.
+  const markDone = async () => {
+    const started = await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/start` }) as { id: string; version: number };
+    await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/executions/${started.id}/complete`, ifMatch: started.version });
+    toast({ tone: "success", title: "Workout marked as done", description: "You can still add the details of your sets below." });
+  };
   if (query.isPending) return <Loading />;
   if (query.isError) return <Failure error={query.error} retry={() => void query.refetch()} />;
   const detail = query.data;
@@ -79,8 +87,17 @@ export function WorkoutDetail({ occurrenceId, relationshipId }: { occurrenceId: 
     {detail.execution && detail.execution.status !== "Skipped" ? <><CoachAnalysisChips executionId={detail.execution.id} enabled={!relationshipId} /><ExecutionEditor key={`${detail.execution.id}:${detail.execution.status}`} detail={detail} execution={detail.execution} own={!relationshipId} /><WorkoutFeedbackForm key={`feedback:${detail.execution.id}:${detail.execution.version}`} execution={detail.execution} own={!relationshipId} /><WorkoutComparisonPanel executionId={detail.execution.id} /></> : <div className={styles.stack}>
       {detail.execution?.comment && <p>Session comment: {detail.execution.comment}</p>}
       {detail.prescription.workout.exercises.map(exercise => <section key={exercise.id} className={styles.card}><h2>{detail.prescription.exercises[exercise.exerciseId]?.name}</h2>{exercise.sets.map((set, i) => <p key={set.id}>{i + 1}. {set.kind}: {describe(set.prescription)}</p>)}</section>)}
-      {detail.occurrence.allowedActions.includes("start") ? <Button variant="primary" loading={mutate.isPending} onPress={() => mutate.mutate({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/start` })}>Start workout</Button> : <EmptyState title="Read-only workout" description="The assignment or coaching relationship does not currently allow starting this workout." />}
-      {detail.occurrence.allowedActions.includes("skip") && <><TextArea label="Reason for skipping (optional)" placeholder="e.g. Felt sick, travelling" value={reason} onChange={setReason} /><Button loading={mutate.isPending} onPress={() => mutate.mutate({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/skip`, json: { reason: reason || null } })}>Mark skipped</Button></>}
+      {detail.occurrence.allowedActions.includes("start") || detail.occurrence.allowedActions.includes("skip") ? (
+        <div className={styles.workoutDecision}>
+          {detail.occurrence.allowedActions.includes("start") ? <Button size="sm" variant="success" iconStart={<Check />} loading={mutate.isPending && !skipping} onPress={() => { void markDone().catch(() => {}); }}>Mark as done</Button> : null}
+          {detail.occurrence.allowedActions.includes("skip") ? <Button size="sm" variant="ghost" iconStart={<SkipForward />} isDisabled={mutate.isPending} onPress={() => { setReason(""); setSkipping(true); }}>Mark skipped</Button> : null}
+        </div>
+      ) : <EmptyState title="Read-only workout" description="The assignment or coaching relationship does not currently allow logging this workout." />}
+      {/* Why it was skipped is asked in a dialog, only when the workout is skipped. */}
+      <AlertDialog isOpen={skipping} onOpenChange={(open) => { if (!open && !mutate.isPending) setSkipping(false); }} title="Mark this workout as skipped?" confirmLabel="Mark skipped" cancelLabel="Keep it" isConfirming={mutate.isPending}
+        onConfirm={() => mutate.mutate({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/skip`, json: { reason: reason || null } }, { onSuccess: () => { setSkipping(false); toast({ title: "Workout marked as skipped" }); } })}>
+        <TextArea label="Reason for skipping (optional)" placeholder="e.g. Felt sick, travelling" value={reason} onChange={setReason} maxLength={2000} />
+      </AlertDialog>
     </div>}
   </>;
 }

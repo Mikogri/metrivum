@@ -33,10 +33,17 @@ public sealed record ExerciseGroup(Guid Id, GroupKind Kind, Guid[] ExerciseIds, 
 public sealed record Workout(Guid Id, string Name, string Description, ExerciseInstance[] Exercises, ExerciseGroup[] Groups);
 /// <summary>A day of a cycle. <c>Note</c> is free text for the day, e.g. what to do on a rest day.</summary>
 public sealed record TrainingDay(Guid Id, int DayNumber, Workout[] Workouts, string? Note = null);
-public sealed record Cycle(Guid Id, string Name, string Description, int DayCount, TrainingDay[] Days);
+/// <summary>
+/// A cycle of days. <c>Repeats</c> is how many times it runs in a row; left empty it runs once, or, when it is the
+/// plan's only cycle, until the coach stops the plan.
+/// </summary>
+public sealed record Cycle(Guid Id, string Name, string Description, int DayCount, TrainingDay[] Days,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Repeats = null);
 public sealed record BlockExerciseMax(Guid? ExerciseId, int Reps, Quantity? Load = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Unit? LoadUnit = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Quantity? Time = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FormulaUse? TimeFormula = null);
+/// <summary>A block of the plan. An <c>Inactive</c> block stays in the draft but is left out when changes are applied.</summary>
 public sealed record Block(Guid Id, string Name, string Description, Cycle[] Cycles,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BlockExerciseMax[]? ExerciseMaxes = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BlockExerciseMax[]? ExerciseMaxes = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? Inactive = null);
 public sealed record ExerciseMaxesTable(Guid Id, Guid? BlockId, BlockExerciseMax[] Rows);
 [JsonConverter(typeof(JsonStringEnumConverter<AnnotationKind>))]
 public enum AnnotationKind { Comment, Goal }
@@ -67,13 +74,47 @@ public static class DocumentRules
     // Privacy is enforced before content leaves the owning API, including purchased copies.
     public static TrainingDocument ForClient(TrainingDocument document) => document with { Annotations = document.Annotations?.Where(n => n.Visibility == AnnotationVisibility.Client).ToArray() };
     public static PlanAnnotation[] AnnotationsFor(TrainingDocument document, Guid blockId, Guid cycleId) => (document.Annotations ?? []).Where(n => n.TargetId == null || n.TargetId == blockId || n.TargetId == cycleId).ToArray();
+    public const int MaximumRepeats = 100;
+    /// <summary>An open-ended plan is scheduled about this far ahead; applying changes again schedules the next stretch.</summary>
+    public const int OpenEndedDays = 364;
+    /// <summary>
+    /// How many times a cycle runs: its <c>Repeats</c>, or once when left empty. The plan's only cycle left empty runs
+    /// until stopped, scheduled <see cref="OpenEndedDays"/> ahead.
+    /// </summary>
+    public static int RunsOf(TrainingDocument document, Cycle cycle)
+    {
+        if (cycle.Repeats is { } repeats) return repeats;
+        var only = document.Blocks.Sum(b => b.Cycles.Length) == 1;
+        return only ? Math.Max(1, (int)Math.Ceiling(OpenEndedDays / (double)Math.Max(1, cycle.DayCount))) : 1;
+    }
+    /// <summary>
+    /// What clients get: the plan without its inactive blocks, and without the notes and maxes tables tied to them.
+    /// </summary>
+    public static TrainingDocument ActiveOnly(TrainingDocument document)
+    {
+        if (!document.Blocks.Any(b => b.Inactive == true)) return document;
+        var removed = document.Blocks.Where(b => b.Inactive == true).SelectMany(b => new[] { b.Id }.Concat(b.Cycles.Select(c => c.Id))).ToHashSet();
+        return document with
+        {
+            Blocks = document.Blocks.Where(b => b.Inactive != true).ToArray(),
+            Annotations = document.Annotations?.Where(n => n.TargetId is not { } target || !removed.Contains(target)).ToArray(),
+            MaxesTables = document.MaxesTables?.Where(t => t.BlockId is not { } block || !removed.Contains(block)).ToArray(),
+        };
+    }
     public static IEnumerable<Workout> Workouts(TrainingDocument document) => document.Blocks.SelectMany(b => b.Cycles).SelectMany(c => c.Days).SelectMany(d => d.Workouts);
     public static IEnumerable<TrainingSet> Sets(TrainingDocument document) => Workouts(document).SelectMany(w => w.Exercises).SelectMany(e => e.Sets);
     public static bool IsAdvancedSet(SetKind kind) => kind is not (SetKind.Standard or SetKind.Warmup or SetKind.BackOff);
     public static bool HasAdvanced(TrainingDocument document) => Workouts(document).Any(w => w.Groups.Any(g => g.Kind != GroupKind.Superset)) || Sets(document).Any(s => IsAdvancedSet(s.Kind));
     public static bool HasCustomFormulas(TrainingDocument document) => Prescriptions(document).Any(p => PrescriptionFormulas.Uses(p).Any(f => f.FormulaId != null || f.Expression != null || f.VariableBindings?.Count > 0));
     public static IEnumerable<Prescription> Prescriptions(TrainingDocument document) => Sets(document).SelectMany(s => new[] { s.Prescription }.Concat((s.Segments ?? []).Select(x => x.Prescription))).Concat(BlockMaxes.Rows(document).SelectMany(r => new[] { new Prescription(LoadFormula: r.LoadFormula, LoadUnit: r.LoadUnit), new Prescription(LoadFormula: r.TimeFormula) }));
-    public static void Validate(TrainingDocument document, DocumentLimits limits)
+    public static void Validate(TrainingDocument document, DocumentLimits limits) => Validate(document, limits, strict: true);
+    /// <summary>
+    /// A draft may be unfinished: wrong formats (reps, loads, set types, formulas being typed) are kept so the coach
+    /// can save and fix them later. Only the bounds that keep the document safe to store and read are enforced here;
+    /// applying changes runs <see cref="Validate(TrainingDocument, DocumentLimits)"/> before a revision exists.
+    /// </summary>
+    public static void ValidateDraft(TrainingDocument document, DocumentLimits limits) => Validate(document, limits, strict: false);
+    private static void Validate(TrainingDocument document, DocumentLimits limits, bool strict)
     {
         if (document is null || document.SchemaVersion != 1 || document.Blocks is null)
             throw new TrainingValidationException("Unsupported document schema; expected 1.");
@@ -99,7 +140,7 @@ public static class DocumentRules
         {
             if (table?.Rows == null) throw new TrainingValidationException("Maxes table rows are required.");
             Id(table.Id);
-            BlockMaxes.Validate(table.Rows);
+            if (strict) BlockMaxes.Validate(table.Rows); else DraftMaxes(table.Rows);
             if (table.BlockId is { } owner && (!document.Blocks.Any(b => b.Id == owner) || !connected.Add(owner) || document.Blocks.Any(b => b.Id == owner && b.ExerciseMaxes?.Length > 0)))
                 throw new TrainingValidationException("Invalid or duplicate maxes table connection.");
         }
@@ -108,18 +149,20 @@ public static class DocumentRules
             if (block?.Cycles is null)
                 throw new TrainingValidationException("Block cycles are required.");
             Id(block.Id);
-            Text(block.Name, 200, true);
+            Text(block.Name, 200, strict);
             NonNullText(block.Description, 4000);
-            BlockMaxes.Validate(block.ExerciseMaxes);
+            if (strict) BlockMaxes.Validate(block.ExerciseMaxes); else DraftMaxes(block.ExerciseMaxes);
             foreach (var cycle in block.Cycles)
             {
                 if (cycle?.Days is null)
                     throw new TrainingValidationException("Cycle days are required.");
                 Id(cycle.Id);
-                Text(cycle.Name, 200, true);
+                Text(cycle.Name, 200, strict);
                 NonNullText(cycle.Description, 4000);
                 if (cycle.DayCount < 1 || cycle.DayCount > limits.MaximumCycleDays)
                     throw new TrainingValidationException("Invalid cycle length.");
+                if (cycle.Repeats is < 1 or > MaximumRepeats)
+                    throw new TrainingValidationException("A cycle repeats 1 to 100 times, or is left open.");
                 var days = new HashSet<int>();
                 foreach (var day in cycle.Days)
                 {
@@ -134,7 +177,7 @@ public static class DocumentRules
                         if (workout?.Exercises is null || workout.Groups is null)
                             throw new TrainingValidationException("Workout arrays are required.");
                         Id(workout.Id);
-                        Text(workout.Name, 200, true);
+                        Text(workout.Name, 200, strict);
                         NonNullText(workout.Description, 4000);
                         foreach (var exercise in workout.Exercises)
                         {
@@ -150,10 +193,10 @@ public static class DocumentRules
                                 if (set is null)
                                     throw new TrainingValidationException("Set cannot be null.");
                                 Id(set.Id);
-                                ValidateSet(set, limits.MaximumSegments);
+                                if (strict) ValidateSet(set, limits.MaximumSegments); else DraftSet(set, limits.MaximumSegments);
                                 if (set.Kind == SetKind.TopSet)
                                     priorTopSets.Add(set.Id);
-                                if (set.Kind == SetKind.BackOff && set.SourceSetId is {} source && !priorTopSets.Contains(source))
+                                if (strict && set.Kind == SetKind.BackOff && set.SourceSetId is {} source && !priorTopSets.Contains(source))
                                     throw new TrainingValidationException("Back-off must reference an earlier top set of the same exercise.");
                                 foreach (var segment in set.Segments ?? [])
                                     Id(segment.Id);
@@ -175,6 +218,56 @@ public static class DocumentRules
                     }
                 }
             }
+        }
+    }
+    // Draft shape only: no nulls where readers expect values, and bounded sizes. Formats are checked on apply.
+    private static void DraftSet(TrainingSet set, int maximumSegments)
+    {
+        if (!Enum.IsDefined(set.Kind))
+            throw new TrainingValidationException("Unknown set kind.");
+        DraftPrescription(set.Prescription);
+        var segments = set.Segments ?? [];
+        if (segments.Length > maximumSegments)
+            throw new TrainingValidationException("Invalid segments for set kind.");
+        foreach (var segment in segments)
+        {
+            if (segment is null)
+                throw new TrainingValidationException("Segment cannot be null.");
+            DraftPrescription(segment.Prescription);
+        }
+    }
+    private static void DraftPrescription(Prescription prescription)
+    {
+        if (prescription is null)
+            throw new TrainingValidationException("Prescription is required.");
+        Text(prescription.Comment, 2000);
+        if (prescription.Tempo?.Length > 32)
+            throw new TrainingValidationException("Tempo is too long.");
+        if (prescription.FieldFormulas is { } fields)
+        {
+            if (fields.Count > 4) throw new TrainingValidationException("At most four field formulas are supported.");
+            foreach (var field in fields)
+                DraftFormula(field.Value ?? throw new TrainingValidationException("Field formula is required."));
+        }
+        if (prescription.LoadFormula is { } formula) DraftFormula(formula);
+    }
+    private static void DraftFormula(FormulaUse formula)
+    {
+        if (formula.Expression?.Length > 2048 || formula.VariableBindings?.Count > 64 || formula.Inputs?.Count > 64)
+            throw new TrainingValidationException("Formula limits exceeded.");
+        foreach (var input in formula.Inputs ?? [])
+            if (input.Key is null || input.Key.Length > 80 || input.Value is null)
+                throw new TrainingValidationException("Invalid formula input.");
+    }
+    private static void DraftMaxes(BlockExerciseMax[]? rows)
+    {
+        if (rows == null) return;
+        if (rows.Length > 64) throw new TrainingValidationException("Maximum 64 block exercise maxes.");
+        foreach (var row in rows)
+        {
+            if (row == null) throw new TrainingValidationException("Invalid or duplicate block exercise max.");
+            if (row.LoadFormula is { } load) DraftFormula(load);
+            if (row.TimeFormula is { } time) DraftFormula(time);
         }
     }
     public static void ValidateSet(TrainingSet set, int maximumSegments = 20)

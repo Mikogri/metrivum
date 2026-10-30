@@ -133,9 +133,8 @@ export default function Verify() {
             value={code}
             onChange={(value) => setCode(value.replace(/[^\d\s]/g, "").slice(0, 10))}
             isRequired
-            size="lg"
           />
-          <Button type="submit" variant="primary" size="lg" block loading={pending}>
+          <Button type="submit" variant="primary" block loading={pending}>
             {t.submit}
           </Button>
         </form>

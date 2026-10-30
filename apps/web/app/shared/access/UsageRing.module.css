@@ -3,13 +3,15 @@
   --c: var(--tf-color-accent);
   --size: 2.5rem;
   --track: 4px;
+  /* The disc inside matches the surface the ring sits on (a popover sets its own). */
+  --ring-bg: var(--tf-color-surface);
   display: grid;
   flex-shrink: 0;
   place-items: center;
   width: var(--size);
   height: var(--size);
   border-radius: 50%;
-  background: conic-gradient(var(--c) calc(var(--p, 0) * 360deg), var(--tf-color-surface-overlay) 0);
+  background: conic-gradient(var(--c) calc(var(--p, 0) * 360deg), color-mix(in srgb, var(--tf-color-text) 14%, transparent) 0);
 }
 
 .ring[data-size="sm"] {
@@ -42,7 +44,7 @@
   width: calc(100% - 2 * var(--track));
   height: calc(100% - 2 * var(--track));
   border-radius: 50%;
-  background: var(--tf-color-surface);
+  background: var(--ring-bg);
   color: var(--c);
   text-align: center;
 }

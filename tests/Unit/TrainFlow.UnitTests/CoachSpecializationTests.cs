@@ -1,4 +1,4 @@
-using TrainFlow.BuildingBlocks;
+﻿using TrainFlow.BuildingBlocks;
 using TrainFlow.Coaching.Domain;
 using TrainFlow.Coaching.Features;
 
@@ -20,16 +20,16 @@ public sealed class CoachSpecializationTests
         Assert.All(CoachSpecializationTaxonomy.Items, x => Assert.True(x.Active));
     }
     [Fact]
-    public void Five_selected_and_three_primary_or_empty_are_valid()
+    public void Ten_selected_and_five_primary_or_empty_are_valid()
     {
-        CoachSpecializationsService.Validate(new(["a", "b", "c", "d", "e"], ["a", "b", "c"], 0));
+        CoachSpecializationsService.Validate(new(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"], ["a", "b", "c", "d", "e"], 0));
         CoachSpecializationsService.Validate(new([], [], 0));
     }
     [Fact]
     public void Limits_duplicates_and_non_subset_primary_are_rejected()
     {
         foreach (var request in new CoachSpecializationsRequest[] {
-            new(["a", "b", "c", "d", "e", "f"], [], 0), new(["a", "b", "c", "d"], ["a", "b", "c", "d"], 0),
+            new(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"], [], 0), new(["a", "b", "c", "d", "e", "f"], ["a", "b", "c", "d", "e", "f"], 0),
             new(["a", "a"], [], 0), new(["a"], ["a", "a"], 0), new(["a"], ["b"], 0), new([""], [], 0), new([], [], -1) })
             Assert.Throws<ApiException>(() => CoachSpecializationsService.Validate(request));
     }

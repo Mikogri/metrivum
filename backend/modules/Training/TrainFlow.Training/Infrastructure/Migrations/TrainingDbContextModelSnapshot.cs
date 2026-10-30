@@ -354,6 +354,9 @@ namespace TrainFlow.Training.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
+                    b.Property<int>("Repetition")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("RevisionId")
                         .HasColumnType("uuid");
 
@@ -372,7 +375,7 @@ namespace TrainFlow.Training.Infrastructure.Migrations
 
                     b.HasIndex("ScheduledDate", "AssignmentId");
 
-                    b.HasIndex("AssignmentId", "RevisionId", "WorkoutId")
+                    b.HasIndex("AssignmentId", "RevisionId", "WorkoutId", "Repetition")
                         .IsUnique();
 
                     b.ToTable("workout_occurrences", "training");

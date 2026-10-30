@@ -1,7 +1,7 @@
 import type { Cycle, ExerciseInstance, Prescription, TrainingDocument, TrainingSet, Workout } from "@trainflow/api-client-web";
 import { formatNumber, parseLocaleNumber } from "~/shared/i18n/format";
 import type { Locale } from "~/shared/i18n/locale";
-import { copyPrescription, findExercise, locate, newDay, newSet, newWorkout, updateNode } from "./document";
+import { cloneWithNewIds, copyPrescription, findExercise, locate, newDay, newSet, newWorkout, updateNode } from "./document";
 import { parseReps } from "./notation";
 
 // ---------------------------------------------------------------------------------------------
@@ -47,6 +47,54 @@ export function addCycleWorkout(doc: TrainingDocument, cycleId: string, name: st
   return { doc: updateNode(doc, cycleId, { days }), id: workout.id };
 }
 
+/**
+ * The cycle without this workout. A day left with no workouts and no note is removed. Returns the day it was on,
+ * so reconnecting it elsewhere can keep that day when it fits.
+ */
+export function withoutWorkout(cycle: Cycle, workoutId: string): { cycle: Cycle; workout: Workout | null; dayNumber: number | null } {
+  const day = cycle.days.find((d) => d.workouts.some((w) => w.id === workoutId));
+  if (!day) return { cycle, workout: null, dayNumber: null };
+  const workout = day.workouts.find((w) => w.id === workoutId)!;
+  const days = cycle.days
+    .map((d) => (d === day ? { ...d, workouts: d.workouts.filter((w) => w.id !== workoutId) } : d))
+    .filter((d) => d.workouts.length > 0 || d.note);
+  return { cycle: { ...cycle, days }, workout, dayNumber: Number(day.dayNumber) };
+}
+
+/** The cycle with this workout on a day: the wanted day when it exists in the cycle, else the first free day, else day 1. */
+export function withWorkout(cycle: Cycle, workout: Workout, dayNumber?: number | null): Cycle {
+  const length = Number(cycle.dayCount);
+  const used = new Set(cycle.days.filter((d) => d.workouts.length).map((d) => Number(d.dayNumber)));
+  const day = dayNumber && dayNumber >= 1 && dayNumber <= length ? dayNumber : (Array.from({ length }, (_, i) => i + 1).find((n) => !used.has(n)) ?? 1);
+  const existing = cycle.days.find((d) => Number(d.dayNumber) === day);
+  const days = existing
+    ? cycle.days.map((d) => (d === existing ? { ...d, workouts: [...d.workouts, workout] } : d))
+    : [...cycle.days, { ...newDay(day), workouts: [workout] }].sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
+  return { ...cycle, days };
+}
+
+/**
+ * How many times a cycle runs in a row: its set number, else once. The plan's only cycle left unset runs until the
+ * plan is stopped (null), the same rule the server uses when it schedules workouts.
+ */
+export function cycleRuns(doc: TrainingDocument, cycle: Cycle): number | null {
+  if (cycle.repeats != null) return Number(cycle.repeats);
+  return doc.blocks.reduce((n, b) => n + b.cycles.length, 0) === 1 ? null : 1;
+}
+
+/** Options for a cycle's repeat count; "open" (until stopped) only when the cycle is the plan's only one. */
+export const REPEAT_CHOICES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+
+/** Whether the plan has a workout clients would get (inactive blocks are left out when changes are applied). */
+export function hasActiveWorkout(doc: TrainingDocument): boolean {
+  return doc.blocks.some((b) => !b.inactive && b.cycles.some((c) => c.days.some((d) => d.workouts.length > 0)));
+}
+
+/** Rows of a workout card on the sheet: header, column headings, one per exercise, and the add row when editable. */
+export function workoutCardRows(workout: Workout, collapsed: boolean, editable: boolean): number {
+  return collapsed ? 1 : 2 + workout.exercises.length + (editable ? 1 : 0);
+}
+
 /** Moves a workout to another day of its cycle; a day left with no workouts and no note is removed. */
 export function moveWorkoutToDay(doc: TrainingDocument, workoutId: string, dayNumber: number): TrainingDocument {
   const at = locate(doc, workoutId);
@@ -63,6 +111,46 @@ export function moveWorkoutToDay(doc: TrainingDocument, workoutId: string, dayNu
     : [...days, { ...newDay(dayNumber), workouts: [workout] }];
   days = days.filter((d) => d.workouts.length > 0 || d.note).sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
   return updateNode(doc, cycle.id, { days });
+}
+
+/** A copy of the workout (new ids) at the end of a day of the same cycle, which may be its own day. */
+export function copyWorkoutToDay(doc: TrainingDocument, workoutId: string, dayNumber: number): TrainingDocument {
+  const at = locate(doc, workoutId);
+  if (!at || at.kind !== "workout") return doc;
+  const cycle = doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!;
+  if (dayNumber < 1 || dayNumber > Number(cycle.dayCount)) return doc;
+  const copy = cloneWithNewIds(cycle.days[at.dayIndex!]!.workouts[at.workoutIndex!]!);
+  const target = cycle.days.find((d) => Number(d.dayNumber) === dayNumber);
+  const days = target
+    ? cycle.days.map((d) => (d === target ? { ...d, workouts: [...d.workouts, copy] } : d))
+    : [...cycle.days, { ...newDay(dayNumber), workouts: [copy] }].sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
+  return updateNode(doc, cycle.id, { days });
+}
+
+/** Moves an exercise to another position within its workout. */
+export function reorderExercise(doc: TrainingDocument, instanceId: string, toIndex: number): TrainingDocument {
+  const at = locate(doc, instanceId);
+  if (!at || at.kind !== "exercise") return doc;
+  const workout = doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!.days[at.dayIndex!]!.workouts[at.workoutIndex!]!;
+  const target = Math.max(0, Math.min(toIndex, workout.exercises.length - 1));
+  if (target === at.exerciseIndex) return doc;
+  const exercises = workout.exercises.slice();
+  const [moved] = exercises.splice(at.exerciseIndex!, 1);
+  exercises.splice(target, 0, moved!);
+  return updateNode(doc, workout.id, { exercises });
+}
+
+/** Moves a workout to another position within its day. */
+export function reorderWorkout(doc: TrainingDocument, workoutId: string, toIndex: number): TrainingDocument {
+  const at = locate(doc, workoutId);
+  if (!at || at.kind !== "workout") return doc;
+  const day = doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!.days[at.dayIndex!]!;
+  const target = Math.max(0, Math.min(toIndex, day.workouts.length - 1));
+  if (target === at.workoutIndex) return doc;
+  const workouts = day.workouts.slice();
+  const [moved] = workouts.splice(at.workoutIndex!, 1);
+  workouts.splice(target, 0, moved!);
+  return updateNode(doc, day.id, { workouts });
 }
 
 /**

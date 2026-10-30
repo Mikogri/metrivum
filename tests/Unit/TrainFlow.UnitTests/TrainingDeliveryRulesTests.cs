@@ -7,6 +7,22 @@ namespace TrainFlow.UnitTests;
 public sealed class TrainingDeliveryRulesTests
 {
     [Fact]
+    public void Repeated_cycles_schedule_each_run_and_a_lone_open_cycle_runs_for_a_year()
+    {
+        var a = new ProgramAssignment { Id = Guid.NewGuid(), StartDate = new(2026, 1, 5), TimeZone = "Europe/Warsaw" };
+        Workout W() => new(Guid.NewGuid(), "Session", "", [], []);
+        TrainingRevision Revision(params Cycle[] cycles) => new() { Id = Guid.NewGuid(), Snapshot = new(1, "Program", "", DocumentKind.Program, new(1, [new(Guid.NewGuid(), "Block", "", cycles)]), [], []) };
+        var twice = new Cycle(Guid.NewGuid(), "Twice", "", 7, [new(Guid.NewGuid(), 1, [W()])], 2);
+        var once = new Cycle(Guid.NewGuid(), "Open but not alone", "", 3, [new(Guid.NewGuid(), 2, [W()])]);
+        var runs = DeliveryRules.Resolve(a, Revision(twice, once));
+        Assert.Equal([new DateOnly(2026, 1, 5), new DateOnly(2026, 1, 12), new DateOnly(2026, 1, 20)], runs.Select(x => x.ScheduledDate));
+        Assert.Equal([0, 1, 0], runs.Select(x => x.Repetition));
+        var alone = DeliveryRules.Resolve(a, Revision(once with { Repeats = null }));
+        Assert.Equal(122, alone.Length);
+        Assert.Equal(Enumerable.Range(0, 122), alone.Select(x => x.Repetition));
+    }
+
+    [Fact]
     public void Arbitrary_cycles_and_two_workouts_on_one_day_resolve_without_week_assumptions()
     {
         var a = new ProgramAssignment { Id = Guid.NewGuid(), StartDate = new(2026, 1, 4), TimeZone = "Europe/Warsaw" };

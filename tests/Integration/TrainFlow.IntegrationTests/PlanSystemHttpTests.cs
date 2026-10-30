@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using TrainFlow.Billing.Features;
@@ -113,6 +113,13 @@ public sealed class PlanSystemHttpTests
         Assert.Equal(HttpStatusCode.NotFound, (await stranger.PostAsJsonAsync("/api/v1/me/platform-subscription/confirm-payment", confirmation)).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await coach.PostAsJsonAsync("/api/v1/me/platform-subscription/confirm-payment", confirmation)).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await coach.PostAsJsonAsync("/api/v1/me/platform-subscription/confirm-payment", confirmation)).StatusCode);
+        // The whole history (every branch of the union, including dues with a date) and its summary translate to SQL.
+        var allResponse = await coach.GetAsync("/api/v1/me/transactions");
+        Assert.True(allResponse.IsSuccessStatusCode, await allResponse.Content.ReadAsStringAsync());
+        var summaryResponse = await coach.GetAsync("/api/v1/me/transactions/summary");
+        Assert.True(summaryResponse.IsSuccessStatusCode, await summaryResponse.Content.ReadAsStringAsync());
+        var summary = await summaryResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(24, Assert.Single(summary.GetProperty("currencies").EnumerateArray()).GetProperty("paid").GetDecimal());
         var historyResponse = await coach.GetAsync("/api/v1/me/transactions?Type=PlatformSubscription&Status=Succeeded");
         Assert.True(historyResponse.IsSuccessStatusCode, await historyResponse.Content.ReadAsStringAsync());
         var history = await historyResponse.Content.ReadFromJsonAsync<JsonElement>();

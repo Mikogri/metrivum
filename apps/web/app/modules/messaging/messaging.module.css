@@ -114,16 +114,6 @@
   text-align: center;
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--tf-space-1);
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border-top: 1px solid var(--tf-color-border-subtle);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-}
 
 .conversation {
   display: flex;
@@ -1330,7 +1320,7 @@
 
 .composerRow textarea:disabled { opacity: .55; }
 
-.messageContent { min-width: 0; }
+.messageContent { display: flex; flex-direction: column; align-items: flex-start; gap: var(--tf-space-1); min-width: 0; }
 
 .deletedMessage { color: var(--tf-color-text-tertiary); }
 
@@ -1411,4 +1401,15 @@
 .sendToChatSelect {
   flex: 1;
   min-width: 0;
+}
+
+/* Endless conversation list: a quiet loader while the next batch arrives, and an invisible marker that triggers it. */
+.loadingMore {
+  display: grid;
+  place-items: center;
+  padding: var(--tf-space-3) 0;
+}
+
+.listEnd {
+  height: 1px;
 }

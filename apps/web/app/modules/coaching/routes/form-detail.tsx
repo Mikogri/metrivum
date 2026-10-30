@@ -30,7 +30,7 @@ const TYPES: [Question["type"], string][] = [
   ["Scale", "Scale"],
   ["Date", "Date"],
 ];
-const systemFields = ["Sex", "Height", "Weight", "BodyFat", "HrMax", "TrainingExperience", "ActivityLevel", "AvailableEquipment", "PreferredTrainingDays", "SessionsPerWeek", "AvailableSessionDuration", "Sleep", "Stress", "InjuriesLimitationsPainNotes", "AdditionalNotes"] as const;
+const systemFields = ["Sex", "Height", "Weight", "BodyFat", "HrMax", "Vo2Max", "TrainingExperience", "ActivityLevel", "AvailableEquipment", "PreferredTrainingDays", "SessionsPerWeek", "AvailableSessionDuration", "Sleep", "Stress", "InjuriesLimitationsPainNotes", "AdditionalNotes"] as const;
 const newKey = () => crypto.randomUUID();
 const blankQuestion = (type: Question["type"], order: number): Question => ({ key: newKey(), label: "", required: false, order, ...questionType(type), type }) as Question;
 const blankSection = (order: number): Section => ({ key: newKey(), title: "", description: "", order, questions: [] });

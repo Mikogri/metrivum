@@ -104,26 +104,23 @@
   padding: var(--tf-space-3) var(--tf-space-4) 0;
 }
 
+/* The workout's ⋮ menu sits right before its name. */
+.panelHeader > button:first-child {
+  margin-right: calc(var(--tf-space-2) * -1);
+  margin-left: calc(var(--tf-space-1) * -1);
+}
+
 .workoutName {
   width: 18rem;
   max-width: 100%;
   height: var(--tf-control-md);
-  padding: 0 var(--tf-space-2);
-  border: 1px solid transparent;
-  border-radius: var(--tf-radius-md);
+  padding: 0;
+  border: 0;
   background: transparent;
   color: var(--tf-color-text);
   font-size: var(--tf-text-lg);
   font-weight: var(--tf-weight-medium);
   outline: none;
-}
-
-.workoutName:hover:not(:read-only) {
-  border-color: var(--tf-color-border);
-}
-
-.workoutName:focus-visible {
-  border-color: var(--tf-color-accent-border);
 }
 
 .workoutTabs {
@@ -140,6 +137,52 @@
   color: var(--tf-color-text-secondary);
   font-size: var(--tf-text-xs);
   cursor: pointer;
+}
+
+.workoutTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.workoutTab[draggable="true"] {
+  padding-left: var(--tf-space-1);
+  cursor: grab;
+}
+
+.workoutGrip {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.workoutTab[data-dragging] {
+  opacity: 0.5;
+}
+
+/* Reordering: a bar in the gap before or after the tab, where the dragged workout will land. */
+.workoutTab[data-drop] {
+  position: relative;
+}
+
+.workoutTab[data-drop]::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--tf-color-accent);
+  pointer-events: none;
+}
+
+.workoutTab[data-drop="before"]::after {
+  left: calc(var(--tf-space-1) / -2 - 1px);
+}
+
+.workoutTab[data-drop="after"]::after {
+  right: calc(var(--tf-space-1) / -2 - 1px);
 }
 
 .workoutTab[aria-pressed="true"] {
@@ -249,9 +292,89 @@
   background: var(--tf-color-surface);
 }
 
+/* Editable: a narrow first column holds each row's drag handle. */
+.table[data-sortable] {
+  grid-template-columns: 1.5rem minmax(10.25rem, 2.4fr) repeat(5, minmax(4.25rem, 1fr)) minmax(9rem, 2fr) 2.75rem;
+}
+
+.grip {
+  justify-content: center;
+  padding: 0;
+  color: var(--tf-color-text-tertiary);
+  cursor: grab;
+}
+
+.grip:hover {
+  color: var(--tf-color-text);
+}
+
+.grip:active {
+  cursor: grabbing;
+}
+
+.grip svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Reordering: the dragged row dims, a line marks where it lands. */
+.table [role="row"][data-dragging] > * {
+  opacity: 0.45;
+}
+
+.table [role="row"][data-drop="before"] > * {
+  box-shadow: inset 0 2px 0 var(--tf-color-accent);
+}
+
+.table [role="row"][data-drop="after"] > * {
+  box-shadow: inset 0 -2px 0 var(--tf-color-accent);
+}
+
+/* Light lines between the columns; none after the last one (the row menu), where the table's own border is. */
 .table > *,
 .table [role="row"] > * {
+  border-right: 1px solid var(--tf-color-border-subtle);
+}
+
+.table > [role="row"] > :last-child,
+.table > :last-child,
+.table [class*="trigger"],
+/* Time and rest wrap a cell that draws its own line: one line per column, like the headers. */
+.table [role="row"] > :not([class]) {
   border-right: 0;
+}
+
+/* Column resizing: a grab strip on each header's right edge that lights up on hover and while dragging. */
+.table [role="columnheader"] {
+  position: relative;
+}
+
+.colResize {
+  position: absolute;
+  top: 0;
+  right: -1px;
+  bottom: 0;
+  z-index: 2;
+  width: 7px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.colResize::after {
+  content: "";
+  position: absolute;
+  top: 20%;
+  right: 0;
+  bottom: 20%;
+  width: 2px;
+  border-radius: 1px;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+
+.colResize:hover::after,
+.colResize:active::after {
+  background: var(--tf-color-accent);
 }
 
 .head {
@@ -441,7 +564,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--tf-space-3);
-  padding: var(--tf-space-2) var(--tf-space-3);
+  margin: var(--tf-space-3) var(--tf-space-3) 0;
+  padding: var(--tf-space-2-5) var(--tf-space-3) var(--tf-space-2-5) var(--tf-space-4);
   border: 1px solid var(--tf-color-accent-border);
   border-radius: var(--tf-radius-md);
   background: var(--tf-color-accent-soft);
@@ -556,4 +680,153 @@
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-sm);
   font-style: italic;
+}
+
+/* Pro table: the plan's structure above the days (cycle picker, add cycle or block, more actions). */
+.structure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--tf-space-2) var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-3) 0;
+}
+
+.repeatSelect {
+  width: 9.5rem;
+}
+
+.structure > .repeatSelect {
+  margin-right: auto;
+}
+
+.structureActions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+
+/* Editable plan notes: who sees it, the text, and remove. */
+.planNote[data-editable] {
+  align-items: flex-start;
+}
+
+.planNote[data-editable] .planNoteText {
+  flex: 1;
+  gap: var(--tf-space-1);
+}
+
+.planNoteVisibility {
+  padding: 0 0.25rem;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  font-weight: var(--tf-weight-regular);
+  cursor: pointer;
+}
+
+.planNoteInput {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--tf-space-1) var(--tf-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text);
+  font: inherit;
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+  resize: vertical;
+}
+
+.planNoteInput:hover {
+  border-color: var(--tf-color-border-subtle);
+}
+
+.planNoteInput:focus {
+  border-color: var(--tf-color-border-strong);
+  outline: none;
+}
+
+.planNoteRemove {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  cursor: pointer;
+}
+
+.planNoteRemove:hover {
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-danger);
+}
+
+.planNoteRemove svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* The block's maxes table under the day, in normal flow instead of a position on the sheet. */
+.maxes {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-4);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Pro: "+" at the end of the days adds one; the cycle is as long as its days. */
+.addDay {
+  display: grid;
+  place-items: center;
+  min-height: 3.5rem;
+  border: 1px dashed var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease;
+}
+
+.addDay:hover {
+  border-color: var(--tf-color-border-strong);
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+
+.addDay svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* An inactive block: still in the plan, left out when changes are applied. */
+.inactiveNote {
+  display: flex;
+  flex-basis: 100%;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.inactiveNote > span {
+  flex: 1;
+}
+
+.inactiveNote svg {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-text-tertiary);
 }

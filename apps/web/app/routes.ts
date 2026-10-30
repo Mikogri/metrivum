@@ -8,6 +8,8 @@ function publicPages(locale: "en" | "pl") {
     route("features", "modules/marketing/routes/features.tsx", { id: id("features") }),
     route("features/program-builder", "modules/marketing/routes/program-builder.tsx", { id: id("program-builder") }),
     route("features/video-analysis", "modules/marketing/routes/video-analysis.tsx", { id: id("video-analysis") }),
+    route("terms", "modules/marketing/routes/legal.tsx", { id: id("terms") }),
+    route("privacy", "modules/marketing/routes/legal.tsx", { id: id("privacy") }),
   ];
 }
 
@@ -40,6 +42,8 @@ export default [
       route("groups/:groupId", "modules/coaching/routes/group.tsx"),
       route("my-coaches", "modules/coaching/routes/my-coaches.tsx"),
       route("discover", "modules/coaching/routes/discover.tsx"),
+      // Temporary: specialization picker preview (development builds only).
+      route("dev/specializations", "modules/coaching/routes/dev-specializations.tsx"),
       route("forms", "modules/coaching/routes/forms.tsx"),
       route("forms/new", "modules/coaching/routes/form-detail.tsx", { id: "new-form" }),
       route("forms/:formId", "modules/coaching/routes/form-detail.tsx"),

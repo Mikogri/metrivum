@@ -28,8 +28,10 @@ public static class DeliveryRules
     {
         var results = new List<WorkoutOccurrence>();
         var offset = 0;
-        foreach (var block in revision.Snapshot.Document.Blocks)
+        var document = revision.Snapshot.Document;
+        foreach (var block in document.Blocks)
             foreach (var cycle in block.Cycles)
+            for (var run = 0; run < DocumentRules.RunsOf(document, cycle); run++)
             {
                 foreach (var day in cycle.Days)
                     foreach (var workout in day.Workouts)
@@ -44,6 +46,7 @@ public static class DeliveryRules
                             CycleId = cycle.Id,
                             DayId = day.Id,
                             WorkoutId = workout.Id,
+                            Repetition = run,
                             Name = workout.Name,
                             ScheduledDate = date,
                             Deadline = Deadline(date, assignment.TimeZone),

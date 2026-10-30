@@ -133,6 +133,8 @@ export interface AlertDialogProps extends Omit<DialogProps, "footer" | "children
   tone?: "default" | "danger" | "success";
   onConfirm: () => void | Promise<void>;
   isConfirming?: boolean;
+  /** The confirm action can't run yet (e.g. something must be fixed first); cancel stays available. */
+  isConfirmDisabled?: boolean;
 }
 
 /**
@@ -166,6 +168,7 @@ export function AlertDialog({
   tone = "default",
   onConfirm,
   isConfirming,
+  isConfirmDisabled,
   children,
   description,
   ...props
@@ -185,6 +188,7 @@ export function AlertDialog({
           <Button
             variant={tone === "danger" ? "danger" : tone === "success" ? "success" : "primary"}
             loading={isConfirming}
+            isDisabled={isConfirmDisabled}
             onPress={async () => {
               await onConfirm();
             }}

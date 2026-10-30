@@ -39,7 +39,8 @@ it.each(["switch", "unmount"])("aborts both hubs and rejects their pending token
   const session = { access_token: "token", user: { id: "coach" } } as Session;
   let release!: (value: { data: { session: Session } }) => void;
   const getSession = vi.fn(async () => ({ data: { session } }));
-  const client = { auth: { getSession, onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) } } as unknown as SupabaseClient;
+  // The session manager also confirms the signed-in user is still valid.
+  const client = { auth: { getSession, getUser: vi.fn(async () => ({ data: { user: session.user }, error: null })), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) } } as unknown as SupabaseClient;
   localStorage.setItem(slotStorageKey(0), "stored");
   const manager = new SessionManager(() => client);
   await manager.start();

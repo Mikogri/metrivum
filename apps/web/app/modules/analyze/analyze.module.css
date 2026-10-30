@@ -3,6 +3,11 @@
   gap: var(--tf-space-4);
 }
 
+/* The page header already ends with its own space: the first section starts right under it, as on the dashboard. */
+.workspace > :first-child {
+  margin-bottom: calc(var(--tf-space-4) * -1);
+}
+
 .skeletonPanel {
   display: grid;
   gap: var(--tf-space-4);

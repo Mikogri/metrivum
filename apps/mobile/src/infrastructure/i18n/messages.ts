@@ -1,5 +1,7 @@
+import { authEnglish, authPolish } from "./auth-messages";
 export type Locale = "en" | "pl";
 export const english = {
+    ...authEnglish,
     "route.auth": "Authentication",
     "route.coaches": "Coaches",
     "route.invitation": "Invitation",
@@ -86,25 +88,26 @@ export const english = {
     "auth.configurationHelp":
         "Set the public API URL and Supabase Auth settings in apps/mobile/.env.local, then restart the development build.",
     "auth.checkConfirmation":
-        "Check your email to confirm this account, then open the link on this device.",
+        "Enter the confirmation code from your email in the app.",
     "auth.checkRecovery":
-        "Check your email and open the recovery link on this device.",
+        "Enter the recovery code from your email in the app.",
     "auth.confirmationNotice":
-        "Open the confirmation email on this device within one hour. Your Coach or Client role is selected during profile setup.",
+        "Enter the confirmation code from your email to continue setting up your Coach or Client account.",
     "auth.recoveryNotice":
-        "If this email has an account, a reset link has been sent. Open it on this device within one hour.",
+        "If this email has an account, a recovery code has been sent. Enter it in the app.",
     "auth.recoveryExpired":
-        "The password reset session expired. Request a new recovery link.",
-    "auth.recoveryChanged": "The recovery account changed. Request a new link.",
+        "The password reset session expired. Request a new recovery code.",
+    "auth.recoveryChanged": "The recovery account changed. Request a new code.",
     "onboarding.title": "Your profile",
     "onboarding.username": "Username",
     "onboarding.birth": "Birth date (YYYY-MM-DD)",
     "onboarding.coach": "Coach account",
-    "onboarding.terms": "I accept the Metrivum terms",
+    "onboarding.terms": "I accept the Metrivum terms and privacy policy",
     "onboarding.acceptTerms": "Accept terms",
 } as const;
 export type TranslationKey = keyof typeof english;
 export const polish: Record<TranslationKey, string> = {
+    ...authPolish,
     "route.auth": "Uwierzytelnianie",
     "route.coaches": "Trenerzy",
     "route.invitation": "Zaproszenie",
@@ -191,22 +194,22 @@ export const polish: Record<TranslationKey, string> = {
     "auth.configurationHelp":
         "Ustaw publiczny adres API i konfigurację Supabase Auth w apps/mobile/.env.local, a następnie uruchom ponownie wersję deweloperską.",
     "auth.checkConfirmation":
-        "Sprawdź e-mail, aby potwierdzić konto, i otwórz link na tym urządzeniu.",
+        "Wpisz kod potwierdzenia z e-maila w aplikacji.",
     "auth.checkRecovery":
-        "Sprawdź e-mail i otwórz link odzyskiwania na tym urządzeniu.",
+        "Wpisz kod odzyskiwania z e-maila w aplikacji.",
     "auth.confirmationNotice":
-        "Otwórz e-mail z potwierdzeniem na tym urządzeniu w ciągu godziny. Rolę trenera lub podopiecznego wybierzesz podczas konfiguracji profilu.",
+        "Wpisz kod potwierdzenia z e-maila, aby dokończyć konfigurację konta trenera lub klienta.",
     "auth.recoveryNotice":
-        "Jeśli ten adres jest przypisany do konta, wysłaliśmy link resetowania. Otwórz go na tym urządzeniu w ciągu godziny.",
+        "Jeśli ten adres jest przypisany do konta, wysłaliśmy kod odzyskiwania. Wpisz go w aplikacji.",
     "auth.recoveryExpired":
-        "Sesja resetowania hasła wygasła. Poproś o nowy link odzyskiwania.",
+        "Sesja resetowania hasła wygasła. Poproś o nowy kod odzyskiwania.",
     "auth.recoveryChanged":
-        "Konto odzyskiwania uległo zmianie. Poproś o nowy link.",
+        "Konto odzyskiwania uległo zmianie. Poproś o nowy kod.",
     "onboarding.title": "Twój profil",
     "onboarding.username": "Nazwa użytkownika",
     "onboarding.birth": "Data urodzenia (RRRR-MM-DD)",
     "onboarding.coach": "Konto trenera",
-    "onboarding.terms": "Akceptuję regulamin Metrivum",
+    "onboarding.terms": "Akceptuję regulamin i politykę prywatności Metrivum",
     "onboarding.acceptTerms": "Akceptuję regulamin",
 };
 export function resolveLocale(value?: string | null): Locale | undefined {

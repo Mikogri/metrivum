@@ -41,3 +41,27 @@
   font-variant-numeric: tabular-nums;
 }
 
+
+/* Terms acceptance on sign-up: the checkbox with its links, and the error right under it. */
+.terms {
+  display: grid;
+  gap: var(--tf-space-1);
+  font-size: var(--tf-text-sm);
+}
+
+.terms a {
+  color: var(--tf-color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--tf-color-border-strong);
+}
+
+.terms a:hover {
+  text-decoration-color: currentColor;
+}
+
+.fieldError {
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+}

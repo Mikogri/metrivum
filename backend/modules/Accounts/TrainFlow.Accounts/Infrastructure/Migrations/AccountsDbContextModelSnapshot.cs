@@ -54,6 +54,14 @@ namespace TrainFlow.Accounts.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Locale")
                         .IsRequired()
                         .HasMaxLength(2)
@@ -114,6 +122,10 @@ namespace TrainFlow.Accounts.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_profiles_bio", "\"Bio\" IS NULL OR (char_length(\"Bio\") BETWEEN 1 AND 500 AND \"Bio\" = btrim(\"Bio\"))");
 
                             t.HasCheckConstraint("CK_profiles_display_name", "char_length(\"DisplayName\") <= 100 AND \"DisplayName\" = btrim(\"DisplayName\")");
+
+                            t.HasCheckConstraint("CK_profiles_first_name", "\"FirstName\" IS NULL OR (char_length(\"FirstName\") BETWEEN 1 AND 50 AND \"FirstName\" = btrim(\"FirstName\"))");
+
+                            t.HasCheckConstraint("CK_profiles_last_name", "\"LastName\" IS NULL OR (char_length(\"LastName\") BETWEEN 1 AND 50 AND \"LastName\" = btrim(\"LastName\"))");
 
                             t.HasCheckConstraint("CK_profiles_username_normalized", "(\"Username\" IS NULL AND \"NormalizedUsername\" IS NULL) OR \"NormalizedUsername\" = upper(\"Username\")");
 

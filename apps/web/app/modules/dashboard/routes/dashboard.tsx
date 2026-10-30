@@ -17,6 +17,7 @@ import { ProgramsIcon } from "~/layouts/components/navIcons";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { CoachDashboard, UsagePanel } from "./CoachPulse";
 import { Discovery } from "./Discovery";
+import { DISCOVERY_ENABLED } from "~/shared/features";
 
 export const meta = () => privateMeta("Dashboard — Metrivum");
 
@@ -165,7 +166,7 @@ export default function Dashboard() {
   const browse = useFeatureAccess("exercises.browse");
   const { mode } = useWorkspace();
   const [params, setParams] = useSearchParams();
-  const tab = params.get("tab") === "discovery" ? "discovery" : "overview";
+  const tab = DISCOVERY_ENABLED && params.get("tab") === "discovery" ? "discovery" : "overview";
 
   const shortcuts = [
     { tone: "green", href: "/app/programs?create=1", icon: FilePlus2, title: t.newProgram, body: t.newProgramBody, access: create },
@@ -189,7 +190,7 @@ export default function Dashboard() {
     return (
       <>
         <PageHeader title={t.greeting(profile.displayName || profile.username || "")} description={t.coach.range} />
-        <Tabs selectedKey={tab} onSelectionChange={(key) => setParams(key === "discovery" ? { tab: "discovery" } : {}, { replace: true })}>
+        {!DISCOVERY_ENABLED ? <CoachDashboard recent={recent} /> : <Tabs selectedKey={tab} onSelectionChange={(key) => setParams(key === "discovery" ? { tab: "discovery" } : {}, { replace: true })}>
           <TabList aria-label={t.tabs.label}>
             <Tab id="overview">{t.tabs.overview}</Tab>
             <Tab id="discovery">{t.tabs.discovery}</Tab>
@@ -200,7 +201,7 @@ export default function Dashboard() {
           <TabPanel id="discovery">
             <Discovery />
           </TabPanel>
-        </Tabs>
+        </Tabs>}
       </>
     );
   }

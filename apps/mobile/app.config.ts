@@ -2,6 +2,7 @@ import type { ExpoConfig } from "expo/config";
 
 const config: ExpoConfig = {
     name: "Metrivum",
+    icon: "./assets/brand/icon.png",
     slug: "trainflow",
     scheme: "trainflow",
     version: "0.1.0",
@@ -9,7 +10,14 @@ const config: ExpoConfig = {
     userInterfaceStyle: "automatic",
     platforms: ["ios", "android"],
     ios: { bundleIdentifier: "com.trainflow.app", supportsTablet: true },
-    android: { package: "com.trainflow.app", allowBackup: false },
+    android: {
+        package: "com.trainflow.app",
+        allowBackup: false,
+        adaptiveIcon: {
+            foregroundImage: "./assets/brand/adaptive-icon.png",
+            backgroundColor: "#0d0f0e",
+        },
+    },
     plugins: [
         "./plugins/withAndroidShortCxx.cjs",
         "expo-router",

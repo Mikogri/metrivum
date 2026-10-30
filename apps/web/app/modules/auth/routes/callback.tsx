@@ -1,12 +1,12 @@
 import type { EmailOtpType, Session } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import { ErrorState, LinkButton, Spinner } from "@trainflow/ui-web";
+import { ErrorState, LinkButton } from "@trainflow/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { SLOT_IDS, type SlotId } from "~/shared/session/storage-keys";
-import { AuthHeader } from "../components/AuthHeader";
+import { AuthWorking } from "../components/AuthWorking";
 import { slotParam } from "../lib/urls";
 import { consumeCallbackAttempt } from "../lib/callback-attempt";
 import styles from "./callback.module.css";
@@ -100,9 +100,8 @@ export default function AuthCallback() {
     );
   }
   return (
-    <div className={styles.working} role="status">
-      <Spinner size="lg" tone="accent" />
-      <AuthHeader title={t.working} />
+    <div className={styles.working}>
+      <AuthWorking title={t.working} steps={t.steps} />
       <RouterLink to="/auth/login" className="tf-visually-hidden">
         {t.backToLogin}
       </RouterLink>

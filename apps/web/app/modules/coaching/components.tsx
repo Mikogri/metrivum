@@ -1,4 +1,6 @@
 import { ResourceError } from "~/shared/lib/ResourceError";
+import { EyeOff } from "lucide-react";
+import styles from "./coaching.module.css";
 import { useEffect, useState, type ReactNode } from "react";
 import { useBlocker } from "react-router";
 import { Alert, AlertDialog, Badge, Button, LinkButton, LoadingState, Pagination } from "@trainflow/ui-web";
@@ -9,7 +11,14 @@ import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { errorText } from "~/shared/lib/errorText";
 
 export function StatusBadge({ status, size }: { status: string; size?: "sm" | "md" }) {
+  // Not published yet (forms, offers, plans): clients can't see it, so it has to stand out.
+  if (status === "Draft") return <NotPublishedBadge size={size} />;
   return <Badge dot size={size} tone={["Active", "Accepted", "Reviewed", "Paid"].includes(status) ? "success" : ["Suspended", "Overdue", "AwaitingPayment"].includes(status) ? "warning" : "neutral"}>{status.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ ([A-Z])/g, (_, c: string) => ` ${c.toLowerCase()}`)}</Badge>;
+}
+
+/** Something clients can't see yet because it was never published: a warning-coloured badge that stands out. */
+export function NotPublishedBadge({ size, label = "Not published" }: { size?: "sm" | "md"; label?: string }) {
+  return <Badge size={size} tone="warning" icon={<EyeOff />} className={styles.notPublished}>{label}</Badge>;
 }
 
 export function Failure({ error, retry }: { error: unknown; retry?: () => void }) {
@@ -21,7 +30,9 @@ export function MutationError({ error }: { error: unknown }) {
   const [reload, setReload] = useState(false);
   const message = error ? error instanceof ApiError && error.status < 500 ? error.message : errorText(m, error) : null;
   const showError = useErrorToast();
-  useEffect(() => { if (error && message) showError(error, message); }, [error, message, showError]);
+  // A validation problem (400) is shown in the form, next to what needs fixing, not as a toast.
+  const validation = error instanceof ApiError && error.status === 400;
+  useEffect(() => { if (error && message && !validation) showError(error, message); }, [error, message, showError, validation]);
   if (!error) return null;
   const conflict = error instanceof ApiError && (error.status === 412 || error.status === 409 && error.code === "VERSION_CONFLICT");
   return <><Alert tone="danger" title={error instanceof ApiError && error.status < 500 ? error.message : errorText(m, error)} live="assertive" actions={conflict && <Button onPress={() => setReload(true)}>Reload latest version</Button>} />

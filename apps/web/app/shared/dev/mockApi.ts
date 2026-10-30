@@ -58,6 +58,8 @@ const db = {
     workspaceId: "00000000-0000-4000-8000-0000000000aa",
     username: "demo_coach",
     displayName: "Demo Coach",
+    firstName: "Demo",
+    lastName: "Coach",
     birthDate: "1990-01-01",
     locale: "en",
     timeZone: "Europe/Warsaw",
@@ -299,10 +301,24 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   let m: RegExpMatchArray | null;
 
   if (path === "/api/v1/me" && method === "GET") return json(200, db.profile, db.profile.version);
+  // Development-only account erasure: a believable preview; the delete itself only checks the typed email.
+  if (path === "/api/v1/dev/account-erasure" && method === "GET") return json(200, {
+    userId: db.profile.id, rows: 47, files: 3, tables: [
+      { table: "accounts.profiles", rows: 1 }, { table: "accounts.workspaces", rows: 1 }, { table: "coaching.Relationships", rows: 4 },
+      { table: "messaging.messages", rows: 18 }, { table: "training.plans", rows: 6 }, { table: "training.revisions", rows: 17 },
+    ],
+  });
+  if (path === "/api/v1/dev/account-erasure" && method === "POST")
+    return body?.email === "coach@trainflow.test" ? json(200, { userId: db.profile.id, rows: 47, files: 3, tables: [] })
+      : json(400, { title: "Type the email of the signed-in account to confirm.", detail: "Type the email of the signed-in account to confirm.", code: "CONFIRMATION_MISMATCH" });
   // Onboarding on mock data (the profile lives in memory until the page reloads).
+  // The coach specialization catalog (same entries as the API taxonomy).
+  if (path === "/api/v1/coaching/specializations" && method === "GET") return json(200, [{"code": "strength_muscle", "name": "Strength & Muscle", "sortOrder": 0, "specializations": [{"code": "strength_training", "name": "Strength Training", "sortOrder": 0}, {"code": "powerlifting", "name": "Powerlifting", "sortOrder": 1}, {"code": "olympic_weightlifting", "name": "Olympic Weightlifting", "sortOrder": 2}, {"code": "hypertrophy", "name": "Hypertrophy", "sortOrder": 3}, {"code": "bodybuilding", "name": "Bodybuilding", "sortOrder": 4}, {"code": "strongman", "name": "Strongman", "sortOrder": 5}, {"code": "calisthenics", "name": "Calisthenics", "sortOrder": 6}]}, {"code": "endurance_conditioning", "name": "Endurance & Conditioning", "sortOrder": 1, "specializations": [{"code": "aerobic_conditioning", "name": "Aerobic Conditioning", "sortOrder": 0}, {"code": "anaerobic_conditioning", "name": "Anaerobic Conditioning", "sortOrder": 1}, {"code": "interval_training", "name": "Interval Training / HIIT", "sortOrder": 2}, {"code": "endurance_training", "name": "Endurance Training", "sortOrder": 3}, {"code": "hybrid_training", "name": "Hybrid Training", "sortOrder": 4}]}, {"code": "athletic_performance", "name": "Athletic Performance", "sortOrder": 2, "specializations": [{"code": "strength_conditioning", "name": "Strength & Conditioning", "sortOrder": 0}, {"code": "speed_agility", "name": "Speed & Agility", "sortOrder": 1}, {"code": "power_plyometrics", "name": "Power & Plyometrics", "sortOrder": 2}, {"code": "sport_specific_training", "name": "Sport-Specific Training", "sortOrder": 3}, {"code": "performance_testing", "name": "Performance Testing", "sortOrder": 4}]}, {"code": "general_fitness", "name": "General Fitness", "sortOrder": 3, "specializations": [{"code": "general_fitness", "name": "General Fitness", "sortOrder": 0}, {"code": "functional_fitness", "name": "Functional Fitness", "sortOrder": 1}, {"code": "fat_loss_recomposition", "name": "Fat Loss & Body Recomposition", "sortOrder": 2}, {"code": "mobility_flexibility", "name": "Mobility & Flexibility", "sortOrder": 3}]}, {"code": "specialized_training", "name": "Specialized Training", "sortOrder": 4, "specializations": [{"code": "crossfit_functional_competition", "name": "CrossFit / Functional Competition", "sortOrder": 0}, {"code": "tactical_fitness", "name": "Tactical Fitness", "sortOrder": 1}, {"code": "return_to_sport", "name": "Return to Sport", "sortOrder": 2}, {"code": "senior_fitness", "name": "Senior Fitness", "sortOrder": 3}, {"code": "prenatal_postnatal_fitness", "name": "Prenatal & Postnatal Fitness", "sortOrder": 4}, {"code": "adaptive_fitness", "name": "Adaptive Fitness", "sortOrder": 5}]}]);
+  if (path === "/api/v1/me/username-availability" && method === "GET")
+    return json(200, { available: !["coach_anna", "demo_client", "taken"].includes((q.get("username") ?? "").toLowerCase()) });
   if (path === "/api/v1/me/onboarding" && method === "PUT") {
     const role = body?.role === "Client" ? "Client" : "Coach";
-    db.profile = { ...db.profile, username: body?.username, displayName: body?.displayName, birthDate: body?.birthDate, locale: body?.locale ?? "en", timeZone: body?.timeZone ?? "UTC",
+    db.profile = { ...db.profile, username: body?.username, displayName: body?.firstName ? `${body.firstName} ${body.lastName ?? ""}`.trim() : body?.displayName, firstName: body?.firstName ?? null, lastName: body?.lastName ?? null, birthDate: body?.birthDate, locale: body?.locale ?? "en", timeZone: body?.timeZone ?? "UTC",
       onboarded: true, roles: [role], contexts: [role], version: db.profile.version + 1 } as ProfileResponse;
     return json(200, db.profile, db.profile.version);
   }
@@ -316,7 +332,8 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   }
   if (path === "/api/v1/me" && method === "PATCH") {
     if (ifMatch(init) !== db.profile.version) return problem(412, "VERSION_CONFLICT");
-    db.profile = { ...db.profile, ...body, version: db.profile.version + 1 };
+    const named = body?.firstName !== undefined || body?.lastName !== undefined ? { displayName: `${body.firstName ?? ""} ${body.lastName ?? ""}`.trim() } : {};
+    db.profile = { ...db.profile, ...body, ...named, version: db.profile.version + 1 };
     return json(200, db.profile, db.profile.version);
   }
   if (path === "/api/v1/me/access") {

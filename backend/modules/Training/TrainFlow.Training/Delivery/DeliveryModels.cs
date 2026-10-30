@@ -153,6 +153,11 @@ public sealed class WorkoutOccurrence
     {
         get; set;
     }
+    /// <summary>Which run of its cycle this is (0 for the first): a repeated cycle schedules the same workout again.</summary>
+    public int Repetition
+    {
+        get; set;
+    }
     public DateOnly ScheduledDate
     {
         get; set;
@@ -354,7 +359,7 @@ public static class DeliveryModel
         var o = model.Entity<WorkoutOccurrence>();
         o.ToTable("workout_occurrences");
         o.HasKey(x => x.Id);
-        o.HasIndex(x => new { x.AssignmentId, x.RevisionId, x.WorkoutId }).IsUnique();
+        o.HasIndex(x => new { x.AssignmentId, x.RevisionId, x.WorkoutId, x.Repetition }).IsUnique();
         o.HasIndex(x => new { x.ScheduledDate, x.AssignmentId });
         o.HasOne<ProgramAssignment>().WithMany().HasForeignKey(x => x.AssignmentId).OnDelete(DeleteBehavior.Restrict);
         o.HasOne<TrainingRevision>().WithMany().HasForeignKey(x => x.RevisionId).OnDelete(DeleteBehavior.Restrict);

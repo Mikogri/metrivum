@@ -1,0 +1,18 @@
+# Native account flows
+
+Web is the behavior reference: `modules/auth/routes/{login,register,verify,forgot-password,reset-password}` and `modules/accounts/routes/onboarding`. Native uses its own controls and components; it never imports DOM or web UI. Web source and Supabase project settings are unchanged.
+
+| Flow | Native behavior |
+| --- | --- |
+| Sign in | Password or email code; passwordless requests use `shouldCreateUser: false`. Unknown passwordless accounts receive the same UI response. |
+| Register | Client/Coach, email, password and terms/privacy consent; same password/email rules as web. Existing-account responses offer sign-in/reset rather than waiting for an email that will not arrive. |
+| Verify | Code input immediately visible; `verifyOtp` uses the original email and signup/email/recovery purpose. Resend has a 60-second cooldown, with server rate limits still authoritative. |
+| Recover | Email code first, then a password and confirmation. A recovery session is restricted by the native UI to resetting that identity and expires locally after 15 minutes. |
+| Add/switch/remove | Three isolated saved slots, cancel back to the active account, one retained copy per Auth subject, cleanup of stale same-email identities, automatic selection of a remaining account after sign-out, and sign-out-all. |
+| Set up profile | Account identity and username availability; location; body; heart/recovery; training preferences; health/goals; optional coach specializations. Clients provide sex, height and weight. Optional steps can be skipped. |
+
+Registration role metadata only initializes an editable onboarding choice; the API remains the authority for roles and access. Drafts, tokens and profile requests retain their account scope. A late/cancelled code response cannot activate an account; verification checks email and any retained Auth subject before completion. Codes/passwords are not logged or stored in application draft storage. Resuming an email challenge after a process kill requires requesting a new code. Previously issued PKCE links keep the existing guarded compatibility handler, but new native flows request and display codes.
+
+`email-code.ts` coordinates one challenge and serializes requests/verification/resends. `auth-policy.ts`, `email.ts` and `identity.ts` mirror the web's client-side rules without a runtime web dependency. `onboarding-model.ts` retains successful account creation across failed optional-field saves and checks account lifetime between API calls.
+
+Verification: run `npm test -- --project mobile-core`, mobile typecheck and changed-file ESLint. `expo export --platform android --platform ios --max-workers 2` verifies bundling. Real mail delivery, device autofill, keyboard behavior, recovery and multi-account interaction still require disposable accounts on Android/iOS. No live email was sent by this implementation task and no Auth templates, redirect allowlist or confirmation policy were changed.

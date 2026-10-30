@@ -5,7 +5,7 @@ import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
 import { Alert, Avatar, Badge, Button, Card, Checkbox, Combobox, LinkButton, List, ListRow, Option, PageHeader, Select, Skeleton, Switch, TextArea, TextField, toast } from "@trainflow/ui-web";
 import {
-  DETAIL_GROUPS, DetailFields, ageFrom, detailProblems, detailsFromValues, detailsToValues, displayNameValid, normalizeDisplayName, profileFieldsKey,
+  DETAIL_GROUPS, DetailFields, ageFrom, detailProblems, detailsFromValues, detailsToValues, nameParts, namePartValid, normalizeDisplayName, profileFieldsKey,
   profileKey, timeZones, updateProfile, useProfile, type DetailGroup, type Details,
 } from "~/modules/accounts";
 import { CoachSpecializationsCard } from "~/modules/coaching";
@@ -20,6 +20,7 @@ import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useActiveAccount, useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { useAccountActions } from "~/shared/session/useAccountActions";
+import { DevAccountErasure } from "./DevAccountErasure";
 import styles from "./settings.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
@@ -38,7 +39,9 @@ function ProfileForm() {
   const queryClient = useQueryClient();
   const { locale, setLocale } = useAppLocale();
   const zones = useMemo(() => timeZones(), []);
-  const [displayName, setDisplayName] = useState(profile.displayName);
+  const initialName = nameParts(profile);
+  const [firstName, setFirstName] = useState(initialName.first);
+  const [lastName, setLastName] = useState(initialName.last);
   const [bio, setBio] = useState(profile.bio ?? "");
   const [language, setLanguage] = useState(profile.locale);
   const [timeZone, setTimeZone] = useState(profile.timeZone);
@@ -46,7 +49,7 @@ function ProfileForm() {
   const [phoneShared, setPhoneShared] = useState(profile.phoneVisibleToCoach);
 
   const mutation = useMutation({
-    mutationFn: () => updateProfile(api, { displayName: normalizeDisplayName(displayName), bio: bio.trim(), locale: language, timeZone, phone: phone.trim(), phoneVisibleToCoach: phoneShared }, profile.version),
+    mutationFn: () => updateProfile(api, { displayName: normalizeDisplayName(`${firstName} ${lastName}`), firstName: normalizeDisplayName(firstName), lastName: normalizeDisplayName(lastName), bio: bio.trim(), locale: language, timeZone, phone: phone.trim(), phoneVisibleToCoach: phoneShared }, profile.version),
     onSuccess: (updated) => {
       queryClient.setQueryData(profileKey(a), updated);
       // The details share the profile version: refresh them so their next save is not refused.
@@ -58,12 +61,12 @@ function ProfileForm() {
   const conflict = mutation.error instanceof ApiError && mutation.error.status === 412;
   const phoneInvalid = phone.trim() !== "" && !PHONE.test(phone.trim());
   const bioTooLong = bio.trim().length > BIO_MAX;
-  const dirty = normalizeDisplayName(displayName) !== profile.displayName || bio.trim() !== (profile.bio ?? "") || language !== profile.locale || timeZone !== profile.timeZone
+  const dirty = normalizeDisplayName(firstName) !== initialName.first || normalizeDisplayName(lastName) !== initialName.last || bio.trim() !== (profile.bio ?? "") || language !== profile.locale || timeZone !== profile.timeZone
     || phone.trim() !== (profile.phone ?? "") || phoneShared !== profile.phoneVisibleToCoach;
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!displayNameValid(displayName) || phoneInvalid || bioTooLong) return;
+    if (!namePartValid(firstName) || !namePartValid(lastName) || phoneInvalid || bioTooLong) return;
     mutation.mutate();
   }
 
@@ -106,7 +109,10 @@ function ProfileForm() {
           </div>
           <p className={styles.hint}>{t.readOnlyHint}</p>
         </dl>
-        <TextField placeholder={m.common.ph.displayName} label={t.displayName} value={displayName} onChange={setDisplayName} isRequired isInvalid={!displayNameValid(displayName)} errorMessage={displayName.trim() ? m.onboarding.displayNameInvalid : m.auth.errors.required} />
+        <div className={styles.twoCols}>
+          <TextField placeholder={m.common.ph.firstName} label={t.firstName} value={firstName} onChange={setFirstName} autoComplete="given-name" isRequired isInvalid={!namePartValid(firstName)} errorMessage={firstName.trim() ? m.onboarding.namePartInvalid : m.auth.errors.required} />
+          <TextField placeholder={m.common.ph.lastName} label={t.lastName} value={lastName} onChange={setLastName} autoComplete="family-name" isRequired isInvalid={!namePartValid(lastName)} errorMessage={lastName.trim() ? m.onboarding.namePartInvalid : m.auth.errors.required} />
+        </div>
         <TextArea label={t.bio} placeholder={t.bioPlaceholder} value={bio} onChange={setBio} maxLength={BIO_MAX} description={`${t.bioHint} ${bio.trim().length}/${BIO_MAX}`} isInvalid={bioTooLong} />
         <div className={styles.twoCols}>
           <Select label={t.locale} selectedKey={language} onSelectionChange={(key) => setLanguage(String(key))}>
@@ -486,7 +492,7 @@ export default function Settings() {
           </nav>
         </aside>
         <div className={styles.content} key={section}>
-          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "accounts" ? <Accounts /> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <><CoachSpecializationsCard editable initialEditing /><CoachingPreferences /></> : section === "integrations" ? <Integrations /> : <AccessOverview />}
+          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "accounts" ? <><Accounts /><DevAccountErasure /></> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <><CoachSpecializationsCard editable initialEditing /><CoachingPreferences /></> : section === "integrations" ? <Integrations /> : <AccessOverview />}
         </div>
       </div>
     </>

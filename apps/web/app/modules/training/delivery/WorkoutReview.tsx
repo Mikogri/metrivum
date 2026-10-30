@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
-import { Button, NumberInput, TextArea } from "@trainflow/ui-web";
+import { Activity } from "lucide-react";
+import { Button, EmptyState, NumberInput, TextArea } from "@trainflow/ui-web";
 import { Failure, Loading, MutationError, ListPagination, useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import styles from "./delivery.module.css";
@@ -50,5 +51,40 @@ export function ComparisonReport({ from, to, relationshipId, programId, blockId,
   const [page, setPage] = useState(1);
   const query = useCoachingQuery<{ items: Comparison[]; total: number; page: number; pageSize: number }>("/api/v1/training/comparison-report", { from, to, relationshipId, programId, blockId, cycleId, view, page, pageSize: 10 });
   const pl = useAppLocale().locale === "pl";
-  return <section className={styles.stack}><h2>{pl ? "Wykonanie i feedback w czasie" : "Execution and feedback over time"}</h2>{query.isPending ? <Loading /> : query.error ? <Failure error={query.error} /> : <>{query.data?.items.map(item => <details className={styles.details} key={item.executionId}><summary>{item.performedDate} · {item.name} · {item.performedSets}/{item.plannedSets} · RPE {format(item.feedback?.sessionRpe)} · {pl ? "Samopoczucie" : "Wellbeing"} {format(item.feedback?.wellbeing)}/5 · {pl ? "Sen" : "Sleep"} {format(item.feedback?.sleepQuality)}/5</summary>{item.feedback?.note && <p>{item.feedback.note}</p>}<WorkoutComparisonView data={item} /></details>)}{query.data?.items.length === 0 && <p>{pl ? "Brak wykonanych treningów w tym okresie." : "No completed workouts in this period."}</p>}{query.data && <ListPagination data={query.data} onChange={setPage} />}</>}</section>;
+  const day = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(pl ? "pl-PL" : "en-GB", { day: "numeric", month: "short" });
+  const weekday = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(pl ? "pl-PL" : "en-GB", { weekday: "short" });
+  return <section className={styles.report} aria-labelledby="progress-report">
+    <header className={styles.reportHead}>
+      <h2 id="progress-report">{pl ? "Wykonanie i feedback" : "Execution and feedback"}</h2>
+      <p>{pl ? "Każdy ukończony trening z tego okresu: ile serii zrobiono z planu i jak klient się czuł. Rozwiń, aby porównać z planem." : "Every completed workout in this period: how much of the plan was done and how the client felt. Open one to compare it with the plan."}</p>
+    </header>
+    {query.isPending ? <Loading /> : query.error ? <Failure error={query.error} /> : !query.data?.items.length ? (
+      <EmptyState icon={<Activity />} title={pl ? "Brak ukończonych treningów" : "No completed workouts yet"}
+        description={pl ? "Gdy klient oznaczy trening jako zrobiony, pojawi się tutaj razem z feedbackiem. Zmień okres, aby zobaczyć wcześniejsze." : "When the client marks a workout as done, it shows up here with their feedback. Change the period to see earlier ones."} />
+    ) : <>
+      <ul className={styles.reportList}>
+        {query.data.items.map(item => {
+          const done = item.plannedSets ? Math.min(1, Number(item.performedSets) / Number(item.plannedSets)) : 0;
+          return <li key={item.executionId}><details className={styles.reportItem}>
+            <summary>
+              <span className={styles.reportDate}><strong>{day(item.performedDate)}</strong><span>{weekday(item.performedDate)}</span></span>
+              <span className={styles.reportMain}>
+                <strong>{item.name}</strong>
+                <span className={styles.reportBar} aria-label={`${item.performedSets} / ${item.plannedSets} ${pl ? "serii" : "sets"}`}><span style={{ transform: `scaleX(${done})` }} /></span>
+                <span className={styles.reportSets}>{item.performedSets} / {item.plannedSets} {pl ? "serii" : "sets"}</span>
+              </span>
+              <span className={styles.reportChips}>
+                <span title="Session RPE">RPE <b>{format(item.feedback?.sessionRpe)}</b></span>
+                <span title={pl ? "Samopoczucie" : "Wellbeing"}>{pl ? "Samop." : "Mood"} <b>{format(item.feedback?.wellbeing)}</b>/5</span>
+                <span title={pl ? "Sen" : "Sleep"}>{pl ? "Sen" : "Sleep"} <b>{format(item.feedback?.sleepQuality)}</b>/5</span>
+              </span>
+            </summary>
+            {item.feedback?.note ? <p className={styles.reportNote}>“{item.feedback.note}”</p> : null}
+            <WorkoutComparisonView data={item} />
+          </details></li>;
+        })}
+      </ul>
+      <ListPagination data={query.data} onChange={setPage} />
+    </>}
+  </section>;
 }

@@ -1,10 +1,11 @@
 import { useId, useMemo, useState } from "react";
-import { LocateFixed, MapPin } from "lucide-react";
+import { ArrowLeftRight, LocateFixed, MapPin } from "lucide-react";
 import { Alert, Button, Chip, ChipGroup, Combobox, NumberInput, Option, Select, TextArea, TextField } from "@trainflow/ui-web";
 import { countryNames, locateMe } from "../lib/location";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import type { AppMessages } from "~/shared/i18n/messages/app.en";
 import styles from "./ProfileDetails.module.css";
+import { DISCOVERY_ENABLED } from "~/shared/features";
 
 /**
  * The body and training details a coach plans with (backend: SystemFieldKey). One editor for onboarding and
@@ -16,6 +17,7 @@ export type Details = {
   Weight: number;
   BodyFat: number;
   HrMax: number;
+  Vo2Max: number;
   Sleep: number;
   Stress: number;
   TrainingExperience: string;
@@ -37,18 +39,18 @@ export type DetailGroup = "location" | "body" | "heart" | "training" | "health";
 export const DETAIL_GROUPS: Record<DetailGroup, DetailKey[]> = {
   location: ["Country", "Region", "City", "PostalCode"],
   body: ["Sex", "Height", "Weight", "BodyFat"],
-  heart: ["HrMax", "Sleep", "Stress"],
+  heart: ["HrMax", "Vo2Max", "Sleep", "Stress"],
   training: ["TrainingExperience", "ActivityLevel", "SessionsPerWeek", "AvailableSessionDuration", "PreferredTrainingDays", "AvailableEquipment"],
   health: ["InjuriesLimitationsPainNotes", "AdditionalNotes"],
 };
 
 export const emptyDetails: Details = {
-  Sex: "", Height: NaN, Weight: NaN, BodyFat: NaN, HrMax: NaN, Sleep: NaN, Stress: NaN, TrainingExperience: "", ActivityLevel: "",
+  Sex: "", Height: NaN, Weight: NaN, BodyFat: NaN, HrMax: NaN, Vo2Max: NaN, Sleep: NaN, Stress: NaN, TrainingExperience: "", ActivityLevel: "",
   SessionsPerWeek: NaN, AvailableSessionDuration: NaN, PreferredTrainingDays: [], AvailableEquipment: [], InjuriesLimitationsPainNotes: "", AdditionalNotes: "",
   Country: "", Region: "", City: "", PostalCode: "",
 };
 
-const NUMBER_KEYS = new Set<DetailKey>(["Height", "Weight", "BodyFat", "HrMax", "Sleep", "Stress", "SessionsPerWeek", "AvailableSessionDuration"]);
+const NUMBER_KEYS = new Set<DetailKey>(["Height", "Weight", "BodyFat", "HrMax", "Vo2Max", "Sleep", "Stress", "SessionsPerWeek", "AvailableSessionDuration"]);
 
 /** Stored values (as the API returns them) to editable state. Unknown shapes are ignored. */
 export function detailsFromValues(values: Record<string, unknown> | undefined): Details {
@@ -88,12 +90,31 @@ export function detailsToValues(details: Details, keys: DetailKey[], clearEmpty:
   return values;
 }
 
+type Units = "metric" | "imperial";
+const UNITS_KEY = "tf.units";
+const KG_PER_LB = 0.45359237;
+const CM_PER_IN = 2.54;
+function readUnits(): Units {
+  try { return typeof window !== "undefined" && window.localStorage.getItem(UNITS_KEY) === "imperial" ? "imperial" : "metric"; } catch { return "metric"; }
+}
+/** Centimetres as whole feet and inches (NaN while empty). */
+function toFeetInches(cm: number): { feet: number; inches: number } {
+  if (Number.isNaN(cm)) return { feet: NaN, inches: NaN };
+  const total = Math.round(cm / CM_PER_IN);
+  return { feet: Math.floor(total / 12), inches: total % 12 };
+}
+function fromFeetInches(feet: number, inches: number): number {
+  if (Number.isNaN(feet) && Number.isNaN(inches)) return NaN;
+  return Math.round(((Number.isNaN(feet) ? 0 : feet) * 12 + (Number.isNaN(inches) ? 0 : inches)) * CM_PER_IN * 10) / 10;
+}
+
 /** The sensible ranges the form accepts (the API allows a wider range for unusual cases). */
 const RANGES: Partial<Record<DetailKey, { min: number; max: number; integer?: boolean; message: (m: AppMessages) => string }>> = {
   Height: { min: 100, max: 250, message: (m) => m.onboarding.heightRange },
   Weight: { min: 30, max: 300, message: (m) => m.onboarding.weightRange },
   BodyFat: { min: 3, max: 60, message: (m) => m.onboarding.bodyFatRange },
   HrMax: { min: 100, max: 230, integer: true, message: (m) => m.onboarding.hrMaxRange },
+  Vo2Max: { min: 10, max: 100, message: (m) => m.onboarding.vo2maxRange },
   Sleep: { min: 0, max: 24, message: (m) => m.onboarding.sleepRange },
   Stress: { min: 0, max: 10, integer: true, message: (m) => m.onboarding.stressRange },
   SessionsPerWeek: { min: 0, max: 21, integer: true, message: (m) => m.onboarding.sessionsRange },
@@ -167,10 +188,21 @@ export function DetailFields({ group, value, onChange, problems = {}, required =
   const m = useT();
   const t = m.onboarding;
   const set = <K extends DetailKey>(key: K, next: Details[K]) => onChange({ ...value, [key]: next });
-  const number = (key: DetailKey, label: string, unit: string | undefined, placeholder: string, options: { fraction?: number; description?: string } = {}) => (
+  // Height and weight can be typed in cm/kg or ft-in/lb; they are always stored in cm and kg.
+  const [units, setUnits] = useState<Units>(readUnits);
+  const chooseUnits = (next: Units) => { setUnits(next); try { window.localStorage.setItem(UNITS_KEY, next); } catch { /* storage unavailable */ } };
+  // The unit inside height and weight is a switch: one click moves both between cm, kg and ft, lb.
+  const unitSwitch = (unit: string) => (
+    <button type="button" className={styles.unitSwitch} aria-label={units === "metric" ? t.switchToImperial : t.switchToMetric}
+      title={units === "metric" ? t.switchToImperial : t.switchToMetric} onClick={() => chooseUnits(units === "metric" ? "imperial" : "metric")}>
+      {unit}<ArrowLeftRight aria-hidden="true" />
+    </button>
+  );
+  const number = (key: DetailKey, label: string, unit: string | undefined, placeholder: string, options: { fraction?: number; description?: string; endSlot?: React.ReactNode } = {}) => (
     <NumberInput
       label={label}
       unit={unit}
+      endSlot={options.endSlot}
       placeholder={placeholder}
       value={value[key] as number}
       onChange={(next) => set(key, next as never)}
@@ -196,10 +228,26 @@ export function DetailFields({ group, value, onChange, problems = {}, required =
             </Option>
           ))}
         </Select>
-        <div className={styles.pair}>
-          {number("Height", t.height, u.cm, "175")}
-          {number("Weight", t.weight, u.kg, "70", { fraction: 1 })}
-        </div>
+        {units === "metric" ? (
+          <div className={styles.pair}>
+            {number("Height", t.height, undefined, "175", { endSlot: unitSwitch(u.cm) })}
+            {number("Weight", t.weight, undefined, "70", { fraction: 1, endSlot: unitSwitch(u.kg) })}
+          </div>
+        ) : (
+          <div className={styles.pair}>
+            <div className={styles.feetInches}>
+              <NumberInput label={t.height} endSlot={unitSwitch(u.ft)} placeholder="5" value={toFeetInches(value.Height).feet} minValue={0} formatOptions={{ maximumFractionDigits: 0 }}
+                isRequired={required.includes("Height")} isInvalid={Boolean(problems.Height)}
+                onChange={(feet) => set("Height", fromFeetInches(feet, toFeetInches(value.Height).inches))} />
+              <NumberInput aria-label={`${t.height} (${u.in})`} unit={u.in} placeholder="9" value={toFeetInches(value.Height).inches} minValue={0} maxValue={11} formatOptions={{ maximumFractionDigits: 0 }}
+                isInvalid={Boolean(problems.Height)} onChange={(inches) => set("Height", fromFeetInches(toFeetInches(value.Height).feet, inches))} />
+              {problems.Height ? <p className={styles.fieldError}>{problems.Height}</p> : null}
+            </div>
+            <NumberInput label={t.weight} endSlot={unitSwitch(u.lb)} placeholder="154" value={Number.isNaN(value.Weight) ? NaN : Math.round((value.Weight / KG_PER_LB) * 10) / 10} minValue={0} formatOptions={{ maximumFractionDigits: 1 }}
+              isRequired={required.includes("Weight")} isInvalid={Boolean(problems.Weight)} errorMessage={problems.Weight}
+              onChange={(pounds) => set("Weight", Number.isNaN(pounds) ? NaN : Math.round(pounds * KG_PER_LB * 10) / 10)} />
+          </div>
+        )}
         <div className={styles.pair}>{number("BodyFat", t.bodyFat, u.percent, "18", { fraction: 1 })}</div>
       </div>
     );
@@ -217,8 +265,11 @@ export function DetailFields({ group, value, onChange, problems = {}, required =
           ) : null}
         </div>
         <div className={styles.pair}>
+          {number("Vo2Max", t.vo2max, u.vo2, "45", { fraction: 1, description: t.vo2maxHint })}
+        </div>
+        <div className={styles.pair}>
           {number("Sleep", t.sleep, u.hours, "7.5", { fraction: 1 })}
-          {number("Stress", t.stress, undefined, "4", { description: t.stressHint })}
+          {number("Stress", t.stress, undefined, "4")}
         </div>
       </div>
     );
@@ -297,10 +348,12 @@ function LocationFields({ value, onChange }: { value: Details; onChange: (next: 
   }
   return (
     <div className={styles.fields}>
-      <div className={styles.discovery}>
-        <MapPin aria-hidden="true" />
-        <p>{t.why}</p>
-      </div>
+      {DISCOVERY_ENABLED ? (
+        <div className={styles.discovery}>
+          <MapPin aria-hidden="true" />
+          <p>{t.why}</p>
+        </div>
+      ) : null}
       <div className={styles.locate}>
         <Button size="sm" iconStart={<LocateFixed />} loading={locating} onPress={() => void locate()}>
           {t.useMine}

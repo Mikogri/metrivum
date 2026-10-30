@@ -5,7 +5,7 @@ import styles from "./SheetCanvas.module.css";
 
 export interface MinimapNode {
   id: string;
-  kind: "block" | "cycle";
+  kind: "block" | "cycle" | "workout";
   x: number;
   y: number;
   w: number;

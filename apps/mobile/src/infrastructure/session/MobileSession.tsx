@@ -1,4 +1,9 @@
 import { useI18n } from "../i18n";
+import { BrandMark } from "../../BrandMark";
+import { AuthScreen, EmailCodeScreen } from "./AuthScreen";
+import { Onboarding } from "./Onboarding";
+import { createEmailCodeFlow, type EmailChallenge } from "./email-code";
+import { authErrorKey, passwordProblem } from "./auth-policy";
 import {
     createContext,
     useContext,
@@ -28,15 +33,11 @@ import {
 import {
     BlockingOverlay,
     Screen,
-    Section,
     Text,
     Field,
     Button,
     ErrorState,
-    ListItem,
     LoadingState,
-    SegmentedControl,
-    Switch,
 } from "@trainflow/ui-mobile";
 import { createChunkStorage } from "./chunk-storage";
 import { openDraftStore, type DraftStore } from "../persistence/DraftStore";
@@ -129,6 +130,7 @@ type AccountsValue = {
     addAccount: () => void;
     signOut: () => Promise<void>;
     requestPasswordReset: (email: string) => Promise<void>;
+    signOutAll: () => Promise<void>;
 };
 const AccountsContext = createContext<AccountsValue | null>(null);
 export function useAccounts() {
@@ -164,6 +166,15 @@ export function MobileSession({ children }: PropsWithChildren) {
     const receivedLinks = useRef(new Set<string>());
     const recoveryEvents = useRef(new Set<number>());
     const resetLock = useRef(false);
+    const [emailChallenge, setEmailChallenge] = useState<EmailChallenge | null>(null);
+    const completeEmail = useRef<(slot: number, session: Session, challenge: EmailChallenge) => Promise<void>>(async () => {});
+    const emailFlow = useMemo(() => createEmailCodeFlow({
+        auth: (slot) => client(slot).auth,
+        occupying: (slot) => latestAccounts.current.find(item => item.slot === slot)?.session.user,
+        changed: setEmailChallenge,
+        complete: (...args) => completeEmail.current(...args),
+    }), []);
+    useEffect(() => () => emailFlow.cancel(), [emailFlow]);
     const dispose = useRef<(wipe?: boolean) => Promise<void>>(async () => {});
     const configured =
         !!API_URL &&
@@ -195,6 +206,9 @@ export function MobileSession({ children }: PropsWithChildren) {
                     if (event === "SIGNED_OUT")
                         recoveryEvents.current.delete(slot);
                     setAccounts((current) => {
+                        // Refresh events cannot replace a retained identity or duplicate another slot.
+                        if (session && current.some(item => (item.slot === slot && item.session.user.id !== session.user.id)
+                            || (item.slot !== slot && item.session.user.id === session.user.id))) return current;
                         const next = [
                             ...current.filter((item) => item.slot !== slot),
                             ...(session ? [{ slot, session }] : []),
@@ -315,8 +329,12 @@ export function MobileSession({ children }: PropsWithChildren) {
             setAccounts((items) =>
                 items.filter((item) => item.slot !== active),
             );
-            setActive(null);
-            await SecureStore.deleteItemAsync("active-account");
+            const remaining = latestAccounts.current.filter(item => item.slot !== active);
+            latestAccounts.current = remaining;
+            setAccounts(remaining);
+            setActive(remaining[0]?.slot ?? null);
+            if (remaining[0]) await SecureStore.setItemAsync("active-account", String(remaining[0].slot));
+            else await SecureStore.deleteItemAsync("active-account");
         } catch (failure) {
             setError(failure);
         } finally {
@@ -333,7 +351,7 @@ export function MobileSession({ children }: PropsWithChildren) {
             resetLock.current
         )
             throw Error(
-                "Wait for the current account operation before requesting a link.",
+                "Wait for the current account operation before requesting a code.",
             );
         const existing = latestAccounts.current.find(
             (item) => item.session.user.email?.toLowerCase() === normalized,
@@ -350,28 +368,67 @@ export function MobileSession({ children }: PropsWithChildren) {
             );
         resetLock.current = true;
         try {
-            const pending = await authAttempts.begin(
-                slot,
-                normalized,
-                "recovery",
-                existing?.session.user.id ?? null,
-            );
-            const result = await client(slot).auth.resetPasswordForEmail(
-                normalized,
-                { redirectTo: pending.redirectTo },
-            );
-            if (result.error) {
-                await authAttempts.cancel(slot);
-                throw result.error;
-            }
+            await emailFlow.request(slot, normalized, "recovery");
         } finally {
             resetLock.current = false;
         }
+    }
+    async function completeSignIn(slot: number, session: Session) {
+        const email = session.user.email?.toLowerCase();
+        for (const old of latestAccounts.current.filter(item => item.slot !== slot && item.session.user.id !== session.user.id && email && item.session.user.email?.toLowerCase() === email)) {
+            await client(old.slot).auth.signOut({ scope: "local" });
+            await authAttempts.cancel(old.slot);
+            latestAccounts.current = latestAccounts.current.filter(item => item.slot !== old.slot);
+        }
+        const duplicate = latestAccounts.current.find(item => item.slot !== slot && item.session.user.id === session.user.id);
+        if (duplicate) {
+            await client(slot).auth.signOut({ scope: "local" });
+            latestAccounts.current = latestAccounts.current.filter(item => item.slot !== slot);
+            setAccounts(latestAccounts.current);
+            await switchAccount(duplicate.slot);
+            return;
+        }
+        latestAccounts.current = [...latestAccounts.current.filter(item => item.slot !== slot), { slot, session }];
+        setAccounts(latestAccounts.current);
+        await switchAccount(slot);
+    }
+    completeEmail.current = async (slot, session, challenge) => {
+        if (challenge.type === "recovery") {
+            await dispose.current();
+            const next = { slot, userId: session.user.id, email: challenge.email, expiresAt: Date.now() + 15 * 60_000 };
+            await secure.setItem(`trainflow.recovery.${slot}`, JSON.stringify(next));
+            setRecovery(next);
+            setAdding(false);
+        } else await completeSignIn(slot, session);
+    };
+    async function signOutAll() {
+        if (transitionLock.current || callbackLock.current) return;
+        transitionLock.current = true;
+        setTransitioning(true);
+        try {
+            emailFlow.cancel();
+            await dispose.current(true);
+            for (const item of [...latestAccounts.current]) {
+                await client(item.slot).auth.signOut({ scope: "local" });
+                await authAttempts.cancel(item.slot);
+                await secure.removeItem(`trainflow.recovery.${item.slot}`);
+                // Each account's drafts have their own encrypted store.
+                if (item.slot !== active) {
+                    const store = await openDraftStore(item.session.user.id);
+                    await store.close(true);
+                }
+            }
+            latestAccounts.current = [];
+            setAccounts([]);
+            setActive(null);
+            await SecureStore.deleteItemAsync("active-account");
+        } finally { transitionLock.current = false; setTransitioning(false); }
     }
     async function handleAuthLink(url: string) {
         if (
             callbackLock.current ||
             transitionLock.current ||
+            emailFlow.pending() !== null || emailFlow.isBusy() ||
             receivedLinks.current.has(url)
         )
             return;
@@ -486,6 +543,7 @@ export function MobileSession({ children }: PropsWithChildren) {
                 },
                 signOut,
                 requestPasswordReset,
+                signOutAll,
             }}
         >
             {!configured ? (
@@ -493,9 +551,11 @@ export function MobileSession({ children }: PropsWithChildren) {
                     <Text>{t("auth.configurationHelp")}</Text>
                 </Screen>
             ) : loading || linkState === "working" ? (
-                <Screen title="Metrivum">
+                <Screen title="Metrivum" headerAction={<BrandMark />}>
                     <LoadingState />
                 </Screen>
+            ) : emailChallenge ? (
+                <EmailCodeScreen challenge={emailChallenge} flow={emailFlow} />
             ) : recovery ? (
                 <PasswordRecovery
                     recovery={recovery}
@@ -547,17 +607,12 @@ export function MobileSession({ children }: PropsWithChildren) {
             ) : adding || !current ? (
                 <AuthScreen
                     accounts={accounts}
+                    auth={(slot) => client(slot).auth}
+                    requestCode={emailFlow.request}
+                    requestRecovery={requestPasswordReset}
                     onSignedIn={async (slot, session) => {
-                        if (session) {
-                            latestAccounts.current = [
-                                ...latestAccounts.current.filter(
-                                    (item) => item.slot !== slot,
-                                ),
-                                { slot, session },
-                            ];
-                            setAccounts(latestAccounts.current);
-                        }
-                        await switchAccount(slot);
+                        if (session) await completeSignIn(slot, session);
+                        else await switchAccount(slot);
                     }}
                     onCancel={current ? () => setAdding(false) : undefined}
                 />
@@ -588,7 +643,7 @@ function AccountScope({
     const [profile, setProfile] = useState<ProfileResponse>();
     const [drafts, setDrafts] = useState<DraftStore>();
     const [error, setError] = useState<unknown>();
-    const [role, updateRole] = useState<Role>("client");
+    const [role, updateRole] = useState<Role | null>(null);
     const [expired, setExpired] = useState(false);
     const [password, setPassword] = useState("");
     const [authBusy, setAuthBusy] = useState(false);
@@ -677,7 +732,7 @@ function AccountScope({
                 const saved = await SecureStore.getItemAsync(
                     `role.${account.session.user.id}`,
                 );
-                if (!closed && saved === "coach") updateRole("coach");
+                if (!closed && (saved === "coach" || saved === "client")) updateRole(saved);
             })
             .catch(setError);
         const update = (state: string) => {
@@ -782,14 +837,15 @@ function AccountScope({
         );
     if (!profile || !drafts)
         return (
-            <Screen title="Metrivum">
+            <Screen title="Metrivum" headerAction={<BrandMark />}>
                 <LoadingState />
             </Screen>
         );
     if (!profile.onboarded)
-        return <Onboarding api={api} onComplete={refreshProfile} />;
+        return <Onboarding api={api} signal={scope.controller.signal} initialRole={account.session.user.user_metadata?.registration_role === "Coach" ? "Coach" : "Client"}
+            termsAccepted={account.session.user.user_metadata?.terms_version === "v1" && !!account.session.user.user_metadata?.terms_accepted_at} onComplete={refreshProfile} />;
     const allowedRole =
-        role === "coach" && profile.contexts.includes("Coach")
+        role !== "client" && profile.contexts.includes("Coach")
             ? "coach"
             : "client";
     return (
@@ -823,226 +879,6 @@ function AccountScope({
     );
 }
 
-function AuthScreen({
-    accounts,
-    onSignedIn,
-    onCancel,
-}: {
-    accounts: Account[];
-    onSignedIn: (slot: number, session?: Session) => Promise<void>;
-    onCancel?: () => void;
-}) {
-    const { t, locale, setLocale } = useI18n();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmation, setConfirmation] = useState("");
-    const [register, setRegister] = useState(false);
-    const [busy, setBusy] = useState(false);
-    const [error, setError] = useState<unknown>();
-    const [notice, setNotice] = useState("");
-    const lock = useRef(false);
-    const { requestPasswordReset } = useAccounts();
-    const existing = accounts.find(
-        (item) =>
-            item.session.user.email?.toLowerCase() ===
-            email.trim().toLowerCase(),
-    );
-    const slot =
-        !register && existing
-            ? existing.slot
-            : [0, 1, 2].find(
-                  (value) => !accounts.some((item) => item.slot === value),
-              );
-    async function submit() {
-        if (lock.current || slot === undefined || !email.trim() || !password)
-            return;
-        if (register && password !== confirmation) {
-            setError(Error(t("auth.passwordMismatch")));
-            return;
-        }
-        lock.current = true;
-        setBusy(true);
-        setError(undefined);
-        setNotice("");
-        try {
-            const pending = register
-                ? await authAttempts.begin(slot, email, "confirmation")
-                : null;
-            const result = register
-                ? await client(slot).auth.signUp({
-                      email: email.trim(),
-                      password,
-                      options: { emailRedirectTo: pending!.redirectTo },
-                  })
-                : await client(slot).auth.signInWithPassword({
-                      email: email.trim(),
-                      password,
-                  });
-            // Signing up with a registered address continues like a new sign-up, so the form
-            // cannot be used to find out who has an account (the owner can sign in or reset).
-            const existing =
-                register &&
-                (result.error?.code === "user_already_exists" ||
-                    result.error?.code === "email_exists");
-            if (result.error && !existing) throw result.error;
-            if (result.data?.session) {
-                await authAttempts.cancel(slot);
-                await onSignedIn(slot, result.data.session);
-            } else setNotice(t("auth.confirmationNotice"));
-        } catch (failure) {
-            if (register) await authAttempts.cancel(slot).catch(() => {});
-            setError(failure);
-        } finally {
-            lock.current = false;
-            setBusy(false);
-        }
-    }
-    async function reset() {
-        if (lock.current || !email.trim()) return;
-        lock.current = true;
-        setBusy(true);
-        setError(undefined);
-        try {
-            await requestPasswordReset(email);
-            setNotice(t("auth.recoveryNotice"));
-        } catch (failure) {
-            setError(failure);
-        } finally {
-            lock.current = false;
-            setBusy(false);
-        }
-    }
-    return (
-        <Screen
-            title={t(register ? "auth.create" : "auth.signIn")}
-            subtitle="Metrivum"
-        >
-            {accounts.length > 0 && (
-                <Section>
-                    {accounts.map((item) => (
-                        <ListItem
-                            key={item.slot}
-                            icon="person"
-                            title={
-                                item.session.user.email ||
-                                t("auth.accountNumber", {
-                                    number: item.slot + 1,
-                                })
-                            }
-                            onPress={
-                                busy ? undefined : () => onSignedIn(item.slot)
-                            }
-                        />
-                    ))}
-                </Section>
-            )}
-            {slot === undefined ? (
-                <Text tone="mutedText">{t("auth.maxAccounts")}</Text>
-            ) : (
-                <Section flat>
-                    <Field
-                        label={t("auth.email")}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        editable={!busy}
-                        value={email}
-                        onChangeText={setEmail}
-                    />
-                    <Field
-                        label={t("auth.password")}
-                        secureTextEntry
-                        autoComplete={
-                            register ? "new-password" : "current-password"
-                        }
-                        editable={!busy}
-                        value={password}
-                        onChangeText={setPassword}
-                    />
-                    {register && (
-                        <Field
-                            label={t("auth.confirmPassword")}
-                            secureTextEntry
-                            autoComplete="new-password"
-                            editable={!busy}
-                            value={confirmation}
-                            onChangeText={setConfirmation}
-                            error={
-                                confirmation && confirmation !== password
-                                    ? t("auth.passwordMismatch")
-                                    : undefined
-                            }
-                        />
-                    )}
-                    {!!notice && (
-                        <Text variant="caption" tone="success">
-                            {notice}
-                        </Text>
-                    )}
-                    {!!error && <ErrorState error={error} />}
-                    <Button
-                        size="lg"
-                        tone="primary"
-                        title={t(register ? "auth.create" : "auth.signIn")}
-                        loading={busy}
-                        disabled={
-                            !email ||
-                            !password ||
-                            (register && password !== confirmation)
-                        }
-                        onPress={submit}
-                    />
-                    <Button
-                        tone="ghost"
-                        title={t(
-                            register ? "auth.existingAccount" : "auth.create",
-                        )}
-                        disabled={busy}
-                        onPress={() => {
-                            setRegister(!register);
-                            setError(undefined);
-                            setNotice("");
-                        }}
-                    />
-                    {!register && (
-                        <Button
-                            tone="ghost"
-                            size="sm"
-                            title={t("auth.forgot")}
-                            disabled={busy || !email.trim()}
-                            onPress={reset}
-                        />
-                    )}
-                </Section>
-            )}
-            {slot === undefined && !!notice && <Text>{notice}</Text>}
-            {slot === undefined && !!error && <ErrorState error={error} />}
-            <SegmentedControl
-                label="Language / Język"
-                disabled={busy}
-                value={locale}
-                options={[
-                    { value: "en", label: "English" },
-                    { value: "pl", label: "Polski" },
-                ]}
-                onChange={async (next) => {
-                    try {
-                        await setLocale(next);
-                    } catch (failure) {
-                        setError(failure);
-                    }
-                }}
-            />
-            {onCancel && (
-                <Button
-                    title={t("common.cancel")}
-                    disabled={busy}
-                    onPress={onCancel}
-                />
-            )}
-        </Screen>
-    );
-}
 function PasswordRecovery({
     recovery,
     onDone,
@@ -1065,6 +901,8 @@ function PasswordRecovery({
     const lock = useRef(false);
     async function save() {
         if (lock.current || !password || password !== confirmation) return;
+        const problem = passwordProblem(password);
+        if (problem) { setError(new Error(t(problem))); return; }
         lock.current = true;
         setBusy(true);
         setError(undefined);
@@ -1077,7 +915,7 @@ function PasswordRecovery({
             if (current.data.session?.user.id !== recovery.userId)
                 throw Error(t("auth.recoveryChanged"));
             const result = await auth.updateUser({ password });
-            if (result.error) throw result.error;
+            if (result.error) throw new Error(t(authErrorKey(result.error)));
             if (result.data.user?.id !== recovery.userId)
                 throw Error(t("auth.recoveryChanged"));
             setPassword("");
@@ -1091,7 +929,7 @@ function PasswordRecovery({
         }
     }
     return (
-        <Screen title={t("auth.setPassword")}>
+        <Screen title={t("auth.setPassword")} headerAction={<BrandMark />}>
             <Text tone="mutedText">{recovery.email}</Text>
             <Field
                 label={t("auth.newPassword")}
@@ -1136,104 +974,6 @@ function PasswordRecovery({
                         setError(failure);
                     } finally {
                         lock.current = false;
-                        setBusy(false);
-                    }
-                }}
-            />
-            {!!error && <ErrorState error={error} />}
-        </Screen>
-    );
-}
-function Onboarding({
-    api,
-    onComplete,
-}: {
-    api: Transport;
-    onComplete: () => Promise<void>;
-}) {
-    const { t, locale } = useI18n();
-    const [username, setUsername] = useState("");
-    const [name, setName] = useState("");
-    const [birth, setBirth] = useState("");
-    const [coach, setCoach] = useState(false);
-    const [terms, setTerms] = useState(false);
-    const [busy, setBusy] = useState(false);
-    const [error, setError] = useState<unknown>();
-    return (
-        <Screen title={t("onboarding.title")}>
-            <Field
-                label={t("onboarding.username")}
-                autoCapitalize="none"
-                value={username}
-                onChangeText={setUsername}
-            />
-            <Field
-                label={t("settings.fullName")}
-                value={name}
-                onChangeText={setName}
-            />
-            <Field
-                label={t("onboarding.birth")}
-                placeholder="YYYY-MM-DD"
-                keyboardType="numbers-and-punctuation"
-                value={birth}
-                onChangeText={setBirth}
-            />
-            <Section>
-                <ListItem
-                    title={t("onboarding.coach")}
-                    trailing={
-                        <Switch
-                            accessibilityLabel={t("onboarding.coach")}
-                            value={coach}
-                            onValueChange={setCoach}
-                        />
-                    }
-                />
-                <ListItem
-                    title={t("onboarding.terms")}
-                    trailing={
-                        <Switch
-                            accessibilityLabel={t("onboarding.acceptTerms")}
-                            value={terms}
-                            onValueChange={setTerms}
-                        />
-                    }
-                />
-            </Section>
-            <Button
-                size="lg"
-                tone="primary"
-                title={t("common.continue")}
-                loading={busy}
-                disabled={
-                    !terms ||
-                    !username ||
-                    !name ||
-                    !/^\d{4}-\d{2}-\d{2}$/.test(birth)
-                }
-                onPress={async () => {
-                    setBusy(true);
-                    try {
-                        await api({
-                            path: "/api/v1/me/onboarding",
-                            method: "PUT",
-                            json: {
-                                username,
-                                displayName: name,
-                                birthDate: birth,
-                                acceptedTerms: terms,
-                                locale,
-                                timeZone:
-                                    Intl.DateTimeFormat().resolvedOptions()
-                                        .timeZone,
-                                role: coach ? "Coach" : "Client",
-                            },
-                        });
-                        await onComplete();
-                    } catch (failure) {
-                        setError(failure);
-                    } finally {
                         setBusy(false);
                     }
                 }}

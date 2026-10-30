@@ -8,3 +8,45 @@
 .group { margin: 0; padding: var(--tf-space-3); border: 1px solid var(--tf-color-border); border-radius: var(--tf-radius-md); min-width: 0; }
 .group legend { padding: 0 var(--tf-space-2); font-weight: var(--tf-weight-semibold); }
 .option { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--tf-space-2); padding: var(--tf-space-2) 0; }
+
+/* Counters: two small pills; the primary one carries the accent. */
+.counts { align-items: center; gap: var(--tf-space-2); }
+.count {
+  display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-full); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); font-variant-numeric: tabular-nums;
+}
+.count strong { margin-right: 1px; color: var(--tf-color-text); font-weight: var(--tf-weight-semibold); }
+.count svg { width: 0.75rem; height: 0.75rem; margin-right: 0.3rem; fill: currentColor; color: var(--tf-color-violet); }
+.count[data-kind="primary"] { border-color: color-mix(in srgb, var(--tf-color-violet) 35%, transparent); background: var(--tf-color-violet-soft); }
+.count[data-full] { border-color: var(--tf-color-border-strong); }
+.countHint { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+
+/* Chosen specializations wrap as small chips. A click on the chip makes it primary or regular; × removes it. */
+.chipList { display: flex; flex-wrap: wrap; gap: var(--tf-space-1-5, 0.375rem); margin: 0; padding: 0; list-style: none; }
+.chip {
+  display: inline-flex; align-items: center; height: 1.875rem; overflow: hidden; border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-full); background: var(--tf-color-surface); font-size: var(--tf-text-xs);
+  animation: chip-in 180ms var(--tf-ease-out, ease-out) both; transition: border-color 140ms ease, background-color 140ms ease;
+}
+.chip[data-primary] { border-color: color-mix(in srgb, var(--tf-color-violet) 55%, transparent); background: var(--tf-color-violet-soft); }
+.chipToggle, .chipLabel {
+  display: inline-flex; align-items: center; gap: 0.3rem; height: 100%; padding: 0 0.25rem 0 0.625rem; border: 0;
+  background: transparent; color: var(--tf-color-text-secondary); font: inherit; font-weight: var(--tf-weight-medium); white-space: nowrap;
+}
+.chipToggle { cursor: pointer; }
+.chipToggle svg { width: 0.75rem; height: 0.75rem; color: var(--tf-color-text-tertiary); transition: color 140ms ease, transform 160ms ease; }
+.chip[data-primary] .chipToggle { color: var(--tf-color-text); }
+.chip[data-primary] .chipToggle svg { color: var(--tf-color-violet); fill: currentColor; }
+.chipToggle:hover:not(:disabled) svg { transform: scale(1.15); }
+.chipToggle:active:not(:disabled) svg { transform: scale(0.9); }
+.chipToggle:disabled, .chipToggle[aria-disabled="true"] { cursor: default; }
+.chipToggle[aria-disabled="true"]:hover svg { transform: none; }
+.chipToggle:focus-visible, .chipRemove:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: -2px; border-radius: var(--tf-radius-full); }
+.chipRemove {
+  display: grid; place-items: center; width: 1.625rem; height: 100%; padding: 0 0.25rem 0 0; border: 0; background: transparent;
+  color: var(--tf-color-text-tertiary); cursor: pointer;
+}
+.chipRemove svg { width: 0.75rem; height: 0.75rem; }
+.chipRemove:hover:not(:disabled) { color: var(--tf-color-text); }
+@keyframes chip-in { from { opacity: 0; transform: scale(0.94); } }
+@media (prefers-reduced-motion: reduce) { .chip { animation: none; } }

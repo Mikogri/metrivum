@@ -34,9 +34,9 @@ function setup(role: string) {
 }
 async function account(city?: string) {
   await userEvent.type(screen.getByLabelText(/^Username/), "new_client");
-  await userEvent.type(screen.getByLabelText(/^First and last name/), "New Client");
+  await userEvent.type(screen.getByLabelText(/^First name/), "New");
+  await userEvent.type(screen.getByLabelText(/^Last name/), "Client");
   fireEvent.change(screen.getByLabelText("Date of birth"), { target: { value: "1990-01-01" } });
-  await userEvent.click(screen.getByText(/^I accept the Metrivum terms/));
   await userEvent.click(screen.getByRole("button", { name: "Continue" }));
   // Location comes right after the account, explained as worth it for discovery.
   await screen.findByText("Where are you based?");
@@ -45,13 +45,14 @@ async function account(city?: string) {
   await screen.findByText("About you");
 }
 beforeEach(() => {
-  mocks.api.mockReset().mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/coaching/specializations" ? [] : path === "/api/v1/me/profile-fields" ? { currency: "EUR", values: {}, version: 4 } : { id: "user", onboarded: true } }));
+  mocks.api.mockReset().mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/me/username-availability" ? { available: true } : path === "/api/v1/coaching/specializations" ? [] : path === "/api/v1/me/profile-fields" ? { currency: "EUR", values: {}, version: 4 } : { id: "user", onboarded: true } }));
 });
 
 it("asks a client for sex, height and weight before the account is created, then saves them", async () => {
   setup("Client");
   await account();
-  expect(mocks.api).not.toHaveBeenCalled();
+  // Only the username was checked; nothing is saved before the last step.
+  expect(mocks.api.mock.calls.map(([request]) => request.path)).toEqual(["/api/v1/me/username-availability"]);
 
   // The body step cannot be passed empty by a client.
   await userEvent.click(screen.getByRole("button", { name: "Continue" }));
@@ -88,7 +89,7 @@ it("asks a client for sex, height and weight before the account is created, then
 it("saves the location typed right after the account", async () => {
   setup("Coach");
   await account("Kraków");
-  for (const title of ["Heart rate and recovery", "Your training", "Health and goals"]) {
+  for (const title of ["Heart rate and recovery", "Your training", "Health and goals", "Coaching Specializations"]) {
     await userEvent.click(screen.getByRole("button", { name: "Continue" }));
     await screen.findByText(title);
   }
@@ -98,18 +99,19 @@ it("saves the location typed right after the account", async () => {
 }, 20_000);
 
 it("saves optional coach specializations only after the coach account is established", async () => {
-  mocks.api.mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/coaching/specializations"
+  mocks.api.mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/me/username-availability" ? { available: true } : path === "/api/v1/coaching/specializations"
     ? [{ code: "strength_muscle", name: "Strength & Muscle", sortOrder: 1, specializations: [{ code: "powerlifting", name: "Powerlifting", sortOrder: 1 }] }]
     : path === "/api/v1/me/coaching-specializations" ? { selectedCodes: [], primaryCodes: [], version: 0 }
       : { id: "coach", onboarded: true } }));
   setup("Coach");
   await account();
-  for (const title of ["Heart rate and recovery", "Your training", "Health and goals"]) {
+  for (const title of ["Heart rate and recovery", "Your training", "Health and goals", "Coaching Specializations"]) {
     await userEvent.click(screen.getByRole("button", { name: "Continue" }));
     await screen.findByText(title);
   }
-  await userEvent.click(await screen.findByRole("checkbox", { name: "Powerlifting" }));
-  await userEvent.click(screen.getByRole("checkbox", { name: "Mark Powerlifting as primary" }));
+  await userEvent.click(await screen.findByRole("combobox"));
+  await userEvent.type(screen.getByRole("combobox"), "Powerlifting");
+  await userEvent.click(await screen.findByRole("option", { name: /^Powerlifting/ }));
   expect(calls("/api/v1/me/coaching-specializations", "PUT")).toHaveLength(0);
   await userEvent.click(screen.getByRole("button", { name: "Finish setup" }));
   await screen.findByText("Signed in");
@@ -122,7 +124,7 @@ it("lets a coach pass the extra steps empty and saves no profile details", async
   setup("Coach");
   await account();
   // Every extra step is optional for a coach: continue through all of them empty.
-  for (const title of ["Heart rate and recovery", "Your training", "Health and goals"]) {
+  for (const title of ["Heart rate and recovery", "Your training", "Health and goals", "Coaching Specializations"]) {
     await userEvent.click(screen.getByRole("button", { name: "Continue" }));
     await screen.findByText(title);
   }
@@ -136,12 +138,12 @@ it("lets a coach pass the extra steps empty and saves no profile details", async
 it("returns to the first step with a field error when the username is already taken", async () => {
   mocks.api.mockImplementation(async ({ path }: ApiRequest) => {
     if (path === "/api/v1/me/onboarding") throw new ApiError(409, { status: 409, title: "USERNAME_TAKEN", code: "USERNAME_TAKEN", detail: "This username is already taken." } as never);
-    return { data: path === "/api/v1/coaching/specializations" ? [] : {} };
+    return { data: path === "/api/v1/me/username-availability" ? { available: true } : path === "/api/v1/coaching/specializations" ? [] : {} };
   });
   setup("Coach");
   await account();
   // Every extra step is optional for a coach: continue through all of them empty.
-  for (const title of ["Heart rate and recovery", "Your training", "Health and goals"]) {
+  for (const title of ["Heart rate and recovery", "Your training", "Health and goals", "Coaching Specializations"]) {
     await userEvent.click(screen.getByRole("button", { name: "Continue" }));
     await screen.findByText(title);
   }
@@ -150,24 +152,26 @@ it("returns to the first step with a field error when the username is already ta
   expect(screen.getByLabelText(/^Username/)).toHaveValue("new_client");
 }, 20_000);
 
-it("skips a step without saving what was typed in it", async () => {
+it("stays on the first step when the username is already taken", async () => {
+  mocks.api.mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/me/username-availability" ? { available: false } : {} }));
   setup("Coach");
-  await account();
-  await userEvent.type(screen.getByLabelText(/^Weight/), "80");
-  await userEvent.click(screen.getByRole("button", { name: "Skip for now" }));
-  await screen.findByText("Heart rate and recovery");
-  await userEvent.type(screen.getByLabelText(/^Maximum heart rate/), "500");
+  await userEvent.type(screen.getByLabelText(/^Username/), "taken_name");
+  await userEvent.type(screen.getByLabelText(/^First name/), "New");
+  await userEvent.type(screen.getByLabelText(/^Last name/), "Coach");
+  fireEvent.change(screen.getByLabelText("Date of birth"), { target: { value: "1990-01-01" } });
   await userEvent.click(screen.getByRole("button", { name: "Continue" }));
-  // Out of range: the step stays until it is fixed or skipped.
-  expect(await screen.findByText("Enter a value between 100 and 230 bpm.")).toBeInTheDocument();
-  await userEvent.click(screen.getByRole("button", { name: "Skip for now" }));
-  await screen.findByText("Your training");
-  await userEvent.click(screen.getByRole("button", { name: "Skip for now" }));
-  await screen.findByText("Health and goals");
-  await userEvent.type(screen.getByLabelText(/^Goals and other notes/), "First meet in June");
-  await userEvent.click(screen.getByRole("button", { name: "Finish setup" }));
-  await screen.findByText("Signed in");
-  expect(calls("/api/v1/me/profile-fields", "PATCH")[0]!.json).toEqual({ values: { AdditionalNotes: "First meet in June" } });
+  expect(await screen.findByText("This username is already taken.")).toBeInTheDocument();
+  expect(screen.queryByText("Where are you based?")).toBeNull();
+  expect(calls("/api/v1/me/onboarding", "PUT")).toHaveLength(0);
+});
+
+it("goes back a step from the step bar and keeps what was typed", async () => {
+  setup("Coach");
+  await account("Kraków");
+  await userEvent.click(screen.getByRole("button", { name: "Previous step" }));
+  await screen.findByText("Where are you based?");
+  expect(screen.getByLabelText(/^City/)).toHaveValue("Kraków");
+  expect(screen.queryByRole("button", { name: "Skip for now" })).toBeNull();
 }, 20_000);
 
 it("explains reserved usernames before calling the API", async () => {

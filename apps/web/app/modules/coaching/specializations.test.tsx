@@ -9,9 +9,18 @@ import { CoachSpecializationsCard, SpecializationSelector, SpecializationsEditor
 const mocks = vi.hoisted(() => ({ api: vi.fn<(request: ApiRequest) => Promise<unknown>>(), current: true, mode: "coach" }));
 vi.mock("~/shared/session/WorkspaceScope", () => ({ useWorkspace: () => ({ mode: mocks.mode }) }));
 vi.mock("~/shared/session/AccountScope", () => ({ useApi: () => mocks.api, useAccountKey: () => "account", useAccountContext: () => ({ api: mocks.api, accountKey: "account", lifecycle: { isCurrent: () => mocks.current } }) }));
-const items = ["Strength Training", "Powerlifting", "Olympic Weightlifting", "Hypertrophy", "Bodybuilding", "Strongman"];
-const codes = ["strength_training", "powerlifting", "olympic_weightlifting", "hypertrophy", "bodybuilding", "strongman"];
-const categories = [{ code: "strength_muscle", name: "Strength & Muscle", sortOrder: 1, specializations: items.map((name, sortOrder) => ({ code: codes[sortOrder]!, name, sortOrder })) }];
+const items = ["Strength Training", "Powerlifting", "Olympic Weightlifting", "Hypertrophy", "Bodybuilding", "Strongman", "Calisthenics", "Aerobic Conditioning", "Interval Training", "Endurance Training", "Hybrid Training"];
+const codes = items.map(name => name.toLowerCase().replaceAll(" ", "_"));
+const categories = [
+  { code: "strength_muscle", name: "Strength & Muscle", sortOrder: 1, specializations: items.slice(0, 7).map((name, sortOrder) => ({ code: codes[sortOrder]!, name, sortOrder })) },
+  { code: "endurance", name: "Endurance & Conditioning", sortOrder: 2, specializations: items.slice(7).map((name, sortOrder) => ({ code: codes[sortOrder + 7]!, name, sortOrder })) },
+];
+/** Picks a specialization from the searchable list. */
+async function pick(name: string) {
+  await userEvent.click(screen.getByRole("combobox"));
+  await userEvent.type(screen.getByRole("combobox"), name);
+  await userEvent.click(await screen.findByRole("option", { name: new RegExp(`^${name}`) }));
+}
 let cache: QueryClient;
 let saved: { selectedCodes: string[]; primaryCodes: string[]; version: number };
 beforeEach(() => {
@@ -32,49 +41,57 @@ function Selector({ filter = false }: { filter?: boolean }) {
 }
 function editor() { return <QueryClientProvider client={cache}><SpecializationsEditor /></QueryClientProvider>; }
 
-it("limits selections to five and primary to three while allowing removal", async () => {
+it("finds a specialization by its code", async () => {
   render(<Selector />);
-  for (const name of items.slice(0, 5)) await userEvent.click(screen.getByRole("checkbox", { name }));
-  expect(screen.getByText("5/5 selected")).toBeInTheDocument();
-  expect(screen.getByRole("checkbox", { name: "Strongman" })).toBeDisabled();
-  for (const name of items.slice(0, 3)) await userEvent.click(screen.getByRole("checkbox", { name: `Mark ${name} as primary` }));
-  expect(screen.getByText("3/3 primary")).toBeInTheDocument();
-  expect(screen.getByRole("checkbox", { name: "Mark Hypertrophy as primary" })).toBeDisabled();
-  await userEvent.click(screen.getByRole("button", { name: "Remove Powerlifting" }));
-  expect(screen.getByText("4/5 selected")).toBeInTheDocument();
-  expect(screen.getByText("2/3 primary")).toBeInTheDocument();
-  expect(screen.getByRole("checkbox", { name: "Strongman" })).toBeEnabled();
+  await userEvent.click(screen.getByRole("combobox"));
+  await userEvent.type(screen.getByRole("combobox"), "strongman");
+  expect((await screen.findAllByRole("option")).map(option => option.textContent)).toEqual(["StrongmanStrength & Muscle"]);
 });
 
-it("searches English labels and code-derived terms without making categories selectable", async () => {
+it("limits selections to ten, makes new picks primary while five are free, and allows removal", async () => {
+  render(<Selector />);
+  for (const name of items.slice(0, 10)) await pick(name);
+  expect(screen.getByRole("status")).toHaveTextContent("10/10 selected");
+  expect(screen.getByRole("status")).toHaveTextContent("5/5 primary");
+  expect(screen.getByRole("combobox")).toBeDisabled();
+  // The first five are primary by default; the sixth is not and cannot become primary while five are.
+  expect(screen.getByRole("button", { name: "Mark Strength Training as primary" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "Mark Strongman as primary" })).toHaveAttribute("aria-pressed", "false");
+  expect(screen.getByRole("button", { name: "Mark Strongman as primary" })).toHaveAttribute("aria-disabled", "true");
+  await userEvent.click(screen.getByRole("button", { name: "Remove Powerlifting" }));
+  expect(screen.getByRole("status")).toHaveTextContent("9/10 selected");
+  expect(screen.getByRole("status")).toHaveTextContent("4/5 primary");
+  await userEvent.click(screen.getByRole("button", { name: "Mark Strongman as primary" }));
+  expect(screen.getByRole("status")).toHaveTextContent("5/5 primary");
+}, 20_000);
+
+it("searches English labels and code-derived terms and has no primary choice when filtering", async () => {
   render(<Selector filter />);
-  await userEvent.type(screen.getByRole("searchbox"), "olympic weightlifting");
-  expect(screen.getAllByRole("checkbox")).toHaveLength(1);
-  await userEvent.clear(screen.getByRole("searchbox"));
-  await userEvent.type(screen.getByRole("searchbox"), "olympic_weightlifting");
-  expect(screen.getAllByRole("checkbox")).toHaveLength(1);
-  await userEvent.click(screen.getByRole("checkbox", { name: "Olympic Weightlifting" }));
-  expect(screen.getByText("1/5 selected")).toBeInTheDocument();
-  expect(screen.queryByText("0/3 primary")).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("combobox"));
+  await userEvent.type(screen.getByRole("combobox"), "olympic weightlifting");
+  expect((await screen.findAllByRole("option")).map(option => option.textContent)).toEqual(["Olympic WeightliftingStrength & Muscle"]);
+  await userEvent.click(screen.getByRole("option", { name: /^Olympic Weightlifting/ }));
+  expect(screen.getByRole("status")).toHaveTextContent("1/10 selected");
+  expect(screen.getByRole("status")).not.toHaveTextContent("primary");
 });
 
 it("saves canonical choices with the version and reloads the persisted primary selection", async () => {
   const view = render(editor());
-  await userEvent.click(await screen.findByRole("checkbox", { name: "Strength Training" }));
-  await userEvent.click(screen.getByRole("checkbox", { name: "Mark Strength Training as primary" }));
+  await screen.findByRole("combobox");
+  await pick("Strength Training");
   await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
   await screen.findByText("Coaching specializations saved.");
   expect(mocks.api.mock.calls.find(([request]) => request.method === "PUT")?.[0].json).toEqual({ selectedCodes: ["strength_training"], primaryCodes: ["strength_training"], version: 0 });
   view.unmount();
   cache.clear();
   render(editor());
-  await waitFor(() => expect(screen.getByRole("checkbox", { name: "Strength Training" })).toBeChecked());
-  expect(screen.getByRole("checkbox", { name: "Mark Strength Training as primary" })).toBeChecked();
+  await waitFor(() => expect(screen.getByRole("button", { name: "Remove Strength Training" })).toBeInTheDocument());
+  expect(screen.getByRole("button", { name: "Mark Strength Training as primary" })).toHaveAttribute("aria-pressed", "true");
 });
 
 it("does not publish a completed mutation into an expired account lifetime", async () => {
   render(editor());
-  await screen.findByRole("checkbox", { name: "Strength Training" });
+  await screen.findByRole("combobox");
   mocks.current = false;
   await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
   await waitFor(() => expect(mocks.api.mock.calls.some(([request]) => request.method === "PUT")).toBe(true));
@@ -83,7 +100,8 @@ it("does not publish a completed mutation into an expired account lifetime", asy
 
 it("keeps the draft version when a background refetch discovers another edit", async () => {
   render(editor());
-  await userEvent.click(await screen.findByRole("checkbox", { name: "Powerlifting" }));
+  await screen.findByRole("combobox");
+  await pick("Powerlifting");
   cache.setQueryData(specializationsKey("account"), { selectedCodes: ["hypertrophy"], primaryCodes: [], version: 7 });
   await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
   await waitFor(() => expect(mocks.api.mock.calls.some(([request]) => request.method === "PUT")).toBe(true));

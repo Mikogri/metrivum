@@ -17,9 +17,10 @@ import styles from "./GeneratorScreen.module.css";
 export const meta = () => privateMeta("Generate program — Metrivum");
 
 const base = "/api/v1/training/generator";
-const initial: GenerationRequest = { mode: "Strength", level: "Beginner", sessionMinutes: 60, cycleDays: 7, daySlots: [1, 3, 5], cycles: 3, seed: 42,
+const initial: GenerationRequest = { mode: "Strength", level: "Beginner", sessionMinutes: 60, cycleDays: 7, daySlots: [1, 3, 5], cycles: 1, seed: 42,
   equipment: ["dumbbells", "incline-bench", "clear-walking-route"], skills: [], excludedExercises: [], priorityMuscles: [], preferredFamilies: [], progressRepetitions: false };
 const label = (value: string) => value.replaceAll("-", " ");
+const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function GeneratorScreen() {
   return <RequireFeature feature="training.generator.use"><GeneratorForm /></RequireFeature>;
@@ -107,15 +108,13 @@ export function GeneratorForm() {
           <legend className={styles.sectionTitle}><CalendarDays aria-hidden="true" />Schedule</legend>
           <div className={styles.numbers}>
             <NumberInput label="Session length" unit="min" placeholder="60" minValue={10} maxValue={180} value={input.sessionMinutes} onChange={v => update("sessionMinutes", v)} formatOptions={{ maximumFractionDigits: 0 }} />
-            <NumberInput label="Days per cycle" placeholder="7" minValue={1} maxValue={28} value={input.cycleDays} onChange={v => update("cycleDays", v)} formatOptions={{ maximumFractionDigits: 0 }} />
-            <NumberInput label="Cycles" placeholder="4" minValue={1} maxValue={12} value={input.cycles} onChange={v => update("cycles", v)} formatOptions={{ maximumFractionDigits: 0 }} />
           </div>
-          <ChipField label="Workout days" hint="Days of each cycle with a workout.">
+          {/* A generated program is one week: pick its training days; the coach can extend it in the editor. */}
+          <ChipField label="Workout days" hint="Days of the week with a workout.">
             {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={daySlots.map(String)} onSelectionChange={keys => update("daySlots", [...keys].map(Number).sort((a, b) => a - b))}>
-              {Array.from({ length: Math.max(1, Math.min(28, Number.isFinite(input.cycleDays) ? input.cycleDays : 7)) }, (_, i) => i + 1).map(day => <Chip key={day} id={String(day)} aria-label={`Day ${day}`}>{day}</Chip>)}
+              {WEEKDAYS.map((name, i) => <Chip key={i + 1} id={String(i + 1)} aria-label={name}>{name.slice(0, 3)}</Chip>)}
             </ChipGroup>}
           </ChipField>
-          <Checkbox isSelected={input.progressRepetitions} onChange={v => update("progressRepetitions", v)}>Add up to two repetitions across later cycles</Checkbox>
         </fieldset>
 
         <fieldset disabled={busy} className={styles.section}>
@@ -166,7 +165,7 @@ export function GeneratorForm() {
           <header className={styles.previewHead}>
             <div>
               <h2>Preview · {preview.state.input.mode}</h2>
-              <p className={styles.muted}>{preview.state.input.cycles} cycles × {preview.state.input.cycleDays} days · workouts on days {preview.state.input.daySlots.join(", ")} · seed {preview.state.input.seed}. Prescriptions show the final cycle.</p>
+              <p className={styles.muted}>One week · workouts on {preview.state.input.daySlots.map(day => WEEKDAYS[day - 1]?.slice(0, 3) ?? `day ${day}`).join(", ")} · seed {preview.state.input.seed}.</p>
             </div>
             <Button variant="secondary" iconStart={<Shuffle />} isDisabled={busy || formChanged} onPress={() => action.mutate({ path: "reshuffle", body: { state: preview.state, seed: preview.state!.selectionSeed + 1 } })}>Reshuffle unlocked exercises</Button>
           </header>

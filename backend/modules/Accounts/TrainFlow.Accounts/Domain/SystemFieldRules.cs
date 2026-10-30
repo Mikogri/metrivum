@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using TrainFlow.Accounts.Contracts;
 using TrainFlow.BuildingBlocks;
 
@@ -8,7 +8,7 @@ public static class SystemFieldRules
 {
     public static void Validate(IReadOnlyDictionary<SystemFieldKey, JsonElement> values)
     {
-        if (values is null || values.Count > 19)
+        if (values is null || values.Count > 20)
             throw ApiException.Invalid("Profile fields are required and bounded.");
         foreach (var (key, value) in values)
         {
@@ -38,6 +38,9 @@ public static class SystemFieldRules
                     break;
                 case SystemFieldKey.Sleep:
                     Number(value, 0, 24);
+                    break;
+                case SystemFieldKey.Vo2Max:
+                    Number(value, 10, 100);
                     break;
                 case SystemFieldKey.Stress:
                     Number(value, 0, 10, true);

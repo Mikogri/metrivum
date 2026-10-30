@@ -62,9 +62,8 @@ export default function ForgotPassword() {
             isRequired
             isInvalid={submitted && !isValidEmail(email)}
             errorMessage={m.auth.errors.emailInvalid}
-            size="lg"
           />
-          <Button type="submit" variant="primary" size="lg" block loading={pending}>
+          <Button type="submit" variant="primary" block loading={pending}>
             {t.submit}
           </Button>
         </form>

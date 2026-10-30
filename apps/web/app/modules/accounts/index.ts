@@ -6,7 +6,7 @@ export { getMe, completeOnboarding, updateProfile } from "./api/profile";
 export { timeZones } from "./lib/timeZones";
 
 export { UserAutocomplete, type UserSuggestion } from "./components/UserAutocomplete";
-export { displayNameValid, normalizeDisplayName, usernameProblem } from "./lib/identity";
+export { displayNameValid, nameParts, namePartValid, normalizeDisplayName, usernameProblem } from "./lib/identity";
 export { DETAIL_GROUPS, DetailFields, ageFrom, detailProblems, detailsFromValues, detailsToValues, emptyDetails, type DetailGroup, type DetailKey, type Details } from "./components/ProfileDetails";
 export { getPerson, personKey, profileFieldsKey, type Person } from "./api/people";
 export { BodySummary } from "./components/BodySummary";

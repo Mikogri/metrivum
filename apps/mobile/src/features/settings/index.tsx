@@ -403,6 +403,11 @@ export function ProfileScreen() {
                             await accounts.signOut();
                     }}
                 />
+                {accounts.accounts.length > 1 && <ListItem icon="logout" tone="danger" title={t("auth.signOutAll")} onPress={async () => {
+                    if (await confirm(t("settings.signOutTitle"), t("settings.signOutWarning"), t("auth.signOutAll"))) {
+                        try { await accounts.signOutAll(); } catch (failure) { setError(failure); }
+                    }
+                }} />}
             </Section>
             {!!(error || mutation.error) && (
                 <ErrorState error={error || mutation.error} />

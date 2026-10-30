@@ -59,6 +59,8 @@ export function PublishDialog({ planId, version, isOpen, onOpenChange, issues = 
       confirmLabel={t.publish}
       cancelLabel={m.common.cancel}
       isConfirming={mutation.isPending}
+      // A plan with format problems is saved as a draft but can't be applied until they're fixed.
+      isConfirmDisabled={issues.length > 0}
       onConfirm={() => mutation.mutate()}
     >
       <p>{t.publishBody}</p>

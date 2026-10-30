@@ -15,6 +15,7 @@ public static partial class AccountIdentityPolicy
     public const int UsernameMinLength = 3;
     public const int UsernameMaxLength = 32;
     public const int DisplayNameMaxLength = 100;
+    public const int NamePartMaxLength = 50;
 
     /// <summary>Names a person could use to impersonate the service or its staff, compared case-insensitively.</summary>
     public static readonly IReadOnlySet<string> ReservedUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -50,15 +51,42 @@ public static partial class AccountIdentityPolicy
     /// line breaks, bidirectional overrides, zero-width characters (other than the emoji joiner), private-use
     /// code points or broken surrogates. Whitespace runs collapse to one space and the result is NFC.
     /// </summary>
-    public static string NormalizeDisplayName(string? displayName)
+    public static string NormalizeDisplayName(string? displayName) =>
+        NormalizeName(displayName, "Display name", DisplayNameMaxLength, DisplayNameError);
+
+    /// <summary>A first or last name: the same Unicode rules as the display name, at most 50 characters.</summary>
+    public static string NormalizeNamePart(string? value, bool last) =>
+        NormalizeName(value, last ? "Last name" : "First name", NamePartMaxLength,
+            message => new ApiException(400, "NAME_INVALID", message, new Dictionary<string, string[]> { [last ? "lastName" : "firstName"] = [message] }));
+
+    /// <summary>
+    /// The name of an account from a request: first and last name when given (the display name is then built from them),
+    /// otherwise the older single display name, split at its first space so both parts are still stored.
+    /// </summary>
+    public static (string DisplayName, string? FirstName, string? LastName) ResolveName(string? displayName, string? firstName, string? lastName)
     {
-        if (displayName is null)
-            throw DisplayNameError("Display name is required.");
-        if (!IsWellFormed(displayName))
-            throw DisplayNameError("Display name must contain valid Unicode text.");
-        var builder = new StringBuilder(displayName.Length);
+        if (firstName is not null || lastName is not null)
+        {
+            var first = NormalizeNamePart(firstName, last: false);
+            var last = NormalizeNamePart(lastName, last: true);
+            return (NormalizeDisplayName(first + " " + last), first, last);
+        }
+        var display = NormalizeDisplayName(displayName);
+        var space = display.IndexOf(' ');
+        return space < 0 ? (display, display.Length <= NamePartMaxLength ? display : null, null)
+            : (display, Fit(display[..space]), Fit(display[(space + 1)..]));
+        static string? Fit(string part) => part.Length <= NamePartMaxLength ? part : null;
+    }
+
+    private static string NormalizeName(string? value, string label, int maxLength, Func<string, ApiException> error)
+    {
+        if (value is null)
+            throw error($"{label} is required.");
+        if (!IsWellFormed(value))
+            throw error($"{label} must contain valid Unicode text.");
+        var builder = new StringBuilder(value.Length);
         var pendingSpace = false;
-        foreach (var rune in displayName.Normalize(NormalizationForm.FormC).EnumerateRunes())
+        foreach (var rune in value.Normalize(NormalizationForm.FormC).EnumerateRunes())
         {
             if (rune.Value is ' ' or '\t' || (Rune.IsWhiteSpace(rune) && Rune.GetUnicodeCategory(rune) == UnicodeCategory.SpaceSeparator))
             {
@@ -66,15 +94,15 @@ public static partial class AccountIdentityPolicy
                 continue;
             }
             if (!IsAllowedDisplayRune(rune))
-                throw DisplayNameError("Display name cannot contain control, line-break, invisible or text-direction characters.");
+                throw error($"{label} cannot contain control, line-break, invisible or text-direction characters.");
             if (pendingSpace)
                 builder.Append(' ');
             pendingSpace = false;
             builder.Append(rune.ToString());
         }
         var normalized = builder.ToString();
-        if (normalized.Length == 0 || normalized.Length > DisplayNameMaxLength)
-            throw DisplayNameError($"Display name must contain 1-{DisplayNameMaxLength} characters.");
+        if (normalized.Length == 0 || normalized.Length > maxLength)
+            throw error($"{label} must contain 1-{maxLength} characters.");
         return normalized;
     }
 

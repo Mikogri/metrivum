@@ -56,7 +56,7 @@ public sealed class TrainingPostgresTests : IDisposable
     {
         await using var db = Context();
         var service = Service(db);
-        var plan = await service.CreateAsync(new("Draft", "", DocumentKind.Program, null, new(1, [])), default);
+        var plan = await service.CreateAsync(new("Draft", "", DocumentKind.Program, null, TrainingDocuments.OneWorkout()), default);
         var revision = await service.ApplyAsync(plan.Id, plan.Version, Guid.NewGuid().ToString(), default);
         foreach (var expression in new[] { "80 * (", "10 kg + 2 s", "ROUND_TO_STEP_UPPER(10 kg, 0)" })
         {
@@ -65,7 +65,7 @@ public sealed class TrainingPostgresTests : IDisposable
             plan = await service.SaveAsync(plan.Id, new("Invalid draft", "", null, document), plan.Version, default);
             Assert.Equal(expression, DocumentRules.Prescriptions((await service.GetAsync(plan.Id, default)).Document).Single().LoadFormula!.Expression);
             Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => service.ApplyAsync(plan.Id, plan.Version, Guid.NewGuid().ToString(), default))).Status);
-            Assert.Empty((await service.RevisionAsync(plan.Id, revision.Number, default)).Snapshot.Document.Blocks);
+            Assert.Empty(DocumentRules.Prescriptions((await service.RevisionAsync(plan.Id, revision.Number, default)).Snapshot.Document));
         }
     }
 
@@ -74,9 +74,9 @@ public sealed class TrainingPostgresTests : IDisposable
     {
         await using var db = Context();
         var service = Service(db);
-        var created = await service.CreateAsync(new("Original", "", DocumentKind.Program, null, new(1, [])), default);
+        var created = await service.CreateAsync(new("Original", "", DocumentKind.Program, null, TrainingDocuments.OneWorkout()), default);
         var revision = await service.PublishAsync(created.Id, created.Version, "publish-1", default);
-        var updated = await service.SaveAsync(created.Id, new("Changed", "", null, new(1, [])), created.Version, default);
+        var updated = await service.SaveAsync(created.Id, new("Changed", "", null, TrainingDocuments.OneWorkout()), created.Version, default);
         Assert.Equal("Original", (await service.RevisionAsync(created.Id, revision.Number, default)).Snapshot.Name);
         var conflict = await Assert.ThrowsAsync<ApiException>(() => service.SaveAsync(created.Id, new("Overwrite", "", null, new(1, [])), created.Version, default));
         Assert.Equal("VERSION_CONFLICT", conflict.Code);
@@ -194,8 +194,8 @@ public sealed class TrainingPostgresTests : IDisposable
     {
         await using var db = Context();
         var service = Service(db);
-        var a = await service.CreateAsync(new("A", "", DocumentKind.Program, null, new(1, [])), default);
-        var b = await service.CreateAsync(new("B", "", DocumentKind.Program, null, new(1, [])), default);
+        var a = await service.CreateAsync(new("A", "", DocumentKind.Program, null, TrainingDocuments.OneWorkout()), default);
+        var b = await service.CreateAsync(new("B", "", DocumentKind.Program, null, TrainingDocuments.OneWorkout()), default);
         var first = await service.PublishAsync(a.Id, 1, "publication", default);
         Assert.Equal(first.Id, (await service.PublishAsync(a.Id, 1, "publication", default)).Id);
         Assert.Equal("IDEMPOTENCY_CONFLICT", (await Assert.ThrowsAsync<ApiException>(() => service.PublishAsync(b.Id, 1, "publication", default))).Code);
@@ -352,4 +352,11 @@ public sealed class TrainingPostgresFactAttribute : FactAttribute
         if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")))
             Skip = "Set TRAINFLOW_TEST_DATABASE to a migrated, disposable PostgreSQL database.";
     }
+}
+
+/// <summary>The smallest plan that can be applied: one block, one cycle, one empty workout.</summary>
+internal static class TrainingDocuments
+{
+    public static TrainingDocument OneWorkout() =>
+        new(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "Cycle", "", 7, [new(Guid.NewGuid(), 1, [new(Guid.NewGuid(), "Workout", "", [], [])])])])]);
 }

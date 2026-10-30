@@ -146,20 +146,21 @@
 .tabCount {
   display: inline-grid;
   place-items: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.3125rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
   border-radius: var(--tf-radius-full);
   background: var(--tf-color-surface-overlay);
   color: var(--tf-color-text-secondary);
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
+  line-height: 1;
   font-weight: var(--tf-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .tabCount[data-danger] {
-  background: var(--tf-color-danger);
-  color: #fff;
+  background: var(--tf-color-danger-soft, color-mix(in srgb, var(--tf-color-danger) 18%, transparent));
+  color: var(--tf-color-danger);
 }
 
 .summaryTitle {
@@ -187,6 +188,28 @@
   transform: rotate(180deg);
 }
 
+/* More filters open and close by animating their height (grid rows 0fr to 1fr) and fading in. */
+.moreWrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 280ms var(--tf-ease-out, ease-out), opacity 200ms ease;
+}
+
+.moreWrap[data-open] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.moreInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moreWrap { transition: none; }
+}
+
 .more {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
@@ -210,31 +233,29 @@
   min-width: 0;
 }
 
+/* Direction: a small arrow in the row's colour (in green, out blue), no disc behind it. */
 .dir {
   display: grid;
   flex-shrink: 0;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-info-soft);
+  width: 1.125rem;
+  height: 1.125rem;
   color: var(--tf-color-info);
 }
 
 .dir[data-dir="Incoming"] {
-  background: var(--tf-color-accent-soft);
   color: var(--tf-color-accent);
 }
 
 .dir[data-status="Failed"],
 .dir[data-status="Cancelled"] {
-  background: var(--tf-color-surface-overlay);
   color: var(--tf-color-text-tertiary);
 }
 
 .dir svg {
-  width: 0.9375rem;
-  height: 0.9375rem;
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2.25;
 }
 
 .opText {
@@ -299,4 +320,178 @@
   .summaryHead {
     justify-content: stretch;
   }
+}
+
+/* Nothing could be loaded: one error centred in the page instead of one per section. */
+.pageError {
+  display: grid;
+  place-items: center;
+  min-height: 18rem;
+  padding: var(--tf-space-8) var(--tf-space-4);
+  border: 1px dashed var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+}
+
+/* Only the summary failed: one line across the tile row. */
+.summaryError {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: 1px solid color-mix(in srgb, var(--tf-color-danger) 30%, var(--tf-color-border));
+  border-radius: var(--tf-radius-lg);
+  background: color-mix(in srgb, var(--tf-color-danger) 6%, var(--tf-color-surface));
+  font-size: var(--tf-text-sm);
+}
+
+.summaryError > svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-danger);
+}
+
+.summaryError > span {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.summaryErrorDetail {
+  color: var(--tf-color-text-tertiary);
+}
+
+/* Rows breathe a little more. */
+.table td,
+.table th {
+  padding-block: var(--tf-space-3);
+}
+
+.table td:first-child,
+.table th:first-child {
+  padding-left: var(--tf-space-4);
+}
+
+.table td:last-child,
+.table th:last-child {
+  padding-right: var(--tf-space-4);
+}
+
+/* Transaction details, in the side panel. */
+.details {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.detailHead {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
+.detailDir {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+}
+
+.detailDir[data-dir="Incoming"] {
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.detailDir svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.detailTitle {
+  display: grid;
+  min-width: 0;
+}
+
+.detailTitle strong {
+  overflow: hidden;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detailTitle span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.detailAmount {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-3xl);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tf-tracking-display);
+}
+
+.detailAmount[data-dir="Incoming"] {
+  color: var(--tf-color-accent);
+}
+
+.detailBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1-5);
+}
+
+.detailSection {
+  display: grid;
+  gap: var(--tf-space-2);
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.detailSection h3 {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.detailSection dl {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--tf-space-4);
+  font-size: var(--tf-text-sm);
+}
+
+.detailRow dt {
+  color: var(--tf-color-text-secondary);
+}
+
+.detailRow dd {
+  min-width: 0;
+  color: var(--tf-color-text);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.detailRow dd[data-mono] {
+  font-family: var(--tf-font-mono, monospace);
+  font-size: var(--tf-text-xs);
+}
+
+.detailNote {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
 }

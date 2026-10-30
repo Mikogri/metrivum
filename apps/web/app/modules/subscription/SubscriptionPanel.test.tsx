@@ -30,7 +30,8 @@ it("shows one plan ladder at a time, explicit unlimited and workspace pricing", 
   expect(screen.getByRole("heading", { name: "Starter" })).toBeInTheDocument();
   expect(screen.queryByRole("heading", { name: "Studio" })).not.toBeInTheDocument();
   expect(screen.getByText("Unlimited")).toBeInTheDocument();
-  expect(screen.getAllByText(/no guaranteed leads/)[0]).toBeInTheDocument();
+  // Discovery priority is hidden while Discovery is switched off.
+  expect(screen.queryByText(/no guaranteed leads/)).toBeNull();
   await userEvent.click(screen.getByRole("radio", { name: "Teams & studios" }));
   expect(screen.getByRole("heading", { name: "Studio" })).toBeInTheDocument();
   expect(screen.queryByRole("heading", { name: "Starter" })).not.toBeInTheDocument();

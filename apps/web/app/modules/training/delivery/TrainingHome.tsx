@@ -11,7 +11,36 @@ import { Failure, ListPagination, Loading, StatusBadge } from "~/modules/coachin
 import { AssignmentList, localDate } from "./Assignments";
 import { TrainingProgress } from "./Progress";
 import { TrainingPlansTab } from "../purchases/TrainingPlans";
+import { LibraryViewToggle, type LibraryView } from "~/shared/library/LibraryViewToggle";
+import { CalendarDays, Clock, Dumbbell, MessageSquare } from "lucide-react";
 import styles from "./delivery.module.css";
+
+/** "Mon, 27 Oct" for a plain date. */
+const dayLabel = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+const minutes = (seconds: number | null) => (seconds == null ? null : `${Math.max(1, Math.round(seconds / 60))} min`);
+const statusOf = (item: Occurrence) => <StatusBadge status={item.status === "InProgress" ? "In progress" : item.status} />;
+const VIEW_KEY = "tf.training.scheduleView";
+
+/** Workouts as cards: the date block, the workout and program, what was logged and its status. */
+function WorkoutCards({ items, coach }: { items: Occurrence[]; coach: boolean }) {
+  return <ul className={styles.workoutCards} aria-label="Workouts">{items.map(item => {
+    const date = new Date(`${item.scheduledDate}T00:00:00`);
+    return <li key={item.id}><Link className={styles.workoutCard} data-status={item.status} to={`/app/${coach ? "training" : "my-training"}/workouts/${item.id}`}>
+      <span className={styles.workoutCardDate}><strong>{date.getDate()}</strong><span>{date.toLocaleDateString(undefined, { month: "short" })}</span><small>{date.toLocaleDateString(undefined, { weekday: "short" })}</small></span>
+      <span className={styles.workoutCardBody}>
+        <strong>{item.name}</strong>
+        <span className={styles.workoutCardProgram}>{item.programName}</span>
+        <span className={styles.workoutCardMeta}>
+          {item.exerciseCount != null ? <span><Dumbbell aria-hidden="true" />{item.exerciseCount} exercises</span> : null}
+          {item.performedDate ? <span><CalendarDays aria-hidden="true" />Done {dayLabel(item.performedDate)}</span> : null}
+          {minutes(item.durationSeconds) ? <span><Clock aria-hidden="true" />{minutes(item.durationSeconds)}</span> : null}
+          {item.hasComment ? <span><MessageSquare aria-hidden="true" />Note</span> : null}
+        </span>
+      </span>
+      <span className={styles.workoutCardStatus}>{statusOf(item)}{item.loggedLate ? <small>Logged late</small> : null}</span>
+    </Link></li>;
+  })}</ul>;
+}
 
 export interface Occurrence { exerciseCount?: number | null; revisionId: string; blockId: string; cycleId: string; performedDate: string | null; durationSeconds: number | null; hasComment: boolean; id: string; assignmentId: string; relationshipId: string; programId: string; programName: string; name: string; scheduledDate: string; deadline: string; status: string; executionId: string | null; loggedLate: boolean; allowedActions: string[] }
 export function MobileWorkoutRows({ items, coach = false, onOpen }: { items: Occurrence[]; coach?: boolean; onOpen?: (id: string) => void }) {
@@ -27,21 +56,26 @@ export function TrainingSchedule({ relationshipId, programId, coach = false }: {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("");
   const { mode } = useWorkspace();
+  // List or cards, remembered in this browser.
+  const [view, setViewState] = useState<LibraryView>(() => { try { return window.localStorage.getItem(VIEW_KEY) === "cards" ? "cards" : "list"; } catch { return "list"; } });
+  const setView = (next: LibraryView) => { setViewState(next); try { window.localStorage.setItem(VIEW_KEY, next); } catch { /* storage unavailable */ } };
   const query = useCoachingQuery<Page<Occurrence>>("/api/v1/training/schedule", { relationshipId, programId, from, to, status: status || undefined, page, pageSize: 30, view: mode });
   return <section className={styles.stack} aria-label="Workout schedule and history"><Toolbar aria-label="Schedule filters" className={styles.filters}>
     <span className={styles.range}><TextField aria-label="From" type="date" value={from} onChange={value => { setFrom(value); setPage(1); }} /><span aria-hidden="true">–</span><TextField aria-label="Through" type="date" value={to} onChange={value => { setTo(value); setPage(1); }} /></span>
     <Select aria-label="Workout status" selectedKey={status || "all"} onSelectionChange={key => { setStatus(key === "all" ? "" : String(key)); setPage(1); }}><Option id="all">All statuses</Option>{["Scheduled", "InProgress", "Completed", "Skipped", "Missed"].map(value => <Option key={value} id={value}>{value === "InProgress" ? "In progress" : value}</Option>)}</Select>
     <Button variant="ghost" onPress={() => { setFrom(localDate()); setTo(localDate()); setPage(1); }}>Today</Button>
-    <span className={styles.hint}>Dates follow each assignment’s time zone. Late logging is still possible after a miss.</span>
+    {!mobile ? <span className={styles.viewToggle}><LibraryViewToggle value={view} onChange={setView} /></span> : null}
   </Toolbar>
     {query.isPending ? <Loading /> : query.isError ? <Failure error={query.error} retry={() => void query.refetch()} /> : !query.data.items.length ? <EmptyState title="No workouts in this period" description="Change the date range or ask your coach to assign an applied program." /> : <>
-      {mobile ? <MobileWorkoutRows items={query.data.items} coach={coach} /> : <DataTable label="Workouts" rows={query.data.items} rowKey={item => item.id} columns={[
-        { id: "workout", header: "Workout", width: "34%", cell: item => <Link data-row-link className={styles.rowLink} to={`/app/${coach ? "training" : "my-training"}/workouts/${item.id}`}><span>{item.name}</span><small>{item.programName}</small></Link> },
-        { id: "scheduled", header: "Scheduled", cell: item => item.scheduledDate },
-        { id: "performed", header: "Performed", hideOnMobile: true, cell: item => item.performedDate ?? "—" },
-        { id: "notes", header: "Notes", hideOnMobile: true, muted: true, cell: item => item.loggedLate ? "Logged late" : "—" },
-        { id: "status", header: "Status", cell: item => <StatusBadge status={item.status === "InProgress" ? "In progress" : item.status} /> },
+      {mobile ? <MobileWorkoutRows items={query.data.items} coach={coach} /> : view === "cards" ? <WorkoutCards items={query.data.items} coach={coach} /> : <DataTable label="Workouts" rows={query.data.items} rowKey={item => item.id} className={styles.scheduleTable} columns={[
+        { id: "scheduled", header: "Date", width: "8.5rem", cell: item => <span className={styles.scheduleDate}>{dayLabel(item.scheduledDate)}</span> },
+        { id: "workout", header: "Workout", cell: item => <Link data-row-link className={styles.rowLink} to={`/app/${coach ? "training" : "my-training"}/workouts/${item.id}`}><span>{item.name}</span><small>{item.programName}</small></Link> },
+        { id: "exercises", header: "Exercises", width: "6.5rem", align: "end", hideOnMobile: true, muted: true, cell: item => item.exerciseCount ?? "—" },
+        { id: "performed", header: "Done on", width: "8.5rem", hideOnMobile: true, muted: true, cell: item => item.performedDate ? dayLabel(item.performedDate) : "—" },
+        { id: "duration", header: "Time", width: "6rem", hideOnMobile: true, muted: true, cell: item => minutes(item.durationSeconds) ?? "—" },
+        { id: "status", header: "Status", width: "9.5rem", cell: item => <span className={styles.scheduleStatus}>{statusOf(item)}{item.loggedLate ? <small>Logged late</small> : null}</span> },
       ]} />}
+      <p className={styles.hint}>Dates follow each assignment’s time zone. You can still log a missed workout later.</p>
       {Number(query.data.total) > Number(query.data.pageSize) ? <ListPagination data={query.data} onChange={setPage} /> : null}
     </>}
   </section>;

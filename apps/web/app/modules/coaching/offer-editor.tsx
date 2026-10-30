@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Archive, Building2, Check, Copy, ExternalLink, Eye, Globe, MapPin, PauseCircle, PlayCircle, Shuffle, Trash2, Upload, UserRound } from "lucide-react";
+import { Archive, Building2, Check, CircleCheck, Copy, ExternalLink, Eye, EyeOff, Globe, MapPin, PauseCircle, PlayCircle, Shuffle, Trash2, Upload, UserRound } from "lucide-react";
 import { Alert, Button, Card, DialogFooter, IconButton, LinkButton, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, toast } from "@trainflow/ui-web";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useCoachingMutation, useCoachingQuery, type Page } from "./api";
@@ -69,7 +69,10 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
     if (!current || !(await ask({ title: "Delete this draft?", body: "This offer was never published, so it can be removed completely. This cannot be undone.", confirmLabel: "Delete draft", cancelLabel: "Keep draft" }))) return;
     remove.mutate({ method: "DELETE", path: `/api/v1/offers/${current.id}`, ifMatch: current.version });
   };
-  const action = async (action: string) => { if (action === "archive" && !(await ask({ title: "Archive this offer?", body: "It disappears from your public offers and can no longer receive applications. Existing clients keep their accepted terms.", confirmLabel: "Archive offer", cancelLabel: "Keep offer" }))) return; operation.current = action; if (current) mutation.mutate({ method: "POST", path: `/api/v1/offers/${current.id}/${action}`, ifMatch: current.version }); };
+  const action = async (action: string) => {
+    if (action === "archive" && !(await ask({ title: "Archive this offer?", body: "It disappears from your public offers and can no longer receive applications. Existing clients keep their accepted terms.", confirmLabel: "Archive offer", cancelLabel: "Keep offer" }))) return;
+    if (action === "deactivate" && !(await ask({ title: "Deactivate this offer?", body: "It stops taking new applications and leaves your public offers. Current clients keep their terms, and you can activate it again later.", confirmLabel: "Deactivate offer", cancelLabel: "Keep it open" }))) return;
+    operation.current = action; if (current) mutation.mutate({ method: "POST", path: `/api/v1/offers/${current.id}/${action}`, ifMatch: current.version }); };
   const formChoices = [...(formId && !published.some((f) => f.currentPublishedVersionId === formId) ? [{ id: formId, name: "Current linked form version" }] : []), ...published.map((f) => ({ id: f.currentPublishedVersionId!, name: f.name }))];
   const edit =
     <T,>(set: (value: T) => void) =>
@@ -226,6 +229,14 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
               </div>
             </header>
             <div className={page.cardBody}>
+              {/* Whether clients can see the offer, said plainly before the steps. */}
+              {!current?.currentPublishedRevisionId ? (
+                <p className={page.publishState} data-state="unpublished"><EyeOff aria-hidden="true" /><span><strong>Not published</strong>Clients can't see this offer yet.</span></p>
+              ) : status === "Active" ? (
+                <p className={page.publishState} data-state="active"><CircleCheck aria-hidden="true" /><span><strong>Published · open</strong>Clients can see it and apply.</span></p>
+              ) : (
+                <p className={page.publishState} data-state="inactive"><PauseCircle aria-hidden="true" /><span><strong>Published · not active</strong>Clients can't apply until you activate it.</span></p>
+              )}
               <ol className={page.steps}>
                 {steps.map((step) => (
                   <li key={step.id} data-done={step.done || undefined} data-current={step.current || undefined}>
@@ -235,14 +246,14 @@ export function OfferEditor({ initial, ownership, onDirtyChange, panel }: { init
                 ))}
               </ol>
               <div className={page.buttons}>
-                <Button type="submit" variant="primary" block loading={mutation.isPending && !/\/(publish|activate|deactivate|archive)$/.test(mutation.variables?.path ?? "")} isDisabled={!canSave || !dirty}>
+                <Button type="submit" variant="secondary" block loading={mutation.isPending && !/\/(publish|activate|deactivate|archive)$/.test(mutation.variables?.path ?? "")} isDisabled={!canSave || !dirty}>
                   Save draft
                 </Button>
                 {current ? (
                   <>
-                    <Button block loading={mutation.isPending && mutation.variables?.path.endsWith("/publish")} iconStart={<Upload />} isDisabled={locked || dirty} onPress={() => void action("publish")}>Publish revision</Button>
+                    <Button variant="success" block loading={mutation.isPending && mutation.variables?.path.endsWith("/publish")} iconStart={<Upload />} isDisabled={locked || dirty} onPress={() => void action("publish")}>Publish revision</Button>
                     {current.currentPublishedRevisionId ? (
-                      <Button block loading={mutation.isPending && /\/(activate|deactivate)$/.test(mutation.variables?.path ?? "")} iconStart={current.status === "Active" ? <PauseCircle /> : <PlayCircle />} isDisabled={locked || dirty} onPress={() => void action(current.status === "Active" ? "deactivate" : "activate")}>{current.status === "Active" ? "Deactivate" : "Activate"}</Button>
+                      <Button variant={current.status === "Active" ? "danger" : "success"} block loading={mutation.isPending && /\/(activate|deactivate)$/.test(mutation.variables?.path ?? "")} iconStart={current.status === "Active" ? <PauseCircle /> : <PlayCircle />} isDisabled={locked || dirty} onPress={() => void action(current.status === "Active" ? "deactivate" : "activate")}>{current.status === "Active" ? "Deactivate" : "Activate"}</Button>
                     ) : null}
                     <Button variant="danger-ghost" block loading={mutation.isPending && mutation.variables?.path.endsWith("/archive")} iconStart={<Archive />} isDisabled={locked || dirty || remove.isPending} onPress={() => void action("archive")}>Archive</Button>
                     {current.currentPublishedRevisionId ? (

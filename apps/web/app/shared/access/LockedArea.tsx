@@ -10,6 +10,23 @@ export function UpgradeLink({ href, children, size = "md", icon = <Rocket /> }: 
 }
 
 /**
+ * A banner for what a higher plan adds, in the look of the app bar's Upgrade button: a slowly drifting violet
+ * gradient with a faint shine, an icon, a short pitch and one action.
+ */
+export function UpgradeBanner({ title, body, href = "/app/checkout?plan=Pro", action }: { title: string; body: ReactNode; href?: string; action: string }) {
+  return (
+    <section className={styles.banner} aria-label={title}>
+      <span className={styles.bannerIcon} aria-hidden="true"><Sparkles /></span>
+      <div className={styles.bannerText}>
+        <strong>{title}</strong>
+        <p>{body}</p>
+      </div>
+      <LinkButton href={href} size="sm" className={styles.bannerAction} iconStart={<Rocket />}>{action}</LinkButton>
+    </section>
+  );
+}
+
+/**
  * Something the plan does not include: the content stays in place but blurred and out of reach, with a notice on top
  * that leads to the upgrade. `page` covers a whole screen, `section` one block of it. The app menu and app bar are
  * never covered.

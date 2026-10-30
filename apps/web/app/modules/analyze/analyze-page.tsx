@@ -5,10 +5,10 @@ export const meta = () => privateMeta("Analytics — Metrivum");
 import type { ProgressData } from "~/modules/training";
 import type { Schema } from "@trainflow/api-client-web";
 import { parseDate } from "@internationalized/date";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { Alert, DateField, DialogTrigger, EmptyState, IconButton, Option, Popover, PageHeader, Segment, SegmentedControl, Select, Skeleton, Tab, TabList, TabPanel, Tabs } from "@trainflow/ui-web";
+import { Alert, DateField, EmptyState, InfoTip, Option, PageHeader, Segment, SegmentedControl, Select, Skeleton, Tab, TabList, TabPanel, Tabs } from "@trainflow/ui-web";
 import { RequireFeature, useFeatureAccess } from "~/shared/access";
 import { BasicAnalyze } from "./basic-analyze";
 import { useAccountContext } from "~/shared/session/AccountScope";
@@ -520,12 +520,7 @@ function TrainingTab({ data }: { data: TrainingData }) {
 
       {/* How the numbers are counted: behind a small info button instead of a paragraph under the page. */}
       <div className={styles.definition}>
-        <DialogTrigger>
-          <IconButton size="sm" variant="ghost" icon={<Info />} label="How these numbers are calculated" />
-          <Popover placement="top start" width="lg">
-            <p className={styles.definitionText}>{t.metricDefinition}</p>
-          </Popover>
-        </DialogTrigger>
+        <InfoTip label="How these numbers are calculated" placement="top start">{t.metricDefinition}</InfoTip>
         <span className={styles.definitionLabel}>How these numbers are calculated</span>
       </div>
     </div>

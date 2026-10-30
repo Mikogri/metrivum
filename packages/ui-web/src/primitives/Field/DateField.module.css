@@ -129,16 +129,19 @@
   height: 0.875rem;
 }
 
-.nav[data-hovered] {
+.nav[data-hovered],
+.nav:enabled:hover {
   background: color-mix(in srgb, var(--tf-color-text) 12%, transparent);
   color: var(--tf-color-text);
 }
 
-.nav[data-focus-visible] {
+.nav[data-focus-visible],
+.nav:focus-visible {
   outline: 2px solid var(--tf-color-focus-ring);
 }
 
-.nav[data-disabled] {
+.nav[data-disabled],
+.nav:disabled {
   opacity: 0.35;
 }
 
@@ -223,4 +226,93 @@
   .popover[data-exiting] {
     animation: none;
   }
+}
+
+/* The heading doubles as the way into the year and month grids. */
+.headingButton {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 1.75rem;
+  padding: 0 var(--tf-space-2);
+  border: 0;
+  border-radius: var(--tf-radius-md);
+  background: transparent;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  text-transform: capitalize;
+  outline: none;
+  cursor: pointer;
+  transition: background-color var(--tf-duration-fast) ease;
+}
+
+.headingButton svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--tf-color-text-tertiary);
+}
+
+.headingButton:hover {
+  background: color-mix(in srgb, var(--tf-color-text) 10%, transparent);
+}
+
+.headingButton:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+}
+
+.picker {
+  animation: picker-in 160ms var(--tf-ease-out) both;
+}
+
+/* Years and months: a 3 by 4 grid of equal tiles, the current one solid like a selected day. */
+.choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tf-space-1);
+}
+
+.choice {
+  height: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--tf-radius-md);
+  background: transparent;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  text-transform: capitalize;
+  outline: none;
+  cursor: pointer;
+  transition: background-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease;
+}
+
+.choice:hover:not([data-current]):not(:disabled) {
+  background: color-mix(in srgb, var(--tf-color-text) 14%, transparent);
+}
+
+.choice[data-current] {
+  background: var(--tf-color-text);
+  color: var(--tf-color-bg, #0d0d0d);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.choice:disabled {
+  color: var(--tf-color-text-disabled);
+  cursor: default;
+}
+
+.choice:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+@keyframes picker-in {
+  from { opacity: 0; transform: scale(0.97); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker { animation: none; }
 }

@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
 import { Button, IconButton, NumberInput, Option, Segment, SegmentedControl, Select, TextField } from "@trainflow/ui-web";
 import styles from "./coaching.module.css";
@@ -22,7 +23,11 @@ export function newOption(model: BillingOption["model"] = "PerSession"): Billing
 }
 export function validityDescription(option: BillingOption) {
   if ((option.model === "PeriodSubscription" || option.model === "OneTime")) return null;
-  return option.validityDays == null ? "No expiry" : `Valid for ${option.validityDays} ${option.validityDays === 1 ? "day" : "days"} after payment`;
+  if (option.validityDays == null) return "No expiry";
+  const days = Number(option.validityDays);
+  const unit = validityUnitOf(days);
+  const count = days / unitDays(unit);
+  return `Valid for ${count} ${count === 1 ? unit : `${unit}s`} after payment`;
 }
 export function priceDescription(option: BillingOption, currency: string) {
   const validity = validityDescription(option);
@@ -44,6 +49,28 @@ function priceOnly(option: BillingOption, currency: string) {
   }
 }
 
+/** What each billing model means, under the model picker. */
+const MODEL_HINTS: Record<BillingOption["model"], string> = {
+  PerSession: "The client pays for each session.",
+  CustomPackage: "The client picks how many sessions to buy, within your range.",
+  FixedPackage: "A set number of sessions for one price.",
+  PeriodSubscription: "A recurring payment for each period of coaching.",
+  OneTime: "The client buys their own copy of the plan once.",
+};
+
+/** Validity is stored in days and entered in days, months (30 days) or years (365 days). */
+const VALIDITY_UNITS = [["day", 1, "days"], ["month", 30, "months"], ["year", 365, "years"]] as const;
+type ValidityUnit = (typeof VALIDITY_UNITS)[number][0];
+const validityUnitOf = (days: number | null | undefined): ValidityUnit => (!days ? "day" : days % 365 === 0 ? "year" : days % 30 === 0 ? "month" : "day");
+const unitDays = (unit: ValidityUnit) => VALIDITY_UNITS.find(([id]) => id === unit)![1];
+
+/** A unit picker that sits inside a number field, at its end. */
+function UnitPick<T extends string>({ label, value, options, disabled, onChange }: { label: string; value: T; options: readonly (readonly [T, string])[]; disabled?: boolean; onChange: (value: T) => void }) {
+  return <select className={styles.unitPick} aria-label={label} value={value} disabled={disabled} onChange={(event) => onChange(event.target.value as T)}>
+    {options.map(([id, text]) => <option key={id} value={id}>{text}</option>)}
+  </select>;
+}
+
 const MODELS: [BillingOption["model"], string][] = [
   ["PerSession", "Per session"],
   ["CustomPackage", "Custom package"],
@@ -55,6 +82,8 @@ type Rule = NonNullable<BillingOption["paymentTerms"]>["rule"];
 
 export function BillingOptionsEditor({ options, onChange, disabled, currency, purpose = "CoachingService" }: { options: BillingOption[]; onChange: (options: BillingOption[]) => void; disabled?: boolean; currency?: string; purpose?: "CoachingService" | "TrainingPlan" }) {
   const change = (i: number, value: Partial<BillingOption>) => onChange(options.map((o, n) => (n === i ? { ...o, ...value } : o)));
+  // The validity unit each option is edited in (it isn't stored: validity is saved in days).
+  const [units, setUnits] = useState<Record<string, ValidityUnit>>({});
   return (
     <div className={styles.options}>
       {options.map((o, i) => {
@@ -72,7 +101,7 @@ export function BillingOptionsEditor({ options, onChange, disabled, currency, pu
             </SegmentedControl>
             {o.price === 0 && <p className={styles.note}>No payment is required. Session counts and validity still apply.</p>}
             <div className={styles.columns}>
-              <Select label="Billing model" isDisabled={disabled} selectedKey={o.model} onSelectionChange={(key) => change(i, { ...newOption(key as BillingOption["model"]), id: o.id, name: o.name, price: o.price })}>
+              <Select label="Billing model" description={MODEL_HINTS[o.model]} isDisabled={disabled} selectedKey={o.model} onSelectionChange={(key) => change(i, { ...newOption(key as BillingOption["model"]), id: o.id, name: o.name, price: o.price })}>
                 {(purpose === "TrainingPlan" ? [["OneTime", "One-time purchase"]] as const : MODELS).map(([id, label]) => (
                   <Option key={id} id={id}>{label}</Option>
                 ))}
@@ -90,16 +119,26 @@ export function BillingOptionsEditor({ options, onChange, disabled, currency, pu
                 onChange={(v) => change(i, { price: v })}
               />}
               {counts.map((field) => (
-                <NumberInput key={field} label={COUNTS[field]} placeholder="1" minValue={1} step={1} isRequired isDisabled={disabled} value={Number(o[field as keyof BillingOption] ?? 1)} onChange={(v) => change(i, { [field]: v })} />
+                <NumberInput key={field} label={COUNTS[field]} placeholder="1" minValue={1} step={1} isRequired isDisabled={disabled} value={Number(o[field as keyof BillingOption] ?? 1)} onChange={(v) => change(i, { [field]: v })}
+                  // A subscription's period unit is picked inside its length field.
+                  endSlot={field === "periodCount" ? <UnitPick label="Period unit" disabled={disabled} value={(o.periodUnit ?? "Month") as "Week" | "Month" | "Year"}
+                    options={[["Week", Number(o.periodCount) === 1 ? "week" : "weeks"], ["Month", Number(o.periodCount) === 1 ? "month" : "months"], ["Year", Number(o.periodCount) === 1 ? "year" : "years"]]}
+                    onChange={(periodUnit) => change(i, { periodUnit })} /> : undefined} />
               ))}
-              {o.model === "PeriodSubscription" ? (
-                <Select label="Period unit" isDisabled={disabled} selectedKey={o.periodUnit ?? "Month"} onSelectionChange={(key) => change(i, { periodUnit: key as BillingOption["periodUnit"] })}>
-                  <Option id="Week">Week</Option>
-                  <Option id="Month">Month</Option>
-                  <Option id="Year">Year</Option>
-                </Select>
-              ) : null}
-              {o.model !== "PeriodSubscription" && o.model !== "OneTime" && <NumberInput label="Validity after payment (days)" placeholder="No expiry" description="Leave empty for no expiry. The whole package expires at the same time." minValue={1} maxValue={36500} step={1} isDisabled={disabled} value={o.validityDays ?? Number.NaN} onChange={value => change(i, { validityDays: Number.isNaN(value) ? null : value })} />}
+              {o.model !== "PeriodSubscription" && o.model !== "OneTime" && (() => {
+                const unit = units[o.id] ?? validityUnitOf(o.validityDays);
+                const factor = unitDays(unit);
+                return <NumberInput label="Validity after payment" placeholder="No expiry" description="Leave empty for no expiry. The whole package expires at the same time."
+                  minValue={1} maxValue={Math.floor(36500 / factor)} step={1} isDisabled={disabled}
+                  value={o.validityDays == null ? Number.NaN : Math.round(Number(o.validityDays) / factor)}
+                  onChange={value => change(i, { validityDays: Number.isNaN(value) ? null : value * factor })}
+                  endSlot={<UnitPick label="Validity unit" disabled={disabled} value={unit} options={VALIDITY_UNITS.map(([id, , text]) => [id, text] as const)}
+                    onChange={(next) => {
+                      setUnits((current) => ({ ...current, [o.id]: next }));
+                      // Keep the number the coach typed; it now counts the new unit.
+                      if (o.validityDays != null) change(i, { validityDays: Math.round(Number(o.validityDays) / factor) * unitDays(next) });
+                    }} />} />;
+              })()}
               {o.price !== 0 && <Select
                 label="Payment due"
                 isDisabled={disabled || o.model === "OneTime"}

@@ -6,7 +6,7 @@ import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceSco
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Button, PageHeader, TextArea } from "@trainflow/ui-web";
+import { Alert, Button, PageHeader, TextArea, toast } from "@trainflow/ui-web";
 import { QuickMessage, type QuickTemplate } from "~/modules/messaging";
 import { useProfile } from "~/modules/accounts";
 import { LockedReason, useFeatureAccess } from "~/shared/access";
@@ -14,7 +14,7 @@ import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { useCoachingMutation, useCoachingQuery } from "../api";
 import { DraftNavigationGuard, Failure, Loading, MutationError, StatusBadge } from "../components";
-import { AnswerReview, FormAnswerFields, type Answers } from "../form-fields";
+import { AnswerReview, FormAnswerFields, answerErrors, focusFirstError, type AnswerErrors, type Answers } from "../form-fields";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import styles from "../coaching.module.css";
 import detail from "./check-in.module.css";
@@ -31,6 +31,7 @@ export function CheckInDetail({ requestId, relationshipId, embedded = false, onD
   const collaboration = relationshipId ?? query.data?.request.relationshipId;
   const client = useCoachingQuery<Schema<"CoachRelationshipDto">>(`/api/v1/coaching/clients/${collaboration}`, undefined, mode === "coach" && Boolean(collaboration));
   const [answers, setAnswers] = useState<Answers>({});
+  const [errors, setErrors] = useState<AnswerErrors>({});
   const [reply, setReply] = useState("");
   const [notes, setNotes] = useState("");
   const [dirty, setDirtyState] = useState(false);
@@ -68,10 +69,10 @@ export function CheckInDetail({ requestId, relationshipId, embedded = false, onD
     : "Only your coach sees your answers. After you submit, they review them and can reply here.";
   const content = <>
     {r.status === "Overdue" && !(embedded && coach) && <Alert tone="warning" title="This check-in is overdue">{coach ? "The client can still submit a response." : "You can still submit your response."}</Alert>}
-    {d.submission ? <Panel title={coach ? "Client response" : "Your response"}><AnswerReview definition={d.form.definition} answers={d.submission.answers as Answers} /></Panel> : !coach && pending ? <Panel title="Your response"><form className={styles.form} onSubmit={(e) => { e.preventDefault(); if (respond.allowed) mutation.mutate({ method: "POST", path: `/api/v1/check-ins/requests/${r.id}/submit`, ifMatch: r.version, json: { answers } }); }}><FormAnswerFields definition={d.form.definition} answers={answers} disabled={mutation.isPending || !respond.allowed} onChange={(a) => { setAnswers(a); setDirty(true); }} /><MutationError error={mutation.error} /><LockedReason access={respond}><Button type="submit" variant="primary" isDisabled={!respond.allowed} loading={mutation.isPending}>Submit check-in</Button></LockedReason></form></Panel> : <Alert title={r.status === "Cancelled" ? "This check-in was cancelled" : r.status === "Scheduled" ? "This check-in is not available yet" : "Waiting for the client's response"} />}
+    {d.submission ? <Panel title={coach ? "Client response" : "Your response"}><AnswerReview definition={d.form.definition} answers={d.submission.answers as Answers} /></Panel> : !coach && pending ? <Panel title="Your response"><form className={styles.form} onSubmit={(e) => { e.preventDefault(); if (!respond.allowed) return; const found = answerErrors(d.form.definition, answers); setErrors(found); if (Object.keys(found).length) { focusFirstError(found); return; } mutation.mutate({ method: "POST", path: `/api/v1/check-ins/requests/${r.id}/submit`, ifMatch: r.version, json: { answers } }, { onSuccess: () => toast({ tone: "success", title: "Check-in sent", description: "Your coach can see your answers now." }) }); }}><FormAnswerFields definition={d.form.definition} answers={answers} errors={errors} disabled={mutation.isPending || !respond.allowed} onChange={(a) => { setErrors((e) => Object.fromEntries(Object.entries(e).filter(([key]) => a[key] === answers[key]))); setAnswers(a); setDirty(true); }} /><MutationError error={mutation.error} /><LockedReason access={respond}><Button type="submit" variant="primary" isDisabled={!respond.allowed} loading={mutation.isPending}>Submit check-in</Button></LockedReason></form></Panel> : <Alert title={r.status === "Cancelled" ? "This check-in was cancelled" : r.status === "Scheduled" ? "This check-in is not available yet" : "Waiting for the client's response"} />}
     {r.clientReply && <Panel title="Coach reply"><p className={styles.prose}>{r.clientReply}</p></Panel>}
     {coach && d.coachPrivateNotes && <Panel title="Private notes" description="Only you see these notes."><p className={styles.prose}>{d.coachPrivateNotes}</p></Panel>}
-    {coach && r.status === "Submitted" && <Panel title="Review response" actions={<LockedReason access={review}><Button variant="primary" isDisabled={!review.allowed} loading={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/check-ins/requests/${r.id}/review`, ifMatch: r.version, json: { clientReply: reply || null, coachPrivateNotes: notes || null } })}>Mark as reviewed</Button></LockedReason>}><TextArea label="Reply visible to the client" placeholder="Feedback for the client" value={reply} isDisabled={mutation.isPending || !review.allowed} onChange={(value) => { setReply(value); setDirty(true); }} maxLength={4000} /><TextArea label="Private coach notes" placeholder="Only you see these notes" value={notes} isDisabled={mutation.isPending || !review.allowed} onChange={(value) => { setNotes(value); setDirty(true); }} maxLength={4000} /></Panel>}
+    {coach && r.status === "Submitted" && <Panel title="Review response" actions={<LockedReason access={review}><Button variant="primary" isDisabled={!review.allowed} loading={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/check-ins/requests/${r.id}/review`, ifMatch: r.version, json: { clientReply: reply || null, coachPrivateNotes: notes || null } }, { onSuccess: () => toast({ tone: "success", title: "Check-in reviewed" }) })}>Mark as reviewed</Button></LockedReason>}><TextArea label="Reply visible to the client" placeholder="Feedback for the client" value={reply} isDisabled={mutation.isPending || !review.allowed} onChange={(value) => { setReply(value); setDirty(true); }} maxLength={4000} /><TextArea label="Private coach notes" placeholder="Only you see these notes" value={notes} isDisabled={mutation.isPending || !review.allowed} onChange={(value) => { setNotes(value); setDirty(true); }} maxLength={4000} /></Panel>}
     {(coach || !pending) && <MutationError error={mutation.error} />}
   </>;
   return <><DraftNavigationGuard dirty={dirty && editable} />{confirmDialog}

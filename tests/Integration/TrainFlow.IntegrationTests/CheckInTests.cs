@@ -860,7 +860,7 @@ public sealed class CheckInTests
         {
             await using var scope = Provider.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<TrainingDbContext>();
-            var document = new TrainingDocument(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "First", "", 10, []), new(Guid.NewGuid(), "Second", "", 10, [])])]);
+            var document = new TrainingDocument(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "First", "", 10, [new(Guid.NewGuid(), 1, [new(Guid.NewGuid(), "Workout", "", [], [])])]), new(Guid.NewGuid(), "Second", "", 10, [])])]);
             var plan = new TrainingPlan { Id = Guid.NewGuid(), OwnerId = CoachId, WorkspaceId = CoachId, Name = "Ten day plan", Draft = document, CreatedAt = Clock.GetUtcNow(), UpdatedAt = Clock.GetUtcNow() };
             var revision = new TrainingRevision { Id = Guid.NewGuid(), PlanId = plan.Id, Number = 1, DraftVersion = 1, PublishedAt = Clock.GetUtcNow(), IdempotencyKey = Guid.NewGuid().ToString(), RequestHash = "fixture", Snapshot = new(1, plan.Name, "", DocumentKind.Program, document, [], []) };
             var batch = new AssignmentBatch { Id = Guid.NewGuid(), CoachId = CoachId, IdempotencyKey = Guid.NewGuid().ToString(), RequestHash = "fixture", CreatedAt = Clock.GetUtcNow() };

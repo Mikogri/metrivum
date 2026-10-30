@@ -486,6 +486,40 @@
         ]
       }
     },
+    "/api/v1/me/username-availability": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsernameAvailabilityResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/me/onboarding": {
       "put": {
         "tags": [
@@ -19621,6 +19655,12 @@
             "items": {
               "$ref": "#/components/schemas/BlockExerciseMax"
             }
+          },
+          "inactive": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         },
         "additionalProperties": false
@@ -21763,6 +21803,15 @@
             "items": {
               "$ref": "#/components/schemas/TrainingDay"
             }
+          },
+          "repeats": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -27059,7 +27108,10 @@
             "type": "string"
           },
           "displayName": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "birthDate": {
             "type": "string",
@@ -27087,6 +27139,18 @@
             "type": [
               "null",
               "boolean"
+            ]
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
             ]
           }
         },
@@ -29472,7 +29536,19 @@
               "string"
             ]
           },
-          "coverStyle": { }
+          "coverStyle": { },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
         },
         "additionalProperties": false
       },
@@ -31571,6 +31647,7 @@
           "Region",
           "City",
           "PostalCode",
+          "Vo2Max",
           null
         ]
       },
@@ -33520,7 +33597,10 @@
         "type": "object",
         "properties": {
           "displayName": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "locale": {
             "type": "string"
@@ -33541,6 +33621,18 @@
             ]
           },
           "bio": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
             "type": [
               "null",
               "string"
@@ -33640,6 +33732,18 @@
           "resetAt": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UsernameAvailabilityResponse": {
+        "required": [
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
