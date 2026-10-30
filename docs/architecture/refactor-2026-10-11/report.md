@@ -1,6 +1,6 @@
 # Implementation and verification
 
-API, web and native mobile are versioned together in the private `Mikogri/train-flow` monorepo. This delivery preserves and includes the existing unpublished mobile, client-detail and training-plan changes; it does not attribute all of those changes to this review.
+API, web and native mobile are versioned together in the private `Mikogri/metrivum` monorepo. This delivery preserves and includes the existing unpublished mobile, client-detail and training-plan changes; it does not attribute all of those changes to this review.
 
 ## Delivered
 

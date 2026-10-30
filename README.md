@@ -2,6 +2,16 @@
 
 Metrivum is one monorepo: ASP.NET Core API, React web and Expo native mobile. PostgreSQL stores application data; Supabase provides Auth and private Storage. Both clients use the same API; business tables are never accessed through the Supabase Data API.
 
+Repository: [Mikogri/metrivum](https://github.com/Mikogri/metrivum). Each application is a separate project with its own entry point and build commands:
+
+| Project | Location | Run from repository root |
+| --- | --- | --- |
+| Web (React Router) | `apps/web/package.json` | `npm run dev` |
+| API (ASP.NET Core) | `apps/api/TrainFlow.Api/TrainFlow.Api.csproj` | `dotnet run --project apps/api/TrainFlow.Api` |
+| Mobile (Expo) | `apps/mobile/package.json` | `npm run dev:mobile` |
+
+The root npm workspace and .NET solution coordinate dependencies and builds; they do not combine the applications into a single executable. Shared packages live in `packages/`; API modules live in `backend/`. `development` holds current work; `main` is a separate integration branch and may lag behind. Local agent installations, execution plans, caches and generated builds are ignored; contributor guidance, architecture documentation and CI remain versioned.
+
 The product was renamed from TrainFlow to Metrivum. Existing `TrainFlow.*` project paths, `@trainflow/*` packages,
 database roles, session keys, mobile application IDs and analyzer protocol/install paths remain stable for compatibility.
 Mobile display names and analyzer/installer branding take effect when their updated builds are installed.

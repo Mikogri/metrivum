@@ -1,6 +1,6 @@
 # Security and quality review — 2026-10-18
 
-Scope: account identity (registration, onboarding, profile edits), web/mobile sign-in flows, API host limits, and the offer/coaching changes made on 2026-10-15. Builds on the [2026-10-14 review](security-audit-2026-10-14.md); areas it covered (JWT validation, MCP, uploads, decoder isolation, secrets, private schemas) were re-checked for regressions, not re-audited. Architecture is unchanged (modular monolith, same module boundaries). Plan: `docs/superpowers/plans/2026-10-18-account-security-hardening.md`.
+Scope: account identity (registration, onboarding, profile edits), web/mobile sign-in flows, API host limits, and the offer/coaching changes made on 2026-10-15. Builds on the [2026-10-14 review](security-audit-2026-10-14.md); areas it covered (JWT validation, MCP, uploads, decoder isolation, secrets, private schemas) were re-checked for regressions, not re-audited. Architecture is unchanged (modular monolith, same module boundaries).
 
 ## Findings and corrections
 
