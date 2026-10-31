@@ -120,3 +120,39 @@
     text-align: left;
   }
 }
+
+/* Slides down into place: the row grows from nothing so the page below moves with it instead of jumping. */
+.banner {
+  overflow: hidden;
+  animation: notice-in 260ms var(--tf-ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+
+.banner > * {
+  animation: notice-content-in 260ms var(--tf-ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 60ms both;
+}
+
+@keyframes notice-in {
+  from {
+    min-height: 0;
+    max-height: 0;
+    padding-block: 0;
+    border-bottom-color: transparent;
+  }
+  to {
+    max-height: 6rem;
+  }
+}
+
+@keyframes notice-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner,
+  .banner > * {
+    animation: none;
+  }
+}

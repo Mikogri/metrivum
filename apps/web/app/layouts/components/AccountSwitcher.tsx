@@ -1,5 +1,5 @@
 import { Check, ChevronsUpDown, ListChecks, LogOut, Plus, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button as AriaButton, Header, MenuSection } from "react-aria-components";
 import { useNavigate } from "react-router";
 import {
@@ -20,6 +20,25 @@ import type { SlotId } from "~/shared/session/storage-keys";
 import { SettingsIcon } from "./navIcons";
 import styles from "./AccountSwitcher.module.css";
 
+/** Name and username of each signed-in account, remembered in this browser while that account is active. */
+type AccountHint = { name: string; username: string | null };
+const hintKey = (userId: string) => `tf.account.hint.${userId}`;
+function readHint(userId: string): AccountHint | null {
+  try {
+    const raw = window.localStorage.getItem(hintKey(userId));
+    return raw ? (JSON.parse(raw) as AccountHint) : null;
+  } catch {
+    return null;
+  }
+}
+function writeHint(userId: string, hint: AccountHint) {
+  try {
+    window.localStorage.setItem(hintKey(userId), JSON.stringify(hint));
+  } catch {
+    // Storage unavailable: other accounts then show their email.
+  }
+}
+
 export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
   const m = useT();
   const profile = useProfile();
@@ -32,6 +51,10 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
   // The second line names the account by its username; the email only stands in until a username exists.
   const handle = profile.username ? `@${profile.username}` : active?.email ?? "";
   const [signingOut, setSigningOut] = useState(false);
+  const activeUserId = active?.userId;
+  useEffect(() => {
+    if (activeUserId && name) writeHint(activeUserId, { name, username: profile.username ?? null });
+  }, [activeUserId, name, profile.username]);
   const completeness = useProfileCompleteness();
   const next = completeness.items.find((item) => !item.done);
 
@@ -89,20 +112,25 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
             </DropdownMenuItem>
           ) : null}
           <DropdownMenuSection title={m.accounts.signedIn}>
-            {state.accounts.map((account) => (
-              <DropdownMenuItem
-                key={`slot:${account.slot}`}
-                id={`slot:${account.slot}`}
-                textValue={account.email ?? String(account.slot)}
-                icon={<Avatar name={account.email ?? "?"} size="sm" decorative className={styles.itemAvatar} />}
-                description={account.slot === state.activeSlot ? m.accounts.current : undefined}
-              >
-                <span className={styles.accountRow}>
-                  <span className={styles.accountEmail}>{account.slot === state.activeSlot && profile.username ? handle : account.email}</span>
-                  {account.slot === state.activeSlot ? <Check aria-hidden="true" className={styles.current} /> : null}
-                </span>
-              </DropdownMenuItem>
-            ))}
+            {state.accounts.map((account) => {
+              const current = account.slot === state.activeSlot;
+              const hint = current ? { name, username: profile.username ?? null } : readHint(account.userId);
+              const label = hint?.username ? `@${hint.username}` : hint?.name || account.email || "?";
+              return (
+                <DropdownMenuItem
+                  key={`slot:${account.slot}`}
+                  id={`slot:${account.slot}`}
+                  textValue={label}
+                  icon={<Avatar name={hint?.name || account.email || "?"} size="sm" decorative className={styles.itemAvatar} />}
+                  description={account.email ?? undefined}
+                >
+                  <span className={styles.accountRow}>
+                    <span className={styles.accountEmail}>{label}</span>
+                    {current ? <Check aria-label={m.accounts.current} className={styles.current} /> : null}
+                  </span>
+                </DropdownMenuItem>
+              );
+            })}
             <DropdownMenuItem id="add" icon={<Plus />} isDisabled={!actions.canAdd} description={actions.canAdd ? undefined : m.accounts.maxReached}>
               {m.accounts.add}
             </DropdownMenuItem>

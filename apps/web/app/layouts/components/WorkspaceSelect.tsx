@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown, ClipboardList, Dumbbell } from "lucide-react";
+import { Check, ChevronsUpDown, ClipboardList, Activity } from "lucide-react";
 import { Button, ListBox, ListBoxItem, Popover, Select, Text } from "react-aria-components";
 import { Hint } from "@trainflow/ui-web";
 import { useProfile } from "~/modules/accounts";
@@ -7,7 +7,7 @@ import styles from "./WorkspaceSelect.module.css";
 
 const OPTIONS = [
   { id: "coach", label: "Coach view", hint: "Clients, programs, analyses", Icon: ClipboardList },
-  { id: "client", label: "Client view", hint: "Your own training", Icon: Dumbbell },
+  { id: "client", label: "Client view", hint: "Your own training", Icon: Activity },
 ] as const;
 
 /**

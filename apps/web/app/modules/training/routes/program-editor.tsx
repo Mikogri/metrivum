@@ -48,7 +48,8 @@ function Editor() {
     );
   }
   if (query.isError) {
-    const notFound = query.error instanceof ApiError && query.error.status === 404;
+    // Missing or not this account's: the same "not found", with nothing of the plan shown.
+    const notFound = query.error instanceof ApiError && (query.error.status === 404 || query.error.status === 403);
     return (
       <div className={styles.center}>
         <ErrorState

@@ -155,6 +155,9 @@ export class SessionManager {
 
   private async onAuthEvent(slot: SlotId, event: AuthChangeEvent, session: Session | null, version: number) {
     if (this.authEventVersions.get(slot) !== version) return;
+    // Only an explicit sign-out removes an account. Supabase also reports "no session" as INITIAL_SESSION
+    // (and on lock or storage errors) while a fresh sign-in in this slot is still being saved.
+    if (!session && event !== "SIGNED_OUT") return;
     if (!session || event === "SIGNED_OUT") {
       const accounts = this.state.accounts.filter((a) => a.slot !== slot);
       const wasActive = this.state.activeSlot === slot;

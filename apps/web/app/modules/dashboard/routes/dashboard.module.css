@@ -1004,3 +1004,18 @@
   width: 0.875rem;
   height: 0.875rem;
 }
+
+/* An empty panel: the message centred in the space the panel has. */
+.panelBody:has(> .emptyFrame) {
+  display: flex;
+  flex-direction: column;
+}
+
+.emptyFrame {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 9rem;
+  padding: var(--tf-space-4);
+  text-align: center;
+}

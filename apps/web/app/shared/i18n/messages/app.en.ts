@@ -595,6 +595,7 @@ export const appEn = {
     nearLabel: (n: number) => `Usage — ${n} ${n === 1 ? "limit" : "limits"} nearly used up`,
   },
   profile: {
+    specializationsEmptyOwn: "Nothing chosen yet. Add them with Edit profile.",
     title: "Profile",
     mine: "My profile",
     edit: "Edit profile",
@@ -631,7 +632,7 @@ export const appEn = {
     from: "from",
     editor: {
       editingTitle: "Editing your profile",
-      editingBody: "Each section saves on its own; the cover shows your changes live.",
+      editingBody: "Change any section, then save everything at once.",
       preview: "Preview",
       previewing: "Preview: this is how other people see your profile.",
       previewTitle: "Profile preview",
@@ -656,6 +657,7 @@ export const appEn = {
       identityTitle: "About you",
       identityHint: "Your name and introduction, shown to everyone who opens your profile.",
       displayName: "Name",
+      displayNameHint: "How your name appears to clients and coaches.",
       bio: "Introduction",
       bioPlaceholder: "A few sentences about you",
       bioHint: (n: number) => `${n} of 500`,
@@ -708,6 +710,7 @@ export const appEn = {
       headlinePlaceholder: "e.g. Strength coach for busy runners",
       headlineHint: "One line under your name.",
       yearsLabel: "Years of coaching experience",
+      yearsHint: "Whole years; shown on your profile.",
       competencyPlaceholder: "e.g. Powerlifting",
       competencyHint: (n: number) => `Press Enter to add. ${n} of 20.`,
       addCompetency: "Add",

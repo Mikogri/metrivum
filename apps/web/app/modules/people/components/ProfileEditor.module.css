@@ -5,11 +5,8 @@
 }
 
 .head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--tf-space-3);
+  display: grid;
+  gap: 2px;
 }
 
 .title {
@@ -33,11 +30,6 @@
   line-height: var(--tf-leading-normal);
 }
 
-.buttons {
-  display: flex;
-  gap: var(--tf-space-2);
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -51,9 +43,34 @@
 
 .tagEditor {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
   gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.fieldLabel {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  line-height: var(--tf-leading-snug);
+}
+
+.fieldHint {
+  margin-top: calc(var(--tf-space-1) * -1);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+/* Input and Add share one row and one height. */
+.tagRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: var(--tf-space-2);
+}
+
+.tagRow > button {
+  height: var(--tf-control-md);
 }
 
 .tags {

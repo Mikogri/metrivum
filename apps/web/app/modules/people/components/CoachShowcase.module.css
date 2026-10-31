@@ -63,6 +63,7 @@
 .card {
   display: grid;
   gap: var(--tf-space-3);
+  align-content: start;
 }
 
 .failed {

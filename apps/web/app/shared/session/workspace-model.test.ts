@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { initialWorkspace, routeWorkspace } from "./workspace-model";
+import { initialWorkspace, routeWorkspace, twinRoute } from "./workspace-model";
 
 describe("workspace boundaries", () => {
   it("client-only accounts cannot restore coach mode", () => {
@@ -18,5 +18,11 @@ describe("workspace boundaries", () => {
     expect(routeWorkspace("/app/subscription")).toBe(null);
     expect(routeWorkspace("/app/team")).toBe(null);
     expect(routeWorkspace("/app/analyze")).toBe("coach");
+  });
+  it("opens a client's workout in whichever workspace is active", () => {
+    expect(twinRoute("/app/my-training/workouts/w1", "coach")).toBe("/app/training/workouts/w1");
+    expect(twinRoute("/app/training/workouts/w1", "client")).toBe("/app/my-training/workouts/w1");
+    expect(twinRoute("/app/training/workouts/w1", "coach")).toBe("/app/training/workouts/w1");
+    expect(twinRoute("/app/programs/p1", "client")).toBe(null);
   });
 });

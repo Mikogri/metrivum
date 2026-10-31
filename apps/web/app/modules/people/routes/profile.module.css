@@ -10,6 +10,7 @@
   border: 1px solid var(--tf-color-border-subtle);
   border-radius: var(--tf-radius-xl);
   background: var(--tf-color-surface);
+  transition: border-color 260ms ease, box-shadow 260ms ease;
 }
 
 .heroBody {
@@ -316,88 +317,124 @@
 /* Coach offers: one row per offer, the whole row a link. */
 .offers {
   display: grid;
-  gap: var(--tf-space-2);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: var(--tf-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.offers > li {
+  min-width: 0;
+}
+
+/* One offer as a card: mode, name, short description, tags, and the starting price. */
 .offer {
   display: flex;
-  align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3);
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  height: 100%;
+  padding: var(--tf-space-4);
   border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
   color: var(--tf-color-text);
   text-decoration: none;
-  transition: background-color 120ms ease, border-color 120ms ease;
+  transition: border-color 140ms ease, transform 140ms var(--tf-ease-out, ease-out), box-shadow 140ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .offer:hover {
-    border-color: var(--tf-color-border);
-    background: var(--tf-color-surface-hover);
+    border-color: var(--tf-color-border-strong);
+    box-shadow: var(--tf-shadow-sm, 0 2px 8px rgb(0 0 0 / 0.12));
+    transform: translateY(-1px);
+  }
+
+  .offer:hover .offerArrow {
+    color: var(--tf-color-accent);
+    transform: translateX(2px);
   }
 }
 
-.offerIcon {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
+.offer:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
 }
 
-.offerIcon svg,
-.offerArrow {
-  width: 1rem;
-  height: 1rem;
-}
-
-.offerArrow {
-  flex-shrink: 0;
-  color: var(--tf-color-text-tertiary);
-}
-
-.offerText {
-  display: grid;
-  flex: 1;
-  gap: 2px;
-  min-width: 0;
-}
-
-.offerText strong {
-  font-size: var(--tf-text-sm);
+/* The coaching mode as a small coloured pill at the top of the card. */
+.offerMode {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 3px var(--tf-space-2-5, 0.625rem) 3px var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--mode) 14%, transparent);
+  color: var(--mode);
+  font-size: var(--tf-text-xs);
   font-weight: var(--tf-weight-semibold);
+  --mode: var(--tf-color-info);
 }
 
-.offerText span {
+.offerMode[data-mode="Offline"] {
+  --mode: var(--tf-color-warning);
+}
+
+.offerMode[data-mode="Hybrid"] {
+  --mode: var(--tf-color-accent);
+}
+
+.offerMode svg {
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+.offerName {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+  line-height: var(--tf-leading-tight, 1.3);
+}
+
+.offerDescription {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
-.offerMeta {
+.offerTags {
   display: flex;
   flex-wrap: wrap;
   gap: var(--tf-space-1);
-  margin-top: var(--tf-space-1);
+}
+
+.offerTags > span {
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+}
+
+.offerFoot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  margin-top: auto;
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
 }
 
 .offerPrice {
   display: grid;
-  flex-shrink: 0;
-  justify-items: end;
-  font-size: var(--tf-text-md);
+  font-size: var(--tf-text-lg);
   font-weight: var(--tf-weight-semibold);
   font-variant-numeric: tabular-nums;
+  line-height: 1.15;
   white-space: nowrap;
 }
 
@@ -405,6 +442,14 @@
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
   font-weight: var(--tf-weight-regular);
+}
+
+.offerArrow {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--tf-color-text-tertiary);
+  transition: color 140ms ease, transform 140ms ease;
 }
 
 /* Empty offers: compact, with no extra space under it inside the card. */

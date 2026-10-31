@@ -1,12 +1,12 @@
 import { createContext, useContext, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
-import { useLocation, useNavigate } from "react-router";
+import { Navigate, useLocation, useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Alert, Button } from "@trainflow/ui-web";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useAccountContext, useAccountKey, useApi } from "./AccountScope";
 import { hasUnsavedWork } from "./dirty-guard";
-import { initialWorkspace, routeWorkspace, type WorkspaceMode } from "./workspace-model";
+import { initialWorkspace, routeWorkspace, twinRoute, type WorkspaceMode } from "./workspace-model";
 
 type Workspace = { canCoach: boolean; mode: WorkspaceMode; switching: boolean; switchMode: (mode: WorkspaceMode, destination?: string) => Promise<boolean> };
 const Context = createContext<Workspace | null>(null);
@@ -64,6 +64,9 @@ export function WorkspaceRouteGuard({ children, required: explicit }: { children
   const { mode, switchMode, switching, canCoach } = useWorkspace();
   const required = explicit ?? routeWorkspace(location.pathname);
   if (!required || required === mode) return children;
+  // A page both workspaces have (e.g. a client's workout): open it here rather than asking to switch.
+  const twin = twinRoute(location.pathname, mode);
+  if (twin && twin !== location.pathname) return <Navigate to={twin + location.search} replace />;
   if (required === "coach" && !canCoach) return <Alert title="Coach workspace required">This page is available to coach accounts.</Alert>;
   return <Alert title={`Open in ${required === "coach" ? "Coach" : "Client"} workspace`} actions={<Button loading={switching} onPress={() => void switchMode(required, location.pathname + location.search)}>Switch workspace</Button>}>This page belongs to your other workspace.</Alert>;
 }

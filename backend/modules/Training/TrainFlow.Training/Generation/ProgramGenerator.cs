@@ -214,7 +214,7 @@ public static class ProgramGenerator
                     setup += exercise.SetupSeconds;
                     specific += exercise.PrescriptionMode == "time" ? 0 : 60;
                     return new ExerciseInstance(Id(state.Input.Seed, path + "/" + role), exercise.Id,
-                        $"Generator role: {role}. Repetition counting: {exercise.RepetitionCounting}. Review working load in the editor.",
+                        exercise.RepetitionCounting == "per-side" ? "Reps are per side." : "",
                         Enumerable.Range(0, sets).Select(set => new TrainingSet(Id(state.Input.Seed, path + "/" + role + "/set-" + set), SetKind.Standard, p)).ToArray());
                 }).ToArray();
                 if (cycle == state.Input.Cycles - 1)

@@ -12,4 +12,4 @@ export { ScheduleEditorPanel, type ScheduleSeed } from "./routes/schedule";
 export { money } from "./pricing";
 export { useNavCounts } from "./nav-counts";
 
-export { CoachSpecializationsCard, SpecializationPicker, SpecializationBadges, SpecializationsEditor, emptySpecializations, type SpecializationDraft } from "./specializations";
+export { CoachSpecializationsCard, SpecializationPicker, SpecializationBadges, SpecializationsEditor, emptySpecializations, specializationsKey, type SpecializationDraft } from "./specializations";

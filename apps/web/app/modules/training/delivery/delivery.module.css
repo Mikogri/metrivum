@@ -268,14 +268,6 @@ a.rowLink { text-decoration: none; }
   }
 }
 
-/* A planned workout's two decisions, small and side by side. */
-.workoutDecision {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--tf-space-2);
-}
-
 /* Schedule & history: the list/cards switch at the end of the filters. */
 .viewToggle {
   margin-left: auto;
@@ -417,4 +409,995 @@ a.rowLink { text-decoration: none; }
   display: grid;
   justify-items: end;
   gap: 2px;
+}
+
+/* ───────── Workout detail ───────── */
+/* The plan reads best at a measured width; the log has its own side panel. */
+.wk {
+  display: grid;
+  gap: var(--tf-space-5);
+  min-width: 0;
+  max-width: 72rem;
+}
+
+.wkBack {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  margin: 0 0 calc(var(--tf-space-3) * -1) calc(var(--tf-space-2) * -1);
+  padding: var(--tf-space-1) var(--tf-space-2);
+  border: 0;
+  border-radius: var(--tf-radius-md);
+  background: none;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  cursor: pointer;
+}
+
+/* Same feel as the page back button: the arrow and label light up and the arrow nudges left. */
+.wkBack {
+  color: var(--tf-color-text-tertiary);
+  transition: color 160ms ease;
+}
+
+.wkBack:hover,
+.wkBack:focus-visible {
+  color: var(--tf-color-text);
+}
+
+.wkBack svg {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 200ms var(--tf-ease-out, ease-out);
+}
+
+.wkBack:hover svg {
+  transform: translateX(-3px);
+}
+
+.wkBack:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* Title block, straight on the page. */
+.wkHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tf-space-4);
+}
+
+.wkHeadText {
+  display: grid;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+
+.wkKicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-1-5);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.wkKicker a {
+  color: var(--tf-color-text-secondary);
+  font-weight: var(--tf-weight-medium);
+  text-decoration: none;
+}
+
+.wkKicker a:hover {
+  color: var(--tf-color-text);
+  text-decoration: underline;
+}
+
+.wkTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
+.wkTitle h1 {
+  margin: 0;
+  font-family: var(--tf-font-display);
+  font-size: clamp(1.625rem, 1.3rem + 1.1vw, 2.25rem);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+
+.wkActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+/* The numbers in one row of equal cells. */
+.wkSummary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.wkSummary > div {
+  display: grid;
+  gap: var(--tf-space-1);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-left: 1px solid var(--tf-color-border-subtle);
+}
+
+.wkSummary > div:first-child {
+  border-left: 0;
+}
+
+.wkSummary dt {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.wkSummary dd {
+  margin: 0;
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.wkSummary dd small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-regular);
+}
+
+/* A note: an icon and the text, with a coloured edge. */
+.wkNote {
+  --wk-note: var(--tf-color-accent);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-left: 3px solid var(--wk-note);
+  border-radius: 0 var(--tf-radius-md) var(--tf-radius-md) 0;
+  background: var(--tf-color-surface-raised);
+}
+
+.wkNote[data-tone="muted"] {
+  --wk-note: var(--tf-color-text-tertiary);
+}
+
+.wkNote[data-tone="client"] {
+  --wk-note: var(--tf-color-info);
+}
+
+.wkNote > svg {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 2px;
+  color: var(--wk-note);
+}
+
+.wkNote > div {
+  display: grid;
+  gap: 2px;
+}
+
+.wkNote strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.wkNote p {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+  white-space: pre-wrap;
+}
+
+.wkIntro {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+/* The exercises along a thin rail with small numbered nodes. */
+.wkSteps {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wkStep {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  gap: var(--tf-space-3);
+}
+
+/* The rail runs from below this node to just above the next, never through a number. */
+.wkStep:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--tf-space-3) + 1.75rem + 6px);
+  bottom: calc(var(--tf-space-3) * -2 + 6px);
+  left: calc(0.875rem - 1px);
+  width: 2px;
+  border-radius: 1px;
+  background: var(--tf-color-border-subtle);
+}
+
+/* Each exercise has its own colour: on its node, its card edge and its set numbers. */
+.wkStep { --wk-tone: var(--tf-color-accent); }
+.wkStep[data-tone="1"] { --wk-tone: var(--tf-color-info); }
+.wkStep[data-tone="2"] { --wk-tone: var(--tf-color-violet); }
+.wkStep[data-tone="3"] { --wk-tone: var(--tf-color-warning); }
+
+.wkStep[data-complete]:not(:last-child)::before {
+  background: color-mix(in srgb, var(--tf-color-accent) 55%, transparent);
+}
+
+.wkNode {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-top: var(--tf-space-3);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--wk-tone) 16%, var(--tf-color-surface));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--wk-tone) 55%, transparent);
+  color: var(--wk-tone);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.wkStep[data-complete] .wkNode {
+  background: var(--tf-color-accent);
+  box-shadow: none;
+  color: var(--tf-color-text-inverse);
+}
+
+.wkNode svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  stroke-width: 3;
+}
+
+.wkCard {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-left: 3px solid var(--wk-tone, var(--tf-color-accent));
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.wkCard > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tf-space-1) var(--tf-space-4);
+  padding: var(--tf-space-3) var(--tf-space-4);
+}
+
+.wkCard > header > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wkCard h2 {
+  margin: 0;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+  line-height: 1.3;
+}
+
+.wkCard > header p {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.wkCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-top: 2px;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wkCount b {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.wkCount svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Sets as rows, like a sheet: number, target, effort, tick. */
+.wkRows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wkRow {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) minmax(0, auto) 1.25rem;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-height: 2.75rem;
+  padding: var(--tf-space-2) var(--tf-space-4);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  font-size: var(--tf-text-sm);
+}
+
+.wkRowNo {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--tf-radius-sm);
+  background: color-mix(in srgb, var(--wk-tone, var(--tf-color-accent)) 14%, var(--tf-color-surface-raised));
+  color: var(--wk-tone, var(--tf-color-text-secondary));
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.wkRowMain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem;
+  min-width: 0;
+  color: var(--tf-color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.wkRowMain b {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.wkTimes {
+  color: var(--tf-color-text-tertiary);
+}
+
+.wkKind {
+  padding: 1px var(--tf-space-1-5);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wkRowMeta {
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wkRowCheck {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.wkRow[data-state="done"] .wkRowCheck {
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-accent);
+  color: var(--tf-color-text-inverse);
+}
+
+.wkRowCheck svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  stroke-width: 3;
+}
+
+.wkRow[data-kind="Warmup"] .wkRowMain b {
+  color: var(--tf-color-text-secondary);
+  font-weight: var(--tf-weight-medium);
+}
+
+.wkRow[data-state="skipped"] {
+  opacity: 0.5;
+}
+
+@media (max-width: 40rem) {
+  .wkHead {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .wkActions > * {
+    flex: 1;
+  }
+
+  .wkSummary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wkSummary > div:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .wkSummary > div:nth-child(n + 3) {
+    border-top: 1px solid var(--tf-color-border-subtle);
+  }
+
+  .wkStep {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wkStep::before,
+  .wkNode {
+    display: none;
+  }
+
+  .wkRow {
+    grid-template-columns: 1.5rem minmax(0, 1fr) 1.25rem;
+    padding-inline: var(--tf-space-3);
+  }
+
+  .wkRowMeta {
+    grid-column: 2 / 3;
+    grid-row: 2;
+    margin-top: -0.25rem;
+    text-align: left;
+  }
+}
+
+/* Header, right side: whose workout it is, then the actions. */
+.wkHeadSide {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tf-space-4);
+}
+
+/* Right of the title, with room around it; the actions keep the far edge. */
+.wkClient {
+  display: inline-flex;
+  align-self: center;
+  margin: 0 auto 0 var(--tf-space-6);
+  padding: var(--tf-space-1-5) var(--tf-space-3) var(--tf-space-1-5) var(--tf-space-1-5);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface);
+  transition: border-color 140ms ease;
+  align-items: center;
+  gap: var(--tf-space-2-5, 0.625rem);
+  color: var(--tf-color-text);
+  text-decoration: none;
+}
+
+.wkClient > span {
+  display: grid;
+  line-height: 1.25;
+}
+
+.wkClient strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.wkClient small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.wkClient:hover {
+  border-color: var(--tf-color-border-strong);
+}
+
+/* The log form: same cards as the plan, with a table to type into. */
+.wkForm {
+  display: grid;
+  gap: var(--tf-space-4);
+  min-width: 0;
+}
+
+.wkFormHint {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.wkSession {
+  display: grid;
+  grid-template-columns: 11rem 9rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.wkFormBar {
+  display: flex;
+  justify-content: flex-end;
+  font-size: var(--tf-text-sm);
+}
+
+.wkTableWrap {
+  overflow-x: auto;
+}
+
+.wkTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tf-text-sm);
+}
+
+.wkTable th {
+  padding: var(--tf-space-1-5) var(--tf-space-2);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.wkTable td {
+  padding: var(--tf-space-1-5) var(--tf-space-2);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  vertical-align: middle;
+}
+
+.wkTable th:first-child,
+.wkTable td:first-child {
+  width: 1%;
+  padding-left: var(--tf-space-4);
+  white-space: nowrap;
+}
+
+.wkTable th:last-child,
+.wkTable td:last-child {
+  width: 1%;
+  padding-right: var(--tf-space-3);
+}
+
+.wkTable tr[data-skipped] td:not(:last-child) {
+  opacity: 0.45;
+}
+
+.wkTable tr[data-extra] .wkRowNo {
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-tertiary);
+}
+
+.wkPlanCell {
+  min-width: 8rem;
+  color: var(--tf-color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wkPlanCell small {
+  display: block;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.wkInput {
+  width: 4.25rem;
+  height: 2rem;
+  padding: 0 var(--tf-space-2);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.wkInput::placeholder {
+  color: var(--tf-color-text-tertiary);
+  opacity: 0.7;
+}
+
+.wkInput:hover:not(:disabled) {
+  border-color: var(--tf-color-border-strong);
+}
+
+.wkInput:focus {
+  border-color: var(--wk-tone, var(--tf-color-accent));
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--wk-tone, var(--tf-color-accent)) 22%, transparent);
+}
+
+.wkInput:disabled {
+  opacity: 0.5;
+}
+
+.wkInputWide {
+  width: 9rem;
+}
+
+.wkLoad {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+
+
+.wkRowTools {
+  text-align: right;
+}
+
+.wkCardFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.wkInputNote {
+  flex: 1;
+  min-width: 12rem;
+  width: auto;
+}
+
+@media (max-width: 40rem) {
+  .wkHeadSide {
+    justify-content: space-between;
+  }
+
+  .wkSession {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wkSessionNote {
+    grid-column: 1 / -1;
+  }
+
+  .wkTable th:first-child,
+  .wkTable td:first-child {
+    padding-left: var(--tf-space-3);
+  }
+}
+
+/* Hidden panels stay mounted (so a draft is kept) but never show, whatever their display. */
+.wk [hidden] {
+  display: none !important;
+}
+
+.wkSaveState:empty {
+  display: none;
+}
+
+.wkSaveState {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  white-space: nowrap;
+}
+
+.wkActions {
+  align-items: center;
+}
+
+.wkCardTools {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+
+/* kg / lb: a normal select, sized like the inputs. */
+.wkUnit {
+  height: 2rem;
+  padding: 0 var(--tf-space-1-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+  font: inherit;
+  font-size: var(--tf-text-sm);
+  cursor: pointer;
+}
+
+.wkUnit:focus {
+  border-color: var(--wk-tone, var(--tf-color-accent));
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--wk-tone, var(--tf-color-accent)) 22%, transparent);
+}
+
+.wkUnit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* The side panel footer: Clear on the left, the rest on the right. */
+.wkPanelFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+  width: 100%;
+}
+
+.wkPanelFoot > .wkSaveState {
+  margin-left: auto;
+}
+
+.wkPanelFoot > .wkSaveState:empty + * {
+  margin-left: auto;
+}
+
+.wkLoad {
+  gap: var(--tf-space-1-5);
+}
+
+.wkAddExercise {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  margin-left: calc(1.75rem + var(--tf-space-3));
+  padding: var(--tf-space-4);
+  border: 1px dashed var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: none;
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
+}
+
+.wkAddExercise:hover {
+  border-color: var(--tf-color-border-strong);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+}
+
+.wkAddExercise svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ───────── Planned vs actual ───────── */
+.cmp {
+  display: grid;
+  gap: var(--tf-space-5);
+}
+
+.cmpTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--tf-space-2);
+  margin: 0;
+}
+
+.cmpTiles > div {
+  display: grid;
+  gap: var(--tf-space-1);
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface);
+}
+
+.cmpTiles dt {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.cmpTiles dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tf-space-1-5);
+  margin: 0;
+}
+
+.cmpTiles dd strong {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.cmpTiles dd span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.cmpBar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+}
+
+.cmpBar > span {
+  display: block;
+  height: 100%;
+  background: var(--tf-color-accent);
+  transform-origin: left;
+}
+
+.cmpList {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cmpExercise {
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.cmpExercise > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3) var(--tf-space-4);
+}
+
+.cmpExercise > header strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.cmpStatus {
+  --cmp: var(--tf-color-success);
+  padding: 1px var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--cmp) 14%, transparent);
+  color: var(--cmp);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.cmpStatus[data-tone="partial"] {
+  --cmp: var(--tf-color-warning);
+}
+
+.cmpStatus[data-tone="missing"] {
+  --cmp: var(--tf-color-danger);
+}
+
+.cmpCount {
+  margin-left: auto;
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.cmpCount small {
+  color: var(--tf-color-text-tertiary);
+  font-weight: var(--tf-weight-regular);
+}
+
+.cmpTable {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: var(--tf-text-sm);
+}
+
+/* Same column widths in every exercise. */
+.cmpTable th:first-child {
+  width: 3rem;
+}
+
+.cmpTable th:last-child {
+  width: 30%;
+}
+
+.cmpTable th {
+  padding: var(--tf-space-1-5) var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  text-align: left;
+}
+
+.cmpTable td {
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  font-variant-numeric: tabular-nums;
+  vertical-align: top;
+}
+
+.cmpTable td b {
+  display: block;
+  font-weight: var(--tf-weight-semibold);
+}
+
+.cmpTable td small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.cmpTable td small::before {
+  content: "plan ";
+}
+
+.cmpTable tr[data-tone="missing"] td {
+  background: color-mix(in srgb, var(--tf-color-danger) 6%, transparent);
+}
+
+.cmpTable tr[data-tone="partial"] td {
+  background: color-mix(in srgb, var(--tf-color-warning) 6%, transparent);
+}
+
+.cmpNo {
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.cmpNotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1);
+}
+
+.cmpNotes span {
+  padding: 1px var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--tf-color-warning) 14%, transparent);
+  color: var(--tf-color-warning);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+}
+
+.cmpNotes i {
+  color: var(--tf-color-text-tertiary);
+  font-style: normal;
+}
+
+.cmpNote {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
 }

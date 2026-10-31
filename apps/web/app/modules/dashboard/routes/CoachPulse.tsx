@@ -164,7 +164,9 @@ function Sessions() {
       ) : events.isError ? (
         <p className={styles.muted}>{t.unavailable}</p>
       ) : !upcoming.length ? (
-        <EmptyState size="sm" icon={<CalendarClock strokeWidth={1.5} />} title={t.noSessions} description={t.noSessionsBody} />
+        <div className={styles.emptyFrame}>
+          <EmptyState size="sm" icon={<CalendarClock strokeWidth={1.5} />} title={t.noSessions} description={t.noSessionsBody} />
+        </div>
       ) : (
         <ul className={styles.rows}>
           {upcoming.map((e, i) => (

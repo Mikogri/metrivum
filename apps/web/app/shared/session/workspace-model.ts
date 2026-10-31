@@ -11,6 +11,16 @@ export function routeWorkspace(path: string): WorkspaceMode | null {
   return null;
 }
 
+/**
+ * The same page in the other workspace, for pages both sides can open (a workout is the client's and their coach's).
+ * A link opened in the "wrong" workspace then lands on that page instead of asking to switch; the API decides access.
+ */
+export function twinRoute(path: string, mode: WorkspaceMode): string | null {
+  const workout = /^\/app\/(?:my-training|training)\/workouts\/([^/]+)$/.exec(path);
+  if (workout) return mode === "coach" ? `/app/training/workouts/${workout[1]}` : `/app/my-training/workouts/${workout[1]}`;
+  return null;
+}
+
 export const clientSections = [
   ["Clients", "/app/clients"], ["Leads", "/app/leads"],
   ["Invitations", "/app/invitations"], ["Groups", "/app/groups"], ["Check-ins", "/app/check-ins"],

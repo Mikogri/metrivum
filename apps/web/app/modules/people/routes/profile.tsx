@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, AtSign, CalendarDays, Check, Clock, Eye, Gauge, HeartPulse, ListChecks, MapPin, MessageSquare, Pencil, Settings, Store, Trophy, UserPlus, UserRound, UserRoundX } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight, AtSign, CalendarDays, Check, Clock, Eye, Gauge, HeartPulse, ListChecks, MapPin, MessageSquare, Monitor, Pencil, Settings, Shuffle, Store, Target, Trophy, UserPlus, UserRound, UserRoundX } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 import { Link as RouterLink, Navigate, useParams } from "react-router";
 import type { Schema } from "@trainflow/api-client-web";
-import { Avatar, Badge, Button, Card, EmptyState, ErrorState, LinkButton, LoadingState, Skeleton } from "@trainflow/ui-web";
+import { Avatar, Badge, Button, Card, EmptyState, ErrorState, LinkButton, LoadingState, Skeleton, toast } from "@trainflow/ui-web";
 import { BodySummary, DETAIL_GROUPS, detailsFromValues, getPerson, personKey, profileFieldsKey, useProfile, useProfileCompleteness, type DetailKey, type Details } from "~/modules/accounts";
-import { CoachSpecializationsCard, InvitationEditor, money, useCoachingQuery, type Page } from "~/modules/coaching";
+import { InvitationEditor, SpecializationBadges, money, useCoachingQuery, type Page } from "~/modules/coaching";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
@@ -17,7 +17,7 @@ import { CoverControls, Portfolio, ShowcaseAbout, ShowcaseFailed, ShowcaseStats,
 import { ProfileAchievements, achievementsFor, type AchievementFacts } from "../components/ProfileAchievements";
 import { SectionTitle } from "../components/SectionTitle";
 import { ProfileCover } from "~/shared/ui/cover/ProfileCover";
-import { CoverEditorCard, IdentityEditorCard, coverDraftOf } from "../components/ProfileEditor";
+import { CoverEditorCard, IdentityEditorCard, SpecializationsEditorCard, coverDraftOf, type EditorHandle } from "../components/ProfileEditor";
 import { TopNotice, TopNoticeLink } from "~/shared/ui/TopNotice";
 import styles from "./profile.module.css";
 
@@ -197,6 +197,22 @@ function Completeness() {
   );
 }
 
+/** Coaching specializations, read-only here: the owner changes them in edit mode. */
+function SpecializationsSection({ selections, own = false }: { selections: Schema<"PublicSpecializationDto">[] | null | undefined; own?: boolean }) {
+  const m = useT();
+  const t = m.specializations;
+  if (!own && !selections?.length) return null;
+  return (
+    <Card as="section" padding="md" aria-labelledby="profile-specializations" className={styles.fillCard}>
+      <SectionTitle id="profile-specializations" icon={<Target />} tone="violet" title={t.title} sub={t.description} />
+      {selections?.length ? <SpecializationBadges selections={selections} /> : <p className={styles.muted}>{m.profile.specializationsEmptyOwn}</p>}
+    </Card>
+  );
+}
+
+/** Each coaching mode gets its own small icon on the offer card. */
+const MODE_ICON: Record<string, typeof Monitor> = { Online: Monitor, Offline: MapPin, Hybrid: Shuffle };
+
 /** A coach's public offers: up to three, linking to the offer pages. */
 function CoachOffers({ coachId }: { coachId: string }) {
   const m = useT();
@@ -215,30 +231,30 @@ function CoachOffers({ coachId }: { coachId: string }) {
         <EmptyState size="sm" className={styles.offersEmpty} icon={<Store />} title={m.profile.noOffers} description={m.profile.noOffersBody} />
       ) : (
         <ul className={styles.offers}>
-          {offers.data.items.map((offer) => (
-            <li key={offer.offerId}>
-              <RouterLink to={`/app/coaches/${coachId}/offers/${offer.offerId}`} className={styles.offer}>
-                <span className={styles.offerIcon} aria-hidden="true"><Store /></span>
-                <span className={styles.offerText}>
-                  <strong>{offer.name}</strong>
-                  {offer.description ? <span>{offer.description}</span> : null}
-                  <span className={styles.offerMeta}>
-                    <Badge size="sm" tone="neutral">{m.profile.modes[offer.coachingMode] ?? offer.coachingMode}</Badge>
-                    {offer.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag} size="sm" tone="neutral">{tag}</Badge>
-                    ))}
+          {offers.data.items.map((offer) => {
+            const from = offer.billingOptions.length ? Math.min(...offer.billingOptions.map((option) => Number(option.price))) : null;
+            return (
+              <li key={offer.offerId}>
+                <RouterLink to={`/app/coaches/${coachId}/offers/${offer.offerId}`} className={styles.offer}>
+                  <span className={styles.offerMode} data-mode={offer.coachingMode}>
+                    {(() => { const ModeIcon = MODE_ICON[offer.coachingMode] ?? Shuffle; return <ModeIcon aria-hidden="true" />; })()}
+                    {m.profile.modes[offer.coachingMode] ?? offer.coachingMode}
                   </span>
-                </span>
-                {offer.billingOptions.length ? (
-                  <span className={styles.offerPrice}>
-                    <small>{m.profile.from}</small>
-                    {money(Math.min(...offer.billingOptions.map((option) => Number(option.price))), offer.currency)}
+                  <strong className={styles.offerName}>{offer.name}</strong>
+                  {offer.description ? <span className={styles.offerDescription}>{offer.description}</span> : null}
+                  {offer.tags.length ? (
+                    <span className={styles.offerTags}>
+                      {offer.tags.slice(0, 3).map((tag) => <span key={tag}>{tag}</span>)}
+                    </span>
+                  ) : null}
+                  <span className={styles.offerFoot}>
+                    {from !== null ? <span className={styles.offerPrice}><small>{m.profile.from}</small>{money(from, offer.currency)}</span> : <span />}
+                    <ArrowRight aria-hidden="true" className={styles.offerArrow} />
                   </span>
-                ) : null}
-                <ArrowRight aria-hidden="true" className={styles.offerArrow} />
-              </RouterLink>
-            </li>
-          ))}
+                </RouterLink>
+              </li>
+            );
+          })}
         </ul>
       )}
     </Card>
@@ -265,6 +281,33 @@ function OwnProfile() {
   const [previewFrom, setPreviewFrom] = useState<"view" | "edit">("view");
   const [coverDraft, setCoverDraft] = useState(() => coverDraftOf(profile.coverStyle));
   const [restart, setRestart] = useState(0);
+  // Every editor card reports here; one "Save changes" saves whatever changed, "Cancel" drops it all.
+  const editors = useRef(new Map<string, EditorHandle>());
+  const [editorFlags, setEditorFlags] = useState<Record<string, { dirty: boolean; valid: boolean }>>({});
+  const [saving, setSaving] = useState(false);
+  const register = useCallback((key: string, handle: EditorHandle) => {
+    editors.current.set(key, handle);
+    setEditorFlags((prev) => (prev[key]?.dirty === handle.dirty && prev[key]?.valid === handle.valid ? prev : { ...prev, [key]: { dirty: handle.dirty, valid: handle.valid } }));
+  }, []);
+  const anyDirty = Object.values(editorFlags).some((flag) => flag.dirty);
+  const allValid = Object.values(editorFlags).every((flag) => flag.valid);
+  const leaveEdit = () => {
+    editors.current.clear();
+    setEditorFlags({});
+    setMode("view");
+  };
+  const saveAll = async () => {
+    setSaving(true);
+    try {
+      for (const handle of editors.current.values()) if (handle.dirty) await handle.save();
+      toast({ tone: "success", title: t.saved });
+      leaveEdit();
+    } catch (error) {
+      toast({ tone: "danger", title: errorText(m, error) });
+    } finally {
+      setSaving(false);
+    }
+  };
   // The joined date lives on the public profile only.
   const self = useQuery({ queryKey: personKey(account, profile.username ?? ""), queryFn: ({ signal }) => getPerson(api, profile.username!, signal), enabled: Boolean(profile.username) });
   const showcase = useShowcase(profile.id, isCoach);
@@ -285,7 +328,10 @@ function OwnProfile() {
     <>
       <Button variant="ghost" iconStart={<Eye />} onPress={() => { setPreviewFrom(mode === "edit" ? "edit" : "view"); setMode("preview"); }}>{t.preview}</Button>
       {editing ? (
-        <Button variant="primary" iconStart={<Check />} onPress={() => setMode("view")}>{t.done}</Button>
+        <>
+          <Button variant="ghost" onPress={leaveEdit} isDisabled={saving}>{m.common.cancel}</Button>
+          <Button variant="primary" iconStart={<Check />} onPress={() => void saveAll()} loading={saving} isDisabled={!anyDirty || !allValid}>{m.common.saveChanges}</Button>
+        </>
       ) : (
         <>
           <LinkButton href="/app/usage" variant="ghost" iconStart={<Gauge />}>{m.usage.title}</LinkButton>
@@ -330,22 +376,25 @@ function OwnProfile() {
   return (
     <div className={styles.page} data-editing={editing || undefined}>
       {editing ? (
-        <TopNotice tone="warning" icon={<Pencil />} title={t.editingTitle} label={t.editingTitle} onClose={() => setMode("view")} closeLabel={t.done}>
+        <TopNotice tone="warning" icon={<Pencil />} title={t.editingTitle} label={t.editingTitle} onClose={leaveEdit} closeLabel={m.common.cancel}>
           {t.editingBody}{" "}
           <TopNoticeLink onPress={() => { setPreviewFrom("edit"); setMode("preview"); }}>{t.preview}</TopNoticeLink>
-          {" · "}
-          <TopNoticeLink onPress={() => setMode("view")}>{t.done}</TopNoticeLink>
         </TopNotice>
       ) : null}
       {header}
       {editing ? (
         <div className={styles.grid}>
           <div className={styles.wide}>
-            <CoverEditorCard saved={profile.coverStyle} draft={coverDraft} onDraft={setCoverDraft} onRestart={() => setRestart((n) => n + 1)} />
+            <CoverEditorCard saved={profile.coverStyle} draft={coverDraft} onDraft={setCoverDraft} onRestart={() => setRestart((n) => n + 1)} register={register} />
           </div>
           <div className={styles.wide}>
-            {!isCoach || showcase.data ? <IdentityEditorCard key={`${profile.version}-${showcase.data?.version ?? 0}`} profile={profile} showcase={showcase.data} /> : null}
+            {!isCoach || showcase.data ? <IdentityEditorCard key={`${profile.version}-${showcase.data?.version ?? 0}`} profile={profile} showcase={showcase.data} register={register} /> : null}
           </div>
+          {isCoach ? (
+            <div className={styles.wide}>
+              <SpecializationsEditorCard register={register} />
+            </div>
+          ) : null}
         </div>
       ) : null}
       {isCoach ? (
@@ -356,13 +405,13 @@ function OwnProfile() {
       {isCoach && showcase.isError ? <ShowcaseFailed error={showcase.error} retry={() => void showcase.refetch()} /> : null}
       <div className={styles.grid}>
         <About person={person} />
-        {isCoach && <CoachSpecializationsCard selections={showcase.data?.specializationSelections} editable />}
-        {isCoach && !showcase.isError ? <ShowcaseAbout showcase={showcase.data} editable /> : <Completeness />}
+        {isCoach && <SpecializationsSection selections={showcase.data?.specializationSelections} own />}
+        {isCoach && !showcase.isError ? <ShowcaseAbout showcase={showcase.data} own /> : <Completeness />}
+        {isCoach && !showcase.isError ? <Completeness /> : null}
         <div className={styles.wide}>
           <OwnDetails />
         </div>
-        {isCoach ? <CoachOffers coachId={profile.id} /> : null}
-        {isCoach ? <Completeness /> : null}
+        {isCoach ? <div className={styles.wide}><CoachOffers coachId={profile.id} /></div> : null}
         <div className={styles.wide}>
           <ProfileAchievements facts={facts} own />
         </div>
@@ -492,8 +541,8 @@ function CoachSections({ coachId, about, facts }: { coachId: string; about: Reac
       {showcase.isError ? <ShowcaseFailed error={showcase.error} retry={() => void showcase.refetch()} /> : null}
       <div className={styles.grid}>
         <div className={competencies ? undefined : styles.wide}>{about}</div>
-        <div className={styles.wide}><CoachSpecializationsCard selections={showcase.data?.specializationSelections} /></div>
-        {competencies ? <ShowcaseAbout showcase={showcase.data} editable={false} /> : null}
+        {competencies ? <ShowcaseAbout showcase={showcase.data} /> : null}
+        {showcase.data?.specializationSelections?.length ? <div className={styles.wide}><SpecializationsSection selections={showcase.data.specializationSelections} /></div> : null}
         <div className={styles.wide}>
           <CoachOffers coachId={coachId} />
         </div>

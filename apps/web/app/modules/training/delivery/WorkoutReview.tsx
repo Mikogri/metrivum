@@ -30,16 +30,46 @@ export function WorkoutFeedbackForm({ execution, own }: { execution: { id: strin
   </section>;
 }
 
+/** Planned against actual: four headline numbers, then each exercise with its sets side by side. */
 export function WorkoutComparisonView({ data }: { data: Comparison }) {
   const pl = useAppLocale().locale === "pl";
-  return <section className={styles.card}><h2>{pl ? "Plan a wykonanie" : "Planned vs Actual"}</h2>
-    <p>{data.plannedExercises} → {data.performedExercises} {pl ? "ćwiczeń" : "exercises"} · {data.plannedSets} → {data.performedSets} {pl ? "serii/segmentów" : "sets/segments"}</p>
-    <p>{pl ? "Powtórzenia" : "Repetitions"}: {range(data.plannedReps)} → {format(data.actualReps)} · {pl ? "Objętość" : "Volume"} (kg·reps): {range(data.plannedVolumeKg)} → {format(data.actualVolumeKg)}</p>
-    {data.exercises.map((exercise, index) => <details className={styles.details} key={exercise.plannedInstanceId ?? `${exercise.actualExerciseId}:${index}`}><summary>{exercise.name} · {exercise.status} · {exercise.plannedSets} → {exercise.performedSets}</summary>
-      <div className={styles.scroll}><table className={styles.table}><thead><tr><th>{pl ? "Seria" : "Set"}</th><th>{pl ? "Status" : "Status"}</th><th>Reps ({pl ? "plan → wynik" : "plan → actual"})</th><th>kg</th><th>RPE</th><th>RIR</th><th>{pl ? "Odchylenia" : "Deviations"}</th></tr></thead><tbody>{exercise.sets.map((set, i) => <tr key={i} style={set.deviations.length || ["Missing", "Skipped"].includes(set.status) ? { background: "color-mix(in srgb, var(--color-warning, #e9ae4a) 8%, transparent)" } : undefined}><td>{i + 1}</td><td>{set.status}</td><td>{range(set.plannedReps)} → {format(set.actualReps)}</td><td>{range(set.plannedLoadKg)} → {format(set.actualLoadKg)}</td><td>{format(set.plannedRpe)} → {format(set.actualRpe)}</td><td>{format(set.plannedRir)} → {format(set.actualRir)}</td><td>{set.deviations.join(" · ").replaceAll("_", " ") || "—"}</td></tr>)}</tbody></table></div>
-    </details>)}
-    <p className={styles.muted}>{pl ? "Porównanie z wersją planu zapisaną przy rozpoczęciu. Puste dane pozostają nieznane. Objętość obejmuje tylko jawnie podany całkowity ciężar zewnętrzny." : data.definition}</p>
-  </section>;
+  const t = pl
+    ? { exercises: "Ćwiczenia", sets: "Serie", reps: "Powtórzenia", volume: "Objętość", plan: "plan", set: "Seria", status: "Status", deviation: "Odchylenia", note: "Porównanie z wersją planu zapisaną przy rozpoczęciu. Puste dane pozostają nieznane. Objętość obejmuje tylko jawnie podany całkowity ciężar zewnętrzny." }
+    : { exercises: "Exercises", sets: "Sets", reps: "Reps", volume: "Volume", plan: "plan", set: "Set", status: "Status", deviation: "Notes", note: data.definition };
+  const share = (done: number, planned: number) => planned ? Math.min(1, done / planned) : 0;
+  const tiles = [
+    { label: t.exercises, plan: format(data.plannedExercises), actual: format(data.performedExercises), progress: share(Number(data.performedExercises), Number(data.plannedExercises)) },
+    { label: t.sets, plan: format(data.plannedSets), actual: format(data.performedSets), progress: share(Number(data.performedSets), Number(data.plannedSets)) },
+    { label: t.reps, plan: range(data.plannedReps), actual: format(data.actualReps), progress: null },
+    { label: `${t.volume} (kg)`, plan: range(data.plannedVolumeKg), actual: format(data.actualVolumeKg), progress: null },
+  ];
+  const tone = (status: string) => /missing|skipped|not/i.test(status) ? "missing" : /partial|substitut|extra/i.test(status) ? "partial" : "done";
+  return <div className={styles.cmp}>
+    <dl className={styles.cmpTiles}>{tiles.map(tile => <div key={tile.label}>
+      <dt>{tile.label}</dt>
+      <dd><strong>{tile.actual}</strong><span>{t.plan} {tile.plan}</span></dd>
+      {tile.progress != null ? <span className={styles.cmpBar}><span style={{ transform: `scaleX(${tile.progress})` }} /></span> : null}
+    </div>)}</dl>
+    <ol className={styles.cmpList}>{data.exercises.map((exercise, index) => <li key={exercise.plannedInstanceId ?? `${exercise.actualExerciseId}:${index}`} className={styles.cmpExercise}>
+      <header>
+        <strong>{exercise.name}</strong>
+        <span className={styles.cmpStatus} data-tone={tone(exercise.status)}>{exercise.status.replaceAll("_", " ")}</span>
+        <span className={styles.cmpCount}>{format(exercise.performedSets)}<small>/{format(exercise.plannedSets)} {t.sets.toLowerCase()}</small></span>
+      </header>
+      <table className={styles.cmpTable}>
+        <thead><tr><th>{t.set}</th><th>Reps</th><th>kg</th><th>RPE</th><th>RIR</th><th>{t.deviation}</th></tr></thead>
+        <tbody>{exercise.sets.map((set, i) => <tr key={i} data-tone={tone(set.status)}>
+          <td><span className={styles.cmpNo}>{i + 1}</span></td>
+          <td><b>{format(set.actualReps)}</b>{range(set.plannedReps) !== "—" ? <small>{range(set.plannedReps)}</small> : null}</td>
+          <td><b>{format(set.actualLoadKg)}</b>{range(set.plannedLoadKg) !== "—" ? <small>{range(set.plannedLoadKg)}</small> : null}</td>
+          <td><b>{format(set.actualRpe)}</b>{format(set.plannedRpe) !== "—" ? <small>{format(set.plannedRpe)}</small> : null}</td>
+          <td><b>{format(set.actualRir)}</b>{format(set.plannedRir) !== "—" ? <small>{format(set.plannedRir)}</small> : null}</td>
+          <td className={styles.cmpNotes}>{set.deviations.length ? set.deviations.map(d => <span key={d}>{d.replaceAll("_", " ").toLowerCase()}</span>) : ["Missing", "Skipped"].includes(set.status) ? <span>{set.status.toLowerCase()}</span> : <i>—</i>}</td>
+        </tr>)}</tbody>
+      </table>
+    </li>)}</ol>
+    <p className={styles.cmpNote}>{t.note}</p>
+  </div>;
 }
 
 export function WorkoutComparisonPanel({ executionId }: { executionId: string }) {

@@ -599,6 +599,7 @@ export const appPl: AppMessages = {
     nearLabel: (n: number) => `Wykorzystanie — prawie wykorzystane limity: ${n}`,
   },
   profile: {
+    specializationsEmptyOwn: "Nic jeszcze nie wybrano. Dodaj je w edycji profilu.",
     title: "Profil",
     mine: "Mój profil",
     edit: "Edytuj profil",
@@ -635,7 +636,7 @@ export const appPl: AppMessages = {
     from: "od",
     editor: {
       editingTitle: "Edytujesz profil",
-      editingBody: "Każda sekcja zapisuje się osobno; okładka pokazuje zmiany na żywo.",
+      editingBody: "Zmień dowolne sekcje i zapisz wszystko naraz.",
       preview: "Podgląd",
       previewing: "Podgląd: tak widzą Twój profil inne osoby.",
       previewTitle: "Podgląd profilu",
@@ -660,6 +661,7 @@ export const appPl: AppMessages = {
       identityTitle: "O Tobie",
       identityHint: "Imię i opis widoczne dla każdego, kto otworzy Twój profil.",
       displayName: "Imię i nazwisko",
+      displayNameHint: "Tak widzą Cię klienci i trenerzy.",
       bio: "Opis",
       bioPlaceholder: "Kilka zdań o sobie",
       bioHint: (n: number) => `${n} z 500`,
@@ -712,6 +714,7 @@ export const appPl: AppMessages = {
       headlinePlaceholder: "np. Trener siłowy dla zabieganych biegaczy",
       headlineHint: "Jedna linijka pod Twoim imieniem.",
       yearsLabel: "Lata doświadczenia trenerskiego",
+      yearsHint: "Pełne lata; widoczne w profilu.",
       competencyPlaceholder: "np. Trójbój siłowy",
       competencyHint: (n: number) => `Enter dodaje. ${n} z 20.`,
       addCompetency: "Dodaj",

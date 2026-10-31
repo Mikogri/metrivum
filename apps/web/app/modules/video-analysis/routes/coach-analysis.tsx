@@ -27,7 +27,7 @@ export default function CoachAnalysis() {
   const result = useQuery({ queryKey: [account, 'video', 'from-coach', analysisId, 'result'] as const, queryFn: ({ signal }) => getFromCoachResult(api, analysisId, signal), enabled: shared.isSuccess });
 
   if (shared.isError) {
-    const gone = shared.error instanceof ApiError && shared.error.status === 404;
+    const gone = shared.error instanceof ApiError && (shared.error.status === 404 || shared.error.status === 403);
     return gone
       ? <EmptyState icon={<Video />} title="This analysis is not shared with you" description="Your coach may have stopped sharing it, or the coaching relationship ended." />
       : <ErrorState title={errorText(m, shared.error)} actions={<Button onPress={() => void shared.refetch()}>{m.common.retry}</Button>} />;

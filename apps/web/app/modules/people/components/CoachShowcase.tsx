@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Award, Crown, Store, FileText, ImagePlus, Pencil, Plus, Sparkles, Trash2, TrendingUp, UsersRound, X } from "lucide-react";
+import { Award, Crown, Store, FileText, ImagePlus, Plus, Sparkles, Trash2, TrendingUp, UsersRound } from "lucide-react";
 import { Link as RouterLink } from "react-router";
-import { useState, type KeyboardEvent } from "react";
+import { useState } from "react";
 import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Badge, Button, Card, Checkbox, Dialog, DialogFooter, IconButton, NumberInput, Option, Select, Skeleton, TextArea, TextField } from "@trainflow/ui-web";
+import { Alert, Badge, Button, Card, Checkbox, Dialog, DialogFooter, IconButton, Option, Select, Skeleton, TextArea, TextField } from "@trainflow/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
@@ -71,112 +71,24 @@ export function ShowcaseStats({ showcase, offers, failed = false }: { showcase: 
   return <StatsStrip items={items} label={t.statsLabel} failed={failed} />;
 }
 
-/** Headline and competencies; the coach edits them in a dialog. */
-export function ShowcaseAbout({ showcase, editable }: { showcase: Showcase | undefined; editable: boolean }) {
+/** The coach's competencies. The owner edits them in the profile's edit mode. */
+export function ShowcaseAbout({ showcase, own = false }: { showcase: Showcase | undefined; own?: boolean }) {
   const t = useT().profile.showcase;
-  const [editing, setEditing] = useState(false);
   if (!showcase) return <Skeleton height="6rem" />;
-  // The headline shows under the name in the header; this card lists the competencies.
-  const empty = !showcase.headline && !showcase.competencies.length;
-  if (!showcase.competencies.length && !editable) return null;
+  if (!showcase.competencies.length && !own) return null;
   return (
     <Card as="section" padding="md" aria-labelledby="showcase-about" className={styles.card}>
-      <SectionTitle
-        id="showcase-about"
-        icon={<Sparkles />}
-        tone="blue"
-        title={t.competencies}
-        sub={editable ? t.competenciesSubOwn : t.competenciesSub}
-        actions={
-          editable ? (
-            <Button size="sm" iconStart={<Pencil />} onPress={() => setEditing(true)}>
-              {empty ? t.add : t.edit}
-            </Button>
-          ) : undefined
-        }
-      />
+      <SectionTitle id="showcase-about" icon={<Sparkles />} tone="blue" title={t.competencies} sub={own ? t.competenciesSubOwn : t.competenciesSub} />
       {showcase.competencies.length ? (
         <ul className={styles.tags}>
           {showcase.competencies.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
-      ) : null}
-      {empty ? <p className={styles.muted}>{t.emptyOwn}</p> : null}
-      {editing ? <EditDialog showcase={showcase} close={() => setEditing(false)} /> : null}
+      ) : (
+        <p className={styles.muted}>{t.emptyOwn}</p>
+      )}
     </Card>
-  );
-}
-
-function EditDialog({ showcase, close }: { showcase: Showcase; close: () => void }) {
-  const m = useT();
-  const t = m.profile.showcase;
-  const api = useApi();
-  const account = useAccountKey();
-  const cache = useQueryClient();
-  const [headline, setHeadline] = useState(showcase.headline ?? "");
-  const [years, setYears] = useState<number>(showcase.yearsExperience != null ? Number(showcase.yearsExperience) : NaN);
-  const [tags, setTags] = useState<string[]>([...showcase.competencies]);
-  const [draft, setDraft] = useState("");
-  const add = () => {
-    const value = draft.trim().slice(0, 40);
-    if (value && tags.length < 20 && !tags.some((tag) => tag.toLowerCase() === value.toLowerCase())) setTags([...tags, value]);
-    setDraft("");
-  };
-  const onKey = (event: KeyboardEvent) => {
-    if (event.key === "Enter" || event.key === ",") {
-      event.preventDefault();
-      add();
-    }
-  };
-  const save = useMutation({
-    mutationFn: async () =>
-      (await api<Showcase>({ method: "PUT", path: "/api/v1/me/coach-showcase", json: { headline: headline.trim() || null, yearsExperience: Number.isNaN(years) ? null : years, competencies: tags, version: showcase.version } })).data,
-    onSuccess: (saved) => {
-      cache.setQueryData(showcaseKey(account, String(saved.coachId)), saved);
-      close();
-    },
-  });
-  return (
-    <Dialog isOpen title={t.editTitle} onOpenChange={(open) => !open && !save.isPending && close()}>
-      <form
-        className={styles.form}
-        onSubmit={(event) => {
-          event.preventDefault();
-          save.mutate();
-        }}
-      >
-        <TextField label={t.headline} placeholder={t.headlinePlaceholder} description={t.headlineHint} value={headline} onChange={setHeadline} maxLength={160} autoFocus />
-        <NumberInput label={t.yearsLabel} placeholder="5" value={years} onChange={setYears} minValue={0} maxValue={80} formatOptions={{ maximumFractionDigits: 0 }} />
-        <div className={styles.tagEditor}>
-          <TextField label={t.competencies} placeholder={t.competencyPlaceholder} description={t.competencyHint(tags.length)} value={draft} onChange={setDraft} onKeyDown={onKey} maxLength={40} />
-          <Button size="sm" onPress={add} isDisabled={!draft.trim() || tags.length >= 20}>
-            {t.addCompetency}
-          </Button>
-        </div>
-        {tags.length ? (
-          <ul className={styles.tags}>
-            {tags.map((tag) => (
-              <li key={tag} className={styles.removable}>
-                {tag}
-                <button type="button" aria-label={t.removeCompetency(tag)} onClick={() => setTags(tags.filter((item) => item !== tag))}>
-                  <X aria-hidden="true" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        {save.error ? <Alert tone="danger" title={errorText(m, save.error)} /> : null}
-        <DialogFooter>
-          <Button onPress={close} isDisabled={save.isPending}>
-            {m.common.cancel}
-          </Button>
-          <Button type="submit" variant="primary" loading={save.isPending}>
-            {m.common.saveChanges}
-          </Button>
-        </DialogFooter>
-      </form>
-    </Dialog>
   );
 }
 

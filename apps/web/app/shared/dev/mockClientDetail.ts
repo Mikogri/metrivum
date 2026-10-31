@@ -87,6 +87,74 @@ export function mockClientDetail(path: string, method: string, q: URLSearchParam
   }
   if (path === "/api/v1/check-ins/requests") return ok(page(checkIns.filter((c) => !q.get("status") || c.status === q.get("status")), q));
   let m: RegExpMatchArray | null;
+  // Planned against actual for one logged workout.
+  if (/^\/api\/v1\/training\/executions\/[^/]+\/comparison$/.test(path)) {
+    const r = (minimum: number, maximum = minimum) => ({ minimum, maximum });
+    const set = (status: string, plannedReps: [number, number] | null, actualReps: number | null, plannedLoadKg: number | null, actualLoadKg: number | null, plannedRpe: number | null, actualRpe: number | null, deviations: string[] = []) =>
+      ({ status, plannedReps: plannedReps && r(...plannedReps), actualReps, plannedLoadKg: plannedLoadKg == null ? null : r(plannedLoadKg), actualLoadKg, plannedRpe, actualRpe, plannedRir: null, actualRir: null, deviations });
+    return ok({
+      executionId: "ex-0", name: "Lower body", performedDate: date(4), plannedExercises: 4, performedExercises: 4, plannedSets: 12, performedSets: 11,
+      plannedReps: r(84, 96), actualReps: 90, plannedVolumeKg: r(4200, 4600), actualVolumeKg: 4530, definition: "Compared with the plan version saved when the workout started. Blank values stay unknown.",
+      feedback: null,
+      exercises: [
+        { plannedInstanceId: "i1", actualExerciseId: "x1", name: "Back squat", status: "Completed", plannedSets: 4, performedSets: 4, sets: [set("Completed", [8, 8], 8, 60, 60, null, 6), set("Completed", [5, 5], 5, 110, 110, 8, 8), set("Completed", [5, 5], 5, 110, 110, 8, 8), set("Completed", [5, 5], 4, 110, 110, 8.5, 9.5, ["REPS_BELOW", "RPE_ABOVE"])] },
+        { plannedInstanceId: "i2", actualExerciseId: "x2", name: "Romanian deadlift", status: "Completed", plannedSets: 3, performedSets: 3, sets: [set("Completed", [8, 10], 10, 80, 80, null, 8), set("Completed", [8, 10], 10, 80, 80, null, 8), set("Completed", [8, 10], 10, 85, 85, null, 9)] },
+        { plannedInstanceId: "i3", actualExerciseId: "x3", name: "Walking lunge", status: "Partial", plannedSets: 3, performedSets: 2, sets: [set("Completed", [10, 12], 12, null, null, null, 8), set("Completed", [10, 12], 12, null, null, null, 8), set("Skipped", [12, 15], null, null, null, null, null)] },
+      ],
+    });
+  }
+  // One workout: the planned exercises and sets, a coach note, and the log once it is done.
+  if ((m = path.match(/^\/api\/v1\/training\/workouts\/([^/]+)$/))) {
+    const occurrence = occurrences.find((o) => o.id === m![1]) ?? { ...occurrences[7]!, id: m[1]!, allowedActions: ["start", "skip"] };
+    const live = occurrence.status === "Scheduled" ? { ...occurrence, allowedActions: ["start", "skip"] } : occurrence;
+    const reps = (minimum: number, maximum: number) => ({ minimum, maximum });
+    const kg = (minimum: number, maximum = minimum) => ({ minimum: { value: minimum, unit: "kg" }, maximum: { value: maximum, unit: "kg" } });
+    const rest = (value: number) => ({ value, unit: "s" });
+    type Amount = { value: number; unit: string };
+    type Target = { reps?: { minimum: number; maximum: number }; load?: { minimum: Amount; maximum: Amount }; rest?: Amount; rpe?: number; rir?: number; tempo?: string; workTime?: Amount };
+    const plan: { id: string; exerciseId: string; comment: string; sets: { id: string; kind: string; prescription: Target }[] }[] = [
+      { id: "i1", exerciseId: "x1", comment: "Brace hard, sit between the hips.", sets: [
+        { id: "s1", kind: "Warmup", prescription: { reps: reps(8, 8), load: kg(60), rest: rest(60) } },
+        { id: "s2", kind: "Standard", prescription: { reps: reps(5, 5), load: kg(110), rpe: 8, rest: rest(180), tempo: "30X1" } },
+        { id: "s3", kind: "Standard", prescription: { reps: reps(5, 5), load: kg(110), rpe: 8, rest: rest(180), tempo: "30X1" } },
+        { id: "s4", kind: "Standard", prescription: { reps: reps(5, 5), load: kg(110), rpe: 8.5, rest: rest(180), tempo: "30X1" } },
+      ] },
+      { id: "i2", exerciseId: "x2", comment: "", sets: [
+        { id: "s5", kind: "Standard", prescription: { reps: reps(8, 10), load: kg(80, 85), rir: 2, rest: rest(120) } },
+        { id: "s6", kind: "Standard", prescription: { reps: reps(8, 10), load: kg(80, 85), rir: 2, rest: rest(120) } },
+        { id: "s7", kind: "Standard", prescription: { reps: reps(8, 10), load: kg(80, 85), rir: 1, rest: rest(120) } },
+      ] },
+      { id: "i3", exerciseId: "x3", comment: "Slow on the way down.", sets: [
+        { id: "s8", kind: "Standard", prescription: { reps: reps(10, 12), rest: rest(90) } },
+        { id: "s9", kind: "Standard", prescription: { reps: reps(10, 12), rest: rest(90) } },
+        { id: "s10", kind: "Dropset", prescription: { reps: reps(12, 15), rest: rest(90) } },
+      ] },
+      { id: "i4", exerciseId: "x4", comment: "", sets: [
+        { id: "s11", kind: "Standard", prescription: { workTime: { value: 45, unit: "s" }, rest: rest(30) } },
+        { id: "s12", kind: "Standard", prescription: { workTime: { value: 45, unit: "s" }, rest: rest(30) } },
+      ] },
+    ];
+    const names: Record<string, string> = { x1: "Back squat", x2: "Romanian deadlift", x3: "Walking lunge", x4: "Plank" };
+    const exercises = Object.fromEntries(Object.entries(names).map(([id, name]) => [id, { id, name, version: 1 }]));
+    const done = live.status === "Completed";
+    const execution = done ? {
+      id: live.executionId, version: 3, status: "Completed", performedDate: live.performedDate, startedAt: iso(2, 7), completedAt: iso(2, 8), comment: "Felt strong, last squat set was a grind.",
+      durationSeconds: live.durationSeconds, allowedActions: ["correct"], feedback: { rating: 4, sessionRpe: 8, wellbeing: 4, sleepQuality: 3, note: "Good session" },
+      exercises: plan.map((e) => ({ prescribedInstanceId: e.id, exerciseId: e.exerciseId, name: names[e.exerciseId], comment: "", sets: e.sets.map((s, k) => ({
+        id: `a-${s.id}`, prescribedSetId: s.id, prescribedSegmentId: null, skipped: false, reps: s.prescription.reps?.maximum ?? null, load: s.prescription.load?.minimum.value ?? null,
+        loadUnit: "kg", loadMeaning: "TotalExternal", rpe: k === e.sets.length - 1 ? 9 : 8, rir: null, durationSeconds: s.prescription.workTime?.value ?? null, distanceMeters: null, restSeconds: null, tempo: null, comment: "",
+      })) })),
+    } : live.status === "Skipped" ? { id: live.executionId ?? "skip", version: 1, status: "Skipped", performedDate: live.scheduledDate, startedAt: iso(3), completedAt: null, comment: "Travelling for work", durationSeconds: null, allowedActions: [], exercises: [] } : null;
+    return ok({
+      occurrence: live,
+      prescription: {
+        annotations: [{ id: "n1", kind: "Coach note", title: "Heavy day", content: "Keep the squat at RPE 8. If the bar slows down on the third set, stop there.", visibility: "Client" }],
+        workout: { id: "w1", name: live.name, description: "Strength focus. Warm up for 10 minutes before the first set.", exercises: plan, groups: [] },
+        exercises, formulas: {},
+      },
+      execution,
+    });
+  }
   // One check-in with its form and, once submitted, the answers.
   if ((m = path.match(/^\/api\/v1\/check-ins\/(?:relationships\/([^/]+)\/)?requests\/([^/]+)$/))) {
     const found = checkIns.find((c) => c.id === m![2]) ?? checkIns[0]!;
