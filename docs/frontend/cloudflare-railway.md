@@ -22,7 +22,9 @@ Configure service variables, never Git files:
 | `Supabase__Auth__Audience` | `authenticated` |
 | `Storage__Url`, `Storage__Bucket`, `Storage__SecretKey` | Intended private bucket and server-only credential (`sb_secret_` preferred; legacy `service_role` JWT also supported) |
 
-Use a Linux certificate path with the verified provider CA if system trust does not validate it.
+The runtime image includes the public Supabase Root 2021 CA at `/app/certs/supabase-prod-ca.crt` (read-only, readable by `APP_UID`) and sets `PGSSLROOTCERT` for Npgsql. Keep `SSL Mode=VerifyFull`; the CA validates the production Session Pooler at `aws-1-eu-central-1.pooler.supabase.com:5432`. An explicit `Root Certificate` connection-string parameter overrides this environment default and must not contain a Windows path. Review the CA before its expiry on 2031-04-26.
+
+Npgsql 10 may report missing `libgssapi_krb5.so.2` while probing optional GSSAPI credentials. It handles that failure and falls back to TLS; no Kerberos package is required. See [Npgsql security](https://www.npgsql.org/doc/security.html) and [connection parameters](https://www.npgsql.org/doc/connection-string-parameters.html).
 Do not set `Trust Server Certificate`, weaken TLS, or place migration/admin database credentials in runtime variables.
 Set any module-specific provider secrets separately after reviewing the existing local configuration keys.
 Keep MCP disabled until its public URLs and OAuth consent have been configured.

@@ -9,6 +9,9 @@ RUN dotnet publish apps/api/Metrivum.Api -c Release --no-restore -o /out /p:UseA
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /out ./
+# Public CA only; readable by APP_UID without changing the system trust store.
+COPY --chmod=0444 infra/certs/supabase-prod-ca.crt /app/certs/supabase-prod-ca.crt
+ENV PGSSLROOTCERT=/app/certs/supabase-prod-ca.crt
 ENV ASPNETCORE_ENVIRONMENT=Production
 USER $APP_UID
 # Railway supplies PORT; the shell expands it before replacing itself with dotnet.
