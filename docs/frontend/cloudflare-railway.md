@@ -20,7 +20,7 @@ Configure service variables, never Git files:
 | `ConnectionStrings__Database` | Restricted API role, session pooler, `SSL Mode=VerifyFull`; no Windows certificate path |
 | `Supabase__Auth__ProjectUrl` | Intended production Supabase project URL |
 | `Supabase__Auth__Audience` | `authenticated` |
-| `Storage__Url`, `Storage__Bucket`, `Storage__SecretKey` | Intended private bucket and server-only credential |
+| `Storage__Url`, `Storage__Bucket`, `Storage__SecretKey` | Intended private bucket and server-only credential (`sb_secret_` preferred; legacy `service_role` JWT also supported) |
 
 Use a Linux certificate path with the verified provider CA if system trust does not validate it.
 Do not set `Trust Server Certificate`, weaken TLS, or place migration/admin database credentials in runtime variables.
@@ -75,3 +75,5 @@ Do not silently publish it as a production database. Apply reviewed migrations/g
 Complete remaining dependency/security gates in `docs/security/hardening-2026-11-01.md`, verify database
 plus Storage restore, and disable/publicly label simulated billing before accepting real customers.
 Provider account access and final DNS values are needed to perform deployment and end-to-end verification.
+
+Storage REST requests send opaque secret keys only through the `apikey` header; legacy JWT keys also use `Authorization: Bearer`. Keep `Storage__SecretKey` server-only. See [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys).

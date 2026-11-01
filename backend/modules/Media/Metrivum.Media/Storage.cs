@@ -49,7 +49,9 @@ public sealed class SupabaseObjectStorage(HttpClient client, IOptions<StorageOpt
         if ((!url.IsLoopback && (!options.AllowRemoteStorage || url.Scheme != "https")) || !string.IsNullOrEmpty(url.UserInfo) || !string.IsNullOrEmpty(url.Query))
             throw new ApiException(503, "STORAGE_CONFIGURATION_INVALID", "Remote storage requires explicit opt-in and HTTPS.");
         var request = new HttpRequestMessage(method, options.Url.TrimEnd('/') + "/storage/v1/" + path);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", options.SecretKey);
+        // Opaque secret keys authenticate at the gateway; only legacy keys are JWTs.
+        if (!options.SecretKey.StartsWith("sb_secret_", StringComparison.Ordinal))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", options.SecretKey);
         request.Headers.Add("apikey", options.SecretKey);
         return request;
     }

@@ -89,6 +89,69 @@ public class MediaStorageTests
         Assert.DoesNotContain("sensitive", error.Message);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AllOperationsUseKeySpecificAuthentication(bool opaqueKey)
+    {
+        // Deliberately invalid credentials: no real key or signed JWT belongs in tests.
+        var key = opaqueKey ? "sb_secret_fake" : "test-header.test-payload.test-signature";
+        var handler = new StubHandler(request =>
+        {
+            Assert.Equal(key, Assert.Single(request.Headers.GetValues("apikey")));
+            if (opaqueKey)
+                Assert.Null(request.Headers.Authorization);
+            else
+            {
+                Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
+                Assert.Equal(key, request.Headers.Authorization?.Parameter);
+            }
+            var path = request.RequestUri!.AbsolutePath;
+            if (path.StartsWith("/storage/v1/bucket/"))
+                return Json("{\"public\":false,\"file_size_limit\":52428800}");
+            if (path.Contains("/upload/sign/"))
+            {
+                Assert.Equal(HttpMethod.Post, request.Method);
+                Assert.Equal("false", Assert.Single(request.Headers.GetValues("x-upsert")));
+                return Json("{\"url\":\"/object/upload/sign/test-private/video.mp4?token=test\"}");
+            }
+            if (path.Contains("/object/sign/"))
+            {
+                Assert.Equal(HttpMethod.Post, request.Method);
+                return Json("{\"signedURL\":\"/object/sign/test-private/video.mp4?token=test\"}");
+            }
+            if (request.Method == HttpMethod.Delete)
+                return Json("[]");
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal("/storage/v1/object/authenticated/test-private/video.mp4", path);
+            var content = new ByteArrayContent([1, 2, 3]);
+            content.Headers.ContentType = new MediaTypeHeaderValue("video/mp4");
+            if (request.Headers.Range is not null)
+            {
+                Assert.Equal("bytes=0-4095", request.Headers.Range.ToString());
+                content.Headers.ContentRange = new ContentRangeHeaderValue(0, 2, 3);
+            }
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
+        });
+        var storage = new SupabaseObjectStorage(new HttpClient(handler), Options.Create(new StorageOptions
+        {
+            Url = "https://storage.example.invalid",
+            AllowRemoteStorage = true,
+            Bucket = "test-private",
+            SecretKey = key
+        }));
+        Assert.Contains("/object/upload/sign/", await storage.CreateUploadUrlAsync("test-private", "video.mp4", default));
+        Assert.Contains("/object/sign/", await storage.CreateReadUrlAsync("test-private", "video.mp4", default));
+        var inspected = await storage.InspectAsync("test-private", "video.mp4", default);
+        Assert.Equal(3, inspected.Size);
+        Assert.Equal(new byte[] { 1, 2, 3 }, inspected.Prefix);
+        await using var stream = await storage.OpenReadAsync("test-private", "video.mp4", default);
+        using var bytes = new MemoryStream();
+        await stream.CopyToAsync(bytes);
+        Assert.Equal(new byte[] { 1, 2, 3 }, bytes.ToArray());
+        await storage.DeleteAsync("test-private", "video.mp4", default);
+        Assert.Equal(10, handler.Calls); // Each operation first verifies bucket privacy.
+    }
     private static SupabaseObjectStorage Adapter(HttpMessageHandler handler) => new(new HttpClient(handler), Options.Create(new StorageOptions
     {
         Url = "http://127.0.0.1:54321",
