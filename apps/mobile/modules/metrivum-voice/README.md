@@ -18,7 +18,7 @@ Verification commands, from repository root:
 & 'C:/Program Files/nodejs/node.exe' node_modules/typescript/bin/tsc -p apps/mobile/tsconfig.json --noEmit
 ```
 
-Observed: header tests pass, module appears as `expo.modules.trainflowvoice.TrainflowVoiceModule`, and TypeScript passes. The Java check uses the production header writer directly without Android or a test framework. It verifies signatures, lengths, sample format/rate, maximum duration and invalid byte counts.
+Observed: header tests pass, module appears as `expo.modules.metrivumvoice.MetrivumVoiceModule`, and TypeScript passes. The Java check uses the production header writer directly without Android or a test framework. It verifies signatures, lengths, sample format/rate, maximum duration and invalid byte counts.
 
 Native Kotlin and Java compilation passed on 2026-10-10 (`:metrivum-voice:compileDebugKotlin`, `compileDebugJavaWithJavac`, and `bundleLibCompileToJarDebug`; full log `.local/mobile/gradle-retry.log`). Real microphone encoding, stop/unmount/background races, permission denial/revocation, rapid account changes, device storage failures, preview and authenticated upload still require an Android device run. Do not interpret compilation or the header test as a successful microphone recording.
 

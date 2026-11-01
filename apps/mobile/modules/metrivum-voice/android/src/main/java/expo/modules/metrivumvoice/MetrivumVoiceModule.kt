@@ -1,4 +1,4 @@
-package expo.modules.trainflowvoice
+package expo.modules.metrivumvoice
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -15,7 +15,7 @@ import java.util.UUID
 import kotlin.math.abs
 import kotlin.math.min
 
-class TrainflowVoiceModule : Module() {
+class MetrivumVoiceModule : Module() {
   private class Recording(val id: String, val record: AudioRecord, val partial: File, val output: File) {
     @Volatile var running = true
     @Volatile var discard = false

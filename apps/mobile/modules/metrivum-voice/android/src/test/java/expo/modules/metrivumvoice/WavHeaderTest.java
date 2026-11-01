@@ -1,4 +1,4 @@
-package expo.modules.trainflowvoice;
+package expo.modules.metrivumvoice;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
