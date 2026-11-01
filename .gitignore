@@ -31,7 +31,16 @@ apps/mobile/ios/
 apps/mobile/modules/*/android/build/
 apps/mobile/modules/*/android/.cxx/
 
-# Machine-local indexing and editor state; source instructions remain versioned.
+# Machine-local agent instructions, indexing and editor state.
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+SKILL.md
+SKILLS.md
+.cursorrules
+.cursor/
+.github/copilot-instructions.md
+.github/instructions/
 graphify-out/
 .serena/
 .claude/
