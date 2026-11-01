@@ -1,14 +1,14 @@
 import { effectiveBlock } from "../model/maxes";
 import { ArrowRightLeft, Copy, CopyPlus, GripVertical, ListOrdered, MessageSquare, Moon, MoreVertical, Plus, Target, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { AlertDialog, Button, ContextMenu, IconButton, Option, Select, type ContextMenuEntry } from "@trainflow/ui-web";
+import { AlertDialog, Button, ContextMenu, IconButton, Option, Select, type ContextMenuEntry } from "@metrivum/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { addWorkout, duplicateNode, newWorkout, removeNode, updateNode } from "../model/document";
 import { WEEK_DAYS, copyDay, ensureWeekday, ensureWeekdayWorkout, swapDays } from "../model/structure";
 import { copyWorkoutToDay, cycleWorkouts, moveWorkoutToDay, reorderWorkout, setDayNote } from "../model/workouts";
-import type { TrainingDocument } from "@trainflow/api-client-web";
+import type { TrainingDocument } from "@metrivum/api-client-web";
 import { BlockFormulaScope } from "../block-maxes";
 import { SimpleWorkoutTable } from "./SimpleWorkoutTable";
 import { VolumeContent } from "./VolumePanel";

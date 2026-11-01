@@ -11,7 +11,7 @@ export function askForNotifications() {
 export function notifyInBackground(title: string, body: string, onClick?: () => void) {
   try {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted' || !document.hidden) return;
-    const notification = new Notification(title, { body, icon: '/brand/trainflow-mark.png', tag: `trainflow-analysis:${title}` });
+    const notification = new Notification(title, { body, icon: '/brand/metrivum-mark.png', tag: `trainflow-analysis:${title}` });
     notification.onclick = () => { window.focus(); onClick?.(); notification.close(); };
   } catch { /* the browser may refuse; the toast still shows */ }
 }

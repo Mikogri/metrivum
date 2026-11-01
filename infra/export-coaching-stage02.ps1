@@ -74,7 +74,7 @@ END $$;
         $module = $entry[0]
         $part = Join-Path $parts "$module.sql"
         dotnet ef migrations script $entry[1] $entry[2] --no-transactions --no-build --configuration $Configuration `
-            --project "backend/modules/$module/TrainFlow.$module" --startup-project apps/api/TrainFlow.Api `
+            --project "backend/modules/$module/Metrivum.$module" --startup-project apps/api/Metrivum.Api `
             --context "$($module)DbContext" --output $part
         if ($LASTEXITCODE -ne 0) { throw "SQL generation failed: $module" }
         $body = [IO.File]::ReadAllText($part)

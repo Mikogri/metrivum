@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import type { ReactNode } from "react";
-import type * as Ui from "@trainflow/ui-web";
+import type * as Ui from "@metrivum/ui-web";
 import { beforeEach, expect, it, vi } from "vitest";
 import type { ApiRequest } from "~/shared/http/transport";
 import { ApiError } from "~/shared/http/errors";
@@ -13,7 +13,7 @@ import Onboarding from "./onboarding";
 const mocks = vi.hoisted(() => ({ api: vi.fn<(request: ApiRequest) => Promise<unknown>>() }));
 vi.mock("~/shared/session/AccountScope", () => ({ useApi: () => mocks.api, useAccountKey: () => "account", useAccountContext: () => ({ lifecycle: { isCurrent: () => true } }) }));
 // The segmented date field does not take typed keys in jsdom; a plain date input stands in for it.
-vi.mock("@trainflow/ui-web", async (original) => ({
+vi.mock("@metrivum/ui-web", async (original) => ({
   ...(await original<typeof Ui>()),
   DateField: ({ label, onChange }: { label: string; onChange: (value: CalendarDate) => void }) => <input aria-label={label} onChange={(event) => onChange(parseDate(event.target.value))} />,
 }));

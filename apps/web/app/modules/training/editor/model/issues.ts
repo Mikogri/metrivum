@@ -1,4 +1,4 @@
-import type { Prescription, TrainingDocument, TrainingSet } from "@trainflow/api-client-web";
+import type { Prescription, TrainingDocument, TrainingSet } from "@metrivum/api-client-web";
 
 /**
  * Client-side mirror of the server's training-document rules (TrainingDocument.Validate), so the

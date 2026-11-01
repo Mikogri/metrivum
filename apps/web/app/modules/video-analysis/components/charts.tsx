@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Info } from "lucide-react";
-import { IconButton, Tooltip as InfoTooltip, TooltipTrigger } from "@trainflow/ui-web";
+import { IconButton, Tooltip as InfoTooltip, TooltipTrigger } from "@metrivum/ui-web";
 import { createPortal } from "react-dom";
 import type uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
-import type { AnalysisRepetition, TrajectoryPoint } from "@trainflow/api-client-web";
+import type { AnalysisRepetition, TrajectoryPoint } from "@metrivum/api-client-web";
 import { formatNumber } from "~/shared/i18n/format";
 import type { Locale } from "~/shared/i18n/locale";
 import styles from "./charts.module.css";

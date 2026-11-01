@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { checkLocalAnalyzer } from './local-analysis';
 const signal = () => new AbortController().signal;
-const discovery = () => new Response(JSON.stringify({ application: 'TrainFlow.LocalAnalyzer', protocolVersion: 1, version: '1.3.0', features: ['jobs', 'preprocess'] }));
+const discovery = () => new Response(JSON.stringify({ application: 'Metrivum.LocalAnalyzer', protocolVersion: 1, version: '1.3.0', features: ['jobs', 'preprocess'] }));
 it('distinguishes running but unpaired from unreachable', async () => {
   const fetcher = vi.fn().mockResolvedValue(discovery());
   await expect(checkLocalAnalyzer('', signal(), fetcher)).resolves.toBe('pairing_required');
@@ -24,11 +24,11 @@ it('requires pairing again after an analyzer restart invalidates the token', asy
   await expect(checkLocalAnalyzer('old-token', signal(), fetcher)).resolves.toBe('pairing_required');
 });
 it('asks for an update when the analyzer has no background queue', async () => {
-  const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ application: 'TrainFlow.LocalAnalyzer', protocolVersion: 1, version: '1.1.0' })));
+  const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ application: 'Metrivum.LocalAnalyzer', protocolVersion: 1, version: '1.1.0' })));
   await expect(checkLocalAnalyzer('token', signal(), fetcher)).resolves.toBe('incompatible');
 });
 
 it('asks to update an analyzer that cannot trim or stabilize (1.2)', async () => {
-  const fetcher = vi.fn(async () => new Response(JSON.stringify({ application: 'TrainFlow.LocalAnalyzer', protocolVersion: 1, version: '1.2.0', features: ['jobs'] })));
+  const fetcher = vi.fn(async () => new Response(JSON.stringify({ application: 'Metrivum.LocalAnalyzer', protocolVersion: 1, version: '1.2.0', features: ['jobs'] })));
   expect(await checkLocalAnalyzer('token', new AbortController().signal, fetcher as typeof fetch)).toBe('incompatible');
 });

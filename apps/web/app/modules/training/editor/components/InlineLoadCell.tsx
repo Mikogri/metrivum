@@ -1,9 +1,9 @@
 import { X, Save, Trash2, Variable, Undo2, Maximize2, CircleAlert, CircleCheck } from "lucide-react";
-import { Select, Option, Dialog, overlayPosition, overlayViewport } from "@trainflow/ui-web";
+import { Select, Option, Dialog, overlayPosition, overlayViewport } from "@metrivum/ui-web";
 import { useCellValidation } from "../cell-validation";
 import { useEffect, useLayoutEffect, useEffectEvent, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import type { Prescription, Quantity, Unit } from "@trainflow/api-client-web";
+import type { Prescription, Quantity, Unit } from "@metrivum/api-client-web";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { ApiError } from "~/shared/http/errors";

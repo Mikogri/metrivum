@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router/tabs";
-import { ScreenChromeProvider, useTheme } from "@trainflow/ui-mobile";
+import { ScreenChromeProvider, useTheme } from "@metrivum/ui-mobile";
 import { useI18n } from "../../infrastructure/i18n";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import { HeaderProfile } from "../../features/shell/HeaderProfile";

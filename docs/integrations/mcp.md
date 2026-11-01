@@ -43,19 +43,19 @@ Migrations created and applied to the previously confirmed **development** proje
 Run from the repository root. Build into an isolated directory if a development API is running. `TRAINFLOW_TEST_DATABASE` must name an explicitly disposable, migrated PostgreSQL database; never point it at the shared development project.
 
 ```powershell
-dotnet build TrainFlow.slnx --artifacts-path .local/mcp-checks
-dotnet test tests/Unit/TrainFlow.UnitTests --no-build --artifacts-path .local/mcp-checks
-dotnet test tests/Architecture/TrainFlow.ArchitectureTests --no-build --artifacts-path .local/mcp-checks
-dotnet test tests/Integration/TrainFlow.IntegrationTests --no-build --artifacts-path .local/mcp-checks --filter 'FullyQualifiedName~Mcp'
-dotnet test tests/Integration/TrainFlow.IntegrationTests --no-build --artifacts-path .local/mcp-checks --filter 'FullyQualifiedName~MessagingTests|FullyQualifiedName~JwtTests'
+dotnet build Metrivum.slnx --artifacts-path .local/mcp-checks
+dotnet test tests/Unit/Metrivum.UnitTests --no-build --artifacts-path .local/mcp-checks
+dotnet test tests/Architecture/Metrivum.ArchitectureTests --no-build --artifacts-path .local/mcp-checks
+dotnet test tests/Integration/Metrivum.IntegrationTests --no-build --artifacts-path .local/mcp-checks --filter 'FullyQualifiedName~Mcp'
+dotnet test tests/Integration/Metrivum.IntegrationTests --no-build --artifacts-path .local/mcp-checks --filter 'FullyQualifiedName~MessagingTests|FullyQualifiedName~JwtTests'
 & 'C:\Program Files\nodejs\npm.cmd' test
 & 'C:\Program Files\nodejs\npm.cmd' run typecheck
 & 'C:\Program Files\nodejs\npm.cmd' run lint
 & 'C:\Program Files\nodejs\npm.cmd' run build
-& 'C:\Program Files\nodejs\npm.cmd' run e2e:coaching --workspace @trainflow/web -- integrations.spec.ts documentation.spec.ts
+& 'C:\Program Files\nodejs\npm.cmd' run e2e:coaching --workspace @metrivum/web -- integrations.spec.ts documentation.spec.ts
 & ./infra/export-contracts.ps1 -NoBuild -ArtifactsPath .local/mcp-checks
 ```
 
 The browser runner also needs Node on `PATH`. The protocol test writes its live SDK catalogue when `TRAINFLOW_MCP_CATALOG_OUTPUT` names an output file; the checked-in result is `contracts/mcp/tools.json`. Export a reviewed development upgrade with `infra/mcp/export-upgrade.ps1`; it guards the known Access baseline and requires the new schema to be absent. Database migrations remain explicit and never run on ordinary API startup.
 
-Source entry points: `apps/api/TrainFlow.Api/Security/McpHosting.cs`, `backend/modules/Integrations/TrainFlow.Integrations/`, and `apps/web/app/modules/integrations/`. Local operation is implemented and tested; Claude, ChatGPT read access and ChatGPT write access are each **not verified**. Check-in schedule execution/pending assignment approval, optional video-result tools and export tools are deferred; schedule proposals currently return a non-executing preview. Training, messaging, check-in, calendar and analytics source modules already exist.
+Source entry points: `apps/api/Metrivum.Api/Security/McpHosting.cs`, `backend/modules/Integrations/Metrivum.Integrations/`, and `apps/web/app/modules/integrations/`. Local operation is implemented and tested; Claude, ChatGPT read access and ChatGPT write access are each **not verified**. Check-in schedule execution/pending assignment approval, optional video-result tools and export tools are deferred; schedule proposals currently return a non-executing preview. Training, messaging, check-in, calendar and analytics source modules already exist.

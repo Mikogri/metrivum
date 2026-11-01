@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { today } from "@internationalized/date";
 import { CalendarClock, CalendarPlus, ChevronLeft, ChevronRight, Plus, SlidersHorizontal } from "lucide-react";
-import { Button, Dialog, EmptyState, IconButton, LinkButton, PageHeader, Segment, SegmentedControl, Spinner, useMobileLayout } from "@trainflow/ui-web";
+import { Button, Dialog, EmptyState, IconButton, LinkButton, PageHeader, Segment, SegmentedControl, Spinner, useMobileLayout } from "@metrivum/ui-web";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useProfile } from "~/modules/accounts";

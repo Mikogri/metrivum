@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import type { Conversation, Request } from "./model";
 import { notificationItems } from "./notifications-model";
 

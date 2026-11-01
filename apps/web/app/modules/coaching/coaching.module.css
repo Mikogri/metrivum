@@ -176,13 +176,6 @@
   outline: 2px solid var(--tf-color-focus-ring);
 }
 
-/* Not published: a filled warning badge, so drafts stand out in lists and headers. */
-.notPublished.notPublished {
-  border-color: color-mix(in srgb, var(--tf-color-warning) 55%, transparent);
-  background: color-mix(in srgb, var(--tf-color-warning) 22%, transparent);
-  color: var(--tf-color-warning);
-  font-weight: var(--tf-weight-semibold);
-}
 
 /* A form answer's own problem, in red right under it (choice lists draw it themselves). */
 .question {
@@ -195,3 +188,208 @@
   color: var(--tf-color-danger);
   font-size: var(--tf-text-xs);
 }
+
+/* Group list: the member count opens member management. */
+.membersButton {
+  position: relative;
+  z-index: 1;
+  padding: var(--tf-space-1) var(--tf-space-2);
+  margin: calc(var(--tf-space-1) * -1) calc(var(--tf-space-2) * -1);
+  border: 0;
+  border-radius: var(--tf-radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.membersButton:hover {
+  background: var(--tf-color-surface-hover);
+}
+
+.membersButton:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+.membersDialog {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.membersList {
+  display: grid;
+  max-height: min(26rem, 55vh);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  list-style: none;
+}
+
+.membersList > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  padding: 0;
+  border-top: 1px solid var(--tf-color-border-subtle);
+  transition: background-color 120ms ease;
+}
+
+.membersList > li:first-child {
+  border-top: 0;
+}
+
+.membersName {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.membersName strong {
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.membersName small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.membersSection {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.membersSection h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: 0;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.02em;
+}
+
+.membersSection h3 span {
+  padding: 0 var(--tf-space-1-5);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A change not saved yet: a marker on the left edge. */
+.membersList > li[data-changed] {
+  box-shadow: inset 3px 0 0 var(--tf-color-warning);
+}
+
+/* One client in the members list: checkbox, avatar, name, and the other groups they are in. */
+/* The checkbox row spans the list width (other groups line up on the right), with the box centred on the row
+   and the whole row clickable. */
+.membersList > li > label {
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+  padding: var(--tf-space-3) var(--tf-space-4);
+}
+
+.membersList > li > label > span:not(:last-child) {
+  margin-top: 0;
+}
+
+.membersList > li > label > :last-child,
+.membersList > li > label > :last-child > * {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.membersRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+}
+
+.membersGroups {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--tf-space-1);
+  max-width: 14rem;
+}
+
+.membersGroups > span {
+  overflow: hidden;
+  max-width: 7rem;
+  padding: 1px var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--group, var(--tf-color-text-tertiary)) 16%, transparent);
+  color: color-mix(in srgb, var(--group, var(--tf-color-text-tertiary)) 75%, var(--tf-color-text));
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.membersGroups small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+}
+
+/* Not published: red, so a draft that clients can't reach is impossible to miss. */
+.notPublished.notPublished {
+  border-color: color-mix(in srgb, var(--tf-color-danger) 60%, transparent);
+  background: color-mix(in srgb, var(--tf-color-danger) 20%, transparent);
+  color: var(--tf-color-danger);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.quickStatus {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.quickStatusAction {
+  position: relative;
+  z-index: 1;
+}
+
+/* Billing history: in a panel the sections sit flush; bare (in the payment history drawer) they are spaced blocks. */
+.billingSection { min-width: 0; }
+.billingBare { display: grid; gap: var(--tf-space-5); min-width: 0; }
+.billingBare .billingSection { display: grid; gap: var(--tf-space-2); }
+.billingBare .emptyText { border: 1px dashed var(--tf-color-border-subtle); border-radius: var(--tf-radius-lg); }
+.billingBare .attempts { padding: 0; border-top: 0; }
+.billingTitle { margin: 0; color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-semibold); letter-spacing: 0.02em; text-transform: uppercase; }
+.attemptList { display: grid; gap: var(--tf-space-1-5); margin: var(--tf-space-2) 0 0; padding: 0; color: var(--tf-color-text-secondary); list-style: none; font-variant-numeric: tabular-nums; }
+
+/* Answers shown as a filled-in form: label, help, then the answer in a read-only box like the field it came from. */
+.sheetQuestion { display: grid; gap: var(--tf-space-1-5); min-width: 0; }
+.sheetLabel { color: var(--tf-color-text); font-size: var(--tf-text-sm); font-weight: var(--tf-weight-medium); line-height: var(--tf-leading-snug); }
+.sheetLabel > span { color: var(--tf-color-text-tertiary); }
+.sheetHelp { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); line-height: var(--tf-leading-normal); }
+.sheetBox { min-height: 2.25rem; padding: var(--tf-space-2) var(--tf-space-3); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); background: var(--tf-color-surface-raised); color: var(--tf-color-text); font-size: var(--tf-text-sm); line-height: var(--tf-leading-normal); overflow-wrap: anywhere; white-space: pre-wrap; }
+.sheetBox[data-long] { min-height: 4.5rem; }
+.sheetBox[data-empty] { border-style: dashed; background: transparent; color: var(--tf-color-text-tertiary); font-style: italic; }
+.sheetChoices { display: grid; gap: var(--tf-space-1-5); margin: 0; padding: 0; list-style: none; }
+.sheetChoices li { display: flex; align-items: center; gap: var(--tf-space-2-5); padding: var(--tf-space-2) var(--tf-space-3); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); }
+.sheetChoices li[data-picked] { border-color: var(--tf-color-accent-border); background: var(--tf-color-accent-soft); color: var(--tf-color-text); font-weight: var(--tf-weight-medium); }
+.sheetMark { flex: none; width: 0.875rem; height: 0.875rem; border: 1.5px solid var(--tf-color-border-strong); border-radius: 50%; }
+.sheetChoices[data-multi] .sheetMark { border-radius: 4px; }
+.sheetChoices li[data-picked] .sheetMark { border-color: var(--tf-color-accent); background: var(--tf-color-accent); box-shadow: inset 0 0 0 2px var(--tf-color-surface); }
+.sheetScale { display: grid; gap: var(--tf-space-1); }
+.sheetScale ol { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: var(--tf-space-1); margin: 0; padding: 0; list-style: none; }
+.sheetScale li { display: grid; place-items: center; height: 2.25rem; border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); font-variant-numeric: tabular-nums; }
+.sheetScale li[data-picked] { border-color: var(--tf-color-accent); background: var(--tf-color-accent-soft); color: var(--tf-color-text); font-weight: var(--tf-weight-semibold); }
+.sheetScaleEnds { display: flex; justify-content: space-between; gap: var(--tf-space-2); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }

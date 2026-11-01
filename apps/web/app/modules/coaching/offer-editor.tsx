@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { Archive, Building2, Check, CircleCheck, Copy, ExternalLink, Eye, EyeOff, Globe, MapPin, PauseCircle, PlayCircle, Shuffle, Trash2, Upload, UserRound } from "lucide-react";
-import { Alert, Button, Card, DialogFooter, IconButton, LinkButton, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, toast } from "@trainflow/ui-web";
+import { Alert, Button, Card, DialogFooter, IconButton, LinkButton, Option, PageHeader, Segment, SegmentedControl, Select, TextArea, TextField, toast } from "@metrivum/ui-web";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useCoachingMutation, useCoachingQuery, type Page } from "./api";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";

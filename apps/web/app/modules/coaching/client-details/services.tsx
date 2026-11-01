@@ -1,8 +1,8 @@
 import { CreditCard, Receipt } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Button, Dialog, Option, Select, TextField, Toolbar } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Button, Dialog, Option, Select, TextField, Toolbar } from "@metrivum/ui-web";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import { useFeatureAccess } from "~/shared/access";
 import { pageFromParam } from "~/shared/lib/useUrlState";
@@ -77,10 +77,22 @@ export function PaymentHistoryDrawer({ relationshipId }: { relationshipId: strin
   const [servicePage, setServicePage] = useState(1);
   const services = useCoachingQuery<Page<Schema<"RelationshipServiceDto">>>(`/api/v1/coaching/relationships/${relationshipId}/services`, { page: servicePage, pageSize: 20 });
   const filter = (patch: Record<string, string | null>) => update({ ...patch, payPage: null });
-  return <Dialog isOpen placement="right" size="lg" title="Payment history" description="Client service dues and settlements in this collaboration." onOpenChange={open => { if (!open) update({ drawer: null }); }}><div className={styles.stack}>
-    <Toolbar aria-label="Payment filters" className={styles.filters}><Select aria-label="Payment status" selectedKey={params.get("payStatus") || "all"} onSelectionChange={key => filter({ payStatus: key === "all" ? null : String(key) })}><Option id="all">All statuses</Option>{["AwaitingPayment", "Paid", "Cancelled"].map(s => <Option key={s} id={s}>{s}</Option>)}</Select><TextField label="Payment from" type="date" value={params.get("payFrom") || ""} onChange={v => filter({ payFrom: v })} /><TextField label="Payment to" type="date" value={params.get("payTo") || ""} onChange={v => filter({ payTo: v })} /></Toolbar>
-    {services.isError ? <Failure error={services.error} retry={() => void services.refetch()} /> : <><Select label="Service" selectedKey={params.get("payService") || "all"} onSelectionChange={key => filter({ payService: key === "all" ? null : String(key) })}><Option id="all">All services</Option>{params.get("payService") && !services.data?.items.some(s => s.id === params.get("payService")) ? <Option id={params.get("payService")!}>Selected service</Option> : null}{(services.data?.items ?? []).map(s => <Option key={s.id} id={s.id}>{s.offerName}</Option>)}</Select>{services.data && Number(services.data.total) > 20 && <ListPagination data={services.data} onChange={setServicePage} />}</>}
-    {params.get("payService") && <Button variant="ghost" onPress={() => filter({ payService: null })}>Show all services</Button>}
-    <RelationshipBilling relationshipId={relationshipId} filters={{ status: params.get("payStatus") || undefined, serviceId: params.get("payService") || undefined, from: params.get("payFrom") || undefined, to: endExclusive(params.get("payTo")), sort: "latest" }} page={pageFromParam(params.get("payPage") ?? "1")} onPageChange={page => update({ payPage: String(page) })} />
+  const serviceId = params.get("payService");
+  return <Dialog isOpen placement="right" size="xl" title="Payment history" description="Client service dues and settlements in this collaboration." onOpenChange={open => { if (!open) update({ drawer: null }); }}><div className={styles.stack}>
+    {services.isError ? <Failure error={services.error} retry={() => void services.refetch()} /> : null}
+    <Toolbar aria-label="Payment filters" className={styles.payFilters}>
+      <Select label="Service" selectedKey={serviceId || "all"} onSelectionChange={key => filter({ payService: key === "all" ? null : String(key) })}>
+        <Option id="all">All services</Option>
+        {serviceId && !services.data?.items.some(s => s.id === serviceId) ? <Option id={serviceId}>Selected service</Option> : null}
+        {(services.data?.items ?? []).map(s => <Option key={s.id} id={s.id}>{s.offerName}</Option>)}
+      </Select>
+      <Select label="Status" selectedKey={params.get("payStatus") || "all"} onSelectionChange={key => filter({ payStatus: key === "all" ? null : String(key) })}>
+        <Option id="all">All statuses</Option><Option id="AwaitingPayment">Awaiting payment</Option><Option id="Paid">Paid</Option><Option id="Cancelled">Cancelled</Option>
+      </Select>
+      <TextField label="From" type="date" value={params.get("payFrom") || ""} onChange={v => filter({ payFrom: v })} />
+      <TextField label="To" type="date" value={params.get("payTo") || ""} onChange={v => filter({ payTo: v })} />
+    </Toolbar>
+    {services.data && Number(services.data.total) > 20 && <ListPagination data={services.data} onChange={setServicePage} />}
+    <RelationshipBilling bare relationshipId={relationshipId} filters={{ status: params.get("payStatus") || undefined, serviceId: serviceId || undefined, from: params.get("payFrom") || undefined, to: endExclusive(params.get("payTo")), sort: "latest" }} page={pageFromParam(params.get("payPage") ?? "1")} onPageChange={page => update({ payPage: String(page) })} />
   </div></Dialog>;
 }

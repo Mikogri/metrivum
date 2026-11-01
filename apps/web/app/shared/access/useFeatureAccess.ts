@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { FeatureKey, FeatureReason, LimitDecision } from "@trainflow/api-client-web";
+import type { FeatureKey, FeatureReason, LimitDecision } from "@metrivum/api-client-web";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { getAccess } from "./api";
 

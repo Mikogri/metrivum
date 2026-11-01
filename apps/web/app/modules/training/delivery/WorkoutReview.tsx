@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
-import { Activity } from "lucide-react";
-import { Button, EmptyState, NumberInput, TextArea } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Activity, Gauge, Moon, PencilLine, Smile, Star } from "lucide-react";
+import { Button, EmptyState, TextArea } from "@metrivum/ui-web";
 import { Failure, Loading, MutationError, ListPagination, useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import styles from "./delivery.module.css";
@@ -11,22 +11,80 @@ type Comparison = Schema<"WorkoutComparison">;
 const format = (value: number | null | undefined) => value == null ? "—" : new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
 const range = (value: Schema<"TargetRange"> | null | undefined) => value == null ? "—" : value.minimum === value.maximum ? format(value.minimum) : `${format(value.minimum)}–${format(value.maximum)}`;
 
+const feedbackText = (pl: boolean) => pl ? {
+  rating: "Trening", wellbeing: "Samopoczucie", sleep: "Sen ostatniej nocy", difficulty: "Trudność (Session RPE)", note: "Notatka dla trenera", notePlaceholder: "Co poszło dobrze, co bolało, co zmienić",
+  scale: ["Słabo", "Tak sobie", "OK", "Dobrze", "Świetnie"], rpe: ["Bardzo lekko", "Lekko", "Umiarkowanie", "Ciężko", "Bardzo ciężko", "Maksymalnie"],
+} : {
+  rating: "Workout", wellbeing: "Wellbeing", sleep: "Last night's sleep", difficulty: "Effort (session RPE)", note: "Note for your coach", notePlaceholder: "What went well, what hurt, what to change",
+  scale: ["Poor", "Meh", "OK", "Good", "Great"], rpe: ["Very easy", "Easy", "Moderate", "Hard", "Very hard", "Max"],
+};
+const rpeWordOf = (words: string[], value: number) => words[value <= 2 ? 0 : value <= 4 ? 1 : value <= 6 ? 2 : value <= 8 ? 3 : value < 10 ? 4 : 5];
+
+/** The four answers and the note, used in the feedback card and in the log panel. */
+export function FeedbackFields({ value, onChange }: { value: Partial<Feedback>; onChange: (next: Partial<Feedback>) => void }) {
+  const t = feedbackText(useAppLocale().locale === "pl");
+  const scale = (key: "rating" | "wellbeing" | "sleepQuality", label: string) => <fieldset className={styles.fbScale}>
+    <legend>{label}</legend>
+    <div role="radiogroup" aria-label={label}>{[1, 2, 3, 4, 5].map(n => <button key={n} type="button" role="radio" aria-checked={value[key] === n} data-value={n}
+      onClick={() => onChange({ ...value, [key]: n })}><b>{n}</b><small>{t.scale[n - 1]}</small></button>)}</div>
+  </fieldset>;
+  return <>
+    <div className={styles.fbScales}>{scale("rating", t.rating)}{scale("wellbeing", t.wellbeing)}{scale("sleepQuality", t.sleep)}</div>
+    <fieldset className={styles.fbRpe}>
+      <legend>{t.difficulty}{value.sessionRpe != null ? <span> · <b>{value.sessionRpe}</b> {rpeWordOf(t.rpe, Number(value.sessionRpe))}</span> : null}</legend>
+      <div role="radiogroup" aria-label={t.difficulty}>{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <button key={n} type="button" role="radio" aria-checked={value.sessionRpe === n}
+        style={{ "--rpe": n } as React.CSSProperties} onClick={() => onChange({ ...value, sessionRpe: n })}>{n}</button>)}</div>
+    </fieldset>
+    <TextArea label={t.note} placeholder={t.notePlaceholder} maxLength={2000} rows={3} value={value.note ?? ""} onChange={note => onChange({ ...value, note })} />
+  </>;
+}
+
+/**
+ * How the workout felt. Only the athlete fills it in (own); everyone else, the coach included, sees what they said.
+ */
 export function WorkoutFeedbackForm({ execution, own }: { execution: { id: string; version: number; status: string; feedback?: Feedback | null }; own: boolean }) {
   const pl = useAppLocale().locale === "pl";
-  const [open, setOpen] = useState(!execution.feedback);
+  const [open, setOpen] = useState(own && !execution.feedback);
   const [draft, setDraft] = useState<Partial<Feedback>>(() => execution.feedback ?? {});
   const save = useCoachingMutation(() => setOpen(false));
   if (execution.status !== "Completed") return null;
-  const labels = pl ? { title: "Krótki feedback po treningu", rating: "Ocena treningu", wellbeing: "Samopoczucie po treningu", sleep: "Sen ostatniej nocy", difficulty: "Trudność całego treningu (Session RPE)", note: "Notatka dla trenera (opcjonalnie)", save: "Zapisz feedback", later: "Później", edit: "Uzupełnij lub edytuj" }
-    : { title: "Quick workout feedback", rating: "Workout rating", wellbeing: "Wellbeing after training", sleep: "Last night's sleep", difficulty: "Whole session difficulty (Session RPE)", note: "Note for your coach (optional)", save: "Save feedback", later: "Later", edit: "Add or edit feedback" };
-  const rating = (key: "rating" | "wellbeing" | "sleepQuality", label: string) => <fieldset style={{ border: 0, padding: 0 }}><legend>{label} (1–5)</legend><div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap" }}>{[1, 2, 3, 4, 5].map(value => <Button key={value} size="sm" variant={draft[key] === value ? "primary" : "secondary"} aria-pressed={draft[key] === value} onPress={() => setDraft(previous => ({ ...previous, [key]: value }))}>{value}</Button>)}</div></fieldset>;
-  return <section className={styles.card} aria-label={labels.title}><h2>{labels.title}</h2>
-    {own && open ? <form className={styles.stack} onSubmit={event => { event.preventDefault(); save.mutate({ method: "PUT", path: `/api/v1/training/executions/${execution.id}/feedback`, ifMatch: execution.version, json: draft }); }}>
-      {rating("rating", labels.rating)}{rating("wellbeing", labels.wellbeing)}{rating("sleepQuality", labels.sleep)}
-      <NumberInput label={labels.difficulty} minValue={0} maxValue={10} step={0.5} value={draft.sessionRpe ?? NaN} onChange={value => setDraft(previous => ({ ...previous, sessionRpe: Number.isFinite(value) ? value : undefined }))} />
-      <TextArea label={labels.note} maxLength={2000} value={draft.note ?? ""} onChange={note => setDraft(previous => ({ ...previous, note }))} />
-      <MutationError error={save.error} /><div className={styles.actions}><Button type="submit" variant="primary" loading={save.isPending} isDisabled={!draft.rating || !draft.wellbeing || !draft.sleepQuality || draft.sessionRpe == null}>{labels.save}</Button><Button isDisabled={save.isPending} onPress={() => setOpen(false)}>{labels.later}</Button></div>
-    </form> : <><p>{execution.feedback ? `${labels.rating}: ${execution.feedback.rating}/5 · Session RPE: ${execution.feedback.sessionRpe}/10 · ${labels.wellbeing}: ${execution.feedback.wellbeing}/5 · ${labels.sleep}: ${execution.feedback.sleepQuality}/5` : (pl ? "Feedback nie został jeszcze uzupełniony." : "Feedback has not been added yet.")}</p>{execution.feedback?.note && <p>{execution.feedback.note}</p>}{own && <Button onPress={() => setOpen(true)}>{labels.edit}</Button>}</>}
+  const t = pl ? {
+    titleOwn: "Jak poszło?", title: "Feedback klienta", subOwn: "Krótka ocena po treningu. Trener ją zobaczy.", sub: "Jak klient ocenił ten trening.",
+    rating: "Trening", wellbeing: "Samopoczucie", sleep: "Sen ostatniej nocy", difficulty: "Trudność (Session RPE)", note: "Notatka dla trenera", notePlaceholder: "Co poszło dobrze, co bolało, co zmienić",
+    save: "Zapisz", later: "Później", edit: "Edytuj", add: "Dodaj feedback", none: "Klient nie dodał jeszcze feedbacku.", noneOwn: "Nie dodano jeszcze feedbacku.",
+    scale: ["Słabo", "Tak sobie", "OK", "Dobrze", "Świetnie"], rpe: ["Bardzo lekko", "Lekko", "Umiarkowanie", "Ciężko", "Bardzo ciężko", "Maksymalnie"],
+  } : {
+    titleOwn: "How did it go?", title: "Client feedback", subOwn: "A quick check-in after the workout. Your coach sees it.", sub: "How the client rated this workout.",
+    rating: "Workout", wellbeing: "Wellbeing", sleep: "Last night's sleep", difficulty: "Effort (session RPE)", note: "Note for your coach", notePlaceholder: "What went well, what hurt, what to change",
+    save: "Save", later: "Later", edit: "Edit", add: "Add feedback", none: "The client hasn't added feedback yet.", noneOwn: "No feedback yet.",
+    scale: ["Poor", "Meh", "OK", "Good", "Great"], rpe: ["Very easy", "Easy", "Moderate", "Hard", "Very hard", "Max"],
+  };
+  const rpeWord = (value: number) => t.rpe[value <= 2 ? 0 : value <= 4 ? 1 : value <= 6 ? 2 : value <= 8 ? 3 : value < 10 ? 4 : 5];
+  const fb = execution.feedback;
+  const summary = (key: "rating" | "wellbeing" | "sleepQuality", label: string, icon: React.ReactNode) => fb ? <div className={styles.fbStat} data-value={fb[key]}>
+    <span className={styles.fbIcon}>{icon}</span><span><small>{label}</small><strong>{fb[key]}/5 · {t.scale[(fb[key] ?? 1) - 1]}</strong></span>
+  </div> : null;
+  return <section className={styles.fb} aria-labelledby={`feedback-${execution.id}`}>
+    <header className={styles.fbHead}>
+      <div><h2 id={`feedback-${execution.id}`}>{own ? t.titleOwn : t.title}</h2><p>{own ? t.subOwn : t.sub}</p></div>
+      {own && !open ? <Button size="sm" variant="secondary" iconStart={<PencilLine />} onPress={() => setOpen(true)}>{fb ? t.edit : t.add}</Button> : null}
+    </header>
+    {own && open ? <form className={styles.fbForm} onSubmit={event => { event.preventDefault(); save.mutate({ method: "PUT", path: `/api/v1/training/executions/${execution.id}/feedback`, ifMatch: execution.version, json: draft }); }}>
+      <FeedbackFields value={draft} onChange={setDraft} />
+      <MutationError error={save.error} />
+      <div className={styles.fbActions}>
+        <Button variant="ghost" isDisabled={save.isPending} onPress={() => { setDraft(fb ?? {}); setOpen(false); }}>{t.later}</Button>
+        <Button type="submit" variant="primary" loading={save.isPending} isDisabled={!draft.rating || !draft.wellbeing || !draft.sleepQuality || draft.sessionRpe == null}>{t.save}</Button>
+      </div>
+    </form> : fb ? <>
+      <div className={styles.fbStats}>
+        {summary("rating", t.rating, <Star />)}
+        {summary("wellbeing", t.wellbeing, <Smile />)}
+        {summary("sleepQuality", t.sleep, <Moon />)}
+        <div className={styles.fbStat} data-rpe><span className={styles.fbIcon}><Gauge /></span><span><small>{t.difficulty}</small><strong>{format(fb.sessionRpe)}/10 · {rpeWord(Number(fb.sessionRpe))}</strong></span></div>
+      </div>
+      {fb.note ? <blockquote className={styles.fbNote}>{fb.note}</blockquote> : null}
+    </> : <p className={styles.fbEmpty}>{own ? t.noneOwn : t.none}</p>}
   </section>;
 }
 
@@ -64,7 +122,7 @@ export function WorkoutComparisonView({ data }: { data: Comparison }) {
           <td><b>{format(set.actualLoadKg)}</b>{range(set.plannedLoadKg) !== "—" ? <small>{range(set.plannedLoadKg)}</small> : null}</td>
           <td><b>{format(set.actualRpe)}</b>{format(set.plannedRpe) !== "—" ? <small>{format(set.plannedRpe)}</small> : null}</td>
           <td><b>{format(set.actualRir)}</b>{format(set.plannedRir) !== "—" ? <small>{format(set.plannedRir)}</small> : null}</td>
-          <td className={styles.cmpNotes}>{set.deviations.length ? set.deviations.map(d => <span key={d}>{d.replaceAll("_", " ").toLowerCase()}</span>) : ["Missing", "Skipped"].includes(set.status) ? <span>{set.status.toLowerCase()}</span> : <i>—</i>}</td>
+          <td><span className={styles.cmpNotes}>{set.deviations.length ? set.deviations.map(d => <span key={d}>{d.replaceAll("_", " ").toLowerCase()}</span>) : ["Missing", "Skipped"].includes(set.status) ? <span data-tone="missing">{set.status.toLowerCase()}</span> : <i>—</i>}</span></td>
         </tr>)}</tbody>
       </table>
     </li>)}</ol>

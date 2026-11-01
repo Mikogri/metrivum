@@ -40,8 +40,8 @@ END $$;
     foreach ($module in @('Notifications','Accounts','Access','ExerciseCatalog','Training','Media','VideoAnalysis','Forms','Offers','Coaching','Billing','CheckIns','Calendar','Messaging','ClientDocumentation','Integrations')) {
         $part = Join-Path $parts "$module.sql"
         dotnet ef migrations script --no-transactions --no-build --configuration $Configuration `
-            --project "backend/modules/$module/TrainFlow.$module" `
-            --startup-project apps/api/TrainFlow.Api --context $(if ($module -eq 'ClientDocumentation') { 'DocumentationDbContext' } else { "$($module)DbContext" }) --output $part
+            --project "backend/modules/$module/Metrivum.$module" `
+            --startup-project apps/api/Metrivum.Api --context $(if ($module -eq 'ClientDocumentation') { 'DocumentationDbContext' } else { "$($module)DbContext" }) --output $part
         if ($LASTEXITCODE -ne 0) { throw "SQL generation failed: $module" }
         $sql.Add([IO.File]::ReadAllText($part))
     }

@@ -141,3 +141,8 @@
     row-gap: var(--tf-space-3);
   }
 }
+
+/* Check-in page: the form preview takes the room, the dates, review and next steps sit in a column beside it. */
+.previewLayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem); gap: var(--tf-space-5); align-items: start; }
+.previewMain { display: grid; gap: var(--tf-space-4); min-width: 0; }
+@media (max-width: 64rem) { .previewLayout { grid-template-columns: minmax(0, 1fr); } }

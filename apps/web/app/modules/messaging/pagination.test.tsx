@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { beforeEach, expect, it, vi } from "vitest";
-import type * as UiWeb from "@trainflow/ui-web";
+import type * as UiWeb from "@metrivum/ui-web";
 import Messages from "./messages";
 
 const state = vi.hoisted(() => ({
@@ -10,7 +10,7 @@ const state = vi.hoisted(() => ({
   total: 40,
   observers: [] as Array<(entries: Array<{ isIntersecting: boolean }>) => void>,
 }));
-vi.mock("@trainflow/ui-web", async (original) => ({ ...await original<typeof UiWeb>(), useMobileLayout: () => true }));
+vi.mock("@metrivum/ui-web", async (original) => ({ ...await original<typeof UiWeb>(), useMobileLayout: () => true }));
 vi.mock("~/shared/access", () => ({ useFeatureAccess: () => ({ allowed: true, pending: false }) }));
 vi.mock("~/shared/session", () => ({ useAccountContext: () => ({ account: { userId: "self" }, accountKey: "self", api: vi.fn(), lifecycle: { isCurrent: () => true } }), useApi: () => vi.fn(), useUnsavedWorkGuard: vi.fn() }));
 vi.mock("./provider", () => ({ useMessagingRealtime: () => ({ typing: [] }) }));

@@ -2,7 +2,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, ArrowUp, Bell, BellOff, CalendarClock, CalendarX, Check, CheckCheck, CheckCircle2, ClipboardCheck, CreditCard, Dumbbell, FileText, Film, Flag, Inbox, MailOpen, MessageSquare, PauseCircle, Repeat2, Settings2, UserMinus, UsersRound, Volume2, VolumeX, XCircle } from "lucide-react";
 import { Button as AriaButton, DialogTrigger } from "react-aria-components";
 import { useLocation, useNavigate } from "react-router";
-import { Button, Checkbox, Dialog, IconButton, Popover, Segment, SegmentedControl, Spinner, toast, useMobileLayout } from "@trainflow/ui-web";
+import { Button, Checkbox, Dialog, IconButton, Popover, Segment, SegmentedControl, Spinner, toast, useMobileLayout } from "@metrivum/ui-web";
 import { useAccountContext } from "~/shared/session";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { formatRelative } from "~/shared/i18n/format";

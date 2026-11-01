@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import type { AnalysisResult } from '@trainflow/api-client-web';
+import type { AnalysisResult } from '@metrivum/api-client-web';
 import { expect, it, vi } from 'vitest';
 import type { OverlayLine } from './charts';
 import type * as Charts from './charts';

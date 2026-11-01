@@ -54,6 +54,12 @@
   gap: var(--tf-space-2);
 }
 
+.kpiInfo {
+  margin: -6px 0 -6px 2px;
+  vertical-align: middle;
+  zoom: 0.85;
+}
+
 .kpiLabel {
   color: var(--tf-color-text-secondary);
   font-size: var(--tf-text-xs);
@@ -622,6 +628,31 @@
   display: inline-flex;
   align-items: center;
   gap: var(--tf-space-2);
+}
+
+/* Stacked: one part per line, value and share on the right, with a hairline between the two. */
+.splitLegend[data-stacked] {
+  display: grid;
+  gap: 0;
+}
+
+.splitLegend[data-stacked] > span {
+  display: flex;
+  padding: var(--tf-space-2) 0;
+  color: var(--tf-color-text-secondary);
+}
+
+.splitLegend[data-stacked] > span + span {
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.splitLegend em {
+  min-width: 2.75rem;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 /* ------------------------------------------------------------ keyframes */

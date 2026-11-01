@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import tempfile
 import unittest
 
-spec = importlib.util.spec_from_file_location('package_runtime', Path(__file__).resolve().parents[2] / 'tools/TrainFlow.LocalAnalyzer/package-runtime.py')
+spec = importlib.util.spec_from_file_location('package_runtime', Path(__file__).resolve().parents[2] / 'tools/Metrivum.LocalAnalyzer/package-runtime.py')
 runtime = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runtime)
 

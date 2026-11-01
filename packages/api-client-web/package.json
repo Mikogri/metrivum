@@ -1,5 +1,5 @@
 {
-  "name": "@trainflow/api-client-web",
+  "name": "@metrivum/api-client-web",
   "version": "0.1.0",
   "private": true,
   "description": "Typed Metrivum API contract for the web app. Types come from contracts/generated (never edited by hand).",

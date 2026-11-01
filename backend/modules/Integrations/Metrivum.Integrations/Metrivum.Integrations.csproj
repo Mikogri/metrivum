@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../BuildingBlocks/Metrivum.BuildingBlocks/Metrivum.BuildingBlocks.csproj" />
+    <ProjectReference Include="../../Accounts/Metrivum.Accounts.Contracts/Metrivum.Accounts.Contracts.csproj" />
+    <ProjectReference Include="../../Access/Metrivum.Access.Contracts/Metrivum.Access.Contracts.csproj" />
+    <ProjectReference Include="../../Messaging/Metrivum.Messaging.Contracts/Metrivum.Messaging.Contracts.csproj" />
+    <ProjectReference Include="../../Training/Metrivum.Training.Contracts/Metrivum.Training.Contracts.csproj" />
+    <ProjectReference Include="../../ExerciseCatalog/Metrivum.ExerciseCatalog.Contracts/Metrivum.ExerciseCatalog.Contracts.csproj" />
+    <ProjectReference Include="../../Coaching/Metrivum.Coaching.Contracts/Metrivum.Coaching.Contracts.csproj" />
+    <ProjectReference Include="../../CheckIns/Metrivum.CheckIns.Contracts/Metrivum.CheckIns.Contracts.csproj" />
+    <ProjectReference Include="../../Forms/Metrivum.Forms.Contracts/Metrivum.Forms.Contracts.csproj" />
+    <ProjectReference Include="../../Offers/Metrivum.Offers.Contracts/Metrivum.Offers.Contracts.csproj" />
+    <ProjectReference Include="../../Analytics/Metrivum.Analytics.Contracts/Metrivum.Analytics.Contracts.csproj" />
+    <ProjectReference Include="../../Calendar/Metrivum.Calendar.Contracts/Metrivum.Calendar.Contracts.csproj" />
+  </ItemGroup>
+</Project>

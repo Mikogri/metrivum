@@ -5,7 +5,7 @@ import { useAccountKey } from '~/shared/session/AccountScope';
 import { launchLocalAnalyzer, pairLocalAnalyzer, storedPairing, storePairing } from '../local-analysis';
 import styles from './AnalyzerUpdateBanner.module.css';
 
-const DOWNLOAD = '/downloads/analyzer/TrainFlowAnalyzerSetup.exe';
+const DOWNLOAD = '/downloads/analyzer/MetrivumAnalyzerSetup.exe';
 const COMPANION = 'http://127.0.0.1:59121';
 const VERSION_KEY = 'trainflow.analyzer.observedVersion';
 const validVersion = (value: unknown): value is string => typeof value === 'string' && /^\d+\.\d+\.\d+$/.test(value);
@@ -48,7 +48,7 @@ function AnalyzerUpdateState({ account, children }: { account: string; children:
       const response = await fetch(`${COMPANION}/discovery`, { signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]), cache: 'no-store', credentials: 'omit', redirect: 'error' });
       if (!response.ok) throw new Error('Analyzer unavailable');
       const data = await response.json() as { application?: string; version?: unknown; features?: string[] };
-      if (data.application !== 'TrainFlow.LocalAnalyzer' || !validVersion(data.version)) throw new Error('Unknown analyzer');
+      if (data.application !== 'Metrivum.LocalAnalyzer' || !validVersion(data.version)) throw new Error('Unknown analyzer');
       return { version: data.version, updates: Array.isArray(data.features) && data.features.includes('updates') };
     },
   });

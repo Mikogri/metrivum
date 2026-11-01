@@ -1,7 +1,7 @@
 import { ChevronRight, Unlink, Trash2 } from "lucide-react";
 import { useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
-import type { PlanAnnotation, TrainingDocument } from "@trainflow/api-client-web";
-import { ContextMenu } from "@trainflow/ui-web";
+import type { PlanAnnotation, TrainingDocument } from "@metrivum/api-client-web";
+import { ContextMenu } from "@metrivum/ui-web";
 import { SheetMenuButton } from "./SheetMenuButton";
 import sheet from "./SheetCanvas.module.css";
 import styles from "./AnnotationCard.module.css";

@@ -1,4 +1,4 @@
-import type { AnalysisResult } from '@trainflow/api-client-web';
+import type { AnalysisResult } from '@metrivum/api-client-web';
 import { normalizePhase, type PhaseKind } from './phases';
 
 export interface LiftTempo {

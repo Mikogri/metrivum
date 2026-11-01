@@ -3,9 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
     ApiRequest,
     QueryValue,
-} from "@trainflow/api-client-web/transport";
+} from "@metrivum/api-client-web/transport";
 import { useMobile } from "../session/MobileSession";
-import { useToast } from "@trainflow/ui-mobile";
+import { useToast } from "@metrivum/ui-mobile";
 
 export function useApiQuery<T>(
     path: string,

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { Segment, SegmentedControl } from "@trainflow/ui-web";
+import { Segment, SegmentedControl } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import type { SlotId } from "~/shared/session/storage-keys";
 import styles from "./AddAccountSwitch.module.css";

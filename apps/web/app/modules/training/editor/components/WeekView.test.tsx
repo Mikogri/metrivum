@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { TrainingDocument } from "@trainflow/api-client-web";
+import type { TrainingDocument } from "@metrivum/api-client-web";
 import type { EditorApi } from "../useEditor";
 import { WeekView } from "./WeekView";
 

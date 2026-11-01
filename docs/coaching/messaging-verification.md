@@ -10,17 +10,17 @@ OpenAPI, generated TypeScript/feature catalog, typed SignalR events, guarded fix
 
 | Command / check | Result |
 |---|---|
-| `dotnet build TrainFlow.slnx -c Release --no-restore --nologo` | Passed, zero warnings/errors. |
-| `$env:TRAINFLOW_TEST_DATABASE=(Get-Content .local/stage-01/database.json\|ConvertFrom-Json).ConnectionString; dotnet test TrainFlow.slnx -c Release --no-restore --logger 'console;verbosity=minimal'` | **266 passed**: 121 unit, 143 integration, 2 architecture. Two separately opt-in local Supabase tests skipped. |
+| `dotnet build Metrivum.slnx -c Release --no-restore --nologo` | Passed, zero warnings/errors. |
+| `$env:TRAINFLOW_TEST_DATABASE=(Get-Content .local/stage-01/database.json\|ConvertFrom-Json).ConnectionString; dotnet test Metrivum.slnx -c Release --no-restore --logger 'console;verbosity=minimal'` | **266 passed**: 121 unit, 143 integration, 2 architecture. Two separately opt-in local Supabase tests skipped. |
 | Focused `--filter FullyQualifiedName~MessagingTests` | 15 real PostgreSQL scenarios passed; also included in the full run. |
 | Focused `--filter FullyQualifiedName~MessagingRulesTests` | 2 passed; also included in the full run. |
 | `powershell -NoProfile -File infra/test-messaging-migrations.ps1` | Clean and upgrade migrations passed, seeded stage 2 records preserved, restricted runtime write/read passed; temporary databases removed. |
-| `python -X utf8 infra/messaging-storage-smoke.py --settings apps/api/TrainFlow.Api/appsettings.Local.json --confirm-project atclvdkpbccafakzpwls` | Actual development Supabase: signed upload/read, overwrite rejection and denied anonymous public access for PNG/PDF/MP4/WAV. Only this run's smoke objects removed. |
+| `python -X utf8 infra/messaging-storage-smoke.py --settings apps/api/Metrivum.Api/appsettings.Local.json --confirm-project atclvdkpbccafakzpwls` | Actual development Supabase: signed upload/read, overwrite rejection and denied anonymous public access for PNG/PDF/MP4/WAV. Only this run's smoke objects removed. |
 | DevFixtures stage 3a, full command below | Passed twice in separate processes: same conversation/message IDs, six direct messages, four real private attachments downloaded as Client C, unread 6→0 then 0→0, foreign Coach B denied, E cannot bypass pending request. |
-| `dotnet run --project apps/api/TrainFlow.Api -c Release --no-build --no-launch-profile -- --export-contracts` with `ASPNETCORE_ENVIRONMENT=Testing` and `TRAINFLOW_CONTRACT_OUTPUT=contracts/generated` absolute path | OpenAPI/features exported; `npm.cmd run contracts` regenerated TypeScript. Required Messaging headers and report response schema checked. |
+| `dotnet run --project apps/api/Metrivum.Api -c Release --no-build --no-launch-profile -- --export-contracts` with `ASPNETCORE_ENVIRONMENT=Testing` and `TRAINFLOW_CONTRACT_OUTPUT=contracts/generated` absolute path | OpenAPI/features exported; `npm.cmd run contracts` regenerated TypeScript. Required Messaging headers and report response schema checked. |
 | `npm.cmd run typecheck` | All workspaces passed. |
 | `npx.cmd tsc --noEmit --strict --skipLibCheck --moduleResolution bundler --module esnext --target es2022 contracts/messaging-events.ts` | Event/method contract passed. |
-| `dotnet format whitespace TrainFlow.slnx --no-restore --verify-no-changes --include <stage-3a paths>` | Passed for new/edited Messaging, Media, FeatureAudience, transaction, fixture and test paths after formatting. Whole-checkout verification also reports pre-existing Calendar formatting outside this stage. |
+| `dotnet format whitespace Metrivum.slnx --no-restore --verify-no-changes --include <stage-3a paths>` | Passed for new/edited Messaging, Media, FeatureAudience, transaction, fixture and test paths after formatting. Whole-checkout verification also reports pre-existing Calendar formatting outside this stage. |
 | `powershell -NoProfile -File infra/scan-secrets.ps1`, equivalent tracked + untracked source scan, `git diff --check` | Passed. Ignored local credentials remain untracked. |
 | `graphify update .` | Graph rebuilt after code changes. |
 | Restarted Metrivum API; `Invoke-WebRequest http://localhost:59120/health/ready` | 200 `{"status":"ready"}`; unauthenticated `/api/v1/messaging/conversations` returns 401. |
@@ -36,7 +36,7 @@ The first full run found an older migration test expecting the pre-Messaging fea
 ```powershell
 $env:DOTNET_ENVIRONMENT = 'Testing'
 $ids = Get-Content .local/stage-01/fixture-ids.txt
-dotnet run --project tools/TrainFlow.DevFixtures -c Release --no-build -- `
+dotnet run --project tools/Metrivum.DevFixtures -c Release --no-build -- `
   --settings .local/messaging/fixture-settings.json --stage 3a `
   --confirm-test-accounts true `
   --coach-a $ids[0] --coach-b $ids[1] --client-c $ids[2] --client-d $ids[3] `

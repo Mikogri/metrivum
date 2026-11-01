@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { FormulaUse, TrainingDocument } from "@trainflow/api-client-web";
+import type { FormulaUse, TrainingDocument } from "@metrivum/api-client-web";
 import { storedDocument, storedFormula } from "./formula-values";
 import { withClientVariables } from "./editor/model/inline-formula";
 

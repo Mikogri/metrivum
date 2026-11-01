@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="CsvHelper" />
+    <PackageReference Include="PDFsharp" />
+    <!-- PDFsharp still requests vulnerable PKCS 8.0.1; retain the patched runtime package. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Metrivum.BuildingBlocks\Metrivum.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Coaching\Metrivum.Coaching.Contracts\Metrivum.Coaching.Contracts.csproj" />
+    <ProjectReference Include="..\..\Notifications\Metrivum.Notifications.Contracts\Metrivum.Notifications.Contracts.csproj" />
+    <ProjectReference Include="..\Metrivum.Training.Contracts\Metrivum.Training.Contracts.csproj" />
+    <ProjectReference Include="..\..\Accounts\Metrivum.Accounts.Contracts\Metrivum.Accounts.Contracts.csproj" />
+    <ProjectReference Include="..\..\Access\Metrivum.Access.Contracts\Metrivum.Access.Contracts.csproj" />
+    <ProjectReference Include="..\..\ExerciseCatalog\Metrivum.ExerciseCatalog.Contracts\Metrivum.ExerciseCatalog.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Infrastructure/Fonts/NotoSans-Regular.ttf" />
+    <None Update="Infrastructure/Fonts/OFL.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -32,7 +32,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA messaging REVOKE EXECUTE ON FUNCTIONS FROM PU
 '@)
     foreach ($entry in @(@('Messaging','0','20261007153423_InitialMessaging'), @('Media','20261005125102_InitialMedia','20261007153121_MessagingAttachments'), @('Access','20261007132211_CalendarFeatures','20261007153450_MessagingFeatures'))) {
         $module=$entry[0]; $part=Join-Path $parts "$module.sql"
-        dotnet ef migrations script $entry[1] $entry[2] --no-transactions --no-build --configuration $Configuration --project "backend/modules/$module/TrainFlow.$module" --startup-project apps/api/TrainFlow.Api --context "$($module)DbContext" --output $part
+        dotnet ef migrations script $entry[1] $entry[2] --no-transactions --no-build --configuration $Configuration --project "backend/modules/$module/Metrivum.$module" --startup-project apps/api/Metrivum.Api --context "$($module)DbContext" --output $part
         if ($LASTEXITCODE -ne 0) { throw "Failed SQL export: $module" }
         $sql.Add([IO.File]::ReadAllText($part))
     }

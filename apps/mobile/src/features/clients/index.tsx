@@ -2,7 +2,7 @@ import { NativeDateField } from "../training/NativeDateField";
 import { useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     ActionSheet,
     Avatar,
@@ -24,7 +24,7 @@ import {
     confirm,
     useTheme,
     type SheetAction,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import {
     useApiMutation,
     useApiQuery,

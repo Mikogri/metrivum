@@ -1,7 +1,7 @@
 import { CalendarDays, Copy, MessageSquare, MoreHorizontal, Pencil, Plus, Power, PowerOff, Table2, Target, Trash2, TrendingUp, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Block, PlanAnnotation, TrainingDocument, Workout } from "@trainflow/api-client-web";
-import { Button, ContextMenu, Dialog, IconButton, Option, Select, type ContextMenuEntry } from "@trainflow/ui-web";
+import type { Block, PlanAnnotation, TrainingDocument, Workout } from "@metrivum/api-client-web";
+import { Button, ContextMenu, Dialog, IconButton, Option, Select, type ContextMenuEntry } from "@metrivum/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useT } from "~/shared/i18n/AppLocale";
 import { addBlock, addCycle, duplicateNode, removeNode, updateNode } from "../model/document";
@@ -65,6 +65,15 @@ export function StructureBar({ doc, apply, cycleId, onSelectCycle, onEditNode, n
       return addCycle(made.doc, made.id, m.editor.cycleName(1)).doc;
     });
   };
+  // Opening a block shows its first cycle; a block without cycles gets its first one, since workouts live in cycles.
+  const openBlock = (blockId: string) => {
+    const target = doc.blocks.find((b) => b.id === blockId);
+    if (!target || target.id === block?.id) return;
+    const first = target.cycles[0];
+    if (first) return onSelectCycle(first.id);
+    expectNew();
+    apply((d) => addCycle(d, target.id, m.editor.cycleName(1)).doc);
+  };
   const addNote = (kind: "Comment" | "Goal") => apply((d) => ({
     ...d,
     annotations: [...(d.annotations ?? []), { id: crypto.randomUUID(), kind, title: kind, content: "", targetId: current?.cycle.id ?? null, visibility: "Coach" } as PlanAnnotation],
@@ -111,10 +120,18 @@ export function StructureBar({ doc, apply, cycleId, onSelectCycle, onEditNode, n
 
   return (
     <div className={styles.structure}>
-      {cycles.length ? (
-        <Select label={t.cycle} size="sm" selectedKey={current?.cycle.id ?? null} onSelectionChange={(key) => key && onSelectCycle(String(key))} className={styles.cycleSelect}>
-          {cycles.map(({ block: b, cycle }) => (
-            <Option key={cycle.id} id={cycle.id}>{`${b.name || m.editor.untitled}${b.inactive ? ` (${t.inactiveShort})` : ""} · ${cycle.name || m.editor.untitled} · ${s.cycleLength(Number(cycle.dayCount))}`}</Option>
+      {/* Block and cycle are picked apart: first the block, then one of its cycles. */}
+      {block ? (
+        <Select label={t.block} size="sm" selectedKey={block.id} onSelectionChange={(key) => key && openBlock(String(key))} className={styles.blockSelect}>
+          {doc.blocks.map((b) => (
+            <Option key={b.id} id={b.id}>{`${b.name || m.editor.untitled}${b.inactive ? ` (${t.inactiveShort})` : ""}`}</Option>
+          ))}
+        </Select>
+      ) : null}
+      {block && current ? (
+        <Select label={t.cycle} size="sm" selectedKey={current.cycle.id} onSelectionChange={(key) => key && onSelectCycle(String(key))} className={styles.cycleSelect}>
+          {block.cycles.map((cycle) => (
+            <Option key={cycle.id} id={cycle.id}>{`${cycle.name || m.editor.untitled} · ${s.cycleLength(Number(cycle.dayCount))}`}</Option>
           ))}
         </Select>
       ) : null}

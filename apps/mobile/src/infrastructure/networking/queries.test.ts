@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import type { ApiRequest } from "@trainflow/api-client-web/transport";
+import type { ApiRequest } from "@metrivum/api-client-web/transport";
 
 const mocks = vi.hoisted(() => ({
     controller: new AbortController(),
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
     },
 }));
 vi.mock("expo-haptics", () => ({ notificationAsync: mocks.haptic, NotificationFeedbackType: { Success: "success" } }));
-vi.mock("@trainflow/ui-mobile", () => ({ useToast: () => mocks.toast }));
+vi.mock("@metrivum/ui-mobile", () => ({ useToast: () => mocks.toast }));
 vi.mock("../session/MobileSession", () => ({ useMobile: () => ({ api: vi.fn(), accountId: "account", accountSignal: mocks.controller.signal }) }));
 vi.mock("@tanstack/react-query", () => ({
     useQuery: vi.fn(), useQueryClient: () => ({ invalidateQueries: mocks.invalidate }),

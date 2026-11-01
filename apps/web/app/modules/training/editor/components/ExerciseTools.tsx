@@ -1,7 +1,7 @@
 import { Check, ChevronDown, ChevronsUpDown, Lock } from "lucide-react";
 import { useState } from "react";
-import { SET_KINDS, type ExerciseInstance, type GroupKind, type SetKind, type Workout } from "@trainflow/api-client-web";
-import { Button, Checkbox, Dialog, NumberInput, Option, Select } from "@trainflow/ui-web";
+import { SET_KINDS, type ExerciseInstance, type GroupKind, type SetKind, type Workout } from "@metrivum/api-client-web";
+import { Button, Checkbox, Dialog, NumberInput, Option, Select } from "@metrivum/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { changeSetKind, groupOf, makeGroup, removeGroup, setIsAdvanced, updateGroup } from "../model/document";

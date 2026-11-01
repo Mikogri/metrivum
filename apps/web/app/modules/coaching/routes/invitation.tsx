@@ -4,8 +4,8 @@ export const meta = () => privateMeta("Invitation details — Metrivum");
 
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { Link, useParams } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Avatar, Badge, Button, PageHeader, toast } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Avatar, Badge, Button, PageHeader, toast } from "@metrivum/ui-web";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import { useFeatureAccess, useFeatureReasonText } from "~/shared/access";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";

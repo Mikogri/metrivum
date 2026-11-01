@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { TrainingDocument } from "@trainflow/api-client-web";
+import type { TrainingDocument } from "@metrivum/api-client-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useT } from "~/shared/i18n/AppLocale";
 import { documentIssues } from "./model/issues";

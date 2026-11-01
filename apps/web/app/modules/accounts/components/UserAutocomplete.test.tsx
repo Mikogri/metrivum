@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
-import { Dialog, Button } from "@trainflow/ui-web";
+import { Dialog, Button } from "@metrivum/ui-web";
 import { UserAutocomplete } from "./UserAutocomplete";
 const api = vi.hoisted(() => vi.fn());
 vi.mock("~/shared/session", () => ({ useApi: () => api, useAccountKey: () => "account" }));

@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseAbsolute, parseDate, parseDateTime, parseTime, parseZonedDateTime } from "@internationalized/date";
-import { Alert, Button, Combobox, DateField, DialogFooter, Option, Switch, TextArea, TextField, TimeField } from "@trainflow/ui-web";
+import { Alert, Button, Combobox, DateField, DialogFooter, Option, Switch, TextArea, TextField, TimeField } from "@metrivum/ui-web";
 import { MutationError, RecipientPicker, useCoachingMutation } from "~/modules/coaching";
 import { timeZones } from "~/modules/accounts";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
@@ -68,6 +68,10 @@ export function EventEditor({
     setEnd(parseDateTime(next).add({ minutes: minutes > 0 ? minutes : 60 }).toString().slice(0, 16));
     mark();
   };
+  const problem = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error || mutation.error) problem.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [error, mutation.error]);
   const startDate = start.slice(0, 10);
   const endDate = end.slice(0, 10);
 
@@ -166,10 +170,10 @@ export function EventEditor({
         />
       </section>
 
-      {error ? (
-        <Alert tone="danger" live="assertive" title={error} />
-      ) : null}
-      <MutationError error={mutation.error} />
+      <div ref={problem} className={styles.editorProblem}>
+        {error ? <Alert tone="danger" live="assertive" title={error} /> : null}
+        <MutationError error={mutation.error} />
+      </div>
       <DialogFooter>
         <Button onPress={cancel}>Cancel</Button>
         <Button variant="primary" type="submit" loading={mutation.isPending} isDisabled={!title.trim()}>

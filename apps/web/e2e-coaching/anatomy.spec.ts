@@ -18,7 +18,7 @@ test("real BodyParts3D geometry, picking, camera, catalogue and attribution", as
   });
   await page.goto("/app/anatomy", { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/app\/exercises$/, { timeout: 45_000 });
-  await expect(page).toHaveTitle(/Exercises .* TrainFlow/, { timeout: 45_000 });
+  await expect(page).toHaveTitle(/Exercises .* Metrivum/, { timeout: 45_000 });
   await expect(page.getByRole("link", { name: "Anatomy", exact: true })).toHaveCount(0);
   const selectMuscle = async (name: string) => {
     const input = page.getByRole("combobox", { name: "Muscle", exact: true });

@@ -4,7 +4,7 @@ PostgreSQL is the history source of truth. SignalR provides best-effort notifica
 
 ## Ownership and access
 
-`backend/modules/Messaging/TrainFlow.Messaging` owns the private `messaging` schema: Conversations, Members, MembershipChanges, Messages, Attachments, Requests, Blocks and Reports. Accounts owns trusted identity/account projections, Access owns entitlements, Coaching owns relationships and client groups, and Media owns private objects. Modules communicate through contracts; Coaching changes and linked-chat synchronization share a database transaction. Notifications run after the outer transaction commits.
+`backend/modules/Messaging/Metrivum.Messaging` owns the private `messaging` schema: Conversations, Members, MembershipChanges, Messages, Attachments, Requests, Blocks and Reports. Accounts owns trusted identity/account projections, Access owns entitlements, Coaching owns relationships and client groups, and Media owns private objects. Modules communicate through contracts; Coaching changes and linked-chat synchronization share a database transaction. Notifications run after the outer transaction commits.
 
 Every operation checks the current JWT account, capability and resource membership. Coach and Client roles can receive `messaging.direct`, `messaging.groups`, `messaging.group.manage`, `messaging.attachments`, `messaging.voice` and `messaging.report`. A group-only grant works independently of direct messaging. User metadata cannot grant access. Runtime can insert/read messages, reports and membership history but cannot update/delete that evidence or create database objects. Supabase `anon`/`authenticated` roles cannot access the schema.
 

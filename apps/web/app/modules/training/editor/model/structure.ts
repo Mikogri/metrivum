@@ -1,4 +1,4 @@
-import type { Cycle, TrainingDocument } from "@trainflow/api-client-web";
+import type { Cycle, TrainingDocument } from "@metrivum/api-client-web";
 import { cloneWithNewIds, locate, newBlock, newCycle, newDay, newWorkout, updateNode } from "./document";
 
 // ---------------------------------------------------------------------------------------------

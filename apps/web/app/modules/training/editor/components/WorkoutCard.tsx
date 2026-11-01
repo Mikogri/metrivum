@@ -1,7 +1,7 @@
-import { CalendarDays, ChevronRight, Dumbbell } from "lucide-react";
+import { CalendarDays, ChevronRight, Dumbbell, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import type { ExerciseInstance, Workout } from "@trainflow/api-client-web";
-import { ContextMenu } from "@trainflow/ui-web";
+import type { ExerciseInstance, Workout } from "@metrivum/api-client-web";
+import { ContextMenu } from "@metrivum/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useT } from "~/shared/i18n/AppLocale";
 import { addExercise, updateNode } from "../model/document";
@@ -15,6 +15,19 @@ const place = (col: number, row: number, span = 1): React.CSSProperties => ({ gr
 const COL_START: Record<string, number> = {};
 WORKOUT_COLUMNS.reduce((at, c) => ((COL_START[c.id] = at), at + c.span), 0);
 const cellsAt = (line: number) => Object.fromEntries(WORKOUT_COLUMNS.map((c) => [c.id, place(COL_START[c.id]!, line, c.span)])) as Record<ExerciseColumn, React.CSSProperties>;
+
+/**
+ * The "not connected" warning in a card's header: a label with the icon, or just the icon on a minimised card.
+ * The full sentence (why it matters) is its tooltip.
+ */
+export function LooseFlag({ text, label, compact }: { text: string; label: string; compact: boolean }) {
+  return (
+    <span className={styles.looseFlag} data-compact={compact || undefined} title={text} role="img" aria-label={text}>
+      <TriangleAlert aria-hidden="true" />
+      {compact ? null : <span aria-hidden="true">{label}</span>}
+    </span>
+  );
+}
 
 /**
  * A workout on the sheet: its own card, plugged into a cycle by a cable from the cycle's handle. The header holds
@@ -130,11 +143,10 @@ export function WorkoutCard({
             onChange={(event) => apply?.((doc) => updateNode(doc, workout.id, { name: event.target.value }))}
           />
         </div>
+        {loose ? <LooseFlag text={t.looseWorkout} label={t.notConnected} compact={collapsed} /> : null}
         {collapsed ? (
           <span className={styles.kind} title={m.editor.week.exercises(workout.exercises.length)}>{workout.exercises.length}</span>
-        ) : loose ? (
-          <span className={styles.kind}>{t.workoutLabel}</span>
-        ) : (
+        ) : loose ? null : (
           <button
             type="button"
             className={styles.dayChip}
@@ -149,7 +161,6 @@ export function WorkoutCard({
         )}
         {!readOnly ? <MenuButton label={workout.name} onOpen={onMenuButton} /> : null}
       </div>
-      {loose && !collapsed ? <p className={`${styles.loose} ${styles.workoutLoose}`}>{t.looseWorkout}</p> : null}
 
       {collapsed ? null : (
         <div className={styles.cells2} style={{ gridTemplateColumns: `var(--sheet-columns, repeat(${WORKOUT_COLS}, var(--cell-w)))` }} role="grid" aria-label={workout.name || m.editor.untitled} data-no-drag>

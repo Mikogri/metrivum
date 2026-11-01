@@ -1,4 +1,4 @@
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { useCoachingQuery, type Page } from "./api";
 
 export type NavCount = { value: number; tone: "neutral" | "danger" };

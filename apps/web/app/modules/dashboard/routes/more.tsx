@@ -5,7 +5,7 @@ export const meta = () => privateMeta("More — Metrivum");
 import { Dumbbell, CalendarDays, ClipboardCheck, CreditCard, Film, Settings, Users, UserRound } from "lucide-react";
 import { Link } from "react-router";
 import { Fragment } from "react";
-import { PageHeader, Segment, SegmentedControl } from "@trainflow/ui-web";
+import { PageHeader, Segment, SegmentedControl } from "@metrivum/ui-web";
 import { NotificationBell } from "~/modules/messaging";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useT } from "~/shared/i18n/AppLocale";

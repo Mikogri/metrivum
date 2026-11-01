@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import type { TrainingDocument, Workout } from "@trainflow/api-client-web";
-import { IconButton, InfoTip, Option, Segment, SegmentedControl, Select } from "@trainflow/ui-web";
+import type { TrainingDocument, Workout } from "@metrivum/api-client-web";
+import { IconButton, InfoTip, Option, Segment, SegmentedControl, Select } from "@metrivum/ui-web";
 import { MuscleHeatmap } from "~/modules/anatomy";
 import { useDictionaryLabel, type ExerciseLabel } from "~/modules/exercises";
 import { formatNumber } from "~/shared/i18n/format";

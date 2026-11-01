@@ -24,7 +24,7 @@ END $$;
 SET LOCAL ROLE trainflow_migrator;
 '@)
     foreach ($entry in @(@('Coaching','20261008090132_AnalyticsDateIndexes'),@('Offers','20261006221525_OfferDefinitionGuards'),@('Billing','20261008152444_TeamLookupIndexes'),@('Calendar','20261007134212_GuardCalendarRelationshipClient'))) {
-        $module=$entry[0]; $project="backend/modules/$module/TrainFlow.$module"; $part=Join-Path $parts "$module.sql"
+        $module=$entry[0]; $project="backend/modules/$module/Metrivum.$module"; $part=Join-Path $parts "$module.sql"
         if (!$NoBuild) {
             dotnet build $project --no-restore --configuration $Configuration -m:1 /nodeReuse:false --verbosity quiet
             if ($LASTEXITCODE -ne 0) { throw "Build failed: $module" }

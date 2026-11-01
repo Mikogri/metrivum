@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { randomUUID } from "expo-crypto";
-import type { Schema } from "@trainflow/api-client-web";
-import { BottomSheet, Button, ErrorState, ListItem, LoadingState, Text } from "@trainflow/ui-mobile";
+import type { Schema } from "@metrivum/api-client-web";
+import { BottomSheet, Button, ErrorState, ListItem, LoadingState, Text } from "@metrivum/ui-mobile";
 import { useApiMutation, useApiQuery } from "../../infrastructure/networking/queries";
 
 export function ShareOffer({ kind, userId, username, close, refresh }: { kind: "form" | "invitation"; userId: string; username: string; close: () => void; refresh: () => void }) {

@@ -1,4 +1,4 @@
-// Public API of @trainflow/ui-web. Styles are imported explicitly via "@trainflow/ui-web/styles.css".
+// Public API of @metrivum/ui-web. Styles are imported explicitly via "@metrivum/ui-web/styles.css".
 // The library knows nothing about endpoints, Supabase, users or feature access.
 
 export { cx } from "./lib/cx";

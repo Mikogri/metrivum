@@ -1,5 +1,5 @@
 import { Image, type ImageSourcePropType } from "react-native";
-import { useTheme, type ThemeColors } from "@trainflow/ui-mobile";
+import { useTheme, type ThemeColors } from "@metrivum/ui-mobile";
 
 /**
  * Navigation icons shared with the web app (Tabler outline, same paths as

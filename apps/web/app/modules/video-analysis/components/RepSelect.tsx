@@ -1,6 +1,6 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { Button, Dialog, DialogTrigger, ListBox, ListBoxItem, Popover, type Selection } from 'react-aria-components';
-import type { AnalysisRepetition } from '@trainflow/api-client-web';
+import type { AnalysisRepetition } from '@metrivum/api-client-web';
 import styles from './RepSelect.module.css';
 
 /**

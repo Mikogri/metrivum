@@ -1,8 +1,8 @@
 import { CalendarClock, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Button, Dialog, DialogFooter, LinkButton, Option, Select, TextArea } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Button, Dialog, DialogFooter, LinkButton, Option, Select, TextArea } from "@metrivum/ui-web";
 import { useFeatureAccess } from "~/shared/access";
 import { UserAutocomplete, useProfile } from "~/modules/accounts";
 import { useCoachingMutation, useCoachingQuery, type Page } from "./api";

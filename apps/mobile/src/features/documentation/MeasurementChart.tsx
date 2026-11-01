@@ -1,6 +1,6 @@
-import type { Schema } from "@trainflow/api-client-web";
-import { EmptyState, Text } from "@trainflow/ui-mobile";
-import { Chart } from "@trainflow/ui-mobile/chart";
+import type { Schema } from "@metrivum/api-client-web";
+import { EmptyState, Text } from "@metrivum/ui-mobile";
+import { Chart } from "@metrivum/ui-mobile/chart";
 
 export function MeasurementChart({
     records,

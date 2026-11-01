@@ -349,22 +349,30 @@
   font-variant-numeric: tabular-nums;
 }
 
+.heatFooter {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);
+}
+
+/* "Not trained" chip, then 0 ━━━━ max on one line. */
 .heatScale {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-areas: "none bar" ". ends";
-  column-gap: var(--tf-space-3);
-  row-gap: var(--tf-space-1);
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
+  gap: var(--tf-space-3);
   font-size: var(--tf-text-xs);
 }
 
 .heatNone {
-  grid-area: none;
   display: inline-flex;
   align-items: center;
   gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-tertiary);
+  padding: 2px var(--tf-space-2) 2px var(--tf-space-1-5);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  white-space: nowrap;
 }
 
 .heatNone span {
@@ -375,18 +383,37 @@
 }
 
 .heatBar {
-  grid-area: bar;
   height: 0.5rem;
   border-radius: var(--tf-radius-full);
   background: linear-gradient(90deg, #f6dd7a, #f29a3e, #d8343a);
 }
 
-.heatEnds {
-  grid-area: ends;
-  display: flex;
-  justify-content: space-between;
-  color: var(--tf-color-text-tertiary);
+.heatEnd {
+  color: var(--tf-color-text-secondary);
+  font-weight: var(--tf-weight-medium);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.heatCaption {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.heatHint {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+@media (max-width: 40rem) {
+  .heatScale {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .heatNone {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
 }
 
 .legend {
@@ -666,3 +693,5 @@
     height: clamp(22rem, 60dvh, 32rem);
   }
 }
+
+.viewerLicense { position: absolute; bottom: 8px; right: 10px; z-index: 2; border: 0; background: var(--tf-color-surface-overlay); color: var(--tf-color-text-secondary); padding: 4px 6px; border-radius: 4px; font: inherit; font-size: 10px; cursor: pointer; }

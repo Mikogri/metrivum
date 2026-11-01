@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Avatar, Combobox, Option, Spinner } from "@trainflow/ui-web";
+import { Avatar, Combobox, Option, Spinner } from "@metrivum/ui-web";
 import { useAccountKey, useApi } from "~/shared/session";
 
 export type UserSuggestion = { userId: string; username: string; displayName: string };

@@ -6,8 +6,8 @@ Verified on 2026-10-05 with .NET SDK 10.0.401 and a disposable local PostgreSQL 
 
 | Check | Result |
 | --- | --- |
-| `dotnet build TrainFlow.slnx --no-restore` | Passed; 0 warnings, 0 errors |
-| `dotnet test TrainFlow.slnx --no-build --logger trx --results-directory TestResults` | 142 passed, 2 skipped, 0 failed |
+| `dotnet build Metrivum.slnx --no-restore` | Passed; 0 warnings, 0 errors |
+| `dotnet test Metrivum.slnx --no-build --logger trx --results-directory TestResults` | 142 passed, 2 skipped, 0 failed |
 | Test breakdown | Unit: 73; architecture: 2; PostgreSQL/HTTP integration: 67 passed, 2 skipped |
 | `dotnet format whitespace --no-restore --verify-no-changes` | Passed |
 | `./infra/export-contracts.ps1 -NoBuild` twice | Identical files; 52 OpenAPI paths, 89 schemas, TypeScript and feature contracts |

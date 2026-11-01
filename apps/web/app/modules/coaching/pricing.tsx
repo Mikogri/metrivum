@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
-import { Button, IconButton, NumberInput, Option, Segment, SegmentedControl, Select, TextField } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Button, IconButton, NumberInput, Option, Segment, SegmentedControl, Select, TextField } from "@metrivum/ui-web";
 import styles from "./coaching.module.css";
 
 export type BillingOption = Schema<"BillingOptionSnapshot">;

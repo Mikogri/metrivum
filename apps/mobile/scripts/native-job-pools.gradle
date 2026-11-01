@@ -7,7 +7,7 @@ gradle.beforeProject { project ->
                 '-DCMAKE_JOB_POOL_COMPILE=trainflow_native',
                 '-DCMAKE_JOB_POOL_LINK=trainflow_native'
             ])
-            project.logger.info("TrainFlow native pool configured: ${project.path} (compile/link maximum 2)")
+            project.logger.info("Metrivum native pool configured: ${project.path} (compile/link maximum 2)")
         }
     }
     project.plugins.withId('com.android.application') { configurePools() }

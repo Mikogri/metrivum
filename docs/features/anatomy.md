@@ -22,7 +22,7 @@ Original archives and metadata remain unchanged under `.local/bodyparts3d-4.0/so
 
 Generated GLBs and `manifest.json` live in `apps/web/public/anatomy/bodyparts3d-4.0`. The GLBs are generated deployment assets, ignored by Git. Run preparation before the web build and deploy that complete directory at `/anatomy/bodyparts3d-4.0/`. Serve hashed GLBs with long-lived immutable caching; revalidate `manifest.json`. The static host must serve `.glb` as `model/gltf-binary`, not the SPA fallback. A missing asset produces an error, never a replacement body. No third-party runtime/CDN is needed. Full dataset is approximately 175 MiB; the initial muscle layer is approximately 56 MiB. No extra mesh compression, decimation or content removal is performed.
 
-`npm run build` prepares anatomy automatically through the web `prebuild` hook (Python 3 required). For a fresh development checkout, run `npm run anatomy:prepare --workspace @trainflow/web` before opening Exercises. Frontend CI caches the hash-pinned original downloads and checks generated geometry after the build.
+`npm run build` prepares anatomy automatically through the web `prebuild` hook (Python 3 required). For a fresh development checkout, run `npm run anatomy:prepare --workspace @metrivum/web` before opening Exercises. Frontend CI caches the hash-pinned original downloads and checks generated geometry after the build.
 
 ## Catalogue import
 
@@ -47,3 +47,5 @@ For a new dataset release, review changed hashes and aliases, regenerate all out
 See [data attribution](../licenses/bodyparts3d.md) for the separate CC BY data license and original archive notice discrepancy.
 
 The Exercises library embeds the viewer beside its results (above them on smaller screens). Model selection and the muscle combobox share the URL `muscle` filter and reset pagination, preserving other filters. The existing API filters primary and secondary muscle links. Clicking the selected muscle clears it. Non-muscle structures remain inspectable without changing the exercise filter. Muscles without linked exercises show the standard empty results state. The former `/app/anatomy` route redirects to Exercises; there is no separate navigation tab.
+
+Every shared 3D viewer includes an Anatomy Data & Licenses shortcut, including previews and training heatmaps. All three views show the original BodyParts3D muscles by default. The skeleton remains an optional layer in the explorer. Reset visibility restores muscles only. No supplementary head model is loaded.

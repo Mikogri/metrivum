@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import type { DocumentKind, FolderDto, PlanListItem } from "@trainflow/api-client-web";
-import { Alert, AlertDialog, Button, Dialog, Radio, RadioGroup, TextArea, TextField, toast, DialogFooter } from "@trainflow/ui-web";
+import type { DocumentKind, FolderDto, PlanListItem } from "@metrivum/api-client-web";
+import { Alert, AlertDialog, Button, Dialog, Radio, RadioGroup, TextArea, TextField, toast, DialogFooter } from "@metrivum/ui-web";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";

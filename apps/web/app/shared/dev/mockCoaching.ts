@@ -111,6 +111,13 @@ const events = [
   event("Event", "Club 10K race", at(5, 8), at(5, 12), { location: "City park" }),
   event("Meeting", "Monthly progress review", at(-3, 18), at(-3, 18, 30)),
   event("Event", "Deload week", at(9, 0), at(9, 0), { startDate: day(9), endDateExclusive: day(16) }),
+  // A busy day: several all-day items and short meetings, to show how tight cells behave.
+  event("Event", "Team offsite", at(1, 0), at(1, 0), { startDate: day(1), endDateExclusive: day(2) }),
+  event("Event", "Nutrition workshop", at(1, 0), at(1, 0), { startDate: day(1), endDateExclusive: day(2) }),
+  event("Event", "Travel day", at(1, 0), at(1, 0), { startDate: day(1), endDateExclusive: day(3) }),
+  event("Meeting", "Quick form check with Marta", at(1, 8), at(1, 8, 15)),
+  event("Meeting", "Short sync", at(1, 9), at(1, 9, 30)),
+  event("Meeting", "Programme walkthrough with a long name", at(1, 13), at(1, 13, 45)),
 ];
 const checkIns = [
   { id: uid(), kind: "Planned", scheduleId: schedules[0]!.id, requestId: null, name: "Monday check-in", availableAtUtc: at(3, 9), dueAtUtc: at(5, 9), status: "Planned" },
@@ -342,6 +349,8 @@ const mockNotifications: Array<{ id: string; type: string; category: string; sou
   ...Array.from({ length: 12 }, (_, i) => ({ id: `n${i + 4}`, type: i % 2 ? "CheckInSubmitted" : "MessageCreated", category: i % 2 ? "CheckIns" : "Messaging", sourceModule: i % 2 ? "CheckIns" : "Messaging", sourceId: `old${i}`, deepLink: i % 2 ? "/app/check-ins" : "/app/messages", createdAt: new Date(Date.now() - (i + 2) * 86_400_000).toISOString(), readAt: new Date().toISOString() })),
 ];
 
+let mockTeamInviteOpen = true;
+
 /** Returns a response for the coaching, calendar and messaging endpoints, or null when the path isn't one of them. */
 export function mockCoaching(path: string, method: string, q: URLSearchParams, body: Record<string, unknown> | undefined, auth: string | null): { status: number; body: unknown } | null {
   const me = `00000000-0000-4000-8000-00000000000${(auth ?? "").replace(/^Bearer mock-/, "") || "0"}`;
@@ -354,7 +363,18 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     const prefix = (q.get("search") ?? "").trim().replace(/^@/, "").toLowerCase();
     return ok(prefix.length < 2 ? [] : [...people, { id: OTHER_COACH, displayName: "Ola Zielińska", username: "ola.trains" }].filter(person => person.username.toLowerCase().startsWith(prefix)).map(person => ({ userId: person.id, username: person.username, displayName: person.displayName })));
   }
-  if (path === "/api/v1/teams/mine") return ok({ teams: [team], requests: [{ id: "tr1", teamId: "t1", teamName: team.name, displayName: "Ola Zielińska", kind: "Invite", status: "Pending", canDecide: false, role: "Member", expiresAt: new Date(Date.now() + 5 * 86400000).toISOString() }] });
+  // Leads (developer data): three applications to the demo coach's offers.
+  if (path === "/api/v1/coaching/leads" && method === "GET") {
+    const lead = (i: number, displayName: string, username: string, offerName: string, status: string, amount: number, days: number) => ({ id: `77777777-0000-4000-8000-00000000000${i}`, coachId: COACH, applicantUserId: `77777777-1000-4000-8000-00000000000${i}`, applicant: { id: `77777777-1000-4000-8000-00000000000${i}`, displayName, username }, offerName, offerRevisionId: uid(), billingOptionId: uid(), selectedSessionCount: null, amount, currency: "PLN", source: "Direct", invitationId: null, status, submittedAt: ago(days), decidedAt: null, createdAt: ago(days + 1), updatedAt: ago(days), version: 1, relationshipId: null, serviceId: null, allowedActions: [], offerCategory: null });
+    const leads = [lead(1, "Natalia Kaczmarek", "natalia.k", "12-week online coaching", "Submitted", 450, 1), lead(2, "Michał Wójcik", "mwojcik", "Technique review", "Submitted", 249, 3), lead(3, "Zofia Lewandowska", "zofia.runs", "Meet prep · Monthly", "Accepted", 349, 9)];
+    return ok(page(leads.filter((l) => !q.get("status") || l.status === q.get("status")), q));
+  }
+  // An invitation to another Team waits for the demo coach's answer until it is accepted or declined.
+  if ((m = path.match(/^\/api\/v1\/teams\/requests\/([^/]+)\/decision$/)) && method === "POST") { mockTeamInviteOpen = false; return { status: 204, body: undefined }; }
+  if (path === "/api/v1/teams/mine") return ok({ teams: [team], requests: [
+    { id: "tr1", teamId: "t1", teamName: team.name, displayName: "Ola Zielińska", kind: "Invite", status: "Pending", canDecide: false, role: "Member", expiresAt: new Date(Date.now() + 5 * 86400000).toISOString() },
+    ...(mockTeamInviteOpen ? [{ id: "tr2", teamId: "t2", teamName: "Baltic Endurance Lab", displayName: "Demo Coach", kind: "Invite", status: "Pending", canDecide: true, role: "Member", expiresAt: new Date(Date.now() + 6 * 86400000).toISOString() }] : []),
+  ] });
   if (path === "/api/v1/teams/t1/members") return ok([
     { userId: me, displayName: "Demo Coach", username: "demo.coach", role: "Owner", joinedAt: "2026-03-01T09:00:00Z" },
     { userId: "u2", displayName: "Tomasz Lis", username: "tomasz.lis", role: "Admin", joinedAt: "2026-04-12T09:00:00Z" },
@@ -388,7 +408,7 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     return ok(group);
   }
   if ((m = path.match(/^\/api\/v1\/coaching\/groups\/([^/]+)\/members$/))) return ok(page(clients.filter((c) => c.groupIds.includes(m![1]!)), q));
-  if (path === "/api/v1/forms/summaries" && method === "GET") return ok(page(search(forms.filter((f) => !q.get("purpose") || f.purpose === q.get("purpose")), q).map(({ draft, ...form }) => ({ ...form, questionCount: draft.sections.reduce((sum, section) => sum + section.questions.length, 0) })), q));
+  if (path === "/api/v1/forms/summaries" && method === "GET") return ok(page(search(forms.filter((f) => !q.get("purpose") || f.purpose === q.get("purpose")), q).map(({ draft, ...form }) => ({ ...form, questionCount: draft.sections.reduce((sum, section) => sum + section.questions.length, 0), estimatedSeconds: draft.sections.reduce((sum, section) => sum + section.questions.reduce((s, question) => s + ({ YesNo: 4, Scale: 5, SingleChoice: 6, Number: 7, Date: 7, MultiChoice: 9, ShortText: 12, LongText: 40, FileAttachment: 25 } as Record<string, number>)[String(question.type)]!, 0), 0) })), q));
   if (path === "/api/v1/forms" && method === "GET") return ok(page(search(forms.filter((f) => !q.get("purpose") || f.purpose === q.get("purpose")), q), q));
   if ((m = path.match(/^\/api\/v1\/forms\/([^/]+)$/)) && method === "GET") return ok(forms.find((f) => f.id === m![1]));
   if (path === "/api/v1/offers" && method === "GET") return ok(page(offers, q));
@@ -463,6 +483,11 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     events.push(created);
     return ok(created);
   }
+  if ((m = path.match(/^\/api\/v1\/calendar\/events\/([^/]+)\/(cancel|restore)$/)) && method === "POST") {
+    const found = events.find((e) => e.id === m![1]);
+    if (found) Object.assign(found, { cancelled: m[2] === "cancel", version: found.version + 1 });
+    return ok(found);
+  }
   if ((m = path.match(/^\/api\/v1\/calendar\/events\/([^/]+)$/))) {
     const found = events.find((e) => e.id === m![1]);
     if (found && method === "PATCH") Object.assign(found, body, { version: found.version + 1 });
@@ -497,6 +522,21 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
   if (path === "/api/v1/messaging/requests") return ok([]);
   if (path === "/api/v1/me/blocked-users") return ok([]);
   if (path === "/api/v1/analyze/overview") return ok(analyzeOverview(q));
+  // Basic Analyze (free plan): counts and payments in one go, two currencies to show both cards.
+  if (path === "/api/v1/analyze/basic") {
+    const o = analyzeOverview(q);
+    const t = o.finance.totals[0]!;
+    const eur = { ...t, currency: "EUR", gross: Math.round(t.gross / 4.3), fee: Math.round(t.fee / 4.3), net: Math.round(t.net / 4.3), pending: 0, payments: Math.round(t.payments / 4) };
+    return ok({ period: o.period, clients: { active: o.clients.active, suspended: o.clients.suspended, completed: o.clients.completed }, checkIns: o.checkIns, messaging: o.messaging, simulatedPayments: true,
+      finance: { totals: [t, eur], series: [...o.finance.series, ...o.finance.series.map((p) => ({ ...p, currency: "EUR", gross: Math.round(p.gross / 4.3), net: Math.round(p.net / 4.3), fee: Math.round(p.fee / 4.3) }))] } });
+  }
+  // The other Analyze tabs read slices of the same fake overview.
+  if (path.startsWith("/api/v1/analyze/")) {
+    const o = analyzeOverview(q);
+    const slice: Record<string, unknown> = { context: { period: o.period, comparisonPeriod: o.comparisonPeriod, filters: o.filters }, financial: o.finance, clients: o.clients, acquisition: o.acquisition, "check-ins": o.checkIns, messaging: o.messaging, training: o.training };
+    const key = path.slice("/api/v1/analyze/".length);
+    if (key in slice) return ok(slice[key]);
+  }
   if (path === "/api/v1/subscriptions/plans") return ok(platformPlans);
   if (path === "/api/v1/me/ai-integrations" && method === "GET") return ok([]);
   if (path === "/api/v1/me/ai-actions" && method === "GET") return ok([]);

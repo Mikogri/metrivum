@@ -5,7 +5,7 @@ describe("usernameProblem", () => {
   it.each(["abc", "Coach_Anna", "anna_2026", "coach", "client", "a".repeat(32)])("accepts %s", (name) => expect(usernameProblem(name)).toBeNull());
   it.each(["ab", "a".repeat(33), "1anna", "_anna", "anna_", "an__na", "anna.k", "anna k", "ánna", "\u0430dmin"])("rejects %j", (name) =>
     expect(usernameProblem(name)).toBe("invalid"));
-  it.each(["admin", "ADMIN", "Support", "trainflow", "TrainFlow_Team", "metrivum", "Metrivum_Team"])("reserves %s", (name) => expect(usernameProblem(name)).toBe("reserved"));
+  it.each(["admin", "ADMIN", "Support", "trainflow", "Metrivum_Team", "metrivum", "Metrivum_Team"])("reserves %s", (name) => expect(usernameProblem(name)).toBe("reserved"));
 });
 
 describe("display names", () => {

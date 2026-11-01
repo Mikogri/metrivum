@@ -1,7 +1,7 @@
 import { ClipboardCheck, Plus } from "lucide-react";
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
-import { AlertDialog, Button, DataTable, Dialog, EmptyState, Option, Select, TextField, Toolbar, useMobileLayout } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { AlertDialog, Button, DataTable, Dialog, EmptyState, Option, Select, TextField, Toolbar, useMobileLayout } from "@metrivum/ui-web";
 import { Facts, Panel, PanelSkeleton, StatStrip, StatStripSkeleton, type Stat } from "~/shared/ui/Panel";
 import { useFeatureAccess } from "~/shared/access";
 import { useCoachingQuery, type Page } from "../api";

@@ -1,4 +1,4 @@
-import type { FormulaUse, Quantity } from "@trainflow/api-client-web";
+import type { FormulaUse, Quantity } from "@metrivum/api-client-web";
 
 export type InlineFormulaUse = FormulaUse & { expression?: string | null; variableBindings?: Record<string, string> | null };
 

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight } from "lucide-react";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Badge, LinkButton, PageHeader, Skeleton } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Badge, LinkButton, PageHeader, Skeleton } from "@metrivum/ui-web";
 import { QuotaContextField, isCap, useUsage, type UsageItem } from "~/shared/access";
 import { limitIcon, usageState } from "~/shared/access/UsageRing";
 import { formatBytes } from "~/shared/i18n/format";

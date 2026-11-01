@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { BrandMark } from "../../BrandMark";
-import { Button, ErrorState, Field, ListItem, Screen, Section, SegmentedControl, SelectField, Switch, Text } from "@trainflow/ui-mobile";
+import { Button, ErrorState, Field, ListItem, Screen, Section, SegmentedControl, SelectField, Switch, Text } from "@metrivum/ui-mobile";
 import { useI18n } from "../i18n";
 import { authErrorKey, passwordProblem } from "./auth-policy";
 import { isValidEmail } from "./email";

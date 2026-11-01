@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronRight, Gauge, HeartPulse, LogIn, LogOut, Minus, Plug, Plus, ShieldCheck, UserRound, Users, Wallet } from "lucide-react";
+import { Check, ChevronRight, Gauge, HeartPulse, KeyRound, LogIn, LogOut, Minus, Plug, Plus, ShieldCheck, UserRound, Users, Wallet } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Avatar, Badge, Button, Card, Checkbox, Combobox, LinkButton, List, ListRow, Option, PageHeader, Select, Skeleton, Switch, TextArea, TextField, toast } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Avatar, Badge, Button, Card, Checkbox, Combobox, LinkButton, List, ListRow, Option, PageHeader, Select, Skeleton, Switch, TextArea, TextField, toast } from "@metrivum/ui-web";
 import {
   DETAIL_GROUPS, DetailFields, ageFrom, detailProblems, detailsFromValues, detailsToValues, nameParts, namePartValid, normalizeDisplayName, profileFieldsKey,
   profileKey, timeZones, updateProfile, useProfile, type DetailGroup, type Details,
@@ -21,6 +21,7 @@ import { useAccountContext, useAccountKey, useApi } from "~/shared/session/Accou
 import { useActiveAccount, useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { useAccountActions } from "~/shared/session/useAccountActions";
 import { DevAccountErasure } from "./DevAccountErasure";
+import { SignInSecurity } from "./SignInSecurity";
 import styles from "./settings.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
@@ -440,11 +441,12 @@ function CoachingPreferences() {
   );
 }
 
-type Section = "profile" | "body" | "accounts" | "privacy" | "coaching" | "integrations" | "access";
+type Section = "profile" | "body" | "security" | "accounts" | "privacy" | "coaching" | "integrations" | "access";
 
 const SECTION_ICONS: Record<Section, typeof UserRound> = {
   profile: UserRound,
   body: HeartPulse,
+  security: KeyRound,
   accounts: Users,
   privacy: ShieldCheck,
   coaching: Wallet,
@@ -458,7 +460,7 @@ export default function Settings() {
   const profile = useProfile();
   const active = useActiveAccount();
   const [params, setParams] = useSearchParams();
-  const sections: Section[] = ["profile", "body", "accounts", "privacy", ...(profile.roles.includes("Coach") ? (["coaching", "integrations"] as const) : []), "access"];
+  const sections: Section[] = ["profile", "body", "security", "accounts", "privacy", ...(profile.roles.includes("Coach") ? (["coaching", "integrations"] as const) : []), "access"];
   const requested = params.get("section") as Section | null;
   const section = requested && sections.includes(requested) ? requested : "profile";
   const name = profile.displayName || profile.username || active?.email || "";
@@ -492,7 +494,7 @@ export default function Settings() {
           </nav>
         </aside>
         <div className={styles.content} key={section}>
-          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "accounts" ? <><Accounts /><DevAccountErasure /></> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <><CoachSpecializationsCard editable initialEditing /><CoachingPreferences /></> : section === "integrations" ? <Integrations /> : <AccessOverview />}
+          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "security" ? <SignInSecurity /> : section === "accounts" ? <><Accounts /><DevAccountErasure /></> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <><CoachSpecializationsCard editable initialEditing /><CoachingPreferences /></> : section === "integrations" ? <Integrations /> : <AccessOverview />}
         </div>
       </div>
     </>

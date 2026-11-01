@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Screen, Text, Button } from "@trainflow/ui-mobile";
+import { Screen, Text, Button } from "@metrivum/ui-mobile";
 import { useI18n } from "../../infrastructure/i18n";
 
 /** MobileSession owns validation and code exchange, including cold-start links before login. */

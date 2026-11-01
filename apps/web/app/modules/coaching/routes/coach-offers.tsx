@@ -4,8 +4,8 @@ export const meta = () => privateMeta("Coach offers — Metrivum");
 
 import { Tag } from "lucide-react";
 import { useParams } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { EmptyState, PageHeader, SearchInput, Toolbar } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { EmptyState, PageHeader, SearchInput, Toolbar } from "@metrivum/ui-web";
 import { CardGrid, ListCard } from "~/shared/library/DataView";
 import { CategoryTag, categoryTone } from "../offer-category";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";

@@ -45,7 +45,7 @@ The privilege integration test also passed, including HTTP onboarding after deli
 
 For subsequent deployments, generate incremental SQL from each module's recorded EF migration ID, execute as `trainflow_migrator`, and keep the generated EF history inserts. Do not replay the initial bundle or maintain a second independent schema model.
 
-The cloud `trainflow_api` role now has a generated runtime password. Local API configuration is stored in ignored `apps/api/TrainFlow.Api/appsettings.Local.json`; it uses the IPv4 session pooler on port 5432, a pool limit of 10, and `SSL Mode=VerifyFull` with the Supabase CA certificate in ignored `.local/certificates/supabase-ca.crt`. Auth points to the Metrivum project. Neither credentials nor local configuration belong in Git.
+The cloud `trainflow_api` role now has a generated runtime password. Local API configuration is stored in ignored `apps/api/Metrivum.Api/appsettings.Local.json`; it uses the IPv4 session pooler on port 5432, a pool limit of 10, and `SSL Mode=VerifyFull` with the Supabase CA certificate in ignored `.local/certificates/supabase-ca.crt`. Auth points to the Metrivum project. Neither credentials nor local configuration belong in Git.
 
 Local startup was verified on 2026-10-05: `/health/live` and `/health/ready` returned 200, unauthenticated `/api/v1/me` returned 401, and CORS accepted `http://localhost:5173`. When moving to another machine, provision local secrets and obtain the [Supabase CA certificate](https://supabase.com/docs/guides/platform/ssl-enforcement) again; the certificate path in the connection string is machine-specific.
 

@@ -1,7 +1,7 @@
 import { ResourceError } from "~/shared/lib/ResourceError";
 import { useState } from "react";
 import { GitCompare, Plus } from "lucide-react";
-import { Breadcrumbs, Button, EmptyState, PageHeader } from "@trainflow/ui-web";
+import { Breadcrumbs, Button, EmptyState, PageHeader } from "@metrivum/ui-web";
 import { RequireFeature } from "~/shared/access";
 import { useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, Link2, Link2Off } from "lucide-react";
 import { useState } from "react";
-import { Alert, AlertDialog, Button, Dialog, LoadingState, Switch, TextField, toast } from "@trainflow/ui-web";
+import { Alert, AlertDialog, Button, Dialog, LoadingState, Switch, TextField, toast } from "@metrivum/ui-web";
 import { SendToChat } from "~/modules/messaging";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";

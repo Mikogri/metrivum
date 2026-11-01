@@ -1,5 +1,6 @@
-import { CalendarDays, Clock, Link2, MapPin, UserRound } from "lucide-react";
-import { Avatar, Badge, Button, DialogFooter, LinkButton } from "@trainflow/ui-web";
+import { CalendarDays, Clock, Link2, MapPin, RotateCcw, UserRound } from "lucide-react";
+import { Avatar, Badge, Button, DialogFooter, LinkButton, toast } from "@metrivum/ui-web";
+import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useCoachingQuery, useCoachingMutation, type Page, type Relationship } from "~/modules/coaching";
 import { Failure, Loading, MutationError } from "~/modules/coaching";
@@ -14,6 +15,7 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
   const query = useCoachingQuery<CalendarEvent>(`/api/v1/calendar/events/${id}`, { role: mode });
   const clients = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { pageSize: 100 }, mode === "coach");
   const mutation = useCoachingMutation();
+  const { ask, dialog: confirmDialog } = useDangerConfirm();
   if (query.isPending) return <Loading />;
   if (query.isError) return <Failure error={query.error} retry={() => void query.refetch()} />;
   const event = query.data;
@@ -23,6 +25,20 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
   const lastDay = event.endDateExclusive ? new Date(Date.parse(event.endDateExclusive) - 86_400_000).toISOString().slice(0, 10) : null;
   const allDay = (v: string) => new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(v));
   const name = (a: NonNullable<CalendarEvent["attendees"]>[number]) => clients.data?.items.find((r) => r.id === a.relationshipId)?.client.displayName || "Client";
+  const noun = event.kind.toLowerCase();
+  const invited = event.attendees?.length ?? 0;
+  const cancel = async () => {
+    const confirmed = await ask({
+      title: `Cancel this ${noun}?`,
+      body: invited ? `${invited === 1 ? "The invited client is" : `All ${invited} invited clients are`} told it is cancelled. You can restore it later.` : "It stays in your calendar, marked as cancelled. You can restore it later.",
+      confirmLabel: `Cancel ${noun}`,
+      cancelLabel: `Keep ${noun}`,
+    });
+    if (confirmed) mutation.mutate({ method: "POST", path: `/api/v1/calendar/events/${id}/cancel`, ifMatch: event.version }, { onSuccess: () => toast({ tone: "neutral", title: `${event.kind} cancelled` }) });
+  };
+  const restore = () => mutation.mutate({ method: "POST", path: `/api/v1/calendar/events/${id}/restore`, ifMatch: event.version }, {
+    onSuccess: () => toast({ tone: "success", title: `${event.kind} restored`, description: invited ? "Invited clients are asked to answer again." : undefined }),
+  });
 
   return (
     <div className={styles.detail}>
@@ -104,14 +120,19 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
         </section>
       ) : null}
 
+      {event.cancelled && mode === "coach" ? <p className={styles.muted}>This {noun} is cancelled. Restore it to put it back on the calendar; invited clients are asked to answer again.</p> : null}
       <MutationError error={mutation.error} />
+      {confirmDialog}
       <DialogFooter>
         {event.cancelled ? (
-          <Button onPress={close}>Close</Button>
+          <>
+            <Button onPress={close}>Close</Button>
+            {mode === "coach" ? <Button variant="primary" iconStart={<RotateCcw />} loading={mutation.isPending} onPress={restore}>Restore {noun}</Button> : null}
+          </>
         ) : mode === "coach" ? (
           <>
-            <Button variant="ghost" isDisabled={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/calendar/events/${id}/cancel`, ifMatch: event.version })}>
-              Cancel {event.kind.toLowerCase()}
+            <Button variant="danger" isDisabled={mutation.isPending} loading={mutation.isPending} onPress={() => void cancel()}>
+              Cancel {noun}
             </Button>
             <Button variant="primary" onPress={() => edit(event)}>
               Edit

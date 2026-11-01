@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, RotateCcw, RefreshCw, X } from "lucide-react";
 import { useId } from "react";
-import { Button, Combobox, IconButton, Option, Select, Switch } from "@trainflow/ui-web";
+import { Button, Combobox, IconButton, Option, Select, Switch } from "@metrivum/ui-web";
 import type { BackgroundParam } from "./backgrounds/catalog";
 import { DEFAULT_BACKDROP, backgrounds, changedProps, editableParams, hexToRgb, isRgb, resolveCover, rgbToHex, type CoverStyle } from "./coverStyle";
 import styles from "./CoverEditor.module.css";

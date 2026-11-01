@@ -1,4 +1,4 @@
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 
 export type Overview = Schema<"AnalysisOverview">;
 export type AnalysisContext = Schema<"AnalysisContext">;

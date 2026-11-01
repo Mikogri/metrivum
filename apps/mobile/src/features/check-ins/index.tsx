@@ -1,7 +1,7 @@
 import { NativeDateField } from "../training/NativeDateField";
 import { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { View } from "react-native";
 import {
     BottomSheet,
@@ -17,7 +17,7 @@ import {
     Section,
     Text,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { Filters } from "../shared/Filters";
 import { StatusBadge, formatDateTime, humanize } from "../shared/format";
 import {

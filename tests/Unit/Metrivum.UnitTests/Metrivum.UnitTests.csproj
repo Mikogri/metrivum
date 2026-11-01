@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\backend\modules\Accounts\Metrivum.Accounts\Metrivum.Accounts.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\Access\Metrivum.Access\Metrivum.Access.csproj" />
+    <ProjectReference Include="../../../backend/modules/Analytics/Metrivum.Analytics/Metrivum.Analytics.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\ExerciseCatalog\Metrivum.ExerciseCatalog\Metrivum.ExerciseCatalog.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\Training\Metrivum.Training\Metrivum.Training.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\Media\Metrivum.Media\Metrivum.Media.csproj" />
+    <ProjectReference Include="..\..\..\backend\modules\VideoAnalysis\Metrivum.VideoAnalysis\Metrivum.VideoAnalysis.csproj" />
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="../../../backend/modules/Coaching/Metrivum.Coaching/Metrivum.Coaching.csproj" /><ProjectReference Include="..\..\..\backend\modules\Forms\Metrivum.Forms\Metrivum.Forms.csproj" /><ProjectReference Include="..\..\..\backend\modules\Offers\Metrivum.Offers\Metrivum.Offers.csproj" /><ProjectReference Include="..\..\..\backend\modules\Billing\Metrivum.Billing\Metrivum.Billing.csproj" /><ProjectReference Include="..\..\..\backend\modules\CheckIns\Metrivum.CheckIns\Metrivum.CheckIns.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../../backend/modules/Calendar/Metrivum.Calendar/Metrivum.Calendar.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../../backend/modules/Messaging/Metrivum.Messaging/Metrivum.Messaging.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../../backend/modules/Notifications/Metrivum.Notifications/Metrivum.Notifications.csproj" /><ProjectReference Include="../../../backend/modules/Analytics/Metrivum.Analytics/Metrivum.Analytics.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../../backend/modules/Analytics/Metrivum.Analytics/Metrivum.Analytics.csproj" /></ItemGroup></Project>

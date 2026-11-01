@@ -1,5 +1,5 @@
-import type { Transport } from "@trainflow/api-client-web/transport";
-import type { OnboardingRequest, ProfileResponse, Schema } from "@trainflow/api-client-web";
+import type { Transport } from "@metrivum/api-client-web/transport";
+import type { OnboardingRequest, ProfileResponse, Schema } from "@metrivum/api-client-web";
 
 export const detailGroups = [
     ["Country", "Region", "City", "PostalCode"],

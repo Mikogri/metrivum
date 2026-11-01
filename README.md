@@ -7,12 +7,12 @@ Repository: [Mikogri/metrivum](https://github.com/Mikogri/metrivum). Each applic
 | Project | Location | Run from repository root |
 | --- | --- | --- |
 | Web (React Router) | `apps/web/package.json` | `npm run dev` |
-| API (ASP.NET Core) | `apps/api/TrainFlow.Api/TrainFlow.Api.csproj` | `dotnet run --project apps/api/TrainFlow.Api` |
+| API (ASP.NET Core) | `apps/api/Metrivum.Api/Metrivum.Api.csproj` | `dotnet run --project apps/api/Metrivum.Api` |
 | Mobile (Expo) | `apps/mobile/package.json` | `npm run dev:mobile` |
 
 The root npm workspace and .NET solution coordinate dependencies and builds; they do not combine the applications into a single executable. Shared packages live in `packages/`; API modules live in `backend/`. `development` holds current work; `main` is a separate integration branch and may lag behind. Local agent installations, execution plans, caches and generated builds are ignored; contributor guidance, architecture documentation and CI remain versioned.
 
-The product was renamed from TrainFlow to Metrivum. Existing `TrainFlow.*` project paths, `@trainflow/*` packages,
+The product was renamed from Metrivum to Metrivum. Existing `Metrivum.*` project paths, `@metrivum/*` packages,
 database roles, session keys, mobile application IDs and analyzer protocol/install paths remain stable for compatibility.
 Mobile display names and analyzer/installer branding take effect when their updated builds are installed.
 
@@ -37,11 +37,11 @@ dotnet restore --locked-mode
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT = 'Development'
 $env:ConnectionStrings__MigrationDatabase = 'Host=127.0.0.1;Port=54322;Database=trainflow;Username=trainflow_migrator;Password=<local-secret>'
-dotnet run --project apps/api/TrainFlow.Api -- --migrate
+dotnet run --project apps/api/Metrivum.Api -- --migrate
 # Run infra/runtime-grants.sql as administrator/migration owner after migrations.
 $env:ConnectionStrings__Database = 'Host=127.0.0.1;Port=54322;Database=trainflow;Username=trainflow_api;Password=<local-secret>;Maximum Pool Size=20'
 $env:Supabase__Auth__ProjectUrl = 'http://127.0.0.1:54321'
-dotnet run --project apps/api/TrainFlow.Api -- --urls http://localhost:5080
+dotnet run --project apps/api/Metrivum.Api -- --urls http://localhost:5080
 ```
 
 The ordinary API startup does not migrate. Production requires trusted TLS (`SSL Mode=VerifyFull`), explicit CORS/AllowedHosts and separate Supabase credentials. See [Supabase setup](docs/architecture/supabase-setup.md) and [security](docs/architecture/security.md).
@@ -53,7 +53,7 @@ For video storage, configure `Storage__Url`, `Storage__SecretKey`, `Storage__Buc
 ```powershell
 $env:DOTNET_ENVIRONMENT = 'Development'
 $env:ConnectionStrings__WorkerDatabase = 'Host=127.0.0.1;Port=54322;Database=trainflow;Username=trainflow_worker;Password=<local-secret>'
-dotnet run --project workers/TrainFlow.Worker
+dotnet run --project workers/Metrivum.Worker
 ```
 
 See [media/analysis](docs/features/media-analysis.md) for limits, upload finalization, cleanup, leases and the analyzer adapter contract. Never use production credentials for local tests.

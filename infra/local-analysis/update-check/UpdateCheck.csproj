@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../tools/TrainFlow.MotionTraceBridge/TrainFlow.MotionTraceBridge.csproj" />
-    <Compile Include="../../../tools/TrainFlow.LocalAnalyzer/AnalyzerUpdate.cs" Link="AnalyzerUpdate.cs" />
-    <Compile Include="../../../tools/TrainFlow.LocalAnalyzer/Jobs.cs" Link="Jobs.cs" />
+    <ProjectReference Include="../../../tools/Metrivum.MotionTraceBridge/Metrivum.MotionTraceBridge.csproj" />
+    <Compile Include="../../../tools/Metrivum.LocalAnalyzer/AnalyzerUpdate.cs" Link="AnalyzerUpdate.cs" />
+    <Compile Include="../../../tools/Metrivum.LocalAnalyzer/Jobs.cs" Link="Jobs.cs" />
   </ItemGroup>
 </Project>

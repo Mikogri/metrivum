@@ -6,6 +6,16 @@
   padding: 0;
   list-style: none;
   transition: opacity var(--tf-duration-fast) ease;
+  /* Like the table: when loading ends the grid settles in instead of popping. */
+  animation: grid-in 200ms var(--tf-ease-out);
+}
+
+@keyframes grid-in {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(3px);
+  }
 }
 
 .grid[data-stale] {
@@ -33,6 +43,15 @@
   transition:
     border-color var(--tf-duration-fast) ease,
     background-color var(--tf-duration-fast) ease;
+  /* Cards are there the moment the page is: a short fade and lift, no delay or stagger (as table rows). */
+  animation: card-in 180ms var(--tf-ease-out) both;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
 }
 
 /* A linked card responds as one surface. */
@@ -289,10 +308,63 @@
   .arrow {
     transition: none;
   }
+
+  .grid,
+  .card {
+    animation: none;
+  }
 }
 
 @media (max-width: 767px) {
   .grid { grid-template-columns: minmax(0, 1fr); }
   .card { min-width: 0; }
   .title { overflow-wrap: anywhere; }
+}
+
+/* The card's "⋯" menu, top right and above the card link. */
+.menu {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Labelled facts in the body: two to a row, each "label value" on one line, so the card keeps its usual size. */
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tf-space-1-5) var(--tf-space-4);
+  margin: var(--tf-space-3) 0 0;
+  padding: 0;
+}
+
+.details > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-1-5);
+  min-width: 0;
+}
+
+.details dt {
+  flex-shrink: 0;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+}
+
+.details dd {
+  min-width: 0;
+  overflow: hidden;
+  margin: 0;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  zoom: 0.9;
 }

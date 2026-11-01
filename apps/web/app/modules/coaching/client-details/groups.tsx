@@ -1,7 +1,7 @@
 import { UsersRound } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
-import { Alert, Button, Checkbox, Dialog, LinkButton, SearchInput, toast } from "@trainflow/ui-web";
+import { Alert, Button, Checkbox, Dialog, LinkButton, SearchInput, toast } from "@metrivum/ui-web";
 import { Panel } from "~/shared/ui/Panel";
 import { groupInvalidation, useCoachingMutation, useCoachingQuery, type Group, type Page, type Relationship } from "../api";
 import { Failure, ListPagination, Loading, MutationError } from "../components";

@@ -15,7 +15,7 @@ it('queues the video only on the fixed loopback analyzer, with the pairing token
   expect(request.credentials).toBe('omit');
   expect(request.headers.Authorization).toBe('Bearer pairing-token');
   expect(request.headers['Content-Type']).toBe('video/quicktime');
-  expect(JSON.parse(decodeURIComponent(request.headers['X-TrainFlow-Job']))).toMatchObject({ name: 'Przysiad – ciężki', account: 'user-1', fileName: 'lift.mov' });
+  expect(JSON.parse(decodeURIComponent(request.headers['X-Metrivum-Job']))).toMatchObject({ name: 'Przysiad – ciężki', account: 'user-1', fileName: 'lift.mov' });
 });
 
 it('lists only the signed-in user\'s jobs and explains a full queue', async () => {

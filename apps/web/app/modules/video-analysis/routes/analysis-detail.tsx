@@ -3,14 +3,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ban, GitCompare, Pencil, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { Alert, AlertDialog, Breadcrumbs, Button, Dialog, EmptyState, ErrorState, PageHeader, Skeleton, Spinner, TextArea, TextField, toast } from "@trainflow/ui-web";
+import { Alert, AlertDialog, Breadcrumbs, Button, Dialog, EmptyState, ErrorState, PageHeader, Skeleton, Spinner, TextArea, TextField, toast } from "@metrivum/ui-web";
 import { formatDateTime, formatNumber } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { useFeatureAccess } from "~/shared/access";
-import { useAccountKey, useApi } from "~/shared/session/AccountScope";
+import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { cancelAnalysis, updateAnalysis } from "../api";
 import { AnalysisStage, ResultView } from "../components/ResultView";
 import { StatusBadge } from "../components/StatusBadge";
@@ -35,6 +35,7 @@ export default function AnalysisDetail() {
   const api = useApi();
   const a = useAccountKey();
   const queryClient = useQueryClient();
+  const { lifecycle } = useAccountContext();
   const showError = useErrorToast();
   const manage = useFeatureAccess("video.library.manage");
   const { mode } = useWorkspace();
@@ -83,6 +84,17 @@ export default function AnalysisDetail() {
       setEditOpen(false);
       toast({ tone: "success", title: t.detailsSaved });
     },
+  });
+  const review = useMutation({
+    mutationFn: ({ number, performed }: { number: number; performed: boolean | null }) => updateAnalysis(api, analysisId, {
+      name: analysis!.name, note: analysis!.note, tags: analysis!.tags,
+      repetitionReviews: [{ number, performed }],
+    }, query.data!.version),
+    onSuccess: async () => {
+      if (!lifecycle.isCurrent()) return;
+      await queryClient.invalidateQueries({ queryKey: videoKeys.all(a) });
+    },
+    onError: (error) => { if (lifecycle.isCurrent()) showError(error); },
   });
 
   if (query.isPending) {
@@ -230,7 +242,8 @@ export default function AnalysisDetail() {
           {t.result}
         </h2>
         {analysis.status === "Completed" && result.data ? (
-          <ResultView result={result.data} mediaId={analysis.mediaId ?? undefined} aside={aside} aspect={aspect} />
+          <ResultView result={result.data} mediaId={analysis.mediaId ?? undefined} aside={aside} aspect={aspect}
+            onReview={manage.allowed ? (number, performed) => { if (!review.isPending) review.mutate({ number, performed }); } : undefined} reviewPending={review.isPending} />
         ) : (
           <AnalysisStage aside={aside} mediaId={analysis.mediaId ?? undefined} aspect={aspect}>
             {status}

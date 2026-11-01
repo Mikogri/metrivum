@@ -1,4 +1,4 @@
-import type { ApiErrorCode, ProblemDetails } from "@trainflow/api-client-web";
+import type { ApiErrorCode, ProblemDetails } from "@metrivum/api-client-web";
 
 /** Error raised for any non-2xx API response. Carries the stable `code` from ProblemDetails. */
 export class ApiError extends Error {

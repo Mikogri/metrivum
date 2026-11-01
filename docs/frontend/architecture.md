@@ -22,7 +22,7 @@ background. Library screens share the same accessible cards/list toggle and reta
 | UI | React, TypeScript strict | 19.3, 5.9.3 |
 | Routing / build | React Router framework mode on Vite | 8.4, 8.3 |
 | Server state | TanStack Query | 5.104 |
-| Accessible primitives | React Aria Components (wrapped by `@trainflow/ui-web`) | 1.21 |
+| Accessible primitives | React Aria Components (wrapped by `@metrivum/ui-web`) | 1.21 |
 | Auth | `@supabase/supabase-js` (Auth only) | 2.117 |
 | Component docs | Storybook (`apps/ui-catalog`) | 10.6 |
 | Tests | Vitest + Testing Library, Playwright | 5.0, 1.63 |
@@ -87,10 +87,10 @@ Boundaries are enforced twice: ESLint `no-restricted-imports` and `app/architect
 (modules import other modules only through `~/modules/<name>`, `shared/` never imports modules, `ui-web`
 never imports the app, Supabase, React Query or the API client, and nothing calls `supabase.from()`).
 
-## Component library (`@trainflow/ui-web`)
+## Component library (`@metrivum/ui-web`)
 
 Local package with React as a peer dependency, `sideEffects: ["**/*.css"]` for tree-shaking, and one explicit
-stylesheet import (`@trainflow/ui-web/styles.css`). Groups: actions (Button, LinkButton, IconButton, Link),
+stylesheet import (`@metrivum/ui-web/styles.css`). Groups: actions (Button, LinkButton, IconButton, Link),
 typography, fields (TextField, TextArea, NumberInput, DateField, SearchInput, Select, Combobox, Checkbox,
 Radio, Switch, SegmentedControl, ChipGroup), overlays (Dialog, AlertDialog, Popover, Tooltip, DropdownMenu),
 structure (Tabs, Breadcrumbs, Card, Separator, Disclosure, PageHeader, SectionHeader, Toolbar, Pagination, List/ListRow),

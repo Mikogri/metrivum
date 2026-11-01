@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import type { CreateExerciseRequest } from "@trainflow/api-client-web";
-import { Alert, Button, Dialog, TextArea, TextField, toast, DialogFooter } from "@trainflow/ui-web";
+import type { CreateExerciseRequest } from "@metrivum/api-client-web";
+import { Alert, Button, Dialog, TextArea, TextField, toast, DialogFooter } from "@metrivum/ui-web";
 import { ApiError } from "~/shared/http/errors";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";

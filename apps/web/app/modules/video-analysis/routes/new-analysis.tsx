@@ -1,7 +1,7 @@
 import { Check, CircleAlert, Clock, FileVideo, LoaderCircle, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Alert, AlertDialog, Breadcrumbs, Button, Card, Disclosure, IconButton, LinkButton, PageHeader, Switch, TextField, toast } from '@trainflow/ui-web';
+import { Alert, AlertDialog, Breadcrumbs, Button, Card, Disclosure, IconButton, LinkButton, PageHeader, Switch, TextField, toast } from '@metrivum/ui-web';
 import { AccessNotice, NEAR_LIMIT, QuotaContextField, RequireFeature, useFeatureAccess, useLimit, useQuotaContext } from '~/shared/access';
 import { formatBytes, formatDateTime } from '~/shared/i18n/format';
 import { useLocale } from '~/shared/i18n/LocaleContext';

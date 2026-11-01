@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     Badge,
     Button,
@@ -14,7 +14,7 @@ import {
     Stat,
     Text,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { useApiQuery } from "../../infrastructure/networking/queries";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import { CheckInSheet, type CheckInTarget } from "../check-ins";

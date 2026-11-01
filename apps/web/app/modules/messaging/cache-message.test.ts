@@ -1,6 +1,6 @@
 import { QueryClient, type InfiniteData } from "@tanstack/react-query";
 import { expect, it, vi } from "vitest";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { syncMessage } from "./api";
 import type { Message } from "./model";
 

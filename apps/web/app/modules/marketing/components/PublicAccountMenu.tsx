@@ -1,7 +1,7 @@
 import { ArrowUpRight, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Button as AriaButton, Header, MenuSection } from "react-aria-components";
-import { Avatar, Badge, Dialog, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@trainflow/ui-web";
+import { Avatar, Badge, Dialog, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@metrivum/ui-web";
 import { forgetSlot, storedAccountsHint, type SlotId, type StoredAccountHint } from "~/shared/session/storage-keys";
 import { usePublicMessages } from "../messages";
 import styles from "./PublicAccountMenu.module.css";

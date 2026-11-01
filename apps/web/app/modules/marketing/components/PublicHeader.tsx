@@ -2,7 +2,7 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Dialog, DialogTrigger, Heading, Modal, ModalOverlay } from "react-aria-components";
 import { Link as RouterLink, NavLink, useLocation } from "react-router";
-import { Button, IconButton, LinkButton } from "@trainflow/ui-web";
+import { Button, IconButton, LinkButton } from "@metrivum/ui-web";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { pageFromPathname, publicPath } from "~/shared/i18n/public-routes";
 import { usePublicMessages } from "../messages";

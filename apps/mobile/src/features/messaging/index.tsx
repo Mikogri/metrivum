@@ -20,7 +20,7 @@ import {
     type InfiniteData,
     type QueryKey,
 } from "@tanstack/react-query";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     ActionSheet,
     Avatar,
@@ -42,7 +42,7 @@ import {
     confirm,
     transitions,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import {
     useApiMutation,

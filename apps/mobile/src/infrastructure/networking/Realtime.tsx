@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { router, usePathname } from "expo-router";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";

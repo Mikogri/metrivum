@@ -11,7 +11,7 @@ import {
     Section,
     useTheme,
     type IconName,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { useApiQuery } from "../../infrastructure/networking/queries";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import { mobileDestination } from "../../infrastructure/networking/links";

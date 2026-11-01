@@ -40,6 +40,43 @@ These fixture counts are not production timings or worst-case bounds. Real filte
 - AbortSignals cancel obsolete section requests. Existing account-lifetime cancellation/removal still owns all private cache. No private cache is persisted to disk or shared globally between users.
 - Group mutations invalidate their dependent Analyze filters/sections as well as group/client views, without refetching offers. Other mutation dependencies retain their existing coverage.
 
+## Transfer reduction (2026-11-01)
+
+- `training/analysis-set-options` accepts optional `includeSets` (default `true`) and `executionId`.
+  Existing callers retain the full response. Summary mode keeps the same workout metadata with an empty
+  `exercises` array and performs no exercise/set reads. Detail mode projects picker fields in SQL;
+  comments, prescriptions and other unused execution fields are not transferred from PostgreSQL.
+- The web picker loads summaries, filters a selected relationship on the server and fetches sets only
+  for an expanded execution. Query keys include account, relationship, execution and date range;
+  closing cancels pending reads, switching filters clears the selected set, and sets stay fresh for 30 seconds.
+- Healthy Messaging realtime disables periodic history reloads. Reconnect/deletion/membership events
+  retain their existing invalidation paths. Offline polling remains at 15 seconds, including older pages:
+  replacing it with a new-message-only delta would miss deletions while disconnected.
+- API compression opts in authenticated GET JSON only for dictionaries, analysis-set options and assignment
+  lists. Standard gzip/Brotli negotiation uses the fastest level, preserves `no-store` and varies on encoding.
+  Auth, message content, signed URLs, writes and media stay outside this reviewed list.
+
+Actual wire bytes against an isolated API host using development demo records, with background workers disabled:
+
+| Request | Bytes |
+| --- | ---: |
+| Legacy full picker, identity | 122,049 |
+| Initial summaries, identity | 11,595 |
+| Initial summaries, gzip | 2,285 |
+| One expanded workout, gzip | 1,553 |
+| Exercise dictionaries, gzip | 5,383 |
+
+The initial picker transfers 98.1% fewer bytes in this fixture. Network timings included cold startup,
+authorization and remote database round trips; they are not a controlled latency benchmark. No remote
+migration or live API restart was required. Large analysis-result storage remains unchanged: splitting
+its JSON requires separate evidence and a versioned storage/backfill design.
+
+Verification: 42 PostgreSQL/HTTP integration tests and 157 web tests passed. Coverage includes summary SQL
+projection, legacy response compatibility, foreign/missing execution IDs, compressed content equivalence
+over HTTPS, MIME/method/auth exclusions, lazy set loading/cache reuse, filter selection reset, cancellation,
+account lifetime, pagination, realtime deletion and reconnect recovery. OpenAPI was regenerated using
+`infra/export-contracts.ps1`; both new parameters are optional. No physical device or production CDN test.
+
 ## Horizontal deployment
 
 **Current supported starting point: one API process, shared PostgreSQL/object storage, independently provisioned analysis workers.**

@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { Check, Search, X } from 'lucide-react';
-import type { AnalysisResult } from '@trainflow/api-client-web';
-import { Alert, Button, Card, Dialog, Chip, ChipGroup, IconButton, SearchInput, Skeleton } from '@trainflow/ui-web';
+import type { AnalysisResult } from '@metrivum/api-client-web';
+import { Alert, Button, Card, Dialog, Chip, ChipGroup, IconButton, SearchInput, Skeleton } from '@metrivum/ui-web';
 import { formatNumber, formatRelative } from '~/shared/i18n/format';
 import type { Locale } from '~/shared/i18n/locale';
 import { useLocale } from '~/shared/i18n/LocaleContext';

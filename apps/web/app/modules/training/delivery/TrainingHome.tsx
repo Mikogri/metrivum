@@ -5,7 +5,7 @@ export const meta = () => privateMeta("My training — Metrivum");
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
-import { Button, DataTable, EmptyState, PageHeader, Tab, TabList, Tabs, TextField, Toolbar, Select, Option, useMobileLayout } from "@trainflow/ui-web";
+import { Button, DataTable, EmptyState, PageHeader, Tab, TabList, Tabs, TextField, Toolbar, Select, Option, useMobileLayout } from "@metrivum/ui-web";
 import { useCoachingQuery, type Page } from "~/modules/coaching";
 import { Failure, ListPagination, Loading, StatusBadge } from "~/modules/coaching";
 import { AssignmentList, localDate } from "./Assignments";
@@ -42,10 +42,30 @@ function WorkoutCards({ items, coach }: { items: Occurrence[]; coach: boolean })
   })}</ul>;
 }
 
-export interface Occurrence { exerciseCount?: number | null; revisionId: string; blockId: string; cycleId: string; performedDate: string | null; durationSeconds: number | null; hasComment: boolean; id: string; assignmentId: string; relationshipId: string; programId: string; programName: string; name: string; scheduledDate: string; deadline: string; status: string; executionId: string | null; loggedLate: boolean; allowedActions: string[] }
+export interface Occurrence { plannedSets?: number | null; performedSets?: number | null; completedAt?: string | null; sessionRpe?: number | null; rating?: number | null; exerciseCount?: number | null; revisionId: string; blockId: string; cycleId: string; performedDate: string | null; durationSeconds: number | null; hasComment: boolean; id: string; assignmentId: string; relationshipId: string; programId: string; programName: string; name: string; scheduledDate: string; deadline: string; status: string; executionId: string | null; loggedLate: boolean; allowedActions: string[] }
+/** How much of a logged workout was done: a bar and "11/12 sets · 92%". Nothing for workouts not logged. */
+export function completionOf(item: Pick<Occurrence, "plannedSets" | "performedSets">) {
+  if (item.performedSets == null || !item.plannedSets) return null;
+  return Math.round(Math.min(1, item.performedSets / item.plannedSets) * 100);
+}
+
+export function CompletionCell({ item }: { item: Occurrence }) {
+  const percent = completionOf(item);
+  if (percent == null) return <span className={styles.completionNone}>—</span>;
+  // The colour moves smoothly from red (nothing done) to green (all of it).
+  const color = `color-mix(in oklab, var(--tf-color-success) ${percent}%, var(--tf-color-danger))`;
+  return <span className={styles.completion} style={{ "--done": color } as React.CSSProperties} title={`${item.performedSets} of ${item.plannedSets} sets done`}>
+    <span className={styles.completionBar}><span style={{ transform: `scaleX(${percent / 100})` }} /></span>
+    <span className={styles.completionText}><b style={{ color }}>{percent}%</b> {item.performedSets}/{item.plannedSets} sets</span>
+  </span>;
+}
+
+/** "4 Nov, 08:12" for when a workout was finished. */
+export const completedLabel = (iso: string) => new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
 export function MobileWorkoutRows({ items, coach = false, onOpen }: { items: Occurrence[]; coach?: boolean; onOpen?: (id: string) => void }) {
   return <ul className={styles.rows} aria-label="Workouts">{items.map(item => {
-    const content = <><span className={styles.itemMain}><strong>{item.name}</strong><span className={styles.itemMeta}>{item.programName} · {item.scheduledDate}{item.exerciseCount != null ? ` · ${item.exerciseCount} exercises` : ""}</span>{item.loggedLate && <span className={styles.itemMeta}>Logged late</span>}</span><StatusBadge status={item.status === "InProgress" ? "In progress" : item.status} /></>;
+    const content = <><span className={styles.itemMain}><strong>{item.name}</strong><span className={styles.itemMeta}>{item.programName} · {item.scheduledDate}{item.exerciseCount != null ? ` · ${item.exerciseCount} exercises` : ""}</span>{completionOf(item) != null ? <span className={styles.itemMeta}>{completionOf(item)}% done · {item.performedSets}/{item.plannedSets} sets{item.completedAt ? ` · ${completedLabel(item.completedAt)}` : ""}</span> : null}{item.loggedLate && <span className={styles.itemMeta}>Logged late</span>}</span><StatusBadge status={item.status === "InProgress" ? "In progress" : item.status} /></>;
     return <li key={item.id}>{onOpen ? <button type="button" className={styles.workoutRow} onClick={() => onOpen(item.id)}>{content}</button> : <Link className={styles.workoutRow} to={`/app/${coach ? "training" : "my-training"}/workouts/${item.id}`}>{content}</Link>}</li>;
   })}</ul>;
 }
@@ -70,8 +90,8 @@ export function TrainingSchedule({ relationshipId, programId, coach = false }: {
       {mobile ? <MobileWorkoutRows items={query.data.items} coach={coach} /> : view === "cards" ? <WorkoutCards items={query.data.items} coach={coach} /> : <DataTable label="Workouts" rows={query.data.items} rowKey={item => item.id} className={styles.scheduleTable} columns={[
         { id: "scheduled", header: "Date", width: "8.5rem", cell: item => <span className={styles.scheduleDate}>{dayLabel(item.scheduledDate)}</span> },
         { id: "workout", header: "Workout", cell: item => <Link data-row-link className={styles.rowLink} to={`/app/${coach ? "training" : "my-training"}/workouts/${item.id}`}><span>{item.name}</span><small>{item.programName}</small></Link> },
-        { id: "exercises", header: "Exercises", width: "6.5rem", align: "end", hideOnMobile: true, muted: true, cell: item => item.exerciseCount ?? "—" },
-        { id: "performed", header: "Done on", width: "8.5rem", hideOnMobile: true, muted: true, cell: item => item.performedDate ? dayLabel(item.performedDate) : "—" },
+        { id: "completion", header: "Completion", width: "10rem", hideOnMobile: true, cell: item => <CompletionCell item={item} /> },
+        { id: "performed", header: "Completed", width: "10rem", hideOnMobile: true, muted: true, cell: item => item.completedAt ? completedLabel(item.completedAt) : item.performedDate ? dayLabel(item.performedDate) : "—" },
         { id: "duration", header: "Time", width: "6rem", hideOnMobile: true, muted: true, cell: item => minutes(item.durationSeconds) ?? "—" },
         { id: "status", header: "Status", width: "9.5rem", cell: item => <span className={styles.scheduleStatus}>{statusOf(item)}{item.loggedLate ? <small>Logged late</small> : null}</span> },
       ]} />}

@@ -1,7 +1,7 @@
 import { Dumbbell, Plus, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link as RouterLink, useSearchParams } from "react-router";
-import { Button, Combobox, DataTable, EmptyState, ErrorState, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, Switch, Toolbar } from "@trainflow/ui-web";
+import { Button, Combobox, DataTable, EmptyState, ErrorState, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, Switch, Toolbar } from "@metrivum/ui-web";
 import { FeatureGate, LockedReason, RequireFeature, useFeatureAccess } from "~/shared/access";
 import { formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

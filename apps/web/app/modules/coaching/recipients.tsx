@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Avatar, Checkbox, SearchInput } from "@trainflow/ui-web";
+import { Avatar, Checkbox, SearchInput } from "@metrivum/ui-web";
 import { useCoachingQuery, type Group, type Page, type Relationship } from "./api";
 import { Failure } from "./components";
 import styles from "./recipients.module.css";

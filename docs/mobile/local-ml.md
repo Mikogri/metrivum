@@ -4,7 +4,7 @@ Milestone B, inspected 2026-10-10. **BLOCKED: there is no verified mobile or bro
 
 ## Actual engine
 
-`tools/TrainFlow.MotionTraceBridge/Program.cs` calls the sibling MotionTrace repository's `ai/comparison/analyze_session.py`. Two selected points force provider `tapnextpp`. The active model is **TAPNext++ 256**, online recurrent PyTorch. BootsTAPIR and segmentation models remain installed for other research paths; replacing TAPNext++ with one of them changes the engine and has not been approved or validated.
+`tools/Metrivum.MotionTraceBridge/Program.cs` calls the sibling MotionTrace repository's `ai/comparison/analyze_session.py`. Two selected points force provider `tapnextpp`. The active model is **TAPNext++ 256**, online recurrent PyTorch. BootsTAPIR and segmentation models remain installed for other research paths; replacing TAPNext++ with one of them changes the engine and has not been approved or validated.
 
 The existing full reference pipeline contains:
 
@@ -66,7 +66,7 @@ Reference memory admission can be reproduced without starting a model:
 
 Observed snapshot: 696 MiB free RAM, 4,329 MiB available commit, 6,391/8,192 MiB free/total GPU memory. These values fluctuate. MotionTrace's scheduler requires either 4,524 MiB free RAM or 2,560 MiB free RAM plus 10,240 MiB available commit for the single TAPNext++ path, in addition to GPU headroom. This host failed both RAM admission routes, so fresh full inference and weight-materializing export were not started. No applications were closed and the guard was not bypassed.
 
-For a fresh desktop reference after meeting admission, use the existing [bridge build and request instructions](../../tools/TrainFlow.MotionTraceBridge/README.md). Supply an explicit, legally usable clip and its two source-frame points, use a fresh private output/cache directory, and preserve the request, decoded timeline and raw tracker result for parity. Its output contains private data and belongs outside tracked source. Cached reference comparison in the bridge documentation is historical evidence, not a fresh run in this milestone.
+For a fresh desktop reference after meeting admission, use the existing [bridge build and request instructions](../../tools/Metrivum.MotionTraceBridge/README.md). Supply an explicit, legally usable clip and its two source-frame points, use a fresh private output/cache directory, and preserve the request, decoded timeline and raw tracker result for parity. Its output contains private data and belongs outside tracked source. Cached reference comparison in the bridge documentation is historical evidence, not a fresh run in this milestone.
 
 ## Runtime and device matrix
 

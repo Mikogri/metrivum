@@ -1,4 +1,4 @@
-import type { Quantity } from "@trainflow/api-client-web";
+import type { Quantity } from "@metrivum/api-client-web";
 
 export interface ExerciseMax {
   id: string;

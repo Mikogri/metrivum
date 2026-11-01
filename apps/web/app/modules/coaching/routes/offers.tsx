@@ -3,15 +3,15 @@ import { privateMeta } from "~/shared/i18n/site";
 export const meta = () => privateMeta("Offers — Metrivum");
 
 import { useRef } from "react";
-import { Link } from "react-router";
-import { BadgePercent, Plus, Tag } from "lucide-react";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Button, DataTable, Dialog, EmptyState, LinkButton, Option, PageHeader, SearchInput, Select, Toolbar } from "@trainflow/ui-web";
+import { Link, useNavigate } from "react-router";
+import { Archive, BadgePercent, MoreHorizontal, PauseCircle, Pencil, PlayCircle, Plus, Tag, Upload } from "lucide-react";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Button, DataTable, Dialog, EmptyState, LinkButton, Option, PageHeader, SearchInput, Select, Toolbar, toast, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton } from "@metrivum/ui-web";
 import { RequireFeature } from "~/shared/access";
-import { useDiscardConfirm } from "~/shared/lib/useConfirm";
+import { useDangerConfirm, useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
-import { useCoachingQuery, type Page } from "../api";
-import { Failure, ListPagination, Loading, StatusBadge } from "../components";
+import { useCoachingMutation, useCoachingQuery, type Page } from "../api";
+import { Failure, ListPagination, Loading, MutationError, StatusBadge } from "../components";
 import { OfferEditor } from "../offer-editor";
 import { money } from "../pricing";
 
@@ -37,6 +37,26 @@ function Offers() {
     update({ create: "", page: state.page });
   };
   const open = () => update({ create: "1", page: state.page });
+  const navigate = useNavigate();
+  // One-click status changes from the list; deactivating asks first, as in the editor.
+  const { ask, dialog: confirmDialog } = useDangerConfirm();
+  const change = useCoachingMutation<Schema<"OfferDto">>((offer) => toast({ tone: "success", title: offer.status === "Active" ? "Offer is live" : offer.status === "Inactive" ? "Offer deactivated" : "Offer updated" }));
+  const quick = async (o: Schema<"OfferDto">, action: string) => {
+    if (action === "open") return navigate(`/app/offers/${o.id}`);
+    if (action === "archive" && !(await ask({ title: `Archive ${o.name}?`, body: "It disappears from your public offers and can no longer receive applications. Existing clients keep their accepted terms.", confirmLabel: "Archive offer", cancelLabel: "Keep offer" }))) return;
+    if (action === "deactivate" && !(await ask({ title: `Deactivate ${o.name}?`, body: "It stops taking new applications and leaves your public offers. Current clients keep their terms, and you can activate it again later.", confirmLabel: "Deactivate offer", cancelLabel: "Keep it open" }))) return;
+    change.mutate({ method: "POST", path: `/api/v1/offers/${o.id}/${action}`, ifMatch: o.version });
+  };
+  const offerMenu = (o: Schema<"OfferDto">) => <DropdownMenuTrigger>
+    <IconButton size="sm" variant="ghost" label={`Actions for ${o.name}`} icon={<MoreHorizontal />} isDisabled={change.isPending} />
+    <DropdownMenu aria-label={`Actions for ${o.name}`} onAction={(key) => void quick(o, String(key))}>
+      <DropdownMenuItem id="open" icon={<Pencil />}>Open</DropdownMenuItem>
+      {o.status === "Draft" ? <DropdownMenuItem id="publish" icon={<Upload />}>Publish</DropdownMenuItem> : null}
+      {o.status === "Active" ? <DropdownMenuItem id="deactivate" icon={<PauseCircle />}>Deactivate</DropdownMenuItem> : null}
+      {o.status === "Inactive" ? <DropdownMenuItem id="activate" icon={<PlayCircle />}>Activate</DropdownMenuItem> : null}
+      {o.status !== "Archived" && o.status !== "Draft" ? <><DropdownMenuSeparator /><DropdownMenuItem id="archive" tone="danger" icon={<Archive />}>Archive</DropdownMenuItem></> : null}
+    </DropdownMenu>
+  </DropdownMenuTrigger>;
   const filtered = Boolean(state.q || state.status);
   return (
     <>
@@ -91,8 +111,12 @@ function Offers() {
           {state.view === "cards" ? <CardGrid label="Offers">{list.data.items.map((o) => {
             const prices = o.billingOptions.map((b) => Number(b.price)).filter((p) => p > 0);
             const from = prices.length ? Math.min(...prices) : null;
-            return <ListCard key={o.id} href={`/app/offers/${o.id}`} title={o.name} subtitle={o.teamId ? `Team · ${o.teamName ?? "Organization"}` : o.purpose === "TrainingPlan" ? "Training plan" : "Coaching service"} icon={<Tag />} tone={categoryTone(o.category)} badge={<StatusBadge status={o.status} />} description={o.description || "No description yet."}
-              meta={[<CategoryTag key="type" category={o.category} />, o.coachingMode === "Offline" ? "In person" : o.coachingMode, from == null ? "No price" : `From ${money(from, currency)}`]} />;
+            return <ListCard key={o.id} href={`/app/offers/${o.id}`} title={o.name} subtitle={o.teamId ? `Team · ${o.teamName ?? "Organization"}` : o.purpose === "TrainingPlan" ? "Training plan" : "Coaching service"} icon={<Tag />} tone={categoryTone(o.category)} menu={offerMenu(o)} status={<StatusBadge status={o.status} />} details={[
+              { label: "Type", value: <CategoryTag category={o.category} /> },
+              { label: "Mode", value: o.coachingMode === "Offline" ? "In person" : o.coachingMode },
+              { label: "Price", value: from == null ? "No price" : `From ${money(from, currency)}` },
+              { label: "Payment options", value: o.billingOptions.length === 0 ? "None yet" : o.billingOptions.length === 1 ? "1 option" : `${o.billingOptions.length} options` },
+            ]} />;
           })}</CardGrid> : <DataTable
             label="Offers"
             rows={list.data.items}
@@ -103,12 +127,15 @@ function Offers() {
               { id: "mode", header: "Mode", cell: (o) => o.coachingMode },
               { id: "options", header: "Billing options", cell: (o) => o.billingOptions.length, hideOnMobile: true },
               { id: "status", header: "Status", cell: (o) => <StatusBadge status={o.status} /> },
+              { id: "actions", header: <span className="tf-visually-hidden">Actions</span>, width: "3.5rem", align: "end", cell: (o) => offerMenu(o) },
             ]}
           />}
           <ListPagination data={list.data} onChange={(page) => update({ page: String(page) })} />
         </>
       )}
       {dialog}
+      {confirmDialog}
+      <MutationError error={change.error} />
       <Dialog
         title="New offer"
         description="Saved as a draft. Publish it from the offer page when the terms are ready."

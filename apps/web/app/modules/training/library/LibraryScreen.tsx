@@ -4,9 +4,9 @@ import { Archive, ArchiveRestore, Copy, Folder, FolderInput, FolderPlus, FolderU
 import { useEffect, useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import type { DocumentKind, FolderDto, PlanListItem } from "@trainflow/api-client-web";
-import { LinkButton } from "@trainflow/ui-web";
-import { Badge, Breadcrumbs, Button, ContextMenu, DataTable, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, ErrorState, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, Switch, Toolbar, toast, type ContextMenuEntry } from "@trainflow/ui-web";
+import type { DocumentKind, FolderDto, PlanListItem } from "@metrivum/api-client-web";
+import { LinkButton } from "@metrivum/ui-web";
+import { Badge, Breadcrumbs, Button, ContextMenu, DataTable, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, ErrorState, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, Switch, Toolbar, toast, type ContextMenuEntry } from "@metrivum/ui-web";
 import { LockedReason, useFeatures } from "~/shared/access";
 import { formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
@@ -16,7 +16,8 @@ import { useDebounced } from "~/shared/lib/useDebounced";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
-import { setArchived } from "../api";
+import { publishRevision, setArchived } from "../api";
+import { NotPublishedBadge } from "~/modules/coaching";
 import { ImportWizard } from "../import-export/ImportWizard";
 import { trainingKeys, useFolderChildren, usePlanList } from "../queries";
 import { CopyPlanDialog, CreatePlanDialog, FolderDialogs, MovePlanDialog, type FolderDialogState } from "./dialogs";
@@ -40,6 +41,23 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
   const api = useApi();
   const a = useAccountKey();
   const queryClient = useQueryClient();
+  // Publishing straight from the list: a program clients can't get yet, or one with changes not applied.
+  const publish = useMutation({
+    mutationFn: (plan: PlanListItem) => publishRevision(api, plan.id, Number(plan.version), crypto.randomUUID()),
+    onSuccess: (_, plan) => {
+      toast({ tone: "success", title: plan.publishedNumber == null ? "Program published" : "Changes applied", description: "Clients assigned to it get this version." });
+      void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(a) });
+      void queryClient.invalidateQueries({ queryKey: trainingKeys.all(a) });
+    },
+    onError: (error) => toast({ tone: "danger", title: errorText(m, error) }),
+  });
+  /** Whether clients can get a program (Publish / Apply are in its ⋯ menu). */
+  const planStatus = (plan: PlanListItem) => {
+    const never = plan.publishedNumber == null;
+    const pending = !never && Number(plan.publishedDraftVersion) !== Number(plan.version);
+    const badge = never ? <NotPublishedBadge size="sm" /> : pending ? <Badge size="sm" tone="warning">Changes not applied</Badge> : <Badge size="sm" tone="success">Published · v{Number(plan.publishedNumber)}</Badge>;
+    return badge;
+  };
   const showError = useErrorToast();
   const [params, setParams] = useSearchParams();
   const [state, update] = useUrlState(DEFAULTS);
@@ -134,6 +152,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
     else if (key === "copy") setCopyTarget({ plan, fromTemplate: false });
     else if (key === "use") setCopyTarget({ plan, fromTemplate: true });
     else if (key === "move") setMoveTarget(plan);
+    else if (key === "publish") publish.mutate(plan);
     else if (key === "archive") archive.mutate({ plan, archived: true });
     else if (key === "restore") archive.mutate({ plan, archived: false });
   };
@@ -159,6 +178,11 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
         <DropdownMenuItem id="edit" icon={<Pencil />} isDisabled={!canManage || plan.archived}>
           {t.editDraft}
         </DropdownMenuItem>
+        {plan.kind === "Program" && !plan.archived && (plan.publishedNumber == null || Number(plan.publishedDraftVersion) !== Number(plan.version)) ? (
+          <DropdownMenuItem id="publish" icon={<Upload />} isDisabled={!canManage || publish.isPending}>
+            {plan.publishedNumber == null ? "Publish" : "Apply changes"}
+          </DropdownMenuItem>
+        ) : null}
         {isTemplate ? (
           <DropdownMenuItem id="use" icon={<Copy />} isDisabled={!access["training.programs.create"].allowed || plan.archived}>
             {t.useTemplate}
@@ -332,6 +356,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
               {entry.plan.name}
             </RouterLink>
             {entry.plan.description ? <span className={styles.cardDescription}>{entry.plan.description}</span> : null}
+            {entry.plan.kind === "Program" ? <span className={styles.cardStatus}>{planStatus(entry.plan)}</span> : null}
             <span className={styles.cardMeta}>
               {entry.plan.archived ? (
                 <Badge tone="warning" size="sm">
@@ -379,6 +404,12 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
           hideOnMobile: true,
           cell: (entry) => (entry.type === "folder" ? t.folderLabel : entry.plan.description || "—"),
         },
+        ...(isTemplate ? [] : [{
+          id: "status",
+          header: "Status",
+          width: "12.5rem",
+          cell: (entry: Entry) => entry.type === "folder" || entry.plan.kind !== "Program" ? <span aria-hidden="true">—</span> : planStatus(entry.plan),
+        }]),
         {
           id: "updated",
           header: t.columns.updated,

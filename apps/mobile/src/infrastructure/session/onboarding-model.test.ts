@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Transport } from "@trainflow/api-client-web/transport";
+import type { Transport } from "@metrivum/api-client-web/transport";
 import { ageAt, createOnboardingWriter, detailGroups, detailIssues, profileValues } from "./onboarding-model";
 import { isValidEmail } from "./email";
 import { passwordProblem } from "./auth-policy";

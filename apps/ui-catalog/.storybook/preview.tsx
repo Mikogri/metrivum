@@ -1,6 +1,6 @@
 import type { Preview } from "@storybook/react-vite";
-import { Toaster } from "@trainflow/ui-web";
-import "@trainflow/ui-web/styles.css";
+import { Toaster } from "@metrivum/ui-web";
+import "@metrivum/ui-web/styles.css";
 import "./preview.css";
 
 const preview: Preview = {

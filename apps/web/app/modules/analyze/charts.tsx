@@ -1,3 +1,4 @@
+import { InfoTip } from "@metrivum/ui-web";
 import { ArrowDownRight, ArrowUpRight, ChartNoAxesColumn, Minus } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import styles from "./charts.module.css";
@@ -145,8 +146,11 @@ export function Kpi({
   spark,
   tone = "accent",
   caption,
+  info,
   index = 0,
 }: {
+  /** A short explanation of how the number is worked out, behind an (i). */
+  info?: string;
   label: string;
   value: number;
   format?: (n: number) => string;
@@ -160,7 +164,7 @@ export function Kpi({
   return (
     <article className={styles.kpi} style={{ "--i": index } as React.CSSProperties} data-tone={tone}>
       <header>
-        <span className={styles.kpiLabel}>{label}</span>
+        <span className={styles.kpiLabel}>{label}{info ? <InfoTip label={label} className={styles.kpiInfo}>{info}</InfoTip> : null}</span>
         {previous !== undefined ? <Delta current={value} previous={previous} invert={invert} /> : null}
       </header>
       <strong className={styles.kpiValue}>
@@ -450,7 +454,8 @@ export function RankList({ items, format = (n) => String(n), tone = "accent" }: 
   );
 }
 
-export function Split({ a, b }: { a: { label: string; value: number; tone: Tone }; b: { label: string; value: number; tone: Tone } }) {
+/** Two shares of one total: a bar, then each part with its value and percentage (stacked: one part per line). */
+export function Split({ a, b, format, stacked }: { a: { label: string; value: number; tone: Tone }; b: { label: string; value: number; tone: Tone }; format?: (n: number) => string; stacked?: boolean }) {
   if (!a.value && !b.value) return <NoData height={96} />;
   const total = a.value + b.value;
   return (
@@ -459,14 +464,15 @@ export function Split({ a, b }: { a: { label: string; value: number; tone: Tone 
         <span className={styles.tone} data-tone={a.tone} style={{ flexGrow: a.value / total }} />
         <span className={styles.tone} data-tone={b.tone} style={{ flexGrow: b.value / total }} />
       </div>
-      <div className={styles.splitLegend}>
+      <div className={styles.splitLegend} data-stacked={stacked || undefined}>
         {[a, b].map((x) => (
           <span key={x.label}>
             <i className={styles.tone} data-tone={x.tone} />
             {x.label}
             <b>
-              <AnimatedNumber value={x.value} />
+              <AnimatedNumber value={x.value} format={format} />
             </b>
+            {stacked ? <em>{Math.round((x.value / total) * 100)}%</em> : null}
           </span>
         ))}
       </div>

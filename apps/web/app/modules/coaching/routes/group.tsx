@@ -29,7 +29,7 @@ import {
   TabList,
   Tabs,
   toast,
-} from "@trainflow/ui-web";
+} from "@metrivum/ui-web";
 import { RequireFeature } from "~/shared/access";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";

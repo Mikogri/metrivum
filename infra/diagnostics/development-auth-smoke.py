@@ -51,6 +51,8 @@ def main():
     user_id = str(uuid.uuid4())
     email = "trainflow-audit-" + user_id + "@example.invalid"
     password = secrets.token_urlsafe(40) + "aA1!"
+    object_key = None
+    storage_bucket = settings["Storage"].get("Bucket")
     # A supplied random UUID permits exact cleanup even if the creation response is lost.
     try:
         status, content = request(origin + "/auth/v1/admin/users", "POST",
@@ -68,11 +70,79 @@ def main():
             if status != expected:
                 raise RuntimeError(f"API authentication smoke expected HTTP {expected}, received {status}.")
         print("Real Supabase sign-in/JWKS accepted; anonymous and tampered tokens rejected. No Metrivum business records created.")
+        env_path = Path("apps/web/.env.local")
+        public_key = None
+        if env_path.exists():
+            for line in env_path.read_text(encoding="utf-8-sig").splitlines():
+                if line.startswith("VITE_SUPABASE_PUBLISHABLE_KEY="):
+                    public_key = line.split("=", 1)[1].strip().strip("\"'")
+        if public_key and storage_bucket:
+            object_key = "security-audit/" + user_id + ".txt"
+            object_path = urllib.parse.quote(storage_bucket, safe="") + "/" + object_key
+            raw = b"Synthetic disposable security audit fixture."
+            upload = urllib.request.Request(origin + "/storage/v1/object/" + object_path,
+                method="POST", data=raw, headers=admin_headers | {"Content-Type": "text/plain", "x-upsert": "false"})
+            with opener.open(upload, timeout=30) as uploaded:
+                if uploaded.status not in (200, 201):
+                    raise RuntimeError("Disposable Storage upload failed.")
+            for headers in ({"apikey": public_key}, {"apikey": public_key, "Authorization": "Bearer " + token}):
+                status, _ = request(origin + "/storage/v1/object/" + object_path, headers=headers)
+                if status not in (400, 401, 403, 404):
+                    raise RuntimeError(f"Private fixture readable without a signed URL: HTTP {status}.")
+            status, signed_body = request(origin + "/storage/v1/object/sign/" + object_path, "POST",
+                {"expiresIn": 60}, admin_headers)
+            if status != 200:
+                raise RuntimeError("Disposable signed read failed.")
+            signed = json.loads(signed_body)["signedURL"]
+            signed_url = origin + "/storage/v1" + signed
+            if urllib.parse.urlsplit(signed_url).hostname != urllib.parse.urlsplit(origin).hostname:
+                raise RuntimeError("Unexpected signed Storage host.")
+            status, content = request(signed_url)
+            if status != 200 or content != raw:
+                raise RuntimeError("Signed fixture contents did not match.")
+            status, _ = request(signed_url + "tampered")
+            if status not in (400, 401, 403, 404):
+                raise RuntimeError("Tampered signed URL was not rejected.")
+            print("Disposable private Storage: anonymous/unrelated user denied, signed read verified, tampered URL denied.")
+        else:
+            print("Storage live probe skipped: local publishable key/bucket configuration missing.")
+        replacement = secrets.token_urlsafe(40) + "aA1!"
+        status, _ = request(origin + "/auth/v1/user", "PUT",
+                            {"password": replacement, "current_password": password},
+                            {"apikey": key, "Authorization": "Bearer " + token})
+        if status != 200:
+            raise RuntimeError(f"Disposable password update failed: HTTP {status}.")
+        status, _ = request(origin + "/auth/v1/token?grant_type=password", "POST",
+                            {"email": email, "password": password}, {"apikey": key})
+        if status == 200:
+            raise RuntimeError("Previous disposable password still accepted.")
+        status, content = request(origin + "/auth/v1/token?grant_type=password", "POST",
+                                  {"email": email, "password": replacement}, {"apikey": key})
+        if status != 200:
+            raise RuntimeError(f"Replacement password login failed: HTTP {status}.")
+        replacement_token = json.loads(content)["access_token"]
+        status, _ = request(origin + "/auth/v1/logout?scope=global", "POST",
+                            headers={"apikey": key, "Authorization": "Bearer " + replacement_token})
+        if status not in (200, 204):
+            raise RuntimeError(f"Disposable global logout failed: HTTP {status}.")
+        for revoked in (token, replacement_token):
+            status, _ = request(path, headers={"Authorization": "Bearer " + revoked})
+            if status != 401:
+                raise RuntimeError(f"API accepted a revoked disposable session: HTTP {status}.")
+        print("Disposable password changed; old password rejected; global logout revoked both API sessions.")
     finally:
-        status, _ = request(origin + "/auth/v1/admin/users/" + user_id, "DELETE", headers=admin_headers)
-        if status not in (200, 204, 404):
-            raise RuntimeError(f"Temporary Auth user cleanup failed: HTTP {status}.")
-        print("This run's temporary Auth user removed; no email sent.")
+        try:
+            if object_key is not None:
+                status, _ = request(origin + "/storage/v1/object/" + urllib.parse.quote(storage_bucket, safe=""),
+                    "DELETE", {"prefixes": [object_key]}, admin_headers)
+                if status not in (200, 204):
+                    raise RuntimeError("Disposable Storage fixture cleanup failed.")
+        finally:
+            # Auth cleanup must still run if object cleanup fails.
+            status, _ = request(origin + "/auth/v1/admin/users/" + user_id, "DELETE", headers=admin_headers)
+            if status not in (200, 204, 404):
+                raise RuntimeError(f"Temporary Auth user cleanup failed: HTTP {status}.")
+            print("This run's temporary Auth user removed; no email sent.")
 
 
 if __name__ == "__main__":

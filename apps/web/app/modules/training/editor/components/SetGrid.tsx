@@ -1,8 +1,8 @@
 import { GripVertical, Lock, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from "react";
-import type { ExerciseListItemDto, Prescription, SetKind, TrainingSet, Workout } from "@trainflow/api-client-web";
-import { SET_KINDS } from "@trainflow/api-client-web";
-import { Badge, Button, toast } from "@trainflow/ui-web";
+import type { ExerciseListItemDto, Prescription, SetKind, TrainingSet, Workout } from "@metrivum/api-client-web";
+import { SET_KINDS } from "@metrivum/api-client-web";
+import { Badge, Button, toast } from "@metrivum/ui-web";
 import { ExercisePicker, type ExerciseLabel } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";

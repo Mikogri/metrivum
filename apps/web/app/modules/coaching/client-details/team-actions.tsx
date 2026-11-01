@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, AlertDialog, Button, Dialog, DialogFooter, Option, Select, toast } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, AlertDialog, Button, Dialog, DialogFooter, Option, Select, toast } from "@metrivum/ui-web";
 import { useCoachingMutation, useCoachingQuery, type Relationship } from "../api";
 import { Failure, Loading, MutationError } from "../components";
 import styles from "./client-details.module.css";

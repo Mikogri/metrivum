@@ -2,10 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { expect, it, vi } from "vitest";
-import type * as UiWeb from "@trainflow/ui-web";
+import type * as UiWeb from "@metrivum/ui-web";
 import { NotificationBell } from "./notifications";
 
-vi.mock("@trainflow/ui-web", async original => ({ ...await original<typeof UiWeb>(), useMobileLayout: () => true }));
+vi.mock("@metrivum/ui-web", async original => ({ ...await original<typeof UiWeb>(), useMobileLayout: () => true }));
 vi.mock("./provider", () => ({ useNotifications: () => ({ muted: false, toggleSound: vi.fn() }) }));
 vi.mock("~/shared/session", () => ({ useAccountContext: () => ({ lifecycle: { isCurrent: () => true } }) }));
 vi.mock("~/shared/i18n/LocaleContext", () => ({ useLocale: () => "en" }));

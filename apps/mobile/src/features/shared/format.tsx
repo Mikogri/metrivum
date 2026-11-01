@@ -1,4 +1,4 @@
-import { Badge } from "@trainflow/ui-mobile";
+import { Badge } from "@metrivum/ui-mobile";
 
 /** "InProgress" → "In progress": API enum names shown as readable labels. */
 export function humanize(value: string | null | undefined) {

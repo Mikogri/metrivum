@@ -5,7 +5,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import TrainingHome, { MobileWorkoutRows, TrainingSchedule, type Occurrence } from "./TrainingHome";
 const state = vi.hoisted(() => ({ mobile: true, filters: {} as Record<string, unknown> }));
 beforeEach(() => { state.mobile = true; state.filters = {}; });
-vi.mock("@trainflow/ui-web", async original => ({ ...await original<object>(), useMobileLayout: () => state.mobile }));
+vi.mock("@metrivum/ui-web", async original => ({ ...await original<object>(), useMobileLayout: () => state.mobile }));
 vi.mock("~/shared/session/WorkspaceScope", () => ({ useWorkspace: () => ({ mode: "client" }) }));
 vi.mock("~/modules/coaching", () => ({ useCoachingQuery: (_path: string, filters: Record<string, unknown>) => { state.filters = filters; return ({ isPending: false, isError: false, data: { items: [], total: 0 } }); }, EmptyState: () => null, Loading: () => null, Failure: () => null, ListPagination: () => null, StatusBadge: () => null }));
 vi.mock("./Assignments", () => ({ AssignmentList: () => null, localDate: () => "2026-10-12" }));

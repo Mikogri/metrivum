@@ -24,7 +24,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA integrations REVOKE EXECUTE ON FUNCTIONS FROM
     foreach ($module in @('Integrations', 'Access')) {
         $part = Join-Path $parts "$module.sql"
         $arguments = @('ef', 'migrations', 'script', '--no-transactions', '--configuration', $Configuration,
-            '--project', "backend/modules/$module/TrainFlow.$module", '--context', "$($module)DbContext", '--output', $part)
+            '--project', "backend/modules/$module/Metrivum.$module", '--context', "$($module)DbContext", '--output', $part)
         if ($NoBuild) { $arguments += '--no-build' }
         if ($module -eq 'Access') { $arguments += @('20261008135032_StageFiveFeatures', '20261014160000_IntegrationFeatures') }
         & dotnet @arguments

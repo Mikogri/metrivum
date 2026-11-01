@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router } from "expo-router";
 import { View } from "react-native";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     Avatar,
     Badge,
@@ -19,7 +19,7 @@ import {
     Text,
     confirm,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import {
     useAccounts,
     useMobile,

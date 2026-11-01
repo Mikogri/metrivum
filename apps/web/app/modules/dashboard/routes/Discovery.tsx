@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Check, Compass, Eye, MapPin, Store, UserRound } from "lucide-react";
 import { Link as RouterLink } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Badge, Card, LinkButton, Skeleton } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Badge, Card, LinkButton, Skeleton } from "@metrivum/ui-web";
 import { detailsFromValues, profileFieldsKey, useProfile } from "~/modules/accounts";
 import { DiscoveryListing, ProEdge, useCoachingQuery, type Page } from "~/modules/coaching";
 import { useT } from "~/shared/i18n/AppLocale";

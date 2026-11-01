@@ -12,7 +12,7 @@ import {
   type NavigateOptions,
 } from "react-router";
 import { RouterProvider } from "react-aria-components";
-import "@trainflow/ui-web/styles.css";
+import "@metrivum/ui-web/styles.css";
 import "./app.css";
 import type { Route } from "./+types/root";
 import { localeFromPathname } from "~/shared/i18n/locale";

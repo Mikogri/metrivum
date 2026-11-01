@@ -1,6 +1,6 @@
-# TrainFlow decode-uri-component compatibility fork
+# Metrivum decode-uri-component compatibility fork
 
-Private package `@trainflow/decode-uri-component@0.5.0-trainflow.1`, based on npm `decode-uri-component@0.5.0` (MIT; see license).
+Private package `@metrivum/decode-uri-component@0.5.0-trainflow.1`, based on npm `decode-uri-component@0.5.0` (MIT; see license).
 
 - Source: https://github.com/SamVerschueren/decode-uri-component/tree/v0.5.0
 - Tarball: https://registry.npmjs.org/decode-uri-component/-/decode-uri-component-0.5.0.tgz

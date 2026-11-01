@@ -5,7 +5,7 @@ Push-Location $root
 try {
     $previousOutput = $env:TRAINFLOW_CONTRACT_OUTPUT
     $env:TRAINFLOW_CONTRACT_OUTPUT = Join-Path $root 'contracts/generated'
-    $arguments = @('run', '--project', 'apps/api/TrainFlow.Api')
+    $arguments = @('run', '--project', 'apps/api/Metrivum.Api')
     if ($NoBuild) { $arguments += '--no-build' }
     if ($ArtifactsPath) { $arguments += @('--artifacts-path', [IO.Path]::GetFullPath($ArtifactsPath)) }
     & dotnet @arguments -- --export-contracts

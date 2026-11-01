@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import type { FormulaUse, Unit } from "@trainflow/api-client-web";
-import { Combobox, NumberInput, Option, Select, Spinner } from "@trainflow/ui-web";
+import type { FormulaUse, Unit } from "@metrivum/api-client-web";
+import { Combobox, NumberInput, Option, Select, Spinner } from "@metrivum/ui-web";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";

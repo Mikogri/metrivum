@@ -8,7 +8,7 @@ const state = vi.hoisted(() => ({ list: vi.fn(), video: vi.fn(), result: vi.fn()
 vi.mock('~/shared/access', () => ({ useFeatureAccess: () => ({ allowed: true }) }));
 const scope = vi.hoisted(() => ({ api: vi.fn(), account: { userId: 'user-1' }, accountKey: '0:user-1', lifecycle: { signal: () => new AbortController().signal, isCurrent: () => true } }));
 vi.mock('~/shared/session/AccountScope', () => ({ useAccountContext: () => scope }));
-vi.mock('@trainflow/ui-web', () => ({ toast: state.toast }));
+vi.mock('@metrivum/ui-web', () => ({ toast: state.toast }));
 vi.mock('./save-local-analysis', () => ({ persistLocalAnalysis: state.persist }));
 vi.mock('./local-analysis', () => ({
   AnalyzerError: class extends Error { constructor(message: string, readonly status: number) { super(message); } },

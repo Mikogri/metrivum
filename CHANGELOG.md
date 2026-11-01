@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Rename solution/projects, .NET namespaces, npm workspaces and native voice module to Metrivum. Preserve existing database roles, migration IDs, environment keys and stored-session identifiers for compatibility. Native apps and analyzer distributions require fresh builds after the rename.
+- Reduce analysis set-picker transfer with lazy summaries/details and projected SQL; add reviewed gzip/Brotli JSON responses and stop redundant history polling on healthy Messaging realtime connections.
+
 - Add canonical coach specializations (5 English categories, 27 choices), versioned selections and relevance-first Discovery with equal Pro/Team/Studio priority. Share the selector across coach setup/settings/profile; batch reads, debounce search and add measured query/FK indexes.
 
 - Share quick superset pairing/unlinking and individual set-type controls across both plan editors. Add Warmup, allow standalone BackOff markers, and retain validation of optional top-set references; basic markers and supersets do not require advanced-set access.
@@ -114,7 +117,7 @@
 - Add Client/dual-role accounts and the Coaching relationship/group core with versioned commands, private projections, immutable audits and PostgreSQL ownership constraints. Apply stage 01 EF migrations to the confirmed development project; add guarded dev fixtures and backward-compatible generated contracts.
 - Isolate Testing configuration from local runtime secrets and reject non-loopback test databases.
 - Add the React web frontend (`apps/web`): pre-rendered EN/PL public site with landing and feature pages, Supabase Auth screens, onboarding, dashboard, exercise catalog, folders/programs/templates, spreadsheet-style program editor with autosave and conflict handling, formulas, CSV import, server CSV/PDF export, video uploads, analysis results and comparison.
-- Add `@trainflow/ui-web` component library with design tokens and a Storybook catalog (`apps/ui-catalog`).
+- Add `@metrivum/ui-web` component library with design tokens and a Storybook catalog (`apps/ui-catalog`).
 - Support up to three independently signed-in accounts per browser with isolated sessions, caches and in-flight requests.
 - Add frontend lint, typecheck, unit, Storybook build and Playwright checks, plus a separate Frontend CI workflow.
 - Document frontend architecture, design reference, API integration map, API gaps/release blockers and hosting rules.

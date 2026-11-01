@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Block, BlockExerciseMax } from "@trainflow/api-client-web";
+import type { Block, BlockExerciseMax } from "@metrivum/api-client-web";
 import { useFormulaEvaluation } from "./components/useFormulaEvaluation";
 import { ClientFormulaContext, useClientFormulaContext } from "./client-context";
 import { convertMass, exerciseMaxAlias, withClientVariables } from "./model/inline-formula";

@@ -5,8 +5,8 @@ export const meta = () => privateMeta("Check-in details — Metrivum");
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Button, PageHeader, TextArea, toast } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Button, PageHeader, TextArea, toast } from "@metrivum/ui-web";
 import { QuickMessage, type QuickTemplate } from "~/modules/messaging";
 import { useProfile } from "~/modules/accounts";
 import { LockedReason, useFeatureAccess } from "~/shared/access";
@@ -14,10 +14,11 @@ import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { useCoachingMutation, useCoachingQuery } from "../api";
 import { DraftNavigationGuard, Failure, Loading, MutationError, StatusBadge } from "../components";
-import { AnswerReview, FormAnswerFields, answerErrors, focusFirstError, type AnswerErrors, type Answers } from "../form-fields";
+import { AnswerSheet, FormAnswerFields, answerErrors, focusFirstError, type AnswerErrors, type Answers } from "../form-fields";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import styles from "../coaching.module.css";
 import detail from "./check-in.module.css";
+import preview from "../form-builder.module.css";
 
 export function CheckInDetail({ requestId, relationshipId, embedded = false, onDirtyChange }: { requestId: string | undefined; relationshipId?: string; embedded?: boolean; onDirtyChange?: (dirty: boolean) => void }) {
   const profile = useProfile();
@@ -58,8 +59,6 @@ export function CheckInDetail({ requestId, relationshipId, embedded = false, onD
     { label: "Submitted", value: r.submittedAt ? <>{when(r.submittedAt)}{r.wasLate ? <span className={styles.lateNote}> · late</span> : null}</> : "Not yet" },
     ...(r.reviewedAt ? [{ label: "Reviewed", value: when(r.reviewedAt) }] : []),
   ]} />;
-  // The client's own page: the form in a narrow column, with the dates, progress and what happens next beside it.
-  const side = !coach && !embedded;
   const questions = d.form.definition.sections.flatMap((section) => section.questions);
   const answered = questions.filter((q) => { const value = answers[q.key]; return Array.isArray(value) ? value.length > 0 : value !== undefined && value !== null && value !== ""; }).length;
   const next = r.status === "Reviewed" ? "Your coach reviewed this check-in. Their reply, if they left one, is below your answers."
@@ -67,49 +66,90 @@ export function CheckInDetail({ requestId, relationshipId, embedded = false, onD
     : r.status === "Cancelled" ? "Your coach cancelled this check-in. There is nothing to fill in."
     : r.status === "Scheduled" ? "The form opens on the date shown above. You will get a notification then."
     : "Only your coach sees your answers. After you submit, they review them and can reply here.";
-  const content = <>
-    {r.status === "Overdue" && !(embedded && coach) && <Alert tone="warning" title="This check-in is overdue">{coach ? "The client can still submit a response." : "You can still submit your response."}</Alert>}
-    {d.submission ? <Panel title={coach ? "Client response" : "Your response"}><AnswerReview definition={d.form.definition} answers={d.submission.answers as Answers} /></Panel> : !coach && pending ? <Panel title="Your response"><form className={styles.form} onSubmit={(e) => { e.preventDefault(); if (!respond.allowed) return; const found = answerErrors(d.form.definition, answers); setErrors(found); if (Object.keys(found).length) { focusFirstError(found); return; } mutation.mutate({ method: "POST", path: `/api/v1/check-ins/requests/${r.id}/submit`, ifMatch: r.version, json: { answers } }, { onSuccess: () => toast({ tone: "success", title: "Check-in sent", description: "Your coach can see your answers now." }) }); }}><FormAnswerFields definition={d.form.definition} answers={answers} errors={errors} disabled={mutation.isPending || !respond.allowed} onChange={(a) => { setErrors((e) => Object.fromEntries(Object.entries(e).filter(([key]) => a[key] === answers[key]))); setAnswers(a); setDirty(true); }} /><MutationError error={mutation.error} /><LockedReason access={respond}><Button type="submit" variant="primary" isDisabled={!respond.allowed} loading={mutation.isPending}>Submit check-in</Button></LockedReason></form></Panel> : <Alert title={r.status === "Cancelled" ? "This check-in was cancelled" : r.status === "Scheduled" ? "This check-in is not available yet" : "Waiting for the client's response"} />}
-    {r.clientReply && <Panel title="Coach reply"><p className={styles.prose}>{r.clientReply}</p></Panel>}
-    {coach && d.coachPrivateNotes && <Panel title="Private notes" description="Only you see these notes."><p className={styles.prose}>{d.coachPrivateNotes}</p></Panel>}
-    {coach && r.status === "Submitted" && <Panel title="Review response" actions={<LockedReason access={review}><Button variant="primary" isDisabled={!review.allowed} loading={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/check-ins/requests/${r.id}/review`, ifMatch: r.version, json: { clientReply: reply || null, coachPrivateNotes: notes || null } }, { onSuccess: () => toast({ tone: "success", title: "Check-in reviewed" }) })}>Mark as reviewed</Button></LockedReason>}><TextArea label="Reply visible to the client" placeholder="Feedback for the client" value={reply} isDisabled={mutation.isPending || !review.allowed} onChange={(value) => { setReply(value); setDirty(true); }} maxLength={4000} /><TextArea label="Private coach notes" placeholder="Only you see these notes" value={notes} isDisabled={mutation.isPending || !review.allowed} onChange={(value) => { setNotes(value); setDirty(true); }} maxLength={4000} /></Panel>}
-    {(coach || !pending) && <MutationError error={mutation.error} />}
+  const submitForm = (e: React.FormEvent) => { e.preventDefault(); if (!respond.allowed) return; const found = answerErrors(d.form.definition, answers); setErrors(found); if (Object.keys(found).length) { focusFirstError(found); return; } mutation.mutate({ method: "POST", path: `/api/v1/check-ins/requests/${r.id}/submit`, ifMatch: r.version, json: { answers } }, { onSuccess: () => toast({ tone: "success", title: "Check-in sent", description: "Your coach can see your answers now." }) }); };
+  const fillable = !coach && pending && !d.submission;
+  // The form itself: what the client answered, the form to fill in, or (for the coach, before an answer) the empty form.
+  const formBody = d.submission ? <AnswerSheet definition={d.form.definition} answers={d.submission.answers as Answers} />
+    : fillable ? <form className={styles.form} onSubmit={submitForm}>
+      <FormAnswerFields definition={d.form.definition} answers={answers} errors={errors} disabled={mutation.isPending || !respond.allowed} onChange={(a) => { setErrors((e) => Object.fromEntries(Object.entries(e).filter(([key]) => a[key] === answers[key]))); setAnswers(a); setDirty(true); }} />
+      <MutationError error={mutation.error} />
+      <div className={preview.tryFoot}><LockedReason access={respond}><Button type="submit" variant="primary" isDisabled={!respond.allowed} loading={mutation.isPending}>Submit check-in</Button></LockedReason></div>
+    </form>
+    : <>
+      <Alert title={r.status === "Cancelled" ? "This check-in was cancelled" : r.status === "Scheduled" ? "This check-in is not available yet" : coach ? "Waiting for the client's response" : "Waiting for your response"} />
+      {r.status !== "Cancelled" ? <AnswerSheet definition={d.form.definition} answers={{}} emptyText="Not answered yet" /> : null}
+    </>;
+  const overdue = r.status === "Overdue" && !(embedded && coach) ? <Alert tone="warning" title="This check-in is overdue">{coach ? "The client can still submit a response." : "You can still submit your response."}</Alert> : null;
+  const coachReply = r.clientReply ? <Panel title="Coach reply"><p className={styles.prose}>{r.clientReply}</p></Panel> : null;
+  const privateNotes = coach && d.coachPrivateNotes ? <Panel title="Private notes" description="Only you see these notes."><p className={styles.prose}>{d.coachPrivateNotes}</p></Panel> : null;
+  const reviewPanel = coach && r.status === "Submitted" ? <Panel title="Review response"><div className={styles.stack}>
+    <TextArea label="Reply visible to the client" placeholder="Feedback for the client" value={reply} isDisabled={mutation.isPending || !review.allowed} onChange={(value) => { setReply(value); setDirty(true); }} maxLength={4000} />
+    <TextArea label="Private coach notes" placeholder="Only you see these notes" value={notes} isDisabled={mutation.isPending || !review.allowed} onChange={(value) => { setNotes(value); setDirty(true); }} maxLength={4000} />
+    <LockedReason access={review}><Button variant="primary" isDisabled={!review.allowed} loading={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/check-ins/requests/${r.id}/review`, ifMatch: r.version, json: { clientReply: reply || null, coachPrivateNotes: notes || null } }, { onSuccess: () => toast({ tone: "success", title: "Check-in reviewed" }) })}>Mark as reviewed</Button></LockedReason>
+  </div></Panel> : null;
+  const otherError = !fillable ? <MutationError error={mutation.error} /> : null;
+  const message = coach && client.data ? <QuickMessage person={client.data.client} title="Message" templates={messageTemplates(r, client.data.client.displayName, when)} /> : null;
+
+  if (embedded) return <><DraftNavigationGuard dirty={dirty && editable} />{confirmDialog}
+    <div className={styles.stack}>
+      <section className={detail.summary} aria-label="Check-in summary">
+        <div className={detail.summaryHead}>
+          <div className={detail.summaryTitle}>
+            <h3>{r.scheduleName}</h3>
+            <span className={detail.due} data-tone={r.status === "Overdue" ? "late" : undefined}>{dueText(r)}</span>
+          </div>
+          <StatusBadge status={r.status} />
+        </div>
+        <Steps request={r} when={when} />
+        {cancel ? <div className={detail.summaryActions}>{cancel}</div> : null}
+      </section>
+      {message}{overdue}{formBody}{coachReply}{privateNotes}{reviewPanel}{otherError}
+    </div>
   </>;
+
+  // The full page: the form as the client sees it, in the same frame as the form editor's preview, with the
+  // dates, review and next steps beside it.
+  const answeredText = d.submission ? `${coach ? "Submitted" : "Sent"} ${when(d.submission.submittedAt ?? r.submittedAt ?? r.dueAtUtc)}` : `${questions.length} ${questions.length === 1 ? "question" : "questions"}`;
   return <><DraftNavigationGuard dirty={dirty && editable} />{confirmDialog}
-    {!embedded && <PageHeader title={r.scheduleName} description={`Due ${when(r.dueAtUtc)}`} meta={<StatusBadge status={r.status} />} actions={cancel ?? undefined} />}
-    {side ? (
-      <div className={styles.checkinLayout}>
-        <div className={styles.stack}>{content}</div>
-        <aside className={styles.fillAside}>
-          <Panel title="Timeline">{timeline}</Panel>
-          {pending && !d.submission && questions.length ? (
-            <Panel title="Progress">
-              <div className={styles.progress} role="progressbar" aria-label="Answered questions" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answered}><span style={{ width: `${(answered / questions.length) * 100}%` }} /></div>
-              <p className={styles.progressNote}>{answered} of {questions.length} {questions.length === 1 ? "question" : "questions"} answered</p>
-            </Panel>
-          ) : null}
-          <Panel title="What happens next"><p className={styles.prose}>{next}</p></Panel>
-        </aside>
-      </div>
-    ) : (
-      <div className={styles.stack}>
-        {embedded ? (
-          <section className={detail.summary} aria-label="Check-in summary">
-            <div className={detail.summaryHead}>
-              <div className={detail.summaryTitle}>
-                <h3>{r.scheduleName}</h3>
-                <span className={detail.due} data-tone={r.status === "Overdue" ? "late" : undefined}>{dueText(r)}</span>
-              </div>
-              <StatusBadge status={r.status} />
+    <PageHeader title={r.scheduleName} description={`Due ${when(r.dueAtUtc)}`} meta={<StatusBadge status={r.status} />} actions={cancel ?? undefined} />
+    <div className={detail.previewLayout}>
+      <div className={detail.previewMain}>
+        {overdue}
+        <div className={preview.workspace}>
+          <div className={preview.frameBar}>
+            <span className={preview.dots} aria-hidden="true"><i /><i /><i /></span>
+            <span className={preview.frameTitle}>
+              {coach ? "Client's check-in" : "Your check-in"}
+              <small>{coach ? "Client view" : "Form"} · {answeredText}</small>
+            </span>
+          </div>
+          <div className={preview.canvas}>
+            <div className={preview.screen} data-device="desktop">
+              <header className={preview.tryHead}>
+                <h2>{d.form.name || r.scheduleName}</h2>
+                {d.form.description ? <p>{d.form.description}</p> : null}
+              </header>
+              {formBody}
             </div>
-            <Steps request={r} when={when} />
-            {cancel ? <div className={detail.summaryActions}>{cancel}</div> : null}
-          </section>
-        ) : <Panel title="Timeline">{timeline}</Panel>}
-        {coach && client.data ? <QuickMessage person={client.data.client} title="Message" templates={messageTemplates(r, client.data.client.displayName, when)} /> : null}
-        {content}
+          </div>
+        </div>
       </div>
-    )}
+      <aside className={styles.fillAside}>
+        {reviewPanel}
+        {coachReply}
+        {privateNotes}
+        {otherError}
+        <Panel title="Timeline">{timeline}</Panel>
+        {fillable && questions.length ? (
+          <Panel title="Progress">
+            <div className={styles.progress} role="progressbar" aria-label="Answered questions" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answered}><span style={{ width: `${(answered / questions.length) * 100}%` }} /></div>
+            <p className={styles.progressNote}>{answered} of {questions.length} {questions.length === 1 ? "question" : "questions"} answered</p>
+          </Panel>
+        ) : null}
+        {message}
+        {!coach ? <Panel title="What happens next"><p className={styles.prose}>{next}</p></Panel> : null}
+      </aside>
+    </div>
   </>;
 }
 

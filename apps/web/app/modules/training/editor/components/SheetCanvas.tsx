@@ -30,8 +30,8 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import type { Block, Cycle, ExerciseInstance, FormulaUse, TrainingDocument, Workout } from "@trainflow/api-client-web";
-import { AlertDialog, Button, ContextMenu, IconButton, InfoTip, Segment, SegmentedControl, Tooltip, TooltipTrigger, type ContextMenuEntry } from "@trainflow/ui-web";
+import type { Block, Cycle, ExerciseInstance, FormulaUse, TrainingDocument, Workout } from "@metrivum/api-client-web";
+import { AlertDialog, Button, ContextMenu, IconButton, InfoTip, Segment, SegmentedControl, Tooltip, TooltipTrigger, type ContextMenuEntry } from "@metrivum/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -48,7 +48,7 @@ import { SheetMinimap, type MinimapNode } from "./SheetMinimap";
 import { BlockFormulaScope } from "../block-maxes";
 import { BlockMaxesTable } from "./BlockMaxesTable";
 import { WorkoutEditor } from "./WorkoutEditor";
-import { WorkoutCard } from "./WorkoutCard";
+import { LooseFlag, WorkoutCard } from "./WorkoutCard";
 import styles from "./SheetCanvas.module.css";
 
 export interface SheetState {
@@ -220,6 +220,29 @@ export function SheetCanvas({
   const [openWorkout, setOpenWorkout] = useState<string | null>(null);
   const [progressionBlock, setProgressionBlock] = useState<string | null>(null);
   const [zoom, setZoom] = useState(initialZoom);
+  // Zoom glides: each change sets a goal and the sheet eases towards it over a few frames.
+  const zoomNow = useRef(initialZoom);
+  zoomNow.current = zoom;
+  const zoomGoal = useRef<number | null>(null);
+  const zoomFrame = useRef(0);
+  const glideZoom = (goal: number, anchor: { bx: number; by: number; px: number; py: number } | null) => {
+    zoomGoal.current = goal;
+    if (anchor) zoomAnchor.current = anchor;
+    if (zoomFrame.current) return;
+    const reduce = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const step = () => {
+      const target = zoomGoal.current;
+      if (target == null) { zoomFrame.current = 0; return; }
+      const current = zoomNow.current;
+      const next = reduce || Math.abs(target - current) < 0.004 ? target : current + (target - current) * 0.28;
+      zoomNow.current = next;
+      if (next === target) { zoomGoal.current = null; zoomFrame.current = 0; }
+      else zoomFrame.current = requestAnimationFrame(step);
+      setZoom(next);
+    };
+    zoomFrame.current = requestAnimationFrame(step);
+  };
+  useEffect(() => () => cancelAnimationFrame(zoomFrame.current), []);
   const [volumeOpen, setVolumeOpen] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [view, setView] = useState({ x: 0, y: 0, w: 1, h: 1 });
@@ -382,11 +405,10 @@ export function SheetCanvas({
       const rect = el.getBoundingClientRect();
       const px = event.clientX - rect.left;
       const py = event.clientY - rect.top;
-      setZoom((z) => {
-        const next = clampZoom(z * (event.deltaY < 0 ? 1.1 : 1 / 1.1));
-        zoomAnchor.current = { bx: (el.scrollLeft + px) / z, by: (el.scrollTop + py) / z, px, py };
-        return next;
-      });
+      // Proportional to the scroll (≈ ×1.2 per wheel notch, finer on trackpads), from where the zoom is heading.
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : 1);
+      const base = zoomGoal.current ?? zoomNow.current;
+      glideZoom(clampZoom(base * Math.exp(-delta * 0.0018)), { bx: (el.scrollLeft + px) / zoomNow.current, by: (el.scrollTop + py) / zoomNow.current, px, py });
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
@@ -397,7 +419,8 @@ export function SheetCanvas({
     if (el && anchor) {
       el.scrollLeft = anchor.bx * zoom - anchor.px;
       el.scrollTop = anchor.by * zoom - anchor.py;
-      zoomAnchor.current = null;
+      // The anchor holds while a glide is under way, so the point under the pointer stays put throughout.
+      if (zoomGoal.current == null) zoomAnchor.current = null;
     }
     syncView();
   }, [zoom, syncView]);
@@ -405,8 +428,7 @@ export function SheetCanvas({
   const zoomTo = (next: number | "reset") => {
     const el = scrollerRef.current;
     const target = next === "reset" ? 1 : clampZoom(next);
-    if (el) zoomAnchor.current = { bx: (el.scrollLeft + el.clientWidth / 2) / zoom, by: (el.scrollTop + el.clientHeight / 2) / zoom, px: el.clientWidth / 2, py: el.clientHeight / 2 };
-    setZoom(target);
+    glideZoom(target, el ? { bx: (el.scrollLeft + el.clientWidth / 2) / zoom, by: (el.scrollTop + el.clientHeight / 2) / zoom, px: el.clientWidth / 2, py: el.clientHeight / 2 } : null);
   };
   const navigate = (cx: number, cy: number) => {
     const el = scrollerRef.current;
@@ -1678,6 +1700,7 @@ function CycleCard({
             onChange={(name) => (loose ? onRenameLoose(name) : apply?.((doc) => updateNode(doc, cycle.id, { name })))}
           />
         </div>
+        {loose ? <LooseFlag text={t.loose} label={t.notConnected} compact={collapsed} /> : null}
         {!readOnly ? <MenuButton label={cycle.name} onOpen={onMenuButton} /> : null}
       </div>
       {/* Length, how many times it runs and its workouts, in one quiet line. */}
@@ -1686,7 +1709,6 @@ function CycleCard({
         <span className={styles.cycleRuns} data-open={runs === null || undefined}>{runs === null ? `∞ ${t.repeatOpen}` : `×${runs}`}</span>
         <span>{m.editor.week.workouts(cycleWorkouts(cycle).length)}</span>
       </p>
-      {loose && !collapsed ? <p className={styles.loose}>{t.loose}</p> : null}
       {collapsed ? null : <>
       <div className={styles.tiles} style={{ gridTemplateColumns: `repeat(${Math.min(7, Number(cycle.dayCount) + (onAddDay ? 1 : 0))}, minmax(0, 1fr))` }} role="list" aria-label={t.cycleLength(Number(cycle.dayCount))}>
         {cycleCalendar(cycle).map((day) => {

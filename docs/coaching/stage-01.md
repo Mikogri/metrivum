@@ -78,8 +78,8 @@ Use a disposable PostgreSQL database supporting Unicode case conversion (the fin
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT = 'Development'
 # Set ConnectionStrings__MigrationDatabase and TRAINFLOW_TEST_DATABASE externally.
-dotnet run -c Release --project apps/api/TrainFlow.Api -- --migrate
-dotnet test TrainFlow.slnx -c Release
+dotnet run -c Release --project apps/api/Metrivum.Api -- --migrate
+dotnet test Metrivum.slnx -c Release
 ./infra/export-coaching-stage01.ps1
 ```
 
@@ -87,8 +87,8 @@ For manual smoke testing, create four **test** accounts through Supabase Auth, t
 
 ```powershell
 $env:DOTNET_ENVIRONMENT = 'Development'
-dotnet run -c Release --project tools/TrainFlow.DevFixtures -- `
-  --settings apps/api/TrainFlow.Api/appsettings.Local.json `
+dotnet run -c Release --project tools/Metrivum.DevFixtures -- `
+  --settings apps/api/Metrivum.Api/appsettings.Local.json `
   --confirm-project atclvdkpbccafakzpwls --confirm-test-accounts true `
   --coach-a <test-account-id> --coach-b <test-account-id> `
   --client-c <test-account-id> --client-d <test-account-id>
@@ -116,8 +116,8 @@ Offer -> form -> application -> acceptance must call the internal activation ope
 
 | Check | Result |
 | --- | --- |
-| `dotnet build TrainFlow.slnx -c Release` | Passed, zero warnings/errors |
-| `dotnet test TrainFlow.slnx -c Release` on local PostgreSQL 17 | 170 passed (80 unit, 88 integration, 2 architecture), 2 opt-in external tests skipped |
+| `dotnet build Metrivum.slnx -c Release` | Passed, zero warnings/errors |
+| `dotnet test Metrivum.slnx -c Release` on local PostgreSQL 17 | 170 passed (80 unit, 88 integration, 2 architecture), 2 opt-in external tests skipped |
 | Clean restricted-role migration and old-schema upgrade | Passed; original identity, workspace, plan, grants and histories preserved |
 | DevFixtures console, two runs | Same three relationship IDs, no duplicate memberships/audit; Production guard rejected execution |
 | Contract export + `npm run contracts` | OpenAPI/TypeScript/features regenerated, including role-dependent response union |

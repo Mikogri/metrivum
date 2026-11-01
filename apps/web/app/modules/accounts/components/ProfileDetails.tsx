@@ -1,6 +1,6 @@
 import { useId, useMemo, useState } from "react";
 import { ArrowLeftRight, LocateFixed, MapPin } from "lucide-react";
-import { Alert, Button, Chip, ChipGroup, Combobox, NumberInput, Option, Select, TextArea, TextField } from "@trainflow/ui-web";
+import { Alert, Button, Chip, ChipGroup, Combobox, NumberInput, Option, Select, TextArea, TextField } from "@metrivum/ui-web";
 import { countryNames, locateMe } from "../lib/location";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import type { AppMessages } from "~/shared/i18n/messages/app.en";

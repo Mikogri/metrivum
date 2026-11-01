@@ -3,7 +3,7 @@ import { EyeOff } from "lucide-react";
 import styles from "./coaching.module.css";
 import { useEffect, useState, type ReactNode } from "react";
 import { useBlocker } from "react-router";
-import { Alert, AlertDialog, Badge, Button, LinkButton, LoadingState, Pagination } from "@trainflow/ui-web";
+import { Alert, AlertDialog, Badge, Button, LinkButton, LoadingState, Pagination } from "@metrivum/ui-web";
 import { ApiError } from "~/shared/http";
 import { useCoachingQuery, type Page } from "./api";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -18,7 +18,19 @@ export function StatusBadge({ status, size }: { status: string; size?: "sm" | "m
 
 /** Something clients can't see yet because it was never published: a warning-coloured badge that stands out. */
 export function NotPublishedBadge({ size, label = "Not published" }: { size?: "sm" | "md"; label?: string }) {
-  return <Badge size={size} tone="warning" icon={<EyeOff />} className={styles.notPublished}>{label}</Badge>;
+  return <Badge size={size} tone="danger" icon={<EyeOff />} className={styles.notPublished}>{label}</Badge>;
+}
+
+/**
+ * A status with the one action that changes it, side by side in a list row: "Not published · Publish",
+ * "Active · Deactivate". The action sits above the row link, so pressing it doesn't open the item.
+ */
+export function QuickStatus({ badge, action }: { badge: ReactNode; action?: { label: string; icon?: ReactNode; tone?: "go" | "stop" | "neutral"; loading?: boolean; disabled?: boolean; onPress: () => void } }) {
+  return <span className={styles.quickStatus}>
+    {badge}
+    {action ? <Button size="sm" variant={action.tone === "go" ? "success" : action.tone === "stop" ? "danger-ghost" : "secondary"} iconStart={action.icon}
+      loading={action.loading} isDisabled={action.disabled} onPress={action.onPress} className={styles.quickStatusAction}>{action.label}</Button> : null}
+  </span>;
 }
 
 export function Failure({ error, retry }: { error: unknown; retry?: () => void }) {

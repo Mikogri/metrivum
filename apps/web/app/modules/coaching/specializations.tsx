@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { Star, X } from "lucide-react";
-import { Alert, Badge, Button, Card, Combobox, Option } from "@trainflow/ui-web";
+import { Alert, Badge, Button, Card, Combobox, Option } from "@metrivum/ui-web";
 import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useT } from "~/shared/i18n/AppLocale";

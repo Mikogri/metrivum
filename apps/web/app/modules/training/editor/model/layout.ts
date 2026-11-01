@@ -1,5 +1,5 @@
 import { maxesTables } from "./maxes";
-import type { Cycle, TrainingDocument, Workout } from "@trainflow/api-client-web";
+import type { Cycle, TrainingDocument, Workout } from "@metrivum/api-client-web";
 import { WORKOUT_COLS, cycleWorkouts, workoutCardRows } from "./workouts";
 
 /** Sheet cell size in pixels. Nodes snap to cell corners, like objects on a spreadsheet. */

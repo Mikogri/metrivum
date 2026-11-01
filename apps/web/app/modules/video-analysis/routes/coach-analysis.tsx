@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Dumbbell, Video } from 'lucide-react';
 import { useParams } from 'react-router';
-import { Badge, Breadcrumbs, Button, EmptyState, ErrorState, PageHeader, Skeleton } from '@trainflow/ui-web';
+import { Badge, Breadcrumbs, Button, EmptyState, ErrorState, PageHeader, Skeleton } from '@metrivum/ui-web';
 import { ApiError } from '~/shared/http/errors';
 import { formatDateTime } from '~/shared/i18n/format';
 import { useLocale } from '~/shared/i18n/LocaleContext';

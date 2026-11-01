@@ -1,7 +1,7 @@
 import { NativeDateField } from "../training/NativeDateField";
 import { useState } from "react";
 import { Linking, View } from "react-native";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     Badge,
     BottomSheet,
@@ -15,7 +15,7 @@ import {
     Section,
     Text,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import {
     useApiMutation,
     useApiQuery,

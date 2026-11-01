@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { mappingIndex, selectedMeshIds, structureVisible, toggleSelection, type AnatomyManifest } from "./model";
 
+
 const manifest = { mappings: [
   { muscleKey: "quadriceps", conceptId: "FMA1", representationId: "BP1", meshIds: ["left", "right", "other"] },
   { muscleKey: "rectus-femoris", conceptId: "FMA2", representationId: "BP2", meshIds: ["left", "right"] },

@@ -1,7 +1,7 @@
 # API integration map
 
 Screen → operation → contract → required feature → handled errors → status. Types come from
-`contracts/generated` through `@trainflow/api-client-web`; adapters live in each module's `api.ts`.
+`contracts/generated` through `@metrivum/api-client-web`; adapters live in each module's `api.ts`.
 
 **Status legend.** *Implemented* means the call is wired with typed request/response, error handling and UI
 states, type-checked against the generated contract and exercised in the developer mock mode. **No call has

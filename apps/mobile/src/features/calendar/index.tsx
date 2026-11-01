@@ -3,7 +3,7 @@ import { Keyboard, Linking, Platform, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { usePreventRemove } from "expo-router/react-navigation";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     Avatar,
     Badge,
@@ -26,7 +26,7 @@ import {
     confirm,
     useTheme,
     Switch,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { formatDateTime, formatDay } from "../shared/format";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import {

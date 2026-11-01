@@ -1,5 +1,5 @@
 import { Image } from "react-native";
-import { useTheme } from "@trainflow/ui-mobile";
+import { useTheme } from "@metrivum/ui-mobile";
 
 export function BrandMark() {
     const theme = useTheme();

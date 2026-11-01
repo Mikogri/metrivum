@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Maximize, Minimize, Pause, Play, StepBack, StepForward } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { Button, Tooltip, TooltipTrigger } from "@trainflow/ui-web";
+import { Button, Tooltip, TooltipTrigger } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
 import { useApi } from "~/shared/session/AccountScope";

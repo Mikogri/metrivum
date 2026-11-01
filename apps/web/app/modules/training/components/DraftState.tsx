@@ -1,6 +1,6 @@
 import { CircleCheck, CircleDashed } from "lucide-react";
 import { Button } from "react-aria-components";
-import { Tooltip, TooltipTrigger } from "@trainflow/ui-web";
+import { Tooltip, TooltipTrigger } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useRevisions } from "../queries";
 import styles from "./FormatIssues.module.css";

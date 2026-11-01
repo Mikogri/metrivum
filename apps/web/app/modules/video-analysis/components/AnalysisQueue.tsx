@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CircleAlert, CirclePower, RotateCcw, SquareTerminal, X } from 'lucide-react';
-import { AlertDialog, Button, Card, IconButton, LinkButton } from '@trainflow/ui-web';
+import { AlertDialog, Button, Card, IconButton, LinkButton } from '@metrivum/ui-web';
 import { useAnalyzerJobs } from '../analyzer-jobs';
 import { launchLocalAnalyzer, showAnalyzerWindow, storedPairing } from '../local-analysis';
 import type { AnalyzerJob } from '../local-analysis';

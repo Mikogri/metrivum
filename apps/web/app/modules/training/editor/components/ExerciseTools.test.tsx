@@ -2,7 +2,7 @@ import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it } from "vitest";
-import type { TrainingDocument, Workout } from "@trainflow/api-client-web";
+import type { TrainingDocument, Workout } from "@metrivum/api-client-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { findWorkout } from "../model/document";
 import { ExerciseTools } from "./ExerciseTools";

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import type { DictionariesDto } from "@trainflow/api-client-web";
+import type { DictionariesDto } from "@metrivum/api-client-web";
 
 const features = JSON.parse(readFileSync(new URL("../../../contracts/generated/features.json", import.meta.url), "utf8")) as { key: string }[];
 const userId = "00000000-0000-4000-8000-000000000000";

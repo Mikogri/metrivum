@@ -1,5 +1,5 @@
 {
-  "name": "@trainflow/ui-web",
+  "name": "@metrivum/ui-web",
   "version": "0.1.0",
   "private": true,
   "description": "Metrivum web component library: tokens, styles and accessible React components.",

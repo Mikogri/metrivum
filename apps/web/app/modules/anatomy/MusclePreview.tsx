@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo } from "react";
-import { LoadingState } from "@trainflow/ui-web";
+import { LoadingState } from "@metrivum/ui-web";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { mappingIndex, selectedMeshIds, type Category } from "./model";
 import { anatomyMessages } from "./messages";

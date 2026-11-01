@@ -232,41 +232,38 @@
 }
 
 /*
- * The content panel has rounded left corners against the sidebar. The corners are fixed masks in the
- * sidebar colour with the hairline following the curve, so the page keeps scrolling the window.
+ * The content panel has rounded left corners against the sidebar. The window scrolls (not the panel), so the
+ * panel cannot clip itself; instead each corner is a small fixed piece with a real rounded border (drawn and
+ * smoothed by the browser like any other) and a shadow in the sidebar colour filling the area outside the curve.
  */
 .column::before,
 .column::after {
-  --corner: 0.75rem;
+  --corner: 0.5625rem;
   content: "";
   position: absolute;
   left: -1px;
   z-index: calc(var(--tf-z-header) + 1);
-  width: var(--corner);
-  height: var(--corner);
+  box-sizing: border-box;
+  width: calc(var(--corner) + 1px);
+  height: calc(var(--corner) + 1px);
+  border: 0 solid var(--tf-color-border-subtle);
+  border-left-width: 1px;
+  box-shadow: 0 0 0 var(--corner) var(--tf-color-sidebar);
+  /* Only the corner's own square shows; the rest of the shadow is cut away. */
+  clip-path: inset(0);
   pointer-events: none;
 }
 
 .column::before {
   top: 0;
-  background: radial-gradient(
-    circle at 100% 100%,
-    transparent calc(var(--corner) - 1px),
-    var(--tf-color-border-subtle) calc(var(--corner) - 1px),
-    var(--tf-color-border-subtle) var(--corner),
-    var(--tf-color-sidebar) calc(var(--corner) + 0.5px)
-  );
+  border-top-width: 1px;
+  border-top-left-radius: calc(var(--corner) + 1px);
 }
 
 .column::after {
   bottom: 0;
-  background: radial-gradient(
-    circle at 100% 0%,
-    transparent calc(var(--corner) - 1px),
-    var(--tf-color-border-subtle) calc(var(--corner) - 1px),
-    var(--tf-color-border-subtle) var(--corner),
-    var(--tf-color-sidebar) calc(var(--corner) + 0.5px)
-  );
+  border-bottom-width: 1px;
+  border-bottom-left-radius: calc(var(--corner) + 1px);
 }
 
 .appBar {

@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from '@trainflow/ui-web';
+import { toast } from '@metrivum/ui-web';
 import { useFeatureAccess } from '~/shared/access';
 import { useAccountContext } from '~/shared/session/AccountScope';
 import { AnalyzerError, jobResult, jobVideo, listJobs, rememberJobMedia, removeJob, retryJob, storedPairing, type AnalyzerJob } from './local-analysis';
@@ -11,7 +11,7 @@ import { notifyInBackground } from './notify';
 import { forgetJobExercise, jobExercise } from './movement';
 import { authorizeLocalJob, forgetJobAuthorization, jobAuthorization, jobAuthorizationTeam, releaseJobAuthorization } from './local-authorizations';
 import { ApiError } from '~/shared/http/errors';
-import type { AnalysisDto } from '@trainflow/api-client-web';
+import type { AnalysisDto } from '@metrivum/api-client-web';
 
 export interface SavingState { stage: 'uploading' | 'saving'; ratio: number }
 export interface SavedJob { id: string; name: string; analysisId: string; savedAt: number }

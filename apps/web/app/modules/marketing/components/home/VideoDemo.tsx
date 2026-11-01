@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Badge } from "@trainflow/ui-web";
+import { Badge } from "@metrivum/ui-web";
 import { prefersReducedMotion, useInView } from "../../lib/useInView";
 import { usePublicMessages } from "../../messages";
 import styles from "./VideoDemo.module.css";

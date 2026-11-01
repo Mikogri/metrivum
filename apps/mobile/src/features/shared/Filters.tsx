@@ -1,6 +1,6 @@
 import { useState, type PropsWithChildren } from "react";
 import { View } from "react-native";
-import { BottomSheet, Button, Chip, useTheme } from "@trainflow/ui-mobile";
+import { BottomSheet, Button, Chip, useTheme } from "@metrivum/ui-mobile";
 
 /**
  * Filters and sorting live in a bottom sheet. The chip on the screen opens it and says what is

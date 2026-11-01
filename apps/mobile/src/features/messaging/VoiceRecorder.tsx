@@ -9,7 +9,7 @@ import {
     useAudioRecorder,
     useAudioRecorderState,
 } from "expo-audio";
-import { Button, ErrorState, Text } from "@trainflow/ui-mobile";
+import { Button, ErrorState, Text } from "@metrivum/ui-mobile";
 import { AudioPlayback } from "./Attachment";
 import { AndroidVoiceRecorder } from "./AndroidVoiceRecorder";
 

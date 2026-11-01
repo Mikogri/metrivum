@@ -2,7 +2,7 @@ import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { Link } from "react-router";
 import { useState } from "react";
 import { Dumbbell, MoreHorizontal, Plus, UserPlus } from "lucide-react";
-import { Alert, Avatar, Button, Checkbox, DataTable, Dialog, DialogFooter, DialogTrigger, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, IconButton, LinkButton, Option, SearchInput, Select, TextField, toast, useMobileLayout } from "@trainflow/ui-web";
+import { Alert, Avatar, Button, Checkbox, DataTable, Dialog, DialogFooter, DialogTrigger, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, IconButton, LinkButton, Option, SearchInput, Select, TextField, toast, useMobileLayout } from "@metrivum/ui-web";
 import { Panel } from "~/shared/ui/Panel";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { useCoachingMutation, useCoachingQuery, type Page, type Relationship, type Group } from "~/modules/coaching";
@@ -93,7 +93,7 @@ export function localDate(date = new Date()) { return `${date.getFullYear()}-${S
 /** `assigned`: how many clients have the program, shown in brackets after the label when known. */
 export function AssignProgramButton({ programId, groupId, relationshipId, teamId, size, assigned }: { programId: string; groupId?: string; relationshipId?: string; teamId?: string | null; size?: "sm" | "md"; assigned?: number }) {
   const [open, setOpen] = useState(false);
-  return <DialogTrigger isOpen={open} onOpenChange={setOpen}><Button size={size} iconStart={<UserPlus />}>{assigned === undefined ? "Assign program" : `Assign program (${assigned})`}</Button><Dialog title="Assign program" size="lg"><AssignForm programId={programId} groupId={groupId} relationshipId={relationshipId} teamId={teamId} onAssigned={() => setOpen(false)} /></Dialog></DialogTrigger>;
+  return <DialogTrigger isOpen={open} onOpenChange={setOpen}><Button size={size} iconStart={<UserPlus />}>{assigned === undefined ? "Assign program" : `Assign program (${assigned})`}</Button><Dialog title="Assign program" size="lg" placement="center"><AssignForm programId={programId} groupId={groupId} relationshipId={relationshipId} teamId={teamId} onAssigned={() => setOpen(false)} /></Dialog></DialogTrigger>;
 }
 
 export function AssignmentList({ programId, relationshipId, groupId, coach = true, assign, title = "Assigned programs", description }: { programId?: string; relationshipId?: string; groupId?: string; coach?: boolean; assign?: { relationshipId?: string; groupId?: string; teamId?: string | null }; title?: string; description?: string }) {
@@ -194,7 +194,7 @@ export function AssignProgramPicker({ relationshipId, groupId, teamId }: { relat
   return (
     <DialogTrigger isOpen={open} onOpenChange={(next) => { setOpen(next); if (!next) setSelected(""); }}>
       <Button size="sm" variant="ghost" iconStart={<Plus />}>Assign</Button>
-      <Dialog title="Assign program" size="lg">
+      <Dialog title="Assign program" size="lg" placement="center">
         <div className={styles.stack}>
           {programs.isPending ? <Loading /> : programs.isError ? <Failure error={programs.error} retry={() => void programs.refetch()} /> : !programs.data.items.length ? (
             <Alert tone="info" title="You have no programs yet" actions={<LinkButton href="/app/programs" size="sm">Open programs</LinkButton>}>Create a program and apply its changes once, then assign it here.</Alert>

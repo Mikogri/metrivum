@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight, CircleAlert, Clapperboard, LoaderCircle, Plus, SquareTerminal, Video } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { DialogTrigger, IconButton, Popover } from '@trainflow/ui-web';
+import { DialogTrigger, IconButton, Popover } from '@metrivum/ui-web';
 import { useFeatureAccess } from '~/shared/access';
 import { formatRelative } from '~/shared/i18n/format';
 import { useLocale } from '~/shared/i18n/LocaleContext';

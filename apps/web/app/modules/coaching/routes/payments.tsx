@@ -1,3 +1,4 @@
+import { usePaymentActionId } from "~/shared/session/payment-action";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Payments — Metrivum");
@@ -6,7 +7,7 @@ import { useRef, useState } from "react";
 import { Link } from "react-router";
 import { ArrowLeftRight, Check, CreditCard, Repeat, Wallet } from "lucide-react";
 import { Label, Radio, RadioGroup } from "react-aria-components";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     Alert,
     Badge,
@@ -19,7 +20,7 @@ import {
     PageHeader,
     Select,
     TextField,
-} from "@trainflow/ui-web";
+} from "@metrivum/ui-web";
 import {
     LockedReason,
     RequireFeature,
@@ -511,7 +512,7 @@ function Pay({
     close: () => void;
 }) {
     const [method, setMethod] = useState("");
-    const [key, setKey] = useState(() => crypto.randomUUID());
+    const [key, setKey] = usePaymentActionId(`due:${due.id}`);
     const mutation = useCoachingMutation<Schema<"PaymentResultDto">>();
     const result = mutation.data;
     const declined = result?.attempt?.status === "Failed";

@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import { Sigma } from "lucide-react";
-import { ContextMenu } from "@trainflow/ui-web";
-import type { FormulaUse, Quantity } from "@trainflow/api-client-web";
+import { ContextMenu } from "@metrivum/ui-web";
+import type { FormulaUse, Quantity } from "@metrivum/api-client-web";
 import { formatClock, parseClock } from "../model/workouts";
 import { formulaText } from "../model/inline-formula";
 import { DurationCell } from "./DurationCell";

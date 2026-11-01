@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dumbbell, Eye, EyeOff, Link2, Unlink } from 'lucide-react';
-import type { AnalysisSetReference, AnalysisWorkoutLink, AnalysisWorkoutOption } from '@trainflow/api-client-web';
-import { Alert, Button, Checkbox, Dialog, EmptyState, Option, Select, Skeleton, toast } from '@trainflow/ui-web';
+import type { AnalysisSetReference, AnalysisWorkoutLink, AnalysisWorkoutOption } from '@metrivum/api-client-web';
+import { Alert, Button, Checkbox, Dialog, EmptyState, Option, Select, Skeleton, toast } from '@metrivum/ui-web';
 import { formatDate, formatNumber } from '~/shared/i18n/format';
 import type { Locale } from '~/shared/i18n/locale';
 import { useLocale } from '~/shared/i18n/LocaleContext';
@@ -91,17 +91,24 @@ function LinkDialog({ analysisId, version, current: link, onClose, onLinked }: {
   const [client, setClient] = useState<string>(current?.relationshipId ?? 'all');
   const [days, setDays] = useState('60');
   const [choice, setChoice] = useState<{ executionId: string; setId: string | null } | null>(current ? { executionId: current.executionId, setId: current.setId ?? null } : null);
-  // All clients' recent workouts are loaded once; the client filter narrows them on the page.
+  // The directory contains summaries only; sets are fetched for one expanded workout.
+  const directory = useQuery({
+    queryKey: [account, 'video', 'set-options', 'directory', days] as const,
+    queryFn: ({ signal }) => analysisSetOptions(api, { days: Number(days), includeSets: false }, signal),
+  });
   const options = useQuery({
-    queryKey: [account, 'video', 'set-options', days] as const,
-    queryFn: ({ signal }) => analysisSetOptions(api, { days: Number(days) }, signal),
+    queryKey: [account, 'video', 'set-options', 'client', client, days] as const,
+    queryFn: ({ signal }) => analysisSetOptions(api, { days: Number(days), relationshipId: client, includeSets: false }, signal),
+    enabled: client !== 'all',
   });
   const clients = useMemo(() => {
     const seen = new Map<string, string>();
-    for (const workout of options.data?.workouts ?? []) seen.set(workout.relationshipId, workout.clientName);
+    for (const workout of directory.data?.workouts ?? []) seen.set(workout.relationshipId, workout.clientName);
+    if (current) seen.set(current.relationshipId, current.clientName);
     return [...seen].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [options.data]);
-  const workouts = (options.data?.workouts ?? []).filter(workout => client === 'all' || workout.relationshipId === client);
+  }, [directory.data, current]);
+  const selected = client === 'all' ? directory : options;
+  const workouts = selected.data?.workouts ?? [];
   const save = useMutation({
     mutationFn: () => linkWorkout(api, analysisId, { workoutExecutionId: choice!.executionId, setId: choice!.setId, shareWithClient }, version),
     onSuccess: (next) => { onLinked(); onClose(); toast({ tone: 'success', title: next.sharedWithClient ? `Linked and shared with ${next.set.clientName}` : 'Analysis linked', description: describeLink(locale, next.set).title }); },
@@ -117,26 +124,36 @@ function LinkDialog({ analysisId, version, current: link, onClose, onLinked }: {
     </>}>
     <div className={styles.dialog}>
       <div className={styles.filters}>
-        <Select label="Client" selectedKey={client} onSelectionChange={key => setClient(String(key))}>
+        <Select label="Client" selectedKey={client} onSelectionChange={key => { setClient(String(key)); setChoice(null); }}>
           <Option id="all">All clients</Option>
           {clients.map(([id, name]) => <Option key={id} id={id}>{name}</Option>)}
         </Select>
-        <Select label="Logged in the last" selectedKey={days} onSelectionChange={key => setDays(String(key))}>
+        <Select label="Logged in the last" selectedKey={days} onSelectionChange={key => { setDays(String(key)); setChoice(null); }}>
           <Option id="14">14 days</Option><Option id="60">60 days</Option><Option id="180">180 days</Option><Option id="365">year</Option>
         </Select>
       </div>
       {save.error ? <Alert tone="danger" title={errorText(m, save.error)} /> : null}
-      {options.isPending ? <Skeleton height="12rem" radius="lg" />
-        : options.isError ? <Alert tone="danger" title={errorText(m, options.error)} />
+      {selected.isPending ? <Skeleton height="12rem" radius="lg" />
+        : selected.isError ? <Alert tone="danger" title={errorText(m, selected.error)} />
         : !workouts.length ? <EmptyState size="sm" title="No logged workouts" description="When a client logs a workout, its sets can be linked here." />
         : <ol className={styles.workouts}>
-          {workouts.map(workout => <WorkoutOption key={workout.executionId} workout={workout} locale={locale} choice={choice} onChoose={setChoice} showClient={client === 'all'} />)}
+          {workouts.map(workout => <WorkoutOption key={`${client}:${days}:${workout.executionId}`} workout={workout} days={Number(days)} locale={locale} choice={choice} onChoose={setChoice} showClient={client === 'all'} />)}
         </ol>}
     </div>
   </Dialog>;
 }
 
-function WorkoutOption({ workout, locale, choice, onChoose, showClient }: { workout: AnalysisWorkoutOption; locale: Locale; choice: { executionId: string; setId: string | null } | null; onChoose: (value: { executionId: string; setId: string | null }) => void; showClient: boolean }) {
+function WorkoutOption({ workout, days, locale, choice, onChoose, showClient }: { workout: AnalysisWorkoutOption; days: number; locale: Locale; choice: { executionId: string; setId: string | null } | null; onChoose: (value: { executionId: string; setId: string | null }) => void; showClient: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+  const api = useApi();
+  const account = useAccountKey();
+  const m = useT();
+  const detail = useQuery({
+    queryKey: [account, 'video', 'set-options', 'execution', workout.relationshipId, workout.executionId, days],
+    queryFn: ({ signal }) => analysisSetOptions(api, { days, relationshipId: workout.relationshipId, executionId: workout.executionId, includeSets: true }, signal),
+    enabled: expanded,
+    staleTime: 30_000,
+  });
   const chosen = (setId: string | null) => choice?.executionId === workout.executionId && choice.setId === setId;
   return <li className={styles.workout}>
     <div className={styles.workoutHead}>
@@ -146,7 +163,10 @@ function WorkoutOption({ workout, locale, choice, onChoose, showClient }: { work
       </span>
       <button type="button" className={styles.whole} aria-pressed={chosen(null)} onClick={() => onChoose({ executionId: workout.executionId, setId: null })}>Whole workout</button>
     </div>
-    {workout.exercises.map(exercise => <div key={exercise.id} className={styles.exercise}>
+    <Button variant="ghost" size="sm" aria-expanded={expanded} onPress={() => setExpanded(value => !value)}>{expanded ? 'Hide sets' : 'Show sets'}</Button>
+    {expanded && detail.isPending ? <Skeleton height="3rem" /> : null}
+    {expanded && detail.isError ? <Alert tone="danger" title={errorText(m, detail.error)} /> : null}
+    {expanded && detail.data?.workouts.find(item => item.executionId === workout.executionId)?.exercises.map(exercise => <div key={exercise.id} className={styles.exercise}>
       <span className={styles.exerciseName}>{exercise.name}</span>
       <span className={styles.sets} role="group" aria-label={`${exercise.name} sets`}>
         {exercise.sets.map(set => <button key={set.id} type="button" className={styles.set} aria-pressed={chosen(set.id)} data-skipped={set.skipped || undefined}

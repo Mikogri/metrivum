@@ -16,7 +16,7 @@ import {
   Skeleton,
   TextArea,
   toast,
-} from "@trainflow/ui-web";
+} from "@metrivum/ui-web";
 import { RequireFeature, useFeatureAccess } from "~/shared/access";
 import { formatDateTime } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

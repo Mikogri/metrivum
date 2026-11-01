@@ -13,7 +13,7 @@ import {
     ToolbarSurface,
     haptic,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { NavIcon, type NavIconName } from "./NavIcon";
 
 const icons: Record<string, NavIconName> = {

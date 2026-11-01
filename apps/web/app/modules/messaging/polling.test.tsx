@@ -44,6 +44,12 @@ vi.mock("@microsoft/signalr", () => ({
 }));
 import { useDurableNotifications } from "./durable-notifications";
 import { MessagingPollingContext, useChatQuery, useRealtime } from "./api";
+import { historyPollingInterval } from "./model";
+
+it('disables redundant history polling only for a healthy socket and retains offline recovery', () => {
+  expect(historyPollingInterval('Live')).toBe(false);
+  for (const status of ['Connecting', 'Reconnecting', 'Offline', 'Preview']) expect(historyPollingInterval(status)).toBe(15000);
+});
 
 let cache: QueryClient;
 beforeEach(() => {

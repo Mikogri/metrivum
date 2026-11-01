@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link as RouterLink } from "react-router";
-import { LinkButton, LightRays } from "@trainflow/ui-web";
+import { LinkButton, LightRays } from "@metrivum/ui-web";
 import { localeFromPathname } from "~/shared/i18n/locale";
 import { publicPath } from "~/shared/i18n/public-routes";
 import { publicPageMeta } from "~/shared/i18n/site";

@@ -13,7 +13,8 @@ export interface PerformancePoint {
  * One exercise metric over time. Drawn at the real width of its panel, so it stretches with the
  * layout instead of scaling a fixed drawing, and its points glide when the metric or period changes.
  */
-export function PerformanceChart({ points, label, height = 180 }: { points: PerformancePoint[]; label: string; height?: number }) {
+/** `domain`: a fixed scale (e.g. 1-5 answers), so a middling value does not look like the top or bottom. */
+export function PerformanceChart({ points, label, height = 180, domain }: { points: PerformancePoint[]; label: string; height?: number; domain?: [number, number] }) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(600);
   useLayoutEffect(() => {
@@ -26,10 +27,10 @@ export function PerformanceChart({ points, label, height = 180 }: { points: Perf
     return () => observer.disconnect();
   }, []);
   const drawn = useTween(points.map((point) => point.value));
-  const pad = { x: 12, top: 14, bottom: 22 };
+  const pad = domain ? { x: 6, top: 6, bottom: 6 } : { x: 12, top: 14, bottom: 22 };
   const values = points.map((point) => point.value);
-  const low = Math.min(...values);
-  const high = Math.max(...values);
+  const low = domain ? domain[0] : Math.min(...values);
+  const high = domain ? domain[1] : Math.max(...values);
   const start = Date.parse(points[0]!.date);
   const end = Date.parse(points.at(-1)!.date);
   const floor = height - pad.bottom;

@@ -8,7 +8,7 @@ import {
     useTheme,
     type IconName,
     type SheetSize,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 
 /**
  * A form that is started from a visible button and filled in a bottom sheet. Closing with unsaved

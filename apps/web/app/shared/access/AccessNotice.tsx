@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Alert, LinkButton } from "@trainflow/ui-web";
+import { Alert, LinkButton } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import type { FeatureAccess } from "./useFeatureAccess";
 

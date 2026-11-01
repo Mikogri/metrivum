@@ -1,4 +1,4 @@
-import { Button, ErrorState } from "@trainflow/ui-web";
+import { Button, ErrorState } from "@metrivum/ui-web";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "./errorText";

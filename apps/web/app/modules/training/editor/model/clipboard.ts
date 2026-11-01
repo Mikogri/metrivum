@@ -1,4 +1,4 @@
-import type { Prescription, SetKind, SetSegment } from "@trainflow/api-client-web";
+import type { Prescription, SetKind, SetSegment } from "@metrivum/api-client-web";
 
 /** Structured clipboard for set prescriptions; mirrored to the system clipboard as JSON. */
 export interface CopiedSet {

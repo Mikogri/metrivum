@@ -1,6 +1,8 @@
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 export type Conversation = Schema<"ConversationDto">;
 export type Message = Schema<"MessageDto">;
+// Reconnect/events invalidate history; offline polling also recovers deletions on older pages.
+export const historyPollingInterval = (status: string) => status === "Live" ? false : 15000;
 export type Request = Schema<"RequestDto">;
 export type LocalOutgoing = { body: string; status: "Sending…" | "Not sent — retry below"; clientMessageId?: string };
 

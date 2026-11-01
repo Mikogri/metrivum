@@ -1,7 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router";
-import { Toaster, toast } from "@trainflow/ui-web";
+import { Toaster, toast } from "@metrivum/ui-web";
 import { AppLocaleProvider, useT } from "~/shared/i18n/AppLocale";
 import { noIndexMeta } from "~/shared/i18n/site";
 import { createQueryClient } from "~/shared/lib/queryClient";

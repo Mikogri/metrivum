@@ -1,6 +1,6 @@
 # Metrivum mobile
 
-Native React Native / Expo application at `apps/mobile`, using the existing ASP.NET API and Supabase **Auth only**. Business permissions, relationships, training rules, prices and billing remain server-owned. Mobile contains no checkout or payment mutation. The shared `@trainflow/api-client-web` package keeps its historical name, but its `transport` and generated contracts are platform-neutral.
+Native React Native / Expo application at `apps/mobile`, using the existing ASP.NET API and Supabase **Auth only**. Business permissions, relationships, training rules, prices and billing remain server-owned. Mobile contains no checkout or payment mutation. The shared `@metrivum/api-client-web` package keeps its historical name, but its `transport` and generated contracts are platform-neutral.
 
 ## Interface
 
@@ -17,13 +17,13 @@ cd C:\Work\Projects\train-flow
 & 'C:\Program Files\nodejs\npm.cmd' ci
 Copy-Item apps/mobile/.env.example apps/mobile/.env.local
 # Fill only the public API URL, Supabase URL and publishable key.
-& 'C:\Program Files\nodejs\npm.cmd' run android --workspace @trainflow/mobile
+& 'C:\Program Files\nodejs\npm.cmd' run android --workspace @metrivum/mobile
 & 'C:\Program Files\nodejs\npm.cmd' run dev:mobile
 ```
 
 Do not overwrite an existing `.env.local`. The current workstation already has an ignored mobile config populated from existing public web settings. `http://10.0.2.2:59120` addresses the local API from an Android emulator; a real phone needs a reachable development host and an appropriately bound API. Production requires HTTPS. Never copy a database password, service-role key or worker secret into mobile configuration.
 
-`apps/mobile/scripts/build-android.ps1` compiles an Android APK without installing it. It verifies the actual Node executable, uses a bounded Gradle JVM and records a diagnostic log. The normal Expo Android command also installs/runs, so choose the script for build-only verification. Generated `android/` and `ios/` directories are ignored; native changes belong in config plugins or `modules/trainflow-voice`, and must survive prebuild. EAS `local`, `development` and `preview` profiles are supplied; no EAS project, signing credentials, paid build or store release was created.
+`apps/mobile/scripts/build-android.ps1` compiles an Android APK without installing it. It verifies the actual Node executable, uses a bounded Gradle JVM and records a diagnostic log. The normal Expo Android command also installs/runs, so choose the script for build-only verification. Generated `android/` and `ios/` directories are ignored; native changes belong in config plugins or `modules/metrivum-voice`, and must survive prebuild. EAS `local`, `development` and `preview` profiles are supplied; no EAS project, signing credentials, paid build or store release was created.
 
 The verified local Android development APK is copied to `.local/mobile/trainflow-mobile-dev-arm64.apk` (arm64, about 101 MiB). It needs a running Metro development server and reachable API; it is not a standalone store build. It was subsequently installed with permission on Samsung SM-G973F and verified up to the sign-in screen. The hash and build evidence are in [verification](verification.md).
 
@@ -42,7 +42,7 @@ For that physical phone, the ignored local API URL is now `http://127.0.0.1:5912
 - `src/features`: daily training, clients, intake/check-ins, messaging, calendar, documentation, settings and historical analysis.
 - `src/infrastructure`: account lifecycle, neutral HTTP adapter, scoped query caches, realtime/push, encrypted local drafts and serial save queue.
 - `packages/ui-mobile`: semantic theme, native controls, accessible states, toast/sheet adapters and unit-aware chart rendering. No business entities, endpoints or Auth imports.
-- `modules/trainflow-voice`: reproducible Android PCM WAV recording. It is not an ML runtime.
+- `modules/metrivum-voice`: reproducible Android PCM WAV recording. It is not an ML runtime.
 
 See [screen/API map](screen-api-map.md), [messaging/calendar](messaging-calendar.md), [local ML evidence](local-ml.md) and [verification](verification.md). The original [product specification](product-spec.md) remains the acceptance scope, not evidence that every milestone has passed.
 

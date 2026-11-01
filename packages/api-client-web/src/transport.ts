@@ -1,4 +1,4 @@
-import type { ProblemDetails } from "@trainflow/api-client-web";
+import type { ProblemDetails } from "@metrivum/api-client-web";
 import { ApiError, NetworkError, StaleAccountError } from "./errors";
 
 type QueryScalar = string | number | boolean | null | undefined;

@@ -5,13 +5,13 @@ const features = JSON.parse(readFileSync(new URL('../../../contracts/generated/f
 const owner = '00000000-0000-4000-8000-000000000000';
 const media = '10000000-0000-4000-8000-000000000001';
 test('built Windows installer is served as a downloadable executable', async ({ request }) => {
-  const file = new URL('../public/downloads/analyzer/TrainFlowAnalyzerSetup.exe', import.meta.url);
+  const file = new URL('../public/downloads/analyzer/MetrivumAnalyzerSetup.exe', import.meta.url);
   test.skip(!existsSync(file), 'Build the optional local Windows installer to verify its download.');
-  const response = await request.head('/downloads/analyzer/TrainFlowAnalyzerSetup.exe');
+  const response = await request.head('/downloads/analyzer/MetrivumAnalyzerSetup.exe');
   expect(response.status()).toBe(200);
   expect(Number(response.headers()['content-length'])).toBe(statSync(file).size);
   expect(response.headers()['content-type']).not.toContain('text/html');
-  const signature = await request.get('/downloads/analyzer/TrainFlowAnalyzerSetup.exe', { headers: { Range: 'bytes=0-1' } });
+  const signature = await request.get('/downloads/analyzer/MetrivumAnalyzerSetup.exe', { headers: { Range: 'bytes=0-1' } });
   expect(signature.status()).toBe(206);
   expect((await signature.body()).toString()).toBe('MZ');
 });
@@ -27,7 +27,7 @@ test('pairs local analyzer, preserves completed result on save failure and retri
   await page.route('http://127.0.0.1:59121/**', async route => {
     const path = new URL(route.request().url()).pathname;
     if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
-    if (path === '/discovery') return route.fulfill({ headers: cors, json: { application: 'TrainFlow.LocalAnalyzer', protocolVersion: 1, version: '1.0.0' } });
+    if (path === '/discovery') return route.fulfill({ headers: cors, json: { application: 'Metrivum.LocalAnalyzer', protocolVersion: 1, version: '1.0.0' } });
     expect(route.request().headers().authorization).toBe('Bearer local-pairing-token');
     if (path === '/status') return route.fulfill({ headers: cors, json: { state: 'ready', protocolVersion: 1 } });
     analyses++;
@@ -55,7 +55,7 @@ test('pairs local analyzer, preserves completed result on save failure and retri
   });
   await page.goto('/app/video-analyses/new', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('Installed and running — pairing required', { exact: true })).toBeVisible({ timeout: 30000 });
-  await expect(page.getByRole('link', { name: 'Download for Windows x64' })).toHaveAttribute('href', '/downloads/analyzer/TrainFlowAnalyzerSetup.exe');
+  await expect(page.getByRole('link', { name: 'Download for Windows x64' })).toHaveAttribute('href', '/downloads/analyzer/MetrivumAnalyzerSetup.exe');
   await page.getByLabel('Local analyzer pairing token').fill('local-pairing-token');
   await expect(page.getByText('Local analyzer ready', { exact: true })).toBeVisible();
   await page.locator('input[type=file]').setInputFiles({ name: 'lift.mov', mimeType: 'video/quicktime', buffer: Buffer.from('fixture-video') });

@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { View } from "react-native";
-import { Avatar, PressableScale, useTheme } from "@trainflow/ui-mobile";
+import { Avatar, PressableScale, useTheme } from "@metrivum/ui-mobile";
 import { useI18n } from "../../infrastructure/i18n";
 import { useApiQuery } from "../../infrastructure/networking/queries";
 import { useMobile } from "../../infrastructure/session/MobileSession";

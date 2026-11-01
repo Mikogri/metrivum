@@ -64,3 +64,7 @@ a.itemTitle:hover { text-decoration: underline; text-underline-offset: 3px; }
 .checkInRow { display: flex; align-items: center; gap: var(--tf-space-3); width: 100%; min-height: 4.5rem; padding: var(--tf-space-4); border: 0; border-bottom: 1px solid var(--tf-color-border-subtle); background: var(--tf-color-surface); color: var(--tf-color-text); font: inherit; text-align: left; cursor: pointer; }
 .checkInRow strong { overflow-wrap: anywhere; font-size: var(--tf-text-sm); }
 .checkInRow:focus-visible { outline: 2px solid var(--tf-color-accent); outline-offset: -2px; }
+
+/* Payment history filters: service gets the most room, then status and the two dates; wraps to two rows when narrow. */
+.payFilters { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); gap: var(--tf-space-3); align-items: end; }
+@media (max-width: 40rem) { .payFilters { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }

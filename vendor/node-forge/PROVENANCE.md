@@ -1,6 +1,6 @@
-# TrainFlow node-forge backport
+# Metrivum node-forge backport
 
-Private package: `@trainflow/node-forge@1.4.0-trainflow.1`. This is a local fork, not an upstream release or a claim that node-forge 1.4.0 is unaffected. TrainFlow owns this backport until a reviewed upstream patch release can replace it.
+Private package: `@metrivum/node-forge@1.4.0-trainflow.1`. This is a local fork, not an upstream release or a claim that node-forge 1.4.0 is unaffected. Metrivum owns this backport until a reviewed upstream patch release can replace it.
 
 ## Source and license
 
@@ -12,7 +12,7 @@ Private package: `@trainflow/node-forge@1.4.0-trainflow.1`. This is a local fork
 
 ## Security change
 
-[GHSA-86w9-cpqp-85rv](https://github.com/advisories/GHSA-86w9-cpqp-85rv) has no patched registry release as checked on 2026-10-14. [Upstream PR 1152](https://github.com/digitalbazaar/forge/pull/1152), commit `ceba34402e329f0365134f23fe19898756527d65`, remains unmerged. `UPSTREAM-1152.patch` records its exact patch and authorship. Only its `lib/rsa.js` hunk is applied here; the resulting RSA file is byte-identical to that commit. TrainFlow does not represent the patch as maintainer-approved.
+[GHSA-86w9-cpqp-85rv](https://github.com/advisories/GHSA-86w9-cpqp-85rv) has no patched registry release as checked on 2026-10-14. [Upstream PR 1152](https://github.com/digitalbazaar/forge/pull/1152), commit `ceba34402e329f0365134f23fe19898756527d65`, remains unmerged. `UPSTREAM-1152.patch` records its exact patch and authorship. Only its `lib/rsa.js` hunk is applied here; the resulting RSA file is byte-identical to that commit. Metrivum does not represent the patch as maintainer-approved.
 
 The change rejects unused children inside the nested DigestAlgorithm sequence. Existing validation already rejects extra outer DigestInfo children. ASN.1 OID with absent or NULL parameters remains supported. All other runtime source files are unchanged. The package retains CommonJS `lib/index.js`, all `lib/*.js` deep imports, Node engine and browser runtime mappings. It omits prebuilt browser bundles and Flash artifacts so an unpatched bundle cannot be used accidentally; no repository consumer imports those artifacts.
 

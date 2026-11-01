@@ -4,7 +4,7 @@ $root=Split-Path $PSScriptRoot -Parent
 Push-Location $root
 try {
     if (!$NoBuild) {
-        dotnet build apps/api/TrainFlow.Api --configuration $Configuration -m:2 /nodeReuse:false /p:UseSharedCompilation=false
+        dotnet build apps/api/Metrivum.Api --configuration $Configuration -m:2 /nodeReuse:false /p:UseSharedCompilation=false
         if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
     }
     $parts=Join-Path $root '.local/stage05/sql'
@@ -28,7 +28,7 @@ REVOKE ALL ON SCHEMA client_documentation FROM PUBLIC;
 '@)
     foreach ($entry in @(@('Training','TrainingDbContext','20261005135233_HardenImmutableTriggerSearchPath'),@('ClientDocumentation','DocumentationDbContext','0'),@('Access','AccessDbContext','20261008083659_StageFourFeatures'))) {
         $module=$entry[0]; $part=Join-Path $parts "$module.sql"
-        dotnet ef migrations script $entry[2] --no-transactions --no-build --configuration $Configuration --project "backend/modules/$module/TrainFlow.$module" --startup-project apps/api/TrainFlow.Api --context $entry[1] --output $part
+        dotnet ef migrations script $entry[2] --no-transactions --no-build --configuration $Configuration --project "backend/modules/$module/Metrivum.$module" --startup-project apps/api/Metrivum.Api --context $entry[1] --output $part
         if ($LASTEXITCODE -ne 0) { throw "SQL generation failed: $module" }
         $sql.Add([IO.File]::ReadAllText($part))
     }

@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
-import type { FolderDto, PagedOfFolderDto } from "@trainflow/api-client-web";
+import type { FolderDto, PagedOfFolderDto } from "@metrivum/api-client-web";
 import { useAccountKey } from "~/shared/session/AccountScope";
 import { trainingKeys } from "../queries";
 

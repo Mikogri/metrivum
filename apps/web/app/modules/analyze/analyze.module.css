@@ -289,6 +289,74 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Payments panel: two headline numbers, then a list of facts with hairlines between them. */
+.payHero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tf-space-3);
+  padding-bottom: var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.payHero > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.payHero strong {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-2xl);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.payHero > div > span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.payRows {
+  display: grid;
+  margin: 0;
+}
+
+.payRows > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-2-5, 0.625rem) 0;
+}
+
+.payRows > div + div {
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.payRows dt {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}
+
+.payRows dd {
+  display: grid;
+  justify-items: end;
+  margin: 0;
+}
+
+.payRows strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.payRows dd span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+}
+
 @media (max-width: 72rem) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -428,4 +496,82 @@
 
 .panel[data-full] {
   grid-column: 1 / -1;
+}
+
+/* Basic Analyze payments: title with a currency chip, then a strip of figures above the chart. */
+.payTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.currency {
+  padding: 1px var(--tf-space-1-5);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  letter-spacing: 0.04em;
+}
+
+.payStrip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+}
+
+.payStrip > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--tf-space-3) var(--tf-space-4);
+}
+
+.payStrip > div + div {
+  border-left: 1px solid var(--tf-color-border-subtle);
+}
+
+.payStrip dt {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.payStrip dd {
+  overflow: hidden;
+  margin: 0;
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-lg);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payStrip dd[data-tone="accent"] {
+  color: var(--tf-color-accent);
+}
+
+.payStrip dd[data-tone="warning"] {
+  color: var(--tf-color-warning);
+}
+
+@media (max-width: 56rem) {
+  .payStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .payStrip > div + div {
+    border-left: 0;
+  }
+
+  .payStrip > div:nth-child(even) {
+    border-left: 1px solid var(--tf-color-border-subtle);
+  }
+
+  .payStrip > div:nth-child(n + 3) {
+    border-top: 1px solid var(--tf-color-border-subtle);
+  }
 }

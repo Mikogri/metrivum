@@ -4,11 +4,11 @@ export const meta = () => privateMeta("Team — Metrivum");
 
 import { UserAutocomplete } from "~/modules/accounts";
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, BarChart3, Building2, Crown, LogOut, Mail, Tag, UsersRound } from "lucide-react";
 import { Link as RouterLink } from "react-router";
-import { Alert, AlertDialog, Badge, Button, Card, DataTable, Dialog, EmptyState, LinkButton, Option, PageHeader, Select, Tab, TabList, TabPanel, Tabs, TextArea, TextField } from "@trainflow/ui-web";
+import { Alert, AlertDialog, Avatar, Badge, Button, Card, DataTable, Dialog, EmptyState, LinkButton, Option, PageHeader, Select, Tab, TabList, TabPanel, Tabs, TextArea, TextField, toast } from "@metrivum/ui-web";
 import { Failure, Loading, MutationError, useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { useAccountContext, useAccountKey } from "~/shared/session/AccountScope";
 import { ApiError } from "~/shared/http";
@@ -43,9 +43,18 @@ export default function TeamRoute() {
   const home = useCoachingQuery<Schema<"TeamHomeDto">>("/api/v1/teams/mine");
   const mutation = useTeamMutation();
   const { ask, dialog: confirmDialog } = useDangerConfirm();
+  // The invitation being answered and how, so only its button spins.
+  const [deciding, setDeciding] = useState<{ id: string; accept: boolean } | null>(null);
   if (home.isPending) return <Loading />;
   if (home.isError) return <Failure error={home.error} retry={() => void home.refetch()} />;
   const invites = home.data.requests.filter((request) => request.kind === "Invite" && request.canDecide);
+  const decide = (request: Request, accept: boolean) => {
+    setDeciding({ id: request.id, accept });
+    mutation.mutate({ method: "POST", path: `/api/v1/teams/requests/${request.id}/decision`, json: { accept } }, {
+      onSuccess: () => toast(accept ? { tone: "success", title: `You joined ${request.teamName}`, description: `You are now a ${request.role.toLowerCase()} of the Team.` } : { tone: "neutral", title: `Invitation to ${request.teamName} declined` }),
+      onSettled: () => setDeciding(null),
+    });
+  };
   return <><PageHeader title="Team" description="Your organization, membership and shared coaching. Personal clients and resources remain private." />
     <div className={styles.page}>
       <TeamMutationError error={mutation.error} />
@@ -58,8 +67,8 @@ export default function TeamRoute() {
             <p className={styles.strong}>{request.teamName}</p>
             <p className={styles.muted}>Join as {request.role}{request.expiresAt ? ` · expires ${new Date(request.expiresAt).toLocaleDateString()}` : ""}</p>
           </div>
-          <Button variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await ask({ title: `Decline the invitation to ${request.teamName}?`, body: "The Team is told you declined. An admin can invite you again later.", confirmLabel: "Decline invitation", cancelLabel: "Keep invitation" })) mutation.mutate({ method: "POST", path: `/api/v1/teams/requests/${request.id}/decision`, json: { accept: false } }); }}>Decline invitation</Button>
-          <Button variant="primary" isDisabled={mutation.isPending} onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/teams/requests/${request.id}/decision`, json: { accept: true } })}>Accept invitation</Button>
+          <Button variant="danger-ghost" isDisabled={mutation.isPending} loading={mutation.isPending && deciding?.id === request.id && !deciding.accept} onPress={async () => { if (await ask({ title: `Decline the invitation to ${request.teamName}?`, body: "The Team is told you declined. An admin can invite you again later.", confirmLabel: "Decline invitation", cancelLabel: "Keep invitation" })) decide(request, false); }}>Decline invitation</Button>
+          <Button variant="primary" isDisabled={mutation.isPending} loading={mutation.isPending && deciding?.id === request.id && deciding.accept} onPress={() => decide(request, true)}>Accept invitation</Button>
         </Card>)}
       </section>}
       <TransferRequests />
@@ -174,7 +183,7 @@ function Members({ team, members, requests }: { team: Team; members: Member[]; r
       {full && <p className={styles.formNote}>Add paid seats before inviting another coach.</p>}
     </form>}
     <DataTable label="Team members" rows={members} rowKey={(member) => member.userId} columns={[
-      { id: "name", header: "Member", cell: (member) => <span className={styles.person}><span className={styles.avatar} aria-hidden="true">{initials(member.displayName || member.username || "")}</span><span className={styles.personText}><span>{member.displayName || member.username}</span>{member.username && <span className={styles.muted}>@{member.username}</span>}</span></span> },
+      { id: "name", header: "Member", cell: (member) => <span className={styles.person}><Avatar name={member.displayName || member.username || "Member"} size="sm" decorative /><span className={styles.personText}><span>{member.displayName || member.username}</span>{member.username && <span className={styles.muted}>@{member.username}</span>}</span></span> },
       { id: "role", header: "Role", width: "8rem", cell: (member) => <Badge size="sm" tone={member.role === "Owner" ? "accent" : member.role === "Admin" ? "info" : "neutral"}>{member.role}</Badge> },
       { id: "joined", header: "Joined", width: "9rem", muted: true, hideOnMobile: true, cell: (member) => new Date(member.joinedAt).toLocaleDateString() },
       { id: "actions", header: <span className="tf-visually-hidden">Actions</span>, align: "end", cell: (member) => <div className={styles.rowActions}>
@@ -182,7 +191,7 @@ function Members({ team, members, requests }: { team: Team; members: Member[]; r
         {can("manage") && member.role !== "Owner" && (team.isOwner || member.role === "Member") && <Button size="sm" variant="danger-ghost" onPress={() => setRemove(member)}>Remove</Button>}
       </div> },
     ]} />
-    {can("manage") && requests.length > 0 && <section className={styles.stack}><h3 className={styles.sectionTitle}>Invitations</h3><ul className={styles.requestList}>{requests.map((request) => <li key={request.id}><span className={styles.avatar} aria-hidden="true">{initials(request.displayName)}</span><span className={styles.inline}>{request.displayName} <span className={styles.muted}>· {request.role}</span></span><Badge size="sm" tone={statusTone(request.status)}>{request.status}</Badge>{request.status === "Pending" && <Button size="sm" variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await askMember({ title: "Revoke this invitation?", body: "The coach can no longer join with it. You can invite them again later.", confirmLabel: "Revoke invitation", cancelLabel: "Keep invitation" })) mutation.mutate({ method: "POST", path: `/api/v1/teams/${team.id}/invitations/${request.id}/revoke` }); }}>Revoke invitation</Button>}</li>)}</ul></section>}
+    {can("manage") && requests.length > 0 && <section className={styles.stack}><h3 className={styles.sectionTitle}>Invitations</h3><ul className={styles.requestList}>{requests.map((request) => <li key={request.id}><Avatar name={request.displayName || "Invited coach"} size="sm" decorative /><span className={styles.inline}>{request.displayName} <span className={styles.muted}>· {request.role}</span></span><Badge size="sm" tone={statusTone(request.status)}>{request.status}</Badge>{request.status === "Pending" && <Button size="sm" variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await askMember({ title: "Revoke this invitation?", body: "The coach can no longer join with it. You can invite them again later.", confirmLabel: "Revoke invitation", cancelLabel: "Keep invitation" })) mutation.mutate({ method: "POST", path: `/api/v1/teams/${team.id}/invitations/${request.id}/revoke` }); }}>Revoke invitation</Button>}</li>)}</ul></section>}
     {can("transfer-ownership") && <div className={styles.zone}>
       <div className={styles.grow}><p className={styles.strong}>Transfer ownership</p><p className={styles.muted}>{team.pendingOwnerId ? "Ownership transfer is awaiting the selected member's acceptance." : "The new owner takes over billing and owner-only actions."}</p></div>
       <Select aria-label="New owner" placeholder="Select a Team member" selectedKey={successor || null} onSelectionChange={(key) => setSuccessor(key ? String(key) : "")} className={styles.ownerSelect}>{members.filter((member) => member.role !== "Owner").map((member) => <Option key={member.userId} id={member.userId}>{member.displayName || member.username}</Option>)}</Select>

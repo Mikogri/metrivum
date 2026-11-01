@@ -1,5 +1,5 @@
 param([string]$SettingsPath='.local/stage05/database.json', [string]$BaselineSql='.local/stage05/initial.sql',
-    [string]$ApiPath='.local/stage06/build/bin/TrainFlow.Api/debug/TrainFlow.Api.dll')
+    [string]$ApiPath='.local/stage06/build/bin/Metrivum.Api/debug/Metrivum.Api.dll')
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 Push-Location $root

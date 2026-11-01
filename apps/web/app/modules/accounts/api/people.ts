@@ -1,4 +1,4 @@
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import type { Transport } from "~/shared/http/transport";
 
 export type Person = Schema<"PersonProfileResponse">;

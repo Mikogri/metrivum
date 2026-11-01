@@ -43,7 +43,7 @@ All 11 schemas are private application schemas owned by `trainflow_migrator`. `t
 Generate reviewed SQL locally (no database connection is made):
 
 ```powershell
-dotnet build TrainFlow.slnx -c Release --no-restore
+dotnet build Metrivum.slnx -c Release --no-restore
 ./infra/export-coaching-stage02.ps1 -Configuration Release
 # Fresh empty database only:
 ./infra/export-initial-database.ps1 -Configuration Release -NoBuild

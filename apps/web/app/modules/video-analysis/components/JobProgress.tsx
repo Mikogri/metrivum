@@ -1,6 +1,6 @@
 import { CircleAlert, Clock } from 'lucide-react';
 import { Button as AriaButton } from 'react-aria-components';
-import { Tooltip, TooltipTrigger } from '@trainflow/ui-web';
+import { Tooltip, TooltipTrigger } from '@metrivum/ui-web';
 import { useAnalyzerJobs } from '../analyzer-jobs';
 import type { AnalyzerJob } from '../local-analysis';
 import { jobStatus } from '../job-status';

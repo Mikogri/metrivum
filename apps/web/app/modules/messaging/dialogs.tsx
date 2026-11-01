@@ -1,7 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
-import { Button, Checkbox, Dialog, DialogFooter, EmptyState, LoadingState, Option, Select, Spinner, TextField } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Button, Checkbox, Dialog, DialogFooter, EmptyState, LoadingState, Option, Select, Spinner, TextField } from "@metrivum/ui-web";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";

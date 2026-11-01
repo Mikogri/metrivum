@@ -11,17 +11,15 @@ it("can be skipped without changing the completed execution", async () => {
   render(<WorkoutFeedbackForm own execution={{ id: "done", version: 3, status: "Completed" }} />);
   await userEvent.click(screen.getByRole("button", { name: "Later" }));
   expect(mutate).not.toHaveBeenCalled();
-  expect(screen.getByRole("button", { name: "Add or edit feedback" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Add feedback" })).toBeInTheDocument();
 });
 
 it("sends all selected scales with the current execution version", async () => {
   render(<WorkoutFeedbackForm own execution={{ id: "done", version: 3, status: "Completed" }} />);
-  for (const button of screen.getAllByRole("button", { name: "4" })) await userEvent.click(button);
-  const input = screen.getByRole("textbox", { name: "Whole session difficulty (Session RPE)" });
-  await userEvent.type(input, "0");
-  await userEvent.tab();
-  await userEvent.click(screen.getByRole("button", { name: "Save feedback" }));
-  expect(mutate).toHaveBeenCalledWith(expect.objectContaining({ method: "PUT", path: "/api/v1/training/executions/done/feedback", ifMatch: 3, json: expect.objectContaining({ rating: 4, wellbeing: 4, sleepQuality: 4, sessionRpe: 0 }) }));
+  // Rating, wellbeing and sleep (1-5) and effort (1-10): pick 4 on each.
+  for (const option of screen.getAllByRole("radio", { name: /^4/ })) await userEvent.click(option);
+  await userEvent.click(screen.getByRole("button", { name: "Save" }));
+  expect(mutate).toHaveBeenCalledWith(expect.objectContaining({ method: "PUT", path: "/api/v1/training/executions/done/feedback", ifMatch: 3, json: expect.objectContaining({ rating: 4, wellbeing: 4, sleepQuality: 4, sessionRpe: 4 }) }));
 });
 
 it("shows saved feedback to the coach without exposing an edit action", () => {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { Schema } from '@trainflow/api-client-web';
-import { Alert, Button, Option, Select } from '@trainflow/ui-web';
+import type { Schema } from '@metrivum/api-client-web';
+import { Alert, Button, Option, Select } from '@metrivum/ui-web';
 import { useAccountContext } from '~/shared/session/AccountScope';
 import { useT } from '~/shared/i18n/AppLocale';
 

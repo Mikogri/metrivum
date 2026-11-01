@@ -8,8 +8,8 @@ import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceSco
 import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, AlertDialog, Avatar, Badge, Button, Checkbox, LinkButton, PageHeader, TextArea, toast } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, AlertDialog, Avatar, Badge, Button, Checkbox, LinkButton, PageHeader, TextArea, toast } from "@metrivum/ui-web";
 import { Facts, Panel, PanelGrid } from "~/shared/ui/Panel";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";

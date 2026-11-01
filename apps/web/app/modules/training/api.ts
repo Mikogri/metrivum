@@ -19,7 +19,7 @@ import type {
   PlanDto,
   RevisionDto,
   SavePlanRequest,
-} from "@trainflow/api-client-web";
+} from "@metrivum/api-client-web";
 import type { Transport } from "~/shared/http/transport";
 
 import { storedDocument } from "./formula-values";

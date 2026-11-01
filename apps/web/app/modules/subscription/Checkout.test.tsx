@@ -7,7 +7,7 @@ import { Checkout } from "./Checkout";
 
 const fixture = vi.hoisted(() => ({ mutateAsync: vi.fn(), active: true }));
 vi.mock("~/modules/accounts", () => ({ useProfile: () => ({ roles: ["Coach"] }) }));
-vi.mock("~/shared/session/AccountScope", () => ({ useAccountKey: () => "test-account", useAccountContext: () => ({ lifecycle: { isCurrent: () => fixture.active } }) }));
+vi.mock("~/shared/session/AccountScope", () => ({ useAccountKey: () => "test-account", useAccountContext: () => ({ account: { userId: "test-account" }, lifecycle: { isCurrent: () => fixture.active } }) }));
 vi.mock("./team-billing", () => ({ TeamCheckout: ({ plan }: { plan: { name: string } }) => <p>Workspace checkout: {plan.name}</p> }));
 vi.mock("~/modules/coaching", () => ({
   Failure: () => <p>Failure</p>, MutationError: () => null,
@@ -19,7 +19,7 @@ vi.mock("~/modules/coaching", () => ({
   ] : { planId: "Free", version: 4, pendingPlanId: null } }),
 }));
 
-beforeEach(() => { fixture.active = true; fixture.mutateAsync.mockReset(); });
+beforeEach(() => { localStorage.clear(); fixture.active = true; fixture.mutateAsync.mockReset(); });
 function show(planId = "Pro") { return render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><Checkout planId={planId} /></MemoryRouter></QueryClientProvider>); }
 const confirm = () => screen.getByRole("button", { name: "Confirm simulated payment" });
 async function agreeAndConfirm() {

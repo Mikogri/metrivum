@@ -32,7 +32,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA calendar REVOKE EXECUTE ON FUNCTIONS FROM PUB
 '@)
     foreach ($entry in @(@('Calendar','0','20261007134212_GuardCalendarRelationshipClient'), @('Access','20261006220335_StageTwoFeatures','20261007132211_CalendarFeatures'))) {
         $module=$entry[0]; $part=Join-Path $parts "$module.sql"
-        dotnet ef migrations script $entry[1] $entry[2] --no-transactions --no-build --configuration $Configuration --project "backend/modules/$module/TrainFlow.$module" --startup-project apps/api/TrainFlow.Api --context "$($module)DbContext" --output $part
+        dotnet ef migrations script $entry[1] $entry[2] --no-transactions --no-build --configuration $Configuration --project "backend/modules/$module/Metrivum.$module" --startup-project apps/api/Metrivum.Api --context "$($module)DbContext" --output $part
         if ($LASTEXITCODE -ne 0) { throw "Failed SQL export: $module" }
         $sql.Add([IO.File]::ReadAllText($part))
     }

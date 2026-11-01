@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Workout } from "@trainflow/api-client-web";
+import type { Workout } from "@metrivum/api-client-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import type { EditorApi } from "../useEditor";
 import { DetailsPanel } from "./DetailsPanel";

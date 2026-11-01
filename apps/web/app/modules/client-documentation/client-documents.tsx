@@ -5,7 +5,7 @@ export const meta = () => privateMeta("Collaboration files — Metrivum");
 import { useState } from "react";
 import { useParams } from "react-router";
 import { FolderOpen } from "lucide-react";
-import { EmptyState, LinkButton, Option, PageHeader, Select } from "@trainflow/ui-web";
+import { EmptyState, LinkButton, Option, PageHeader, Select } from "@metrivum/ui-web";
 import { useCoachingQuery, type ClientRelationship, type Page } from "~/modules/coaching";
 import { Failure, Loading } from "~/modules/coaching";
 import { BodyMeasurements, RelationshipDocumentation } from "./relationship-documentation";

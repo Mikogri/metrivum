@@ -1,1 +1,1 @@
-export * from "@trainflow/api-client-web/errors";
+export * from "@metrivum/api-client-web/errors";

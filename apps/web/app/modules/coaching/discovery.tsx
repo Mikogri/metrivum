@@ -1,8 +1,8 @@
 import { ArrowRight, ChevronDown, Globe, MapPin, MonitorSmartphone, Sparkles, Store } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link as RouterLink } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Avatar, Badge, Button, Card, Checkbox, EmptyState, LinkButton, Option, PageHeader, Pagination, SearchInput, Select, TextField } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Avatar, Badge, Button, Card, Checkbox, EmptyState, LinkButton, Option, PageHeader, Pagination, SearchInput, Select, TextField } from "@metrivum/ui-web";
 import { useProfile } from "~/modules/accounts";
 import { useFeatureAccess } from "~/shared/access";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";

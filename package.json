@@ -15,20 +15,20 @@
   },
   "scripts": {
     "contracts": "openapi-typescript contracts/generated/openapi.json -o contracts/generated/api.d.ts",
-    "dev": "npm run dev --workspace @trainflow/web",
-    "build": "npm run build --workspace @trainflow/web",
-    "preview": "npm run preview --workspace @trainflow/web",
-    "storybook": "npm run storybook --workspace @trainflow/ui-catalog",
-    "storybook:build": "npm run build --workspace @trainflow/ui-catalog",
+    "dev": "npm run dev --workspace @metrivum/web",
+    "build": "npm run build --workspace @metrivum/web",
+    "preview": "npm run preview --workspace @metrivum/web",
+    "storybook": "npm run storybook --workspace @metrivum/ui-catalog",
+    "storybook:build": "npm run build --workspace @metrivum/ui-catalog",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "test": "vitest run",
     "test:hosting": "node --test apps/web/scripts/hosting-rules.test.mjs",
     "test:security-dependencies": "node --test infra/security-dependencies/node-forge.test.cjs infra/security-dependencies/parsers.test.mjs infra/security-dependencies/installed-parsers.test.mjs",
-    "e2e": "npm run e2e --workspace @trainflow/web",
-    "e2e:coaching": "npm run e2e:coaching --workspace @trainflow/web",
+    "e2e": "npm run e2e --workspace @metrivum/web",
+    "e2e:coaching": "npm run e2e:coaching --workspace @metrivum/web",
     "catalog:seed": "node infra/catalog/build-catalog-seed.mjs",
-    "dev:mobile": "npm run dev --workspace @trainflow/mobile"
+    "dev:mobile": "npm run dev --workspace @metrivum/mobile"
   },
   "overrides": {
     "braces": "$braces",

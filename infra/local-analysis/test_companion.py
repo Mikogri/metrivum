@@ -26,7 +26,7 @@ class CompanionTests(unittest.TestCase):
     def setUpClass(cls):
         shutil.rmtree(JOBS, ignore_errors=True)
         cls.process = subprocess.Popen([
-            'dotnet', str(ROOT / '.local/local-analyzer-artifacts/bin/TrainFlow.LocalAnalyzer/debug/TrainFlow.LocalAnalyzer.dll'),
+            'dotnet', str(ROOT / '.local/local-analyzer-artifacts/bin/Metrivum.LocalAnalyzer/debug/Metrivum.LocalAnalyzer.dll'),
             '--MotionTraceRoot', str(ROOT.parent / 'MotionTrace'),
             '--PairingFile', str(ROOT / '.local/test-companion-pairing-token'),
             '--JobsDirectory', str(JOBS),
@@ -44,7 +44,7 @@ class CompanionTests(unittest.TestCase):
     def request(self, *, origin='http://localhost:5173', token=None, configuration=None, body=b'video', method='POST', host=None,
                 content_length=None, path='/jobs'):
         headers = {'Origin': origin, 'Authorization': 'Bearer ' + (self.token if token is None else token),
-                   'Content-Type': 'video/mp4', 'X-TrainFlow-Job': job() if configuration is None else configuration}
+                   'Content-Type': 'video/mp4', 'X-Metrivum-Job': job() if configuration is None else configuration}
         if host:
             headers['Host'] = host
         if content_length is not None:

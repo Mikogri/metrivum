@@ -297,3 +297,9 @@
     transform: translateY(-4px);
   }
 }
+
+/* A program card's publish state, with Publish / Apply right there. */
+.cardStatus {
+  display: flex;
+  margin-top: var(--tf-space-1);
+}

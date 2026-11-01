@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { MessageCircle } from "lucide-react";
-import { Button } from "@trainflow/ui-web";
-import type { Schema } from "@trainflow/api-client-web";
+import { Button } from "@metrivum/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { useAccountContext } from "~/shared/session";
 import { useFeatureAccess } from "~/shared/access";
 import { useErrorToast } from "~/shared/lib/useErrorToast";

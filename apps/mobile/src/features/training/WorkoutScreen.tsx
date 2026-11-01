@@ -2,7 +2,7 @@ import { NativeDateField } from "./NativeDateField";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, AppState, View } from "react-native";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     ActionSheet,
     Badge,
@@ -26,7 +26,7 @@ import {
     confirm,
     haptic,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import {
     useApiMutation,

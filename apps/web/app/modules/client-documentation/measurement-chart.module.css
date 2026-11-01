@@ -28,3 +28,8 @@
 }
 .tooltip strong { font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); font-variant-numeric: tabular-nums; }
 .tooltip span { color: var(--tf-color-text-tertiary); }
+
+/* Several lines: the one under the cursor stays, the others step back. */
+.series { transition: opacity 150ms ease; }
+.series[data-dim] { opacity: 0.35; }
+.tooltip em { font-size: var(--tf-text-xs); font-style: normal; font-weight: var(--tf-weight-medium); }

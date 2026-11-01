@@ -1,10 +1,10 @@
 import { useCellValidation } from "../cell-validation";
 import { Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { ExerciseInstance, TrainingDocument, Workout } from "@trainflow/api-client-web";
+import type { ExerciseInstance, TrainingDocument, Workout } from "@metrivum/api-client-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { ExerciseTools } from "./ExerciseTools";
-import { ContextMenu } from "@trainflow/ui-web";
+import { ContextMenu } from "@metrivum/ui-web";
 import { useDictionaryLabel, useExerciseList } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";

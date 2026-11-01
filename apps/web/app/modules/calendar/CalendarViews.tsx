@@ -10,6 +10,10 @@ export function onDay(entry: CalendarEntry, day: string, zone: string) {
 }
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOUR = 48;
+/** The all-day row fits two entries; with more, the first one shows and the rest collapse into "+N". */
+const ALL_DAY_FIT = 2;
+/** Shorter blocks have room for one line only: the title with the start time beside it. */
+const COMPACT_MINUTES = 45;
 const time = (iso: string, zone: string) => new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: zone }).format(new Date(iso));
 
 export function CalendarViews({ view, date, today, zone, entries, select, open }: { view: CalendarView; date: string; today: string; zone: string; entries: CalendarEntry[]; select: (day: string) => void; open: (entry: CalendarEntry) => void }) {
@@ -86,15 +90,24 @@ export function CalendarViews({ view, date, today, zone, entries, select, open }
                 {Number(day.slice(-2))}
               </span>
             </button>
-            <div className={styles.allDay}>
-              {entries
-                .filter((e) => onDay(e, day, zone) && (e.day || e.checkIn))
-                .map((e) => (
-                  <button type="button" key={e.id} className={styles.entry} data-kind={e.kind} onClick={() => open(e)} title={e.title}>
+            {(() => {
+              const allDay = entries.filter((e) => onDay(e, day, zone) && (e.day || e.checkIn));
+              const shown = allDay.length > ALL_DAY_FIT ? allDay.slice(0, ALL_DAY_FIT - 1) : allDay;
+              const hidden = allDay.length - shown.length;
+              return <div className={styles.allDay}>
+                {shown.map((e) => (
+                  <button type="button" key={e.id} className={styles.entry} data-kind={e.kind} data-cancelled={e.status === "Cancelled" || undefined} onClick={() => open(e)} title={e.title}>
                     <span className={styles.entryTitle}>{e.title}</span>
                   </button>
                 ))}
-            </div>
+                {hidden > 0 ? (
+                  <button type="button" className={styles.allDayMore} onClick={() => select(day)} title={allDay.slice(shown.length).map((e) => e.title).join(", ")}
+                    aria-label={`${hidden} more all-day ${hidden === 1 ? "item" : "items"} on ${day}`}>
+                    +{hidden}
+                  </button>
+                ) : null}
+              </div>;
+            })()}
             <div className={styles.timeLane}>
               {entries
                 .filter((e) => onDay(e, day, zone) && !e.day && !e.checkIn)
@@ -110,12 +123,14 @@ export function CalendarViews({ view, date, today, zone, entries, select, open }
                       className={styles.timeEntry}
                       data-kind={e.kind}
                       data-cancelled={e.status === "Cancelled" || undefined}
-                      style={{ top: (minutes / 60) * HOUR, height: Math.max(24, ((endMinutes - minutes) / 60) * HOUR - 2) }}
+                      data-compact={endMinutes - minutes < COMPACT_MINUTES || undefined}
+                      style={{ top: (minutes / 60) * HOUR, height: Math.max(20, ((endMinutes - minutes) / 60) * HOUR - 2) }}
+                      title={`${e.title} · ${time(e.start, zone)} – ${time(e.end, zone)}`}
                       onClick={() => open(e)}
                     >
                       <span className={styles.entryTitle}>{e.title}</span>
                       <small>
-                        {time(e.start, zone)} – {time(e.end, zone)}
+                        {endMinutes - minutes < COMPACT_MINUTES ? time(e.start, zone) : `${time(e.start, zone)} – ${time(e.end, zone)}`}
                       </small>
                     </button>
                   );

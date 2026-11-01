@@ -4,7 +4,7 @@ export const meta = () => privateMeta("My coaches — Metrivum");
 
 import { Link } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Avatar, Button, EmptyState, LinkButton, Option, PageHeader, SearchInput, Select, Toolbar } from "@trainflow/ui-web";
+import { Avatar, Button, EmptyState, LinkButton, Option, PageHeader, SearchInput, Select, Toolbar } from "@metrivum/ui-web";
 import { useProfile, profileKey } from "~/modules/accounts";
 import { useAccountKey } from "~/shared/session/AccountScope";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";

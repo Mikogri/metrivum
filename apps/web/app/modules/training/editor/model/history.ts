@@ -1,4 +1,4 @@
-import type { TrainingDocument } from "@trainflow/api-client-web";
+import type { TrainingDocument } from "@metrivum/api-client-web";
 
 /** Local undo/redo of editor operations. It is not a server version history. */
 export interface History {

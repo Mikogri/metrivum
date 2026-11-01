@@ -1,6 +1,6 @@
 import { parseDate } from "@internationalized/date";
-import { Checkbox, DateField, NumberInput, Option, Select, TextArea, TextField } from "@trainflow/ui-web";
-import type { Schema } from "@trainflow/api-client-web";
+import { Checkbox, DateField, NumberInput, Option, Select, TextArea, TextField } from "@metrivum/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
 import styles from "./coaching.module.css";
 
 export type Definition = Schema<"FormDefinition">;
@@ -82,4 +82,43 @@ export function AnswerReview({ definition, answers }: { definition: Definition; 
     const display = (v: string) => q.choices?.find((c) => c.key === v)?.label ?? v;
     return <div key={q.key} className={styles.item}><dt className={styles.muted}>{q.label}</dt><dd>{value === null || value === undefined ? "Not answered" : Array.isArray(value) ? value.map(display).join(", ") : typeof value === "boolean" ? value ? "Yes" : "No" : display(String(value))}</dd></div>;
   })}</dl></section>)}</div>;
+}
+
+/**
+ * Submitted answers laid out like the form the person filled in: the same section cards, every question with its
+ * help text, and the answer in a read-only box. Choices list every option with the picked ones marked; a scale shows
+ * all its points with the chosen one highlighted. With no answers (not submitted yet) it previews the empty form.
+ */
+export function AnswerSheet({ definition, answers, emptyText = "Not answered" }: { definition: Definition; answers: Answers; emptyText?: string }) {
+  return <div className={styles.stack}>{[...definition.sections].sort((a, b) => a.order - b.order).map((s) => <section className={`${styles.panel} ${styles.answerSection}`} key={s.key}>
+    <header className={styles.answerHead}><h2>{s.title}</h2>{s.description && <p className={styles.muted}>{s.description}</p>}</header>
+    {[...s.questions].sort((a, b) => a.order - b.order).map((q) => <div key={q.key} className={styles.sheetQuestion}>
+      <p className={styles.sheetLabel}>{q.label}{q.required ? <span aria-hidden="true"> *</span> : null}</p>
+      {q.helpText ? <p className={styles.sheetHelp}>{q.helpText}</p> : null}
+      <SheetAnswer question={q} value={answers[q.key]} emptyText={emptyText} />
+    </div>)}
+  </section>)}</div>;
+}
+
+function SheetAnswer({ question: q, value, emptyText }: { question: Question; value: Answers[string] | undefined; emptyText: string }) {
+  const missing = value === null || value === undefined || value === "" || (Array.isArray(value) && !value.length);
+  if (q.type === "SingleChoice" || q.type === "MultiChoice" || q.type === "YesNo") {
+    const options = q.type === "YesNo" ? [{ key: "true", label: "Yes" }, { key: "false", label: "No" }] : (q.choices ?? []).map((c) => ({ key: c.key, label: c.label }));
+    const picked = new Set(Array.isArray(value) ? value : value === null || value === undefined ? [] : [String(value)]);
+    return <ul className={styles.sheetChoices} data-multi={q.type === "MultiChoice" || undefined} aria-label={q.label}>{options.map((o) => <li key={o.key} data-picked={picked.has(o.key) || undefined}>
+      <span className={styles.sheetMark} aria-hidden="true" />{o.label}{picked.has(o.key) ? <span className="tf-visually-hidden"> (selected)</span> : null}
+    </li>)}</ul>;
+  }
+  if (q.type === "Scale" && q.min != null && q.max != null && Number(q.max) - Number(q.min) <= 10) {
+    const points = Array.from({ length: Number(q.max) - Number(q.min) + 1 }, (_, i) => Number(q.min) + i);
+    return <div className={styles.sheetScale}>
+      <ol aria-label={q.label}>{points.map((p) => <li key={p} data-picked={Number(value) === p || undefined}>{p}{Number(value) === p ? <span className="tf-visually-hidden"> (selected)</span> : null}</li>)}</ol>
+      <div className={styles.sheetScaleEnds}><span>{q.minLabel ?? ""}</span><span>{q.maxLabel ?? ""}</span></div>
+    </div>;
+  }
+  if (missing) return <div className={styles.sheetBox} data-empty="">{emptyText}</div>;
+  const text = typeof value === "boolean" ? (value ? "Yes" : "No")
+    : q.type === "Date" && typeof value === "string" ? new Date(`${value}T00:00:00`).toLocaleDateString([], { dateStyle: "long" })
+    : `${String(value)}${q.unit ? ` ${q.unit}` : ""}`;
+  return <div className={styles.sheetBox} data-long={q.type === "LongText" || undefined}>{text}</div>;
 }

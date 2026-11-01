@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { Bot, ChevronDown, ExternalLink, Sparkles } from "lucide-react";
 import { Link } from "react-router";
-import { Alert, Badge, Button, Card, Checkbox, Skeleton, TextArea } from "@trainflow/ui-web";
+import { Alert, Badge, Button, Card, Checkbox, Skeleton, TextArea } from "@metrivum/ui-web";
 import { apiBaseUrl } from "~/shared/http/config";
 import { grants, grantLabel, useIntegrationMutation, useIntegrationQuery, type Action, type Connection, type Preferences } from "./api";
 import styles from "./integrations.module.css";

@@ -218,8 +218,12 @@
   padding: var(--tf-space-3) var(--tf-space-3) 0;
 }
 
+.blockSelect {
+  width: min(13rem, 100%);
+}
+
 .cycleSelect {
-  width: min(22rem, 100%);
+  width: min(15rem, 100%);
 }
 
 .strip {

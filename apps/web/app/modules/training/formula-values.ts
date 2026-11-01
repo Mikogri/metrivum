@@ -1,4 +1,4 @@
-import type { BlockExerciseMax, FormulaUse, Prescription, TrainingDocument } from "@trainflow/api-client-web";
+import type { BlockExerciseMax, FormulaUse, Prescription, TrainingDocument } from "@metrivum/api-client-web";
 
 /** Stored bindings identify sources; resolved values belong only to evaluation requests. */
 export function storedFormula<T extends FormulaUse>(formula: T): T {

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router";
-import { Tab, TabList, Tabs } from "@trainflow/ui-web";
+import { Tab, TabList, Tabs } from "@metrivum/ui-web";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { clientSection, clientSections } from "~/shared/session/workspace-model";
 

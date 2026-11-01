@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { createElement, type ReactNode, type ChangeEvent } from "react";
 import type * as TrainingComponents from "./training/components";
-import type { ApiRequest } from "@trainflow/api-client-web/transport";
+import type { ApiRequest } from "@metrivum/api-client-web/transport";
 import {
     act,
     cleanup,
@@ -38,7 +38,7 @@ vi.mock("expo-router", () => ({
     router: { push: vi.fn() },
     useLocalSearchParams: () => ({ id: "one" }),
 }));
-vi.mock("@trainflow/ui-mobile", async () => {
+vi.mock("@metrivum/ui-mobile", async () => {
     const { createElement: h } = await import("react");
     const box = ({ children }: { children?: ReactNode }) =>
         h("div", {}, children);

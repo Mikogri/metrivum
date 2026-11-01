@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link as RouterLink } from "react-router";
-import { DataTable, type DataTableProps } from "@trainflow/ui-web";
+import { DataTable, type DataTableProps } from "@metrivum/ui-web";
 import { useLibraryView, type LibraryView } from "./LibraryViewToggle";
 import styles from "./DataView.module.css";
 
@@ -25,6 +25,12 @@ export interface CardSpec {
   meta?: ReactNode[];
   /** Extra actions; they sit above the card link so they stay clickable on their own. */
   actions?: ReactNode;
+  /** A "⋯" menu in the top-right corner (above the card link). */
+  menu?: ReactNode;
+  /** The item's status, at the start of the footer. */
+  status?: ReactNode;
+  /** Labelled facts shown in the body instead of a description, two to a row. */
+  details?: Array<{ label: ReactNode; value: ReactNode }>;
   /** For items without a page of their own: the whole card runs this instead (e.g. opens an editor). */
   onOpen?: () => void;
   /** Accessible name for `onOpen`, e.g. "Edit Squat 1RM". */
@@ -37,13 +43,13 @@ export interface CardSpec {
  * two lines, then the footer: details on one line, any actions, and the open arrow in the corner.
  * With `href`, the title link is stretched over the whole card.
  */
-export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge, marks, description, facts, meta, actions, onOpen, openLabel }: CardSpec) {
+export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge, marks, description, facts, meta, actions, menu, status, details, onOpen, openLabel }: CardSpec) {
   const linked = Boolean(href || onOpen);
   const items = meta?.filter(Boolean) ?? [];
   const markNames = marks?.map((mark) => mark.label).join(", ");
   return (
     <li className={styles.item}>
-      <article className={styles.card} data-link={linked ? "" : undefined}>
+      <article className={styles.card} data-link={linked ? "" : undefined} data-details={details?.length ? "" : undefined}>
         {marks?.length ? (
           <span className={styles.marks} role="img" aria-label={markNames} title={markNames}>
             {marks.map((mark, i) => (
@@ -74,9 +80,13 @@ export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge,
             {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
           </div>
           {badge ? <span className={styles.badge}>{badge}</span> : null}
+          {menu ? <span className={styles.menu}>{menu}</span> : null}
         </div>
-        {description ? <p className={styles.description}>{description}</p> : null}
+        {details?.length ? (
+          <dl className={styles.details}>{details.map((detail, i) => <div key={i}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>
+        ) : description ? <p className={styles.description}>{description}</p> : null}
         <div className={styles.foot}>
+          {status ? <span className={styles.status}>{status}</span> : null}
           {facts?.length || items.length ? (
             <dl className={styles.facts}>
               {facts?.map((fact, i) => (

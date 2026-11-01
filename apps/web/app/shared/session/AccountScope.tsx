@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { clearToasts } from "@trainflow/ui-web";
+import { clearToasts } from "@metrivum/ui-web";
 import { createContext, useContext, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
 import { mockFetch } from "~/shared/dev/mockApi";

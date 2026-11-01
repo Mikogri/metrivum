@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import { Alert, Button, Checkbox, Option, Select, TextField } from "@trainflow/ui-web";
+import { Alert, Button, Checkbox, Option, Select, TextField } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";

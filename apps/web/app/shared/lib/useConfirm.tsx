@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { AlertDialog } from "@trainflow/ui-web";
+import { AlertDialog } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 
 /** Promise-based confirmation for discarding unsaved work. Render `dialog` once in the tree. */

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" /><PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Metrivum.Forms.Contracts\Metrivum.Forms.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Metrivum.BuildingBlocks\Metrivum.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Accounts\Metrivum.Accounts.Contracts\Metrivum.Accounts.Contracts.csproj" />
+    <ProjectReference Include="..\..\Access\Metrivum.Access.Contracts\Metrivum.Access.Contracts.csproj" />
+  </ItemGroup>
+</Project>

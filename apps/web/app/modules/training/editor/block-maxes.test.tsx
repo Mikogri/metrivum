@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
-import type { Block, TrainingDocument } from "@trainflow/api-client-web";
+import type { Block, TrainingDocument } from "@metrivum/api-client-web";
 import { ClientFormulaContext, useClientFormulaContext } from "./client-context";
 import { BlockFormulaScope } from "./block-maxes";
 import { exerciseBinding, exerciseMaxAlias } from "./model/inline-formula";

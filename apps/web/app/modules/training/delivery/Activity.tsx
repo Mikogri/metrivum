@@ -1,17 +1,21 @@
 import { useSearchParams } from "react-router";
-import { ArrowLeft } from "lucide-react";
-import { Button, DataTable, EmptyState, Option, Select, Toolbar, useMobileLayout } from "@trainflow/ui-web";
+import { DataTable, EmptyState, Option, Select, Toolbar, useMobileLayout } from "@metrivum/ui-web";
+import { useT } from "~/shared/i18n/AppLocale";
 import { PeriodFilter } from "~/shared/ui/PeriodFilter";
 import { StatStrip, StatStripSkeleton } from "~/shared/ui/Panel";
 import { useCoachingQuery, Failure, Loading, ListPagination, StatusBadge, type Page } from "~/modules/coaching";
 import { localDate } from "./Assignments";
-import { MobileWorkoutRows, type Occurrence } from "./TrainingHome";
+import { CompletionCell, MobileWorkoutRows, completedLabel, type Occurrence } from "./TrainingHome";
 import type { ProgressData } from "./Progress";
 import { WorkoutDetail } from "./WorkoutLog";
 import styles from "./delivery.module.css";
 
+/** "Mon, 27 Oct" for a plain date. */
+const shortDay = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+
 export interface ActivityOptions { earliestDate?: string | null; programs: { id: string; name: string }[]; structure: { blockId: string; cycleId: string; firstDate: string; lastDate: string }[] }
 export function TrainingActivity({ relationshipId }: { relationshipId: string }) {
+  const m = useT();
   const mobile = useMobileLayout();
   const [params, setParams] = useSearchParams();
   const get = (name: string, fallback = "") => params.get(`activity.${name}`) || fallback;
@@ -23,8 +27,7 @@ export function TrainingActivity({ relationshipId }: { relationshipId: string })
   const summary = useCoachingQuery<ProgressData>("/api/v1/training/progress", filters);
   const options = useCoachingQuery<ActivityOptions>("/api/v1/training/activity-options", { relationshipId, programId: programId || undefined });
   const blocks = [...new Set(options.data?.structure.map(item => item.blockId) ?? [])];
-  const cycleIndex = (id: string) => options.data?.structure.findIndex(s => s.cycleId === id) ?? -1;
-  if (occurrence) return <section className={styles.stack}><div><Button variant="ghost" size="sm" iconStart={<ArrowLeft />} onPress={() => update({ workout: "" })}>Back to activity</Button></div><WorkoutDetail occurrenceId={occurrence} relationshipId={relationshipId} /></section>;
+  if (occurrence) return <WorkoutDetail occurrenceId={occurrence} relationshipId={relationshipId} onBack={{ label: m.common.back, onPress: () => update({ workout: "" }) }} />;
   const completed = summary.data?.programs.reduce((count, program) => count + program.completed, 0) ?? 0;
   return <section className={styles.stack} aria-label="Training activity">
     <Toolbar aria-label="Activity filters" className={styles.filters}>
@@ -45,14 +48,14 @@ export function TrainingActivity({ relationshipId }: { relationshipId: string })
     ]} />}
     {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : !list.data.items.length ? <EmptyState title="No workouts in this period" description="Change filters or assign a program with applied changes from Overview." /> : <>
       {mobile ? <MobileWorkoutRows items={list.data.items} onOpen={id => update({ workout: id })} /> : <DataTable label="Workouts" rows={list.data.items} rowKey={item => item.id} columns={[
-        { id: "workout", header: "Workout", width: "26%", cell: item => <button type="button" data-row-link className={styles.rowLink} onClick={() => update({ workout: item.id })}><span>{item.name}</span><small>{item.programName}</small></button> },
-        { id: "scheduled", header: "Scheduled", cell: item => item.scheduledDate },
-        { id: "performed", header: "Performed", cell: item => item.performedDate ?? "—", hideOnMobile: true },
-        { id: "structure", header: "Block / cycle", hideOnMobile: true, muted: true, cell: item => `B${blocks.includes(item.blockId) ? blocks.indexOf(item.blockId) + 1 : "?"} · C${cycleIndex(item.cycleId) >= 0 ? cycleIndex(item.cycleId) + 1 : "?"}` },
-        { id: "duration", header: "Duration", hideOnMobile: true, align: "end", cell: item => item.durationSeconds == null ? "—" : `${Math.round(item.durationSeconds / 60)} min` },
-        { id: "exercises", header: "Exercises", hideOnMobile: true, align: "end", cell: item => item.exerciseCount ?? "—" },
-        { id: "notes", header: "Notes", hideOnMobile: true, muted: true, cell: item => [item.hasComment && "Comment", item.loggedLate && "Logged late"].filter(Boolean).join(" · ") || "—" },
-        { id: "status", header: "Status", cell: item => <StatusBadge status={item.status === "InProgress" ? "In progress" : item.status} /> },
+        { id: "workout", header: "Workout", width: "22%", cell: item => <button type="button" data-row-link className={styles.rowLink} onClick={() => update({ workout: item.id })}><span>{item.name}</span></button> },
+        { id: "plan", header: "Plan", width: "16%", muted: true, cell: item => item.programName || "—" },
+        { id: "scheduled", header: "Planned for", muted: true, cell: item => shortDay(item.scheduledDate) },
+        { id: "completion", header: "Completion", width: "9rem", hideOnMobile: true, cell: item => <CompletionCell item={item} /> },
+        { id: "performed", header: "Completed", hideOnMobile: true, muted: true, cell: item => item.completedAt ? completedLabel(item.completedAt) : item.performedDate ? shortDay(item.performedDate) : "—" },
+        { id: "duration", header: "Time", hideOnMobile: true, align: "end", muted: true, cell: item => item.durationSeconds == null ? "—" : `${Math.round(item.durationSeconds / 60)} min` },
+        { id: "feedback", header: "Feedback", hideOnMobile: true, muted: true, cell: item => item.sessionRpe != null || item.rating != null ? [item.rating != null && `${item.rating}/5`, item.sessionRpe != null && `RPE ${item.sessionRpe}`].filter(Boolean).join(" · ") : "—" },
+        { id: "status", header: "Status", cell: item => <span className={styles.scheduleStatus}><StatusBadge status={item.status === "InProgress" ? "In progress" : item.status} />{item.loggedLate || item.hasComment ? <small>{[item.loggedLate && "Logged late", item.hasComment && "Comment"].filter(Boolean).join(" · ")}</small> : null}</span> },
       ]} />}
       <ListPagination data={list.data} onChange={page => update({ page: String(page) })} />
     </>}

@@ -1,4 +1,4 @@
-import type { AnalysisDto, SaveClientAnalysisRequest } from '@trainflow/api-client-web';
+import type { AnalysisDto, SaveClientAnalysisRequest } from '@metrivum/api-client-web';
 import type { Transport } from '~/shared/http/transport';
 import { finalizeUpload, reserveUpload } from './api';
 import { uploadToSignedUrl, videoContentType } from './upload';

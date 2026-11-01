@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { FormulaUse } from "@trainflow/api-client-web";
+import type { FormulaUse } from "@metrivum/api-client-web";
 import { useDebounced } from "~/shared/lib/useDebounced";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { evaluateFormula } from "../../api";

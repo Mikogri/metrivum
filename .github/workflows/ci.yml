@@ -22,11 +22,13 @@ jobs:
       ConnectionStrings__MigrationDatabase: Host=127.0.0.1;Port=5432;Database=trainflow_test;Username=postgres;Password=local-ci-only
       TRAINFLOW_TEST_DATABASE: Host=127.0.0.1;Port=5432;Database=trainflow_test;Username=postgres;Password=local-ci-only
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           global-json-file: global.json
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
@@ -37,9 +39,11 @@ jobs:
       - run: npm run test:security-dependencies
       - run: dotnet build --no-restore
       - shell: pwsh
-        run: ./infra/scan-secrets.ps1
+        run: ./infra/test-secret-scan.ps1
+      - shell: pwsh
+        run: ./infra/scan-secrets.ps1 -IncludeHistory
       - run: dotnet format whitespace --no-restore --verify-no-changes
-      - run: dotnet run --no-build --project apps/api/TrainFlow.Api -- --migrate
+      - run: dotnet run --no-build --project apps/api/Metrivum.Api -- --migrate
       - run: dotnet test --no-build --logger trx --results-directory TestResults
       - shell: pwsh
         run: ./infra/export-contracts.ps1 -NoBuild
@@ -50,7 +54,7 @@ jobs:
           $audit = Get-Content dependency-audit.json -Raw | ConvertFrom-Json
           if ($audit.projects.frameworks.topLevelPackages -or $audit.projects.frameworks.transitivePackages) { throw 'Vulnerable .NET dependencies detected.' }
       - run: npm audit --audit-level=moderate
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: test-results

@@ -4,7 +4,7 @@ export const meta = () => privateMeta("Home — Metrivum");
 
 import { Navigate } from "react-router";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
-import { useMobileLayout } from "@trainflow/ui-web";
+import { useMobileLayout } from "@metrivum/ui-web";
 
 export default function AppIndex() {
   const { mode } = useWorkspace();

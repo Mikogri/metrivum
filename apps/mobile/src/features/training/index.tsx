@@ -2,7 +2,7 @@ import { NativeDateField } from "./NativeDateField";
 import { useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     Screen,
     Text,
@@ -15,7 +15,7 @@ import {
     ErrorState,
     EmptyState,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { useApiQuery } from "../../infrastructure/networking/queries";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import { Filters } from "../shared/Filters";

@@ -3,8 +3,8 @@ import { Activity, ArrowRight, Banknote, CalendarClock, ChevronRight, ClipboardC
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Link as RouterLink } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Card, EmptyState, LoadingState, Segment, SegmentedControl, Skeleton } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Card, EmptyState, LoadingState, Segment, SegmentedControl, Skeleton } from "@metrivum/ui-web";
 import { AreaChart, Delta, Sparkline, type Overview } from "~/modules/analyze";
 import { useCalendarRange, type CalendarEvent } from "~/modules/calendar";
 import { money, useCoachingQuery, type Page, type Relationship } from "~/modules/coaching";

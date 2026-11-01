@@ -8,7 +8,7 @@
     "/health/live": {
       "get": {
         "tags": [
-          "TrainFlow.Api"
+          "Metrivum.Api"
         ],
         "responses": {
           "200": {
@@ -20,7 +20,7 @@
     "/health/ready": {
       "get": {
         "tags": [
-          "TrainFlow.Api"
+          "Metrivum.Api"
         ],
         "responses": {
           "200": {
@@ -212,7 +212,7 @@
     "/api/v1/training/purchases": {
       "get": {
         "tags": [
-          "TrainFlow.Api"
+          "Metrivum.Api"
         ],
         "parameters": [
           {
@@ -1614,6 +1614,21 @@
                 "string"
               ],
               "format": "int32"
+            }
+          },
+          {
+            "name": "includeSets",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "executionId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -7977,6 +7992,50 @@
         ]
       }
     },
+    "/api/v1/forms/{id}/unpublish": {
+      "post": {
+        "tags": [
+          "Forms"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Current strong numeric ETag. Membership changes use the group ETag.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormTemplateDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/forms/{id}/duplicate": {
       "post": {
         "tags": [
@@ -9784,6 +9843,41 @@
       }
     },
     "/api/v1/calendar/events/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Calendar"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/calendar/events/{id}/restore": {
       "post": {
         "tags": [
           "Calendar"
@@ -17706,6 +17800,12 @@
               "string"
             ],
             "format": "double"
+          },
+          "performed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         },
         "additionalProperties": false
@@ -24089,7 +24189,8 @@
           "archived",
           "updatedAt",
           "version",
-          "questionCount"
+          "questionCount",
+          "estimatedSeconds"
         ],
         "type": "object",
         "properties": {
@@ -24129,6 +24230,14 @@
             "format": "int64"
           },
           "questionCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "estimatedSeconds": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -26680,6 +26789,49 @@
               "string"
             ],
             "format": "int32"
+          },
+          "plannedSets": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "performedSets": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "sessionRpe": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -28727,6 +28879,24 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "publishedNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "publishedDraftVersion": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -30135,6 +30305,30 @@
         "properties": {
           "title": {
             "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RepetitionReview": {
+        "required": [
+          "number",
+          "performed"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "performed": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         },
         "additionalProperties": false
@@ -33559,6 +33753,15 @@
               "null",
               "string"
             ]
+          },
+          "repetitionReviews": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RepetitionReview"
+            }
           }
         },
         "additionalProperties": false
@@ -34075,7 +34278,7 @@
   },
   "tags": [
     {
-      "name": "TrainFlow.Api"
+      "name": "Metrivum.Api"
     },
     {
       "name": "Accounts"

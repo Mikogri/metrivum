@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import { Alert, Button, TextField } from "@trainflow/ui-web";
+import { Alert, Button, TextField } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";

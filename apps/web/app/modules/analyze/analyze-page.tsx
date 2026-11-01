@@ -3,18 +3,18 @@ import { privateMeta } from "~/shared/i18n/site";
 export const meta = () => privateMeta("Analytics — Metrivum");
 
 import type { ProgressData } from "~/modules/training";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { parseDate } from "@internationalized/date";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { Alert, DateField, EmptyState, InfoTip, Option, PageHeader, Segment, SegmentedControl, Select, Skeleton, Tab, TabList, TabPanel, Tabs } from "@trainflow/ui-web";
+import { Alert, DateField, EmptyState, InfoTip, Option, PageHeader, Segment, SegmentedControl, Select, Skeleton, Tab, TabList, TabPanel, Tabs } from "@metrivum/ui-web";
 import { RequireFeature, useFeatureAccess } from "~/shared/access";
 import { BasicAnalyze } from "./basic-analyze";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { useUrlState } from "~/shared/lib/useUrlState";
 import { Failure, money, useCoachingQuery } from "~/modules/coaching";
-import { AreaChart, compact, Donut, NoData, FlowBars, Funnel, Kpi, RankList, Ring, shortDate, Sparkline, Split, StackedBars, type Tone } from "./charts";
+import { AnimatedNumber, AreaChart, compact, Donut, NoData, FlowBars, Funnel, Kpi, RankList, Ring, shortDate, Sparkline, Split, StackedBars, type Tone } from "./charts";
 import { useAnalysis, type AnalysisTab } from "./api";
 import type { CheckInsData, ClientsData, FinanceData, Overview, TrainingData } from "./types";
 import styles from "./analyze.module.css";
@@ -303,7 +303,8 @@ function FinanceTab({ data, currency }: { data: FinanceData; currency: string })
       <div className={styles.kpis}>
         <Kpi index={0} label="Settled gross" value={selected.gross} format={fmt} previous={prior?.gross ?? 0} spark={series.map((x) => x.gross)} />
         <Kpi index={1} label="Coach net" tone="info" value={selected.net} format={fmt} previous={prior?.net ?? 0} spark={series.map((x) => x.net)} />
-        <Kpi index={2} label="MRR" tone="violet" value={selected.mrr} format={fmt} caption="Contracted recurring run rate" />
+        <Kpi index={2} label="MRR" tone="violet" value={selected.mrr} format={fmt} caption={`${selected.recurringSubscriptions} recurring ${selected.recurringSubscriptions === 1 ? "service" : "services"} at period end`}
+          info="Monthly recurring revenue from contracted services: weekly prices × 52 / 12, monthly as they are, yearly / 12." />
         <Kpi index={3} label="Unpaid dues" tone="warning" value={selected.pending} format={fmt} caption="Due within this period" />
       </div>
       <Panel index={1} wide title="Gross and net" description="What clients paid and what you kept after platform fees." action={<Legend items={[{ label: "Gross", tone: "accent" }, { label: "Net", tone: "info" }, { label: "Previous gross", tone: "neutral", ghost: true }]} />}>
@@ -318,15 +319,23 @@ function FinanceTab({ data, currency }: { data: FinanceData; currency: string })
           ]}
         />
       </Panel>
-      <Panel index={2} title="Per payment">
-        <div className={styles.stats}>
-          <Stat label="Payments" value={String(selected.payments)} />
-          <Stat label="Average payment" value={fmt(selected.averagePayment)} />
-          <Stat label="Per paying client" value={fmt(selected.revenuePerPayingClient)} />
-          <Stat label="Paying clients" value={String(selected.payingClients)} />
-          <Stat label="Platform fee" value={fmt(selected.fee)} />
-          <Stat label="Renewals settled" value={String(selected.renewals)} />
+      <Panel index={2} title="Payments" description="Settled in this period.">
+        <div className={styles.payHero}>
+          <div>
+            <strong><AnimatedNumber value={selected.payments} /></strong>
+            <span>{selected.payments === 1 ? "payment" : "payments"}</span>
+          </div>
+          <div>
+            <strong><AnimatedNumber value={selected.averagePayment} format={fmt} /></strong>
+            <span>average payment</span>
+          </div>
         </div>
+        <dl className={styles.payRows}>
+          <PayRow label="Paying clients" value={String(selected.payingClients)} />
+          <PayRow label="Per paying client" value={fmt(selected.revenuePerPayingClient)} />
+          <PayRow label="Renewals" value={String(selected.renewals)} note={selected.payments ? `${Math.round((selected.renewals / selected.payments) * 100)}% of payments` : undefined} />
+          <PayRow label="Platform fee" value={fmt(selected.fee)} note={selected.gross ? `${((selected.fee / selected.gross) * 100).toFixed(1)}% of gross` : undefined} />
+        </dl>
       </Panel>
       <Panel index={3} title="Revenue by offer" action={<More to="/app/offers">Offers</More>}>
         {offers.length ? <Donut center="gross" format={fmt} items={offers.map((o, i) => ({ label: o.name, value: o.gross, tone: OFFER_TONES[i % OFFER_TONES.length]! }))} /> : <NoData title="No offer revenue" hint="Revenue by offer appears after the first payment." />}
@@ -335,8 +344,7 @@ function FinanceTab({ data, currency }: { data: FinanceData; currency: string })
         <RankList format={fmt} items={offers.map((o) => ({ key: o.offerRevisionId, label: o.name, value: o.net, note: `${o.payments} payments · ${o.clients} clients` }))} />
       </Panel>
       <Panel index={5} title="How it was paid" description="Simulated payments move no real money.">
-        <Split a={{ label: "Simulated", value: Math.round(selected.simulatedGross), tone: "violet" }} b={{ label: "Recorded externally", value: Math.round(selected.externalGross), tone: "info" }} />
-        <p className={styles.muted}>{selected.recurringSubscriptions} recurring services at period end. MRR counts weeks × 52/12, months and years / 12.</p>
+        <Split stacked format={fmt} a={{ label: "Simulated", value: Math.round(selected.simulatedGross), tone: "violet" }} b={{ label: "Recorded externally", value: Math.round(selected.externalGross), tone: "info" }} />
       </Panel>
     </div>
   );
@@ -347,6 +355,19 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className={styles.stat}>
       <span>{label}</span>
       <strong>{value}</strong>
+    </div>
+  );
+}
+
+/** One line of the Payments panel: label on the left, value on the right, an optional quiet note under the value. */
+function PayRow({ label, value, note }: { label: string; value: string; note?: string }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>
+        <strong>{value}</strong>
+        {note ? <span>{note}</span> : null}
+      </dd>
     </div>
   );
 }

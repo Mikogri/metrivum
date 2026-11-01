@@ -1,6 +1,6 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "apps/api/TrainFlow.Api/Dockerfile"
+dockerfilePath = "apps/api/Metrivum.Api/Dockerfile"
 
 [deploy]
 healthcheckPath = "/health/ready"

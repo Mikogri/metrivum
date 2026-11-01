@@ -18,6 +18,7 @@ export interface AnatomyManifest {
 }
 export const ASSET_BASE = "/anatomy/bodyparts3d-4.0/";
 
+
 export function mappingIndex(manifest: AnatomyManifest) {
   const byMuscle = new Map<string, Set<string>>();
   for (const mapping of manifest.mappings) {

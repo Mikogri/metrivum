@@ -481,9 +481,34 @@
   align-content: start;
   gap: 2px;
   height: 3.5rem;
-  overflow: auto;
+  overflow: hidden;
   padding: 2px;
   border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+/* "+N": the all-day items that do not fit; opens the day in the agenda beside the grid. */
+.allDayMore {
+  justify-self: start;
+  height: 1.375rem;
+  padding: 0 var(--tf-space-1-5);
+  border: 0;
+  border-radius: var(--tf-radius-xs);
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.allDayMore:hover {
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+
+.allDayMore:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
 }
 
 .timeLane {
@@ -516,6 +541,25 @@
   color: var(--tf-color-text-secondary);
   font-size: var(--tf-text-2xs);
   font-variant-numeric: tabular-nums;
+}
+
+.timeEntry small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Short blocks: one line, the title first and the time after it, centred in the block. */
+.timeEntry[data-compact] {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  padding-block: 0;
+  line-height: 1.2;
+}
+
+.timeEntry[data-compact] small {
+  flex-shrink: 0;
 }
 
 /* Agenda */
@@ -800,3 +844,7 @@
   .mobileAgenda .agendaBody { min-width: 0; overflow-wrap: anywhere; }
   .mobileAgenda .agendaBody strong { white-space: normal; }
 }
+
+/* Save problems at the end of the editor; empty when there are none. */
+.editorProblem { display: grid; gap: var(--tf-space-2); }
+.editorProblem:empty { display: none; }

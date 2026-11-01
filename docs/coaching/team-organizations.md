@@ -91,7 +91,7 @@ Applied to approved development Supabase `atclvdkpbccafakzpwls` on 2026-10-08 as
 
 Final build: zero warnings/errors. Final backend run: **188 unit + 234 PostgreSQL integration + 2 architecture tests passed, zero failures**. Two optional local Supabase Auth/Storage tests were skipped because those external fixtures were not configured. The initial regression found three outdated fixture/DTO expectations; they were corrected and the full regression rerun successfully.
 
-Executed `dotnet build TrainFlow.slnx --no-restore --artifacts-path .local/stage06/build -m:1 /nodeReuse:false`, then `dotnet test` separately for the Unit, Architecture and Integration projects with `--no-build --no-restore --artifacts-path .local/stage06/build`. TRX results are in ignored `.local/stage06/final-results`.
+Executed `dotnet build Metrivum.slnx --no-restore --artifacts-path .local/stage06/build -m:1 /nodeReuse:false`, then `dotnet test` separately for the Unit, Architecture and Integration projects with `--no-build --no-restore --artifacts-path .local/stage06/build`. TRX results are in ignored `.local/stage06/final-results`.
 
 Tests cover exact 100/50/300/250 credit, delayed provider settlement time, duplicate confirmation/credit, declined payment retry, last-seat concurrency, owner acceptance, consent/decline and private isolation, Team intake, unique client/reactivation counts, seller-scoped finance, client group scope, read-only expiry, durable lifecycle and Team-lock check-in generation. A blocked dissolution does not prevent another Team's transition or unrelated renewal passes.
 

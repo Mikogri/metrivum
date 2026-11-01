@@ -9,7 +9,7 @@ import {
     Text,
     confirm,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { humanize } from "../shared/format";
 import { decimal, type Page } from "./model";
 

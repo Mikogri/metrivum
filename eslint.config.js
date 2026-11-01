@@ -52,7 +52,7 @@ export default tseslint.config(
         "error",
         {
           selector: "CallExpression[callee.property.name='from'][callee.object.property.name='supabase']",
-          message: "Business data comes from the TrainFlow API, never supabase.from().",
+          message: "Business data comes from the Metrivum API, never supabase.from().",
         },
       ],
     },
@@ -91,7 +91,7 @@ export default tseslint.config(
             { regex: "^~/", message: "ui-web cannot import from the app." },
             { regex: "^@supabase/", message: "ui-web knows nothing about Supabase." },
             { regex: "^@tanstack/react-query", message: "ui-web knows nothing about server state." },
-            { regex: "^@trainflow/api-client-web", message: "ui-web knows nothing about the API." },
+            { regex: "^@metrivum/api-client-web", message: "ui-web knows nothing about the API." },
           ],
         },
       ],

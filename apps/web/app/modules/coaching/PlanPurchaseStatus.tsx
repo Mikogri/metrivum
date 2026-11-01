@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
-import { Button, LinkButton } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Button, LinkButton } from "@metrivum/ui-web";
 import { Panel } from "~/shared/ui/Panel";
 import { useCoachingQuery } from "./api";
 import { Failure, Loading, StatusBadge } from "./components";

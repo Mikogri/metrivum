@@ -1,7 +1,7 @@
 import { Check, Minus, Sparkles, User, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { ToggleButton, ToggleButtonGroup } from "react-aria-components";
-import { Badge, Segment, SegmentedControl } from "@trainflow/ui-web";
+import { Badge, Segment, SegmentedControl } from "@metrivum/ui-web";
 import { catalogLimit, isTopTier, isWorkspacePlan, planLimitKeys, type CatalogPlan } from "~/shared/access/plan-catalog";
 import { DISCOVERY_ENABLED } from "~/shared/features";
 import { useSubscriptionMessages } from "~/shared/i18n/subscription-messages";

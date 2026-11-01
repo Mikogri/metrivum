@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookmarkCheck, BookmarkPlus, Share2 } from "lucide-react";
 import { useParams } from "react-router";
-import { Badge, Button, EmptyState, ErrorState, PageHeader, Skeleton, toast } from "@trainflow/ui-web";
+import { Badge, Button, EmptyState, ErrorState, PageHeader, Skeleton, toast } from "@metrivum/ui-web";
 import { ApiError } from "~/shared/http/errors";
 import { formatDateTime } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

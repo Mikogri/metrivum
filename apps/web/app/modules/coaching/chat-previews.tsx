@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Avatar, Button, Dialog, LinkButton, toast } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Avatar, Button, Dialog, LinkButton, toast } from "@metrivum/ui-web";
 import { Facts } from "~/shared/ui/Panel";
 import { useFeatureAccess, useFeatureReasonText } from "~/shared/access";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";

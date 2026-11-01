@@ -1,13 +1,13 @@
-import { Check, ChevronsUpDown, ClipboardList, Activity } from "lucide-react";
+import { Check, ChevronsUpDown, ClipboardList, CircleUserRound } from "lucide-react";
 import { Button, ListBox, ListBoxItem, Popover, Select, Text } from "react-aria-components";
-import { Hint } from "@trainflow/ui-web";
+import { Hint } from "@metrivum/ui-web";
 import { useProfile } from "~/modules/accounts";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import styles from "./WorkspaceSelect.module.css";
 
 const OPTIONS = [
   { id: "coach", label: "Coach view", hint: "Clients, programs, analyses", Icon: ClipboardList },
-  { id: "client", label: "Client view", hint: "Your own training", Icon: Activity },
+  { id: "client", label: "Client view", hint: "Your own training", Icon: CircleUserRound },
 ] as const;
 
 /**

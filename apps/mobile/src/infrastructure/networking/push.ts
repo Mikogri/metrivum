@@ -2,7 +2,7 @@ import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
 import { Platform } from "react-native";
-import type { Transport } from "@trainflow/api-client-web/transport";
+import type { Transport } from "@metrivum/api-client-web/transport";
 let installation: Promise<string> | undefined;
 export function installationId() {
     return (installation ??= (async () => {

@@ -1,10 +1,11 @@
+import { usePaymentActionId } from "~/shared/session/payment-action";
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Lock, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Badge, Button, Checkbox, EmptyState, IconButton, LinkButton, Skeleton } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Badge, Button, Checkbox, EmptyState, IconButton, LinkButton, Skeleton } from "@metrivum/ui-web";
 import { Failure, MutationError, useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { isTopTier } from "~/shared/access/plan-catalog";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
@@ -71,7 +72,7 @@ function CheckoutBody({ planId, onDone }: { planId: string; onDone: () => void }
   const account = useAccountKey();
   const { lifecycle } = useAccountContext();
   const cache = useQueryClient();
-  const [key, setKey] = useState(() => crypto.randomUUID());
+  const [key, setKey] = usePaymentActionId(`checkout:${planId}`);
   const [checkoutDue, setCheckoutDue] = useState<string>();
   const [agreed, setAgreed] = useState(false);
   const [allOpen, setAllOpen] = useState(false);

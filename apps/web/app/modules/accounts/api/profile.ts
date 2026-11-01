@@ -1,4 +1,4 @@
-import type { OnboardingRequest, ProfileResponse, UpdateProfileRequest } from "@trainflow/api-client-web";
+import type { OnboardingRequest, ProfileResponse, UpdateProfileRequest } from "@metrivum/api-client-web";
 import { ApiError } from "~/shared/http/errors";
 import type { Transport } from "~/shared/http/transport";
 

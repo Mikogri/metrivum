@@ -1,6 +1,6 @@
 import { Award, BadgeCheck, CalendarHeart, ChevronDown, HeartHandshake, MapPin, Medal, Rocket, Sparkles, Store, Trophy, UserRoundCheck, UsersRound } from "lucide-react";
 import { useState } from "react";
-import { Button, Card } from "@trainflow/ui-web";
+import { Button, Card } from "@metrivum/ui-web";
 import { SectionTitle, ToneIcon, type Tone } from "./SectionTitle";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./ProfileAchievements.module.css";

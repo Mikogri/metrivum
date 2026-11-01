@@ -12,7 +12,7 @@ import type {
   TrainingDocument,
   TrainingSet,
   Workout,
-} from "@trainflow/api-client-web";
+} from "@metrivum/api-client-web";
 
 /** Set kinds that carry 2–20 typed segments (docs/features/training.md). */
 export const SEGMENTED: ReadonlySet<SetKind> = new Set<SetKind>(["Ramp", "DropSet", "RestPause", "Cluster"]);

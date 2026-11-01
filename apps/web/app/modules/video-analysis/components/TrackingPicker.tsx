@@ -1,8 +1,8 @@
 import { ArrowLeftToLine, ArrowRightToLine, Check, Crosshair, Eraser, Pause, Play, RotateCcw, Scan, Scissors, StepBack, StepForward, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Slider, SliderThumb, SliderTrack } from "react-aria-components";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import type { AnalysisTracking } from "@trainflow/api-client-web";
-import { Alert, Button, IconButton } from "@trainflow/ui-web";
+import type { AnalysisTracking } from "@metrivum/api-client-web";
+import { Alert, Button, IconButton } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import type { VideoTrim } from "../local-analysis";
 import { FRAME, PlayerButton, Scrubber, clock as playClock } from "./VideoPlayer";
@@ -110,7 +110,9 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
     event.preventDefault();
     const rect = el.getBoundingClientRect();
     // rect includes the pan (scale origin is 0 0), so this is the pointer in the stage's own box.
-    zoomTo(view.z * (event.deltaY < 0 ? 1.25 : 0.8), event.clientX - rect.left + view.x, event.clientY - rect.top + view.y);
+    // Proportional to the scroll (≈ ×1.35 per wheel notch, finer on trackpads); the stage eases into it (CSS).
+    const delta = event.deltaY * (event.deltaMode === 1 ? 16 : 1);
+    zoomTo(view.z * Math.exp(-delta * 0.003), event.clientX - rect.left + view.x, event.clientY - rect.top + view.y);
   };
   useEffect(() => {
     const el = frame.current;

@@ -16,7 +16,7 @@ import {
     ToastProvider,
     fonts,
     useTheme,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import {
     MobileSession,
     useMobile,

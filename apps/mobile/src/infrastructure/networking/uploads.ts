@@ -1,7 +1,7 @@
 import * as DocumentPicker from "expo-document-picker";
 import { File } from "expo-file-system";
 import { fetch } from "expo/fetch";
-import type { QueryValue, Transport } from "@trainflow/api-client-web/transport";
+import type { QueryValue, Transport } from "@metrivum/api-client-web/transport";
 
 export async function uploadFile(
     api: Transport,

@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import type { AnalysisContext, CheckInsData, ClientsData, FinanceData, Overview, TrainingData } from "./types";
 
 export type AnalysisTab = "overview" | "finance" | "clients" | "checkins" | "training";

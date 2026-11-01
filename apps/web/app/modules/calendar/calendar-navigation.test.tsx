@@ -2,10 +2,10 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { expect, it, vi } from "vitest";
-import type * as UiWeb from "@trainflow/ui-web";
+import type * as UiWeb from "@metrivum/ui-web";
 import CalendarRoute from "./routes/calendar";
 
-vi.mock("@trainflow/ui-web", async original => ({ ...await original<typeof UiWeb>(), useMobileLayout: () => true }));
+vi.mock("@metrivum/ui-web", async original => ({ ...await original<typeof UiWeb>(), useMobileLayout: () => true }));
 vi.mock("~/shared/session/WorkspaceScope", () => ({ useWorkspace: () => ({ mode: "client" }) }));
 vi.mock("~/modules/accounts", () => ({ useProfile: () => ({ timeZone: "UTC" }) }));
 vi.mock("~/shared/lib/useConfirm", () => ({ useDiscardConfirm: () => ({ confirm: vi.fn(), dialog: null }) }));

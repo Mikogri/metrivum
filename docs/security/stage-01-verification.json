@@ -6,8 +6,8 @@
   "failed": 0,
   "skipped": 2,
   "skippedTests": [
-    "TrainFlow.IntegrationTests.SupabaseAuthTests.Local_password_session_is_validated_using_real_supabase_jwks",
-    "TrainFlow.IntegrationTests.MediaSupabaseTests.LocalPrivateStorageSupportsNoOverwriteUploadInspectReadAndDelete"
+    "Metrivum.IntegrationTests.SupabaseAuthTests.Local_password_session_is_validated_using_real_supabase_jwks",
+    "Metrivum.IntegrationTests.MediaSupabaseTests.LocalPrivateStorageSupportsNoOverwriteUploadInspectReadAndDelete"
   ],
   "unitPassed": 348,
   "architecturePassed": 8,

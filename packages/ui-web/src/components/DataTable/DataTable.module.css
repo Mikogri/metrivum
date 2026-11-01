@@ -26,9 +26,12 @@
   opacity: 0.6;
 }
 
+/* Separate borders: each cell draws its own line, so the header's bottom edge is never painted twice
+   (collapsed, semi-transparent borders of positioned rows show up doubled and lighter). */
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: fixed;
   font-size: var(--tf-text-sm);
 }

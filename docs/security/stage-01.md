@@ -41,7 +41,7 @@ No numeric tuning was needed after the controlled tests. All figures below are t
 
 An "established" sender has a server-owned active standalone coaching relationship. No age claim or `user_metadata` grants trust. Exact active Team relationships are also exempt when contacting that coach/client; other Team-only senders conservatively retain the 3/day stranger cap. Existing conversations and incoming introductions are not new unsolicited contacts. Group sends count as one message, while adding new unknown recipients consumes contact admission.
 
-All MCP tools registered in `TrainFlowTools` inherit the server-owned read/write annotations. Program/form draft creation, saves and approved sends invoke ordinary owning-module services. MCP exposes no separate video enqueue, PDF export, payment or upload tool in this stage; those operations were not invented. HTTP health endpoints are exempt. No external payment webhook is registered in the current API.
+All MCP tools registered in `MetrivumTools` inherit the server-owned read/write annotations. Program/form draft creation, saves and approved sends invoke ordinary owning-module services. MCP exposes no separate video enqueue, PDF export, payment or upload tool in this stage; those operations were not invented. HTTP health endpoints are exempt. No external payment webhook is registered in the current API.
 
 ## Upload reservations
 
@@ -68,9 +68,9 @@ Rate windows, connection leases and export concurrency are **per process**. The 
 ```powershell
 ./infra/diagnostics/test-abuse-http.ps1
 $env:TRAINFLOW_TEST_DATABASE = 'Host=127.0.0.1;Port=55462;Database=<migrated-disposable-local-db>;Username=<test-role>'
-dotnet build workers/TrainFlow.Worker --artifacts-path .local/security-stage01 -m:1
-dotnet test tests/Unit/TrainFlow.UnitTests --artifacts-path .local/security-stage01 -m:1
-dotnet test tests/Integration/TrainFlow.IntegrationTests --artifacts-path .local/security-stage01 -m:1
+dotnet build workers/Metrivum.Worker --artifacts-path .local/security-stage01 -m:1
+dotnet test tests/Unit/Metrivum.UnitTests --artifacts-path .local/security-stage01 -m:1
+dotnet test tests/Integration/Metrivum.IntegrationTests --artifacts-path .local/security-stage01 -m:1
 ```
 
 Use only a disposable loopback PostgreSQL database. The load script does not send traffic to remote API, Auth or Storage. `TRAINFLOW_ABUSE_RESULTS` optionally saves the direct-limiter load report; `TRAINFLOW_ABUSE_HTTP_RESULTS` saves the HTTP report. The [HTTP sample](stage-01-http-measurement.json) records the measured run, including CPU/RAM. These measurements use synthetic TestServer handlers and do not establish production SQL/UI p95.

@@ -10,7 +10,7 @@ import {
     FieldButton,
     Text,
     useInsideSheet,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { formatDay } from "../shared/format";
 import { localDate, pickerDate } from "./model";
 

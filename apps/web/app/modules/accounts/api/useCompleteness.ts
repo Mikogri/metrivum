@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { DETAIL_GROUPS, detailsFromValues, type DetailKey } from "../components/ProfileDetails";
 import { profileFieldsKey } from "./people";

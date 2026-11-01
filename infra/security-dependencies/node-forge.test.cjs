@@ -40,7 +40,7 @@ const { asn1 } = forge;
 const sequence = children => asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, children);
 const nullValue = () => asn1.create(asn1.Class.UNIVERSAL, asn1.Type.NULL, false, '');
 const octets = value => asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false, value);
-const digest = forge.md.sha256.create().update('TrainFlow regression').digest().getBytes();
+const digest = forge.md.sha256.create().update('Metrivum regression').digest().getBytes();
 const oid = () => asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
   asn1.oidToDer(forge.pki.oids.sha256).getBytes());
 const signature = children => privateKey.sign(asn1.toDer(sequence(children)).getBytes(), 'NONE');
@@ -83,13 +83,13 @@ test('installed Expo code signing uses this exact patched RSA implementation', (
     keyPair: pair,
     validityNotBefore: new Date(now - 60_000),
     validityNotAfter: new Date(now + 86_400_000),
-    commonName: 'TrainFlow dependency regression',
+    commonName: 'Metrivum dependency regression',
   });
   const decoded = expo.convertCertificatePEMToCertificate(expo.convertCertificateToCertificatePEM(certificate));
   expo.validateSelfSignedCertificate(decoded, pair);
   const bytes = Buffer.from('Expo update manifest');
   assert.equal(typeof expo.signBufferRSASHA256AndVerify(pair.privateKey, decoded, bytes), 'string');
-  const csr = expo.convertCSRPEMToCSR(expo.convertCSRToCSRPEM(expo.generateCSR(pair, 'TrainFlow development')));
+  const csr = expo.convertCSRPEMToCSR(expo.convertCSRToCSRPEM(expo.generateCSR(pair, 'Metrivum development')));
   assert.equal(csr.verify(), true);
   const development = expo.generateDevelopmentCertificateFromCSR(pair.privateKey, decoded, csr, 'test-app-id', '@test/scope');
   assert.equal(decoded.verify(development), true);

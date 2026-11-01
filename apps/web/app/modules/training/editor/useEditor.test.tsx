@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { PlanDto } from "@trainflow/api-client-web";
+import type { PlanDto } from "@metrivum/api-client-web";
 import { ApiError, NetworkError, StaleAccountError } from "~/shared/http/errors";
 import type { ApiRequest } from "~/shared/http/transport";
 import { addBlock } from "./model/document";

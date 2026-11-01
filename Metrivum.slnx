@@ -1,0 +1,93 @@
+<Solution>
+  <Folder Name="/apps/" />
+  <Folder Name="/apps/api/">
+    <Project Path="apps/api/Metrivum.Api/Metrivum.Api.csproj" />
+  </Folder>
+  <Folder Name="/backend/" />
+  <Folder Name="/backend/BuildingBlocks/">
+    <Project Path="backend/BuildingBlocks/Metrivum.BuildingBlocks/Metrivum.BuildingBlocks.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/" />
+  <Folder Name="/backend/modules/Access/">
+    <Project Path="backend/modules/Access/Metrivum.Access.Contracts/Metrivum.Access.Contracts.csproj" />
+    <Project Path="backend/modules/Access/Metrivum.Access/Metrivum.Access.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Accounts/">
+    <Project Path="backend/modules/Accounts/Metrivum.Accounts.Contracts/Metrivum.Accounts.Contracts.csproj" />
+    <Project Path="backend/modules/Accounts/Metrivum.Accounts/Metrivum.Accounts.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Billing/">
+    <Project Path="backend/modules/Billing/Metrivum.Billing.Contracts/Metrivum.Billing.Contracts.csproj" />
+    <Project Path="backend/modules/Billing/Metrivum.Billing/Metrivum.Billing.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Calendar/">
+    <Project Path="backend/modules/Calendar/Metrivum.Calendar.Contracts/Metrivum.Calendar.Contracts.csproj" />
+    <Project Path="backend/modules/Calendar/Metrivum.Calendar/Metrivum.Calendar.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/CheckIns/">
+    <Project Path="backend/modules/CheckIns/Metrivum.CheckIns.Contracts/Metrivum.CheckIns.Contracts.csproj" />
+    <Project Path="backend/modules/CheckIns/Metrivum.CheckIns/Metrivum.CheckIns.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Coaching/">
+    <Project Path="backend/modules/Coaching/Metrivum.Coaching.Contracts/Metrivum.Coaching.Contracts.csproj" />
+    <Project Path="backend/modules/Coaching/Metrivum.Coaching/Metrivum.Coaching.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/ExerciseCatalog/">
+    <Project Path="backend/modules/ExerciseCatalog/Metrivum.ExerciseCatalog.Contracts/Metrivum.ExerciseCatalog.Contracts.csproj" />
+    <Project Path="backend/modules/ExerciseCatalog/Metrivum.ExerciseCatalog/Metrivum.ExerciseCatalog.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Forms/">
+    <Project Path="backend/modules/Forms/Metrivum.Forms.Contracts/Metrivum.Forms.Contracts.csproj" />
+    <Project Path="backend/modules/Forms/Metrivum.Forms/Metrivum.Forms.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Integrations/">
+    <Project Path="backend/modules/Integrations/Metrivum.Integrations/Metrivum.Integrations.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Media/">
+    <Project Path="backend/modules/Media/Metrivum.Media.Contracts/Metrivum.Media.Contracts.csproj" />
+    <Project Path="backend/modules/Media/Metrivum.Media/Metrivum.Media.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Messaging/">
+    <Project Path="backend/modules/Messaging/Metrivum.Messaging.Contracts/Metrivum.Messaging.Contracts.csproj" />
+    <Project Path="backend/modules/Messaging/Metrivum.Messaging/Metrivum.Messaging.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Offers/">
+    <Project Path="backend/modules/Offers/Metrivum.Offers.Contracts/Metrivum.Offers.Contracts.csproj" />
+    <Project Path="backend/modules/Offers/Metrivum.Offers/Metrivum.Offers.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Training/">
+    <Project Path="backend/modules/Training/Metrivum.Training/Metrivum.Training.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/VideoAnalysis/">
+    <Project Path="backend/modules/VideoAnalysis/Metrivum.VideoAnalysis/Metrivum.VideoAnalysis.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Architecture/">
+    <Project Path="tests/Architecture/Metrivum.ArchitectureTests/Metrivum.ArchitectureTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Integration/">
+    <Project Path="tests/Integration/Metrivum.IntegrationTests/Metrivum.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Unit/">
+    <Project Path="tests/Unit/Metrivum.UnitTests/Metrivum.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Metrivum.DevFixtures/Metrivum.DevFixtures.csproj" />
+  </Folder>
+  <Folder Name="/workers/">
+    <Project Path="workers/Metrivum.Worker/Metrivum.Worker.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Notifications/">
+    <Project Path="backend/modules/Notifications/Metrivum.Notifications/Metrivum.Notifications.csproj" />
+    <Project Path="backend/modules/Notifications/Metrivum.Notifications.Contracts/Metrivum.Notifications.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/Analytics/">
+    <Project Path="backend/modules/Analytics/Metrivum.Analytics/Metrivum.Analytics.csproj" />
+    <Project Path="backend/modules/Analytics/Metrivum.Analytics.Contracts/Metrivum.Analytics.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/backend/modules/ClientDocumentation/">
+    <Project Path="backend/modules/ClientDocumentation/Metrivum.ClientDocumentation/Metrivum.ClientDocumentation.csproj" />
+    <Project Path="backend/modules/ClientDocumentation/Metrivum.ClientDocumentation.Contracts/Metrivum.ClientDocumentation.Contracts.csproj" />
+  </Folder>
+  <Project Path="backend/modules/Training/Metrivum.Training.Contracts/Metrivum.Training.Contracts.csproj" />
+</Solution>

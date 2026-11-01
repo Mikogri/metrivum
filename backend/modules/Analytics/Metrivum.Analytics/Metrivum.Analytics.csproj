@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="../Metrivum.Analytics.Contracts/Metrivum.Analytics.Contracts.csproj" />
+        <ProjectReference Include="../../../BuildingBlocks/Metrivum.BuildingBlocks/Metrivum.BuildingBlocks.csproj" />
+        <ProjectReference Include="../../Accounts/Metrivum.Accounts.Contracts/Metrivum.Accounts.Contracts.csproj" />
+        <ProjectReference Include="../../Access/Metrivum.Access.Contracts/Metrivum.Access.Contracts.csproj" />
+    </ItemGroup>
+</Project>

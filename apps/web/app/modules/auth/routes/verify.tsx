@@ -1,7 +1,7 @@
 import { MailCheck } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import { Alert, Button, Spinner, TextField, toast } from "@trainflow/ui-web";
+import { Alert, Button, Spinner, TextField, toast } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";

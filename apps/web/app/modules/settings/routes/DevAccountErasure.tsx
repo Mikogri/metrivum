@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Alert, Button, Card, Dialog, Skeleton, TextField, toast } from "@trainflow/ui-web";
+import { Alert, Button, Card, Dialog, Skeleton, TextField, toast } from "@metrivum/ui-web";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";

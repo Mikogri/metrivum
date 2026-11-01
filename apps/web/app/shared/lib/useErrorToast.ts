@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { toast } from "@trainflow/ui-web";
+import { toast } from "@metrivum/ui-web";
 import { isAbortError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "./errorText";

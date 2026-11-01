@@ -1,5 +1,5 @@
 import { useLocation } from "react-router";
-import { EmptyState, LinkButton } from "@trainflow/ui-web";
+import { EmptyState, LinkButton } from "@metrivum/ui-web";
 import { localeFromPathname } from "~/shared/i18n/locale";
 import { publicPath } from "~/shared/i18n/public-routes";
 import { publicMessages } from "../messages";

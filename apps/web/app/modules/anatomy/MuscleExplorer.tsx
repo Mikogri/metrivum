@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { EyeOff, Focus, Info, Minus, Plus, RotateCcw, ScanEye, X } from "lucide-react";
 import { Focusable, ToggleButton } from "react-aria-components";
-import { Button, Dialog, ErrorState, Hint, IconButton, LoadingState, Switch, Tooltip, TooltipTrigger } from "@trainflow/ui-web";
+import { Button, ErrorState, Hint, IconButton, LoadingState, Switch, Tooltip, TooltipTrigger } from "@metrivum/ui-web";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { useFitHeight } from "~/shared/lib/useFitHeight";
 import { useDictionaries } from "~/modules/exercises";
@@ -30,7 +30,6 @@ export function MuscleExplorer({ muscleKey, onMuscleChange, children }: { muscle
   const [hidden, setHidden] = useState(new Set<string>());
   const [isolated, setIsolated] = useState(false);
   const [transparent, setTransparent] = useState(false);
-  const [licenses, setLicenses] = useState(false);
   const [camera, setCamera] = useState<{ action: CameraAction; revision: number }>({ action: "front", revision: 0 });
   // The model column fills the window below its own starting point, so with a short list nothing scrolls
   // and with a long one it sticks without being cut off.
@@ -130,20 +129,10 @@ export function MuscleExplorer({ muscleKey, onMuscleChange, children }: { muscle
           </div>
           <div className={styles.panelFoot}>
             <Switch isSelected={transparent} onChange={setTransparent}>{m.transparent}</Switch>
-            <button type="button" className={styles.licenseLink} onClick={() => setLicenses(true)}>{m.licenses}</button>
           </div>
         </div>
       </section>
       <section className={styles.catalogue}>{children}</section>
     </div>
-    <Dialog title={m.licenses} isOpen={licenses} onOpenChange={setLicenses} size="md">
-      <div className={styles.license}>
-        <p>{manifest.attribution}</p><p>{m.version}</p><p>{m.conversion}</p>
-        <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html" target="_blank" rel="noreferrer">{m.source}</a>
-        <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html" target="_blank" rel="noreferrer">{m.license}</a>
-        <a href="https://creativecommons.org/licenses/by/4.0/legalcode.en" target="_blank" rel="noreferrer">{m.cc}</a>
-        <p>{m.attributionNote}</p>
-      </div>
-    </Dialog>
   </>;
 }

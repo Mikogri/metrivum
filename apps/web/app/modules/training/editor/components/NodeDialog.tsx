@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { TrainingDocument } from "@trainflow/api-client-web";
-import { Alert, Button, Dialog, NumberInput, TextArea, TextField } from "@trainflow/ui-web";
+import type { TrainingDocument } from "@metrivum/api-client-web";
+import { Alert, Button, Dialog, NumberInput, TextArea, TextField } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { locate, updateNode } from "../model/document";
 import type { EditorApi } from "../useEditor";

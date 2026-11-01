@@ -2,8 +2,8 @@ import { Crosshair, Info, TriangleAlert } from "lucide-react";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { Button as AriaButton, ToggleButton } from "react-aria-components";
-import type { AnalysisRepetition, AnalysisResult, TrajectoryPoint } from "@trainflow/api-client-web";
-import { Card, Tooltip, TooltipTrigger } from "@trainflow/ui-web";
+import type { AnalysisRepetition, AnalysisResult, TrajectoryPoint } from "@metrivum/api-client-web";
+import { Card, Tooltip, TooltipTrigger } from "@metrivum/ui-web";
 import { RepSelect } from "./RepSelect";
 import { RepTable } from "./RepTable";
 import { useLocale } from "~/shared/i18n/LocaleContext";
@@ -55,7 +55,7 @@ const frameOf = (ratio: number) => (ratio < 1 ? 9 / 16 : 16 / 9);
  * Video, charts and the phase timeline share one time cursor: play or scrub the video and the line follows;
  * drag the line on a chart and the video follows.
  */
-export function ResultView({ result, mediaId, compact = false, aside, videoSource, aspect = 9 / 16 }: { result: AnalysisResult; mediaId?: string; compact?: boolean; aside?: ReactNode; videoSource?: () => Promise<{ url: string; expiresAt: string }>; /** Width / height of the video, known before it loads. */ aspect?: number }) {
+export function ResultView({ result, mediaId, compact = false, aside, videoSource, aspect = 9 / 16, onReview, reviewPending }: { result: AnalysisResult; mediaId?: string; compact?: boolean; aside?: ReactNode; videoSource?: () => Promise<{ url: string; expiresAt: string }>; /** Width / height of the video, known before it loads. */ aspect?: number; onReview?: (number: number, performed: boolean | null) => void; reviewPending?: boolean }) {
   const m = useT();
   const t = m.video.detail;
   const locale = useLocale();
@@ -199,6 +199,8 @@ export function ResultView({ result, mediaId, compact = false, aside, videoSourc
             const on = !selected || selected.has(r.number);
             return {
               id: String(r.number), rep: r, speedUnit: velocityUnit, checked: on,
+              onReview: onReview ? (performed: boolean | null) => onReview(r.number, performed) : undefined,
+              reviewPending,
               onCheck: (next: boolean) => toggleRep(r.number, next),
               lockCheck: on && (selected ? selected.size === 1 : result.repetitions.length === 1),
               current: cursor != null && cursor >= r.startSeconds && cursor <= r.endSeconds,

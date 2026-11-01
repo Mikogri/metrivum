@@ -22,22 +22,22 @@ Free and Pro expose the same implemented capability catalog. Default coaching-se
 
 ```powershell
 $env:TRAINFLOW_TEST_DATABASE = (Get-Content .local/stage-01/database.json -Raw | ConvertFrom-Json).ConnectionString
-dotnet test TrainFlow.slnx -c Debug
+dotnet test Metrivum.slnx -c Debug
 ./infra/export-stage04.ps1
 ./infra/export-initial-database.ps1 -Configuration Debug -OutputPath .local/stage04/initial.sql
 ./infra/test-stage04-migrations.ps1
-npm.cmd run typecheck --workspace @trainflow/web
+npm.cmd run typecheck --workspace @metrivum/web
 npm.cmd run lint
 npm.cmd test
-npm.cmd run build --workspace @trainflow/web
-npm.cmd run e2e:coaching --workspace @trainflow/web
+npm.cmd run build --workspace @metrivum/web
+npm.cmd run e2e:coaching --workspace @metrivum/web
 ```
 
 Migration tests create disposable loopback databases, seed Stage 3A profiles, relationships, groups, forms, messages and financial records, then compare original fields after upgrading. They also check clean creation, immutable history, notification deduplication and restricted runtime writes.
 
 ## Guarded development fixture
 
-`tools/TrainFlow.DevFixtures --stage 4` requires four explicitly confirmed, existing onboarded test identities: two coaches and two clients. Use fresh dedicated accounts with default fee policy and a configured development-only Pro price. It activates Coach A's Pro plan through simulated checkout, leaves Coach B Free, and reuses Stage 2's real offers, payments and submitted/reviewed check-in. It also writes a real chat message.
+`tools/Metrivum.DevFixtures --stage 4` requires four explicitly confirmed, existing onboarded test identities: two coaches and two clients. Use fresh dedicated accounts with default fee policy and a configured development-only Pro price. It activates Coach A's Pro plan through simulated checkout, leaves Coach B Free, and reuses Stage 2's real offers, payments and submitted/reviewed check-in. It also writes a real chat message.
 
 Expected Coach A totals: **EUR 360 gross, 4 fee, 356 net, two settlements, two unique active clients**. The EUR 80 internal sale uses Pro's 5% fee; EUR 280 external payment uses no platform fee. The platform purchase is excluded. The local verification uses explicitly labelled fixture accounts and a test-only EUR 29.99 Pro price; this is not the application's configured commercial price.
 

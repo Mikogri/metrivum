@@ -4,8 +4,8 @@ export const meta = () => privateMeta("Check-in schedules — Metrivum");
 
 import { CalendarClock, Plus } from "lucide-react";
 import { Link } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { EmptyState, LinkButton, Option, PageHeader, SearchInput, Select, Toolbar } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { EmptyState, LinkButton, Option, PageHeader, SearchInput, Select, Toolbar } from "@metrivum/ui-web";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useCoachingQuery, type Page } from "../api";
 import { Failure, ListPagination, Loading, StatusBadge } from "../components";

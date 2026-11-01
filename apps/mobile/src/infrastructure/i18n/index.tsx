@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useLocales } from "expo-localization";
 import * as SecureStore from "expo-secure-store";
-import { UiLocaleProvider } from "@trainflow/ui-mobile";
+import { UiLocaleProvider } from "@metrivum/ui-mobile";
 import {
     resolveLocale,
     translate,

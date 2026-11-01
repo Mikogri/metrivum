@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 import { Outlet, Link as RouterLink, useLocation } from "react-router";
-import { LightRays, Segment, SegmentedControl } from "@trainflow/ui-web";
+import { LightRays, Segment, SegmentedControl } from "@metrivum/ui-web";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { Logo } from "~/modules/marketing/components/Logo";
 import "./night-theme.module.css";

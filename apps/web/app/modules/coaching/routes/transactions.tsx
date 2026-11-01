@@ -1,8 +1,8 @@
 import { AlertTriangle, ArrowDownLeft, ArrowUpRight, CalendarClock, ChevronDown, RotateCcw, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Link as RouterLink, useSearchParams } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Badge, Button, DataTable, Dialog, EmptyState, LinkButton, Option, PageHeader, SearchInput, Segment, SegmentedControl, Select, Skeleton, Tab, TabList, Tabs, TextField, Toolbar } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Badge, Button, DataTable, Dialog, EmptyState, LinkButton, Option, PageHeader, SearchInput, Segment, SegmentedControl, Select, Skeleton, Tab, TabList, Tabs, TextField, Toolbar } from "@metrivum/ui-web";
 import { ResponsiveFilters } from "~/shared/library/ResponsiveFilters";
 import { UserAutocomplete } from "~/modules/accounts";
 import { ApiError } from "~/shared/http/errors";

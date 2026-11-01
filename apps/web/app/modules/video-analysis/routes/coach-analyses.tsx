@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Dumbbell, Video } from 'lucide-react';
 import { Link as RouterLink } from 'react-router';
-import { Button, EmptyState, ErrorState, LoadingState, PageHeader } from '@trainflow/ui-web';
+import { Button, EmptyState, ErrorState, LoadingState, PageHeader } from '@metrivum/ui-web';
 import { formatRelative } from '~/shared/i18n/format';
 import { useLocale } from '~/shared/i18n/LocaleContext';
 import { useT } from '~/shared/i18n/AppLocale';

@@ -2,8 +2,8 @@ import { CalendarDays, Check, Clock, Dumbbell, Info, RefreshCw, Save, Shuffle, T
 import { useId, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PlanDto } from "@trainflow/api-client-web";
-import { Alert, Button, Checkbox, Chip, ChipGroup, Disclosure, EmptyState, LoadingState, NumberInput, Option, PageHeader, Select, TextField } from "@trainflow/ui-web";
+import type { PlanDto } from "@metrivum/api-client-web";
+import { Alert, Button, Checkbox, Chip, ChipGroup, Disclosure, EmptyState, LoadingState, NumberInput, Option, PageHeader, Select, TextField } from "@metrivum/ui-web";
 import { privateMeta } from "~/shared/i18n/site";
 import { QuotaContextField, RequireFeature, useQuotaContext } from "~/shared/access";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";

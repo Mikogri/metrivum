@@ -1,4 +1,4 @@
-import type { AnalysisDto, AnalysisSetOptions, AnalysisWorkoutLink, AnalysisWorkoutLinkRequest, CoachAnalysis, AnalysisResult, CreateAnalysisRequest, MediaDto, MediaReadTicket, UpdateAnalysisRequest, UploadRequest, UploadTicket } from "@trainflow/api-client-web";
+import type { AnalysisDto, AnalysisSetOptions, AnalysisWorkoutLink, AnalysisWorkoutLinkRequest, CoachAnalysis, AnalysisResult, CreateAnalysisRequest, MediaDto, MediaReadTicket, UpdateAnalysisRequest, UploadRequest, UploadTicket } from "@metrivum/api-client-web";
 import type { Transport } from "~/shared/http/transport";
 import { requireLocalAnalyzer } from './local-analysis';
 
@@ -68,8 +68,8 @@ export async function unlinkWorkout(api: Transport, analysisId: string, version:
   await api({ method: "DELETE", path: `/api/v1/analyses/${id(analysisId)}/workout-link`, ifMatch: version, responseType: "none" });
 }
 
-export async function analysisSetOptions(api: Transport, q: { relationshipId?: string; days?: number }, signal?: AbortSignal) {
-  return (await api<AnalysisSetOptions>({ path: "/api/v1/training/analysis-set-options", query: { relationshipId: q.relationshipId, days: q.days ?? 60 }, signal })).data;
+export async function analysisSetOptions(api: Transport, q: { relationshipId?: string; days?: number; includeSets?: boolean; executionId?: string }, signal?: AbortSignal) {
+  return (await api<AnalysisSetOptions>({ path: "/api/v1/training/analysis-set-options", query: { relationshipId: q.relationshipId, days: q.days ?? 60, includeSets: q.includeSets, executionId: q.executionId }, signal })).data;
 }
 
 // Analyses a coach shared with the signed-in client at their logged sets (read-only).

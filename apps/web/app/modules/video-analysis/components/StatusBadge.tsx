@@ -1,4 +1,4 @@
-import { Badge, type BadgeTone } from "@trainflow/ui-web";
+import { Badge, type BadgeTone } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 
 const tones: Record<string, BadgeTone> = { Queued: "neutral", Processing: "info", Completed: "success", Failed: "danger", Cancelled: "neutral" };

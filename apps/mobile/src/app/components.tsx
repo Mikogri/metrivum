@@ -29,7 +29,7 @@ import {
     confirm,
     useTheme,
     useToast,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 
 /** Development catalog of the mobile design system. Not reachable in release builds. */
 export default function ComponentCatalog() {

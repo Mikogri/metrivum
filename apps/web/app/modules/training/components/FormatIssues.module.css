@@ -123,11 +123,11 @@
   color: var(--tf-color-success);
 }
 
-/* Never published: clients can't get the plan, so it stands out in a warning colour. */
+/* Never published: clients can't get the plan, so it stands out in red. */
 .state[data-unpublished] {
-  border-color: color-mix(in srgb, var(--tf-color-warning) 55%, transparent);
-  background: color-mix(in srgb, var(--tf-color-warning) 22%, transparent);
-  color: var(--tf-color-warning);
+  border-color: color-mix(in srgb, var(--tf-color-danger) 60%, transparent);
+  background: color-mix(in srgb, var(--tf-color-danger) 20%, transparent);
+  color: var(--tf-color-danger);
   font-weight: var(--tf-weight-semibold);
 }
 

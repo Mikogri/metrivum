@@ -1,4 +1,4 @@
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import type { Conversation, Request } from "./model";
 
 export type NotificationItem = { id: string; title: string; preview: string; href: string; count: number; createdAt: string; invitation?: boolean };

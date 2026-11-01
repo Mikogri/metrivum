@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" /><PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" /></ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\TrainFlow.Forms.Contracts\TrainFlow.Forms.Contracts.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\TrainFlow.BuildingBlocks\TrainFlow.BuildingBlocks.csproj" />
-    <ProjectReference Include="..\..\Accounts\TrainFlow.Accounts.Contracts\TrainFlow.Accounts.Contracts.csproj" />
-    <ProjectReference Include="..\..\Access\TrainFlow.Access.Contracts\TrainFlow.Access.Contracts.csproj" />
-  </ItemGroup>
-</Project>

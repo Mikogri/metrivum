@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TrainingDocument } from "@trainflow/api-client-web";
+import type { TrainingDocument } from "@metrivum/api-client-web";
 import { cloneWithNewIds, removeNode, newBlock, newCycle } from "./document";
 describe("plan annotation connections", () => {
   const block = { ...newBlock("Block"), cycles: [newCycle("Cycle")] };

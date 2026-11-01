@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Navigate, useLocation, useParams } from "react-router";
-import { Button, ErrorState, Skeleton } from "@trainflow/ui-web";
+import { Button, ErrorState, Skeleton } from "@metrivum/ui-web";
 import { RequireFeature } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";

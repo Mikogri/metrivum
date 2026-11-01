@@ -1,4 +1,4 @@
-import type { TrainingDocument } from "@trainflow/api-client-web";
+import type { TrainingDocument } from "@metrivum/api-client-web";
 import { findWorkout, updateNode } from "./document";
 
 /** Moves an exercise instance to a target index inside its workout (drag and drop). */

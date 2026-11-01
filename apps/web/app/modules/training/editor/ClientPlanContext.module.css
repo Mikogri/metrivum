@@ -25,7 +25,7 @@
 .variables > div { display: flex; gap: var(--tf-space-2); }
 .variables dd { margin: 0; }
 .tableWrap { max-height: 20rem; overflow: auto; }
-.table { width: 100%; border-collapse: collapse; font-size: var(--tf-text-sm); text-align: left; }
+.table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--tf-text-sm); text-align: left; }
 .table th, .table td { padding: var(--tf-space-2); border-bottom: 1px solid var(--tf-color-border); }
 .form { display: grid; gap: var(--tf-space-3); }
 .fields > * { flex: 1; min-width: 5rem; }

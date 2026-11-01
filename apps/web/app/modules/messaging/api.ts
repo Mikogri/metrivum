@@ -12,7 +12,7 @@ import {
 } from "~/shared/session";
 import { apiBaseUrl, type QueryValue } from "~/shared/http";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { mergeMessages, type Message } from "./model";
 
 export function cacheMessage(cache: QueryClient, account: string, message: Message) {

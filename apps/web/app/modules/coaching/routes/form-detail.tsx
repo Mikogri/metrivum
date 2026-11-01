@@ -7,8 +7,8 @@ import { CalendarDays, MoreHorizontal, Monitor, PenLine, Play, Plus, Smartphone,
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Badge, Button, DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, toast, IconButton, NumberInput, Option, PageHeader, Segment, SegmentedControl, Select, Switch, TextField } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Badge, Button, DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, toast, IconButton, NumberInput, Option, PageHeader, Segment, SegmentedControl, Select, Switch, TextField } from "@metrivum/ui-web";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useCoachingMutation, useCoachingQuery } from "../api";
 import { DraftNavigationGuard, EditableResource, Failure, Loading, MutationError } from "../components";
@@ -240,7 +240,7 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
   const duplicate = useCoachingMutation<Template>((value) => { toast({ tone: "success", title: "Form duplicated" }); navigate(`/app/forms/${value.id}`); });
   useUnsavedWorkGuard(useCallback(() => dirty, [dirty]));
   const mutation = useCoachingMutation<Template>((value) => {
-    toast({ tone: "success", title: operation.current === "publish" ? "Form published" : operation.current === "restore" ? "Form restored" : operation.current === "archive" ? "Form archived" : current ? "Form draft saved" : "Form created" });
+    toast({ tone: "success", title: operation.current === "publish" ? "Form published" : operation.current === "unpublish" ? "Form unpublished" : operation.current === "restore" ? "Form restored" : operation.current === "archive" ? "Form archived" : current ? "Form draft saved" : "Form created" });
     flushSync(() => {
       setCurrent(value);
       setDirty(false);
@@ -285,12 +285,17 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
                 </Button>
               </>
             ) : null}
-            <Button type="submit" form="form-builder" variant={current && !dirty ? "secondary" : "primary"} isDisabled={current?.archived || mutation.isPending} loading={mutation.isPending && !/\/(publish|archive|restore)$/.test(mutation.variables?.path ?? "")}>
+            <Button type="submit" form="form-builder" variant={current && !dirty ? "secondary" : "primary"} isDisabled={current?.archived || mutation.isPending} loading={mutation.isPending && !/\/(publish|unpublish|archive|restore)$/.test(mutation.variables?.path ?? "")}>
               {current ? "Save draft" : "Create form"}
             </Button>
+            {current?.currentPublishedVersionId && !current.archived ? (
+              <Button variant="danger" loading={mutation.isPending && mutation.variables?.path.endsWith("/unpublish")} isDisabled={locked || mutation.isPending} onPress={() => write("unpublish")}>
+                Unpublish
+              </Button>
+            ) : null}
             {current ? (
               <Button variant="primary" loading={mutation.isPending && mutation.variables?.path.endsWith("/publish")} isDisabled={locked || dirty} onPress={() => write("publish")}>
-                Publish form
+                {current.currentPublishedVersionId ? "Publish changes" : "Publish form"}
               </Button>
             ) : null}
           </>

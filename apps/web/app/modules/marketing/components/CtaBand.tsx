@@ -1,4 +1,4 @@
-import { LinkButton } from "@trainflow/ui-web";
+import { LinkButton } from "@metrivum/ui-web";
 import { usePublicMessages } from "../messages";
 import { usePublicSession } from "../usePublicSession";
 import { RevealHeading } from "./RevealHeading";

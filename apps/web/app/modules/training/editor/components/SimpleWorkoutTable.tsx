@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp, Copy, GripVertical, ListOrdered, MoreVertical, Trash2 } from "lucide-react";
 import { useState } from "react";
-import type { ExerciseInstance, Workout } from "@trainflow/api-client-web";
-import { ContextMenu, type ContextMenuEntry } from "@trainflow/ui-web";
+import type { ExerciseInstance, Workout } from "@metrivum/api-client-web";
+import { ContextMenu, type ContextMenuEntry } from "@metrivum/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useT } from "~/shared/i18n/AppLocale";
 import { addExercise, duplicateNode, moveNode, removeNode } from "../model/document";

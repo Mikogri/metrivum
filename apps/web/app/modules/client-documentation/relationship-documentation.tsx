@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FileText, Image as ImageIcon, MoreHorizontal, NotebookPen, Pencil, Plus, Scale } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
   Alert,
   AlertDialog,
@@ -25,7 +25,7 @@ import {
   TextArea,
   TextField,
   Toolbar,
-} from "@trainflow/ui-web";
+} from "@metrivum/ui-web";
 import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useCoachingMutation, useCoachingQuery, type Page } from "~/modules/coaching";
 import { Failure, ListPagination, Loading, MutationError } from "~/modules/coaching";

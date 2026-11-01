@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { Button, LoadingState } from "@trainflow/ui-web";
+import { Button, LoadingState } from "@metrivum/ui-web";
 import { ASSET_BASE, structureVisible, type AnatomyManifest, type Category } from "./model";
+import { AnatomyLicenses } from "./AnatomyLicenses";
 import type { AnatomyMessages } from "./messages";
 import { DISPLAY_MASK, hasDisplayMask, isDisplayMasked, PERMANENTLY_HIDDEN } from "./display-policy";
 import { clampTarget, easeInOutCubic, fitDistance, lerp3, viewPosition, type CameraView, type Vec3 } from "./camera";
@@ -74,7 +75,7 @@ export default function AnatomyViewer(props: Props) {
     controls.dampingFactor = 0.09;
     controls.rotateSpeed = 0.75;
     controls.panSpeed = 0.8;
-    controls.zoomSpeed = 0.9;
+    controls.zoomSpeed = 1.5;
     controls.zoomToCursor = true;
     controls.screenSpacePanning = true;
     controls.minPolarAngle = 0.08 * Math.PI;
@@ -122,7 +123,7 @@ export default function AnatomyViewer(props: Props) {
     const zoom = (factor: number) => {
       const offset = camera.position.clone().sub(controls.target);
       offset.setLength(THREE.MathUtils.clamp(offset.length() * factor, controls.minDistance, controls.maxDistance));
-      fly(vec(controls.target.clone().add(offset)), vec(controls.target), 260);
+      fly(vec(controls.target.clone().add(offset)), vec(controls.target), 420);
     };
     /** Frames a part of the model from the side the camera is on, never further out than the full view. */
     const frameBox = (box: THREE.Box3, duration?: number) => {
@@ -146,8 +147,8 @@ export default function AnatomyViewer(props: Props) {
     };
     const command = (action: CameraAction) => {
       if (action === "reset") view("front");
-      else if (action === "zoomIn") zoom(0.75);
-      else if (action === "zoomOut") zoom(1.33);
+      else if (action === "zoomIn") zoom(0.62);
+      else if (action === "zoomOut") zoom(1.6);
       else if (action === "focus") focusSelection();
       else view(action);
     };
@@ -293,8 +294,8 @@ export default function AnatomyViewer(props: Props) {
     /** Arrows orbit (left/right around the body, up/down over it, Shift for bigger steps); + / − zoom; Home resets. */
     const key = (event: KeyboardEvent) => {
       if (event.key === "Home") view("front");
-      else if (event.key === "+" || event.key === "=") zoom(0.85);
-      else if (event.key === "-" || event.key === "_") zoom(1.18);
+      else if (event.key === "+" || event.key === "=") zoom(0.75);
+      else if (event.key === "-" || event.key === "_") zoom(1.33);
       else if (event.key.startsWith("Arrow")) {
         flight = null;
         const spherical = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
@@ -308,6 +309,18 @@ export default function AnatomyViewer(props: Props) {
       } else return;
       event.preventDefault();
     };
+    let wheelPending = 0, wheelX = 0, wheelY = 0;
+    const wheel = (event: WheelEvent) => {
+      if (!event.isTrusted || event.ctrlKey) return; // our own eased steps (and pinch-zoom gestures) go straight through
+      event.preventDefault();
+      event.stopPropagation();
+      // Lines and pages become pixels, so every wheel and trackpad zooms at a similar rate.
+      wheelPending += event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1);
+      wheelPending = THREE.MathUtils.clamp(wheelPending, -1200, 1200);
+      wheelX = event.clientX; wheelY = event.clientY;
+      dirty = true;
+    };
+    element.addEventListener("wheel", wheel, { capture: true, passive: false });
     element.addEventListener("keydown", key);
     renderer.domElement.addEventListener("pointerdown", down);
     renderer.domElement.addEventListener("pointerup", up);
@@ -332,6 +345,13 @@ export default function AnatomyViewer(props: Props) {
         if (t >= 1) flight = null;
         dirty = true;
       }
+      if (Math.abs(wheelPending) > 0.5) {
+        // A fifth of what is left each frame: quick to start, soft to stop.
+        const step = Math.abs(wheelPending) < 2 ? wheelPending : wheelPending * 0.2;
+        wheelPending -= step;
+        renderer.domElement.dispatchEvent(new WheelEvent("wheel", { deltaY: step, clientX: wheelX, clientY: wheelY, bubbles: true, cancelable: true }));
+        dirty = true;
+      } else wheelPending = 0;
       if (controls.update()) dirty = true;
       if (!dirty) return;
       const current = live.current;
@@ -361,6 +381,7 @@ export default function AnatomyViewer(props: Props) {
       controls.removeEventListener("start", interrupt);
       controls.dispose();
       element.removeEventListener("keydown", key);
+      element.removeEventListener("wheel", wheel, { capture: true });
       renderer.domElement.removeEventListener("pointerdown", down);
       renderer.domElement.removeEventListener("pointerup", up);
       renderer.domElement.removeEventListener("pointermove", move);
@@ -376,5 +397,6 @@ export default function AnatomyViewer(props: Props) {
     {loading && <div className={styles.overlay}><LoadingState label={props.messages.loading} /></div>}
     {error && <div className={styles.viewerError} role="alert">{error}{engine.current && <Button size="sm" variant="ghost" onPress={() => engine.current?.invalidate()}>{props.messages.retry}</Button>}</div>}
     {hovered && <div className={styles.hoverLabel} role="status">{hovered}</div>}
+    <AnatomyLicenses attribution={props.manifest.attribution} messages={props.messages} />
   </div>;
 }

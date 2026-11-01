@@ -1610,6 +1610,8 @@ export interface paths {
                 query?: {
                     relationshipId?: string;
                     days?: number | string;
+                    includeSets?: boolean;
+                    executionId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -6702,6 +6704,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/forms/{id}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current strong numeric ETag. Membership changes use the group ETag. */
+                    "If-Match": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormTemplateDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/forms/{id}/duplicate": {
         parameters: {
             query?: never;
@@ -8074,6 +8116,43 @@ export interface paths {
         trace?: never;
     };
     "/api/v1/calendar/events/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EventDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/events/{id}/restore": {
         parameters: {
             query?: never;
             header?: never;
@@ -14044,6 +14123,7 @@ export interface components {
             meanSpeed?: null | number | string;
             /** Format: double */
             peakSpeed?: null | number | string;
+            performed?: null | boolean;
         };
         AnalysisResult: {
             /** Format: int32 */
@@ -15582,6 +15662,8 @@ export interface components {
             version: number | string;
             /** Format: int32 */
             questionCount: number | string;
+            /** Format: int32 */
+            estimatedSeconds: number | string;
         };
         FormSummaryListDto: {
             items: components["schemas"]["FormSummaryDto"][];
@@ -16217,6 +16299,16 @@ export interface components {
             hasComment: boolean;
             /** Format: int32 */
             exerciseCount?: null | number | string;
+            /** Format: int32 */
+            plannedSets?: null | number | string;
+            /** Format: int32 */
+            performedSets?: null | number | string;
+            /** Format: date-time */
+            completedAt?: null | string;
+            /** Format: double */
+            sessionRpe?: null | number | string;
+            /** Format: int32 */
+            rating?: null | number | string;
         };
         OfferCategoryDto: {
             key: string;
@@ -16731,6 +16823,10 @@ export interface components {
             version: number | string;
             /** Format: date-time */
             updatedAt: string;
+            /** Format: int32 */
+            publishedNumber?: null | number | string;
+            /** Format: int64 */
+            publishedDraftVersion?: null | number | string;
         };
         PlanUsageDto: {
             planId: string;
@@ -17066,6 +17162,11 @@ export interface components {
         RelationshipStatus: "Active" | "Suspended" | "Completed";
         RenameRequest: {
             title: string;
+        };
+        RepetitionReview: {
+            /** Format: int32 */
+            number: number | string;
+            performed: null | boolean;
         };
         ReportCreatedDto: {
             /** Format: uuid */
@@ -17931,6 +18032,7 @@ export interface components {
             tags: string[];
             movement?: null | string;
             exercise?: null | string;
+            repetitionReviews?: null | components["schemas"]["RepetitionReview"][];
         };
         UpdateExerciseRequest: {
             /** Format: int32 */

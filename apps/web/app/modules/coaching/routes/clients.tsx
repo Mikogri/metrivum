@@ -1,9 +1,9 @@
-import { Archive, ArchiveRestore, MoreHorizontal, Pencil, Plus, UsersRound } from "lucide-react";
+import { Archive, ArchiveRestore, MoreHorizontal, Pencil, Plus, UserCog, UsersRound } from "lucide-react";
 import { HubNavigation } from "~/shared/navigation/HubNavigation";
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { Link } from "react-router";
-import { Alert, Avatar, Button, DataTable, Dialog, DialogFooter, DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, EmptyState, IconButton, LinkButton, Option, PageHeader, SearchInput, Select, TextArea, TextField, Toolbar } from "@trainflow/ui-web";
+import { Alert, Avatar, Button, Checkbox, DataTable, Dialog, DialogFooter, DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, EmptyState, IconButton, LinkButton, Option, PageHeader, SearchInput, Select, TextArea, TextField, Toolbar, toast } from "@metrivum/ui-web";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { ClientHubActions } from "../hub-actions";
 import { RequireFeature } from "~/shared/access";
@@ -132,7 +132,7 @@ function GroupMembers({ groupId }: { groupId: string }) {
   );
 }
 
-function GroupCard({ group: g, onEdit, onArchive, busy }: { group: Group; onEdit: () => void; onArchive: () => void; busy: boolean }) {
+function GroupCard({ group: g, onEdit, onArchive, onMembers, busy }: { group: Group; onEdit: () => void; onArchive: () => void; onMembers: () => void; busy: boolean }) {
   return (
     <li className={styles.groupItem}>
       <article className={styles.groupCard} style={{ "--group": g.color } as React.CSSProperties}>
@@ -144,7 +144,8 @@ function GroupCard({ group: g, onEdit, onArchive, busy }: { group: Group; onEdit
           </div>
           <DropdownMenuTrigger>
             <IconButton size="sm" label={`Actions for ${g.name}`} icon={<MoreHorizontal />} isDisabled={busy} className={styles.raised} />
-            <DropdownMenu aria-label={`Actions for ${g.name}`} onAction={(key) => (key === "edit" ? onEdit() : onArchive())}>
+            <DropdownMenu aria-label={`Actions for ${g.name}`} onAction={(key) => (key === "members" ? onMembers() : key === "edit" ? onEdit() : onArchive())}>
+              {!g.archived ? <DropdownMenuItem id="members" icon={<UserCog />}>Manage clients</DropdownMenuItem> : null}
               <DropdownMenuItem id="edit" icon={<Pencil />}>Edit group</DropdownMenuItem>
               {g.archived ? <DropdownMenuItem id="restore" icon={<ArchiveRestore />}>Restore group</DropdownMenuItem> : <DropdownMenuItem id="archive" tone="danger" icon={<Archive />}>Archive group</DropdownMenuItem>}
             </DropdownMenu>
@@ -152,7 +153,7 @@ function GroupCard({ group: g, onEdit, onArchive, busy }: { group: Group; onEdit
         </header>
         <p className={styles.groupDescription}>{g.description || "No description."}</p>
         <footer className={styles.groupCardFoot}>
-          <GroupMembers groupId={g.id} />
+          {g.archived ? <GroupMembers groupId={g.id} /> : <button type="button" className={styles.membersButton} onClick={onMembers} aria-label={`Manage clients in ${g.name}`}><GroupMembers groupId={g.id} /></button>}
           <span className={styles.none}>Updated {new Date(g.updatedAt).toLocaleDateString()}</span>
         </footer>
       </article>
@@ -166,6 +167,7 @@ export function Groups() {
   const team = state.scope === "team" && context.data?.isActive ? context.data : null;
   const available = state.scope !== "team" || team != null;
   const [editing, setEditing] = useState<Group | "new" | null>(null);
+  const [managing, setManaging] = useState<Group | null>(null);
   const list = useCoachingQuery<Page<Group>>("/api/v1/coaching/groups", { page: pageFromParam(state.page), pageSize: 20, search: state.q || undefined, archived: state.archived === "true", sort: "name", teamId: team?.teamId }, available);
   const mutation = useCoachingMutation(undefined, groupInvalidation);
   const { ask, dialog: confirmDialog } = useDangerConfirm();
@@ -188,12 +190,12 @@ export function Groups() {
     {!available && context.isPending ? <Loading /> : !available && context.isError ? <Failure error={context.error} retry={() => void context.refetch()} /> : !available && !context.isPending ? <Alert tone="warning" title="Team groups are unavailable">An active Team membership is required. <Button onPress={() => update({ scope: "personal" })}>Open personal groups</Button></Alert> : list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : !list.data.items.length ? <EmptyState icon={<UsersRound />} title={state.q ? "No matching groups" : "No groups yet"} description="Create a group, then add clients from the same ownership scope." actions={!state.q && <Button variant="primary" iconStart={<Plus />} onPress={() => setEditing("new")}>New group</Button>} /> : <>
       {view === "cards" ? (
         <ul className={styles.groupGrid} aria-label="Groups">
-          {list.data.items.map((g) => <GroupCard key={g.id} group={g} busy={mutation.isPending} onEdit={() => setEditing(g)} onArchive={() => void toggleArchive(g)} />)}
+          {list.data.items.map((g) => <GroupCard key={g.id} group={g} busy={mutation.isPending} onEdit={() => setEditing(g)} onArchive={() => void toggleArchive(g)} onMembers={() => setManaging(g)} />)}
         </ul>
       ) : (
         <DataTable label="Groups" rows={list.data.items} rowKey={(g) => g.id} columns={[
           { id: "name", header: "Group", width: "28%", cell: (g) => <Link data-row-link to={`/app/groups/${g.id}`} className={styles.named}><span className={styles.colorBar} style={{ background: g.color }} aria-hidden="true" />{g.name}</Link> },
-          { id: "members", header: "Clients", hideOnMobile: true, cell: (g) => <GroupMembers groupId={g.id} /> },
+          { id: "members", header: "Clients", hideOnMobile: true, cell: (g) => g.archived ? <GroupMembers groupId={g.id} /> : <button type="button" className={styles.membersButton} onClick={() => setManaging(g)} aria-label={`Manage clients in ${g.name}`}><GroupMembers groupId={g.id} /></button> },
           { id: "description", header: "Description", cell: (g) => g.description || "—", muted: true, hideOnMobile: true },
           {
             id: "actions",
@@ -203,7 +205,8 @@ export function Groups() {
             cell: (g) => (
               <DropdownMenuTrigger>
                 <IconButton size="sm" label={`Actions for ${g.name}`} icon={<MoreHorizontal />} isDisabled={mutation.isPending} />
-                <DropdownMenu aria-label={`Actions for ${g.name}`} onAction={(key) => (key === "edit" ? setEditing(g) : void toggleArchive(g))}>
+                <DropdownMenu aria-label={`Actions for ${g.name}`} onAction={(key) => (key === "members" ? setManaging(g) : key === "edit" ? setEditing(g) : void toggleArchive(g))}>
+                  {!g.archived ? <DropdownMenuItem id="members" icon={<UserCog />}>Manage clients</DropdownMenuItem> : null}
                   <DropdownMenuItem id="edit" icon={<Pencil />}>Edit group</DropdownMenuItem>
                   {g.archived ? <DropdownMenuItem id="restore" icon={<ArchiveRestore />}>Restore group</DropdownMenuItem> : <DropdownMenuItem id="archive" tone="danger" icon={<Archive />}>Archive group</DropdownMenuItem>}
                 </DropdownMenu>
@@ -214,7 +217,84 @@ export function Groups() {
       )}
       <ListPagination data={list.data} onChange={(page) => update({ page: String(page) })} /></>}
     {editing && <GroupEditor key={typeof editing === "string" ? editing : editing.id} group={editing === "new" ? undefined : editing} teamId={team?.teamId} close={() => setEditing(null)} />}
+    {managing && <GroupMembersDialog key={managing.id} groupId={managing.id} close={() => setManaging(null)} />}
   </>;
+}
+
+/**
+ * Who is in a group: add and remove clients from the group's scope (personal or Team), then Save.
+ * Nothing changes until Save; Cancel drops the edits. Each change is sent in turn with the group's latest version.
+ */
+function GroupMembersDialog({ groupId, close }: { groupId: string; close: () => void }) {
+  const [search, setSearch] = useState("");
+  const group = useCoachingQuery<Group>(`/api/v1/coaching/groups/${groupId}`);
+  const clients = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { teamId: group.data?.teamId ?? undefined, status: "Active", page: 1, pageSize: 100 }, Boolean(group.data));
+  const mutation = useCoachingMutation<Group>(undefined, groupInvalidation);
+  const [saving, setSaving] = useState(false);
+  const g = group.data;
+  const all = clients.data?.items ?? [];
+  const saved = new Set(g ? all.filter((r) => r.groupIds.includes(g.id)).map((r) => r.id) : []);
+  // The edited membership; null until the first change, so it starts from what is saved.
+  const [draft, setDraft] = useState<Set<string> | null>(null);
+  const members = draft ?? saved;
+  const added = [...members].filter((id) => !saved.has(id));
+  const removed = [...saved].filter((id) => !members.has(id));
+  const dirty = added.length + removed.length > 0;
+  const set = (id: string, on: boolean) => setDraft(() => { const next = new Set(members); if (on) next.add(id); else next.delete(id); return next; });
+  const term = search.trim().toLowerCase();
+  const matches = (r: Relationship) => !term || `${r.client.displayName} ${r.client.username}`.toLowerCase().includes(term);
+  const name = (r: Relationship) => r.client.displayName || r.client.username || "Client";
+  // Members first, then everyone else, each alphabetically.
+  const shown = all.filter(matches).sort((a, b) => Number(saved.has(b.id)) - Number(saved.has(a.id)) || name(a).localeCompare(name(b)));
+  // Names and colours of the coach's other groups, to show where each client already is.
+  const groups = useCoachingQuery<Page<Group>>("/api/v1/coaching/groups", { page: 1, pageSize: 100, archived: false, teamId: g?.teamId ?? undefined }, Boolean(g));
+  const groupById = new Map((groups.data?.items ?? []).map((item) => [item.id, item]));
+  const save = async () => {
+    if (!g) return;
+    setSaving(true);
+    try {
+      let version = g.version;
+      for (const id of added) version = (await mutation.mutateAsync({ method: "PUT", path: `/api/v1/coaching/groups/${g.id}/members/${id}`, ifMatch: version })).version;
+      for (const id of removed) version = (await mutation.mutateAsync({ method: "DELETE", path: `/api/v1/coaching/groups/${g.id}/members/${id}`, ifMatch: version })).version;
+      toast({ tone: "success", title: "Group saved", description: `${added.length ? `${added.length} added` : ""}${added.length && removed.length ? " · " : ""}${removed.length ? `${removed.length} removed` : ""}` });
+      close();
+    } catch {
+      // The error is shown in the dialog; what was already saved stays saved.
+    } finally {
+      setSaving(false);
+    }
+  };
+  const row = (r: Relationship) => {
+    const member = members.has(r.id);
+    const elsewhere = r.groupIds.filter((id) => id !== g?.id).map((id) => groupById.get(id)).filter((item): item is Group => Boolean(item));
+    return <li key={r.id} data-member={member || undefined} data-changed={member !== saved.has(r.id) || undefined}>
+      <Checkbox isSelected={member} isDisabled={saving} onChange={(on) => set(r.id, on)} aria-label={`${name(r)} in ${g?.name ?? "the group"}`}>
+        <span className={styles.membersRow}>
+          <Avatar name={name(r)} size="sm" decorative />
+          <span className={styles.membersName}><strong>{name(r)}</strong>{r.client.username ? <small>@{r.client.username}</small> : null}</span>
+          {elsewhere.length ? <span className={styles.membersGroups} title={`Also in ${elsewhere.map((item) => item.name).join(", ")}`}>
+            {elsewhere.slice(0, 3).map((item) => <span key={item.id} style={{ "--group": item.color } as React.CSSProperties}>{item.name}</span>)}
+            {elsewhere.length > 3 ? <small>+{elsewhere.length - 3}</small> : null}
+          </span> : null}
+        </span>
+      </Checkbox>
+    </li>;
+  };
+  return <Dialog isOpen size="md" title={g ? `Clients in ${g.name}` : "Clients in group"}
+    description={g ? `${members.size} of ${all.length} ${g.teamId ? "assigned Team clients" : "active clients"}${dirty ? ` · ${added.length} to add, ${removed.length} to remove` : ""}` : undefined}
+    isDismissable={!dirty && !saving} onOpenChange={(open) => { if (!open && !saving) close(); }}>
+    <div className={styles.membersDialog}>
+      <SearchInput aria-label="Search clients" placeholder="Search clients" value={search} onChange={setSearch} />
+      <MutationError error={mutation.error} />
+      {group.isPending || (g && clients.isPending) ? <Loading /> : group.isError ? <Failure error={group.error} retry={() => void group.refetch()} /> : clients.isError ? <Failure error={clients.error} retry={() => void clients.refetch()} /> : !all.length ? (
+        <EmptyState size="sm" icon={<UsersRound />} title={g?.teamId ? "No Team clients assigned to you" : "No active clients yet"} description={g?.teamId ? "Only Team clients assigned to you can join this group." : "Invite a client or accept an application first."} />
+      ) : !shown.length ? <p className={styles.none}>No clients match “{search}”.</p> : <ul className={styles.membersList}>{shown.map(row)}</ul>}
+      <DialogFooter>
+        <Button isDisabled={saving} onPress={close}>Cancel</Button>
+        <Button variant="primary" loading={saving} isDisabled={!dirty} onPress={() => void save()}>Save</Button>
+      </DialogFooter>
+    </div>
+  </Dialog>;
 }
 
 export function GroupEditor({ group, teamId, close }: { group?: Group; teamId?: string; close: () => void }) {

@@ -1,7 +1,7 @@
 import { Lock } from "lucide-react";
 import type { ReactNode } from "react";
-import type { FeatureKey } from "@trainflow/api-client-web";
-import { EmptyState, LinkButton, Skeleton, Tooltip, TooltipTrigger } from "@trainflow/ui-web";
+import type { FeatureKey } from "@metrivum/api-client-web";
+import { EmptyState, LinkButton, Skeleton, Tooltip, TooltipTrigger } from "@metrivum/ui-web";
 import { Focusable } from "react-aria-components";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useFeatureAccess, type FeatureAccess } from "./useFeatureAccess";

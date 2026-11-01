@@ -1,6 +1,6 @@
-# TrainFlow braces fork
+# Metrivum braces fork
 
-Private package `@trainflow/braces@3.0.3-trainflow.1`, based on the complete npm `braces@3.0.3` distribution (MIT; see LICENSE).
+Private package `@metrivum/braces@3.0.3-trainflow.1`, based on the complete npm `braces@3.0.3` distribution (MIT; see LICENSE).
 
 - Source: https://github.com/micromatch/braces
 - Tarball: https://registry.npmjs.org/braces/-/braces-3.0.3.tgz

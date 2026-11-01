@@ -2,7 +2,7 @@ import { ChevronRight, Menu, PanelLeft, Search, X } from "lucide-react";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 import { Link, Navigate, Outlet, useLocation, useMatches, useNavigate, useNavigation, useNavigationType } from "react-router";
-import { Hint, IconButton, Kbd, PageBackContext, useMobileLayout, type PageBack } from "@trainflow/ui-web";
+import { Hint, IconButton, Kbd, PageBackContext, useMobileLayout, type PageBack } from "@metrivum/ui-web";
 import { UsageButton, useAccessSnapshot } from "~/shared/access";
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
@@ -175,13 +175,18 @@ export function AppShell() {
   const back = useBack(location.pathname, location.search, navigate, m.common.back);
   useEffect(() => setDrawerOpen(false), [location.pathname]);
   // The shell owns scrolling, so browser Back restores its entry rather than the window's scroll.
+  // Filters and tabs replace the address on the same page; those keep the reader where they are.
+  const shownPath = useRef(location.pathname);
   useLayoutEffect(() => {
     const element = main.current;
     if (!element) return;
-    element.scrollTop = navigationType === "POP" ? scrollPositions.current.get(location.key) ?? 0 : 0;
+    const samePage = navigationType === "REPLACE" && shownPath.current === location.pathname;
+    shownPath.current = location.pathname;
+    if (samePage) scrollPositions.current.set(location.key, element.scrollTop);
+    else element.scrollTop = navigationType === "POP" ? scrollPositions.current.get(location.key) ?? 0 : 0;
     const positions = scrollPositions.current;
     if (positions.size > 40) positions.delete(positions.keys().next().value!);
-  }, [location.key, navigationType]);
+  }, [location.key, location.pathname, navigationType]);
   useEffect(() => {
     const element = shell.current;
     if (!phone || !element) return;

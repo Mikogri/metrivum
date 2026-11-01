@@ -1,12 +1,13 @@
+import { usePaymentActionId } from "~/shared/session/payment-action";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Training plans — Metrivum");
 
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { Navigate } from "react-router";
 import { ShoppingBag } from "lucide-react";
-import { Alert, Badge, Button, Dialog, DialogFooter, LinkButton, Segment, SegmentedControl, toast, useMobileLayout } from "@trainflow/ui-web";
+import { Alert, Badge, Button, Dialog, DialogFooter, LinkButton, Segment, SegmentedControl, toast, useMobileLayout } from "@metrivum/ui-web";
 import { Panel } from "~/shared/ui/Panel";
 import { useCoachingMutation, useCoachingQuery, type Page, Failure, ListPagination, Loading, money } from "~/modules/coaching";
 import { AssignmentList } from "../delivery/Assignments";
@@ -15,7 +16,7 @@ import styles from "../delivery/delivery.module.css";
 type Purchase = Schema<"PurchasedPlanDto">;
 function PurchasePayment({ purchase, close }: { purchase: Purchase; close: () => void }) {
   const query = useCoachingQuery<Schema<"PaymentDueDto">>(`/api/v1/me/plan-purchases/${purchase.orderId}/due`);
-  const [key] = useState(() => crypto.randomUUID());
+  const [key] = usePaymentActionId(`purchase:${purchase.orderId}`);
   const pay = useCoachingMutation<Schema<"PaymentResultDto">>(result => {
     if (result.due.status === "AwaitingPayment") { toast({ tone: "danger", title: "Payment failed. Your plan remains locked." }); return; }
     toast({ tone: "success", title: "Your plan is now available" }); close();

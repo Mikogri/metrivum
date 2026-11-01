@@ -6,7 +6,7 @@
 .muted { color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
 .choices { display: grid; gap: var(--tf-space-2); max-height: 18rem; overflow: auto; }
 .row { display: flex; justify-content: space-between; align-items: center; gap: var(--tf-space-3); flex-wrap: wrap; }
-.table { width: 100%; border-collapse: collapse; font-size: var(--tf-text-sm); }
+.table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--tf-text-sm); }
 .table th, .table td { text-align: left; padding: var(--tf-space-2); border-bottom: 1px solid var(--tf-color-border-subtle); vertical-align: top; }
 .table input, .table select { min-width: 5rem; max-width: 8rem; }
 .scroll { max-width: 100%; overflow-x: auto; }
@@ -521,7 +521,7 @@ a.rowLink { text-decoration: none; }
 /* The numbers in one row of equal cells. */
 .wkSummary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
   margin: 0;
   overflow: hidden;
   border: 1px solid var(--tf-color-border-subtle);
@@ -885,40 +885,7 @@ a.rowLink { text-decoration: none; }
   gap: var(--tf-space-4);
 }
 
-/* Right of the title, with room around it; the actions keep the far edge. */
-.wkClient {
-  display: inline-flex;
-  align-self: center;
-  margin: 0 auto 0 var(--tf-space-6);
-  padding: var(--tf-space-1-5) var(--tf-space-3) var(--tf-space-1-5) var(--tf-space-1-5);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface);
-  transition: border-color 140ms ease;
-  align-items: center;
-  gap: var(--tf-space-2-5, 0.625rem);
-  color: var(--tf-color-text);
-  text-decoration: none;
-}
 
-.wkClient > span {
-  display: grid;
-  line-height: 1.25;
-}
-
-.wkClient strong {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
-}
-
-.wkClient small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-}
-
-.wkClient:hover {
-  border-color: var(--tf-color-border-strong);
-}
 
 /* The log form: same cards as the plan, with a table to type into. */
 .wkForm {
@@ -955,7 +922,8 @@ a.rowLink { text-decoration: none; }
 
 .wkTable {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: var(--tf-text-sm);
 }
 
@@ -1150,11 +1118,8 @@ a.rowLink { text-decoration: none; }
   width: 100%;
 }
 
-.wkPanelFoot > .wkSaveState {
-  margin-left: auto;
-}
-
-.wkPanelFoot > .wkSaveState:empty + * {
+/* Clear stays left; Cancel and Save go right. */
+.wkPanelFoot > :nth-child(2) {
   margin-left: auto;
 }
 
@@ -1313,7 +1278,8 @@ a.rowLink { text-decoration: none; }
 .cmpTable {
   width: 100%;
   table-layout: fixed;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: var(--tf-text-sm);
 }
 
@@ -1377,7 +1343,7 @@ a.rowLink { text-decoration: none; }
 }
 
 .cmpNotes {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
   gap: var(--tf-space-1);
 }
@@ -1401,3 +1367,700 @@ a.rowLink { text-decoration: none; }
   font-size: var(--tf-text-xs);
   line-height: var(--tf-leading-normal);
 }
+
+/* Completion of a logged workout: a short bar and the share of sets done. */
+.completion {
+  --done: var(--tf-color-success);
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.completionBar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+}
+
+.completionBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--done);
+  transform-origin: left;
+}
+
+.completionText {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.completionText b {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.completionNone {
+  color: var(--tf-color-text-tertiary);
+}
+
+.wkLate {
+  color: var(--tf-color-warning);
+}
+
+/* ───────── Workout feedback ───────── */
+.fb {
+  display: grid;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-5);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.fbHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+}
+
+.fbHead h2 {
+  margin: 0;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.fbHead p {
+  margin-top: 2px;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+.fbForm {
+  display: grid;
+  gap: var(--tf-space-5);
+}
+
+.fbScales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--tf-space-4);
+}
+
+.fbScale,
+.fbRpe {
+  display: grid;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fbScale legend,
+.fbRpe legend {
+  margin-bottom: var(--tf-space-2);
+  padding: 0;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.fbRpe legend span {
+  color: var(--tf-color-text-tertiary);
+  font-weight: var(--tf-weight-regular);
+}
+
+.fbScale [role="radiogroup"] {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--tf-space-1);
+}
+
+.fbScale button {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: var(--tf-space-2) 2px;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.fbScale button b {
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.fbScale button small {
+  font-size: var(--tf-text-2xs);
+  white-space: nowrap;
+}
+
+.fbScale button:hover {
+  border-color: var(--tf-color-border-strong);
+  color: var(--tf-color-text);
+}
+
+.fbScale button[aria-checked="true"] {
+  border-color: var(--tf-color-accent);
+  background: color-mix(in srgb, var(--tf-color-accent) 16%, var(--tf-color-surface-raised));
+  color: var(--tf-color-text);
+}
+
+.fbScale button:focus-visible,
+.fbRpe button:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* Effort 1-10 as one strip that warms from green to red. */
+.fbRpe [role="radiogroup"] {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.fbRpe button {
+  --heat: color-mix(in srgb, var(--tf-color-danger) calc(var(--rpe) * 10%), var(--tf-color-success));
+  height: 2.25rem;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-secondary);
+  font: inherit;
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.fbRpe button:hover {
+  border-color: var(--heat);
+  color: var(--tf-color-text);
+}
+
+.fbRpe button[aria-checked="true"] {
+  border-color: var(--heat);
+  background: var(--heat);
+  color: var(--tf-color-text-inverse);
+}
+
+.fbActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--tf-space-2);
+}
+
+/* Read view: four facts with icons, then the note as a quote. */
+.fbStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: var(--tf-space-2);
+}
+
+.fbStat {
+  --fb: var(--tf-color-accent);
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+}
+
+.fbStat[data-value="1"],
+.fbStat[data-value="2"] {
+  --fb: var(--tf-color-danger);
+}
+
+.fbStat[data-value="3"] {
+  --fb: var(--tf-color-warning);
+}
+
+.fbStat[data-rpe] {
+  --fb: var(--tf-color-info);
+}
+
+.fbIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--fb) 18%, transparent);
+  color: var(--fb);
+}
+
+.fbIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.fbStat > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+
+.fbStat small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.fbStat strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.fbNote {
+  margin: 0;
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-left: 3px solid var(--tf-color-border-strong);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+  white-space: pre-wrap;
+}
+
+.fbEmpty {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+@media (max-width: 40rem) {
+  .fb {
+    padding: var(--tf-space-4);
+  }
+
+  .fbScale button small {
+    display: none;
+  }
+}
+
+/* Logged status flags: skipped, substituted, partial, added. */
+.wkFlag {
+  --flag: var(--tf-color-text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--tf-space-2);
+  padding: 1px var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--flag) 16%, transparent);
+  color: var(--flag);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.wkFlag[data-tone="skipped"] { --flag: var(--tf-color-danger); }
+.wkFlag[data-tone="partial"] { --flag: var(--tf-color-warning); }
+.wkFlag[data-tone="swap"] { --flag: var(--tf-color-info); }
+.wkFlag[data-tone="added"] { --flag: var(--tf-color-violet); }
+
+.wkRowMeta .wkFlag {
+  margin-left: 0;
+}
+
+/* A skipped set: red tint across the row and a cross instead of the tick. */
+.wkRow[data-state="skipped"] {
+  opacity: 1;
+  background: color-mix(in srgb, var(--tf-color-danger) 7%, transparent);
+}
+
+.wkRow[data-state="skipped"] .wkRowMain {
+  color: var(--tf-color-text-tertiary);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--tf-color-danger) 60%, transparent);
+}
+
+.wkRow[data-state="skipped"] .wkRowMain b {
+  color: var(--tf-color-text-tertiary);
+}
+
+.wkRow[data-state="skipped"] .wkRowCheck {
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--tf-color-danger) 20%, transparent);
+  color: var(--tf-color-danger);
+}
+
+.wkStep[data-skipped] .wkNode {
+  background: color-mix(in srgb, var(--tf-color-danger) 16%, var(--tf-color-surface));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tf-color-danger) 55%, transparent);
+  color: var(--tf-color-danger);
+}
+
+.wkStep[data-skipped] .wkCard {
+  border-left-color: var(--tf-color-danger);
+}
+
+.wkStep[data-added] .wkNode {
+  background: color-mix(in srgb, var(--tf-color-violet) 16%, var(--tf-color-surface));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tf-color-violet) 55%, transparent);
+  color: var(--tf-color-violet);
+}
+
+.wkStep[data-added] .wkCard {
+  border-left-color: var(--tf-color-violet);
+}
+
+/* The whole added exercise is tinted, header and rows, as skipped ones are red. */
+.wkStep[data-added] .wkCard {
+  background: color-mix(in srgb, var(--tf-color-violet) 8%, var(--tf-color-surface));
+}
+
+/* The notes cell keeps the row background; only its content wraps. */
+.cmpNotes span[data-tone="missing"] {
+  background: color-mix(in srgb, var(--tf-color-danger) 16%, transparent);
+  color: var(--tf-color-danger);
+}
+
+/* ───────── Workout analysis ───────── */
+.an {
+  display: grid;
+  gap: var(--tf-space-6);
+}
+
+.anTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: var(--tf-space-2);
+  margin: 0;
+}
+
+.anTiles > div {
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-1);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.anTiles dt {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.anTiles dd {
+  margin: 0;
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-text-xl);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.anTiles small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.anBar {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-raised);
+}
+
+.anBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left;
+}
+
+.anSection {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+
+.anSection > h2,
+.anSectionHead h2 {
+  margin: 0;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+/* Plan | Analysis: one full-width line under the tabs, the active marker sitting on it. */
+.wkTabBar {
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.wkTabBar > :not(template) {
+  margin-bottom: -1px;
+}
+
+.wkTabBar.wkTabBar > :not(template) > * {
+  border-bottom: 0;
+}
+
+/* The log panel title with the unsaved state as a coloured pill on the right. */
+.wkPanelTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+}
+
+.wkPanelTitle .wkSaveState {
+  --state: var(--tf-color-warning);
+  margin-left: auto;
+  padding: 2px var(--tf-space-2-5, 0.625rem);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--state) 16%, transparent);
+  color: var(--state);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.wkPanelTitle .wkSaveState[data-state="saving"] {
+  --state: var(--tf-color-info);
+}
+
+.wkPanelTitle .wkSaveState[data-state="error"] {
+  --state: var(--tf-color-danger);
+}
+
+.wkFeedbackEdit {
+  display: grid;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.wkFeedbackEdit h3 {
+  margin: 0;
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.anSectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+}
+
+.anHeatmap {
+  min-height: 26rem;
+  overflow: hidden;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+/* Whose workout (coach view): a quiet line above the title. */
+.wkClient {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: var(--tf-space-2);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  text-decoration: none;
+}
+
+.wkClient strong {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.wkClient small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.wkClient > svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-text-tertiary);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 140ms ease, transform 160ms var(--tf-ease-out, ease-out);
+}
+
+.wkClient:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.wkClient:hover > svg {
+  opacity: 1;
+  transform: none;
+}
+
+/* By exercise: one card, a tinted header row, tone dots like the plan, numbers on the right. */
+.anCard {
+  overflow-x: auto;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+}
+
+.anTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--tf-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.anTable th {
+  padding: var(--tf-space-2-5, 0.625rem) var(--tf-space-3);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.anTable td {
+  padding: var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  color: var(--tf-color-text-secondary);
+  white-space: nowrap;
+}
+
+.anTable [data-num] {
+  text-align: right;
+}
+
+.anTable th:first-child,
+.anTable td:first-child {
+  padding-left: var(--tf-space-4);
+}
+
+.anTable th:last-child,
+.anTable td:last-child {
+  padding-right: var(--tf-space-4);
+}
+
+.anTable td[data-num] b {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.anTable td small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.anTable tbody tr {
+  transition: background-color 120ms ease;
+}
+
+.anTable tbody tr:hover {
+  background: color-mix(in srgb, var(--tf-color-text) 3%, transparent);
+}
+
+.anTable tr[data-skipped] {
+  background: color-mix(in srgb, var(--tf-color-danger) 6%, transparent);
+}
+
+/* Exercises done outside the plan are tinted like their "Added" flag, as skipped ones are red. */
+.anTable tr[data-added] {
+  background: color-mix(in srgb, var(--tf-color-violet) 10%, transparent);
+}
+
+.anName {
+  --wk-tone: var(--tf-color-accent);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.anName[data-tone="1"] { --wk-tone: var(--tf-color-info); }
+.anName[data-tone="2"] { --wk-tone: var(--tf-color-violet); }
+.anName[data-tone="3"] { --wk-tone: var(--tf-color-warning); }
+
+.anName i {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--wk-tone);
+}
+
+.anName b {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.anName .wkFlag {
+  margin-left: 0;
+}
+
+.anCompletion {
+  display: grid;
+  grid-template-columns: minmax(3rem, 1fr) 2.5rem;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 6.5rem;
+}
+
+.anCompletion b {
+  font-weight: var(--tf-weight-semibold);
+  text-align: right;
+}
+
+/* ───────── Workout feedback (progress) ───────── */
+/* One card per answer: what it asks, the average on its scale, a meter, every answer as a line, then latest and change. */
+.fbGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--tf-space-3); }
+.fbCard { --fb: var(--tf-color-accent); display: grid; align-content: start; gap: var(--tf-space-2); min-width: 0; padding: var(--tf-space-3) var(--tf-space-4); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-lg); background: var(--tf-color-surface); }
+.fbCard[data-tone="warning"] { --fb: var(--tf-color-warning); }
+.fbCard[data-tone="info"] { --fb: var(--tf-color-info); }
+.fbCard[data-tone="violet"] { --fb: var(--tf-color-violet); }
+.fbCard header { display: grid; gap: 1px; }
+.fbCard h3 { display: flex; align-items: center; gap: var(--tf-space-1-5); margin: 0; font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); }
+.fbCard h3::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 999px; background: var(--fb); }
+.fbCard header span { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+.fbValue { display: flex; align-items: baseline; gap: var(--tf-space-1-5); margin: 0; }
+.fbValue strong { font-family: var(--tf-font-display); font-size: var(--tf-text-2xl); font-weight: var(--tf-weight-semibold); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.fbValue small { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+.fbMeter { display: block; height: 4px; overflow: hidden; border-radius: 999px; background: var(--tf-color-surface-overlay); }
+.fbMeter > span { display: block; height: 100%; border-radius: inherit; background: var(--fb); transform-origin: left; transition: transform var(--tf-duration-base) var(--tf-ease-out); }
+.fbCard .perfChart { color: var(--fb); }
+.fbCard .perfChart circle { r: 2.5px; stroke-width: 1.5; }
+.fbFacts { display: flex; gap: var(--tf-space-4); margin: 0; padding-top: var(--tf-space-2); border-top: 1px solid var(--tf-color-border-subtle); font-size: var(--tf-text-xs); font-variant-numeric: tabular-nums; }
+.fbFacts div { display: grid; gap: 1px; }
+.fbFacts dt { color: var(--tf-color-text-tertiary); }
+.fbFacts dd { margin: 0; color: var(--tf-color-text); font-weight: var(--tf-weight-medium); }
+.fbEmpty { margin: 0; color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); }
+
+/* Exercise progress: the exercise and the measure picked in the panel header. */
+.chartPick { display: flex; align-items: center; gap: var(--tf-space-2); }
+@media (max-width: 40rem) { .chartPick { flex-wrap: wrap; } }
+.chartExercise { flex: 0 1 15rem; min-width: 9rem; width: 15rem; }
+.chartMeasure { flex: none; width: 11.5rem; }
+
+/* Exercises on the progress chart: one chip each with its line colour, name, latest value, change and remove. */
+.exChips { display: flex; flex-wrap: wrap; gap: var(--tf-space-2); margin: 0 0 var(--tf-space-2); padding: 0; list-style: none; }
+.exChips li { display: inline-flex; align-items: center; gap: var(--tf-space-2); min-width: 0; max-width: 100%; padding: var(--tf-space-1) var(--tf-space-1) var(--tf-space-1) var(--tf-space-2-5); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-full); background: color-mix(in srgb, var(--ex) 8%, var(--tf-color-surface)); font-size: var(--tf-text-xs); }
+.exChips li:not(:has(button)) { padding-right: var(--tf-space-2-5); }
+.exChips i, .exCell i { flex: none; width: 0.5rem; height: 0.5rem; border-radius: 999px; background: var(--ex); }
+.exName { overflow: hidden; color: var(--tf-color-text); font-weight: var(--tf-weight-medium); text-overflow: ellipsis; white-space: nowrap; }
+.exChips b { font-weight: var(--tf-weight-semibold); font-variant-numeric: tabular-nums; }
+.exChips small { color: var(--tf-color-text-tertiary); font-variant-numeric: tabular-nums; }
+.exChips small[data-tone="up"] { color: var(--tf-color-accent); }
+.exChips small[data-tone="down"] { color: var(--tf-color-warning); }
+.exChips button { display: grid; place-items: center; width: 1.25rem; height: 1.25rem; padding: 0; border: 0; border-radius: 999px; background: none; color: var(--tf-color-text-tertiary); cursor: pointer; transition: background-color 120ms ease, color 120ms ease; }
+.exChips button:hover { background: var(--tf-color-surface-hover); color: var(--tf-color-text); }
+.exChips button:focus-visible { outline: 2px solid var(--tf-color-focus-ring); }
+.exChips button svg { width: 0.75rem; height: 0.75rem; }
+.exCell { display: inline-flex; align-items: center; gap: var(--tf-space-1-5); }

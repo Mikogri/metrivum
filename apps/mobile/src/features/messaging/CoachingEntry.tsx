@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router } from "expo-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { BottomSheet, Button, ErrorState, Field, ListItem, LoadingState, Section, Text } from "@trainflow/ui-mobile";
+import type { Schema } from "@metrivum/api-client-web";
+import { BottomSheet, Button, ErrorState, Field, ListItem, LoadingState, Section, Text } from "@metrivum/ui-mobile";
 import { useApiMutation, useApiQuery } from "../../infrastructure/networking/queries";
 
 export function CoachingEntry({ entry, mine }: { entry: NonNullable<Schema<"MessageDto">["coachingEntry"]>; mine: boolean }) {

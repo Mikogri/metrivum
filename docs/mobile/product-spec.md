@@ -316,7 +316,7 @@ Free i Pro zachowują obecne wspólne możliwości analizy. Różnica wynikając
 
 Ten fragment jest osobnym ryzykiem technicznym. Samo istnienie ONNX Runtime/Expo nie dowodzi, że obecny model zadziała na trzech platformach.
 
-Sprawdź rzeczywiste źródła silnika MotionTrace/TrainFlow, formaty wag, preprocessing, kolejność klatek, wejścia/wyjścia, operator support, pamięć oraz licencję kodu i wag.
+Sprawdź rzeczywiste źródła silnika MotionTrace/Metrivum, formaty wag, preprocessing, kolejność klatek, wejścia/wyjścia, operator support, pamięć oraz licencję kodu i wag.
 
 Wcześniejsze ustalenie: użytkownik wskazuje talerz/koniec sztangi, a pretrained tracker śledzi punkt. Istniejąca detekcja ciała/stawów może być osobnym etapem. Rozważano TAPNext++/TAPIR; nie zakładaj, że konkretny z nich jest już zaimplementowany albo ma gotowy eksport mobilny/webowy.
 

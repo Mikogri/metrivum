@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><ProjectReference Include="../../Forms/Metrivum.Forms.Contracts/Metrivum.Forms.Contracts.csproj" /></ItemGroup>
+</Project>

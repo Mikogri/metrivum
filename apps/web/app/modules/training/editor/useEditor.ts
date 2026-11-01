@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { PlanDto, TrainingDocument } from "@trainflow/api-client-web";
+import type { PlanDto, TrainingDocument } from "@metrivum/api-client-web";
 import { ApiError, NetworkError, isAbortError } from "~/shared/http/errors";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { saveDraft } from "../api";

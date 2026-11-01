@@ -9,7 +9,7 @@ import {
   DropdownMenuSection,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@trainflow/ui-web";
+} from "@metrivum/ui-web";
 import { useProfile, useProfileCompleteness } from "~/modules/accounts";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";

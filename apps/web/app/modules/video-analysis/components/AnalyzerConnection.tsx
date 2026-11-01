@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { CircleAlert, Download, CirclePower, RefreshCcw, SquareTerminal } from 'lucide-react';
-import { Button, Card, Disclosure, IconButton, LinkButton, TextField } from '@trainflow/ui-web';
+import { Button, Card, Disclosure, IconButton, LinkButton, TextField } from '@metrivum/ui-web';
 import { useAccountContext } from '~/shared/session/AccountScope';
 import { checkLocalAnalyzer, launchLocalAnalyzer, pairLocalAnalyzer, showAnalyzerWindow, storePairing, waitForLocalAnalyzer, type CompanionState } from '../local-analysis';
 import { ANALYZER_CHANGED } from '../analyzer-jobs';
 import styles from './AnalyzerConnection.module.css';
 
-const DOWNLOAD = '/downloads/analyzer/TrainFlowAnalyzerSetup.exe';
+const DOWNLOAD = '/downloads/analyzer/MetrivumAnalyzerSetup.exe';
 const RELEASE = '/downloads/analyzer/release.json';
 
 

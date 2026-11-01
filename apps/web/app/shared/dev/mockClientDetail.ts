@@ -22,6 +22,7 @@ const occurrences = Array.from({ length: 18 }, (_, i) => {
     programName: "Strength block A", name: workouts[i % workouts.length]!, scheduledDate: date(i * 2 - 4), deadline: date(i * 2 - 6),
     performedDate: done ? date(i * 2 - 4) : null, durationSeconds: done ? 2700 + i * 120 : null, exerciseCount: done ? 5 + (i % 3) : null,
     hasComment: i % 4 === 0, loggedLate: i === 5, status, executionId: done ? `ex-${i}` : null, allowedActions: [],
+    plannedSets: done ? 12 : null, performedSets: done ? [12, 11, 7, 12, 4][i % 5] : null, completedAt: done ? iso(i * 2 - 4, 8) : null, sessionRpe: done ? 7 + (i % 3) : null, rating: done ? 3 + (i % 3) : null,
   };
 });
 
@@ -81,12 +82,26 @@ export function mockClientDetail(path: string, method: string, q: URLSearchParam
       from: q.get("from"), to: q.get("to"), planned: 14, due: 12, completed: 9, skipped: 1, missed: 2, inProgress: 1, completionPercentage: 75, loggedLate: 1, activeAssignments: 1,
       actualSets: 164, actualReps: 1240, volumeKg: 58400, programs: [{ programId: PROGRAM, programName: "Strength block A", completed: 9 }], clients: [],
       performance: [...lift("e1", "Back squat", 110, 2.5), ...lift("e2", "Bench press", 80, 1.25)], metricDefinition: "",
+      feedback: [8, 7, 6, 5, 4, 3, 2, 1, 0].map((d, k) => ({ occurrenceId: `occ-f${k}`, date: date(d * 3), rating: [4, 3, 4, 5, 4, 4, 5, 4, 5][k]!, sessionRpe: [7, 8, 7.5, 8, 8.5, 7, 8, 9, 8][k]!, wellbeing: [3, 3, 4, 4, 3, 4, 4, 5, 4][k]!, sleepQuality: [2, 3, 3, 4, 3, 3, 4, 4, 4][k]! })),
       totalTrainingSeconds: 9 * 2900, averageSessionSeconds: 2900, sessionsPerWeek: 2.3,
       weeks: [0, 1, 2, 3].map((w) => ({ weekStart: date(w * 7 + 6), scheduled: 4, completed: 4 - (w % 3), completionPercentage: Math.round(((4 - (w % 3)) / 4) * 100) })),
     });
   }
   if (path === "/api/v1/check-ins/requests") return ok(page(checkIns.filter((c) => !q.get("status") || c.status === q.get("status")), q));
   let m: RegExpMatchArray | null;
+  // The coaching relationship of the mock workouts, with the client's name.
+  if (path === "/api/v1/coaching/relationships/r") return ok({ id: "r", status: "Active", client: { id: "c1", displayName: "Kazik Kowalski", username: "kazik_kowal" }, version: 1 });
+  // Catalog details (muscles) for the mock workout's exercises.
+  if ((m = path.match(/^\/api\/v1\/exercises\/(x\d+)$/))) {
+    const muscles: Record<string, [string, string[], string[]]> = {
+      x1: ["Back squat", ["quadriceps", "gluteus-maximus"], ["hamstrings"]], x2: ["Romanian deadlift", ["hamstrings", "gluteus-maximus"], []],
+      x3: ["Walking lunge", ["quadriceps", "gluteus-maximus"], ["hamstrings"]], x4: ["Plank", ["rectus-abdominis"], []],
+      x9: ["Hip thrust", ["gluteus-maximus"], ["hamstrings"]], x10: ["Calf raise", ["gastrocnemius"], []],
+    };
+    const [name, primary, secondary] = muscles[m[1]!] ?? ["Exercise", [], []];
+    return ok({ id: m[1], name, description: "", instructions: "", demonstrationUrl: null, version: 1, isArchived: false, isFavorite: false, isOwn: false, createdAt: iso(90), updatedAt: iso(90),
+      tags: [], primaryMuscleKeys: primary, secondaryMuscleKeys: secondary, movementPatternKeys: [] });
+  }
   // Planned against actual for one logged workout.
   if (/^\/api\/v1\/training\/executions\/[^/]+\/comparison$/.test(path)) {
     const r = (minimum: number, maximum = minimum) => ({ minimum, maximum });
@@ -140,10 +155,11 @@ export function mockClientDetail(path: string, method: string, q: URLSearchParam
     const execution = done ? {
       id: live.executionId, version: 3, status: "Completed", performedDate: live.performedDate, startedAt: iso(2, 7), completedAt: iso(2, 8), comment: "Felt strong, last squat set was a grind.",
       durationSeconds: live.durationSeconds, allowedActions: ["correct"], feedback: { rating: 4, sessionRpe: 8, wellbeing: 4, sleepQuality: 3, note: "Good session" },
-      exercises: plan.map((e) => ({ prescribedInstanceId: e.id, exerciseId: e.exerciseId, name: names[e.exerciseId], comment: "", sets: e.sets.map((s, k) => ({
+      exercises: [...plan.filter((e) => e.id !== "i4").map((e) => ({ prescribedInstanceId: e.id, exerciseId: e.id === "i2" ? "x9" : e.exerciseId, name: e.id === "i2" ? "Hip thrust" : names[e.exerciseId], comment: "", sets: e.sets.map((s, k) => ({
         id: `a-${s.id}`, prescribedSetId: s.id, prescribedSegmentId: null, skipped: false, reps: s.prescription.reps?.maximum ?? null, load: s.prescription.load?.minimum.value ?? null,
         loadUnit: "kg", loadMeaning: "TotalExternal", rpe: k === e.sets.length - 1 ? 9 : 8, rir: null, durationSeconds: s.prescription.workTime?.value ?? null, distanceMeters: null, restSeconds: null, tempo: null, comment: "",
-      })) })),
+      })).map((set) => (set.prescribedSetId === "s10" ? { ...set, skipped: true, reps: null, rpe: null } : set)) })),
+      { prescribedInstanceId: null, exerciseId: "x10", name: "Calf raise", comment: "", sets: [1, 2].map((n) => ({ id: `extra-${n}`, prescribedSetId: null, prescribedSegmentId: null, skipped: false, reps: 15, load: 40, loadUnit: "kg", loadMeaning: "TotalExternal", rpe: 7, rir: null, durationSeconds: null, distanceMeters: null, restSeconds: null, tempo: null, comment: "" })) }],
     } : live.status === "Skipped" ? { id: live.executionId ?? "skip", version: 1, status: "Skipped", performedDate: live.scheduledDate, startedAt: iso(3), completedAt: null, comment: "Travelling for work", durationSeconds: null, allowedActions: [], exercises: [] } : null;
     return ok({
       occurrence: live,
@@ -159,11 +175,16 @@ export function mockClientDetail(path: string, method: string, q: URLSearchParam
   if ((m = path.match(/^\/api\/v1\/check-ins\/(?:relationships\/([^/]+)\/)?requests\/([^/]+)$/))) {
     const found = checkIns.find((c) => c.id === m![2]) ?? checkIns[0]!;
     const request = { ...found, relationshipId: m[1] ?? found.relationshipId };
-    const questions = [["energy", "How was your energy this week?"], ["sleep", "How did you sleep?"]].map(([key, label], order) => ({ key, label, type: "ShortText", required: order === 0, order, helpText: null }));
+    const questions = [
+      ...[["energy", "How was your energy this week?"], ["sleep", "How did you sleep?"]].map(([key, label], order) => ({ key, label, type: "ShortText", required: order === 0, order, helpText: null })),
+      { key: "rpe", label: "How hard was training overall?", type: "Scale", required: true, order: 2, helpText: null, min: 1, max: 10, minLabel: "Very easy", maxLabel: "Maximal" },
+      { key: "pain", label: "Any pain or niggles?", type: "SingleChoice", required: false, order: 3, helpText: "Pick the closest one.", choices: [{ key: "none", label: "None" }, { key: "mild", label: "Mild, did not affect training" }, { key: "limiting", label: "Limited my training" }] },
+      { key: "notes", label: "Anything else for your coach?", type: "LongText", required: false, order: 4, helpText: null },
+    ];
     return ok({
       request,
       form: { coachId: "00000000-0000-4000-8000-000000000000", definition: { sections: [{ key: "week", title: "This week", order: 0, questions }] } },
-      submission: request.submittedAt ? { answers: { energy: "Good, a bit tired on Friday.", sleep: "7 hours on average." } } : null,
+      submission: request.submittedAt ? { answers: { energy: "Good, a bit tired on Friday.", sleep: "7 hours on average.", rpe: 7, pain: "mild" } } : null,
       coachPrivateNotes: null,
     });
   }
@@ -171,8 +192,12 @@ export function mockClientDetail(path: string, method: string, q: URLSearchParam
   if ((m = path.match(/^\/api\/v1\/coaching\/relationships\/([^/]+)\/(.+)$/))) {
     const rest = m[2]!;
     if (rest === "services") return ok(page([{ ...service, relationshipId: m[1] }], q));
-    if (rest === "billing")
-      return ok({ dues: { items: [], page: 1, pageSize: 1, total: 0 }, orders: [], attempts: [], payments: [], transactions: [], summary: { lastSettlement: { grossAmount: 450, currency: "PLN", settledAt: iso(10), mode: "Platform" }, overdueByCurrency: [], nextDue: { amount: 450, currency: "PLN", dueAt: iso(-20) } } });
+    if (rest === "billing") {
+      const due = (i: number, status: string, days: number, extra: Record<string, unknown> = {}) => ({ id: `99999999-1000-4000-8000-00000000000${i}`, orderId: "o-1", serviceId: "svc-1", relationshipId: m![1], coachId: "c", clientId: "k", sequence: i, periodStart: iso(days), periodEnd: null, dueAt: iso(days), status, amount: 450, currency: "PLN", settlementMode: "Platform", settlementSource: status === "Paid" ? "Card" : null, settledAt: status === "Paid" ? iso(days) : null, overdue: false, ...extra });
+      const dues = [due(4, "AwaitingPayment", -20), due(3, "AwaitingPayment", 3, { overdue: true }), due(2, "Paid", 33), due(1, "Paid", 63)].filter(d => !q.get("status") || d.status === q.get("status"));
+      const pay = (i: number, days: number) => ({ id: `99999999-2000-4000-8000-00000000000${i}`, settledAt: iso(days), grossAmount: 450, feeAmount: 45, coachNetAmount: 405, currency: "PLN", mode: "Platform", source: "Card" });
+      return ok({ dues: page(dues, q), orders: [{ id: "o-1", name: "12-week online coaching" }], attempts: [{ id: "a-1", createdAt: iso(4), status: "Failed", failureCode: "card_declined" }], payments: [pay(2, 33), pay(1, 63)], transactions: [], summary: { lastSettlement: { grossAmount: 450, currency: "PLN", settledAt: iso(33), mode: "Platform" }, overdueByCurrency: [{ count: 1, amount: 450, currency: "PLN" }], nextDue: { amount: 450, currency: "PLN", dueAt: iso(-20) } } });
+    }
     if (rest === "profile")
       return ok({ currentAllowedProfile: { Sex: "Male", Height: 178, Weight: 81, BodyFat: 17, HrMax: 186, TrainingExperience: "4 years of strength training", ActivityLevel: "Moderately active", AvailableEquipment: ["Barbell", "Dumbbells", "Pull-up bar"], PreferredTrainingDays: [1, 3, 5, 6], SessionsPerWeek: 4, AvailableSessionDuration: 70, Sleep: 7, Stress: 5, InjuriesLimitationsPainNotes: "Old left knee meniscus repair", AdditionalNotes: "Half marathon under 1:45 in spring." } });
     if (rest === "applications")

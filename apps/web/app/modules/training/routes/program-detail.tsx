@@ -18,7 +18,7 @@ import {
   toast,
   Segment,
   SegmentedControl,
-} from "@trainflow/ui-web";
+} from "@metrivum/ui-web";
 import { LockedReason, RequireFeature, useFeatures } from "~/shared/access";
 import { formatDateTime, formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

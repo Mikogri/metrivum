@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Skeleton } from "@trainflow/ui-web";
+import { Skeleton } from "@metrivum/ui-web";
 import styles from "./Panel.module.css";
 
 /**

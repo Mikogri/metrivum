@@ -45,7 +45,7 @@
 .stage {
   position: relative;
   transform-origin: 0 0;
-  transition: transform 140ms var(--tf-ease-out);
+  transition: transform 200ms var(--tf-ease-out);
 }
 
 .frame[data-zoomed] .stage {

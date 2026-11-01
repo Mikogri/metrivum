@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { X } from "lucide-react";
-import { IconButton, LoadingState } from "@trainflow/ui-web";
+import { IconButton, LoadingState } from "@metrivum/ui-web";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { mappingIndex, type Category } from "./model";
 import { anatomyMessages } from "./messages";
@@ -64,12 +64,17 @@ export function MuscleHeatmap({ values, label, format, caption }: HeatmapProps) 
         <IconButton size="sm" label={m.clear} icon={<X />} onPress={() => setPicked(null)} showTooltip={false} />
       </div> : null}
     </div>
-    <div className={styles.heatScale}>
-      <span className={styles.heatNone}><span aria-hidden="true" />{m.heatNone}</span>
-      <span className={styles.heatBar} aria-hidden="true" />
-      <span className={styles.heatEnds}><span>{format(0)}</span><span>{format(max)}</span></span>
-    </div>
-    <p className={styles.notice}>{caption} · {m.heatHint}</p>
-    {missing.length ? <p className={styles.notice}>{m.heatMissing(missing.map(label).join(", "))}</p> : null}
+    {/* Under the model: the colour scale with its two ends, what the amount is, and how to read a muscle. */}
+    <footer className={styles.heatFooter}>
+      <div className={styles.heatScale}>
+        <span className={styles.heatNone}><span aria-hidden="true" />{m.heatNone}</span>
+        <span className={styles.heatEnd}>{format(0)}</span>
+        <span className={styles.heatBar} aria-hidden="true" />
+        <span className={styles.heatEnd}>{format(max)}</span>
+      </div>
+      <p className={styles.heatCaption}>{caption}</p>
+      <p className={styles.heatHint}>{m.heatHint.charAt(0).toUpperCase() + m.heatHint.slice(1)}.</p>
+      {missing.length ? <p className={styles.heatHint}>{m.heatMissing(missing.map(label).join(", "))}</p> : null}
+    </footer>
   </div>;
 }

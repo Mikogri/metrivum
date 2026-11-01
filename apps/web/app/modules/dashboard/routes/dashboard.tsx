@@ -1,7 +1,7 @@
 import { Activity, ArrowRight, Dumbbell, FilePlus2, FileText, Layers, LayoutTemplate, Sigma, Upload, Video } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link as RouterLink, useSearchParams } from "react-router";
-import { Card, EmptyState, LoadingState, PageHeader, Skeleton, Tab, TabList, TabPanel, Tabs } from "@trainflow/ui-web";
+import { Card, EmptyState, LoadingState, PageHeader, Skeleton, Tab, TabList, TabPanel, Tabs } from "@metrivum/ui-web";
 import { useProfile } from "~/modules/accounts";
 import { useExerciseList } from "~/modules/exercises";
 import { usePlanList } from "~/modules/training";

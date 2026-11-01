@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -57,11 +57,11 @@ it("paginates Team clients on the server, reuses cached pages and does not fetch
   expect(screen.queryByText("Client 26")).not.toBeInTheDocument();
   const requests = () => urls.filter(url => url.pathname === "/api/v1/teams/team-1/clients");
   expect(requests()[0]!.searchParams.get("pageSize")).toBe("25");
-  await userEvent.click(screen.getByRole("button", { name: "Next Team clients" }));
+  await userEvent.click(within(screen.getByRole("navigation", { name: "Team clients pages" })).getByRole("button", { name: "Next" }));
   await screen.findByText("Client 26");
   expect(requests()[1]!.searchParams.get("page")).toBe("2");
-  expect(screen.getByRole("button", { name: "Next Team clients" })).toBeDisabled();
-  await userEvent.click(screen.getByRole("button", { name: "Previous Team clients" }));
+  expect(within(screen.getByRole("navigation", { name: "Team clients pages" })).getByRole("button", { name: "Next" })).toBeDisabled();
+  await userEvent.click(within(screen.getByRole("navigation", { name: "Team clients pages" })).getByRole("button", { name: "Previous" }));
   await screen.findByText("Client 1");
   expect(requests()).toHaveLength(2);
   expect(paths.some(path => path.includes("billing"))).toBe(false);
@@ -88,7 +88,7 @@ it("paginates member rows without downloading the entire roster", async () => {
   await screen.findByText("Coach One");
   expect(screen.queryByText("Coach 26")).not.toBeInTheDocument();
   expect(urls.find(url => url.pathname.endsWith("/members"))?.searchParams.get("pageSize")).toBe("25");
-  await userEvent.click(screen.getByRole("button", { name: "Next Team members" }));
+  await userEvent.click(within(screen.getByRole("navigation", { name: "Team members pages" })).getByRole("button", { name: "Next" }));
   await screen.findByText("Coach 26");
-  expect(screen.getByRole("button", { name: "Next Team members" })).toBeDisabled();
+  expect(within(screen.getByRole("navigation", { name: "Team members pages" })).getByRole("button", { name: "Next" })).toBeDisabled();
 });

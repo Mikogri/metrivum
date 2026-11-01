@@ -5,7 +5,7 @@ import { randomUUID } from "expo-crypto";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import * as Sharing from "expo-sharing";
 import { useIsFocused } from "expo-router/react-navigation";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     Button,
     ErrorState,
@@ -13,7 +13,7 @@ import {
     LoadingState,
     ProgressBar,
     Text,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import { validateImageBounds } from "./model";
 

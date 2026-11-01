@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { act, render, screen } from "@testing-library/react";
-import { Toaster, toast } from "@trainflow/ui-web";
+import { Toaster, toast } from "@metrivum/ui-web";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { afterEach, expect, it, vi } from "vitest";

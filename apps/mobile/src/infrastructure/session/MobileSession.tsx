@@ -25,11 +25,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
 import * as Linking from "expo-linking";
-import type { ProfileResponse } from "@trainflow/api-client-web";
+import type { ProfileResponse } from "@metrivum/api-client-web";
 import {
     createTransport,
     type Transport,
-} from "@trainflow/api-client-web/transport";
+} from "@metrivum/api-client-web/transport";
 import {
     BlockingOverlay,
     Screen,
@@ -38,7 +38,7 @@ import {
     Button,
     ErrorState,
     LoadingState,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { createChunkStorage } from "./chunk-storage";
 import { openDraftStore, type DraftStore } from "../persistence/DraftStore";
 import { revokePush } from "../networking/push";

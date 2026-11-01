@@ -1,4 +1,4 @@
-import type { Block, ExerciseMaxesTable, TrainingDocument } from "@trainflow/api-client-web";
+import type { Block, ExerciseMaxesTable, TrainingDocument } from "@metrivum/api-client-web";
 
 export type MaxesTable = ExerciseMaxesTable;
 /** Legacy block-owned tables remain readable until the first table edit. */

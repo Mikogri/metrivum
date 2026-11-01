@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View } from "react-native";
-import type { AnalysisDto, AnalysisResult } from "@trainflow/api-client-web";
+import type { AnalysisDto, AnalysisResult } from "@metrivum/api-client-web";
 import {
     BottomSheet,
     EmptyState,
@@ -12,7 +12,7 @@ import {
     Section,
     Stat,
     Text,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import { useApiQuery } from "../../infrastructure/networking/queries";
 import { StatusBadge } from "../shared/format";
 import { Pagination } from "../training/components";

@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Palette, Sparkles, UserRound, X } from "lucide-react";
 import { useEffect, useId, useState, type KeyboardEvent, type ReactNode } from "react";
-import type { ProfileResponse, Schema } from "@trainflow/api-client-web";
-import { Button, Card, NumberInput, TextArea, TextField } from "@trainflow/ui-web";
+import type { ProfileResponse, Schema } from "@metrivum/api-client-web";
+import { Button, Card, NumberInput, TextArea, TextField } from "@metrivum/ui-web";
 import { displayNameValid, normalizeDisplayName, profileKey, updateProfile } from "~/modules/accounts";
 import { Failure, Loading, SpecializationPicker, specializationsKey, type SpecializationDraft } from "~/modules/coaching";
 import { useT } from "~/shared/i18n/AppLocale";

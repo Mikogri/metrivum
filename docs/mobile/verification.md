@@ -21,8 +21,8 @@ All commands run from repository root unless stated otherwise. `node.exe` denote
 | Web tests for `shared/http`, `modules/video-analysis`, `modules/messaging` | 93 tests / 20 files passed, including 20 shared transport tests and no-new-server-analysis admission. |
 | `npm run build` | Passed: client/server compilation, all public EN/PL pages, sitemap resource and SPA fallback. Earlier concurrent builds timed out during preview; the final unchanged-source run passed after reducing competing native workload. Logs preserve both failures and success; this is not evidence of a source fix. |
 | `node.exe --test apps/web/scripts/hosting-rules.test.mjs` | 2 passed, including malformed request handling. |
-| `dotnet test tests/Unit/TrainFlow.UnitTests --artifacts-path .local/mobile-backend-build` | 217 passed. |
-| `dotnet test tests/Architecture/TrainFlow.ArchitectureTests --artifacts-path .local/mobile-backend-build` | 2 passed. |
+| `dotnet test tests/Unit/Metrivum.UnitTests --artifacts-path .local/mobile-backend-build` | 217 passed. |
+| `dotnet test tests/Architecture/Metrivum.ArchitectureTests --artifacts-path .local/mobile-backend-build` | 2 passed. |
 | PostgreSQL integration filter `MobileBackendTests|MobileWorkoutAnalysisTests` | 4 passed against local test DB. |
 | Media/notification/training integration regression filter | 31 passed. |
 | `NotificationAccountRevocationTests` | 1 passed. |
@@ -30,7 +30,7 @@ All commands run from repository root unless stated otherwise. `node.exe` denote
 | `expo export --platform android --platform ios --max-workers 1` from `apps/mobile` | Both Hermes bundles built. This is not an iOS native build. |
 | `expo install --check` | Dependencies up to date for SDK 57. |
 | `expo-doctor` | 20/21: reports web React 19.3 and mobile React 19.2.3 in the monorepo. Metro explicitly resolves the mobile runtime to its own React; bundles pass. Do not silently downgrade the existing web or claim a clean doctor run. |
-| `apps/mobile/modules/trainflow-voice/test-wav.ps1` | Java WAV header tests passed; module autolinking found the local Android class. |
+| `apps/mobile/modules/metrivum-voice/test-wav.ps1` | Java WAV header tests passed; module autolinking found the local Android class. |
 | Android `:app:assembleDebug` | Passed, `BUILD SUCCESSFUL in 2m 59s`, 520 tasks (33 executed / 487 up to date), exit 0 after resolving Windows object-path limits. Includes custom voice Kotlin/Java and native C++/SQLCipher. Earlier pressure-driven interruption is preserved in its separate log. |
 | Build-script CMake job pools | Subsequent screens configure passed (1m 5s, exit 0); generated Ninja files use `trainflow_native` with depth 2. The Gradle init script applies to Android app/library projects after prebuild. This avoids relying on a Gradle worker limit to constrain native compilers. |
 | Real TAPNext++ integrity probe/tamper tests | Source/checkpoint manifest validated; exporter preflight blocked before inference. See [actual commands](local-ml.md). |

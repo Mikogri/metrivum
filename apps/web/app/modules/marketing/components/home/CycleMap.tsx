@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Segment, SegmentedControl } from "@trainflow/ui-web";
+import { Segment, SegmentedControl } from "@metrivum/ui-web";
 import { useInView } from "../../lib/useInView";
 import { usePublicMessages } from "../../messages";
 import styles from "./CycleMap.module.css";

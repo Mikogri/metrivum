@@ -1,4 +1,4 @@
-import type { Cycle, ExerciseInstance, FormulaUse, Prescription, TrainingDay, TrainingDocument, TrainingSet, Workout } from "@trainflow/api-client-web";
+import type { Cycle, ExerciseInstance, FormulaUse, Prescription, TrainingDay, TrainingDocument, TrainingSet, Workout } from "@metrivum/api-client-web";
 import type { Locale } from "~/shared/i18n/locale";
 import { copyPrescription, findExercise, locate, newSet, updateNode } from "./document";
 import { formatLoad, formatReps, parseLoad, parseReps } from "./notation";

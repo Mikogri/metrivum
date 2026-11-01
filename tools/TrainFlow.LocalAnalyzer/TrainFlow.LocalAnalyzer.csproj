@@ -1,4 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup><Version>1.7.0</Version><AssemblyTitle>Metrivum Analyzer</AssemblyTitle></PropertyGroup>
-  <ItemGroup><ProjectReference Include="../TrainFlow.MotionTraceBridge/TrainFlow.MotionTraceBridge.csproj" /></ItemGroup>
-</Project>

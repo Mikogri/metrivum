@@ -1,7 +1,7 @@
 import { NativeDateField } from "./NativeDateField";
 import { useState } from "react";
 import { View } from "react-native";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     Text,
     Section,
@@ -12,8 +12,8 @@ import {
     SearchField,
     Stat,
     ChipGroup,
-} from "@trainflow/ui-mobile";
-import { Chart } from "@trainflow/ui-mobile/chart";
+} from "@metrivum/ui-mobile";
+import { Chart } from "@metrivum/ui-mobile/chart";
 import { useApiQuery } from "../../infrastructure/networking/queries";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import { Filters } from "../shared/Filters";

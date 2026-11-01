@@ -1,4 +1,4 @@
-import type { Prescription, Quantity, QuantityRange, Unit } from "@trainflow/api-client-web";
+import type { Prescription, Quantity, QuantityRange, Unit } from "@metrivum/api-client-web";
 import { formatNumber, parseLocaleNumber } from "~/shared/i18n/format";
 import type { Locale } from "~/shared/i18n/locale";
 

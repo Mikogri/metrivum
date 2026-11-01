@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { TrainingDocument } from "@trainflow/api-client-web";
-import { Alert, Button, Dialog, FileCard, Option, Radio, RadioGroup, Select, Spinner, toast, DialogFooter } from "@trainflow/ui-web";
+import type { TrainingDocument } from "@metrivum/api-client-web";
+import { Alert, Button, Dialog, FileCard, Option, Radio, RadioGroup, Select, Spinner, toast, DialogFooter } from "@metrivum/ui-web";
 import { useFeatures } from "~/shared/access";
 import { formatBytes, formatDateTime } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

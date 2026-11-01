@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TrainingDocument, TrainingSet } from "@trainflow/api-client-web";
+import type { TrainingDocument, TrainingSet } from "@metrivum/api-client-web";
 import { documentIssues } from "./issues";
 
 const labels = { day: (n: number) => `Day ${n}`, set: (n: number) => `Set ${n}`, exercise: () => "Squat", untitled: "Untitled" };

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { UserSearch, Users } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, Combobox, Dialog, DialogFooter, Hint, NumberInput, Option, SearchInput, TextField, toast } from "@trainflow/ui-web";
+import { Alert, Button, Combobox, Dialog, DialogFooter, Hint, NumberInput, Option, SearchInput, TextField, toast } from "@metrivum/ui-web";
 import { Failure, ListPagination, useCoachingQuery, type Page, type Relationship } from "~/modules/coaching";
 import { ExercisePicker, useExerciseNames } from "~/modules/exercises";
 import { useDebounced } from "~/shared/lib/useDebounced";

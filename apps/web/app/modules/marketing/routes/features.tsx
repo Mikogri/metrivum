@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import { LinkButton } from "@trainflow/ui-web";
+import { LinkButton } from "@metrivum/ui-web";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { localeFromPathname } from "~/shared/i18n/locale";
 import { publicPath } from "~/shared/i18n/public-routes";

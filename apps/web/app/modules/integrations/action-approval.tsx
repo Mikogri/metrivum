@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, Card, PageHeader, Skeleton } from "@trainflow/ui-web";
+import { Alert, Button, Card, PageHeader, Skeleton } from "@metrivum/ui-web";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { privateMeta } from "~/shared/i18n/site";
 import { useIntegrationMutation, useIntegrationQuery, type Action } from "./api";

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Prescription, Quantity } from "@trainflow/api-client-web";
+import type { Prescription, Quantity } from "@metrivum/api-client-web";
 import { formatReps } from "../model/notation";
 import { InlineDurationCell } from "./InlineDurationCell";
 import { InlineLoadCell } from "./InlineLoadCell";

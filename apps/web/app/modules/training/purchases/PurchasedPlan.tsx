@@ -4,8 +4,8 @@ export const meta = ({ location }: { location: { pathname: string } }) =>
   privateMeta(`${location.pathname.endsWith("/edit") ? "Edit training plan" : "Training plan"} — Metrivum`);
 
 import { useLocation, useParams } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { LinkButton, PageHeader } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { LinkButton, PageHeader } from "@metrivum/ui-web";
 import { useCoachingQuery, Failure, Loading } from "~/modules/coaching";
 import { usePlan } from "../queries";
 import { EditorWorkspace } from "../editor/EditorWorkspace";

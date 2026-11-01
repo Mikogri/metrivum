@@ -4,8 +4,8 @@ export const meta = () => privateMeta("Today — Metrivum");
 
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
-import type { Schema } from "@trainflow/api-client-web";
-import { Badge, LinkButton, PageHeader } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Badge, LinkButton, PageHeader } from "@metrivum/ui-web";
 import { Failure, Loading, StatusBadge, useCoachingQuery, type Page } from "~/modules/coaching";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import styles from "./mobile-home.module.css";

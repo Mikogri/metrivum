@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { TrainingDocument } from "@trainflow/api-client-web";
-import { Alert, Button, Dialog, NumberInput, Option, Segment, SegmentedControl, Select, toast } from "@trainflow/ui-web";
+import type { TrainingDocument } from "@metrivum/api-client-web";
+import { Alert, Button, Dialog, NumberInput, Option, Segment, SegmentedControl, Select, toast } from "@metrivum/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useT } from "~/shared/i18n/AppLocale";
 import { applyProgression, blockExerciseIds, type ProgressionRule } from "../model/cells";

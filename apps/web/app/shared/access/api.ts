@@ -1,4 +1,4 @@
-import type { AccessSnapshot } from "@trainflow/api-client-web";
+import type { AccessSnapshot } from "@metrivum/api-client-web";
 import type { Transport } from "~/shared/http/transport";
 
 export async function getAccess(api: Transport, signal?: AbortSignal) {

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" /><PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Metrivum.CheckIns.Contracts/Metrivum.CheckIns.Contracts.csproj" />
+    <ProjectReference Include="../../Training/Metrivum.Training.Contracts/Metrivum.Training.Contracts.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/Metrivum.BuildingBlocks/Metrivum.BuildingBlocks.csproj" />
+    <ProjectReference Include="../../Accounts/Metrivum.Accounts.Contracts/Metrivum.Accounts.Contracts.csproj" />
+    <ProjectReference Include="../../Access/Metrivum.Access.Contracts/Metrivum.Access.Contracts.csproj" />
+    <ProjectReference Include="../../Coaching/Metrivum.Coaching.Contracts/Metrivum.Coaching.Contracts.csproj" />
+    <ProjectReference Include="../../Forms/Metrivum.Forms.Contracts/Metrivum.Forms.Contracts.csproj" />
+  </ItemGroup>
+<ItemGroup><ProjectReference Include="../../Analytics/Metrivum.Analytics.Contracts/Metrivum.Analytics.Contracts.csproj" /></ItemGroup><ItemGroup><ProjectReference Include="../../Notifications/Metrivum.Notifications.Contracts/Metrivum.Notifications.Contracts.csproj" /></ItemGroup>
+</Project>

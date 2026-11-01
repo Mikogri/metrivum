@@ -1,7 +1,8 @@
+import { usePaymentActionId } from "~/shared/session/payment-action";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Badge, Button, DataTable, Option, PageHeader, Select } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Badge, Button, DataTable, Option, PageHeader, Select } from "@metrivum/ui-web";
 import { Failure, Loading, MutationError, money, useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { Facts, Panel, PanelGrid } from "~/shared/ui/Panel";
 import { QuotaContextField, useQuotaContext } from "~/shared/access";
@@ -30,7 +31,7 @@ export default function SubscriptionRoute() {
   const account = useAccountKey();
   const cache = useQueryClient();
   const [method, setMethod] = useState("");
-  const [key, setKey] = useState(() => crypto.randomUUID());
+  const [key, setKey] = usePaymentActionId("platform-payment");
   const [notice, setNotice] = useState<string | null>(null);
   const mutation = useCoachingMutation<Subscription>(() => { void cache.invalidateQueries({ queryKey: [account, "access"] }); void cache.invalidateQueries({ queryKey: [account, "usage"] }); });
   const addMethod = useCoachingMutation<Method>(created => setMethod(created.id));

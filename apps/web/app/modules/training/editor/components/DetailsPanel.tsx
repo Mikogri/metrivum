@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
-import type { ExerciseGroup, FormulaUse, Prescription, SetKind, TrainingSet, Unit, Workout } from "@trainflow/api-client-web";
-import { SET_KINDS } from "@trainflow/api-client-web";
-import { Alert, Button, IconButton, NumberInput, Option, SegmentedControl, Segment, Select, TextArea, TextField } from "@trainflow/ui-web";
+import type { ExerciseGroup, FormulaUse, Prescription, SetKind, TrainingSet, Unit, Workout } from "@metrivum/api-client-web";
+import { SET_KINDS } from "@metrivum/api-client-web";
+import { Alert, Button, IconButton, NumberInput, Option, SegmentedControl, Segment, Select, TextArea, TextField } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { changeSetKind, findSet, groupOf, makeGroup, newSegment, removeGroup, setIsAdvanced, setPrescription, updateGroup, updateNode, updateSegments, SEGMENTED } from "../model/document";
 import { TEMPO_PATTERN } from "../model/notation";

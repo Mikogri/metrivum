@@ -1,11 +1,11 @@
-# @trainflow/ui-web
+# @metrivum/ui-web
 
 Metrivum's web component library: design tokens, base styles and accessible React components built on
 React Aria Components. Used by both the public site and the app. Not published to npm.
 
 ```tsx
-import "@trainflow/ui-web/styles.css"; // once, at the app root: fonts, tokens, reset, utilities
-import { Button, Dialog, TextField, toast, Toaster } from "@trainflow/ui-web";
+import "@metrivum/ui-web/styles.css"; // once, at the app root: fonts, tokens, reset, utilities
+import { Button, Dialog, TextField, toast, Toaster } from "@metrivum/ui-web";
 ```
 
 - React and React DOM are peer dependencies.

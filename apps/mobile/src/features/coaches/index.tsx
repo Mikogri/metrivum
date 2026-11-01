@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
     Avatar,
     Button,
@@ -17,7 +17,7 @@ import {
     useTheme,
     useToast,
     Switch,
-} from "@trainflow/ui-mobile";
+} from "@metrivum/ui-mobile";
 import {
     useApiMutation,
     useApiQuery,

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { AppState, View } from "react-native";
 import { AudioModule } from "expo-audio";
-import { Button, ErrorState, ProgressBar, Text } from "@trainflow/ui-mobile";
+import { Button, ErrorState, ProgressBar, Text } from "@metrivum/ui-mobile";
 import {
     TrainflowVoice,
     type VoiceStatus,
-} from "../../../modules/trainflow-voice";
+} from "../../../modules/metrivum-voice";
 import { useMobile } from "../../infrastructure/session/MobileSession";
 import { AudioPlayback } from "./Attachment";
 import type { RecorderProps } from "./VoiceRecorder";

@@ -1,7 +1,8 @@
+import { usePaymentActionId, usePaymentQuote } from "~/shared/session/payment-action";
 import { useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, DataTable, LinkButton } from "@trainflow/ui-web";
+import { Alert, Button, DataTable, LinkButton } from "@metrivum/ui-web";
 import { Failure, Loading, MutationError, money, useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { useAccountKey } from "~/shared/session/AccountScope";
 import styles from "./routes/subscription.module.css";
@@ -39,13 +40,13 @@ export function TeamCheckout({ plan, onComplete, onCancel }: { plan: CatalogPlan
   const m = useSubscriptionMessages();
   const [name, setName] = useState("");
   const seats = catalogLimit(plan, "organization.coach_seats");
-  const [quote, setQuote] = useState<TeamQuote | null>(null);
-  const [key, setKey] = useState(() => crypto.randomUUID());
+  const [quote, setQuote] = usePaymentQuote<TeamQuote>(`team-checkout:${plan.id}`);
+  const [key, setKey] = usePaymentActionId(`team-checkout:${plan.id}`);
   const [failed, setFailed] = useState(false);
   const quoting = useCoachingMutation<TeamQuote>(value => { setQuote(value); setKey(crypto.randomUUID()); setFailed(false); }, { invalidate: false });
   const payment = useBillingMutation<TeamBillingData>(value => {
     if (value.status === "PaymentFailed") setFailed(true);
-    else onComplete();
+    else { setQuote(null); onComplete(); }
   });
   return <section className={styles.panel} aria-label={m.checkout}><h3>{plan.name} · {m.checkout}</h3>
     <MutationError error={quoting.error ?? payment.error} />
@@ -76,8 +77,8 @@ function BillingEditor({ billing, dissolutionAt }: { billing: TeamBillingData; d
   const workspacePlans = plans.data?.filter(plan => plan.priceScope === "Workspace") ?? [];
   const [planId, setPlanId] = useState(data.pendingPlanId ?? data.planId ?? "");
   const selected = workspacePlans.find(plan => plan.id === planId);
-  const [quote, setQuote] = useState<TeamQuote | null>(null);
-  const [key, setKey] = useState(() => crypto.randomUUID());
+  const [quote, setQuote] = usePaymentQuote<TeamQuote>(`team-payment:${data.teamId}`);
+  const [key, setKey] = usePaymentActionId(`team-payment:${data.teamId}`);
   const [method, setMethod] = useState("");
   const [failed, setFailed] = useState(false);
   const methods = useCoachingQuery<Method[]>("/api/v1/me/payment-methods");

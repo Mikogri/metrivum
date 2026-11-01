@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { Quantity } from "@trainflow/api-client-web";
+import type { Quantity } from "@metrivum/api-client-web";
 
 export interface ClientFormulaContextValue {
   relationshipId?: string;

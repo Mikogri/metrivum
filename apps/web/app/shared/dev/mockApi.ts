@@ -10,8 +10,8 @@ import type {
   ProfileResponse,
   RevisionListItem,
   TrainingDocument,
-} from "@trainflow/api-client-web";
-import { featureDefinitions } from "@trainflow/api-client-web";
+} from "@metrivum/api-client-web";
+import { featureDefinitions } from "@metrivum/api-client-web";
 import { mockClientDetail } from "./mockClientDetail";
 import { mockCoaching } from "./mockCoaching";
 
@@ -388,6 +388,9 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   }
   if ((m = path.match(/^\/api\/v1\/exercises\/([^/]+)$/))) {
     const found = db.exercises.find((e) => e.id === m![1]);
+    // The mock workout's own exercises (x1, x2…) live with the client detail mocks.
+    const fromDetail = !found ? mockClientDetail(path, method, q) : null;
+    if (fromDetail) return json(fromDetail.status, fromDetail.body);
     if (!found) return problem(404, "RESOURCE_NOT_FOUND");
     if (method === "PATCH") {
       Object.assign(found, { description: body.description, instructions: body.instructions, version: found.version + 1, updatedAt: now() });
@@ -567,7 +570,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   if (path === "/api/v1/analyses/compare") return json(200, { left: demoResult(), right: demoResult() });
   if (path.match(/^\/api\/v1\/media\/[^/]+\/read-url$/)) return problem(503, "INTEGRATION_UNAVAILABLE", "Playback is not simulated in developer mock mode.");
 
-  if (path.endsWith("/attachments/mock-image")) return fetch("/brand/trainflow-mark.png");
+  if (path.endsWith("/attachments/mock-image")) return fetch("/brand/metrivum-mark.png");
   if (path.endsWith("/attachments/mock-voice")) return new Response(mockTone(), { status: 200, headers: { "content-type": "audio/wav" } });
 
   const detail = mockClientDetail(path, method, q);

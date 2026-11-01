@@ -212,10 +212,43 @@
   color: var(--tf-color-violet);
 }
 
-/* Workout cards: a summary line when folded, the unsaved warning when not plugged into a cycle. */
-.workoutLoose {
-  padding: var(--tf-space-1) var(--tf-space-2);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+/* Not connected (so not saved): a warning pill in the header, only the icon when the card is minimised. */
+.looseFlag {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  height: 1.25rem;
+  padding: 0 var(--tf-space-1-5);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-warning-soft, color-mix(in srgb, var(--tf-color-warning) 16%, transparent));
+  color: var(--tf-color-warning);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-medium);
+  white-space: nowrap;
+  cursor: help;
+}
+
+.looseFlag[data-compact] {
+  width: 1.25rem;
+  padding: 0;
+  justify-content: center;
+}
+
+/* On a workout the pill takes the day chip's place; on a cycle it sits right before the menu. */
+.card[data-expanded] .cardHead > .looseFlag:not([data-compact]) {
+  grid-column: 2 / 4;
+  justify-self: start;
+  margin-left: var(--tf-space-2);
+}
+
+.card[data-kind="cycle"] .cardHead > .looseFlag {
+  margin-left: auto;
+}
+
+.looseFlag svg {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .card[data-link-target][data-kind="workout"] {
@@ -2014,7 +2047,8 @@ button.tile[data-kind="workout"]:hover {
 
 /* A folded workout is only its header: one cell high, a cycle card wide. */
 .card[data-kind="workout"][data-collapsed] .cardHead {
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: var(--tf-space-1);
   border-bottom: 0;
 }
 

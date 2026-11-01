@@ -15,7 +15,7 @@ Details: [training contracts and metrics](stage-05-training.md), [documentation 
 
 Verification on 2026-10-08:
 
-- `dotnet test TrainFlow.slnx --artifacts-path .local/stage05/full-build -m:2 /nodeReuse:false /p:UseSharedCompilation=false`: 170 unit, 200 integration and 2 architecture tests passed. Two optional local Supabase Auth/Storage tests skipped because that separate test stack is not configured. PostgreSQL integration tests used a disposable loopback database, not Supabase user data. Build the worker into the same artifacts directory before worker-startup tests.
+- `dotnet test Metrivum.slnx --artifacts-path .local/stage05/full-build -m:2 /nodeReuse:false /p:UseSharedCompilation=false`: 170 unit, 200 integration and 2 architecture tests passed. Two optional local Supabase Auth/Storage tests skipped because that separate test stack is not configured. PostgreSQL integration tests used a disposable loopback database, not Supabase user data. Build the worker into the same artifacts directory before worker-startup tests.
 - `node node_modules/vitest/vitest.mjs run --maxWorkers=2`: 144 tests passed in 38 files.
 - `npm run typecheck`: all workspace checks passed. Scoped ESLint passed for changed screens and new browser tests.
 - `npm run build`: production web build and public-page prerender passed. The code graph was refreshed with `graphify update .`.
@@ -37,7 +37,7 @@ Generate reviewable upgrade SQL with `infra/export-stage05.ps1`; clean installat
 
 **Not applied:** production migration, production deployment and Git push. Existing unrelated working-tree changes are preserved.
 
-The local `TrainFlow.Api` process was restarted with the Release build on the existing localhost ports 59119/59120. `/health/ready` returned `ready`; unauthenticated generator access returned 401. Refresh the existing frontend session to load the new capability catalog and navigation.
+The local `Metrivum.Api` process was restarted with the Release build on the existing localhost ports 59119/59120. `/health/ready` returned `ready`; unauthenticated generator access returned 401. Refresh the existing frontend session to load the new capability catalog and navigation.
 
 ## Limits and deferred options
 

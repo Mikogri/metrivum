@@ -3,8 +3,8 @@ import { privateMeta } from "~/shared/i18n/site";
 export const meta = () => privateMeta("Video analysis — Metrivum");
 
 import { useState } from "react";
-import type { AnalysisDto } from "@trainflow/api-client-web";
-import { Alert, Button, Dialog, EmptyState, PageHeader } from "@trainflow/ui-web";
+import type { AnalysisDto } from "@metrivum/api-client-web";
+import { Alert, Button, Dialog, EmptyState, PageHeader } from "@metrivum/ui-web";
 import { Failure, Loading } from "~/modules/coaching";
 import { useAnalysisList, useAnalysisResult } from "../queries";
 import { StatusBadge } from "../components/StatusBadge";

@@ -1,4 +1,4 @@
-import type { AnalysisResult, AnalysisTracking } from '@trainflow/api-client-web';
+import type { AnalysisResult, AnalysisTracking } from '@metrivum/api-client-web';
 
 export const LOCAL_ANALYZER_UNAVAILABLE = 'Browser-only analysis needs a validated browser export. Desktop web uses the paired MotionTrace companion and saves completed videos/results privately. This action does not start a server GPU queue. Historical results remain available.';
 export function requireLocalAnalyzer(): never { throw new Error(LOCAL_ANALYZER_UNAVAILABLE); }
@@ -12,7 +12,7 @@ export async function checkLocalAnalyzer(token: string, signal: AbortSignal, fet
     if (!discovery.ok) return 'unreachable';
     const info = await discovery.json();
     // Background queue (1.2+) is required: older analyzers ask for an update.
-    if (info.application !== 'TrainFlow.LocalAnalyzer' || info.protocolVersion !== 1 || !Array.isArray(info.features) || !info.features.includes('jobs') || !info.features.includes('preprocess')) return 'incompatible';
+    if (info.application !== 'Metrivum.LocalAnalyzer' || info.protocolVersion !== 1 || !Array.isArray(info.features) || !info.features.includes('jobs') || !info.features.includes('preprocess')) return 'incompatible';
     if (!token.trim()) return 'pairing_required';
     const status = await fetcher('http://127.0.0.1:59121/status', { signal: combined, credentials: 'omit', cache: 'no-store', redirect: 'error', headers: { Authorization: `Bearer ${token.trim()}` } });
     if (status.status === 401) return 'pairing_required';
@@ -149,7 +149,7 @@ export async function enqueueJob(file: File, request: QueueRequest, token: strin
     headers: {
       'Content-Type': videoType(file),
       // URI-encoded so names in any language survive the HTTP header.
-      'X-TrainFlow-Job': encodeURIComponent(JSON.stringify({ ...request, fileName: file.name })),
+      'X-Metrivum-Job': encodeURIComponent(JSON.stringify({ ...request, fileName: file.name })),
     },
   }, fetcher);
   return await response.json() as AnalyzerJob;

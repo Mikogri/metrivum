@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { SlidersHorizontal } from "lucide-react";
-import { Button, Dialog, DialogFooter, useMobileLayout } from "@trainflow/ui-web";
+import { Button, Dialog, DialogFooter, useMobileLayout } from "@metrivum/ui-web";
 import styles from "./ResponsiveFilters.module.css";
 
 /** The same controlled fields move into a sheet; their owning route keeps query state. */

@@ -15,18 +15,18 @@ jobs:
       EXPO_PUBLIC_SUPABASE_URL: https://example-project.supabase.co
       EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
       - run: npm install --global npm@11.21.0 --ignore-scripts
       - run: npm ci --ignore-scripts
       - run: npm run test:security-dependencies
-      - run: npm run typecheck --workspace @trainflow/mobile
+      - run: npm run typecheck --workspace @metrivum/mobile
       - run: npm test -- --project mobile-core
       # Metro bundles both platforms; native/device acceptance remains a separate release gate.
-      - run: npm run export --workspace @trainflow/mobile
+      - run: npm run export --workspace @metrivum/mobile
   web:
     runs-on: ubuntu-latest
     env:
@@ -36,8 +36,8 @@ jobs:
       VITE_SUPABASE_URL: https://example-project.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
@@ -48,7 +48,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:hosting
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .local/bodyparts3d-4.0/source
           key: bodyparts3d-${{ hashFiles('infra/anatomy/source-lock.json') }}
@@ -59,7 +59,7 @@ jobs:
         working-directory: apps/web
       - run: npm run e2e
       - run: npm run e2e:coaching
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: playwright-results

@@ -8,8 +8,8 @@ Forms, Offers, Coaching intake/services, CheckIns and simulated Billing are inte
 
 | Command/check | Result |
 | --- | --- |
-| `dotnet test TrainFlow.slnx -c Release --no-restore -m:1` with loopback `TRAINFLOW_TEST_DATABASE` | 228 passed: 104 unit, 122 PostgreSQL/HTTP integration, 2 architecture; 2 external Supabase Auth/Storage tests skipped |
-| `dotnet test tests/Integration/TrainFlow.IntegrationTests -c Release --filter "FullyQualifiedName~CheckInTests\|FullyQualifiedName~DatabasePrivilegeTests"` after index migration | 10 passed, no skips |
+| `dotnet test Metrivum.slnx -c Release --no-restore -m:1` with loopback `TRAINFLOW_TEST_DATABASE` | 228 passed: 104 unit, 122 PostgreSQL/HTTP integration, 2 architecture; 2 external Supabase Auth/Storage tests skipped |
+| `dotnet test tests/Integration/Metrivum.IntegrationTests -c Release --filter "FullyQualifiedName~CheckInTests\|FullyQualifiedName~DatabasePrivilegeTests"` after index migration | 10 passed, no skips |
 | `powershell -NoProfile -File infra/test-stage02-migrations.ps1` | Clean database and stage 1 roll-forward passed; 11 owned schemas, 22 EF histories, expected constraints/indexes/grants; 10 seeded rows preserved |
 | Existing DevFixtures console with `--stage 2` | Two runs as restricted local `trainflow_api`; identical IDs/counts: 3 forms, 1 offer, 2 applications/services/orders/payments, 1 invitation, 2 schedules, 3 requests, 1 reviewed response and 1 provider transaction |
 | `npm run typecheck` | All workspace checks passed |
@@ -17,7 +17,7 @@ Forms, Offers, Coaching intake/services, CheckIns and simulated Billing are inte
 | `npm run lint` | Passed |
 | `npm run build` | Production client/server build and public prerender passed |
 | `npm run e2e:coaching` | 8 desktop/mobile browser tests passed; subsequent four editor/screenshot checks passed |
-| `dotnet format whitespace TrainFlow.slnx --no-restore --verify-no-changes` | Passed after formatting |
+| `dotnet format whitespace Metrivum.slnx --no-restore --verify-no-changes` | Passed after formatting |
 | `powershell -NoProfile -File infra/scan-secrets.ps1`, plus equivalent tracked/untracked source scan | Passed; ignored runtime credentials remain outside Git |
 | `git diff --check` | Passed |
 

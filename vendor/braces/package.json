@@ -1,6 +1,6 @@
 {
-  "name": "@trainflow/braces",
-  "description": "TrainFlow private braces 3.0.3 fork with bounded nesting",
+  "name": "@metrivum/braces",
+  "description": "Metrivum private braces 3.0.3 fork with bounded nesting",
   "version": "3.0.3-trainflow.1",
   "homepage": "https://github.com/micromatch/braces",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",

@@ -5,7 +5,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { useSearchParams, useBlocker } from "react-router";
 import { Button as AriaButton, Dialog as AriaDialog, Modal, ModalOverlay } from "react-aria-components";
 import { ArrowLeft, Download, FileText, Film, MessageCircle, MoreVertical, Paperclip, Plus, SendHorizontal, Users, X } from "lucide-react";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import {
   AlertDialog,
   toast,
@@ -25,13 +25,13 @@ import {
   Spinner,
   TextArea,
   useMobileLayout,
-} from "@trainflow/ui-web";
+} from "@metrivum/ui-web";
 import { useAccountContext, useApi, useUnsavedWorkGuard } from "~/shared/session";
 import { useFeatureAccess } from "~/shared/access";
 import { saveBlob, type ApiRequest } from "~/shared/http";
 import { privateMeta } from "~/shared/i18n/site";
 import { cacheMessage, root, useChatPages, useChatQuery, type useRealtime } from "./api";
-import { mergeMessages, messageKind, messageWasRead, type LocalOutgoing, type Conversation, type Message } from "./model";
+import { historyPollingInterval, mergeMessages, messageKind, messageWasRead, type LocalOutgoing, type Conversation, type Message } from "./model";
 import { useMessagingRealtime } from "./provider";
 import { DraftChat } from "./draft-chat";
 import { NewConversation, GroupMembers, BlockedPeople } from "./dialogs";
@@ -287,7 +287,7 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
     initialPageParam: undefined as string | undefined,
     queryFn: async ({ signal, pageParam }) => (await api<Schema<"MessagePage">>({ path: `${root}/conversations/${id}/messages`, query: { before: pageParam, limit: 50 }, signal })).data,
     getNextPageParam: (last) => (last.items.length >= 50 ? (last.olderCursor ?? undefined) : undefined),
-    refetchInterval: realtime.status === "Live" ? 60000 : 15000,
+    refetchInterval: historyPollingInterval(realtime.status),
   });
   const messages = mergeMessages(...(history.data?.pages.map((p) => p.items) ?? []));
   const latest = messages.at(-1);

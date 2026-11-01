@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Alert, Button, Option, Select, toast } from "@trainflow/ui-web";
+import { Alert, Button, Option, Select, toast } from "@metrivum/ui-web";
 import { useFeatureAccess } from "~/shared/access";
 import { useAccountContext } from "~/shared/session";
 import { root, useChatQuery } from "./api";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mergeMessages, messageKind, messageWasRead } from "./model";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 const msg = (id: string, createdAt: string): Schema<"MessageDto"> => ({
     id,
     createdAt,

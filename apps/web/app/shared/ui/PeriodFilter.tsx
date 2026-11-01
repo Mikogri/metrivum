@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Option, Select, TextField } from "@trainflow/ui-web";
+import { Option, Select, TextField } from "@metrivum/ui-web";
 import styles from "./PeriodFilter.module.css";
 
 const localDate = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;

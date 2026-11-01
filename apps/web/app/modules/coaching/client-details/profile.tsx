@@ -1,6 +1,6 @@
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import { Dumbbell, FileText, UserRound } from "lucide-react";
-import { Avatar, Button, DataTable, Dialog, EmptyState } from "@trainflow/ui-web";
+import { Avatar, Button, DataTable, Dialog, EmptyState } from "@metrivum/ui-web";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import { BodySummary, detailsFromValues } from "~/modules/accounts";
 import { pageFromParam } from "~/shared/lib/useUrlState";

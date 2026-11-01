@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Schema } from "@trainflow/api-client-web";
+import type { Schema } from "@metrivum/api-client-web";
 import type { ApiRequest, QueryValue } from "~/shared/http";
 import { useAccountContext } from "~/shared/session/AccountScope";
 

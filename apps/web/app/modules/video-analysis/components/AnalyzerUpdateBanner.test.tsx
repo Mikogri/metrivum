@@ -11,7 +11,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
     if (url.endsWith('update.json')) return Response.json({ version: '1.4.0' });
     if (url.endsWith('/update')) return new Response(null, { status: updateStatus });
-    return Response.json({ application: 'TrainFlow.LocalAnalyzer', version, features });
+    return Response.json({ application: 'Metrivum.LocalAnalyzer', version, features });
   }));
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -64,7 +64,7 @@ it('closing the banner does not resolve the pinned unread update', async () => {
 });
 it('offers the installer to old analyzers without hiding the notice', async () => {
   features = []; const client = mount();
-  expect(await screen.findByRole('link', { name: 'Download the installer' })).toHaveAttribute('href', '/downloads/analyzer/TrainFlowAnalyzerSetup.exe');
+  expect(await screen.findByRole('link', { name: 'Download the installer' })).toHaveAttribute('href', '/downloads/analyzer/MetrivumAnalyzerSetup.exe');
   expect(screen.getByRole('link', { name: 'Download the installer' })).toHaveAttribute('download', 'MetrivumAnalyzerSetup.exe');
   expect(screen.queryByRole('button', { name: 'Update now' })).not.toBeInTheDocument(); client.clear();
 });

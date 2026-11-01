@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { ChevronDown, Dumbbell } from 'lucide-react';
-import { Chip, ChipGroup } from '@trainflow/ui-web';
+import { Chip, ChipGroup } from '@metrivum/ui-web';
 import { ExercisePicker } from '~/modules/exercises';
 import styles from './MovementField.module.css';
 

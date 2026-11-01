@@ -2,7 +2,7 @@ import { createContext, useContext, useRef, useState, type ReactNode } from "rea
 import { flushSync } from "react-dom";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Alert, Button } from "@trainflow/ui-web";
+import { Alert, Button } from "@metrivum/ui-web";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useAccountContext, useAccountKey, useApi } from "./AccountScope";
 import { hasUnsavedWork } from "./dirty-guard";

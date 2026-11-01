@@ -2,26 +2,27 @@ import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Workout — Metrivum");
 
-import { useContext, useState, type ReactNode } from "react";
+import { useContext, useMemo, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
-import type { Schema, PlanAnnotation, ExerciseSnapshot, Prescription, Workout } from "@trainflow/api-client-web";
-import { AlertDialog, Avatar, Button, Checkbox, Dialog, EmptyState, IconButton, LinkButton, NumberInput, PageBackContext, TextArea, TextField, toast } from "@trainflow/ui-web";
-import { ArrowLeft, Check, CircleSlash, Eraser, Info, Lock, MessageSquare, MessageSquareQuote, PencilLine, Plus, Repeat, Timer, Trash2, Undo2 } from "lucide-react";
+import type { Schema, PlanAnnotation, ExerciseSnapshot, Prescription, Workout } from "@metrivum/api-client-web";
+import { AlertDialog, Avatar, Button, Checkbox, Dialog, EmptyState, IconButton, LinkButton, Segment, SegmentedControl, Tab, TabList, Tabs, NumberInput, PageBackContext, TextArea, TextField, toast } from "@metrivum/ui-web";
+import { ArrowLeft, ArrowRight, Check, CircleSlash, Eraser, Lock, MessageSquare, MessageSquareQuote, PencilLine, Plus, Repeat, Timer, Trash2, Undo2, X } from "lucide-react";
 import { StatusBadge } from "~/modules/coaching";
 import { isUnavailableResource } from "~/shared/lib/ResourceError";
 
 /** "Monday, 27 October" for a plain date. */
 const longDay = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
-import { ExercisePicker } from "~/modules/exercises";
+import { ExercisePicker, useDictionaryLabel, useExerciseNames } from "~/modules/exercises";
+import { MuscleHeatmap } from "~/modules/anatomy";
 import { useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
 import { DraftNavigationGuard, Failure, Loading, MutationError } from "~/modules/coaching";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { localDate } from "./Assignments";
 import { CoachAnalysisChips } from "~/modules/video-analysis";
-import type { Occurrence } from "./TrainingHome";
+import { completedLabel, type Occurrence } from "./TrainingHome";
 import styles from "./delivery.module.css";
-import { WorkoutFeedbackForm, WorkoutComparisonPanel } from "./WorkoutReview";
+import { FeedbackFields, WorkoutFeedbackForm } from "./WorkoutReview";
 
 type ActualSet = { id?: string; prescribedSetId: string | null; prescribedSegmentId: string | null; skipped: boolean; reps: number | null; load: number | null; loadUnit: string | null; loadMeaning: string; rpe: number | null; rir: number | null; durationSeconds: number | null; distanceMeters: number | null; restSeconds: number | null; tempo: string | null; comment: string | null };
 type ActualExercise = { prescribedInstanceId: string | null; exerciseId: string; name?: string; comment: string; sets: ActualSet[] };
@@ -49,9 +50,13 @@ const asPlanned = (detail: Detail): ActualExercise[] => detail.prescription.work
  * The log in a side panel: one card per exercise with a table to type into, like the plan behind it. Every value is
  * optional; blank means "not recorded". Closing without saving drops the draft.
  */
-function ExecutionEditor({ detail, execution, own, onClose }: { detail: Detail; execution: Execution; own: boolean; onClose: () => void }) {
+function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { detail: Detail; execution: Execution; own: boolean; feedbackOwn: boolean; onClose: () => void }) {
+  const [feedback, setFeedback] = useState<Partial<NonNullable<Execution["feedback"]>>>(() => execution.feedback ?? {});
+  const feedbackReady = feedback.rating != null && feedback.wellbeing != null && feedback.sleepQuality != null && feedback.sessionRpe != null;
+  const feedbackChanged = JSON.stringify(feedback) !== JSON.stringify(execution.feedback ?? {});
   const [draft, setDraft] = useState(() => ({ performedDate: execution.performedDate || localDate(), comment: execution.comment, durationSeconds: execution.durationSeconds,
-    exercises: execution.exercises.length ? execution.exercises : emptyLog(detail) }));
+    // Nothing logged yet: start from the plan, so saving straight away records it as planned.
+    exercises: execution.exercises.some(exercise => exercise.sets.some(performed)) ? execution.exercises : asPlanned(detail) }));
   const [version, setVersion] = useState(execution.version);
   const [dirty, setDirty] = useState(false);
   // Which exercise the picker replaces, or "add" for a new one done outside the plan.
@@ -68,7 +73,10 @@ function ExecutionEditor({ detail, execution, own, onClose }: { detail: Detail; 
     const body = { ...draft, exercises: exercises.map(({ prescribedInstanceId, exerciseId, comment, sets }) => ({ prescribedInstanceId, exerciseId, comment, sets: sets.map(set => ({ ...set, loadUnit: set.load == null ? null : set.loadUnit || "kg" })) })) };
     const saved = await mutate.mutateAsync({ method: "PUT", path: `/api/v1/training/executions/${execution.id}`, ifMatch: version, json: body });
     setVersion(saved.version); setDirty(false);
-    if (execution.status !== "Completed") await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/executions/${execution.id}/complete`, ifMatch: saved.version });
+    let current = saved.version;
+    if (execution.status !== "Completed") current = (await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/executions/${execution.id}/complete`, ifMatch: saved.version })).version;
+    // Feedback goes with the log when it is complete (all four answers) and changed.
+    if (feedbackOwn && feedbackReady && feedbackChanged) await mutate.mutateAsync({ method: "PUT", path: `/api/v1/training/executions/${execution.id}/feedback`, ifMatch: current, json: feedback });
     toast({ tone: "success", title: message });
     onClose();
   }
@@ -80,21 +88,24 @@ function ExecutionEditor({ detail, execution, own, onClose }: { detail: Detail; 
       value={set[key] == null ? "" : String(set[key])} onChange={event => { const value = num(event.target.value); if (value === null || Number.isFinite(value)) patchSet(exIndex, setIndex, { [key]: value }); }} />;
   const footer = canEdit ? <div className={styles.wkPanelFoot}>
     <Button variant="ghost" iconStart={<Eraser />} isDisabled={mutate.isPending} onPress={clear}>Clear</Button>
-    <span className={styles.wkSaveState} role="status">{mutate.isPending ? "Saving…" : mutate.isError ? "Save failed — try again" : dirty ? "Unsaved changes" : ""}</span>
     <Button variant="secondary" isDisabled={mutate.isPending} onPress={close}>Cancel</Button>
-    <Button variant="secondary" isDisabled={mutate.isPending} onPress={() => { void save(asPlanned(detail), "Saved as planned").catch(() => {}); }}>Skip details</Button>
     <Button variant="primary" loading={mutate.isPending} onPress={() => { void save(draft.exercises, "Log saved").catch(() => {}); }}>Save</Button>
   </div> : <div className={styles.wkPanelFoot}><Button variant="secondary" onPress={onClose}>Close</Button></div>;
-  return <Dialog isOpen onOpenChange={open => { if (!open) close(); }} title={execution.exercises.some(x => x.sets.some(performed)) ? "Edit your log" : "Log your sets"} size="xl" placement="right" isDismissable={!dirty} footer={() => footer}>
+  const state = mutate.isPending ? "saving" : mutate.isError ? "error" : dirty ? "dirty" : null;
+  const title = <span className={styles.wkPanelTitle}>
+    {execution.exercises.some(x => x.sets.some(performed)) ? "Edit your log" : "Log your sets"}
+    {state ? <span className={styles.wkSaveState} data-state={state} role="status">{state === "saving" ? "Saving…" : state === "error" ? "Save failed" : "Unsaved changes"}</span> : null}
+  </span>;
+  return <Dialog isOpen onOpenChange={open => { if (!open) close(); }} title={title} size="xl" placement="right" isDismissable={!dirty} footer={() => footer}>
     <div className={styles.wkForm}>
     <DraftNavigationGuard dirty={dirty} /><MutationError error={mutate.error} />
-    <p className={styles.wkFormHint}>Fill in what you want to remember. Every field is optional: leave it blank if you didn't track it. <b>Skip details</b> saves every set exactly as planned.</p>
+    <p className={styles.wkFormHint}>Fill in what you want to remember. Every field is optional: leave it blank if you didn't track it. It starts filled in with the plan: change only what went differently.</p>
 
     <section className={styles.wkSession}>
       <TextField label="Date" type="date" value={draft.performedDate} isDisabled={!canEdit} onChange={value => { setDirty(true); setDraft({ ...draft, performedDate: value }); }} />
       <NumberInput label="Duration (min)" placeholder="e.g. 60" minValue={0} value={draft.durationSeconds == null ? Number.NaN : Math.round(draft.durationSeconds / 60)} isDisabled={!canEdit}
         onChange={value => { setDirty(true); setDraft({ ...draft, durationSeconds: Number.isFinite(value) ? value * 60 : null }); }} />
-      <TextField className={styles.wkSessionNote} label="How did it go?" placeholder="Energy, sleep, anything worth noting" value={draft.comment} isDisabled={!canEdit} onChange={comment => { setDirty(true); setDraft({ ...draft, comment }); }} />
+      <TextField className={styles.wkSessionNote} label="Session note" placeholder="Anything worth noting about the session" value={draft.comment} isDisabled={!canEdit} onChange={comment => { setDirty(true); setDraft({ ...draft, comment }); }} />
     </section>
 
     <div className={styles.wkFormBar}>
@@ -169,6 +180,12 @@ function ExecutionEditor({ detail, execution, own, onClose }: { detail: Detail; 
       else if (picker !== null) patchExercise(picker, { exerciseId: exercise.id, name: exercise.name, sets: draft.exercises[picker]!.sets.map(set => ({ ...set, load: null })) });
     }} />
 
+    {feedbackOwn ? <section className={styles.wkFeedbackEdit}>
+      <h3>How did it go?</h3>
+      <FeedbackFields value={feedback} onChange={next => { setDirty(true); setFeedback(next); }} />
+      {!feedbackReady ? <p className={styles.wkFormHint}>Answer all four to save your feedback; the rest of the log saves either way.</p> : null}
+    </section> : null}
+
     <AlertDialog isOpen={confirmClose} onOpenChange={setConfirmClose} title="Discard your changes?" confirmLabel="Discard" cancelLabel="Keep editing" tone="danger"
       onConfirm={() => { setConfirmClose(false); setDirty(false); onClose(); }}>
       What you typed here and haven't saved will be lost.
@@ -177,7 +194,8 @@ function ExecutionEditor({ detail, execution, own, onClose }: { detail: Detail; 
   </Dialog>;
 }
 
-export function WorkoutDetail({ occurrenceId, relationshipId }: { occurrenceId: string; relationshipId?: string }) {
+/** `onBack`: a back link drawn the same way as the page's own (e.g. back to a list this detail opened from). */
+export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurrenceId: string; relationshipId?: string; onBack?: { label: string; onPress: () => void } }) {
   const query = useCoachingQuery<Detail>(`/api/v1/training/workouts/${occurrenceId}`, { relationshipId });
   // A coach sees whose workout this is.
   const { mode } = useWorkspace();
@@ -186,10 +204,11 @@ export function WorkoutDetail({ occurrenceId, relationshipId }: { occurrenceId: 
   const mutate = useCoachingMutation();
   const [reason, setReason] = useState("");
   const [skipping, setSkipping] = useState(false);
-  const back = useContext(PageBackContext);
+  const pageBack = useContext(PageBackContext);
+  const back = onBack ?? (relationshipId ? null : pageBack);
   // The log opens in a side panel over the plan.
   const [logging, setLogging] = useState(false);
-  const [comparing, setComparing] = useState(false);
+  const [view, setView] = useState<"plan" | "analysis">("plan");
   // "Mark as done" starts and completes the workout in one go; the sets can still be corrected afterwards.
   const markDone = async () => {
     const started = await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/start` }) as { id: string; version: number };
@@ -221,42 +240,44 @@ export function WorkoutDetail({ occurrenceId, relationshipId }: { occurrenceId: 
   const stats: { label: string; value: ReactNode }[] = [
     { label: "Exercises", value: plan.length },
     { label: logged ? "Sets done" : "Sets", value: logged ? <>{doneSets}<small>/{totalSets}</small></> : totalSets },
+    ...(logged && totalSets ? [{ label: "Completion", value: <span style={{ color: completionColor(Math.round(Math.min(1, doneSets / totalSets) * 100)) }}>{Math.round(Math.min(1, doneSets / totalSets) * 100)}<small>%</small></span> }] : []),
     ...(volume ? [{ label: "Volume", value: <>{Math.round(volume).toLocaleString()}<small> kg</small></> }] : []),
     ...(logged?.durationSeconds ? [{ label: "Time", value: <>{Math.max(1, Math.round(logged.durationSeconds / 60))}<small> min</small></> }]
       : !logged ? [{ label: "Estimated time", value: <>≈ {estimateMinutes(plan)}<small> min</small></> }] : []),
     ...(logged?.feedback?.sessionRpe != null ? [{ label: "Session RPE", value: String(logged.feedback.sessionRpe) }] : []),
   ];
+  // Feedback is the athlete's: only they fill it in, in their own workspace. The coach reads it.
+  const feedbackOwn = !relationshipId && mode === "client";
   const canLog = Boolean(logged) && ["edit", "save", "correct"].some(action => logged!.allowedActions.includes(action));
   const logActions = logged ? <div className={styles.wkActions}>
-    <IconButton variant="secondary" icon={<Info />} label="Planned vs actual" showTooltip onPress={() => setComparing(true)} />
     <Button variant={doneSets ? "secondary" : "primary"} iconStart={<PencilLine />} onPress={() => setLogging(true)}>{!canLog ? "View log" : doneSets ? "Edit log" : "Log sets"}</Button>
   </div> : null;
   return <div className={styles.wk}>
-    {back && !relationshipId ? <button type="button" className={styles.wkBack} onClick={back.onPress}><ArrowLeft aria-hidden="true" />{back.label}</button> : null}
+    {back ? <button type="button" className={styles.wkBack} onClick={back.onPress}><ArrowLeft aria-hidden="true" />{back.label}</button> : null}
     <MutationError error={mutate.error} />
     {/* Title block: program and date above, the name with its status, the actions on the right. */}
     <header className={styles.wkHead}>
       <div className={styles.wkHeadText}>
+        {mode === "coach" && !relationshipId && owner.data?.client ? (
+          <Link to={`/app/clients/${owner.data.id}`} className={styles.wkClient}>
+            <Avatar name={owner.data.client!.displayName || owner.data.client!.username || "Client"} size="sm" decorative />
+            <span>Workout of <strong>{owner.data.client!.displayName || owner.data.client!.username}</strong></span>
+            {owner.data.client!.username ? <small>@{owner.data.client!.username}</small> : null}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        ) : null}
         <p className={styles.wkKicker}>
           <Link to={`/app/programs/${o.programId}`}>{o.programName}</Link>
           <span aria-hidden="true">·</span>
           <span>{longDay(o.scheduledDate)}</span>
-          {logged?.performedDate && logged.performedDate !== o.scheduledDate ? <><span aria-hidden="true">·</span><span>done {longDay(logged.performedDate)}</span></> : null}
+          {logged?.completedAt ? <><span aria-hidden="true">·</span><span>completed {completedLabel(logged.completedAt)}</span></> : logged?.performedDate && logged.performedDate !== o.scheduledDate ? <><span aria-hidden="true">·</span><span>done {longDay(logged.performedDate)}</span></> : null}
+          {o.loggedLate ? <><span aria-hidden="true">·</span><span className={styles.wkLate}>logged late</span></> : null}
         </p>
         <div className={styles.wkTitle}>
           <h1>{o.name}</h1>
           <StatusBadge status={o.status === "InProgress" ? "In progress" : o.status} />
         </div>
       </div>
-      {mode === "coach" && !relationshipId && owner.data?.client ? (
-        <Link to={`/app/clients/${owner.data.id}`} className={styles.wkClient}>
-          <Avatar name={owner.data.client!.displayName || owner.data.client!.username || "Client"} size="md" decorative />
-          <span>
-            <strong>{owner.data.client!.displayName || owner.data.client!.username}</strong>
-            <small>{owner.data.client!.username ? `@${owner.data.client!.username} · ` : ""}your client</small>
-          </span>
-        </Link>
-      ) : null}
       {decision || logActions ? <div className={styles.wkHeadSide}>
         {decision}
         {logActions}
@@ -279,22 +300,37 @@ export function WorkoutDetail({ occurrenceId, relationshipId }: { occurrenceId: 
     </aside> : null}
     {detail.prescription.workout.description ? <p className={styles.wkIntro}>{detail.prescription.workout.description}</p> : null}
 
-    {/* The exercises in order along a thin rail; each is a card with its sets as rows. */}
+    {logged ? <div className={styles.wkTabBar}>
+      <Tabs selectedKey={view} onSelectionChange={key => setView(key === "analysis" ? "analysis" : "plan")}>
+        <TabList aria-label="Workout">
+          <Tab id="plan">Plan</Tab>
+          <Tab id="analysis">Analysis</Tab>
+        </TabList>
+      </Tabs>
+    </div> : null}
+
+    {logged && view === "analysis" ? <WorkoutAnalysis detail={detail} execution={logged} feedbackOwn={feedbackOwn} /> : <>
+    {/* The exercises in order along a thin rail; each is a card with its sets as rows. Once logged, the card shows
+        what was really done: a substitute's name, an exercise left out, extra ones added at the end. */}
     <ol className={styles.wkSteps}>{plan.map((exercise, index) => {
-      const name = detail.prescription.exercises[exercise.exerciseId]?.name ?? "Exercise";
+      const actual = logged?.exercises.find(x => x.prescribedInstanceId === exercise.id);
+      const planned = detail.prescription.exercises[exercise.exerciseId]?.name ?? "Exercise";
+      const swapped = actual && actual.exerciseId !== exercise.exerciseId;
+      const name = swapped ? actual.name || "Substitute" : planned;
       const firstWork = exercise.sets.find(set => set.kind !== "Warmup") ?? exercise.sets[0];
       const rest = firstWork?.prescription.rest;
       const finished = logged ? exercise.sets.filter(set => { const a = actualFor(exercise.id, set.id); return a && performed(a); }).length : 0;
       const complete = Boolean(logged) && finished === exercise.sets.length;
+      const skippedAll = Boolean(logged) && finished === 0 && (!actual || actual.sets.every(set => set.skipped || !performed(set)));
       const cue = visibleCue(exercise.comment);
       let working = 0;
-      return <li key={exercise.id} className={styles.wkStep} data-tone={index % 4} data-complete={complete ? "" : undefined}>
-        <span className={styles.wkNode} aria-hidden="true">{complete ? <Check /> : index + 1}</span>
+      return <li key={exercise.id} className={styles.wkStep} data-tone={index % 4} data-complete={complete ? "" : undefined} data-skipped={skippedAll ? "" : undefined}>
+        <span className={styles.wkNode} aria-hidden="true">{complete ? <Check /> : skippedAll ? <CircleSlash /> : index + 1}</span>
         <article className={styles.wkCard}>
           <header>
             <div>
-              <h2>{name}</h2>
-              {cue ? <p>{cue}</p> : null}
+              <h2>{name}{skippedAll ? <span className={styles.wkFlag} data-tone="skipped">{actual ? "Skipped" : "Not done"}</span> : swapped ? <span className={styles.wkFlag} data-tone="swap">Substituted</span> : logged && !complete ? <span className={styles.wkFlag} data-tone="partial">Partial</span> : null}</h2>
+              {swapped ? <p>Instead of {planned}</p> : cue ? <p>{cue}</p> : null}
             </div>
             <span className={styles.wkCount}>
               <span>{logged ? <><b>{finished}</b>/{exercise.sets.length} sets</> : <><b>{exercise.sets.length}</b> {exercise.sets.length === 1 ? "set" : "sets"}</>}</span>
@@ -303,20 +339,32 @@ export function WorkoutDetail({ occurrenceId, relationshipId }: { occurrenceId: 
           </header>
           <ol className={styles.wkRows}>{exercise.sets.map(set => {
             const label = set.kind === "Warmup" ? "W" : String(++working);
-            return <SetRow key={set.id} label={label} kind={set.kind} prescription={set.prescription} actual={logged ? actualFor(exercise.id, set.id) : undefined} />;
+            const done = logged ? actualFor(exercise.id, set.id) : undefined;
+            return <SetRow key={set.id} label={label} kind={set.kind} prescription={set.prescription} actual={done} missing={Boolean(logged) && !done} />;
           })}</ol>
         </article>
       </li>;
+    })}
+    {/* Exercises done that were not in the plan. */}
+    {(logged?.exercises.filter(x => !x.prescribedInstanceId) ?? []).map((extra, k) => {
+      const done = extra.sets.filter(performed).length;
+      return <li key={`extra-${k}`} className={styles.wkStep} data-tone={(plan.length + k) % 4} data-complete={done ? "" : undefined} data-added="">
+        <span className={styles.wkNode} aria-hidden="true"><Plus /></span>
+        <article className={styles.wkCard}>
+          <header>
+            <div><h2>{extra.name || "Exercise"}<span className={styles.wkFlag} data-tone="added">Added</span></h2><p>Not in the plan</p></div>
+            <span className={styles.wkCount}><span><b>{done}</b> {done === 1 ? "set" : "sets"}</span></span>
+          </header>
+          <ol className={styles.wkRows}>{extra.sets.map((set, i) => <SetRow key={i} label={String(i + 1)} kind="Standard" actual={set} />)}</ol>
+        </article>
+      </li>;
     })}</ol>
+    </>}
 
     {!decision && !e ? <p className={styles.wkIntro}>This workout can't be logged right now: the plan or the coaching relationship doesn't allow it.</p> : null}
 
     {logged ? <CoachAnalysisChips executionId={logged.id} enabled={!relationshipId} /> : null}
-    {logged ? <WorkoutFeedbackForm key={`feedback:${logged.id}:${logged.version}`} execution={logged} own={!relationshipId} /> : null}
-    {logged && logging ? <ExecutionEditor key={`${logged.id}:${logged.version}`} detail={detail} execution={logged} own={!relationshipId} onClose={() => setLogging(false)} /> : null}
-    {logged ? <Dialog isOpen={comparing} onOpenChange={setComparing} title="Planned vs actual" size="lg">
-      <WorkoutComparisonPanel executionId={logged.id} />
-    </Dialog> : null}
+    {logged && logging ? <ExecutionEditor key={`${logged.id}:${logged.version}`} detail={detail} execution={logged} own={!relationshipId} feedbackOwn={feedbackOwn} onClose={() => setLogging(false)} /> : null}
 
     {/* Why it was skipped is asked in a dialog, only when the workout is skipped. */}
     <AlertDialog isOpen={skipping} onOpenChange={(open) => { if (!open && !mutate.isPending) setSkipping(false); }} title="Mark this workout as skipped?" confirmLabel="Mark skipped" cancelLabel="Keep it" isConfirming={mutate.isPending}
@@ -377,10 +425,11 @@ function targetOf(p: Prescription) {
 }
 
 /** One set as a row: its number, the target (or what was done), the effort, and a tick once done. */
-function SetRow({ label, kind, prescription, actual }: { label: string; kind: string; prescription: Prescription; actual?: ActualSet }) {
-  const target = targetOf(prescription);
+function SetRow({ label, kind, prescription, actual, missing = false }: { label: string; kind: string; prescription?: Prescription; actual?: ActualSet; missing?: boolean }) {
+  const target = prescription ? targetOf(prescription) : { main: null, load: null, extras: [] as string[] };
   const done = actual ? performed(actual) : false;
-  const state = actual ? (actual.skipped ? "skipped" : done ? "done" : "open") : undefined;
+  // A planned set with nothing logged (the exercise left out, or the set left blank) counts as skipped once logged.
+  const state = actual ? (actual.skipped ? "skipped" : done ? "done" : missing ? "skipped" : "open") : missing ? "skipped" : undefined;
   const actualMain = actual?.reps != null ? { value: String(actual.reps), unit: "reps" } : actual?.durationSeconds != null ? { value: String(actual.durationSeconds), unit: "s" } : actual?.distanceMeters != null ? { value: String(actual.distanceMeters), unit: "m" } : null;
   const main = done && actualMain ? actualMain : target.main;
   const load = done && actual?.load != null ? `${actual.load} ${actual.loadUnit ?? "kg"}` : target.load;
@@ -393,9 +442,132 @@ function SetRow({ label, kind, prescription, actual }: { label: string; kind: st
       {load ? <><span className={styles.wkTimes} aria-hidden="true">×</span><b>{load}</b></> : null}
       {kind !== "Standard" ? <small className={styles.wkKind}>{kind === "Warmup" ? "Warm-up" : kind}</small> : null}
     </span>
-    <span className={styles.wkRowMeta}>{done ? <>plan {plan}{effort.length ? ` · ${effort.join(" · ")}` : ""}</> : state === "skipped" ? "Skipped" : effort.join(" · ")}</span>
-    <span className={styles.wkRowCheck} aria-label={done ? "Done" : undefined}>{done ? <Check aria-hidden="true" /> : null}</span>
+    <span className={styles.wkRowMeta}>{state === "skipped" ? <span className={styles.wkFlag} data-tone="skipped">Skipped</span> : done ? <>{plan ? `plan ${plan}` : ""}{effort.length ? `${plan ? " · " : ""}${effort.join(" · ")}` : ""}</> : effort.join(" · ")}</span>
+    <span className={styles.wkRowCheck} aria-label={done ? "Done" : state === "skipped" ? "Skipped" : undefined}>{done ? <Check aria-hidden="true" /> : state === "skipped" ? <X aria-hidden="true" /> : null}</span>
   </li>;
+}
+
+/** kg from a logged load (lb converted). */
+const kgOf = (set: ActualSet) => set.load == null ? 0 : (set.loadUnit ?? "kg").toLowerCase() === "lb" ? set.load * 0.4536 : set.load;
+const avg = (values: number[]) => values.length ? values.reduce((a, b) => a + b, 0) / values.length : null;
+const fmt = (value: number | null, digits = 0) => value == null || !Number.isFinite(value) ? "—" : new Intl.NumberFormat(undefined, { maximumFractionDigits: digits }).format(value);
+
+/** "110 kg", or a dash when nothing was lifted (bodyweight, time, not done). */
+const kgLabel = (value: number, digits = 0) => (value > 0 ? `${fmt(value, digits)} kg` : "—");
+
+/** A colour that moves from red (0%) to green (100%). */
+export const completionColor = (percent: number) => `color-mix(in oklab, var(--tf-color-success) ${Math.max(0, Math.min(100, percent))}%, var(--tf-color-danger))`;
+
+/** Everything measurable about one logged workout: totals, per exercise, and set by set against the plan. */
+function WorkoutAnalysis({ detail, execution, feedbackOwn }: { detail: Detail; execution: Execution; feedbackOwn: boolean }) {
+  const plan = detail.prescription.workout.exercises;
+  const plannedSets = plan.reduce((n, x) => n + x.sets.length, 0);
+  const sets = execution.exercises.flatMap(x => x.sets);
+  const done = sets.filter(performed);
+  const skipped = sets.filter(set => set.skipped).length;
+  const reps = done.reduce((n, set) => n + (set.reps ?? 0), 0);
+  const plannedReps = plan.reduce((n, x) => n + x.sets.reduce((m, set) => m + (set.prescription.reps?.minimum ?? 0), 0), 0);
+  const volume = done.reduce((n, set) => n + (set.reps ?? 0) * kgOf(set), 0);
+  const plannedVolume = plan.reduce((n, x) => n + x.sets.reduce((m, set) => { const p = set.prescription; const kg = p.load && /kg/i.test(String(p.load.minimum.unit)) ? p.load.minimum.value : 0; return m + (p.reps?.minimum ?? 0) * kg; }, 0), 0);
+  const minutes = execution.durationSeconds ? execution.durationSeconds / 60 : null;
+  const rpe = avg(done.map(set => set.rpe).filter((v): v is number => v != null));
+  const completion = plannedSets ? Math.round(Math.min(1, done.length / plannedSets) * 100) : 0;
+  const tiles = [
+    { label: "Completion", value: `${completion}%`, sub: `${done.length} of ${plannedSets} sets`, color: completionColor(completion), bar: completion },
+    { label: "Volume", value: `${fmt(volume)} kg`, sub: plannedVolume ? `plan ${fmt(plannedVolume)} kg · ${volume >= plannedVolume ? "+" : ""}${fmt(volume - plannedVolume)}` : "load × reps" },
+    { label: "Reps", value: fmt(reps), sub: plannedReps ? `plan ${fmt(plannedReps)}` : "" },
+    { label: "Time", value: minutes ? `${fmt(minutes)} min` : "—", sub: minutes && done.length ? `${fmt((minutes * 60) / done.length)} s per set` : "" },
+    { label: "Density", value: minutes ? `${fmt(volume / minutes)} kg/min` : "—", sub: "volume per minute" },
+    { label: "Average RPE", value: fmt(rpe, 1), sub: execution.feedback?.sessionRpe != null ? `session ${execution.feedback.sessionRpe}` : "from logged sets" },
+    { label: "Skipped sets", value: fmt(skipped), sub: `${execution.exercises.filter(x => !x.prescribedInstanceId).length} added exercises` },
+  ];
+  const rows = [
+    ...plan.map(exercise => {
+      const actual = execution.exercises.find(x => x.prescribedInstanceId === exercise.id);
+      const logged = actual?.sets ?? [];
+      const ok = logged.filter(performed);
+      const swapped = actual && actual.exerciseId !== exercise.exerciseId;
+      return { key: exercise.id, name: swapped ? actual.name || "Substitute" : detail.prescription.exercises[exercise.exerciseId]?.name ?? "Exercise", note: swapped ? "substituted" : !actual ? "not done" : "", planned: exercise.sets.length, ok };
+    }),
+    ...execution.exercises.filter(x => !x.prescribedInstanceId).map((x, i) => ({ key: `extra-${i}`, name: x.name || "Exercise", note: "added", planned: 0, ok: x.sets.filter(performed) })),
+  ];
+  return <div className={styles.an}>
+    <dl className={styles.anTiles}>{tiles.map(tile => <div key={tile.label}>
+      <dt>{tile.label}</dt>
+      <dd style={tile.color ? { color: tile.color } : undefined}>{tile.value}</dd>
+      {tile.bar != null ? <span className={styles.anBar}><span style={{ transform: `scaleX(${tile.bar / 100})`, background: tile.color }} /></span> : null}
+      {tile.sub ? <small>{tile.sub}</small> : null}
+    </div>)}</dl>
+
+    <section className={styles.anSection}>
+      <h2>By exercise</h2>
+      <div className={styles.anCard}>
+        <table className={styles.anTable}>
+          <thead><tr><th>Exercise</th><th>Completion</th><th data-num>Sets</th><th data-num>Reps</th><th data-num>Top load</th><th data-num>Volume</th><th data-num>Avg RPE</th></tr></thead>
+          <tbody>{rows.map((row, index) => {
+            const percent = row.planned ? Math.round(Math.min(1, row.ok.length / row.planned) * 100) : 100;
+            const notDone = row.note === "not done" || (row.planned > 0 && row.ok.length === 0);
+            const flag = notDone ? "skipped" : row.note === "substituted" ? "swap" : row.note === "added" ? "added" : percent < 100 ? "partial" : null;
+            return <tr key={row.key} data-skipped={notDone || undefined} data-added={flag === "added" || undefined}>
+              <td>
+                <span className={styles.anName} data-tone={index % 4}>
+                  <i aria-hidden="true" />
+                  <b>{row.name}</b>
+                  {flag ? <span className={styles.wkFlag} data-tone={flag}>{notDone ? "Not done" : flag === "swap" ? "Substituted" : flag === "added" ? "Added" : "Partial"}</span> : null}
+                </span>
+              </td>
+              <td><span className={styles.anCompletion}><span className={styles.anBar}><span style={{ transform: `scaleX(${percent / 100})`, background: completionColor(percent) }} /></span><b style={{ color: completionColor(percent) }}>{percent}%</b></span></td>
+              <td data-num><b>{row.ok.length}</b>{row.planned ? <small>/{row.planned}</small> : null}</td>
+              <td data-num>{fmt(row.ok.reduce((n, set) => n + (set.reps ?? 0), 0))}</td>
+              <td data-num>{kgLabel(Math.max(0, ...row.ok.map(kgOf)), 1)}</td>
+              <td data-num>{kgLabel(row.ok.reduce((n, set) => n + (set.reps ?? 0) * kgOf(set), 0))}</td>
+              <td data-num>{fmt(avg(row.ok.map(set => set.rpe).filter((v): v is number => v != null)), 1)}</td>
+            </tr>;
+          })}</tbody>
+        </table>
+      </div>
+    </section>
+
+    <WorkoutHeatmap execution={execution} />
+
+    <WorkoutFeedbackForm key={`feedback:${execution.id}:${execution.version}`} execution={execution} own={feedbackOwn} />
+  </div>;
+}
+
+/** Where the work went: volume (or sets) per muscle on the 3D body. Primary muscles count fully, secondary half. */
+function WorkoutHeatmap({ execution }: { execution: Execution }) {
+  const [metric, setMetric] = useState<"volume" | "sets">("volume");
+  const ids = useMemo(() => execution.exercises.map(x => x.exerciseId), [execution.exercises]);
+  const catalog = useExerciseNames(ids);
+  const dictionaryLabel = useDictionaryLabel();
+  const values = useMemo(() => {
+    const map = new Map<string, number>();
+    const add = (key: string, amount: number) => map.set(key, (map.get(key) ?? 0) + amount);
+    for (const exercise of execution.exercises) {
+      const info = catalog.get(exercise.exerciseId);
+      if (!info) continue;
+      const done = exercise.sets.filter(performed);
+      const amount = metric === "sets" ? done.length : done.reduce((n, set) => n + (set.reps ?? 0) * kgOf(set), 0);
+      if (!amount) continue;
+      info.primaryMuscleKeys.forEach(key => add(key, amount));
+      info.secondaryMuscleKeys.forEach(key => add(key, amount / 2));
+    }
+    return map;
+  }, [catalog, execution.exercises, metric]);
+  return <section className={styles.anSection}>
+    <div className={styles.anSectionHead}>
+      <h2>Muscles worked</h2>
+      <SegmentedControl aria-label="Heatmap measure" selectedKeys={[metric]} onSelectionChange={keys => { const key = [...keys][0]; if (key) setMetric(key === "sets" ? "sets" : "volume"); }}>
+        <Segment id="volume">Volume</Segment>
+        <Segment id="sets">Sets</Segment>
+      </SegmentedControl>
+    </div>
+    <div className={styles.anHeatmap}>
+      <MuscleHeatmap values={values} label={key => dictionaryLabel("muscles", key)}
+        format={value => metric === "sets" ? `${fmt(value, 1)} sets` : `${fmt(value)} kg`}
+        caption={metric === "sets" ? "Sets done per muscle (secondary muscles count half)." : "Volume (load × reps) per muscle (secondary muscles count half)."} />
+    </div>
+  </section>;
 }
 
 export default function WorkoutLog() { const { occurrenceId } = useParams(); return <WorkoutDetail occurrenceId={occurrenceId!} />; }

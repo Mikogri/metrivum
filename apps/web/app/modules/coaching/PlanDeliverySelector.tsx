@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { Schema } from "@trainflow/api-client-web";
-import { Alert, Option, SearchInput, Select } from "@trainflow/ui-web";
+import type { Schema } from "@metrivum/api-client-web";
+import { Alert, Option, SearchInput, Select } from "@metrivum/ui-web";
 import { useCoachingQuery, type Page } from "./api";
 import { Failure, ListPagination } from "./components";
 
