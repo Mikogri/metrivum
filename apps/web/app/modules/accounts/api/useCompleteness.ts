@@ -16,6 +16,13 @@ export function useProfileCompleteness(): { items: CompletenessItem[]; done: num
     queryKey: profileFieldsKey(account),
     queryFn: async ({ signal }) => (await api<Schema<"AccountProfileFields">>({ path: "/api/v1/me/profile-fields", signal })).data,
   });
+  // Coaches also need something to sell: the first offer (draft or published) counts.
+  const coach = profile.roles.includes("Coach");
+  const offers = useQuery({
+    queryKey: [account, "coaching", "completeness", "offers"],
+    queryFn: async ({ signal }) => (await api<{ items: unknown[] }>({ path: "/api/v1/offers?page=1&pageSize=1", signal })).data,
+    enabled: coach,
+  });
   const details = detailsFromValues(fields.data?.values as Record<string, unknown> | undefined);
   const filled = (key: DetailKey) => {
     const value = details[key];
@@ -24,7 +31,8 @@ export function useProfileCompleteness(): { items: CompletenessItem[]; done: num
   const items: CompletenessItem[] = [
     { id: "bio", done: Boolean(profile.bio?.trim()), href: "/app/profile" },
     ...(Object.keys(DETAIL_GROUPS) as (keyof typeof DETAIL_GROUPS)[]).map((group) => ({ id: group, done: DETAIL_GROUPS[group].some(filled), href: "/app/settings?section=body" })),
+    ...(coach ? [{ id: "offer", done: (offers.data?.items.length ?? 0) > 0, href: "/app/offers/new" }] : []),
   ];
   const done = items.filter((item) => item.done).length;
-  return { items, done, percent: Math.round((done / items.length) * 100), pending: fields.isPending };
+  return { items, done, percent: Math.round((done / items.length) * 100), pending: fields.isPending || (coach && offers.isPending) };
 }

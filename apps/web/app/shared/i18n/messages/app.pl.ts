@@ -662,7 +662,7 @@ export const appPl: AppMessages = {
     searchPeople: "Szukaj osób",
     completeness: "Uzupełnienie profilu",
     completenessHint: "Ułatwia trenerom planowanie.",
-    completeItems: { bio: "Opis", location: "Lokalizacja", body: "Ciało", heart: "Tętno i regeneracja", training: "Trening", health: "Zdrowie i cele" } as Record<string, string>,
+    completeItems: { bio: "Opis", location: "Lokalizacja", body: "Ciało", heart: "Tętno i regeneracja", training: "Trening", health: "Zdrowie i cele", offer: "Pierwsza oferta" } as Record<string, string>,
     complete: "Uzupełnij",
     offers: "Oferty",
     offersCount: (n: number) => `${n} ${n === 1 ? "oferta" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "oferty" : "ofert"}`,

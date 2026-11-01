@@ -658,7 +658,7 @@ export const appEn = {
     searchPeople: "Search people",
     completeness: "Profile completeness",
     completenessHint: "Helps coaches plan.",
-    completeItems: { bio: "Introduction", location: "Location", body: "Body", heart: "Heart rate and recovery", training: "Training", health: "Health and goals" } as Record<string, string>,
+    completeItems: { bio: "Introduction", location: "Location", body: "Body", heart: "Heart rate and recovery", training: "Training", health: "Health and goals", offer: "First offer" } as Record<string, string>,
     complete: "Complete",
     offers: "Offers",
     offersCount: (n: number) => `${n} ${n === 1 ? "offer" : "offers"}`,
