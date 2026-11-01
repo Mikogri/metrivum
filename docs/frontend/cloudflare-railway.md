@@ -1,0 +1,77 @@
+# Cloudflare Pages + Railway
+
+Target: `https://metrivum.com` (static web), `https://api.metrivum.com` (API).
+Provider projects, DNS, secrets and deployment are not provisioned by these files.
+
+## Railway
+
+Create an API service from this GitHub repository. Use the repository root as build context;
+`railway.toml` selects the API Dockerfile and `/health/ready`. Start with one replica.
+Do not deploy the old `main` branch until the intended release changes have been reviewed and merged.
+Never configure a migration pre-deploy/start command.
+
+Configure service variables, never Git files:
+
+| Variable | Value / boundary |
+| --- | --- |
+| `AllowedHosts` | `api.metrivum.com;<actual Railway hostname>` |
+| `Cors__Origins__0` | `https://metrivum.com` |
+| `Cors__Origins__1` | `https://www.metrivum.com` only if that origin serves the app |
+| `ConnectionStrings__Database` | Restricted API role, session pooler, `SSL Mode=VerifyFull`; no Windows certificate path |
+| `Supabase__Auth__ProjectUrl` | Intended production Supabase project URL |
+| `Supabase__Auth__Audience` | `authenticated` |
+| `Storage__Url`, `Storage__Bucket`, `Storage__SecretKey` | Intended private bucket and server-only credential |
+
+Use a Linux certificate path with the verified provider CA if system trust does not validate it.
+Do not set `Trust Server Certificate`, weaken TLS, or place migration/admin database credentials in runtime variables.
+Set any module-specific provider secrets separately after reviewing the existing local configuration keys.
+Keep MCP disabled until its public URLs and OAuth consent have been configured.
+Configure trusted proxy addresses only from verified Railway network details; never blindly trust arbitrary forwarded IP headers.
+
+Add `api.metrivum.com` in Railway and apply exactly the DNS target/verification records Railway supplies.
+Verify HTTPS, readiness, unauthenticated rejection, authenticated reads, uploads, realtime and local-analyzer pairing.
+The API image does not contain Python/ML; local analysis remains on the user's computer.
+
+## Cloudflare Pages
+
+Create a Pages Git project for the same reviewed release branch, with repository root as root directory.
+Use a Node version satisfying root `package.json` and npm 11.21.0.
+Build command: `npx --yes npm@11.21.0 ci && npx --yes npm@11.21.0 run build && node apps/web/scripts/prepare-pages.mjs`.
+Output directory: `apps/web/build/client`. Python 3 is required by the anatomical asset prebuild.
+
+Set production build variables (public values only):
+
+```text
+VITE_API_URL=https://api.metrivum.com
+VITE_SITE_URL=https://metrivum.com
+VITE_SUPABASE_URL=<intended Supabase project URL>
+VITE_SUPABASE_PUBLISHABLE_KEY=<public publishable key>
+VITE_DEV_MOCKS=0
+PAGES_ASSET_ORIGIN=https://assets.metrivum.com
+```
+
+No PostgreSQL password or Storage service/secret key belongs in Pages build variables.
+Existing `_redirects` handles only SPA areas; `_headers` sets the baseline security headers.
+`prepare-pages.mjs` adds a real top-level 404 and rejects files exceeding Pages' 25 MiB limit.
+Create a public R2 bucket on `assets.metrivum.com` for public licensed anatomical assets and analyzer distributions only.
+Upload the prepared `apps/web/public/anatomy/` and `apps/web/public/downloads/` trees preserving their paths.
+Never upload user videos/private Supabase files to this public bucket. Configure R2 CORS for GET/HEAD
+from `https://metrivum.com` (and www only if used), correct MIME types, and immutable caching only on hash-named objects.
+With `PAGES_ASSET_ORIGIN`, the preparation script removes only those generated build folders and creates
+302 redirects to R2, preserving existing application URLs. Upload and verify R2 objects before publishing Pages.
+Several analyzer runtime archives exceed 5 GB; use R2 multipart upload rather than a single PUT.
+Check asset count and total build limits in the chosen Pages plan before publishing.
+
+Add `metrivum.com` through Pages Custom Domains; follow Cloudflare's apex nameserver requirements.
+Add `www` only with an intentional canonical redirect. Do not invent DNS target records before project creation.
+Update Supabase Site URL and the exact callback/reset redirect allowlist for the production domain;
+retain localhost only in the development environment. Configure production SMTP and test actual email flows.
+
+## Release gates
+
+The existing Supabase project is recorded as development and contains demo identities/data.
+Choose a separate production project or explicitly approve a reviewed conversion/data-cleanup plan first.
+Do not silently publish it as a production database. Apply reviewed migrations/grants explicitly.
+Complete remaining dependency/security gates in `docs/security/hardening-2026-11-01.md`, verify database
+plus Storage restore, and disable/publicly label simulated billing before accepting real customers.
+Provider account access and final DNS values are needed to perform deployment and end-to-end verification.
