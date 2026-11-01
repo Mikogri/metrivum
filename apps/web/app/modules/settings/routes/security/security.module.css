@@ -1,0 +1,202 @@
+/* Security pages: one process per page in a readable column, steps on top, the current state below. */
+.page {
+  display: grid;
+  gap: var(--tf-space-5);
+  max-width: 42rem;
+}
+
+.section {
+  display: grid;
+  gap: var(--tf-space-4);
+}
+
+.title {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-md);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.hint {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.quiet {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+/* Steps: numbered marks joined by a line; done steps get a tick, the current one the accent ring. */
+.steps {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+}
+
+.steps li[data-state="current"] {
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-medium);
+}
+
+.steps li[data-state="done"] {
+  color: var(--tf-color-text-secondary);
+}
+
+.stepMark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--tf-color-border);
+  border-radius: 50%;
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.stepMark svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.steps li[data-state="current"] .stepMark {
+  border-color: var(--tf-color-accent);
+  box-shadow: 0 0 0 3px var(--tf-color-accent-soft);
+  color: var(--tf-color-text);
+}
+
+.steps li[data-state="done"] .stepMark {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+@media (max-width: 40rem) {
+  .steps {
+    grid-auto-flow: row;
+  }
+}
+
+/* The address a link goes to, shown as a quiet read-only line. */
+.target {
+  display: grid;
+  gap: 2px;
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+}
+
+.target small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.target strong {
+  overflow-wrap: anywhere;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+/* Authenticator setup: the QR code on a light tile so every app can read it, the key beside it. */
+.qr {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--tf-space-5);
+  align-items: center;
+}
+
+.qr img {
+  width: 11rem;
+  height: 11rem;
+  padding: var(--tf-space-2);
+  border-radius: var(--tf-radius-md);
+  background: #fff;
+}
+
+.secret {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+
+.secret code {
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  color: var(--tf-color-text);
+  font-family: var(--tf-font-mono, ui-monospace, monospace);
+  font-size: var(--tf-text-sm);
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 40rem) {
+  .qr {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+}
+
+/* Recovery: each way back in as a short titled paragraph. */
+.scenarios {
+  display: grid;
+  gap: var(--tf-space-4);
+  margin: 0;
+}
+
+.scenarios div {
+  display: grid;
+  gap: var(--tf-space-1);
+}
+
+.scenarios dt {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.scenarios dd {
+  margin: 0;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.rowIcon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-color-text-secondary);
+}
+
+.rowIcon svg {
+  width: 1rem;
+  height: 1rem;
+}

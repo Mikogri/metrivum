@@ -26,6 +26,7 @@ export default [
       route("auth/forgot-password", "modules/auth/routes/forgot-password.tsx"),
       route("auth/reset-password", "modules/auth/routes/reset-password.tsx"),
       route("auth/callback", "modules/auth/routes/callback.tsx"),
+      route("auth/mfa", "modules/auth/routes/mfa.tsx"),
       route("onboarding", "modules/accounts/routes/onboarding.tsx"),
     ]),
     route("app", "layouts/app-layout.tsx", [
@@ -101,6 +102,11 @@ export default [
       route("video-analyses/shared/:token", "modules/video-analysis/routes/shared-analysis.tsx"),
       route("video-analyses/:analysisId", "modules/video-analysis/routes/analysis-detail.tsx"),
       route("settings", "modules/settings/routes/settings.tsx"),
+      // Sign-in and security: each change has its own page; the overview stays in settings.
+      route("settings/security/change-email", "modules/settings/routes/security/change-email.tsx"),
+      route("settings/security/change-password", "modules/settings/routes/security/change-password.tsx"),
+      route("settings/security/two-factor", "modules/settings/routes/security/two-factor.tsx"),
+      route("settings/security/recovery", "modules/settings/routes/security/recovery.tsx"),
       route("profile", "modules/people/routes/profile.tsx", { id: "my-profile" }),
       route("people/:username", "modules/people/routes/profile.tsx", { id: "person-profile" }),
       route("integrations/consent", "modules/integrations/consent.tsx"),

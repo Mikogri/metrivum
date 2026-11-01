@@ -1,3 +1,4 @@
+import { accountSecurityPl } from "./accountSecurity.pl";
 import { specializationsPl } from "./specializations.pl";
 import type { AppMessages } from "./app.en";
 import { discoveryPl } from "./discovery.pl";
@@ -5,6 +6,7 @@ import { discoveryPl } from "./discovery.pl";
 // Teksty aplikacji (PL).
 export const appPl: AppMessages = {
   discovery: discoveryPl,
+  accountSecurity: accountSecurityPl,
   specializations: specializationsPl,
   common: {
     noResults: "Brak wyników",
@@ -359,7 +361,10 @@ export const appPl: AppMessages = {
       title: "Zresetuj hasło",
       body: "Podaj e-mail konta. Jeśli konto istnieje, wyślemy link do ustawienia nowego hasła.",
       submit: "Wyślij link",
-      sent: "Sprawdź skrzynkę. Link po pewnym czasie wygasa — wtedy poproś o nowy.",
+      sent: "Jeśli to konto istnieje, link jest już w drodze. Działa jeden raz i wygasa po godzinie.",
+      resend: "Wyślij ponownie",
+      resendIn: (seconds: number) => `Wyślij ponownie za ${seconds} s`,
+      otherEmail: "Użyj innego adresu",
       backToLogin: "Wróć do logowania",
     },
     reset: {
@@ -372,6 +377,11 @@ export const appPl: AppMessages = {
       done: "Hasło zmienione. Jesteś zalogowany.",
       noSession: "Ten link wygasł albo został już użyty. Poproś o nowy.",
       requestNew: "Poproś o nowy link",
+      invalidTitle: "Ten link nie działa",
+      notFromLink: "Aby ustawić nowe hasło, otwórz w tej przeglądarce link z wiadomości e-mail.",
+      doneTitle: "Hasło zmienione",
+      doneBody: "Nowe hasło działa. Pozostałe urządzenia zostały wylogowane.",
+      continue: "Przejdź do Metrivum",
     },
     callback: {
       metaTitle: "Logowanie — Metrivum",
@@ -560,7 +570,7 @@ export const appPl: AppMessages = {
     usage: "Wykorzystanie",
     usageValue: (used: number, max: number) => `${used} z ${max}`,
     sections: { profile: "Profil", body: "Ciało i trening", security: "Logowanie i bezpieczeństwo", accounts: "Konta", privacy: "Prywatność", coaching: "Coaching", integrations: "Integracje", access: "Plan i dostęp" } as Record<string, string>,
-    sectionHints: { profile: "Nazwa, opis, język", body: "Dane do planowania treningu", security: "E-mail i hasło", accounts: "Konta w tej przeglądarce", privacy: "Kto może do Ciebie pisać", coaching: "Waluta ofert", integrations: "Połączone aplikacje", access: "Funkcje i limity" } as Record<string, string>,
+    sectionHints: { profile: "Nazwa, opis, język", body: "Dane do planowania treningu", security: "E-mail, hasło, 2FA", accounts: "Konta w tej przeglądarce", privacy: "Kto może do Ciebie pisać", coaching: "Waluta ofert", integrations: "Połączone aplikacje", access: "Funkcje i limity" } as Record<string, string>,
     coaching: "Preferencje coachingu",
     coachingBody: "Zmiana waluty dotyczy nowych wersji ofert. Istniejące zgłoszenia i zamówienia zachowują uzgodnioną walutę.",
     currency: "Waluta konta",

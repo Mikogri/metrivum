@@ -65,3 +65,10 @@
   font-size: var(--tf-text-xs);
   line-height: var(--tf-leading-snug);
 }
+
+/* Quiet context under a header or after a form: who is signed in, what to do if something is lost. */
+.note {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}

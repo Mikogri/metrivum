@@ -9,6 +9,7 @@ import { AccountScope } from "~/shared/session/AccountScope";
 import { loginPath, sanitizeReturnTo } from "~/shared/session/returnTo";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";
+import { needsSecondFactor } from "~/modules/auth";
 import { BootScreen } from "./BootScreen";
 import { ProfileContext, useProfileQuery } from "../api/useProfile";
 import styles from "./AccountGate.module.css";
@@ -37,6 +38,11 @@ export function AccountGate({ mode, children }: { mode: Mode; children: ReactNod
     const returnTo = `${location.pathname}${location.search}`;
     return <Navigate to={loginPath(sanitizeReturnTo(returnTo))} replace />;
   }
+  // The account has an authenticator: nothing private loads until this session passed the second step.
+  if (needsSecondFactor(account.session)) {
+    const returnTo = sanitizeReturnTo(`${location.pathname}${location.search}`);
+    return <Navigate to={`/auth/mfa?slot=${account.slot}&returnTo=${encodeURIComponent(returnTo)}`} replace />;
+  }
   const key = `${account.slot}:${account.userId}:${state.generation}`;
   return (
     <AccountScope key={key} account={account} generation={state.generation}>
@@ -61,6 +67,10 @@ function ProfileGate({ mode, children }: { mode: Mode; children: ReactNode }) {
 
   if (query.isError) {
     const error = query.error;
+    // The API checks the level against Auth itself; follow it when the stored session says otherwise.
+    const active = state.accounts.find((a) => a.slot === state.activeSlot);
+    if (error instanceof ApiError && error.code === "MFA_REQUIRED" && active && needsSecondFactor(active.session))
+      return <Navigate to={`/auth/mfa?slot=${active.slot}&returnTo=${encodeURIComponent(sanitizeReturnTo(`${location.pathname}${location.search}`))}`} replace />;
     if (error instanceof ApiError && error.status === 401) {
       return (
         <div className={styles.center}>

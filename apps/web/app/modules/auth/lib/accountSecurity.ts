@@ -35,12 +35,6 @@ export async function verifyPassword(email: string, password: string): Promise<b
   return true;
 }
 
-/** Sets a new password on the signed-in account; the current one goes along for Supabase's own check. */
-export async function changePassword(client: SupabaseClient, current: string | null, next: string) {
-  const { error } = await client.auth.updateUser({ password: next, ...(current ? { current_password: current } : {}) });
-  if (error) throw error;
-}
-
 /**
  * Starts an email change. Supabase sends a confirmation link to the new address (and, with secure email
  * change on, one to the current address too); the email changes only after the link(s) are opened.

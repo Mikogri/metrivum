@@ -1,9 +1,11 @@
+import { accountSecurityEn } from "./accountSecurity.en";
 import { specializationsEn } from "./specializations.en";
 // Application copy (EN). Sentence case, plain verbs; errors say what happened and what to do.
 import { discoveryEn } from "./discovery.en";
 
 export const appEn = {
   discovery: discoveryEn,
+  accountSecurity: accountSecurityEn,
   specializations: specializationsEn,
   common: {
     noResults: "No matches",
@@ -355,7 +357,10 @@ export const appEn = {
       title: "Reset your password",
       body: "Enter your account email. If it exists, we'll send a link to set a new password.",
       submit: "Send reset link",
-      sent: "Check your inbox. The link expires after a while; request a new one if it does.",
+      sent: "If an account uses this address, a link is on its way. It works once and expires after an hour.",
+      resend: "Send again",
+      resendIn: (seconds: number) => `Send again in ${seconds} s`,
+      otherEmail: "Use a different email",
       backToLogin: "Back to sign in",
     },
     reset: {
@@ -368,6 +373,11 @@ export const appEn = {
       done: "Password changed. You're signed in.",
       noSession: "This reset link has expired or was already used. Request a new one.",
       requestNew: "Request a new link",
+      invalidTitle: "This link doesn't work",
+      notFromLink: "To set a new password, open the reset link from your email in this browser.",
+      doneTitle: "Password updated",
+      doneBody: "Your new password is active. Your other devices were signed out.",
+      continue: "Continue to Metrivum",
     },
     callback: {
       metaTitle: "Signing in — Metrivum",
@@ -556,7 +566,7 @@ export const appEn = {
     usage: "Usage",
     usageValue: (used: number, max: number) => `${used} of ${max}`,
     sections: { profile: "Profile", body: "Body and training", security: "Sign-in and security", accounts: "Accounts", privacy: "Privacy", coaching: "Coaching", integrations: "Integrations", access: "Plan and access" } as Record<string, string>,
-    sectionHints: { profile: "Name, introduction, language", body: "What your coach plans with", security: "Email and password", accounts: "Accounts in this browser", privacy: "Who can message you", coaching: "Currency for offers", integrations: "Connected apps", access: "Features and limits" } as Record<string, string>,
+    sectionHints: { profile: "Name, introduction, language", body: "What your coach plans with", security: "Email, password, two-factor", accounts: "Accounts in this browser", privacy: "Who can message you", coaching: "Currency for offers", integrations: "Connected apps", access: "Features and limits" } as Record<string, string>,
     coaching: "Coaching preferences",
     coachingBody: "Currency changes apply to new offer revisions. Existing applications and orders keep their agreed currency.",
     currency: "Account currency",

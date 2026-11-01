@@ -19,6 +19,8 @@ beforeEach(() => {
   mocks.exchangeCodeForSession.mockResolvedValue(result);
   mocks.verifyOtp.mockResolvedValue(result);
   mocks.signOut.mockResolvedValue({ error: null });
+  mocks.completeSignIn.mockResolvedValue(0);
+  sessionStorage.clear();
 });
 describe("browser-bound authentication callbacks", () => {
   it.each(["code=unsolicited", "token_hash=attacker&type=email"])("rejects unsolicited %s before contacting Auth", async (query) => {
@@ -45,6 +47,13 @@ describe("browser-bound authentication callbacks", () => {
     open(`${callbackUrl(0, "/auth/reset-password", "member@example.test")}&token_hash=recovery&type=recovery`);
     await screen.findByText("Recovery destination");
     expect(mocks.completeSignIn).toHaveBeenCalledOnce();
+    // Only this tab may now open the new-password form, and only for this account.
+    expect(JSON.parse(sessionStorage.getItem("tf.auth.recovery.0")!)).toMatchObject({ userId: "expected" });
+  });
+  it("does not unlock the password form after an ordinary sign-in link", async () => {
+    open(`${callbackUrl(0, "/app/dashboard", "member@example.test")}&code=expected`);
+    await screen.findByText("Authorized destination");
+    expect(sessionStorage.getItem("tf.auth.recovery.0")).toBeNull();
   });
   it("rejects duplicate nonce parameters without consuming a legitimate request", async () => {
     const url = callbackUrl(0, "/app/dashboard", "member@example.test");

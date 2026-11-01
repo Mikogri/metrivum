@@ -9,12 +9,20 @@ public sealed class SupabaseAuthOptions
 {
     public string ProjectUrl { get; set; } = "http://127.0.0.1:54321";
     public string Audience { get; set; } = "authenticated";
+    /// <summary>
+    /// Refuse first-level (aal1) sessions of accounts with a verified second factor. Off until
+    /// <c>infra/auth-second-factor.sql</c> has been applied to the database.
+    /// </summary>
+    public bool RequireSecondFactorWhenEnrolled { get; set; }
     public string Issuer => ProjectUrl.TrimEnd('/') + "/auth/v1";
     public string JwksUrl => Issuer + "/.well-known/jwks.json";
 }
 
 public static class SupabaseAuthentication
 {
+    /// <summary>Marks a request refused only because its session still needs the second factor.</summary>
+    public const string SecondFactorRequiredItem = "Metrivum.Auth.SecondFactorRequired";
+
     public static IServiceCollection AddSupabaseAuthentication(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         var settings = configuration.GetSection("Supabase:Auth").Get<SupabaseAuthOptions>() ?? new();
@@ -63,7 +71,30 @@ public static class SupabaseAuthentication
                     }
                     var validator = context.HttpContext.RequestServices.GetRequiredService<IAuthSessionValidator>();
                     if (!await validator.IsActiveAsync(id, session, context.HttpContext.RequestAborted))
+                    {
                         context.Fail("The user session is no longer active.");
+                        return;
+                    }
+                    // A signed aal2 token already passed the second step; only aal1 tokens need Auth's records.
+                    if (settings.RequireSecondFactorWhenEnrolled && principal.FindFirst("aal")?.Value != "aal2" &&
+                        !await validator.MeetsSecondFactorAsync(id, session, context.HttpContext.RequestAborted))
+                    {
+                        context.HttpContext.Items[SecondFactorRequiredItem] = true;
+                        context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Metrivum.Security")
+                            .LogWarning("Refused a first-level session for user {UserId}: the account requires its second factor.", id);
+                        context.Fail("The session has not passed the second factor.");
+                    }
+                },
+                OnChallenge = async context =>
+                {
+                    if (!context.HttpContext.Items.ContainsKey(SecondFactorRequiredItem))
+                        return;
+                    // A stable code lets the web app open the second step instead of signing the person out.
+                    context.HandleResponse();
+                    context.Response.Headers.CacheControl = "no-store";
+                    await Results.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Second factor required",
+                        detail: "Verify with your authenticator app to continue.",
+                        extensions: new Dictionary<string, object?> { ["code"] = "MFA_REQUIRED" }).ExecuteAsync(context.HttpContext);
                 }
             };
         });

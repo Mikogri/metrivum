@@ -6,8 +6,10 @@ import { useSessionManager } from "~/shared/session/SessionProvider";
 import { AuthFooter, AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
 import { authErrorText } from "../lib/authErrors";
+import { EMAIL_RESEND_SECONDS } from "../lib/assurance";
 import { callbackUrl, slotParam } from "../lib/urls";
 import { isValidEmail, normalizeEmail } from "../lib/email";
+import { useCooldown } from "../lib/useCooldown";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Reset password — Metrivum");
@@ -22,12 +24,11 @@ export default function ForgotPassword() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [wait, startWait] = useCooldown();
   const slot = manager.slotForNewSignIn(slotParam(params.get("slot")));
 
-  async function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    setSubmitted(true);
-    if (!isValidEmail(email) || slot === null) return;
+  async function send() {
+    if (!isValidEmail(email) || slot === null || pending || wait > 0) return;
     const address = normalizeEmail(email);
     setPending(true);
     setError(null);
@@ -38,6 +39,7 @@ export default function ForgotPassword() {
       if (resetError) throw resetError;
       // Same message whether or not the account exists, to avoid account enumeration.
       setSent(true);
+      startWait(EMAIL_RESEND_SECONDS);
     } catch (caught) {
       setError(authErrorText(m, caught));
     } finally {
@@ -45,13 +47,26 @@ export default function ForgotPassword() {
     }
   }
 
+  function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setSubmitted(true);
+    void send();
+  }
+
   return (
     <>
       <AuthHeader title={t.title} subtitle={t.body} />
       {slot === null ? <Alert tone="warning" title={m.auth.login.full} /> : null}
-      {sent ? <Alert tone="success" title={t.sent} live="polite" /> : null}
+      {sent ? <Alert tone="success" title={t.sent} live="polite">{m.accountSecurity.password.sameBrowser}</Alert> : null}
       {error ? <Alert tone="danger" title={error} live="assertive" /> : null}
-      {sent || slot === null ? null : (
+      {slot === null ? null : sent ? (
+        <div className={form.row}>
+          <Button variant="ghost" size="sm" onPress={() => void send()} loading={pending} isDisabled={wait > 0}>
+            {wait > 0 ? t.resendIn(wait) : t.resend}
+          </Button>
+          <button type="button" className={form.textButton} onClick={() => { setSent(false); setSubmitted(false); setError(null); }}>{t.otherEmail}</button>
+        </div>
+      ) : (
         <form className={form.form} onSubmit={onSubmit} noValidate>
           <TextField placeholder={m.common.ph.email}
             label={m.auth.email}
@@ -63,8 +78,8 @@ export default function ForgotPassword() {
             isInvalid={submitted && !isValidEmail(email)}
             errorMessage={m.auth.errors.emailInvalid}
           />
-          <Button type="submit" variant="primary" block loading={pending}>
-            {t.submit}
+          <Button type="submit" variant="primary" block loading={pending} isDisabled={wait > 0}>
+            {wait > 0 ? t.resendIn(wait) : t.submit}
           </Button>
         </form>
       )}

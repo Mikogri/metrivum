@@ -9,6 +9,7 @@ import { SLOT_IDS, type SlotId } from "~/shared/session/storage-keys";
 import { AuthWorking } from "../components/AuthWorking";
 import { slotParam } from "../lib/urls";
 import { consumeCallbackAttempt, readCallbackAttempt } from "../lib/callback-attempt";
+import { markPasswordRecovery } from "../lib/assurance";
 import styles from "./callback.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
@@ -120,8 +121,10 @@ export default function AuthCallback() {
           await client.auth.signOut({ scope: "local" });
           throw new Error("Invalid account for this sign-in link.");
         }
-        await manager.completeSignIn(slot, session);
+        const used = await manager.completeSignIn(slot, session);
         const next = type === "recovery" ? "/auth/reset-password" : nextPath(params.get("next"));
+        // Only a reset link opened in this tab unlocks the new-password form.
+        if (next === "/auth/reset-password") markPasswordRecovery(used, session.user.id);
         // Replace history so the one-time code never stays in the back stack.
         navigate(next, { replace: true });
       } catch (error) {

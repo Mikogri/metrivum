@@ -55,6 +55,52 @@ public sealed class JwtTests
     }
 
     [Fact]
+    public async Task First_level_session_of_an_account_with_a_second_factor_gets_a_distinct_refusal()
+    {
+        using var factory = new ApiFactory { RequireSecondFactor = true, SecondFactorMet = false };
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(Guid.NewGuid(), aal: "aal1"));
+        var result = await client.GetAsync("/api/v1/me");
+        Assert.Equal(HttpStatusCode.Unauthorized, result.StatusCode);
+        Assert.Contains("\"MFA_REQUIRED\"", await result.Content.ReadAsStringAsync());
+        Assert.Equal(1, factory.SecondFactorChecks);
+    }
+
+    [Fact]
+    public async Task Second_level_token_skips_the_factor_lookup()
+    {
+        using var factory = new ApiFactory { RequireSecondFactor = true, SecondFactorMet = false };
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(Guid.NewGuid(), aal: "aal2"));
+        var result = await client.GetAsync("/api/v1/me");
+        Assert.DoesNotContain("MFA_REQUIRED", await result.Content.ReadAsStringAsync());
+        Assert.Equal(0, factory.SecondFactorChecks);
+    }
+
+    [Fact]
+    public async Task Second_factor_check_stays_off_until_configured()
+    {
+        using var factory = new ApiFactory { SecondFactorMet = false };
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(Guid.NewGuid(), aal: "aal1"));
+        var result = await client.GetAsync("/api/v1/me");
+        Assert.DoesNotContain("MFA_REQUIRED", await result.Content.ReadAsStringAsync());
+        Assert.Equal(0, factory.SecondFactorChecks);
+    }
+
+    [Fact]
+    public async Task Revoked_session_is_refused_before_the_second_factor_lookup()
+    {
+        using var factory = new ApiFactory { SessionActive = false, RequireSecondFactor = true, SecondFactorMet = false };
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(Guid.NewGuid(), aal: "aal1"));
+        var result = await client.GetAsync("/api/v1/me");
+        Assert.Equal(HttpStatusCode.Unauthorized, result.StatusCode);
+        Assert.DoesNotContain("MFA_REQUIRED", await result.Content.ReadAsStringAsync());
+        Assert.Equal(0, factory.SecondFactorChecks);
+    }
+
+    [Fact]
     public async Task Missing_token_is_unauthorized_and_liveness_is_public()
     {
         using var factory = new ApiFactory();
@@ -70,6 +116,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     private readonly string? database;
     public ApiFactory(string? database = null) => this.database = database;
     public bool SessionActive { get; set; } = true;
+    public bool RequireSecondFactor { get; set; }
+    public bool SecondFactorMet { get; set; } = true;
+    private int secondFactorChecks;
+    public int SecondFactorChecks => Volatile.Read(ref secondFactorChecks);
     public RsaSecurityKey Key => new(rsa) { KeyId = "test-key" };
     public IConfigurationManager<OpenIdConnectConfiguration>? KeyManager
     {
@@ -89,6 +139,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         {
             ["ConnectionStrings:Database"] = database ?? "Host=127.0.0.1;Port=1;Database=unused;Username=test;Timeout=1",
             ["Supabase:Auth:ProjectUrl"] = "https://test-project.supabase.co",
+            ["Supabase:Auth:RequireSecondFactorWhenEnrolled"] = RequireSecondFactor ? "true" : "false",
             ["AllowedHosts"] = "*"
         })
             builder.UseSetting(setting.Key, setting.Value);
@@ -103,6 +154,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     private sealed class TestSessionValidator(ApiFactory factory) : IAuthSessionValidator
     {
         public Task<bool> IsActiveAsync(Guid userId, Guid sessionId, CancellationToken ct) => Task.FromResult(factory.SessionActive);
+        public Task<bool> MeetsSecondFactorAsync(Guid userId, Guid sessionId, CancellationToken ct)
+        {
+            Interlocked.Increment(ref factory.secondFactorChecks);
+            return Task.FromResult(factory.SecondFactorMet);
+        }
     }
 
     private sealed class TestCurrencyConverter : Metrivum.Billing.Infrastructure.IPlatformCurrencyConverter
@@ -115,7 +171,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         }
     }
 
-    public string Token(Guid userId, string? fault = null, bool metadataAdmin = false, string? oauthClientId = null)
+    public string Token(Guid userId, string? fault = null, bool metadataAdmin = false, string? oauthClientId = null, string? aal = null)
     {
         var now = DateTime.UtcNow;
         var claims = new List<Claim>
@@ -128,6 +184,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             new("user_metadata", metadataAdmin ? "{\"Admin\":true,\"role\":\"AccessAdmin\",\"capabilities\":[\"all\"]}" : "{}", "JSON")
         };
         if (oauthClientId != null) claims.Add(new("client_id", oauthClientId));
+        if (aal != null) claims.Add(new("aal", aal));
         using var other = RSA.Create(2048);
         var key = fault == "signature" ? new RsaSecurityKey(other) { KeyId = "test-key" } : SigningKey ?? Key;
         if (fault == "unknown_kid")

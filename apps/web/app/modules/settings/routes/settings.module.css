@@ -545,3 +545,86 @@
   color: var(--tf-color-text);
   font-variant-numeric: tabular-nums;
 }
+
+/* Sign-in and security overview: one row per method with its status and the page that changes it. */
+.securityRows {
+  display: grid;
+  margin: var(--tf-space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.securityRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--tf-space-3) var(--tf-space-4);
+  align-items: start;
+  padding: var(--tf-space-4) 0;
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.securityRow:first-child {
+  border-top: 0;
+  padding-top: var(--tf-space-1);
+}
+
+.securityRow:last-child {
+  padding-bottom: 0;
+}
+
+.securityIcon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-color-text-secondary);
+}
+
+.securityIcon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.securityText {
+  display: grid;
+  gap: var(--tf-space-1);
+  min-width: 0;
+}
+
+.securityHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.securityHead h3 {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.securityValue {
+  overflow: hidden;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.securityAction {
+  align-self: center;
+}
+
+@media (max-width: 40rem) {
+  .securityRow {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .securityAction {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
