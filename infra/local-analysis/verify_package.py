@@ -1,5 +1,6 @@
 """Inspect runtime archive member names for forbidden machine/account configuration."""
 import argparse
+import json
 from pathlib import Path
 import tarfile
 
@@ -20,6 +21,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', type=Path)
     args = parser.parse_args()
-    for name in ('pose', 'vision', 'points'):
-        path = args.directory / (name + '.tar.gz')
+    manifest = json.loads((args.directory / 'release.json').read_text())
+    for asset in manifest['assets']:
+        if not asset['target'].startswith('env/'):
+            continue
+        path = args.directory / asset['name']
         print(f'{path.name}: {verify(path)} entries checked; no forbidden account/configuration members', flush=True)

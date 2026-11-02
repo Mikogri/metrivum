@@ -1,6 +1,6 @@
-/app /__spa-fallback.html 200
-/app/* /__spa-fallback.html 200
-/auth /__spa-fallback.html 200
-/auth/* /__spa-fallback.html 200
-/onboarding /__spa-fallback.html 200
-/onboarding/* /__spa-fallback.html 200
+/app /__spa-fallback 200
+/app/* /__spa-fallback 200
+/auth /__spa-fallback 200
+/auth/* /__spa-fallback 200
+/onboarding /__spa-fallback 200
+/onboarding/* /__spa-fallback 200

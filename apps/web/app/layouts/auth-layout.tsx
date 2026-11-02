@@ -4,7 +4,7 @@ import { Outlet, Link as RouterLink, useLocation } from "react-router";
 import { LightRays, Segment, SegmentedControl } from "@metrivum/ui-web";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { Logo } from "~/modules/marketing/components/Logo";
-import "./night-theme.module.css";
+import "./night-theme.css";
 import styles from "./auth-layout.module.css";
 
 

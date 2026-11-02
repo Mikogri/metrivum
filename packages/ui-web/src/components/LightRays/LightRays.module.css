@@ -1,4 +1,4 @@
-.rays {
+:where(.rays) {
   position: relative;
   width: 100%;
   height: 100%;

@@ -79,3 +79,5 @@ plus Storage restore, and disable/publicly label simulated billing before accept
 Provider account access and final DNS values are needed to perform deployment and end-to-end verification.
 
 Storage REST requests send opaque secret keys only through the `apikey` header; legacy JWT keys also use `Authorization: Bearer`. Keep `Storage__SecretKey` server-only. See [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys).
+
+Public-page production regressions: the night palette is global CSS (not a side-effect-only CSS module), and the shared LightRays container uses zero specificity so route geometry survives CSS chunk ordering. Pages SPA rewrites target `/__spa-fallback` without `.html` to avoid Pages canonicalization redirecting the browser away from the original route. After deployment, verify a fresh direct visit to `/auth/login` stays on that URL.

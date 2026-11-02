@@ -378,10 +378,12 @@ internal sealed class SetupForm : Form
     private async Task WriteConfigurationAsync(CancellationToken token)
     {
         var motiontrace = Path.Combine(destination, "motiontrace");
+        var compact = !release.Assets.Any(asset => asset.Name == "vision.tar.gz");
+        var pointsPython = Path.Combine(destination, "env/points/python.exe");
         var settings = Path.Combine(destination, "settings"); Directory.CreateDirectory(settings);
         var json = new JsonSerializerOptions { WriteIndented = true };
         await File.WriteAllTextAsync(Path.Combine(settings, "settings.json"), JsonSerializer.Serialize(new {
-            PythonExecutable = Path.Combine(destination, "env/pose/python.exe"), VisionExecutablePath = Path.Combine(destination, "env/vision/python.exe"),
+            PythonExecutable = compact ? pointsPython : Path.Combine(destination, "env/pose/python.exe"), VisionExecutablePath = compact ? pointsPython : Path.Combine(destination, "env/vision/python.exe"),
             PointsExecutablePath = Path.Combine(destination, "env/points/python.exe"), ModelsRoot = Path.Combine(motiontrace, ".models/vision"),
             PointsModelsRoot = Path.Combine(motiontrace, ".models/points"), Device = "cuda:0", PoseModel = "rtmpose-l_8xb256-420e_body8-384x288", PoseWeights = "", CropPadding = .2, TapNextResolution = 256
         }, json), token);

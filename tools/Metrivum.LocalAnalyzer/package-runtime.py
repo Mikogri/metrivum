@@ -20,7 +20,7 @@ def digest(path):
     return result.hexdigest()
 
 
-def archive(output, sources, reuse=False):
+def archive(output, sources, reuse=False, points_only=False):
     if output.exists() and reuse:
         print('Reusing', output.name, flush=True)
         return
@@ -29,6 +29,8 @@ def archive(output, sources, reuse=False):
         for source, prefix in sources:
             for path in source.rglob('*'):
                 relative = path.relative_to(source)
+                if points_only and ((prefix == 'vision' and str(relative) != 'manifest.json') or path.name == 'tapnextpp_512.ckpt'):
+                    continue
                 if not path.is_file() or path.is_symlink() or any(part in ('.git', '__pycache__', '.pytest_cache') for part in relative.parts):
                     continue
                 if path.suffix in ('.pyc', '.log') or path.name.startswith('.env'):
@@ -71,7 +73,8 @@ def stream_windows_wheel_libraries(files):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--version', default='1.7.0')
+    parser.add_argument('--points-only', action='store_true', help='Package only the web TAPNext++ runtime, preserving model precision')
+    parser.add_argument('--version', default='1.8.0')
     parser.add_argument('--motiontrace', type=Path, required=True)
     parser.add_argument('--environments', type=Path, required=True)
     parser.add_argument('--host', type=Path, required=True)
@@ -93,7 +96,8 @@ def main():
                     '--output', str(args.output / 'tapnext-audit.json')], check=True, stdout=subprocess.DEVNULL)
     audit_path = args.output / 'packaging-audit.json'
     audit = json.loads(audit_path.read_text()) if audit_path.exists() else {}
-    for label, name in [('pose', 'motiontrace'), ('vision', 'motiontrace-vision'), ('points', 'motiontrace-points')]:
+    environments = [('points', 'motiontrace-points')] if args.points_only else [('pose', 'motiontrace'), ('vision', 'motiontrace-vision'), ('points', 'motiontrace-points')]
+    for label, name in environments:
         output = args.output / (label + '.tar.gz')
         receipt = args.output / (label + '.pack-v2.json')
         if not output.exists() or not receipt.exists():
@@ -111,17 +115,22 @@ def main():
     (args.output / 'packaging-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     archive(args.output / 'host.tar.gz', [(args.host, '')])
     archive(args.output / 'source.tar.gz', [(args.motiontrace / 'ai', 'ai'), (args.motiontrace / 'ThirdPartyNotices', 'ThirdPartyNotices')])
-    archive(args.output / 'models.tar.gz', [(args.motiontrace / '.models/vision', 'vision'), (args.motiontrace / '.models/points', 'points')], reuse=True)
+    archive(args.output / 'models.tar.gz', [(args.motiontrace / '.models/vision', 'vision'), (args.motiontrace / '.models/points', 'points')], reuse=not args.points_only, points_only=args.points_only)
     checkpoints = Path.home() / '.cache/torch/hub/checkpoints'
     # These files are the existing RTMPose/RTMDet offline dependency, not videos or job caches.
-    archive(args.output / 'torch.tar.gz', [(checkpoints, 'hub/checkpoints')], reuse=True)
+    if not args.points_only:
+        archive(args.output / 'torch.tar.gz', [(checkpoints, 'hub/checkpoints')], reuse=True)
     targets = {'pose': 'env/pose', 'vision': 'env/vision', 'points': 'env/points', 'host': '.',
                'source': 'motiontrace', 'models': 'motiontrace/.models', 'torch': 'torch'}
+    if args.points_only:
+        targets = {name: target for name, target in targets.items() if name not in ('pose', 'vision', 'torch')}
     assets = []
     for name, target in targets.items():
         path = args.output / (name + '.tar.gz')
         print('Hashing', path.name, flush=True)
         assets.append({'name': path.name, 'target': target, 'size': path.stat().st_size, 'sha256': digest(path)})
+    if args.points_only and sum(asset['size'] for asset in assets) > 8_900_000_000:
+        raise ValueError('Runtime payload exceeds budget; reserve 100 MB for the installer within 9 GB total')
     manifest = {'version': args.version, 'baseUrl': args.base_url.rstrip('/') + '/', 'webOrigin': args.web_origin,
                 'assets': assets}
     (args.output / 'release.json').write_text(json.dumps(manifest, indent=2) + '\n')

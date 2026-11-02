@@ -143,3 +143,11 @@ A repeat of the full benchmark after installation was refused by the unchanged m
 the machine had only 1.4-1.6 GiB free RAM; the successful full-pipeline timings above are from the development run.
 
 Point selection: choose a sharp frame where two distinct fixed physical locations on the bar are visible, preferably near opposite ends of its axis. Spread them apart; avoid two nearby pixels, hands, shadows, background and rotating plate-rim marks. In 1.5 the frame may be anywhere in the clip; tracking runs both ways. A clear frame near the beginning of the lift reduces backward-tracking uncertainty. Inspect the overlay against the real bar before interpreting the charts; the midpoint of the two tracks is measured, not automatically recognized chest/floor height.
+
+## Compact web release (1.8)
+
+`build-installer.ps1` now defaults to the points-only web runtime. One isolated Python environment serves the session orchestrator and TAPNext++; the active 256-resolution checkpoint is unchanged. Pose/classification environments, their unused model weights and the unused 512-resolution duplicate are omitted. Keep notices and source files. `-FullRuntime` preserves the legacy full bundle for separate non-web use.
+
+The build refuses a compact payload above 8.9 GB and an installer plus payload above 9 GB (decimal). This is download size, not installed size or temporary extraction space. Use a fresh release output directory and a versioned HTTPS asset URL, for example `https://assets.metrivum.com/downloads/analyzer/1.8.0`, with `-WebOrigin https://metrivum.com`. Production publication still requires code signing and uploading every hash-pinned asset before publishing update metadata. Never point clients to a partly uploaded release.
+
+Packaging regression: `python infra/local-analysis/test_package_runtime.py`. Production public-UI regression: build web, start its preview on port 4188, then run `node --test apps/web/scripts/public-ui.test.mjs` (override `PUBLIC_UI_TEST_URL` for another port).

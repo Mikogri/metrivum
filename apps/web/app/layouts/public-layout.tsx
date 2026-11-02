@@ -6,7 +6,7 @@ import { PublicFooter } from "~/modules/marketing/components/PublicFooter";
 import { PublicHeader } from "~/modules/marketing/components/PublicHeader";
 import { PublicMessagesProvider } from "~/modules/marketing/messages";
 import { hasStoredSessionHint } from "~/shared/session/storage-keys";
-import "./night-theme.module.css";
+import "./night-theme.css";
 import styles from "./public-layout.module.css";
 
 export default function PublicLayout() {

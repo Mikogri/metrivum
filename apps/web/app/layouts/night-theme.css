@@ -2,7 +2,7 @@
  * Night palette for the public site and the sign-in pages: a neutral near-black, glossy graphite surfaces with a
  * light top edge, white-to-grey type, and one muted green for the main action and data accents.
  */
-:global([data-public-theme="night"]) {
+[data-public-theme="night"] {
   color-scheme: dark;
 
   --tf-color-bg: #050505;
