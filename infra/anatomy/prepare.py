@@ -3,6 +3,7 @@ import argparse
 import collections
 import csv
 import hashlib
+import http.client
 import json
 import pathlib
 import re
@@ -108,19 +109,45 @@ def glb(meshes):
     return struct.pack("<III", 0x46546C67, 2, 28 + len(encoded) + len(binary)) + struct.pack("<II", len(encoded), 0x4E4F534A) + encoded + struct.pack("<II", len(binary), 0x004E4942) + binary
 
 
+def ensure_source(source, name, expected):
+    destination = source / name
+    if destination.exists():
+        actual = hashlib.sha256(destination.read_bytes()).hexdigest()
+        if actual != expected:
+            raise ValueError(f"Source checksum changed: {name}; expected {expected}, got {actual} ({destination.stat().st_size} bytes); remove the invalid cached file before retrying")
+        return
+    temporary = source / (name + ".download")
+    for attempt in range(1, 4):
+        try:
+            print(f"Downloading {name} (attempt {attempt}/3)", flush=True)
+            with urllib.request.urlopen(BASE + name, timeout=120) as response, temporary.open("wb") as target:
+                if response.status != 200:
+                    raise ValueError(f"Unexpected HTTP status {response.status}; expected a complete response")
+                shutil.copyfileobj(response, target)
+                length = response.headers.get("Content-Length")
+            size = temporary.stat().st_size
+            if length is not None and size != int(length):
+                raise ValueError(f"Incomplete download: expected {length} bytes, got {size}")
+            actual = hashlib.sha256(temporary.read_bytes()).hexdigest()
+            if actual != expected:
+                raise ValueError(f"Source checksum changed: {name}; expected {expected}, got {actual} ({size} bytes); review the provider update explicitly")
+            temporary.replace(destination)
+            return
+        except (OSError, ValueError, http.client.IncompleteRead) as error:
+            if attempt == 3:
+                raise
+            print(f"Download rejected: {error}; retrying", flush=True)
+        finally:
+            if temporary.exists():
+                temporary.unlink()
+
+
 def prepare(source, output):
     output.mkdir(parents=True, exist_ok=True)
     lock_path = ROOT / "infra/anatomy/source-lock.json"
-    lock = json.loads(lock_path.read_text(encoding="utf-8")) if lock_path.exists() else {}
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
     for name in FILES:
-        if not (source / name).exists():
-            print("Downloading", name, flush=True)
-            temporary = source / (name + ".download")
-            with urllib.request.urlopen(BASE + name, timeout=120) as response, temporary.open("wb") as target:
-                shutil.copyfileobj(response, target)
-            temporary.replace(source / name)
-        if name in lock and hashlib.sha256((source / name).read_bytes()).hexdigest() != lock[name]:
-            raise ValueError(f"Source checksum changed: {name}; review the provider update explicitly")
+        ensure_source(source, name, lock[name])
     names, representations, children = {}, {}, collections.defaultdict(set)
     elements, parents = collections.defaultdict(set), {"isa": [], "partof": []}
     for variant in ("isa", "partof"):

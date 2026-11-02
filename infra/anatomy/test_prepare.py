@@ -3,6 +3,10 @@ import json
 import pathlib
 import struct
 import unittest
+import hashlib
+import io
+import tempfile
+from unittest.mock import patch
 
 HERE = pathlib.Path(__file__).parent
 spec = importlib.util.spec_from_file_location("prepare", HERE / "prepare.py")
@@ -11,6 +15,36 @@ spec.loader.exec_module(prepare)
 
 
 class AnatomyImportTests(unittest.TestCase):
+    def test_download_retries_corrupt_or_partial_response_before_caching(self):
+        good = b"verified archive"
+        def response(data, status=200, length=None):
+            stream = io.BytesIO(data)
+            stream.status = status
+            stream.headers = {"Content-Length": str(len(data) if length is None else length)}
+            return stream
+        with tempfile.TemporaryDirectory() as directory:
+            source = pathlib.Path(directory)
+            with patch.object(prepare.urllib.request, "urlopen", side_effect=[
+                response(b"partial", 206), response(b"truncated", length=100), response(good)
+            ]) as download:
+                prepare.ensure_source(source, "archive.zip", hashlib.sha256(good).hexdigest())
+            self.assertEqual(download.call_count, 3)
+            self.assertEqual((source / "archive.zip").read_bytes(), good)
+            self.assertFalse((source / "archive.zip.download").exists())
+
+    def test_checksum_mismatch_never_becomes_cached_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = pathlib.Path(directory)
+            def response(*args, **kwargs):
+                stream = io.BytesIO(b"changed")
+                stream.status = 200
+                stream.headers = {}
+                return stream
+            with patch.object(prepare.urllib.request, "urlopen", side_effect=response):
+                with self.assertRaisesRegex(ValueError, "expected .*got"):
+                    prepare.ensure_source(source, "archive.zip", hashlib.sha256(b"original").hexdigest())
+            self.assertEqual(list(source.iterdir()), [])
+
     def test_conversion_preserves_positions_topology_and_separate_identity(self):
         obj = "v 1 2 3\nv 4 5 6\nv 7 8 9\nf 1 2 3\n"
         data = prepare.glb([({"id": "FJ1"}, obj), ({"id": "FJ2"}, obj)])
