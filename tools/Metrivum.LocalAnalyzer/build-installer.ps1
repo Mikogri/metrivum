@@ -6,7 +6,7 @@ param(
     [string]$PackagingTools = '',
     [string]$BaseUrl = 'http://localhost:5173/downloads/analyzer',
     [string]$WebOrigin = 'http://localhost:5173',
-    [string]$Version = '1.8.0',
+    [string]$Version = '1.8.1',
     [string]$OutputDirectory = '',
     [string]$SigningCertificateThumbprint = ''
 )

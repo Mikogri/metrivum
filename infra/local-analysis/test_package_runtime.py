@@ -1,5 +1,6 @@
 """Packaging regressions; tiny synthetic files, no ML dependencies or credentials."""
 import importlib.util
+import gzip
 from pathlib import Path
 import tarfile
 import tempfile
@@ -27,6 +28,21 @@ class CompactPackageTests(unittest.TestCase):
             packaging.archive(output, sources)
             with tarfile.open(output) as tar:
                 self.assertIn('points/tapnextpp_512.ckpt', tar.getnames())
+
+    def test_compression_preserves_every_file_byte(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / 'source'
+            source.mkdir()
+            data = bytes(range(256)) * 4096
+            (source / 'runtime.bin').write_bytes(data)
+            output = root / 'runtime.tar.gz'
+            packaging.archive(output, [(source, '')])
+            with tarfile.open(output) as tar:
+                self.assertEqual(tar.extractfile('runtime.bin').read(), data)
+            with gzip.open(output, 'rb') as tar:
+                plain = tar.read()
+            self.assertLess(output.stat().st_size, len(gzip.compress(plain, compresslevel=1)))
 
 if __name__ == '__main__':
     unittest.main()

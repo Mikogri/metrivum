@@ -25,7 +25,7 @@ def archive(output, sources, reuse=False, points_only=False):
         print('Reusing', output.name, flush=True)
         return
     temporary = output.with_suffix('.partial')
-    with tarfile.open(temporary, 'w:gz', compresslevel=1) as target:
+    with tarfile.open(temporary, 'w:gz', compresslevel=6) as target:
         for source, prefix in sources:
             for path in source.rglob('*'):
                 relative = path.relative_to(source)
@@ -74,7 +74,7 @@ def stream_windows_wheel_libraries(files):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--points-only', action='store_true', help='Package only the web TAPNext++ runtime, preserving model precision')
-    parser.add_argument('--version', default='1.8.0')
+    parser.add_argument('--version', default='1.8.1')
     parser.add_argument('--motiontrace', type=Path, required=True)
     parser.add_argument('--environments', type=Path, required=True)
     parser.add_argument('--host', type=Path, required=True)
@@ -99,7 +99,7 @@ def main():
     environments = [('points', 'motiontrace-points')] if args.points_only else [('pose', 'motiontrace'), ('vision', 'motiontrace-vision'), ('points', 'motiontrace-points')]
     for label, name in environments:
         output = args.output / (label + '.tar.gz')
-        receipt = args.output / (label + '.pack-v2.json')
+        receipt = args.output / (label + '.pack-v3.json')
         if not output.exists() or not receipt.exists():
             print('Packing', label, flush=True)
             prefix = args.environments / name
@@ -109,9 +109,9 @@ def main():
             for pattern in ['**/__pycache__/**', '*.pyc', 'conda-meta/state', 'conda-meta/history', 'etc/aau_token', '.condarc', 'pip.ini', '.env', '.env.*', '.netrc', '**/credentials']:
                 environment = environment.exclude(pattern)
             stream_windows_wheel_libraries(environment.files)
-            environment.pack(output=partial, format='tar.gz', compress_level=1, force=True, n_threads=1)
+            environment.pack(output=partial, format='tar.gz', compress_level=6, force=True, n_threads=1)
             Path(partial).replace(output)
-            receipt.write_text(json.dumps({'sanitizationVersion': 2, 'pipCheck': True, 'replacements': audit[label]}) + '\n')
+            receipt.write_text(json.dumps({'sanitizationVersion': 2, 'compressionLevel': 6, 'pipCheck': True, 'replacements': audit[label]}) + '\n')
     (args.output / 'packaging-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
     archive(args.output / 'host.tar.gz', [(args.host, '')])
     archive(args.output / 'source.tar.gz', [(args.motiontrace / 'ai', 'ai'), (args.motiontrace / 'ThirdPartyNotices', 'ThirdPartyNotices')])
