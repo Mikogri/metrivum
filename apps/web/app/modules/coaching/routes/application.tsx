@@ -89,7 +89,9 @@ function ApplicationDetail({ applicationId }: { applicationId: string | undefine
   const d = "detail" in response ? response.detail : response;
   const a = d.application;
   const confirmThen = async (kind: string, json: unknown, title: string, body: string, confirmLabel: string) => { if (await ask({ title, body, confirmLabel, cancelLabel: "Go back" })) action(kind, json); };
-  const action = (kind: string, json?: unknown) => mutation.mutate({ method: "POST", path: `/api/v1/coaching/applications/${a.id}/${kind}`, ifMatch: a.version, json });
+  const action = (kind: string, json?: unknown) => mutation.mutate({ method: "POST", path: `/api/v1/coaching/applications/${a.id}/${kind}`, ifMatch: a.version, json }, { onSuccess: () => {
+    if (kind === "withdraw") toast({ tone: "success", title: "Application withdrawn", description: "The coach no longer reviews it." });
+  } });
   const profileEntries = "detail" in response ? Object.entries(response.currentAllowedProfile) : [];
   const filling = !coach && a.status === "InProgress";
   const selectedOption = d.offerRevision.billingOptions.find(option => option.id === a.billingOptionId);
@@ -131,7 +133,10 @@ function ApplicationDetail({ applicationId }: { applicationId: string | undefine
         confirmLabel="Accept"
         cancelLabel="Go back"
         isConfirming={mutation.isPending}
-        onConfirm={() => mutation.mutate({ method: "POST", path: `/api/v1/coaching/applications/${a.id}/accept`, ifMatch: a.version, json: { settlementMode: "Simulated", trainingPlanRevisionId } }, { onSuccess: () => setAccepting(false) })}
+        onConfirm={() => mutation.mutate({ method: "POST", path: `/api/v1/coaching/applications/${a.id}/accept`, ifMatch: a.version, json: { settlementMode: "Simulated", trainingPlanRevisionId } }, { onSuccess: () => {
+          setAccepting(false);
+          toast({ tone: "success", title: `${a.applicant.displayName} accepted`, description: plan ? (a.amount === 0 ? "The plan is on its way to your new client." : "Your client is asked to pay; the plan is delivered after payment.") : "The coaching service has started. Your client is told right away." });
+        } })}
       >
         <p className={styles.prose}>{a.amount === 0 ? (plan ? `Accept this free application and deliver the selected plan to ${a.applicant.displayName}. No payment is required.` : `Start the free coaching service with ${a.applicant.displayName}. No payment is required.`) : d.offerRevision.purpose === "TrainingPlan" ? `${a.applicant.displayName} is asked to pay ${(a.amount === 0 ? "Free" : money(a.amount, a.currency))} through Metrivum. The plan is delivered after payment.` : `This starts the coaching service with ${a.applicant.displayName} on these terms, ${(a.amount === 0 ? "Free" : money(a.amount, a.currency))} paid through Metrivum.`}</p>
         <MutationError error={mutation.error} />
@@ -144,7 +149,10 @@ function ApplicationDetail({ applicationId }: { applicationId: string | undefine
         confirmLabel="Reject application"
         cancelLabel="Go back"
         isConfirming={mutation.isPending}
-        onConfirm={() => mutation.mutate({ method: "POST", path: `/api/v1/coaching/applications/${a.id}/reject`, ifMatch: a.version, json: { internalReason: reason || null } }, { onSuccess: () => setRejecting(false) })}
+        onConfirm={() => mutation.mutate({ method: "POST", path: `/api/v1/coaching/applications/${a.id}/reject`, ifMatch: a.version, json: { internalReason: reason || null } }, { onSuccess: () => {
+          setRejecting(false);
+          toast({ tone: "success", title: "Application rejected", description: `${a.applicant.displayName} is told it was not accepted.` });
+        } })}
       >
         <p className={styles.prose}>The applicant is told the application was not accepted.</p>
         <TextArea label="Internal reason (visible only to you)" placeholder="e.g. No capacity this quarter" value={reason} onChange={setReason} maxLength={1000} />

@@ -16960,6 +16960,7 @@ export interface components {
             checkIns: boolean;
             coaching: boolean;
             system: boolean;
+            programEnding?: null | string[];
         };
         PreferencesDto: {
             note: string;

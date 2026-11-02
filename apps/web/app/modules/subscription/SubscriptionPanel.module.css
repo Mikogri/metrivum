@@ -536,3 +536,10 @@
     white-space: normal;
   }
 }
+
+/* The small print under the "becomes a coach account" explanation. */
+.terms {
+  margin-top: var(--tf-space-2);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+}

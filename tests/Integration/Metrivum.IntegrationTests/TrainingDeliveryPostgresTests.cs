@@ -812,6 +812,49 @@ public sealed class TrainingDeliveryPostgresTests
         Assert.Equal(2, await scope.Db.Revisions.CountAsync(x => x.PlanId == plan.Id));
     }
 
+    [TrainingPostgresFact]
+    public async Task Program_ending_alerts_reach_the_coach_once_per_chosen_moment()
+    {
+        await using var f = new Fixture();
+        // Two cycles in one block: workouts on Jan 1 and Jan 11; assigned the day before it starts.
+        f.Clock.Now = new(2025, 12, 31, 12, 0, 0, TimeSpan.Zero);
+        var program = await f.Seed();
+        var assignment = await f.Assign(program.Id);
+        await using var coach = f.Scope(f.Coach);
+        var sent = new SentNotifications();
+        var job = new ProgramEndingAlertsJob(coach.Db, new EndingChoice(f.Coach, ProgramEndingAlerts.All), sent, f.Clock);
+
+        f.Clock.Now = new(2026, 1, 2, 12, 0, 0, TimeSpan.Zero);
+        await job.RunAsync(default);
+        Assert.Equal([$"training-ending:{assignment.Id}:LastBlock"], sent.Keys(assignment.Id));
+
+        f.Clock.Now = new(2026, 1, 11, 9, 0, 0, TimeSpan.Zero);
+        await job.RunAsync(default);
+        Assert.Equal(["LastBlock", "LastBlock", "LastCycle", "LastWeek", "LastWorkout"], sent.Keys(assignment.Id).Select(x => x.Split(':')[2]).Order());
+        var alert = sent.Events.Last(x => x.SourceId == assignment.Id);
+        Assert.Equal(f.Coach, alert.RecipientUserId);
+        Assert.Equal($"/app/clients/{f.Relationship}", alert.DeepLink);
+
+        // After the last workout day nothing more is sent.
+        f.Clock.Now = new(2026, 1, 13, 9, 0, 0, TimeSpan.Zero);
+        var before = sent.Keys(assignment.Id).Length;
+        await job.RunAsync(default);
+        Assert.Equal(before, sent.Keys(assignment.Id).Length);
+    }
+
+    private sealed class SentNotifications : INotificationPublisher
+    {
+        public List<NotificationEvent> Events { get; } = [];
+        public string[] Keys(Guid source) => Events.Where(x => x.SourceId == source).Select(x => x.EventKey).ToArray();
+        public Task PublishAsync(NotificationEvent e, CancellationToken ct) { Events.Add(e); return Task.CompletedTask; }
+        public Task CancelScheduledAsync(string module, Guid id, CancellationToken ct) => Task.CompletedTask;
+    }
+    private sealed class EndingChoice(Guid coach, string[] kinds) : IProgramEndingAlertPreferences
+    {
+        public Task<IReadOnlyDictionary<Guid, string[]>> GetAsync(IReadOnlyCollection<Guid> coachIds, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyDictionary<Guid, string[]>>(coachIds.ToDictionary(id => id, id => id == coach ? kinds : []));
+    }
+
     private sealed class Fixture : IAsyncDisposable
     {
         public Guid Coach { get; } = Guid.NewGuid(); public Guid Client { get; } = Guid.NewGuid(); public Guid Relationship { get; } = Guid.NewGuid(); public Guid Group { get; } = Guid.NewGuid();

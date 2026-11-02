@@ -2156,3 +2156,48 @@ button.tile[data-kind="workout"]:hover {
   flex-wrap: nowrap;
   white-space: nowrap;
 }
+
+/* Exercise suggestions while they load: a thin bar running across the top of the list. */
+.suggestLoading {
+  position: sticky;
+  top: calc(-1 * var(--tf-space-1));
+  z-index: 1;
+  height: 2px;
+  margin: calc(-1 * var(--tf-space-1)) calc(-1 * var(--tf-space-1)) var(--tf-space-1);
+  overflow: hidden;
+  background: var(--tf-color-accent-soft);
+}
+
+.suggestLoading > span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--tf-color-accent);
+  animation: suggest-loading 1s var(--tf-ease-out, ease-in-out) infinite;
+}
+
+@keyframes suggest-loading {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suggestLoading > span {
+    width: 100%;
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/*
+ * A card being edited sits above its neighbours, so its suggestion list and popups are never hidden under the next
+ * card (a press there would land on that card and close the list instead of picking).
+ */
+.card:is(:focus-within, :has([role="listbox"])) {
+  z-index: 5;
+}

@@ -1,6 +1,14 @@
 import { useLocale } from "~/shared/i18n/LocaleContext";
 
 const en = {
+  coachAccount: "Coach account included",
+  becomeCoachTitle: "Your account becomes a coach account",
+  becomeCoachBody: (plan: string) => `Plans are for coaches. Choosing ${plan} expands your account with a coach account. You keep everything you have as a client (your coaches, training and history) and get a coach workspace for your own clients. Every plan includes the coach account.`,
+  becomeCoachTerms: "By continuing you accept the terms for coaches.",
+  switchToCoachTitle: "Plans belong to your coach account",
+  switchToCoachBody: (plan: string) => `You're in the client view. ${plan} applies to your coach account, so we'll switch you to the coach workspace to continue.`,
+  becomeCoachContinue: "Continue as coach",
+  clientDescription: "Your client account isn't on a plan. Plans are for coaches: choosing one adds a coach account to your profile.",
   title: "Subscription", description: "Your Metrivum platform plan. Client service purchases are managed separately in My payments.",
   upgrade: "Upgrade",
   upgradeTo: (plan: string) => `Upgrade to ${plan}`,
@@ -31,6 +39,14 @@ const en = {
 };
 
 const pl: typeof en = {
+  coachAccount: "Konto trenera w cenie",
+  becomeCoachTitle: "Twoje konto stanie się kontem trenera",
+  becomeCoachBody: (plan: string) => `Plany są dla trenerów. Wybierając ${plan}, rozszerzasz swoje konto o konto trenera. Zachowujesz wszystko, co masz jako klient (trenerów, treningi i historię), i dostajesz przestrzeń trenera dla własnych klientów. Każdy plan zawiera konto trenera.`,
+  becomeCoachTerms: "Kontynuując, akceptujesz warunki dla trenerów.",
+  switchToCoachTitle: "Plany dotyczą Twojego konta trenera",
+  switchToCoachBody: (plan: string) => `Jesteś w widoku klienta. ${plan} dotyczy Twojego konta trenera, więc przełączymy Cię do przestrzeni trenera.`,
+  becomeCoachContinue: "Kontynuuj jako trener",
+  clientDescription: "Twoje konto klienta nie ma planu. Plany są dla trenerów: wybór planu dodaje do profilu konto trenera.",
   title: "Subskrypcja", description: "Twój plan platformy Metrivum. Zakupy usług trenerskich znajdziesz oddzielnie w Moich płatnościach.",
   upgrade: "Ulepsz plan",
   upgradeTo: (plan: string) => `Przejdź na ${plan}`,

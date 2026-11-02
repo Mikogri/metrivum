@@ -29419,6 +29419,15 @@
           },
           "system": {
             "type": "boolean"
+          },
+          "programEnding": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": false

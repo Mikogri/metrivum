@@ -6,6 +6,8 @@ describe("sanitizeReturnTo", () => {
     ["/app/programs?folder=1", "/app/programs?folder=1"],
     ["%2Fapp%2Fprograms%2Fabc%2Fedit", "/app/programs/abc/edit"],
     ["/onboarding", "/onboarding"],
+    ["/onboarding/plan?returnTo=%2Fapp%2Fdashboard", "/onboarding/plan?returnTo=/app/dashboard"],
+    ["/app/checkout?plan=Pro", "/app/checkout?plan=Pro"],
   ])("keeps in-app path %s", (input, expected) => {
     expect(sanitizeReturnTo(input)).toBe(expected);
   });

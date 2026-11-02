@@ -220,6 +220,8 @@ export function ExerciseCell({
   const search = useDebounced(text ?? "", 180);
   const list = useExerciseList({ search: search.trim() || undefined, sort: "name", page: 1, pageSize: 12 }, text !== null && open);
   const items = (list.data?.items ?? []).filter(item => !excludedIds.includes(item.id));
+  // Loading, or still waiting for the typing to settle: a thin running bar on top of the list.
+  const loading = list.isFetching || search !== (text ?? "");
   const invalid = required && !name || text !== null && !open && text.trim() !== "";
   const validationId = useCellValidation(invalid, t.columns.exercise, !name ? "Choose an exercise from the suggestions." : "Select a matching exercise or clear the text.");
   const listId = useRef(`ex-${Math.random().toString(36).slice(2)}`).current;
@@ -317,8 +319,9 @@ export function ExerciseCell({
         }}
       />
       {open ? (
-        <ul id={listId} role="listbox" aria-label={t.searchExercise} className={styles.suggest}>
-          {items.length === 0 && !list.isPending ? <li className={styles.popEmpty}>{t.noExercises}</li> : null}
+        <ul id={listId} role="listbox" aria-label={t.searchExercise} aria-busy={loading || undefined} className={styles.suggest}>
+          {loading ? <li className={styles.suggestLoading} role="presentation"><span role="progressbar" aria-label={m.common.loading} /></li> : null}
+          {items.length === 0 && !loading ? <li className={styles.popEmpty}>{t.noExercises}</li> : null}
           {items.map((exercise, i) => (
             <li
               key={exercise.id}

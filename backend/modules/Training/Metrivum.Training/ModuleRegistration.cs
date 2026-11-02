@@ -34,6 +34,7 @@ public static class ModuleRegistration
         services.AddScoped<IAnalysisWorkoutReferences>(p => p.GetRequiredService<TrainingDeliveryService>());
         services.AddScoped<Metrivum.Notifications.Contracts.INotificationDeliveryPolicy, TrainingNotificationPolicy>();
         services.AddScoped<ITrainingProgressReader>(p => p.GetRequiredService<TrainingDeliveryService>());
+        services.AddScoped<ProgramEndingAlertsJob>();
         foreach (var key in new[] { "training.assignments.manage", "training.executions.log-own", "training.executions.review", "training.progress.view-own", "training.progress.view-clients" })
             services.AddSingleton(new FeatureDefinition(key, "Training", key + ".title", key + ".description", [], []));
         services.AddSingleton(new FeatureDefinition("training.generator.use", "Training", "training.generator.use.title", "training.generator.use.description", ["training.programs.read"], []));
@@ -43,6 +44,11 @@ public static class ModuleRegistration
         services.AddScoped<ILimitUsageProvider, TrainingUsageProvider>();
         foreach (var key in new[] { "training.programs.read", "training.programs.create", "training.programs.manage", "training.folders.manage", "training.templates.manage", "training.sets.advanced", "training.formulas.custom", "training.import.csv", "training.export.csv", "training.export.pdf" })
             services.AddSingleton(new FeatureDefinition(key, "Training", key + ".title", key + ".description", key == "training.programs.read" ? [] : ["training.programs.read"], key == "training.programs.create" ? ["training.documents"] : key == "training.folders.manage" ? ["training.folders"] : key == "training.formulas.custom" ? ["training.formulas"] : []));
+        return services;
+    }
+    public static IServiceCollection AddTrainingWorker(this IServiceCollection services)
+    {
+        services.AddHostedService<ProgramEndingAlertsWorker>();
         return services;
     }
     public static IEndpointRouteBuilder MapTraining(this IEndpointRouteBuilder endpoints)

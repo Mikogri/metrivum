@@ -7,6 +7,8 @@ import { Failure, Loading, MutationError, money, useCoachingMutation, useCoachin
 import { Facts, Panel, PanelGrid } from "~/shared/ui/Panel";
 import { QuotaContextField, useQuotaContext } from "~/shared/access";
 import { useAccountKey } from "~/shared/session/AccountScope";
+import { useWorkspace } from "~/shared/session/WorkspaceScope";
+import { useProfile } from "~/modules/accounts";
 import { privateMeta } from "~/shared/i18n/site";
 import { Offers } from "../SubscriptionPanel";
 import { TeamBilling } from "../team-billing";
@@ -44,6 +46,13 @@ export default function SubscriptionRoute() {
       if (path === "confirm-payment" && completed) setKey(crypto.randomUUID());
     } });
   };
+  const profile = useProfile();
+  const { mode } = useWorkspace();
+  // A client account is on no plan: only the plans, each of which adds a coach account.
+  if (!profile.roles.includes("Coach") || mode === "client") return <>
+    <PageHeader title={m.plans} description={m.clientDescription} />
+    <Offers embedded />
+  </>;
   if (plans.isPending || current.isPending) return <Loading />;
   if (plans.isError || current.isError) return <Failure error={plans.error ?? current.error} retry={() => { void plans.refetch(); void current.refetch(); }} />;
   const subscription = current.data;

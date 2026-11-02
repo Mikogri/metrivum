@@ -1,11 +1,15 @@
 import { CreditCard, Rocket } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import type { Schema } from "@metrivum/api-client-web";
-import { Button, Dialog, DialogTrigger, LinkButton, Skeleton } from "@metrivum/ui-web";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ProfileResponse, Schema } from "@metrivum/api-client-web";
+import { Alert, Button, Dialog, DialogTrigger, LinkButton, Skeleton } from "@metrivum/ui-web";
 import { Failure, MutationError, useCoachingMutation, useCoachingQuery } from "~/modules/coaching";
-import { useProfile } from "~/modules/accounts";
+import { profileKey, useProfile } from "~/modules/accounts";
+import { useApi } from "~/shared/session/AccountScope";
+import { useWorkspace } from "~/shared/session/WorkspaceScope";
+import { errorText } from "~/shared/lib/errorText";
+import { useT } from "~/shared/i18n/AppLocale";
 import { useAccountKey } from "~/shared/session/AccountScope";
 import { isWorkspacePlan, planChangeKind, type CatalogPlan } from "./catalog";
 import { PlanCard, PlanGrid, PlanSwitches, planKind, upgradeClass, type PlanKind } from "./PlanCards";
@@ -22,6 +26,10 @@ export { FEATURES, PlanHighlights, wholeMoney } from "./PlanCards";
 export function Offers({ embedded = false, onLeave }: { embedded?: boolean; onLeave?: () => void } = {}) {
   const m = useSubscriptionMessages();
   const profile = useProfile();
+  const scope = useWorkspace();
+  // A client account is on no plan: choosing one first explains that the account grows into a coach account.
+  const asClient = !profile.roles.includes("Coach") || scope.mode === "client";
+  const [becoming, setBecoming] = useState<CatalogPlan | null>(null);
   const plans = useCoachingQuery<CatalogPlan[]>("/api/v1/subscriptions/plans");
   const current = useCoachingQuery<Subscription>("/api/v1/me/platform-subscription");
   const team = useCoachingQuery<Schema<"TeamHomeDto">>("/api/v1/teams/mine");
@@ -49,6 +57,10 @@ export function Offers({ embedded = false, onLeave }: { embedded?: boolean; onLe
         const downgrade = planChangeKind(plans.data, subscription.planId, plan.id) === "downgrade";
         const workspace = isWorkspacePlan(plan);
         // Yearly is shown as ten monthly payments (two months free); checkout is monthly only for now.
+        if (asClient) return <PlanCard key={plan.id} plan={plan} plans={plans.data} yearly={yearly} action={best =>
+          <Button variant={best ? "primary" : "secondary"} className={upgradeClass(best)} isDisabled={(yearly && Number(plan.amount) > 0) || !plan.priceConfigured || workspace} onPress={() => setBecoming(plan)}>
+            {yearly && Number(plan.amount) > 0 ? m.yearlySoon : m.select + " " + plan.name}
+          </Button>} />;
         return <PlanCard key={plan.id} plan={plan} plans={plans.data} yearly={yearly} current={isCurrent} action={best =>
           workspace && !!team.data?.teams.length ? <LinkButton href="/app/team" className={upgradeClass(false)}>{m.manageWorkspace}</LinkButton> : <Button variant={best ? "primary" : "secondary"} className={upgradeClass(best)}
             isDisabled={(yearly && Number(plan.amount) > 0 && !isCurrent) || isCurrent || !plan.priceConfigured || mutation.isPending || subscription.pendingPlanId === plan.id || (workspace && (!profile.roles.includes("Coach") || team.isPending || team.isError))}
@@ -63,14 +75,70 @@ export function Offers({ embedded = false, onLeave }: { embedded?: boolean; onLe
     </PlanGrid>
     {notice && <p role="status">{notice}</p>}
     {subscription.pendingPlanId && <p role="status">{m.upcoming}: {subscription.pendingPlanId} · {subscription.periodEnd && new Date(subscription.periodEnd).toLocaleDateString()}</p>}
-    {!embedded && <LinkButton href="/app/subscription" variant="ghost" size="sm" className={styles.manage}>{m.historyLink}</LinkButton>}
+    {!embedded && !asClient && <LinkButton href="/app/subscription" variant="ghost" size="sm" className={styles.manage}>{m.historyLink}</LinkButton>}
+    <BecomeCoachDialog plan={becoming} onClose={() => setBecoming(null)} onLeave={onLeave} />
   </div>;
+}
+
+/**
+ * Choosing a plan as a client: a client-only account first grows into a coach account (it keeps everything it has as a
+ * client); a coach in the client view switches to the coach workspace. Then a paid plan opens the checkout.
+ */
+function BecomeCoachDialog({ plan, onClose, onLeave }: { plan: CatalogPlan | null; onClose: () => void; onLeave?: () => void }) {
+  const m = useSubscriptionMessages();
+  const app = useT();
+  const profile = useProfile();
+  const api = useApi();
+  const account = useAccountKey();
+  const cache = useQueryClient();
+  const { canCoach, switchMode } = useWorkspace();
+  const [target, setTarget] = useState<string | null>(null);
+  const activate = useMutation({
+    mutationFn: async () => (await api<ProfileResponse>({ method: "PUT", path: "/api/v1/me/roles/coach/onboarding", json: {
+      role: "Coach", username: profile.username, birthDate: profile.birthDate, displayName: profile.displayName, firstName: profile.firstName ?? null, lastName: profile.lastName ?? null,
+      locale: profile.locale, timeZone: profile.timeZone, acceptedTerms: true,
+    } })).data,
+    onSuccess: (updated) => cache.setQueryData(profileKey(account), updated),
+  });
+  // The coach workspace exists once the new role reaches the page: then switch to it and go on.
+  useEffect(() => {
+    if (!target || !canCoach) return;
+    setTarget(null);
+    onLeave?.();
+    void switchMode("coach", target);
+  }, [target, canCoach, switchMode, onLeave]);
+  if (!plan) return null;
+  const coach = profile.roles.includes("Coach");
+  const proceed = async () => {
+    if (!coach) await activate.mutateAsync();
+    setTarget(Number(plan.amount) > 0 ? `/app/checkout?plan=${encodeURIComponent(plan.id)}` : "/app/dashboard");
+  };
+  return <Dialog isOpen onOpenChange={(open) => { if (!open && !activate.isPending) onClose(); }} title={coach ? m.switchToCoachTitle : m.becomeCoachTitle} size="sm"
+    footer={() => <>
+      <Button variant="secondary" isDisabled={activate.isPending} onPress={onClose}>{m.cancel}</Button>
+      <Button variant="primary" loading={activate.isPending || !!target} onPress={() => void proceed().catch(() => undefined)}>{m.becomeCoachContinue}</Button>
+    </>}>
+    <p>{coach ? m.switchToCoachBody(plan.name) : m.becomeCoachBody(plan.name)}</p>
+    {!coach ? <p className={styles.terms}>{m.becomeCoachTerms}</p> : null}
+    {activate.error ? <Alert tone="danger" title={errorText(app, activate.error)} /> : null}
+  </Dialog>;
 }
 
 export function SubscriptionButton({ label }: { label: string }) {
   const m = useSubscriptionMessages();
   // "Upgrade to <top plan>" until the account (or its Team) is on the highest tier of its kind.
   const upgrade = useUpgrade();
+  const navigate = useNavigate();
+  const profile = useProfile();
+  const { mode } = useWorkspace();
   const [open, setOpen] = useState(false);
-  return <DialogTrigger isOpen={open} onOpenChange={setOpen}><Button variant={upgrade.available ? "primary" : "secondary"} size="sm" className={upgrade.available ? styles.upgrade : undefined} iconStart={upgrade.available ? <Rocket /> : <CreditCard />}>{upgrade.available ? (upgrade.target ? m.upgradeTo(upgrade.target.name) : m.upgrade) : label}</Button><Dialog title={m.plans} description={m.choose} size="xl"><Offers onLeave={() => setOpen(false)} /></Dialog></DialogTrigger>;
+  // A client is on no plan, so there is nothing to upgrade: a plain button to the plans.
+  if (!profile.roles.includes("Coach") || mode === "client")
+    return <DialogTrigger isOpen={open} onOpenChange={setOpen}><Button variant="secondary" size="sm" iconStart={<CreditCard />}>{m.plans}</Button><Dialog title={m.plans} description={m.clientDescription} size="xl"><Offers onLeave={() => setOpen(false)} /></Dialog></DialogTrigger>;
+  // An action naming a specific personal plan must open that plan, not ask for the choice again.
+  // Existing workspace subscriptions retain their workspace-management flow in the chooser.
+  if (upgrade.available && upgrade.target && !isWorkspacePlan(upgrade.target)
+    && upgrade.target.priceConfigured && Number(upgrade.target.amount) > 0)
+    return <Button onPress={() => navigate(`/app/checkout?plan=${encodeURIComponent(upgrade.target!.id)}`)} variant="primary" size="sm" className={styles.upgrade} iconStart={<Rocket />}>{m.upgradeTo(upgrade.target.name)}</Button>;
+  return <DialogTrigger isOpen={open} onOpenChange={setOpen}><Button variant={upgrade.available ? "primary" : "secondary"} size="sm" className={upgrade.available ? styles.upgrade : undefined} iconStart={upgrade.available ? <Rocket /> : <CreditCard />}>{upgrade.available ? (m.upgrade) : label}</Button><Dialog title={m.plans} description={m.choose} size="xl"><Offers onLeave={() => setOpen(false)} /></Dialog></DialogTrigger>;
 }

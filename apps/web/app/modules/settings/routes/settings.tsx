@@ -441,6 +441,57 @@ function CoachingPreferences() {
   );
 }
 
+const ENDING_ALERTS = ["LastBlock", "LastCycle", "LastWeek", "LastWorkout"] as const;
+type NotificationPreferences = { messaging: boolean; checkIns: boolean; coaching: boolean; system: boolean; programEnding?: string[] };
+
+/** Which moments of a client's program running out the coach hears about; several at once. */
+function ProgramEndingAlerts() {
+  const m = useT();
+  const t = m.settings;
+  const api = useApi();
+  const a = useAccountKey();
+  const queryClient = useQueryClient();
+  const key = [a, "notifications", "preferences"];
+  const query = useQuery({
+    queryKey: key,
+    queryFn: async ({ signal }) => (await api<NotificationPreferences>({ path: "/api/v1/me/notification-preferences", signal })).data,
+  });
+  const mutation = useMutation({
+    mutationFn: (programEnding: string[]) => api<NotificationPreferences>({ method: "PATCH", path: "/api/v1/me/notification-preferences", json: { ...query.data!, programEnding } }),
+    onSuccess: (response, programEnding) => {
+      queryClient.setQueryData(key, { ...query.data!, ...(response.data ?? {}), programEnding });
+      toast({ tone: "success", title: t.programEndingSaved });
+    },
+  });
+  const chosen = mutation.isPending ? mutation.variables : query.data?.programEnding ?? [];
+  return (
+    <Card as="section" padding="lg" aria-labelledby="program-ending-title">
+      <h2 id="program-ending-title" className={styles.title}>
+        {t.programEnding}
+      </h2>
+      <p className={styles.hint}>{t.programEndingBody}</p>
+      {query.isError ? <Alert tone="danger" title={errorText(m, query.error)} /> : null}
+      {mutation.error ? <Alert tone="danger" title={errorText(m, mutation.error)} /> : null}
+      {query.isPending ? <Skeleton height="8rem" /> : !query.data?.coaching ? <Alert title={t.programEndingOff} /> : null}
+      {query.data ? (
+        <div className={styles.form} role="group" aria-labelledby="program-ending-title">
+          {ENDING_ALERTS.map((id) => (
+            <Checkbox
+              key={id}
+              description={t.programEndingOptions[id][1]}
+              isSelected={chosen.includes(id)}
+              isDisabled={mutation.isPending}
+              onChange={(on) => mutation.mutate(ENDING_ALERTS.filter((x) => (x === id ? on : chosen.includes(x))))}
+            >
+              {t.programEndingOptions[id][0]}
+            </Checkbox>
+          ))}
+        </div>
+      ) : null}
+    </Card>
+  );
+}
+
 type Section = "profile" | "body" | "security" | "accounts" | "privacy" | "coaching" | "integrations" | "access";
 
 const SECTION_ICONS: Record<Section, typeof UserRound> = {
@@ -494,7 +545,7 @@ export default function Settings() {
           </nav>
         </aside>
         <div className={styles.content} key={section}>
-          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "security" ? <SignInSecurity /> : section === "accounts" ? <><Accounts /><DevAccountErasure /></> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <><CoachSpecializationsCard editable initialEditing /><CoachingPreferences /></> : section === "integrations" ? <Integrations /> : <AccessOverview />}
+          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "security" ? <SignInSecurity /> : section === "accounts" ? <><Accounts /><DevAccountErasure /></> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <><CoachSpecializationsCard editable initialEditing /><CoachingPreferences /><ProgramEndingAlerts /></> : section === "integrations" ? <Integrations /> : <AccessOverview />}
         </div>
       </div>
     </>

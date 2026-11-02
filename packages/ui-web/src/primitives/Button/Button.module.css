@@ -140,15 +140,11 @@
   color: #ffffff;
 }
 
-/* Confirms something good and final: accepting, approving. */
+/* Confirms something good and final: accepting, approving. Same green as every primary button. */
 .success {
-  background: #1f9d63;
-  border-color: #2bb673;
-  color: #ffffff;
-}
-
-.success[data-pressed] {
-  background: #1a8554;
+  border-color: var(--tf-color-primary-border);
+  background: var(--tf-color-primary);
+  color: var(--tf-color-on-primary);
 }
 
 /* Quiet destructive action: red text that turns into a red surface on hover and press. */
@@ -174,7 +170,8 @@
     color: #ff7c78;
   }
 
-  .primary[data-hovered] {
+  .primary[data-hovered],
+  .success[data-hovered] {
     border-color: var(--tf-color-primary-border-hover);
     background: var(--tf-color-primary-hover);
   }
@@ -191,10 +188,6 @@
   .ghost[data-hovered] {
     background: var(--tf-color-surface-hover);
     color: var(--tf-color-text);
-  }
-
-  .success[data-hovered]:not([data-pressed]) {
-    background: #23ad6d;
   }
 
   .danger[data-hovered] {

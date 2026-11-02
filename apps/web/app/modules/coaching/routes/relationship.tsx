@@ -3,7 +3,7 @@ import { privateMeta } from "~/shared/i18n/site";
 export const meta = () => privateMeta("Client details — Metrivum");
 
 import { ArrowRight, CheckCircle2, Handshake, MoreHorizontal, PauseCircle, PlayCircle, Repeat2, UsersRound } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
 import { Alert, AlertDialog, Avatar, Badge, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton, PageHeader, Tab, TabList, Tabs, TextArea, toast, useMobileLayout } from "@metrivum/ui-web";
@@ -26,6 +26,12 @@ const ACTION_LABEL: Record<string, string> = { resume: "Resume coaching", suspen
 const ACTION_ICON: Record<string, React.ReactNode> = { resume: <PlayCircle />, suspend: <PauseCircle />, complete: <CheckCircle2 /> };
 /** Actions that end or pause the collaboration read as destructive. */
 const DANGER = new Set(["suspend", "complete"]);
+/** What each step of the collaboration tells the coach once it is done (the client is notified too). */
+const ACTION_DONE: Record<string, { title: string; description: string }> = {
+  resume: { title: "Coaching resumed", description: "Your client is back to active coaching and is told right away." },
+  suspend: { title: "Coaching suspended", description: "Your client is told; access to new training is paused." },
+  complete: { title: "Collaboration completed", description: "Your client is told. History stays available to both of you." },
+};
 const TABS = ["overview", "plans", "activity", "progress", "profile", "documentation", "check-ins"] as const;
 const TAB_LABEL: Record<(typeof TABS)[number], string> = { overview: "Overview", plans: "Plans", activity: "Activity", progress: "Progress", profile: "Profile", documentation: "Documentation", "check-ins": "Check-ins" };
 
@@ -42,9 +48,11 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
   const [action, setAction] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [groups, setGroups] = useState(false);
+  const lastAction = useRef<string | null>(null);
+  lastAction.current = action ?? lastAction.current;
   const mutate = useCoachingMutation(() => {
     setAction(null);
-    toast({ tone: "success", title: "Collaboration updated" });
+    toast({ tone: "success", ...(ACTION_DONE[lastAction.current ?? ""] ?? { title: "Collaboration updated" }) });
   });
   if (detail.isPending) return <Loading />;
   if (detail.isError) return <Failure error={detail.error} retry={() => void detail.refetch()} />;

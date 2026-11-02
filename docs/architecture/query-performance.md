@@ -82,3 +82,11 @@ Selection matching and deterministic ordering happen in SQL before pagination. T
 `infra/diagnostics/discovery-performance.sql` inventories full foreign-key coverage, indexes and table counters without reading personal data. Cross-module candidate UUID batches remain a scaling boundary to measure on a realistic directory before introducing a separate search projection.
 
 Applied to the previously confirmed development project `atclvdkpbccafakzpwls` on 2026-10-25. All eight indexes are valid/ready, migration histories have no pending source migrations, and the full-FK diagnostic reports no uncovered foreign keys across the 16 checked application schemas. Runtime dictionary reads succeed; history UPDATE and worker access to coach selections remain denied. The running API was not restarted.
+
+## Access policy and shared account reads (2026-11-02)
+
+Access configuration, assignment, overrides and flags are loaded in one parameterized PostgreSQL statement and one MVCC snapshot instead of three round trips. The snapshot remains request-scoped; session revocation, account state and subsequent permission changes are not positively cached across requests. Existing Access integration tests cover policy changes and cross-account isolation on disposable PostgreSQL.
+
+The web uses an account-scoped resource key for team context, personal subscription and the plan catalog. Coach/Client presentation changes reuse these responses; role-dependent resources keep separate keys. Quota context uses the same team-context key as the app shell. Existing account-wide and resource-specific invalidation prefixes are retained. QueryClient tests verify request deduplication, account isolation, pagination separation and invalidation.
+
+These changes do not alter production regions, create indexes, add a navigation-summary endpoint or narrow default mutation invalidation. Production latency gains must be measured after deployment; reducing policy reads from three round trips to one is not a measured end-to-end speedup.

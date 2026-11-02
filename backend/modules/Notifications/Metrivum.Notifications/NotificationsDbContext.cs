@@ -56,6 +56,8 @@ public sealed class NotificationPreference
     public bool CheckIns { get; set; } = true;
     public bool Coaching { get; set; } = true;
     public bool System { get; set; } = true;
+    /// <summary>Which "client's program is ending" alerts the coach gets (see ProgramEndingAlerts).</summary>
+    public string[] ProgramEnding { get; set; } = ["LastWeek"];
 }
 public sealed class NotificationsDbContext(DbContextOptions<NotificationsDbContext> options) : DbContext(options)
 {
@@ -81,7 +83,9 @@ public sealed class NotificationsDbContext(DbContextOptions<NotificationsDbConte
         n.Property(x => x.Category).HasMaxLength(20);
         n.Property(x => x.SourceModule).HasMaxLength(30);
         n.Property(x => x.DeepLink).HasMaxLength(300);
-        b.Entity<NotificationPreference>().ToTable("Preferences").HasKey(x => x.UserId);
+        var preference = b.Entity<NotificationPreference>();
+        preference.ToTable("Preferences").HasKey(x => x.UserId);
+        preference.Property(x => x.ProgramEnding).HasDefaultValueSql("'{LastWeek}'::text[]");
         var device = b.Entity<PushDevice>();
         device.ToTable("PushDevices").HasKey(x => x.Id);
         device.HasIndex(x => new { x.UserId, x.InstallationId }).IsUnique();

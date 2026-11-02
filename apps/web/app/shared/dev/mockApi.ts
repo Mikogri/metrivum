@@ -327,6 +327,10 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
       onboarded: true, roles: [role], contexts: [role], version: db.profile.version + 1 } as ProfileResponse;
     return json(200, db.profile, db.profile.version);
   }
+  if (path === "/api/v1/me/roles/coach/onboarding" && method === "PUT") {
+    db.profile = { ...db.profile, roles: [...new Set([...db.profile.roles, "Coach"])], version: db.profile.version + 1 } as ProfileResponse;
+    return json(200, db.profile, db.profile.version);
+  }
   if (path === "/api/v1/me/roles/client" && method === "POST") {
     db.profile = { ...db.profile, roles: [...new Set([...db.profile.roles, "Client"])], version: db.profile.version + 1 } as ProfileResponse;
     return json(200, db.profile, db.profile.version);

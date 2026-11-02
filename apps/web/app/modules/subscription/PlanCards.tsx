@@ -34,6 +34,8 @@ export function PlanHighlights({ plan }: { plan: CatalogPlan }) {
   const workspace = isWorkspacePlan(plan);
   const limit = (key: string, value: number | null) => value === null ? m.unlimited : /gpu_seconds/.test(key) ? m.hours(Math.round(value / 360) / 10) : value.toLocaleString();
   return <ul className={styles.highlights}>
+    {/* Every plan is a coach plan: say so on each card. */}
+    <li><Check aria-hidden="true" /><span>{m.coachAccount}</span></li>
     {planLimitKeys.map(key => {
       const value = catalogLimit(plan, key);
       if (value === undefined || (key === "organization.coach_seats" && !workspace)) return null;

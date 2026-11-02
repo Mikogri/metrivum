@@ -2,7 +2,7 @@ import { act, fireEvent, render, renderHook, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 import { newBlock } from "../model/document";
-import { SheetCanvas, emptySheet, usePersistentSheet } from "./SheetCanvas";
+import { SheetCanvas, emptySheet, endsEdit, usePersistentSheet } from "./SheetCanvas";
 
 vi.mock("../../queries", () => ({ useBuiltInFormulas: () => ({ data: [] }), useFormulaList: () => ({ data: { items: [] } }) }));
 
@@ -139,4 +139,17 @@ describe("sheet column controls", () => {
     expect(block.style.left).toBe("104px");
   });
 
+});
+
+describe("ending an edit by pressing elsewhere", () => {
+  it("keeps the cell focused while its suggestion is picked, ends it anywhere else", () => {
+    const sheet = document.createElement("div");
+    sheet.innerHTML = '<div><input id="cell" /><ul role="listbox"><li role="option" id="pick">Squat</li></ul></div><span id="empty"></span>';
+    document.body.append(sheet);
+    const cell = sheet.querySelector<HTMLElement>("#cell")!;
+    expect(endsEdit(sheet, cell, sheet.querySelector<HTMLElement>("#pick")!)).toBe(false);
+    expect(endsEdit(sheet, cell, cell)).toBe(false);
+    expect(endsEdit(sheet, cell, sheet.querySelector<HTMLElement>("#empty")!)).toBe(true);
+    sheet.remove();
+  });
 });

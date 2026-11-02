@@ -4,6 +4,7 @@ import type { Schema } from "@metrivum/api-client-web";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import type { ApiRequest, QueryValue } from "~/shared/http";
 
+import { accountResourceKey } from "~/shared/session/query-keys";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 
 export type Relationship = Schema<"CoachRelationshipDto">;
@@ -15,7 +16,7 @@ export function useCoachingQuery<T>(path: string, query?: Record<string, QueryVa
   const api = useApi();
   const account = useAccountKey();
   const { mode } = useWorkspace();
-  return useQuery({ queryKey: [account, "coaching", mode, path, query], enabled,
+  return useQuery({ queryKey: accountResourceKey(account, mode, path, query), enabled,
     queryFn: async ({ signal }) => (await api<T>({ path, query, signal })).data });
 }
 

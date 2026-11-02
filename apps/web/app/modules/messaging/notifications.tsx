@@ -9,7 +9,7 @@ import { formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useNotifications } from "./provider";
 import { AnalyzerUpdateActions, useAnalyzerUpdate } from "~/modules/video-analysis";
-import { notificationTitle, useDurableNotifications } from "./durable-notifications";
+import { liveToast, notificationTitle, useDurableNotifications } from "./durable-notifications";
 import styles from "./notifications.module.css";
 
 type Look = { icon: typeof Bell; tone: string };
@@ -59,7 +59,13 @@ export function NotificationBell({ label, className }: { label?: string; classNa
     const location = useLocation();
     const navigate = useNavigate();
     const active = location.pathname === "/app/messages" ? new URLSearchParams(location.search).get("conversation") : null;
-    const notifications = useDurableNotifications(active, open, location.pathname + location.search);
+    const notifications = useDurableNotifications(active, open, location.pathname + location.search, (created) => {
+        // Collaboration steps and forms a client sent also pop up as a toast, with a way to open them.
+        const tone = liveToast(created.type);
+        if (!tone) return;
+        const link = created.deepLink;
+        toast({ tone, title: notificationTitle(created.type), ...(link ? { action: { label: "Open", onAction: () => navigate(link) } } : {}) });
+    });
     const analyzerUpdate = useAnalyzerUpdate();
     const count = notifications.count + (analyzerUpdate ? 1 : 0);
     const act = async (key: string, operation: () => Promise<unknown>, success?: string) => {

@@ -390,7 +390,10 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     const items = q.get("unreadOnly") === "true" ? mockNotifications.filter((n) => !n.readAt) : mockNotifications;
     return ok({ items, page: 1, pageSize: 25, total: items.length });
   }
-  if (path === "/api/v1/me/notification-preferences") return ok(method === "PATCH" ? body : { messaging: true, checkIns: true, coaching: true, system: true });
+  if (path === "/api/v1/me/notification-preferences") {
+    if (method === "PATCH") mockPreferences = { ...mockPreferences, ...(body as object) };
+    return ok(mockPreferences);
+  }
   if (path === "/api/v1/coaching/clients" && method === "GET") {
     const term = q.get("search")?.toLowerCase();
     return ok(page(clients.filter((c) => (!q.get("status") || c.status === q.get("status")) && (!term || c.client.displayName.toLowerCase().includes(term))), q));
@@ -629,3 +632,5 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
   if (method === "GET" && /^\/api\/v1\/(coaching|check-ins|me\/(payment|orders)|coaches|offers|forms|billing)/.test(path)) return ok(page([], q));
   return null;
 }
+
+let mockPreferences: Record<string, unknown> = { messaging: true, checkIns: true, coaching: true, system: true, programEnding: ["LastWeek"] };

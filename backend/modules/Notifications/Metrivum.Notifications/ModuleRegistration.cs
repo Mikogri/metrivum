@@ -29,6 +29,7 @@ public static class ModuleRegistration
     {
         services.AddModuleDatabase<NotificationsDbContext>("notifications");
         services.AddScoped<INotificationPublisher, NotificationPublisher>();
+        services.AddScoped<IProgramEndingAlertPreferences, ProgramEndingAlertPreferences>();
         services.TryAddSingleton(TimeProvider.System);
         return services;
     }

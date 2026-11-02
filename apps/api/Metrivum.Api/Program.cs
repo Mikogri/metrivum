@@ -104,7 +104,7 @@ builder.Services.AddAccounts(builder.Configuration).AddAccess(builder.Configurat
     .AddOffers(builder.Configuration).AddCheckIns(builder.Configuration).AddCalendar(builder.Configuration).AddMessaging(builder.Configuration).AddCoachingIntake().AddBilling(builder.Configuration).AddNotifications(builder.Configuration).AddAnalyticsModule(builder.Configuration).AddClientDocumentation();
 if (!builder.Environment.IsEnvironment("Testing") && !exportContracts && !migrate
     && builder.Configuration.GetValue("Workers:Enabled", true))
-    builder.Services.AddBillingWorker().AddNotificationsWorker().AddCheckInsWorker();
+    builder.Services.AddBillingWorker().AddNotificationsWorker().AddCheckInsWorker().AddTrainingWorker();
 builder.Services.AddSupabaseAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddIntegrations(builder.Configuration);
 builder.Services.AddMetrivumMcp(builder.Configuration, builder.Environment);

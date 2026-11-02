@@ -172,6 +172,16 @@ type Menu =
  */
 const DRAG_MODE_KEY = "tf.sheet.dragMode";
 
+/**
+ * Whether pressing `target` ends the edit of the focused field: pressing elsewhere in the sheet does, pressing the
+ * field itself or its own suggestion list does not (so picking an exercise from the list still reaches the cell).
+ */
+export function endsEdit(sheet: HTMLElement, active: HTMLElement | null, target: HTMLElement) {
+  if (!active || !sheet.contains(active) || active.contains(target)) return false;
+  if (target.closest("[role=listbox]")) return false;
+  return active.matches("input, textarea, select, [contenteditable=true], [role=textbox]");
+}
+
 export function SheetCanvas({
   doc,
   apply,
@@ -1073,8 +1083,7 @@ export function SheetCanvas({
       // cells, where dragging the sheet would otherwise keep the field focused.
       onPointerDownCapture={(event) => {
         const active = document.activeElement as HTMLElement | null;
-        if (!active || !event.currentTarget.contains(active) || active.contains(event.target as Node)) return;
-        if (active.matches("input, textarea, select, [contenteditable=true], [role=textbox]")) active.blur();
+        if (endsEdit(event.currentTarget, active, event.target as HTMLElement)) active!.blur();
       }}
       onPointerCancel={cancelPointer}
       onLostPointerCapture={(event) => { if (pointerCapture.current?.element === event.target) cancelPointer(); }}

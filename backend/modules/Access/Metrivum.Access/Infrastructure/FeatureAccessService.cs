@@ -108,16 +108,18 @@ public sealed class FeatureAccessService : IFeatureAccessService
     {
         if (policy is not null)
             return policy;
-        var selected = await db.Configurations.AsNoTracking()
-            .Where(c => c.Id == (db.Assignments.Where(a => a.UserId == userId).Select(a => a.ConfigurationId).FirstOrDefault() ?? "v1-default"))
-            .Select(c => new
-            {
-                Configuration = c,
-                Assignment = db.Assignments.Where(a => a.UserId == userId).FirstOrDefault()
-            }).SingleOrDefaultAsync(cancellationToken);
-        var overrides = await db.Overrides.AsNoTracking().Where(x => x.UserId == userId).OrderBy(x => x.Key).ToArrayAsync(cancellationToken);
-        var flags = await db.Flags.AsNoTracking().OrderBy(x => x.Key).ToArrayAsync(cancellationToken);
-        return policy = new(selected?.Configuration, selected?.Assignment, overrides, flags);
+        // One round-trip and one MVCC snapshot; still request-scoped, never a stale authorization cache.
+        var json = await db.Database.SqlQuery<string>($"""
+            SELECT jsonb_build_object(
+                'Configuration', (SELECT to_jsonb(c) FROM access.configurations c WHERE c."Id" =
+                    COALESCE((SELECT a."ConfigurationId" FROM access.assignments a WHERE a."UserId" = {userId}), 'v1-default')),
+                'Assignment', (SELECT to_jsonb(a) FROM access.assignments a WHERE a."UserId" = {userId}),
+                'Overrides', COALESCE((SELECT jsonb_agg(to_jsonb(o) ORDER BY o."Key") FROM access.overrides o WHERE o."UserId" = {userId}), '[]'::jsonb),
+                'Flags', COALESCE((SELECT jsonb_agg(to_jsonb(f) ORDER BY f."Key") FROM access.flags f), '[]'::jsonb)
+            )::text AS "Value"
+            """).SingleAsync(cancellationToken);
+        return policy = JsonSerializer.Deserialize<Policy>(json)
+            ?? throw new InvalidOperationException("Access policy query returned no policy.");
     }
 
     private sealed record Policy(AccessConfiguration? Configuration, AccessAssignment? Assignment,

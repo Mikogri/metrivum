@@ -9,7 +9,8 @@ namespace Metrivum.Notifications;
 public sealed record NotificationDto(Guid Id, string Type, string Category, string SourceModule, Guid SourceId, string? DeepLink, DateTimeOffset CreatedAt, DateTimeOffset? ReadAt);
 public sealed record NotificationPage(NotificationDto[] Items, int Page, int PageSize, long Total);
 public sealed record NotificationTargetRequest(string Target);
-public sealed record PreferenceRequest(bool Messaging, bool CheckIns, bool Coaching, bool System);
+/// <summary>ProgramEnding is optional on write: clients that do not send it keep the saved choice.</summary>
+public sealed record PreferenceRequest(bool Messaging, bool CheckIns, bool Coaching, bool System, string[]? ProgramEnding = null);
 public sealed class NotificationsService(NotificationsDbContext db, ModuleTransaction tx, TimeProvider clock, IAccountContext accounts, IHubContext<NotificationsHub> hub)
 {
     private Guid UserId => accounts.UserId;
@@ -75,10 +76,12 @@ public sealed class NotificationsService(NotificationsDbContext db, ModuleTransa
     public async Task<PreferenceRequest> PreferencesAsync(CancellationToken ct)
     {
         var p = await db.Preferences.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct);
-        return new(p?.Messaging ?? true, p?.CheckIns ?? true, p?.Coaching ?? true, p?.System ?? true);
+        return new(p?.Messaging ?? true, p?.CheckIns ?? true, p?.Coaching ?? true, p?.System ?? true, p?.ProgramEnding ?? ProgramEndingAlerts.Default);
     }
     public Task UpdatePreferencesAsync(PreferenceRequest r, CancellationToken ct) => tx.RunAsync(async token =>
     {
+        if (r.ProgramEnding != null && (r.ProgramEnding.Length > ProgramEndingAlerts.All.Length || r.ProgramEnding.Any(x => !ProgramEndingAlerts.All.Contains(x))))
+            throw ApiException.Invalid("Unknown program ending alert.");
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({"notification-preference:" + UserId},0))", token);
         var p = await db.Preferences.SingleOrDefaultAsync(x => x.UserId == UserId, token);
         if (p == null)
@@ -93,6 +96,8 @@ public sealed class NotificationsService(NotificationsDbContext db, ModuleTransa
         p.CheckIns = r.CheckIns;
         p.Coaching = r.Coaching;
         p.System = r.System;
+        if (r.ProgramEnding != null)
+            p.ProgramEnding = ProgramEndingAlerts.All.Where(r.ProgramEnding.Contains).ToArray();
         await db.Notifications.Where(x => x.RecipientUserId == UserId && x.AvailableAt > clock.GetUtcNow() && !x.Required && x.Category != "Billing" && ((x.Category == "Messaging" && !r.Messaging) || (x.Category == "CheckIns" && !r.CheckIns) || (x.Category == "Coaching" && !r.Coaching) || (x.Category == "System" && !r.System)))
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.Cancelled, true), token);
         await db.SaveChangesAsync(token);

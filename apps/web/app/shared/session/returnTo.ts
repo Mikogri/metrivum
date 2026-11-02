@@ -16,7 +16,7 @@ export function sanitizeReturnTo(value: string | null | undefined, fallback = "/
   try {
     const url = new URL(decoded, "https://trainflow.invalid");
     if (url.origin !== "https://trainflow.invalid") return fallback;
-    if (!(url.pathname === "/app" || url.pathname.startsWith("/app/") || url.pathname === "/onboarding")) return fallback;
+    if (!(url.pathname === "/app" || url.pathname.startsWith("/app/") || url.pathname === "/onboarding" || url.pathname === "/onboarding/plan")) return fallback;
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return fallback;
