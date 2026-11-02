@@ -5,7 +5,7 @@ import { StaleAccountError } from "../http/errors";
 import { slotStorageKey, type SlotId } from "./storage-keys";
 
 function session(userId: string, email: string): Session {
-  return { access_token: `at-${userId}`, refresh_token: `rt-${userId}`, expires_in: 3600, token_type: "bearer", user: { id: userId, email, is_anonymous: false } } as unknown as Session;
+  return { access_token: `at-${userId}`, refresh_token: `rt-${userId}`, expires_in: 3600, token_type: "bearer", user: { id: userId, email, email_confirmed_at: "2026-01-01T00:00:00Z", is_anonymous: false } } as unknown as Session;
 }
 
 function fakeClient(initial: Session | null) {

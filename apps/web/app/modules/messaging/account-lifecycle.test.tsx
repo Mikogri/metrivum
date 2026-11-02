@@ -36,7 +36,7 @@ afterEach(() => { localStorage.clear(); sessionStorage.clear(); vi.unstubAllGlob
 function Connections() { useRealtime(true); useDurableNotifications(null, false); return null; }
 
 it.each(["switch", "unmount"])("aborts both hubs and rejects their pending tokens on %s", async (leave) => {
-  const session = { access_token: "token", user: { id: "coach" } } as Session;
+  const session = { access_token: "token", user: { id: "coach", email_confirmed_at: "2026-01-01T00:00:00Z" } } as Session;
   let release!: (value: { data: { session: Session } }) => void;
   const getSession = vi.fn(async () => ({ data: { session } }));
   // The session manager also confirms the signed-in user is still valid.
@@ -66,7 +66,7 @@ it.each(["switch", "unmount"])("aborts both hubs and rejects their pending token
   await act(async () => { for (const hub of hubs) hub.start(); });
   for (const hub of hubs) expect(hub.stop.mock.calls.length).toBeGreaterThanOrEqual(2);
   if (leave === "switch") {
-    const nextSession = { access_token: "new-token", user: { id: "athlete" } } as Session;
+    const nextSession = { access_token: "new-token", user: { id: "athlete", email_confirmed_at: "2026-01-01T00:00:00Z" } } as Session;
     getSession.mockResolvedValue({ data: { session: nextSession } });
     await act(async () => { await manager.completeSignIn(1, nextSession); });
     rerender(view());

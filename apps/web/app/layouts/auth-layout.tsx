@@ -17,8 +17,8 @@ export default function AuthLayout() {
   const m = useT();
   const { locale, setLocale } = useAppLocale();
   const { pathname } = useLocation();
-  // Setting up the profile holds more fields: a wider card.
-  const wide = pathname === "/onboarding";
+  // Setting up the profile holds more fields: a wider card; choosing a plan needs room for the plan cards.
+  const width = pathname === "/onboarding" ? "wide" : pathname === "/onboarding/plan" ? "plans" : undefined;
   // The night palette also applies to menus rendered in portals.
   useEffect(() => {
     document.documentElement.setAttribute("data-public-theme", "night");
@@ -56,7 +56,7 @@ export default function AuthLayout() {
           </SegmentedControl>
         </div>
       </header>
-      <main id="main" className={styles.main} data-wide={wide || undefined}>
+      <main id="main" className={styles.main} data-width={width}>
         <div className={styles.card} key={pathname}>
           <Outlet />
         </div>

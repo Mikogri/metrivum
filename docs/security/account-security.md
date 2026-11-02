@@ -157,3 +157,5 @@ Before enabling it:
 
 - supabase-js offers `mfa.recoveryCodes` behind an experimental flag. It needs the server feature turned on.
 - Add it once Supabase marks it stable: generate at `aal2` after TOTP setup, show once, show remaining count on Recovery methods.
+
+Email confirmation is authoritative in Supabase Auth (`email_confirmed_at`), not an editable profile flag. Web session admission, restoration, auth events, revalidation and token access reject unconfirmed accounts. The API session predicate in `infra/auth-session-validation.sql` also requires confirmation; apply this reviewed helper update separately as the database administrator. Keep Supabase Email provider **Confirm email** enabled: disabling it auto-confirms new users, so no application timestamp check can distinguish that from confirmation by email. Do not clear confirmation timestamps of existing users automatically.

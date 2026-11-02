@@ -414,6 +414,12 @@ export const appPl: AppMessages = {
       required: "To pole jest wymagane.",
     },
   },
+  onboardingPlan: {
+    metaTitle: "Wybierz plan — Metrivum",
+    title: "Wybierz plan",
+    body: "Zacznij za darmo i przejdź wyżej, kiedy będziesz potrzebować więcej. Plan zmienisz później w Subskrypcji.",
+    later: "Kontynuuj z planem Free",
+  },
   onboarding: {
     metaTitle: "Konfiguracja konta — Metrivum",
     title: "Uzupełnij profil",

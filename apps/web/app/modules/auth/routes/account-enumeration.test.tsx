@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AuthError } from "@supabase/supabase-js";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
@@ -41,6 +41,17 @@ describe("account existence in the sign-in and sign-up forms", () => {
     await userEvent.click(screen.getByRole("button", { name: "Email me a sign-in link" }));
     expect(await screen.findByText(/^\/auth\/verify\?type=email/)).toHaveTextContent("email=nobody%40example.com");
     expect(mocks.signInWithOtp.mock.calls[0]![0].email).toBe("nobody@example.com");
+  });
+
+  it("keeps an unconfirmed password login on the confirmation step", async () => {
+    mocks.signInWithPassword.mockResolvedValue({ data: { session: { user: { email: "pending@example.com" } } }, error: null });
+    mocks.completeSignIn.mockRejectedValueOnce(authError("email_not_confirmed", 403));
+    setup("/auth/login");
+    await userEvent.type(screen.getByLabelText(/^Email/), "pending@example.com");
+    await userEvent.type(screen.getByLabelText(/^Password/), "test-password-123");
+    await userEvent.click(screen.getByRole("button", { name: /^Sign in$/ }));
+    await waitFor(() => expect(screen.getAllByRole("link").map(link => link.getAttribute("href"))).toContain("/auth/verify?type=signup&slot=0&email=pending%40example.com"));
+    expect(screen.queryByText(/^\/app/)).toBeNull();
   });
 
   it("still reports other passwordless failures", async () => {

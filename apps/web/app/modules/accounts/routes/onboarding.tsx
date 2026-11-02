@@ -97,7 +97,9 @@ function OnboardingForm() {
     onSuccess: (profile) => {
       if (!lifecycle.isCurrent()) return;
       queryClient.setQueryData(profileKey(accountKey), profile);
-      navigate(sanitizeReturnTo(params.get("returnTo")), { replace: true });
+      const next = sanitizeReturnTo(params.get("returnTo"));
+      // Coaches pick a plan before they start; everyone else goes straight in.
+      navigate(profile.roles.includes("Coach") ? `/onboarding/plan?returnTo=${encodeURIComponent(next)}` : next, { replace: true });
     },
     // A taken username is fixed on the first step.
     onError: (error) => {

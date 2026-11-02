@@ -23,8 +23,8 @@ export function FeatureGate({ feature, children, fallback = null }: { feature: F
   return <>{access.allowed ? children : fallback}</>;
 }
 
-/** Wraps a disabled control with a tooltip explaining why it is unavailable. */
-export function LockedReason({ access, children }: { access: FeatureAccess; children: ReactNode }) {
+/** Wraps a disabled control with a tooltip explaining why it is unavailable; `upgrade={false}` drops the plan link beside it. */
+export function LockedReason({ access, upgrade = true, children }: { access: FeatureAccess; upgrade?: boolean; children: ReactNode }) {
   const reason = useFeatureReasonText();
   const m = useT();
   if (access.allowed) return <>{children}</>;
@@ -36,7 +36,7 @@ export function LockedReason({ access, children }: { access: FeatureAccess; chil
         </span>
       </Focusable>
       <Tooltip>{reason(access)}</Tooltip>
-    </TooltipTrigger>{access.state === "feature_not_in_plan" && <LinkButton href="/app/subscription" size="sm" variant="ghost">{m.access.upgradeToPro}</LinkButton>}</span>
+    </TooltipTrigger>{upgrade && access.state === "feature_not_in_plan" && <LinkButton href="/app/subscription" size="sm" variant="ghost">{m.access.upgradeToPro}</LinkButton>}</span>
   );
 }
 

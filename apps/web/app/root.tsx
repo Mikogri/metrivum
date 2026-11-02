@@ -17,7 +17,7 @@ import "./app.css";
 import type { Route } from "./+types/root";
 import { localeFromPathname } from "~/shared/i18n/locale";
 import { RootError } from "~/shared/lib/RootError";
-import { BootSkeleton } from "~/shared/ui/BootSkeleton";
+import { AuthBootSkeleton, BootSkeleton, BOOT_SHAPE_SCRIPT } from "~/shared/ui/BootSkeleton";
 
 declare module "react-aria-components" {
   interface RouterConfig {
@@ -47,6 +47,8 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="color-scheme" content="dark" />
         {/* Enables reveal-on-scroll initial states only when JS runs and motion is allowed. */}
         <script dangerouslySetInnerHTML={{ __html: MOTION_FLAG_SCRIPT }} />
+        {/* The start-up placeholder is one static file for every page: this picks the sign-in shape where it fits. */}
+        <script dangerouslySetInnerHTML={{ __html: BOOT_SHAPE_SCRIPT }} />
         <Meta />
         <Links />
       </head>
@@ -68,10 +70,16 @@ export default function App() {
   );
 }
 
-/** Shown while a SPA route (served from __spa-fallback.html) hydrates. Deliberately empty of private data. */
+/**
+ * Shown while a SPA route (served from __spa-fallback.html) hydrates. Deliberately empty of private data. Both shapes
+ * are in the file; the <html data-boot> mark set before paint shows the one for the page being opened.
+ */
 export function HydrateFallback() {
   return (
-    <BootSkeleton label="Loading Metrivum" />
+    <div className="tf-hydrate">
+      <BootSkeleton label="Loading Metrivum" />
+      <AuthBootSkeleton label="Loading Metrivum" />
+    </div>
   );
 }
 

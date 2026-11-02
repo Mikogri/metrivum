@@ -13,13 +13,13 @@ CREATE ROLE anon;
 CREATE ROLE authenticated;
 CREATE SCHEMA accounts AUTHORIZATION trainflow_migrator;
 CREATE SCHEMA auth;
-CREATE TABLE auth.users (id uuid PRIMARY KEY, deleted_at timestamptz, is_anonymous boolean, banned_until timestamptz);
+CREATE TABLE auth.users (id uuid PRIMARY KEY, email_confirmed_at timestamptz, deleted_at timestamptz, is_anonymous boolean, banned_until timestamptz);
 CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid REFERENCES auth.users, not_after timestamptz);
 GRANT USAGE ON SCHEMA accounts TO trainflow_api;
 \ir ../auth-session-validation.sql
 
 BEGIN;
-INSERT INTO auth.users(id) VALUES ('10000000-0000-0000-0000-000000000001');
+INSERT INTO auth.users(id, email_confirmed_at) VALUES ('10000000-0000-0000-0000-000000000001', now());
 INSERT INTO auth.sessions(id, user_id) VALUES
   ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001');
 SET LOCAL ROLE trainflow_api;
@@ -49,12 +49,13 @@ DO $$
 DECLARE change text;
 BEGIN
   FOREACH change IN ARRAY ARRAY[
+    'UPDATE auth.users SET email_confirmed_at=NULL',
     'UPDATE auth.users SET deleted_at=now()',
     'UPDATE auth.users SET is_anonymous=true',
     'UPDATE auth.users SET banned_until=now()+interval ''1 hour''',
     'UPDATE auth.sessions SET not_after=now()-interval ''1 second'''
   ] LOOP
-    UPDATE auth.users SET deleted_at=NULL, is_anonymous=false, banned_until=NULL;
+    UPDATE auth.users SET email_confirmed_at=now(), deleted_at=NULL, is_anonymous=false, banned_until=NULL;
     UPDATE auth.sessions SET not_after=NULL;
     EXECUTE change;
     IF accounts.auth_session_is_active('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001') THEN

@@ -6,6 +6,8 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyTitle>Metrivum Analyzer Setup</AssemblyTitle>
+    <Product>Metrivum Analyzer Setup</Product>
+    <Description>Metrivum local video analyzer installer</Description>
   </PropertyGroup>
   <ItemGroup><EmbeddedResource Include="$(ReleaseManifest)" LogicalName="release.json" /></ItemGroup>
 </Project>

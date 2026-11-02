@@ -1,0 +1,4 @@
+/* The plan cards keep their own look inside the sign-up card. */
+.plans {
+  min-width: 0;
+}

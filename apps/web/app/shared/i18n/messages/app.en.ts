@@ -410,6 +410,12 @@ export const appEn = {
       required: "This field is required.",
     },
   },
+  onboardingPlan: {
+    metaTitle: "Choose your plan — Metrivum",
+    title: "Choose your plan",
+    body: "Start free and upgrade whenever you need more. You can change your plan later in Subscription.",
+    later: "Continue with Free",
+  },
   onboarding: {
     metaTitle: "Set up your account — Metrivum",
     title: "Set up your profile",

@@ -10,6 +10,7 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $fu
   SELECT EXISTS (
     SELECT 1 FROM auth.sessions s JOIN auth.users u ON u.id = s.user_id
     WHERE s.id = $2 AND s.user_id = $1
+      AND u.email_confirmed_at IS NOT NULL
       AND u.deleted_at IS NULL AND NOT COALESCE(u.is_anonymous, false)
       AND (u.banned_until IS NULL OR u.banned_until <= CURRENT_TIMESTAMP)
       AND (s.not_after IS NULL OR s.not_after > CURRENT_TIMESTAMP)

@@ -475,13 +475,13 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
                 </Button>
               ) : null}
               {!isTemplate ? (
-                <LockedReason access={access["training.import.csv"]}>
+                <LockedReason access={access["training.import.csv"]} upgrade={false}>
                   <Button iconStart={<Upload />} isDisabled={!access["training.import.csv"].allowed} onPress={() => setImportOpen(true)}>
                     {t.import}
                   </Button>
                 </LockedReason>
               ) : null}
-              <LockedReason access={isTemplate && !access["training.templates.manage"].allowed ? access["training.templates.manage"] : access["training.programs.create"]}>
+              <LockedReason upgrade={false} access={isTemplate && !access["training.templates.manage"].allowed ? access["training.templates.manage"] : access["training.programs.create"]}>
                 <Button variant="primary" iconStart={<Plus />} isDisabled={!canCreate} onPress={() => setCreateOpen(true)}>
                   {isTemplate ? t.newTemplate : t.newProgram}
                 </Button>

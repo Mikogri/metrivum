@@ -28,6 +28,7 @@ export default [
       route("auth/callback", "modules/auth/routes/callback.tsx"),
       route("auth/mfa", "modules/auth/routes/mfa.tsx"),
       route("onboarding", "modules/accounts/routes/onboarding.tsx"),
+      route("onboarding/plan", "modules/subscription/routes/choose-plan.tsx"),
     ]),
     route("app", "layouts/app-layout.tsx", [
       index("modules/dashboard/routes/app-index.tsx"),

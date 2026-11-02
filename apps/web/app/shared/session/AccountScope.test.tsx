@@ -22,7 +22,7 @@ function Profile() {
 afterEach(() => { localStorage.clear(); sessionStorage.clear(); vi.unstubAllGlobals(); });
 
 it("loads account queries through StrictMode effect cleanup and replay", async () => {
-  const session = { access_token: "token", user: { id: "coach", email: "coach@example.test" } } as Session;
+  const session = { access_token: "token", user: { id: "coach", email: "coach@example.test", email_confirmed_at: "2026-01-01T00:00:00Z" } } as Session;
   const client = { auth: { getSession: async () => ({ data: { session }, error: null }),
     getUser: async () => ({ data: { user: session.user }, error: null }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),

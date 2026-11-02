@@ -36,7 +36,7 @@ export function mockAuthClient(slot: SlotId): SupabaseClient {
       expires_at: Math.floor(Date.now() / 1000) + 3600,
       token_type: "bearer",
       aal: "aal1",
-      user: { id: `00000000-0000-4000-8000-00000000000${slot}`, email, is_anonymous: false, aud: "authenticated", app_metadata: { providers: ["email"] }, user_metadata: {}, identities: [{ provider: "email" }], factors: factors(), created_at: new Date().toISOString() },
+      user: { id: `00000000-0000-4000-8000-00000000000${slot}`, email, email_confirmed_at: "2026-01-01T00:00:00Z", is_anonymous: false, aud: "authenticated", app_metadata: { providers: ["email"] }, user_metadata: {}, identities: [{ provider: "email" }], factors: factors(), created_at: new Date().toISOString() },
     }) as unknown as Session;
   const ok = (session: Session | null) => ({ data: { session, user: session?.user ?? null }, error: null });
   const signIn = (email: string) => {

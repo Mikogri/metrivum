@@ -45,7 +45,7 @@ async function account(city?: string) {
   await screen.findByText("About you");
 }
 beforeEach(() => {
-  mocks.api.mockReset().mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/me/username-availability" ? { available: true } : path === "/api/v1/coaching/specializations" ? [] : path === "/api/v1/me/profile-fields" ? { currency: "EUR", values: {}, version: 4 } : { id: "user", onboarded: true } }));
+  mocks.api.mockReset().mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/me/username-availability" ? { available: true } : path === "/api/v1/coaching/specializations" ? [] : path === "/api/v1/me/profile-fields" ? { currency: "EUR", values: {}, version: 4 } : { id: "user", onboarded: true, roles: ["Client"] } }));
 });
 
 it("asks a client for sex, height and weight before the account is created, then saves them", async () => {
@@ -102,7 +102,7 @@ it("saves optional coach specializations only after the coach account is establi
   mocks.api.mockImplementation(async ({ path }: ApiRequest) => ({ data: path === "/api/v1/me/username-availability" ? { available: true } : path === "/api/v1/coaching/specializations"
     ? [{ code: "strength_muscle", name: "Strength & Muscle", sortOrder: 1, specializations: [{ code: "powerlifting", name: "Powerlifting", sortOrder: 1 }] }]
     : path === "/api/v1/me/coaching-specializations" ? { selectedCodes: [], primaryCodes: [], version: 0 }
-      : { id: "coach", onboarded: true } }));
+      : { id: "coach", onboarded: true, roles: ["Coach"] } }));
   setup("Coach");
   await account();
   for (const title of ["Heart rate and recovery", "Your training", "Health and goals", "Coaching Specializations"]) {

@@ -1,3 +1,4 @@
+import { AuthError } from "@supabase/supabase-js";
 import type { AuthChangeEvent, Session, SupabaseClient } from "@supabase/supabase-js";
 import { StaleAccountError } from "../http/errors";
 import { authClient } from "./supabase";
@@ -106,7 +107,7 @@ export class SessionManager {
         }
         continue; // Network errors retain stored credentials for a later attempt, but grant no session.
       }
-      if (!verified.data.user || verified.data.user.id !== data.session.user.id || verified.data.user.is_anonymous) {
+      if (!verified.data.user || verified.data.user.id !== data.session.user.id || verified.data.user.is_anonymous || !verified.data.user.email_confirmed_at) {
         await client.auth.signOut({ scope: "local" });
         forgetSlot(slot);
         continue;
@@ -132,7 +133,7 @@ export class SessionManager {
       const { data } = await client.auth.getSession();
       if (!data.session) continue;
       const verified = await client.auth.getUser(data.session.access_token);
-      const gone = verified.error ? [400, 401, 403, 404].includes(verified.error.status ?? 0) : verified.data.user?.id !== account.userId;
+      const gone = verified.error ? [400, 401, 403, 404].includes(verified.error.status ?? 0) : verified.data.user?.id !== account.userId || !verified.data.user?.email_confirmed_at;
       if (gone) {
         await this.signOut(account.slot);
         forgetSlot(account.slot);
@@ -167,10 +168,14 @@ export class SessionManager {
       return;
     }
     if (session.user.is_anonymous) return;
+    if (!session.user.email_confirmed_at) {
+      await this.signOut(slot);
+      return;
+    }
     if (!this.state.accounts.some(account => account.slot === slot && account.userId === session.user.id)) {
       const verified = await this.clientFor(slot).auth.getUser(session.access_token);
       if (this.authEventVersions.get(slot) !== version || verified.error
-        || verified.data.user?.id !== session.user.id || verified.data.user.is_anonymous) return;
+        || verified.data.user?.id !== session.user.id || verified.data.user.is_anonymous || !verified.data.user.email_confirmed_at) return;
     }
     const next = toAccount(slot, session);
     // Another saved slot is not a second identity for the same Auth subject.
@@ -194,6 +199,10 @@ export class SessionManager {
 
   /** Records a fresh sign-in in `slot`. If that person is already signed in elsewhere, keeps one copy. */
   async completeSignIn(slot: SlotId, session: Session): Promise<SlotId> {
+    if (!session.user.email_confirmed_at) {
+      await this.signOut(slot);
+      throw new AuthError("Email confirmation is required.", 403, "email_not_confirmed");
+    }
     // A re-created Auth account may use the old email, but its ID and data must stay separate.
     const address = session.user.email?.trim().toLowerCase();
     for (const old of this.state.accounts.filter(a => a.slot !== slot && a.userId !== session.user.id
@@ -250,6 +259,10 @@ export class SessionManager {
     }
     // Auth events are deferred; the SDK can already contain another user's session.
     if (session && expectedUserId !== undefined && session.user.id !== expectedUserId) throw new StaleAccountError();
+    if (session && !session.user.email_confirmed_at) {
+      await this.signOut(slot);
+      return null;
+    }
     return session?.access_token ?? null;
   }
 }
