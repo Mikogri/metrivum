@@ -35,15 +35,22 @@ public sealed record Workout(Guid Id, string Name, string Description, ExerciseI
 public sealed record TrainingDay(Guid Id, int DayNumber, Workout[] Workouts, string? Note = null);
 /// <summary>
 /// A cycle of days. <c>Repeats</c> is how many times it runs in a row; left empty it runs once, or, when it is the
-/// plan's only cycle, until the coach stops the plan.
+/// plan's only cycle, until the coach stops the plan. An <c>Implicit</c> cycle only holds a workout that is not in
+/// any cycle: it has no name of its own and the editor shows just the workout.
 /// </summary>
 public sealed record Cycle(Guid Id, string Name, string Description, int DayCount, TrainingDay[] Days,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Repeats = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Repeats = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? Implicit = null);
 public sealed record BlockExerciseMax(Guid? ExerciseId, int Reps, Quantity? Load = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Unit? LoadUnit = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Quantity? Time = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FormulaUse? TimeFormula = null);
-/// <summary>A block of the plan. An <c>Inactive</c> block stays in the draft but is left out when changes are applied.</summary>
+/// <summary>
+/// A block of the plan. An <c>Inactive</c> block stays in the draft but is left out when changes are applied. An
+/// <c>Implicit</c> block only holds a cycle (or a lone workout) that is not in any block, so a plan does not need
+/// blocks at all: it has no name of its own and the editor does not show it.
+/// </summary>
 public sealed record Block(Guid Id, string Name, string Description, Cycle[] Cycles,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] BlockExerciseMax[]? ExerciseMaxes = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? Inactive = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? Inactive = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? Implicit = null);
 public sealed record ExerciseMaxesTable(Guid Id, Guid? BlockId, BlockExerciseMax[] Rows);
 [JsonConverter(typeof(JsonStringEnumConverter<AnnotationKind>))]
 public enum AnnotationKind { Comment, Goal }
@@ -84,7 +91,8 @@ public static class DocumentRules
     public static int RunsOf(TrainingDocument document, Cycle cycle)
     {
         if (cycle.Repeats is { } repeats) return repeats;
-        var only = document.Blocks.Sum(b => b.Cycles.Length) == 1;
+        // A lone workout's holder cycle runs once and does not count: adding one never ends an open plan.
+        var only = cycle.Implicit != true && document.Blocks.Sum(b => b.Cycles.Count(c => c.Implicit != true)) == 1;
         return only ? Math.Max(1, (int)Math.Ceiling(OpenEndedDays / (double)Math.Max(1, cycle.DayCount))) : 1;
     }
     /// <summary>
@@ -149,7 +157,7 @@ public static class DocumentRules
             if (block?.Cycles is null)
                 throw new TrainingValidationException("Block cycles are required.");
             Id(block.Id);
-            Text(block.Name, 200, strict);
+            Text(block.Name, 200, strict && block.Implicit != true);
             NonNullText(block.Description, 4000);
             if (strict) BlockMaxes.Validate(block.ExerciseMaxes); else DraftMaxes(block.ExerciseMaxes);
             foreach (var cycle in block.Cycles)
@@ -157,7 +165,7 @@ public static class DocumentRules
                 if (cycle?.Days is null)
                     throw new TrainingValidationException("Cycle days are required.");
                 Id(cycle.Id);
-                Text(cycle.Name, 200, strict);
+                Text(cycle.Name, 200, strict && cycle.Implicit != true);
                 NonNullText(cycle.Description, 4000);
                 if (cycle.DayCount < 1 || cycle.DayCount > limits.MaximumCycleDays)
                     throw new TrainingValidationException("Invalid cycle length.");

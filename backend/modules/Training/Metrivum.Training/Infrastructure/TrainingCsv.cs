@@ -191,9 +191,10 @@ public static class TrainingCsv
                     }
                     days.Add(new(d.DayId, d.DayNumber, workouts.ToArray()));
                 }
-                cycles.Add(new(c.CycleId, c.CycleName, c.CycleDescription, c.CycleDays, days.ToArray()));
+                // A nameless cycle or block only holds what is not in one (see Cycle.Implicit and Block.Implicit).
+                cycles.Add(new(c.CycleId, c.CycleName, c.CycleDescription, c.CycleDays, days.ToArray(), Implicit: string.IsNullOrWhiteSpace(c.CycleName) ? true : null));
             }
-            blocks.Add(new(b.BlockId, b.BlockName, b.BlockDescription, cycles.ToArray()));
+            blocks.Add(new(b.BlockId, b.BlockName, b.BlockDescription, cycles.ToArray(), Implicit: string.IsNullOrWhiteSpace(b.BlockName) ? true : null));
         }
         return new(1, blocks.ToArray());
     }

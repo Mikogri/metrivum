@@ -116,7 +116,8 @@
 .state svg {
   width: 0.75rem;
   height: 0.75rem;
-  color: var(--tf-color-warning);
+  /* Changes clients don't have yet: red, so it reads as something to act on. */
+  color: var(--tf-color-danger);
 }
 
 .state[data-applied] svg {

@@ -19761,6 +19761,12 @@
               "null",
               "boolean"
             ]
+          },
+          "implicit": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         },
         "additionalProperties": false
@@ -21912,6 +21918,12 @@
               "string"
             ],
             "format": "int32"
+          },
+          "implicit": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         },
         "additionalProperties": false

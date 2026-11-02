@@ -402,12 +402,15 @@ function OwnedPlan({ id }: { id: string }) {
         <Screen title={query.data.name} subtitle={query.data.description}>
             {query.data.document.blocks.map((block) => (
                 <View key={block.id} style={{ gap: theme.spacing.md }}>
-                    <Overline>{block.name}</Overline>
+                    {/* A cycle or workout outside every block or cycle comes without a heading of its own. */}
+                    {block.implicit ? null : <Overline>{block.name}</Overline>}
                     {block.cycles.map((cycle) => (
                         <View key={cycle.id} style={{ gap: theme.spacing.md }}>
-                            <Heading level="title">
-                                {cycle.name} · {cycle.dayCount} days
-                            </Heading>
+                            {cycle.implicit ? null : (
+                                <Heading level="title">
+                                    {cycle.name} · {cycle.dayCount} days
+                                </Heading>
+                            )}
                             {cycle.days.map((day) =>
                                 day.workouts.map((workout) => (
                                     <Section

@@ -26,6 +26,28 @@ public sealed class TrainingDocumentTests
         Assert.Throws<TrainingValidationException>(() => DocumentRules.Validate(document, new()));
     }
     [Fact]
+    public void A_plan_needs_no_named_blocks_or_cycles_when_they_only_hold_a_cycle_or_a_workout()
+    {
+        var example = Example().Blocks[0];
+        var cycle = example.Cycles[0];
+        var lone = cycle with { Id = Guid.NewGuid(), Name = "", DayCount = 1, Repeats = 1, Implicit = true, Days = [cycle.Days[0] with { Id = Guid.NewGuid(), DayNumber = 1, Workouts = [DocumentRules.Copy(Example()).Blocks[0].Cycles[0].Days[0].Workouts[0]] }] };
+        var document = new TrainingDocument(1, [
+            example with { Name = "", Implicit = true },
+            new Block(Guid.NewGuid(), "", "", [lone], Implicit: true),
+        ]);
+        DocumentRules.Validate(document, new());
+        var roundTrip = TrainingJson.Deserialize<TrainingDocument>(TrainingJson.Serialize(document));
+        Assert.True(roundTrip.Blocks[1].Implicit);
+        Assert.True(roundTrip.Blocks[1].Cycles[0].Implicit);
+        Assert.DoesNotContain("implicit", TrainingJson.Serialize(Example()));
+        // The lone workout runs once and leaves the other cycle the plan's only one, open until stopped.
+        Assert.Equal(1, DocumentRules.RunsOf(document, lone));
+        Assert.True(DocumentRules.RunsOf(document, example.Cycles[0] with { Repeats = null }) > 1);
+        // A block the coach made still needs a name.
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.Validate(document with { Blocks = [example with { Name = "" }] }, new()));
+    }
+
+    [Fact]
     public void Rejects_day_outside_non_week_cycle()
     {
         var document = Example() with

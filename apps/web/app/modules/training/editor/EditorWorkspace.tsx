@@ -32,7 +32,7 @@ import { FormulaMark } from "../components/FormulaMark";
 import { SaveStatus } from "./components/SaveStatus";
 import { SheetCanvas, usePersistentSheet } from "./components/SheetCanvas";
 import { WeekView } from "./components/WeekView";
-import { locate, uniqueExerciseIds } from "./model/document";
+import { uniqueExerciseIds } from "./model/document";
 import { isSimpleShape } from "./model/structure";
 import { usesProFeatures } from "./model/pro-features";
 import { hasActiveWorkout } from "./model/workouts";
@@ -93,11 +93,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
   const clientContext = usePlanClientContext(plan.id, workspaceMode === "coach" && canEdit && plan.kind === "Program" && !plan.archived);
   const detailPath = workspaceMode === "client" ? `/app/training-plans/${plan.id}` : `/app/programs/${plan.id}`;
 
-  // Cycles disconnected on the sheet exist only in memory; leaving would lose them like unsaved edits.
-  const looseRef = useRef(false);
-  looseRef.current = sheet.loose.some((cycle) => cycle.days.length > 0 && !locate(editor.doc, cycle.id))
-    || (sheet.looseWorkouts ?? []).some((workout) => workout.exercises.length > 0 && !locate(editor.doc, workout.id));
-  const hasUnsavedWork = useCallback(() => editor.isDirty() || looseRef.current, [editor]);
+  const hasUnsavedWork = useCallback(() => editor.isDirty(), [editor]);
   useUnsavedWorkGuard(hasUnsavedWork);
 
   // In-app navigation away from unsaved work asks first (browser unload is handled by the guard).

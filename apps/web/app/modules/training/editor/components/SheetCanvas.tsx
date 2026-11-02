@@ -37,10 +37,10 @@ import { useAccountContext } from "~/shared/session/AccountScope";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useBuiltInFormulas, useFormulaList } from "../../queries";
 import { setExerciseFormula } from "../model/cells";
-import { REPEAT_CHOICES, WORKOUT_COLS, cycleCalendar, cycleRuns, cycleWorkouts, nextWorkoutLetter, setDayNote, withDayNote, withWorkout, withoutWorkout, workoutCardRows } from "../model/workouts";
+import { REPEAT_CHOICES, WORKOUT_COLS, countedCycles, cycleCalendar, cycleRuns, cycleWorkouts, nextWorkoutLetter, setDayNote, withWorkout, workoutCardRows } from "../model/workouts";
 import { addBlock, addCycle, cloneWithNewIds, duplicateNode, findWorkout, locate, moveNode, newCycle, newWorkout, removeNode, updateNode } from "../model/document";
 import { BLOCK_COLS, CELL_H, CELL_W, CYCLE_COLS, autoLayout, cycleRows, mergeLayout, resolveLayout, snap, columnAt, columnLeft, columnSpan, columnWidth, clampColumnWidth, resizedColumnWidth, sanitizeColumnWidths, MIN_COLUMN_WIDTH, MAX_COLUMN_WIDTH, MAX_SAVED_COLUMNS, type ColumnWidths, type Cell, type Layout, type Size } from "../model/layout";
-import { attachCycle, detachCycle } from "../model/structure";
+import { addLooseCycle, addLooseWorkout, attachCycle, attachWorkout, detachCycle, detachWorkout, pruneHolders, sheetView } from "../model/structure";
 import type { EditorApi } from "../useEditor";
 import { ProgressionDialog } from "./ProgressionDialog";
 import { VolumePanel } from "./VolumePanel";
@@ -48,7 +48,7 @@ import { SheetMinimap, type MinimapNode } from "./SheetMinimap";
 import { BlockFormulaScope } from "../block-maxes";
 import { BlockMaxesTable } from "./BlockMaxesTable";
 import { WorkoutEditor } from "./WorkoutEditor";
-import { LooseFlag, WorkoutCard } from "./WorkoutCard";
+import { WorkoutCard } from "./WorkoutCard";
 import styles from "./SheetCanvas.module.css";
 
 export interface SheetState {
@@ -56,17 +56,13 @@ export interface SheetState {
   columnWidths?: ColumnWidths;
   elementWidths?: ElementWidths;
   collapsedCards?: string[];
-  /** Cycles taken out of every block. They exist only here until connected again. */
-  loose: Cycle[];
-  /** Workouts not plugged into any cycle (new or unplugged). Like loose cycles, they exist only here. */
-  looseWorkouts?: Workout[];
   /** Cycles shown as cells. */
   expanded: string[];
   /** Workouts folded inside an expanded cycle. */
   collapsedWorkouts: string[];
 }
 
-export const emptySheet: SheetState = { layout: {}, loose: [], looseWorkouts: [], expanded: [], collapsedWorkouts: [] };
+export const emptySheet: SheetState = { layout: {}, expanded: [], collapsedWorkouts: [] };
 
 const isCell = (v: unknown): v is Cell =>
   typeof v === "object" && v !== null && Number.isInteger((v as Cell).col) && Number.isInteger((v as Cell).row) && (v as Cell).col >= 0 && (v as Cell).row >= 0;
@@ -74,9 +70,8 @@ const ids = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is str
 
 /**
  * The sheet's arrangement (positions, column widths and folded cards) for one account and plan, kept in
- * this browser so the editor and the program preview reopen the way they were left. Disconnected
- * cycles are plan content, not arrangement, so they are not stored. Without storage it starts from
- * the default layout.
+ * this browser so the editor and the program preview reopen the way they were left. Without storage
+ * it starts from the default layout.
  */
 export function usePersistentSheet(planId: string): [SheetState, (next: SheetState | ((current: SheetState) => SheetState)) => void] {
   const { accountKey, lifecycle } = useAccountContext();
@@ -184,7 +179,7 @@ export function endsEdit(sheet: HTMLElement, active: HTMLElement | null, target:
 
 export function SheetCanvas({
   doc,
-  apply,
+  apply: applyToPlan,
   sheet,
   onSheetChange,
   names,
@@ -211,6 +206,8 @@ export function SheetCanvas({
 }) {
   const m = useT();
   const t = m.editor.sheet;
+  // Every change also drops the holders it left empty (of a workout or cycle that was outside a cycle or block).
+  const apply = useMemo<Apply | undefined>(() => applyToPlan && ((fn) => applyToPlan((d) => pruneHolders(fn(d)))), [applyToPlan]);
   const readOnly = !apply;
   const scrollerRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -275,14 +272,10 @@ export function SheetCanvas({
   useEffect(() => { if (menu) cancelPointer(); }, [menu, cancelPointer]);
   useEffect(() => () => { document.body.removeAttribute("data-training-column-resize"); }, []);
 
-  // A cycle back in the document (connect, undo) is no longer loose.
-  const loose = useMemo(() => sheet.loose.filter((cycle) => !locate(doc, cycle.id)), [sheet.loose, doc]);
-  // A workout back in the document or in a loose cycle (connect, undo) is no longer free-standing.
-  const looseWorkouts = useMemo(
-    () => (sheet.looseWorkouts ?? []).filter((w) => !locate(doc, w.id) && !loose.some((c) => c.days.some((d) => d.workouts.some((x) => x.id === w.id)))),
-    [sheet.looseWorkouts, doc, loose],
-  );
-  const stored = useMemo(() => mergeLayout(sheet.layout, doc, loose, looseWorkouts), [sheet.layout, doc, loose, looseWorkouts]);
+  // Cycles outside every block and workouts outside every cycle are part of the plan; the sheet draws them on their own.
+  const shown = useMemo(() => sheetView(doc), [doc]);
+  const { loose, looseWorkouts } = shown;
+  const stored = useMemo(() => mergeLayout(sheet.layout, doc), [sheet.layout, doc]);
   const workout = openWorkout ? findWorkout(doc, openWorkout) : null;
 
   useEffect(() => {
@@ -290,14 +283,12 @@ export function SheetCanvas({
   }, [openWorkout, workout]);
 
   const update = (fn: (s: SheetState) => SheetState) => onSheetChange(fn);
-  const place = (id: string, cell: Cell) => update((s) => ({ ...s, layout: { ...mergeLayout(s.layout, doc, loose, looseWorkouts), [id]: cell } }));
-  const setLoose = (fn: (cycles: Cycle[]) => Cycle[]) => update((s) => ({ ...s, loose: fn(s.loose.filter((c) => !locate(doc, c.id))) }));
-  const setLooseWorkouts = (fn: (workouts: Workout[]) => Workout[]) => update((s) => ({ ...s, looseWorkouts: fn((s.looseWorkouts ?? []).filter((w) => !locate(doc, w.id))) }));
+  const place = (id: string, cell: Cell) => update((s) => ({ ...s, layout: { ...mergeLayout(s.layout, doc), [id]: cell } }));
 
   // Sizes in cells; expanded cycles take one column group per day.
   const allCycles = useMemo(
-    () => [...doc.blocks.flatMap((block) => block.cycles.map((cycle) => ({ cycle, blockId: block.id as string | null }))), ...loose.map((cycle) => ({ cycle, blockId: null }))],
-    [doc, loose],
+    () => [...shown.blocks.flatMap((block) => block.cycles.map((cycle) => ({ cycle, blockId: block.id as string | null }))), ...loose.map((cycle) => ({ cycle, blockId: null }))],
+    [shown, loose],
   );
   const collapsedCards = useMemo(() => new Set(sheet.collapsedCards ?? []), [sheet.collapsedCards]);
   const toggleCard = (id: string) => update(s => ({ ...s, collapsedCards: collapsedCards.has(id) ? [...collapsedCards].filter(value => value !== id) : [...collapsedCards, id] }));
@@ -311,7 +302,7 @@ export function SheetCanvas({
   );
   const sizes = useMemo(() => {
     const result: Record<string, Size> = {};
-    for (const block of doc.blocks) {
+    for (const block of shown.blocks) {
       result[block.id] = { cols: BLOCK_COLS, rows: BLOCK_ROWS };
 
     }
@@ -322,7 +313,7 @@ export function SheetCanvas({
     for (const table of maxesTables(doc)) result[table.id] = { cols: collapsedCards.has(table.id) ? 2 : 5, rows: collapsedCards.has(table.id) ? 2 : table.rows.length + 3 };
     for (const note of doc.annotations ?? []) result[note.id] = { cols: 3, rows: collapsedCards.has(note.id) ? 2 : 5 };
     return result;
-  }, [doc, allCycles, allWorkouts, readOnly, collapsedCards]);
+  }, [doc, shown, allCycles, allWorkouts, readOnly, collapsedCards]);
   // Where cards are drawn: no overlaps; a card that would land on another moves down.
   const layout = useMemo(() => resolveLayout(stored, sizes), [stored, sizes]);
 
@@ -483,7 +474,7 @@ export function SheetCanvas({
       const dr = snap(drag.origin.row * CELL_H + drag.dy, CELL_H) - drag.origin.row;
       if (dc || dr) {
         const moves = Object.fromEntries(Object.entries(drag.group).map(([id, at]) => [id, { col: Math.max(0, at.col + dc), row: Math.max(0, at.row + dr) }]));
-        update((s) => ({ ...s, layout: { ...mergeLayout(s.layout, doc, loose, looseWorkouts), ...moves } }));
+        update((s) => ({ ...s, layout: { ...mergeLayout(s.layout, doc), ...moves } }));
       }
     } else if (drag.renameKey) {
       // A click (no drag) on a name edits it; pressing and dragging still moves the card.
@@ -594,91 +585,29 @@ export function SheetCanvas({
   };
 
   // Connecting -------------------------------------------------------------------------------
-  const connect = (blockId: string, cycleId: string) => {
-    const inDoc = locate(doc, cycleId);
-    const cycle = inDoc?.kind === "cycle" ? doc.blocks[inDoc.blockIndex]!.cycles[inDoc.cycleIndex!]! : loose.find((c) => c.id === cycleId);
-    if (!cycle) return;
-    apply?.((current) => attachCycle(current, cycle, blockId));
-  };
-  const disconnect = (cycleId: string) => {
-    const result = detachCycle(doc, cycleId);
-    if (!result.cycle || !apply) return;
-    const cycle = result.cycle;
-    apply(() => result.doc);
-    setLoose((cycles) => [...cycles.filter((c) => c.id !== cycle.id), cycle]);
-  };
+  const connect = (blockId: string, cycleId: string) => apply?.((current) => attachCycle(current, cycleId, blockId));
+  // A cycle taken out of its block stays in the plan, outside every block.
+  const disconnect = (cycleId: string) => apply?.((current) => detachCycle(current, cycleId));
 
   // Workouts: a cable from a cycle's handle to a workout card puts the workout on that cycle (on its old day when it
-  // fits, else the first free day). Pulling the plug out leaves the workout on the sheet, unsaved, until plugged in.
-  const cycleIn = (d: TrainingDocument, id: string) => {
-    const at = locate(d, id);
-    return at?.kind === "cycle" ? d.blocks[at.blockIndex]!.cycles[at.cycleIndex!]! : null;
-  };
+  // fits, else the first free day). Pulling the plug out keeps the workout in the plan, on no cycle.
   const homeOf = (workoutId: string) => allWorkouts.find((w) => w.workout.id === workoutId);
-  /** Takes the workout off whatever holds it now (a cycle in the plan, a loose cycle or the free list). */
-  const takeOut = (workoutId: string, d: TrainingDocument): TrainingDocument => {
-    const home = homeOf(workoutId);
-    if (home?.cycle && locate(d, home.cycle.id)) {
-      const cycle = cycleIn(d, home.cycle.id);
-      return cycle ? updateNode(d, cycle.id, { days: withoutWorkout(cycle, workoutId).cycle.days }) : d;
-    }
-    if (home?.cycle) setLoose((cycles) => cycles.map((c) => (c.id === home.cycle!.id ? withoutWorkout(c, workoutId).cycle : c)));
-    else setLooseWorkouts((list) => list.filter((w) => w.id !== workoutId));
-    return d;
-  };
-  const connectWorkout = (cycleId: string, workoutId: string) => {
-    const home = homeOf(workoutId);
-    if (!home || !apply || home.cycle?.id === cycleId) return;
-    const { workout, dayNumber } = home;
-    if (locate(doc, cycleId)) {
-      apply((d) => {
-        const next = takeOut(workoutId, d);
-        const cycle = cycleIn(next, cycleId);
-        return cycle ? updateNode(next, cycleId, { days: withWorkout(cycle, workout, dayNumber).days }) : next;
-      });
-    } else {
-      if (home.cycle && locate(doc, home.cycle.id)) apply((d) => takeOut(workoutId, d));
-      else takeOut(workoutId, doc);
-      setLoose((cycles) => cycles.map((c) => (c.id === cycleId ? withWorkout(c, workout, dayNumber) : c)));
-    }
-  };
-  const disconnectWorkout = (workoutId: string) => {
-    const home = homeOf(workoutId);
-    if (!home?.cycle || !apply) return;
-    if (locate(doc, home.cycle.id)) apply((d) => takeOut(workoutId, d));
-    else takeOut(workoutId, doc);
-    setLooseWorkouts((list) => [...list.filter((w) => w.id !== workoutId), home.workout]);
-  };
-  /**
-   * Edits to a workout outside the plan (free-standing or in a loose cycle) go to the sheet: the same document
-   * operations run on a small document holding just that cycle or workout.
-   */
-  const applyFor = (workoutId: string): Apply | undefined => {
-    if (!apply) return undefined;
-    const home = homeOf(workoutId);
-    if (!home || locate(doc, workoutId)) return apply;
-    const wrap = (cycle: Cycle) => ({ schemaVersion: 1, blocks: [{ id: "sheet-block", name: "", description: "", cycles: [cycle] }] }) as unknown as TrainingDocument;
-    if (home.cycle) {
-      const cycleId = home.cycle.id;
-      return (fn) => setLoose((cycles) => cycles.map((c) => (c.id === cycleId ? (fn(wrap(c)).blocks[0]?.cycles[0] ?? c) : c)));
-    }
-    return (fn) => setLooseWorkouts((list) => list.map((w) => {
-      if (w.id !== workoutId) return w;
-      const holder = { ...newCycle("", 1), days: [{ id: "sheet-day", dayNumber: 1, note: "", workouts: [w] }] } as unknown as Cycle;
-      return fn(wrap(holder)).blocks[0]?.cycles[0]?.days[0]?.workouts.find((x) => x.id === workoutId) ?? w;
-    }));
-  };
+  const connectWorkout = (cycleId: string, workoutId: string) => apply?.((d) => attachWorkout(d, workoutId, cycleId));
+  const disconnectWorkout = (workoutId: string) => apply?.((d) => detachWorkout(d, workoutId));
   const addWorkoutAt = (cell: Cell | null) => {
     const workout = newWorkout(t.workoutName(String.fromCharCode(65 + (allWorkouts.length % 26))));
-    setLooseWorkouts((list) => [...list, workout]);
+    apply?.((d) => addLooseWorkout(d, workout));
     if (cell) update((s) => ({ ...s, layout: { ...s.layout, [workout.id]: cell } }));
   };
   const addWorkoutToCycle = (cycleId: string) => {
     const cycle = allCycles.find((c) => c.cycle.id === cycleId)?.cycle;
     if (!cycle) return;
     const workout = newWorkout(t.workoutName(nextWorkoutLetter(cycle)));
-    if (locate(doc, cycleId)) apply?.((d) => { const c = cycleIn(d, cycleId); return c ? updateNode(d, cycleId, { days: withWorkout(c, workout).days }) : d; });
-    else setLoose((cycles) => cycles.map((c) => (c.id === cycleId ? withWorkout(c, workout) : c)));
+    apply?.((d) => {
+      const at = locate(d, cycleId);
+      const c = at?.kind === "cycle" ? d.blocks[at.blockIndex]!.cycles[at.cycleIndex!]! : null;
+      return c ? updateNode(d, cycleId, { days: withWorkout(c, workout).days }) : d;
+    });
   };
   // A cycle is as long as its days: add one at the end, or drop the last one while it's empty.
   const canRemoveDay = (cycleId: string) => {
@@ -691,13 +620,11 @@ export function SheetCanvas({
     if (!cycle || (delta < 0 && !canRemoveDay(cycleId)) || (delta > 0 && Number(cycle.dayCount) >= 366)) return;
     const length = Number(cycle.dayCount) + delta;
     const next = { dayCount: length, days: cycle.days.filter((d) => Number(d.dayNumber) <= length) };
-    if (locate(doc, cycleId)) apply?.((d) => updateNode(d, cycleId, next));
-    else setLoose((cycles) => cycles.map((c) => (c.id === cycleId ? { ...c, ...next } : c)));
+    apply?.((d) => updateNode(d, cycleId, next));
   };
   const [removingWorkout, setRemovingWorkout] = useState<Workout | null>(null);
   const removeWorkout = (workout: Workout) => {
-    if (locate(doc, workout.id)) apply?.((d) => removeNode(d, workout.id));
-    else takeOut(workout.id, doc);
+    apply?.((d) => removeNode(d, workout.id));
   };
   const startLink = (event: ReactPointerEvent, blockId: string, kind: Link["kind"] = "cycle", rewire?: Link["rewire"]) => {
     if (readOnly || menu || event.button !== 0) return;
@@ -748,14 +675,13 @@ export function SheetCanvas({
   // Adding -----------------------------------------------------------------------------------
   const addBlockAt = (cell: Cell | null) => {
     if (!apply) return;
-    const result = addBlock(doc, m.editor.blockName(doc.blocks.length + 1));
+    const result = addBlock(doc, m.editor.blockName(shown.blocks.length + 1));
     apply(() => result.doc);
     if (cell) place(result.id, cell);
   };
   const addCycleAt = (cell: Cell | null) => {
-    const total = doc.blocks.reduce((n, b) => n + b.cycles.length, 0) + loose.length;
-    const cycle = newCycle(m.editor.cycleName(total + 1));
-    setLoose((cycles) => [...cycles, cycle]);
+    const cycle = newCycle(m.editor.cycleName(allCycles.length + 1));
+    apply?.((d) => addLooseCycle(d, cycle));
     if (cell) update((s) => ({ ...s, layout: { ...s.layout, [cycle.id]: cell } }));
   };
   const onBoardContextMenu = (event: React.MouseEvent) => {
@@ -818,7 +744,7 @@ export function SheetCanvas({
     return { left: p.left + (open ? -1 : 4), top: p.top + (open ? -1 : 4), width: p.width + (open ? 2 : -8), height: cellSize.rows * CELL_H + (open ? 2 : -8) };
   };
   const rawEdges = [
-    ...doc.blocks.flatMap(block => block.cycles.map(cycle => ({ id: `${block.id}-${cycle.id}`, sourceId: block.id, targetId: cycle.id, cycleId: cycle.id, tableId: undefined as string | undefined, annotationId: undefined as string | undefined, workoutId: undefined as string | undefined }))),
+    ...shown.blocks.flatMap(block => block.cycles.map(cycle => ({ id: `${block.id}-${cycle.id}`, sourceId: block.id, targetId: cycle.id, cycleId: cycle.id, tableId: undefined as string | undefined, annotationId: undefined as string | undefined, workoutId: undefined as string | undefined }))),
     ...allWorkouts.filter(w => w.cycle).map(w => ({ id: `${w.cycle!.id}-${w.workout.id}`, sourceId: w.cycle!.id, targetId: w.workout.id, cycleId: w.cycle!.id, tableId: undefined as string | undefined, annotationId: undefined as string | undefined, workoutId: w.workout.id as string | undefined })),
     ...maxesTables(doc).filter(t => t.blockId).map(t => ({ id: t.id, sourceId: t.id, targetId: t.blockId!, cycleId: "", tableId: t.id, annotationId: undefined as string | undefined, workoutId: undefined as string | undefined })),
     ...(doc.annotations ?? []).filter(n => n.targetId).map(n => ({ id: n.id, sourceId: n.id, targetId: n.targetId!, cycleId: "", tableId: undefined as string | undefined, annotationId: n.id, workoutId: undefined as string | undefined })),
@@ -884,7 +810,7 @@ export function SheetCanvas({
             ];
       case "cycle": {
         const parent = allCycles.find((c) => c.cycle.id === current.id)?.blockId ?? null;
-        const targets = doc.blocks.filter((b) => b.id !== parent);
+        const targets = shown.blocks.filter((b) => b.id !== parent);
         return [
           ...(readOnly
             ? []
@@ -897,12 +823,8 @@ export function SheetCanvas({
                 ...targets.map((b) => ({ id: `connect:${b.id}`, label: b.name || m.editor.untitled, icon: <Link2 /> })),
                 ...(parent ? [{ id: "disconnect", label: t.disconnect, icon: <Unlink /> }] : []),
                 { type: "separator", id: "s1" },
-                ...(parent
-                  ? [
-                      { id: "rename", label: m.editor.rename, icon: <Pencil /> },
-                      { id: "duplicate", label: t.duplicateCycle, icon: <Copy /> },
-                    ]
-                  : []),
+                { id: "rename", label: m.editor.rename, icon: <Pencil /> },
+                { id: "duplicate", label: t.duplicateCycle, icon: <Copy /> },
                 { id: "remove", label: m.editor.remove, icon: <Trash2 />, tone: "danger" },
               ] as ContextMenuEntry[])),
         ];
@@ -947,7 +869,7 @@ export function SheetCanvas({
       if (id === "add-block") addBlockAt(current.cell);
       else if (id === "add-cycle") addCycleAt(current.cell);
       else if (id === "add-workout") addWorkoutAt(current.cell);
-      else if (id === "arrange") update((s) => ({ ...s, layout: autoLayout(doc, loose, looseWorkouts) }));
+      else if (id === "arrange") update((s) => ({ ...s, layout: autoLayout(doc) }));
       else if (id === "zoom-reset") zoomTo("reset");
     } else if (current.kind === "block") {
       const block = doc.blocks.find((b) => b.id === current.id);
@@ -959,7 +881,6 @@ export function SheetCanvas({
       else if (id === "duplicate") apply?.((d) => duplicateNode(d, block.id).doc);
       else if (id === "remove") apply?.((d) => removeNode(d, block.id));
     } else if (current.kind === "cycle") {
-      const isLoose = !locate(doc, current.id);
       if (id === "add-workout") addWorkoutToCycle(current.id);
       else if (id === "add-day") changeDays(current.id, 1);
       else if (id === "remove-day") changeDays(current.id, -1);
@@ -968,10 +889,7 @@ export function SheetCanvas({
       else if (id === "rename") setRenaming(current.id);
       else if (id === "edit") onEditNode?.(current.id);
       else if (id === "duplicate") apply?.((d) => duplicateNode(d, current.id).doc);
-      else if (id === "remove") {
-        if (isLoose) setLoose((cycles) => cycles.filter((c) => c.id !== current.id));
-        else apply?.((d) => removeNode(d, current.id));
-      }
+      else if (id === "remove") apply?.((d) => removeNode(d, current.id));
     } else if (current.kind === "edge") {
       if (id === "disconnect") {
         if (current.workoutId) disconnectWorkout(current.workoutId);
@@ -986,12 +904,13 @@ export function SheetCanvas({
       else if (id === "disconnect") disconnectWorkout(current.id);
       else if (id === "remove") setRemovingWorkout(home.workout);
       else if (id === "duplicate") {
-        if (locate(doc, current.id)) apply?.((d) => duplicateNode(d, current.id).doc);
-        else setLooseWorkouts((list) => [...list, { ...cloneWithNewIds(home.workout), name: `${home.workout.name} (2)` }]);
+        // A copy of a workout on no cycle is its own workout on no cycle, not a second workout on the same day.
+        if (home.cycle) apply?.((d) => duplicateNode(d, current.id).doc);
+        else apply?.((d) => addLooseWorkout(d, { ...cloneWithNewIds(home.workout), name: `${home.workout.name} (2)` }));
       }
     } else if (current.kind === "exercise") {
       const { instance, workout: w } = current;
-      const edit = applyFor(w.id);
+      const edit = apply;
       if (id === "details") setOpenWorkout(w.id);
       else if (id === "duplicate") edit?.((d) => duplicateNode(d, instance.id).doc);
       else if (id === "up") edit?.((d) => moveNode(d, instance.id, -1));
@@ -1028,7 +947,7 @@ export function SheetCanvas({
               } else if (option && "custom" in option && option.custom) {
                 use = { formulaId: option.custom.id, builtIn: null, version: option.custom.version, inputs: {} } as FormulaUse;
               }
-              applyFor((menu as Extract<Menu, { kind: "exercise" }>).workout.id)?.((d) => setExerciseFormula(d, instance.id, use));
+              apply?.((d) => setExerciseFormula(d, instance.id, use));
             }}
           >
             <option value="">{t.noFormula}</option>
@@ -1043,12 +962,12 @@ export function SheetCanvas({
     );
   };
 
-  // How many times a cycle runs, picked in its menu. Loose cycles keep it until they are connected.
+  // How many times a cycle runs, picked in its menu.
   const repeatsExtra = (cycleId: string) => {
     const cycle = allCycles.find((c) => c.cycle.id === cycleId)?.cycle;
     if (!cycle) return null;
-    const runs = locate(doc, cycleId) ? cycleRuns(doc, cycle) : cycle.repeats != null ? Number(cycle.repeats) : 1;
-    const single = doc.blocks.reduce((n, b) => n + b.cycles.length, 0) === 1 && Boolean(locate(doc, cycleId));
+    const runs = cycleRuns(doc, cycle);
+    const single = countedCycles(doc) === 1;
     return (
       <div className={styles.menuForm}>
         <label className={styles.menuLabel}>
@@ -1056,8 +975,7 @@ export function SheetCanvas({
           <select className={styles.menuSelect} value={runs === null ? "open" : String(runs)}
             onChange={(event) => {
               const repeats = event.target.value === "open" ? null : Number(event.target.value);
-              if (locate(doc, cycleId)) apply?.((d) => updateNode(d, cycleId, { repeats }));
-              else setLoose((cycles) => cycles.map((c) => (c.id === cycleId ? { ...c, repeats } : c)));
+              apply?.((d) => updateNode(d, cycleId, { repeats }));
             }}>
             {single ? <option value="open">{t.repeatOpen}</option> : null}
             {REPEAT_CHOICES.map((n) => <option key={n} value={String(n)}>{t.repeatTimes(n)}</option>)}
@@ -1107,7 +1025,7 @@ export function SheetCanvas({
           </>
         ) : null}
         <TooltipTrigger delay={300}>
-          <Button size="sm" variant="ghost" iconStart={<LayoutGrid />} onPress={() => update((s) => ({ ...s, layout: autoLayout(doc, loose, looseWorkouts) }))}>
+          <Button size="sm" variant="ghost" iconStart={<LayoutGrid />} onPress={() => update((s) => ({ ...s, layout: autoLayout(doc) }))}>
             {t.arrange}
           </Button>
           <Tooltip>{t.arrangeHint}</Tooltip>
@@ -1115,7 +1033,7 @@ export function SheetCanvas({
         <Button size="sm" variant={volumeOpen ? "secondary" : "ghost"} iconStart={<BarChart3 />} onPress={() => setVolumeOpen((v) => !v)} aria-pressed={volumeOpen}>
           {t.volume.open}
         </Button>
-        {!readOnly ? <InfoTip label="Sheet help" className={styles.help}>{doc.blocks.length || loose.length ? `${t.openCycle} · ${t.zoomHint}` : t.empty}</InfoTip> : null}
+        {!readOnly ? <InfoTip label="Sheet help" className={styles.help}>{doc.blocks.length ? `${t.openCycle} · ${t.zoomHint}` : t.empty}</InfoTip> : null}
         </div>
         <div className={styles.toolsEnd}>
           {!readOnly ? (
@@ -1233,7 +1151,7 @@ export function SheetCanvas({
 
               {(doc.annotations ?? []).map(note => <AnnotationCard key={note.id} collapsed={collapsedCards.has(note.id)} onToggle={() => toggleCard(note.id)} note={note} scope={note.targetId ? doc.blocks.find(b => b.id === note.targetId)?.name ?? allCycles.find(c => c.cycle.id === note.targetId)?.cycle.name ?? "Linked" : "Global · plan"} apply={apply} style={pos(note.id)} dragging={Boolean(drag?.moved && (drag.id === note.id || drag.group[note.id]))} onPointerDown={event => startDrag(event, note.id)} onPointerMove={moveDrag} onPointerUp={endDrag} handle={!readOnly ? <span className={styles.handle} style={sourceHandleStyle(note.id)} title="Connect annotation" data-no-drag onPointerDown={event => startLink(event, note.id, "annotation")} onPointerMove={moveLink} onPointerUp={endLink} /> : null} />)}
               {maxesTables(doc).map(table => <BlockMaxesTable key={table.id} collapsed={collapsedCards.has(table.id)} onToggle={() => toggleCard(table.id)} table={table} renderColumnResize={(col, label) => elementResizeHandle(table.id, col, label)} dragging={Boolean(drag?.moved && (drag.id === table.id || drag.group[table.id]))} selected={selected.includes(table.id)} apply={apply} names={names} style={pos(table.id)} onPointerDown={event => startDrag(event, table.id)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerEnter={() => setHoverNode(table.id)} onPointerLeave={() => setHoverNode(null)} handle={<span className={styles.handle} style={sourceHandleStyle(table.id)} role="presentation" title="Connect to block" data-no-drag onPointerDown={event => startLink(event, table.id, "maxes")} onPointerMove={moveLink} onPointerUp={endLink}></span>} />)}
-              {doc.blocks.map((block) => (
+              {shown.blocks.map((block) => (
                 <BlockCard
                   key={block.id}
                   block={block}
@@ -1292,7 +1210,6 @@ export function SheetCanvas({
                   selected={selected.includes(cycle.id)}
                   linkTarget={link?.targetId === cycle.id}
                   apply={apply}
-                  onRenameLoose={(name) => setLoose((cycles) => cycles.map((c) => (c.id === cycle.id ? { ...c, name } : c)))}
                   onPointerEnter={() => setHoverNode(cycle.id)}
                   onPointerLeave={() => setHoverNode((h) => (h === cycle.id ? null : h))}
                   onPointerDown={(e) => startDrag(e, cycle.id)}
@@ -1341,7 +1258,7 @@ export function SheetCanvas({
                     linkTarget={link?.targetId === w.id}
                     collapsed={collapsedCards.has(w.id)}
                     renaming={renaming === w.id}
-                    apply={applyFor(w.id)}
+                    apply={apply}
                     names={names}
                     advancedAllowed={advancedAllowed}
                     customFormulas={customFormulas}
@@ -1395,8 +1312,7 @@ export function SheetCanvas({
               onChange={(event) => {
                 const { cycleId, dayNumber } = menu;
                 const text = event.target.value;
-                if (locate(doc, cycleId)) apply?.((d) => setDayNote(d, cycleId, dayNumber, text));
-                else setLoose((cycles) => cycles.map((c) => (c.id === cycleId ? withDayNote(c, dayNumber, text) : c)));
+                apply?.((d) => setDayNote(d, cycleId, dayNumber, text));
               }}
             />
           ) : null}
@@ -1635,7 +1551,6 @@ function CycleCard({
   selected,
   linkTarget,
   apply,
-  onRenameLoose,
   onMenuButton,
   onSelectDay,
   onDayNote,
@@ -1659,7 +1574,6 @@ function CycleCard({
   selected: boolean;
   linkTarget: boolean;
   apply?: Apply;
-  onRenameLoose: (name: string) => void;
   onMenuButton: (x: number, y: number) => void;
   /** A training day was clicked: its workout cards get selected. */
   onSelectDay: (dayNumber: number) => void;
@@ -1706,10 +1620,9 @@ function CycleCard({
             editing={renaming === cycle.id}
             renameKey={cycle.id}
             onDone={() => onRename(null)}
-            onChange={(name) => (loose ? onRenameLoose(name) : apply?.((doc) => updateNode(doc, cycle.id, { name })))}
+            onChange={(name) => apply?.((doc) => updateNode(doc, cycle.id, { name }))}
           />
         </div>
-        {loose ? <LooseFlag text={t.loose} label={t.notConnected} compact={collapsed} /> : null}
         {!readOnly ? <MenuButton label={cycle.name} onOpen={onMenuButton} /> : null}
       </div>
       {/* Length, how many times it runs and its workouts, in one quiet line. */}

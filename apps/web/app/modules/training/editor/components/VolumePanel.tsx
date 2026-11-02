@@ -184,7 +184,13 @@ export function VolumeContent({ sections, names, title }: { sections: VolumeSect
 export function VolumePanel({ doc, names, onClose }: { doc: TrainingDocument; names: Map<string, ExerciseLabel>; onClose: () => void }) {
   const t = useT().editor.sheet.volume;
   const sections: VolumeSection[] = doc.blocks.flatMap((block) =>
-    block.cycles.map((cycle) => ({ id: cycle.id, title: `${block.name} · ${cycle.name}`, workouts: cycleWorkouts(cycle), perWorkout: true })),
+    block.cycles.map((cycle) => ({
+      id: cycle.id,
+      // Holders of a cycle or workout outside a block or cycle add nothing to the title.
+      title: [block.implicit ? null : block.name, cycle.implicit ? cycleWorkouts(cycle)[0]?.workout.name : cycle.name].filter(Boolean).join(" · "),
+      workouts: cycleWorkouts(cycle),
+      perWorkout: true,
+    })),
   );
   return (
     <aside className={styles.volume} aria-label={t.title}>

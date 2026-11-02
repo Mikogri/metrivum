@@ -19,12 +19,13 @@ function scopeItems(doc: TrainingDocument | undefined, scope: ExportScope, dayLa
   if (!doc || scope === "program") return [];
   const items: Array<{ id: string; label: string }> = [];
   for (const block of doc.blocks) {
-    if (scope === "block") items.push({ id: block.id, label: block.name });
+    // Holders of a cycle or workout outside a block or cycle are not exported on their own.
+    if (scope === "block" && !block.implicit) items.push({ id: block.id, label: block.name });
     for (const cycle of block.cycles) {
-      if (scope === "cycle") items.push({ id: cycle.id, label: `${block.name} › ${cycle.name}` });
+      if (scope === "cycle" && !cycle.implicit) items.push({ id: cycle.id, label: block.implicit ? cycle.name : `${block.name} › ${cycle.name}` });
       for (const day of cycle.days)
         for (const workout of day.workouts)
-          if (scope === "workout") items.push({ id: workout.id, label: `${cycle.name} › ${dayLabel(day.dayNumber)} › ${workout.name}` });
+          if (scope === "workout") items.push({ id: workout.id, label: cycle.implicit ? workout.name : `${cycle.name} › ${dayLabel(day.dayNumber)} › ${workout.name}` });
     }
   }
   return items;

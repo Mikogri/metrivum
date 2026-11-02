@@ -80,7 +80,11 @@ export function documentIssues(doc: TrainingDocument, labels: IssueLabels): Docu
     for (const cycle of block.cycles) {
       for (const day of cycle.days) {
         for (const workout of day.workouts) {
-          const at = [block.name || labels.untitled, cycle.name || labels.untitled, labels.day(Number(day.dayNumber)), workout.name || labels.untitled];
+          const at = [
+            ...(block.implicit ? [] : [block.name || labels.untitled]),
+            ...(cycle.implicit ? [] : [cycle.name || labels.untitled, labels.day(Number(day.dayNumber))]),
+            workout.name || labels.untitled,
+          ];
           if (!workout.name?.trim()) issues.push({ code: "workoutName", path: at });
           for (const exercise of workout.exercises) {
             const name = labels.exercise(exercise.exerciseId);

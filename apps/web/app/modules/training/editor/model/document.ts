@@ -479,13 +479,14 @@ export function documentStats(doc: TrainingDocument) {
   let days = 0;
   let exercises = 0;
   for (const block of doc.blocks) {
-    cycles += block.cycles.length;
+    // Holders of a lone workout are not cycles the coach made; they count only its day and exercises.
+    cycles += block.cycles.filter((cycle) => !cycle.implicit).length;
     for (const cycle of block.cycles) {
       days += cycle.days.length;
       for (const day of cycle.days) for (const workout of day.workouts) exercises += workout.exercises.length;
     }
   }
-  return { blocks: doc.blocks.length, cycles, days, exercises };
+  return { blocks: doc.blocks.filter((block) => !block.implicit).length, cycles, days, exercises };
 }
 
 /** Whether a document uses constructs gated by `training.sets.advanced`. */

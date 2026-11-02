@@ -79,7 +79,12 @@ export function withWorkout(cycle: Cycle, workout: Workout, dayNumber?: number |
  */
 export function cycleRuns(doc: TrainingDocument, cycle: Cycle): number | null {
   if (cycle.repeats != null) return Number(cycle.repeats);
-  return doc.blocks.reduce((n, b) => n + b.cycles.length, 0) === 1 ? null : 1;
+  return !cycle.implicit && countedCycles(doc) === 1 ? null : 1;
+}
+
+/** Cycles that count for the "only cycle runs until stopped" rule: a lone workout's holder cycle does not. */
+export function countedCycles(doc: TrainingDocument): number {
+  return doc.blocks.reduce((n, b) => n + b.cycles.filter((c) => !c.implicit).length, 0);
 }
 
 /** Options for a cycle's repeat count; "open" (until stopped) only when the cycle is the plan's only one. */

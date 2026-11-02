@@ -169,10 +169,6 @@
   box-shadow: var(--tf-shadow-lg);
 }
 
-.card[data-loose] {
-  border-style: dashed;
-}
-
 .card[data-link-target][data-kind="cycle"] {
   border-color: rgb(62 224 154 / 0.4);
 }
@@ -210,45 +206,6 @@
 .chip[data-kind="workout"] {
   background: var(--tf-color-violet-soft);
   color: var(--tf-color-violet);
-}
-
-/* Not connected (so not saved): a warning pill in the header, only the icon when the card is minimised. */
-.looseFlag {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 4px;
-  height: 1.25rem;
-  padding: 0 var(--tf-space-1-5);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-warning-soft, color-mix(in srgb, var(--tf-color-warning) 16%, transparent));
-  color: var(--tf-color-warning);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-medium);
-  white-space: nowrap;
-  cursor: help;
-}
-
-.looseFlag[data-compact] {
-  width: 1.25rem;
-  padding: 0;
-  justify-content: center;
-}
-
-/* On a workout the pill takes the day chip's place; on a cycle it sits right before the menu. */
-.card[data-expanded] .cardHead > .looseFlag:not([data-compact]) {
-  grid-column: 2 / 4;
-  justify-self: start;
-  margin-left: var(--tf-space-2);
-}
-
-.card[data-kind="cycle"] .cardHead > .looseFlag {
-  margin-left: auto;
-}
-
-.looseFlag svg {
-  width: 0.75rem;
-  height: 0.75rem;
 }
 
 .card[data-link-target][data-kind="workout"] {
@@ -1966,7 +1923,7 @@ button.tile[data-kind="workout"]:hover {
 .sheet[data-width-animating] .card { transition-property: top, min-height, box-shadow, border-color, background-color; }
 .sheet button[aria-invalid="true"] { background: color-mix(in srgb, var(--tf-color-danger) 9%, transparent); }
 
-.colHead { box-sizing: border-box; margin: 0; box-shadow: inset 1px 0 0 var(--tf-color-border-subtle), inset 0 -1px 0 var(--tf-color-border); }
+.colHead { box-sizing: border-box; margin: 0; }
 
 .help { cursor: default; }
 
@@ -2200,4 +2157,17 @@ button.tile[data-kind="workout"]:hover {
  */
 .card:is(:focus-within, :has([role="listbox"])) {
   z-index: 5;
+}
+
+/* Workout column headings (Sets, Reps, Time…) are plain labels: no background and no borders. */
+.cell.colHead {
+  border-right: 0;
+  border-bottom: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The kind icon keeps its size however long the name beside it gets. */
+.chip {
+  flex: none;
 }

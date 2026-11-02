@@ -6,7 +6,7 @@ import type { ExerciseLabel } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { addWorkout, duplicateNode, newWorkout, removeNode, updateNode } from "../model/document";
-import { WEEK_DAYS, copyDay, ensureWeekday, ensureWeekdayWorkout, swapDays } from "../model/structure";
+import { WEEK_DAYS, copyDay, ensureWeekday, ensureWeekdayWorkout, nodeLabel, swapDays } from "../model/structure";
 import { copyWorkoutToDay, cycleWorkouts, moveWorkoutToDay, reorderWorkout, setDayNote } from "../model/workouts";
 import type { TrainingDocument } from "@metrivum/api-client-web";
 import { BlockFormulaScope } from "../block-maxes";
@@ -203,7 +203,7 @@ export function WeekView({
           >
             {cycles.map(({ block, cycle: c }) => (
               <Option key={c.id} id={c.id}>
-                {`${block.name || m.editor.untitled} · ${c.name || m.editor.untitled}`}
+                {`${nodeLabel(block, { untitled: m.editor.untitled, implicit: m.editor.noBlock })} · ${c.implicit ? (c.days[0]?.workouts[0]?.name || m.editor.untitled) : c.name || m.editor.untitled}`}
               </Option>
             ))}
           </Select>

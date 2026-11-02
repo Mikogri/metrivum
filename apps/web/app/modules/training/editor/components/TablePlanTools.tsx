@@ -6,7 +6,8 @@ import type { ExerciseLabel } from "~/modules/exercises";
 import { useT } from "~/shared/i18n/AppLocale";
 import { addBlock, addCycle, duplicateNode, removeNode, updateNode } from "../model/document";
 import { maxesTables, withMaxesTables } from "../model/maxes";
-import { REPEAT_CHOICES, cycleRuns } from "../model/workouts";
+import { REPEAT_CHOICES, countedCycles, cycleRuns } from "../model/workouts";
+import { isImplicit, nodeLabel } from "../model/structure";
 import type { EditorApi } from "../useEditor";
 import { BlockMaxesTable } from "./BlockMaxesTable";
 import { ProgressionDialog } from "./ProgressionDialog";
@@ -35,6 +36,8 @@ export function StructureBar({ doc, apply, cycleId, onSelectCycle, onEditNode, n
   const cycles = doc.blocks.flatMap((block) => block.cycles.map((cycle) => ({ block, cycle })));
   const current = cycles.find((item) => item.cycle.id === cycleId) ?? cycles[0];
   const block = current?.block;
+  const ownBlock = block && !isImplicit(block) ? block : undefined;
+  const blockLabels = { untitled: m.editor.untitled, implicit: m.editor.noBlock };
   const hasMaxes = block ? maxesTables(doc).some((table) => table.blockId === block.id) : false;
   // Changes land through the editor's state, so a cycle made here is opened once it shows up in the plan.
   const [known, setKnown] = useState<Set<string> | null>(null);
@@ -50,7 +53,7 @@ export function StructureBar({ doc, apply, cycleId, onSelectCycle, onEditNode, n
   const addCycleHere = () => {
     expectNew();
     apply((d) => {
-      const target = d.blocks.find((b) => b.id === block?.id) ?? d.blocks[0];
+      const target = d.blocks.find((b) => b.id === ownBlock?.id) ?? d.blocks.find((b) => !isImplicit(b));
       if (!target) {
         const made = addBlock(d, m.editor.blockName(1));
         return addCycle(made.doc, made.id, m.editor.cycleName(1)).doc;
@@ -85,13 +88,14 @@ export function StructureBar({ doc, apply, cycleId, onSelectCycle, onEditNode, n
     { id: "cycle-duplicate", label: s.duplicateCycle, icon: <Copy />, isDisabled: !current },
     { id: "cycle-remove", label: t.removeCycle, icon: <Trash2 />, tone: "danger", isDisabled: !current || cycles.length < 2 },
     { type: "separator", id: "s1" },
-    { type: "label", id: "block-label", label: `${t.block}: ${block?.name || m.editor.untitled}` },
-    { id: "block-settings", label: t.blockSettings, icon: <CalendarDays />, isDisabled: !block },
-    { id: "block-active", label: block?.inactive ? t.activateBlock : t.deactivateBlock, icon: block?.inactive ? <Power /> : <PowerOff />, isDisabled: !block },
-    { id: "progression", label: s.progression.menu, icon: <TrendingUp />, isDisabled: !block },
-    { id: "maxes", label: t.addMaxes, icon: <Table2 />, isDisabled: !block || hasMaxes },
-    { id: "block-duplicate", label: t.duplicateBlock, icon: <Copy />, isDisabled: !block },
-    { id: "block-remove", label: t.removeBlock, icon: <Trash2 />, tone: "danger", isDisabled: !block || doc.blocks.length < 2 },
+    { type: "label", id: "block-label", label: `${t.block}: ${block ? nodeLabel(block, blockLabels) : m.editor.untitled}` },
+    // Cycles outside every block have no block to set up: only the coach's own blocks do.
+    { id: "block-settings", label: t.blockSettings, icon: <CalendarDays />, isDisabled: !ownBlock },
+    { id: "block-active", label: block?.inactive ? t.activateBlock : t.deactivateBlock, icon: block?.inactive ? <Power /> : <PowerOff />, isDisabled: !ownBlock },
+    { id: "progression", label: s.progression.menu, icon: <TrendingUp />, isDisabled: !ownBlock },
+    { id: "maxes", label: t.addMaxes, icon: <Table2 />, isDisabled: !ownBlock || hasMaxes },
+    { id: "block-duplicate", label: t.duplicateBlock, icon: <Copy />, isDisabled: !ownBlock },
+    { id: "block-remove", label: t.removeBlock, icon: <Trash2 />, tone: "danger", isDisabled: !ownBlock || doc.blocks.length < 2 },
     { type: "separator", id: "s2" },
     { id: "comment", label: t.addComment, icon: <MessageSquare /> },
     { id: "goal", label: t.addGoal, icon: <Target /> },
@@ -124,14 +128,14 @@ export function StructureBar({ doc, apply, cycleId, onSelectCycle, onEditNode, n
       {block ? (
         <Select label={t.block} size="sm" selectedKey={block.id} onSelectionChange={(key) => key && openBlock(String(key))} className={styles.blockSelect}>
           {doc.blocks.map((b) => (
-            <Option key={b.id} id={b.id}>{`${b.name || m.editor.untitled}${b.inactive ? ` (${t.inactiveShort})` : ""}`}</Option>
+            <Option key={b.id} id={b.id}>{`${nodeLabel(b, blockLabels)}${b.inactive ? ` (${t.inactiveShort})` : ""}`}</Option>
           ))}
         </Select>
       ) : null}
       {block && current ? (
         <Select label={t.cycle} size="sm" selectedKey={current.cycle.id} onSelectionChange={(key) => key && onSelectCycle(String(key))} className={styles.cycleSelect}>
           {block.cycles.map((cycle) => (
-            <Option key={cycle.id} id={cycle.id}>{`${cycle.name || m.editor.untitled} · ${s.cycleLength(Number(cycle.dayCount))}`}</Option>
+            <Option key={cycle.id} id={cycle.id}>{cycle.implicit ? `${cycle.days[0]?.workouts[0]?.name || m.editor.untitled} · ${m.editor.noCycle}` : `${cycle.name || m.editor.untitled} · ${s.cycleLength(Number(cycle.dayCount))}`}</Option>
           ))}
         </Select>
       ) : null}
@@ -144,7 +148,7 @@ export function StructureBar({ doc, apply, cycleId, onSelectCycle, onEditNode, n
             apply((d) => updateNode(d, current.cycle.id, { repeats }));
           }}>
           {[
-            ...(cycles.length === 1 ? [<Option key="open" id="open">{t.repeatOpen}</Option>] : []),
+            ...(countedCycles(doc) === 1 && !current.cycle.implicit ? [<Option key="open" id="open">{t.repeatOpen}</Option>] : []),
             ...REPEAT_CHOICES.map((n) => <Option key={n} id={String(n)}>{t.repeatTimes(n)}</Option>),
           ]}
         </Select>

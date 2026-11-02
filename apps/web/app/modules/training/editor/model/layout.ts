@@ -1,5 +1,6 @@
 import { maxesTables } from "./maxes";
-import type { Cycle, TrainingDocument, Workout } from "@metrivum/api-client-web";
+import type { Cycle, TrainingDocument } from "@metrivum/api-client-web";
+import { sheetView } from "./structure";
 import { WORKOUT_COLS, cycleWorkouts, workoutCardRows } from "./workouts";
 
 /** Sheet cell size in pixels. Nodes snap to cell corners, like objects on a spreadsheet. */
@@ -33,10 +34,11 @@ export function cycleRows(cycle: Cycle): number {
  * cycles that are not connected to any block underneath, and every workout card stacked in a
  * column to the right of the cycles (in cycle order, then the unconnected ones).
  */
-export function autoLayout(doc: TrainingDocument, loose: Cycle[], looseWorkouts: Workout[] = []): Layout {
+export function autoLayout(doc: TrainingDocument): Layout {
+  const { blocks, loose, looseWorkouts } = sheetView(doc);
   const layout: Layout = {};
   let row = 1;
-  for (const block of doc.blocks) {
+  for (const block of blocks) {
     layout[block.id] = { col: 1, row };
 
     let height = BLOCK_ROWS;
@@ -51,10 +53,10 @@ export function autoLayout(doc: TrainingDocument, loose: Cycle[], looseWorkouts:
   });
   for (const table of maxesTables(doc)) { layout[table.id] = { col: 1, row }; row += table.rows.length + 4; }
   for (const note of doc.annotations ?? []) { layout[note.id] = { col: 1, row }; row += 7; }
-  const widest = Math.max(1, loose.length, ...doc.blocks.map((block) => block.cycles.length));
+  const widest = Math.max(1, loose.length, ...blocks.map((block) => block.cycles.length));
   const workoutCol = 1 + BLOCK_COLS + 1 + widest * (CYCLE_COLS + 1);
   let workoutRow = 1;
-  const workouts = [...doc.blocks.flatMap((block) => block.cycles.flatMap((cycle) => cycleWorkouts(cycle).map((item) => item.workout))), ...loose.flatMap((cycle) => cycleWorkouts(cycle).map((item) => item.workout)), ...looseWorkouts];
+  const workouts = [...blocks.flatMap((block) => block.cycles.flatMap((cycle) => cycleWorkouts(cycle).map((item) => item.workout))), ...loose.flatMap((cycle) => cycleWorkouts(cycle).map((item) => item.workout)), ...looseWorkouts];
   for (const workout of workouts) {
     layout[workout.id] = { col: workoutCol, row: workoutRow };
     workoutRow += workoutCardRows(workout, false, true) + 1;
@@ -66,8 +68,8 @@ export function autoLayout(doc: TrainingDocument, loose: Cycle[], looseWorkouts:
 export const WORKOUT_CARD_COLS = WORKOUT_COLS;
 
 /** Keeps positions the user chose and places anything new with the default layout. */
-export function mergeLayout(current: Layout, doc: TrainingDocument, loose: Cycle[], looseWorkouts: Workout[] = []): Layout {
-  const defaults = autoLayout(doc, loose, looseWorkouts);
+export function mergeLayout(current: Layout, doc: TrainingDocument): Layout {
+  const defaults = autoLayout(doc);
   const next: Layout = {};
   for (const id of Object.keys(defaults)) next[id] = current[id] ?? defaults[id]!;
   return next;

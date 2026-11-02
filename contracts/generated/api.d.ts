@@ -14606,6 +14606,7 @@ export interface components {
             cycles: components["schemas"]["Cycle"][];
             exerciseMaxes?: null | components["schemas"]["BlockExerciseMax"][];
             inactive?: null | boolean;
+            implicit?: null | boolean;
         };
         BlockExerciseMax: {
             /** Format: uuid */
@@ -15112,6 +15113,7 @@ export interface components {
             days: components["schemas"]["TrainingDay"][];
             /** Format: int32 */
             repeats?: null | number | string;
+            implicit?: null | boolean;
         };
         DictionariesDto: {
             muscles: components["schemas"]["DictionaryEntryDto"][];
