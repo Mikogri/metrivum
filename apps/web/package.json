@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "react-router dev",
     "anatomy:prepare": "python ../../infra/anatomy/prepare.py",
-    "prebuild": "npm run anatomy:prepare",
+    "prebuild": "node scripts/prepare-build.mjs",
     "build": "react-router build",
     "preview": "node scripts/serve.mjs",
     "typecheck": "react-router typegen && tsc -p tsconfig.json --noEmit",

@@ -1,18 +1,16 @@
 import { appendFileSync, copyFileSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { assetOrigin } from './asset-origin.mjs';
 
 const root = resolve(import.meta.dirname, '../build/client');
 // A top-level 404 disables Pages' implicit catch-all SPA handling for missing assets.
 copyFileSync(join(root, '404/index.html'), join(root, '404.html'));
 copyFileSync(resolve(import.meta.dirname, '../public/_redirects'), join(root, '_redirects'));
-const assetOrigin = process.env.PAGES_ASSET_ORIGIN;
-if (assetOrigin) {
-  const url = new URL(assetOrigin);
-  if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash)
-    throw new Error('PAGES_ASSET_ORIGIN must be an HTTPS origin without credentials or path.');
+const origin = assetOrigin();
+if (origin) {
   // Only generated output is removed; upload the matching source public folders to R2 first.
   for (const directory of ['anatomy', 'downloads']) {
-    appendFileSync(join(root, '_redirects'), `\n/${directory}/* ${url.origin}/${directory}/:splat 302\n`);
+    appendFileSync(join(root, '_redirects'), `\n/${directory}/* ${origin}/${directory}/:splat 302\n`);
     rmSync(join(root, directory), { recursive: true, force: true });
   }
 }

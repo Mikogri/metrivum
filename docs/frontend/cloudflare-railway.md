@@ -39,7 +39,7 @@ The API image does not contain Python/ML; local analysis remains on the user's c
 Create a Pages Git project for the same reviewed release branch, with repository root as root directory.
 Use a Node version satisfying root `package.json` and npm 11.21.0.
 Build command: `npx --yes npm@11.21.0 ci && npx --yes npm@11.21.0 run build && node apps/web/scripts/prepare-pages.mjs`.
-Output directory: `apps/web/build/client`. Python 3 is required by the anatomical asset prebuild.
+Output directory: `apps/web/build/client`. With `PAGES_ASSET_ORIGIN`, the prebuild does not download or regenerate anatomy. Python 3 is required only when bundling anatomy locally without that variable, or explicitly generating a new asset release.
 
 Set production build variables (public values only):
 
@@ -59,6 +59,8 @@ Create a public R2 bucket on `assets.metrivum.com` for public licensed anatomica
 Upload the prepared `apps/web/public/anatomy/` and `apps/web/public/downloads/` trees preserving their paths.
 Never upload user videos/private Supabase files to this public bucket. Configure R2 CORS for GET/HEAD
 from `https://metrivum.com` (and www only if used), correct MIME types, and immutable caching only on hash-named objects.
+Publish and verify the complete anatomy asset release before enabling `PAGES_ASSET_ORIGIN`; application builds deliberately do not depend on the upstream BodyParts3D server. To update model assets, run `npm run anatomy:prepare --workspace @metrivum/web` explicitly, verify them, then upload the complete output separately.
+
 With `PAGES_ASSET_ORIGIN`, the preparation script removes only those generated build folders and creates
 302 redirects to R2, preserving existing application URLs. Upload and verify R2 objects before publishing Pages.
 Several analyzer runtime archives exceed 5 GB; use R2 multipart upload rather than a single PUT.

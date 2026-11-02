@@ -23,7 +23,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:hosting": "node --test apps/web/scripts/hosting-rules.test.mjs",
+    "test:hosting": "node --test apps/web/scripts/hosting-rules.test.mjs apps/web/scripts/prepare-build.test.mjs",
     "test:security-dependencies": "node --test infra/security-dependencies/node-forge.test.cjs infra/security-dependencies/parsers.test.mjs infra/security-dependencies/installed-parsers.test.mjs",
     "e2e": "npm run e2e --workspace @metrivum/web",
     "e2e:coaching": "npm run e2e:coaching --workspace @metrivum/web",
