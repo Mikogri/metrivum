@@ -43,7 +43,7 @@
   margin: 0;
 }
 
-.previewSheet {
+.preview .previewSheet {
   height: clamp(22rem, 55vh, 40rem);
 }
 

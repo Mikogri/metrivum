@@ -5,7 +5,7 @@ import type { ExerciseInstance, TrainingDocument, Workout } from "@metrivum/api-
 import type { ExerciseLabel } from "~/modules/exercises";
 import { ExerciseTools } from "./ExerciseTools";
 import { ContextMenu } from "@metrivum/ui-web";
-import { useDictionaryLabel, useExerciseList } from "~/modules/exercises";
+import { rememberPickedExercise, useDictionaryLabel, useExerciseList } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useDebounced } from "~/shared/lib/useDebounced";
@@ -236,6 +236,8 @@ export function ExerciseCell({
     setActive(0);
   };
   const pick = (id: string) => {
+    const item = items.find((x) => x.id === id);
+    if (item) rememberPickedExercise(item);
     onPick(id);
     setText(null);
     setOpen(false);

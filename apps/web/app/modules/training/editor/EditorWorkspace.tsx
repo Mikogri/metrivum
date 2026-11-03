@@ -2,7 +2,7 @@ import { flushSync } from "react-dom";
 import { CellValidationContext } from "./cell-validation";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, Download, Lock, Redo2, Rocket, Save, Sparkles, Undo2, X } from "lucide-react";
+import { ArrowLeft, Check, Download, Lock, Redo2, Rocket, Sparkles, Undo2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useBlocker, useNavigate } from "react-router";
 import type { PlanDto } from "@metrivum/api-client-web";
@@ -93,15 +93,33 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
   const clientContext = usePlanClientContext(plan.id, workspaceMode === "coach" && canEdit && plan.kind === "Program" && !plan.archived);
   const detailPath = workspaceMode === "client" ? `/app/training-plans/${plan.id}` : `/app/programs/${plan.id}`;
 
-  const hasUnsavedWork = useCallback(() => editor.isDirty(), [editor]);
+  const hasUnsavedWork = useCallback(() => {
+    // A cell still being typed counts: commit it first so the check (and autosave) sees it.
+    flushSync(() => window.dispatchEvent(new Event("training:commit-cell")));
+    return editor.isDirty();
+  }, [editor]);
   useUnsavedWorkGuard(hasUnsavedWork);
 
   // In-app navigation away from unsaved work asks first (browser unload is handled by the guard).
   const blocker = useBlocker(({ currentLocation, nextLocation }) => !leaving.current && hasUnsavedWork() && currentLocation.pathname !== nextLocation.pathname);
   useEffect(() => {
     if (blocker.state !== "blocked") return;
-    void confirm().then((ok) => (ok ? blocker.proceed() : blocker.reset()));
-  }, [blocker, confirm]);
+    // Autosave covers leaving too: save what is left, and ask only when that save did not go through.
+    void editor.save().then(async () => {
+      if (!editor.isDirty() || (await confirm())) blocker.proceed();
+      else blocker.reset();
+    });
+  }, [blocker, confirm, editor]);
+
+  // Switching tabs or closing the window saves right away instead of waiting for the autosave pause.
+  useEffect(() => {
+    if (readOnly) return;
+    const onHide = () => {
+      if (document.visibilityState === "hidden" && hasUnsavedWork()) void editor.save();
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => document.removeEventListener("visibilitychange", onHide);
+  }, [editor, hasUnsavedWork, readOnly]);
 
   const saveDraft = useCallback(() => {
     // Capture the focused cell before serializing history, including unfinished formulas.
@@ -156,6 +174,9 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
     : editor.error instanceof ApiError && editor.error.status === 400 ? editor.error.problem?.detail ?? m.editor.issues.title
     : errorText(m, editor.error);
 
+  // Everything the status shows: problems in the plan, cells the server refused and a failed save.
+  const allIssues = [...docIssues, ...invalidCells.values(), ...(saveFailure ? [saveFailure] : []), ...(refusal && !docIssues.length ? [refusal] : [])];
+
   return (
     <CellValidationContext.Provider value={reportInvalid}><ClientFormulaContext.Provider value={clientContext.value}>
     <div className={styles.workspace} data-locked={builderLocked || undefined}>
@@ -181,7 +202,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
           {/* Only the save state here; format problems and applied/draft sit next to "View as". */}
           <SaveStatus status={editor.status} />
           <span className={styles.planState}>
-            <FormatIssues compact issues={[...docIssues, ...invalidCells.values(), ...(saveFailure ? [saveFailure] : []), ...(refusal && !docIssues.length ? [refusal] : [])]} />
+            <FormatIssues compact issues={allIssues} />
             {plan.kind === "Program" ? <DraftState compact planId={plan.id} draftVersion={editor.version} /> : null}
           </span>
         </div>
@@ -212,14 +233,11 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
           <IconButton size="sm" label={t.export} icon={<Download />} onPress={() => setExportOpen(true)} />
           {clientContext.assign}
           <TooltipTrigger delay={200}>
-            <Button size="sm" iconStart={<Rocket />} isDisabled={readOnly || editor.status === "saving"} onPress={async () => { await saveDraft(); if (!editor.isDirty()) setPublishOpen(true); }}>
+            <Button size="sm" variant="primary" iconStart={<Rocket />} isDisabled={readOnly} onPress={async () => { await saveDraft(); if (!editor.isDirty()) setPublishOpen(true); }}>
               {t.publish}
             </Button>
             {editor.dirty ? <Tooltip>{t.publishDirty}</Tooltip> : <Tooltip>{m.training.detail.revisionsBody}</Tooltip>}
           </TooltipTrigger>
-          <Button size="sm" variant="primary" iconStart={<Save />} isDisabled={readOnly} loading={editor.status === "saving"} onPress={() => void saveDraft()}>
-            {t.save}
-          </Button>
         </div>
       </header>
 
@@ -273,7 +291,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
 
       <NodeDialog editor={editor} nodeId={editNode} onClose={() => setEditNode(null)} />
       <PublishDialog planId={plan.id} version={editor.version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={[...(hasActiveWorkout(editor.doc) ? [] : [t.issues.noWorkouts]), ...docIssues, ...invalidCells.values()]} />
-      <ExportDialog planId={plan.id} planName={editor.meta.name || plan.name} isOpen={exportOpen} onOpenChange={setExportOpen} />
+      <ExportDialog planId={plan.id} planName={editor.meta.name || plan.name} draft={editor.doc} issues={allIssues} beforeExport={saveDraft} isOpen={exportOpen} onOpenChange={setExportOpen} />
       <ConflictDialog
         isOpen={editor.status === "conflict"}
         onReload={() => reload.mutate()}

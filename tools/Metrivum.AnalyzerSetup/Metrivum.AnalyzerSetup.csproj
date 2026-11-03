@@ -2,9 +2,11 @@
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
+    <AssemblyName>MetrivumAnalyzerSetup</AssemblyName>
     <UseWindowsForms>true</UseWindowsForms>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>../../infra/local-analysis/branding/app.ico</ApplicationIcon>
     <AssemblyTitle>Metrivum Analyzer Setup</AssemblyTitle>
     <Product>Metrivum Analyzer Setup</Product>
     <Description>Metrivum local video analyzer installer</Description>

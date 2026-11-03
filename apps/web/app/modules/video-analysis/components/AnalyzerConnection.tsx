@@ -12,7 +12,7 @@ const RELEASE = '/downloads/analyzer/release.json';
 
 /**
  * Connection to the companion on 127.0.0.1. It pairs automatically once (the token is kept in this browser
- * and on the computer), and can start the installed analyzer through its trainflow-analyzer:// link.
+ * and on the computer), and can start the installed analyzer through its metrivum-analyzer:// link.
  */
 export function AnalyzerConnection({ token, onTokenChange, onStateChange }: { token: string; onTokenChange: (token: string) => void; onStateChange: (state: CompanionState) => void }) {
   const { lifecycle } = useAccountContext();

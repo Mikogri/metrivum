@@ -6,14 +6,15 @@ param(
     [string]$PackagingTools = '',
     [string]$BaseUrl = 'http://localhost:5173/downloads/analyzer',
     [string]$WebOrigin = 'http://localhost:5173',
-    [string]$Version = '1.8.1',
+    [string]$Version = '1.8.2',
     [string]$OutputDirectory = '',
     [string]$SigningCertificateThumbprint = ''
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $output = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $root 'apps/web/public/downloads/analyzer' }
-$published = Join-Path $root '.local/analyzer-published'
+$stage = Join-Path $root ('.local/analyzer-stage-' + [Guid]::NewGuid().ToString('N'))
+$published = Join-Path $stage 'host'
 $artifacts = Join-Path $root '.local/analyzer-release-artifacts'
 $savedPythonPath = $env:PYTHONPATH
 try {
@@ -29,14 +30,14 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Runtime archive configuration audit failed' }
     $ErrorActionPreference = 'Stop'
     $manifest = Join-Path $output 'release.json'
-    $setupOutput = Join-Path $root '.local/analyzer-setup-published'
-    dotnet publish (Join-Path $root 'tools/Metrivum.AnalyzerSetup') -c Release -r win-x64 --self-contained true -o $setupOutput --artifacts-path (Join-Path $root '.local/analyzer-setup-artifacts') "-p:ReleaseManifest=$manifest" -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --nologo
+    $setupOutput = Join-Path $stage 'setup'
+    dotnet publish (Join-Path $root 'tools/Metrivum.AnalyzerSetup') -c Release -r win-x64 --self-contained true -o $setupOutput --artifacts-path (Join-Path $root '.local/analyzer-setup-artifacts') "-p:ReleaseManifest=$manifest" "-p:Version=$Version" -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --nologo
     if ($LASTEXITCODE -ne 0) { throw 'Setup publish failed' }
     if (!$FullRuntime) {
         $payloadBytes = ((Get-Content -LiteralPath $manifest -Raw | ConvertFrom-Json).assets | Measure-Object -Property size -Sum).Sum
-        if ($payloadBytes + (Get-Item (Join-Path $setupOutput 'Metrivum.AnalyzerSetup.exe')).Length -gt 9000000000) { throw 'Installer and runtime exceed 9 GB; release blocked' }
+        if ($payloadBytes + (Get-Item (Join-Path $setupOutput 'MetrivumAnalyzerSetup.exe')).Length -gt 9000000000) { throw 'Installer and runtime exceed 9 GB; release blocked' }
     }
-    $setup = Join-Path $setupOutput 'Metrivum.AnalyzerSetup.exe'
+    $setup = Join-Path $setupOutput 'MetrivumAnalyzerSetup.exe'
     if ($BaseUrl.StartsWith('https://') -and !$SigningCertificateThumbprint) { throw 'HTTPS releases require a signing certificate' }
     if ($SigningCertificateThumbprint) {
         & signtool sign /sha1 $SigningCertificateThumbprint /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $setup

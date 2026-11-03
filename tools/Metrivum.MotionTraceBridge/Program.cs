@@ -21,7 +21,7 @@ public static class Program
         try
         {
             if (args.Length != 4 || args[0] != "--request" || args[2] != "--output")
-                throw new ArgumentException("Usage: dotnet Metrivum.MotionTraceBridge.dll --request request.json --output result.json");
+                throw new ArgumentException("Usage: dotnet Analysis.Bridge.dll --request request.json --output result.json");
             var request = JsonSerializer.Deserialize<Request>(await File.ReadAllTextAsync(args[1], cancellation.Token), Json)
                 ?? throw new InvalidDataException("Empty request.");
             cancellation.CancelAfter(TimeSpan.FromSeconds(request.TimeoutSeconds));
@@ -209,7 +209,7 @@ public static class Program
     private static Action<string> SessionProgress(IProgress<AnalysisProgress> progress)
     {
         var phase = (Name: "Preparing the analysis", Start: 0d, End: .05);
-        var debug = Environment.GetEnvironmentVariable("TRAINFLOW_PROGRESS_LOG");
+        var debug = Environment.GetEnvironmentVariable("ANALYSIS_PROGRESS_LOG");
         return line =>
         {
             if (debug is not null) File.AppendAllText(debug, line + Environment.NewLine);

@@ -54,7 +54,7 @@ export async function pairLocalAnalyzer(signal: AbortSignal, fetcher: typeof fet
 export function launchLocalAnalyzer() {
   const frame = document.createElement('iframe');
   frame.style.display = 'none';
-  frame.src = 'trainflow-analyzer://start';
+  frame.src = 'metrivum-analyzer://start';
   document.body.appendChild(frame);
   setTimeout(() => frame.remove(), 2000);
 }

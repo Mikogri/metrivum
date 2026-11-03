@@ -64,7 +64,8 @@ internal sealed class SetupForm : Form
     private string Staging => destination + ".update";
     private string Previous => destination + ".previous";
     private string InstalledManifest => Path.Combine(destination, "installed.json");
-    private bool Existing => Directory.Exists(destination) && File.Exists(Path.Combine(destination, "Metrivum.LocalAnalyzer.exe"));
+    private bool Existing => new[] { "MetrivumAnalyzer.exe", "Metrivum.LocalAnalyzer.exe" }
+        .Any(name => File.Exists(Path.Combine(destination, name)));
 
     public SetupForm(Release release, bool automaticUpdate = false)
     {
@@ -73,6 +74,7 @@ internal sealed class SetupForm : Form
         // A previous update that stopped half way: put the old installation back before anything else.
         try { if (!Directory.Exists(destination) && Directory.Exists(Previous)) Directory.Move(Previous, destination); } catch (IOException) { } catch (UnauthorizedAccessException) { }
         Text = "Metrivum Local Analyzer Setup"; Width = 620; Height = 450; MinimumSize = new Size(620, 450); StartPosition = FormStartPosition.CenterScreen;
+        Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
         var layout = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, Padding = new Padding(24), WrapContents = false, AutoScroll = true };
         layout.Controls.Add(status);
         var changed = Changed();
@@ -160,7 +162,7 @@ internal sealed class SetupForm : Form
             if (source.Scheme != "https" && !(source.IsLoopback && source.Scheme == "http")) throw new InvalidDataException("Invalid release source.");
             Directory.CreateDirectory(work); created = true;
             using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = Timeout.InfiniteTimeSpan };
-            var targets = new Dictionary<string, string> { ["pose.tar.gz"] = "env/pose", ["vision.tar.gz"] = "env/vision", ["points.tar.gz"] = "env/points", ["host.tar.gz"] = ".", ["source.tar.gz"] = "motiontrace", ["models.tar.gz"] = "motiontrace/.models", ["torch.tar.gz"] = "torch" };
+            var targets = new Dictionary<string, string> { ["pose.tar.gz"] = "env/pose", ["vision.tar.gz"] = "env/vision", ["points.tar.gz"] = "env/points", ["host.tar.gz"] = ".", ["source.tar.gz"] = "engine", ["models.tar.gz"] = "engine/.models", ["torch.tar.gz"] = "torch" };
             var token = cancellation.Token;
             // Download and extraction each weigh their bytes (45 % + 45 %); configuring Python takes the last 10 %.
             var total = Math.Max(1d, changed.Sum(a => a.Size));
@@ -253,11 +255,11 @@ internal sealed class SetupForm : Form
             install.Enabled = false;
             if (automaticUpdate)
             {
-                Process.Start(new ProcessStartInfo(Path.Combine(destination, "Metrivum.LocalAnalyzer.exe")) { UseShellExecute = true, WorkingDirectory = destination });
+                Process.Start(new ProcessStartInfo(Path.Combine(destination, "MetrivumAnalyzer.exe")) { UseShellExecute = true, WorkingDirectory = destination });
                 BeginInvoke(new Action(Close));
             }
             var start = new Button { Text = "Start analyzer", AutoSize = true };
-            start.Click += (_, _) => Process.Start(new ProcessStartInfo(Path.Combine(destination, "Metrivum.LocalAnalyzer.exe")) { UseShellExecute = true, WorkingDirectory = destination });
+            start.Click += (_, _) => Process.Start(new ProcessStartInfo(Path.Combine(destination, "MetrivumAnalyzer.exe")) { UseShellExecute = true, WorkingDirectory = destination });
             ((FlowLayoutPanel)Controls[0]).Controls.Add(start);
         }
         catch (Exception error)
@@ -330,14 +332,15 @@ internal sealed class SetupForm : Form
     /// <summary>Closes this installation's analyzer (and its Python workers) so its files can be replaced.</summary>
     private async Task StopRunningAnalyzerAsync()
     {
-        var executable = Path.GetFullPath(Path.Combine(destination, "Metrivum.LocalAnalyzer.exe"));
-        foreach (var process in Process.GetProcessesByName("Metrivum.LocalAnalyzer"))
+        var executables = new[] { "MetrivumAnalyzer", "Metrivum.LocalAnalyzer" };
+        foreach (var process in executables.SelectMany(Process.GetProcessesByName))
         {
             using (process)
             {
                 string? path;
                 try { path = process.MainModule?.FileName; } catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException) { continue; }
-                if (path is null || !string.Equals(Path.GetFullPath(path), executable, StringComparison.OrdinalIgnoreCase)) continue;
+                if (path is null || !executables.Any(name => string.Equals(Path.GetFullPath(path),
+                    Path.GetFullPath(Path.Combine(destination, name + ".exe")), StringComparison.OrdinalIgnoreCase))) continue;
                 Log("Closing the running analyzer");
                 try { // The updater is a child of this analyzer. Killing its whole tree would include
                     // this installer; .NET rejects that operation and leaves the analyzer alive.
@@ -366,18 +369,18 @@ internal sealed class SetupForm : Form
         await Task.Delay(500);
     }
 
-    /// <summary>"trainflow-analyzer://start" in the browser starts the installed analyzer (per user, no admin rights).</summary>
+    /// <summary>"metrivum-analyzer://start" in the browser starts the installed analyzer (per user, no admin rights).</summary>
     private void RegisterLink()
     {
-        using var key = Registry.CurrentUser.CreateSubKey(@"Software\Classes\trainflow-analyzer");
+        using var key = Registry.CurrentUser.CreateSubKey(@"Software\Classes\metrivum-analyzer");
         key.SetValue("", "URL:Metrivum Analyzer"); key.SetValue("URL Protocol", "");
         using var command = key.CreateSubKey(@"shell\open\command");
-        command.SetValue("", $"\"{Path.Combine(destination, "Metrivum.LocalAnalyzer.exe")}\"");
+        command.SetValue("", $"\"{Path.Combine(destination, "MetrivumAnalyzer.exe")}\"");
     }
 
     private async Task WriteConfigurationAsync(CancellationToken token)
     {
-        var motiontrace = Path.Combine(destination, "motiontrace");
+        var motiontrace = Path.Combine(destination, "engine");
         var compact = !release.Assets.Any(asset => asset.Name == "vision.tar.gz");
         var pointsPython = Path.Combine(destination, "env/points/python.exe");
         var settings = Path.Combine(destination, "settings"); Directory.CreateDirectory(settings);
@@ -387,7 +390,7 @@ internal sealed class SetupForm : Form
             PointsExecutablePath = Path.Combine(destination, "env/points/python.exe"), ModelsRoot = Path.Combine(motiontrace, ".models/vision"),
             PointsModelsRoot = Path.Combine(motiontrace, ".models/points"), Device = "cuda:0", PoseModel = "rtmpose-l_8xb256-420e_body8-384x288", PoseWeights = "", CropPadding = .2, TapNextResolution = 256
         }, json), token);
-        await File.WriteAllTextAsync(Path.Combine(destination, "analyzer.json"), JsonSerializer.Serialize(new { MotionTraceRoot = "motiontrace", SettingsPath = "settings/settings.json", TorchHome = "torch", WebOrigin = release.WebOrigin }, json), token);
+        await File.WriteAllTextAsync(Path.Combine(destination, "analyzer.json"), JsonSerializer.Serialize(new { MotionTraceRoot = "engine", SettingsPath = "settings/settings.json", TorchHome = "torch", WebOrigin = release.WebOrigin }, json), token);
     }
 
     internal static async Task RunAsync(string executable, string[] args, string directory, CancellationToken token)
@@ -409,19 +412,18 @@ internal sealed class SetupForm : Form
         var shellType = Type.GetTypeFromProgID("WScript.Shell")!;
         dynamic shell = Activator.CreateInstance(shellType)!;
         dynamic shortcut = shell.CreateShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "Metrivum Analyzer.lnk"));
-        shortcut.TargetPath = Path.Combine(destination, "Metrivum.LocalAnalyzer.exe"); shortcut.WorkingDirectory = destination; shortcut.Save();
-        var previousShortcut = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "Metrivum Analyzer.lnk");
-        if (File.Exists(previousShortcut)) File.Delete(previousShortcut);
+        shortcut.TargetPath = Path.Combine(destination, "MetrivumAnalyzer.exe"); shortcut.WorkingDirectory = destination;
+        shortcut.IconLocation = shortcut.TargetPath + ",0"; shortcut.Save();
     }
 
     private void RegisterUninstall()
     {
         var script = "param()\n$target = Join-Path $env:LOCALAPPDATA 'Programs/MetrivumAnalyzer'\n" +
             "$expected = [IO.Path]::GetFullPath($target)\nif($expected -ne [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'Programs/MetrivumAnalyzer'))){throw 'Invalid installation path'}\n" +
-            "Get-Process -Name Metrivum.LocalAnalyzer -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq (Join-Path $expected 'Metrivum.LocalAnalyzer.exe') } | Stop-Process\n" +
+            "Get-Process -Name MetrivumAnalyzer -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq (Join-Path $expected 'MetrivumAnalyzer.exe') } | Stop-Process\n" +
             "Remove-Item -LiteralPath $expected -Recurse -Force\nRemove-Item -LiteralPath (Join-Path ([Environment]::GetFolderPath('Programs')) 'Metrivum Analyzer.lnk') -ErrorAction SilentlyContinue\n" +
             "Remove-Item -LiteralPath 'HKCU:/Software/Microsoft/Windows/CurrentVersion/Uninstall/MetrivumAnalyzer' -ErrorAction SilentlyContinue\n" +
-            "Remove-Item -LiteralPath 'HKCU:/Software/Classes/trainflow-analyzer' -Recurse -ErrorAction SilentlyContinue\n";
+            "Remove-Item -LiteralPath 'HKCU:/Software/Classes/metrivum-analyzer' -Recurse -ErrorAction SilentlyContinue\n";
         // The uninstall script lives outside the directory it removes, so no shell self-deletion is needed.
         var uninstall = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Uninstall-MetrivumAnalyzer.ps1");
         File.WriteAllText(uninstall, script);

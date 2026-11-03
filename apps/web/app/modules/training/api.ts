@@ -92,16 +92,17 @@ export async function getRevision(api: Transport, planId: string, number: number
 
 export type ExportScope = "program" | "block" | "cycle" | "workout";
 
+/** Exports an applied revision, or the current draft when `number` is "draft" (works even with problems in it). */
 export async function exportRevision(
   api: Transport,
   planId: string,
-  number: number,
+  number: number | "draft",
   options: { format: "csv" | "pdf"; scope: ExportScope; scopeId?: string; delimiter?: "comma" | "semicolon" | "tab" },
   signal?: AbortSignal,
 ) {
   const delimiter = options.delimiter === "semicolon" ? ";" : options.delimiter === "tab" ? "\t" : undefined;
   const { data } = await api<Blob>({
-    path: `${base}/programs/${id(planId)}/revisions/${number}/export`,
+    path: number === "draft" ? `${base}/programs/${id(planId)}/draft/export` : `${base}/programs/${id(planId)}/revisions/${number}/export`,
     query: {
       format: options.format,
       scope: options.scope === "program" ? undefined : options.scope,

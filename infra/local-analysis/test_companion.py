@@ -26,7 +26,7 @@ class CompanionTests(unittest.TestCase):
     def setUpClass(cls):
         shutil.rmtree(JOBS, ignore_errors=True)
         cls.process = subprocess.Popen([
-            'dotnet', str(ROOT / '.local/local-analyzer-artifacts/bin/Metrivum.LocalAnalyzer/debug/Metrivum.LocalAnalyzer.dll'),
+            'dotnet', str(ROOT / '.local/local-analyzer-artifacts/bin/Metrivum.LocalAnalyzer/debug/MetrivumAnalyzer.dll'),
             '--MotionTraceRoot', str(ROOT.parent / 'MotionTrace'),
             '--PairingFile', str(ROOT / '.local/test-companion-pairing-token'),
             '--JobsDirectory', str(JOBS),

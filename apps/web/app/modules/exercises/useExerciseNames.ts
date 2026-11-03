@@ -15,6 +15,14 @@ export interface ExerciseLabel {
   secondaryMuscleKeys: string[];
 }
 
+// Exercises just picked from a list: their name shows at once, before the detail request comes back.
+const picked = new Map<string, { name: string; primaryMuscleKeys: string[] }>();
+
+/** Call with the list item right before putting a picked exercise into a plan. */
+export function rememberPickedExercise(item: { id: string; name: string; primaryMuscleKeys?: string[] | null }) {
+  picked.set(item.id, { name: item.name, primaryMuscleKeys: item.primaryMuscleKeys ?? [] });
+}
+
 /**
  * Names for catalog IDs used in a document. The API has no bulk lookup (see api-gaps.md),
  * so each distinct ID is fetched once and cached for the session.
@@ -35,13 +43,14 @@ export function useExerciseNames(ids: string[]): Map<string, ExerciseLabel> {
     const map = new Map<string, ExerciseLabel>();
     unique.forEach((id, index) => {
       const result = results[index];
+      const known = result?.data ? undefined : picked.get(id);
       map.set(id, {
-        name: result?.data?.name ?? null,
+        name: result?.data?.name ?? known?.name ?? null,
         isArchived: result?.data?.isArchived ?? false,
-        loading: result?.isPending ?? true,
+        loading: known ? false : result?.isPending ?? true,
         missing: result?.isError ?? false,
         movementPatternKeys: result?.data?.movementPatternKeys ?? [],
-        primaryMuscleKeys: result?.data?.primaryMuscleKeys ?? [],
+        primaryMuscleKeys: result?.data?.primaryMuscleKeys ?? known?.primaryMuscleKeys ?? [],
         secondaryMuscleKeys: result?.data?.secondaryMuscleKeys ?? [],
       });
     });

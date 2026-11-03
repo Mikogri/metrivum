@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 
 static void Check(bool condition) { if (!condition) throw new InvalidOperationException("Update invariant failed."); }
-var folder = Path.Combine(Path.GetTempPath(), "trainflow-update-check-" + Guid.NewGuid().ToString("N"));
+var folder = Path.Combine(Path.GetTempPath(), "analyzer-update-check-" + Guid.NewGuid().ToString("N"));
 try
 {
     var queue = new JobQueue(folder, new JsonSerializerOptions(JsonSerializerDefaults.Web));

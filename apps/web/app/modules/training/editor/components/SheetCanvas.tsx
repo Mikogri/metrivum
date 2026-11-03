@@ -970,17 +970,23 @@ export function SheetCanvas({
     const single = countedCycles(doc) === 1;
     return (
       <div className={styles.menuForm}>
-        <label className={styles.menuLabel}>
+        <div className={styles.menuLabel} role="group" aria-label={t.repeats}>
           <span><Repeat aria-hidden="true" /> {t.repeats}</span>
-          <select className={styles.menuSelect} value={runs === null ? "open" : String(runs)}
-            onChange={(event) => {
-              const repeats = event.target.value === "open" ? null : Number(event.target.value);
-              apply?.((d) => updateNode(d, cycleId, { repeats }));
-            }}>
-            {single ? <option value="open">{t.repeatOpen}</option> : null}
-            {REPEAT_CHOICES.map((n) => <option key={n} value={String(n)}>{t.repeatTimes(n)}</option>)}
-          </select>
-        </label>
+          <div className={styles.repeatGrid} role="listbox" aria-label={t.repeats}>
+            {single ? (
+              <button type="button" role="option" aria-selected={runs === null} className={`${styles.dayButton} ${styles.repeatOpen}`}
+                onClick={() => apply?.((d) => updateNode(d, cycleId, { repeats: null }))}>
+                {t.repeatOpen}
+              </button>
+            ) : null}
+            {REPEAT_CHOICES.map((n) => (
+              <button key={n} type="button" role="option" aria-selected={runs === n} className={styles.dayButton} title={t.repeatTimes(n)}
+                onClick={() => apply?.((d) => updateNode(d, cycleId, { repeats: n }))}>
+                {`×${n}`}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     );
   };

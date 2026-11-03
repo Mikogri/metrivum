@@ -9,7 +9,7 @@ Build from the repository root (all dependency outputs stay under this tool):
 ./tools/Metrivum.MotionTraceBridge/build.ps1 -Check
 ```
 
-The DLL is `artifacts/bin/Metrivum.MotionTraceBridge/debug/Metrivum.MotionTraceBridge.dll`. `MotionTraceRoot` is also a configurable MSBuild property; the default source location is the sibling `MotionTrace` repository. For direct `dotnet build`, pass `--artifacts-path` to a directory inside Metrivum.
+The DLL is `artifacts/bin/Metrivum.MotionTraceBridge/debug/Analysis.Bridge.dll`. `MotionTraceRoot` is also a configurable MSBuild property; the default source location is the sibling `MotionTrace` repository. For direct `dotnet build`, pass `--artifacts-path` to a directory inside Metrivum.
 
 ```powershell
 dotnet <bridge.dll> --request request.json --output result.json

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEve
 import type { ExerciseListItemDto, Prescription, SetKind, TrainingSet, Workout } from "@metrivum/api-client-web";
 import { SET_KINDS } from "@metrivum/api-client-web";
 import { Badge, Button, toast } from "@metrivum/ui-web";
-import { ExercisePicker, type ExerciseLabel } from "~/modules/exercises";
+import { ExercisePicker, rememberPickedExercise, type ExerciseLabel } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import {
@@ -623,6 +623,7 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
         selectedId={picker?.mode === "replace" ? workout.exercises.find((e) => e.id === picker.instanceId)?.exerciseId : undefined}
         onPick={(exercise: ExerciseListItemDto) => {
           if (!picker) return;
+          rememberPickedExercise(exercise);
           if (picker.mode === "add") {
             const result = addExercise(editor.doc, workout.id, exercise.id);
             editor.apply(() => result.doc);

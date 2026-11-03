@@ -10,15 +10,15 @@ const relationship = "20000000-0000-4000-8000-000000000081";
 const features = JSON.parse(readFileSync(new URL("../../../contracts/generated/features.json", import.meta.url), "utf8")) as { key: string }[];
 const pageOf = (items: unknown[]) => ({ items, total: items.length, page: 1, pageSize: 30 });
 
-async function fixture(page: Page) {
+async function fixture(page: Page, preview = false) {
   const exercise = { id: "50000000-0000-4000-8000-000000000081", name: "Bench press", version: 1, description: "", instructions: "" };
   let plan = {
-    id: planId, name: "Interaction test", description: "", kind: "Program", folderId: null, archived: false, version: 1,
+    id: planId, name: "Interaction test", updatedAt: "2026-01-01T00:00:00Z", description: "", kind: "Program", folderId: null, archived: false, version: 1,
     document: { schemaVersion: 1, blocks: [{ id: "30000000-0000-4000-8000-000000000083", name: "Block", description: "", cycles: [{ id: cycleId, name: "Cycle", description: "", dayCount: 7,
       days: [{ id: "30000000-0000-4000-8000-000000000084", dayNumber: 1, workouts: [{ id: "30000000-0000-4000-8000-000000000085", name: "Workout A", description: "", groups: [], exercises: [{ id: "30000000-0000-4000-8000-000000000086", exerciseId: exercise.id, comment: "", sets: [{ id: "30000000-0000-4000-8000-000000000087", kind: "Standard", prescription: { load: { minimum: { value: 70, unit: "Kg" }, maximum: { value: 70, unit: "Kg" } } } }] }] }] }] }] }] },
   };
   await page.addInitScript(({ coach }) => {
-    localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh-0", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: coach, email: "sheet@trainflow.test", aud: "authenticated" } }));
+    localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh-0", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: coach, email: "sheet@trainflow.test", email_confirmed_at: "2026-01-01T00:00:00Z", aud: "authenticated" } }));
     localStorage.setItem("tf.auth.active-slot", "0");
     localStorage.setItem(`tf.workspace.0:${coach}`, "coach");
     localStorage.setItem("tf.editor.mode", "advanced");
@@ -31,11 +31,13 @@ async function fixture(page: Page) {
     if (path === "/api/v1/me") return respond({ id: coach, workspaceId: coach, username: "sheet_coach", displayName: "Sheet Coach", onboarded: true, roles: ["Coach"], contexts: ["Coach"], version: 1, locale: "en", timeZone: "UTC" });
     if (path === "/api/v1/me/access") return respond({ version: "test", features: features.map(item => ({ key: item.key, available: true, reason: "available" })), limits: [] });
     if (path === "/api/v1/me/profile-fields") return respond({ values: {}, currency: "USD", version: 1 });
+    if (path === "/api/v1/subscriptions/plans") return respond([]);
     if (path === "/api/v1/notifications/unread-count") return respond({ count: 0 });
     if (path === "/api/v1/messaging/conversations" || path === "/api/v1/messaging/requests") return respond([]);
     if (path === "/api/v1/teams/mine") return respond({ teams: [], invitations: [] });
     if (path === "/api/v1/coaching/clients") return respond(pageOf([{ id: relationship, client: { displayName: "Sheet Client", username: "sheet_client" }, status: "Active" }]));
     if (path.endsWith(`/clients/${relationship}/variables`)) return respond({ variables: { maxBench1r: { value: 100, unit: "Kg" } }, sourceVersions: { maxBench1r: "1" }, exerciseMaxes: [] });
+    if (path === `/api/v1/training/programs/${planId}/revisions`) return respond(pageOf([]));
     if (path === `/api/v1/training/programs/${planId}`) return respond(plan);
     if (path.endsWith("/draft") && route.request().method() === "PUT") { plan = { ...plan, ...route.request().postDataJSON(), version: plan.version + 1 }; return respond(plan); }
     if (path === "/api/v1/training/formulas/built-in") return respond([{ key: "percentage-1rm", version: 1, definition: { expression: "base1Rm * percentage", inputs: { base1Rm: "Kg", percentage: "Scalar" }, outputUnit: "Kg" } }]);
@@ -45,7 +47,7 @@ async function fixture(page: Page) {
     if (path === "/api/v1/exercises") return respond(pageOf([exercise]));
     return respond(pageOf([]));
   });
-  await page.goto(`/app/programs/${planId}/edit`, { waitUntil: "domcontentloaded" });
+  await page.goto(`/app/programs/${planId}${preview ? "" : "/edit"}`, { waitUntil: "domcontentloaded" });
   await expect(page.locator('[data-node][data-kind="cycle"]')).toBeVisible({ timeout: 15_000 });
   await page.addStyleTag({ content: "*, *::before, *::after { animation: none !important; transition: none !important; }" });
 }
@@ -469,4 +471,42 @@ test("time maxes save separately and pointer menus flip away from viewport edges
   await expect(menu).toBeVisible();
   await expect.poll(async () => { const box = (await menu.boundingBox())!; return box.x + box.width; }).toBeLessThanOrEqual(viewport.width - 7);
   await expect.poll(async () => { const box = (await menu.boundingBox())!; return box.y + box.height; }).toBeLessThanOrEqual(viewport.height - 7);
+});
+
+test("sheet preview stays bounded and responsive on program details", async ({ page }) => {
+  await fixture(page, true);
+  await page.goto(`/app/programs/${planId}`);
+  await expect(page.locator('[data-kind="block"][data-node]')).toBeVisible();
+  const measurements = await page.evaluate(async () => {
+    const samples: number[] = [];
+    for (let i = 0; i < 25; i++) {
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      samples.push(document.documentElement.scrollWidth);
+    }
+    return { samples, width: innerWidth };
+  });
+  expect(Math.max(...measurements.samples)).toBeLessThanOrEqual(measurements.width + 1);
+});
+
+test("sheet preview is bounded when shared sheet styles load after route styles", async ({ page }) => {
+  await fixture(page, true);
+  const sheetClass = await page.locator('[data-node][data-kind="block"]').evaluate(node => {
+    const sheet = node.closest('[role="group"]')!.parentElement!.parentElement!.parentElement!;
+    return [...sheet.classList].find(name => name.startsWith('_sheet_'))!;
+  });
+  await page.addStyleTag({ content: `.${sheetClass} { height: 100%; }` });
+  await expect.poll(async () => page.locator('[data-node][data-kind="block"]').evaluate(node =>
+    node.closest('[role="group"]')!.parentElement!.parentElement!.clientHeight
+  )).toBeLessThan(900);
+});
+
+test("sheet editor keeps column resizing inside its viewport", async ({ page }) => {
+  await fixture(page);
+  const block = page.locator('[data-node][data-kind="block"]');
+  const before = (await block.boundingBox())!.width;
+  const separator = page.getByRole('separator', { name: 'Resize column B', exact: true });
+  await separator.press('ArrowRight');
+  await expect(separator).toHaveAttribute('aria-valuenow', '112');
+  await expect.poll(async () => (await block.boundingBox())!.width).toBeGreaterThan(before);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
 });

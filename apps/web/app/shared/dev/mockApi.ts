@@ -469,7 +469,7 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     const plan = db.plans.find((p) => p.id === m![1])!;
     return json(200, { id: uid(), number: Number(m[2]), draftVersion: plan.version, publishedAt: now(), snapshot: { schemaVersion: 1, name: plan.name, description: plan.description, kind: plan.kind, document: plan.document, exercises: {}, formulas: {} } });
   }
-  if (path.match(/\/revisions\/\d+\/export$/)) {
+  if (path.match(/\/(revisions\/\d+|draft)\/export$/)) {
     return new Response(`Developer mock export (${q.get("format")}) — not a real Metrivum file.`, { status: 200, headers: { "content-type": "text/plain" } });
   }
   if (path === "/api/v1/training/folders" && method === "GET") {

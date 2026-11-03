@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <AssemblyName>Analysis.Bridge</AssemblyName>
     <MotionTraceRoot Condition="'$(MotionTraceRoot)' == ''">$(MSBuildThisFileDirectory)../../../MotionTrace</MotionTraceRoot>
     <DefaultItemExcludes>$(DefaultItemExcludes);artifacts/**;bin/**;obj/**</DefaultItemExcludes>
   </PropertyGroup>

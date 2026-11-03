@@ -11,6 +11,8 @@ def verify(path):
     with tarfile.open(path, 'r|gz') as archive:
         for member in archive:
             name = member.name.replace('\\', '/').removeprefix('./').lower()
+            if 'trainflow' in name:
+                raise ValueError('Obsolete product filename in archive: ' + name)
             if name in forbidden or name.startswith(('.ssh/', '.aws/', '.azure/', '.env.')):
                 raise ValueError('Machine/account configuration in archive: ' + name)
             count += 1
@@ -23,7 +25,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     manifest = json.loads((args.directory / 'release.json').read_text())
     for asset in manifest['assets']:
-        if not asset['target'].startswith('env/'):
-            continue
         path = args.directory / asset['name']
         print(f'{path.name}: {verify(path)} entries checked; no forbidden account/configuration members', flush=True)

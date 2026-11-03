@@ -212,7 +212,7 @@ function ProgramDetail() {
             {t.revisions}
           </h2>
           <LockedReason access={canExport ? access["training.export.pdf"] : access["training.export.csv"]}>
-            <Button size="sm" iconStart={<Download />} isDisabled={!canExport || !revisions.data?.items.length} onPress={() => setExportOpen(true)}>
+            <Button size="sm" iconStart={<Download />} isDisabled={!canExport} onPress={() => setExportOpen(true)}>
               {t.export}
             </Button>
           </LockedReason>
@@ -241,7 +241,7 @@ function ProgramDetail() {
 
       {!isTemplate && <AssignmentList programId={plan.id} />}
       <PublishDialog planId={plan.id} version={version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={issues} />
-      <ExportDialog planId={plan.id} planName={plan.name} isOpen={exportOpen} onOpenChange={setExportOpen} />
+      <ExportDialog planId={plan.id} planName={plan.name} draft={plan.document} isOpen={exportOpen} onOpenChange={setExportOpen} />
       <CopyPlanDialog
         plan={copyOpen ? { id: plan.id, name: plan.name, description: plan.description, kind: plan.kind, folderId: plan.folderId, archived: plan.archived, version, updatedAt: plan.updatedAt } : null}
         fromTemplate={isTemplate}

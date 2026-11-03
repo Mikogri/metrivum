@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TrainingDocument } from "@metrivum/api-client-web";
-import { Alert, Button, Dialog, FileCard, Option, Radio, RadioGroup, Select, Spinner, toast, DialogFooter } from "@metrivum/ui-web";
+import { Alert, AlertDialog, Button, Dialog, FileCard, Option, Radio, RadioGroup, Select, Spinner, toast, DialogFooter } from "@metrivum/ui-web";
 import { useFeatures } from "~/shared/access";
 import { formatBytes, formatDateTime } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
@@ -13,6 +13,9 @@ import { errorText } from "~/shared/lib/errorText";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { exportRevision, getRevision, type ExportScope } from "../api";
 import { trainingKeys, useRevisions } from "../queries";
+import { useExerciseNames } from "~/modules/exercises";
+import { uniqueExerciseIds } from "../editor/model/document";
+import { useDocumentIssues } from "../editor/useDocumentIssues";
 import styles from "./ExportDialog.module.css";
 
 function scopeItems(doc: TrainingDocument | undefined, scope: ExportScope, dayLabel: (n: number) => string) {
@@ -33,8 +36,20 @@ function scopeItems(doc: TrainingDocument | undefined, scope: ExportScope, dayLa
 
 type DownloadState = { status: "idle" } | { status: "working" } | { status: "done"; name: string; size: number } | { status: "error"; error: unknown };
 
-/** Downloads a server-generated CSV/PDF of a published revision (never a browser-made substitute). */
-export function ExportDialog({ planId, planName, isOpen, onOpenChange }: { planId: string; planName: string; isOpen: boolean; onOpenChange: (open: boolean) => void }) {
+/**
+ * Downloads a server-generated CSV/PDF of the current draft or of an applied revision (never a browser-made
+ * substitute). The draft exports even with problems in it, after a warning. Pass `beforeExport` to save first.
+ */
+export function ExportDialog({ planId, planName, draft, issues: known, beforeExport, isOpen, onOpenChange }: {
+  planId: string;
+  planName: string;
+  draft: TrainingDocument;
+  /** Problems already known (the editor's status); without them the dialog checks the draft itself. */
+  issues?: string[];
+  beforeExport?: () => Promise<unknown>;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const m = useT();
   const t = m.training.export;
   const locale = useLocale();
@@ -42,7 +57,11 @@ export function ExportDialog({ planId, planName, isOpen, onOpenChange }: { planI
   const a = useAccountKey();
   const access = useFeatures(["training.export.csv", "training.export.pdf"] as const);
   const revisions = useRevisions(planId);
-  const [revision, setRevision] = useState<number | null>(null);
+  const [revision, setRevision] = useState<number | "draft">("draft");
+  const [warning, setWarning] = useState(false);
+  const names = useExerciseNames(uniqueExerciseIds(draft));
+  const found = useDocumentIssues(draft, names);
+  const issues = known ?? found;
   const [format, setFormat] = useState<"csv" | "pdf">("pdf");
   const [scope, setScope] = useState<ExportScope>("program");
   const [scopeId, setScopeId] = useState<string | null>(null);
@@ -50,10 +69,6 @@ export function ExportDialog({ planId, planName, isOpen, onOpenChange }: { planI
   const [state, setState] = useState<DownloadState>({ status: "idle" });
   const controller = useRef<AbortController | null>(null);
 
-  const latest = revisions.data?.items[0]?.number ?? null;
-  useEffect(() => {
-    if (isOpen && revision === null && latest !== null) setRevision(latest);
-  }, [isOpen, latest, revision]);
   useEffect(() => {
     if (!access["training.export.pdf"].allowed && access["training.export.csv"].allowed) setFormat("csv");
   }, [access]);
@@ -67,27 +82,27 @@ export function ExportDialog({ planId, planName, isOpen, onOpenChange }: { planI
 
   const snapshot = useQuery({
     queryKey: [...trainingKeys.revisions(a, planId), "snapshot", revision],
-    queryFn: ({ signal }) => getRevision(api, planId, revision!, signal),
-    enabled: isOpen && revision !== null && scope !== "program",
+    queryFn: ({ signal }) => getRevision(api, planId, revision as number, signal),
+    enabled: isOpen && revision !== "draft" && scope !== "program",
     staleTime: Infinity,
   });
-  const items = useMemo(() => scopeItems(snapshot.data?.snapshot.document, scope, m.editor.dayLabel), [snapshot.data, scope, m.editor.dayLabel]);
+  const items = useMemo(() => scopeItems(revision === "draft" ? draft : snapshot.data?.snapshot.document, scope, m.editor.dayLabel), [revision, draft, snapshot.data, scope, m.editor.dayLabel]);
   useEffect(() => setScopeId(items[0]?.id ?? null), [items]);
 
   const formatAllowed = access[format === "csv" ? "training.export.csv" : "training.export.pdf"].allowed;
-  const canDownload = revision !== null && formatAllowed && (scope === "program" || scopeId !== null) && state.status !== "working";
+  const canDownload = formatAllowed && (scope === "program" || scopeId !== null) && state.status !== "working";
 
   async function download() {
-    if (revision === null) return;
     controller.current?.abort();
     const abort = new AbortController();
     controller.current = abort;
     setState({ status: "working" });
     try {
+      if (revision === "draft") await beforeExport?.();
       const blob = await exportRevision(api, planId, revision, { format, scope, scopeId: scopeId ?? undefined, delimiter }, abort.signal);
       // CORS doesn't expose Content-Disposition, so the name is built here (see api-gaps.md).
       const suffix = scope === "program" ? "" : `-${scope}`;
-      const name = `${safeFileName(planName)}-r${revision}${suffix}.${format}`;
+      const name = `${safeFileName(planName)}${revision === "draft" ? "" : `-r${revision}`}${suffix}.${format}`;
       saveBlob(blob, name);
       setState({ status: "done", name, size: blob.size });
       toast({ tone: "success", title: t.ready(name) });
@@ -97,18 +112,18 @@ export function ExportDialog({ planId, planName, isOpen, onOpenChange }: { planI
     }
   }
 
-  const noRevisions = revisions.isSuccess && revisions.data.items.length === 0;
+  // A draft with problems still exports, but only after the coach saw that it has them.
+  const start = () => (revision === "draft" && issues.length ? setWarning(true) : void download());
 
   return (
     <Dialog isOpen={isOpen} onOpenChange={onOpenChange} title={t.title} description={t.body} placement="right" closeLabel={m.common.close}>
       <div className={styles.form}>
-        {revisions.isPending ? <Spinner label={m.common.loading} /> : null}
-        {noRevisions ? <Alert tone="info" title={t.needsRevision}>{t.needsRevisionBody}</Alert> : null}
         {revisions.isError ? <Alert tone="danger" live="assertive" title={errorText(m, revisions.error)} /> : null}
-        {revisions.data?.items.length ? (
+        {(
           <>
-            <Select label={t.revision} selectedKey={revision} onSelectionChange={(key) => setRevision(Number(key))}>
-              {revisions.data.items.map((item) => (
+            <Select label={t.revision} selectedKey={revision} onSelectionChange={(key) => setRevision(key === "draft" ? "draft" : Number(key))}>
+              <Option key="draft" id="draft">{t.draft}</Option>
+              {(revisions.data?.items ?? []).map((item) => (
                 <Option key={item.number} id={item.number}>
                   {`${m.training.detail.revision(item.number)} · ${formatDateTime(locale, item.publishedAt)}`}
                 </Option>
@@ -155,7 +170,7 @@ export function ExportDialog({ planId, planName, isOpen, onOpenChange }: { planI
               <FileCard
                 name={state.status === "done" ? state.name : `${safeFileName(planName)}.${format}`}
                 kind={format.toUpperCase()}
-                meta={revision !== null ? t.fileCard(format, revision) : undefined}
+                meta={revision === "draft" ? `${format.toUpperCase()} · ${t.draft}` : t.fileCard(format, revision)}
                 status={
                   state.status === "working" ? (
                     <span className={styles.working}>
@@ -170,16 +185,26 @@ export function ExportDialog({ planId, planName, isOpen, onOpenChange }: { planI
               />
             ) : null}
           </>
-        ) : null}
+        )}
         <DialogFooter>
           <Button variant="secondary" onPress={() => onOpenChange(false)}>
             {m.common.close}
           </Button>
-          <Button variant="primary" iconStart={<Download />} isDisabled={!canDownload} loading={state.status === "working"} onPress={() => void download()}>
+          <Button variant="primary" iconStart={<Download />} isDisabled={!canDownload} loading={state.status === "working"} onPress={start}>
             {t.submit}
           </Button>
         </DialogFooter>
       </div>
+      <AlertDialog
+        isOpen={warning}
+        onOpenChange={setWarning}
+        title={t.issuesTitle}
+        confirmLabel={t.issuesConfirm}
+        cancelLabel={m.common.cancel}
+        onConfirm={() => { setWarning(false); void download(); }}
+      >
+        {t.issuesBody(issues.length)}
+      </AlertDialog>
     </Dialog>
   );
 }

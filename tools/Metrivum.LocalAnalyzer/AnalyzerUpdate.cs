@@ -48,8 +48,8 @@ internal static class AnalyzerUpdate
             if (root.Scheme == "https")
             {
                 var verify = new ProcessStartInfo("powershell.exe") { UseShellExecute = false, CreateNoWindow = true };
-                foreach (var arg in new[] { "-NoProfile", "-NonInteractive", "-Command", "$s=Get-AuthenticodeSignature -LiteralPath $env:TRAINFLOW_UPDATE_FILE; if($s.Status -ne 'Valid'){exit 1}" }) verify.ArgumentList.Add(arg);
-                verify.Environment["TRAINFLOW_UPDATE_FILE"] = installer;
+                foreach (var arg in new[] { "-NoProfile", "-NonInteractive", "-Command", "$s=Get-AuthenticodeSignature -LiteralPath $env:ANALYZER_UPDATE_FILE; if($s.Status -ne 'Valid'){exit 1}" }) verify.ArgumentList.Add(arg);
+                verify.Environment["ANALYZER_UPDATE_FILE"] = installer;
                 using var process = Process.Start(verify) ?? throw new IOException("Cannot verify update signature.");
                 await process.WaitForExitAsync(cancellation);
                 if (process.ExitCode != 0) throw new InvalidDataException("Update signature is not trusted.");
