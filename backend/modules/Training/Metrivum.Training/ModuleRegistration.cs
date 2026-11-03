@@ -88,6 +88,11 @@ public static class ModuleRegistration
             var file = await service.ExportAsync(id, number, format, scope ?? "program", scopeId, delimiter ?? ",", ct);
             return Results.File(file.Content, file.ContentType, file.Name);
         }).Produces(200, contentType: "text/csv").Produces(200, contentType: "application/pdf");
+        group.MapGet("/programs/{id:guid}/draft/export", async (Guid id, string format, string? scope, Guid? scopeId, string? delimiter, TrainingService service, CancellationToken ct) =>
+        {
+            var file = await service.ExportDraftAsync(id, format, scope ?? "program", scopeId, delimiter ?? ",", ct);
+            return Results.File(file.Content, file.ContentType, file.Name);
+        }).Produces(200, contentType: "text/csv").Produces(200, contentType: "application/pdf");
         group.MapGet("/folders", (Guid? parentId, int? page, int? pageSize, TrainingService service, CancellationToken ct) => service.FoldersAsync(parentId, page ?? 1, pageSize ?? 25, ct));
         group.MapPost("/folders", async (FolderRequest request, TrainingService service, HttpContext http, CancellationToken ct) => FolderVersioned(http, await service.CreateFolderAsync(request, ct))).Produces<FolderDto>();
         group.MapPut("/folders/{id:guid}", async (Guid id, FolderRequest request, TrainingService service, HttpContext http, CancellationToken ct) => FolderVersioned(http, await service.UpdateFolderAsync(id, request, Version(http), ct))).Produces<FolderDto>();

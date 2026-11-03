@@ -190,6 +190,16 @@ public sealed class TrainingPostgresTests : IDisposable
     }
 
     [TrainingPostgresFact]
+    public async Task A_draft_exports_without_any_applied_version()
+    {
+        await using var db = Context();
+        var service = Service(db);
+        var plan = await service.CreateAsync(new("Draft only", "", DocumentKind.Program, null, Content()), default);
+        Assert.StartsWith("%PDF-", System.Text.Encoding.ASCII.GetString((await service.ExportDraftAsync(plan.Id, "pdf", "program", null, ",", default)).Content));
+        Assert.NotEmpty(((await service.ExportDraftAsync(plan.Id, "csv", "program", null, ",", default)).Content));
+    }
+
+    [TrainingPostgresFact]
     public async Task Publish_idempotency_key_is_bound_to_user_operation_and_payload()
     {
         await using var db = Context();

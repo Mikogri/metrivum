@@ -125,6 +125,43 @@ public sealed partial class TrainingService
         }
         catch (TrainingValidationException e) { throw ApiException.Invalid(e.Message); }
     }
+    /// <summary>
+    /// Exports the current draft, problems and all: the coach is warned in the app, the file shows what is there.
+    /// Exercises missing from the catalog are left out and formulas that do not evaluate print without a value.
+    /// </summary>
+    public async Task<ExportFile> ExportDraftAsync(Guid id, string format, string scope, Guid? scopeId, string delimiter, CancellationToken ct)
+    {
+        if (format is not ("csv" or "pdf"))
+            throw ApiException.Invalid("Format must be csv or pdf.");
+        await access.RequireAsync("training.export." + format, ct);
+        var account = await ReadAsync(ct);
+        var plan = await PlanAsync(id, account, ct);
+        abuse?.Require(accounts.UserId, AbusePolicies.Export);
+        using var heavyLease = abuse?.Enter(accounts.UserId, AbusePolicies.Heavy);
+        var exerciseIds = DocumentRules.Workouts(plan.Draft).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).Distinct().ToArray();
+        var exercises = await catalog.SnapshotAsync(exerciseIds, ct);
+        var document = KnownExercises(plan.Draft, exercises.Keys.ToHashSet());
+        Dictionary<Guid, FormulaEvaluation> formulas;
+        try { formulas = await EvaluateDocumentAsync(document, account, ct); }
+        catch (ApiException) { formulas = []; }
+        var source = new RevisionSnapshot(1, plan.Name, plan.Description, plan.Kind, document, new(exercises), formulas);
+        var selected = SelectScope(source, scope, scopeId);
+        ct.ThrowIfCancellationRequested();
+        try
+        {
+            return format == "csv" ? new(Encoding.UTF8.GetBytes(TrainingCsv.Export(selected, delimiter)), "text/csv; charset=utf-8", $"training-{id:D}-draft.csv") : new(TrainingPdf.Render(selected), "application/pdf", $"training-{id:D}-draft.pdf");
+        }
+        catch (TrainingValidationException e) { throw ApiException.Invalid(e.Message); }
+    }
+    private static TrainingDocument KnownExercises(TrainingDocument doc, HashSet<Guid> known) => doc with
+    {
+        Blocks = doc.Blocks.Select(b => b with { Cycles = b.Cycles.Select(c => c with { Days = c.Days.Select(d => d with { Workouts = d.Workouts.Select(w =>
+        {
+            var kept = w.Exercises.Where(e => known.Contains(e.ExerciseId)).ToArray();
+            var ids = kept.Select(e => e.Id).ToHashSet();
+            return w with { Exercises = kept, Groups = (w.Groups ?? []).Where(g => g.ExerciseIds.All(ids.Contains)).ToArray() };
+        }).ToArray() }).ToArray() }).ToArray() }).ToArray()
+    };
     public static RevisionSnapshot SelectScope(RevisionSnapshot source, string scope, Guid? id)
     {
         if (scope == "program")

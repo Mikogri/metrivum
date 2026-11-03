@@ -2986,6 +2986,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/training/programs/{id}/draft/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    format: string;
+                    scope?: string;
+                    scopeId?: string;
+                    delimiter?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/training/folders": {
         parameters: {
             query?: never;
