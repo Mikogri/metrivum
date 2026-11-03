@@ -3,15 +3,13 @@ import { AssignProgramButton, AssignmentList } from "../delivery/Assignments";
 import { Archive, ArchiveRestore, Copy, Download, Pencil, Rocket } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useParams } from "react-router";
+import { PrefetchPageLinks, useParams } from "react-router";
 import {
   Badge,
   Breadcrumbs,
   Button,
-  Card,
   EmptyState,
   ErrorState,
-  FileCard,
   LinkButton,
   PageHeader,
   Skeleton,
@@ -25,6 +23,8 @@ import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
+import { useDangerConfirm } from "~/shared/lib/useConfirm";
+import { Panel } from "~/shared/ui/Panel";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { setArchived } from "../api";
 import { PublishDialog } from "../components/PublishDialog";
@@ -80,6 +80,12 @@ function ProgramDetail() {
     },
     onError: (error) => showError(error),
   });
+  // Archiving takes the plan out of the list, so it asks first; restoring does not.
+  const { ask, dialog: archiveDialog } = useDangerConfirm();
+  const confirmArchive = async (name: string) => {
+    const c = m.training.library.archiveConfirm;
+    if (await ask({ title: c.title(name), body: c.body, confirmLabel: c.confirm, cancelLabel: c.cancel })) archive.mutate(true);
+  };
 
   if (query.isPending) {
     return (
@@ -136,7 +142,7 @@ function ProgramDetail() {
                 {m.common.restore}
               </Button>
             ) : (
-              <Button variant="ghost" iconStart={<Archive />} isDisabled={!canManage} loading={archive.isPending} onPress={() => archive.mutate(true)}>
+              <Button variant="ghost" iconStart={<Archive />} isDisabled={!canManage} loading={archive.isPending} onPress={() => void confirmArchive(plan.name)}>
                 {m.common.archive}
               </Button>
             )}
@@ -180,66 +186,77 @@ function ProgramDetail() {
         </Button>
       </section>
 
-      <section className={styles.preview} aria-labelledby="preview-title">
-        <div className={styles.previewHead}>
-          <h2 id="preview-title" className={styles.title}>
-            {t.preview}
-          </h2>
-          <span className={styles.muted}>{mode === "simple" ? t.previewHintSimple : t.previewHint}</span>
-          <SegmentedControl
-            aria-label={m.editor.mode.label}
-            size="sm"
-            selectedKeys={[mode]}
-            onSelectionChange={(keys) => setPreviewMode(([...keys][0] as "simple" | "advanced") ?? mode)}
-            className={styles.previewMode}
-          >
-            <Segment id="simple">{m.editor.mode.simple}</Segment>
-            <Segment id="advanced">{m.editor.mode.advanced}</Segment>
-          </SegmentedControl>
-        </div>
-        {mode === "simple" ? (
-          <div className={styles.previewSheet}>
-            <WeekView doc={plan.document} names={names} />
-          </div>
-        ) : (
-          <SheetCanvas doc={plan.document} sheet={sheet} onSheetChange={setSheet} names={names} initialZoom={0.7} className={styles.previewSheet} />
-        )}
-      </section>
+      {archiveDialog}
+      {/* The editor's code loads in the background, so "Open editor" opens it at once. */}
+      {canManage && !plan.archived ? <PrefetchPageLinks page={editPath} /> : null}
+      <div className={styles.panels}>
+        <Panel
+          id="preview"
+          title={t.preview}
+          description={mode === "simple" ? t.previewHintSimple : t.previewHint}
+          flush
+          className={styles.preview}
+          actions={
+            <SegmentedControl
+              aria-label={m.editor.mode.label}
+              size="sm"
+              selectedKeys={[mode]}
+              onSelectionChange={(keys) => setPreviewMode(([...keys][0] as "simple" | "advanced") ?? mode)}
+            >
+              <Segment id="simple">{m.editor.mode.simple}</Segment>
+              <Segment id="advanced">{m.editor.mode.advanced}</Segment>
+            </SegmentedControl>
+          }
+        >
+          {mode === "simple" ? (
+            <div className={styles.previewSheet}>
+              <WeekView doc={plan.document} names={names} />
+            </div>
+          ) : (
+            <SheetCanvas doc={plan.document} sheet={sheet} onSheetChange={setSheet} names={names} initialZoom={0.7} className={styles.previewSheet} />
+          )}
+        </Panel>
 
-      <Card as="section" padding="lg" aria-labelledby="revisions-title">
-        <div className={styles.sectionHead}>
-          <h2 id="revisions-title" className={styles.title}>
-            {t.revisions}
-          </h2>
-          <LockedReason access={canExport ? access["training.export.pdf"] : access["training.export.csv"]}>
-            <Button size="sm" iconStart={<Download />} isDisabled={!canExport} onPress={() => setExportOpen(true)}>
-              {t.export}
-            </Button>
-          </LockedReason>
-        </div>
-        <p className={styles.muted}>{t.revisionsBody}</p>
-        {revisions.isPending ? (
-          <Skeleton height="6rem" />
-        ) : revisions.isError ? (
-          <p className={styles.muted}>{errorText(m, revisions.error)}</p>
-        ) : revisions.data.items.length === 0 ? (
-          <EmptyState size="sm" icon={<Rocket />} title={t.noRevisions} description={t.noRevisionsBody} />
-        ) : (
-          <ul className={styles.revisions}>
-            {revisions.data.items.map((revision, i) => (
-              <li key={revision.id} style={{ "--i": i } as React.CSSProperties}>
-                <FileCard
-                  name={t.revision(revision.number)}
-                  kind={`R${revision.number}`}
-                  meta={`${formatDateTime(locale, revision.publishedAt)} · ${t.fromDraft(revision.draftVersion)}`}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+        <Panel
+          id="revisions"
+          title={t.revisions}
+          description={t.revisionsBody}
+          flush
+          actions={
+            <LockedReason access={canExport ? access["training.export.pdf"] : access["training.export.csv"]}>
+              <Button size="sm" iconStart={<Download />} isDisabled={!canExport} onPress={() => setExportOpen(true)}>
+                {t.export}
+              </Button>
+            </LockedReason>
+          }
+        >
+          {revisions.isPending ? (
+            <div className={styles.revisionsLoading} aria-busy="true">
+              <Skeleton height="2.75rem" />
+              <Skeleton height="2.75rem" />
+            </div>
+          ) : revisions.isError ? (
+            <p className={styles.panelNote}>{errorText(m, revisions.error)}</p>
+          ) : revisions.data.items.length === 0 ? (
+            <EmptyState size="sm" icon={<Rocket />} title={t.noRevisions} description={t.noRevisionsBody} />
+          ) : (
+            <ul className={styles.revisions}>
+              {revisions.data.items.map((revision, i) => (
+                <li key={revision.id} className={styles.revision}>
+                  <span className={styles.revisionMark} aria-hidden="true">R{revision.number}</span>
+                  <span className={styles.revisionText}>
+                    <strong>{t.revision(revision.number)}</strong>
+                    <span>{`${formatDateTime(locale, revision.publishedAt)} · ${t.fromDraft(revision.draftVersion)}`}</span>
+                  </span>
+                  {i === 0 ? <Badge size="sm" tone="success">{t.currentRevision}</Badge> : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
 
-      {!isTemplate && <AssignmentList programId={plan.id} />}
+        {!isTemplate && <AssignmentList programId={plan.id} />}
+      </div>
       <PublishDialog planId={plan.id} version={version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={issues} />
       <ExportDialog planId={plan.id} planName={plan.name} draft={plan.document} isOpen={exportOpen} onOpenChange={setExportOpen} />
       <CopyPlanDialog

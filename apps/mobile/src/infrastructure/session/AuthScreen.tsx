@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { BrandMark } from "../../BrandMark";
@@ -21,6 +22,8 @@ export function AuthScreen({ accounts, auth, requestCode, requestRecovery, onSig
     onSignedIn: (slot: number, session?: Session) => Promise<void>;
     onCancel?: () => void;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { t, locale, setLocale } = useI18n();
     const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
     const [codeMode, setCodeMode] = useState(false);
@@ -85,7 +88,7 @@ export function AuthScreen({ accounts, auth, requestCode, requestRecovery, onSig
             </>}
             {mode === "forgot" && <Button tone="ghost" title={t("auth.back")} disabled={busy} onPress={() => changeMode("login")} />}
         </Section>}
-        <SegmentedControl label="Language / Język" value={locale} disabled={busy} options={[{ value: "en", label: "English" }, { value: "pl", label: "Polski" }]}
+        <SegmentedControl label={nativeCopy("interface.Language / Język")} value={locale} disabled={busy} options={[{ value: "en", label: "English" }, { value: "pl", label: "Polski" }]}
             onChange={async value => { try { await setLocale(value); } catch (failure) { setError(failure); } }} />
         {onCancel && <Button title={t("common.cancel")} disabled={busy} onPress={onCancel} />}
     </Screen>;

@@ -19,7 +19,8 @@
   box-shadow: 0 0 0 2px var(--tf-color-focus-ring);
 }
 
-.menu {
+/* Doubled class: outranks the menu's own min-width whatever order the built CSS ends up in. */
+.menu.menu {
   min-width: 16rem;
 }
 

@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import type { ReactNode } from "react";
 import {
   isRouteErrorResponse,
@@ -75,10 +76,12 @@ export default function App() {
  * are in the file; the <html data-boot> mark set before paint shows the one for the page being opened.
  */
 export function HydrateFallback() {
+  const uiCopy = useUiCopy();
+
   return (
     <div className="tf-hydrate">
-      <BootSkeleton label="Loading Metrivum" />
-      <AuthBootSkeleton label="Loading Metrivum" />
+      <BootSkeleton label={uiCopy["ui"]["Loading Metrivum"]} />
+      <AuthBootSkeleton label={uiCopy["ui"]["Loading Metrivum"]} />
     </div>
   );
 }

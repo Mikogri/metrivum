@@ -70,6 +70,9 @@ export function mockClientDetail(path: string, method: string, q: URLSearchParam
   if (path === "/api/v1/training/last-activity") return ok({ performedDate: date(1), completedAt: iso(1) });
   if (path === "/api/v1/training/assignment-summary")
     return ok([{ assignment: { id: "as-1", relationshipId: "r", programId: PROGRAM, programName: "Strength block A", status: "Active", startDate: date(40), timeZone: "Europe/Warsaw", version: 1, effectiveRevisionId: "rev", allowedActions: ["status"], groupAssignmentId: null }, endDate: date(-30), scheduled: 36, completed: 17 }]);
+  // A program's own assignments: the demo plan has one client on it.
+  if (path === "/api/v1/training/assignments" && q.get("programId"))
+    return ok(page(q.get("programId") === PROGRAM ? [{ id: "as-1", relationshipId: "33333333-0000-4000-8000-000000000001", programId: PROGRAM, programName: "Strength block A", status: "Active", startDate: date(30), timeZone: "Europe/Warsaw", version: 1, effectiveRevisionId: "rev", allowedActions: ["status"], groupAssignmentId: null }] : [], q));
   if (path === "/api/v1/training/assignments" && !q.get("relationshipId") && !q.get("programId") && !q.get("groupId"))
     return ok(page([["1", "Strength block A"], ["2", "Return to run"], ["3", "Hypertrophy 10-day"]].map(([n, name]) => ({ id: `as-${n}`, relationshipId: `33333333-0000-4000-8000-00000000000${n}`, programId: PROGRAM, programName: name, status: "Active", startDate: date(30), timeZone: "Europe/Warsaw", version: 1, effectiveRevisionId: "rev", allowedActions: [], groupAssignmentId: null })), q));
   if (path === "/api/v1/training/schedule") return ok(page(occurrences.filter((o) => !q.get("status") || o.status === q.get("status")), q));

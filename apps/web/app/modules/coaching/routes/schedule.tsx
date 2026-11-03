@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = ({ location }: { location: { pathname: string } }) =>
@@ -37,6 +38,8 @@ const WEEK = [["Mon", 1], ["Tue", 2], ["Wed", 3], ["Thu", 4], ["Fri", 5], ["Sat"
 export interface ScheduleSeed { date?: string; timeZone?: string; relationshipId?: string }
 
 function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirtyChange?: (dirty: boolean) => void; panel?: { seed?: ScheduleSeed; close: () => void } }) {
+  const uiCopy = useUiCopy();
+
   const navigate = useNavigate();
   const [urlParams] = useSearchParams();
   const params = panel ? new URLSearchParams(Object.entries(panel.seed ?? {}).filter(([, v]) => v) as [string, string][]) : urlParams;
@@ -93,8 +96,8 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
       {panel ? null : (
         <>
           <PageHeader
-            title={initial ? name || "Check-in schedule" : "New check-in schedule"}
-            description="Each release uses the form's current published version. Requests already sent keep their questions."
+            title={initial ? name || uiCopy["ui"]["Check-in schedule"] : uiCopy["ui"]["New check-in schedule"]}
+            description={uiCopy["ui"]["Each release uses the form's current published version. Requests already sent keep their questions."]}
             meta={current && <StatusBadge status={current.status} />}
           />
           <DraftNavigationGuard dirty={dirty} />
@@ -114,27 +117,27 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
         }}
       >
         <MutationError error={mutation.error} />
-        {current?.status === "Active" && current.recurrence.kind === "AssignedProgramCycle" && !current.nextAvailableAtUtc && !current.lastFailure && <Alert title="No upcoming release">This schedule stays linked to the assignment. It waits for an active assigned program with remaining cycle dates; it does not restart the program.</Alert>}
+        {current?.status === "Active" && current.recurrence.kind === "AssignedProgramCycle" && !current.nextAvailableAtUtc && !current.lastFailure && <Alert title={uiCopy["ui"]["No upcoming release"]}>{uiCopy["ui"]["This schedule stays linked to the assignment. It waits for an active assigned program with remaining cycle dates; it does not restart the program."]}</Alert>}
         {current?.lastFailure ? (
-          <Alert tone="warning" title="The last release could not be completed">
+          <Alert tone="warning" title={uiCopy["ui"]["The last release could not be completed"]}>
             {current.lastFailure} {current.retryAtUtc && `Next try: ${new Date(current.retryAtUtc).toLocaleString()}`}
           </Alert>
         ) : null}
 
         <section className={styles.section}>
           <header className={styles.sectionHead}>
-            <h2><span className={sched.stepNo}>1</span>Details</h2>
-            <p>What clients see in their check-in list.</p>
+            <h2><span className={sched.stepNo}>1</span>{uiCopy["video"]["new"]["step"]["details"]}</h2>
+            <p>{uiCopy["ui"]["What clients see in their check-in list."]}</p>
           </header>
           <div className={styles.sectionBody}>
-            <TextField label="Name" placeholder="e.g. Monday check-in" isRequired maxLength={200} value={name} isDisabled={locked} onChange={(v) => { setName(v); setDirty(true); }} />
-            <TextArea label="Description" placeholder="Optional, a sentence about what to report" value={description} isDisabled={locked} onChange={(v) => { setDescription(v); setDirty(true); }} />
+            <TextField label={uiCopy["video"]["list"]["sort"]["name"]} placeholder={uiCopy["ui"]["e.g. Monday check-in"]} isRequired maxLength={200} value={name} isDisabled={locked} onChange={(v) => { setName(v); setDirty(true); }} />
+            <TextArea label={uiCopy["training"]["library"]["createDialog"]["description"]} placeholder={uiCopy["ui"]["Optional, a sentence about what to report"]} value={description} isDisabled={locked} onChange={(v) => { setDescription(v); setDirty(true); }} />
             {forms.isError ? (
               <Failure error={forms.error} retry={() => void forms.refetch()} />
             ) : (
               <Select
-                label="Check-in form"
-                placeholder={forms.isPending ? "Loading forms…" : "Choose a published form"}
+                label={uiCopy["ui"]["Check-in form"]}
+                placeholder={forms.isPending ? uiCopy["ui"]["Loading forms…"] : uiCopy["ui"]["Choose a published form"]}
                 isRequired
                 isDisabled={locked || !available.length}
                 selectedKey={selectedForm || null}
@@ -146,8 +149,9 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
               </Select>
             )}
             {!forms.isPending && !available.length && !formId ? (
-              <Alert title="Publish a check-in form first" actions={<LinkButton href="/app/forms?purpose=CheckIn" size="sm">Open forms</LinkButton>}>
-                A schedule sends a published form.
+              <Alert title={uiCopy["ui"]["Publish a check-in form first"]} actions={<LinkButton href="/app/forms?purpose=CheckIn" size="sm">{uiCopy["ui"]["Open forms"]}</LinkButton>}>
+
+                {uiCopy["ui"]["A schedule sends a published form."]}
               </Alert>
             ) : null}
           </div>
@@ -155,14 +159,14 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
 
         <section className={styles.section}>
           <header className={styles.sectionHead}>
-            <h2><span className={sched.stepNo}>2</span>When</h2>
-            <p>Release time in the chosen time zone. Clients answer within the response window.</p>
+            <h2><span className={sched.stepNo}>2</span>{uiCopy["ui"]["When"]}</h2>
+            <p>{uiCopy["ui"]["Release time in the chosen time zone. Clients answer within the response window."]}</p>
           </header>
           <div className={styles.sectionBody}>
             <div className={styles.fieldGroup}>
-              <span className={styles.fieldLabel}>Repeats</span>
+              <span className={styles.fieldLabel}>{uiCopy["editor"]["sheet"]["repeats"]}</span>
               <SegmentedControl
-                aria-label="Repeats"
+                aria-label={uiCopy["editor"]["sheet"]["repeats"]}
                 isDisabled={locked}
                 selectedKeys={[recurrence.kind]}
                 onSelectionChange={(keys) => {
@@ -175,34 +179,34 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
                 ))}
               </SegmentedControl>
               <p className={sched.explain}><Info aria-hidden="true" />{kind.explanation}</p>
-              {!programs.length && <p className={sched.note}>Program cycle needs one client with an active assigned program.</p>}
+              {!programs.length && <p className={sched.note}>{uiCopy["ui"]["Program cycle needs one client with an active assigned program."]}</p>}
               {assignments.isError && <Failure error={assignments.error} retry={() => void assignments.refetch()} />}
               {recurrence.kind === "AssignedProgramCycle" && <>
-                <Select label="Assigned program" isRequired isDisabled={locked} selectedKey={recurrence.assignmentId ?? null} onSelectionChange={(id) => change({ assignmentId: String(id), cycleDays: [1] })}>
+                <Select label={uiCopy["ui"]["Assigned program"]} isRequired isDisabled={locked} selectedKey={recurrence.assignmentId ?? null} onSelectionChange={(id) => change({ assignmentId: String(id), cycleDays: [1] })}>
                   {programs.map((p) => <Option key={p.assignmentId} id={p.assignmentId}>{p.programName}</Option>)}
                 </Select>
-                <p className={sched.note}>Day 1 starts on the assignment date. Choose days within each actual cycle; this schedule ends with the assigned program.</p>
-                <div className={styles.weekdays} role="group" aria-label="Program cycle days">{Array.from({ length: cycleLength }, (_, i) => i + 1).map((day) => <button key={day} type="button" className={styles.weekday} aria-pressed={cycleDays.includes(day)} disabled={locked} onClick={() => change({ cycleDays: cycleDays.includes(day) ? cycleDays.filter((d) => d !== day) : [...cycleDays, day] })}>Day {day}</button>)}</div>
-                {assignment && <p className={sched.note}>Assignment time zone: {assignment.timeZone}. For cycles of different lengths, choose days present in every cycle.</p>}
+                <p className={sched.note}>{uiCopy["ui"]["Day 1 starts on the assignment date. Choose days within each actual cycle; this schedule ends with the assigned program."]}</p>
+                <div className={styles.weekdays} role="group" aria-label={uiCopy["ui"]["Program cycle days"]}>{Array.from({ length: cycleLength }, (_, i) => i + 1).map((day) => <button key={day} type="button" className={styles.weekday} aria-pressed={cycleDays.includes(day)} disabled={locked} onClick={() => change({ cycleDays: cycleDays.includes(day) ? cycleDays.filter((d) => d !== day) : [...cycleDays, day] })}>{uiCopy["editor"]["sheet"]["addDay"]} {day}</button>)}</div>
+                {assignment && <p className={sched.note}>{uiCopy["ui"]["Assignment time zone:"]} {assignment.timeZone}{uiCopy["ui"][". For cycles of different lengths, choose days present in every cycle."]}</p>}
               </>}
             </div>
             <div className={styles.columns}>
               <div className={sched.field}>
-                <DateField label={recurrence.kind === "OneTime" ? "Date" : "Starts on"} isRequired isDisabled={locked} value={parseDate(recurrence.startDate)} onChange={(v) => v && change({ startDate: v.toString() })} />
-                <p className={sched.note}>{recurrence.kind === "OneTime" ? "The day the check-in is sent." : "The first possible release day."}</p>
+                <DateField label={recurrence.kind === "OneTime" ? uiCopy["ui"]["Date"] : uiCopy["ui"]["Starts on"]} isRequired isDisabled={locked} value={parseDate(recurrence.startDate)} onChange={(v) => v && change({ startDate: v.toString() })} />
+                <p className={sched.note}>{recurrence.kind === "OneTime" ? uiCopy["ui"]["The day the check-in is sent."] : uiCopy["ui"]["The first possible release day."]}</p>
               </div>
               <div className={sched.field}>
-                <TextField label="Release time" type="time" isRequired isDisabled={locked} value={recurrence.releaseTime.slice(0, 5)} onChange={(v) => change({ releaseTime: v ? `${v}:00` : "" })} />
-                <p className={sched.note}>Local time in the selected time zone when the form opens.</p>
+                <TextField label={uiCopy["ui"]["Release time"]} type="time" isRequired isDisabled={locked} value={recurrence.releaseTime.slice(0, 5)} onChange={(v) => change({ releaseTime: v ? `${v}:00` : "" })} />
+                <p className={sched.note}>{uiCopy["ui"]["Local time in the selected time zone when the form opens."]}</p>
               </div>
             </div>
             {kind.unit ? (
               <div className={styles.columns}>
-                <NumberInput label="Every" placeholder="1" isRequired isDisabled={locked} minValue={1} maxValue={365} step={1} value={interval} unit={interval === 1 ? kind.unit[0] : kind.unit[1]} onChange={(v) => change({ interval: Number.isFinite(v) ? v : 1 })} />
+                <NumberInput label={uiCopy["ui"]["Every"]} placeholder="1" isRequired isDisabled={locked} minValue={1} maxValue={365} step={1} value={interval} unit={interval === 1 ? kind.unit[0] : kind.unit[1]} onChange={(v) => change({ interval: Number.isFinite(v) ? v : 1 })} />
                 {recurrence.kind === "Monthly" ? (
                   <div className={sched.field}>
-                    <NumberInput label="Day of the month" placeholder="1" isRequired isDisabled={locked} minValue={1} maxValue={31} step={1} value={Number(recurrence.dayOfMonth ?? 1)} onChange={(v) => change({ dayOfMonth: Number.isFinite(v) ? v : 1 })} />
-                    <p className={sched.note}>Shorter months use their last day.</p>
+                    <NumberInput label={uiCopy["ui"]["Day of the month"]} placeholder="1" isRequired isDisabled={locked} minValue={1} maxValue={31} step={1} value={Number(recurrence.dayOfMonth ?? 1)} onChange={(v) => change({ dayOfMonth: Number.isFinite(v) ? v : 1 })} />
+                    <p className={sched.note}>{uiCopy["ui"]["Shorter months use their last day."]}</p>
                   </div>
                 ) : null}
               </div>
@@ -210,7 +214,7 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
             {recurrence.kind === "EveryNWeeks" ? (
               <div className={styles.fieldGroup}>
                 <span className={styles.fieldLabel}>On</span>
-                <div className={styles.weekdays} role="group" aria-label="Weekdays">
+                <div className={styles.weekdays} role="group" aria-label={uiCopy["ui"]["Weekdays"]}>
                   {WEEK.map(([label, value]) => (
                     <button
                       key={label}
@@ -229,8 +233,8 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
             <div className={styles.columns}>
               <div className={sched.field}>
                 <Combobox
-                  label="Time zone"
-                  placeholder="Search time zones"
+                  label={uiCopy["settings"]["timeZone"]}
+                  placeholder={uiCopy["common"]["ph"]["timeZone"]}
                   isRequired
                   isDisabled={locked || recurrence.kind === "AssignedProgramCycle"}
                   defaultItems={zones.map((z) => ({ id: z }))}
@@ -239,16 +243,16 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
                 >
                   {(item: { id: string }) => <Option id={item.id}>{item.id.replace(/_/g, " ")}</Option>}
                 </Combobox>
-                <p className={sched.note}>Release times use this zone. Clocks changing for daylight saving keep the same local time.</p>
+                <p className={sched.note}>{uiCopy["ui"]["Release times use this zone. Clocks changing for daylight saving keep the same local time."]}</p>
               </div>
               <div className={sched.field}>
-                <NumberInput label="Response window" placeholder="48" isRequired isDisabled={locked} minValue={1} maxValue={8760} step={1} value={hours} unit={hours === 1 ? "hour" : "hours"} onChange={(v) => { setHours(Number.isFinite(v) ? v : 48); setDirty(true); }} />
-                <p className={sched.note}>Hours after release to answer on time. Requests already sent keep their deadlines.</p>
+                <NumberInput label={uiCopy["ui"]["Response window"]} placeholder="48" isRequired isDisabled={locked} minValue={1} maxValue={8760} step={1} value={hours} unit={hours === 1 ? "hour" : "hours"} onChange={(v) => { setHours(Number.isFinite(v) ? v : 48); setDirty(true); }} />
+                <p className={sched.note}>{uiCopy["ui"]["Hours after release to answer on time. Requests already sent keep their deadlines."]}</p>
               </div>
             </div>
             <div className={sched.quick}>
-              <span className={styles.fieldLabel}>Quick response window</span>
-              <ChipGroup aria-label="Quick response window" selectedKeys={[String(hours)]} onSelectionChange={(keys) => { const next = Number([...keys][0]); if (next) { setHours(next); setDirty(true); } }} isDisabled={locked}>
+              <span className={styles.fieldLabel}>{uiCopy["ui"]["Quick response window"]}</span>
+              <ChipGroup aria-label={uiCopy["ui"]["Quick response window"]} selectedKeys={[String(hours)]} onSelectionChange={(keys) => { const next = Number([...keys][0]); if (next) { setHours(next); setDirty(true); } }} isDisabled={locked}>
                 {[24, 48, 72, 168].map((h) => <Chip key={h} id={String(h)}>{describeWindow(h)}</Chip>)}
               </ChipGroup>
             </div>
@@ -257,8 +261,8 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
 
         <section className={styles.section}>
           <header className={styles.sectionHead}>
-            <h2><span className={sched.stepNo}>3</span>Recipients</h2>
-            <p>Only active clients get requests. Group members are resolved at each release; anyone selected twice gets one request.</p>
+            <h2><span className={sched.stepNo}>3</span>{uiCopy["ui"]["Recipients"]}</h2>
+            <p>{uiCopy["ui"]["Only active clients get requests. Group members are resolved at each release; anyone selected twice gets one request."]}</p>
           </header>
           <div className={styles.sectionBody}>
             <RecipientPicker
@@ -290,9 +294,9 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
             edge to edge, so the form never shows through or scrolls past it. */}
         {panel ? (
           <DialogFooter>
-          <Button onPress={() => (panel ? panel.close() : navigate("/app/check-in-schedules"))}>Cancel</Button>
+          <Button onPress={() => (panel ? panel.close() : navigate("/app/check-in-schedules"))}>{uiCopy["common"]["cancel"]}</Button>
           <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={locked || !ready}>
-            {current ? "Save changes" : "Create schedule"}
+            {current ? uiCopy["common"]["saveChanges"] : uiCopy["ui"]["Create schedule"]}
           </Button>
           </DialogFooter>
         ) : (
@@ -300,17 +304,17 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
           {current && current.status !== "Ended" ? (
             <div className={styles.actions}>
               {[current.status === "Paused" ? "resume" : "pause", "end"].map((action) => (
-                <Button key={action} variant={action === "end" ? "danger-ghost" : "secondary"} isDisabled={locked || dirty} onPress={async () => { if (action === "end" && !(await ask({ title: "End this schedule?", body: "No further check-ins are released. Requests already sent stay available to clients and in the history.", confirmLabel: "End schedule", cancelLabel: "Keep schedule" }))) return; mutation.mutate({ method: "POST", path: `/api/v1/check-ins/schedules/${current.id}/${action}`, ifMatch: current.version }); }}>
-                  {action === "end" ? "End schedule" : action === "pause" ? "Pause" : "Resume"}
+                <Button key={action} variant={action === "end" ? "danger-ghost" : "secondary"} isDisabled={locked || dirty} onPress={async () => { if (action === "end" && !(await ask({ title: uiCopy["ui"]["End this schedule?"], body: "No further check-ins are released. Requests already sent stay available to clients and in the history.", confirmLabel: uiCopy["ui"]["End schedule"], cancelLabel: uiCopy["ui"]["Keep schedule"] }))) return; mutation.mutate({ method: "POST", path: `/api/v1/check-ins/schedules/${current.id}/${action}`, ifMatch: current.version }); }}>
+                  {action === "end" ? uiCopy["ui"]["End schedule"] : action === "pause" ? uiCopy["ui"]["Pause"] : uiCopy["ui"]["Resume"]}
                 </Button>
               ))}
-              <LinkButton href={`/app/check-ins?scheduleId=${current.id}`} variant="ghost">View requests</LinkButton>
+              <LinkButton href={`/app/check-ins?scheduleId=${current.id}`} variant="ghost">{uiCopy["ui"]["View requests"]}</LinkButton>
             </div>
           ) : null}
           <span className={styles.spacer} />
-          <Button onPress={() => navigate("/app/check-in-schedules")}>Cancel</Button>
+          <Button onPress={() => navigate("/app/check-in-schedules")}>{uiCopy["common"]["cancel"]}</Button>
           <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={locked || !ready}>
-            {current ? "Save changes" : "Create schedule"}
+            {current ? uiCopy["common"]["saveChanges"] : uiCopy["ui"]["Create schedule"]}
           </Button>
         </div>
         )}
@@ -323,29 +327,31 @@ function Editor({ initial, onDirtyChange, panel }: { initial?: Schedule; onDirty
 function SchedulePreview({ recurrence, time, zone, hours, clients, groups, programName, cycleDays }: {
   recurrence: Schedule["recurrence"]; time: string; zone: string; hours: number; clients: number; groups: number; programName?: string; cycleDays: number[];
 }) {
+ const uiCopy = useUiCopy();
+
   const today = new Date().toLocaleDateString("en-CA");
   const draft = { ...recurrence, interval: Number(recurrence.interval), weekDays: recurrence.weekDays?.map(Number) ?? null, dayOfMonth: recurrence.dayOfMonth == null ? null : Number(recurrence.dayOfMonth) };
   const upcoming = recurrence.kind === "AssignedProgramCycle" ? [] : nextReleases(draft, today, 4);
   const date = (value: string) => new Date(`${value}T00:00:00`).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
   const who = [clients ? `${clients} ${clients === 1 ? "client" : "clients"}` : "", groups ? `${groups} ${groups === 1 ? "group" : "groups"}` : ""].filter(Boolean).join(" and ") || "no one yet";
   return (
-    <section className={sched.preview} aria-label="Schedule preview">
+    <section className={sched.preview} aria-label={uiCopy["ui"]["Schedule preview"]}>
       <div className={sched.previewMain}>
         <span className={sched.previewIcon} aria-hidden="true"><CalendarClock /></span>
         <div className={sched.previewText}>
           <strong>{describeRecurrence(draft, programName, cycleDays)} at {time || "--:--"}</strong>
-          <span>{zone.replace(/_/g, " ")} · {describeWindow(hours)} to answer</span>
+          <span>{zone.replace(/_/g, " ")} · {describeWindow(hours)}  {uiCopy["ui"]["to answer"]}</span>
         </div>
         <span className={sched.previewWho}><Users aria-hidden="true" />{who}</span>
       </div>
       {recurrence.kind === "AssignedProgramCycle" ? (
-        <p className={sched.note}>Dates follow the assigned program's cycles.</p>
+        <p className={sched.note}>{uiCopy["ui"]["Dates follow the assigned program's cycles."]}</p>
       ) : upcoming.length ? (
-        <ol className={sched.upcoming} aria-label="Next releases">
+        <ol className={sched.upcoming} aria-label={uiCopy["ui"]["Next releases"]}>
           {upcoming.map((value) => <li key={value}>{date(value)}</li>)}
         </ol>
       ) : (
-        <p className={sched.note}>No upcoming release: check the start date{recurrence.kind === "EveryNWeeks" ? " and weekdays" : ""}.</p>
+        <p className={sched.note}>{uiCopy["ui"]["No upcoming release: check the start date"]}{recurrence.kind === "EveryNWeeks" ? uiCopy["ui"][" and weekdays"] : ""}.</p>
       )}
     </section>
   );
@@ -373,6 +379,8 @@ export default function ScheduleRoute() {
  * with unsaved changes asks first.
  */
 export function ScheduleEditorPanel({ seed, isOpen, onClose }: { seed?: ScheduleSeed; isOpen: boolean; onClose: () => void }) {
+  const uiCopy = useUiCopy();
+
   const [dirty, setDirty] = useState(false);
   const { confirm, dialog } = useDiscardConfirm();
   const close = async () => {
@@ -387,8 +395,8 @@ export function ScheduleEditorPanel({ seed, isOpen, onClose }: { seed?: Schedule
         onOpenChange={(open) => { if (!open) void close(); }}
         placement="right"
         size="xl"
-        title="New check-in schedule"
-        description="Each release uses the form's current published version. Requests already sent keep their questions."
+        title={uiCopy["ui"]["New check-in schedule"]}
+        description={uiCopy["ui"]["Each release uses the form's current published version. Requests already sent keep their questions."]}
       >
         {isOpen ? <Editor key={`${seed?.date ?? ""}:${seed?.timeZone ?? ""}`} onDirtyChange={setDirty} panel={{ seed, close: () => { setDirty(false); onClose(); } }} /> : null}
       </Dialog>

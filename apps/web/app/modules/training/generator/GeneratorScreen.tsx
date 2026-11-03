@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { CalendarDays, Check, Clock, Dumbbell, Info, RefreshCw, Save, Shuffle, Target, WandSparkles } from "lucide-react";
 import { useId, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
@@ -27,6 +29,8 @@ export default function GeneratorScreen() {
 }
 
 export function GeneratorForm() {
+  const uiCopy = useUiCopy();
+
   const api = useApi();
   const account = useAccountKey();
   const queryClient = useQueryClient();
@@ -54,7 +58,7 @@ export function GeneratorForm() {
   });
   const save = useMutation({
     mutationFn: async () => (await api<PlanDto>({ method: "POST", path: `${base}/save-draft`, idempotencyKey: saveKey,
-      json: { name: name.trim(), description: "Created from a reviewed deterministic recipe. Review and apply changes in the program builder.", folderId: null, state: preview!.state } })).data,
+      json: { name: name.trim(), description: uiCopy["ui"]["Created from a reviewed deterministic recipe. Review and apply changes in the program builder."], folderId: null, state: preview!.state } })).data,
     onSuccess: (plan) => { void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(account) }); navigate(`/app/programs/${plan.id}/edit`); },
   });
   const busy = action.isPending || save.isPending;
@@ -81,23 +85,23 @@ export function GeneratorForm() {
   }
   const daySlots = input.daySlots.filter((day) => day >= 1 && day <= input.cycleDays);
   return <div className={styles.page}>
-    <PageHeader title="Program generator" description="Choose a goal and your schedule, review the generated program, then continue in the program builder." />
+    <PageHeader title={uiCopy["ui"]["Program generator"]} description={uiCopy["ui"]["Choose a goal and your schedule, review the generated program, then continue in the program builder."]} />
     <QuotaContextField context={{ ...quotaContext, setTeamId: teamId => { quotaContext.setTeamId(teamId); setPreview(null); setFormChanged(true); } }} disabled={busy} />
     {quota && <Alert title={messages.access.limits[quota.key] ?? quota.key}>{quota.used} / {quota.maximum == null ? messages.dashboard.coach.unlimited : quota.maximum}</Alert>}
-    {options.isPending ? <LoadingState label="Loading reviewed exercise options…" /> : null}
-    {options.error ? <Alert tone="danger" title={errorText(messages, options.error)}><Button variant="secondary" onPress={() => void options.refetch()}>Retry</Button></Alert> : null}
-    {options.data?.exercises.length === 0 ? <Alert tone="warning" title="No reviewed exercises are available in this catalog. Ask the coach administrator to restore or review the canonical exercise records." /> : null}
+    {options.isPending ? <LoadingState label={uiCopy["ui"]["Loading reviewed exercise options…"]} /> : null}
+    {options.error ? <Alert tone="danger" title={errorText(messages, options.error)}><Button variant="secondary" onPress={() => void options.refetch()}>{uiCopy["ui"]["Retry"]}</Button></Alert> : null}
+    {options.data?.exercises.length === 0 ? <Alert tone="warning" title={uiCopy["ui"]["No reviewed exercises are available in this catalog. Ask the coach administrator to restore or review the canonical exercise records."]} /> : null}
     {options.data && options.data.exercises.length > 0 ? <div className={styles.layout}>
       {/* Settings on the left, kept in view while the preview on the right scrolls. */}
       <form className={styles.settings} onSubmit={event => { event.preventDefault(); regenerate(); }}>
         <fieldset disabled={busy} className={styles.section}>
-          <legend className={styles.sectionTitle}><Target aria-hidden="true" />Goal</legend>
-          <ChipField label="Training goal">
+          <legend className={styles.sectionTitle}><Target aria-hidden="true" />{uiCopy["editor"]["week"]["goal"]}</legend>
+          <ChipField label={uiCopy["ui"]["Training goal"]}>
             {(id) => <ChipGroup aria-labelledby={id} disallowEmptySelection selectedKeys={[input.mode]} onSelectionChange={keys => { const key = [...keys][0]; if (key) update("mode", key as GenerationMode); }}>
               {["Strength", "Hypertrophy", "Cardio", "Mixed"].map(x => <Chip key={x} id={x}>{x}</Chip>)}
             </ChipGroup>}
           </ChipField>
-          <ChipField label="Experience">
+          <ChipField label={uiCopy["profile"]["fields"]["TrainingExperience"]!}>
             {(id) => <ChipGroup aria-labelledby={id} disallowEmptySelection selectedKeys={[input.level]} onSelectionChange={keys => { const key = [...keys][0]; if (key) update("level", key as GenerationLevel); }}>
               {["Beginner", "Intermediate", "Advanced"].map(x => <Chip key={x} id={x}>{x}</Chip>)}
             </ChipGroup>}
@@ -105,12 +109,12 @@ export function GeneratorForm() {
         </fieldset>
 
         <fieldset disabled={busy} className={styles.section}>
-          <legend className={styles.sectionTitle}><CalendarDays aria-hidden="true" />Schedule</legend>
+          <legend className={styles.sectionTitle}><CalendarDays aria-hidden="true" />{uiCopy["ui"]["Schedule"]}</legend>
           <div className={styles.numbers}>
-            <NumberInput label="Session length" unit="min" placeholder="60" minValue={10} maxValue={180} value={input.sessionMinutes} onChange={v => update("sessionMinutes", v)} formatOptions={{ maximumFractionDigits: 0 }} />
+            <NumberInput label={uiCopy["ui"]["Session length"]} unit="min" placeholder="60" minValue={10} maxValue={180} value={input.sessionMinutes} onChange={v => update("sessionMinutes", v)} formatOptions={{ maximumFractionDigits: 0 }} />
           </div>
           {/* A generated program is one week: pick its training days; the coach can extend it in the editor. */}
-          <ChipField label="Workout days" hint="Days of the week with a workout.">
+          <ChipField label={uiCopy["ui"]["Workout days"]} hint={uiCopy["ui"]["Days of the week with a workout."]}>
             {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={daySlots.map(String)} onSelectionChange={keys => update("daySlots", [...keys].map(Number).sort((a, b) => a - b))}>
               {WEEKDAYS.map((name, i) => <Chip key={i + 1} id={String(i + 1)} aria-label={name}>{name.slice(0, 3)}</Chip>)}
             </ChipGroup>}
@@ -118,80 +122,80 @@ export function GeneratorForm() {
         </fieldset>
 
         <fieldset disabled={busy} className={styles.section}>
-          <legend className={styles.sectionTitle}><Dumbbell aria-hidden="true" />Equipment and space</legend>
-          <ChipField label="Available">
+          <legend className={styles.sectionTitle}><Dumbbell aria-hidden="true" />{uiCopy["ui"]["Equipment and space"]}</legend>
+          <ChipField label={uiCopy["access"]["reasons"]["available"]!}>
             {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.equipment} onSelectionChange={keys => update("equipment", options.data!.equipment.filter(x => keys.has(x)))}>
               {options.data.equipment.map(x => <Chip key={x} id={x}>{label(x)}</Chip>)}
             </ChipGroup>}
           </ChipField>
         </fieldset>
 
-        <Disclosure title="Skills, priorities and exclusions" className={styles.more}>
+        <Disclosure title={uiCopy["ui"]["Skills, priorities and exclusions"]} className={styles.more}>
           <fieldset disabled={busy} className={styles.section}>
-            {options.data.skills.length ? <ChipField label="Confirmed exercise skills">
+            {options.data.skills.length ? <ChipField label={uiCopy["ui"]["Confirmed exercise skills"]}>
               {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.skills} onSelectionChange={keys => update("skills", options.data!.skills.filter(x => keys.has(x)))}>
                 {options.data.skills.map(x => <Chip key={x} id={x}>{label(x)}</Chip>)}
               </ChipGroup>}
             </ChipField> : null}
-            {options.data.muscles.length ? <ChipField label="Priority muscles" hint="Up to 3. Movement roles stay balanced.">
+            {options.data.muscles.length ? <ChipField label={uiCopy["ui"]["Priority muscles"]} hint={uiCopy["ui"]["Up to 3. Movement roles stay balanced."]}>
               {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.priorityMuscles} onSelectionChange={keys => { const next = options.data!.muscles.filter(x => keys.has(x)); if (next.length <= 3) update("priorityMuscles", next); }}>
                 {options.data.muscles.map(x => <Chip key={x} id={x} isDisabled={!input.priorityMuscles.includes(x) && input.priorityMuscles.length >= 3}>{label(x)}</Chip>)}
               </ChipGroup>}
             </ChipField> : null}
-            {options.data.families.length ? <ChipField label="Preferred exercise families">
+            {options.data.families.length ? <ChipField label={uiCopy["ui"]["Preferred exercise families"]}>
               {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.preferredFamilies} onSelectionChange={keys => update("preferredFamilies", options.data!.families.filter(x => keys.has(x)))}>
                 {options.data.families.map(x => <Chip key={x} id={x}>{label(x)}</Chip>)}
               </ChipGroup>}
             </ChipField> : null}
-            <ChipField label="Exclude exercises">
+            <ChipField label={uiCopy["ui"]["Exclude exercises"]}>
               {(id) => <ChipGroup aria-labelledby={id} selectionMode="multiple" selectedKeys={input.excludedExercises} onSelectionChange={keys => update("excludedExercises", options.data!.exercises.filter(x => keys.has(x.id)).map(x => x.id))}>
                 {options.data.exercises.map(x => <Chip key={x.id} id={x.id}>{x.name}</Chip>)}
               </ChipGroup>}
             </ChipField>
-            <NumberInput label="Seed" description="The same seed and settings always give the same program." placeholder="42" value={input.seed} onChange={v => update("seed", v)} formatOptions={{ maximumFractionDigits: 0, useGrouping: false }} />
+            <NumberInput label={uiCopy["ui"]["Seed"]} description={uiCopy["ui"]["The same seed and settings always give the same program."]} placeholder="42" value={input.seed} onChange={v => update("seed", v)} formatOptions={{ maximumFractionDigits: 0, useGrouping: false }} />
           </fieldset>
         </Disclosure>
 
         <div className={styles.submit}>
-          {preview ? <p className={styles.muted}>Regenerating applies these settings and clears all locks and exercise choices.</p> : null}
-          <Button type="submit" variant="primary" iconStart={preview ? <RefreshCw /> : <WandSparkles />} loading={action.isPending} isDisabled={save.isPending || daySlots.length === 0} block>{preview ? "Regenerate structure" : "Preview program"}</Button>
+          {preview ? <p className={styles.muted}>{uiCopy["ui"]["Regenerating applies these settings and clears all locks and exercise choices."]}</p> : null}
+          <Button type="submit" variant="primary" iconStart={preview ? <RefreshCw /> : <WandSparkles />} loading={action.isPending} isDisabled={save.isPending || daySlots.length === 0} block>{preview ? uiCopy["ui"]["Regenerate structure"] : uiCopy["ui"]["Preview program"]}</Button>
         </div>
       </form>
 
       <div className={styles.result}>
         {action.error || save.error ? <Alert tone="danger" title={errorText(messages, action.error ?? save.error)} /> : null}
         {issues.length > 0 ? <div role="alert" className={styles.issues}>{issues.map((x, index) => <Alert key={`${x.target}-${index}`} tone="warning" title={`${x.code}: ${x.message}`} />)}</div> : null}
-        {!preview?.state ? <div className={styles.empty}><EmptyState icon={<WandSparkles />} title="Your program appears here" description="Pick a goal, the workout days and your equipment, then preview. Nothing is saved until you choose to." /></div> : <section className={styles.preview} aria-label="Program preview">
+        {!preview?.state ? <div className={styles.empty}><EmptyState icon={<WandSparkles />} title={uiCopy["ui"]["Your program appears here"]} description={uiCopy["ui"]["Pick a goal, the workout days and your equipment, then preview. Nothing is saved until you choose to."]} /></div> : <section className={styles.preview} aria-label={uiCopy["ui"]["Program preview"]}>
           <header className={styles.previewHead}>
             <div>
-              <h2>Preview · {preview.state.input.mode}</h2>
-              <p className={styles.muted}>One week · workouts on {preview.state.input.daySlots.map(day => WEEKDAYS[day - 1]?.slice(0, 3) ?? `day ${day}`).join(", ")} · seed {preview.state.input.seed}.</p>
+              <h2>{uiCopy["ui"]["Preview ·"]} {preview.state.input.mode}</h2>
+              <p className={styles.muted}>{uiCopy["ui"]["One week · workouts on"]} {preview.state.input.daySlots.map(day => WEEKDAYS[day - 1]?.slice(0, 3) ?? `day ${day}`).join(", ")}  {uiCopy["ui"]["· seed"]} {preview.state.input.seed}.</p>
             </div>
-            <Button variant="secondary" iconStart={<Shuffle />} isDisabled={busy || formChanged} onPress={() => action.mutate({ path: "reshuffle", body: { state: preview.state, seed: preview.state!.selectionSeed + 1 } })}>Reshuffle unlocked exercises</Button>
+            <Button variant="secondary" iconStart={<Shuffle />} isDisabled={busy || formChanged} onPress={() => action.mutate({ path: "reshuffle", body: { state: preview.state, seed: preview.state!.selectionSeed + 1 } })}>{uiCopy["ui"]["Reshuffle unlocked exercises"]}</Button>
           </header>
-          {formChanged ? <Alert tone="warning" title="Settings changed. Regenerate the structure to apply them before saving." /> : null}
+          {formChanged ? <Alert tone="warning" title={uiCopy["ui"]["Settings changed. Regenerate the structure to apply them before saving."]} /> : null}
           {preview.state.input.daySlots.map((day, index) => {
             const duration = preview.durations.find(x => x.dayNumber === day)!;
             return <article className={styles.session} key={day}>
               <header className={styles.sessionHead}>
-                <h3>Day {day}</h3>
-                <span className={styles.duration}><Clock aria-hidden="true" />about {Math.ceil(duration.totalSeconds / 60)} min</span>
+                <h3>{uiCopy["editor"]["sheet"]["addDay"]} {day}</h3>
+                <span className={styles.duration}><Clock aria-hidden="true" />{uiCopy["ui"]["about"]} {Math.ceil(duration.totalSeconds / 60)} min</span>
               </header>
               {preview.slots.filter(x => x.key.startsWith(`session-${index + 1}/`)).map(slot => {
                 const available = alternatives(preview.state!, slot.role, slot.exerciseId);
                 return <div key={slot.key} className={styles.slot} data-locked={slot.locked || undefined}>
                   <div className={styles.slotText}>
                     <strong>{slot.name}</strong>
-                    <span className={styles.prescription}>{slot.prescription}{slot.repetitionCounting === "per-side" ? " · per side" : ""}</span>
-                    <small className={styles.muted}>{label(slot.role)}{slot.muscles.length ? ` · ${slot.muscles.map(label).join(", ")}` : ""} · {slot.equipment.map(label).join(", ") || "no equipment"}</small>
+                    <span className={styles.prescription}>{slot.prescription}{slot.repetitionCounting === "per-side" ? uiCopy["ui"][" · per side"] : ""}</span>
+                    <small className={styles.muted}>{label(slot.role)}{slot.muscles.length ? ` · ${slot.muscles.map(label).join(", ")}` : ""} · {slot.equipment.map(label).join(", ") || uiCopy["ui"]["no equipment"]}</small>
                   </div>
                   <div className={styles.slotActions}>
-                    <Checkbox aria-label={`Lock ${slot.name} on day ${day}`} isSelected={slot.locked} isDisabled={busy || formChanged} onChange={v => lock(slot.key, v)}>Lock</Checkbox>
-                    <Select aria-label={`Alternative for ${slot.name}`} selectedKey={replacements[slot.key] ?? "auto"} isDisabled={busy || slot.locked || formChanged || available.length === 0}
+                    <Checkbox aria-label={formatInterfaceText(uiCopy["ui"]["Lock {0} on day {1}"], [slot.name,day])} isSelected={slot.locked} isDisabled={busy || formChanged} onChange={v => lock(slot.key, v)}>{uiCopy["ui"]["Lock"]}</Checkbox>
+                    <Select aria-label={formatInterfaceText(uiCopy["ui"]["Alternative for {0}"], [slot.name])} selectedKey={replacements[slot.key] ?? "auto"} isDisabled={busy || slot.locked || formChanged || available.length === 0}
                       onSelectionChange={key => setReplacements(current => ({ ...current, [slot.key]: String(key) }))}>
-                      <Option id="auto">Any eligible alternative</Option>{available.map(x => <Option key={x.id} id={x.id}>{x.name}</Option>)}
+                      <Option id="auto">{uiCopy["ui"]["Any eligible alternative"]}</Option>{available.map(x => <Option key={x.id} id={x.id}>{x.name}</Option>)}
                     </Select>
-                    <Button variant="secondary" size="sm" isDisabled={busy || slot.locked || formChanged || available.length === 0} onPress={() => action.mutate({ path: "replace-exercise", body: { state: preview.state, slot: slot.key, exerciseId: replacements[slot.key] && replacements[slot.key] !== "auto" ? replacements[slot.key] : null, seed: preview.state!.selectionSeed + 1 } })}>Replace exercise</Button>
+                    <Button variant="secondary" size="sm" isDisabled={busy || slot.locked || formChanged || available.length === 0} onPress={() => action.mutate({ path: "replace-exercise", body: { state: preview.state, slot: slot.key, exerciseId: replacements[slot.key] && replacements[slot.key] !== "auto" ? replacements[slot.key] : null, seed: preview.state!.selectionSeed + 1 } })}>{uiCopy["ui"]["Replace exercise"]}</Button>
                   </div>
                 </div>;
               })}
@@ -200,24 +204,24 @@ export function GeneratorForm() {
           })}
           {/* What the recipe assumed, always visible: short notes, then the versions that reproduce this result. */}
           <section className={styles.notes} aria-labelledby="generator-notes">
-            <h3 id="generator-notes" className={styles.notesTitle}><Info aria-hidden="true" />How this program was built</h3>
+            <h3 id="generator-notes" className={styles.notesTitle}><Info aria-hidden="true" />{uiCopy["ui"]["How this program was built"]}</h3>
             <ul className={styles.assumptions}>
               {preview.assumptions.map(x => <li key={x}><Check aria-hidden="true" /><span>{x}</span></li>)}
             </ul>
             <dl className={styles.versions}>
-              <div><dt>Recipe</dt><dd>{preview.state.recipeVersion}</dd></div>
-              <div><dt>Metadata</dt><dd>{preview.state.metadataVersion}</dd></div>
-              <div><dt>Dataset</dt><dd title={preview.state.datasetVersion}>{preview.state.datasetVersion}</dd></div>
-              <div><dt>Seed</dt><dd>{preview.state.input.seed}</dd></div>
+              <div><dt>{uiCopy["ui"]["Recipe"]}</dt><dd>{preview.state.recipeVersion}</dd></div>
+              <div><dt>{uiCopy["ui"]["Metadata"]}</dt><dd>{preview.state.metadataVersion}</dd></div>
+              <div><dt>{uiCopy["ui"]["Dataset"]}</dt><dd title={preview.state.datasetVersion}>{preview.state.datasetVersion}</dd></div>
+              <div><dt>{uiCopy["ui"]["Seed"]}</dt><dd>{preview.state.input.seed}</dd></div>
             </dl>
           </section>
           <div className={styles.save}>
             <div className={styles.saveText}>
-              <h3>Save as a draft</h3>
-              <p className={styles.muted}>A private draft opens in the program builder, where you set loads and assign it.</p>
+              <h3>{uiCopy["ui"]["Save as a draft"]}</h3>
+              <p className={styles.muted}>{uiCopy["ui"]["A private draft opens in the program builder, where you set loads and assign it."]}</p>
             </div>
-            <TextField label="Program name" placeholder="e.g. Strength block A" value={name} maxLength={200} onChange={value => { setName(value); setSaveKey(newIdempotencyKey()); }} isDisabled={busy} />
-            <Button variant="primary" iconStart={<Save />} loading={save.isPending} isDisabled={action.isPending || formChanged || !preview.feasible || !name.trim()} onPress={() => save.mutate()}>Save draft and open builder</Button>
+            <TextField label={uiCopy["training"]["import"]["commitName"]} placeholder={uiCopy["common"]["ph"]["programName"]} value={name} maxLength={200} onChange={value => { setName(value); setSaveKey(newIdempotencyKey()); }} isDisabled={busy} />
+            <Button variant="primary" iconStart={<Save />} loading={save.isPending} isDisabled={action.isPending || formChanged || !preview.feasible || !name.trim()} onPress={() => save.mutate()}>{uiCopy["ui"]["Save draft and open builder"]}</Button>
           </div>
         </section>}
       </div>
@@ -246,13 +250,15 @@ const TIME_PARTS = [
 
 /** Where the session's time goes: one proportional bar with the minutes listed under it. */
 function TimeBar({ duration }: { duration: GenerationPreview["durations"][number] }) {
+  const uiCopy = useUiCopy();
+
   const total = TIME_PARTS.reduce((sum, [key]) => sum + duration[key], 0) || 1;
   const minutes = (seconds: number) => `${Math.max(1, Math.round(seconds / 60))} min`;
   return <div className={styles.time}>
     <div className={styles.timeBar} aria-hidden="true">
       {TIME_PARTS.map(([key, , tone]) => duration[key] > 0 ? <span key={key} data-tone={tone} style={{ flexGrow: duration[key] / total }} /> : null)}
     </div>
-    <ul className={styles.timeLegend} aria-label="Time per session">
+    <ul className={styles.timeLegend} aria-label={uiCopy["profile"]["fields"]["AvailableSessionDuration"]}>
       {TIME_PARTS.map(([key, name, tone]) => duration[key] > 0 ? <li key={key}><span className={styles.swatch} data-tone={tone} aria-hidden="true" />{name} <strong>{minutes(duration[key])}</strong></li> : null)}
     </ul>
   </div>;

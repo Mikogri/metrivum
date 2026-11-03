@@ -1,0 +1,26 @@
+.skeleton {
+  display: grid;
+  align-content: start;
+  gap: var(--tf-space-4);
+}
+
+.skeleton[data-editor] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  height: 100%;
+  min-height: 70vh;
+}
+
+.columns {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 16rem 1fr 21rem;
+  gap: var(--tf-space-2);
+}
+
+@media (max-width: 767px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

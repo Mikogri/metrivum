@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMemo, useState, type ReactNode } from 'react';
 import type { AnalysisRepetition } from '@metrivum/api-client-web';
 import { Checkbox, Option, Select, Spinner } from '@metrivum/ui-web';
@@ -66,6 +68,8 @@ function SortIcon({ dir }: { dir: 1 | -1 | 0 }) {
  * (slowest) to green (fastest) per column, and speeds also get a bar against the fastest rep.
  */
 export function RepTable({ rows, locale, label, showSource = false }: { rows: RepRowData[]; locale: Locale; label: string; showSource?: boolean }) {
+  const uiCopy = useUiCopy();
+
   const [sort, setSort] = useState<{ key: Key; dir: 1 | -1 }>({ key: 'order', dir: 1 });
   const ranges = useMemo(() => {
     const out = {} as Record<Key, { min: number; max: number }>;
@@ -105,9 +109,9 @@ export function RepTable({ rows, locale, label, showSource = false }: { rows: Re
     <table className={styles.table} aria-label={label}>
       <thead>
         <tr>
-          <th scope="col" className={styles.pick}><span className="tf-visually-hidden">Show</span></th>
-          {header('order', showSource ? 'Video · rep' : 'Rep', false)}
-          <th scope="col">{locale === 'pl' ? 'Wykonanie' : 'Completion'}</th>
+          <th scope="col" className={styles.pick}><span className="tf-visually-hidden">{uiCopy["editor"]["sheet"]["volume"]["show"]}</span></th>
+          {header('order', showSource ? "Video · rep" : "Rep", false)}
+          <th scope="col">{locale === 'pl' ? 'Wykonanie' : uiCopy["ui"]["Completion"]}</th>
           {header('duration', 'Time')}
           {phases.includes('eccentric') ? header('eccentric', 'Lowering') : null}
           {phases.includes('pause') ? header('pause', 'Pause') : null}
@@ -119,14 +123,14 @@ export function RepTable({ rows, locale, label, showSource = false }: { rows: Re
       <tbody>
         {sorted.map(row => <tr key={row.id} data-off={row.checked ? undefined : ''} data-current={row.current || undefined}>
           <td className={styles.pick}>
-            {row.onCheck ? <Checkbox aria-label={`${row.checked ? 'Hide' : 'Show'} ${row.source ? `${row.source.name} ` : ''}rep ${row.rep.number}`} isSelected={row.checked} isDisabled={row.lockCheck} onChange={row.onCheck} /> : null}
+            {row.onCheck ? <Checkbox aria-label={formatInterfaceText(uiCopy["ui"]["{0} {1}rep {2}"], [row.checked ? "Hide" : "Show",row.source ? `${row.source.name} ` : '',row.rep.number])} isSelected={row.checked} isDisabled={row.lockCheck} onChange={row.onCheck} /> : null}
           </td>
           <th scope="row">
             <span className={styles.rep}>
               {row.color ? <i className={styles.swatch} style={{ background: row.checked ? row.color : undefined }} aria-hidden="true" /> : null}
               {row.source ? <span className={styles.badge} style={{ background: row.source.color }}>{row.source.index + 1}</span> : null}
-              {row.source && showSource ? <span className={styles.file} title={row.source.name}>Vid {row.source.index + 1}</span> : null}
-              {row.onJump ? <button type="button" className={styles.jump} onClick={row.onJump}>Rep {row.rep.number}</button> : <span className={styles.repNo}>Rep {row.rep.number}</span>}
+              {row.source && showSource ? <span className={styles.file} title={row.source.name}>{uiCopy["ui"]["Vid"]} {row.source.index + 1}</span> : null}
+              {row.onJump ? <button type="button" className={styles.jump} onClick={row.onJump}>{uiCopy["ui"]["Rep"]} {row.rep.number}</button> : <span className={styles.repNo}>{uiCopy["ui"]["Rep"]} {row.rep.number}</span>}
             </span>
           </th>
           <td className={styles.review}>

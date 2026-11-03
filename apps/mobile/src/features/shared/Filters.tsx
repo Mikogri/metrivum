@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useState, type PropsWithChildren } from "react";
 import { View } from "react-native";
 import { BottomSheet, Button, Chip, useTheme } from "@metrivum/ui-mobile";
@@ -19,6 +20,8 @@ export function Filters({
     active?: boolean;
     onReset?: () => void;
 }>) {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const [open, setOpen] = useState(false);
     return (
@@ -38,13 +41,13 @@ export function Filters({
                         <Button
                             size="lg"
                             tone="primary"
-                            title="Show results"
+                            title={nativeCopy("interface.Show results")}
                             onPress={() => setOpen(false)}
                         />
                         {onReset && active ? (
                             <Button
                                 tone="ghost"
-                                title="Clear filters"
+                                title={nativeCopy("interface.Clear filters")}
                                 onPress={onReset}
                             />
                         ) : null}

@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { usePaymentActionId } from "~/shared/session/payment-action";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,6 +24,8 @@ type Method = Schema<"PaymentMethodDto">;
 const date = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString() : "—";
 
 export default function SubscriptionRoute() {
+ const uiCopy = useUiCopy();
+
   const m = useSubscriptionMessages();
   const plans = useCoachingQuery<CatalogPlan[]>("/api/v1/subscriptions/plans");
   const current = useCoachingQuery<Subscription>("/api/v1/me/platform-subscription");
@@ -77,7 +80,7 @@ export default function SubscriptionRoute() {
           ]} />
           {subscription.autoRenew && !subscription.renewalMethodEligible && <Alert tone="warning" title={m.renewalWarning} />}
         </Panel>
-        <Panel title={m.method} description={m.test} actions={<Button size="sm" loading={addMethod.isPending} onPress={() => addMethod.mutate({ method: "POST", path: "/api/v1/me/payment-methods/simulated-card", json: { label: "Platform renewal simulator", outcome: "Success" } })}>{m.addMethod}</Button>}>
+        <Panel title={m.method} description={m.test} actions={<Button size="sm" loading={addMethod.isPending} onPress={() => addMethod.mutate({ method: "POST", path: "/api/v1/me/payment-methods/simulated-card", json: { label: uiCopy["ui"]["Platform renewal simulator"], outcome: "Success" } })}>{m.addMethod}</Button>}>
           {methods.isError ? <Failure error={methods.error} retry={() => void methods.refetch()} /> : <p>{methods.data?.filter(item => item.active).map(item => item.label).join(", ") || m.noMethods}</p>}
           {paid && !subscription.autoRenew && <div className={styles.row}>
             <Select aria-label={m.method} placeholder={m.chooseMethod} selectedKey={method || null} onSelectionChange={k => setMethod(String(k))} className={styles.grow}>{(methods.data ?? []).filter(item => item.active).map(item => <Option key={item.id} id={item.id}>{item.label}</Option>)}</Select>

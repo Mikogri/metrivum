@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { NativeDateField } from "../training/NativeDateField";
 import { useState } from "react";
 import { Alert, View } from "react-native";
@@ -33,6 +34,8 @@ export function ScheduleForm({
     relationshipId?: string;
     groupId?: string;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const [validFields, setValidFields] = useState({
         interval: true,
@@ -87,9 +90,9 @@ export function ScheduleForm({
     const busy = mutation.isPending;
     return (
         <FormSheet
-            trigger={{ title: "Assign a check-in", icon: "checkIn" }}
-            title="Assign a check-in"
-            subtitle="Sends a form to fill in, once or on a schedule"
+            trigger={{ title: nativeCopy("interface.Assign a check-in"), icon: "checkIn" }}
+            title={nativeCopy("interface.Assign a check-in")}
+            subtitle={nativeCopy("interface.Sends a form to fill in, once or on a schedule")}
             dirty={dirty}
             open={open}
             onOpenChange={setOpen}
@@ -98,7 +101,7 @@ export function ScheduleForm({
                 <Button
                     size="lg"
                     tone="primary"
-                    title="Assign check-in"
+                    title={nativeCopy("interface.Assign check-in")}
                     loading={busy}
                     disabled={
                         !validFields.hours ||
@@ -149,13 +152,13 @@ export function ScheduleForm({
         >
             {forms.length === 0 && !query.isPending ? (
                 <Text tone="mutedText">
-                    Publish a check-in form in the web app first. It then
-                    appears here.
+
+                    {nativeCopy("interface.Publish a check-in form in the web app first. It then appears here.")}
                 </Text>
             ) : (
                 <SelectField
-                    label="Form"
-                    placeholder="Choose a form"
+                    label={nativeCopy("interface.Form")}
+                    placeholder={nativeCopy("interface.Choose a form")}
                     disabled={busy}
                     options={forms.map((item) => ({
                         value: item.id,
@@ -170,8 +173,8 @@ export function ScheduleForm({
             )}
             <Field
                 editable={!busy}
-                label="Name"
-                placeholder="e.g. Weekly check-in"
+                label={nativeCopy("interface.Name")}
+                placeholder={nativeCopy("interface.e.g. Weekly check-in")}
                 value={name}
                 onChangeText={(value) => {
                     setName(value);
@@ -180,7 +183,7 @@ export function ScheduleForm({
             />
             <Choices
                 disabled={busy}
-                label="Repeat"
+                label={nativeCopy("interface.Repeat")}
                 values={
                     programs.length ? ["OneTime", "EveryNDays", "EveryNWeeks", "Monthly", "AssignedProgramCycle"] as const : ["OneTime", "EveryNDays", "EveryNWeeks", "Monthly"] as const
                 }
@@ -208,12 +211,12 @@ export function ScheduleForm({
                 ["Weekly", "Send on selected weekdays every selected number of weeks."],
                 ["Monthly", "Send on the selected day of each month. Short months use their last day."],
                 ["Program cycle", "Choose day numbers in each actual assigned program cycle. Dates and time zone follow the assignment. Ends with the assigned program; it does not restart the program."],
-            ].map(([title, explanation]) => <View key={title} style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}><IconButton icon="info" label={`Explain ${title}`} onPress={() => Alert.alert(title!, explanation)} /><Text variant="caption">{title}</Text></View>)}
-            {!programs.length && <Text tone="mutedText">Program-cycle days require one client with an active assigned program.</Text>}
+            ].map(([title, explanation]) => <View key={title} style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}><IconButton icon="info" label={nativeCopy("interface.Explain {0}", {"0": String(title)})} onPress={() => Alert.alert(title!, explanation)} /><Text variant="caption">{title}</Text></View>)}
+            {!programs.length && <Text tone="mutedText">{nativeCopy("interface.Program-cycle days require one client with an active assigned program.")}</Text>}
             {kind === "AssignedProgramCycle" && <>
-                <SelectField label="Assigned program" disabled={busy} options={programs.map((p) => ({ value: p.assignmentId, label: p.programName }))} value={assignment?.assignmentId ?? null} onChange={(id) => { setAssignmentId(id); setCycleDays([1]); setDirty(true); }} />
-                <Text variant="caption">Days in each assigned cycle. The schedule ends with the assigned program. For different cycle lengths, select days present in every cycle.</Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm }}>{Array.from({ length: cycleLength }, (_, i) => i + 1).map((day) => <Chip key={day} label={`Day ${day}`} disabled={busy} selected={cycleDays.includes(day)} onPress={() => { setCycleDays(cycleDays.includes(day) ? cycleDays.filter((d) => d !== day) : [...cycleDays, day]); setDirty(true); }} />)}</View>
+                <SelectField label={nativeCopy("interface.Assigned program")} disabled={busy} options={programs.map((p) => ({ value: p.assignmentId, label: p.programName }))} value={assignment?.assignmentId ?? null} onChange={(id) => { setAssignmentId(id); setCycleDays([1]); setDirty(true); }} />
+                <Text variant="caption">{nativeCopy("interface.Days in each assigned cycle. The schedule ends with the assigned program. For different cycle lengths, select days present in every cycle.")}</Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm }}>{Array.from({ length: cycleLength }, (_, i) => i + 1).map((day) => <Chip key={day} label={nativeCopy("interface.Day {0}", {"0": String(day)})} disabled={busy} selected={cycleDays.includes(day)} onPress={() => { setCycleDays(cycleDays.includes(day) ? cycleDays.filter((d) => d !== day) : [...cycleDays, day]); setDirty(true); }} />)}</View>
             </>}
             {kind !== "OneTime" && kind !== "AssignedProgramCycle" && (
                 <DecimalField
@@ -226,10 +229,10 @@ export function ScheduleForm({
                     }
                     label={
                         kind === "EveryNDays"
-                            ? "Every how many days"
+                            ? nativeCopy("interface.Every how many days")
                             : kind === "EveryNWeeks"
-                              ? "Every how many weeks"
-                              : "Every how many months"
+                              ? nativeCopy("interface.Every how many weeks")
+                              : nativeCopy("interface.Every how many months")
                     }
                     value={interval}
                     onChange={(value) => {
@@ -275,7 +278,7 @@ export function ScheduleForm({
                     onValidityChange={(valid) =>
                         setValidFields((fields) => ({ ...fields, day: valid }))
                     }
-                    label="Day of the month"
+                    label={nativeCopy("interface.Day of the month")}
                     value={dayOfMonth}
                     onChange={(value) => {
                         setDayOfMonth(value);
@@ -285,17 +288,17 @@ export function ScheduleForm({
             )}
             <NativeDateField
                 disabled={busy}
-                label="Starts on"
+                label={nativeCopy("interface.Starts on")}
                 value={date}
                 onChange={(value) => {
                     setDate(value);
                     setDirty(true);
                 }}
             />
-            <View style={{ flexDirection: "row", alignItems: "center" }}><Text variant="label">Release time</Text><IconButton icon="info" label="Explain release time" onPress={() => Alert.alert("Release time", "The form becomes available at this local time in the displayed time zone. Use 24-hour HH:mm format, for example 09:30.")} /></View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}><Text variant="label">{nativeCopy("interface.Release time")}</Text><IconButton icon="info" label={nativeCopy("interface.Explain release time")} onPress={() => Alert.alert("Release time", "The form becomes available at this local time in the displayed time zone. Use 24-hour HH:mm format, for example 09:30.")} /></View>
             <Field
                 editable={!busy}
-                label="Release time (HH:mm)"
+                label={nativeCopy("interface.Release time (HH:mm)")}
                 placeholder="09:00"
                 autoCapitalize="none"
                 maxLength={5}
@@ -306,15 +309,16 @@ export function ScheduleForm({
                 }}
             />
             <Text variant="caption" tone="subtleText">
-                Time zone: {kind === "AssignedProgramCycle" ? assignment?.timeZone : Intl.DateTimeFormat().resolvedOptions().timeZone}
+
+                {nativeCopy("interface.Time zone:")} {kind === "AssignedProgramCycle" ? assignment?.timeZone : Intl.DateTimeFormat().resolvedOptions().timeZone}
             </Text>
-            <View style={{ flexDirection: "row", alignItems: "center" }}><Text variant="label">Time to answer</Text><IconButton icon="info" label="Explain time to answer" onPress={() => Alert.alert("Time to answer", "The deadline is the release instant plus this many hours. Already released requests keep their deadlines.")} /></View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}><Text variant="label">{nativeCopy("interface.Time to answer")}</Text><IconButton icon="info" label={nativeCopy("interface.Explain time to answer")} onPress={() => Alert.alert("Time to answer", "The deadline is the release instant plus this many hours. Already released requests keep their deadlines.")} /></View>
             <DecimalField
                 disabled={busy}
                 onValidityChange={(valid) =>
                     setValidFields((fields) => ({ ...fields, hours: valid }))
                 }
-                label="Time to answer (hours)"
+                label={nativeCopy("interface.Time to answer (hours)")}
                 value={hours}
                 onChange={(value) => {
                     setHours(value);

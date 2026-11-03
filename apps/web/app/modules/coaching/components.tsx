@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { ResourceError } from "~/shared/lib/ResourceError";
 import { EyeOff } from "lucide-react";
 import styles from "./coaching.module.css";
@@ -38,6 +39,8 @@ export function Failure({ error, retry }: { error: unknown; retry?: () => void }
 }
 
 export function MutationError({ error }: { error: unknown }) {
+  const uiCopy = useUiCopy();
+
   const m = useT();
   const [reload, setReload] = useState(false);
   const message = error ? error instanceof ApiError && error.status < 500 ? error.message : errorText(m, error) : null;
@@ -47,11 +50,13 @@ export function MutationError({ error }: { error: unknown }) {
   useEffect(() => { if (error && message && !validation) showError(error, message); }, [error, message, showError, validation]);
   if (!error) return null;
   const conflict = error instanceof ApiError && (error.status === 412 || error.status === 409 && error.code === "VERSION_CONFLICT");
-  return <><Alert tone="danger" title={error instanceof ApiError && error.status < 500 ? error.message : errorText(m, error)} live="assertive" actions={conflict && <Button onPress={() => setReload(true)}>Reload latest version</Button>} />
-    <AlertDialog isOpen={reload} onOpenChange={setReload} title="Reload the latest version?" tone="danger" confirmLabel="Discard changes and reload" cancelLabel="Keep editing" onConfirm={() => window.location.reload()}>Your unsaved changes on this page will be discarded. Copy any text you want to keep before reloading.</AlertDialog></>;
+  return <><Alert tone="danger" title={error instanceof ApiError && error.status < 500 ? error.message : errorText(m, error)} live="assertive" actions={conflict && <Button onPress={() => setReload(true)}>{uiCopy["ui"]["Reload latest version"]}</Button>} />
+    <AlertDialog isOpen={reload} onOpenChange={setReload} title={uiCopy["ui"]["Reload the latest version?"]} tone="danger" confirmLabel={uiCopy["ui"]["Discard changes and reload"]} cancelLabel={uiCopy["common"]["keepEditing"]} onConfirm={() => window.location.reload()}>{uiCopy["ui"]["Your unsaved changes on this page will be discarded. Copy any text you want to keep before reloading."]}</AlertDialog></>;
 }
 
-export function Loading() { return <LoadingState label="Loading" />; }
+export function Loading() {
+  const uiCopy = useUiCopy();
+ return <LoadingState label={uiCopy["ui"]["Loading"]} />; }
 
 // Refresh clean editors after another tab/worker writes, while preserving unsaved local edits.
 export function EditableResource<T extends { id: string; version: number }>({ value, children }: { value: T; children: (snapshot: T, onDirtyChange: (dirty: boolean) => void) => ReactNode }) {
@@ -63,8 +68,10 @@ export function EditableResource<T extends { id: string; version: number }>({ va
 }
 
 export function DraftNavigationGuard({ dirty }: { dirty: boolean }) {
+  const uiCopy = useUiCopy();
+
   const blocker = useBlocker(({ currentLocation, nextLocation }) => dirty && currentLocation.pathname !== nextLocation.pathname);
-  return <AlertDialog isOpen={blocker.state === "blocked"} onOpenChange={(open) => { if (!open && blocker.state === "blocked") blocker.reset(); }} title="Discard unsaved changes?" tone="danger" confirmLabel="Discard changes" cancelLabel="Keep editing" onConfirm={() => { if (blocker.state === "blocked") blocker.proceed(); }}>Your changes on this page have not been saved yet. If you leave now, they are lost and cannot be recovered.</AlertDialog>;
+  return <AlertDialog isOpen={blocker.state === "blocked"} onOpenChange={(open) => { if (!open && blocker.state === "blocked") blocker.reset(); }} title={uiCopy["common"]["unsavedTitle"]} tone="danger" confirmLabel={uiCopy["common"]["discard"]} cancelLabel={uiCopy["common"]["keepEditing"]} onConfirm={() => { if (blocker.state === "blocked") blocker.proceed(); }}>{uiCopy["ui"]["Your changes on this page have not been saved yet. If you leave now, they are lost and cannot be recovered."]}</AlertDialog>;
 }
 
 export function ListPagination({ data, onChange }: { data: Page<unknown>; onChange: (page: number) => void }) {
@@ -78,6 +85,8 @@ export function ListPagination({ data, onChange }: { data: Page<unknown>; onChan
  * active one the coach needs to create, publish or reactivate one first.
  */
 export function NoActiveOffers({ purpose }: { purpose: "invitation" | "form" }) {
+ const uiCopy = useUiCopy();
+
   const all = useCoachingQuery<Page<{ id: string; status: string }>>("/api/v1/offers", { pageSize: 50 });
   const items = all.data?.items ?? [];
   const drafts = items.filter((o) => o.status === "Draft").length;
@@ -91,7 +100,7 @@ export function NoActiveOffers({ purpose }: { purpose: "invitation" | "form" }) 
         ? [`${drafts === 1 ? "Your offer is" : `${drafts} offers are`} still a draft`, "Publish one to make it active."]
         : [`${inactive + drafts} ${inactive + drafts === 1 ? "offer is" : "offers are"} not active`, inactive ? "Reactivate an inactive offer or publish a draft." : "Publish a draft offer."];
   return (
-    <Alert tone="info" title={title} actions={<LinkButton href={drafts + inactive === 0 && all.data ? "/app/offers?create=1" : "/app/offers"} size="sm">{drafts + inactive === 0 && all.data ? "Create offer" : "Open offers"}</LinkButton>}>
+    <Alert tone="info" title={title} actions={<LinkButton href={drafts + inactive === 0 && all.data ? "/app/offers?create=1" : "/app/offers"} size="sm">{drafts + inactive === 0 && all.data ? uiCopy["ui"]["Create offer"] : uiCopy["ui"]["Open offers"]}</LinkButton>}>
       {why} {next}
     </Alert>
   );

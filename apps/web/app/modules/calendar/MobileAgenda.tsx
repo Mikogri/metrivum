@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { CalendarClock } from "lucide-react";
 import { EmptyState } from "@metrivum/ui-web";
 import { daysForMonth } from "./calendar-model";
@@ -5,6 +6,8 @@ import { onDay, type CalendarEntry } from "./CalendarViews";
 import styles from "./calendar.module.css";
 
 export function MobileAgenda({ entries, date, zone, open }: { entries: CalendarEntry[]; date: string; zone: string; open: (entry: CalendarEntry) => void }) {
+ const uiCopy = useUiCopy();
+
   const days = daysForMonth(date).filter(day => day.slice(0, 7) === date.slice(0, 7));
   const month = entries.filter(entry => days.some(day => onDay(entry, day, zone)))
     .sort((a, b) => (a.day ?? a.start).localeCompare(b.day ?? b.start));
@@ -19,7 +22,7 @@ export function MobileAgenda({ entries, date, zone, open }: { entries: CalendarE
     return `${start} – ${end}`;
   };
   return month.length ? (
-    <ul className={styles.mobileAgenda} aria-label="This month's agenda">
+    <ul className={styles.mobileAgenda} aria-label={uiCopy["ui"]["This month's agenda"]}>
       {month.map(entry => <li key={`${entry.kind}-${entry.id}`}>
         <button type="button" className={styles.agendaItem} onClick={() => open(entry)}>
           <span className={styles.agendaBody} data-kind={entry.kind}>
@@ -30,5 +33,5 @@ export function MobileAgenda({ entries, date, zone, open }: { entries: CalendarE
         </button>
       </li>)}
     </ul>
-  ) : <EmptyState icon={<CalendarClock />} title="Nothing planned this month" description="Try another month or change your filters. Meetings, events and check-ins appear here." />;
+  ) : <EmptyState icon={<CalendarClock />} title={uiCopy["ui"]["Nothing planned this month"]} description={uiCopy["ui"]["Try another month or change your filters. Meetings, events and check-ins appear here."]} />;
 }

@@ -4,7 +4,8 @@ import { useCallback, useRef, useState } from "react";
 import { Link as RouterLink, Navigate, useParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
 import { Avatar, Badge, Button, Card, EmptyState, ErrorState, LinkButton, LoadingState, Skeleton, toast } from "@metrivum/ui-web";
-import { BodySummary, DETAIL_GROUPS, detailsFromValues, getPerson, personKey, profileFieldsKey, useProfile, useProfileCompleteness, type DetailKey, type Details } from "~/modules/accounts";
+import { BodySummary, DETAIL_GROUPS, detailsFromValues, getPerson, personKey, profileFieldsKey, useAvatarUrl, useProfile, useProfileCompleteness, type DetailKey, type Details } from "~/modules/accounts";
+import { AvatarControls } from "../components/AvatarControls";
 import { InvitationEditor, SpecializationBadges, money, useCoachingQuery, type Page } from "~/modules/coaching";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
@@ -71,7 +72,7 @@ function placeOf(locale: string, details: Details): string | null {
  * The profile header: a cover (photo on Pro, otherwise the animated default), the avatar overlapping its lower
  * edge with the actions on the right, then name, roles, headline, handle and place.
  */
-function Header({ person, place, sex, memberSince, headline, actions, coverUrl, coverStyle, coverRestart, coverControls }: { person: PersonView; place?: string | null; sex?: string | null; memberSince?: string | null; headline?: React.ReactNode; actions: React.ReactNode; coverUrl?: string | null; coverStyle?: unknown; coverRestart?: number; coverControls?: React.ReactNode }) {
+function Header({ person, place, sex, memberSince, headline, actions, coverUrl, coverStyle, coverRestart, coverControls, avatarUrl, avatarControls }: { person: PersonView; place?: string | null; sex?: string | null; memberSince?: string | null; headline?: React.ReactNode; actions: React.ReactNode; coverUrl?: string | null; coverStyle?: unknown; coverRestart?: number; coverControls?: React.ReactNode; avatarUrl?: string | null; avatarControls?: React.ReactNode }) {
   const m = useT();
   const { locale } = useAppLocale();
   const since = joined(locale, memberSince);
@@ -81,7 +82,8 @@ function Header({ person, place, sex, memberSince, headline, actions, coverUrl, 
       <div className={styles.heroBody}>
         <div className={styles.heroTop}>
           <span className={styles.avatarRing}>
-            <Avatar name={person.displayName || person.username} size="xxl" decorative />
+            <Avatar name={person.displayName || person.username} size="xxl" decorative src={avatarUrl} />
+            {avatarControls}
           </span>
           <div className={styles.actions}>{actions}</div>
         </div>
@@ -313,6 +315,7 @@ function OwnProfile() {
   const showcase = useShowcase(profile.id, isCoach);
   const cover = useCoverUrl(profile.id, isCoach && showcase.data?.hasCover);
   const offersTotal = useOffersTotal(profile.id, isCoach);
+  const avatar = useAvatarUrl(profile.id, profile.hasAvatar);
   const editing = mode === "edit";
   const previewing = mode === "preview";
   const openEdit = () => {
@@ -352,6 +355,8 @@ function OwnProfile() {
       coverStyle={editing ? coverDraft : profile.coverStyle}
       coverRestart={restart}
       coverControls={editing && isCoach ? <CoverControls coachId={profile.id} showcase={showcase.data} /> : null}
+      avatarUrl={avatar}
+      avatarControls={editing ? <AvatarControls hasAvatar={Boolean(profile.hasAvatar)} /> : null}
       actions={actions}
     />
   );
@@ -488,6 +493,7 @@ function OtherProfile({ username }: { username: string }) {
   const isCoach = Boolean(person.data?.roles.includes("Coach"));
   const showcase = useShowcase(person.data?.userId ?? "", isCoach);
   const coverUrl = useCoverUrl(person.data?.userId ?? "", isCoach && showcase.data?.hasCover).data;
+  const avatarUrl = useAvatarUrl(person.data?.userId, person.data?.hasAvatar);
   if (person.isPending) return <LoadingState label={m.common.loading} />;
   if (person.isError) {
     if (person.error instanceof ApiError && person.error.status === 404)
@@ -507,6 +513,7 @@ function OtherProfile({ username }: { username: string }) {
         headline={isCoach ? <CoachHeadline coachId={data.userId} /> : null}
         coverUrl={coverUrl}
         coverStyle={data.coverStyle}
+        avatarUrl={avatarUrl}
         actions={
           <>
             {data.roles.includes("Coach") ? <LinkButton href={`/app/coaches/${data.userId}/offers`} iconStart={<Store />}>{m.profile.viewOffers}</LinkButton> : null}

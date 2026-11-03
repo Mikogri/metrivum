@@ -144,6 +144,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/people/{userId}/avatar/read-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentReadUrl"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/access": {
         parameters: {
             query?: never;
@@ -768,6 +805,103 @@ export interface paths {
         };
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/avatar/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AvatarUploadRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentUpload"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AvatarRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProfileResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProfileResponse"];
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -14538,6 +14672,16 @@ export interface components {
             /** Format: int64 */
             version: number | string;
         };
+        AvatarRequest: {
+            /** Format: uuid */
+            mediaId: string;
+        };
+        AvatarUploadRequest: {
+            name: string;
+            contentType: string;
+            /** Format: int64 */
+            size: number | string;
+        };
         BasicAnalysis: {
             period: components["schemas"]["AnalysisWindow"];
             clients: components["schemas"]["BasicClientCounts"];
@@ -16812,6 +16956,8 @@ export interface components {
             /** Format: date-time */
             memberSince?: null | string;
             coverStyle?: unknown;
+            /** @default false */
+            hasAvatar: boolean;
         };
         PlanAnnotation: {
             /** Format: uuid */
@@ -17064,6 +17210,8 @@ export interface components {
             coverStyle?: unknown;
             firstName?: null | string;
             lastName?: null | string;
+            /** @default false */
+            hasAvatar: boolean;
         };
         PublicOfferListDto: {
             items: components["schemas"]["OfferRevisionDto"][];

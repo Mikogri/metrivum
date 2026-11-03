@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useState } from "react";
 import { View } from "react-native";
 import type { AnalysisDto, AnalysisResult } from "@metrivum/api-client-web";
@@ -24,6 +25,8 @@ const speed = (value: number | string | null | undefined) =>
     value == null ? "–" : Number(value).toFixed(2);
 
 function Result({ id }: { id: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const query = useApiQuery<AnalysisResult>(`/api/v1/analyses/${id}/result`, {
         maxPoints: 300,
     });
@@ -35,27 +38,27 @@ function Result({ id }: { id: string }) {
     return (
         <>
             <Text variant="caption" tone="mutedText">
-                {query.data.method} · positions in {query.data.positionUnit}
+                {query.data.method}  {nativeCopy("interface.· positions in")} {query.data.positionUnit}
             </Text>
             {query.data.repetitions.length ? (
                 query.data.repetitions.map((rep) => (
-                    <Section key={rep.number} title={`Repetition ${rep.number}`}>
+                    <Section key={rep.number} title={nativeCopy("interface.Repetition {0}", {"0": String(rep.number)})}>
                         <Text variant="caption" tone="mutedText">
                             {seconds(rep.startSeconds)} –{" "}
                             {seconds(rep.endSeconds)}
                         </Text>
                         <View style={{ flexDirection: "row" }}>
-                            <Stat label="Mean speed" value={speed(rep.meanSpeed)} />
-                            <Stat label="Peak speed" value={speed(rep.peakSpeed)} />
-                            <Stat label="Phases" value={rep.phases.length} />
+                            <Stat label={nativeCopy("interface.Mean speed")} value={speed(rep.meanSpeed)} />
+                            <Stat label={nativeCopy("interface.Peak speed")} value={speed(rep.peakSpeed)} />
+                            <Stat label={nativeCopy("interface.Phases")} value={rep.phases.length} />
                         </View>
                     </Section>
                 ))
             ) : (
                 <EmptyState
                     icon="video"
-                    title="No repetitions detected"
-                    description="This analysis has no repetition data."
+                    title={nativeCopy("interface.No repetitions detected")}
+                    description={nativeCopy("interface.This analysis has no repetition data.")}
                 />
             )}
         </>
@@ -63,6 +66,8 @@ function Result({ id }: { id: string }) {
 }
 
 export function AnalysisScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const [page, setPage] = useState(1);
     const [selected, setSelected] = useState<AnalysisDto>();
     const [open, setOpen] = useState(false);
@@ -72,14 +77,14 @@ export function AnalysisScreen() {
         sort: "created",
     });
     return (
-        <Screen title="Video analysis" subtitle="Bar path and speed, on your device">
+        <Screen title={nativeCopy("interface.Video analysis")} subtitle={nativeCopy("interface.Bar path and speed, on your device")}>
             <Section>
                 <NoAccessState
-                    title="New analysis is not available on this phone yet"
-                    description="The on-device model has not been validated for this device. Videos are never sent to a server instead. Saved results stay readable below."
+                    title={nativeCopy("interface.New analysis is not available on this phone yet")}
+                    description={nativeCopy("interface.The on-device model has not been validated for this device. Videos are never sent to a server instead. Saved results stay readable below.")}
                 />
             </Section>
-            <Section title="Saved analyses">
+            <Section title={nativeCopy("interface.Saved analyses")}>
                 {query.isPending ? (
                     <LoadingState />
                 ) : query.error ? (
@@ -103,8 +108,8 @@ export function AnalysisScreen() {
                 ) : (
                     <EmptyState
                         icon="video"
-                        title="No saved analyses"
-                        description="Analyses made in the web app appear here."
+                        title={nativeCopy("interface.No saved analyses")}
+                        description={nativeCopy("interface.Analyses made in the web app appear here.")}
                     />
                 )}
                 {/* The list endpoint returns a bare page, so "more" is inferred from a full page. */}
@@ -123,8 +128,8 @@ export function AnalysisScreen() {
                 />
             </Section>
             <BottomSheet
-                title={selected?.name ?? "Analysis"}
-                subtitle="Saved result"
+                title={selected?.name ?? nativeCopy("interface.Analysis")}
+                subtitle={nativeCopy("interface.Saved result")}
                 open={open}
                 size="full"
                 onClose={() => setOpen(false)}

@@ -1,3 +1,5 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useTween } from "~/shared/lib/useTween";
 import styles from "./delivery.module.css";
@@ -15,6 +17,8 @@ export interface PerformancePoint {
  */
 /** `domain`: a fixed scale (e.g. 1-5 answers), so a middling value does not look like the top or bottom. */
 export function PerformanceChart({ points, label, height = 180, domain }: { points: PerformancePoint[]; label: string; height?: number; domain?: [number, number] }) {
+ const uiCopy = useUiCopy();
+
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(600);
   useLayoutEffect(() => {
@@ -49,7 +53,7 @@ export function PerformanceChart({ points, label, height = 180, domain }: { poin
             </circle>
           );
           return point.href ? (
-            <a key={point.date} href={point.href} aria-label={`View workout ${point.date}: ${point.value}`}>
+            <a key={point.date} href={point.href} aria-label={formatInterfaceText(uiCopy["ui"]["View workout {0}: {1}"], [point.date,point.value])}>
               {dot}
             </a>
           ) : (

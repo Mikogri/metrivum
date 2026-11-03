@@ -65,6 +65,11 @@ public sealed class Profile
     {
         get; set;
     }
+    /// <summary>The profile photo (an image the person uploaded); null shows the initials.</summary>
+    public Guid? AvatarMediaId
+    {
+        get; set;
+    }
 }
 
 public sealed class Workspace

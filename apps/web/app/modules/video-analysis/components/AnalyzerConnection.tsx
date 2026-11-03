@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useEffect, useState } from 'react';
 import { CircleAlert, Download, CirclePower, RefreshCcw, SquareTerminal } from 'lucide-react';
 import { Button, Card, Disclosure, IconButton, LinkButton, TextField } from '@metrivum/ui-web';
@@ -15,6 +16,8 @@ const RELEASE = '/downloads/analyzer/release.json';
  * and on the computer), and can start the installed analyzer through its metrivum-analyzer:// link.
  */
 export function AnalyzerConnection({ token, onTokenChange, onStateChange }: { token: string; onTokenChange: (token: string) => void; onStateChange: (state: CompanionState) => void }) {
+  const uiCopy = useUiCopy();
+
   const { lifecycle } = useAccountContext();
   const [state, setState] = useState<CompanionState>('unreachable');
   const [refresh, setRefresh] = useState(0);
@@ -98,28 +101,28 @@ export function AnalyzerConnection({ token, onTokenChange, onStateChange }: { to
         <strong id="analyzer-title">{title}</strong>
         <span>{detail}</span>
       </span>
-      {working ? <IconButton size="sm" variant="ghost" icon={<SquareTerminal />} label="Show analyzer window" onPress={() => void openWindow()} /> : null}
-      <IconButton size="sm" variant="ghost" icon={<RefreshCcw />} label="Check again" isPending={checking} onPress={() => { setChecking(true); setRefresh(value => value + 1); }} />
+      {working ? <IconButton size="sm" variant="ghost" icon={<SquareTerminal />} label={uiCopy["ui"]["Show analyzer window"]} onPress={() => void openWindow()} /> : null}
+      <IconButton size="sm" variant="ghost" icon={<RefreshCcw />} label={uiCopy["ui"]["Check again"]} isPending={checking} onPress={() => { setChecking(true); setRefresh(value => value + 1); }} />
     </div>
 
-    {wrongSite && !working ? <p className={styles.note} data-tone="danger"><CircleAlert aria-hidden="true" /><span>This build only works on <code>{builtFor}</code>.</span></p> : null}
-    {startFailed ? <p className={styles.note} data-tone="warning"><CircleAlert aria-hidden="true" /><span>It did not start. Allow the browser to open it, or install it.</span></p> : null}
+    {wrongSite && !working ? <p className={styles.note} data-tone="danger"><CircleAlert aria-hidden="true" /><span>{uiCopy["ui"]["This build only works on"]} <code>{builtFor}</code>.</span></p> : null}
+    {startFailed ? <p className={styles.note} data-tone="warning"><CircleAlert aria-hidden="true" /><span>{uiCopy["ui"]["It did not start. Allow the browser to open it, or install it."]}</span></p> : null}
 
     {state === 'unreachable' || state === 'runtime_missing' || state === 'incompatible' ? <div className={styles.actions}>
-      {state === 'unreachable' ? <Button size="sm" variant="primary" iconStart={<CirclePower />} loading={starting} onPress={() => void start()}>Start</Button> : null}
-      <LinkButton size="sm" href={DOWNLOAD} download="MetrivumAnalyzerSetup.exe" iconStart={<Download />} variant={state === 'unreachable' ? 'secondary' : 'primary'}>{state === 'incompatible' ? 'Update' : state === 'runtime_missing' ? 'Repair' : 'Install'}</LinkButton>
+      {state === 'unreachable' ? <Button size="sm" variant="primary" iconStart={<CirclePower />} loading={starting} onPress={() => void start()}>{uiCopy["ui"]["Start"]}</Button> : null}
+      <LinkButton size="sm" href={DOWNLOAD} download="MetrivumAnalyzerSetup.exe" iconStart={<Download />} variant={state === 'unreachable' ? 'secondary' : 'primary'}>{state === 'incompatible' ? uiCopy["ui"]["Update"] : state === 'runtime_missing' ? uiCopy["ui"]["Repair"] : uiCopy["ui"]["Install"]}</LinkButton>
     </div> : null}
 
-    {state === 'unreachable' ? <Disclosure className={styles.more} title="First time on this computer?">
+    {state === 'unreachable' ? <Disclosure className={styles.more} title={uiCopy["ui"]["First time on this computer?"]}>
       <ol className={styles.steps}>
-        <li><strong>Install</strong> Windows x64, NVIDIA GPU, ~35 GB free. If Windows warns, choose More info → Run anyway.</li>
-        <li><strong>Start</strong> Start analysis opens it and pairs this browser once.</li>
+        <li><strong>{uiCopy["ui"]["Install"]}</strong>  {uiCopy["ui"]["Windows x64, NVIDIA GPU, ~35 GB free. If Windows warns, choose More info → Run anyway."]}</li>
+        <li><strong>{uiCopy["ui"]["Start"]}</strong>  {uiCopy["ui"]["Start analysis opens it and pairs this browser once."]}</li>
       </ol>
     </Disclosure> : null}
 
-    {state === 'pairing_required' ? <Disclosure className={styles.more} title="Pair manually">
+    {state === 'pairing_required' ? <Disclosure className={styles.more} title={uiCopy["ui"]["Pair manually"]}>
       <div className={styles.moreBody}>
-        <TextField label="Pairing token" description="Shown in the analyzer window." type="password" value={token}
+        <TextField label={uiCopy["ui"]["Pairing token"]} description={uiCopy["ui"]["Shown in the analyzer window."]} type="password" value={token}
           onChange={next => { setChecking(true); onStateChange('pairing_required'); onTokenChange(next); }} autoComplete="off" />
       </div>
     </Disclosure> : null}

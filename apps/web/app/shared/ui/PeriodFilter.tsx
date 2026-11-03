@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import { Option, Select, TextField } from "@metrivum/ui-web";
 import styles from "./PeriodFilter.module.css";
@@ -25,6 +27,8 @@ export function PeriodFilter({
   earliest?: string | null;
   label?: string;
 }) {
+  const uiCopy = useUiCopy();
+
   const today = localDate();
   const matched = to === today ? (PRESETS.find((days) => from === daysBack(days)) ?? (earliest && from === earliest ? "all" : null)) : null;
   const [custom, setCustom] = useState(matched === null);
@@ -43,16 +47,16 @@ export function PeriodFilter({
         }}
       >
         {PRESETS.map((days) => (
-          <Option key={days} id={String(days)}>{`Last ${days} days`}</Option>
+          <Option key={days} id={String(days)}>{formatInterfaceText(uiCopy["ui"]["Last {0} days"], [days])}</Option>
         ))}
-        {earliest ? <Option id="all">All time</Option> : null}
-        <Option id="custom">Custom range</Option>
+        {earliest ? <Option id="all">{uiCopy["ui"]["All time"]}</Option> : null}
+        <Option id="custom">{uiCopy["ui"]["Custom range"]}</Option>
       </Select>
       {key === "custom" ? (
         <>
-          <TextField aria-label="From" type="date" value={from} onChange={(value) => onChange({ from: value, to })} className={styles.date} />
+          <TextField aria-label={uiCopy["editor"]["panel"]["loadMin"]} type="date" value={from} onChange={(value) => onChange({ from: value, to })} className={styles.date} />
           <span className={styles.dash} aria-hidden="true">–</span>
-          <TextField aria-label="Through" type="date" value={to} onChange={(value) => onChange({ from, to: value })} className={styles.date} />
+          <TextField aria-label={uiCopy["ui"]["Through"]} type="date" value={to} onChange={(value) => onChange({ from, to: value })} className={styles.date} />
         </>
       ) : null}
     </div>

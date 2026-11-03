@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -72,6 +73,8 @@ function without<T>(record: Record<string, T>, id: string) {
  * while the browser was closed is saved the next time Metrivum opens. One tab saves a given video at a time.
  */
 export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
+  const uiCopy = useUiCopy();
+
   const { api, lifecycle, account, accountKey } = useAccountContext();
   const allowed = useFeatureAccess('video.library.manage').allowed;
   const queryClient = useQueryClient();
@@ -153,8 +156,8 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
           void queryClient.invalidateQueries({ queryKey: [accountKey, 'usage'] });
           const open = () => navigateRef.current(`/app/video-analyses/${analysis.id}`);
           setUnseen(count => count + 1);
-          toast({ tone: 'success', title: `Analysis ready: ${job.name}`, description: 'The video and results are saved in your library.',
-            action: { label: 'Open', onAction: open } });
+          toast({ tone: 'success', title: `Analysis ready: ${job.name}`, description: uiCopy["ui"]["The video and results are saved in your library."],
+            action: { label: uiCopy["common"]["open"], onAction: open } });
           notifyInBackground(`Analysis ready: ${job.name}`, 'The video and results are saved in your Metrivum library.', open);
         } catch (failure) {
           if (signal.aborted) return;

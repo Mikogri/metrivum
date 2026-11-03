@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Send } from "lucide-react";
 import { useState } from "react";
@@ -19,6 +21,8 @@ export type QuickTemplate = { id: string; label: string; text: string };
  * chat opens instead so the request can be sent there.
  */
 export function QuickMessage({ person, templates, title = "Message" }: { person: Schema<"PersonDto">; templates: QuickTemplate[]; title?: string }) {
+  const uiCopy = useUiCopy();
+
   const { api, accountKey, lifecycle } = useAccountContext();
   const cache = useQueryClient();
   const navigate = useNavigate();
@@ -42,7 +46,7 @@ export function QuickMessage({ person, templates, title = "Message" }: { person:
       await api<Message>({ method: "POST", path: `${root}/conversations/${conversation.id}/messages`, json: { type: "Text", body, replyToMessageId: null, mediaIds: [] }, idempotencyKey: key, signal: lifecycle.signal() });
       if (!lifecycle.isCurrent()) return;
       void cache.invalidateQueries({ queryKey: [accountKey, "messaging"] });
-      toast({ tone: "success", title: `Message sent to ${person.displayName}`, action: { label: "Open chat", onAction: () => navigate(`/app/messages?conversation=${conversation.id}`) } });
+      toast({ tone: "success", title: `Message sent to ${person.displayName}`, action: { label: uiCopy["ui"]["Open chat"], onAction: () => navigate(`/app/messages?conversation=${conversation.id}`) } });
       setKey(crypto.randomUUID());
     } catch (caught) {
       if (!lifecycle.isCurrent()) return;
@@ -66,7 +70,7 @@ export function QuickMessage({ person, templates, title = "Message" }: { person:
       </header>
       {templates.length > 1 ? (
         <ChipGroup
-          aria-label="Message templates"
+          aria-label={uiCopy["ui"]["Message templates"]}
           disallowEmptySelection
           selectedKeys={[template]}
           onSelectionChange={(keys) => {
@@ -83,14 +87,16 @@ export function QuickMessage({ person, templates, title = "Message" }: { person:
           ))}
         </ChipGroup>
       ) : null}
-      <TextArea aria-label={`Message to ${person.displayName}`} value={text} onChange={setText} maxLength={4000} isDisabled={sending} />
+      <TextArea aria-label={formatInterfaceText(uiCopy["ui"]["Message to {0}"], [person.displayName])} value={text} onChange={setText} maxLength={4000} isDisabled={sending} />
       {error ? <Alert tone="danger" live="assertive" title={error} /> : null}
       <div className={styles.actions}>
         <Button variant="ghost" size="sm" onPress={draftChat} isDisabled={sending}>
-          Open chat
+
+          {uiCopy["ui"]["Open chat"]}
         </Button>
         <Button size="sm" variant="primary" iconStart={<Send />} loading={sending} isDisabled={!text.trim()} onPress={() => void send()}>
-          Send
+
+          {uiCopy["ui"]["Send"]}
         </Button>
       </div>
     </section>

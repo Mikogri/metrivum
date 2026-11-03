@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { CalendarDays, Clock, Link2, MapPin, RotateCcw, UserRound } from "lucide-react";
 import { Avatar, Badge, Button, DialogFooter, LinkButton, toast } from "@metrivum/ui-web";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
@@ -11,6 +12,8 @@ const responseTone = (response: string) => (response === "Accepted" ? "success" 
 
 /** Meeting / event details in the side panel, with the organiser's or the invitee's actions at the bottom. */
 export function EventDetail({ id, edit, close }: { id: string; edit: (event: CalendarEvent) => void; close: () => void }) {
+  const uiCopy = useUiCopy();
+
   const { mode } = useWorkspace();
   const query = useCoachingQuery<CalendarEvent>(`/api/v1/calendar/events/${id}`, { role: mode });
   const clients = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { pageSize: 100 }, mode === "coach");
@@ -47,7 +50,7 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
           {event.kind}
         </span>
         <h2>{event.title}</h2>
-        {event.cancelled ? <Badge tone="danger" dot>Cancelled</Badge> : null}
+        {event.cancelled ? <Badge tone="danger" dot>{uiCopy["video"]["statuses"]["Cancelled"]}</Badge> : null}
       </div>
 
       <dl className={styles.facts}>
@@ -61,7 +64,7 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
         <div className={styles.fact}>
           <Clock aria-hidden="true" />
           <dd>
-            {event.startDate ? "All day" : `${hour(event.startsAtUtc)} – ${hour(event.endsAtUtc)}`}
+            {event.startDate ? uiCopy["ui"]["All day"] : `${hour(event.startsAtUtc)} – ${hour(event.endsAtUtc)}`}
             <small>{event.timeZone.replace(/_/g, " ")}</small>
           </dd>
         </div>
@@ -76,7 +79,8 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
             <Link2 aria-hidden="true" />
             <dd>
               <LinkButton href={event.meetingUrl} target="_blank" rel="noreferrer" size="sm" variant="secondary">
-                Join meeting
+
+                {uiCopy["ui"]["Join meeting"]}
               </LinkButton>
             </dd>
           </div>
@@ -84,8 +88,8 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
         <div className={styles.fact}>
           <UserRound aria-hidden="true" />
           <dd>
-            <span>{event.organizerName || "Coach"}</span>
-            <small>Organiser</small>
+            <span>{event.organizerName || uiCopy["profile"]["roles"]["Coach"]}</span>
+            <small>{uiCopy["ui"]["Organiser"]}</small>
           </dd>
         </div>
       </dl>
@@ -94,7 +98,7 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
 
       {mode === "coach" ? (
         <section className={styles.editorSection}>
-          <h3>Invited</h3>
+          <h3>{uiCopy["ui"]["Invited"]}</h3>
           {event.attendees?.length ? (
             <ul className={styles.people}>
               {event.attendees.map((a) => (
@@ -108,34 +112,36 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
               ))}
             </ul>
           ) : (
-            <p className={styles.muted}>Nobody is invited.</p>
+            <p className={styles.muted}>{uiCopy["ui"]["Nobody is invited."]}</p>
           )}
         </section>
       ) : !event.cancelled ? (
         <section className={styles.editorSection}>
-          <h3>Your answer</h3>
+          <h3>{uiCopy["ui"]["Your answer"]}</h3>
           <p className={styles.muted}>
-            {event.response === "Pending" ? "Let your coach know if you can make it. If the time changes, you'll be asked again." : `You ${event.response?.toLowerCase()} this invitation.`}
+            {event.response === "Pending" ? uiCopy["ui"]["Let your coach know if you can make it. If the time changes, you'll be asked again."] : `You ${event.response?.toLowerCase()} this invitation.`}
           </p>
         </section>
       ) : null}
 
-      {event.cancelled && mode === "coach" ? <p className={styles.muted}>This {noun} is cancelled. Restore it to put it back on the calendar; invited clients are asked to answer again.</p> : null}
+      {event.cancelled && mode === "coach" ? <p className={styles.muted}>{uiCopy["ui"]["This"]} {noun}  {uiCopy["ui"]["is cancelled. Restore it to put it back on the calendar; invited clients are asked to answer again."]}</p> : null}
       <MutationError error={mutation.error} />
       {confirmDialog}
       <DialogFooter>
         {event.cancelled ? (
           <>
-            <Button onPress={close}>Close</Button>
-            {mode === "coach" ? <Button variant="primary" iconStart={<RotateCcw />} loading={mutation.isPending} onPress={restore}>Restore {noun}</Button> : null}
+            <Button onPress={close}>{uiCopy["common"]["close"]}</Button>
+            {mode === "coach" ? <Button variant="primary" iconStart={<RotateCcw />} loading={mutation.isPending} onPress={restore}>{uiCopy["common"]["restore"]} {noun}</Button> : null}
           </>
         ) : mode === "coach" ? (
           <>
             <Button variant="danger" isDisabled={mutation.isPending} loading={mutation.isPending} onPress={() => void cancel()}>
-              Cancel {noun}
+
+              {uiCopy["common"]["cancel"]} {noun}
             </Button>
             <Button variant="primary" onPress={() => edit(event)}>
-              Edit
+
+              {uiCopy["profile"]["showcase"]["edit"]}
             </Button>
           </>
         ) : (
@@ -146,7 +152,7 @@ export function EventDetail({ id, edit, close }: { id: string; edit: (event: Cal
               isDisabled={mutation.isPending || event.response === status}
               onPress={() => mutation.mutate({ method: "POST", path: `/api/v1/calendar/events/${id}/response`, ifMatch: event.responseVersion!, json: { status } })}
             >
-              {status === "Accepted" ? "Accept" : "Decline"}
+              {status === "Accepted" ? uiCopy["ui"]["Accept"] : uiCopy["ui"]["Decline"]}
             </Button>
           ))
         )}

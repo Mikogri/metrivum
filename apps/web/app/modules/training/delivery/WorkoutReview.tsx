@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
 import { Activity, Gauge, Moon, PencilLine, Smile, Star } from "lucide-react";
@@ -90,6 +91,8 @@ export function WorkoutFeedbackForm({ execution, own }: { execution: { id: strin
 
 /** Planned against actual: four headline numbers, then each exercise with its sets side by side. */
 export function WorkoutComparisonView({ data }: { data: Comparison }) {
+  const uiCopy = useUiCopy();
+
   const pl = useAppLocale().locale === "pl";
   const t = pl
     ? { exercises: "Ćwiczenia", sets: "Serie", reps: "Powtórzenia", volume: "Objętość", plan: "plan", set: "Seria", status: "Status", deviation: "Odchylenia", note: "Porównanie z wersją planu zapisaną przy rozpoczęciu. Puste dane pozostają nieznane. Objętość obejmuje tylko jawnie podany całkowity ciężar zewnętrzny." }
@@ -115,7 +118,7 @@ export function WorkoutComparisonView({ data }: { data: Comparison }) {
         <span className={styles.cmpCount}>{format(exercise.performedSets)}<small>/{format(exercise.plannedSets)} {t.sets.toLowerCase()}</small></span>
       </header>
       <table className={styles.cmpTable}>
-        <thead><tr><th>{t.set}</th><th>Reps</th><th>kg</th><th>RPE</th><th>RIR</th><th>{t.deviation}</th></tr></thead>
+        <thead><tr><th>{t.set}</th><th>{uiCopy["editor"]["columns"]["reps"]}</th><th>kg</th><th>RPE</th><th>RIR</th><th>{t.deviation}</th></tr></thead>
         <tbody>{exercise.sets.map((set, i) => <tr key={i} data-tone={tone(set.status)}>
           <td><span className={styles.cmpNo}>{i + 1}</span></td>
           <td><b>{format(set.actualReps)}</b>{range(set.plannedReps) !== "—" ? <small>{range(set.plannedReps)}</small> : null}</td>
@@ -136,6 +139,8 @@ export function WorkoutComparisonPanel({ executionId }: { executionId: string })
 }
 
 export function ComparisonReport({ from, to, relationshipId, programId, blockId, cycleId, view }: { from: string; to: string; relationshipId?: string; programId?: string; blockId?: string; cycleId?: string; view?: string }) {
+ const uiCopy = useUiCopy();
+
   const [page, setPage] = useState(1);
   const query = useCoachingQuery<{ items: Comparison[]; total: number; page: number; pageSize: number }>("/api/v1/training/comparison-report", { from, to, relationshipId, programId, blockId, cycleId, view, page, pageSize: 10 });
   const pl = useAppLocale().locale === "pl";
@@ -159,12 +164,12 @@ export function ComparisonReport({ from, to, relationshipId, programId, blockId,
               <span className={styles.reportMain}>
                 <strong>{item.name}</strong>
                 <span className={styles.reportBar} aria-label={`${item.performedSets} / ${item.plannedSets} ${pl ? "serii" : "sets"}`}><span style={{ transform: `scaleX(${done})` }} /></span>
-                <span className={styles.reportSets}>{item.performedSets} / {item.plannedSets} {pl ? "serii" : "sets"}</span>
+                <span className={styles.reportSets}>{item.performedSets} / {item.plannedSets} {pl ? "serii" : uiCopy["ui"]["sets"]}</span>
               </span>
               <span className={styles.reportChips}>
-                <span title="Session RPE">RPE <b>{format(item.feedback?.sessionRpe)}</b></span>
-                <span title={pl ? "Samopoczucie" : "Wellbeing"}>{pl ? "Samop." : "Mood"} <b>{format(item.feedback?.wellbeing)}</b>/5</span>
-                <span title={pl ? "Sen" : "Sleep"}>{pl ? "Sen" : "Sleep"} <b>{format(item.feedback?.sleepQuality)}</b>/5</span>
+                <span title={uiCopy["ui"]["Session RPE"]}>RPE <b>{format(item.feedback?.sessionRpe)}</b></span>
+                <span title={pl ? "Samopoczucie" : uiCopy["ui"]["Wellbeing"]}>{pl ? "Samop." : "Mood"} <b>{format(item.feedback?.wellbeing)}</b>/5</span>
+                <span title={pl ? "Sen" : uiCopy["profile"]["fields"]["Sleep"]}>{pl ? "Sen" : uiCopy["profile"]["fields"]["Sleep"]} <b>{format(item.feedback?.sleepQuality)}</b>/5</span>
               </span>
             </summary>
             {item.feedback?.note ? <p className={styles.reportNote}>“{item.feedback.note}”</p> : null}

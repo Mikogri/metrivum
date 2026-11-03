@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Service details — Metrivum");
@@ -15,6 +17,8 @@ import { money, priceDescription } from "../pricing";
 import styles from "../coaching.module.css";
 
 export default function Service() {
+  const uiCopy = useUiCopy();
+
   const { serviceId } = useParams();
   const profile = useProfile();
   const { mode } = useWorkspace();
@@ -28,30 +32,30 @@ export default function Service() {
   const coach = s.offerRevision.coachId === profile.id;
   if ((mode === "coach") !== coach) return <WorkspaceRouteGuard required={coach ? "coach" : "client"}>{null}</WorkspaceRouteGuard>;
   const back = `/app/${coach ? "clients" : "my-coaches"}/${s.relationshipId}${coach ? "?tab=overview" : "/services"}`;
-  return <><PageHeader title={s.offerName} description={`Started ${new Date(s.startedAt).toLocaleDateString()}`} meta={<StatusBadge status={s.status} />} actions={<><LinkButton href={back}>{coach ? "Open client" : "All services"}</LinkButton>{s.allowedActions.includes("complete") && <Button variant="danger-ghost" onPress={() => setConfirm(true)}>Complete service</Button>}</>} />
+  return <><PageHeader title={s.offerName} description={formatInterfaceText(uiCopy["ui"]["Started {0}"], [new Date(s.startedAt).toLocaleDateString()])} meta={<StatusBadge status={s.status} />} actions={<><LinkButton href={back}>{coach ? uiCopy["ui"]["Open client"] : uiCopy["ui"]["All services"]}</LinkButton>{s.allowedActions.includes("complete") && <Button variant="danger-ghost" onPress={() => setConfirm(true)}>{uiCopy["ui"]["Complete service"]}</Button>}</>} />
     <MutationError error={mutation.error} />
     <PanelGrid>
-      <Panel title="Accepted terms" description={`Offer revision ${s.offerRevision.number}`}>
+      <Panel title={uiCopy["ui"]["Accepted terms"]} description={formatInterfaceText(uiCopy["ui"]["Offer revision {0}"], [s.offerRevision.number])}>
         <Facts items={[
-          { label: "Price", value: <strong>{money(s.amount, s.currency)}</strong> },
+          { label: uiCopy["ui"]["Price"], value: <strong>{money(s.amount, s.currency)}</strong> },
           ...(option ? [{ label: option.name, value: priceDescription(option, s.currency) }] : []),
-          ...(s.selectedSessionCount != null ? [{ label: "Sessions", value: s.selectedSessionCount }] : []),
-          { label: "Mode", value: s.offerRevision.coachingMode === "Offline" ? "In person" : s.offerRevision.coachingMode },
-          { label: "Started", value: new Date(s.startedAt).toLocaleDateString() },
-          ...(s.completedAt ? [{ label: "Completed", value: new Date(s.completedAt).toLocaleDateString() }] : []),
+          ...(s.selectedSessionCount != null ? [{ label: uiCopy["ui"]["Sessions"], value: s.selectedSessionCount }] : []),
+          { label: uiCopy["ui"]["Mode"], value: s.offerRevision.coachingMode === "Offline" ? "In person" : s.offerRevision.coachingMode },
+          { label: uiCopy["ui"]["Started"], value: new Date(s.startedAt).toLocaleDateString() },
+          ...(s.completedAt ? [{ label: uiCopy["video"]["detail"]["completed"], value: new Date(s.completedAt).toLocaleDateString() }] : []),
         ]} />
       </Panel>
-      <Panel title="Billing">
+      <Panel title={uiCopy["ui"]["Billing"]}>
         <Facts items={s.currentBilling ? [
-          { label: "Status", value: <StatusBadge status={s.currentBilling.status} /> },
+          { label: uiCopy["usage"]["colState"], value: <StatusBadge status={s.currentBilling.status} /> },
           ...(s.currentBilling.validUntil ? [{ label: s.currentBilling.isExpired ? "Sessions expired" : "Use sessions before", value: new Date(s.currentBilling.validUntil).toLocaleString() }] : []),
-          { label: "Current period", value: s.currentBilling.periodStart ? `${new Date(s.currentBilling.periodStart).toLocaleDateString()}${s.currentBilling.periodEnd ? ` – ${new Date(s.currentBilling.periodEnd).toLocaleDateString()}` : ""}` : "—" },
-          { label: "Next due", value: s.currentBilling.nextDueAt && s.currentBilling.nextDueAmount != null && s.currentBilling.currency ? `${money(s.currentBilling.nextDueAmount, s.currentBilling.currency)} · ${new Date(s.currentBilling.nextDueAt).toLocaleDateString()}` : "—" },
-          ...(s.currentBilling.remainingSessions != null ? [{ label: "Sessions left", value: s.currentBilling.remainingSessions }] : []),
-        ] : [{ label: "Status", value: "No payment due recorded" }]} />
+          { label: uiCopy["ui"]["Current period"], value: s.currentBilling.periodStart ? `${new Date(s.currentBilling.periodStart).toLocaleDateString()}${s.currentBilling.periodEnd ? ` – ${new Date(s.currentBilling.periodEnd).toLocaleDateString()}` : ""}` : "—" },
+          { label: uiCopy["ui"]["Next due"], value: s.currentBilling.nextDueAt && s.currentBilling.nextDueAmount != null && s.currentBilling.currency ? `${money(s.currentBilling.nextDueAmount, s.currentBilling.currency)} · ${new Date(s.currentBilling.nextDueAt).toLocaleDateString()}` : "—" },
+          ...(s.currentBilling.remainingSessions != null ? [{ label: uiCopy["ui"]["Sessions left"], value: s.currentBilling.remainingSessions }] : []),
+        ] : [{ label: uiCopy["usage"]["colState"], value: "No payment due recorded" }]} />
       </Panel>
     </PanelGrid>
-    {s.offerRevision.description ? <Panel title="About this offer"><p className={styles.prose}>{s.offerRevision.description}</p></Panel> : null}
-    <AlertDialog isOpen={confirm} onOpenChange={setConfirm} title="Complete this service?" tone="danger" confirmLabel="Complete service" cancelLabel="Keep active" isConfirming={mutation.isPending} onConfirm={() => mutation.mutate({ method: "POST", path: `/api/v1/coaching/services/${s.id}/complete`, ifMatch: s.version })}>Future subscription periods will stop. Existing orders and payment history remain available.<MutationError error={mutation.error} /></AlertDialog>
+    {s.offerRevision.description ? <Panel title={uiCopy["ui"]["About this offer"]}><p className={styles.prose}>{s.offerRevision.description}</p></Panel> : null}
+    <AlertDialog isOpen={confirm} onOpenChange={setConfirm} title={uiCopy["ui"]["Complete this service?"]} tone="danger" confirmLabel={uiCopy["ui"]["Complete service"]} cancelLabel={uiCopy["ui"]["Keep active"]} isConfirming={mutation.isPending} onConfirm={() => mutation.mutate({ method: "POST", path: `/api/v1/coaching/services/${s.id}/complete`, ifMatch: s.version })}>{uiCopy["ui"]["Future subscription periods will stop. Existing orders and payment history remain available."]}<MutationError error={mutation.error} /></AlertDialog>
   </>;
 }

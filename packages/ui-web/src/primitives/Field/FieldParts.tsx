@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { FieldError, Label, Text, type ValidationResult } from "react-aria-components";
+import { ButtonContext, FieldError, Label, Provider, Text, type ValidationResult } from "react-aria-components";
 import styles from "./Field.module.css";
 
 export interface FieldChromeProps {
@@ -27,7 +27,8 @@ export function FieldLabel({ label, isRequired, labelAside }: Pick<FieldChromePr
       ) : (
         <span />
       )}
-      {labelAside}
+      {/* The field's own button context (e.g. a number field's +/− slots) must not reach a button placed here, such as an InfoTip. */}
+      {labelAside ? <Provider values={[[ButtonContext, null]]}>{labelAside}</Provider> : null}
     </div>
   );
 }

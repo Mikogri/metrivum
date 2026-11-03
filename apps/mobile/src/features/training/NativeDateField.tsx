@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useState } from "react";
 import { Platform } from "react-native";
 import DateTimePicker, {
@@ -31,6 +32,8 @@ export function NativeDateField({
     mode?: "date" | "time";
     disabled?: boolean;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const [open, setOpen] = useState(false);
     const insideSheet = useInsideSheet();
     const parsed = pickerDate(value, mode);
@@ -88,7 +91,7 @@ export function NativeDateField({
                               })
                         : null
                 }
-                placeholder={mode === "date" ? "Choose a date" : "Choose a time"}
+                placeholder={mode === "date" ? nativeCopy("interface.Choose a date") : nativeCopy("interface.Choose a time")}
                 disabled={disabled}
                 expanded={open}
                 onPress={show}
@@ -101,7 +104,7 @@ export function NativeDateField({
                     <Button
                         size="lg"
                         tone="primary"
-                        title="Done"
+                        title={nativeCopy("interface.Done")}
                         onPress={() => setOpen(false)}
                     />
                 }

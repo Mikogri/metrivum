@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Client details — Metrivum");
@@ -36,6 +38,8 @@ const TABS = ["overview", "plans", "activity", "progress", "profile", "documenta
 const TAB_LABEL: Record<(typeof TABS)[number], string> = { overview: "Overview", plans: "Plans", activity: "Activity", progress: "Progress", profile: "Profile", documentation: "Documentation", "check-ins": "Check-ins" };
 
 function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
+  const uiCopy = useUiCopy();
+
   const mobile = useMobileLayout();
   const { params, update } = useClientDetailsUrl();
   const requestedTab = params.get("tab") === "training" ? "activity" : params.get("tab");
@@ -52,7 +56,7 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
   lastAction.current = action ?? lastAction.current;
   const mutate = useCoachingMutation(() => {
     setAction(null);
-    toast({ tone: "success", ...(ACTION_DONE[lastAction.current ?? ""] ?? { title: "Collaboration updated" }) });
+    toast({ tone: "success", ...(ACTION_DONE[lastAction.current ?? ""] ?? { title: uiCopy["ui"]["Collaboration updated"] }) });
   });
   if (detail.isPending) return <Loading />;
   if (detail.isError) return <Failure error={detail.error} retry={() => void detail.refetch()} />;
@@ -80,7 +84,7 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
             <span className={styles.identity}>
               <span className={styles.nameLine}>
                 <span className={styles.name}>{name}</span>
-                <Badge size="sm" tone={r.teamId ? "violet" : "neutral"}>{r.teamId ? "Team" : "Private"}</Badge>
+                <Badge size="sm" tone={r.teamId ? "violet" : "neutral"}>{r.teamId ? uiCopy["ui"]["Team"] : uiCopy["ui"]["Private"]}</Badge>
               </span>
               {r.client.username ? <small>@{r.client.username}</small> : null}
             </span>
@@ -90,7 +94,7 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
           r.teamId && (r.teamName || r.assignedCoach) ? (
             <span className={styles.teamMeta}>
               {r.teamName}
-              {r.assignedCoach ? <> · Coach {r.assignedCoach.displayName}</> : null}
+              {r.assignedCoach ? <>  {uiCopy["ui"]["· Coach"]} {r.assignedCoach.displayName}</> : null}
             </span>
           ) : undefined
         }
@@ -99,11 +103,11 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
             <OpenConversationButton person={r.client} />
             {hasMenu ? (
               <DropdownMenuTrigger>
-                <IconButton label="Manage collaboration" icon={<MoreHorizontal />} variant="ghost" />
-                <DropdownMenu aria-label="Manage collaboration" onAction={onMenu}>
-                  {canGroups.allowed ? <DropdownMenuItem id="groups" icon={<UsersRound />}>Manage groups</DropdownMenuItem> : null}
+                <IconButton label={uiCopy["ui"]["Manage collaboration"]} icon={<MoreHorizontal />} variant="ghost" />
+                <DropdownMenu aria-label={uiCopy["ui"]["Manage collaboration"]} onAction={onMenu}>
+                  {canGroups.allowed ? <DropdownMenuItem id="groups" icon={<UsersRound />}>{uiCopy["ui"]["Manage groups"]}</DropdownMenuItem> : null}
                   {hasTeamAction ? (
-                    <DropdownMenuItem id="team" icon={<Repeat2 />}>{teamActions.canAssign ? "Assign Team coach" : "Request transfer to Team"}</DropdownMenuItem>
+                    <DropdownMenuItem id="team" icon={<Repeat2 />}>{teamActions.canAssign ? uiCopy["ui"]["Assign Team coach"] : uiCopy["ui"]["Request transfer to Team"]}</DropdownMenuItem>
                   ) : null}
                   {safe.map((a) => (
                     <DropdownMenuItem key={a} id={a} icon={ACTION_ICON[a]}>{ACTION_LABEL[a] ?? a}</DropdownMenuItem>
@@ -118,9 +122,9 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
           </>
         }
       />
-      {mobile && <div className={styles.mobileStatus}><StatusBadge status={r.status} /><span>Since {new Date(r.startedAt).toLocaleDateString()}</span></div>}
+      {mobile && <div className={styles.mobileStatus}><StatusBadge status={r.status} /><span>{uiCopy["ui"]["Since"]} {new Date(r.startedAt).toLocaleDateString()}</span></div>}
       <Tabs selectedKey={tab} onSelectionChange={(key) => update({ tab: String(key), checkIn: null, application: null, drawer: null })} className={styles.views}>
-        <TabList aria-label="Client views">
+        <TabList aria-label={uiCopy["ui"]["Client views"]}>
           {TABS.map((value) => (
             <Tab key={value} id={value}>{TAB_LABEL[value]}</Tab>
           ))}
@@ -130,7 +134,7 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
         // The client's plans: what runs now (with progress and Assign), then every assignment so far.
         <div className={styles.stack}>
           <AssignedProgramsSummary relationshipId={r.id} teamId={r.teamId} canManage={canTraining.allowed && r.status === "Active"} />
-          <AssignmentList relationshipId={r.id} title="Plan history" description="Every program assigned to this client, newest first, with its status." />
+          <AssignmentList relationshipId={r.id} title={uiCopy["ui"]["Plan history"]} description={uiCopy["ui"]["Every program assigned to this client, newest first, with its status."]} />
         </div>
       ) : tab === "activity" ? (
         <TrainingActivity relationshipId={r.id} />
@@ -165,16 +169,16 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
         onOpenChange={(open) => {
           if (!open && !mutate.isPending) setAction(null);
         }}
-        title={action === "resume" ? "Resume this relationship?" : action === "suspend" ? "Suspend this relationship?" : "Complete this relationship?"}
+        title={action === "resume" ? uiCopy["ui"]["Resume this relationship?"] : action === "suspend" ? uiCopy["ui"]["Suspend this relationship?"] : uiCopy["ui"]["Complete this relationship?"]}
         tone={action && DANGER.has(action) ? "danger" : "default"}
-        confirmLabel={action ? (ACTION_LABEL[action] ?? "Confirm") : "Confirm"}
-        cancelLabel="Keep current status"
+        confirmLabel={action ? (ACTION_LABEL[action] ?? uiCopy["ui"]["Confirm"]) : uiCopy["ui"]["Confirm"]}
+        cancelLabel={uiCopy["ui"]["Keep current status"]}
         isConfirming={mutate.isPending}
         onConfirm={() => {
           if (action && r.allowedActions.includes(action)) mutate.mutate({ method: "POST", path: `/api/v1/coaching/relationships/${r.id}/${action}`, ifMatch: r.version, json: { internalReason: reason || null } });
         }}
       >
-        <TextArea label="Internal reason (visible only to you)" placeholder={action === "suspend" ? "e.g. Client is travelling until March" : action === "complete" ? "e.g. Goal reached, program finished" : "e.g. Client is back from a break"} value={reason} onChange={setReason} maxLength={1000} />
+        <TextArea label={uiCopy["ui"]["Internal reason (visible only to you)"]} placeholder={action === "suspend" ? uiCopy["ui"]["e.g. Client is travelling until March"] : action === "complete" ? uiCopy["ui"]["e.g. Goal reached, program finished"] : uiCopy["ui"]["e.g. Client is back from a break"]} value={reason} onChange={setReason} maxLength={1000} />
         <MutationError error={mutate.error} />
       </AlertDialog>
     </>
@@ -182,29 +186,31 @@ function RelationshipDetail({ relationshipId }: { relationshipId: string }) {
 }
 
 function Collaboration({ relationship: r }: { relationship: Relationship }) {
+  const uiCopy = useUiCopy();
+
   const training = useFeatureAccess("training.assignments.manage");
   const last = useCoachingQuery<Schema<"LastTrainingActivityDto">>("/api/v1/training/last-activity", { relationshipId: r.id }, training.allowed);
   const history = [...r.statusHistory].reverse();
   return (
-    <Panel title="Collaboration" icon={<Handshake />} tone="blue" actions={<StatusBadge status={r.status} />}>
+    <Panel title={uiCopy["ui"]["Collaboration"]} icon={<Handshake />} tone="blue" actions={<StatusBadge status={r.status} />}>
       <Facts
         items={[
-          { label: "Type", value: r.teamId ? `Team · ${r.teamName || "Organization"}` : "Private" },
-          { label: "Started", value: new Date(r.startedAt).toLocaleDateString() },
+          { label: uiCopy["editor"]["columns"]["kind"], value: r.teamId ? `Team · ${r.teamName || "Organization"}` : "Private" },
+          { label: uiCopy["ui"]["Started"], value: new Date(r.startedAt).toLocaleDateString() },
           {
-            label: "Last training activity",
+            label: uiCopy["ui"]["Last training activity"],
             value: last.isPending && training.allowed ? "Loading…" : last.data?.performedDate ? new Date(`${last.data.performedDate}T12:00:00`).toLocaleDateString() : "No recorded activity",
           },
-          ...(r.teamId && r.assignedCoach ? [{ label: "Assigned coach", value: r.assignedCoach.displayName }] : []),
+          ...(r.teamId && r.assignedCoach ? [{ label: uiCopy["ui"]["Assigned coach"], value: r.assignedCoach.displayName }] : []),
         ]}
       />
       {last.isError && <Failure error={last.error} retry={() => void last.refetch()} />}
       {r.status !== "Active" && (
-        <Alert title={`Collaboration is ${r.status.toLowerCase()}`}>Historical records remain subject to access rules. New assignments require an active collaboration.</Alert>
+        <Alert title={formatInterfaceText(uiCopy["ui"]["Collaboration is {0}"], [r.status.toLowerCase()])}>{uiCopy["ui"]["Historical records remain subject to access rules. New assignments require an active collaboration."]}</Alert>
       )}
       {history.length > 0 && (
         <details className={styles.history}>
-          <summary>Status history ({history.length})</summary>
+          <summary>{uiCopy["ui"]["Status history ("]}{history.length})</summary>
           <ol className={styles.timeline}>
             {history.map((h) => (
               <li key={h.version}>

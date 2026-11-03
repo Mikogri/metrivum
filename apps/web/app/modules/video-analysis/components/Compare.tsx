@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMemo, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { Check, Search, X } from 'lucide-react';
@@ -58,6 +60,8 @@ interface RepRow { id: string; source: CompareSource; sourceIndex: number; resul
  * its video), and the ticked repetitions drawn over each other, each measured from its own start.
  */
 export function CompareView({ sources, results, onRemove }: { sources: CompareSource[]; results: Array<AnalysisResult | undefined>; onRemove?: (source: CompareSource) => void }) {
+  const uiCopy = useUiCopy();
+
   // Width / height of each loaded video, by source.
   const [ratios, setRatios] = useState<Record<string, number>>({});
   const setRatio = (key: string, ratio: number) => setRatios(current => (current[key] === ratio ? current : { ...current, [key]: ratio }));
@@ -122,69 +126,73 @@ export function CompareView({ sources, results, onRemove }: { sources: CompareSo
       {sources.map((source, index) => <Card key={sourceKey(source)} as="section" padding="none" className={styles.videoCard} aria-label={source.name}>
         <header className={styles.videoHead}>
           <span className={styles.videoIndex} style={{ background: VIDEO_COLORS[index % VIDEO_COLORS.length] }}>{index + 1}</span>
-          <span className={styles.videoName} title={source.name}>Vid {index + 1}<small>{source.name}</small></span>
-          {source.kind === 'shared' ? <span className={styles.videoTag}>Shared</span> : null}
-          {onRemove && sources.length > 1 ? <IconButton size="sm" variant="ghost" icon={<X />} label={`Remove ${source.name}`} onPress={() => onRemove(source)} /> : null}
+          <span className={styles.videoName} title={source.name}>{uiCopy["ui"]["Vid"]} {index + 1}<small>{source.name}</small></span>
+          {source.kind === 'shared' ? <span className={styles.videoTag}>{uiCopy["ui"]["Shared"]}</span> : null}
+          {onRemove && sources.length > 1 ? <IconButton size="sm" variant="ghost" icon={<X />} label={formatInterfaceText(uiCopy["ui"]["Remove {0}"], [source.name])} onPress={() => onRemove(source)} /> : null}
         </header>
         <div className={styles.videoBody}>
           {source.kind === 'own' && source.mediaId ? <VideoPlayer mediaId={source.mediaId} inset frame={frame} onSize={(w, h) => setRatio(sourceKey(source), w / h)} />
             : source.kind === 'shared' && source.hasVideo ? <VideoPlayer mediaId={source.token} inset frame={frame} onSize={(w, h) => setRatio(sourceKey(source), w / h)} source={() => sharedVideoUrl(api, source.token)} />
-            : <p className={styles.noVideo}>No video</p>}
+            : <p className={styles.noVideo}>{uiCopy["ui"]["No video"]}</p>}
         </div>
       </Card>)}
     </div>
 
     {loading ? <Skeleton height="10rem" radius="lg" /> : null}
-    {units.size > 1 ? <Alert tone="warning" title="These videos use different units, so positions are not on the same scale." /> : null}
+    {units.size > 1 ? <Alert tone="warning" title={uiCopy["ui"]["These videos use different units, so positions are not on the same scale."]} /> : null}
 
-    {rows.length ? <RepTable label="Repetitions of the compared videos" locale={locale} showSource
+    {rows.length ? <RepTable label={uiCopy["ui"]["Repetitions of the compared videos"]} locale={locale} showSource
       rows={rows.map(row => ({ id: row.id, rep: row.rep, speedUnit: speedUnit(row.result), checked: selected.has(row.id), onCheck: (on: boolean) => toggle(row.id, on), color: row.color,
         source: { index: row.sourceIndex, name: row.source.name, color: VIDEO_COLORS[row.sourceIndex % VIDEO_COLORS.length]! } }))} />
-      : !loading ? <p className={styles.hint}>The analyzer found no repetitions in these videos.</p> : null}
+      : !loading ? <p className={styles.hint}>{uiCopy["ui"]["The analyzer found no repetitions in these videos."]}</p> : null}
 
     {chosen.length ? <Card padding="md" className={styles.charts}>
-      <OverlayChart lines={position} label="Bar height" unit={unit} locale={locale}
-        description="Vertical bar displacement relative to the start of lifting (an approximation of the bar at the chest). Without a lifting phase, the lowest tracked position is zero. Positive values are above zero; negative values are below it. Time starts at the beginning of each repetition." />
-      {phases.map(phase => <OverlayChart key={`${phase.kind}:${phase.occurrence}`} lines={phase.lines} label={`${PHASE_NAMES[phase.kind]}${phase.count > 1 ? ` ${phase.occurrence + 1}` : ''} from the start of the phase`} description={`Bar speed during ${PHASE_NAMES[phase.kind].toLowerCase()} only. Time starts at the beginning of that phase for each repetition. Speed is nonnegative; missing measurements appear as gaps. Patterns from different repetitions are overlaid.`}
+      <OverlayChart lines={position} label={uiCopy["ui"]["Bar height"]} unit={unit} locale={locale}
+        description={uiCopy["ui"]["Vertical bar displacement relative to the start of lifting (an approximation of the bar at the chest). Without a lifting phase, the lowest tracked position is zero. Positive values are above zero; negative values are below it. Time starts at the beginning of each repetition."]} />
+      {phases.map(phase => <OverlayChart key={`${phase.kind}:${phase.occurrence}`} lines={phase.lines} label={formatInterfaceText(uiCopy["ui"]["{0}{1} from the start of the phase"], [PHASE_NAMES[phase.kind],phase.count > 1 ? ` ${phase.occurrence + 1}` : ''])} description={formatInterfaceText(uiCopy["ui"]["Bar speed during {0} only. Time starts at the beginning of that phase for each repetition. Speed is nonnegative; missing measurements appear as gaps. Patterns from different repetitions are overlaid."], [PHASE_NAMES[phase.kind].toLowerCase()])}
         unit={chosen[0] ? speedUnit(chosen[0].result) : 'px/s'} locale={locale} height={253} timeOrigin="phase" />)}
       <div className={styles.pathRow}>
-        <div className={styles.path}><OverlayChart lines={path} label="Bar path" unit={unit} xUnit={unit} locale={locale} square invertY
-          description="The tracked bar path over the full repetition. Each path starts at zero; horizontal and vertical axes use the same scale. Down on the plot means down in the video." /></div>
+        <div className={styles.path}><OverlayChart lines={path} label={uiCopy["video"]["detail"]["trajectory"]} unit={unit} xUnit={unit} locale={locale} square invertY
+          description={uiCopy["ui"]["The tracked bar path over the full repetition. Each path starts at zero; horizontal and vertical axes use the same scale. Down on the plot means down in the video."]} /></div>
         <PhaseBars rows={chosen} locale={locale} />
       </div>
-    </Card> : rows.length ? <p className={styles.hint}>Tick repetitions in the table to draw them.</p> : null}
+    </Card> : rows.length ? <p className={styles.hint}>{uiCopy["ui"]["Tick repetitions in the table to draw them."]}</p> : null}
   </div>;
 }
 
 /** Each compared rep's phases as one bar on a common time scale, with every phase's time. */
 function PhaseBars({ rows, locale }: { rows: RepRow[]; locale: Locale }) {
+  const uiCopy = useUiCopy();
+
   const longest = Math.max(...rows.map(row => row.rep.endSeconds - row.rep.startSeconds), 0.001);
-  return <section className={styles.phaseBars} aria-label="Phase times">
-    <h3>Phase times</h3>
+  return <section className={styles.phaseBars} aria-label={uiCopy["ui"]["Phase times"]}>
+    <h3>{uiCopy["ui"]["Phase times"]}</h3>
     <ul className={styles.phaseRows}>
       {rows.map(row => <li key={row.id}>
-        <span className={styles.phaseLabel}><i style={{ background: row.color }} aria-hidden="true" />Vid {row.sourceIndex + 1} · Rep {row.rep.number}<b>{formatNumber(locale, row.rep.endSeconds - row.rep.startSeconds, 2)} s</b></span>
+        <span className={styles.phaseLabel}><i style={{ background: row.color }} aria-hidden="true" />{uiCopy["ui"]["Vid"]} {row.sourceIndex + 1}  {uiCopy["ui"]["· Rep"]} {row.rep.number}<b>{formatNumber(locale, row.rep.endSeconds - row.rep.startSeconds, 2)} s</b></span>
         <span className={styles.phaseTrack} style={{ width: `${((row.rep.endSeconds - row.rep.startSeconds) / longest) * 100}%` }}>
           {row.rep.phases.map((phase, i) => {
             const kind = normalizePhase(phase.kind);
             const time = phase.endSeconds - phase.startSeconds;
             const same = row.rep.phases.filter(p => normalizePhase(p.kind) === kind);
             const ordinal = same.length > 1 ? ` ${same.indexOf(phase) + 1}` : '';
-            return <span key={i} className={styles.phaseSegment} data-kind={kind} style={{ flexGrow: time }} title={`${PHASE_NAMES[kind as keyof typeof PHASE_NAMES] ?? 'Other'}${ordinal}: ${formatNumber(locale, time, 2)} s`}>
+            return <span key={i} className={styles.phaseSegment} data-kind={kind} style={{ flexGrow: time }} title={`${PHASE_NAMES[kind as keyof typeof PHASE_NAMES] ?? "Other"}${ordinal}: ${formatNumber(locale, time, 2)} s`}>
               <span>{formatNumber(locale, time, 1)}</span>
             </span>;
           })}
         </span>
       </li>)}
     </ul>
-    <ul className={styles.phaseKey} aria-label="Phases">
-      <li data-kind="eccentric">Lowering</li><li data-kind="pause">Pause</li><li data-kind="concentric">Lifting</li>
+    <ul className={styles.phaseKey} aria-label={uiCopy["video"]["detail"]["phases"]}>
+      <li data-kind="eccentric">{uiCopy["video"]["detail"]["phaseNames"]["eccentric"]}</li><li data-kind="pause">{uiCopy["video"]["detail"]["phaseNames"]["pause"]}</li><li data-kind="concentric">{uiCopy["video"]["detail"]["phaseNames"]["concentric"]}</li>
     </ul>
   </section>;
 }
 
 /** Choose analyses to compare with: yours (completed) and the ones shared with you. Several at once. */
 export function CompareDialog({ exclude, initial, onClose, onConfirm }: { exclude: string[]; initial: CompareSource[]; onClose: () => void; onConfirm: (sources: CompareSource[]) => void }) {
+  const uiCopy = useUiCopy();
+
   const m = useT();
   const api = useApi();
   const account = useAccountKey();
@@ -211,19 +219,19 @@ export function CompareDialog({ exclude, initial, onClose, onConfirm }: { exclud
     return next;
   });
 
-  return <Dialog isOpen title="Compare with" description="Choose one or more analyses. Their repetitions join the table and the charts." onOpenChange={open => { if (!open) onClose(); }}
+  return <Dialog isOpen title={uiCopy["ui"]["Compare with"]} description={uiCopy["ui"]["Choose one or more analyses. Their repetitions join the table and the charts."]} onOpenChange={open => { if (!open) onClose(); }}
     size="lg" placement="right" closeLabel={m.common.close}
     footer={close => <>
       <Button variant="secondary" onPress={close}>{m.common.cancel}</Button>
-      <Button variant="primary" isDisabled={!chosen.size} onPress={() => { onConfirm([...chosen.values()]); close(); }}>{chosen.size > 1 ? `Compare ${chosen.size} analyses` : 'Compare'}</Button>
+      <Button variant="primary" isDisabled={!chosen.size} onPress={() => { onConfirm([...chosen.values()]); close(); }}>{chosen.size > 1 ? `Compare ${chosen.size} analyses` : uiCopy["video"]["compare"]["submit"]}</Button>
     </>}>
     <div className={styles.dialog}>
-      <SearchInput aria-label="Search analyses" placeholder="Search by name or exercise" value={search} onChange={setSearch} />
-      <ChipGroup aria-label="Filter by lift" selectedKeys={lift ? [lift] : []} onSelectionChange={keys => { const key = [...keys][0]; setLift(key == null ? null : String(key)); }}>
+      <SearchInput aria-label={uiCopy["video"]["list"]["searchLabel"]} placeholder={uiCopy["ui"]["Search by name or exercise"]} value={search} onChange={setSearch} />
+      <ChipGroup aria-label={uiCopy["ui"]["Filter by lift"]} selectedKeys={lift ? [lift] : []} onSelectionChange={keys => { const key = [...keys][0]; setLift(key == null ? null : String(key)); }}>
         {LIFTS.map(name => <Chip key={name} id={name}>{name}</Chip>)}
       </ChipGroup>
-      <p className={styles.hint}>Up to {MAX_COMPARED} videos at once{exclude.length ? `, including this one` : ''}: {chosen.size} of {room} chosen.</p>
-      {own.isPending ? <Skeleton height="12rem" radius="lg" /> : !options.length ? <p className={styles.hint}><Search aria-hidden="true" />{text || lift ? 'No matching analyses.' : 'No other completed analyses.'}</p>
+      <p className={styles.hint}>Up to {MAX_COMPARED}  {uiCopy["ui"]["videos at once"]}{exclude.length ? `, including this one` : ''}: {chosen.size} of {room}  {uiCopy["ui"]["chosen."]}</p>
+      {own.isPending ? <Skeleton height="12rem" radius="lg" /> : !options.length ? <p className={styles.hint}><Search aria-hidden="true" />{text || lift ? uiCopy["ui"]["No matching analyses."] : uiCopy["ui"]["No other completed analyses."]}</p>
         : <ul className={styles.options}>
           {options.map(({ source, meta, movement }) => {
             const on = chosen.has(sourceKey(source));

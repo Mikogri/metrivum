@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import type { ReactNode } from "react";
 import type { Schema } from "@metrivum/api-client-web";
 import { Alert, Avatar, Button, Dialog, LinkButton, toast } from "@metrivum/ui-web";
@@ -22,6 +23,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 function OfferSummary({ offer, billingOptionId }: { offer: OfferRevision; billingOptionId?: string | null }) {
+  const uiCopy = useUiCopy();
+
   const options = offer.billingOptions.filter((o) => !billingOptionId || o.id === billingOptionId);
   return <>
     <div className={styles.offerHead}>
@@ -30,12 +33,12 @@ function OfferSummary({ offer, billingOptionId }: { offer: OfferRevision; billin
       {offer.tags.length ? <span className={styles.tags}>{offer.tags.map((tag) => <span key={tag} className={styles.tag}>#{tag}</span>)}</span> : null}
     </div>
     {offer.description ? <p className={styles.prose}>{offer.description}</p> : null}
-    <Section title="Pricing">
+    <Section title={uiCopy["ui"]["Pricing"]}>
       <ul className={styles.options}>
         {options.map((o) => {
           const [price, ...rest] = priceDescription(o, offer.currency).split(" / ");
           return <li key={o.id} className={styles.option}>
-            <span className={styles.optionText}><strong>{o.name}</strong><small>{o.price === 0 ? "No payment required" : ({ Upfront: "Paid upfront", OnStart: "Paid when coaching starts" } as Record<string, string>)[o.paymentTerms?.rule ?? "Upfront"] ?? `${o.paymentTerms?.rule} payment`}</small></span>
+            <span className={styles.optionText}><strong>{o.name}</strong><small>{o.price === 0 ? uiCopy["ui"]["No payment required"] : ({ Upfront: "Paid upfront", OnStart: "Paid when coaching starts" } as Record<string, string>)[o.paymentTerms?.rule ?? "Upfront"] ?? `${o.paymentTerms?.rule} payment`}</small></span>
             <span className={styles.optionPrice}><strong>{price}</strong>{rest.length ? <small>/ {rest.join(" / ")}</small> : null}</span>
           </li>;
         })}
@@ -46,6 +49,8 @@ function OfferSummary({ offer, billingOptionId }: { offer: OfferRevision; billin
 
 /** An invitation opened from the chat: its terms and the reply actions, without leaving the conversation. */
 export function InvitationDialog({ invitationId, close }: { invitationId: string; close: () => void }) {
+  const uiCopy = useUiCopy();
+
   const profile = useProfile();
   const apply = useFeatureAccess("coaching.applications.submit-own");
   const reason = useFeatureReasonText();
@@ -62,14 +67,14 @@ export function InvitationDialog({ invitationId, close }: { invitationId: string
     <Dialog
       isOpen
       size="md"
-      title="Coaching invitation"
+      title={uiCopy["ui"]["Coaching invitation"]}
       description={i ? i.offerRevision.name : undefined}
       isDismissable={!mutation.isPending}
       onOpenChange={(open) => { if (!open) close(); }}
       footer={i && (actions.length || i.applicationId) ? () => <>
-        {actions.filter((a) => a !== "accept").map((action) => <Button key={action} variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await ask(action === "revoke" ? { title: "Revoke this invitation?", body: "The client can no longer accept it. You can send a new invitation later.", confirmLabel: "Revoke invitation", cancelLabel: "Keep invitation" } : { title: "Decline this invitation?", body: "The coach is told you declined. You can still apply to their offers later.", confirmLabel: "Decline invitation", cancelLabel: "Keep invitation" })) act(action); }}>{action === "revoke" ? "Revoke invitation" : "Decline"}</Button>)}
-        {i.applicationId ? <LinkButton href={`/app/applications/${i.applicationId}`}>Open application</LinkButton> : null}
-        {actions.includes("accept") ? <Button variant="success" loading={mutation.isPending} onPress={() => act("accept")}>Accept invitation</Button> : null}
+        {actions.filter((a) => a !== "accept").map((action) => <Button key={action} variant="danger-ghost" isDisabled={mutation.isPending} onPress={async () => { if (await ask(action === "revoke" ? { title: uiCopy["ui"]["Revoke this invitation?"], body: "The client can no longer accept it. You can send a new invitation later.", confirmLabel: uiCopy["ui"]["Revoke invitation"], cancelLabel: uiCopy["ui"]["Keep invitation"] } : { title: uiCopy["ui"]["Decline this invitation?"], body: "The coach is told you declined. You can still apply to their offers later.", confirmLabel: uiCopy["ui"]["Decline invitation"], cancelLabel: uiCopy["ui"]["Keep invitation"] })) act(action); }}>{action === "revoke" ? uiCopy["ui"]["Revoke invitation"] : uiCopy["ui"]["Decline"]}</Button>)}
+        {i.applicationId ? <LinkButton href={`/app/applications/${i.applicationId}`}>{uiCopy["ui"]["Open application"]}</LinkButton> : null}
+        {actions.includes("accept") ? <Button variant="success" loading={mutation.isPending} onPress={() => act("accept")}>{uiCopy["ui"]["Accept invitation"]}</Button> : null}
       </> : undefined}
     >
       {query.isPending ? <Loading /> : query.isError ? <Failure error={query.error} retry={() => void query.refetch()} /> : i && person ? <div className={styles.stack}>
@@ -77,17 +82,17 @@ export function InvitationDialog({ invitationId, close }: { invitationId: string
           <Avatar name={person.displayName} size="lg" decorative />
           <span className={styles.personText}>
             <strong>{person.displayName}</strong>
-            <small>{coach ? "Invited client" : "Coach"}{person.username ? ` · @${person.username}` : ""}</small>
+            <small>{coach ? uiCopy["ui"]["Invited client"] : uiCopy["profile"]["roles"]["Coach"]}{person.username ? ` · @${person.username}` : ""}</small>
           </span>
           <StatusBadge status={i.status} />
         </div>
         {i.message ? <blockquote className={styles.quote}>{i.message}</blockquote> : null}
         <Facts items={[
-          { label: "Sent", value: when(i.createdAt) },
-          { label: "Responded", value: i.respondedAt ? when(i.respondedAt) : "Waiting for a response" },
+          { label: uiCopy["ui"]["Sent"], value: when(i.createdAt) },
+          { label: uiCopy["ui"]["Responded"], value: i.respondedAt ? when(i.respondedAt) : "Waiting for a response" },
         ]} />
-        <Section title="Offer"><OfferSummary offer={i.offerRevision} billingOptionId={i.billingOptionId} /></Section>
-        {canStart ? <Section title={i.offerRevision.applicationFormVersionId ? "Application form" : "Application"}>{i.allowedActions.includes("apply") && apply.allowed ? <StartApplication offer={i.offerRevision} invitationId={i.id} preselected={i.billingOptionId} /> : <Alert title="Application is currently unavailable">{reason(apply)}</Alert>}</Section> : <p className={styles.note}>These offer terms are reserved in this invitation. Accepting lets {coach ? "the client" : "you"} submit an application.</p>}
+        <Section title={uiCopy["ui"]["Offer"]}><OfferSummary offer={i.offerRevision} billingOptionId={i.billingOptionId} /></Section>
+        {canStart ? <Section title={i.offerRevision.applicationFormVersionId ? uiCopy["ui"]["Application form"] : uiCopy["ui"]["Application"]}>{i.allowedActions.includes("apply") && apply.allowed ? <StartApplication offer={i.offerRevision} invitationId={i.id} preselected={i.billingOptionId} /> : <Alert title={uiCopy["ui"]["Application is currently unavailable"]}>{reason(apply)}</Alert>}</Section> : <p className={styles.note}>{uiCopy["ui"]["These offer terms are reserved in this invitation. Accepting lets"]} {coach ? uiCopy["ui"]["the client"] : uiCopy["ui"]["you"]}  {uiCopy["ui"]["submit an application."]}</p>}
         <MutationError error={mutation.error} />
       </div> : null}
     </Dialog>
@@ -97,11 +102,13 @@ export function InvitationDialog({ invitationId, close }: { invitationId: string
 
 /** An application form shared in the chat: the offer and the start of the application, in place. */
 export function OfferDialog({ coachId, offerId, close }: { coachId: string; offerId: string; close: () => void }) {
+  const uiCopy = useUiCopy();
+
   const query = useCoachingQuery<OfferRevision>(`/api/v1/coaches/${coachId}/offers/${offerId}`);
-  return <Dialog isOpen size="md" title={query.data?.applicationFormVersionId ? "Application form" : "Application"} onOpenChange={(open) => { if (!open) close(); }}>
+  return <Dialog isOpen size="md" title={query.data?.applicationFormVersionId ? uiCopy["ui"]["Application form"] : uiCopy["ui"]["Application"]} onOpenChange={(open) => { if (!open) close(); }}>
     {query.isPending ? <Loading /> : query.isError ? <Failure error={query.error} retry={() => void query.refetch()} /> : <div className={styles.stack}>
       <OfferSummary offer={query.data} />
-      <Section title="Apply for coaching"><StartApplication offer={query.data} /></Section>
+      <Section title={uiCopy["ui"]["Apply for coaching"]}><StartApplication offer={query.data} /></Section>
     </div>}
   </Dialog>;
 }

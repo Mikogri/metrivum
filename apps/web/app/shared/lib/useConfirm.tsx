@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useCallback, useRef, useState } from "react";
 import { AlertDialog } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -54,6 +55,8 @@ export interface DangerConfirmOptions {
  * `await ask({...})` resolves true when confirmed. Render `dialog` once in the tree.
  */
 export function useDangerConfirm() {
+ const uiCopy = useUiCopy();
+
   const [options, setOptions] = useState<DangerConfirmOptions | null>(null);
   const resolver = useRef<((value: boolean) => void) | null>(null);
   // Keeps the copy on screen while the dialog plays its exit animation.
@@ -84,8 +87,8 @@ export function useDangerConfirm() {
       }}
       title={view?.title ?? ""}
       tone="danger"
-      confirmLabel={view?.confirmLabel ?? "Confirm"}
-      cancelLabel={view?.cancelLabel ?? "Cancel"}
+      confirmLabel={view?.confirmLabel ?? uiCopy["ui"]["Confirm"]}
+      cancelLabel={view?.cancelLabel ?? uiCopy["common"]["cancel"]}
       onConfirm={() => settle(true)}
     >
       {typeof view?.body === "string" ? <p>{view.body}</p> : view?.body}

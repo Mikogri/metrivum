@@ -1,0 +1,76 @@
+/* Round buttons sitting on the avatar's edge: change at the bottom right, remove at the top right. */
+.button {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 2px solid var(--tf-color-surface);
+  border-radius: 50%;
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-text);
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    transform 140ms var(--tf-ease-out, ease-out);
+}
+
+.button[data-place="change"] {
+  right: 0;
+  bottom: 0;
+}
+
+.button[data-place="remove"] {
+  top: 0;
+  right: 0;
+  color: var(--tf-color-danger);
+}
+
+.button svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.button[data-busy],
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.button:active:not([data-busy]):not(:disabled) {
+  transform: scale(0.94);
+}
+
+.button:focus-within,
+.button:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover:not([data-busy]):not(:disabled) {
+    background: var(--tf-color-surface-raised, var(--tf-color-surface-overlay));
+  }
+}
+
+.error {
+  position: absolute;
+  top: calc(100% + var(--tf-space-1));
+  left: 0;
+  width: max-content;
+  max-width: 16rem;
+  padding: var(--tf-space-1) var(--tf-space-2);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+}

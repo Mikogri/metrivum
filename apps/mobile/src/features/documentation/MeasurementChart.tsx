@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import type { Schema } from "@metrivum/api-client-web";
 import { EmptyState, Text } from "@metrivum/ui-mobile";
 import { Chart } from "@metrivum/ui-mobile/chart";
@@ -13,14 +14,16 @@ export function MeasurementChart({
     measurementKey: string;
     page: number;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const selected = records.filter((point) => point.key === measurementKey);
     const units = [...new Set(selected.map((point) => point.unit))];
     if (!selected.length)
         return (
             <EmptyState
                 icon="progress"
-                title="No measurements in this period"
-                description="Change the dates, or add the first one."
+                title={nativeCopy("interface.No measurements in this period")}
+                description={nativeCopy("interface.Change the dates, or add the first one.")}
             />
         );
     return (
@@ -42,7 +45,7 @@ export function MeasurementChart({
             {(page > 1 || units.length > 1) && (
                 <Text variant="caption" tone="subtleText">
                     {units.length > 1
-                        ? "Each unit has its own scale. "
+                        ? nativeCopy("interface.Each unit has its own scale. ")
                         : ""}
                     {page > 1
                         ? `Showing page ${page} of the history.`

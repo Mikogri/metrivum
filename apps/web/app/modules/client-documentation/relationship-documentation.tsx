@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useEffect, useState } from "react";
 import { FileText, Image as ImageIcon, MoreHorizontal, NotebookPen, Pencil, Plus, Scale } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -57,6 +59,8 @@ export function RelationshipDocumentation({ relationshipId, clientView = false }
 type Section = "documents" | "notes";
 
 function Documentation({ relationshipId, clientView }: { relationshipId: string; clientView: boolean }) {
+  const uiCopy = useUiCopy();
+
   const [tab, setTab] = useState<Section>("documents");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
@@ -73,11 +77,11 @@ function Documentation({ relationshipId, clientView }: { relationshipId: string;
   const addLabel = tab === "documents" ? "Add file" : "New note";
   const base = root(relationshipId);
   return (
-    <section className={styles.workspace} aria-label="Relationship documentation">
-      {!canWrite && <Alert title={`${access.data.status} relationship — historical records are read-only.`} tone="info" />}
-      <Toolbar aria-label="Documentation" className={styles.toolbar}>
+    <section className={styles.workspace} aria-label={uiCopy["ui"]["Relationship documentation"]}>
+      {!canWrite && <Alert title={formatInterfaceText(uiCopy["ui"]["{0} relationship — historical records are read-only."], [access.data.status])} tone="info" />}
+      <Toolbar aria-label={uiCopy["ui"]["Documentation"]} className={styles.toolbar}>
         <SegmentedControl
-          aria-label="Documentation sections"
+          aria-label={uiCopy["ui"]["Documentation sections"]}
           selectedKeys={[tab]}
           onSelectionChange={(keys) => {
             const next = [...keys][0] as Section | undefined;
@@ -94,17 +98,17 @@ function Documentation({ relationshipId, clientView }: { relationshipId: string;
           ))}
         </SegmentedControl>
         <SearchInput
-          aria-label={tab === "documents" ? "Search documents" : "Search private notes"}
-          placeholder="Search"
+          aria-label={tab === "documents" ? uiCopy["ui"]["Search documents"] : uiCopy["ui"]["Search private notes"]}
+          placeholder={uiCopy["training"]["library"]["searchPlaceholder"]}
           value={search}
           onChange={setSearch}
           className={styles.search}
         />
         {tab === "documents" ? (
-          <Select aria-label="File category" className={styles.category} selectedKey={category} onSelectionChange={(key) => setCategory(String(key))}>
-            <Option id="All">All files</Option>
-            <Option id="ProgressPhoto">Progress photos</Option>
-            <Option id="Files">Other files and documents</Option>
+          <Select aria-label={uiCopy["ui"]["File category"]} className={styles.category} selectedKey={category} onSelectionChange={(key) => setCategory(String(key))}>
+            <Option id="All">{uiCopy["ui"]["All files"]}</Option>
+            <Option id="ProgressPhoto">{uiCopy["ui"]["Progress photos"]}</Option>
+            <Option id="Files">{uiCopy["ui"]["Other files and documents"]}</Option>
           </Select>
         ) : null}
         <span className={styles.spacer} />
@@ -126,23 +130,29 @@ function Documentation({ relationshipId, clientView }: { relationshipId: string;
 /* ------------------------------------------------------------------ body metrics */
 
 export function BodyMeasurements({ relationshipId }: { relationshipId: string }) {
+  const uiCopy = useUiCopy();
+
   const account = useAccountKey();
   const access = useCoachingQuery<Access>(`${root(relationshipId)}/`);
-  if (access.isPending) return <Panel title="Body metrics" icon={<Scale />} tone="rose"><MeasurementsSkeleton /></Panel>;
+  if (access.isPending) return <Panel title={uiCopy["ui"]["Body metrics"]} icon={<Scale />} tone="rose"><MeasurementsSkeleton /></Panel>;
   if (access.isError) return <Failure error={access.error} retry={() => void access.refetch()} />;
   return <Measurements key={`${account}:${relationshipId}`} base={root(relationshipId)} canWrite={access.data.allowedActions.includes("measure")} canEdit={access.data.coach} />;
 }
 
 /** Loading body metrics: one centred spinner where the numbers and the chart will appear. */
 function MeasurementsSkeleton() {
+ const uiCopy = useUiCopy();
+
   return (
-    <div className={styles.chartLoading} role="status" aria-label="Loading measurements">
+    <div className={styles.chartLoading} role="status" aria-label={uiCopy["ui"]["Loading measurements"]}>
       <Spinner size="md" />
     </div>
   );
 }
 
 function Measurements({ base, canWrite, canEdit }: { base: string; canWrite: boolean; canEdit: boolean }) {
+  const uiCopy = useUiCopy();
+
   const [editing, setEditing] = useState<Measurement | "new" | null>(null);
   const [key, setKey] = useState("weight");
   const [unit, setUnit] = useState("kg");
@@ -159,13 +169,13 @@ function Measurements({ base, canWrite, canEdit }: { base: string; canWrite: boo
 
   return (
     <Panel
-      title="Body metrics"
+      title={uiCopy["ui"]["Body metrics"]}
       icon={<Scale />}
       tone="rose"
       actions={
         <>
           <Select
-            aria-label="Measurement"
+            aria-label={uiCopy["ui"]["Measurement"]}
             selectedKey={key}
             onSelectionChange={(k) => {
               const d = definitions.data?.find((x) => x.key === k);
@@ -182,7 +192,7 @@ function Measurements({ base, canWrite, canEdit }: { base: string; canWrite: boo
             ))}
           </Select>
           {units.length > 1 ? (
-            <Select aria-label="Unit" selectedKey={unit} onSelectionChange={(k) => setUnit(String(k))} className={styles.unitSelect}>
+            <Select aria-label={uiCopy["editor"]["panel"]["unit"]} selectedKey={unit} onSelectionChange={(k) => setUnit(String(k))} className={styles.unitSelect}>
               {units.map((u) => (
                 <Option id={u} key={u}>{u}</Option>
               ))}
@@ -199,7 +209,8 @@ function Measurements({ base, canWrite, canEdit }: { base: string; canWrite: boo
           />
           {canWrite ? (
             <Button variant="primary" iconStart={<Plus />} onPress={() => setEditing("new")}>
-              Add measurement
+
+              {uiCopy["ui"]["Add measurement"]}
             </Button>
           ) : null}
         </>
@@ -210,9 +221,9 @@ function Measurements({ base, canWrite, canEdit }: { base: string; canWrite: boo
         <div className={styles.trend}>
           <StatStrip
             items={[
-              { label: "Latest", value: trend.data.latestValue == null ? "—" : `${fmt(Number(trend.data.latestValue))} ${unit}` },
-              { label: "Change in period", value: trend.data.change == null ? "—" : `${Number(trend.data.change) > 0 ? "+" : ""}${fmt(Number(trend.data.change))} ${changeUnit}` },
-              { label: "Recorded", value: trend.data.latestAt ? new Date(trend.data.latestAt).toLocaleDateString() : "—" },
+              { label: uiCopy["ui"]["Latest"], value: trend.data.latestValue == null ? "—" : `${fmt(Number(trend.data.latestValue))} ${unit}` },
+              { label: uiCopy["ui"]["Change in period"], value: trend.data.change == null ? "—" : `${Number(trend.data.change) > 0 ? "+" : ""}${fmt(Number(trend.data.change))} ${changeUnit}` },
+              { label: uiCopy["ui"]["Recorded"], value: trend.data.latestAt ? new Date(trend.data.latestAt).toLocaleDateString() : "—" },
             ]}
           />
           <MeasurementChart points={trend.data.points.map((p) => ({ observedAt: p.observedAt, value: Number(p.value) }))} unit={unit} />
@@ -220,9 +231,9 @@ function Measurements({ base, canWrite, canEdit }: { base: string; canWrite: boo
       )}
       {list.isPending ? null : list.isError ? <Failure error={list.error} /> : list.data.items.length ? (
         <details className={styles.history}>
-          <summary>All measurements ({list.data.total})</summary>
+          <summary>{uiCopy["ui"]["All measurements ("]}{list.data.total})</summary>
           <DataTable
-            label="Measurements"
+            label={uiCopy["ui"]["Measurements"]}
             rows={list.data.items}
             rowKey={(m) => m.id}
             columns={[
@@ -232,10 +243,10 @@ function Measurements({ base, canWrite, canEdit }: { base: string; canWrite: boo
               { id: "comment", header: "Comment", hideOnMobile: true, muted: true, cell: (m) => m.comment || "—" },
               {
                 id: "actions",
-                header: <span className="tf-visually-hidden">Actions</span>,
+                header: <span className="tf-visually-hidden">{uiCopy["editor"]["sheet"]["contextLabel"]}</span>,
                 width: "3.5rem",
                 align: "end",
-                cell: (m) => (canWrite && canEdit && m.source !== "CheckIn" ? <IconButton size="sm" label="Edit measurement" icon={<Pencil />} onPress={() => setEditing(m)} /> : null),
+                cell: (m) => (canWrite && canEdit && m.source !== "CheckIn" ? <IconButton size="sm" label={uiCopy["ui"]["Edit measurement"]} icon={<Pencil />} onPress={() => setEditing(m)} /> : null),
               },
             ]}
           />
@@ -258,12 +269,14 @@ function Measurements({ base, canWrite, canEdit }: { base: string; canWrite: boo
 }
 
 function MeasurementDialog({ base, measurement, metricKey, unit, label, close }: { base: string; measurement: Measurement | null; metricKey: string; unit: string; label: string; close: () => void }) {
+  const uiCopy = useUiCopy();
+
   const [value, setValue] = useState(measurement ? String(measurement.value) : "");
   const [observed, setObserved] = useState(measurement ? measurement.observedAt.slice(0, 10) : today());
   const [comment, setComment] = useState(measurement?.comment ?? "");
   const mutation = useCoachingMutation(close);
   return (
-    <Dialog isOpen title={measurement ? "Edit measurement" : "Add measurement"} description={label} onOpenChange={(open) => { if (!open && !mutation.isPending) close(); }}>
+    <Dialog isOpen title={measurement ? uiCopy["ui"]["Edit measurement"] : uiCopy["ui"]["Add measurement"]} description={label} onOpenChange={(open) => { if (!open && !mutation.isPending) close(); }}>
       <form
         className={styles.form}
         onSubmit={(e) => {
@@ -272,14 +285,14 @@ function MeasurementDialog({ base, measurement, metricKey, unit, label, close }:
         }}
       >
         <div className={styles.pair}>
-          <TextField label={`Value (${unit})`} placeholder="e.g. 80.5" type="number" value={value} onChange={setValue} isRequired autoFocus />
-          <TextField label="Observed date" type="date" value={observed} onChange={setObserved} isRequired />
+          <TextField label={formatInterfaceText(uiCopy["ui"]["Value ({0})"], [unit])} placeholder="e.g. 80.5" type="number" value={value} onChange={setValue} isRequired autoFocus />
+          <TextField label={uiCopy["ui"]["Observed date"]} type="date" value={observed} onChange={setObserved} isRequired />
         </div>
-        <TextArea label="Context / comment" placeholder="e.g. Morning, before breakfast" value={comment} onChange={setComment} maxLength={2000} />
+        <TextArea label={uiCopy["ui"]["Context / comment"]} placeholder={uiCopy["ui"]["e.g. Morning, before breakfast"]} value={comment} onChange={setComment} maxLength={2000} />
         <MutationError error={mutation.error} />
         <DialogFooter>
-          <Button onPress={close} isDisabled={mutation.isPending}>Cancel</Button>
-          <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!value || !observed}>Save measurement</Button>
+          <Button onPress={close} isDisabled={mutation.isPending}>{uiCopy["common"]["cancel"]}</Button>
+          <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!value || !observed}>{uiCopy["ui"]["Save measurement"]}</Button>
         </DialogFooter>
       </form>
     </Dialog>
@@ -289,14 +302,16 @@ function MeasurementDialog({ base, measurement, metricKey, unit, label, close }:
 /* ------------------------------------------------------------------ notes */
 
 function Notes({ base, canWrite, search, creating, onCreatingChange }: { base: string; canWrite: boolean; search: string; creating: boolean; onCreatingChange: (open: boolean) => void }) {
+  const uiCopy = useUiCopy();
+
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<Note | null>(null);
   const list = useCoachingQuery<Page<Note>>(`${base}/notes`, { search, page, pageSize: 15 });
   return (
     <div className={styles.stack}>
-      <p className={styles.hint}>Only the author can access these notes, including in Teams. Notes are never sent in notifications.</p>
+      <p className={styles.hint}>{uiCopy["ui"]["Only the author can access these notes, including in Teams. Notes are never sent in notifications."]}</p>
       {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} /> : !list.data.items.length ? (
-        <EmptyState icon={<NotebookPen />} title={search ? "No matching notes" : "No private notes"} description="Keep call summaries and observations here, visible only to you." />
+        <EmptyState icon={<NotebookPen />} title={search ? uiCopy["ui"]["No matching notes"] : uiCopy["ui"]["No private notes"]} description={uiCopy["ui"]["Keep call summaries and observations here, visible only to you."]} />
       ) : (
         <>
           <ul className={styles.notes}>
@@ -304,10 +319,10 @@ function Notes({ base, canWrite, search, creating, onCreatingChange }: { base: s
               <li key={n.id} className={styles.note}>
                 <header className={styles.noteHead}>
                   <div>
-                    <h3>{n.title || "Private note"}</h3>
-                    <time className={styles.meta}>Updated {new Date(n.updatedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</time>
+                    <h3>{n.title || uiCopy["ui"]["Private note"]}</h3>
+                    <time className={styles.meta}>{uiCopy["training"]["library"]["columns"]["updated"]} {new Date(n.updatedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</time>
                   </div>
-                  {canWrite ? <IconButton size="sm" label="Edit note" icon={<Pencil />} onPress={() => setEditing(n)} /> : null}
+                  {canWrite ? <IconButton size="sm" label={uiCopy["ui"]["Edit note"]} icon={<Pencil />} onPress={() => setEditing(n)} /> : null}
                 </header>
                 <p className={styles.plain}>{n.text}</p>
               </li>
@@ -332,11 +347,13 @@ function Notes({ base, canWrite, search, creating, onCreatingChange }: { base: s
 }
 
 function NoteDialog({ base, note, close }: { base: string; note: Note | null; close: () => void }) {
+  const uiCopy = useUiCopy();
+
   const [title, setTitle] = useState(note?.title ?? "");
   const [text, setText] = useState(note?.text ?? "");
   const mutation = useCoachingMutation(close);
   return (
-    <Dialog isOpen title={note ? "Edit private note" : "New private note"} onOpenChange={(open) => { if (!open && !mutation.isPending) close(); }}>
+    <Dialog isOpen title={note ? uiCopy["ui"]["Edit private note"] : uiCopy["ui"]["New private note"]} onOpenChange={(open) => { if (!open && !mutation.isPending) close(); }}>
       <form
         className={styles.form}
         onSubmit={(e) => {
@@ -344,12 +361,12 @@ function NoteDialog({ base, note, close }: { base: string; note: Note | null; cl
           mutation.mutate({ method: note ? "PATCH" : "POST", path: `${base}/notes${note ? `/${note.id}` : ""}`, ifMatch: note?.version, json: { text, title } });
         }}
       >
-        <TextField label="Note title" placeholder="e.g. Knee feels better after deloads" value={title} onChange={setTitle} maxLength={200} isRequired autoFocus />
-        <TextArea label="Note" placeholder="Write what you want to remember about this client…" value={text} onChange={setText} maxLength={20000} isRequired />
+        <TextField label={uiCopy["ui"]["Note title"]} placeholder={uiCopy["ui"]["e.g. Knee feels better after deloads"]} value={title} onChange={setTitle} maxLength={200} isRequired autoFocus />
+        <TextArea label={uiCopy["video"]["new"]["note"]} placeholder={uiCopy["ui"]["Write what you want to remember about this client…"]} value={text} onChange={setText} maxLength={20000} isRequired />
         <MutationError error={mutation.error} />
         <DialogFooter>
-          <Button onPress={close} isDisabled={mutation.isPending}>Cancel</Button>
-          <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!text.trim() || !title.trim()}>Save note</Button>
+          <Button onPress={close} isDisabled={mutation.isPending}>{uiCopy["common"]["cancel"]}</Button>
+          <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!text.trim() || !title.trim()}>{uiCopy["ui"]["Save note"]}</Button>
         </DialogFooter>
       </form>
     </Dialog>
@@ -362,6 +379,8 @@ const kindOf = (d: Document) => (!d.hasFile ? "TXT" : d.contentType?.startsWith(
 const sizeOf = (size: Document["size"]) => (size == null ? null : Number(size) > 1_000_000 ? `${(Number(size) / 1_000_000).toFixed(1)} MB` : `${Math.max(1, Math.round(Number(size) / 1000))} KB`);
 
 function Documents({ base, canWrite, coach, search, category, creating, onCreatingChange }: { base: string; canWrite: boolean; coach: boolean; search: string; category: string; creating: boolean; onCreatingChange: (open: boolean) => void }) {
+  const uiCopy = useUiCopy();
+
   const photos = category === "ProgressPhoto";
   const [removing, setRemoving] = useState<Document | null>(null);
   const [editing, setEditing] = useState<Document | null>(null);
@@ -383,28 +402,28 @@ function Documents({ base, canWrite, coach, search, category, creating, onCreati
     if (!canEditDoc && !canShare && !canDelete && d.hasFile) return null;
     return (
       <DropdownMenuTrigger>
-        <IconButton size="sm" label={`Actions for ${d.title}`} icon={<MoreHorizontal />} />
-        <DropdownMenu aria-label={`Actions for ${d.title}`} onAction={(key) => onAction(d, key)}>
-          {!d.hasFile ? <DropdownMenuItem id="view">Open</DropdownMenuItem> : null}
-          {canEditDoc ? <DropdownMenuItem id="edit">Edit details</DropdownMenuItem> : null}
-          {canShare ? <DropdownMenuItem id="share">{d.visibility === "CoachPrivate" ? (coach ? "Share with client" : "Share with coach") : "Make visible only to me"}</DropdownMenuItem> : null}
+        <IconButton size="sm" label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [d.title])} icon={<MoreHorizontal />} />
+        <DropdownMenu aria-label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [d.title])} onAction={(key) => onAction(d, key)}>
+          {!d.hasFile ? <DropdownMenuItem id="view">{uiCopy["common"]["open"]}</DropdownMenuItem> : null}
+          {canEditDoc ? <DropdownMenuItem id="edit">{uiCopy["video"]["detail"]["editDetails"]}</DropdownMenuItem> : null}
+          {canShare ? <DropdownMenuItem id="share">{d.visibility === "CoachPrivate" ? (coach ? uiCopy["ui"]["Share with client"] : uiCopy["ui"]["Share with coach"]) : uiCopy["ui"]["Make visible only to me"]}</DropdownMenuItem> : null}
           {canDelete ? <DropdownMenuSeparator /> : null}
-          {canDelete ? <DropdownMenuItem id="delete" tone="danger">Delete document</DropdownMenuItem> : null}
+          {canDelete ? <DropdownMenuItem id="delete" tone="danger">{uiCopy["ui"]["Delete document"]}</DropdownMenuItem> : null}
         </DropdownMenu>
       </DropdownMenuTrigger>
     );
   };
-  const visibility = (d: Document) => (d.visibility === "CoachPrivate" ? <Badge size="sm">Only me</Badge> : <Badge size="sm" tone="success">{coach ? "Shared with client" : "Shared with coach"}</Badge>);
+  const visibility = (d: Document) => (d.visibility === "CoachPrivate" ? <Badge size="sm">{uiCopy["ui"]["Only me"]}</Badge> : <Badge size="sm" tone="success">{coach ? uiCopy["ui"]["Shared with client"] : uiCopy["ui"]["Shared with coach"]}</Badge>);
 
   return (
     <div className={styles.stack}>
-      <p className={styles.hint}>Your private files and shared files appear together here. Only you can see files marked Only me.</p>
+      <p className={styles.hint}>{uiCopy["ui"]["Your private files and shared files appear together here. Only you can see files marked Only me."]}</p>
       <MutationError error={share.error} />
       {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} /> : !list.data.items.length ? (
         <EmptyState
           icon={photos ? <ImageIcon /> : <FileText />}
-          title={search ? "Nothing matches this search" : photos ? "No progress photos available." : "No documents available."}
-          description={photos ? "Progress photos for this collaboration appear here." : "Files and text documents for this collaboration appear here."}
+          title={search ? uiCopy["ui"]["Nothing matches this search"] : photos ? uiCopy["ui"]["No progress photos available."] : uiCopy["ui"]["No documents available."]}
+          description={photos ? uiCopy["ui"]["Progress photos for this collaboration appear here."] : uiCopy["ui"]["Files and text documents for this collaboration appear here."]}
         />
       ) : photos ? (
         <ul className={styles.gallery}>
@@ -462,14 +481,15 @@ function Documents({ base, canWrite, coach, search, category, creating, onCreati
       <AlertDialog
         isOpen={removing !== null}
         onOpenChange={(open) => { if (!open && !remove.isPending) setRemoving(null); }}
-        title="Delete this document?"
+        title={uiCopy["ui"]["Delete this document?"]}
         tone="danger"
-        confirmLabel="Delete document"
-        cancelLabel="Keep document"
+        confirmLabel={uiCopy["ui"]["Delete document"]}
+        cancelLabel={uiCopy["ui"]["Keep document"]}
         isConfirming={remove.isPending}
         onConfirm={() => { if (removing) remove.mutate({ method: "DELETE", path: `${base}/documents/${removing.id}`, ifMatch: removing.version }); }}
       >
-        The document will disappear from this relationship and new file access will be blocked. Retained records and private storage are not permanently erased.
+
+        {uiCopy["ui"]["The document will disappear from this relationship and new file access will be blocked. Retained records and private storage are not permanently erased."]}
         <MutationError error={remove.error} />
       </AlertDialog>
     </div>
@@ -490,6 +510,8 @@ function useReadUrl(base: string, document: Document, enabled: boolean) {
 }
 
 function PhotoThumb({ base, document }: { base: string; document: Document }) {
+ const uiCopy = useUiCopy();
+
   const read = useReadUrl(base, document, document.hasFile);
   const [expired, setExpired] = useState(true);
   useEffect(() => {
@@ -502,7 +524,7 @@ function PhotoThumb({ base, document }: { base: string; document: Document }) {
   return (
     <div className={styles.thumb}>
       {read.data && !expired ? (
-        <a href={read.data.url} target="_blank" rel="noreferrer" aria-label={`Open ${document.title}`}>
+        <a href={read.data.url} target="_blank" rel="noreferrer" aria-label={formatInterfaceText(uiCopy["ui"]["Open {0}"], [document.title])}>
           <img src={read.data.url} alt={document.description || document.title} loading="lazy" />
         </a>
       ) : (
@@ -515,19 +537,23 @@ function PhotoThumb({ base, document }: { base: string; document: Document }) {
 }
 
 function DownloadLink({ base, document }: { base: string; document: Document }) {
+ const uiCopy = useUiCopy();
+
   const { api, lifecycle } = useAccountContext();
   const open = useMutation({
     mutationFn: async () => (await api<{ url: string }>({ method: "POST", path: `${base}/documents/${document.id}/read-url` })).data,
     onSuccess: (data) => { if (lifecycle.isCurrent()) window.open(data.url, "_blank", "noopener"); },
   });
   return (
-    <button type="button" className={styles.fileName} onClick={() => open.mutate()} aria-busy={open.isPending || undefined} title="Open file (temporary link)">
+    <button type="button" className={styles.fileName} onClick={() => open.mutate()} aria-busy={open.isPending || undefined} title={uiCopy["ui"]["Open file (temporary link)"]}>
       {document.title}
     </button>
   );
 }
 
 function DocumentDialog({ base, coach, photos, document, close }: { base: string; coach: boolean; photos: boolean; document: Document | null; close: () => void }) {
+  const uiCopy = useUiCopy();
+
   const [title, setTitle] = useState(document?.title ?? "");
   const [description, setDescription] = useState(document?.description ?? "");
   const [text, setText] = useState(document?.text ?? "");
@@ -568,36 +594,37 @@ function DocumentDialog({ base, coach, photos, document, close }: { base: string
   return (
     <Dialog
       isOpen
-      title={document ? "Edit document" : photos ? "Add progress photo" : "Add document or file"}
+      title={document ? uiCopy["ui"]["Edit document"] : photos ? uiCopy["ui"]["Add progress photo"] : uiCopy["ui"]["Add document or file"]}
       onOpenChange={(open) => { if (!open && !save.isPending) close(); }}
     >
       <form className={styles.form} onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
         {!document ? (
           <label className={styles.drop}>
             <input key={file?.name ?? "empty"} type="file" accept={photos ? "image/png,image/jpeg,image/webp" : "image/png,image/jpeg,image/webp,application/pdf,text/plain"} onChange={(e) => { setFile(e.target.files?.[0] ?? null); setUploadId(null); }} />
-            <span className={styles.dropTitle}>{file ? file.name : photos ? "Choose a photo" : "Choose a file (optional)"}</span>
-            <span className={styles.meta}>{photos ? "PNG, JPEG or WebP" : "PDF, image or text — leave empty to write a text document"}</span>
+            <span className={styles.dropTitle}>{file ? file.name : photos ? uiCopy["ui"]["Choose a photo"] : uiCopy["ui"]["Choose a file (optional)"]}</span>
+            <span className={styles.meta}>{photos ? uiCopy["ui"]["PNG, JPEG or WebP"] : uiCopy["ui"]["PDF, image or text — leave empty to write a text document"]}</span>
           </label>
         ) : null}
-        <TextField label="Title" placeholder={photos ? "e.g. Front pose, week 4" : "e.g. Blood test results"} value={title} onChange={setTitle} maxLength={200} isRequired autoFocus />
-        <TextArea label={photos ? "Caption" : "Description"} placeholder={photos ? "Optional caption for this photo" : "What this document is about"} value={description} onChange={setDescription} maxLength={2000} />
+        <TextField label={uiCopy["profile"]["showcase"]["fileTitle"]} placeholder={photos ? uiCopy["ui"]["e.g. Front pose, week 4"] : uiCopy["ui"]["e.g. Blood test results"]} value={title} onChange={setTitle} maxLength={200} isRequired autoFocus />
+        <TextArea label={photos ? uiCopy["ui"]["Caption"] : uiCopy["training"]["library"]["createDialog"]["description"]} placeholder={photos ? uiCopy["ui"]["Optional caption for this photo"] : uiCopy["ui"]["What this document is about"]} value={description} onChange={setDescription} maxLength={2000} />
         <div className={styles.pair}>
-          <TextField label="Observed date" type="date" value={observed} onChange={setObserved} isRequired />
-          {!photos ? <TextField label="Category" placeholder="e.g. Medical" value={category} onChange={setCategory} maxLength={60} isRequired /> : null}
+          <TextField label={uiCopy["ui"]["Observed date"]} type="date" value={observed} onChange={setObserved} isRequired />
+          {!photos ? <TextField label={uiCopy["ui"]["Category"]} placeholder={uiCopy["ui"]["e.g. Medical"]} value={category} onChange={setCategory} maxLength={60} isRequired /> : null}
           {!document ? (
-            <Select label="Visibility" selectedKey={visibility} onSelectionChange={(v) => setVisibility(String(v))}>
-              <Option id="CoachPrivate">Only me</Option>
-              <Option id="SharedWithClient">{coach ? "Shared with client" : "Shared with coach"}</Option>
+            <Select label={uiCopy["ui"]["Visibility"]} selectedKey={visibility} onSelectionChange={(v) => setVisibility(String(v))}>
+              <Option id="CoachPrivate">{uiCopy["ui"]["Only me"]}</Option>
+              <Option id="SharedWithClient">{coach ? uiCopy["ui"]["Shared with client"] : uiCopy["ui"]["Shared with coach"]}</Option>
             </Select>
           ) : null}
         </div>
-        {needsText ? <TextArea label="Document text" placeholder="Paste or type the document content" value={text} onChange={setText} maxLength={50000} isRequired /> : null}
-        {!coach ? <p className={styles.hint}>Client-provided files and text are shared with this relationship’s coach.</p> : null}
+        {needsText ? <TextArea label={uiCopy["ui"]["Document text"]} placeholder={uiCopy["ui"]["Paste or type the document content"]} value={text} onChange={setText} maxLength={50000} isRequired /> : null}
+        {!coach ? <p className={styles.hint}>{uiCopy["ui"]["Client-provided files and text are shared with this relationship’s coach."]}</p> : null}
         <MutationError error={save.error} />
         <DialogFooter>
-          <Button onPress={close} isDisabled={save.isPending}>Cancel</Button>
+          <Button onPress={close} isDisabled={save.isPending}>{uiCopy["common"]["cancel"]}</Button>
           <Button type="submit" variant="primary" loading={save.isPending} isDisabled={!title.trim() || !observed || (photos && !document && !file) || (needsText && !text.trim())}>
-            Save document
+
+            {uiCopy["ui"]["Save document"]}
           </Button>
         </DialogFooter>
       </form>

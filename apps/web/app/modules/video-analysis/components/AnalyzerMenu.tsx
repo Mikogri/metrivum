@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from 'react';
 import { ArrowRight, CircleAlert, Clapperboard, LoaderCircle, Plus, SquareTerminal, Video } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -16,6 +17,8 @@ import styles from './AnalyzerMenu.module.css';
  * something finished, and a menu with the queue and its progress, or the latest analyses when nothing is queued.
  */
 export function AnalyzerMenu() {
+  const uiCopy = useUiCopy();
+
   const allowed = useFeatureAccess('video.library.manage').allowed;
   const { jobs, saved, saving, saveErrors, reachable, unseen, markSeen } = useAnalyzerJobs();
   const [open, setOpen] = useState(false);
@@ -43,26 +46,26 @@ export function AnalyzerMenu() {
         {active ? <span className={styles.count}>{active}</span> : unseen || failed ? <span className={styles.dot} data-tone={failed ? 'warning' : undefined} /> : null}
       </>}
     />
-    <Popover placement="bottom end" aria-label="Video analyses" className={styles.panel}>
+    <Popover placement="bottom end" aria-label={uiCopy["video"]["list"]["title"]} className={styles.panel}>
       <header className={styles.head}>
-        <span className={styles.title}><strong>Video analyses</strong>{active ? <span className={styles.badge}>{active}</span> : null}</span>
+        <span className={styles.title}><strong>{uiCopy["video"]["list"]["title"]}</strong>{active ? <span className={styles.badge}>{active}</span> : null}</span>
         <span className={styles.tools}>
-          {reachable ? <IconButton size="sm" variant="ghost" icon={<SquareTerminal />} label="Show analyzer window"
+          {reachable ? <IconButton size="sm" variant="ghost" icon={<SquareTerminal />} label={uiCopy["ui"]["Show analyzer window"]}
             onPress={() => void showAnalyzerWindow(storedPairing(), new AbortController().signal).catch(() => launchLocalAnalyzer())} /> : null}
-          <IconButton size="sm" variant="ghost" icon={<Plus />} label="New analysis" onPress={() => go('/app/video-analyses/new')} />
+          <IconButton size="sm" variant="ghost" icon={<Plus />} label={uiCopy["video"]["new"]["title"]} onPress={() => go('/app/video-analyses/new')} />
         </span>
       </header>
       <div className={styles.body}>
-        {reachable === false && jobs.length ? <p className={styles.offline}><CircleAlert aria-hidden="true" />The analyzer is not running. Waiting videos continue when it starts.</p> : null}
+        {reachable === false && jobs.length ? <p className={styles.offline}><CircleAlert aria-hidden="true" />{uiCopy["ui"]["The analyzer is not running. Waiting videos continue when it starts."]}</p> : null}
         {jobs.length || shownSaved.length ? <>
-          <p className={styles.section}>In progress</p>
+          <p className={styles.section}>{uiCopy["ui"]["In progress"]}</p>
           <ul className={styles.list}>
             {jobs.map(job => <JobRow key={job.id} job={job} saving={saving[job.id]} saveError={saveErrors[job.id]} tile />)}
             {shownSaved.map(item => <SavedRow key={item.id} name={item.name} status="Ready · saved in your library" tile
-              actions={<button type="button" className={styles.open} onClick={() => go(`/app/video-analyses/${item.analysisId}`)}>Open</button>} />)}
+              actions={<button type="button" className={styles.open} onClick={() => go(`/app/video-analyses/${item.analysisId}`)}>{uiCopy["common"]["open"]}</button>} />)}
           </ul>
         </> : <>
-          <p className={styles.section}>Latest analyses</p>
+          <p className={styles.section}>{uiCopy["ui"]["Latest analyses"]}</p>
           {recent.data?.length ? <ul className={styles.recent}>
             {recent.data.map(analysis => <li key={analysis.id}>
               <button type="button" onClick={() => go(`/app/video-analyses/${analysis.id}`)}>
@@ -73,11 +76,11 @@ export function AnalyzerMenu() {
                 </span>
               </button>
             </li>)}
-          </ul> : <p className={styles.empty}>{recent.isPending ? 'Loading…' : 'No analyses yet.'}</p>}
+          </ul> : <p className={styles.empty}>{recent.isPending ? uiCopy["usage"]["loading"] : uiCopy["ui"]["No analyses yet."]}</p>}
         </>}
       </div>
       <footer className={styles.foot}>
-        <button type="button" className={styles.all} onClick={() => go('/app/video-analyses')}>All analyses<ArrowRight aria-hidden="true" /></button>
+        <button type="button" className={styles.all} onClick={() => go('/app/video-analyses')}>{uiCopy["ui"]["All analyses"]}<ArrowRight aria-hidden="true" /></button>
       </footer>
     </Popover>
   </DialogTrigger>;

@@ -2,6 +2,7 @@
 export { AccountGate } from "./components/AccountGate";
 export { BootScreen } from "./components/BootScreen";
 export { useProfile, useProfileQuery, profileKey } from "./api/useProfile";
+export { AVATAR_TYPES, avatarKey, useAvatarActions, useAvatarUrl } from "./api/avatar";
 export { getMe, completeOnboarding, updateProfile } from "./api/profile";
 export { timeZones } from "./lib/timeZones";
 

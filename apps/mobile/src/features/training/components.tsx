@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useState } from "react";
 import { View } from "react-native";
 import { useNavigation, usePreventRemove } from "expo-router/react-navigation";
@@ -15,13 +16,15 @@ import { decimal, type Page } from "./model";
 
 /** Leaving with a pending or failed local save asks first, in a sheet, and keeps the screen as is. */
 export function useDraftExitGuard(blocked: boolean) {
+ const nativeCopy = useNativeCopy().t;
+
     const navigation = useNavigation();
     usePreventRemove(blocked, ({ data }) => {
         void confirm(
             "Leave without saving?",
             "A local save is still pending or failed. Stay to finish saving, or leave and risk losing the latest edit.",
             "Leave",
-            { cancelLabel: "Stay" },
+            { cancelLabel: nativeCopy("interface.Stay") },
         ).then((leave) => {
             if (leave) navigation.dispatch(data.action);
         });
@@ -39,6 +42,8 @@ export function Pagination({
     /** The API gives no total: show the page number instead of a count. */
     unknownTotal?: boolean;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const pages = Math.max(1, Math.ceil(data.total / data.pageSize));
     if (pages <= 1) return null;
@@ -61,7 +66,7 @@ export function Pagination({
             <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>
                 <IconButton
                     icon="back"
-                    label="Previous page"
+                    label={nativeCopy("interface.Previous page")}
                     filled
                     size={40}
                     disabled={data.page <= 1}
@@ -69,7 +74,7 @@ export function Pagination({
                 />
                 <IconButton
                     icon="chevronRight"
-                    label="Next page"
+                    label={nativeCopy("interface.Next page")}
                     filled
                     size={40}
                     disabled={data.page >= pages}

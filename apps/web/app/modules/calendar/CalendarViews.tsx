@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { parseDate, parseAbsolute, startOfWeek } from "@internationalized/date";
 import { daysForMonth, localDay, type CalendarView } from "./calendar-model";
 import type { CalendarEvent, CalendarCheckIn } from "./api";
@@ -17,6 +19,8 @@ const COMPACT_MINUTES = 45;
 const time = (iso: string, zone: string) => new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: zone }).format(new Date(iso));
 
 export function CalendarViews({ view, date, today, zone, entries, select, open }: { view: CalendarView; date: string; today: string; zone: string; entries: CalendarEntry[]; select: (day: string) => void; open: (entry: CalendarEntry) => void }) {
+  const uiCopy = useUiCopy();
+
   const renderMonth = (value: string, mini = false) => (
     <div className={mini ? styles.miniGrid : styles.monthGrid} role="grid" aria-label={new Intl.DateTimeFormat("en", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(value))}>
       {weekDays.map((d) => (
@@ -41,13 +45,13 @@ export function CalendarViews({ view, date, today, zone, entries, select, open }
             </button>
             {matches.slice(0, 3).map((e) => (
               <button type="button" key={e.id} className={styles.entry} data-kind={e.kind} data-cancelled={e.status === "Cancelled" || undefined} onClick={(event) => { event.stopPropagation(); open(e); }} title={e.title}>
-                <span className={styles.entryTime}>{e.day ? "All day" : time(e.start, zone)}</span>
+                <span className={styles.entryTime}>{e.day ? uiCopy["ui"]["All day"] : time(e.start, zone)}</span>
                 <span className={styles.entryTitle}>{e.title}</span>
               </button>
             ))}
             {matches.length > 3 ? (
               <button type="button" className={styles.more} onClick={(event) => { event.stopPropagation(); select(day); }}>
-                +{matches.length - 3} more
+                +{matches.length - 3}  {uiCopy["ui"]["more"]}
               </button>
             ) : null}
           </div>
@@ -77,7 +81,7 @@ export function CalendarViews({ view, date, today, zone, entries, select, open }
       <div className={styles.week}>
         <div className={styles.hours} aria-hidden="true">
           <span className={styles.hoursHead} />
-          <span className={styles.hoursAllDay}>All day</span>
+          <span className={styles.hoursAllDay}>{uiCopy["ui"]["All day"]}</span>
           {Array.from({ length: 24 }, (_, i) => (
             <span key={i}>{i ? `${String(i).padStart(2, "0")}:00` : ""}</span>
           ))}
@@ -102,7 +106,7 @@ export function CalendarViews({ view, date, today, zone, entries, select, open }
                 ))}
                 {hidden > 0 ? (
                   <button type="button" className={styles.allDayMore} onClick={() => select(day)} title={allDay.slice(shown.length).map((e) => e.title).join(", ")}
-                    aria-label={`${hidden} more all-day ${hidden === 1 ? "item" : "items"} on ${day}`}>
+                    aria-label={formatInterfaceText(uiCopy["ui"]["{0} more all-day {1} on {2}"], [hidden,hidden === 1 ? "item" : "items",day])}>
                     +{hidden}
                   </button>
                 ) : null}

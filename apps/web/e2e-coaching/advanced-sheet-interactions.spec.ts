@@ -10,25 +10,26 @@ const relationship = "20000000-0000-4000-8000-000000000081";
 const features = JSON.parse(readFileSync(new URL("../../../contracts/generated/features.json", import.meta.url), "utf8")) as { key: string }[];
 const pageOf = (items: unknown[]) => ({ items, total: items.length, page: 1, pageSize: 30 });
 
-async function fixture(page: Page, preview = false) {
+async function fixture(page: Page, preview = false, locale: "en" | "pl" = "en") {
   const exercise = { id: "50000000-0000-4000-8000-000000000081", name: "Bench press", version: 1, description: "", instructions: "" };
   let plan = {
     id: planId, name: "Interaction test", updatedAt: "2026-01-01T00:00:00Z", description: "", kind: "Program", folderId: null, archived: false, version: 1,
     document: { schemaVersion: 1, blocks: [{ id: "30000000-0000-4000-8000-000000000083", name: "Block", description: "", cycles: [{ id: cycleId, name: "Cycle", description: "", dayCount: 7,
       days: [{ id: "30000000-0000-4000-8000-000000000084", dayNumber: 1, workouts: [{ id: "30000000-0000-4000-8000-000000000085", name: "Workout A", description: "", groups: [], exercises: [{ id: "30000000-0000-4000-8000-000000000086", exerciseId: exercise.id, comment: "", sets: [{ id: "30000000-0000-4000-8000-000000000087", kind: "Standard", prescription: { load: { minimum: { value: 70, unit: "Kg" }, maximum: { value: 70, unit: "Kg" } } } }] }] }] }] }] }] },
   };
-  await page.addInitScript(({ coach }) => {
+  await page.addInitScript(({ coach, locale }) => {
+    localStorage.setItem("tf.locale", locale);
     localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh-0", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: coach, email: "sheet@trainflow.test", email_confirmed_at: "2026-01-01T00:00:00Z", aud: "authenticated" } }));
     localStorage.setItem("tf.auth.active-slot", "0");
     localStorage.setItem(`tf.workspace.0:${coach}`, "coach");
     localStorage.setItem("tf.editor.mode", "advanced");
-  }, { coach });
+  }, { coach, locale });
   await page.route("**/shared/dev/mockApi.ts*", route => route.fulfill({ contentType: "text/javascript", body: "export const mockFetch = (input, init) => fetch(input, init);" }));
   await page.route("http://mock.trainflow.invalid/**", async route => {
     const path = new URL(route.request().url()).pathname;
     const respond = (json: unknown) => route.fulfill({ json, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "*" } });
     if (route.request().method() === "OPTIONS") return respond({});
-    if (path === "/api/v1/me") return respond({ id: coach, workspaceId: coach, username: "sheet_coach", displayName: "Sheet Coach", onboarded: true, roles: ["Coach"], contexts: ["Coach"], version: 1, locale: "en", timeZone: "UTC" });
+    if (path === "/api/v1/me") return respond({ id: coach, workspaceId: coach, username: "sheet_coach", displayName: "Sheet Coach", onboarded: true, roles: ["Coach"], contexts: ["Coach"], version: 1, locale, timeZone: "UTC" });
     if (path === "/api/v1/me/access") return respond({ version: "test", features: features.map(item => ({ key: item.key, available: true, reason: "available" })), limits: [] });
     if (path === "/api/v1/me/profile-fields") return respond({ values: {}, currency: "USD", version: 1 });
     if (path === "/api/v1/subscriptions/plans") return respond([]);
@@ -509,4 +510,14 @@ test("sheet editor keeps column resizing inside its viewport", async ({ page }) 
   await expect(separator).toHaveAttribute('aria-valuenow', '112');
   await expect.poll(async () => (await block.boundingBox())!.width).toBeGreaterThan(before);
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+});
+
+
+test("Polish preview localizes controls without translating plan and exercise names", async ({ page }) => {
+  await fixture(page, true, "pl");
+  await expect(page.locator("html")).toHaveAttribute("lang", "pl");
+  await expect(page.getByRole("link", { name: "Otwórz edytor", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Interaction test", exact: true })).toBeVisible();
+  await expect(page.getByText("Bench press", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open editor", exact: true })).toHaveCount(0);
 });

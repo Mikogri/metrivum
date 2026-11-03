@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useEffect, useRef, useState } from "react";
 import { AppState, View } from "react-native";
 import { AudioModule } from "expo-audio";
@@ -20,6 +21,8 @@ export function AndroidVoiceRecorder({
     onReady,
     onBusy,
 }: RecorderProps) {
+ const nativeCopy = useNativeCopy().t;
+
     const { accountId, accountSignal } = useMobile();
     const [status, setStatus] = useState<VoiceStatus>();
     const [busy, setBusy] = useState(false);
@@ -148,8 +151,8 @@ export function AndroidVoiceRecorder({
     if (!TrainflowVoice)
         return (
             <Text tone="mutedText">
-                Recording needs the Metrivum Android build. You can attach an
-                existing WAV file instead.
+
+                {nativeCopy("interface.Recording needs the Metrivum Android build. You can attach an existing WAV file instead.")}
             </Text>
         );
     return (
@@ -165,15 +168,15 @@ export function AndroidVoiceRecorder({
                 </Text>
                 <Text variant="caption" tone="mutedText">
                     {status?.recording
-                        ? "Recording… up to 5 minutes"
-                        : "Up to 5 minutes"}
+                        ? nativeCopy("interface.Recording… up to 5 minutes")
+                        : nativeCopy("interface.Up to 5 minutes")}
                 </Text>
             </View>
             {status?.recording && (
                 <ProgressBar
                     value={Math.round((status.meter || 0) * 100)}
                     max={100}
-                    label="Microphone level"
+                    label={nativeCopy("interface.Microphone level")}
                 />
             )}
             {status?.recording ? (
@@ -181,7 +184,7 @@ export function AndroidVoiceRecorder({
                     size="lg"
                     tone="danger"
                     icon="pause"
-                    title="Stop recording"
+                    title={nativeCopy("interface.Stop recording")}
                     loading={busy}
                     onPress={stop}
                 />
@@ -190,7 +193,7 @@ export function AndroidVoiceRecorder({
                     size="lg"
                     tone="primary"
                     icon="mic"
-                    title="Start recording"
+                    title={nativeCopy("interface.Start recording")}
                     disabled={disabled}
                     loading={busy}
                     onPress={start}
@@ -202,7 +205,7 @@ export function AndroidVoiceRecorder({
                         size="lg"
                         tone="primary"
                         icon="attach"
-                        title="Attach to message"
+                        title={nativeCopy("interface.Attach to message")}
                         loading={busy || disabled}
                         onPress={async () => {
                             if (!status.uri || operating.current) return;
@@ -223,7 +226,7 @@ export function AndroidVoiceRecorder({
                     <Button
                         tone="ghost"
                         icon="delete"
-                        title="Discard recording"
+                        title={nativeCopy("interface.Discard recording")}
                         disabled={busy || disabled}
                         onPress={async () => {
                             try {

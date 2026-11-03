@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { router } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
@@ -26,6 +27,8 @@ import { calendarWeek } from "./model";
 type CheckIn = Schema<"CheckInRequestDto">;
 
 export function TodayScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { role } = useMobile();
     const theme = useTheme();
     const [eventRange] = useState(calendarWeek);
@@ -88,7 +91,7 @@ export function TodayScreen() {
             overdue: false,
         },
         {
-            title: "Overdue check-ins",
+            title: nativeCopy("interface.Overdue check-ins"),
             empty: "Nothing is overdue.",
             query: overdue,
             overdue: true,
@@ -96,7 +99,7 @@ export function TodayScreen() {
     ];
     return (
         <Screen
-            title="Today"
+            title={nativeCopy("interface.Today")}
             eyebrow={new Date().toLocaleDateString(undefined, {
                 weekday: "long",
                 day: "numeric",
@@ -110,11 +113,11 @@ export function TodayScreen() {
                     ) : (
                         <View style={{ flexDirection: "row" }}>
                             <Stat
-                                label="Active clients"
+                                label={nativeCopy("interface.Active clients")}
                                 value={clients.data?.total ?? "–"}
                             />
                             <Stat
-                                label="Leads to answer"
+                                label={nativeCopy("interface.Leads to answer")}
                                 value={leads.data?.total ?? "–"}
                                 tone={leads.data?.total ? "brand" : "text"}
                             />
@@ -130,7 +133,7 @@ export function TodayScreen() {
                 active.data?.items.map((item) => (
                     <Section key={item.id}>
                         <View style={{ gap: theme.spacing.xs }}>
-                            <Badge tone="brand">In progress</Badge>
+                            <Badge tone="brand">{nativeCopy("interface.In progress")}</Badge>
                             <Text variant="title">{item.name}</Text>
                             <Text variant="caption" tone="mutedText">
                                 {joinParts(
@@ -143,7 +146,7 @@ export function TodayScreen() {
                             size="lg"
                             tone="primary"
                             icon="play"
-                            title="Continue workout"
+                            title={nativeCopy("interface.Continue workout")}
                             onPress={() =>
                                 router.push({
                                     pathname: "/workout/[id]",
@@ -158,7 +161,7 @@ export function TodayScreen() {
                 ))
             )}
 
-            <Schedule today title="Workouts today" />
+            <Schedule today title={nativeCopy("interface.Workouts today")} />
 
             {checkInGroups.map(({ title, empty, query, overdue: late }) =>
                 // The overdue group only takes space when something is actually overdue.
@@ -187,7 +190,7 @@ export function TodayScreen() {
                                     key={item.id}
                                     icon="checkIn"
                                     title={item.scheduleName}
-                                    subtitle={`Due ${formatDateTime(item.dueAtUtc)}`}
+                                    subtitle={nativeCopy("interface.Due {0}", {"0": String(formatDateTime(item.dueAtUtc))})}
                                     onPress={() => openCheckIn(item)}
                                 />
                             ))
@@ -200,7 +203,7 @@ export function TodayScreen() {
                 ),
             )}
 
-            <Section title="This week">
+            <Section title={nativeCopy("interface.This week")}>
                 {events.isPending ? (
                     <LoadingState />
                 ) : events.error ? (
@@ -220,7 +223,7 @@ export function TodayScreen() {
                             )}
                             trailing={
                                 item.cancelled ? (
-                                    <Badge tone="danger">Cancelled</Badge>
+                                    <Badge tone="danger">{nativeCopy("interface.Cancelled")}</Badge>
                                 ) : item.response ? (
                                     <Badge>{item.response}</Badge>
                                 ) : undefined
@@ -236,7 +239,7 @@ export function TodayScreen() {
                 ) : (
                     <EmptyState
                         icon="calendar"
-                        title="No events this week"
+                        title={nativeCopy("interface.No events this week")}
                     />
                 )}
             </Section>

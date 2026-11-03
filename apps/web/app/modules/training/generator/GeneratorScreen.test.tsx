@@ -9,7 +9,6 @@ import type { GenerationOptions, GenerationPreview, GenerationRequest } from "./
 
 const { api, navigate } = vi.hoisted(() => ({ api: vi.fn(), navigate: vi.fn() }));
 vi.mock("~/shared/session/AccountScope", () => ({ useApi: () => api, useAccountKey: () => "coach-a:account-1" }));
-vi.mock("~/shared/i18n/AppLocale", () => ({ useT: () => ({}) }));
 vi.mock("~/shared/lib/errorText", () => ({ errorText: (_messages: unknown, error: Error) => error.message }));
 vi.mock("~/shared/access", () => ({ RequireFeature: ({ children }: { children: React.ReactNode }) => children, QuotaContextField: () => null, useQuotaContext: () => ({ teamId: undefined, usage: {} }) }));
 vi.mock("react-router", async importOriginal => ({ ...await importOriginal<typeof ReactRouter>(), useNavigate: () => navigate }));

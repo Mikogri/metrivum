@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, Image, View, useWindowDimensions } from "react-native";
 import { File, Paths } from "expo-file-system";
@@ -39,6 +40,8 @@ export function Attachment({
     attachment: Schema<"AttachmentDto">;
     visible?: boolean;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { api, accountId, accountSignal } = useMobile();
     const [uri, setUri] = useState<string>();
     const [busy, setBusy] = useState(false);
@@ -167,7 +170,7 @@ export function Attachment({
                 ) : uri && visible ? (
                     <Image
                         source={{ uri }}
-                        accessibilityLabel="Image attachment"
+                        accessibilityLabel={nativeCopy("interface.Image attachment")}
                         accessible
                         resizeMode="contain"
                         style={{
@@ -188,7 +191,8 @@ export function Attachment({
                     <LoadingState />
                 ) : (
                     <Text variant="caption" tone="mutedText">
-                        Image
+
+                        {nativeCopy("interface.Image")}
                     </Text>
                 )}
             </View>
@@ -229,6 +233,8 @@ export function AudioPlayback({
     uri: string;
     visible?: boolean;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const player = useAudioPlayer(uri);
     const status = useAudioPlayerStatus(player);
     const focused = useIsFocused();
@@ -250,7 +256,7 @@ export function AudioPlayback({
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <IconButton
                     icon={status.playing ? "pause" : "play"}
-                    label={status.playing ? "Pause" : "Play"}
+                    label={status.playing ? nativeCopy("interface.Pause") : nativeCopy("interface.Play")}
                     filled
                     size={44}
                     onPress={async () => {
@@ -269,7 +275,7 @@ export function AudioPlayback({
                     <ProgressBar
                         value={position}
                         max={duration || 1}
-                        label="Playback position"
+                        label={nativeCopy("interface.Playback position")}
                     />
                     <Text variant="caption" tone="mutedText">
                         {clock(position)} / {clock(duration)}
@@ -277,7 +283,7 @@ export function AudioPlayback({
                 </View>
                 <IconButton
                     icon="back"
-                    label="Restart audio"
+                    label={nativeCopy("interface.Restart audio")}
                     tone="mutedText"
                     size={36}
                     onPress={() => {

@@ -13,9 +13,9 @@ using Metrivum.BuildingBlocks;
 namespace Metrivum.Accounts.Features;
 
 public sealed record ProfileResponse(Guid Id, Guid WorkspaceId, string? Username, string DisplayName, DateOnly? BirthDate,
-    string Locale, string TimeZone, bool Onboarded, long Version, IReadOnlyList<AccountRole> Roles, IReadOnlyList<AccountRole> Contexts, string? Phone, bool PhoneVisibleToCoach, string? Bio = null, System.Text.Json.JsonElement? CoverStyle = null, string? FirstName = null, string? LastName = null);
+    string Locale, string TimeZone, bool Onboarded, long Version, IReadOnlyList<AccountRole> Roles, IReadOnlyList<AccountRole> Contexts, string? Phone, bool PhoneVisibleToCoach, string? Bio = null, System.Text.Json.JsonElement? CoverStyle = null, string? FirstName = null, string? LastName = null, bool HasAvatar = false);
 /// <summary>What any signed-in person may see about another account: no birth date, phone, email or body data.</summary>
-public sealed record PersonProfileResponse(Guid UserId, string Username, string DisplayName, string? Bio, IReadOnlyList<AccountRole> Roles, bool IsSelf, DateTimeOffset? MemberSince = null, System.Text.Json.JsonElement? CoverStyle = null);
+public sealed record PersonProfileResponse(Guid UserId, string Username, string DisplayName, string? Bio, IReadOnlyList<AccountRole> Roles, bool IsSelf, DateTimeOffset? MemberSince = null, System.Text.Json.JsonElement? CoverStyle = null, bool HasAvatar = false);
 /// <summary>The animated cover: a React Bits background name and its settings; null restores the default.</summary>
 public sealed record CoverStyleRequest(System.Text.Json.JsonElement? Style);
 /// <summary>FirstName and LastName are the name; DisplayName is only read from older clients that send a single name.</summary>
@@ -50,12 +50,12 @@ public static class ProfileEndpoints
                 throw ApiException.NotFound();
             var person = await db.Profiles.AsNoTracking()
                 .Where(x => x.NormalizedUsername == normalized && x.Active && x.Onboarded && x.Username != null)
-                .Select(x => new { x.Id, x.Username, x.DisplayName, x.Bio, x.TermsAcceptedAt, x.CoverStyle }).SingleOrDefaultAsync(ct)
+                .Select(x => new { x.Id, x.Username, x.DisplayName, x.Bio, x.TermsAcceptedAt, x.CoverStyle, x.AvatarMediaId }).SingleOrDefaultAsync(ct)
                 ?? throw ApiException.NotFound();
             var roles = (await db.Roles.AsNoTracking().Where(x => x.UserId == person.Id && (x.Role == "Coach" || x.Role == "Client"))
                 .Select(x => x.Role).ToArrayAsync(ct)).Select(Enum.Parse<AccountRole>).Order().ToArray();
             // Joined = when the terms were accepted at onboarding; only the month is shown in the app.
-            return new PersonProfileResponse(person.Id, person.Username!, person.DisplayName, person.Bio, roles, person.Id == account.UserId, person.TermsAcceptedAt, CoverStyleRules.Parse(person.CoverStyle));
+            return new PersonProfileResponse(person.Id, person.Username!, person.DisplayName, person.Bio, roles, person.Id == account.UserId, person.TermsAcceptedAt, CoverStyleRules.Parse(person.CoverStyle), person.AvatarMediaId != null);
         }).WithTags("Accounts").RequireAuthorization().RequireRateLimiting(AccountRateLimits.Directory).Produces<PersonProfileResponse>();
         var group = endpoints.MapGroup("/api/v1/me").WithTags("Accounts");
         group.MapGet("/profile-fields", async (IAccountProfileFields fields, HttpContext http, CancellationToken ct) => ProfileFieldsResponse(http, await fields.GetOwnAsync(ct)));
@@ -175,6 +175,7 @@ public static class ProfileEndpoints
             await db.SaveChangesAsync(ct);
             return await Response(profile, db, http, ct);
         });
+        AvatarEndpoints.Map(endpoints, group);
         group.MapPatch("", async (UpdateProfileRequest request, AccountContext account, AccountsDbContext db, HttpContext http, CancellationToken ct) =>
         {
             AccountRules.ValidatePhone(request.Phone);
@@ -200,12 +201,12 @@ public static class ProfileEndpoints
         });
     }
 
-    private static async Task<ProfileResponse> Response(Profile profile, AccountsDbContext db, HttpContext http, CancellationToken ct)
+    internal static async Task<ProfileResponse> Response(Profile profile, AccountsDbContext db, HttpContext http, CancellationToken ct)
     {
         http.Response.Headers.ETag = $"\"{profile.Version}\"";
         var workspace = await db.Workspaces.SingleAsync(x => x.OwnerId == profile.Id, ct);
         var roles = (await db.Roles.AsNoTracking().Where(x => x.UserId == profile.Id && (x.Role == "Coach" || x.Role == "Client")).Select(x => x.Role).ToArrayAsync(ct)).Select(Enum.Parse<AccountRole>).Order().ToArray();
-        return new(profile.Id, workspace.Id, profile.Username, profile.DisplayName, profile.BirthDate, profile.Locale, profile.TimeZone, profile.Onboarded, profile.Version, roles, roles, profile.Phone, profile.PhoneVisibleToCoach, profile.Bio, CoverStyleRules.Parse(profile.CoverStyle), profile.FirstName, profile.LastName);
+        return new(profile.Id, workspace.Id, profile.Username, profile.DisplayName, profile.BirthDate, profile.Locale, profile.TimeZone, profile.Onboarded, profile.Version, roles, roles, profile.Phone, profile.PhoneVisibleToCoach, profile.Bio, CoverStyleRules.Parse(profile.CoverStyle), profile.FirstName, profile.LastName, profile.AvatarMediaId != null);
     }
     /// <summary>The unique index on the normalized username (see the Accounts migrations).</summary>
     private const string UsernameIndex = "IX_profiles_NormalizedUsername";

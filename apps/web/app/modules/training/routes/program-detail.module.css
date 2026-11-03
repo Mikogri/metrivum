@@ -21,44 +21,24 @@
   gap: var(--tf-space-2);
 }
 
+/* Preview, version history and assignments: the same panels, one even gap apart. */
+.panels {
+  display: grid;
+  gap: var(--tf-space-5);
+}
+
 .preview {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: var(--tf-space-5);
   overflow: hidden;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
-}
-
-.previewHead {
-  display: flex;
-  align-items: baseline;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
-}
-
-.previewHead .muted {
-  margin: 0;
 }
 
 .preview .previewSheet {
   height: clamp(22rem, 55vh, 40rem);
 }
 
-/* Preview mode switch: the same plan as the simple day view or the advanced sheet. */
-.previewMode {
-  margin-left: auto;
-  align-self: center;
-}
-
-.sectionHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--tf-space-2);
-  margin-bottom: var(--tf-space-1);
+.panelNote {
+  padding: var(--tf-space-4);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
 }
 
 .title {
@@ -101,17 +81,64 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* One quiet row per applied version, hairlines between, the newest marked current. */
 .revisions {
-  display: grid;
-  gap: var(--tf-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.revisions li {
+.revision {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4);
   /* No delay or stagger: content shows the moment the page does. */
   animation: rise 200ms var(--tf-ease-out) both;
+}
+
+.revision + .revision {
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+
+.revisionMark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.revisionText {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.revisionText strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.revisionText span {
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.revisionsLoading {
+  display: grid;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-4);
 }
 
 @keyframes rise {

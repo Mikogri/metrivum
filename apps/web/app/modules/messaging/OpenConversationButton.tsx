@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { MessageCircle } from "lucide-react";
@@ -9,6 +10,8 @@ import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { ApiError } from "~/shared/http";
 
 export function OpenConversationButton({ person }: { person: Schema<"PersonDto"> }) {
+  const uiCopy = useUiCopy();
+
   const { api, lifecycle } = useAccountContext();
   const navigate = useNavigate();
   const access = useFeatureAccess("messaging.direct");
@@ -28,5 +31,5 @@ export function OpenConversationButton({ person }: { person: Schema<"PersonDto">
       } else showError(error, "Could not open conversation");
     } finally { if (lifecycle.isCurrent()) setPending(false); }
   }
-  return access.allowed ? <Button iconStart={<MessageCircle />} loading={pending} onPress={() => void open()}>Message</Button> : null;
+  return access.allowed ? <Button iconStart={<MessageCircle />} loading={pending} onPress={() => void open()}>{uiCopy["profile"]["message"]}</Button> : null;
 }

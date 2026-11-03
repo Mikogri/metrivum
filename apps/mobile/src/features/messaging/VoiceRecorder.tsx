@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { AppState, Platform, View } from "react-native";
 import { File } from "expo-file-system";
@@ -32,6 +33,8 @@ export function VoiceRecorder(props: RecorderProps) {
 }
 
 function IosVoiceRecorder({ disabled, onReady, onBusy }: RecorderProps) {
+ const nativeCopy = useNativeCopy().t;
+
     const recorder = useAudioRecorder({
         extension: ".wav",
         sampleRate: 16000,
@@ -138,7 +141,7 @@ function IosVoiceRecorder({ disabled, onReady, onBusy }: RecorderProps) {
                     {clock(state.durationMillis)}
                 </Text>
                 <Text variant="caption" tone="mutedText">
-                    {recording ? "Recording… up to 5 minutes" : "Up to 5 minutes"}
+                    {recording ? nativeCopy("interface.Recording… up to 5 minutes") : nativeCopy("interface.Up to 5 minutes")}
                 </Text>
             </View>
             {recording ? (
@@ -146,7 +149,7 @@ function IosVoiceRecorder({ disabled, onReady, onBusy }: RecorderProps) {
                     size="lg"
                     tone="danger"
                     icon="pause"
-                    title="Stop recording"
+                    title={nativeCopy("interface.Stop recording")}
                     onPress={stop}
                 />
             ) : !uri ? (
@@ -154,7 +157,7 @@ function IosVoiceRecorder({ disabled, onReady, onBusy }: RecorderProps) {
                     size="lg"
                     tone="primary"
                     icon="mic"
-                    title="Start recording"
+                    title={nativeCopy("interface.Start recording")}
                     loading={busy}
                     disabled={disabled}
                     onPress={start}
@@ -166,7 +169,7 @@ function IosVoiceRecorder({ disabled, onReady, onBusy }: RecorderProps) {
                         size="lg"
                         tone="primary"
                         icon="attach"
-                        title="Attach to message"
+                        title={nativeCopy("interface.Attach to message")}
                         loading={busy || disabled}
                         onPress={async () => {
                             setBusy(true);
@@ -186,7 +189,7 @@ function IosVoiceRecorder({ disabled, onReady, onBusy }: RecorderProps) {
                     <Button
                         tone="ghost"
                         icon="delete"
-                        title="Discard recording"
+                        title={nativeCopy("interface.Discard recording")}
                         disabled={busy || disabled}
                         onPress={() => {
                             const file = new File(uri);

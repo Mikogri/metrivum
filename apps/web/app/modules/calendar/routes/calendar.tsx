@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Calendar — Metrivum");
@@ -29,6 +30,8 @@ const KINDS = [
 export const handle = { fit: true };
 
 export default function CalendarRoute() {
+  const uiCopy = useUiCopy();
+
   const mobile = useMobileLayout();
   const [showOptions, setShowOptions] = useState(false);
   const { mode } = useWorkspace();
@@ -80,7 +83,7 @@ export default function CalendarRoute() {
     setEditor(null);
   };
 
-  const filterControls = <div className={styles.filters} role="group" aria-label="Show">
+  const filterControls = <div className={styles.filters} role="group" aria-label={uiCopy["editor"]["sheet"]["volume"]["show"]}>
     {KINDS.map(([kind, text]) => <button key={kind} type="button" className={styles.filter} data-kind={kind} aria-pressed={filters.includes(kind)} onClick={() => setFilters(filters.includes(kind) ? filters.filter(f => f !== kind) : [...filters, kind])}>{text}</button>)}
     <span className={styles.zone}>{zone.replace(/_/g, " ")}</span>
   </div>;
@@ -88,43 +91,47 @@ export default function CalendarRoute() {
   return (
     <>
       <PageHeader
-        title="Calendar"
-        description={mobile ? undefined : coach ? "Your meetings, events and client check-ins, together." : "Your upcoming meetings, invitations and check-ins."}
+        title={uiCopy["dashboard"]["coach"]["openCalendar"]}
+        description={mobile ? undefined : coach ? uiCopy["ui"]["Your meetings, events and client check-ins, together."] : uiCopy["ui"]["Your upcoming meetings, invitations and check-ins."]}
         actions={
           mobile ? <>
-            <IconButton label="Calendar filters and actions" icon={<SlidersHorizontal />} onPress={() => setShowOptions(true)} />
-            {coach && <IconButton label="New meeting" icon={<Plus />} variant="secondary" onPress={() => setEditor({ kind: "Meeting" })} />}
+            <IconButton label={uiCopy["ui"]["Calendar filters and actions"]} icon={<SlidersHorizontal />} onPress={() => setShowOptions(true)} />
+            {coach && <IconButton label={uiCopy["ui"]["New meeting"]} icon={<Plus />} variant="secondary" onPress={() => setEditor({ kind: "Meeting" })} />}
           </> : coach ? (
             <>
               <LinkButton href="/app/check-in-schedules" iconStart={<CalendarClock />}>
-                Check-in schedules
+
+                {uiCopy["access"]["features"]["checkins.schedules.manage"]}
               </LinkButton>
               <Button iconStart={<CalendarPlus />} onPress={() => setEditor({ kind: "Event" })}>
-                New event
+
+                {uiCopy["ui"]["New event"]}
               </Button>
               <Button variant="primary" iconStart={<Plus />} onPress={() => setEditor({ kind: "Meeting" })}>
-                New meeting
+
+                {uiCopy["ui"]["New meeting"]}
               </Button>
             </>
           ) : null
         }
       />
       <div className={styles.layout}>
-        <section className={styles.calendar} aria-label="Calendar">
+        <section className={styles.calendar} aria-label={uiCopy["dashboard"]["coach"]["openCalendar"]}>
           <div className={styles.toolbar}>
             <div className={styles.period}>
               <Button size="sm" variant="secondary" isDisabled={date === currentDay} onPress={() => update({ date: currentDay })}>
-                Today
+
+                {uiCopy["ui"]["Today"]}
               </Button>
-              <IconButton label="Previous period" icon={<ChevronLeft />} variant="ghost" size="sm" onPress={() => update({ date: moveDate(date, view, -1) })} />
-              <IconButton label="Next period" icon={<ChevronRight />} variant="ghost" size="sm" onPress={() => update({ date: moveDate(date, view, 1) })} />
+              <IconButton label={uiCopy["dashboard"]["coach"]["previousPeriod"]} icon={<ChevronLeft />} variant="ghost" size="sm" onPress={() => update({ date: moveDate(date, view, -1) })} />
+              <IconButton label={uiCopy["ui"]["Next period"]} icon={<ChevronRight />} variant="ghost" size="sm" onPress={() => update({ date: moveDate(date, view, 1) })} />
               <h2 aria-live="polite">{label}</h2>
-              {fetching && !pending ? <Spinner size="sm" label="Updating calendar" /> : null}
+              {fetching && !pending ? <Spinner size="sm" label={uiCopy["ui"]["Updating calendar"]} /> : null}
             </div>
-            {!mobile && <SegmentedControl aria-label="Calendar view" size="sm" selectedKeys={[view]} onSelectionChange={(keys) => update({ view: String([...keys][0]) })}>
-              <Segment id="week">Week</Segment>
-              <Segment id="month">Month</Segment>
-              <Segment id="year">Year</Segment>
+            {!mobile && <SegmentedControl aria-label={uiCopy["ui"]["Calendar view"]} size="sm" selectedKeys={[view]} onSelectionChange={(keys) => update({ view: String([...keys][0]) })}>
+              <Segment id="week">{uiCopy["editor"]["week"]["cycleName"]}</Segment>
+              <Segment id="month">{uiCopy["ui"]["Month"]}</Segment>
+              <Segment id="year">{uiCopy["ui"]["Year"]}</Segment>
             </SegmentedControl>}
           </div>
           {!mobile && filterControls}
@@ -134,21 +141,21 @@ export default function CalendarRoute() {
           {pending ? <Loading /> : <div className={styles.views} data-stale={fetching || undefined}>{mobile ? <MobileAgenda entries={entries} date={date} zone={zone} open={open} /> : <CalendarViews view={view} date={date} today={currentDay} zone={zone} entries={entries} select={(day) => update({ date: day })} open={open} />}</div>}
         </section>
 
-        {!mobile && <aside className={styles.agenda} aria-label="Selected day">
+        {!mobile && <aside className={styles.agenda} aria-label={uiCopy["ui"]["Selected day"]}>
           <div className={styles.agendaHead}>
             <div>
               <h2>{dayLabel}</h2>
-              <p>{date === currentDay ? "Today" : agenda.length ? `${agenda.length} ${agenda.length === 1 ? "item" : "items"}` : "Nothing planned"}</p>
+              <p>{date === currentDay ? uiCopy["ui"]["Today"] : agenda.length ? `${agenda.length} ${agenda.length === 1 ? "item" : "items"}` : uiCopy["ui"]["Nothing planned"]}</p>
             </div>
           </div>
           {!pending && !agenda.length ? (
-            <EmptyState size="sm" icon={<CalendarPlus />} title="Nothing scheduled" description={coach ? "Add a meeting or plan a check-in for this day." : "Meetings and check-ins for this day show up here."} />
+            <EmptyState size="sm" icon={<CalendarPlus />} title={uiCopy["dashboard"]["coach"]["noSessions"]} description={coach ? uiCopy["ui"]["Add a meeting or plan a check-in for this day."] : uiCopy["ui"]["Meetings and check-ins for this day show up here."]} />
           ) : (
             <ul className={styles.agendaList}>
               {agenda.map((e) => (
                 <li key={e.id}>
                   <button type="button" className={styles.agendaItem} onClick={() => open(e)}>
-                    <span className={styles.agendaTime}>{e.day ? "All day" : time(e.start)}</span>
+                    <span className={styles.agendaTime}>{e.day ? uiCopy["ui"]["All day"] : time(e.start)}</span>
                     <span className={styles.agendaBody} data-kind={e.kind}>
                       <strong>{e.title}</strong>
                       <span>
@@ -164,29 +171,31 @@ export default function CalendarRoute() {
           {coach ? (
             <div className={styles.agendaFooter}>
               <Button size="sm" iconStart={<Plus />} onPress={() => setEditor({ kind: "Meeting" })}>
-                Meeting
+
+                {uiCopy["ui"]["Meeting"]}
               </Button>
               <Button size="sm" variant="ghost" iconStart={<CalendarClock />} onPress={() => setScheduling({ date, timeZone: zone })}>
-                Schedule check-in
+
+                {uiCopy["dashboard"]["coach"]["action"]["checkIn"]}
               </Button>
             </div>
           ) : null}
         </aside>}
       </div>
       {dialog}
-      <Dialog title="Calendar filters and actions" isOpen={mobile && showOptions} onOpenChange={setShowOptions}>
+      <Dialog title={uiCopy["ui"]["Calendar filters and actions"]} isOpen={mobile && showOptions} onOpenChange={setShowOptions}>
         {filterControls}
         {coach && <div className={styles.mobileActions}>
-          <Button variant="primary" iconStart={<Plus />} onPress={() => { setShowOptions(false); setEditor({ kind: "Meeting" }); }}>New meeting</Button>
-          <Button iconStart={<CalendarPlus />} onPress={() => { setShowOptions(false); setEditor({ kind: "Event" }); }}>New event</Button>
-          <Button iconStart={<CalendarClock />} onPress={() => { setShowOptions(false); setScheduling({ date, timeZone: zone }); }}>Schedule check-in</Button>
-          <LinkButton href="/app/check-in-schedules" onPress={() => setShowOptions(false)}>Check-in schedules</LinkButton>
+          <Button variant="primary" iconStart={<Plus />} onPress={() => { setShowOptions(false); setEditor({ kind: "Meeting" }); }}>{uiCopy["ui"]["New meeting"]}</Button>
+          <Button iconStart={<CalendarPlus />} onPress={() => { setShowOptions(false); setEditor({ kind: "Event" }); }}>{uiCopy["ui"]["New event"]}</Button>
+          <Button iconStart={<CalendarClock />} onPress={() => { setShowOptions(false); setScheduling({ date, timeZone: zone }); }}>{uiCopy["dashboard"]["coach"]["action"]["checkIn"]}</Button>
+          <LinkButton href="/app/check-in-schedules" onPress={() => setShowOptions(false)}>{uiCopy["access"]["features"]["checkins.schedules.manage"]}</LinkButton>
         </div>}
-        <Button onPress={() => setShowOptions(false)}>Done</Button>
+        <Button onPress={() => setShowOptions(false)}>{uiCopy["dashboard"]["discovery"]["done"]}</Button>
       </Dialog>
       <Dialog
-        title={editor ? `${editor.initial ? "Edit" : "New"} ${editor.kind.toLowerCase()}` : "Event"}
-        description={editor?.kind === "Meeting" ? "Invited clients get the invitation and can accept or decline." : editor ? "Something on the calendar, such as a race or a deload week." : undefined}
+        title={editor ? `${editor.initial ? "Edit" : "New"} ${editor.kind.toLowerCase()}` : uiCopy["ui"]["Event"]}
+        description={editor?.kind === "Meeting" ? uiCopy["ui"]["Invited clients get the invitation and can accept or decline."] : editor ? uiCopy["ui"]["Something on the calendar, such as a race or a deload week."] : undefined}
         size="lg"
         isOpen={editor !== null}
         onOpenChange={(isOpen) => {
@@ -213,7 +222,7 @@ export default function CalendarRoute() {
         ) : null}
       </Dialog>
       <Dialog
-        title="Details"
+        title={uiCopy["video"]["new"]["step"]["details"]}
         size="lg"
         isOpen={detail !== null}
         onOpenChange={(isOpen) => {

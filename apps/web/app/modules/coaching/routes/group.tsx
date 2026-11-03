@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Group details — Metrivum");
@@ -41,6 +43,8 @@ import styles from "../coaching.module.css";
 const TABS = [["members", "Members"], ["programs", "Programs"], ["progress", "Progress"]] as const;
 
 function GroupDetail() {
+  const uiCopy = useUiCopy();
+
   const { groupId } = useParams();
   const [state, update] = useUrlState({ page: "1", tab: "members" });
   const tab = TABS.some(([id]) => id === state.tab) ? state.tab : "members";
@@ -53,7 +57,7 @@ function GroupDetail() {
   const { ask, dialog: confirmDialog } = useDangerConfirm();
   const remove = useCoachingMutation(() => {
     setRemoving(null);
-    toast({ tone: "success", title: "Client removed from the group" });
+    toast({ tone: "success", title: uiCopy["ui"]["Client removed from the group"] });
   }, groupInvalidation);
   if (group.isPending || members.isPending) return <Loading />;
   if (group.isError || members.isError) return <Failure error={group.error ?? members.error} retry={() => { void group.refetch(); void members.refetch(); }} />;
@@ -68,35 +72,35 @@ function GroupDetail() {
           <span className={styles.groupTitle}>
             <span className={styles.groupSwatch} style={{ background: g.color }} aria-hidden="true" />
             {g.name}
-            <Badge size="sm" tone={g.teamId ? "violet" : "neutral"}>{g.teamId ? "Team" : "Personal"}</Badge>
+            <Badge size="sm" tone={g.teamId ? "violet" : "neutral"}>{g.teamId ? uiCopy["ui"]["Team"] : uiCopy["ui"]["Personal"]}</Badge>
           </span>
         }
         description={g.description || undefined}
         meta={
           <>
             {g.archived ? <StatusBadge status="Archived" /> : null}
-            <span>{total === 1 ? "1 client" : `${total} clients`}</span>
+            <span>{total === 1 ? uiCopy["ui"]["1 client"] : `${total} clients`}</span>
           </>
         }
         actions={
           <>
-            {canAdd && !g.archived ? <Button variant="primary" iconStart={<UserPlus />} onPress={() => setAdding(true)}>Add client</Button> : null}
+            {canAdd && !g.archived ? <Button variant="primary" iconStart={<UserPlus />} onPress={() => setAdding(true)}>{uiCopy["ui"]["Add client"]}</Button> : null}
             <DropdownMenuTrigger>
-              <IconButton label="Group actions" icon={<MoreHorizontal />} variant="ghost" />
+              <IconButton label={uiCopy["ui"]["Group actions"]} icon={<MoreHorizontal />} variant="ghost" />
               <DropdownMenu
-                aria-label="Group actions"
+                aria-label={uiCopy["ui"]["Group actions"]}
                 onAction={async (key) => {
                   if (key === "edit") return setEditing(true);
-                  if (key === "archive" && !(await ask({ title: `Archive ${g.name}?`, body: "Members stay your clients. Archived groups no longer receive group check-ins or assignments; you can restore the group later.", confirmLabel: "Archive group", cancelLabel: "Keep group" }))) return;
+                  if (key === "archive" && !(await ask({ title: `Archive ${g.name}?`, body: "Members stay your clients. Archived groups no longer receive group check-ins or assignments; you can restore the group later.", confirmLabel: uiCopy["ui"]["Archive group"], cancelLabel: uiCopy["ui"]["Keep group"] }))) return;
                   mutation.mutate({ method: "POST", path: `/api/v1/coaching/groups/${g.id}/${g.archived ? "restore" : "archive"}`, ifMatch: g.version });
                 }}
               >
-                <DropdownMenuItem id="edit" icon={<Pencil />}>Edit group</DropdownMenuItem>
+                <DropdownMenuItem id="edit" icon={<Pencil />}>{uiCopy["ui"]["Edit group"]}</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {g.archived ? (
-                  <DropdownMenuItem id="restore" icon={<ArchiveRestore />}>Restore group</DropdownMenuItem>
+                  <DropdownMenuItem id="restore" icon={<ArchiveRestore />}>{uiCopy["ui"]["Restore group"]}</DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem id="archive" tone="danger" icon={<Archive />}>Archive group</DropdownMenuItem>
+                  <DropdownMenuItem id="archive" tone="danger" icon={<Archive />}>{uiCopy["ui"]["Archive group"]}</DropdownMenuItem>
                 )}
               </DropdownMenu>
             </DropdownMenuTrigger>
@@ -106,7 +110,7 @@ function GroupDetail() {
       <MutationError error={mutation.error} />
       {confirmDialog}
       <Tabs selectedKey={tab} onSelectionChange={(key) => update({ tab: String(key) })} className={styles.detailTabs}>
-        <TabList aria-label="Group views">
+        <TabList aria-label={uiCopy["ui"]["Group views"]}>
           {TABS.map(([id, label]) => <Tab key={id} id={id}>{label}</Tab>)}
         </TabList>
       </Tabs>
@@ -117,13 +121,13 @@ function GroupDetail() {
       ) : !members.data.items.length ? (
         <EmptyState
           icon={<UsersRound />}
-          title="This group has no clients"
-          description={g.teamId ? "Add one of your assigned Team clients." : "Add a client from your private coaching practice."}
-          actions={canAdd && !g.archived ? <Button variant="primary" iconStart={<UserPlus />} onPress={() => setAdding(true)}>Add client</Button> : undefined}
+          title={uiCopy["ui"]["This group has no clients"]}
+          description={g.teamId ? uiCopy["ui"]["Add one of your assigned Team clients."] : uiCopy["ui"]["Add a client from your private coaching practice."]}
+          actions={canAdd && !g.archived ? <Button variant="primary" iconStart={<UserPlus />} onPress={() => setAdding(true)}>{uiCopy["ui"]["Add client"]}</Button> : undefined}
         />
       ) : (
         <>
-          <DataTable label="Group members" rows={members.data.items} rowKey={(r) => r.id} columns={[
+          <DataTable label={uiCopy["ui"]["Group members"]} rows={members.data.items} rowKey={(r) => r.id} columns={[
             {
               id: "name",
               header: "Client",
@@ -145,14 +149,14 @@ function GroupDetail() {
             { id: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
             {
               id: "actions",
-              header: <span className="tf-visually-hidden">Actions</span>,
+              header: <span className="tf-visually-hidden">{uiCopy["editor"]["sheet"]["contextLabel"]}</span>,
               width: "3.5rem",
               align: "end",
               cell: (r) => (
                 <DropdownMenuTrigger>
-                  <IconButton size="sm" label={`Actions for ${r.client.displayName}`} icon={<MoreHorizontal />} />
-                  <DropdownMenu aria-label={`Actions for ${r.client.displayName}`} onAction={() => setRemoving(r)}>
-                    <DropdownMenuItem id="remove" tone="danger" icon={<UserMinus />}>Remove from group</DropdownMenuItem>
+                  <IconButton size="sm" label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [r.client.displayName])} icon={<MoreHorizontal />} />
+                  <DropdownMenu aria-label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [r.client.displayName])} onAction={() => setRemoving(r)}>
+                    <DropdownMenuItem id="remove" tone="danger" icon={<UserMinus />}>{uiCopy["ui"]["Remove from group"]}</DropdownMenuItem>
                   </DropdownMenu>
                 </DropdownMenuTrigger>
               ),
@@ -166,14 +170,14 @@ function GroupDetail() {
       <AlertDialog
         isOpen={removing !== null}
         onOpenChange={(open) => { if (!open && !remove.isPending) setRemoving(null); }}
-        title="Remove from this group?"
+        title={uiCopy["ui"]["Remove from this group?"]}
         tone="danger"
-        confirmLabel="Remove from group"
-        cancelLabel="Keep in group"
+        confirmLabel={uiCopy["ui"]["Remove from group"]}
+        cancelLabel={uiCopy["ui"]["Keep in group"]}
         isConfirming={remove.isPending}
         onConfirm={() => { if (removing) remove.mutate({ method: "DELETE", path: `/api/v1/coaching/groups/${g.id}/members/${removing.id}`, ifMatch: g.version }); }}
       >
-        {removing?.client.displayName} stays your client. Group check-ins and future group assignments no longer include them.
+        {removing?.client.displayName}  {uiCopy["ui"]["stays your client. Group check-ins and future group assignments no longer include them."]}
         <MutationError error={remove.error} />
       </AlertDialog>
     </>
@@ -181,32 +185,34 @@ function GroupDetail() {
 }
 
 function AddMemberDialog({ group, close }: { group: Group; close: () => void }) {
+  const uiCopy = useUiCopy();
+
   const [relationshipId, setRelationship] = useState("");
   const clients = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { teamId: group.teamId ?? undefined, status: "Active", page: 1, pageSize: 100 });
   const mutation = useCoachingMutation(() => {
-    toast({ tone: "success", title: "Client added to the group" });
+    toast({ tone: "success", title: uiCopy["ui"]["Client added to the group"] });
     close();
   }, groupInvalidation);
   const available = clients.data?.items.filter((client) => !client.groupIds.includes(group.id)) ?? [];
   return (
-    <Dialog isOpen title="Add a client" description={group.teamId ? "Choose one of your assigned Team coaching cases." : "Choose a client from your private coaching practice."} onOpenChange={(open) => { if (!open && !mutation.isPending) close(); }}>
+    <Dialog isOpen title={uiCopy["ui"]["Add a client"]} description={group.teamId ? uiCopy["ui"]["Choose one of your assigned Team coaching cases."] : uiCopy["ui"]["Choose a client from your private coaching practice."]} onOpenChange={(open) => { if (!open && !mutation.isPending) close(); }}>
       <form className={styles.form} onSubmit={(event) => { event.preventDefault(); mutation.mutate({ method: "PUT", path: `/api/v1/coaching/groups/${group.id}/members/${relationshipId}`, ifMatch: group.version }); }}>
         {clients.isPending ? <Loading /> : clients.isError ? <Failure error={clients.error} retry={() => void clients.refetch()} /> : !clients.data.items.length ? (
-          <Alert tone="info" title={group.teamId ? "No Team clients assigned to you" : "No active clients yet"} actions={group.teamId ? undefined : <LinkButton href="/app/clients" size="sm">Open clients</LinkButton>}>
-            {group.teamId ? "Only Team clients assigned to you can join this group." : "Groups contain your active clients. Invite a client or accept an application first."}
+          <Alert tone="info" title={group.teamId ? uiCopy["ui"]["No Team clients assigned to you"] : uiCopy["ui"]["No active clients yet"]} actions={group.teamId ? undefined : <LinkButton href="/app/clients" size="sm">{uiCopy["ui"]["Open clients"]}</LinkButton>}>
+            {group.teamId ? uiCopy["ui"]["Only Team clients assigned to you can join this group."] : uiCopy["ui"]["Groups contain your active clients. Invite a client or accept an application first."]}
           </Alert>
         ) : !available.length ? (
-          <Alert tone="info" title="Everyone is already in this group">All {clients.data.items.length} of your active clients are members. New clients can be added once they join.</Alert>
+          <Alert tone="info" title={uiCopy["ui"]["Everyone is already in this group"]}>{uiCopy["common"]["all"]} {clients.data.items.length}  {uiCopy["ui"]["of your active clients are members. New clients can be added once they join."]}</Alert>
         ) : (
-          <Select label="Client" placeholder="Choose a client" isRequired selectedKey={relationshipId || null} onSelectionChange={(key) => setRelationship(String(key))}>
+          <Select label={uiCopy["profile"]["roles"]["Client"]} placeholder={uiCopy["ui"]["Choose a client"]} isRequired selectedKey={relationshipId || null} onSelectionChange={(key) => setRelationship(String(key))}>
             {available.map((client) => <Option key={client.id} id={client.id}>{client.client.displayName || client.client.username}</Option>)}
           </Select>
         )}
         <MutationError error={mutation.error} />
         <DialogFooter>
-          {clients.data && !available.length ? <Button onPress={close}>Close</Button> : <>
-            <Button onPress={close} isDisabled={mutation.isPending}>Cancel</Button>
-            <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!relationshipId}>Add to group</Button>
+          {clients.data && !available.length ? <Button onPress={close}>{uiCopy["common"]["close"]}</Button> : <>
+            <Button onPress={close} isDisabled={mutation.isPending}>{uiCopy["common"]["cancel"]}</Button>
+            <Button type="submit" variant="primary" loading={mutation.isPending} isDisabled={!relationshipId}>{uiCopy["ui"]["Add to group"]}</Button>
           </>}
         </DialogFooter>
       </form>

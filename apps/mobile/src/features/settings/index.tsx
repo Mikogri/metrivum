@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useState } from "react";
 import { router } from "expo-router";
 import { View } from "react-native";
@@ -159,6 +160,8 @@ export function MoreScreen() {
 
 /** Account, Coach/Client view, language, appearance, notification settings and sign-out. */
 export function ProfileScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { profile, role, setRole, api, refreshProfile } = useMobile();
     const accounts = useAccounts();
     const theme = useTheme();
@@ -268,9 +271,9 @@ export function ProfileScreen() {
                 />
             </Section>
 
-            <Section title="Message privacy">
-                <Text tone="mutedText">Anyone can message you by default. Require approval for new conversations; accepted chats stay open.</Text>
-                {messagePrivacy.data && <ListItem title="Require approval" trailing={<Switch accessibilityLabel="Require approval for new conversations" value={messagePrivacy.data.requireApproval} disabled={saveMessagePrivacy.isPending} onValueChange={requireApproval => saveMessagePrivacy.mutate({ method: "PUT", path: "/api/v1/me/messaging-preferences", json: { requireApproval } })} />} />}
+            <Section title={nativeCopy("interface.Message privacy")}>
+                <Text tone="mutedText">{nativeCopy("interface.Anyone can message you by default. Require approval for new conversations; accepted chats stay open.")}</Text>
+                {messagePrivacy.data && <ListItem title={nativeCopy("interface.Require approval")} trailing={<Switch accessibilityLabel={nativeCopy("interface.Require approval for new conversations")} value={messagePrivacy.data.requireApproval} disabled={saveMessagePrivacy.isPending} onValueChange={requireApproval => saveMessagePrivacy.mutate({ method: "PUT", path: "/api/v1/me/messaging-preferences", json: { requireApproval } })} />} />}
                 {messagePrivacy.isPending && <LoadingState />}
                 {messagePrivacy.error && <ErrorState error={messagePrivacy.error} retry={() => void messagePrivacy.refetch()} />}
                 {saveMessagePrivacy.error && <ErrorState error={saveMessagePrivacy.error} />}

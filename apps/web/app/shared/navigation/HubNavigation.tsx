@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useLocation, useNavigate } from "react-router";
 import { Tab, TabList, Tabs } from "@metrivum/ui-web";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
@@ -8,6 +9,8 @@ import styles from "./HubNavigation.module.css";
 const programSections = [["Programs", "/app/programs"], ["Templates", "/app/templates"]] as const;
 
 export function HubNavigation() {
+ const uiCopy = useUiCopy();
+
   const { mode } = useWorkspace();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -18,7 +21,7 @@ export function HubNavigation() {
   const sections = client ? clientSections : programSections;
   return (
     <Tabs className={styles.navigation} selectedKey={selected} onSelectionChange={(key) => navigate(String(key), { replace: true })}>
-      <TabList aria-label={client ? "Clients sections" : "Programs sections"}>
+      <TabList aria-label={client ? uiCopy["ui"]["Clients sections"] : uiCopy["ui"]["Programs sections"]}>
         {sections.map(([label, url]) => <Tab key={url} id={url}>{label}</Tab>)}
       </TabList>
     </Tabs>

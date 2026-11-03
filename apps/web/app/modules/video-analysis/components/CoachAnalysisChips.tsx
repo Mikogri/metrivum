@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useQuery } from '@tanstack/react-query';
 import { Video } from 'lucide-react';
 import { Link } from 'react-router';
@@ -23,13 +24,15 @@ function useWorkoutAnalyses(executionId: string, enabled: boolean) {
  * (or, without `setId`, to the whole workout). Renders nothing when there are none.
  */
 export function CoachAnalysisChips({ executionId, setId = null, enabled = true }: { executionId: string; setId?: string | null; enabled?: boolean }) {
+ const uiCopy = useUiCopy();
+
   const list = useWorkoutAnalyses(executionId, enabled);
   const shown = (list.data ?? []).filter(item => (item.set.setId ?? null) === setId);
   if (!shown.length) return null;
   return <span className={styles.chips}>
     {shown.map(({ analysis }) => <Link key={analysis.id} to={`/app/my-analyses/${analysis.id}`} className={styles.chip} title={analysis.name}>
       <Video aria-hidden="true" />
-      <span>{setId ? 'Coach video' : `Coach video: ${analysis.name}`}</span>
+      <span>{setId ? uiCopy["ui"]["Coach video"] : `Coach video: ${analysis.name}`}</span>
     </Link>)}
   </span>;
 }

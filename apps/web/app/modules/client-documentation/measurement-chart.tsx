@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { useTween } from "~/shared/lib/useTween";
 import styles from "./measurement-chart.module.css";
@@ -49,6 +50,8 @@ export function MeasurementChart({ points, series, unit, height = 260, label, on
   label?: string;
   onPick?: (series: number, index: number) => void;
 }) {
+ const uiCopy = useUiCopy();
+
   const fill = `fill-${useId().replace(/:/g, "")}`;
   const ref = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState(0);
@@ -66,7 +69,7 @@ export function MeasurementChart({ points, series, unit, height = 260, label, on
   const all = lines.flatMap((line) => line.points);
   // Drawn values ease towards new data (another metric, another period); labels and the tooltip stay exact.
   const drawn = useTween(all.map((p) => p.value));
-  if (!all.length) return <p className={styles.empty}>No measurements in this period.</p>;
+  if (!all.length) return <p className={styles.empty}>{uiCopy["ui"]["No measurements in this period."]}</p>;
 
   const multi = lines.length > 1;
   const width = measured || 640;

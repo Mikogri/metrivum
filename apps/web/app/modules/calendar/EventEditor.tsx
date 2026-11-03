@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseAbsolute, parseDate, parseDateTime, parseTime, parseZonedDateTime } from "@internationalized/date";
 import { Alert, Button, Combobox, DateField, DialogFooter, Option, Switch, TextArea, TextField, TimeField } from "@metrivum/ui-web";
@@ -27,6 +28,8 @@ export function EventEditor({
   cancel: () => void;
   dirtyChanged: (dirty: boolean) => void;
 }) {
+  const uiCopy = useUiCopy();
+
   const zones = useMemo(() => timeZones(), []);
   const local = (value: string) => parseAbsolute(value, initial?.timeZone ?? zone).toString().slice(0, 16);
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -113,55 +116,56 @@ export function EventEditor({
       }}
     >
       <section className={styles.editorSection}>
-        <TextField label="Title" placeholder={kind === "Meeting" ? "e.g. Monthly progress review" : "e.g. Club 10K race"} isRequired maxLength={200} value={title} onChange={edit(setTitle)} autoFocus />
-        <TextArea label="Description" placeholder="Optional, agenda or what to prepare" maxLength={10000} value={description} onChange={edit(setDescription)} />
+        <TextField label={uiCopy["profile"]["showcase"]["fileTitle"]} placeholder={kind === "Meeting" ? uiCopy["ui"]["e.g. Monthly progress review"] : uiCopy["ui"]["e.g. Club 10K race"]} isRequired maxLength={200} value={title} onChange={edit(setTitle)} autoFocus />
+        <TextArea label={uiCopy["training"]["library"]["createDialog"]["description"]} placeholder={uiCopy["ui"]["Optional, agenda or what to prepare"]} maxLength={10000} value={description} onChange={edit(setDescription)} />
       </section>
 
       <section className={styles.editorSection}>
-        <h3>When</h3>
+        <h3>{uiCopy["ui"]["When"]}</h3>
         {kind === "Event" ? (
           <Switch isSelected={allDay} onChange={edit(setAllDay)}>
-            All day
+
+            {uiCopy["ui"]["All day"]}
           </Switch>
         ) : null}
         {allDay ? (
           <div className={styles.columns}>
-            <DateField label="First day" isRequired value={parseDate(firstDay)} onChange={(v) => { if (v) { setFirstDay(v.toString()); if (lastDay < v.toString()) setLastDay(v.toString()); mark(); } }} />
-            <DateField label="Last day" isRequired value={parseDate(lastDay)} onChange={(v) => v && edit(setLastDay)(v.toString())} />
+            <DateField label={uiCopy["ui"]["First day"]} isRequired value={parseDate(firstDay)} onChange={(v) => { if (v) { setFirstDay(v.toString()); if (lastDay < v.toString()) setLastDay(v.toString()); mark(); } }} />
+            <DateField label={uiCopy["ui"]["Last day"]} isRequired value={parseDate(lastDay)} onChange={(v) => v && edit(setLastDay)(v.toString())} />
           </div>
         ) : (
           <>
             <div className={styles.columns3}>
-              <DateField label="Starts" isRequired value={parseDate(startDate)} onChange={(v) => v && changeStart(`${v.toString()}T${start.slice(11)}`)} />
-              <TimeField label="From" isRequired hourCycle={24} value={parseTime(start.slice(11))} onChange={(v) => v && changeStart(`${startDate}T${v.toString().slice(0, 5)}`)} />
-              <TimeField label="To" isRequired hourCycle={24} value={parseTime(end.slice(11))} onChange={(v) => v && edit(setEnd)(`${endDate}T${v.toString().slice(0, 5)}`)} />
+              <DateField label={uiCopy["ui"]["Starts"]} isRequired value={parseDate(startDate)} onChange={(v) => v && changeStart(`${v.toString()}T${start.slice(11)}`)} />
+              <TimeField label={uiCopy["editor"]["panel"]["loadMin"]} isRequired hourCycle={24} value={parseTime(start.slice(11))} onChange={(v) => v && changeStart(`${startDate}T${v.toString().slice(0, 5)}`)} />
+              <TimeField label={uiCopy["editor"]["panel"]["loadMax"]} isRequired hourCycle={24} value={parseTime(end.slice(11))} onChange={(v) => v && edit(setEnd)(`${endDate}T${v.toString().slice(0, 5)}`)} />
             </div>
             {endDate !== startDate ? (
               <div className={styles.columns3}>
-                <DateField label="Ends" isRequired value={parseDate(endDate)} onChange={(v) => v && edit(setEnd)(`${v.toString()}T${end.slice(11)}`)} />
+                <DateField label={uiCopy["ui"]["Ends"]} isRequired value={parseDate(endDate)} onChange={(v) => v && edit(setEnd)(`${v.toString()}T${end.slice(11)}`)} />
               </div>
             ) : null}
           </>
         )}
-        <Combobox label="Time zone" placeholder="Search time zones" isRequired defaultItems={zones.map((z) => ({ id: z }))} selectedKey={timeZone} onSelectionChange={(key) => key && edit(setTimeZone)(String(key))}>
+        <Combobox label={uiCopy["settings"]["timeZone"]} placeholder={uiCopy["common"]["ph"]["timeZone"]} isRequired defaultItems={zones.map((z) => ({ id: z }))} selectedKey={timeZone} onSelectionChange={(key) => key && edit(setTimeZone)(String(key))}>
           {(item: { id: string }) => <Option id={item.id}>{item.id.replace(/_/g, " ")}</Option>}
         </Combobox>
       </section>
 
       <section className={styles.editorSection}>
-        <h3>Where</h3>
+        <h3>{uiCopy["ui"]["Where"]}</h3>
         <div className={styles.columns}>
-          <TextField label="Location" placeholder="e.g. City park, gym or address" value={location} maxLength={500} onChange={edit(setLocation)} />
-          <TextField label="Meeting link" placeholder="https://" type="url" value={url} maxLength={2048} onChange={edit(setUrl)} />
+          <TextField label={uiCopy["dashboard"]["discovery"]["location"]} placeholder={uiCopy["ui"]["e.g. City park, gym or address"]} value={location} maxLength={500} onChange={edit(setLocation)} />
+          <TextField label={uiCopy["ui"]["Meeting link"]} placeholder="https://" type="url" value={url} maxLength={2048} onChange={edit(setUrl)} />
         </div>
       </section>
 
       <section className={styles.editorSection}>
-        <h3>Invite</h3>
+        <h3>{uiCopy["ui"]["Invite"]}</h3>
         <RecipientPicker
           relationships={relationships}
           groups={groups}
-          hint="Groups are expanded when you save: people who join a group later aren't added."
+          hint={uiCopy["ui"]["Groups are expanded when you save: people who join a group later aren't added."]}
           onChange={(value) => {
             setRelationships(value.relationships);
             setGroups(value.groups);
@@ -175,9 +179,9 @@ export function EventEditor({
         <MutationError error={mutation.error} />
       </div>
       <DialogFooter>
-        <Button onPress={cancel}>Cancel</Button>
+        <Button onPress={cancel}>{uiCopy["common"]["cancel"]}</Button>
         <Button variant="primary" type="submit" loading={mutation.isPending} isDisabled={!title.trim()}>
-          {initial ? "Save changes" : kind === "Meeting" ? "Create meeting" : "Create event"}
+          {initial ? uiCopy["common"]["saveChanges"] : kind === "Meeting" ? uiCopy["ui"]["Create meeting"] : uiCopy["ui"]["Create event"]}
         </Button>
       </DialogFooter>
     </form>

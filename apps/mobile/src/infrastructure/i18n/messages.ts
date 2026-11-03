@@ -1,6 +1,8 @@
+import { interfaceEnglish, interfacePolish } from "./interface";
 import { authEnglish, authPolish } from "./auth-messages";
 export type Locale = "en" | "pl";
 export const english = {
+    ...interfaceEnglish,
     ...authEnglish,
     "route.auth": "Authentication",
     "route.coaches": "Coaches",
@@ -107,6 +109,7 @@ export const english = {
 } as const;
 export type TranslationKey = keyof typeof english;
 export const polish: Record<TranslationKey, string> = {
+    ...interfacePolish,
     ...authPolish,
     "route.auth": "Uwierzytelnianie",
     "route.coaches": "Trenerzy",

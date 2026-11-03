@@ -294,6 +294,10 @@ function mockFree() {
 /** Coaching specializations of the signed-in mock coach, kept for the page session. */
 let mockSpecializations = { selectedCodes: [] as string[], primaryCodes: [] as string[], version: 1 };
 
+const mockFiles = new Map<string, string>();
+let mockAvatar: string | null = null;
+let mockAiPreferences = { note: "", shareWithIntegrations: false, version: 1 };
+
 export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   await new Promise((resolve) => setTimeout(resolve, 180 + Math.random() * 220));
   const url = new URL(String(input));
@@ -334,6 +338,35 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   if (path === "/api/v1/me/roles/client" && method === "POST") {
     db.profile = { ...db.profile, roles: [...new Set([...db.profile.roles, "Client"])], version: db.profile.version + 1 } as ProfileResponse;
     return json(200, db.profile, db.profile.version);
+  }
+  if (path === "/api/v1/me/ai-programming-preferences" && method === "GET") return json(200, mockAiPreferences);
+  if (path === "/api/v1/me/ai-programming-preferences" && method === "PATCH") {
+    mockAiPreferences = { note: body?.note ?? "", shareWithIntegrations: Boolean(body?.shareWithIntegrations), version: mockAiPreferences.version + 1 };
+    return json(200, mockAiPreferences);
+  }
+  // Profile photo: the "upload" keeps the file in memory as an object URL for this browser tab.
+  if (path === "/api/v1/me/avatar/uploads" && method === "POST") {
+    const mediaId = crypto.randomUUID();
+    return json(200, { mediaId, uploadUrl: `${url.origin}/__mock/uploads/${mediaId}`, expiresAt: new Date(Date.now() + 600_000).toISOString(), method: "PUT" });
+  }
+  if ((m = path.match(/^\/__mock\/uploads\/([\w-]+)$/)) && method === "PUT" && init.body instanceof Blob) {
+    mockFiles.set(m[1]!, URL.createObjectURL(init.body));
+    return new Response(null, { status: 200 });
+  }
+  if (path === "/api/v1/me/avatar" && method === "PUT") {
+    if (!mockFiles.has(body?.mediaId)) return problem(404, "NOT_FOUND");
+    mockAvatar = body.mediaId;
+    db.profile = { ...db.profile, hasAvatar: true };
+    return json(200, db.profile, db.profile.version);
+  }
+  if (path === "/api/v1/me/avatar" && method === "DELETE") {
+    mockAvatar = null;
+    db.profile = { ...db.profile, hasAvatar: false };
+    return json(200, db.profile, db.profile.version);
+  }
+  if ((m = path.match(/^\/api\/v1\/accounts\/people\/([\w-]+)\/avatar\/read-url$/)) && method === "POST") {
+    const file = m[1] === db.profile.id && mockAvatar ? mockFiles.get(mockAvatar) : undefined;
+    return file ? json(200, { url: file, expiresAt: new Date(Date.now() + 600_000).toISOString() }) : problem(404, "NOT_FOUND");
   }
   if (path === "/api/v1/me/cover-style" && method === "PUT") {
     db.profile = { ...db.profile, coverStyle: body?.style ?? null };

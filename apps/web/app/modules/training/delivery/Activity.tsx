@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useSearchParams } from "react-router";
 import { DataTable, EmptyState, Option, Select, Toolbar, useMobileLayout } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -15,6 +17,8 @@ const shortDay = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString
 
 export interface ActivityOptions { earliestDate?: string | null; programs: { id: string; name: string }[]; structure: { blockId: string; cycleId: string; firstDate: string; lastDate: string }[] }
 export function TrainingActivity({ relationshipId }: { relationshipId: string }) {
+  const uiCopy = useUiCopy();
+
   const m = useT();
   const mobile = useMobileLayout();
   const [params, setParams] = useSearchParams();
@@ -29,25 +33,25 @@ export function TrainingActivity({ relationshipId }: { relationshipId: string })
   const blocks = [...new Set(options.data?.structure.map(item => item.blockId) ?? [])];
   if (occurrence) return <WorkoutDetail occurrenceId={occurrence} relationshipId={relationshipId} onBack={{ label: m.common.back, onPress: () => update({ workout: "" }) }} />;
   const completed = summary.data?.programs.reduce((count, program) => count + program.completed, 0) ?? 0;
-  return <section className={styles.stack} aria-label="Training activity">
-    <Toolbar aria-label="Activity filters" className={styles.filters}>
+  return <section className={styles.stack} aria-label={uiCopy["ui"]["Training activity"]}>
+    <Toolbar aria-label={uiCopy["ui"]["Activity filters"]} className={styles.filters}>
       <PeriodFilter from={from} to={to} earliest={options.data?.earliestDate} onChange={range => update(range)} />
-      <Select aria-label="Program" selectedKey={programId || "all"} onSelectionChange={key => update({ program: key === "all" ? "" : String(key), block: "", cycle: "" })}><Option id="all">All programs</Option>{(options.data?.programs ?? []).map(p => <Option key={p.id} id={p.id}>{p.name}</Option>)}</Select>
-      {programId && <Select aria-label="Block" selectedKey={blockId || "all"} onSelectionChange={key => update({ block: key === "all" ? "" : String(key), cycle: "" })}><Option id="all">All blocks</Option>{blocks.map((id, i) => <Option key={id} id={id}>{`Block ${i + 1}`}</Option>)}</Select>}
-      {programId && <Select aria-label="Cycle" selectedKey={cycleId || "all"} onSelectionChange={key => update({ cycle: key === "all" ? "" : String(key) })}><Option id="all">All cycles</Option>{(options.data?.structure ?? []).filter(s => !blockId || s.blockId === blockId).map((s, i) => <Option key={`${s.blockId}:${s.cycleId}`} id={s.cycleId}>{`Cycle ${i + 1} · ${s.firstDate}`}</Option>)}</Select>}
-      <Select aria-label="Status" selectedKey={get("status") || "all"} onSelectionChange={key => update({ status: key === "all" ? "" : String(key) })}><Option id="all">All statuses</Option>{["Scheduled", "InProgress", "Completed", "Skipped", "Missed"].map(s => <Option key={s} id={s}>{s === "InProgress" ? "In progress" : s}</Option>)}</Select>
-      <Select aria-label="Sort" selectedKey={get("sort", "latest")} onSelectionChange={key => update({ sort: String(key) })}><Option id="latest">Latest first</Option><Option id="oldest">Oldest first</Option></Select>
+      <Select aria-label={uiCopy["ui"]["Program"]} selectedKey={programId || "all"} onSelectionChange={key => update({ program: key === "all" ? "" : String(key), block: "", cycle: "" })}><Option id="all">{uiCopy["ui"]["All programs"]}</Option>{(options.data?.programs ?? []).map(p => <Option key={p.id} id={p.id}>{p.name}</Option>)}</Select>
+      {programId && <Select aria-label={uiCopy["editor"]["sheet"]["blockLabel"]} selectedKey={blockId || "all"} onSelectionChange={key => update({ block: key === "all" ? "" : String(key), cycle: "" })}><Option id="all">{uiCopy["ui"]["All blocks"]}</Option>{blocks.map((id, i) => <Option key={id} id={id}>{formatInterfaceText(uiCopy["ui"]["Block {0}"], [i + 1])}</Option>)}</Select>}
+      {programId && <Select aria-label={uiCopy["editor"]["sheet"]["cycleLabel"]} selectedKey={cycleId || "all"} onSelectionChange={key => update({ cycle: key === "all" ? "" : String(key) })}><Option id="all">{uiCopy["ui"]["All cycles"]}</Option>{(options.data?.structure ?? []).filter(s => !blockId || s.blockId === blockId).map((s, i) => <Option key={`${s.blockId}:${s.cycleId}`} id={s.cycleId}>{formatInterfaceText(uiCopy["ui"]["Cycle {0} · {1}"], [i + 1,s.firstDate])}</Option>)}</Select>}
+      <Select aria-label={uiCopy["usage"]["colState"]} selectedKey={get("status") || "all"} onSelectionChange={key => update({ status: key === "all" ? "" : String(key) })}><Option id="all">{uiCopy["ui"]["All statuses"]}</Option>{["Scheduled", "InProgress", "Completed", "Skipped", "Missed"].map(s => <Option key={s} id={s}>{s === "InProgress" ? uiCopy["ui"]["In progress"] : s}</Option>)}</Select>
+      <Select aria-label={uiCopy["ui"]["Sort"]} selectedKey={get("sort", "latest")} onSelectionChange={key => update({ sort: String(key) })}><Option id="latest">{uiCopy["ui"]["Latest first"]}</Option><Option id="oldest">{uiCopy["ui"]["Oldest first"]}</Option></Select>
     </Toolbar>
     {options.isError && <Failure error={options.error} />}
     {summary.isPending ? <StatStripSkeleton labels={["Scheduled", "Completed", "Missed", "Skipped", "Completion rate"]} /> : summary.isError ? <Failure error={summary.error} /> : <StatStrip items={[
-      { label: "Scheduled", value: summary.data.planned },
-      { label: "Completed", value: completed, tone: "accent" },
-      { label: "Missed", value: summary.data.missed, tone: summary.data.missed ? "warning" : "default" },
-      { label: "Skipped", value: summary.data.skipped },
-      { label: "Completion rate", value: summary.data.completionPercentage == null ? "—" : `${summary.data.completionPercentage}%` },
+      { label: uiCopy["ui"]["Scheduled"], value: summary.data.planned },
+      { label: uiCopy["video"]["detail"]["completed"], value: completed, tone: "accent" },
+      { label: uiCopy["ui"]["Missed"], value: summary.data.missed, tone: summary.data.missed ? "warning" : "default" },
+      { label: uiCopy["ui"]["Skipped"], value: summary.data.skipped },
+      { label: uiCopy["ui"]["Completion rate"], value: summary.data.completionPercentage == null ? "—" : `${summary.data.completionPercentage}%` },
     ]} />}
-    {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : !list.data.items.length ? <EmptyState title="No workouts in this period" description="Change filters or assign a program with applied changes from Overview." /> : <>
-      {mobile ? <MobileWorkoutRows items={list.data.items} onOpen={id => update({ workout: id })} /> : <DataTable label="Workouts" rows={list.data.items} rowKey={item => item.id} columns={[
+    {list.isPending ? <Loading /> : list.isError ? <Failure error={list.error} retry={() => void list.refetch()} /> : !list.data.items.length ? <EmptyState title={uiCopy["ui"]["No workouts in this period"]} description={uiCopy["ui"]["Change filters or assign a program with applied changes from Overview."]} /> : <>
+      {mobile ? <MobileWorkoutRows items={list.data.items} onOpen={id => update({ workout: id })} /> : <DataTable label={uiCopy["ui"]["Workouts"]} rows={list.data.items} rowKey={item => item.id} columns={[
         { id: "workout", header: "Workout", width: "22%", cell: item => <button type="button" data-row-link className={styles.rowLink} onClick={() => update({ workout: item.id })}><span>{item.name}</span></button> },
         { id: "plan", header: "Plan", width: "16%", muted: true, cell: item => item.programName || "—" },
         { id: "scheduled", header: "Planned for", muted: true, cell: item => shortDay(item.scheduledDate) },

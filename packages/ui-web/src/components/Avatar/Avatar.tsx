@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cx } from "../../lib/cx";
 import styles from "./Avatar.module.css";
 
@@ -7,6 +8,8 @@ export interface AvatarProps {
   /** Decorative avatars next to a visible name should be hidden from assistive tech. */
   decorative?: boolean;
   className?: string;
+  /** A profile photo; the initials show until it loads and whenever it fails. */
+  src?: string | null;
 }
 
 function initials(name: string): string {
@@ -23,7 +26,11 @@ function hue(name: string): number {
   return hash;
 }
 
-export function Avatar({ name, size = "md", decorative, className }: AvatarProps) {
+export function Avatar({ name, size = "md", decorative, className, src }: AvatarProps) {
+  // Remembers which photo loaded, so a new link starts from the initials again.
+  const [loaded, setLoaded] = useState<string | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  const photo = src && failed !== src ? src : null;
   return (
     <span
       className={cx(styles.avatar, styles[size], className)}
@@ -31,8 +38,10 @@ export function Avatar({ name, size = "md", decorative, className }: AvatarProps
       role={decorative ? undefined : "img"}
       aria-label={decorative ? undefined : name}
       aria-hidden={decorative || undefined}
+      data-photo={photo && loaded === photo ? "" : undefined}
     >
       {initials(name)}
+      {photo ? <img className={styles.photo} src={photo} alt="" draggable={false} onLoad={() => setLoaded(photo)} onError={() => setFailed(photo)} /> : null}
     </span>
   );
 }

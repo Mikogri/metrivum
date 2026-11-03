@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookmarkCheck, BookmarkPlus, Share2 } from "lucide-react";
 import { useParams } from "react-router";
@@ -17,6 +18,8 @@ export const meta = () => privateMeta("Shared analysis — Metrivum");
 
 /** What someone sees when they open a shared analysis link: the result and the video, read-only. */
 export default function SharedAnalysis() {
+ const uiCopy = useUiCopy();
+
   const { token = "" } = useParams();
   const m = useT();
   const t = m.video.share;
@@ -50,8 +53,8 @@ export default function SharedAnalysis() {
         title={analysis.data.name}
         description={analysis.data.ownerName ? `Shared by ${analysis.data.ownerName}. ${t.sharedNote}` : t.sharedNote}
         actions={analysis.data.allowSave && !analysis.data.own ? (analysis.data.saved
-          ? <Button iconStart={<BookmarkCheck />} loading={keep.isPending} onPress={() => keep.mutate(false)}>Saved · remove</Button>
-          : <Button variant="primary" iconStart={<BookmarkPlus />} loading={keep.isPending} onPress={() => keep.mutate(true)}>Save to my analyses</Button>) : undefined}
+          ? <Button iconStart={<BookmarkCheck />} loading={keep.isPending} onPress={() => keep.mutate(false)}>{uiCopy["ui"]["Saved · remove"]}</Button>
+          : <Button variant="primary" iconStart={<BookmarkPlus />} loading={keep.isPending} onPress={() => keep.mutate(true)}>{uiCopy["ui"]["Save to my analyses"]}</Button>) : undefined}
         meta={
           <>
             <Badge tone="violet">{t.sharedBadge}</Badge>

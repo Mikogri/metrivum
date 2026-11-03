@@ -66,6 +66,20 @@
   align-content: start;
 }
 
+/* An empty section grows to the row height, with the same dashed box as empty offers. */
+.card[data-empty] {
+  display: flex;
+  flex-direction: column;
+}
+
+.empty {
+  flex: 1;
+  align-content: center;
+  padding: var(--tf-space-5) var(--tf-space-4);
+  border: 1px dashed var(--tf-color-border-strong);
+  border-radius: var(--tf-radius-lg);
+}
+
 .failed {
   display: flex;
   flex-wrap: wrap;

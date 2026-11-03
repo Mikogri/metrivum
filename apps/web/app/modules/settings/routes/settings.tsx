@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronRight, Gauge, HeartPulse, KeyRound, LogIn, LogOut, Minus, Plug, Plus, ShieldCheck, UserRound, Users, Wallet } from "lucide-react";
+import { BarChart3, Bot, Building2, CalendarDays, Check, ChevronRight, ClipboardList, Compass, Dumbbell, Gauge, HeartPulse, KeyRound, Lock, LogIn, LogOut, MessageSquare, Plug, Plus, ShieldCheck, Sparkles, UserRound, Users, Video, Wallet } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
-import { Alert, Avatar, Badge, Button, Card, Checkbox, Combobox, LinkButton, List, ListRow, Option, PageHeader, Select, Skeleton, Switch, TextArea, TextField, toast } from "@metrivum/ui-web";
+import { Alert, Avatar, Badge, Button, Card, Checkbox, Combobox, EmptyState, LinkButton, List, ListRow, Option, PageHeader, Segment, SegmentedControl, Select, Skeleton, Switch, TextArea, TextField, toast } from "@metrivum/ui-web";
 import {
   DETAIL_GROUPS, DetailFields, ageFrom, detailProblems, detailsFromValues, detailsToValues, nameParts, namePartValid, normalizeDisplayName, profileFieldsKey,
   profileKey, timeZones, updateProfile, useProfile, type DetailGroup, type Details,
@@ -283,76 +283,71 @@ function Accounts() {
   );
 }
 
-const AREAS = ["training", "exercises", "video", "coaching", "calendar", "messaging"] as const;
+const AREAS = ["training", "exercises", "video", "coaching", "calendar", "messaging", "insights", "discovery", "integrations", "team"] as const;
+const AREA_ICONS: Record<string, typeof Check> = {
+  training: ClipboardList, exercises: Dumbbell, video: Video, coaching: Users, calendar: CalendarDays, messaging: MessageSquare,
+  insights: BarChart3, discovery: Compass, integrations: Bot, team: Building2, other: Sparkles,
+};
 const areaOf = (key: string) => {
   const head = key.split(".")[0]!;
   if (["coaching", "offers", "forms", "checkins", "billing"].includes(head)) return "coaching";
+  if (head === "analytics" || head === "automation") return "insights";
+  if (head === "organization") return "team";
   return (AREAS as readonly string[]).includes(head) ? head : "other";
 };
+type AccessFilter = "all" | "available" | "missing";
 
-/** Every feature grouped by area (a tick or a dash plus the reason), then the limits with usage meters. */
+/** The plan with how much of it is in use, the limits as meters, then every feature by area. */
 function AccessOverview() {
   const m = useT();
   const t = m.settings;
   const { locale } = useAppLocale();
   const access = useAccessSnapshot();
+  const [filter, setFilter] = useState<AccessFilter>("all");
   const features = access.data?.features ?? [];
   const available = features.filter((f) => f.available).length;
-  const groups = [...AREAS, "other"].map((area) => ({ area, items: features.filter((f) => areaOf(f.key) === area) })).filter((g) => g.items.length);
+  const missing = features.length - available;
+  const shown = features.filter((f) => (filter === "available" ? f.available : filter === "missing" ? !f.available : true));
+  // Features not included come first, so what is missing is never buried in a long list.
+  const groups = [...AREAS, "other"]
+    .map((area) => ({ area, all: features.filter((f) => areaOf(f.key) === area), items: shown.filter((f) => areaOf(f.key) === area).sort((a, b) => Number(a.available) - Number(b.available)) }))
+    .filter((g) => g.items.length);
   const limits = access.data?.limits ?? [];
+  const percent = features.length ? Math.round((available / features.length) * 100) : 0;
   return (
     <div className={styles.stack}>
-      <Card as="section" padding="lg" aria-labelledby="access-title">
-        <div className={styles.cardHead}>
-          <div>
-            <h2 id="access-title" className={styles.title}>
-              {t.access}
+      <Card as="section" padding="lg" aria-labelledby="plan-title">
+        <div className={styles.planHead}>
+          <span className={styles.planIcon} aria-hidden="true"><Gauge /></span>
+          <div className={styles.planText}>
+            <h2 id="plan-title" className={styles.planTitle}>
+              {t.accessPlan}
+              {access.data?.planId ? <Badge tone="violet">{access.data.planId}</Badge> : null}
             </h2>
-            <p className={styles.hint}>{t.accessBody}</p>
+            <p className={styles.hint}>{t.accessPlanBody}</p>
           </div>
-          {access.data ? (
-            <Badge tone={available === features.length ? "success" : "neutral"} dot>
-              {t.accessSummary(available, features.length)}
-            </Badge>
-          ) : null}
+          <div className={styles.planActions}>
+            <LinkButton href="/app/usage" size="sm" variant="ghost">{t.accessUsage}</LinkButton>
+            <LinkButton href="/app/subscription" size="sm">{t.accessPlans}</LinkButton>
+          </div>
         </div>
-        {access.isError ? <Alert tone="danger" title={errorText(m, access.error)} /> : null}
-        {access.isPending ? <Skeleton height="12rem" /> : null}
-        <div className={styles.areas}>
-          {groups.map(({ area, items }) => (
-            <section key={area} className={styles.area} aria-labelledby={`area-${area}`}>
-              <h3 id={`area-${area}`} className={styles.areaTitle}>
-                {t.areas[area] ?? area}
-                <span className={styles.areaCount}>
-                  {items.filter((f) => f.available).length}/{items.length}
-                </span>
-              </h3>
-              <ul className={styles.features}>
-                {items.map((feature) => {
-                  const reason = m.access.reasons[feature.reason] ?? feature.reason;
-                  return (
-                    <li key={feature.key} data-available={feature.available || undefined} title={reason}>
-                      <span className={styles.featureMark} aria-hidden="true">
-                        {feature.available ? <Check /> : <Minus />}
-                      </span>
-                      <span className={styles.featureName}>
-                        {m.access.features[feature.key] ?? feature.key}
-                        <span className={feature.available ? styles.srOnly : styles.featureReason}>{reason}</span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
-        </div>
+        {access.isError ? <Alert tone="danger" title={errorText(m, access.error)} /> : access.isPending ? <Skeleton height="2.5rem" /> : (
+          <div className={styles.planMeter}>
+            <div className={styles.planMeterHead}>
+              <span>{t.accessSummary(available, features.length)}</span>
+              <strong>{percent}%</strong>
+            </div>
+            <span className={styles.meter} role="meter" aria-label={t.accessFeatures} aria-valuemin={0} aria-valuemax={features.length} aria-valuenow={available}>
+              <span style={{ transform: `scaleX(${percent / 100})` }} />
+            </span>
+          </div>
+        )}
       </Card>
+
       {limits.length ? (
         <Card as="section" padding="lg" aria-labelledby="limits-title">
-          <h2 id="limits-title" className={styles.title}>
-            {t.limits}
-          </h2>
-          <dl className={styles.limits}>
+          <h2 id="limits-title" className={styles.title}>{t.limits}</h2>
+          <ul className={styles.limitTiles}>
             {limits.map((limit) => {
               const used = Number(limit.used);
               const maximum = Number(limit.maximum);
@@ -361,26 +356,79 @@ function AccessOverview() {
               const ratio = maximum > 0 ? Math.min(1, used / maximum) : 0;
               const label = m.access.limits[limit.key] ?? limit.key;
               return (
-                <div key={limit.key} className={styles.limit}>
-                  <dt>{label}</dt>
-                  <dd>
-                    {unlimited ? <span className={styles.limitValue}>{used} / {m.dashboard.coach.unlimited}</span> : bytes ? (
-                      <span className={styles.limitValue}>{formatBytes(locale, maximum)}</span>
-                    ) : (
-                      <>
-                        <span className={styles.meter} role={maximum > 0 ? "meter" : undefined} aria-label={label} aria-valuemin={maximum > 0 ? 0 : undefined} aria-valuemax={maximum > 0 ? maximum : undefined} aria-valuenow={maximum > 0 ? Math.min(used, maximum) : undefined}>
+                <li key={limit.key} className={styles.limitTile} data-high={(!unlimited && !bytes && ratio >= 0.8) || undefined}>
+                  <span className={styles.limitLabel}>{label}</span>
+                  {bytes ? (
+                    <strong className={styles.limitNumber}>{unlimited ? t.accessUnlimited : formatBytes(locale, maximum)}</strong>
+                  ) : (
+                    <>
+                      <strong className={styles.limitNumber}>
+                        {used}
+                        <small> / {unlimited ? t.accessUnlimited : maximum}</small>
+                      </strong>
+                      {unlimited ? null : (
+                        <span className={styles.meter} role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={maximum} aria-valuenow={Math.min(used, maximum)}>
                           <span style={{ transform: `scaleX(${ratio})` }} data-high={ratio >= 0.8 || undefined} />
                         </span>
-                        <span className={styles.limitValue}>{t.usageValue(used, maximum)}</span>
-                      </>
-                    )}
-                  </dd>
-                </div>
+                      )}
+                    </>
+                  )}
+                </li>
               );
             })}
-          </dl>
+          </ul>
         </Card>
       ) : null}
+
+      <Card as="section" padding="lg" aria-labelledby="access-title">
+        <div className={styles.cardHead}>
+          <div>
+            <h2 id="access-title" className={styles.title}>{t.accessFeatures}</h2>
+            <p className={styles.hint}>{t.accessBody}</p>
+          </div>
+          <SegmentedControl size="sm" aria-label={t.accessFeatures} selectedKeys={[filter]} onSelectionChange={(keys) => setFilter(([...keys][0] as AccessFilter | undefined) ?? "all")}>
+            {(["all", "available", "missing"] as const).map((id) => (
+              <Segment key={id} id={id}>
+                {t.accessFilter[id]}
+                {id === "missing" && missing ? <span className={styles.filterCount}>{missing}</span> : null}
+              </Segment>
+            ))}
+          </SegmentedControl>
+        </div>
+        {access.isPending ? <Skeleton height="12rem" /> : filter === "missing" && !missing ? (
+          <EmptyState size="sm" className={styles.accessEmpty} icon={<Check />} title={t.accessNoneMissing} />
+        ) : (
+          <div className={styles.areas}>
+            {groups.map(({ area, all, items }) => {
+              const Icon = AREA_ICONS[area] ?? Sparkles;
+              const on = all.filter((f) => f.available).length;
+              return (
+                <section key={area} className={styles.area} aria-labelledby={`area-${area}`}>
+                  <header className={styles.areaHead}>
+                    <span className={styles.areaIcon} aria-hidden="true"><Icon /></span>
+                    <h3 id={`area-${area}`} className={styles.areaTitle}>{t.areas[area] ?? area}</h3>
+                    <span className={styles.areaCount} data-full={on === all.length || undefined}>{on}/{all.length}</span>
+                  </header>
+                  <ul className={styles.features}>
+                    {items.map((feature) => {
+                      const reason = m.access.reasons[feature.reason] ?? feature.reason;
+                      return (
+                        <li key={feature.key} data-available={feature.available || undefined}>
+                          <span className={styles.featureMark} aria-hidden="true">{feature.available ? <Check /> : <Lock />}</span>
+                          <span className={styles.featureName}>
+                            {m.access.features[feature.key] ?? feature.key}
+                            <span className={feature.available ? styles.srOnly : styles.featureReason}>{reason}</span>
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              );
+            })}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

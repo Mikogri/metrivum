@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { InfoTip } from "@metrivum/ui-web";
 import { ArrowDownRight, ArrowUpRight, ChartNoAxesColumn, Minus } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
@@ -110,12 +111,14 @@ const allZero = (values: number[]) => values.every((v) => !v);
 /* ------------------------------------------------------------------ KPI */
 
 export function Delta({ current, previous, invert = false }: { current: number; previous: number; invert?: boolean }) {
-  if (previous === 0) return <span className={styles.delta}>No baseline</span>;
+ const uiCopy = useUiCopy();
+
+  if (previous === 0) return <span className={styles.delta}>{uiCopy["ui"]["No baseline"]}</span>;
   const change = Math.round(((current - previous) / previous) * 1000) / 10;
   const good = invert ? change < 0 : change > 0;
   const Icon = change > 0 ? ArrowUpRight : change < 0 ? ArrowDownRight : Minus;
   return (
-    <span className={styles.delta} data-tone={change === 0 ? undefined : good ? "up" : "down"} title="Compared with the previous period of the same length">
+    <span className={styles.delta} data-tone={change === 0 ? undefined : good ? "up" : "down"} title={uiCopy["ui"]["Compared with the previous period of the same length"]}>
       <Icon aria-hidden="true" />
       {change > 0 ? "+" : ""}
       {change}%
@@ -161,6 +164,8 @@ export function Kpi({
   caption?: string;
   index?: number;
 }) {
+ const uiCopy = useUiCopy();
+
   return (
     <article className={styles.kpi} style={{ "--i": index } as React.CSSProperties} data-tone={tone}>
       <header>
@@ -170,7 +175,7 @@ export function Kpi({
       <strong className={styles.kpiValue}>
         <AnimatedNumber value={value} format={format} />
       </strong>
-      {spark && !allZero(spark) ? <Sparkline values={spark} tone={tone} /> : <p className={styles.kpiCaption}>{caption ?? (spark ? "No activity in this period" : "")}</p>}
+      {spark && !allZero(spark) ? <Sparkline values={spark} tone={tone} /> : <p className={styles.kpiCaption}>{caption ?? (spark ? uiCopy["ui"]["No activity in this period"] : "")}</p>}
     </article>
   );
 }
@@ -317,8 +322,10 @@ export function StackedBars({ labels, series, height = 200 }: { labels: string[]
 
 /** Gains above the line, losses below: how the roster moved in each bucket. */
 export function FlowBars({ labels, gains, losses }: { labels: string[]; gains: number[]; losses: number[] }) {
+ const uiCopy = useUiCopy();
+
   const max = Math.max(1, ...gains, ...losses);
-  if (allZero([...gains, ...losses])) return <NoData height={140} title="No one joined or left" hint="Roster changes in this period appear here." />;
+  if (allZero([...gains, ...losses])) return <NoData height={140} title={uiCopy["ui"]["No one joined or left"]} hint={uiCopy["ui"]["Roster changes in this period appear here."]} />;
   return (
     <div className={styles.flow} role="img" aria-label={labels.map((l, i) => `${l}: +${gains[i]} −${losses[i]}`).join("; ")}>
       {labels.map((label, i) => (
@@ -334,8 +341,10 @@ export function FlowBars({ labels, gains, losses }: { labels: string[]; gains: n
 /* ------------------------------------------------------------------ donut, ring */
 
 export function Donut({ items, format, center }: { items: Array<{ label: string; value: number; tone: Tone }>; format: (n: number) => string; center: string }) {
+ const uiCopy = useUiCopy();
+
   const total = items.reduce((s, x) => s + x.value, 0);
-  if (!total) return <NoData title="Nothing to split yet" hint="Revenue by offer appears after the first payment." />;
+  if (!total) return <NoData title={uiCopy["ui"]["Nothing to split yet"]} hint={uiCopy["ui"]["Revenue by offer appears after the first payment."]} />;
   const r = 52;
   const c = 2 * Math.PI * r;
   const gap = items.length > 1 ? 3 : 0;
@@ -385,6 +394,8 @@ export function Donut({ items, format, center }: { items: Array<{ label: string;
 
 /** A single share out of 100, as an arc that fills to its value. */
 export function Ring({ value, label, caption, tone = "accent" }: { value: number | null; label: string; caption?: string; tone?: Tone }) {
+ const uiCopy = useUiCopy();
+
   const r = 40;
   const c = 2 * Math.PI * r;
   const share = value === null ? 0 : Math.max(0, Math.min(100, value)) / 100;
@@ -395,7 +406,7 @@ export function Ring({ value, label, caption, tone = "accent" }: { value: number
           <circle className={styles.track} cx="48" cy="48" r={r} />
           <circle className={`${styles.ringValue} ${styles.tone}`} data-tone={tone} cx="48" cy="48" r={r} style={{ strokeDasharray: `${share * c} ${c}` }} />
         </svg>
-        <strong data-empty={value === null || undefined}>{value === null ? "No data" : <AnimatedNumber value={value} format={(n) => `${Math.round(n)}%`} />}</strong>
+        <strong data-empty={value === null || undefined}>{value === null ? uiCopy["ui"]["No data"] : <AnimatedNumber value={value} format={(n) => `${Math.round(n)}%`} />}</strong>
       </div>
       <figcaption>
         <span>{label}</span>
@@ -408,6 +419,8 @@ export function Ring({ value, label, caption, tone = "accent" }: { value: number
 /* ------------------------------------------------------------------ funnel, ranking, split */
 
 export function Funnel({ steps }: { steps: Array<{ label: string; value: number; tone: Tone }> }) {
+ const uiCopy = useUiCopy();
+
   const max = Math.max(1, steps[0]?.value ?? 1);
   if (!steps[0]?.value) return <NoData height={120} />;
   return (
@@ -421,7 +434,7 @@ export function Funnel({ steps }: { steps: Array<{ label: string; value: number;
               <strong>
                 <AnimatedNumber value={step.value} />
               </strong>
-              {prev ? <small>{Math.round((step.value / prev) * 100)}% of previous</small> : null}
+              {prev ? <small>{Math.round((step.value / prev) * 100)}{uiCopy["ui"]["% of previous"]}</small> : null}
             </div>
             <div className={styles.funnelTrack}>
               <span className={styles.tone} data-tone={step.tone} style={{ transform: `scaleX(${step.value / max})` }} />

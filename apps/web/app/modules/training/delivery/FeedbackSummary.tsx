@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import type { Schema } from "@metrivum/api-client-web";
 import { Panel } from "~/shared/ui/Panel";
 import { PerformanceChart } from "./PerformanceChart";
@@ -21,27 +23,29 @@ const one = (n: number) => (Math.round(n * 10) / 10).toLocaleString(undefined, {
  * answer and how it moved from the first. Workouts without feedback are left out, not counted as zero.
  */
 export function FeedbackSummary({ points, completed, hasMore }: { points: Point[]; completed: number; hasMore?: boolean }) {
+  const uiCopy = useUiCopy();
+
   const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
-  return <Panel title="Workout feedback" description={`${sorted.length} of ${completed} completed ${completed === 1 ? "workout" : "workouts"} with answers${hasMore ? " (latest 1000 shown)" : ""}.`}>
+  return <Panel title={uiCopy["ui"]["Workout feedback"]} description={formatInterfaceText(uiCopy["ui"]["{0} of {1} completed {2} with answers{3}."], [sorted.length,completed,completed === 1 ? "workout" : "workouts",hasMore ? " (latest 1000 shown)" : ""])}>
     <div className={styles.fbGrid}>{metrics.map(metric => {
       const answered = sorted.flatMap(point => {
         const value = point[metric.field] as number | string | null | undefined;
         return value == null || value === "" ? [] : [{ date: point.date, value: Number(value) }];
       });
       const head = <header><h3>{metric.label}</h3><span>{metric.hint}</span></header>;
-      if (!answered.length) return <section key={metric.field} className={styles.fbCard} data-tone={metric.tone}>{head}<p className={styles.fbEmpty}>No answers yet</p></section>;
+      if (!answered.length) return <section key={metric.field} className={styles.fbCard} data-tone={metric.tone}>{head}<p className={styles.fbEmpty}>{uiCopy["ui"]["No answers yet"]}</p></section>;
       const average = answered.reduce((sum, point) => sum + point.value, 0) / answered.length;
       const latest = answered.at(-1)!.value;
       const change = latest - answered[0]!.value;
       return <section key={metric.field} className={styles.fbCard} data-tone={metric.tone}>
         {head}
-        <p className={styles.fbValue}><strong>{one(average)}</strong><small>/ {metric.max} average</small></p>
+        <p className={styles.fbValue}><strong>{one(average)}</strong><small>/ {metric.max}  {uiCopy["ui"]["average"]}</small></p>
         <span className={styles.fbMeter} aria-hidden="true"><span style={{ transform: `scaleX(${(average - metric.min) / (metric.max - metric.min)})` }} /></span>
-        {answered.length > 1 ? <PerformanceChart height={52} domain={[metric.min, metric.max]} label={`${metric.label} over time`} points={answered} /> : null}
+        {answered.length > 1 ? <PerformanceChart height={52} domain={[metric.min, metric.max]} label={formatInterfaceText(uiCopy["ui"]["{0} over time"], [metric.label])} points={answered} /> : null}
         <dl className={styles.fbFacts}>
-          <div><dt>Latest</dt><dd>{one(latest)}</dd></div>
-          {answered.length > 1 ? <div><dt>Change</dt><dd>{change > 0 ? "+" : ""}{one(change)}</dd></div> : null}
-          <div><dt>Answers</dt><dd>{answered.length}</dd></div>
+          <div><dt>{uiCopy["ui"]["Latest"]}</dt><dd>{one(latest)}</dd></div>
+          {answered.length > 1 ? <div><dt>{uiCopy["ui"]["Change"]}</dt><dd>{change > 0 ? "+" : ""}{one(change)}</dd></div> : null}
+          <div><dt>{uiCopy["ui"]["Answers"]}</dt><dd>{answered.length}</dd></div>
         </dl>
       </section>;
     })}</div>

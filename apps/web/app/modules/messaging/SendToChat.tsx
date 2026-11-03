@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Alert, Button, Option, Select, toast } from "@metrivum/ui-web";
@@ -12,6 +13,8 @@ import styles from "./messaging.module.css";
  * Only conversations that currently accept messages are offered.
  */
 export function SendToChat({ text, label, sentLabel, hint }: { text: string; label: string; sentLabel: string; hint?: string }) {
+ const uiCopy = useUiCopy();
+
   const { api, accountKey, lifecycle } = useAccountContext();
   const cache = useQueryClient();
   const direct = useFeatureAccess("messaging.direct").allowed;
@@ -47,7 +50,7 @@ export function SendToChat({ text, label, sentLabel, hint }: { text: string; lab
         <Select
           label={label}
           description={hint}
-          placeholder={list.isPending ? "Loading conversations…" : open.length ? "Choose a conversation" : "No conversations yet"}
+          placeholder={list.isPending ? uiCopy["ui"]["Loading conversations…"] : open.length ? uiCopy["ui"]["Choose a conversation"] : uiCopy["ui"]["No conversations yet"]}
           isDisabled={!open.length || sending}
           selectedKey={conversation || null}
           onSelectionChange={(k) => setConversation(String(k))}

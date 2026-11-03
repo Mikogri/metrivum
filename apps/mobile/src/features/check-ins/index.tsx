@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { NativeDateField } from "../training/NativeDateField";
 import { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
@@ -51,6 +52,8 @@ export function AnswerFields({
     disabled?: boolean;
     onValidityChange?: (valid: boolean) => void;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const invalidFields = useRef(new Set<string>());
     const validity = (key: string, valid: boolean) => {
@@ -123,9 +126,7 @@ export function AnswerFields({
                                             variant="caption"
                                             tone="warning"
                                         >
-                                            {question.label}: file answers are
-                                            not supported yet. Answer this one
-                                            in the web app.
+                                            {question.label}{nativeCopy("interface.: file answers are not supported yet. Answer this one in the web app.")}
                                         </Text>
                                     );
                                 const range =
@@ -158,7 +159,7 @@ export function AnswerFields({
                                           }))
                                         : question.type === "YesNo"
                                           ? [
-                                                { key: "true", label: "Yes" },
+                                                { key: "true", label: nativeCopy("interface.Yes") },
                                                 { key: "false", label: "No" },
                                             ]
                                           : (question.choices ?? []);
@@ -332,7 +333,7 @@ export function AnswerFields({
                                         key={question.key}
                                         label={label}
                                         hint={question.helpText ?? undefined}
-                                        placeholder="Your answer"
+                                        placeholder={nativeCopy("interface.Your answer")}
                                         value={
                                             typeof value === "string"
                                                 ? value
@@ -370,6 +371,8 @@ const checkInStatuses = [
  * the same details are also a screen, for links that arrive from notifications.
  */
 export function CheckInList({ relationshipId }: { relationshipId?: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { role } = useMobile();
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
@@ -389,7 +392,7 @@ export function CheckInList({ relationshipId }: { relationshipId?: string }) {
     return (
         <>
             <SearchField
-                label="Search check-ins"
+                label={nativeCopy("interface.Search check-ins")}
                 value={search}
                 onChangeText={(value) => {
                     setSearch(value);
@@ -397,7 +400,7 @@ export function CheckInList({ relationshipId }: { relationshipId?: string }) {
                 }}
             />
             <Filters
-                title="Filter check-ins"
+                title={nativeCopy("interface.Filter check-ins")}
                 active={!!status}
                 summary={status ? humanize(status) : "All statuses"}
                 onReset={() => {
@@ -406,7 +409,7 @@ export function CheckInList({ relationshipId }: { relationshipId?: string }) {
                 }}
             >
                 <Choices
-                    label="Status"
+                    label={nativeCopy("interface.Status")}
                     values={checkInStatuses}
                     value={status}
                     onChange={(value) => {
@@ -431,7 +434,7 @@ export function CheckInList({ relationshipId }: { relationshipId?: string }) {
                                     key={item.id}
                                     icon="checkIn"
                                     title={item.scheduleName}
-                                    subtitle={`Due ${formatDateTime(item.dueAtUtc)}`}
+                                    subtitle={nativeCopy("interface.Due {0}", {"0": String(formatDateTime(item.dueAtUtc))})}
                                     trailing={
                                         <StatusBadge status={item.status} />
                                     }
@@ -448,13 +451,13 @@ export function CheckInList({ relationshipId }: { relationshipId?: string }) {
                                     icon="checkIn"
                                     title={
                                         search || status
-                                            ? "No check-ins match"
-                                            : "No check-ins yet"
+                                            ? nativeCopy("interface.No check-ins match")
+                                            : nativeCopy("interface.No check-ins yet")
                                     }
                                     description={
                                         role === "coach"
-                                            ? "Assign one to a client to start collecting answers."
-                                            : "Check-ins from your coach appear here."
+                                            ? nativeCopy("interface.Assign one to a client to start collecting answers.")
+                                            : nativeCopy("interface.Check-ins from your coach appear here.")
                                     }
                                 />
                             )}
@@ -469,14 +472,16 @@ export function CheckInList({ relationshipId }: { relationshipId?: string }) {
 }
 
 export function CheckInsScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { role } = useMobile();
     return (
         <Screen
-            title="Check-ins"
+            title={nativeCopy("interface.Check-ins")}
             subtitle={
                 role === "coach"
-                    ? "Answers from your clients"
-                    : "Forms from your coach"
+                    ? nativeCopy("interface.Answers from your clients")
+                    : nativeCopy("interface.Forms from your coach")
             }
         >
             <CheckInList />
@@ -494,6 +499,8 @@ function ResponseEditor({
     /** Reports whether closing now would lose work (a local save is pending or failed). */
     onBlockedChange?: (blocked: boolean) => void;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { profile, drafts } = useMobile();
     const coach = profile.id === data.form.coachId;
     const key = `check-in:${data.request.id}:${data.request.formVersionId}`;
@@ -645,11 +652,11 @@ function ResponseEditor({
             {stale && (
                 <Section>
                     <Text tone="warning">
-                        This check-in changed on the server. Your answers are
-                        kept; look through them before sending.
+
+                        {nativeCopy("interface.This check-in changed on the server. Your answers are kept; look through them before sending.")}
                     </Text>
                     <Button
-                        title="Keep my answers and continue"
+                        title={nativeCopy("interface.Keep my answers and continue")}
                         disabled={busy}
                         onPress={() => {
                             if (locked.current) return;
@@ -685,7 +692,7 @@ function ResponseEditor({
                     <Button
                         size="lg"
                         tone="primary"
-                        title="Send check-in"
+                        title={nativeCopy("interface.Send check-in")}
                         loading={busy}
                         disabled={!formValid || stale}
                         onPress={() => void submit()}
@@ -694,29 +701,29 @@ function ResponseEditor({
             ) : (
                 <EmptyState
                     icon="schedule"
-                    title={coach ? "Waiting for the client" : "Not open yet"}
+                    title={coach ? nativeCopy("interface.Waiting for the client") : nativeCopy("interface.Not open yet")}
                     description={
                         coach
-                            ? "Answers appear here once the check-in is sent."
-                            : "You can fill it in once it is released."
+                            ? nativeCopy("interface.Answers appear here once the check-in is sent.")
+                            : nativeCopy("interface.You can fill it in once it is released.")
                     }
                 />
             )}
             {data.request.clientReply && (
-                <Section title={coach ? "Your reply" : "Reply from your coach"}>
+                <Section title={coach ? nativeCopy("interface.Your reply") : nativeCopy("interface.Reply from your coach")}>
                     <Text>{data.request.clientReply}</Text>
                 </Section>
             )}
             {coach && data.coachPrivateNotes && (
-                <Section title="Private notes">
+                <Section title={nativeCopy("interface.Private notes")}>
                     <Text tone="mutedText">{data.coachPrivateNotes}</Text>
                 </Section>
             )}
             {coach && data.request.status === "Submitted" && (
-                <Section title="Review" flat>
+                <Section title={nativeCopy("interface.Review")} flat>
                     <Field
-                        label="Reply to the client"
-                        placeholder="Visible to the client"
+                        label={nativeCopy("interface.Reply to the client")}
+                        placeholder={nativeCopy("interface.Visible to the client")}
                         value={reply}
                         multiline
                         editable={!busy}
@@ -725,8 +732,8 @@ function ResponseEditor({
                         }}
                     />
                     <Field
-                        label="Private notes"
-                        placeholder="Only you see these"
+                        label={nativeCopy("interface.Private notes")}
+                        placeholder={nativeCopy("interface.Only you see these")}
                         value={notes}
                         multiline
                         editable={!busy}
@@ -738,7 +745,7 @@ function ResponseEditor({
                         size="lg"
                         tone="primary"
                         icon="check"
-                        title="Mark as reviewed"
+                        title={nativeCopy("interface.Mark as reviewed")}
                         loading={busy}
                         disabled={!formValid || stale}
                         onPress={() => void submit()}
@@ -762,6 +769,8 @@ export function CheckInSheet({
     target: CheckInTarget | undefined;
     onClose: () => void;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     // The last target stays rendered while the sheet animates out.
     const [shown, setShown] = useState(target);
     if (target && target !== shown) setShown(target);
@@ -773,7 +782,7 @@ export function CheckInSheet({
     );
     return (
         <BottomSheet
-            title={query.data?.request.scheduleName || "Check-in"}
+            title={query.data?.request.scheduleName || nativeCopy("interface.Check-in")}
             subtitle={
                 query.data
                     ? `${humanize(query.data.request.status)} · due ${formatDateTime(query.data.request.dueAtUtc)}`
@@ -783,10 +792,10 @@ export function CheckInSheet({
             size="full"
             dirty={blocked}
             discard={{
-                title: "Close without saving?",
+                title: nativeCopy("interface.Close without saving?"),
                 message:
                     "Your latest change has not been saved on this phone yet.",
-                confirmLabel: "Close anyway",
+                confirmLabel: nativeCopy("interface.Close anyway"),
             }}
             onClose={onClose}
         >
@@ -811,6 +820,8 @@ export function CheckInSheet({
 
 /** The same details as a screen, for deep links and notifications. */
 export function CheckInScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { id, relationshipId } = useLocalSearchParams<{
         id: string;
         relationshipId?: string;
@@ -820,7 +831,7 @@ export function CheckInScreen() {
     );
     return (
         <Screen
-            title={query.data?.request.scheduleName || "Check-in"}
+            title={query.data?.request.scheduleName || nativeCopy("interface.Check-in")}
             subtitle={
                 query.data
                     ? `Due ${formatDateTime(query.data.request.dueAtUtc)}`

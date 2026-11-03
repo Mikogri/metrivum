@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { Check, ChevronsUpDown, ClipboardList, CircleUserRound } from "lucide-react";
 import { Button, ListBox, ListBoxItem, Popover, Select, Text } from "react-aria-components";
 import { Hint } from "@metrivum/ui-web";
@@ -15,6 +16,8 @@ const OPTIONS = [
  * client view, so it is hidden for them. On the collapsed rail only the icon stays (name in a tooltip).
  */
 export function WorkspaceSelect({ collapsed = false }: { collapsed?: boolean }) {
+  const uiCopy = useUiCopy();
+
   const { mode, switchMode, switching } = useWorkspace();
   const profile = useProfile();
   if (!profile.roles.includes("Coach")) return null;
@@ -22,7 +25,7 @@ export function WorkspaceSelect({ collapsed = false }: { collapsed?: boolean }) 
   return (
     <div className={styles.wrap}>
       <Select
-        aria-label="Workspace view"
+        aria-label={uiCopy["ui"]["Workspace view"]}
         selectedKey={mode}
         isDisabled={switching}
         onSelectionChange={(key) => {

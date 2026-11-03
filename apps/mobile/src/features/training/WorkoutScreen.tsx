@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { NativeDateField } from "./NativeDateField";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
@@ -64,14 +65,16 @@ const detailFields = [
 
 /** Where the latest edit lives right now. Always visible, announced when it changes. */
 function SaveState({ state, failed }: { state: string; failed: boolean }) {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const view = failed
-        ? { icon: "warning" as const, tone: "warning" as const, label: "Not synced — kept on this phone" }
+        ? { icon: "warning" as const, tone: "warning" as const, label: nativeCopy("interface.Not synced — kept on this phone") }
         : state === "saved-server"
-          ? { icon: "checkCircle" as const, tone: "brand" as const, label: "Saved" }
+          ? { icon: "checkCircle" as const, tone: "brand" as const, label: nativeCopy("interface.Saved") }
           : state === "saved-local"
-            ? { icon: "check" as const, tone: "mutedText" as const, label: "Saved on this phone" }
-            : { icon: null, tone: "mutedText" as const, label: "Saving…" };
+            ? { icon: "check" as const, tone: "mutedText" as const, label: nativeCopy("interface.Saved on this phone") }
+            : { icon: null, tone: "mutedText" as const, label: nativeCopy("interface.Saving…") };
     return (
         <View
             accessible
@@ -170,6 +173,8 @@ function Editor({
     detail: WorkoutDetail;
     refresh: () => void;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { api, drafts } = useMobile();
     const theme = useTheme();
     const execution = detail.execution!;
@@ -485,7 +490,7 @@ function Editor({
                             <View
                                 accessible
                                 accessibilityLiveRegion="polite"
-                                accessibilityLabel={`Rest, ${remaining} seconds left`}
+                                accessibilityLabel={nativeCopy("interface.Rest, {0} seconds left", {"0": String(remaining)})}
                                 style={{
                                     flexDirection: "row",
                                     alignItems: "center",
@@ -495,7 +500,8 @@ function Editor({
                             >
                                 <Icon name="timer" tone="brand" />
                                 <Text variant="caption" tone="mutedText">
-                                    Rest
+
+                                    {nativeCopy("interface.Rest")}
                                 </Text>
                                 <Text variant="numeric" style={{ flex: 1 }}>
                                     {clock(remaining)}
@@ -514,7 +520,7 @@ function Editor({
                                 <Button
                                     size="sm"
                                     tone="ghost"
-                                    title="Skip"
+                                    title={nativeCopy("interface.Skip")}
                                     onPress={() => setEndAt(null)}
                                 />
                             </View>
@@ -532,7 +538,7 @@ function Editor({
                                     <Button
                                         size="lg"
                                         tone="primary"
-                                        title="Save correction"
+                                        title={nativeCopy("interface.Save correction")}
                                         loading={busy}
                                         disabled={!valid}
                                         onPress={() => void save(false)}
@@ -543,7 +549,7 @@ function Editor({
                                     <View style={{ flex: 1 }}>
                                         <Button
                                             size="lg"
-                                            title="Save"
+                                            title={nativeCopy("interface.Save")}
                                             accessibilityHint="Syncs your draft with the server"
                                             disabled={!valid || busy}
                                             onPress={() => void save(false)}
@@ -554,7 +560,7 @@ function Editor({
                                             size="lg"
                                             tone="primary"
                                             icon="check"
-                                            title="Finish workout"
+                                            title={nativeCopy("interface.Finish workout")}
                                             loading={busy}
                                             disabled={!valid}
                                             onPress={async () => {
@@ -568,7 +574,7 @@ function Editor({
                                                         {
                                                             destructive: false,
                                                             cancelLabel:
-                                                                "Keep training",
+                                                                nativeCopy("interface.Keep training"),
                                                         },
                                                     )
                                                 )
@@ -594,28 +600,29 @@ function Editor({
                 >
                     <SaveState state={state} failed={state === "error"} />
                     <Text variant="numericSmall" tone="mutedText">
-                        {done} / {total} sets
+                        {done} / {total}  {nativeCopy("interface.sets")}
                     </Text>
                 </View>
-                <ProgressBar value={done} max={total} label="Sets done" />
+                <ProgressBar value={done} max={total} label={nativeCopy("interface.Sets done")} />
             </View>
 
             {!valid && (
                 <Text variant="caption" tone="danger">
-                    A value is not a valid number. Fix it to keep saving.
+
+                    {nativeCopy("interface.A value is not a valid number. Fix it to keep saving.")}
                 </Text>
             )}
             {!!error && (
                 <Section>
                     <ErrorState error={error} />
                     <Button
-                        title="Compare with the server version"
+                        title={nativeCopy("interface.Compare with the server version")}
                         onPress={() => void reviewServer()}
                     />
                 </Section>
             )}
             {server?.execution && (
-                <Section title="Latest version on the server">
+                <Section title={nativeCopy("interface.Latest version on the server")}>
                     <Text variant="caption" tone="mutedText">
                         {joinParts(
                             humanize(server.execution.status),
@@ -634,7 +641,7 @@ function Editor({
                                 >
                                     {index + 1}.{" "}
                                     {set.skipped
-                                        ? "Skipped"
+                                        ? nativeCopy("interface.Skipped")
                                         : joinParts(
                                               set.reps != null &&
                                                   `${set.reps} reps`,
@@ -650,7 +657,7 @@ function Editor({
                                                   `${set.distanceMeters}m`,
                                               set.tempo,
                                               set.comment,
-                                          ) || "No values"}
+                                          ) || nativeCopy("interface.No values")}
                                 </Text>
                             ))}
                         </View>
@@ -660,7 +667,7 @@ function Editor({
                     ) && (
                         <Button
                             tone="danger"
-                            title="Replace it with my draft"
+                            title={nativeCopy("interface.Replace it with my draft")}
                             disabled={busy || !valid}
                             onPress={async () => {
                                 if (
@@ -679,7 +686,7 @@ function Editor({
 
             <WorkoutAnnotations detail={detail} />
             {detail.prescription.workout.groups.length > 0 && (
-                <Section title="Structure">
+                <Section title={nativeCopy("interface.Structure")}>
                     {detail.prescription.workout.groups.map((group) => (
                         <Text key={group.id} variant="caption" tone="mutedText">
                             {joinParts(
@@ -730,7 +737,8 @@ function Editor({
                                 </Text>
                                 {plannedName && plannedName !== name ? (
                                     <Text variant="caption" tone="warning">
-                                        Instead of {plannedName}
+
+                                        {nativeCopy("interface.Instead of")} {plannedName}
                                     </Text>
                                 ) : null}
                                 {original?.comment ? (
@@ -742,7 +750,7 @@ function Editor({
                             {canEdit && (
                                 <IconButton
                                     icon="more"
-                                    label={`Options for ${name}`}
+                                    label={nativeCopy("interface.Options for {0}", {"0": String(name)})}
                                     filled
                                     size={40}
                                     disabled={busy || !valid}
@@ -796,7 +804,8 @@ function Editor({
                                         }}
                                     >
                                         <Text variant="bodyStrong">
-                                            Set {index + 1}
+
+                                            {nativeCopy("interface.Set")} {index + 1}
                                         </Text>
                                         {planned?.kind &&
                                         planned.kind !== "Standard" ? (
@@ -804,16 +813,16 @@ function Editor({
                                                 {humanize(planned.kind)}
                                             </Badge>
                                         ) : !planned ? (
-                                            <Badge tone="info">Extra</Badge>
+                                            <Badge tone="info">{nativeCopy("interface.Extra")}</Badge>
                                         ) : null}
                                         {set.skipped && (
-                                            <Badge tone="warning">Skipped</Badge>
+                                            <Badge tone="warning">{nativeCopy("interface.Skipped")}</Badge>
                                         )}
                                         <View style={{ flex: 1 }} />
                                         <Button
                                             size="sm"
                                             tone="ghost"
-                                            title={extras ? "Edit details" : "Details"}
+                                            title={extras ? nativeCopy("interface.Edit details") : nativeCopy("interface.Details")}
                                             disabled={!canEdit || busy}
                                             onPress={() =>
                                                 setDetails({
@@ -826,7 +835,7 @@ function Editor({
                                     <Text variant="caption" tone="mutedText">
                                         {prescription
                                             ? `Plan: ${describePrescription(prescription)}`
-                                            : "Added by you"}
+                                            : nativeCopy("interface.Added by you")}
                                         {calculated
                                             ? ` · calculated ${calculated.result.value} ${calculated.result.unit}`
                                             : ""}
@@ -839,7 +848,7 @@ function Editor({
                                         }}
                                     >
                                         <SetNumber
-                                            label="Reps"
+                                            label={nativeCopy("interface.Reps")}
                                             integer
                                             value={set.reps}
                                             disabled={disabled}
@@ -854,7 +863,7 @@ function Editor({
                                         />
                                         <View style={{ flex: 1.6 }}>
                                             <SetNumber
-                                                label={`Load (${set.loadUnit || "kg"})`}
+                                                label={nativeCopy("interface.Load ({0})", {"0": String(set.loadUnit || "kg")})}
                                                 value={set.load}
                                                 step={
                                                     set.loadUnit === "lb"
@@ -881,7 +890,7 @@ function Editor({
                                             checked={
                                                 !set.skipped && recorded.has(id)
                                             }
-                                            label={`Set ${index + 1} done, start rest`}
+                                            label={nativeCopy("interface.Set {0} done, start rest", {"0": String(index + 1)})}
                                             disabled={disabled || !valid}
                                             onPress={() =>
                                                 recordSet(exIndex, index, set)
@@ -900,7 +909,7 @@ function Editor({
                             <Button
                                 tone="ghost"
                                 icon="add"
-                                title="Add a set"
+                                title={nativeCopy("interface.Add a set")}
                                 disabled={busy || !valid}
                                 onPress={() =>
                                     patchExercise(exIndex, {
@@ -910,8 +919,8 @@ function Editor({
                             />
                         )}
                         <Field
-                            label="Exercise note"
-                            placeholder="How did it feel?"
+                            label={nativeCopy("interface.Exercise note")}
+                            placeholder={nativeCopy("interface.How did it feel?")}
                             value={exercise.comment || ""}
                             multiline
                             editable={canEdit && !busy}
@@ -923,13 +932,13 @@ function Editor({
                 );
             })}
 
-            <Section title="Session">
+            <Section title={nativeCopy("interface.Session")}>
                 <Text variant="caption" tone="mutedText">
-                    Planned values are a snapshot. Record only what you actually
-                    did; blank means unknown.
+
+                    {nativeCopy("interface.Planned values are a snapshot. Record only what you actually did; blank means unknown.")}
                 </Text>
                 <NativeDateField
-                    label="Performed on"
+                    label={nativeCopy("interface.Performed on")}
                     value={draft.performedDate}
                     disabled={!canEdit || busy}
                     onChange={(performedDate) =>
@@ -937,7 +946,7 @@ function Editor({
                     }
                 />
                 <DecimalField
-                    label="Duration (minutes)"
+                    label={nativeCopy("interface.Duration (minutes)")}
                     placeholder="e.g. 60"
                     value={
                         draft.durationSeconds == null
@@ -958,8 +967,8 @@ function Editor({
                     }
                 />
                 <Field
-                    label="Session note"
-                    placeholder="Energy, sleep, anything worth noting"
+                    label={nativeCopy("interface.Session note")}
+                    placeholder={nativeCopy("interface.Energy, sleep, anything worth noting")}
                     value={draft.comment || ""}
                     multiline
                     editable={canEdit && !busy}
@@ -974,12 +983,12 @@ function Editor({
                 actions={[
                     {
                         value: "substitute",
-                        label: "Substitute exercise",
+                        label: nativeCopy("interface.Substitute exercise"),
                         icon: "switchAccount",
                     },
                     {
                         value: "skip",
-                        label: "Skip all sets",
+                        label: nativeCopy("interface.Skip all sets"),
                         icon: "block",
                         destructive: true,
                     },
@@ -998,7 +1007,7 @@ function Editor({
             />
 
             <BottomSheet
-                title="Substitute exercise"
+                title={nativeCopy("interface.Substitute exercise")}
                 subtitle={
                     substitute != null
                         ? `Replaces ${exerciseName(draft.exercises[substitute]!)} in this session only`
@@ -1014,7 +1023,7 @@ function Editor({
                 {substitute != null && (
                     <>
                         <SearchField
-                    label="Search exercises"
+                    label={nativeCopy("interface.Search exercises")}
                     value={search}
                     onChangeText={setSearch}
                 />
@@ -1059,8 +1068,8 @@ function Editor({
                 ) : (
                     <EmptyState
                         icon="search"
-                        title="No exercises match"
-                        description="Try another name."
+                        title={nativeCopy("interface.No exercises match")}
+                        description={nativeCopy("interface.Try another name.")}
                     />
                 )}
                     </>
@@ -1077,7 +1086,7 @@ function Editor({
                     <Button
                         size="lg"
                         tone="primary"
-                        title="Done"
+                        title={nativeCopy("interface.Done")}
                         onPress={closeDetails}
                     />
                 }
@@ -1107,7 +1116,7 @@ function Editor({
                             />
                         ))}
                         <Choices
-                            label="Load unit"
+                            label={nativeCopy("interface.Load unit")}
                             values={["kg", "lb"]}
                             value={detailSet.value.loadUnit || "kg"}
                             disabled={busy || detailSet.value.skipped}
@@ -1118,7 +1127,7 @@ function Editor({
                             }
                         />
                         <Choices
-                            label="What the load means"
+                            label={nativeCopy("interface.What the load means")}
                             values={
                                 [
                                     "TotalExternal",
@@ -1142,7 +1151,7 @@ function Editor({
                             }
                         />
                         <Field
-                            label="Tempo"
+                            label={nativeCopy("interface.Tempo")}
                             placeholder="e.g. 3-1-1-0"
                             value={detailSet.value.tempo || ""}
                             editable={!busy && !detailSet.value.skipped}
@@ -1151,8 +1160,8 @@ function Editor({
                             }
                         />
                         <Field
-                            label="Note"
-                            placeholder="Anything about this set"
+                            label={nativeCopy("interface.Note")}
+                            placeholder={nativeCopy("interface.Anything about this set")}
                             value={detailSet.value.comment || ""}
                             editable={!busy && !detailSet.value.skipped}
                             onChangeText={(comment) =>
@@ -1164,8 +1173,8 @@ function Editor({
                         <Button
                             title={
                                 detailSet.value.skipped
-                                    ? "Include this set again"
-                                    : "Skip this set"
+                                    ? nativeCopy("interface.Include this set again")
+                                    : nativeCopy("interface.Skip this set")
                             }
                             icon={detailSet.value.skipped ? "add" : "block"}
                             disabled={busy || !valid}
@@ -1179,7 +1188,7 @@ function Editor({
                             <Button
                                 tone="danger"
                                 icon="delete"
-                                title="Remove this extra set"
+                                title={nativeCopy("interface.Remove this extra set")}
                                 disabled={busy || !valid}
                                 onPress={() => {
                                     const { ex, set } = detailSet;
@@ -1222,6 +1231,8 @@ function Preview({
     id: string;
     refresh: () => void;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const mutation = useApiMutation(refresh);
     const [skipping, setSkipping] = useState(false);
@@ -1243,7 +1254,7 @@ function Preview({
                                 size="lg"
                                 tone="primary"
                                 icon="play"
-                                title="Start workout"
+                                title={nativeCopy("interface.Start workout")}
                                 loading={mutation.isPending && !skipping}
                                 onPress={() =>
                                     mutation.mutate({
@@ -1256,7 +1267,7 @@ function Preview({
                         {canSkip && (
                             <Button
                                 tone="ghost"
-                                title="Skip this workout"
+                                title={nativeCopy("interface.Skip this workout")}
                                 disabled={mutation.isPending}
                                 onPress={() => setSkipping(true)}
                             />
@@ -1275,7 +1286,7 @@ function Preview({
                     key={exercise.id}
                     title={
                         detail.prescription.exercises[exercise.exerciseId]
-                            ?.name ?? "Exercise"
+                            ?.name ?? nativeCopy("interface.Exercise")
                     }
                 >
                     {exercise.comment ? (
@@ -1315,8 +1326,8 @@ function Preview({
                 </Section>
             ))}
             <BottomSheet
-                title="Skip this workout?"
-                subtitle="Your coach sees that it was skipped"
+                title={nativeCopy("interface.Skip this workout?")}
+                subtitle={nativeCopy("interface.Your coach sees that it was skipped")}
                 open={skipping}
                 dirty={reason.length > 0}
                 onClose={() => {
@@ -1328,7 +1339,7 @@ function Preview({
                     <Button
                         size="lg"
                         tone="danger"
-                        title="Skip workout"
+                        title={nativeCopy("interface.Skip workout")}
                         loading={mutation.isPending}
                         onPress={() =>
                             mutation.mutate({
@@ -1341,8 +1352,8 @@ function Preview({
                 }
             >
                 <Field
-                    label="Reason (optional)"
-                    placeholder="e.g. Felt sick, travelling"
+                    label={nativeCopy("interface.Reason (optional)")}
+                    placeholder={nativeCopy("interface.e.g. Felt sick, travelling")}
                     value={reason}
                     onChangeText={setReason}
                 />
@@ -1357,6 +1368,8 @@ function WorkoutAnnotations({ detail }: { detail: WorkoutDetail }) {
 }
 
 export function WorkoutScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { id, relationshipId } = useLocalSearchParams<{
         id: string;
         relationshipId?: string;
@@ -1368,13 +1381,13 @@ export function WorkoutScreen() {
     const detail = query.data;
     if (query.isPending)
         return (
-            <Screen title="Workout">
+            <Screen title={nativeCopy("interface.Workout")}>
                 <LoadingState />
             </Screen>
         );
     if (query.error || !detail)
         return (
-            <Screen title="Workout">
+            <Screen title={nativeCopy("interface.Workout")}>
                 <ErrorState
                     error={query.error}
                     retry={() => void query.refetch()}

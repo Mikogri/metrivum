@@ -3,7 +3,7 @@ import { Award, Crown, Store, FileText, ImagePlus, Plus, Sparkles, Trash2, Trend
 import { Link as RouterLink } from "react-router";
 import { useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
-import { Alert, Badge, Button, Card, Checkbox, Dialog, DialogFooter, IconButton, Option, Select, Skeleton, TextArea, TextField } from "@metrivum/ui-web";
+import { Alert, Badge, Button, Card, Checkbox, Dialog, DialogFooter, EmptyState, IconButton, Option, Select, Skeleton, TextArea, TextField } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
@@ -77,7 +77,7 @@ export function ShowcaseAbout({ showcase, own = false }: { showcase: Showcase | 
   if (!showcase) return <Skeleton height="6rem" />;
   if (!showcase.competencies.length && !own) return null;
   return (
-    <Card as="section" padding="md" aria-labelledby="showcase-about" className={styles.card}>
+    <Card as="section" padding="md" aria-labelledby="showcase-about" className={styles.card} data-empty={!showcase.competencies.length || undefined}>
       <SectionTitle id="showcase-about" icon={<Sparkles />} tone="blue" title={t.competencies} sub={own ? t.competenciesSubOwn : t.competenciesSub} />
       {showcase.competencies.length ? (
         <ul className={styles.tags}>
@@ -86,7 +86,7 @@ export function ShowcaseAbout({ showcase, own = false }: { showcase: Showcase | 
           ))}
         </ul>
       ) : (
-        <p className={styles.muted}>{t.emptyOwn}</p>
+        <EmptyState size="sm" className={styles.empty} icon={<Sparkles />} title={t.emptyOwn} description={t.emptyOwnBody} />
       )}
     </Card>
   );
@@ -109,7 +109,7 @@ export function Portfolio({ coachId, showcase, editable }: { coachId: string; sh
   const items = showcase.portfolio;
   if (!items.length && !editable) return null;
   return (
-    <Card as="section" padding="md" aria-labelledby="showcase-portfolio" className={styles.card}>
+    <Card as="section" padding="md" aria-labelledby="showcase-portfolio" className={styles.card} data-empty={!items.length || undefined}>
       <SectionTitle
         id="showcase-portfolio"
         icon={<Award />}
@@ -126,7 +126,7 @@ export function Portfolio({ coachId, showcase, editable }: { coachId: string; sh
       />
       {remove.error ? <Alert tone="danger" title={errorText(m, remove.error)} /> : null}
       {!items.length ? (
-        <p className={styles.muted}>{t.noFiles}</p>
+        <EmptyState size="sm" className={styles.empty} icon={<Award />} title={t.noFiles} description={t.noFilesBody} />
       ) : (
         <ul className={styles.portfolio}>
           {items.map((item) => (

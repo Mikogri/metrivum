@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { Banknote } from "lucide-react";
 import { useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
@@ -14,6 +15,8 @@ const copy = {
 };
 
 export function BasicAnalyze() {
+  const uiCopy = useUiCopy();
+
   const { locale } = useAppLocale();
   const t = copy[locale];
   const [days, setDays] = useState("30");
@@ -28,7 +31,7 @@ export function BasicAnalyze() {
     <UpgradeBanner title={t.upgrade} body={t.advanced} action={t.upgradeAction} />
     {report.isPending ? <Loading /> : report.isError ? <Failure error={report.error} retry={report.refetch} /> : data && <>
       <div className={styles.kpis}><Kpi label={t.active} value={data.clients.active} /><Kpi label={t.suspended} value={data.clients.suspended} /><Kpi label={t.completed} value={data.clients.completed} /><Kpi label={t.checkins} value={data.checkIns.submitted} /><Kpi label={t.overdue} value={data.checkIns.overdue} /><Kpi label={t.review} value={data.checkIns.pendingReview} /></div>
-      {data.finance.totals.length === 0 ? <EmptyState icon={<Banknote />} title={t.empty} description={t.emptyBody} actions={<LinkButton href="/app/offers" variant="secondary" size="sm">Offers</LinkButton>} /> : data.finance.totals.map(total => {
+      {data.finance.totals.length === 0 ? <EmptyState icon={<Banknote />} title={t.empty} description={t.emptyBody} actions={<LinkButton href="/app/offers" variant="secondary" size="sm">{uiCopy["profile"]["showcase"]["offersStat"]}</LinkButton>} /> : data.finance.totals.map(total => {
         const points = data.finance.series.filter(point => point.currency === total.currency);
         const money = (value: number) => new Intl.NumberFormat(locale, { style: "currency", currency: total.currency }).format(value);
         const facts = [

@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { NativeDateField } from "./NativeDateField";
 import { useState } from "react";
 import { View } from "react-native";
@@ -33,6 +34,8 @@ export function TrainingProgress({
 }: {
     relationshipId?: string;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { role } = useMobile();
     const initial = () => ({
         from: localDate(new Date(Date.now() - 90 * 86400000)),
@@ -72,10 +75,10 @@ export function TrainingProgress({
     return (
         <>
             <Section
-                title="Progress"
+                title={nativeCopy("interface.Progress")}
                 action={
                     <Filters
-                        title="Filter progress"
+                        title={nativeCopy("interface.Filter progress")}
                         active={!!programId || !!exerciseId}
                         summary={joinParts(
                             `${formatDay(range.from)} – ${formatDay(range.to)}`,
@@ -90,14 +93,14 @@ export function TrainingProgress({
                         }}
                     >
                         <NativeDateField
-                            label="From"
+                            label={nativeCopy("interface.From")}
                             value={range.from}
                             onChange={(from) =>
                                 setRange((current) => ({ ...current, from }))
                             }
                         />
                         <NativeDateField
-                            label="Through"
+                            label={nativeCopy("interface.Through")}
                             value={range.to}
                             onChange={(to) =>
                                 setRange((current) => ({ ...current, to }))
@@ -105,7 +108,7 @@ export function TrainingProgress({
                         />
                         <Choices
                             labels={programNames}
-                            label="Program"
+                            label={nativeCopy("interface.Program")}
                             values={[
                                 "",
                                 ...new Set(
@@ -118,14 +121,14 @@ export function TrainingProgress({
                             onChange={setProgram}
                         />
                         <SearchField
-                            label="Find an exercise"
+                            label={nativeCopy("interface.Find an exercise")}
                             value={search}
                             onChangeText={setSearch}
                         />
                         {search.length > 1 && (
                             <Choices
                                 labels={exerciseNames}
-                                label="Exercise"
+                                label={nativeCopy("interface.Exercise")}
                                 values={[
                                     "",
                                     ...(catalog.data?.items.map(
@@ -151,17 +154,17 @@ export function TrainingProgress({
                         <>
                             <View style={{ flexDirection: "row" }}>
                                 <Stat
-                                    label="Completed"
+                                    label={nativeCopy("interface.Completed")}
                                     value={query.data.completed}
                                     tone="brand"
                                 />
-                                <Stat label="Missed" value={query.data.missed} />
+                                <Stat label={nativeCopy("interface.Missed")} value={query.data.missed} />
                                 <Stat
-                                    label="Skipped"
+                                    label={nativeCopy("interface.Skipped")}
                                     value={query.data.skipped}
                                 />
                                 <Stat
-                                    label="Done"
+                                    label={nativeCopy("interface.Done")}
                                     value={
                                         query.data.completionPercentage == null
                                             ? "–"
@@ -174,8 +177,8 @@ export function TrainingProgress({
                             </Text>
                             {role === "coach" && !relationshipId && (
                                 <Text variant="caption" tone="mutedText">
-                                    These results combine the clients included
-                                    in the current filters.
+
+                                    {nativeCopy("interface.These results combine the clients included in the current filters.")}
                                 </Text>
                             )}
                         </>
@@ -186,13 +189,13 @@ export function TrainingProgress({
                 <>
                     {(query.data.clientsHasMore || query.data.performanceHasMore) && (
                         <Text variant="caption" tone="mutedText">
-                            Showing part of the detailed results. Totals include all matching records.
-                            Narrow the date range, client or exercise filters to see more detail.
+
+                            {nativeCopy("interface.Showing part of the detailed results. Totals include all matching records. Narrow the date range, client or exercise filters to see more detail.")}
                         </Text>
                     )}
                     <PerformanceChart performance={query.data.performance} />
                     {query.data.performance.length > 0 && (
-                        <Section title="Recorded sessions">
+                        <Section title={nativeCopy("interface.Recorded sessions")}>
                             {query.data.performance.map((point, index) => (
                                 <ListItem
                                     key={`${point.exerciseId}:${point.performedDate}:${point.loadMeaning}:${index}`}
@@ -219,6 +222,8 @@ function PerformanceChart({
 }: {
     performance: Schema<"TrainingPerformancePoint">[];
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const [exercise, setExercise] = useState("");
     const [meaning, setMeaning] = useState("");
     const [metric, setMetric] = useState<"bestLoadKg" | "volumeKg" | "reps">(
@@ -253,14 +258,14 @@ function PerformanceChart({
         return (
             <EmptyState
                 icon="progress"
-                title="No recorded results in this period"
-                description="Logged sets appear here as a chart."
+                title={nativeCopy("interface.No recorded results in this period")}
+                description={nativeCopy("interface.Logged sets appear here as a chart.")}
             />
         );
     return (
-        <Section title="Exercise trend">
+        <Section title={nativeCopy("interface.Exercise trend")}>
             <Choices
-                label="Exercise"
+                label={nativeCopy("interface.Exercise")}
                 values={exercises}
                 value={selectedExercise || ""}
                 labels={Object.fromEntries(
@@ -270,7 +275,7 @@ function PerformanceChart({
             />
             {meanings.length > 1 && (
                 <ChipGroup
-                    label="How the load was recorded"
+                    label={nativeCopy("interface.How the load was recorded")}
                     options={meanings.map((value) => ({
                         value,
                         label: loadMeanings[value] ?? value,
@@ -280,7 +285,7 @@ function PerformanceChart({
                 />
             )}
             <Choices
-                label="Metric"
+                label={nativeCopy("interface.Metric")}
                 values={["bestLoadKg", "volumeKg", "reps"] as const}
                 value={metric}
                 onChange={setMetric}
@@ -297,8 +302,8 @@ function PerformanceChart({
             />
             {metric === "volumeKg" && (
                 <Text variant="caption" tone="mutedText">
-                    Volume uses recorded total external loads only, as
-                    calculated by the API.
+
+                    {nativeCopy("interface.Volume uses recorded total external loads only, as calculated by the API.")}
                 </Text>
             )}
         </Section>

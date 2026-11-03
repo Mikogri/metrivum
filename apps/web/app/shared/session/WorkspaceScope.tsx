@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { createContext, useContext, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { Navigate, useLocation, useNavigate } from "react-router";
@@ -60,6 +62,8 @@ export function WorkspaceScope({ children, roles }: { children: ReactNode; roles
 }
 
 export function WorkspaceRouteGuard({ children, required: explicit }: { children: ReactNode; required?: WorkspaceMode }) {
+ const uiCopy = useUiCopy();
+
   const location = useLocation();
   const { mode, switchMode, switching, canCoach } = useWorkspace();
   const required = explicit ?? routeWorkspace(location.pathname);
@@ -67,6 +71,6 @@ export function WorkspaceRouteGuard({ children, required: explicit }: { children
   // A page both workspaces have (e.g. a client's workout): open it here rather than asking to switch.
   const twin = twinRoute(location.pathname, mode);
   if (twin && twin !== location.pathname) return <Navigate to={twin + location.search} replace />;
-  if (required === "coach" && !canCoach) return <Alert title="Coach workspace required">This page is available to coach accounts.</Alert>;
-  return <Alert title={`Open in ${required === "coach" ? "Coach" : "Client"} workspace`} actions={<Button loading={switching} onPress={() => void switchMode(required, location.pathname + location.search)}>Switch workspace</Button>}>This page belongs to your other workspace.</Alert>;
+  if (required === "coach" && !canCoach) return <Alert title={uiCopy["ui"]["Coach workspace required"]}>{uiCopy["ui"]["This page is available to coach accounts."]}</Alert>;
+  return <Alert title={formatInterfaceText(uiCopy["ui"]["Open in {0} workspace"], [required === "coach" ? "Coach" : uiCopy["profile"]["roles"]["Client"]])} actions={<Button loading={switching} onPress={() => void switchMode(required, location.pathname + location.search)}>{uiCopy["ui"]["Switch workspace"]}</Button>}>{uiCopy["ui"]["This page belongs to your other workspace."]}</Alert>;
 }

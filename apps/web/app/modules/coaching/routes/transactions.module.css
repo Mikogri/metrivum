@@ -133,6 +133,8 @@
 }
 
 .nav {
+  /* Tabs sit right under the page header, as on Clients and Programs (the page gap would push them down). */
+  margin-top: calc(var(--tf-space-4) * -1);
   margin-bottom: calc(var(--tf-space-1) * -1);
 }
 
@@ -362,20 +364,20 @@
   color: var(--tf-color-text-tertiary);
 }
 
-/* Rows breathe a little more. */
-.table td,
-.table th {
+/* Rows breathe a little more. tbody/thead in the selectors outrank the table's own cell padding,
+   whatever order the built CSS ends up in. */
+.table tbody td {
   padding-block: var(--tf-space-3);
 }
 
-.table td:first-child,
-.table th:first-child {
-  padding-left: var(--tf-space-4);
+.table tbody td:first-child,
+.table thead th:first-child {
+  padding-left: var(--tf-space-5);
 }
 
-.table td:last-child,
-.table th:last-child {
-  padding-right: var(--tf-space-4);
+.table tbody td:last-child,
+.table thead th:last-child {
+  padding-right: var(--tf-space-5);
 }
 
 /* Transaction details, in the side panel. */

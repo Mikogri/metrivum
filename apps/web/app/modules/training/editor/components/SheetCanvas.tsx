@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useColumnWidths } from "../useColumnWidths";
 import { elementColumnWidths, sanitizeElementWidths, type ElementWidths } from "../model/layout";
 import { AnnotationCard } from "./AnnotationCard";
@@ -204,6 +205,8 @@ export function SheetCanvas({
   /** Starting zoom (e.g. smaller cards in a preview). */
   initialZoom?: number;
 }) {
+  const uiCopy = useUiCopy();
+
   const m = useT();
   const t = m.editor.sheet;
   // Every change also drops the holders it left empty (of a workout or cycle that was outside a cycle or block).
@@ -327,7 +330,7 @@ export function SheetCanvas({
   const resizeHandle = (col: number, width: number, resize: (col: number, width: number) => void, label: string, owner?: string) => (<button
                     type="button"
                     className={styles.columnResize}
-                    title="Drag to resize. Double-click or right-click to reset."
+                    title={uiCopy["ui"]["Drag to resize. Double-click or right-click to reset."]}
                     aria-label={label}
                     aria-valuemin={MIN_COLUMN_WIDTH}
                     aria-valuemax={MAX_COLUMN_WIDTH}
@@ -1012,7 +1015,7 @@ export function SheetCanvas({
       onPointerCancel={cancelPointer}
       onLostPointerCapture={(event) => { if (pointerCapture.current?.element === event.target) cancelPointer(); }}
     >
-      {maxesMenu ? <ContextMenu x={maxesMenu.x} y={maxesMenu.y} label="Table connection" onClose={() => setMaxesMenu(null)} items={[{ id: "disconnect", label: "Disconnect" }]} onAction={ () => { apply?.(current => withMaxesTables(current, maxesTables(current).map(t => t.id === maxesMenu.id ? { ...t, blockId: null } : t))); setMaxesMenu(null); }} /> : null}
+      {maxesMenu ? <ContextMenu x={maxesMenu.x} y={maxesMenu.y} label={uiCopy["ui"]["Table connection"]} onClose={() => setMaxesMenu(null)} items={[{ id: "disconnect", label: uiCopy["ui"]["Disconnect"] }]} onAction={ () => { apply?.(current => withMaxesTables(current, maxesTables(current).map(t => t.id === maxesMenu.id ? { ...t, blockId: null } : t))); setMaxesMenu(null); }} /> : null}
       <div className={styles.tools}>
         <div className={styles.toolsMain}>
         {!readOnly ? (
@@ -1026,8 +1029,8 @@ export function SheetCanvas({
             <Button size="sm" iconStart={<Plus />} onPress={() => addWorkoutAt(null)}>
               {t.addWorkoutCard}
             </Button>
-            <Button size="sm" iconStart={<Plus />} onPress={() => apply?.(current => withMaxesTables(current, [...maxesTables(current), { id: crypto.randomUUID(), blockId: null, rows: [] }]))}>Add maxes table</Button>
-            {(["Comment", "Goal"] as const).map(kind => <Button key={kind} size="sm" iconStart={<Plus />} onPress={() => apply?.(current => ({ ...current, annotations: [...(current.annotations ?? []), { id: crypto.randomUUID(), kind, title: kind, content: "", targetId: null, visibility: "Coach" }] }))}>Add {kind.toLowerCase()}</Button>)}
+            <Button size="sm" iconStart={<Plus />} onPress={() => apply?.(current => withMaxesTables(current, [...maxesTables(current), { id: crypto.randomUUID(), blockId: null, rows: [] }]))}>{uiCopy["editor"]["week"]["addMaxes"]}</Button>
+            {(["Comment", "Goal"] as const).map(kind => <Button key={kind} size="sm" iconStart={<Plus />} onPress={() => apply?.(current => ({ ...current, annotations: [...(current.annotations ?? []), { id: crypto.randomUUID(), kind, title: kind, content: "", targetId: null, visibility: "Coach" }] }))}>{uiCopy["profile"]["showcase"]["addCompetency"]} {kind.toLowerCase()}</Button>)}
           </>
         ) : null}
         <TooltipTrigger delay={300}>
@@ -1039,7 +1042,7 @@ export function SheetCanvas({
         <Button size="sm" variant={volumeOpen ? "secondary" : "ghost"} iconStart={<BarChart3 />} onPress={() => setVolumeOpen((v) => !v)} aria-pressed={volumeOpen}>
           {t.volume.open}
         </Button>
-        {!readOnly ? <InfoTip label="Sheet help" className={styles.help}>{doc.blocks.length ? `${t.openCycle} · ${t.zoomHint}` : t.empty}</InfoTip> : null}
+        {!readOnly ? <InfoTip label={uiCopy["ui"]["Sheet help"]} className={styles.help}>{doc.blocks.length ? `${t.openCycle} · ${t.zoomHint}` : t.empty}</InfoTip> : null}
         </div>
         <div className={styles.toolsEnd}>
           {!readOnly ? (
@@ -1155,8 +1158,8 @@ export function SheetCanvas({
                 />
               ) : null}
 
-              {(doc.annotations ?? []).map(note => <AnnotationCard key={note.id} collapsed={collapsedCards.has(note.id)} onToggle={() => toggleCard(note.id)} note={note} scope={note.targetId ? doc.blocks.find(b => b.id === note.targetId)?.name ?? allCycles.find(c => c.cycle.id === note.targetId)?.cycle.name ?? "Linked" : "Global · plan"} apply={apply} style={pos(note.id)} dragging={Boolean(drag?.moved && (drag.id === note.id || drag.group[note.id]))} onPointerDown={event => startDrag(event, note.id)} onPointerMove={moveDrag} onPointerUp={endDrag} handle={!readOnly ? <span className={styles.handle} style={sourceHandleStyle(note.id)} title="Connect annotation" data-no-drag onPointerDown={event => startLink(event, note.id, "annotation")} onPointerMove={moveLink} onPointerUp={endLink} /> : null} />)}
-              {maxesTables(doc).map(table => <BlockMaxesTable key={table.id} collapsed={collapsedCards.has(table.id)} onToggle={() => toggleCard(table.id)} table={table} renderColumnResize={(col, label) => elementResizeHandle(table.id, col, label)} dragging={Boolean(drag?.moved && (drag.id === table.id || drag.group[table.id]))} selected={selected.includes(table.id)} apply={apply} names={names} style={pos(table.id)} onPointerDown={event => startDrag(event, table.id)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerEnter={() => setHoverNode(table.id)} onPointerLeave={() => setHoverNode(null)} handle={<span className={styles.handle} style={sourceHandleStyle(table.id)} role="presentation" title="Connect to block" data-no-drag onPointerDown={event => startLink(event, table.id, "maxes")} onPointerMove={moveLink} onPointerUp={endLink}></span>} />)}
+              {(doc.annotations ?? []).map(note => <AnnotationCard key={note.id} collapsed={collapsedCards.has(note.id)} onToggle={() => toggleCard(note.id)} note={note} scope={note.targetId ? doc.blocks.find(b => b.id === note.targetId)?.name ?? allCycles.find(c => c.cycle.id === note.targetId)?.cycle.name ?? "Linked" : "Global · plan"} apply={apply} style={pos(note.id)} dragging={Boolean(drag?.moved && (drag.id === note.id || drag.group[note.id]))} onPointerDown={event => startDrag(event, note.id)} onPointerMove={moveDrag} onPointerUp={endDrag} handle={!readOnly ? <span className={styles.handle} style={sourceHandleStyle(note.id)} title={uiCopy["ui"]["Connect annotation"]} data-no-drag onPointerDown={event => startLink(event, note.id, "annotation")} onPointerMove={moveLink} onPointerUp={endLink} /> : null} />)}
+              {maxesTables(doc).map(table => <BlockMaxesTable key={table.id} collapsed={collapsedCards.has(table.id)} onToggle={() => toggleCard(table.id)} table={table} renderColumnResize={(col, label) => elementResizeHandle(table.id, col, label)} dragging={Boolean(drag?.moved && (drag.id === table.id || drag.group[table.id]))} selected={selected.includes(table.id)} apply={apply} names={names} style={pos(table.id)} onPointerDown={event => startDrag(event, table.id)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerEnter={() => setHoverNode(table.id)} onPointerLeave={() => setHoverNode(null)} handle={<span className={styles.handle} style={sourceHandleStyle(table.id)} role="presentation" title={uiCopy["editor"]["sheet"]["connectTo"]} data-no-drag onPointerDown={event => startLink(event, table.id, "maxes")} onPointerMove={moveLink} onPointerUp={endLink}></span>} />)}
               {shown.blocks.map((block) => (
                 <BlockCard
                   key={block.id}

@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { ArrowLeftToLine, ArrowRightToLine, Check, Crosshair, Eraser, Pause, Play, RotateCcw, Scan, Scissors, StepBack, StepForward, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Slider, SliderThumb, SliderTrack } from "react-aria-components";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
@@ -29,6 +30,8 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
   trim?: VideoTrim | null;
   onTrimChange?: (trim: VideoTrim | null) => void;
 }) {
+  const uiCopy = useUiCopy();
+
   const t = useT().video.new.tracking;
   const video = useRef<HTMLVideoElement>(null);
   const stage = useRef<HTMLDivElement>(null);
@@ -192,31 +195,31 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
       </div>
       {/* On the video itself: the one next step, as small as the marking guide that follows it. */}
       {ready && !value && !disabled ? <button type="button" className={styles.freezeChip} onClick={freeze}>
-        <Crosshair aria-hidden="true" />Freeze frame<span className={styles.freezeHint}>where the bar is clearly visible</span>
+        <Crosshair aria-hidden="true" />{uiCopy["ui"]["Freeze frame"]}<span className={styles.freezeHint}>{uiCopy["ui"]["where the bar is clearly visible"]}</span>
       </button> : null}
       {value && !disabled ? <div className={styles.onVideo}>
         <p className={styles.guide} data-done={needed === 0 || undefined} aria-hidden="true">
           {needed === 0 ? <><Check />{t.guideDone}</> : <><span className={styles.guideStep}>{3 - needed}</span>{t.guide(3 - needed)}</>}
         </p>
-        <button type="button" className={styles.cancelChip} onClick={freeze}><X aria-hidden="true" />Cancel</button>
+        <button type="button" className={styles.cancelChip} onClick={freeze}><X aria-hidden="true" />{uiCopy["common"]["cancel"]}</button>
       </div> : null}
     </div>
 
     {/* Playback (the same bar as the analysis player), then one control bar: frame and point tools, zoom. */}
     <div className={styles.playback}>
       <Scrubber time={now} duration={duration} onSeek={seekTo} disabled={!ready || frozen || disabled}
-        markers={trim ? [{ start: trim.startSeconds, end: trim.endSeconds, label: "Analyzed part" }] : []} />
+        markers={trim ? [{ start: trim.startSeconds, end: trim.endSeconds, label: uiCopy["ui"]["Analyzed part"] }] : []} />
     </div>
     <div className={styles.controls}>
-      <div className={styles.group} role="group" aria-label="Playback">
-        <PlayerButton label="Previous frame" onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
-        <PlayerButton label={playing ? "Pause" : "Play"} onPress={togglePlay}>{playing ? <Pause /> : <Play />}</PlayerButton>
-        <PlayerButton label="Next frame" onPress={() => step(FRAME)}><StepForward /></PlayerButton>
+      <div className={styles.group} role="group" aria-label={uiCopy["ui"]["Playback"]}>
+        <PlayerButton label={uiCopy["ui"]["Previous frame"]} onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
+        <PlayerButton label={playing ? uiCopy["ui"]["Pause"] : uiCopy["ui"]["Play"]} onPress={togglePlay}>{playing ? <Pause /> : <Play />}</PlayerButton>
+        <PlayerButton label={uiCopy["ui"]["Next frame"]} onPress={() => step(FRAME)}><StepForward /></PlayerButton>
         <span className={styles.clock}>{playClock(now)}<span> / {playClock(duration)}</span></span>
       </div>
       <div className={styles.group} role="group" aria-label={t.frameTools}>
         <Button size="sm" variant={value ? "ghost" : "secondary"} iconStart={value ? <X /> : <Crosshair />} isDisabled={disabled || !ready} onPress={freeze}>
-          {value ? "Cancel" : compact ? "Freeze" : t.freeze}
+          {value ? uiCopy["common"]["cancel"] : compact ? uiCopy["ui"]["Freeze"] : t.freeze}
         </Button>
         <span className={styles.divider} aria-hidden="true" />
         <IconButton size="sm" variant="ghost" icon={<Undo2 />} label={t.undo} isDisabled={disabled || !value?.points.length} onPress={() => value && onChange({ ...value, points: value.points.slice(0, -1) })} />
@@ -229,22 +232,22 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
         <IconButton size="sm" variant="ghost" icon={<Scan />} label={t.zoomFit} isDisabled={!frozen || view.z <= 1} onPress={() => setView({ z: 1, x: 0, y: 0 })} />
       </div>
     </div>
-    {onTrimChange && duration > 0 ? <div className={styles.trim} role="group" aria-label="Trim video" data-trimmed={trim ? "" : undefined}>
+    {onTrimChange && duration > 0 ? <div className={styles.trim} role="group" aria-label={uiCopy["ui"]["Trim video"]} data-trimmed={trim ? "" : undefined}>
       <div className={styles.trimHead}>
-        <span className={styles.trimLabel}><Scissors aria-hidden="true" />{trim ? "Trimmed" : "Trim"}</span>
+        <span className={styles.trimLabel}><Scissors aria-hidden="true" />{trim ? uiCopy["ui"]["Trimmed"] : uiCopy["ui"]["Trim"]}</span>
         <span className={styles.trimTimes}>
           <span>{clock(trim?.startSeconds ?? 0)}</span><span aria-hidden="true">→</span><span>{clock(trim?.endSeconds ?? duration)}</span>
           <small>{((trim?.endSeconds ?? duration) - (trim?.startSeconds ?? 0)).toFixed(1)} s</small>
         </span>
         <span className={styles.trimActions}>
-          <IconButton size="sm" variant="ghost" icon={<ArrowLeftToLine />} label="Start at the playhead" isDisabled={disabled || now >= (trim?.endSeconds ?? duration) - 0.5}
+          <IconButton size="sm" variant="ghost" icon={<ArrowLeftToLine />} label={uiCopy["ui"]["Start at the playhead"]} isDisabled={disabled || now >= (trim?.endSeconds ?? duration) - 0.5}
             onPress={() => onTrimChange({ startSeconds: Math.round(now * 100) / 100, endSeconds: trim?.endSeconds ?? duration })} />
-          <IconButton size="sm" variant="ghost" icon={<ArrowRightToLine />} label="End at the playhead" isDisabled={disabled || now <= (trim?.startSeconds ?? 0) + 0.5}
+          <IconButton size="sm" variant="ghost" icon={<ArrowRightToLine />} label={uiCopy["ui"]["End at the playhead"]} isDisabled={disabled || now <= (trim?.startSeconds ?? 0) + 0.5}
             onPress={() => onTrimChange({ startSeconds: trim?.startSeconds ?? 0, endSeconds: Math.round(now * 100) / 100 })} />
-          <IconButton size="sm" variant="ghost" icon={<RotateCcw />} label="Whole video" isDisabled={disabled || !trim} onPress={() => onTrimChange(null)} />
+          <IconButton size="sm" variant="ghost" icon={<RotateCcw />} label={uiCopy["ui"]["Whole video"]} isDisabled={disabled || !trim} onPress={() => onTrimChange(null)} />
         </span>
       </div>
-      <Slider aria-label="Part of the video to analyze" className={styles.trimSlider} minValue={0} maxValue={duration} step={0.05} isDisabled={disabled}
+      <Slider aria-label={uiCopy["ui"]["Part of the video to analyze"]} className={styles.trimSlider} minValue={0} maxValue={duration} step={0.05} isDisabled={disabled}
         value={[trim?.startSeconds ?? 0, trim?.endSeconds ?? duration]}
         onChange={(range) => {
           const [start, end] = range as number[];
@@ -260,8 +263,8 @@ export function TrackingPicker({ src, value, onChange, disabled = false, onMetad
             <span className={styles.trimRange} style={{ left: `${state.getThumbPercent(0) * 100}%`, width: `${(state.getThumbPercent(1) - state.getThumbPercent(0)) * 100}%` }} />
             <span className={styles.trimShade} style={{ left: `${state.getThumbPercent(1) * 100}%`, right: 0 }} />
             <span className={styles.trimNow} style={{ left: `${(now / duration) * 100}%` }} />
-            <SliderThumb index={0} className={styles.trimThumb} aria-label="Start" />
-            <SliderThumb index={1} className={styles.trimThumb} aria-label="End" />
+            <SliderThumb index={0} className={styles.trimThumb} aria-label={uiCopy["ui"]["Start"]} />
+            <SliderThumb index={1} className={styles.trimThumb} aria-label={uiCopy["ui"]["End"]} />
           </>}
         </SliderTrack>
       </Slider>

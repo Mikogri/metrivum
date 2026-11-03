@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { usePaymentActionId, usePaymentQuote } from "~/shared/session/payment-action";
 import { useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
@@ -71,6 +72,8 @@ export function TeamBilling({ teamId, dissolutionAt }: { teamId: string; dissolu
 }
 
 function BillingEditor({ billing, dissolutionAt }: { billing: TeamBillingData; dissolutionAt: string | null }) {
+ const uiCopy = useUiCopy();
+
   const m = useSubscriptionMessages();
   const data = billing;
   const plans = useCoachingQuery<CatalogPlan[]>("/api/v1/subscriptions/plans");
@@ -105,7 +108,7 @@ function BillingEditor({ billing, dissolutionAt }: { billing: TeamBillingData; d
       {billing.autoRenew ? <Button isDisabled={busy} onPress={() => mutation.mutate({ method: "POST", path: "/api/v1/teams/" + billing.teamId + "/renewal", json: { version: billing.version, autoRenew: false } })}>{m.cancelRenewal}</Button> : <div className={styles.row}>
         <label>{m.method} <select value={method} onChange={event => setMethod(event.target.value)}><option value="">{m.chooseMethod}</option>{methods.data?.filter(item => item.active).map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
         <Button isDisabled={!method || busy} onPress={() => mutation.mutate({ method: "POST", path: "/api/v1/teams/" + billing.teamId + "/renewal", json: { version: billing.version, autoRenew: true, paymentMethodId: method } })}>{m.enableRenewal}</Button>
-        <Button loading={addMethod.isPending} onPress={() => addMethod.mutate({ method: "POST", path: "/api/v1/me/payment-methods/simulated-card", json: { label: "Workspace renewal simulator", outcome: "Success" } })}>{m.addMethod}</Button>
+        <Button loading={addMethod.isPending} onPress={() => addMethod.mutate({ method: "POST", path: "/api/v1/me/payment-methods/simulated-card", json: { label: uiCopy["ui"]["Workspace renewal simulator"], outcome: "Success" } })}>{m.addMethod}</Button>
       </div>}
       {methods.isError && <Failure error={methods.error} retry={() => void methods.refetch()} />}
     </>}

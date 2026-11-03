@@ -44,6 +44,7 @@ public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> option
             e.Property(x => x.Currency).HasMaxLength(3).HasDefaultValue("EUR");
             e.Property(x => x.SystemValues).HasColumnType("jsonb").HasDefaultValueSql("'{}'::jsonb");
             e.Property(x => x.CoverStyle).HasColumnType("jsonb");
+            e.Property(x => x.AvatarMediaId);
         });
         model.Entity<Workspace>(e =>
         {

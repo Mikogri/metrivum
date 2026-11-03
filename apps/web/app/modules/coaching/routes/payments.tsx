@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { usePaymentActionId } from "~/shared/session/payment-action";
 import { privateMeta } from "~/shared/i18n/site";
 
@@ -62,6 +64,8 @@ function totals(dues: Due[]) {
 }
 
 function Payments() {
+  const uiCopy = useUiCopy();
+
     const canPay = useFeatureAccess("billing.pay-own");
     const reason = useFeatureReasonText();
     const [state, update] = useUrlState({
@@ -102,13 +106,13 @@ function Payments() {
     return (
         <>
             <PageHeader
-                title="My payments"
-                description="What you owe, what you have paid and how future periods are paid."
-                meta={<Badge size="sm">Simulated — no real money</Badge>}
+                title={uiCopy["ui"]["My payments"]}
+                description={uiCopy["ui"]["What you owe, what you have paid and how future periods are paid."]}
+                meta={<Badge size="sm">{uiCopy["ui"]["Simulated — no real money"]}</Badge>}
             />
             <div className={styles.stack}>
                 {!canPay.pending && !canPay.allowed && (
-                    <Alert title="Payment actions are unavailable">
+                    <Alert title={uiCopy["ui"]["Payment actions are unavailable"]}>
                         {reason(canPay)}
                     </Alert>
                 )}
@@ -117,22 +121,22 @@ function Payments() {
                 ) : (
                     <StatStrip
                         items={[
-                            { label: "To pay", value: awaiting.length ? totals(awaiting) : "Nothing due", tone: awaiting.length ? "accent" : "default" },
-                            { label: "Overdue", value: overdue.length ? `${overdue.length} · ${totals(overdue)}` : "None", tone: overdue.length ? "danger" : "default" },
-                            { label: "Saved methods", value: methods.isPending ? "…" : activeMethods.length },
-                            { label: "Automatic renewal", value: subscriptions.isPending ? "…" : `${renewing} of ${subscriptions.data?.length ?? 0} services` },
+                            { label: uiCopy["ui"]["To pay"], value: awaiting.length ? totals(awaiting) : "Nothing due", tone: awaiting.length ? "accent" : "default" },
+                            { label: uiCopy["ui"]["Overdue"], value: overdue.length ? `${overdue.length} · ${totals(overdue)}` : "None", tone: overdue.length ? "danger" : "default" },
+                            { label: uiCopy["ui"]["Saved methods"], value: methods.isPending ? "…" : activeMethods.length },
+                            { label: uiCopy["ui"]["Automatic renewal"], value: subscriptions.isPending ? "…" : `${renewing} of ${subscriptions.data?.length ?? 0} services` },
                         ]}
                     />
                 )}
                 <div className={pay.layout}>
                     <div className={styles.stack}>
                         <Panel
-                            title="Payment dues"
-                            description="Each service period you pay for."
+                            title={uiCopy["ui"]["Payment dues"]}
+                            description={uiCopy["ui"]["Each service period you pay for."]}
                             flush
                             actions={
                                 <Select
-                                    aria-label="Payment status"
+                                    aria-label={uiCopy["ui"]["Payment status"]}
                                     className={pay.filter}
                                     selectedKey={state.status || "all"}
                                     onSelectionChange={(k) =>
@@ -142,11 +146,11 @@ function Payments() {
                                         })
                                     }
                                 >
-                                    <Option id="all">All statuses</Option>
-                                    <Option id="AwaitingPayment">Awaiting payment</Option>
-                                    <Option id="Paid">Paid</Option>
-                                    <Option id="PaidExternally">Paid externally</Option>
-                                    <Option id="Free">Free</Option>
+                                    <Option id="all">{uiCopy["ui"]["All statuses"]}</Option>
+                                    <Option id="AwaitingPayment">{uiCopy["ui"]["Awaiting payment"]}</Option>
+                                    <Option id="Paid">{uiCopy["ui"]["Paid"]}</Option>
+                                    <Option id="PaidExternally">{uiCopy["ui"]["Paid externally"]}</Option>
+                                    <Option id="Free">{uiCopy["ui"]["Free"]}</Option>
                                 </Select>
                             }
                         >
@@ -156,13 +160,13 @@ function Payments() {
                                 <Failure error={dues.error} retry={() => void dues.refetch()} />
                             ) : !dues.data.items.length ? (
                                 <EmptyState
-                                    title={state.status ? "No dues with this status" : "No payment dues"}
-                                    description="Your service payments will appear here."
+                                    title={state.status ? uiCopy["ui"]["No dues with this status"] : uiCopy["ui"]["No payment dues"]}
+                                    description={uiCopy["ui"]["Your service payments will appear here."]}
                                 />
                             ) : (
                                 <>
                                     <DataTable
-                                        label="Payment dues"
+                                        label={uiCopy["ui"]["Payment dues"]}
                                         rows={dues.data.items}
                                         rowKey={(d) => d.id}
                                         columns={[
@@ -172,7 +176,7 @@ function Payments() {
                                                 cell: (d) => (
                                                     <span className={pay.due}>
                                                         <Link to={`/app/services/${d.serviceId}`}>{date(d.dueAt)}</Link>
-                                                        {d.overdue ? <small className={styles.dangerText}>Overdue</small> : <small>Period {d.sequence}</small>}
+                                                        {d.overdue ? <small className={styles.dangerText}>{uiCopy["ui"]["Overdue"]}</small> : <small>{uiCopy["ui"]["Period"]} {d.sequence}</small>}
                                                     </span>
                                                 ),
                                             },
@@ -188,12 +192,12 @@ function Payments() {
                                             },
                                             {
                                                 id: "action",
-                                                header: <span className="tf-visually-hidden">Payment</span>,
+                                                header: <span className="tf-visually-hidden">{uiCopy["ui"]["Payment"]}</span>,
                                                 align: "end",
                                                 cell: (d) =>
                                                     d.status === "AwaitingPayment" ? (
                                                         d.settlementMode === "External" ? (
-                                                            <span className={styles.note}>Arrange with your coach</span>
+                                                            <span className={styles.note}>{uiCopy["ui"]["Arrange with your coach"]}</span>
                                                         ) : (
                                                             <LockedReason access={canPay}>
                                                                 <Button
@@ -202,13 +206,14 @@ function Payments() {
                                                                     isDisabled={!canPay.allowed}
                                                                     onPress={() => setSelected(d)}
                                                                 >
-                                                                    Pay
+
+                                                                    {uiCopy["ui"]["Pay"]}
                                                                 </Button>
                                                             </LockedReason>
                                                         )
                                                     ) : (
                                                         <span className={styles.note}>
-                                                            {d.settledAt ? `Settled ${date(d.settledAt)}` : "No payment needed"}
+                                                            {d.settledAt ? `Settled ${date(d.settledAt)}` : uiCopy["ui"]["No payment needed"]}
                                                         </span>
                                                     ),
                                             },
@@ -221,17 +226,17 @@ function Payments() {
                                 </>
                             )}
                         </Panel>
-                        <Panel title="Orders" description="The terms you agreed to for each service." flush>
+                        <Panel title={uiCopy["ui"]["Orders"]} description={uiCopy["ui"]["The terms you agreed to for each service."]} flush>
                             {orders.isPending ? (
                                 <Loading />
                             ) : orders.isError ? (
                                 <Failure error={orders.error} retry={() => void orders.refetch()} />
                             ) : !orders.data.items.length ? (
-                                <p className={styles.emptyText}>No orders yet.</p>
+                                <p className={styles.emptyText}>{uiCopy["ui"]["No orders yet."]}</p>
                             ) : (
                                 <>
                                     <DataTable
-                                        label="Orders"
+                                        label={uiCopy["ui"]["Orders"]}
                                         rows={orders.data.items}
                                         rowKey={(o) => o.id}
                                         columns={[
@@ -266,10 +271,10 @@ function Payments() {
                             )}
                         </Panel>
                         <Panel
-                            title="Transactions"
+                            title={uiCopy["nav"]["transactions"]}
                             icon={<ArrowLeftRight />}
                             tone="violet"
-                            description="Every settled payment, newest first, with the platform fee and what reached the coach."
+                            description={uiCopy["ui"]["Every settled payment, newest first, with the platform fee and what reached the coach."]}
                             flush
                         >
                             {history.isPending ? (
@@ -277,11 +282,11 @@ function Payments() {
                             ) : history.isError ? (
                                 <Failure error={history.error} retry={() => void history.refetch()} />
                             ) : !history.data.items.length ? (
-                                <EmptyState size="sm" icon={<ArrowLeftRight strokeWidth={1.5} />} title="No transactions yet" description="Payments appear here once they are settled." />
+                                <EmptyState size="sm" icon={<ArrowLeftRight strokeWidth={1.5} />} title={uiCopy["ui"]["No transactions yet"]} description={uiCopy["ui"]["Payments appear here once they are settled."]} />
                             ) : (
                                 <>
                                     <DataTable
-                                        label="Transactions"
+                                        label={uiCopy["nav"]["transactions"]}
                                         rows={history.data.items}
                                         rowKey={(p) => p.id}
                                         columns={[
@@ -300,15 +305,16 @@ function Payments() {
                             )}
                         </Panel>
                     </div>
-                    <aside className={pay.aside} aria-label="Payment settings">
+                    <aside className={pay.aside} aria-label={uiCopy["ui"]["Payment settings"]}>
                         <Panel
-                            title="Payment methods"
+                            title={uiCopy["ui"]["Payment methods"]}
                             icon={<CreditCard />}
                             tone="blue"
                             actions={
                                 <LockedReason access={canPay}>
                                     <Button size="sm" isDisabled={!canPay.allowed} onPress={() => setAddMethod(true)}>
-                                        Add method
+
+                                        {uiCopy["ui"]["Add method"]}
                                     </Button>
                                 </LockedReason>
                             }
@@ -320,7 +326,8 @@ function Payments() {
                                 <Failure error={methods.error} retry={() => void methods.refetch()} />
                             ) : !activeMethods.length ? (
                                 <p className={styles.note}>
-                                    No saved methods. You can confirm any payment without one — no card details are required.
+
+                                    {uiCopy["ui"]["No saved methods. You can confirm any payment without one — no card details are required."]}
                                 </p>
                             ) : (
                                 <ul className={pay.methods}>
@@ -329,7 +336,7 @@ function Payments() {
                                             <span className={pay.methodIcon} aria-hidden="true"><CreditCard /></span>
                                             <span className={pay.methodText}>
                                                 <strong>{m.label}</strong>
-                                                <small>Simulated · added {date(m.createdAt)}</small>
+                                                <small>{uiCopy["ui"]["Simulated · added"]} {date(m.createdAt)}</small>
                                             </span>
                                             <LockedReason access={canPay}>
                                                 <Button
@@ -343,7 +350,8 @@ function Payments() {
                                                         })
                                                     }
                                                 >
-                                                    Remove
+
+                                                    {uiCopy["editor"]["remove"]}
                                                 </Button>
                                             </LockedReason>
                                         </li>
@@ -352,17 +360,17 @@ function Payments() {
                             )}
                         </Panel>
                         <Panel
-                            title="Automatic renewal"
+                            title={uiCopy["ui"]["Automatic renewal"]}
                             icon={<Repeat />}
                             tone="green"
-                            description="A saved method never pays by itself. Each service needs your consent."
+                            description={uiCopy["ui"]["A saved method never pays by itself. Each service needs your consent."]}
                         >
                             {subscriptions.isPending ? (
                                 <Loading />
                             ) : subscriptions.isError ? (
                                 <Failure error={subscriptions.error} retry={() => void subscriptions.refetch()} />
                             ) : !subscriptions.data.length ? (
-                                <p className={styles.note}>No recurring services.</p>
+                                <p className={styles.note}>{uiCopy["ui"]["No recurring services."]}</p>
                             ) : (
                                 <ul className={pay.renewals}>
                                     {subscriptions.data.map((item) => (
@@ -391,23 +399,25 @@ function ServiceRenewal({
     subscription: ServiceSubscription;
     methods: Method[];
 }) {
+  const uiCopy = useUiCopy();
+
     const [method, setMethod] = useState(subscription.paymentMethodId ?? "");
     const mutation = useCoachingMutation();
     return (
         <li className={pay.renewal}>
             <div className={pay.renewalHead}>
                 <span className={pay.methodText}>
-                    <Link to={`/app/services/${subscription.serviceId}`}>Recurring service</Link>
-                    <small>Next period {date(subscription.nextPeriodAt)}</small>
+                    <Link to={`/app/services/${subscription.serviceId}`}>{uiCopy["ui"]["Recurring service"]}</Link>
+                    <small>{uiCopy["ui"]["Next period"]} {date(subscription.nextPeriodAt)}</small>
                 </span>
                 <Badge size="sm" tone={subscription.autoRenew ? "success" : "neutral"}>
-                    {subscription.autoRenew ? "Automatic" : "Manual"}
+                    {subscription.autoRenew ? uiCopy["ui"]["Automatic"] : uiCopy["ui"]["Manual"]}
                 </Badge>
             </div>
             {!subscription.autoRenew && (
                 <Select
-                    aria-label="Renewal payment method"
-                    placeholder={methods.length ? "Choose a saved method" : "Add a method first"}
+                    aria-label={uiCopy["ui"]["Renewal payment method"]}
+                    placeholder={methods.length ? uiCopy["ui"]["Choose a saved method"] : uiCopy["ui"]["Add a method first"]}
                     isDisabled={!methods.length || mutation.isPending}
                     selectedKey={method || null}
                     onSelectionChange={(key) => setMethod(String(key))}
@@ -434,13 +444,15 @@ function ServiceRenewal({
                     })
                 }
             >
-                {subscription.autoRenew ? "Turn off automatic payment" : "Pay automatically"}
+                {subscription.autoRenew ? uiCopy["ui"]["Turn off automatic payment"] : uiCopy["ui"]["Pay automatically"]}
             </Button>
         </li>
     );
 }
 
 function AddMethod({ close }: { close: () => void }) {
+  const uiCopy = useUiCopy();
+
     const [label, setLabel] = useState("Test payment method");
     const [outcome, setOutcome] = useState("Success");
     // Closing through the dialog lets it play its exit animation before the parent unmounts it.
@@ -453,8 +465,8 @@ function AddMethod({ close }: { close: () => void }) {
                 if (!open && !mutation.isPending) close();
             }}
             isDismissable={!mutation.isPending}
-            title="Add simulated payment method"
-            description="Simulated methods never charge real money."
+            title={uiCopy["ui"]["Add simulated payment method"]}
+            description={uiCopy["ui"]["Simulated methods never charge real money."]}
         >
             {(closeDialog) => {
                 dismiss.current = closeDialog;
@@ -471,8 +483,8 @@ function AddMethod({ close }: { close: () => void }) {
                         }}
                     >
                         <TextField
-                            label="Label"
-                            placeholder="e.g. Personal card"
+                            label={uiCopy["ui"]["Label"]}
+                            placeholder={uiCopy["ui"]["e.g. Personal card"]}
                             isRequired
                             value={label}
                             onChange={setLabel}
@@ -480,19 +492,20 @@ function AddMethod({ close }: { close: () => void }) {
                             maxLength={80}
                         />
                         <Select
-                            label="Test outcome"
+                            label={uiCopy["ui"]["Test outcome"]}
                             selectedKey={outcome}
                             isDisabled={mutation.isPending}
                             onSelectionChange={(key) => setOutcome(String(key))}
                         >
-                            <Option id="Success">Payment succeeds</Option>
-                            <Option id="Decline">Payment is declined</Option>
+                            <Option id="Success">{uiCopy["ui"]["Payment succeeds"]}</Option>
+                            <Option id="Decline">{uiCopy["ui"]["Payment is declined"]}</Option>
                         </Select>
                         <MutationError error={mutation.error} />
                         <DialogFooter>
-                            <Button isDisabled={mutation.isPending} onPress={closeDialog}>Cancel</Button>
+                            <Button isDisabled={mutation.isPending} onPress={closeDialog}>{uiCopy["common"]["cancel"]}</Button>
                             <Button type="submit" variant="primary" loading={mutation.isPending}>
-                                Save method
+
+                                {uiCopy["ui"]["Save method"]}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -511,6 +524,8 @@ function Pay({
     methods: Method[];
     close: () => void;
 }) {
+  const uiCopy = useUiCopy();
+
     const [method, setMethod] = useState("");
     const [key, setKey] = usePaymentActionId(`due:${due.id}`);
     const mutation = useCoachingMutation<Schema<"PaymentResultDto">>();
@@ -523,8 +538,8 @@ function Pay({
                 if (!open && !mutation.isPending) close();
             }}
             isDismissable={!mutation.isPending}
-            title={`Pay ${money(Number(due.amount), due.currency)}`}
-            description={`Due ${date(due.dueAt)} · simulated payment, no real money is charged.`}
+            title={formatInterfaceText(uiCopy["ui"]["Pay {0}"], [money(Number(due.amount), due.currency)])}
+            description={formatInterfaceText(uiCopy["ui"]["Due {0} · simulated payment, no real money is charged."], [date(due.dueAt)])}
         >
             {(closeDialog) => (
                 <form
@@ -542,11 +557,12 @@ function Pay({
                     }}
                 >
                     <div className={pay.summary}>
-                        <span className={pay.summaryLabel}>Amount due</span>
+                        <span className={pay.summaryLabel}>{uiCopy["ui"]["Amount due"]}</span>
                         <strong className={pay.summaryAmount}>{money(Number(due.amount), due.currency)}</strong>
                         <span className={pay.summaryMeta}>
-                            Period {due.sequence} · due {date(due.dueAt)}
-                            {due.overdue ? <Badge size="sm" tone="warning">Overdue</Badge> : null}
+
+                            {uiCopy["ui"]["Period"]} {due.sequence}  {uiCopy["ui"]["· due"]} {date(due.dueAt)}
+                            {due.overdue ? <Badge size="sm" tone="warning">{uiCopy["ui"]["Overdue"]}</Badge> : null}
                         </span>
                     </div>
                     <RadioGroup
@@ -559,8 +575,8 @@ function Pay({
                             mutation.reset();
                         }}
                     >
-                        <Label className={pay.choicesLabel}>Pay with</Label>
-                        {[{ id: "none", label: "Confirm without a saved method", hint: "One-off simulated payment", icon: <Wallet /> }, ...methods.map((m) => ({ id: m.id, label: m.label, hint: "Saved simulated method", icon: <CreditCard /> }))].map((option) => (
+                        <Label className={pay.choicesLabel}>{uiCopy["ui"]["Pay with"]}</Label>
+                        {[{ id: "none", label: uiCopy["ui"]["Confirm without a saved method"], hint: "One-off simulated payment", icon: <Wallet /> }, ...methods.map((m) => ({ id: m.id, label: m.label, hint: "Saved simulated method", icon: <CreditCard /> }))].map((option) => (
                             <Radio key={option.id} value={option.id} className={pay.choice}>
                                 <span className={pay.choiceIcon} aria-hidden="true">{option.icon}</span>
                                 <span className={pay.methodText}><strong>{option.label}</strong><small>{option.hint}</small></span>
@@ -572,11 +588,11 @@ function Pay({
                     {result && (
                         <Alert
                             tone={declined ? "warning" : "success"}
-                            title={declined ? "Payment declined" : "Payment recorded"}
+                            title={declined ? uiCopy["ui"]["Payment declined"] : uiCopy["ui"]["Payment recorded"]}
                         >
                             {declined
-                                ? "Choose another method or start a new attempt."
-                                : "The simulated payment is complete. No real money was charged."}
+                                ? uiCopy["ui"]["Choose another method or start a new attempt."]
+                                : uiCopy["ui"]["The simulated payment is complete. No real money was charged."]}
                         </Alert>
                     )}
                     <DialogFooter>
@@ -588,15 +604,17 @@ function Pay({
                                     mutation.reset();
                                 }}
                             >
-                                Start new attempt
+
+                                {uiCopy["ui"]["Start new attempt"]}
                             </Button>
                         ) : result ? (
-                            <Button variant="primary" onPress={closeDialog}>Done</Button>
+                            <Button variant="primary" onPress={closeDialog}>{uiCopy["dashboard"]["discovery"]["done"]}</Button>
                         ) : (
                             <>
-                                <Button isDisabled={mutation.isPending} onPress={closeDialog}>Cancel</Button>
+                                <Button isDisabled={mutation.isPending} onPress={closeDialog}>{uiCopy["common"]["cancel"]}</Button>
                                 <Button type="submit" variant="primary" loading={mutation.isPending}>
-                                    Confirm payment
+
+                                    {uiCopy["ui"]["Confirm payment"]}
                                 </Button>
                             </>
                         )}

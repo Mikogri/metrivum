@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMutation } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Maximize, Minimize, Pause, Play, StepBack, StepForward } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject } from "react";
@@ -34,6 +36,8 @@ export interface PlayerMarker { start: number; end: number; label: string }
 
 /** The scrub bar: played part, marked spans and a handle. Arrow keys step one frame, Shift+arrow one second. */
 export function Scrubber({ time, duration, markers = [], onSeek, disabled = false }: { time: number; duration: number; markers?: PlayerMarker[]; onSeek: (seconds: number) => void; disabled?: boolean }) {
+ const uiCopy = useUiCopy();
+
   const track = useRef<HTMLDivElement>(null);
   const at = (clientX: number) => {
     const box = track.current!.getBoundingClientRect();
@@ -46,7 +50,7 @@ export function Scrubber({ time, duration, markers = [], onSeek, disabled = fals
       className={styles.scrub}
       role="slider"
       tabIndex={disabled ? -1 : 0}
-      aria-label="Seek"
+      aria-label={uiCopy["ui"]["Seek"]}
       aria-disabled={disabled || undefined}
       data-disabled={disabled || undefined}
       aria-valuemin={0}
@@ -131,6 +135,8 @@ export function VideoPlayer({
   /** Inside a card that already draws the frame: no border or radius of its own. */
   inset?: boolean;
 }) {
+  const uiCopy = useUiCopy();
+
   const m = useT();
   const api = useApi();
   const own = useRef<HTMLVideoElement>(null);
@@ -255,20 +261,20 @@ export function VideoPlayer({
       <div className={styles.bar}>
         <Scrubber time={time} duration={duration} markers={markers} onSeek={seek} />
         <div className={styles.row}>
-          <span className={styles.steps} role="group" aria-label="Playback">
-            <PlayerButton label="Previous frame" onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
-            <PlayerButton label={paused ? "Play" : "Pause"} onPress={toggle}>{paused ? <Play /> : <Pause />}</PlayerButton>
-            <PlayerButton label="Next frame" onPress={() => step(FRAME)}><StepForward /></PlayerButton>
+          <span className={styles.steps} role="group" aria-label={uiCopy["ui"]["Playback"]}>
+            <PlayerButton label={uiCopy["ui"]["Previous frame"]} onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
+            <PlayerButton label={paused ? uiCopy["ui"]["Play"] : uiCopy["ui"]["Pause"]} onPress={toggle}>{paused ? <Play /> : <Pause />}</PlayerButton>
+            <PlayerButton label={uiCopy["ui"]["Next frame"]} onPress={() => step(FRAME)}><StepForward /></PlayerButton>
           </span>
           <span className={styles.clock}>{clock(time)}<span className={styles.total}> / {clock(duration)}</span></span>
           <span className={styles.spacer} />
           <TooltipTrigger delay={400}>
-            <AriaButton className={styles.speed} aria-label={`Playback speed ${rate}×`} onPress={nextSpeed}>{rate}×</AriaButton>
-            <Tooltip>Playback speed</Tooltip>
+            <AriaButton className={styles.speed} aria-label={formatInterfaceText(uiCopy["ui"]["Playback speed {0}×"], [rate])} onPress={nextSpeed}>{rate}×</AriaButton>
+            <Tooltip>{uiCopy["ui"]["Playback speed"]}</Tooltip>
           </TooltipTrigger>
           {tools}
-          {onCollapse && !full ? <PlayerButton label={collapsed ? "Show video" : "Hide video"} onPress={() => onCollapse(!collapsed)}>{collapsed ? <ChevronDown /> : <ChevronUp />}</PlayerButton> : null}
-          <PlayerButton label={full ? "Exit full screen" : "Full screen"} onPress={fullscreen}>{full ? <Minimize /> : <Maximize />}</PlayerButton>
+          {onCollapse && !full ? <PlayerButton label={collapsed ? uiCopy["ui"]["Show video"] : uiCopy["ui"]["Hide video"]} onPress={() => onCollapse(!collapsed)}>{collapsed ? <ChevronDown /> : <ChevronUp />}</PlayerButton> : null}
+          <PlayerButton label={full ? uiCopy["ui"]["Exit full screen"] : uiCopy["ui"]["Full screen"]} onPress={fullscreen}>{full ? <Minimize /> : <Maximize />}</PlayerButton>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useState } from "react";
 import { View } from "react-native";
 import type { Schema } from "@metrivum/api-client-web";
@@ -46,6 +47,8 @@ function Members({ id }: { id: string }) {
 }
 
 export function TeamScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const query = useApiQuery<Schema<"TeamHomeDto">>("/api/v1/teams/mine");
     const [selected, setSelected] = useState<{ id: string; name: string }>();
@@ -58,7 +61,7 @@ export function TeamScreen() {
             json: { accept },
         });
     return (
-        <Screen title="Team" subtitle="Organizations you coach with">
+        <Screen title={nativeCopy("interface.Team")} subtitle={nativeCopy("interface.Organizations you coach with")}>
             {query.isPending ? (
                 <LoadingState />
             ) : query.error ? (
@@ -97,12 +100,12 @@ export function TeamScreen() {
                     ) : (
                         <EmptyState
                             icon="team"
-                            title="You are not in a team"
-                            description="Invitations to a team appear below."
+                            title={nativeCopy("interface.You are not in a team")}
+                            description={nativeCopy("interface.Invitations to a team appear below.")}
                         />
                     )}
                     {!!query.data?.requests.length && (
-                        <Section title="Invitations">
+                        <Section title={nativeCopy("interface.Invitations")}>
                             {query.data.requests.map((request) => (
                                 <View
                                     key={request.id}
@@ -137,7 +140,7 @@ export function TeamScreen() {
                                         >
                                             <View style={{ flex: 1 }}>
                                                 <Button
-                                                    title="Decline"
+                                                    title={nativeCopy("interface.Decline")}
                                                     disabled={mutation.isPending}
                                                     onPress={() =>
                                                         decide(request.id, false)
@@ -147,7 +150,7 @@ export function TeamScreen() {
                                             <View style={{ flex: 1 }}>
                                                 <Button
                                                     tone="primary"
-                                                    title="Accept"
+                                                    title={nativeCopy("interface.Accept")}
                                                     loading={mutation.isPending}
                                                     onPress={() =>
                                                         decide(request.id, true)
@@ -165,7 +168,7 @@ export function TeamScreen() {
             {mutation.error && <ErrorState error={mutation.error} />}
             <BottomSheet
                 title={selected?.name ?? ""}
-                subtitle="Members"
+                subtitle={nativeCopy("interface.Members")}
                 open={open}
                 size="full"
                 onClose={() => setOpen(false)}

@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Workout — Metrivum");
@@ -51,6 +53,8 @@ const asPlanned = (detail: Detail): ActualExercise[] => detail.prescription.work
  * optional; blank means "not recorded". Closing without saving drops the draft.
  */
 function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { detail: Detail; execution: Execution; own: boolean; feedbackOwn: boolean; onClose: () => void }) {
+  const uiCopy = useUiCopy();
+
   const [feedback, setFeedback] = useState<Partial<NonNullable<Execution["feedback"]>>>(() => execution.feedback ?? {});
   const feedbackReady = feedback.rating != null && feedback.wellbeing != null && feedback.sleepQuality != null && feedback.sessionRpe != null;
   const feedbackChanged = JSON.stringify(feedback) !== JSON.stringify(execution.feedback ?? {});
@@ -84,32 +88,32 @@ function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { det
   const clear = () => { setDirty(true); setDraft(value => ({ ...value, durationSeconds: null, comment: "", exercises: emptyLog(detail) })); };
   const close = () => { if (dirty) setConfirmClose(true); else onClose(); };
   const field = (exIndex: number, setIndex: number, set: ActualSet, key: "reps" | "load" | "rpe" | "rir" | "durationSeconds" | "distanceMeters" | "restSeconds", label: string, placeholder = "") =>
-    <input className={styles.wkInput} aria-label={`Set ${setIndex + 1} ${label}`} inputMode="decimal" placeholder={placeholder} disabled={!canEdit || set.skipped}
+    <input className={styles.wkInput} aria-label={formatInterfaceText(uiCopy["ui"]["Set {0} {1}"], [setIndex + 1,label])} inputMode="decimal" placeholder={placeholder} disabled={!canEdit || set.skipped}
       value={set[key] == null ? "" : String(set[key])} onChange={event => { const value = num(event.target.value); if (value === null || Number.isFinite(value)) patchSet(exIndex, setIndex, { [key]: value }); }} />;
   const footer = canEdit ? <div className={styles.wkPanelFoot}>
-    <Button variant="ghost" iconStart={<Eraser />} isDisabled={mutate.isPending} onPress={clear}>Clear</Button>
-    <Button variant="secondary" isDisabled={mutate.isPending} onPress={close}>Cancel</Button>
-    <Button variant="primary" loading={mutate.isPending} onPress={() => { void save(draft.exercises, "Log saved").catch(() => {}); }}>Save</Button>
-  </div> : <div className={styles.wkPanelFoot}><Button variant="secondary" onPress={onClose}>Close</Button></div>;
+    <Button variant="ghost" iconStart={<Eraser />} isDisabled={mutate.isPending} onPress={clear}>{uiCopy["editor"]["sheet"]["clear"]}</Button>
+    <Button variant="secondary" isDisabled={mutate.isPending} onPress={close}>{uiCopy["common"]["cancel"]}</Button>
+    <Button variant="primary" loading={mutate.isPending} onPress={() => { void save(draft.exercises, "Log saved").catch(() => {}); }}>{uiCopy["common"]["save"]}</Button>
+  </div> : <div className={styles.wkPanelFoot}><Button variant="secondary" onPress={onClose}>{uiCopy["common"]["close"]}</Button></div>;
   const state = mutate.isPending ? "saving" : mutate.isError ? "error" : dirty ? "dirty" : null;
   const title = <span className={styles.wkPanelTitle}>
-    {execution.exercises.some(x => x.sets.some(performed)) ? "Edit your log" : "Log your sets"}
-    {state ? <span className={styles.wkSaveState} data-state={state} role="status">{state === "saving" ? "Saving…" : state === "error" ? "Save failed" : "Unsaved changes"}</span> : null}
+    {execution.exercises.some(x => x.sets.some(performed)) ? uiCopy["ui"]["Edit your log"] : uiCopy["ui"]["Log your sets"]}
+    {state ? <span className={styles.wkSaveState} data-state={state} role="status">{state === "saving" ? uiCopy["editor"]["status"]["saving"] : state === "error" ? uiCopy["ui"]["Save failed"] : uiCopy["editor"]["status"]["dirty"]}</span> : null}
   </span>;
   return <Dialog isOpen onOpenChange={open => { if (!open) close(); }} title={title} size="xl" placement="right" isDismissable={!dirty} footer={() => footer}>
     <div className={styles.wkForm}>
     <DraftNavigationGuard dirty={dirty} /><MutationError error={mutate.error} />
-    <p className={styles.wkFormHint}>Fill in what you want to remember. Every field is optional: leave it blank if you didn't track it. It starts filled in with the plan: change only what went differently.</p>
+    <p className={styles.wkFormHint}>{uiCopy["ui"]["Fill in what you want to remember. Every field is optional: leave it blank if you didn't track it. It starts filled in with the plan: change only what went differently."]}</p>
 
     <section className={styles.wkSession}>
-      <TextField label="Date" type="date" value={draft.performedDate} isDisabled={!canEdit} onChange={value => { setDirty(true); setDraft({ ...draft, performedDate: value }); }} />
-      <NumberInput label="Duration (min)" placeholder="e.g. 60" minValue={0} value={draft.durationSeconds == null ? Number.NaN : Math.round(draft.durationSeconds / 60)} isDisabled={!canEdit}
+      <TextField label={uiCopy["ui"]["Date"]} type="date" value={draft.performedDate} isDisabled={!canEdit} onChange={value => { setDirty(true); setDraft({ ...draft, performedDate: value }); }} />
+      <NumberInput label={uiCopy["ui"]["Duration (min)"]} placeholder="e.g. 60" minValue={0} value={draft.durationSeconds == null ? Number.NaN : Math.round(draft.durationSeconds / 60)} isDisabled={!canEdit}
         onChange={value => { setDirty(true); setDraft({ ...draft, durationSeconds: Number.isFinite(value) ? value * 60 : null }); }} />
-      <TextField className={styles.wkSessionNote} label="Session note" placeholder="Anything worth noting about the session" value={draft.comment} isDisabled={!canEdit} onChange={comment => { setDirty(true); setDraft({ ...draft, comment }); }} />
+      <TextField className={styles.wkSessionNote} label={uiCopy["ui"]["Session note"]} placeholder={uiCopy["ui"]["Anything worth noting about the session"]} value={draft.comment} isDisabled={!canEdit} onChange={comment => { setDirty(true); setDraft({ ...draft, comment }); }} />
     </section>
 
     <div className={styles.wkFormBar}>
-      <Checkbox isSelected={more} onChange={setMore}>More fields (RIR, time, distance, rest, tempo, notes)</Checkbox>
+      <Checkbox isSelected={more} onChange={setMore}>{uiCopy["ui"]["More fields (RIR, time, distance, rest, tempo, notes)"]}</Checkbox>
     </div>
 
     <ol className={styles.wkSteps}>{draft.exercises.map((exercise, exIndex) => {
@@ -123,19 +127,19 @@ function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { det
           <header>
             <div>
               <h2>{name}</h2>
-              {swapped ? <p>Instead of {detail.prescription.exercises[prescribed.exerciseId]?.name}</p> : !prescribed ? <p>Not in the plan</p> : null}
+              {swapped ? <p>{uiCopy["ui"]["Instead of"]} {detail.prescription.exercises[prescribed.exerciseId]?.name}</p> : !prescribed ? <p>{uiCopy["ui"]["Not in the plan"]}</p> : null}
             </div>
             {canEdit ? <span className={styles.wkCardTools}>
-              <Button size="sm" variant="ghost" iconStart={<Repeat />} onPress={() => setPicker(exIndex)}>Substitute</Button>
-              <IconButton size="sm" variant="ghost" icon={<Trash2 />} label={`Remove ${name} from the log`} showTooltip onPress={() => removeExercise(exIndex)} />
+              <Button size="sm" variant="ghost" iconStart={<Repeat />} onPress={() => setPicker(exIndex)}>{uiCopy["ui"]["Substitute"]}</Button>
+              <IconButton size="sm" variant="ghost" icon={<Trash2 />} label={formatInterfaceText(uiCopy["ui"]["Remove {0} from the log"], [name])} showTooltip onPress={() => removeExercise(exIndex)} />
             </span> : null}
           </header>
           <div className={styles.wkTableWrap}>
             <table className={styles.wkTable}>
               <thead><tr>
-                <th>Set</th><th>Plan</th><th>Reps</th><th>Load</th><th>RPE</th>
-                {more ? <><th>RIR</th><th>Time (s)</th><th>Distance (m)</th><th>Rest (s)</th><th>Tempo</th><th>Note</th></> : null}
-                <th><span className="sr-only">Skip</span></th>
+                <th>{uiCopy["editor"]["columns"]["set"]}</th><th>{uiCopy["ui"]["Plan"]}</th><th>{uiCopy["editor"]["columns"]["reps"]}</th><th>{uiCopy["editor"]["panel"]["loadMode"]}</th><th>RPE</th>
+                {more ? <><th>RIR</th><th>{uiCopy["video"]["detail"]["time"]}</th><th>{uiCopy["ui"]["Distance (m)"]}</th><th>{uiCopy["ui"]["Rest (s)"]}</th><th>{uiCopy["ui"]["Tempo"]}</th><th>{uiCopy["video"]["new"]["note"]}</th></> : null}
+                <th><span className="sr-only">{uiCopy["ui"]["Skip"]}</span></th>
               </tr></thead>
               <tbody>{exercise.sets.map((set, setIndex) => {
                 const original = prescribed?.sets.find(item => item.id === set.prescribedSetId);
@@ -144,10 +148,10 @@ function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { det
                 const label = original?.kind === "Warmup" ? "W" : original ? String(++working) : "+";
                 return <tr key={setIndex} data-skipped={set.skipped || undefined} data-extra={!original || undefined}>
                   <td><span className={styles.wkRowNo}>{label}</span>{set.id ? <CoachAnalysisChips executionId={execution.id} setId={set.id} enabled={own} /> : null}</td>
-                  <td className={styles.wkPlanCell}>{target ? <>{target.main ? `${target.main.value} ${target.main.unit}` : ""}{target.load ? ` × ${target.load}` : ""}{target.extras.length ? <small>{target.extras.join(" · ")}</small> : null}</> : <small>Extra set</small>}</td>
+                  <td className={styles.wkPlanCell}>{target ? <>{target.main ? `${target.main.value} ${target.main.unit}` : ""}{target.load ? ` × ${target.load}` : ""}{target.extras.length ? <small>{target.extras.join(" · ")}</small> : null}</> : <small>{uiCopy["ui"]["Extra set"]}</small>}</td>
                   <td>{field(exIndex, setIndex, set, "reps", "reps", target?.main?.unit === "reps" ? target.main.value.split("–")[0] : "")}</td>
                   <td><span className={styles.wkLoad}>{field(exIndex, setIndex, set, "load", "load", p?.load ? String(p.load.minimum.value) : "")}
-                    <select className={styles.wkUnit} aria-label={`Set ${setIndex + 1} load unit`} value={set.loadUnit || "kg"} disabled={!canEdit || set.skipped}
+                    <select className={styles.wkUnit} aria-label={formatInterfaceText(uiCopy["ui"]["Set {0} load unit"], [setIndex + 1])} value={set.loadUnit || "kg"} disabled={!canEdit || set.skipped}
                       onChange={event => patchSet(exIndex, setIndex, { loadUnit: event.target.value })}><option value="kg">kg</option><option value="lb">lb</option></select></span></td>
                   <td>{field(exIndex, setIndex, set, "rpe", "RPE", p?.rpe != null ? String(p.rpe) : "")}</td>
                   {more ? <>
@@ -155,12 +159,12 @@ function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { det
                     <td>{field(exIndex, setIndex, set, "durationSeconds", "time in seconds")}</td>
                     <td>{field(exIndex, setIndex, set, "distanceMeters", "distance in meters")}</td>
                     <td>{field(exIndex, setIndex, set, "restSeconds", "rest in seconds")}</td>
-                    <td><input className={styles.wkInput} aria-label={`Set ${setIndex + 1} tempo`} disabled={!canEdit || set.skipped} value={set.tempo || ""} onChange={event => patchSet(exIndex, setIndex, { tempo: event.target.value })} /></td>
-                    <td><input className={`${styles.wkInput} ${styles.wkInputWide}`} aria-label={`Set ${setIndex + 1} note`} disabled={!canEdit} value={set.comment || ""} onChange={event => patchSet(exIndex, setIndex, { comment: event.target.value })} /></td>
+                    <td><input className={styles.wkInput} aria-label={formatInterfaceText(uiCopy["ui"]["Set {0} tempo"], [setIndex + 1])} disabled={!canEdit || set.skipped} value={set.tempo || ""} onChange={event => patchSet(exIndex, setIndex, { tempo: event.target.value })} /></td>
+                    <td><input className={`${styles.wkInput} ${styles.wkInputWide}`} aria-label={formatInterfaceText(uiCopy["ui"]["Set {0} note"], [setIndex + 1])} disabled={!canEdit} value={set.comment || ""} onChange={event => patchSet(exIndex, setIndex, { comment: event.target.value })} /></td>
                   </> : null}
                   <td className={styles.wkRowTools}>
                     {canEdit && !set.prescribedSetId
-                      ? <IconButton size="sm" variant="ghost" label={`Remove extra set ${setIndex + 1}`} icon={<Trash2 />} onPress={() => patchExercise(exIndex, { sets: exercise.sets.filter((_, i) => i !== setIndex) })} />
+                      ? <IconButton size="sm" variant="ghost" label={formatInterfaceText(uiCopy["ui"]["Remove extra set {0}"], [setIndex + 1])} icon={<Trash2 />} onPress={() => patchExercise(exIndex, { sets: exercise.sets.filter((_, i) => i !== setIndex) })} />
                       : <IconButton size="sm" variant="ghost" showTooltip label={set.skipped ? `Set ${setIndex + 1} skipped, undo` : `Skip set ${setIndex + 1}`} icon={set.skipped ? <Undo2 /> : <CircleSlash />} isDisabled={!canEdit} onPress={() => patchSet(exIndex, setIndex, { skipped: !set.skipped })} />}
                   </td>
                 </tr>;
@@ -168,27 +172,28 @@ function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { det
             </table>
           </div>
           {canEdit ? <footer className={styles.wkCardFoot}>
-            <Button size="sm" variant="ghost" iconStart={<Plus />} onPress={() => patchExercise(exIndex, { sets: [...exercise.sets, blankSet()] })}>Add set</Button>
-            <input className={`${styles.wkInput} ${styles.wkInputNote}`} aria-label={`${name} note`} placeholder="Note for this exercise" value={exercise.comment} onChange={event => patchExercise(exIndex, { comment: event.target.value })} />
+            <Button size="sm" variant="ghost" iconStart={<Plus />} onPress={() => patchExercise(exIndex, { sets: [...exercise.sets, blankSet()] })}>{uiCopy["editor"]["addSet"]}</Button>
+            <input className={`${styles.wkInput} ${styles.wkInputNote}`} aria-label={formatInterfaceText(uiCopy["ui"]["{0} note"], [name])} placeholder={uiCopy["ui"]["Note for this exercise"]} value={exercise.comment} onChange={event => patchExercise(exIndex, { comment: event.target.value })} />
           </footer> : null}
         </article>
       </li>;
     })}</ol>
-    {canEdit ? <button type="button" className={styles.wkAddExercise} onClick={() => setPicker("add")}><Plus aria-hidden="true" />Add an exercise you did</button> : null}
+    {canEdit ? <button type="button" className={styles.wkAddExercise} onClick={() => setPicker("add")}><Plus aria-hidden="true" />{uiCopy["ui"]["Add an exercise you did"]}</button> : null}
     <ExercisePicker isOpen={picker !== null} onOpenChange={open => { if (!open) setPicker(null); }} onPick={exercise => {
       if (picker === "add") { setDirty(true); setDraft(value => ({ ...value, exercises: [...value.exercises, { prescribedInstanceId: null, exerciseId: exercise.id, name: exercise.name, comment: "", sets: [blankSet(), blankSet(), blankSet()] }] })); }
       else if (picker !== null) patchExercise(picker, { exerciseId: exercise.id, name: exercise.name, sets: draft.exercises[picker]!.sets.map(set => ({ ...set, load: null })) });
     }} />
 
     {feedbackOwn ? <section className={styles.wkFeedbackEdit}>
-      <h3>How did it go?</h3>
+      <h3>{uiCopy["ui"]["How did it go?"]}</h3>
       <FeedbackFields value={feedback} onChange={next => { setDirty(true); setFeedback(next); }} />
-      {!feedbackReady ? <p className={styles.wkFormHint}>Answer all four to save your feedback; the rest of the log saves either way.</p> : null}
+      {!feedbackReady ? <p className={styles.wkFormHint}>{uiCopy["ui"]["Answer all four to save your feedback; the rest of the log saves either way."]}</p> : null}
     </section> : null}
 
-    <AlertDialog isOpen={confirmClose} onOpenChange={setConfirmClose} title="Discard your changes?" confirmLabel="Discard" cancelLabel="Keep editing" tone="danger"
+    <AlertDialog isOpen={confirmClose} onOpenChange={setConfirmClose} title={uiCopy["ui"]["Discard your changes?"]} confirmLabel={uiCopy["ui"]["Discard"]} cancelLabel={uiCopy["common"]["keepEditing"]} tone="danger"
       onConfirm={() => { setConfirmClose(false); setDirty(false); onClose(); }}>
-      What you typed here and haven't saved will be lost.
+
+      {uiCopy["ui"]["What you typed here and haven't saved will be lost."]}
     </AlertDialog>
     </div>
   </Dialog>;
@@ -196,6 +201,8 @@ function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { det
 
 /** `onBack`: a back link drawn the same way as the page's own (e.g. back to a list this detail opened from). */
 export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurrenceId: string; relationshipId?: string; onBack?: { label: string; onPress: () => void } }) {
+  const uiCopy = useUiCopy();
+
   const query = useCoachingQuery<Detail>(`/api/v1/training/workouts/${occurrenceId}`, { relationshipId });
   // A coach sees whose workout this is.
   const { mode } = useWorkspace();
@@ -213,14 +220,14 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
   const markDone = async () => {
     const started = await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/start` }) as { id: string; version: number };
     await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/executions/${started.id}/complete`, ifMatch: started.version });
-    toast({ tone: "success", title: "Workout marked as done", description: "Add your sets, or skip the details to save it as planned." });
+    toast({ tone: "success", title: uiCopy["ui"]["Workout marked as done"], description: uiCopy["ui"]["Add your sets, or skip the details to save it as planned."] });
     setLogging(true);
   };
   if (query.isPending) return <Loading />;
   // Someone else's workout (or one that no longer exists): say so, and show nothing of it.
-  if (query.isError && isUnavailableResource(query.error)) return <EmptyState icon={<Lock />} title="This workout isn't available"
-    description="It doesn't exist, or it belongs to a plan this account can't see. Check that you're signed in to the right account."
-    actions={relationshipId ? undefined : <LinkButton href="/app/my-training" variant="secondary">Back to my training</LinkButton>} />;
+  if (query.isError && isUnavailableResource(query.error)) return <EmptyState icon={<Lock />} title={uiCopy["ui"]["This workout isn't available"]}
+    description={uiCopy["ui"]["It doesn't exist, or it belongs to a plan this account can't see. Check that you're signed in to the right account."]}
+    actions={relationshipId ? undefined : <LinkButton href="/app/my-training" variant="secondary">{uiCopy["ui"]["Back to my training"]}</LinkButton>} />;
   if (query.isError) return <Failure error={query.error} retry={() => void query.refetch()} />;
   const detail = query.data;
   const o = detail.occurrence;
@@ -230,27 +237,27 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
   const canStart = o.allowedActions.includes("start");
   const canSkip = o.allowedActions.includes("skip");
   const decision = !e && (canStart || canSkip) ? <div className={styles.wkActions}>
-    {canStart ? <Button variant="primary" iconStart={<Check />} loading={mutate.isPending && !skipping} onPress={() => { void markDone().catch(() => {}); }}>Mark as done</Button> : null}
-    {canSkip ? <Button variant="secondary" iconStart={<CircleSlash />} isDisabled={mutate.isPending} onPress={() => { setReason(""); setSkipping(true); }}>Skip</Button> : null}
+    {canStart ? <Button variant="primary" iconStart={<Check />} loading={mutate.isPending && !skipping} onPress={() => { void markDone().catch(() => {}); }}>{uiCopy["ui"]["Mark as done"]}</Button> : null}
+    {canSkip ? <Button variant="secondary" iconStart={<CircleSlash />} isDisabled={mutate.isPending} onPress={() => { setReason(""); setSkipping(true); }}>{uiCopy["ui"]["Skip"]}</Button> : null}
   </div> : null;
   const actualFor = (instanceId: string, setId: string) => logged?.exercises.find(x => x.prescribedInstanceId === instanceId)?.sets.find(set => set.prescribedSetId === setId);
   const totalSets = plan.reduce((n, x) => n + x.sets.length, 0);
   const doneSets = logged ? logged.exercises.reduce((n, x) => n + x.sets.filter(performed).length, 0) : 0;
   const volume = logged ? logged.exercises.reduce((n, x) => n + x.sets.reduce((m, set) => m + (performed(set) && set.reps && set.load && set.loadUnit !== "lb" ? set.reps * set.load : 0), 0), 0) : 0;
   const stats: { label: string; value: ReactNode }[] = [
-    { label: "Exercises", value: plan.length },
+    { label: uiCopy["exercises"]["title"], value: plan.length },
     { label: logged ? "Sets done" : "Sets", value: logged ? <>{doneSets}<small>/{totalSets}</small></> : totalSets },
-    ...(logged && totalSets ? [{ label: "Completion", value: <span style={{ color: completionColor(Math.round(Math.min(1, doneSets / totalSets) * 100)) }}>{Math.round(Math.min(1, doneSets / totalSets) * 100)}<small>%</small></span> }] : []),
-    ...(volume ? [{ label: "Volume", value: <>{Math.round(volume).toLocaleString()}<small> kg</small></> }] : []),
-    ...(logged?.durationSeconds ? [{ label: "Time", value: <>{Math.max(1, Math.round(logged.durationSeconds / 60))}<small> min</small></> }]
-      : !logged ? [{ label: "Estimated time", value: <>≈ {estimateMinutes(plan)}<small> min</small></> }] : []),
-    ...(logged?.feedback?.sessionRpe != null ? [{ label: "Session RPE", value: String(logged.feedback.sessionRpe) }] : []),
+    ...(logged && totalSets ? [{ label: uiCopy["ui"]["Completion"], value: <span style={{ color: completionColor(Math.round(Math.min(1, doneSets / totalSets) * 100)) }}>{Math.round(Math.min(1, doneSets / totalSets) * 100)}<small>%</small></span> }] : []),
+    ...(volume ? [{ label: uiCopy["editor"]["sheet"]["volume"]["title"], value: <>{Math.round(volume).toLocaleString()}<small> kg</small></> }] : []),
+    ...(logged?.durationSeconds ? [{ label: uiCopy["editor"]["sheet"]["columns"]["time"], value: <>{Math.max(1, Math.round(logged.durationSeconds / 60))}<small> min</small></> }]
+      : !logged ? [{ label: uiCopy["ui"]["Estimated time"], value: <>≈ {estimateMinutes(plan)}<small> min</small></> }] : []),
+    ...(logged?.feedback?.sessionRpe != null ? [{ label: uiCopy["ui"]["Session RPE"], value: String(logged.feedback.sessionRpe) }] : []),
   ];
   // Feedback is the athlete's: only they fill it in, in their own workspace. The coach reads it.
   const feedbackOwn = !relationshipId && mode === "client";
   const canLog = Boolean(logged) && ["edit", "save", "correct"].some(action => logged!.allowedActions.includes(action));
   const logActions = logged ? <div className={styles.wkActions}>
-    <Button variant={doneSets ? "secondary" : "primary"} iconStart={<PencilLine />} onPress={() => setLogging(true)}>{!canLog ? "View log" : doneSets ? "Edit log" : "Log sets"}</Button>
+    <Button variant={doneSets ? "secondary" : "primary"} iconStart={<PencilLine />} onPress={() => setLogging(true)}>{!canLog ? uiCopy["ui"]["View log"] : doneSets ? uiCopy["ui"]["Edit log"] : uiCopy["ui"]["Log sets"]}</Button>
   </div> : null;
   return <div className={styles.wk}>
     {back ? <button type="button" className={styles.wkBack} onClick={back.onPress}><ArrowLeft aria-hidden="true" />{back.label}</button> : null}
@@ -261,7 +268,7 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
         {mode === "coach" && !relationshipId && owner.data?.client ? (
           <Link to={`/app/clients/${owner.data.id}`} className={styles.wkClient}>
             <Avatar name={owner.data.client!.displayName || owner.data.client!.username || "Client"} size="sm" decorative />
-            <span>Workout of <strong>{owner.data.client!.displayName || owner.data.client!.username}</strong></span>
+            <span>{uiCopy["ui"]["Workout of"]} <strong>{owner.data.client!.displayName || owner.data.client!.username}</strong></span>
             {owner.data.client!.username ? <small>@{owner.data.client!.username}</small> : null}
             <ArrowRight aria-hidden="true" />
           </Link>
@@ -270,8 +277,8 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
           <Link to={`/app/programs/${o.programId}`}>{o.programName}</Link>
           <span aria-hidden="true">·</span>
           <span>{longDay(o.scheduledDate)}</span>
-          {logged?.completedAt ? <><span aria-hidden="true">·</span><span>completed {completedLabel(logged.completedAt)}</span></> : logged?.performedDate && logged.performedDate !== o.scheduledDate ? <><span aria-hidden="true">·</span><span>done {longDay(logged.performedDate)}</span></> : null}
-          {o.loggedLate ? <><span aria-hidden="true">·</span><span className={styles.wkLate}>logged late</span></> : null}
+          {logged?.completedAt ? <><span aria-hidden="true">·</span><span>{uiCopy["ui"]["completed"]} {completedLabel(logged.completedAt)}</span></> : logged?.performedDate && logged.performedDate !== o.scheduledDate ? <><span aria-hidden="true">·</span><span>{uiCopy["ui"]["done"]} {longDay(logged.performedDate)}</span></> : null}
+          {o.loggedLate ? <><span aria-hidden="true">·</span><span className={styles.wkLate}>{uiCopy["ui"]["logged late"]}</span></> : null}
         </p>
         <div className={styles.wkTitle}>
           <h1>{o.name}</h1>
@@ -292,19 +299,19 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
     </aside>)}
     {e?.status === "Skipped" ? <aside className={styles.wkNote} data-tone="muted">
       <CircleSlash aria-hidden="true" />
-      <div><strong>Skipped</strong><p>{e.comment ? e.comment : "No reason was given."}</p></div>
+      <div><strong>{uiCopy["ui"]["Skipped"]}</strong><p>{e.comment ? e.comment : uiCopy["ui"]["No reason was given."]}</p></div>
     </aside> : null}
     {logged?.comment ? <aside className={styles.wkNote} data-tone="client">
       <MessageSquare aria-hidden="true" />
-      <div><strong>Session comment</strong><p>{logged.comment}</p></div>
+      <div><strong>{uiCopy["ui"]["Session comment"]}</strong><p>{logged.comment}</p></div>
     </aside> : null}
     {detail.prescription.workout.description ? <p className={styles.wkIntro}>{detail.prescription.workout.description}</p> : null}
 
     {logged ? <div className={styles.wkTabBar}>
       <Tabs selectedKey={view} onSelectionChange={key => setView(key === "analysis" ? "analysis" : "plan")}>
-        <TabList aria-label="Workout">
-          <Tab id="plan">Plan</Tab>
-          <Tab id="analysis">Analysis</Tab>
+        <TabList aria-label={uiCopy["editor"]["sheet"]["addWorkout"]}>
+          <Tab id="plan">{uiCopy["ui"]["Plan"]}</Tab>
+          <Tab id="analysis">{uiCopy["ui"]["Analysis"]}</Tab>
         </TabList>
       </Tabs>
     </div> : null}
@@ -329,11 +336,11 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
         <article className={styles.wkCard}>
           <header>
             <div>
-              <h2>{name}{skippedAll ? <span className={styles.wkFlag} data-tone="skipped">{actual ? "Skipped" : "Not done"}</span> : swapped ? <span className={styles.wkFlag} data-tone="swap">Substituted</span> : logged && !complete ? <span className={styles.wkFlag} data-tone="partial">Partial</span> : null}</h2>
-              {swapped ? <p>Instead of {planned}</p> : cue ? <p>{cue}</p> : null}
+              <h2>{name}{skippedAll ? <span className={styles.wkFlag} data-tone="skipped">{actual ? uiCopy["ui"]["Skipped"] : uiCopy["ui"]["Not done"]}</span> : swapped ? <span className={styles.wkFlag} data-tone="swap">{uiCopy["ui"]["Substituted"]}</span> : logged && !complete ? <span className={styles.wkFlag} data-tone="partial">{uiCopy["ui"]["Partial"]}</span> : null}</h2>
+              {swapped ? <p>{uiCopy["ui"]["Instead of"]} {planned}</p> : cue ? <p>{cue}</p> : null}
             </div>
             <span className={styles.wkCount}>
-              <span>{logged ? <><b>{finished}</b>/{exercise.sets.length} sets</> : <><b>{exercise.sets.length}</b> {exercise.sets.length === 1 ? "set" : "sets"}</>}</span>
+              <span>{logged ? <><b>{finished}</b>/{exercise.sets.length}  {uiCopy["ui"]["sets"]}</> : <><b>{exercise.sets.length}</b> {exercise.sets.length === 1 ? uiCopy["ui"]["set"] : uiCopy["ui"]["sets"]}</>}</span>
               {rest ? <><span aria-hidden="true">·</span><Timer aria-hidden="true" />{duration(rest)}</> : null}
             </span>
           </header>
@@ -352,8 +359,8 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
         <span className={styles.wkNode} aria-hidden="true"><Plus /></span>
         <article className={styles.wkCard}>
           <header>
-            <div><h2>{extra.name || "Exercise"}<span className={styles.wkFlag} data-tone="added">Added</span></h2><p>Not in the plan</p></div>
-            <span className={styles.wkCount}><span><b>{done}</b> {done === 1 ? "set" : "sets"}</span></span>
+            <div><h2>{extra.name || uiCopy["editor"]["panel"]["exercise"]}<span className={styles.wkFlag} data-tone="added">{uiCopy["ui"]["Added"]}</span></h2><p>{uiCopy["ui"]["Not in the plan"]}</p></div>
+            <span className={styles.wkCount}><span><b>{done}</b> {done === 1 ? uiCopy["ui"]["set"] : uiCopy["ui"]["sets"]}</span></span>
           </header>
           <ol className={styles.wkRows}>{extra.sets.map((set, i) => <SetRow key={i} label={String(i + 1)} kind="Standard" actual={set} />)}</ol>
         </article>
@@ -361,15 +368,15 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
     })}</ol>
     </>}
 
-    {!decision && !e ? <p className={styles.wkIntro}>This workout can't be logged right now: the plan or the coaching relationship doesn't allow it.</p> : null}
+    {!decision && !e ? <p className={styles.wkIntro}>{uiCopy["ui"]["This workout can't be logged right now: the plan or the coaching relationship doesn't allow it."]}</p> : null}
 
     {logged ? <CoachAnalysisChips executionId={logged.id} enabled={!relationshipId} /> : null}
     {logged && logging ? <ExecutionEditor key={`${logged.id}:${logged.version}`} detail={detail} execution={logged} own={!relationshipId} feedbackOwn={feedbackOwn} onClose={() => setLogging(false)} /> : null}
 
     {/* Why it was skipped is asked in a dialog, only when the workout is skipped. */}
-    <AlertDialog isOpen={skipping} onOpenChange={(open) => { if (!open && !mutate.isPending) setSkipping(false); }} title="Mark this workout as skipped?" confirmLabel="Mark skipped" cancelLabel="Keep it" isConfirming={mutate.isPending}
-      onConfirm={() => mutate.mutate({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/skip`, json: { reason: reason || null } }, { onSuccess: () => { setSkipping(false); toast({ title: "Workout marked as skipped" }); } })}>
-      <TextArea label="Reason for skipping (optional)" placeholder="e.g. Felt sick, travelling" value={reason} onChange={setReason} maxLength={2000} />
+    <AlertDialog isOpen={skipping} onOpenChange={(open) => { if (!open && !mutate.isPending) setSkipping(false); }} title={uiCopy["ui"]["Mark this workout as skipped?"]} confirmLabel={uiCopy["ui"]["Mark skipped"]} cancelLabel={uiCopy["ui"]["Keep it"]} isConfirming={mutate.isPending}
+      onConfirm={() => mutate.mutate({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/skip`, json: { reason: reason || null } }, { onSuccess: () => { setSkipping(false); toast({ title: uiCopy["ui"]["Workout marked as skipped"] }); } })}>
+      <TextArea label={uiCopy["ui"]["Reason for skipping (optional)"]} placeholder={uiCopy["ui"]["e.g. Felt sick, travelling"]} value={reason} onChange={setReason} maxLength={2000} />
     </AlertDialog>
   </div>;
 }
@@ -426,6 +433,8 @@ function targetOf(p: Prescription) {
 
 /** One set as a row: its number, the target (or what was done), the effort, and a tick once done. */
 function SetRow({ label, kind, prescription, actual, missing = false }: { label: string; kind: string; prescription?: Prescription; actual?: ActualSet; missing?: boolean }) {
+  const uiCopy = useUiCopy();
+
   const target = prescription ? targetOf(prescription) : { main: null, load: null, extras: [] as string[] };
   const done = actual ? performed(actual) : false;
   // A planned set with nothing logged (the exercise left out, or the set left blank) counts as skipped once logged.
@@ -440,10 +449,10 @@ function SetRow({ label, kind, prescription, actual, missing = false }: { label:
     <span className={styles.wkRowMain}>
       {main ? <><b>{main.value}</b> {main.unit}</> : <b>—</b>}
       {load ? <><span className={styles.wkTimes} aria-hidden="true">×</span><b>{load}</b></> : null}
-      {kind !== "Standard" ? <small className={styles.wkKind}>{kind === "Warmup" ? "Warm-up" : kind}</small> : null}
+      {kind !== "Standard" ? <small className={styles.wkKind}>{kind === "Warmup" ? uiCopy["editor"]["setKinds"]["Warmup"] : kind}</small> : null}
     </span>
-    <span className={styles.wkRowMeta}>{state === "skipped" ? <span className={styles.wkFlag} data-tone="skipped">Skipped</span> : done ? <>{plan ? `plan ${plan}` : ""}{effort.length ? `${plan ? " · " : ""}${effort.join(" · ")}` : ""}</> : effort.join(" · ")}</span>
-    <span className={styles.wkRowCheck} aria-label={done ? "Done" : state === "skipped" ? "Skipped" : undefined}>{done ? <Check aria-hidden="true" /> : state === "skipped" ? <X aria-hidden="true" /> : null}</span>
+    <span className={styles.wkRowMeta}>{state === "skipped" ? <span className={styles.wkFlag} data-tone="skipped">{uiCopy["ui"]["Skipped"]}</span> : done ? <>{plan ? `plan ${plan}` : ""}{effort.length ? `${plan ? " · " : ""}${effort.join(" · ")}` : ""}</> : effort.join(" · ")}</span>
+    <span className={styles.wkRowCheck} aria-label={done ? uiCopy["dashboard"]["discovery"]["done"] : state === "skipped" ? uiCopy["ui"]["Skipped"] : undefined}>{done ? <Check aria-hidden="true" /> : state === "skipped" ? <X aria-hidden="true" /> : null}</span>
   </li>;
 }
 
@@ -460,6 +469,8 @@ export const completionColor = (percent: number) => `color-mix(in oklab, var(--t
 
 /** Everything measurable about one logged workout: totals, per exercise, and set by set against the plan. */
 function WorkoutAnalysis({ detail, execution, feedbackOwn }: { detail: Detail; execution: Execution; feedbackOwn: boolean }) {
+  const uiCopy = useUiCopy();
+
   const plan = detail.prescription.workout.exercises;
   const plannedSets = plan.reduce((n, x) => n + x.sets.length, 0);
   const sets = execution.exercises.flatMap(x => x.sets);
@@ -473,13 +484,13 @@ function WorkoutAnalysis({ detail, execution, feedbackOwn }: { detail: Detail; e
   const rpe = avg(done.map(set => set.rpe).filter((v): v is number => v != null));
   const completion = plannedSets ? Math.round(Math.min(1, done.length / plannedSets) * 100) : 0;
   const tiles = [
-    { label: "Completion", value: `${completion}%`, sub: `${done.length} of ${plannedSets} sets`, color: completionColor(completion), bar: completion },
-    { label: "Volume", value: `${fmt(volume)} kg`, sub: plannedVolume ? `plan ${fmt(plannedVolume)} kg · ${volume >= plannedVolume ? "+" : ""}${fmt(volume - plannedVolume)}` : "load × reps" },
-    { label: "Reps", value: fmt(reps), sub: plannedReps ? `plan ${fmt(plannedReps)}` : "" },
-    { label: "Time", value: minutes ? `${fmt(minutes)} min` : "—", sub: minutes && done.length ? `${fmt((minutes * 60) / done.length)} s per set` : "" },
-    { label: "Density", value: minutes ? `${fmt(volume / minutes)} kg/min` : "—", sub: "volume per minute" },
-    { label: "Average RPE", value: fmt(rpe, 1), sub: execution.feedback?.sessionRpe != null ? `session ${execution.feedback.sessionRpe}` : "from logged sets" },
-    { label: "Skipped sets", value: fmt(skipped), sub: `${execution.exercises.filter(x => !x.prescribedInstanceId).length} added exercises` },
+    { label: uiCopy["ui"]["Completion"], value: `${completion}%`, sub: `${done.length} of ${plannedSets} sets`, color: completionColor(completion), bar: completion },
+    { label: uiCopy["editor"]["sheet"]["volume"]["title"], value: `${fmt(volume)} kg`, sub: plannedVolume ? `plan ${fmt(plannedVolume)} kg · ${volume >= plannedVolume ? "+" : ""}${fmt(volume - plannedVolume)}` : "load × reps" },
+    { label: uiCopy["editor"]["columns"]["reps"], value: fmt(reps), sub: plannedReps ? `plan ${fmt(plannedReps)}` : "" },
+    { label: uiCopy["editor"]["sheet"]["columns"]["time"], value: minutes ? `${fmt(minutes)} min` : "—", sub: minutes && done.length ? `${fmt((minutes * 60) / done.length)} s per set` : "" },
+    { label: uiCopy["ui"]["Density"], value: minutes ? `${fmt(volume / minutes)} kg/min` : "—", sub: "volume per minute" },
+    { label: uiCopy["ui"]["Average RPE"], value: fmt(rpe, 1), sub: execution.feedback?.sessionRpe != null ? `session ${execution.feedback.sessionRpe}` : "from logged sets" },
+    { label: uiCopy["ui"]["Skipped sets"], value: fmt(skipped), sub: `${execution.exercises.filter(x => !x.prescribedInstanceId).length} added exercises` },
   ];
   const rows = [
     ...plan.map(exercise => {
@@ -500,10 +511,10 @@ function WorkoutAnalysis({ detail, execution, feedbackOwn }: { detail: Detail; e
     </div>)}</dl>
 
     <section className={styles.anSection}>
-      <h2>By exercise</h2>
+      <h2>{uiCopy["ui"]["By exercise"]}</h2>
       <div className={styles.anCard}>
         <table className={styles.anTable}>
-          <thead><tr><th>Exercise</th><th>Completion</th><th data-num>Sets</th><th data-num>Reps</th><th data-num>Top load</th><th data-num>Volume</th><th data-num>Avg RPE</th></tr></thead>
+          <thead><tr><th>{uiCopy["editor"]["panel"]["exercise"]}</th><th>{uiCopy["ui"]["Completion"]}</th><th data-num>{uiCopy["editor"]["grid"]}</th><th data-num>{uiCopy["editor"]["columns"]["reps"]}</th><th data-num>{uiCopy["ui"]["Top load"]}</th><th data-num>{uiCopy["editor"]["sheet"]["volume"]["title"]}</th><th data-num>{uiCopy["ui"]["Avg RPE"]}</th></tr></thead>
           <tbody>{rows.map((row, index) => {
             const percent = row.planned ? Math.round(Math.min(1, row.ok.length / row.planned) * 100) : 100;
             const notDone = row.note === "not done" || (row.planned > 0 && row.ok.length === 0);
@@ -513,7 +524,7 @@ function WorkoutAnalysis({ detail, execution, feedbackOwn }: { detail: Detail; e
                 <span className={styles.anName} data-tone={index % 4}>
                   <i aria-hidden="true" />
                   <b>{row.name}</b>
-                  {flag ? <span className={styles.wkFlag} data-tone={flag}>{notDone ? "Not done" : flag === "swap" ? "Substituted" : flag === "added" ? "Added" : "Partial"}</span> : null}
+                  {flag ? <span className={styles.wkFlag} data-tone={flag}>{notDone ? uiCopy["ui"]["Not done"] : flag === "swap" ? uiCopy["ui"]["Substituted"] : flag === "added" ? uiCopy["ui"]["Added"] : uiCopy["ui"]["Partial"]}</span> : null}
                 </span>
               </td>
               <td><span className={styles.anCompletion}><span className={styles.anBar}><span style={{ transform: `scaleX(${percent / 100})`, background: completionColor(percent) }} /></span><b style={{ color: completionColor(percent) }}>{percent}%</b></span></td>
@@ -536,6 +547,8 @@ function WorkoutAnalysis({ detail, execution, feedbackOwn }: { detail: Detail; e
 
 /** Where the work went: volume (or sets) per muscle on the 3D body. Primary muscles count fully, secondary half. */
 function WorkoutHeatmap({ execution }: { execution: Execution }) {
+  const uiCopy = useUiCopy();
+
   const [metric, setMetric] = useState<"volume" | "sets">("volume");
   const ids = useMemo(() => execution.exercises.map(x => x.exerciseId), [execution.exercises]);
   const catalog = useExerciseNames(ids);
@@ -556,10 +569,10 @@ function WorkoutHeatmap({ execution }: { execution: Execution }) {
   }, [catalog, execution.exercises, metric]);
   return <section className={styles.anSection}>
     <div className={styles.anSectionHead}>
-      <h2>Muscles worked</h2>
-      <SegmentedControl aria-label="Heatmap measure" selectedKeys={[metric]} onSelectionChange={keys => { const key = [...keys][0]; if (key) setMetric(key === "sets" ? "sets" : "volume"); }}>
-        <Segment id="volume">Volume</Segment>
-        <Segment id="sets">Sets</Segment>
+      <h2>{uiCopy["exercises"]["detail"]["musclesWorked"]}</h2>
+      <SegmentedControl aria-label={uiCopy["ui"]["Heatmap measure"]} selectedKeys={[metric]} onSelectionChange={keys => { const key = [...keys][0]; if (key) setMetric(key === "sets" ? "sets" : "volume"); }}>
+        <Segment id="volume">{uiCopy["editor"]["sheet"]["volume"]["title"]}</Segment>
+        <Segment id="sets">{uiCopy["editor"]["grid"]}</Segment>
       </SegmentedControl>
     </div>
     <div className={styles.anHeatmap}>

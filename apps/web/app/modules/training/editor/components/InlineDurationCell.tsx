@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState, type CSSProperties } from "react";
 import { Sigma } from "lucide-react";
 import { ContextMenu } from "@metrivum/ui-web";
@@ -15,6 +16,8 @@ export function InlineDurationCell({ value, formula, parts = "hms", onChange, in
   exerciseId?: string; maxReps?: number; customAllowed?: boolean; formulaAllowed?: boolean;
   initialText?: string; onDone?: () => void;
 }) {
+  const uiCopy = useUiCopy();
+
   const [expression, setExpression] = useState<string | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   if (formula || expression !== null || initialText?.startsWith("=") || initialText?.startsWith("/")) {
@@ -38,7 +41,7 @@ export function InlineDurationCell({ value, formula, parts = "hms", onChange, in
         if (!parsed.ok) return false;
         onChange(null, parsed.value); return true;
       }} />
-    {menu ? <ContextMenu {...menu} label={props.label} items={[{ id: "formula", label: "Edit formula", icon: <Sigma /> }]}
+    {menu ? <ContextMenu {...menu} label={props.label} items={[{ id: "formula", label: uiCopy["training"]["formulas"]["editTitle"], icon: <Sigma /> }]}
       onClose={() => setMenu(null)} onAction={() => setExpression(formulaText(formula) || "=")} /> : null}
   </div>;
 }

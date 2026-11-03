@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { isUnavailableResource } from "~/shared/lib/ResourceError";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ban, GitCompare, Pencil, Share2 } from "lucide-react";
@@ -28,6 +29,8 @@ import { privateMeta } from "~/shared/i18n/site";
 export const meta = () => privateMeta("Analysis — Metrivum");
 
 export default function AnalysisDetail() {
+  const uiCopy = useUiCopy();
+
   const { analysisId = "" } = useParams();
   const m = useT();
   const t = m.video.detail;
@@ -141,17 +144,18 @@ export default function AnalysisDetail() {
     <div className={styles.aside}>
       <dl className={styles.facts}>
         <div>
-          <dt>Movement</dt>
+          <dt>{uiCopy["video"]["new"]["movement"]}</dt>
           <dd>{currentExercise ?? "—"}</dd>
         </div>
         {tempo ? (
           <div className={styles.wide}>
-            <dt>Tempo</dt>
+            <dt>{uiCopy["ui"]["Tempo"]}</dt>
             <dd className={styles.tempo}>
-              <strong title="Lowering - pause - lifting - between reps, in whole seconds">{tempo.notation}</strong>
+              <strong title={uiCopy["ui"]["Lowering - pause - lifting - between reps, in whole seconds"]}>{tempo.notation}</strong>
               <span>
-                Lowering {seconds(tempo.lowering)} · pause {seconds(tempo.pause)} · lifting {seconds(tempo.lifting)}
-                {tempo.between != null ? ` · between reps ${seconds(tempo.between)}` : ""} · mean of {tempo.reps} {tempo.reps === 1 ? "rep" : "reps"}
+
+                {uiCopy["video"]["detail"]["phaseNames"]["eccentric"]} {seconds(tempo.lowering)}  {uiCopy["ui"]["· pause"]} {seconds(tempo.pause)}  {uiCopy["ui"]["· lifting"]} {seconds(tempo.lifting)}
+                {tempo.between != null ? ` · between reps ${seconds(tempo.between)}` : ""}  {uiCopy["ui"]["· mean of"]} {tempo.reps} {tempo.reps === 1 ? uiCopy["ui"]["rep"] : uiCopy["ui"]["reps"]}
               </span>
             </dd>
           </div>
@@ -182,7 +186,7 @@ export default function AnalysisDetail() {
       {mode === "coach" ? <WorkoutLink analysisId={analysis.id} version={Number(query.data!.version)} canEdit={false} /> : null}
       <section className={styles.noteBlock} aria-labelledby="analysis-note">
         <h3 id="analysis-note" className={styles.noteLabel}>{m.video.new.note}</h3>
-        {analysis.note ? <p className={styles.note}>{analysis.note}</p> : <p className={styles.notePlaceholder}>No note yet. Add what to look at in this lift with Edit.</p>}
+        {analysis.note ? <p className={styles.note}>{analysis.note}</p> : <p className={styles.notePlaceholder}>{uiCopy["ui"]["No note yet. Add what to look at in this lift with Edit."]}</p>}
       </section>
     </div>
   );
@@ -223,8 +227,8 @@ export default function AnalysisDetail() {
           </>
         }
         actions={<>
-          <Button iconStart={<Pencil />} isDisabled={!manage.allowed} onPress={editDetails}>Edit</Button>
-          {analysis.status === "Completed" && compareAccess.allowed ? <Button iconStart={<GitCompare />} onPress={() => setCompareOpen(true)}>Compare</Button> : null}
+          <Button iconStart={<Pencil />} isDisabled={!manage.allowed} onPress={editDetails}>{uiCopy["profile"]["showcase"]["edit"]}</Button>
+          {analysis.status === "Completed" && compareAccess.allowed ? <Button iconStart={<GitCompare />} onPress={() => setCompareOpen(true)}>{uiCopy["video"]["compare"]["submit"]}</Button> : null}
           {analysis.status === "Completed" ? <Button iconStart={<Share2 />} onPress={() => setShareOpen(true)}>{m.video.share.action}</Button> : null}
           {active ? <Button variant="danger" iconStart={<Ban />} onPress={() => setCancelOpen(true)}>{t.cancel}</Button> : null}
         </>}
@@ -274,7 +278,7 @@ export default function AnalysisDetail() {
         isOpen={editOpen}
         placement="right"
         onOpenChange={setEditOpen}
-        title="Edit analysis"
+        title={uiCopy["ui"]["Edit analysis"]}
         closeLabel={m.common.close}
         footer={(close) => (
           <>
@@ -292,7 +296,7 @@ export default function AnalysisDetail() {
           <TextField placeholder={m.common.ph.analysisName} label={m.video.new.name} value={name} onChange={setName} isRequired autoFocus />
           <div className={styles.fieldGroup}>
             <MovementField value={exercise} onChange={setExercise} />
-            {exercise !== initialExercise ? <p className={styles.muted}>Changes the label only; reps and phases stay as they were calculated.</p> : null}
+            {exercise !== initialExercise ? <p className={styles.muted}>{uiCopy["ui"]["Changes the label only; reps and phases stay as they were calculated."]}</p> : null}
           </div>
           <TextField placeholder={m.common.ph.tags} label={m.video.new.tags} value={tags} onChange={setTags} description={m.video.new.tagsHint} />
           <TextArea placeholder={m.common.ph.note} label={m.video.new.note} value={note} onChange={setNote} rows={4} />

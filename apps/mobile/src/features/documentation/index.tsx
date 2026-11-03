@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { NativeDateField } from "../training/NativeDateField";
 import { useState } from "react";
 import { Linking, View } from "react-native";
@@ -32,6 +33,8 @@ import { MeasurementChart } from "./MeasurementChart";
 type Document = Schema<"DocumentDto">;
 
 export function Documentation({ relationshipId }: { relationshipId: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const base = `/api/v1/coaching/relationships/${relationshipId}/documentation`;
     const theme = useTheme();
     const { api, accountSignal } = useMobile();
@@ -121,9 +124,9 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                     {canNote && (
                         <View style={{ flex: 1 }}>
                             <FormSheet
-                                trigger={{ title: "Add a note", icon: "edit" }}
-                                title="New private note"
-                                subtitle="Only you see it"
+                                trigger={{ title: nativeCopy("interface.Add a note"), icon: "edit" }}
+                                title={nativeCopy("interface.New private note")}
+                                subtitle={nativeCopy("interface.Only you see it")}
                                 size="content"
                                 dirty={!!(title || text)}
                                 open={noteOpen}
@@ -136,7 +139,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                                     <Button
                                         size="lg"
                                         tone="primary"
-                                        title="Save note"
+                                        title={nativeCopy("interface.Save note")}
                                         loading={mutation.isPending}
                                         disabled={!text.trim()}
                                         onPress={() =>
@@ -151,15 +154,15 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                             >
                                 <Field
                                     editable={!mutation.isPending}
-                                    label="Title"
-                                    placeholder="Optional"
+                                    label={nativeCopy("interface.Title")}
+                                    placeholder={nativeCopy("interface.Optional")}
                                     value={title}
                                     onChangeText={setTitle}
                                 />
                                 <Field
                                     editable={!mutation.isPending}
-                                    label="Note"
-                                    placeholder="What do you want to remember?"
+                                    label={nativeCopy("interface.Note")}
+                                    placeholder={nativeCopy("interface.What do you want to remember?")}
                                     value={text}
                                     multiline
                                     onChangeText={setText}
@@ -173,9 +176,9 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                     {canUpload && (
                         <View style={{ flex: 1 }}>
                             <FormSheet
-                                trigger={{ title: "Add a file", icon: "attach" }}
-                                title="Add a file or photo"
-                                subtitle="Choose who can see this file"
+                                trigger={{ title: nativeCopy("interface.Add a file"), icon: "attach" }}
+                                title={nativeCopy("interface.Add a file or photo")}
+                                subtitle={nativeCopy("interface.Choose who can see this file")}
                                 size="content"
                                 dirty={!!fileTitle}
                                 open={fileOpen}
@@ -186,7 +189,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                                         size="lg"
                                         tone="primary"
                                         icon="attach"
-                                        title="Choose a file"
+                                        title={nativeCopy("interface.Choose a file")}
                                         loading={uploading || mutation.isPending}
                                         onPress={() => void upload()}
                                     />
@@ -194,13 +197,13 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                             >
                                 <Field
                                     editable={!mutation.isPending && !uploading}
-                                    label="Title"
-                                    placeholder="e.g. Blood test results"
+                                    label={nativeCopy("interface.Title")}
+                                    placeholder={nativeCopy("interface.e.g. Blood test results")}
                                     value={fileTitle}
                                     onChangeText={setFileTitle}
                                 />
                                 <Choices
-                                    label="Visibility"
+                                    label={nativeCopy("interface.Visibility")}
                                     disabled={uploading || mutation.isPending}
                                     values={["CoachPrivate", "SharedWithClient"]}
                                     labels={{ CoachPrivate: "Only me", SharedWithClient: access.data?.coach ? "Shared with client" : "Shared with coach" }}
@@ -214,14 +217,14 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                 </View>
             )}
             <SearchField
-                label="Search documents"
+                label={nativeCopy("interface.Search documents")}
                 value={search}
                 onChangeText={(value) => {
                     setSearch(value);
                     setPage(1);
                 }}
             />
-            <Section title="Files">
+            <Section title={nativeCopy("interface.Files")}>
                 {documents.isPending ? (
                     <LoadingState />
                 ) : documents.error ? (
@@ -247,7 +250,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                                                 shared(item) ? "info" : "neutral"
                                             }
                                         >
-                                            {shared(item) ? (access.data?.coach ? "Shared with client" : "Shared with coach") : "Only me"}
+                                            {shared(item) ? (access.data?.coach ? nativeCopy("interface.Shared with client") : nativeCopy("interface.Shared with coach")) : nativeCopy("interface.Only me")}
                                         </Badge>
                                     }
                                     onPress={() => {
@@ -261,8 +264,8 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                                     icon="document"
                                     title={
                                         search
-                                            ? "No documents match"
-                                            : "No documents yet"
+                                            ? nativeCopy("interface.No documents match")
+                                            : nativeCopy("interface.No documents yet")
                                     }
                                 />
                             )}
@@ -275,7 +278,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                 )}
             </Section>
             {access.data?.coach && (
-                <Section title="Private notes">
+                <Section title={nativeCopy("interface.Private notes")}>
                     {notes.error ? (
                         <ErrorState error={notes.error} />
                     ) : notes.data?.items.length ? (
@@ -283,13 +286,14 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                             <ListItem
                                 key={item.id}
                                 icon="edit"
-                                title={item.title || "Note"}
+                                title={item.title || nativeCopy("interface.Note")}
                                 subtitle={item.text}
                             />
                         ))
                     ) : (
                         <Text variant="caption" tone="mutedText">
-                            No notes yet.
+
+                            {nativeCopy("interface.No notes yet.")}
                         </Text>
                     )}
                 </Section>
@@ -319,7 +323,7 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                                 size="lg"
                                 tone="primary"
                                 icon="attach"
-                                title="Open file"
+                                title={nativeCopy("interface.Open file")}
                                 onPress={() => void open(viewing.id)}
                             />
                         )}
@@ -329,8 +333,8 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
                                 icon={shared(viewing) ? "lock" : "send"}
                                 title={
                                     shared(viewing)
-                                        ? "Make visible only to me"
-                                        : access.data?.coach ? "Share with client" : "Share with coach"
+                                        ? nativeCopy("interface.Make visible only to me")
+                                        : access.data?.coach ? nativeCopy("interface.Share with client") : nativeCopy("interface.Share with coach")
                                 }
                                 onPress={() =>
                                     shareMutation.mutate({
@@ -357,6 +361,8 @@ export function Documentation({ relationshipId }: { relationshipId: string }) {
 }
 
 export function Measurements({ relationshipId }: { relationshipId: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const base = `/api/v1/coaching/relationships/${relationshipId}/documentation`;
     const [page, setPage] = useState(1);
     const initialRange = () => ({
@@ -410,10 +416,10 @@ export function Measurements({ relationshipId }: { relationshipId: string }) {
     return (
         <>
             <Section
-                title={definition?.label ?? "Body measurements"}
+                title={definition?.label ?? nativeCopy("interface.Body measurements")}
                 action={
                     <Filters
-                        title="Measurements"
+                        title={nativeCopy("interface.Measurements")}
                         summary={`${formatDay(range.from)} – ${formatDay(range.to)}`}
                         onReset={() => {
                             setRange(initialRange());
@@ -422,7 +428,7 @@ export function Measurements({ relationshipId }: { relationshipId: string }) {
                     >
                         {definitions.data && (
                             <Choices
-                                label="Measurement"
+                                label={nativeCopy("interface.Measurement")}
                                 labels={measurementLabels}
                                 values={definitions.data.map((item) => item.key)}
                                 value={key}
@@ -430,7 +436,7 @@ export function Measurements({ relationshipId }: { relationshipId: string }) {
                             />
                         )}
                         <NativeDateField
-                            label="From"
+                            label={nativeCopy("interface.From")}
                             value={range.from}
                             onChange={(from) => {
                                 setRange((current) => ({ ...current, from }));
@@ -438,7 +444,7 @@ export function Measurements({ relationshipId }: { relationshipId: string }) {
                             }}
                         />
                         <NativeDateField
-                            label="Through"
+                            label={nativeCopy("interface.Through")}
                             value={range.to}
                             onChange={(to) => {
                                 setRange((current) => ({ ...current, to }));
@@ -481,8 +487,8 @@ export function Measurements({ relationshipId }: { relationshipId: string }) {
             </Section>
             {access.data?.allowedActions.includes("measure") && (
                 <FormSheet
-                    trigger={{ title: "Add a measurement", icon: "add" }}
-                    title="Add a measurement"
+                    trigger={{ title: nativeCopy("interface.Add a measurement"), icon: "add" }}
+                    title={nativeCopy("interface.Add a measurement")}
                     subtitle={definition?.label}
                     size="content"
                     dirty={value != null || !!comment}
@@ -493,7 +499,7 @@ export function Measurements({ relationshipId }: { relationshipId: string }) {
                         <Button
                             size="lg"
                             tone="primary"
-                            title="Save measurement"
+                            title={nativeCopy("interface.Save measurement")}
                             loading={mutation.isPending}
                             disabled={value == null || !valueValid}
                             onPress={() =>
@@ -513,7 +519,7 @@ export function Measurements({ relationshipId }: { relationshipId: string }) {
                     )}
                 >
                     <DecimalField
-                        label={`Value (${unit})`}
+                        label={nativeCopy("interface.Value ({0})", {"0": String(unit)})}
                         placeholder="e.g. 80.5"
                         value={value}
                         onChange={setValue}
@@ -521,7 +527,7 @@ export function Measurements({ relationshipId }: { relationshipId: string }) {
                     />
                     {(definition?.units.length ?? 0) > 1 && (
                         <Choices
-                            label="Unit"
+                            label={nativeCopy("interface.Unit")}
                             values={definition?.units || ["kg"]}
                             labels={Object.fromEntries(
                                 (definition?.units ?? []).map((item) => [
@@ -534,13 +540,13 @@ export function Measurements({ relationshipId }: { relationshipId: string }) {
                         />
                     )}
                     <NativeDateField
-                        label="Measured on"
+                        label={nativeCopy("interface.Measured on")}
                         value={date}
                         onChange={setDate}
                     />
                     <Field
-                        label="Comment"
-                        placeholder="Optional, e.g. morning, before breakfast"
+                        label={nativeCopy("interface.Comment")}
+                        placeholder={nativeCopy("interface.Optional, e.g. morning, before breakfast")}
                         value={comment}
                         onChangeText={setComment}
                     />

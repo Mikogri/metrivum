@@ -1,3 +1,6 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
+import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = ({ location }: { location: { pathname: string } }) =>
@@ -40,22 +43,25 @@ const blankSection = (order: number): Section => ({ key: newKey(), title: "", de
  * exception: they are edited right here, in the list the client will pick from.
  */
 function AnswerShape({ q, locked, change }: { q: Question; locked: boolean; change: (value: Partial<Question>) => void }) {
+  const uiCopy = useUiCopy();
+
   if (q.type === "ShortText" || q.type === "LongText" || q.type === "Number")
     return (
       <div className={styles.fake} data-tall={q.type === "LongText" || undefined}>
-        {q.type === "Number" ? `0${q.unit ? ` ${q.unit}` : ""}` : q.type === "LongText" ? "Long answer" : "Short answer"}
+        {q.type === "Number" ? `0${q.unit ? ` ${q.unit}` : ""}` : q.type === "LongText" ? uiCopy["ui"]["Long answer"] : uiCopy["ui"]["Short answer"]}
       </div>
     );
   if (q.type === "Date")
     return (
       <div className={styles.fake}>
-        dd / mm / yyyy <CalendarDays aria-hidden="true" />
+
+        {uiCopy["ui"]["dd / mm / yyyy"]} <CalendarDays aria-hidden="true" />
       </div>
     );
   if (q.type === "YesNo")
     return (
       <div className={styles.pills}>
-        <span>Yes</span>
+        <span>{uiCopy["ui"]["Yes"]}</span>
         <span>No</span>
       </div>
     );
@@ -71,8 +77,8 @@ function AnswerShape({ q, locked, change }: { q: Question; locked: boolean; chan
           ))}
         </div>
         <div className={styles.scaleLabels}>
-          <span>{q.minLabel || "Minimum"}</span>
-          <span>{q.maxLabel || "Maximum"}</span>
+          <span>{q.minLabel || uiCopy["ui"]["Minimum"]}</span>
+          <span>{q.maxLabel || uiCopy["ui"]["Maximum"]}</span>
         </div>
       </div>
     );
@@ -86,15 +92,15 @@ function AnswerShape({ q, locked, change }: { q: Question; locked: boolean; chan
             <span className={styles.mark} data-kind={q.type === "MultiChoice" ? "box" : "radio"} aria-hidden="true" />
             <input
               className={styles.inlineInput}
-              aria-label={`Option ${n + 1}`}
-              placeholder={`Option ${n + 1}`}
+              aria-label={formatInterfaceText(uiCopy["ui"]["Option {0}"], [n + 1])}
+              placeholder={formatInterfaceText(uiCopy["ui"]["Option {0}"], [n + 1])}
               required
               disabled={locked}
               value={c.label}
               maxLength={equipment ? 100 : 200}
               onChange={(e) => change({ choices: q.choices!.map((item, x) => (x === n ? { ...item, label: e.target.value, key: equipment ? equipmentValue(e.target.value) : item.key } : item)) })}
             />
-            <IconButton label={`Remove option ${n + 1}`} icon={<X />} size="sm" isDisabled={locked} onPress={() => change({ choices: q.choices!.filter((_, x) => x !== n) })} className={styles.optionRemove} />
+            <IconButton label={formatInterfaceText(uiCopy["ui"]["Remove option {0}"], [n + 1])} icon={<X />} size="sm" isDisabled={locked} onPress={() => change({ choices: q.choices!.filter((_, x) => x !== n) })} className={styles.optionRemove} />
           </li>
         ))}
         <li>
@@ -108,7 +114,8 @@ function AnswerShape({ q, locked, change }: { q: Question; locked: boolean; chan
               change({ choices: [...(q.choices ?? []), { key: equipment ? `Equipment_${next}` : newKey(), label: equipment ? `Equipment ${next}` : "" }] });
             }}
           >
-            Add option
+
+            {uiCopy["ui"]["Add option"]}
           </button>
         </li>
       </ul>
@@ -143,32 +150,34 @@ function QuestionBlock({
   duplicate: () => void;
   remove: () => void;
 }) {
+  const uiCopy = useUiCopy();
+
   return (
     <div className={styles.block} data-selected={selected || undefined} >
       <div className={styles.blockHead}>
-        <DropdownMenuTrigger><IconButton label={`Question ${index + 1} actions`} icon={<MoreHorizontal />} isDisabled={locked} />
+        <DropdownMenuTrigger><IconButton label={formatInterfaceText(uiCopy["ui"]["Question {0} actions"], [index + 1])} icon={<MoreHorizontal />} isDisabled={locked} />
           <DropdownMenu onAction={(key) => { if (key === "edit") select(); if (key === "duplicate") duplicate(); if (key === "delete") remove(); if (key === "up") move(-1); if (key === "down") move(1); }}>
-            <DropdownMenuItem id="edit">Edit question</DropdownMenuItem>
-            <DropdownMenuItem id="duplicate">Duplicate question</DropdownMenuItem>
-            <DropdownMenuItem id="up" isDisabled={index === 0}>Move up</DropdownMenuItem>
-            <DropdownMenuItem id="down" isDisabled={index === count - 1}>Move down</DropdownMenuItem>
-            <DropdownMenuItem id="delete">Delete question</DropdownMenuItem>
+            <DropdownMenuItem id="edit">{uiCopy["ui"]["Edit question"]}</DropdownMenuItem>
+            <DropdownMenuItem id="duplicate">{uiCopy["ui"]["Duplicate question"]}</DropdownMenuItem>
+            <DropdownMenuItem id="up" isDisabled={index === 0}>{uiCopy["editor"]["moveUp"]}</DropdownMenuItem>
+            <DropdownMenuItem id="down" isDisabled={index === count - 1}>{uiCopy["editor"]["moveDown"]}</DropdownMenuItem>
+            <DropdownMenuItem id="delete">{uiCopy["ui"]["Delete question"]}</DropdownMenuItem>
           </DropdownMenu>
         </DropdownMenuTrigger>
-        <input className={`${styles.inlineInput} ${styles.questionInput}`} aria-label={`Question ${index + 1}`} placeholder="Type your question" required disabled={locked} value={q.label} onChange={(e) => change({ label: e.target.value })} />
+        <input className={`${styles.inlineInput} ${styles.questionInput}`} aria-label={formatInterfaceText(uiCopy["ui"]["Question {0}"], [index + 1])} placeholder={uiCopy["ui"]["Type your question"]} required disabled={locked} value={q.label} onChange={(e) => change({ label: e.target.value })} />
         {q.required ? (
-          <span className={styles.required} aria-label="Required">
+          <span className={styles.required} aria-label={uiCopy["ui"]["Required"]}>
             *
           </span>
         ) : null}
       </div>
-      <input className={`${styles.inlineInput} ${styles.helpInput}`} aria-label={`Help text for question ${index + 1}`} placeholder="Add help text (optional)" disabled={locked} value={q.helpText ?? ""} onChange={(e) => change({ helpText: e.target.value })} />
+      <input className={`${styles.inlineInput} ${styles.helpInput}`} aria-label={formatInterfaceText(uiCopy["ui"]["Help text for question {0}"], [index + 1])} placeholder={uiCopy["ui"]["Add help text (optional)"]} disabled={locked} value={q.helpText ?? ""} onChange={(e) => change({ helpText: e.target.value })} />
       <AnswerShape q={q} locked={locked} change={change} />
 
       {selected ? (
         <div className={styles.settings}>
           <div className={styles.settingsRow}>
-            <Select label="Answer type" size="sm" isDisabled={locked} selectedKey={q.type} onSelectionChange={(key) => change(questionType(key as Question["type"]))}>
+            <Select label={uiCopy["ui"]["Answer type"]} size="sm" isDisabled={locked} selectedKey={q.type} onSelectionChange={(key) => change(questionType(key as Question["type"]))}>
               {TYPES.map(([id, label]) => (
                 <Option key={id} id={id}>
                   {label}
@@ -176,8 +185,8 @@ function QuestionBlock({
               ))}
             </Select>
             {purpose === "Application" ? (
-              <Select label="Profile field" size="sm" isDisabled={locked} selectedKey={q.systemField ?? "none"} onSelectionChange={(key) => change(profileQuestion((key === "none" ? null : key) as Question["systemField"]))}>
-                <Option id="none">Custom question</Option>
+              <Select label={uiCopy["ui"]["Profile field"]} size="sm" isDisabled={locked} selectedKey={q.systemField ?? "none"} onSelectionChange={(key) => change(profileQuestion((key === "none" ? null : key) as Question["systemField"]))}>
+                <Option id="none">{uiCopy["ui"]["Custom question"]}</Option>
                 {systemFields.map((f) => (
                   <Option key={f} id={f}>
                     {f.replace(/([a-z])([A-Z])/g, "$1 $2")}
@@ -189,25 +198,26 @@ function QuestionBlock({
           {["Number", "Scale"].includes(q.type) ? (
             <div className={styles.settingsRow}>
               {(["min", "max"] as const).map((bound) => (
-                <NumberInput key={bound} size="sm" label={bound === "min" ? "Minimum" : "Maximum"} placeholder="None" isDisabled={locked} value={q[bound] == null ? NaN : Number(q[bound])} onChange={(v) => change({ [bound]: Number.isFinite(v) ? v : null })} />
+                <NumberInput key={bound} size="sm" label={bound === "min" ? uiCopy["ui"]["Minimum"] : uiCopy["ui"]["Maximum"]} placeholder={uiCopy["editor"]["panel"]["effortModes"]["none"]} isDisabled={locked} value={q[bound] == null ? NaN : Number(q[bound])} onChange={(v) => change({ [bound]: Number.isFinite(v) ? v : null })} />
               ))}
-              <TextField size="sm" label="Unit" placeholder="e.g. kg" isDisabled={locked} value={q.unit ?? ""} onChange={(unit) => change({ unit })} />
+              <TextField size="sm" label={uiCopy["editor"]["panel"]["unit"]} placeholder="e.g. kg" isDisabled={locked} value={q.unit ?? ""} onChange={(unit) => change({ unit })} />
             </div>
           ) : null}
           {q.type === "Scale" ? (
             <div className={styles.settingsRow}>
-              <TextField size="sm" label="Minimum label" placeholder="e.g. Very low" value={q.minLabel ?? ""} isDisabled={locked} onChange={(minLabel) => change({ minLabel })} />
-              <TextField size="sm" label="Maximum label" placeholder="e.g. Very high" value={q.maxLabel ?? ""} isDisabled={locked} onChange={(maxLabel) => change({ maxLabel })} />
+              <TextField size="sm" label={uiCopy["ui"]["Minimum label"]} placeholder={uiCopy["ui"]["e.g. Very low"]} value={q.minLabel ?? ""} isDisabled={locked} onChange={(minLabel) => change({ minLabel })} />
+              <TextField size="sm" label={uiCopy["ui"]["Maximum label"]} placeholder={uiCopy["ui"]["e.g. Very high"]} value={q.maxLabel ?? ""} isDisabled={locked} onChange={(maxLabel) => change({ maxLabel })} />
             </div>
           ) : null}
           {["ShortText", "LongText"].includes(q.type) ? (
             <div className={styles.settingsRow}>
-              <NumberInput size="sm" label="Maximum characters" placeholder="No limit" minValue={1} maxValue={10000} step={1} isDisabled={locked} value={q.maxLength == null ? NaN : Number(q.maxLength)} onChange={(v) => change({ maxLength: Number.isFinite(v) ? v : null })} />
+              <NumberInput size="sm" label={uiCopy["ui"]["Maximum characters"]} placeholder={uiCopy["ui"]["No limit"]} minValue={1} maxValue={10000} step={1} isDisabled={locked} value={q.maxLength == null ? NaN : Number(q.maxLength)} onChange={(v) => change({ maxLength: Number.isFinite(v) ? v : null })} />
             </div>
           ) : null}
           <div className={styles.settingsFoot}>
             <Switch isSelected={q.required} isDisabled={locked} onChange={(required) => change({ required })}>
-              Required
+
+              {uiCopy["ui"]["Required"]}
             </Switch>
 
           </div>
@@ -218,6 +228,8 @@ function QuestionBlock({
 }
 
 function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?: Template; purpose: Purpose; onDirtyChange?: (dirty: boolean) => void }) {
+  const uiCopy = useUiCopy();
+
   const navigate = useNavigate();
   const [current, setCurrent] = useState(initial);
   const [purpose, setPurpose] = useState<Purpose>(initial?.purpose ?? initialPurpose);
@@ -237,7 +249,7 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
     onDirtyChange?.(value);
   };
   const [duplicateKey] = useState(() => crypto.randomUUID());
-  const duplicate = useCoachingMutation<Template>((value) => { toast({ tone: "success", title: "Form duplicated" }); navigate(`/app/forms/${value.id}`); });
+  const duplicate = useCoachingMutation<Template>((value) => { toast({ tone: "success", title: uiCopy["ui"]["Form duplicated"] }); navigate(`/app/forms/${value.id}`); });
   useUnsavedWorkGuard(useCallback(() => dirty, [dirty]));
   const mutation = useCoachingMutation<Template>((value) => {
     toast({ tone: "success", title: operation.current === "publish" ? "Form published" : operation.current === "unpublish" ? "Form unpublished" : operation.current === "restore" ? "Form restored" : operation.current === "archive" ? "Form archived" : current ? "Form draft saved" : "Form created" });
@@ -259,43 +271,51 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
     setQuestions(i, [...draft.sections[i]!.questions, question]);
     setSelected(question.key);
   };
-  const write = (action: string) => { operation.current = action; if (current) mutation.mutate({ method: "POST", path: `/api/v1/forms/${current.id}/${action}`, ifMatch: current.version }); };
+  const { ask, dialog: archiveDialog } = useDangerConfirm();
+  const write = async (action: string) => {
+    if (action === "archive" && current && !(await ask({ title: `Archive ${current.name}?`, body: "It leaves your forms and can't be used until restored.", confirmLabel: uiCopy["ui"]["Archive form"], cancelLabel: uiCopy["ui"]["Keep form"] }))) return;
+    operation.current = action;
+    if (current) mutation.mutate({ method: "POST", path: `/api/v1/forms/${current.id}/${action}`, ifMatch: current.version });
+  };
   const status = current?.archived ? "Archived" : current?.currentPublishedVersionId ? "Published" : current ? "Draft" : "New";
   const count = draft.sections.reduce((sum, s) => sum + s.questions.length, 0);
 
   return (
     <>
+      {archiveDialog}
       <PageHeader
-        title={current ? name || "Edit form" : "New form"}
-        description={purpose === "CheckIn" ? "A check-in your clients complete regularly." : "The questions you ask before accepting a new client."}
+        title={current ? name || uiCopy["ui"]["Edit form"] : uiCopy["ui"]["New form"]}
+        description={purpose === "CheckIn" ? uiCopy["ui"]["A check-in your clients complete regularly."] : uiCopy["ui"]["The questions you ask before accepting a new client."]}
         meta={<Badge tone={status === "Published" ? "success" : status === "Archived" ? "warning" : "neutral"}>{status}</Badge>}
         actions={
           <>
             {current ? (
               <>
-                <Button loading={mutation.isPending && /\/(archive|restore)$/.test(mutation.variables?.path ?? "")} isDisabled={mutation.isPending || dirty} onPress={() => write(current.archived ? "restore" : "archive")}>
-                  {current.archived ? "Restore" : "Archive"}
+                <Button loading={mutation.isPending && /\/(archive|restore)$/.test(mutation.variables?.path ?? "")} isDisabled={mutation.isPending || dirty} onPress={() => void write(current.archived ? "restore" : "archive")}>
+                  {current.archived ? uiCopy["common"]["restore"] : uiCopy["common"]["archive"]}
                 </Button>
                 <Button
                   loading={duplicate.isPending}
                   isDisabled={dirty || mutation.isPending}
                   onPress={() => duplicate.mutate({ method: "POST", path: `/api/v1/forms/${current.id}/duplicate`, ifMatch: current.version, json: { idempotencyKey: duplicateKey } })}
                 >
-                  Duplicate
+
+                  {uiCopy["editor"]["duplicate"]}
                 </Button>
               </>
             ) : null}
             <Button type="submit" form="form-builder" variant={current && !dirty ? "secondary" : "primary"} isDisabled={current?.archived || mutation.isPending} loading={mutation.isPending && !/\/(publish|unpublish|archive|restore)$/.test(mutation.variables?.path ?? "")}>
-              {current ? "Save draft" : "Create form"}
+              {current ? uiCopy["ui"]["Save draft"] : uiCopy["ui"]["Create form"]}
             </Button>
             {current?.currentPublishedVersionId && !current.archived ? (
               <Button variant="danger" loading={mutation.isPending && mutation.variables?.path.endsWith("/unpublish")} isDisabled={locked || mutation.isPending} onPress={() => write("unpublish")}>
-                Unpublish
+
+                {uiCopy["ui"]["Unpublish"]}
               </Button>
             ) : null}
             {current ? (
               <Button variant="primary" loading={mutation.isPending && mutation.variables?.path.endsWith("/publish")} isDisabled={locked || dirty} onPress={() => write("publish")}>
-                {current.currentPublishedVersionId ? "Publish changes" : "Publish form"}
+                {current.currentPublishedVersionId ? uiCopy["ui"]["Publish changes"] : uiCopy["ui"]["Publish form"]}
               </Button>
             ) : null}
           </>
@@ -305,8 +325,8 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
       <div className={styles.notices}>
         <MutationError error={mutation.error} />
         <MutationError error={duplicate.error} />
-        {current?.currentPublishedVersionId ? <Alert title="Published answers stay unchanged">Editing this draft affects future uses only after you publish a new version.</Alert> : null}
-        {current?.archived ? <Alert tone="warning" title="This form is archived" actions={<Button onPress={() => write("restore")}>Restore form</Button>} /> : null}
+        {current?.currentPublishedVersionId ? <Alert title={uiCopy["ui"]["Published answers stay unchanged"]}>{uiCopy["ui"]["Editing this draft affects future uses only after you publish a new version."]}</Alert> : null}
+        {current?.archived ? <Alert tone="warning" title={uiCopy["ui"]["This form is archived"]} actions={<Button onPress={() => void write("restore")}>{uiCopy["ui"]["Restore form"]}</Button>} /> : null}
       </div>
 
       {/* The workspace: the form exactly as the client sees it, edited in place. */}
@@ -318,31 +338,32 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
             <i />
           </span>
           <span className={styles.frameTitle}>
-            {mode === "edit" ? "Editing" : "Trying it out"}
+            {mode === "edit" ? uiCopy["ui"]["Editing"] : uiCopy["ui"]["Trying it out"]}
             <small>
-              Client view · {count} {count === 1 ? "question" : "questions"}
-              {dirty && current ? " · unsaved changes" : ""}
+
+              {uiCopy["ui"]["Client view ·"]} {count} {count === 1 ? uiCopy["ui"]["question"] : uiCopy["ui"]["questions"]}
+              {dirty && current ? uiCopy["ui"][" · unsaved changes"] : ""}
             </small>
           </span>
           {!current ? (
-            <SegmentedControl aria-label="Used for" size="sm" selectedKeys={[purpose]} onSelectionChange={(keys) => setPurpose([...keys][0] as Purpose)}>
-              <Segment id="Application">Applications</Segment>
-              <Segment id="CheckIn">Check-ins</Segment>
+            <SegmentedControl aria-label={uiCopy["ui"]["Used for"]} size="sm" selectedKeys={[purpose]} onSelectionChange={(keys) => setPurpose([...keys][0] as Purpose)}>
+              <Segment id="Application">{uiCopy["ui"]["Applications"]}</Segment>
+              <Segment id="CheckIn">{uiCopy["ui"]["Check-ins"]}</Segment>
             </SegmentedControl>
           ) : null}
-          <SegmentedControl aria-label="Mode" size="sm" selectedKeys={[mode]} onSelectionChange={(keys) => setMode(String([...keys][0] ?? "edit"))}>
+          <SegmentedControl aria-label={uiCopy["ui"]["Mode"]} size="sm" selectedKeys={[mode]} onSelectionChange={(keys) => setMode(String([...keys][0] ?? "edit"))}>
             <Segment id="edit">
-              <PenLine aria-hidden="true" /> Edit
+              <PenLine aria-hidden="true" />  {uiCopy["profile"]["showcase"]["edit"]}
             </Segment>
             <Segment id="try">
-              <Play aria-hidden="true" /> Try it
+              <Play aria-hidden="true" />  {uiCopy["training"]["formulas"]["try"]}
             </Segment>
           </SegmentedControl>
-          <SegmentedControl aria-label="Preview width" size="sm" selectedKeys={[device]} onSelectionChange={(keys) => setDevice(String([...keys][0] ?? "desktop"))}>
-            <Segment id="desktop" aria-label="Desktop">
+          <SegmentedControl aria-label={uiCopy["ui"]["Preview width"]} size="sm" selectedKeys={[device]} onSelectionChange={(keys) => setDevice(String([...keys][0] ?? "desktop"))}>
+            <Segment id="desktop" aria-label={uiCopy["ui"]["Desktop"]}>
               <Monitor aria-hidden="true" />
             </Segment>
-            <Segment id="phone" aria-label="Phone">
+            <Segment id="phone" aria-label={uiCopy["settings"]["phone"]}>
               <Smartphone aria-hidden="true" />
             </Segment>
           </SegmentedControl>
@@ -356,21 +377,21 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
             hidden={mode !== "edit"}
             onSubmit={(e) => {
               e.preventDefault();
-              if (!count) { toast({ tone: "danger", title: "Add at least one question before saving" }); return; }
+              if (!count) { toast({ tone: "danger", title: uiCopy["ui"]["Add at least one question before saving"] }); return; }
               operation.current = "save";
               mutation.mutate({ method: current ? "PATCH" : "POST", path: `/api/v1/forms${current ? `/${current.id}` : ""}`, ifMatch: current?.version, json: { purpose, name, description, draft } });
             }}
           >
-            <input className={`${styles.inlineInput} ${styles.nameInput}`} aria-label="Form name" placeholder={purpose === "CheckIn" ? "Weekly check-in" : "Online coaching intake"} value={name} maxLength={200} required disabled={locked} autoFocus={!current} onChange={(e) => { setName(e.target.value); setDirty(true); }} />
-            <textarea ref={descriptionRef} className={`${styles.inlineInput} ${styles.descriptionInput}`} aria-label="Description" placeholder="Add a description (optional)" rows={1} value={description} maxLength={4000} disabled={locked} onChange={(e) => { setDescription(e.target.value); setDirty(true); }} />
+            <input className={`${styles.inlineInput} ${styles.nameInput}`} aria-label={uiCopy["ui"]["Form name"]} placeholder={purpose === "CheckIn" ? uiCopy["ui"]["Weekly check-in"] : uiCopy["ui"]["Online coaching intake"]} value={name} maxLength={200} required disabled={locked} autoFocus={!current} onChange={(e) => { setName(e.target.value); setDirty(true); }} />
+            <textarea ref={descriptionRef} className={`${styles.inlineInput} ${styles.descriptionInput}`} aria-label={uiCopy["training"]["library"]["createDialog"]["description"]} placeholder={uiCopy["ui"]["Add a description (optional)"]} rows={1} value={description} maxLength={4000} disabled={locked} onChange={(e) => { setDescription(e.target.value); setDirty(true); }} />
 
             {draft.sections.map((s, i) => (
-              <section className={styles.section} key={s.key} aria-label={`Section ${i + 1}`}>
+              <section className={styles.section} key={s.key} aria-label={formatInterfaceText(uiCopy["ui"]["Section {0}"], [i + 1])}>
                 <div className={styles.sectionHead}>
-                  <input className={`${styles.inlineInput} ${styles.sectionInput}`} aria-label={`Section ${i + 1} title`} placeholder="Section title" required disabled={locked} value={s.title} onChange={(e) => editSection(i, { title: e.target.value })} />
-                  <IconButton label="Remove section" icon={<Trash2 />} size="sm" isDisabled={locked || draft.sections.length < 2} onPress={() => update({ sections: draft.sections.filter((_, n) => n !== i) })} className={styles.sectionRemove} />
+                  <input className={`${styles.inlineInput} ${styles.sectionInput}`} aria-label={formatInterfaceText(uiCopy["ui"]["Section {0} title"], [i + 1])} placeholder={uiCopy["ui"]["Section title"]} required disabled={locked} value={s.title} onChange={(e) => editSection(i, { title: e.target.value })} />
+                  <IconButton label={uiCopy["ui"]["Remove section"]} icon={<Trash2 />} size="sm" isDisabled={locked || draft.sections.length < 2} onPress={() => update({ sections: draft.sections.filter((_, n) => n !== i) })} className={styles.sectionRemove} />
                 </div>
-                <input className={`${styles.inlineInput} ${styles.helpInput}`} aria-label={`Section ${i + 1} description`} placeholder="Add a sentence shown above the questions (optional)" disabled={locked} value={s.description ?? ""} onChange={(e) => editSection(i, { description: e.target.value })} />
+                <input className={`${styles.inlineInput} ${styles.helpInput}`} aria-label={formatInterfaceText(uiCopy["ui"]["Section {0} description"], [i + 1])} placeholder={uiCopy["ui"]["Add a sentence shown above the questions (optional)"]} disabled={locked} value={s.description ?? ""} onChange={(e) => editSection(i, { description: e.target.value })} />
                 {s.questions.map((q, j) => (
                   <QuestionBlock
                     key={q.key}
@@ -396,9 +417,9 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
                   />
                 ))}
                 {/* Add as many questions as needed, each starting as the chosen answer type. */}
-                <div className={styles.add} role="group" aria-label={`Add a question to section ${i + 1}`}>
+                <div className={styles.add} role="group" aria-label={formatInterfaceText(uiCopy["ui"]["Add a question to section {0}"], [i + 1])}>
                   <span className={styles.addLabel}>
-                    <Plus aria-hidden="true" /> Add question
+                    <Plus aria-hidden="true" />  {uiCopy["ui"]["Add question"]}
                   </span>
                   {TYPES.map(([type, label]) => (
                     <button key={type} type="button" className={styles.addType} disabled={locked} onClick={() => addQuestion(i, type)}>
@@ -409,23 +430,26 @@ function Editor({ initial, purpose: initialPurpose, onDirtyChange }: { initial?:
               </section>
             ))}
             <Button iconStart={<Plus />} variant="ghost" isDisabled={locked} onPress={() => update({ sections: [...draft.sections, blankSection(draft.sections.length)] })} className={styles.addSection}>
-              Add section
+
+              {uiCopy["ui"]["Add section"]}
             </Button>
           </form>
 
           {mode === "try" ? (
             <div className={styles.screen} data-device={device}>
               <header className={styles.tryHead}>
-                <h2>{name || "Untitled form"}</h2>
+                <h2>{name || uiCopy["ui"]["Untitled form"]}</h2>
                 {description ? <p>{description}</p> : null}
               </header>
               <FormAnswerFields definition={draft} answers={answers} onChange={setAnswers} />
               <div className={styles.tryFoot}>
                 <Button variant="primary" isDisabled>
-                  Submit
+
+                  {uiCopy["ui"]["Submit"]}
                 </Button>
                 <Button variant="ghost" onPress={() => setAnswers({})}>
-                  Clear answers
+
+                  {uiCopy["ui"]["Clear answers"]}
                 </Button>
               </div>
             </div>

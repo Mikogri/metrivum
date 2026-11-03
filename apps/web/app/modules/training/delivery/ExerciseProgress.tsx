@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { X } from "lucide-react";
@@ -29,6 +31,8 @@ export function ExerciseProgress({ series, selected, onSelect, metric, onMetric,
   /** Where a logged session opens; without it the chart and the table do not link. */
   workoutLink?: (point: ExercisePerformance) => string;
 }) {
+  const uiCopy = useUiCopy();
+
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const options = [...series].map(([key, points]) => ({ key, points, label: `${points[0]!.name}${points[0]!.loadMeaning !== "absolute" ? ` (${points[0]!.loadMeaning})` : ""}` }));
@@ -47,18 +51,18 @@ export function ExerciseProgress({ series, selected, onSelect, metric, onMetric,
   const remove = (key: string) => onSelect(keys.filter(k => k !== key));
   const lines = chosen.filter(c => c.usable.length);
 
-  return <Panel title="Exercise progress" actions={<div className={styles.chartPick}>
-    <Combobox aria-label="Add an exercise" size="sm" placeholder={full ? `Up to ${MAX_EXERCISES} exercises` : "Search exercises…"} isDisabled={full} className={styles.chartExercise}
+  return <Panel title={uiCopy["ui"]["Exercise progress"]} actions={<div className={styles.chartPick}>
+    <Combobox aria-label={uiCopy["exercises"]["create"]["title"]} size="sm" placeholder={full ? `Up to ${MAX_EXERCISES} exercises` : uiCopy["ui"]["Search exercises…"]} isDisabled={full} className={styles.chartExercise}
       inputValue={search} onInputChange={setSearch} selectedKey={null} onSelectionChange={key => key != null && add(String(key))}
       items={remaining.map(o => ({ id: o.key, name: o.label }))} emptyState="No logged exercise matches" menuWidth="md">
       {(item: { id: string; name: string }) => <Option id={item.id} textValue={item.name}>{item.name}</Option>}
     </Combobox>
-    <Select aria-label="Measure" size="sm" className={styles.chartMeasure} selectedKey={metric} onSelectionChange={key => onMetric(key as Metric)}>
-      <Option id="bestLoadKg">Best weight (kg)</Option><Option id="volumeKg">Volume (kg·reps)</Option><Option id="reps">Total repetitions</Option><Option id="sets">Recorded sets</Option>
+    <Select aria-label={uiCopy["editor"]["sheet"]["volume"]["metric"]} size="sm" className={styles.chartMeasure} selectedKey={metric} onSelectionChange={key => onMetric(key as Metric)}>
+      <Option id="bestLoadKg">{uiCopy["ui"]["Best weight (kg)"]}</Option><Option id="volumeKg">{uiCopy["ui"]["Volume (kg·reps)"]}</Option><Option id="reps">{uiCopy["ui"]["Total repetitions"]}</Option><Option id="sets">{uiCopy["ui"]["Recorded sets"]}</Option>
     </Select>
   </div>}>
     {/* One chip per exercise on the chart: its colour, name, latest value and change over the period. */}
-    <ul className={styles.exChips} aria-label="Exercises on the chart">{chosen.map(c => {
+    <ul className={styles.exChips} aria-label={uiCopy["ui"]["Exercises on the chart"]}>{chosen.map(c => {
       const first = c.usable[0]?.[metric], last = c.usable.at(-1)?.[metric];
       const change = first != null && last != null ? last - first : null;
       return <li key={c.key} style={{ "--ex": c.color } as React.CSSProperties}>
@@ -66,12 +70,12 @@ export function ExerciseProgress({ series, selected, onSelect, metric, onMetric,
         <span className={styles.exName}>{c.label}</span>
         {last != null ? <b>{fmt(last)} {unit}</b> : <small>no {metricLabel.toLowerCase()}</small>}
         {change != null && c.usable.length > 1 ? <small data-tone={change > 0 ? "up" : change < 0 ? "down" : undefined}>{change > 0 ? "+" : ""}{fmt(change)}</small> : null}
-        {valid.length ? <button type="button" aria-label={`Remove ${c.label} from the chart`} onClick={() => remove(c.key)}><X aria-hidden="true" /></button> : null}
+        {valid.length ? <button type="button" aria-label={formatInterfaceText(uiCopy["ui"]["Remove {0} from the chart"], [c.label])} onClick={() => remove(c.key)}><X aria-hidden="true" /></button> : null}
       </li>;
     })}</ul>
-    {lines.length ? <MeasurementChart key={keys.join("|")} height={280} unit={unit} label={`${metricLabel} over time: ${chosen.map(c => c.label).join(", ")}`}
+    {lines.length ? <MeasurementChart key={keys.join("|")} height={280} unit={unit} label={formatInterfaceText(uiCopy["ui"]["{0} over time: {1}"], [metricLabel,chosen.map(c => c.label).join(", ")])}
       series={lines.map(c => ({ label: c.label, color: c.color, points: c.usable.map(p => ({ observedAt: p.performedDate, value: p[metric]! })) }))}
       onPick={workoutLink ? (s, i) => { const point = lines[s]?.usable[i]; if (point?.occurrenceId) void navigate(workoutLink(point)); } : undefined} />
-      : <p className={styles.hint}>No {metricLabel.toLowerCase()} recorded for {keys.length === 1 ? "this exercise" : "these exercises"} in the period.</p>}
+      : <p className={styles.hint}>No {metricLabel.toLowerCase()}  {uiCopy["ui"]["recorded for"]} {keys.length === 1 ? uiCopy["ui"]["this exercise"] : uiCopy["ui"]["these exercises"]}  {uiCopy["ui"]["in the period."]}</p>}
   </Panel>;
 }

@@ -1,9 +1,10 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { HubNavigation } from "~/shared/navigation/HubNavigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Archive, ArchiveRestore, Copy, Folder, FolderInput, FolderPlus, FolderUp, LayoutGrid, LayoutTemplate, MoreVertical, Pencil, Plus, RefreshCw, SearchX, Table2, Trash2, Upload, WandSparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
+import { PrefetchPageLinks, Link as RouterLink, useNavigate, useSearchParams } from "react-router";
 import type { DocumentKind, FolderDto, PlanListItem } from "@metrivum/api-client-web";
 import { LinkButton } from "@metrivum/ui-web";
 import { Badge, Breadcrumbs, Button, ContextMenu, DataTable, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, EmptyState, ErrorState, LoadingState, Option, PageHeader, Pagination, SearchInput, Select, Switch, Toolbar, toast, type ContextMenuEntry } from "@metrivum/ui-web";
@@ -14,6 +15,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { useDebounced } from "~/shared/lib/useDebounced";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
+import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { publishRevision, setArchived } from "../api";
@@ -34,6 +36,8 @@ const PAGE_SIZE = 20;
 const DEFAULTS = { folder: "", q: "", sort: "updated", archived: "", page: "1", view: "" };
 
 export function LibraryScreen({ kind }: { kind: DocumentKind }) {
+  const uiCopy = useUiCopy();
+
   const m = useT();
   const t = m.training.library;
   const locale = useLocale();
@@ -45,7 +49,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
   const publish = useMutation({
     mutationFn: (plan: PlanListItem) => publishRevision(api, plan.id, Number(plan.version), crypto.randomUUID()),
     onSuccess: (_, plan) => {
-      toast({ tone: "success", title: plan.publishedNumber == null ? "Program published" : "Changes applied", description: "Clients assigned to it get this version." });
+      toast({ tone: "success", title: plan.publishedNumber == null ? "Program published" : "Changes applied", description: uiCopy["ui"]["Clients assigned to it get this version."] });
       void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(a) });
       void queryClient.invalidateQueries({ queryKey: trainingKeys.all(a) });
     },
@@ -55,7 +59,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
   const planStatus = (plan: PlanListItem) => {
     const never = plan.publishedNumber == null;
     const pending = !never && Number(plan.publishedDraftVersion) !== Number(plan.version);
-    const badge = never ? <NotPublishedBadge size="sm" /> : pending ? <Badge size="sm" tone="warning">Changes not applied</Badge> : <Badge size="sm" tone="success">Published · v{Number(plan.publishedNumber)}</Badge>;
+    const badge = never ? <NotPublishedBadge size="sm" /> : pending ? <Badge size="sm" tone="warning">{uiCopy["editor"]["draftState"]["draft"]}</Badge> : <Badge size="sm" tone="success">{uiCopy["ui"]["Published · v"]}{Number(plan.publishedNumber)}</Badge>;
     return badge;
   };
   const showError = useErrorToast();
@@ -139,6 +143,12 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
     onError: (error) => showError(error),
   });
 
+  const { ask, dialog: archiveDialog } = useDangerConfirm();
+  const confirmArchive = async (plan: PlanListItem) => {
+    const c = m.training.library.archiveConfirm;
+    if (await ask({ title: c.title(plan.name), body: c.body, confirmLabel: c.confirm, cancelLabel: c.cancel })) archive.mutate({ plan, archived: true });
+  };
+
   const onFolderAction = (action: FolderAction | "up", folder: FolderDto) => {
     if (action === "up") dnd.moveTo({ kind: "folder", folder }, upId);
     else if (action === "new") setFolderDialog({ mode: "create", parentId: folder.id });
@@ -153,7 +163,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
     else if (key === "use") setCopyTarget({ plan, fromTemplate: true });
     else if (key === "move") setMoveTarget(plan);
     else if (key === "publish") publish.mutate(plan);
-    else if (key === "archive") archive.mutate({ plan, archived: true });
+    else if (key === "archive") void confirmArchive(plan);
     else if (key === "restore") archive.mutate({ plan, archived: false });
   };
 
@@ -180,7 +190,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
         </DropdownMenuItem>
         {plan.kind === "Program" && !plan.archived && (plan.publishedNumber == null || Number(plan.publishedDraftVersion) !== Number(plan.version)) ? (
           <DropdownMenuItem id="publish" icon={<Upload />} isDisabled={!canManage || publish.isPending}>
-            {plan.publishedNumber == null ? "Publish" : "Apply changes"}
+            {plan.publishedNumber == null ? uiCopy["ui"]["Publish"] : uiCopy["ui"]["Apply changes"]}
           </DropdownMenuItem>
         ) : null}
         {isTemplate ? (
@@ -448,6 +458,10 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
 
   return (
     <div className={styles.screen} onContextMenu={openMenu}>
+      {archiveDialog}
+      {/* Detail and editor code load in the background, so opening a plan is instant. */}
+      {list.data?.items[0] ? <PrefetchPageLinks page={`${kind === "Template" ? "/app/templates" : "/app/programs"}/${list.data.items[0].id}/edit`} /> : null}
+      {list.data?.items[0] ? <PrefetchPageLinks page={`/app/programs/${list.data.items[0].id}`} /> : null}
       <div className={styles.main}>
         <PageHeader
           context={
@@ -468,7 +482,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
           description={folderId ? undefined : texts.description}
           actions={
             <>
-              {!isTemplate && <LinkButton href="/app/programs/generate" iconStart={<WandSparkles />}>Generate program</LinkButton>}
+              {!isTemplate && <LinkButton href="/app/programs/generate" iconStart={<WandSparkles />}>{uiCopy["ui"]["Generate program"]}</LinkButton>}
               {canFolders ? (
                 <Button iconStart={<FolderPlus />} onPress={() => setFolderDialog({ mode: "create", parentId: folderId })}>
                   {t.newFolder}

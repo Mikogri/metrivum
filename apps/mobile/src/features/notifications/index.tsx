@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useState } from "react";
 import { router } from "expo-router";
 import { View } from "react-native";
@@ -38,6 +39,8 @@ const iconFor = (type: string): IconName =>
               : "notifications";
 
 export function NotificationsScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { api } = useMobile();
     const theme = useTheme();
     const [page, setPage] = useState(1);
@@ -71,14 +74,14 @@ export function NotificationsScreen() {
     );
     return (
         <Screen
-            title="Notifications"
+            title={nativeCopy("interface.Notifications")}
             actions={
                 hasUnread ? (
                     <View style={{ flexDirection: "row" }}>
                         <Button
                             size="sm"
                             icon="read"
-                            title="Mark all as read"
+                            title={nativeCopy("interface.Mark all as read")}
                             loading={busy}
                             onPress={async () => {
                                 setBusy(true);
@@ -117,14 +120,14 @@ export function NotificationsScreen() {
                                 icon={iconFor(item.type)}
                                 title={
                                     item.type === "MessageCreated"
-                                        ? "Message received"
+                                        ? nativeCopy("interface.Message received")
                                         : humanize(item.type)
                                 }
                                 subtitle={formatDateTime(item.createdAt)}
                                 trailing={
                                     unread ? (
                                         <View
-                                            accessibilityLabel="Unread"
+                                            accessibilityLabel={nativeCopy("interface.Unread")}
                                             style={{
                                                 width: 8,
                                                 height: 8,
@@ -152,8 +155,8 @@ export function NotificationsScreen() {
             ) : (
                 <EmptyState
                     icon="notifications"
-                    title="No notifications"
-                    description="Messages, check-ins and coaching updates appear here."
+                    title={nativeCopy("interface.No notifications")}
+                    description={nativeCopy("interface.Messages, check-ins and coaching updates appear here.")}
                 />
             )}
         </Screen>

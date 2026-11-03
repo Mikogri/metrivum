@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, ArrowUp, Bell, BellOff, CalendarClock, CalendarX, Check, CheckCheck, CheckCircle2, ClipboardCheck, CreditCard, Dumbbell, FileText, Film, Flag, Inbox, MailOpen, MessageSquare, PauseCircle, Repeat2, Settings2, UserMinus, UsersRound, Volume2, VolumeX, XCircle } from "lucide-react";
 import { Button as AriaButton, DialogTrigger } from "react-aria-components";
@@ -48,6 +50,8 @@ export function notificationLook(type: string, category: string): Look {
 }
 
 export function NotificationBell({ label, className }: { label?: string; className?: string } = {}) {
+  const uiCopy = useUiCopy();
+
     const sound = useNotifications();
     const locale = useLocale();
     const [open, setOpen] = useState(false);
@@ -64,7 +68,7 @@ export function NotificationBell({ label, className }: { label?: string; classNa
         const tone = liveToast(created.type);
         if (!tone) return;
         const link = created.deepLink;
-        toast({ tone, title: notificationTitle(created.type), ...(link ? { action: { label: "Open", onAction: () => navigate(link) } } : {}) });
+        toast({ tone, title: notificationTitle(created.type), ...(link ? { action: { label: uiCopy["common"]["open"], onAction: () => navigate(link) } } : {}) });
     });
     const analyzerUpdate = useAnalyzerUpdate();
     const count = notifications.count + (analyzerUpdate ? 1 : 0);
@@ -90,7 +94,7 @@ export function NotificationBell({ label, className }: { label?: string; classNa
             </AriaButton> : <IconButton
                 className={styles.bell}
                 data-unread={count ? "" : undefined}
-                label={`Notifications${count ? `, ${count} unread` : ""}`}
+                label={formatInterfaceText(uiCopy["ui"]["Notifications{0}"], [count ? `, ${count} unread` : ""])}
                 variant="secondary"
                 size="sm"
                 showTooltip={false}
@@ -104,18 +108,18 @@ export function NotificationBell({ label, className }: { label?: string; classNa
             <NotificationPanel open={open} setOpen={setOpen}>
                 <header className={styles.head}>
                     <div className={styles.title}>
-                        <strong>Notifications</strong>
+                        <strong>{uiCopy["common"]["notifications"]}</strong>
                         {count ? <span className={styles.count}>{count > 99 ? "99+" : count}</span> : null}
                     </div>
                     <div className={styles.tools}>
-                        <IconButton label="Mark all read" icon={<CheckCheck />} variant="ghost" size="sm" isPending={pending.has("all")} isDisabled={!notifications.count} onPress={() => void act("all", notifications.readAll)} />
-                        <IconButton label={sound.muted ? "Enable notification sound" : "Mute notification sound"} icon={sound.muted ? <VolumeX /> : <Volume2 />} variant="ghost" size="sm" onPress={sound.toggleSound} />
-                        <IconButton label="Preferences" icon={<Settings2 />} variant={settings ? "secondary" : "ghost"} size="sm" onPress={() => setSettings(!settings)} />
+                        <IconButton label={uiCopy["ui"]["Mark all read"]} icon={<CheckCheck />} variant="ghost" size="sm" isPending={pending.has("all")} isDisabled={!notifications.count} onPress={() => void act("all", notifications.readAll)} />
+                        <IconButton label={sound.muted ? uiCopy["ui"]["Enable notification sound"] : uiCopy["ui"]["Mute notification sound"]} icon={sound.muted ? <VolumeX /> : <Volume2 />} variant="ghost" size="sm" onPress={sound.toggleSound} />
+                        <IconButton label={uiCopy["ui"]["Preferences"]} icon={<Settings2 />} variant={settings ? "secondary" : "ghost"} size="sm" onPress={() => setSettings(!settings)} />
                     </div>
                 </header>
                 {settings && notifications.preferences ? (
                     <fieldset className={styles.preferences}>
-                        <legend>Show in the app {pending.has("preferences") && <Spinner size="sm" label="Saving preferences" />}</legend>
+                        <legend>{uiCopy["ui"]["Show in the app"]} {pending.has("preferences") && <Spinner size="sm" label={uiCopy["ui"]["Saving preferences"]} />}</legend>
                         {(["messaging", "checkIns", "coaching", "system"] as const).map((key) => (
                             <Checkbox
                                 key={key}
@@ -123,28 +127,29 @@ export function NotificationBell({ label, className }: { label?: string; classNa
                                 isDisabled={pending.has("preferences")}
                                 onChange={(checked) => void act("preferences", () => notifications.updatePreferences({ ...notifications.preferences!, [key]: checked }), "Notification preferences saved")}
                             >
-                                {key === "checkIns" ? "Check-ins" : key.charAt(0).toUpperCase() + key.slice(1)}
+                                {key === "checkIns" ? uiCopy["ui"]["Check-ins"] : key.charAt(0).toUpperCase() + key.slice(1)}
                             </Checkbox>
                         ))}
-                        <p>Billing and account alerts are always enabled.</p>
+                        <p>{uiCopy["ui"]["Billing and account alerts are always enabled."]}</p>
                     </fieldset>
                 ) : null}
                 <div className={styles.filter}>
-                    <SegmentedControl size="sm" aria-label="Show notifications" selectedKeys={[notifications.unreadOnly ? "unread" : "all"]} onSelectionChange={(keys) => notifications.setUnreadOnly([...keys][0] === "unread")}>
-                        <Segment id="all">All</Segment>
-                        <Segment id="unread">Unread</Segment>
+                    <SegmentedControl size="sm" aria-label={uiCopy["ui"]["Show notifications"]} selectedKeys={[notifications.unreadOnly ? "unread" : "all"]} onSelectionChange={(keys) => notifications.setUnreadOnly([...keys][0] === "unread")}>
+                        <Segment id="all">{uiCopy["common"]["all"]}</Segment>
+                        <Segment id="unread">{uiCopy["ui"]["Unread"]}</Segment>
                     </SegmentedControl>
                 </div>
                 {notifications.loading ? (
                     <div className={styles.empty}>
-                        <Spinner label="Loading notifications" />
+                        <Spinner label={uiCopy["ui"]["Loading notifications"]} />
                     </div>
                 ) : null}
                 {notifications.failed ? (
                     <div className={styles.empty}>
-                        <p>Notifications could not load.</p>
+                        <p>{uiCopy["ui"]["Notifications could not load."]}</p>
                         <Button size="sm" loading={pending.has("refresh")} onPress={() => void act("refresh", notifications.refresh, "Notifications refreshed")}>
-                            Retry
+
+                            {uiCopy["ui"]["Retry"]}
                         </Button>
                     </div>
                 ) : null}
@@ -153,14 +158,14 @@ export function NotificationBell({ label, className }: { label?: string; classNa
                         <span className={styles.emptyIcon} aria-hidden="true">
                             <BellOff />
                         </span>
-                        <p>You're all caught up.</p>
+                        <p>{uiCopy["ui"]["You're all caught up."]}</p>
                     </div>
                 ) : null}
                 <ul className={styles.list}>
                     {analyzerUpdate ? <li className={styles.item} data-unread data-update>
                         <span className={styles.updateIcon} aria-hidden="true"><span><ArrowUp /></span></span>
                         <span className={styles.text}>
-                            <strong>Analyzer update available ({analyzerUpdate.version})</strong>
+                            <strong>{uiCopy["ui"]["Analyzer update available ("]}{analyzerUpdate.version})</strong>
                             <AnalyzerUpdateActions className={styles.meta} />
                         </span>
                     </li> : null}
@@ -190,7 +195,7 @@ export function NotificationBell({ label, className }: { label?: string; classNa
                                     </span>
                                 </button>
                                 {!item.readAt || pending.has(item.id) ? (
-                                    <IconButton className={styles.read} label="Mark as read" icon={<Check />} variant="ghost" size="sm" isPending={pending.has(item.id)} onPress={() => void act(item.id, () => notifications.read(item.id))} />
+                                    <IconButton className={styles.read} label={uiCopy["ui"]["Mark as read"]} icon={<Check />} variant="ghost" size="sm" isPending={pending.has(item.id)} onPress={() => void act(item.id, () => notifications.read(item.id))} />
                                 ) : null}
                             </li>
                         );
@@ -199,11 +204,13 @@ export function NotificationBell({ label, className }: { label?: string; classNa
                 {notifications.page > 1 || notifications.hasOlder ? (
                     <footer className={styles.foot}>
                         <Button size="sm" variant="ghost" isDisabled={notifications.page === 1} onPress={() => notifications.setPage(notifications.page - 1)}>
-                            Newer
+
+                            {uiCopy["ui"]["Newer"]}
                         </Button>
-                        <span>Page {notifications.page}</span>
+                        <span>{uiCopy["ui"]["Page"]} {notifications.page}</span>
                         <Button size="sm" variant="ghost" isDisabled={!notifications.hasOlder} onPress={() => notifications.setPage(notifications.page + 1)}>
-                            Older
+
+                            {uiCopy["ui"]["Older"]}
                         </Button>
                     </footer>
                 ) : null}
@@ -213,8 +220,10 @@ export function NotificationBell({ label, className }: { label?: string; classNa
 }
 
 function NotificationPanel({ open, setOpen, children }: { open: boolean; setOpen: (open: boolean) => void; children: ReactNode }) {
+  const uiCopy = useUiCopy();
+
     const mobile = useMobileLayout();
     return mobile
-        ? <Dialog title="Notifications" isOpen={open} onOpenChange={setOpen}><div className={styles.mobilePanel}>{children}</div></Dialog>
-        : <Popover placement="bottom end" aria-label="Notifications" className={styles.panel}>{children}</Popover>;
+        ? <Dialog title={uiCopy["common"]["notifications"]} isOpen={open} onOpenChange={setOpen}><div className={styles.mobilePanel}>{children}</div></Dialog>
+        : <Popover placement="bottom end" aria-label={uiCopy["common"]["notifications"]} className={styles.panel}>{children}</Popover>;
 }

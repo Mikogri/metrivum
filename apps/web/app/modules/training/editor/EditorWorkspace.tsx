@@ -1,3 +1,5 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
+import { useNavigateUp } from "~/shared/lib/navigateUp";
 import { flushSync } from "react-dom";
 import { CellValidationContext } from "./cell-validation";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
@@ -48,6 +50,8 @@ function isTextTarget(target: EventTarget | null) {
 }
 
 export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: number }) {
+  const uiCopy = useUiCopy();
+
   const m = useT();
   const t = m.editor;
   const navigate = useNavigate();
@@ -91,6 +95,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
   const [refusal] = useFormatRefusal(plan.id);
   const { mode: workspaceMode } = useWorkspace();
   const clientContext = usePlanClientContext(plan.id, workspaceMode === "coach" && canEdit && plan.kind === "Program" && !plan.archived);
+  const up = useNavigateUp();
   const detailPath = workspaceMode === "client" ? `/app/training-plans/${plan.id}` : `/app/programs/${plan.id}`;
 
   const hasUnsavedWork = useCallback(() => {
@@ -182,7 +187,17 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
     <div className={styles.workspace} data-locked={builderLocked || undefined}>
       <div className={styles.lockable} inert={builderLocked} aria-hidden={builderLocked || undefined}>
       <header className={styles.toolbar} role="toolbar" aria-label={t.toolbar}>
-        <RouterLink to={detailPath} className={styles.back} aria-label={t.back}>
+        <RouterLink
+          to={detailPath}
+          className={styles.back}
+          aria-label={t.back}
+          // Back to the plan the way the browser would: the earlier entry, so the next back reaches the list.
+          onClick={(event) => {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+            event.preventDefault();
+            up(detailPath);
+          }}
+        >
           <ArrowLeft aria-hidden="true" />
         </RouterLink>
         <div className={styles.titleBox}>
@@ -224,7 +239,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
         </TooltipTrigger>
         <div className={styles.tools}>
           {activeMode === "advanced" ? <>
-            <IconButton size="sm" label="New formula" icon={<FormulaMark />} isDisabled={readOnly || !access["training.formulas.custom"].allowed} onPress={() => setFormulaOpen(true)} />
+            <IconButton size="sm" label={uiCopy["training"]["formulas"]["createTitle"]} icon={<FormulaMark />} isDisabled={readOnly || !access["training.formulas.custom"].allowed} onPress={() => setFormulaOpen(true)} />
             <FormulaHelp compact />
           </> : null}
           <IconButton label={t.undo} icon={<Undo2 />} onPress={editor.undo} isDisabled={readOnly || !editor.canUndo} />

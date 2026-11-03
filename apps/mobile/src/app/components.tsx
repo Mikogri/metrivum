@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../infrastructure/i18n";
 import { useState } from "react";
 import { View } from "react-native";
 import {
@@ -33,6 +34,8 @@ import {
 
 /** Development catalog of the mobile design system. Not reachable in release builds. */
 export default function ComponentCatalog() {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const toast = useToast();
     const [sheet, setSheet] = useState<"form" | "long" | "actions">();
@@ -43,40 +46,40 @@ export default function ComponentCatalog() {
     const [reps, setReps] = useState("5");
     const [load, setLoad] = useState("140");
     const [ticked, setTicked] = useState(false);
-    if (!__DEV__) return <EmptyState title="Development screen" />;
+    if (!__DEV__) return <EmptyState title={nativeCopy("interface.Development screen")} />;
     return (
-        <Screen title="Components" subtitle="Mobile design system">
+        <Screen title={nativeCopy("interface.Components")} subtitle={nativeCopy("interface.Mobile design system")}>
             <SegmentedControl
-                label="Theme"
+                label={nativeCopy("interface.Theme")}
                 value={theme.mode}
                 options={[
-                    { value: "system", label: "System" },
-                    { value: "light", label: "Light" },
-                    { value: "dark", label: "Dark" },
+                    { value: "system", label: nativeCopy("interface.System") },
+                    { value: "light", label: nativeCopy("interface.Light") },
+                    { value: "dark", label: nativeCopy("interface.Dark") },
                 ]}
                 onChange={theme.setMode}
             />
-            <Section title="Sheets">
+            <Section title={nativeCopy("interface.Sheets")}>
                 <ListItem
                     icon="edit"
-                    title="Form sheet with a draft"
-                    subtitle="Closing with typed text asks inside the sheet"
+                    title={nativeCopy("interface.Form sheet with a draft")}
+                    subtitle={nativeCopy("interface.Closing with typed text asks inside the sheet")}
                     onPress={() => setSheet("form")}
                 />
                 <ListItem
                     icon="checkIn"
-                    title="Tall scrolling sheet"
+                    title={nativeCopy("interface.Tall scrolling sheet")}
                     onPress={() => setSheet("long")}
                 />
                 <ListItem
                     icon="more"
-                    title="Action sheet"
+                    title={nativeCopy("interface.Action sheet")}
                     onPress={() => setSheet("actions")}
                 />
                 <ListItem
                     icon="delete"
                     tone="danger"
-                    title="Confirmation sheet"
+                    title={nativeCopy("interface.Confirmation sheet")}
                     onPress={async () =>
                         toast(
                             (await confirm(
@@ -91,20 +94,20 @@ export default function ComponentCatalog() {
                 />
                 <ListItem
                     icon="sort"
-                    title="Imperative action choice"
+                    title={nativeCopy("interface.Imperative action choice")}
                     onPress={async () =>
                         toast(
                             `Chosen: ${
                                 (await chooseAction("Sort by", [
-                                    { value: "name", label: "Name", icon: "sort" },
-                                    { value: "date", label: "Last activity", icon: "schedule" },
+                                    { value: "name", label: nativeCopy("interface.Name"), icon: "sort" },
+                                    { value: "date", label: nativeCopy("interface.Last activity"), icon: "schedule" },
                                 ])) ?? "nothing"
                             }`,
                         )
                     }
                 />
             </Section>
-            <Section title="Workout set">
+            <Section title={nativeCopy("interface.Workout set")}>
                 <Text variant="caption" tone="mutedText">
                     Plan: 5 reps · 140 kg · RPE 7
                 </Text>
@@ -116,14 +119,14 @@ export default function ComponentCatalog() {
                     }}
                 >
                     <NumericInput
-                        label="Reps"
+                        label={nativeCopy("interface.Reps")}
                         integer
                         value={reps}
                         onChangeText={setReps}
                     />
                     <View style={{ flex: 1.6 }}>
                         <NumericInput
-                            label="Load (kg)"
+                            label={nativeCopy("interface.Load (kg)")}
                             value={load}
                             onChangeText={setLoad}
                             onStep={(direction) =>
@@ -141,33 +144,33 @@ export default function ComponentCatalog() {
                     </View>
                     <CheckButton
                         checked={ticked}
-                        label="Set done"
+                        label={nativeCopy("interface.Set done")}
                         onPress={() => setTicked(!ticked)}
                     />
                 </View>
             </Section>
-            <Section title="Actions">
-                <Button size="lg" tone="primary" title="Primary" onPress={() => toast("Saved")} />
-                <Button tone="brand" icon="add" title="Add" onPress={() => toast("Something failed", true)} />
-                <Button title="Neutral" onPress={() => {}} />
-                <Button tone="danger" icon="delete" title="Destructive" onPress={() => {}} />
-                <Button tone="ghost" title="Ghost" onPress={() => {}} />
-                <Button title="Busy" loading onPress={() => {}} />
-                <Button title="Unavailable" disabled onPress={() => {}} />
+            <Section title={nativeCopy("interface.Actions")}>
+                <Button size="lg" tone="primary" title={nativeCopy("interface.Primary")} onPress={() => toast("Saved")} />
+                <Button tone="brand" icon="add" title={nativeCopy("interface.Add")} onPress={() => toast("Something failed", true)} />
+                <Button title={nativeCopy("interface.Neutral")} onPress={() => {}} />
+                <Button tone="danger" icon="delete" title={nativeCopy("interface.Destructive")} onPress={() => {}} />
+                <Button tone="ghost" title={nativeCopy("interface.Ghost")} onPress={() => {}} />
+                <Button title={nativeCopy("interface.Busy")} loading onPress={() => {}} />
+                <Button title={nativeCopy("interface.Unavailable")} disabled onPress={() => {}} />
                 <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
-                    <IconButton icon="filter" label="Filter" filled onPress={() => {}} />
-                    <IconButton icon="more" label="More" onPress={() => {}} />
-                    <Chip label="Active" selected onPress={() => {}} />
-                    <Chip label="Paused" onPress={() => {}} />
+                    <IconButton icon="filter" label={nativeCopy("interface.Filter")} filled onPress={() => {}} />
+                    <IconButton icon="more" label={nativeCopy("interface.More")} onPress={() => {}} />
+                    <Chip label={nativeCopy("interface.Active")} selected onPress={() => {}} />
+                    <Chip label={nativeCopy("interface.Paused")} onPress={() => {}} />
                 </View>
             </Section>
-            <Section title="Inputs">
-                <Field label="Form field" placeholder="Text" />
-                <Field label="Invalid field" error="An example actionable error" />
-                <SearchField label="Search clients" />
+            <Section title={nativeCopy("interface.Inputs")}>
+                <Field label={nativeCopy("interface.Form field")} placeholder={nativeCopy("interface.Text")} />
+                <Field label={nativeCopy("interface.Invalid field")} error="An example actionable error" />
+                <SearchField label={nativeCopy("interface.Search clients")} />
                 <SelectField
-                    label="Program"
-                    placeholder="Choose a program"
+                    label={nativeCopy("interface.Program")}
+                    placeholder={nativeCopy("interface.Choose a program")}
                     value={plan}
                     onChange={setPlan}
                     options={[
@@ -177,51 +180,52 @@ export default function ComponentCatalog() {
                     ]}
                 />
                 <SegmentedControl
-                    label="Status"
+                    label={nativeCopy("interface.Status")}
                     value={segment}
                     onChange={setSegment}
                     options={[
-                        { value: "all", label: "All" },
-                        { value: "active", label: "Active" },
-                        { value: "done", label: "Done" },
+                        { value: "all", label: nativeCopy("interface.All") },
+                        { value: "active", label: nativeCopy("interface.Active") },
+                        { value: "done", label: nativeCopy("interface.Done") },
                     ]}
                 />
             </Section>
-            <Section title="Rows and data">
+            <Section title={nativeCopy("interface.Rows and data")}>
                 <ListItem
                     leading={<Avatar name="Kazik Kowalski" />}
                     title="Kazik Kowalski"
-                    subtitle="Active · last workout yesterday"
+                    subtitle={nativeCopy("interface.Active · last workout yesterday")}
                     onPress={() => {}}
                 />
                 <ListItem
                     icon="document"
-                    title="Row with a badge"
-                    subtitle="Description"
-                    trailing={<Badge tone="warning">Overdue</Badge>}
+                    title={nativeCopy("interface.Row with a badge")}
+                    subtitle={nativeCopy("interface.Description")}
+                    trailing={<Badge tone="warning">{nativeCopy("interface.Overdue")}</Badge>}
                 />
                 <View style={{ flexDirection: "row" }}>
-                    <Stat label="Sets" value={4} />
-                    <Stat label="Reps" value={5} />
+                    <Stat label={nativeCopy("interface.Sets")} value={4} />
+                    <Stat label={nativeCopy("interface.Reps")} value={5} />
                     <Stat label="RPE" value={7} tone="brand" />
                 </View>
-                <ProgressBar value={done} max={5} label="Sets completed" />
-                <Button size="sm" title="Complete a set" onPress={() => setDone((value) => (value >= 5 ? 0 : value + 1))} />
+                <ProgressBar value={done} max={5} label={nativeCopy("interface.Sets completed")} />
+                <Button size="sm" title={nativeCopy("interface.Complete a set")} onPress={() => setDone((value) => (value >= 5 ? 0 : value + 1))} />
             </Section>
-            <Section title="States">
+            <Section title={nativeCopy("interface.States")}>
                 <LoadingState />
                 <ErrorState error={new Error("Example failure")} retry={() => {}} />
-                <EmptyState title="Nothing yet" description="New items appear here." />
-                <NoAccessState title="Not included in your plan" description="Ask your coach or upgrade on the web." />
+                <EmptyState title={nativeCopy("interface.Nothing yet")} description={nativeCopy("interface.New items appear here.")} />
+                <NoAccessState title={nativeCopy("interface.Not included in your plan")} description={nativeCopy("interface.Ask your coach or upgrade on the web.")} />
             </Section>
             <ToolbarSurface>
                 <Text variant="caption">
-                    Liquid Glass where the system provides it; an opaque raised surface otherwise.
+
+                    {nativeCopy("interface.Liquid Glass where the system provides it; an opaque raised surface otherwise.")}
                 </Text>
             </ToolbarSurface>
             <BottomSheet
-                title="New note"
-                subtitle="Only you can see it"
+                title={nativeCopy("interface.New note")}
+                subtitle={nativeCopy("interface.Only you can see it")}
                 open={sheet === "form"}
                 dirty={note.length > 0}
                 onClose={() => {
@@ -232,7 +236,7 @@ export default function ComponentCatalog() {
                     <Button
                         size="lg"
                         tone="primary"
-                        title="Save note"
+                        title={nativeCopy("interface.Save note")}
                         disabled={!note}
                         onPress={() => {
                             setSheet(undefined);
@@ -242,23 +246,23 @@ export default function ComponentCatalog() {
                     />
                 }
             >
-                <Field label="Note" multiline value={note} onChangeText={setNote} placeholder="Write something, then try to close" />
+                <Field label={nativeCopy("interface.Note")} multiline value={note} onChangeText={setNote} placeholder={nativeCopy("interface.Write something, then try to close")} />
             </BottomSheet>
-            <BottomSheet title="Check-in details" open={sheet === "long"} size="full" onClose={() => setSheet(undefined)}>
+            <BottomSheet title={nativeCopy("interface.Check-in details")} open={sheet === "long"} size="full" onClose={() => setSheet(undefined)}>
                 {Array.from({ length: 30 }, (_, index) => (
-                    <ListItem key={index} title={`Answer ${index + 1}`} subtitle="A long list scrolls inside the sheet" />
+                    <ListItem key={index} title={nativeCopy("interface.Answer {0}", {"0": String(index + 1)})} subtitle={nativeCopy("interface.A long list scrolls inside the sheet")} />
                 ))}
             </BottomSheet>
             <ActionSheet
                 title="Kazik Kowalski"
-                subtitle="Client"
+                subtitle={nativeCopy("interface.Client")}
                 open={sheet === "actions"}
                 onClose={() => setSheet(undefined)}
                 onSelect={(value) => toast(`Chosen: ${value}`)}
                 actions={[
-                    { value: "message", label: "Send a message", icon: "messages" },
-                    { value: "program", label: "Assign a program", icon: "plans" },
-                    { value: "end", label: "End collaboration", icon: "block", destructive: true },
+                    { value: "message", label: nativeCopy("interface.Send a message"), icon: "messages" },
+                    { value: "program", label: nativeCopy("interface.Assign a program"), icon: "plans" },
+                    { value: "end", label: nativeCopy("interface.End collaboration"), icon: "block", destructive: true },
                 ]}
             />
         </Screen>

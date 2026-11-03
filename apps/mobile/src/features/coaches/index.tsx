@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -30,6 +31,8 @@ import { AnswerFields } from "../check-ins";
 import { LeadDetail } from "../clients";
 
 export function CoachesScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const [page, setPage] = useState(1);
     const coaches = useApiQuery<Page<Schema<"ClientRelationshipDto">>>(
         "/api/v1/coaching/my-coaches",
@@ -51,11 +54,11 @@ export function CoachesScreen() {
     const failure = coaches.error || invitations.error || applications.error;
     return (
         <Screen
-            title="My coaches"
-            subtitle="Collaborations, invitations and your applications"
+            title={nativeCopy("interface.My coaches")}
+            subtitle={nativeCopy("interface.Collaborations, invitations and your applications")}
         >
             {failure ? <ErrorState error={failure} /> : null}
-            <Section title="Coaches">
+            <Section title={nativeCopy("interface.Coaches")}>
                 {coaches.isPending ? (
                     <LoadingState />
                 ) : coaches.data?.items.length ? (
@@ -64,20 +67,20 @@ export function CoachesScreen() {
                             key={item.id}
                             leading={<Avatar name={item.coach.displayName} />}
                             title={item.coach.displayName}
-                            subtitle={item.teamId ? "Team coaching" : "Private coaching"}
+                            subtitle={item.teamId ? nativeCopy("interface.Team coaching") : nativeCopy("interface.Private coaching")}
                             trailing={<StatusBadge status={item.status} />}
                         />
                     ))
                 ) : (
                     <EmptyState
                         icon="person"
-                        title="No coach yet"
-                        description="Accept an invitation or apply to an offer to start."
+                        title={nativeCopy("interface.No coach yet")}
+                        description={nativeCopy("interface.Accept an invitation or apply to an offer to start.")}
                     />
                 )}
             </Section>
             {(invitations.isPending || !!invitations.data?.items.length) && (
-                <Section title="Invitations">
+                <Section title={nativeCopy("interface.Invitations")}>
                     {invitations.isPending ? (
                         <LoadingState />
                     ) : (
@@ -100,7 +103,7 @@ export function CoachesScreen() {
                 </Section>
             )}
             {(applications.isPending || !!applications.data?.items.length) && (
-                <Section title="Applications">
+                <Section title={nativeCopy("interface.Applications")}>
                     {applications.isPending ? (
                         <LoadingState />
                     ) : (
@@ -132,6 +135,8 @@ type Option =
     Schema<"InvitationDto">["offerRevision"]["billingOptions"][number];
 
 export function InvitationScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { id } = useLocalSearchParams<{ id: string }>();
     const { accountId } = useMobile();
     const query = useApiQuery<Schema<"InvitationDto">>(
@@ -158,19 +163,19 @@ export function InvitationScreen() {
                 Number(option.maxSessions ?? 1000));
     const decisions = {
         accept: {
-            label: "Accept invitation",
+            label: nativeCopy("interface.Accept invitation"),
             question: "Accept this invitation?",
             body: "You can then fill in the application for this offer.",
             destructive: false,
         },
         decline: {
-            label: "Decline",
+            label: nativeCopy("interface.Decline"),
             question: "Decline this invitation?",
             body: "The coach is told you declined.",
             destructive: true,
         },
         revoke: {
-            label: "Revoke invitation",
+            label: nativeCopy("interface.Revoke invitation"),
             question: "Revoke this invitation?",
             body: "It can no longer be accepted.",
             destructive: true,
@@ -178,13 +183,13 @@ export function InvitationScreen() {
     } as const;
     if (query.isPending)
         return (
-            <Screen title="Invitation">
+            <Screen title={nativeCopy("interface.Invitation")}>
                 <LoadingState />
             </Screen>
         );
     if (query.error || !item)
         return (
-            <Screen title="Invitation">
+            <Screen title={nativeCopy("interface.Invitation")}>
                 <ErrorState
                     error={query.error}
                     retry={() => void query.refetch()}
@@ -201,7 +206,7 @@ export function InvitationScreen() {
     return (
         <Screen
             title={item.offerRevision.name}
-            subtitle={`Invitation from ${item.coach.displayName}`}
+            subtitle={nativeCopy("interface.Invitation from {0}", {"0": String(item.coach.displayName)})}
             footer={
                 available.length || item.applicationId ? (
                     <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
@@ -243,7 +248,7 @@ export function InvitationScreen() {
                                 <Button
                                     size="lg"
                                     tone="primary"
-                                    title="Open application"
+                                    title={nativeCopy("interface.Open application")}
                                     onPress={() =>
                                         router.push({
                                             pathname: "/application/[id]",
@@ -292,12 +297,12 @@ export function InvitationScreen() {
                         <Text variant="caption" tone="mutedText">
                             {option.validityDays
                                 ? `Valid for ${option.validityDays} days from payment`
-                                : "No fixed expiry"}
+                                : nativeCopy("interface.No fixed expiry")}
                         </Text>
                         {option.model === "CustomPackage" && canStart && (
                             <Field
-                                label="Number of sessions"
-                                hint={`From ${option.minSessions} to ${option.maxSessions}`}
+                                label={nativeCopy("interface.Number of sessions")}
+                                hint={nativeCopy("interface.From {0} to {1}", {"0": String(option.minSessions),"1": String(option.maxSessions)})}
                                 inputMode="numeric"
                                 keyboardType="number-pad"
                                 value={sessionCounts[option.id] ?? ""}
@@ -312,7 +317,7 @@ export function InvitationScreen() {
                         {canStart && (
                             <Button
                                 tone="primary"
-                                title="Fill in the application"
+                                title={nativeCopy("interface.Fill in the application")}
                                 loading={start.isPending}
                                 disabled={!sessionsValid(option)}
                                 onPress={() =>
@@ -350,6 +355,8 @@ function ApplicationEditor({
     detail: Schema<"ApplicationDetailDto">;
     refresh: () => Promise<unknown>;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { api, drafts } = useMobile();
     const toast = useToast();
     const [answers, setAnswers] = useState<Record<string, unknown>>(
@@ -465,7 +472,7 @@ function ApplicationEditor({
                 <Section>
                     <ErrorState error={error || mutation.error} />
                     <Button
-                        title="Compare with the server version"
+                        title={nativeCopy("interface.Compare with the server version")}
                         onPress={async () => {
                             await refresh();
                         }}
@@ -473,10 +480,10 @@ function ApplicationEditor({
                 </Section>
             )}
             {conflict && detail.formVersion && (
-                <Section title="The saved version changed">
+                <Section title={nativeCopy("interface.The saved version changed")}>
                     <Text variant="caption" tone="warning">
-                        These are the answers on the server. Your own draft is
-                        below.
+
+                        {nativeCopy("interface.These are the answers on the server. Your own draft is below.")}
                     </Text>
                     <AnswerFields
                         key={detail.formVersion.id}
@@ -484,7 +491,7 @@ function ApplicationEditor({
                         answers={detail.answers}
                     />
                     <Button
-                        title="Keep my draft"
+                        title={nativeCopy("interface.Keep my draft")}
                         onPress={async () => {
                             if (
                                 await confirm(
@@ -519,15 +526,15 @@ function ApplicationEditor({
                     localWrites.current = drafts.put(key, next, version);
                     void localWrites.current.catch(setError);
                 }}
-            /> : <Section><Text>No application form is required. Review the offer and submit when ready.</Text></Section>}
+            /> : <Section><Text>{nativeCopy("interface.No application form is required. Review the offer and submit when ready.")}</Text></Section>}
             {can("submit") && (
                 <Section>
                     <ListItem
-                        title="Team access"
-                        subtitle="I agree that the Team can access my coaching data if this offer belongs to a Team."
+                        title={nativeCopy("interface.Team access")}
+                        subtitle={nativeCopy("interface.I agree that the Team can access my coaching data if this offer belongs to a Team.")}
                         trailing={
                             <Switch
-                                accessibilityLabel="Accept Team access"
+                                accessibilityLabel={nativeCopy("interface.Accept Team access")}
                                 disabled={busy}
                                 value={team}
                                 onValueChange={setTeam}
@@ -540,7 +547,7 @@ function ApplicationEditor({
                 <Button
                     size="lg"
                     tone="primary"
-                    title="Submit application"
+                    title={nativeCopy("interface.Submit application")}
                     loading={busy}
                     disabled={conflict || !formValid}
                     onPress={() => save(true)}
@@ -548,7 +555,7 @@ function ApplicationEditor({
             )}
             {can("save") && (
                 <Button
-                    title="Save draft"
+                    title={nativeCopy("interface.Save draft")}
                     disabled={conflict || !formValid || busy}
                     onPress={() => save(false)}
                 />
@@ -556,7 +563,7 @@ function ApplicationEditor({
             {can("withdraw") && (
                 <Button
                     tone="danger"
-                    title="Withdraw application"
+                    title={nativeCopy("interface.Withdraw application")}
                     loading={mutation.isPending}
                     onPress={async () => {
                         if (
@@ -578,12 +585,14 @@ function ApplicationEditor({
     );
 }
 export function ApplicationScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { id } = useLocalSearchParams<{ id: string }>();
     const query = useApiQuery<
         Schema<"ApplicationDetailDto"> | Schema<"CoachApplicationDetailDto">
     >(`/api/v1/coaching/applications/${id}`);
     return (
-        <Screen title="Application">
+        <Screen title={nativeCopy("interface.Application")}>
             {query.isPending ? (
                 <LoadingState />
             ) : query.error ? (

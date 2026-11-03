@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { NativeDateField } from "../training/NativeDateField";
 import { useState } from "react";
 import { View } from "react-native";
@@ -75,13 +76,15 @@ function MessageButton({
     groupId?: string;
     primary?: boolean;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const mutation = useOpenConversation();
     return (
         <>
             <Button
                 icon="messages"
                 tone={primary ? "primary" : "neutral"}
-                title={groupId ? "Open group chat" : "Message"}
+                title={groupId ? nativeCopy("interface.Open group chat") : nativeCopy("interface.Message")}
                 loading={mutation.isPending}
                 onPress={() =>
                     mutation.mutate(conversationRequest({ userId, groupId }))
@@ -131,14 +134,16 @@ function ClientActions({
     onClose: () => void;
     showOpen?: boolean;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const message = useOpenConversation();
     const status = useApiMutation();
     if (!client) return null;
     const actions: SheetAction[] = [
         ...(showOpen
-            ? [{ value: "open", label: "Open client", icon: "person" as const }]
+            ? [{ value: "open", label: nativeCopy("interface.Open client"), icon: "person" as const }]
             : []),
-        { value: "message", label: "Send a message", icon: "messages" },
+        { value: "message", label: nativeCopy("interface.Send a message"), icon: "messages" },
         ...["resume", "suspend", "complete"]
             .filter((action) => client.allowedActions.includes(action))
             .map((action) => ({
@@ -191,15 +196,18 @@ function ClientActions({
 }
 
 function PaymentHistory({ relationshipId }: { relationshipId: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const [page, setPage] = useState(1);
     const query = useApiQuery<Schema<"RelationshipBillingDto">>(
         `/api/v1/coaching/relationships/${relationshipId}/billing`,
         { page, pageSize: 20 },
     );
     return (
-        <Section title="Payments">
+        <Section title={nativeCopy("interface.Payments")}>
             <Text variant="caption" tone="subtleText">
-                Read-only here. Payments are managed in the web app.
+
+                {nativeCopy("interface.Read-only here. Payments are managed in the web app.")}
             </Text>
             {query.isPending ? (
                 <LoadingState />
@@ -216,7 +224,7 @@ function PaymentHistory({ relationshipId }: { relationshipId: string }) {
                                 key={due.id}
                                 icon="payments"
                                 title={`${due.amount} ${due.currency}`}
-                                subtitle={`Due ${formatDay(due.dueAt)}`}
+                                subtitle={nativeCopy("interface.Due {0}", {"0": String(formatDay(due.dueAt))})}
                                 trailing={
                                     <StatusBadge
                                         status={
@@ -228,7 +236,8 @@ function PaymentHistory({ relationshipId }: { relationshipId: string }) {
                         ))}
                         {!query.data.dues.items.length && (
                             <Text variant="caption" tone="mutedText">
-                                No payment dues yet.
+
+                                {nativeCopy("interface.No payment dues yet.")}
                             </Text>
                         )}
                         <Pagination data={query.data.dues} onChange={setPage} />
@@ -241,6 +250,8 @@ function PaymentHistory({ relationshipId }: { relationshipId: string }) {
 
 /** One application with its answers and the decision. Shown in a sheet or on its own screen. */
 export function LeadDetail({ id }: { id: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const query = useApiQuery<Schema<"CoachApplicationDetailDto">>(
         `/api/v1/coaching/applications/${id}`,
@@ -286,11 +297,11 @@ export function LeadDetail({ id }: { id: string }) {
             {detail.formVersion ? <AnswerFields
                 definition={detail.formVersion.definition}
                 answers={detail.answers}
-            /> : <Text>No application form was required.</Text>}
+            /> : <Text>{nativeCopy("interface.No application form was required.")}</Text>}
             {canAccept && (
                 <>
                     <Choices
-                        label="How the service is settled"
+                        label={nativeCopy("interface.How the service is settled")}
                         values={["External", "Simulated"]}
                         labels={{
                             External: "Outside the app",
@@ -302,7 +313,7 @@ export function LeadDetail({ id }: { id: string }) {
                     <Button
                         size="lg"
                         tone="primary"
-                        title="Accept and start"
+                        title={nativeCopy("interface.Accept and start")}
                         loading={mutation.isPending}
                         onPress={async () => {
                             if (
@@ -326,14 +337,14 @@ export function LeadDetail({ id }: { id: string }) {
             {canReject && (
                 <>
                     <Field
-                        label="Reason for rejecting (only you see it)"
-                        placeholder="Optional"
+                        label={nativeCopy("interface.Reason for rejecting (only you see it)")}
+                        placeholder={nativeCopy("interface.Optional")}
                         value={reason}
                         onChangeText={setReason}
                     />
                     <Button
                         tone="danger"
-                        title="Reject application"
+                        title={nativeCopy("interface.Reject application")}
                         disabled={mutation.isPending}
                         onPress={async () => {
                             if (
@@ -359,6 +370,8 @@ export function LeadDetail({ id }: { id: string }) {
 }
 
 function Leads() {
+ const nativeCopy = useNativeCopy().t;
+
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
     const [selected, setSelected] = useState("");
@@ -369,7 +382,7 @@ function Leads() {
     return (
         <>
             <SearchField
-                label="Search leads"
+                label={nativeCopy("interface.Search leads")}
                 value={search}
                 onChangeText={(value) => {
                     setSearch(value);
@@ -407,9 +420,9 @@ function Leads() {
                                 <EmptyState
                                     icon="personAdd"
                                     title={
-                                        search ? "No leads match" : "No leads yet"
+                                        search ? nativeCopy("interface.No leads match") : nativeCopy("interface.No leads yet")
                                     }
-                                    description="Applications to your offers appear here."
+                                    description={nativeCopy("interface.Applications to your offers appear here.")}
                                 />
                             )}
                             <Pagination data={query.data} onChange={setPage} />
@@ -418,7 +431,7 @@ function Leads() {
                 )}
             </Section>
             <BottomSheet
-                title="Application"
+                title={nativeCopy("interface.Application")}
                 open={!!selected}
                 size="full"
                 onClose={() => setSelected("")}
@@ -430,6 +443,8 @@ function Leads() {
 }
 
 function Invitations() {
+ const nativeCopy = useNativeCopy().t;
+
     const { profile } = useMobile();
     const [page, setPage] = useState(1);
     const [username, setUsername] = useState("");
@@ -470,12 +485,12 @@ function Invitations() {
         <>
             <FormSheet
                 trigger={{
-                    title: "Invite a client",
+                    title: nativeCopy("interface.Invite a client"),
                     icon: "personAdd",
                     tone: "primary",
                 }}
-                title="Invite a client"
-                subtitle="By exact username. They see the offer before accepting."
+                title={nativeCopy("interface.Invite a client")}
+                subtitle={nativeCopy("interface.By exact username. They see the offer before accepting.")}
                 dirty={!!(username || offerId || message)}
                 open={open}
                 onOpenChange={setOpen}
@@ -484,7 +499,7 @@ function Invitations() {
                     <Button
                         size="lg"
                         tone="primary"
-                        title="Send invitation"
+                        title={nativeCopy("interface.Send invitation")}
                         disabled={
                             !username ||
                             !offerId ||
@@ -508,8 +523,8 @@ function Invitations() {
                 )}
             >
                 <Field
-                    label="Username"
-                    placeholder="@username"
+                    label={nativeCopy("interface.Username")}
+                    placeholder={nativeCopy("interface.@username")}
                     value={username}
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -519,11 +534,12 @@ function Invitations() {
                     <ErrorState error={offers.error} />
                 ) : offers.data && !offers.data.items.length ? (
                     <Text tone="mutedText">
-                        Activate an offer in the web app first.
+
+                        {nativeCopy("interface.Activate an offer in the web app first.")}
                     </Text>
                 ) : (
                     <SelectField
-                        label="Offer"
+                        label={nativeCopy("interface.Offer")}
                         options={(offers.data?.items ?? []).map((item) => ({
                             value: item.id,
                             label: item.name,
@@ -537,7 +553,7 @@ function Invitations() {
                 )}
                 {offer && (
                     <SelectField
-                        label="Billing option"
+                        label={nativeCopy("interface.Billing option")}
                         options={offer.billingOptions.map((item) => ({
                             value: item.id,
                             label: item.name,
@@ -547,15 +563,15 @@ function Invitations() {
                     />
                 )}
                 <Field
-                    label="Message (optional)"
-                    placeholder="A short note shown with the invitation"
+                    label={nativeCopy("interface.Message (optional)")}
+                    placeholder={nativeCopy("interface.A short note shown with the invitation")}
                     value={message}
                     multiline
                     onChangeText={setMessage}
                 />
                 {send.error && <ErrorState error={send.error} />}
             </FormSheet>
-            <Section title="Sent invitations">
+            <Section title={nativeCopy("interface.Sent invitations")}>
                 {query.isPending ? (
                     <LoadingState />
                 ) : query.error ? (
@@ -584,7 +600,7 @@ function Invitations() {
                                             <Button
                                                 size="sm"
                                                 tone="danger"
-                                                title="Revoke"
+                                                title={nativeCopy("interface.Revoke")}
                                                 disabled={revoke.isPending}
                                                 onPress={async () => {
                                                     if (
@@ -611,7 +627,7 @@ function Invitations() {
                             {!query.data.items.length && (
                                 <EmptyState
                                     icon="mail"
-                                    title="No invitations sent"
+                                    title={nativeCopy("interface.No invitations sent")}
                                 />
                             )}
                             <Pagination data={query.data} onChange={setPage} />
@@ -625,6 +641,8 @@ function Invitations() {
 }
 
 function GroupDetail({ group }: { group: Schema<"GroupDto"> }) {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
@@ -663,7 +681,8 @@ function GroupDetail({ group }: { group: Schema<"GroupDto"> }) {
             ) : null}
             <MessageButton groupId={group.id} />
             <Text variant="label" tone="mutedText">
-                Members
+
+                {nativeCopy("interface.Members")}
             </Text>
             {members.isPending ? (
                 <LoadingState />
@@ -686,7 +705,7 @@ function GroupDetail({ group }: { group: Schema<"GroupDto"> }) {
                                     ) ? (
                                         <IconButton
                                             icon="close"
-                                            label={`Remove ${item.client.displayName} from the group`}
+                                            label={nativeCopy("interface.Remove {0} from the group", {"0": String(item.client.displayName)})}
                                             tone="mutedText"
                                             size={40}
                                             disabled={mutation.isPending}
@@ -700,7 +719,8 @@ function GroupDetail({ group }: { group: Schema<"GroupDto"> }) {
                         ))}
                         {!members.data.items.length && (
                             <Text variant="caption" tone="mutedText">
-                                No members yet.
+
+                                {nativeCopy("interface.No members yet.")}
                             </Text>
                         )}
                         <Pagination data={members.data} onChange={setPage} />
@@ -710,7 +730,7 @@ function GroupDetail({ group }: { group: Schema<"GroupDto"> }) {
             {group.allowedActions.includes("add-member") && (
                 <>
                     <SearchField
-                        label="Find a client to add"
+                        label={nativeCopy("interface.Find a client to add")}
                         value={search}
                         onChangeText={setSearch}
                     />
@@ -728,7 +748,7 @@ function GroupDetail({ group }: { group: Schema<"GroupDto"> }) {
                                 trailing={
                                     <IconButton
                                         icon="add"
-                                        label={`Add ${item.client.displayName} to the group`}
+                                        label={nativeCopy("interface.Add {0} to the group", {"0": String(item.client.displayName)})}
                                         tone="brand"
                                         size={40}
                                         disabled={mutation.isPending}
@@ -750,6 +770,8 @@ function GroupDetail({ group }: { group: Schema<"GroupDto"> }) {
 }
 
 function Groups() {
+ const nativeCopy = useNativeCopy().t;
+
     const [page, setPage] = useState(1);
     const [selected, setSelected] = useState<Schema<"GroupDto">>();
     const [shown, setShown] = useState<Schema<"GroupDto">>();
@@ -785,8 +807,8 @@ function Groups() {
                             {!query.data.items.length && (
                                 <EmptyState
                                     icon="team"
-                                    title="No groups yet"
-                                    description="Create groups in the web app to message and assign to several clients at once."
+                                    title={nativeCopy("interface.No groups yet")}
+                                    description={nativeCopy("interface.Create groups in the web app to message and assign to several clients at once.")}
                                 />
                             )}
                             <Pagination data={query.data} onChange={setPage} />
@@ -796,7 +818,7 @@ function Groups() {
             </Section>
             <BottomSheet
                 title={shown?.name ?? ""}
-                subtitle="Group"
+                subtitle={nativeCopy("interface.Group")}
                 open={!!selected}
                 size="full"
                 onClose={() => setSelected(undefined)}
@@ -810,6 +832,8 @@ function Groups() {
 type ClientsView = "Clients" | "Leads" | "Invitations" | "Groups";
 
 export function ClientsScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const [view, setView] = useState<ClientsView>("Clients");
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
@@ -822,16 +846,16 @@ export function ClientsScreen() {
         view === "Clients",
     );
     return (
-        <Screen title="Clients">
+        <Screen title={nativeCopy("interface.Clients")}>
             <Tabs
-                label="Client views"
+                label={nativeCopy("interface.Client views")}
                 value={view}
                 onChange={setView}
                 options={[
-                    { value: "Clients", label: "Clients" },
-                    { value: "Leads", label: "Leads" },
-                    { value: "Invitations", label: "Invitations" },
-                    { value: "Groups", label: "Groups" },
+                    { value: "Clients", label: nativeCopy("interface.Clients") },
+                    { value: "Leads", label: nativeCopy("interface.Leads") },
+                    { value: "Invitations", label: nativeCopy("interface.Invitations") },
+                    { value: "Groups", label: nativeCopy("interface.Groups") },
                 ]}
             />
             {view === "Leads" ? (
@@ -843,7 +867,7 @@ export function ClientsScreen() {
             ) : (
                 <>
                     <SearchField
-                        label="Search clients"
+                        label={nativeCopy("interface.Search clients")}
                         value={search}
                         onChangeText={(value) => {
                             setSearch(value);
@@ -851,7 +875,7 @@ export function ClientsScreen() {
                         }}
                     />
                     <Filters
-                        title="Filter clients"
+                        title={nativeCopy("interface.Filter clients")}
                         active={status !== "Active"}
                         summary={status ? humanize(status) : "All statuses"}
                         onReset={() => {
@@ -860,7 +884,7 @@ export function ClientsScreen() {
                         }}
                     >
                         <Choices
-                            label="Status"
+                            label={nativeCopy("interface.Status")}
                             values={["", "Active", "Suspended", "Completed"]}
                             value={status}
                             onChange={(value) => {
@@ -902,7 +926,7 @@ export function ClientsScreen() {
                                             trailing={
                                                 <IconButton
                                                     icon="more"
-                                                    label={`Actions for ${item.client.displayName}`}
+                                                    label={nativeCopy("interface.Actions for {0}", {"0": String(item.client.displayName)})}
                                                     tone="mutedText"
                                                     size={40}
                                                     onPress={() => {
@@ -924,13 +948,13 @@ export function ClientsScreen() {
                                             icon="clients"
                                             title={
                                                 search
-                                                    ? "No clients match"
-                                                    : "No clients here yet"
+                                                    ? nativeCopy("interface.No clients match")
+                                                    : nativeCopy("interface.No clients here yet")
                                             }
                                             description={
                                                 search
-                                                    ? "Check the spelling or change the status filter."
-                                                    : "Invite someone from the Invitations tab."
+                                                    ? nativeCopy("interface.Check the spelling or change the status filter.")
+                                                    : nativeCopy("interface.Invite someone from the Invitations tab.")
                                             }
                                         />
                                     )}
@@ -961,6 +985,8 @@ export function AssignProgram({
     relationshipId?: string;
     groupId?: string;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const [programId, setProgram] = useState("");
     const [startDate, setDate] = useState(localDate());
     const [previewed, setPreviewed] = useState(false);
@@ -997,9 +1023,9 @@ export function AssignProgram({
         programs.error || revisions.error || preview.error || save.error;
     return (
         <FormSheet
-            trigger={{ title: "Assign a program", icon: "plans" }}
-            title="Assign a program"
-            subtitle="Uses the latest applied version of the program"
+            trigger={{ title: nativeCopy("interface.Assign a program"), icon: "plans" }}
+            title={nativeCopy("interface.Assign a program")}
+            subtitle={nativeCopy("interface.Uses the latest applied version of the program")}
             dirty={!!programId}
             open={open}
             onOpenChange={setOpen}
@@ -1009,7 +1035,7 @@ export function AssignProgram({
                     <Button
                         size="lg"
                         tone="primary"
-                        title="Assign program"
+                        title={nativeCopy("interface.Assign program")}
                         loading={save.isPending}
                         onPress={() =>
                             save.mutate({
@@ -1024,7 +1050,7 @@ export function AssignProgram({
                     <Button
                         size="lg"
                         tone="primary"
-                        title="Check recipients"
+                        title={nativeCopy("interface.Check recipients")}
                         disabled={!json.revisionId}
                         loading={preview.isPending}
                         onPress={() =>
@@ -1043,13 +1069,13 @@ export function AssignProgram({
             ) : programs.data && !programs.data.items.length ? (
                 <EmptyState
                     icon="plans"
-                    title="No programs to assign"
-                    description="Create and apply a program in the web app first."
+                    title={nativeCopy("interface.No programs to assign")}
+                    description={nativeCopy("interface.Create and apply a program in the web app first.")}
                 />
             ) : (
                 <SelectField
-                    label="Program"
-                    placeholder="Choose a program"
+                    label={nativeCopy("interface.Program")}
+                    placeholder={nativeCopy("interface.Choose a program")}
                     options={(programs.data?.items ?? []).map((item) => ({
                         value: item.id,
                         label: item.name,
@@ -1063,12 +1089,12 @@ export function AssignProgram({
             )}
             {!!programId && revisions.data && !json.revisionId && (
                 <Text variant="caption" tone="warning">
-                    This program has no applied version yet. Apply its changes in
-                    the web app first.
+
+                    {nativeCopy("interface.This program has no applied version yet. Apply its changes in the web app first.")}
                 </Text>
             )}
             <NativeDateField
-                label="Start date"
+                label={nativeCopy("interface.Start date")}
                 value={startDate}
                 onChange={(value) => {
                     setDate(value);
@@ -1078,7 +1104,8 @@ export function AssignProgram({
             {previewed && (
                 <View style={{ gap: 6 }}>
                     <Text variant="label" tone="mutedText">
-                        Will receive this program
+
+                        {nativeCopy("interface.Will receive this program")}
                     </Text>
                     <View
                         style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
@@ -1095,6 +1122,8 @@ export function AssignProgram({
 }
 
 function Profile({ id }: { id: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const query = useApiQuery<Schema<"RelationshipProfileDto">>(
         `/api/v1/coaching/relationships/${id}/profile`,
     );
@@ -1106,7 +1135,7 @@ function Profile({ id }: { id: string }) {
     const entries = Object.entries(query.data?.currentAllowedProfile || {});
     return (
         <>
-            <Section title="Shared profile">
+            <Section title={nativeCopy("interface.Shared profile")}>
                 {query.isPending ? (
                     <LoadingState />
                 ) : query.error ? (
@@ -1127,11 +1156,12 @@ function Profile({ id }: { id: string }) {
                     ))
                 ) : (
                     <Text variant="caption" tone="mutedText">
-                        The client shares no profile details.
+
+                        {nativeCopy("interface.The client shares no profile details.")}
                     </Text>
                 )}
             </Section>
-            <Section title="Applications">
+            <Section title={nativeCopy("interface.Applications")}>
                 {history.isPending ? (
                     <LoadingState />
                 ) : history.error ? (
@@ -1148,12 +1178,13 @@ function Profile({ id }: { id: string }) {
                     ))
                 ) : (
                     <Text variant="caption" tone="mutedText">
-                        No applications on record.
+
+                        {nativeCopy("interface.No applications on record.")}
                     </Text>
                 )}
             </Section>
             <BottomSheet
-                title="Application"
+                title={nativeCopy("interface.Application")}
                 open={!!selected}
                 size="full"
                 onClose={() => setSelected("")}
@@ -1165,6 +1196,8 @@ function Profile({ id }: { id: string }) {
 }
 
 function Overview({ client }: { client: Client }) {
+ const nativeCopy = useNativeCopy().t;
+
     const services = useApiQuery<Page<Schema<"RelationshipServiceDto">>>(
         `/api/v1/coaching/relationships/${client.id}/services`,
         { page: 1, pageSize: 20 },
@@ -1177,7 +1210,7 @@ function Overview({ client }: { client: Client }) {
         <>
             <AssignmentList relationshipId={client.id} />
             <AssignProgram relationshipId={client.id} />
-            <Section title="Services">
+            <Section title={nativeCopy("interface.Services")}>
                 {services.isPending ? (
                     <LoadingState />
                 ) : services.error ? (
@@ -1198,12 +1231,13 @@ function Overview({ client }: { client: Client }) {
                     ))
                 ) : (
                     <Text variant="caption" tone="mutedText">
-                        No services yet.
+
+                        {nativeCopy("interface.No services yet.")}
                     </Text>
                 )}
             </Section>
             {!!groups.data?.items.length && (
-                <Section title="Groups" flat>
+                <Section title={nativeCopy("interface.Groups")} flat>
                     <View
                         style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
                     >
@@ -1227,6 +1261,8 @@ type DetailView =
     | "Check-ins";
 
 export function ClientDetailScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const { id } = useLocalSearchParams<{ id: string }>();
     const [view, setView] = useState<DetailView>("Overview");
@@ -1235,13 +1271,13 @@ export function ClientDetailScreen() {
     const client = query.data;
     if (query.isPending)
         return (
-            <Screen title="Client">
+            <Screen title={nativeCopy("interface.Client")}>
                 <LoadingState />
             </Screen>
         );
     if (query.error || !client)
         return (
-            <Screen title="Client">
+            <Screen title={nativeCopy("interface.Client")}>
                 <ErrorState
                     error={query.error}
                     retry={() => void query.refetch()}
@@ -1268,7 +1304,8 @@ export function ClientDetailScreen() {
                 >
                     <StatusBadge status={client.status} />
                     <Text variant="caption" tone="mutedText">
-                        Since {formatDay(client.startedAt)}
+
+                        {nativeCopy("interface.Since")} {formatDay(client.startedAt)}
                     </Text>
                 </View>
                 <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
@@ -1277,14 +1314,14 @@ export function ClientDetailScreen() {
                     </View>
                     <IconButton
                         icon="more"
-                        label="More actions for this client"
+                        label={nativeCopy("interface.More actions for this client")}
                         filled
                         onPress={() => setMenu(true)}
                     />
                 </View>
             </View>
             <Tabs
-                label="Client details"
+                label={nativeCopy("interface.Client details")}
                 value={view}
                 onChange={setView}
                 options={(

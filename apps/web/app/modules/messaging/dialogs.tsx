@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
@@ -50,6 +51,8 @@ export function NewConversation({
     close: () => void;
     open: (id: string) => void;
 }) {
+  const uiCopy = useUiCopy();
+
     const direct = useFeatureAccess("messaging.direct").allowed;
     const groupAccess = useFeatureAccess("messaging.groups").allowed;
     const manage =
@@ -95,8 +98,8 @@ export function NewConversation({
             onOpenChange={(value) => {
                 if (!value && !action.isPending) close();
             }}
-            title="New conversation"
-            description="Connect with a client, coach or your training group."
+            title={uiCopy["ui"]["New conversation"]}
+            description={uiCopy["ui"]["Connect with a client, coach or your training group."]}
         >
             <form
                 className={styles.form}
@@ -107,7 +110,7 @@ export function NewConversation({
                 }}
             >
                 <Select
-                    label="Conversation type"
+                    label={uiCopy["ui"]["Conversation type"]}
                     selectedKey={kind}
                     onSelectionChange={(key) => {
                         setKind(String(key));
@@ -121,13 +124,13 @@ export function NewConversation({
                     ))}
                 </Select>
                 {kind === "direct" && <>
-                    <UserAutocomplete label="Find a person" value={search} onChange={setSearch} searchPath={`${root}/people`} onSelect={person => void choose(person)} isDisabled={opening}
-                      description={opening ? "Opening the conversation…" : "Choose someone to open your chat with them."} />
+                    <UserAutocomplete label={uiCopy["ui"]["Find a person"]} value={search} onChange={setSearch} searchPath={`${root}/people`} onSelect={person => void choose(person)} isDisabled={opening}
+                      description={opening ? uiCopy["ui"]["Opening the conversation…"] : uiCopy["ui"]["Choose someone to open your chat with them."]} />
                     {openError ? <Failure error={openError} /> : null}
                 </>}
                 {kind === "group" && <>
-                    <TextField label="Group name" placeholder="e.g. Marathon crew" value={title} onChange={setTitle} isRequired maxLength={200} />
-                    {contacts.loading ? <Spinner label="Loading contacts" /> : contacts.error ? <Failure error={contacts.error} retry={() => void contacts.refetch()} /> :
+                    <TextField label={uiCopy["ui"]["Group name"]} placeholder={uiCopy["ui"]["e.g. Marathon crew"]} value={title} onChange={setTitle} isRequired maxLength={200} />
+                    {contacts.loading ? <Spinner label={uiCopy["ui"]["Loading contacts"]} /> : contacts.error ? <Failure error={contacts.error} retry={() => void contacts.refetch()} /> :
                         <div className={styles.people}>{contacts.people.map(p => <Checkbox key={p.id} isSelected={selected.includes(p.id)} onChange={on => setSelected(on ? [...selected, p.id] : selected.filter(id => id !== p.id))}>{p.displayName || p.username}</Checkbox>)}</div>}
                 </>}
                 {kind === "linked" && (
@@ -135,7 +138,7 @@ export function NewConversation({
                         {groups.error ? (
                             <Failure error={groups.error} retry={() => void groups.refetch()} />
                         ) : (
-                            <Select label="Client group" placeholder="Choose a group" isRequired selectedKey={group || null} onSelectionChange={(key) => setGroup(String(key))}>
+                            <Select label={uiCopy["ui"]["Client group"]} placeholder={uiCopy["ui"]["Choose a group"]} isRequired selectedKey={group || null} onSelectionChange={(key) => setGroup(String(key))}>
                                 {(groups.data?.items ?? [])
                                     .filter((g) => !g.archived)
                                     .map((g) => (
@@ -145,13 +148,14 @@ export function NewConversation({
                                     ))}
                             </Select>
                         )}
-                        <p className={styles.hint}>Members follow this client group's active relationships. Manual additions and exclusions are kept.</p>
+                        <p className={styles.hint}>{uiCopy["ui"]["Members follow this client group's active relationships. Manual additions and exclusions are kept."]}</p>
                     </>
                 )}
                 {action.error && <Failure error={action.error} />}
                 <DialogFooter>
                     <Button onPress={close} isDisabled={action.isPending}>
-                        Cancel
+
+                        {uiCopy["common"]["cancel"]}
                     </Button>
                     {kind !== "direct" && <Button
                         type="submit"
@@ -159,7 +163,8 @@ export function NewConversation({
                         loading={action.isPending}
                         isDisabled={(kind === "linked" && !group) || (kind === "group" && !title.trim())}
                     >
-                        Open conversation
+
+                        {uiCopy["ui"]["Open conversation"]}
                     </Button>}
                 </DialogFooter>
             </form>
@@ -175,6 +180,8 @@ const initialsOf = (name: string) =>
         .join("") || "?";
 /** Blocking remains separate from conversations; pending approval stays inside its chat. */
 export function BlockedPeople() {
+ const uiCopy = useUiCopy();
+
     const blocked = useChatQuery<string[]>("/api/v1/me/blocked-users");
     const contacts = useContacts();
     const action = useChatAction();
@@ -183,11 +190,11 @@ export function BlockedPeople() {
             <>
                 {action.error && <Failure error={action.error} />}
                 {blocked.isPending ? (
-                    <LoadingState label="Loading blocked people" />
+                    <LoadingState label={uiCopy["ui"]["Loading blocked people"]} />
                 ) : blocked.error ? (
                     <Failure error={blocked.error} retry={() => void blocked.refetch()} />
                 ) : !blocked.data.length ? (
-                    <EmptyState icon={<ShieldCheck />} title="Nobody is blocked" description="People you block can't send you direct messages or contact requests." />
+                    <EmptyState icon={<ShieldCheck />} title={uiCopy["ui"]["Nobody is blocked"]} description={uiCopy["ui"]["People you block can't send you direct messages or contact requests."]} />
                 ) : (
                     <ul className={styles.blockedList}>
                         {blocked.data.map((id) => (
@@ -197,7 +204,8 @@ export function BlockedPeople() {
                                 </span>
                                 <span className={styles.blockedName}>{name(id)}</span>
                                 <Button size="sm" isDisabled={action.isPending} onPress={() => action.mutate({ method: "DELETE", path: `/api/v1/me/blocked-users/${id}` })}>
-                                    Unblock
+
+                                    {uiCopy["ui"]["Unblock"]}
                                 </Button>
                             </li>
                         ))}
@@ -215,6 +223,8 @@ export function GroupMembers({
     canManage: boolean;
     close: () => void;
 }) {
+  const uiCopy = useUiCopy();
+
     const [person, setPerson] = useState("");
     const query = useChatQuery<Schema<"MemberDto">[]>(
         `${root}/conversations/${conversation.id}/members`,
@@ -228,7 +238,7 @@ export function GroupMembers({
             onOpenChange={(value) => {
                 if (!value) close();
             }}
-            title="Conversation members"
+            title={uiCopy["ui"]["Conversation members"]}
         >
             <div className={styles.form}>
                 {canManage && (
@@ -244,15 +254,16 @@ export function GroupMembers({
                         }}
                     >
                         <TextField
-                            label="Conversation name"
-                            placeholder="e.g. Marathon group"
+                            label={uiCopy["ui"]["Conversation name"]}
+                            placeholder={uiCopy["ui"]["e.g. Marathon group"]}
                             value={title}
                             onChange={setTitle}
                             isRequired
                             maxLength={200}
                         />
                         <Button type="submit" loading={action.isPending}>
-                            Save name
+
+                            {uiCopy["ui"]["Save name"]}
                         </Button>
                     </form>
                 )}
@@ -272,8 +283,8 @@ export function GroupMembers({
                             >
                                 {member.role} · {member.state} ·{" "}
                                 {member.source === "ClientGroupSync"
-                                    ? "Synced from group"
-                                    : "Manual member"}
+                                    ? uiCopy["ui"]["Synced from group"]
+                                    : uiCopy["ui"]["Manual member"]}
                             </small>
                         </span>
                         {canManage && member.role !== "Owner" && (
@@ -324,7 +335,7 @@ export function GroupMembers({
                             });
                         }}
                     >
-                        <Select label="Add a contact" placeholder="Choose a person" isRequired selectedKey={person || null} onSelectionChange={(key) => setPerson(String(key))}>
+                        <Select label={uiCopy["ui"]["Add a contact"]} placeholder={uiCopy["ui"]["Choose a person"]} isRequired selectedKey={person || null} onSelectionChange={(key) => setPerson(String(key))}>
                             {contacts.people
                                 .filter((p) => !query.data?.some((m) => m.userId === p.id && m.state === "Active"))
                                 .map((p) => (
@@ -337,7 +348,8 @@ export function GroupMembers({
                             type="submit"
                             isDisabled={!person || action.isPending}
                         >
-                            Add member
+
+                            {uiCopy["ui"]["Add member"]}
                         </Button>
                     </form>
                 )}

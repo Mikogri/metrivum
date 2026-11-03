@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { AlertTriangle, ArrowDownLeft, ArrowUpRight, CalendarClock, ChevronDown, RotateCcw, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Link as RouterLink, useSearchParams } from "react-router";
@@ -39,6 +40,8 @@ function sums(items: { currency: string; value: number }[]) {
 }
 
 function TransactionDetails({ id, teamId, close }: { id: string; teamId?: string; close: () => void }) {
+ const uiCopy = useUiCopy();
+
   const pl = useAppLocale().locale === "pl";
   const query = useCoachingQuery<Transaction>(`/api/v1/me/transactions/${id}`, { teamId });
   const value = query.data;
@@ -51,7 +54,7 @@ function TransactionDetails({ id, teamId, close }: { id: string; teamId?: string
         <span className={styles.detailTitle}><strong>{value.name}</strong><span>{new Date(value.date).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</span></span>
       </header>
       <p className={styles.detailAmount} data-dir={value.direction}>{value.direction === "Incoming" ? "+" : "−"}{money(Number(value.direction === "Incoming" ? value.netAmount : value.grossAmount), value.currency)}</p>
-      <div className={styles.detailBadges}><Badge size="sm" tone={value.status === "Succeeded" ? "success" : value.status === "Pending" ? "warning" : value.status === "Failed" ? "danger" : "neutral"}>{value.status}</Badge><Badge size="sm">{value.type.replace(/([a-z])([A-Z])/g, "$1 $2")}</Badge>{value.mode === "Simulated" ? <Badge size="sm" tone="warning">{pl ? "Symulacja" : "Simulated"}</Badge> : null}</div>
+      <div className={styles.detailBadges}><Badge size="sm" tone={value.status === "Succeeded" ? "success" : value.status === "Pending" ? "warning" : value.status === "Failed" ? "danger" : "neutral"}>{value.status}</Badge><Badge size="sm">{value.type.replace(/([a-z])([A-Z])/g, "$1 $2")}</Badge>{value.mode === "Simulated" ? <Badge size="sm" tone="warning">{pl ? "Symulacja" : uiCopy["ui"]["Simulated"]}</Badge> : null}</div>
       <section className={styles.detailSection}>
         <h3>{pl ? "Kwoty" : "Amounts"}</h3>
         <dl>
@@ -93,6 +96,8 @@ function Tile({ tone, icon: Icon, label, value, note, alert }: { tone: string; i
 }
 
 export default function Transactions() {
+  const uiCopy = useUiCopy();
+
   const m = useT();
   const { locale } = useAppLocale();
   const pl = locale === "pl";
@@ -137,10 +142,10 @@ export default function Transactions() {
   const recordHref = (id: string) => { const next = new URLSearchParams(params); next.set("record", id); return `?${next}`; };
   const statusBadge = (row: Transaction) => row.overdue ? <Badge tone="danger" size="sm">{pl ? `Zaległe ${daysLate(row.dueAt!)} d` : `${daysLate(row.dueAt!)}d overdue`}</Badge>
     : row.status === "Succeeded" ? <Badge tone="success" size="sm">{pl ? "Rozliczone" : "Settled"}</Badge>
-    : row.status === "Pending" ? <Badge tone="warning" size="sm">{row.dueAt ? (pl ? `Termin ${date(row.dueAt)}` : `Due ${date(row.dueAt)}`) : (pl ? "W toku" : "Processing")}</Badge>
-    : row.status === "Failed" ? <Badge tone="danger" size="sm">{pl ? "Nieudane" : "Failed"}</Badge>
+    : row.status === "Pending" ? <Badge tone="warning" size="sm">{row.dueAt ? (pl ? `Termin ${date(row.dueAt)}` : `Due ${date(row.dueAt)}`) : (pl ? "W toku" : uiCopy["video"]["statuses"]["Processing"])}</Badge>
+    : row.status === "Failed" ? <Badge tone="danger" size="sm">{pl ? "Nieudane" : uiCopy["video"]["statuses"]["Failed"]}</Badge>
     : row.status === "Refunded" ? <Badge tone="info" size="sm">{pl ? "Zwrot" : "Refunded"}</Badge>
-    : <Badge size="sm">{pl ? "Anulowane" : "Cancelled"}</Badge>;
+    : <Badge size="sm">{pl ? "Anulowane" : uiCopy["ui"]["Cancelled"]}</Badge>;
   const tabs: { id: View; label: string; count?: number; danger?: boolean }[] = [
     { id: "all", label: pl ? "Wszystko" : "All" },
     { id: "upcoming", label: pl ? "Nadchodzące" : "Upcoming", count: s ? Number(s.upcoming) : undefined },
@@ -151,7 +156,7 @@ export default function Transactions() {
   ];
 
   return <section className={styles.page}>
-    <PageHeader title={pl ? "Transakcje" : "Transactions"} description={pl ? "Wszystkie pieniądze w jednym miejscu: co wpłynęło, co zapłaciłeś i co jest do rozliczenia." : "All your money in one place: what came in, what you paid and what is still due."} meta={<Badge size="sm" tone="warning">{pl ? "Płatności symulowane" : "Simulated payments"}</Badge>} />
+    <PageHeader title={pl ? "Transakcje" : uiCopy["nav"]["transactions"]} description={pl ? "Wszystkie pieniądze w jednym miejscu: co wpłynęło, co zapłaciłeś i co jest do rozliczenia." : "All your money in one place: what came in, what you paid and what is still due."} meta={<Badge size="sm" tone="warning">{pl ? "Płatności symulowane" : "Simulated payments"}</Badge>} />
     {/* Views as section tabs, the same as on Clients and Programs. */}
     <Tabs className={styles.nav} selectedKey={view} onSelectionChange={key => update({ view: String(key) })}>
       <TabList aria-label={pl ? "Widok transakcji" : "Transaction views"}>
@@ -166,8 +171,8 @@ export default function Transactions() {
         <h2 className={styles.summaryTitle}>{pl ? "Twoje pieniądze" : "Your money"} · {periodName}</h2>
         <p className={styles.summarySub}>{pl ? "Ile zarobiłeś i zapłaciłeś w tym okresie oraz co czeka na płatność." : "What you earned and paid in this period, and what is waiting to be paid."}</p>
       </div>
-      <SegmentedControl size="sm" aria-label={pl ? "Okres" : "Period"} selectedKeys={[filters.period]} onSelectionChange={keys => update({ period: String([...keys][0] ?? "90"), from: "", to: "" })}>
-        <Segment id="30">{pl ? "30 dni" : "30 days"}</Segment><Segment id="90">{pl ? "90 dni" : "90 days"}</Segment><Segment id="365">{pl ? "12 mies." : "12 months"}</Segment><Segment id="all">{pl ? "Wszystko" : "All time"}</Segment>
+      <SegmentedControl size="sm" aria-label={pl ? "Okres" : uiCopy["ui"]["Period"]} selectedKeys={[filters.period]} onSelectionChange={keys => update({ period: String([...keys][0] ?? "90"), from: "", to: "" })}>
+        <Segment id="30">{pl ? "30 dni" : uiCopy["ui"]["30 days"]}</Segment><Segment id="90">{pl ? "90 dni" : uiCopy["ui"]["90 days"]}</Segment><Segment id="365">{pl ? "12 mies." : "12 months"}</Segment><Segment id="all">{pl ? "Wszystko" : uiCopy["ui"]["All time"]}</Segment>
       </SegmentedControl>
     </div>
     <div className={styles.tiles}>
@@ -176,7 +181,7 @@ export default function Transactions() {
         <div className={styles.summaryError} role="alert">
           <AlertTriangle aria-hidden="true" />
           <span>{pl ? "Nie udało się wczytać podsumowania." : "The summary couldn't be loaded."} <span className={styles.summaryErrorDetail}>{errorText(m, summary.error)}</span></span>
-          <Button size="sm" variant="secondary" onPress={() => void summary.refetch()}>{pl ? "Spróbuj ponownie" : "Try again"}</Button>
+          <Button size="sm" variant="secondary" onPress={() => void summary.refetch()}>{pl ? "Spróbuj ponownie" : uiCopy["common"]["retry"]}</Button>
         </div>
       ) : quiet ? (
         <div className={styles.emptySummary}>
@@ -189,52 +194,52 @@ export default function Transactions() {
         </div>
       ) : <>
         <Tile tone="green" icon={ArrowDownLeft} label={pl ? "Zarobione" : "Earned"} value={sums(currencies.map(c => ({ currency: c.currency, value: Number(c.earned) })))} note={pl ? `Po opłatach: ${sums(currencies.map(c => ({ currency: c.currency, value: Number(c.fees) })))}` : `After fees of ${sums(currencies.map(c => ({ currency: c.currency, value: Number(c.fees) })))}`} />
-        <Tile tone="blue" icon={ArrowUpRight} label={pl ? "Zapłacone" : "Paid"} value={sums(currencies.map(c => ({ currency: c.currency, value: Number(c.paid) })))} note={pl ? "Plany i usługi trenerów" : "Plans and coaching you bought"} />
+        <Tile tone="blue" icon={ArrowUpRight} label={pl ? "Zapłacone" : uiCopy["ui"]["Paid"]} value={sums(currencies.map(c => ({ currency: c.currency, value: Number(c.paid) })))} note={pl ? "Plany i usługi trenerów" : "Plans and coaching you bought"} />
         <Tile tone="violet" icon={CalendarClock} label={pl ? "Nadchodzące" : "Upcoming"} value={sums(currencies.map(c => ({ currency: c.currency, value: Number(c.toReceive) + Number(c.toPay) })))} note={s?.nextDueAt ? (pl ? `Najbliższy termin ${date(s.nextDueAt)}` : `Next due ${date(s.nextDueAt)}`) : (pl ? "Nic nie czeka" : "Nothing scheduled")} />
-        <Tile tone="rose" icon={AlertTriangle} alert={overdue > 0} label={pl ? "Zaległe" : "Overdue"} value={sums(currencies.map(c => ({ currency: c.currency, value: Number(c.overdueIncoming) + Number(c.overdueOutgoing) })))} note={overdue ? (pl ? `Płatności po terminie: ${overdue}` : `${overdue} ${overdue === 1 ? "payment" : "payments"} past due`) : (pl ? "Wszystko w terminie" : "Everything on time")} />
+        <Tile tone="rose" icon={AlertTriangle} alert={overdue > 0} label={pl ? "Zaległe" : uiCopy["ui"]["Overdue"]} value={sums(currencies.map(c => ({ currency: c.currency, value: Number(c.overdueIncoming) + Number(c.overdueOutgoing) })))} note={overdue ? (pl ? `Płatności po terminie: ${overdue}` : `${overdue} ${overdue === 1 ? "payment" : "payments"} past due`) : (pl ? "Wszystko w terminie" : "Everything on time")} />
       </>}
     </div>
     </>}
 
     <div className={styles.list}>
       <Toolbar aria-label={pl ? "Filtry transakcji" : "Transaction filters"} className={coaching.toolbar}>
-        <SearchInput aria-label={pl ? "Szukaj" : "Search"} placeholder={pl ? "Szukaj po nazwie" : "Search by name"} value={filters.search} onChange={search => update({ search })} className={coaching.search} />
+        <SearchInput aria-label={pl ? "Szukaj" : uiCopy["training"]["library"]["searchPlaceholder"]} placeholder={pl ? "Szukaj po nazwie" : uiCopy["training"]["library"]["searchLabel"]} value={filters.search} onChange={search => update({ search })} className={coaching.search} />
         <ResponsiveFilters active={Boolean(filters.type || filters.direction || filters.status)}>
-          <Select aria-label={pl ? "Typ" : "Type"} selectedKey={filters.type || "all"} onSelectionChange={key => update({ type: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Każdy typ" : "All types"}</Option><Option id="CoachingService">{pl ? "Usługi trenerskie" : "Coaching services"}</Option><Option id="CoachingSubscription">{pl ? "Abonament u trenera" : "Coaching subscription"}</Option><Option id="PlatformSubscription">{pl ? "Abonament Metrivum" : "Metrivum subscription"}</Option><Option id="TrainingPlan">{pl ? "Zakup planu treningowego" : "Training plan purchase"}</Option><Option id="Refund">{pl ? "Zwroty" : "Refunds"}</Option><Option id="SubscriptionChange">{pl ? "Zmiany abonamentu" : "Subscription changes"}</Option></Select>
+          <Select aria-label={pl ? "Typ" : uiCopy["editor"]["columns"]["kind"]} selectedKey={filters.type || "all"} onSelectionChange={key => update({ type: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Każdy typ" : "All types"}</Option><Option id="CoachingService">{pl ? "Usługi trenerskie" : uiCopy["ui"]["Coaching services"]}</Option><Option id="CoachingSubscription">{pl ? "Abonament u trenera" : "Coaching subscription"}</Option><Option id="PlatformSubscription">{pl ? "Abonament Metrivum" : "Metrivum subscription"}</Option><Option id="TrainingPlan">{pl ? "Zakup planu treningowego" : "Training plan purchase"}</Option><Option id="Refund">{pl ? "Zwroty" : "Refunds"}</Option><Option id="SubscriptionChange">{pl ? "Zmiany abonamentu" : "Subscription changes"}</Option></Select>
           {view === "all" ? <Select aria-label={pl ? "Kierunek" : "Direction"} selectedKey={filters.direction || "all"} onSelectionChange={key => update({ direction: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Przychody i wydatki" : "In and out"}</Option><Option id="Incoming">{pl ? "Otrzymane" : "Incoming"}</Option><Option id="Outgoing">{pl ? "Wydane" : "Outgoing"}</Option></Select> : null}
-          {view === "all" ? <Select aria-label="Status" selectedKey={filters.status || "all"} onSelectionChange={key => update({ status: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Każdy status" : "All statuses"}</Option>{["Succeeded", "Pending", "Failed", "Refunded", "Cancelled"].map(value => <Option id={value} key={value}>{value}</Option>)}</Select> : null}
+          {view === "all" ? <Select aria-label={uiCopy["usage"]["colState"]} selectedKey={filters.status || "all"} onSelectionChange={key => update({ status: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Każdy status" : uiCopy["ui"]["All statuses"]}</Option>{["Succeeded", "Pending", "Failed", "Refunded", "Cancelled"].map(value => <Option id={value} key={value}>{value}</Option>)}</Select> : null}
         </ResponsiveFilters>
         <Button variant="ghost" iconEnd={<ChevronDown className={styles.chevron} data-open={more || undefined} />} onPress={() => setMore(value => !value)} aria-expanded={more}>{pl ? "Więcej filtrów" : "More filters"}</Button>
-        {filtered ? <Button variant="ghost" onPress={() => { setUsername(""); update({ search: "", type: "", from: "", to: "", direction: "", status: "", minimum: "", maximum: "", currency: "", personId: "", planId: "", serviceId: "", offerId: "", subscriptionId: "" }); }}>{pl ? "Wyczyść" : "Clear"}</Button> : null}
+        {filtered ? <Button variant="ghost" onPress={() => { setUsername(""); update({ search: "", type: "", from: "", to: "", direction: "", status: "", minimum: "", maximum: "", currency: "", personId: "", planId: "", serviceId: "", offerId: "", subscriptionId: "" }); }}>{pl ? "Wyczyść" : uiCopy["editor"]["sheet"]["clear"]}</Button> : null}
       </Toolbar>
       <div className={styles.moreWrap} data-open={more || undefined} aria-hidden={!more || undefined} inert={!more || undefined}><div className={styles.moreInner}><div className={styles.more}>
-        <TextField label={pl ? "Od" : "From"} type="date" value={filters.from} onChange={from => update({ from })} />
-        <TextField label={pl ? "Do" : "To"} type="date" value={filters.to} onChange={to => update({ to })} />
+        <TextField label={pl ? "Od" : uiCopy["editor"]["panel"]["loadMin"]} type="date" value={filters.from} onChange={from => update({ from })} />
+        <TextField label={pl ? "Do" : uiCopy["editor"]["panel"]["loadMax"]} type="date" value={filters.to} onChange={to => update({ to })} />
         <UserAutocomplete label={pl ? "Klient lub trener" : "Client or coach"} value={username} onChange={name => { setUsername(name); if (!name) update({ personId: "" }); }} onSelect={person => update({ personId: person.userId })} />
         <TextField label={pl ? "Kwota od" : "Minimum amount"} placeholder="0" type="number" value={filters.minimum} onChange={minimum => update({ minimum })} />
-        <TextField label={pl ? "Kwota do" : "Maximum amount"} placeholder={pl ? "Bez limitu" : "No limit"} type="number" value={filters.maximum} onChange={maximum => update({ maximum })} />
-        <TextField label={pl ? "Waluta" : "Currency"} placeholder="EUR" maxLength={3} value={filters.currency} onChange={currency => update({ currency })} />
-        <Select label={pl ? "Plan platformy" : "Platform plan"} placeholder={pl ? "Wszystkie" : "All"} selectedKey={filters.planId || "all"} onSelectionChange={key => update({ planId: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Wszystkie" : "All"}</Option>{plans.data?.map(plan => <Option key={plan.id} id={plan.id}>{plan.name}</Option>)}</Select>
+        <TextField label={pl ? "Kwota do" : "Maximum amount"} placeholder={pl ? "Bez limitu" : uiCopy["ui"]["No limit"]} type="number" value={filters.maximum} onChange={maximum => update({ maximum })} />
+        <TextField label={pl ? "Waluta" : uiCopy["ui"]["Currency"]} placeholder="EUR" maxLength={3} value={filters.currency} onChange={currency => update({ currency })} />
+        <Select label={pl ? "Plan platformy" : "Platform plan"} placeholder={pl ? "Wszystkie" : uiCopy["common"]["all"]} selectedKey={filters.planId || "all"} onSelectionChange={key => update({ planId: key === "all" ? "" : String(key) })}><Option id="all">{pl ? "Wszystkie" : uiCopy["common"]["all"]}</Option>{plans.data?.map(plan => <Option key={plan.id} id={plan.id}>{plan.name}</Option>)}</Select>
         {team.data?.isActive && ["Owner", "Admin"].includes(team.data.role) && <Select label={pl ? "Zakres historii" : "History scope"} selectedKey={filters.teamId || "mine"} onSelectionChange={key => update({ teamId: key === "mine" ? "" : String(key) })}><Option id="mine">{pl ? "Moje operacje" : "My transactions"}</Option><Option id={team.data.teamId}>{team.data.name}</Option></Select>}
       </div></div></div>
 
       {query.isPending ? <Loading /> : query.error ? <Failure error={query.error} retry={() => void query.refetch()} /> : !rows.length ? (
         <EmptyState icon={view === "overdue" ? <RotateCcw /> : <Wallet />}
-          title={filtered ? (pl ? "Brak pasujących transakcji" : "No matching transactions") : view === "overdue" ? (pl ? "Brak zaległych płatności" : "No overdue payments") : view === "upcoming" ? (pl ? "Nic nie czeka na płatność" : "Nothing due") : view === "earned" ? (pl ? "Jeszcze nic nie zarobiłeś" : "Nothing earned yet") : view === "paid" ? (pl ? "Jeszcze nic nie zapłaciłeś" : "Nothing paid yet") : (pl ? "Brak transakcji" : "No transactions yet")}
+          title={filtered ? (pl ? "Brak pasujących transakcji" : "No matching transactions") : view === "overdue" ? (pl ? "Brak zaległych płatności" : "No overdue payments") : view === "upcoming" ? (pl ? "Nic nie czeka na płatność" : "Nothing due") : view === "earned" ? (pl ? "Jeszcze nic nie zarobiłeś" : "Nothing earned yet") : view === "paid" ? (pl ? "Jeszcze nic nie zapłaciłeś" : "Nothing paid yet") : (pl ? "Brak transakcji" : uiCopy["ui"]["No transactions yet"])}
           description={filtered ? (pl ? "Żadna transakcja nie pasuje do filtrów. Zmień je albo wyczyść." : "No transaction matches these filters. Change or clear them.")
             : view === "overdue" ? (pl ? "Wszystkie płatności są w terminie." : "Every payment is on time.")
             : view === "upcoming" ? (pl ? "Gdy klient kupi usługę albo odnowi się abonament, termin pojawi się tutaj." : "When a client buys a service or a subscription renews, the due date shows up here.")
             : view === "paid" ? (pl ? "Tu pojawią się opłaty za plan Metrivum i usługi, które kupisz." : "Your Metrivum plan and services you buy will show up here.")
             : (pl ? "Gdy klient opłaci Twoją ofertę, wpłata pojawi się tutaj razem z opłatą platformy." : "When a client pays for one of your offers, the payment shows up here with the platform fee.")}
-          actions={filtered ? <Button onPress={() => { setUsername(""); update({ search: "", type: "", from: "", to: "", direction: "", status: "", minimum: "", maximum: "", currency: "", personId: "", planId: "", serviceId: "", offerId: "", subscriptionId: "" }); }}>{pl ? "Wyczyść filtry" : "Clear filters"}</Button>
-            : view === "paid" ? <LinkButton href="/app/subscription">{pl ? "Zobacz plany" : "See plans"}</LinkButton>
+          actions={filtered ? <Button onPress={() => { setUsername(""); update({ search: "", type: "", from: "", to: "", direction: "", status: "", minimum: "", maximum: "", currency: "", personId: "", planId: "", serviceId: "", offerId: "", subscriptionId: "" }); }}>{pl ? "Wyczyść filtry" : uiCopy["common"]["clearFilters"]}</Button>
+            : view === "paid" ? <LinkButton href="/app/subscription">{pl ? "Zobacz plany" : uiCopy["access"]["seePlans"]}</LinkButton>
             : view === "all" || view === "earned" ? <LinkButton href="/app/offers" variant="primary">{pl ? "Twoje oferty" : "Your offers"}</LinkButton> : undefined} />
       ) : <>
-        <DataTable label={pl ? "Transakcje" : "Transactions"} rows={rows} rowKey={row => row.id} rowProps={row => ({ "data-overdue": row.overdue || undefined })} className={styles.table} columns={[
+        <DataTable label={pl ? "Transakcje" : uiCopy["nav"]["transactions"]} rows={rows} rowKey={row => row.id} rowProps={row => ({ "data-overdue": row.overdue || undefined })} className={styles.table} columns={[
           { id: "name", header: pl ? "Operacja" : "Operation", cell: row => <span className={styles.op}>
             <span className={styles.dir} data-dir={row.direction} data-status={row.status} aria-hidden="true">{row.direction === "Incoming" ? <ArrowDownLeft /> : <ArrowUpRight />}</span>
             <span className={styles.opText}><RouterLink to={recordHref(row.id)} data-row-link className={styles.opName}>{row.name}</RouterLink>
-              <span className={styles.opSub}>{row.type === "PlatformSubscription" ? "Metrivum" : row.direction === "Incoming" ? row.clientName || (pl ? "Klient" : "Client") : row.coachName || (pl ? "Trener" : "Coach")}{row.mode === "Simulated" ? <span className={styles.sim}>{pl ? "symulacja" : "simulated"}</span> : null}</span></span>
+              <span className={styles.opSub}>{row.type === "PlatformSubscription" ? "Metrivum" : row.direction === "Incoming" ? row.clientName || (pl ? "Klient" : uiCopy["profile"]["roles"]["Client"]) : row.coachName || (pl ? "Trener" : uiCopy["profile"]["roles"]["Coach"])}{row.mode === "Simulated" ? <span className={styles.sim}>{pl ? "symulacja" : "simulated"}</span> : null}</span></span>
           </span> },
           { id: "date", header: pl ? "Data" : "Date", width: "9rem", muted: true, hideOnMobile: true, cell: row => date(row.dueAt ?? row.date) },
           { id: "status", header: "Status", width: "10rem", cell: statusBadge },

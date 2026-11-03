@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, Link2, Link2Off } from "lucide-react";
 import { useState } from "react";
@@ -14,6 +15,8 @@ import styles from "./ShareAnalysisDialog.module.css";
  * The link can be switched off again; it then stops working for everyone who has it.
  */
 export function ShareAnalysisDialog({ analysisId, name, onClose }: { analysisId: string; name: string; onClose: () => void }) {
+ const uiCopy = useUiCopy();
+
   const m = useT();
   const t = m.video.share;
   const api = useApi();
@@ -67,11 +70,12 @@ export function ShareAnalysisDialog({ analysisId, name, onClose }: { analysisId:
               <Button iconStart={copied ? <Check /> : <Copy />} onPress={() => void copy()}>{t.copy}</Button>
             </div>
             <Switch isSelected={Boolean(current.data.allowSave)} isDisabled={create.isPending} onChange={(allow) => create.mutate(allow)}>
-              Let people keep it in their library
+
+              {uiCopy["ui"]["Let people keep it in their library"]}
             </Switch>
             <p className={styles.intro}>{current.data.allowSave
-              ? "People with the link can save it to their own library. It stays one analysis: they see it through this link, and it disappears for them if you switch the link off."
-              : "People with the link can only view it."}</p>
+              ? uiCopy["ui"]["People with the link can save it to their own library. It stays one analysis: they see it through this link, and it disappears for them if you switch the link off."]
+              : uiCopy["ui"]["People with the link can only view it."]}</p>
             <div className={styles.divider} role="presentation" />
             <SendToChat text={t.message(name, url)} label={t.chat} sentLabel={t.sent} hint={t.chatHint} />
             <div className={styles.footer}>

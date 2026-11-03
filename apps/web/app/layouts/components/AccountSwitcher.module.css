@@ -81,7 +81,8 @@
 
 /* ---- Menu ---- */
 
-.menu {
+/* Doubled class: outranks the menu's own min-width whatever order the built CSS ends up in. */
+.menu.menu {
   min-width: 16.5rem;
 }
 

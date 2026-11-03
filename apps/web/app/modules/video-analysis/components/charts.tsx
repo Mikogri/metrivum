@@ -1,3 +1,5 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Info } from "lucide-react";
 import { IconButton, Tooltip as InfoTooltip, TooltipTrigger } from "@metrivum/ui-web";
@@ -562,6 +564,8 @@ export function OverlayChart({ lines, label, unit, xUnit = "s", locale, height =
   timeOrigin?: "rep" | "phase";
   lines: OverlayLine[]; label: string; unit: string; xUnit?: string; locale: Locale; height?: number; square?: boolean; invertY?: boolean;
 }) {
+ const uiCopy = useUiCopy();
+
   const host = useRef<HTMLDivElement>(null);
   const [over, setOver] = useState<HTMLElement | null>(null);
   const [tip, setTip] = useState<Tip | null>(null);
@@ -658,14 +662,14 @@ export function OverlayChart({ lines, label, unit, xUnit = "s", locale, height =
       <figcaption className={styles.head}>
         <span className={styles.title}>
           {description ? <TooltipTrigger delay={150}>
-            <IconButton size="sm" variant="ghost" label={`About ${label}`} icon={<Info />} showTooltip={false} />
+            <IconButton size="sm" variant="ghost" label={formatInterfaceText(uiCopy["ui"]["About {0}"], [label])} icon={<Info />} showTooltip={false} />
             <InfoTooltip placement="top">{description}</InfoTooltip>
           </TooltipTrigger> : null}
           {label}
         </span>
         <span className={styles.unit}>{unit}</span>
       </figcaption>
-      <div className={styles.chart} role="img" aria-label={`${label} (${unit}), ${lines.length} repetitions`}>
+      <div className={styles.chart} role="img" aria-label={formatInterfaceText(uiCopy["ui"]["{0} ({1}), {2} repetitions"], [label,unit,lines.length])}>
         <div ref={host} className={styles.canvas} style={{ minHeight: square ? undefined : height }} />
         {over ? createPortal(<Tooltip tip={tip} />, over) : null}
       </div>

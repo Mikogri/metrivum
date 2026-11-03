@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useQuery } from '@tanstack/react-query';
 import { Dumbbell, Video } from 'lucide-react';
 import { useParams } from 'react-router';
@@ -18,6 +19,8 @@ export const meta = () => privateMeta('Coach analysis — Metrivum');
 
 /** Client view of an analysis the coach shared at one of their sets: the same result page, read-only. */
 export default function CoachAnalysis() {
+  const uiCopy = useUiCopy();
+
   const { analysisId = '' } = useParams();
   const m = useT();
   const locale = useLocale();
@@ -29,7 +32,7 @@ export default function CoachAnalysis() {
   if (shared.isError) {
     const gone = shared.error instanceof ApiError && (shared.error.status === 404 || shared.error.status === 403);
     return gone
-      ? <EmptyState icon={<Video />} title="This analysis is not shared with you" description="Your coach may have stopped sharing it, or the coaching relationship ended." />
+      ? <EmptyState icon={<Video />} title={uiCopy["ui"]["This analysis is not shared with you"]} description={uiCopy["ui"]["Your coach may have stopped sharing it, or the coaching relationship ended."]} />
       : <ErrorState title={errorText(m, shared.error)} actions={<Button onPress={() => void shared.refetch()}>{m.common.retry}</Button>} />;
   }
   if (!shared.data) return <Skeleton height="20rem" radius="lg" />;
@@ -39,18 +42,18 @@ export default function CoachAnalysis() {
   const aspect = tracking?.videoWidth && tracking.videoHeight ? Number(tracking.videoWidth) / Number(tracking.videoHeight) : 9 / 16;
   const aside = <div className={styles.aside}>
     <dl className={styles.facts}>
-      <div><dt>Set</dt><dd className={styles.setFact}><Dumbbell aria-hidden="true" />{text.title}</dd></div>
-      <div><dt>Workout</dt><dd>{text.detail}</dd></div>
+      <div><dt>{uiCopy["editor"]["columns"]["set"]}</dt><dd className={styles.setFact}><Dumbbell aria-hidden="true" />{text.title}</dd></div>
+      <div><dt>{uiCopy["editor"]["sheet"]["addWorkout"]}</dt><dd>{text.detail}</dd></div>
       {analysis.completedAt ? <div><dt>{m.video.detail.completed}</dt><dd>{formatDateTime(locale, analysis.completedAt)}</dd></div> : null}
     </dl>
   </div>;
 
   return <>
     <PageHeader
-      context={<Breadcrumbs items={[{ id: 'list', label: 'Coach analyses', href: '/app/my-analyses' }, { id: 'current', label: analysis.name }]} />}
+      context={<Breadcrumbs items={[{ id: 'list', label: uiCopy["ui"]["Coach analyses"], href: '/app/my-analyses' }, { id: 'current', label: analysis.name }]} />}
       title={analysis.name}
       description={analysis.note || undefined}
-      meta={<Badge tone="violet">From your coach</Badge>}
+      meta={<Badge tone="violet">{uiCopy["ui"]["From your coach"]}</Badge>}
     />
     <section className={styles.section} aria-label={m.video.detail.result}>
       {result.data ? <ResultView result={result.data} mediaId={analysis.mediaId ?? undefined} videoSource={() => fromCoachVideoUrl(api, analysis.id)} aside={aside} aspect={aspect} />

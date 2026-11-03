@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { HeartPulse, Ruler, Scale, Target, TriangleAlert, UserRound, Zap } from "lucide-react";
 import type { Details } from "./ProfileDetails";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
@@ -12,6 +13,8 @@ const has = (n: number) => !Number.isNaN(n);
  * stress as meters, the training week as seven days, equipment as tags and notes as quotes. Empty parts are left out.
  */
 export function BodySummary({ details, empty, showSex = true }: { details: Details; empty?: string; showSex?: boolean }) {
+ const uiCopy = useUiCopy();
+
   const m = useT();
   const t = m.profile.body;
   const u = m.profile.units;
@@ -89,8 +92,8 @@ export function BodySummary({ details, empty, showSex = true }: { details: Detai
               <h3 className={styles.panelTitle}>
                 {t.recovery}
               </h3>
-              {has(details.Sleep) ? <Meter label={m.profile.fields.Sleep ?? "Sleep"} value={details.Sleep} max={10} text={`${n(details.Sleep)} ${u.hours}`} tone="violet" /> : null}
-              {has(details.Stress) ? <Meter label={m.profile.fields.Stress ?? "Stress"} value={details.Stress} max={10} text={`${n(details.Stress, 0)}/10`} tone={details.Stress >= 7 ? "rose" : details.Stress >= 4 ? "orange" : "green"} /> : null}
+              {has(details.Sleep) ? <Meter label={m.profile.fields.Sleep ?? uiCopy.ui.Sleep} value={details.Sleep} max={10} text={`${n(details.Sleep)} ${u.hours}`} tone="violet" /> : null}
+              {has(details.Stress) ? <Meter label={m.profile.fields.Stress ?? uiCopy.ui.Stress} value={details.Stress} max={10} text={`${n(details.Stress, 0)}/10`} tone={details.Stress >= 7 ? "rose" : details.Stress >= 4 ? "orange" : "green"} /> : null}
             </section>
           ) : null}
         </div>

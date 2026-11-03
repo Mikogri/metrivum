@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     AppState,
@@ -82,6 +83,8 @@ function useForeground() {
 }
 
 export function MessagesScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const foreground = useForeground();
     const [search, setSearch] = useState("");
     const [newMessage, setNewMessage] = useState(false);
@@ -102,18 +105,18 @@ export function MessagesScreen() {
                   : "No messages yet");
     return (
         <Screen
-            title="Messages"
+            title={nativeCopy("interface.Messages")}
             headerAction={
                 <IconButton
                     icon="edit"
-                    label="New message"
+                    label={nativeCopy("interface.New message")}
                     filled
                     onPress={() => setNewMessage(true)}
                 />
             }
         >
             <SearchField
-                label="Search conversations"
+                label={nativeCopy("interface.Search conversations")}
                 value={search}
                 onChangeText={setSearch}
             />
@@ -129,12 +132,12 @@ export function MessagesScreen() {
                     <EmptyState
                         icon="messages"
                         title={
-                            search ? "No conversations match" : "No conversations"
+                            search ? nativeCopy("interface.No conversations match") : nativeCopy("interface.No conversations")
                         }
                         description={
                             search
                                 ? undefined
-                                : "Start one with the pencil button above."
+                                : nativeCopy("interface.Start one with the pencil button above.")
                         }
                     />
                 ) : (
@@ -184,6 +187,8 @@ export function MessagesScreen() {
 }
 
 function NewMessage({ open, close }: { open: boolean; close: () => void }) {
+ const nativeCopy = useNativeCopy().t;
+
     const [username, setUsername] = useState("");
     const [body, setBody] = useState("");
     const [search, setSearch] = useState("");
@@ -214,19 +219,19 @@ function NewMessage({ open, close }: { open: boolean; close: () => void }) {
     });
     return (
         <BottomSheet
-            title="New message"
+            title={nativeCopy("interface.New message")}
             open={open}
             size="full"
             // Typed text is kept until the person agrees to discard it, inside this sheet.
             dirty={Boolean(body || username)}
             discard={{
-                title: "Discard this message?",
+                title: nativeCopy("interface.Discard this message?"),
                 message: "Your unsent message will be lost.",
             }}
             onClose={finish}
         >
             <SearchField
-                label="Find a person"
+                label={nativeCopy("interface.Find a person")}
                 value={search}
                 onChangeText={setSearch}
             />
@@ -258,25 +263,27 @@ function NewMessage({ open, close }: { open: boolean; close: () => void }) {
                     </View>
                 ) : (
                     <Text variant="caption" tone="mutedText">
-                        No person matches. Try their exact username below.
+
+                        {nativeCopy("interface.No person matches. Try their exact username below.")}
                     </Text>
                 ))}
             {direct.error && <ErrorState error={direct.error} />}
-            <Section title="Message by username" flat>
+            <Section title={nativeCopy("interface.Message by username")} flat>
                 <Text variant="caption" tone="mutedText">
-                    Start a conversation. Approval is only needed if this person requires it.
+
+                    {nativeCopy("interface.Start a conversation. Approval is only needed if this person requires it.")}
                 </Text>
                 <Field
-                    label="Exact username"
-                    placeholder="@username"
+                    label={nativeCopy("interface.Exact username")}
+                    placeholder={nativeCopy("interface.@username")}
                     autoCapitalize="none"
                     autoCorrect={false}
                     value={username}
                     onChangeText={setUsername}
                 />
                 <Field
-                    label="First message"
-                    placeholder="Introduce yourself"
+                    label={nativeCopy("interface.First message")}
+                    placeholder={nativeCopy("interface.Introduce yourself")}
                     value={body}
                     multiline
                     maxLength={2000}
@@ -286,7 +293,7 @@ function NewMessage({ open, close }: { open: boolean; close: () => void }) {
                 <Button
                     size="lg"
                     tone="primary"
-                    title="Send message"
+                    title={nativeCopy("interface.Send message")}
                     disabled={!username.trim() || !body.trim()}
                     loading={request.isPending}
                     onPress={() =>
@@ -312,6 +319,8 @@ export function ConversationScreen() {
 }
 
 function Thread({ id }: { id: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { api, accountId, accountSignal, role, profile, drafts } =
         useMobile();
     const theme = useTheme();
@@ -742,11 +751,11 @@ function Thread({ id }: { id: string }) {
             destructive?: boolean;
         }[] = [];
         if (canSend && !draft.attempted && !sending && !uploading)
-            actions.push({ value: "reply", label: "Reply", icon: "reply" });
+            actions.push({ value: "reply", label: nativeCopy("interface.Reply"), icon: "reply" });
         if (item.senderUserId === profile.id && item.type !== "System")
             actions.push({
                 value: "delete",
-                label: "Delete for everyone",
+                label: nativeCopy("interface.Delete for everyone"),
                 icon: "delete",
                 destructive: true,
             });
@@ -803,7 +812,7 @@ function Thread({ id }: { id: string }) {
     }, [draft.mediaId]);
     if (details.error)
         return (
-            <Screen title="Conversation unavailable">
+            <Screen title={nativeCopy("interface.Conversation unavailable")}>
                 <ErrorState
                     error={details.error}
                     retry={() => void details.refetch()}
@@ -829,7 +838,7 @@ function Thread({ id }: { id: string }) {
         borderColor: mine ? theme.colors.borderStrong : theme.colors.border,
     });
     return (
-        <Screen title={title || "Conversation"} scroll={false} bare>
+        <Screen title={title || nativeCopy("interface.Conversation")} scroll={false} bare>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -853,11 +862,11 @@ function Thread({ id }: { id: string }) {
                     ListHeaderComponent={
                         pending ? (
                             <View style={[bubble(true), { opacity: 0.6 }]}>
-                                <Text>{draft.body || "Attachment"}</Text>
+                                <Text>{draft.body || nativeCopy("interface.Attachment")}</Text>
                                 <Text variant="caption" tone="mutedText">
                                     {sending
-                                        ? "Sending…"
-                                        : "Not confirmed yet. Use Retry below."}
+                                        ? nativeCopy("interface.Sending…")
+                                        : nativeCopy("interface.Not confirmed yet. Use Retry below.")}
                                 </Text>
                             </View>
                         ) : null
@@ -875,8 +884,8 @@ function Thread({ id }: { id: string }) {
                             <View style={{ transform: [{ scaleY: -1 }] }}>
                                 <EmptyState
                                     icon="messages"
-                                    title="No messages yet"
-                                    description="Say hello to start the conversation."
+                                    title={nativeCopy("interface.No messages yet")}
+                                    description={nativeCopy("interface.Say hello to start the conversation.")}
                                 />
                             </View>
                         )
@@ -886,7 +895,7 @@ function Thread({ id }: { id: string }) {
                             <Button
                                 size="sm"
                                 tone="ghost"
-                                title="Load older messages"
+                                title={nativeCopy("interface.Load older messages")}
                                 loading={history.isFetchingNextPage}
                                 onPress={() => void history.fetchNextPage()}
                             />
@@ -981,7 +990,7 @@ function Thread({ id }: { id: string }) {
                                                     variant="caption"
                                                     tone="brand"
                                                 >
-                                                    {sender || "Participant"}
+                                                    {sender || nativeCopy("interface.Participant")}
                                                 </Text>
                                             )}
                                             {item.replyToMessageId && (
@@ -1001,13 +1010,14 @@ function Thread({ id }: { id: string }) {
                                                         numberOfLines={2}
                                                     >
                                                         {reply?.body ||
-                                                            "Earlier message"}
+                                                            nativeCopy("interface.Earlier message")}
                                                     </Text>
                                                 </View>
                                             )}
                                             {item.deletedAt ? (
                                                 <Text tone="subtleText">
-                                                    Message deleted
+
+                                                    {nativeCopy("interface.Message deleted")}
                                                 </Text>
                                             ) : item.body ? (
                                                 <Text>{item.body}</Text>
@@ -1053,7 +1063,7 @@ function Thread({ id }: { id: string }) {
                                         {hasActions && (
                                             <IconButton
                                                 icon="more"
-                                                label="Message actions"
+                                                label={nativeCopy("interface.Message actions")}
                                                 tone="subtleText"
                                                 size={36}
                                                 disabled={!!deleting}
@@ -1099,10 +1109,10 @@ function Thread({ id }: { id: string }) {
                         />
                     )}
                     {request && <View style={{ gap: theme.spacing.sm }}>
-                        <Text tone="mutedText">{request.recipientUserId === profile.id ? "Accept this conversation to reply." : "Message sent. Waiting for this person to accept."}</Text>
+                        <Text tone="mutedText">{request.recipientUserId === profile.id ? nativeCopy("interface.Accept this conversation to reply.") : nativeCopy("interface.Message sent. Waiting for this person to accept.")}</Text>
                         {request.recipientUserId === profile.id && <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
-                            <Button title="Accept" loading={approval.isPending} onPress={() => approval.mutate({ method: "POST", path: `${root}/requests/${request.id}/accept` })} />
-                            <Button title="Decline" disabled={approval.isPending} onPress={() => approval.mutate({ method: "POST", path: `${root}/requests/${request.id}/decline` })} />
+                            <Button title={nativeCopy("interface.Accept")} loading={approval.isPending} onPress={() => approval.mutate({ method: "POST", path: `${root}/requests/${request.id}/accept` })} />
+                            <Button title={nativeCopy("interface.Decline")} disabled={approval.isPending} onPress={() => approval.mutate({ method: "POST", path: `${root}/requests/${request.id}/decline` })} />
                         </View>}
                         {approval.error && <ErrorState error={approval.error} />}
                     </View>}
@@ -1127,11 +1137,11 @@ function Thread({ id }: { id: string }) {
                                         numberOfLines={1}
                                         style={{ flex: 1 }}
                                     >
-                                        {replyTarget?.body || "Earlier message"}
+                                        {replyTarget?.body || nativeCopy("interface.Earlier message")}
                                     </Text>
                                     <IconButton
                                         icon="close"
-                                        label="Remove reply"
+                                        label={nativeCopy("interface.Remove reply")}
                                         tone="mutedText"
                                         size={32}
                                         disabled={draft.attempted || sending}
@@ -1163,8 +1173,8 @@ function Thread({ id }: { id: string }) {
                                     />
                                     <Text variant="caption" style={{ flex: 1 }}>
                                         {draft.mediaType === "VoiceMessage"
-                                            ? "Voice message attached"
-                                            : "File attached"}
+                                            ? nativeCopy("interface.Voice message attached")
+                                            : nativeCopy("interface.File attached")}
                                     </Text>
                                 </View>
                             )}
@@ -1179,7 +1189,7 @@ function Thread({ id }: { id: string }) {
                     >
                         <IconButton
                             icon="add"
-                            label="Attach a file or voice message"
+                            label={nativeCopy("interface.Attach a file or voice message")}
                             filled
                             disabled={
                                 composerLocked || voiceBusy || !!draft.mediaId
@@ -1188,14 +1198,14 @@ function Thread({ id }: { id: string }) {
                         />
                         <View style={{ flex: 1 }}>
                             <Field
-                                label="Message"
+                                label={nativeCopy("interface.Message")}
                                 hideLabel
                                 placeholder={
                                     canSend
-                                        ? "Message"
+                                        ? nativeCopy("interface.Message")
                                         : loaded
-                                          ? "You cannot send messages here"
-                                          : "Loading draft…"
+                                          ? nativeCopy("interface.You cannot send messages here")
+                                          : nativeCopy("interface.Loading draft…")
                                 }
                                 value={draft.body}
                                 multiline
@@ -1209,7 +1219,7 @@ function Thread({ id }: { id: string }) {
                         </View>
                         <IconButton
                             icon="send"
-                            label={draft.attempted ? "Retry send" : "Send"}
+                            label={draft.attempted ? nativeCopy("interface.Retry send") : nativeCopy("interface.Send")}
                             filled
                             tone="brand"
                             disabled={
@@ -1236,9 +1246,9 @@ function Thread({ id }: { id: string }) {
                             accessibilityLiveRegion="polite"
                         >
                             {uploading
-                                ? "Uploading…"
+                                ? nativeCopy("interface.Uploading…")
                                 : sending
-                                  ? "Sending…"
+                                  ? nativeCopy("interface.Sending…")
                                   : canSend
                                     ? localState
                                     : ""}
@@ -1247,7 +1257,7 @@ function Thread({ id }: { id: string }) {
                             <Button
                                 size="sm"
                                 tone="ghost"
-                                title="Discard draft"
+                                title={nativeCopy("interface.Discard draft")}
                                 disabled={sending || uploading}
                                 onPress={async () => {
                                     if (
@@ -1272,14 +1282,14 @@ function Thread({ id }: { id: string }) {
                 </View>
             </KeyboardAvoidingView>
             <ActionSheet
-                title="Add to message"
+                title={nativeCopy("interface.Add to message")}
                 open={attachMenu}
                 onClose={() => setAttachMenu(false)}
                 actions={[
-                    { value: "file", label: "File or photo", icon: "attach", disabled: details.data?.canUploadAttachments === false },
-                    { value: "record", label: "Record a voice message", icon: "mic", disabled: details.data?.canUploadAttachments === false },
-                    { value: "wav", label: "Existing WAV recording", icon: "document", disabled: details.data?.canUploadAttachments === false },
-                    ...(canShare ? [{ value: "form", label: "Send application form", icon: "document" as const }, { value: "invitation", label: "Send invitation", icon: "mail" as const }] : []),
+                    { value: "file", label: nativeCopy("interface.File or photo"), icon: "attach", disabled: details.data?.canUploadAttachments === false },
+                    { value: "record", label: nativeCopy("interface.Record a voice message"), icon: "mic", disabled: details.data?.canUploadAttachments === false },
+                    { value: "wav", label: nativeCopy("interface.Existing WAV recording"), icon: "document", disabled: details.data?.canUploadAttachments === false },
+                    ...(canShare ? [{ value: "form", label: nativeCopy("interface.Send application form"), icon: "document" as const }, { value: "invitation", label: nativeCopy("interface.Send invitation"), icon: "mail" as const }] : []),
                 ]}
                 onSelect={(value) => {
                     if (!canSend) return;
@@ -1291,12 +1301,12 @@ function Thread({ id }: { id: string }) {
             />
             {shareKind && peer?.username && <ShareOffer key={shareKind} kind={shareKind} userId={peer.userId} username={peer.username} close={() => setShareKind(null)} refresh={() => { void history.refetch(); void details.refetch(); }} />}
             <BottomSheet
-                title="Voice message"
+                title={nativeCopy("interface.Voice message")}
                 open={voiceOpen}
                 // A recording in progress is not thrown away by an accidental swipe.
                 dirty={voiceBusy}
                 discard={{
-                    title: "Stop recording?",
+                    title: nativeCopy("interface.Stop recording?"),
                     message: "The recording will be discarded.",
                 }}
                 onClose={() => setVoiceOpen(false)}

@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { ChevronRight, Menu, PanelLeft, Search, X } from "lucide-react";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
@@ -6,6 +7,7 @@ import { Hint, IconButton, Kbd, PageBackContext, useMobileLayout, type PageBack 
 import { UsageButton, useAccessSnapshot } from "~/shared/access";
 import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
+import { useHistoryTrail, useNavigateUp } from "~/shared/lib/navigateUp";
 import { TOP_NOTICE_ID } from "~/shared/ui/TopNotice";
 import { useT } from "~/shared/i18n/AppLocale";
 import { NotificationBell, useNotifications } from "~/modules/messaging";
@@ -13,6 +15,8 @@ import { AnalyzerMenu, AnalyzerUpdateBanner } from "~/modules/video-analysis";
 import { useNavCounts } from "~/modules/coaching";
 import { SubscriptionButton } from "~/modules/subscription/SubscriptionPanel";
 import { AccountSwitcher } from "./AccountSwitcher";
+import { RouteSkeleton } from "./RouteSkeleton";
+import { useWarmRoutes } from "~/shared/lib/warmRoutes";
 import { CommandPalette } from "./CommandPalette";
 import { appNavGroups, pathCrumbs, settingsNavItem } from "./nav";
 import type { NavIcon } from "./navIcons";
@@ -136,22 +140,28 @@ function PathCrumbs() {
  * Back for detail pages (/app/section/:id…) and for folders (?folder=). Returns to the page the
  * person came from when that was inside the app, otherwise to the parent list.
  */
-function useBack(pathname: string, search: string, navigate: ReturnType<typeof useNavigate>, label: string): PageBack | null {
+function useBack(pathname: string, search: string, navigate: ReturnType<typeof useNavigate>, up: (target: string) => void, label: string): PageBack | null {
   const parts = pathname.split("/").filter(Boolean);
   const inFolder = new URLSearchParams(search).has("folder");
   if (parts.length < 3 && !inFolder) return null;
-  const parent = inFolder && parts.length < 3 ? pathname : `/${parts.slice(0, -1).join("/")}`;
-  return {
-    label,
-    onPress: () => {
-      const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
-      if (idx > 0) navigate(-1);
-      else navigate(parent);
-    },
-  };
+  // Inside a folder, back is the folder you came from; on a detail page it is the level above.
+  if (inFolder && parts.length < 3) {
+    return {
+      label,
+      onPress: () => {
+        const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+        if (idx > 0) navigate(-1);
+        else navigate(pathname);
+      },
+    };
+  }
+  const parent = `/${parts.slice(0, -1).join("/")}`;
+  return { label, onPress: () => up(parent) };
 }
 
 export function AppShell() {
+ const uiCopy = useUiCopy();
+
   const m = useT();
   const phone = useMobileLayout();
   const shell = useRef<HTMLDivElement>(null);
@@ -172,7 +182,19 @@ export function AppShell() {
   // Keep the current outlet mounted during navigation; destination pages load their own content.
   const navigation = useNavigation();
   const switching = navigation.state === "loading" && navigation.location.pathname !== location.pathname;
-  const back = useBack(location.pathname, location.search, navigate, m.common.back);
+  // Page code is loaded ahead in the background; a page not loaded yet shows its skeleton almost at once
+  // instead of leaving the old page on screen (the short wait only avoids a flash on instant switches).
+  const [slowSwitch, setSlowSwitch] = useState(false);
+  useEffect(() => {
+    if (!switching) return setSlowSwitch(false);
+    const timer = setTimeout(() => setSlowSwitch(true), 60);
+    return () => clearTimeout(timer);
+  }, [switching]);
+  const toEditor = switching && /\/edit$/.test(navigation.location?.pathname ?? "");
+  useHistoryTrail();
+  useWarmRoutes();
+  const up = useNavigateUp();
+  const back = useBack(location.pathname, location.search, navigate, up, m.common.back);
   useEffect(() => setDrawerOpen(false), [location.pathname]);
   // The shell owns scrolling, so browser Back restores its entry rather than the window's scroll.
   // Filters and tabs replace the address on the same page; those keep the reader where they are.
@@ -293,12 +315,13 @@ export function AppShell() {
 
         {MOCK_MODE ? (
           <p className={styles.mockBanner} role="note">
-            Developer mock data — not connected to the Metrivum API (VITE_DEV_MOCKS=1).
+
+            {uiCopy["ui"]["Developer mock data — not connected to the Metrivum API (VITE_DEV_MOCKS=1)."]}
           </p>
         ) : null}
         <main id="app-main" ref={main} className={styles.main} aria-busy={switching || undefined} tabIndex={-1} onScroll={event => scrollPositions.current.set(location.key, event.currentTarget.scrollTop)}>
           <div className={styles.content}>
-            <PageBackContext.Provider value={back}>{phone && location.pathname === "/app/dashboard" ? <Navigate to="/app/today" replace /> : <WorkspaceRouteGuard><Outlet /></WorkspaceRouteGuard>}</PageBackContext.Provider>
+            <PageBackContext.Provider value={back}>{phone && location.pathname === "/app/dashboard" ? <Navigate to="/app/today" replace /> : <WorkspaceRouteGuard>{slowSwitch && switching ? <RouteSkeleton editor={toEditor} /> : <Outlet />}</WorkspaceRouteGuard>}</PageBackContext.Provider>
           </div>
         </main>
         {phone && !immersive && <div className={styles.phoneNav}><MobileNavigation /></div>}

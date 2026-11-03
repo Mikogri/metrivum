@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { Alert, Button, Card, PageHeader, Skeleton } from "@metrivum/ui-web";
@@ -22,6 +24,8 @@ export default function Consent() {
   return <ConsentRequest key={id} authorizationId={id} />;
 }
 function ConsentRequest({ authorizationId }: { authorizationId: string }) {
+  const uiCopy = useUiCopy();
+
   const { account } = useAccountContext();
   const [selected, setSelected] = useState<string[]>([]);
   const [redirectError, setRedirectError] = useState<unknown>(null);
@@ -31,17 +35,17 @@ function ConsentRequest({ authorizationId }: { authorizationId: string }) {
     try { window.location.assign(verifiedRedirect(data.redirectUrl, query.data!.redirectUri)); } catch (error) { setRedirectError(error); }
   });
   return <div className={`${styles.stack} ${styles.page}`}>
-    {!authorizationId ? <Alert tone="danger" title="Missing authorization request. Start the connection from your assistant." /> : query.isPending ? <Skeleton height="10rem" /> : query.error ? <><IntegrationError error={query.error} /><Button onPress={() => void query.refetch()}>Retry authorization request</Button></> : <>
-      <PageHeader title={`Connect ${query.data.clientName}`} description={`Signed in as ${account.email ?? "your Metrivum account"}`} />
+    {!authorizationId ? <Alert tone="danger" title={uiCopy["ui"]["Missing authorization request. Start the connection from your assistant."]} /> : query.isPending ? <Skeleton height="10rem" /> : query.error ? <><IntegrationError error={query.error} /><Button onPress={() => void query.refetch()}>{uiCopy["ui"]["Retry authorization request"]}</Button></> : <>
+      <PageHeader title={formatInterfaceText(uiCopy["ui"]["Connect {0}"], [query.data.clientName])} description={formatInterfaceText(uiCopy["ui"]["Signed in as {0}"], [account.email ?? "your Metrivum account"])} />
       <Card as="section" padding="lg" className={styles.card}>
-        <p className={styles.identity}>Client ID: {query.data.clientId}</p>
-        <p className={styles.hint}>Registered callback</p><p className={styles.identity}>{query.data.redirectUri}</p>
-        <p className={styles.hint}>Identity scopes: {query.data.scopes.join(", ") || "None"}</p>
-        <h2 className={styles.heading}>Choose Metrivum permissions</h2>
+        <p className={styles.identity}>{uiCopy["ui"]["Client ID:"]} {query.data.clientId}</p>
+        <p className={styles.hint}>{uiCopy["ui"]["Registered callback"]}</p><p className={styles.identity}>{query.data.redirectUri}</p>
+        <p className={styles.hint}>{uiCopy["ui"]["Identity scopes:"]} {query.data.scopes.join(", ") || uiCopy["editor"]["panel"]["effortModes"]["none"]}</p>
+        <h2 className={styles.heading}>{uiCopy["ui"]["Choose Metrivum permissions"]}</h2>
         <PermissionChoices available={query.data.availableGrants} selected={selected} onChange={setSelected} disabled={save.isPending} />
-        <p className={styles.hint}>The assistant can see private content returned by these tools. Drafts stay private. Sending messages always requires your separate approval in Metrivum. You can change permissions or disconnect in Settings → Integrations.</p>
+        <p className={styles.hint}>{uiCopy["ui"]["The assistant can see private content returned by these tools. Drafts stay private. Sending messages always requires your separate approval in Metrivum. You can change permissions or disconnect in Settings → Integrations."]}</p>
         <IntegrationError error={save.error ?? redirectError} />
-        <div className={styles.actions}><Button variant="primary" isDisabled={!selected.length || save.isPending} onPress={() => save.mutate({ method: "POST", path, json: { grants: selected } })}>Allow selected permissions</Button><Button isDisabled={save.isPending} onPress={() => save.mutate({ method: "POST", path: `${path}/deny` })}>Deny</Button></div>
+        <div className={styles.actions}><Button variant="primary" isDisabled={!selected.length || save.isPending} onPress={() => save.mutate({ method: "POST", path, json: { grants: selected } })}>{uiCopy["ui"]["Allow selected permissions"]}</Button><Button isDisabled={save.isPending} onPress={() => save.mutate({ method: "POST", path: `${path}/deny` })}>{uiCopy["ui"]["Deny"]}</Button></div>
       </Card>
     </>}
   </div>;

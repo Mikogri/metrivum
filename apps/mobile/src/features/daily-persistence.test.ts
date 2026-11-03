@@ -576,3 +576,8 @@ it("keeps displayed numeric values aligned with the remaining set after deleting
         "12",
     );
 });
+
+vi.mock("../infrastructure/i18n", async () => {
+    const { translate } = await import("../infrastructure/i18n/messages");
+    return { useI18n: () => ({ locale: "en", t: (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) => translate("en", key, values) }) };
+});

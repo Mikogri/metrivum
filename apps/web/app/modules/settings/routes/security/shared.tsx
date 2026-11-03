@@ -52,6 +52,8 @@ export function SecurityPage({ title, description, children }: { title: string; 
 
 /** Where the person is in a process: finished steps are ticked, the current one is highlighted. */
 export function Steps({ steps, current, label }: { steps: readonly string[]; current: number; label: string }) {
+
+
   return (
     <ol className={styles.steps} aria-label={label}>
       {steps.map((step, index) => {

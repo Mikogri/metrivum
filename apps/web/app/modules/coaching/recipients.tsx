@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Avatar, Checkbox, SearchInput } from "@metrivum/ui-web";
@@ -24,6 +26,8 @@ export function RecipientPicker({
   disabled?: boolean;
   hint?: string;
 }) {
+  const uiCopy = useUiCopy();
+
   const [search, setSearch] = useState("");
   const clients = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { pageSize: 100, status: "Active", search: search || undefined });
   const groupList = useCoachingQuery<Page<Group>>("/api/v1/coaching/groups", { pageSize: 100, search: search || undefined });
@@ -39,12 +43,12 @@ export function RecipientPicker({
     <div className={styles.picker}>
       {hint ? <p className={styles.hint}>{hint}</p> : null}
       {count > 0 ? (
-        <ul className={styles.chips} aria-label="Selected recipients">
+        <ul className={styles.chips} aria-label={uiCopy["ui"]["Selected recipients"]}>
           {groups.map((id) => (
             <li key={id} className={styles.chip}>
               <span className={styles.swatch} style={{ background: groupOf(id)?.color }} aria-hidden="true" />
-              {groupOf(id)?.name ?? "Group"}
-              <button type="button" aria-label={`Remove ${groupOf(id)?.name ?? "group"}`} disabled={disabled} onClick={() => onChange({ relationships, groups: groups.filter((g) => g !== id) })}>
+              {groupOf(id)?.name ?? uiCopy["ui"]["Group"]}
+              <button type="button" aria-label={formatInterfaceText(uiCopy["ui"]["Remove {0}"], [groupOf(id)?.name ?? "group"])} disabled={disabled} onClick={() => onChange({ relationships, groups: groups.filter((g) => g !== id) })}>
                 <X aria-hidden="true" />
               </button>
             </li>
@@ -52,20 +56,20 @@ export function RecipientPicker({
           {relationships.map((id) => (
             <li key={id} className={styles.chip}>
               {clientName(id)}
-              <button type="button" aria-label={`Remove ${clientName(id)}`} disabled={disabled} onClick={() => onChange({ relationships: relationships.filter((r) => r !== id), groups })}>
+              <button type="button" aria-label={formatInterfaceText(uiCopy["ui"]["Remove {0}"], [clientName(id)])} disabled={disabled} onClick={() => onChange({ relationships: relationships.filter((r) => r !== id), groups })}>
                 <X aria-hidden="true" />
               </button>
             </li>
           ))}
         </ul>
       ) : null}
-      <SearchInput aria-label="Search clients and groups" placeholder="Search clients and groups" value={search} onChange={setSearch} />
+      <SearchInput aria-label={uiCopy["ui"]["Search clients and groups"]} placeholder={uiCopy["ui"]["Search clients and groups"]} value={search} onChange={setSearch} />
       <div className={styles.list}>
-        <p className={styles.section}>Groups</p>
+        <p className={styles.section}>{uiCopy["ui"]["Groups"]}</p>
         {groupList.isError ? (
           <Failure error={groupList.error} retry={() => void groupList.refetch()} />
         ) : groupList.data && !groupList.data.items.length ? (
-          <p className={styles.none}>No groups found.</p>
+          <p className={styles.none}>{uiCopy["ui"]["No groups found."]}</p>
         ) : (
           groupList.data?.items.map((g) => (
             <Checkbox key={g.id} className={styles.option} isDisabled={disabled} isSelected={groups.includes(g.id)} onChange={(s) => onChange({ relationships, groups: toggle(groups, g.id, s) })}>
@@ -76,11 +80,11 @@ export function RecipientPicker({
             </Checkbox>
           ))
         )}
-        <p className={styles.section}>Clients</p>
+        <p className={styles.section}>{uiCopy["dashboard"]["coach"]["clients"]}</p>
         {clients.isError ? (
           <Failure error={clients.error} retry={() => void clients.refetch()} />
         ) : clients.data && !clients.data.items.length ? (
-          <p className={styles.none}>No active clients found.</p>
+          <p className={styles.none}>{uiCopy["ui"]["No active clients found."]}</p>
         ) : (
           clients.data?.items.map((r) => (
             <Checkbox key={r.id} className={styles.option} isDisabled={disabled} isSelected={relationships.includes(r.id)} onChange={(s) => onChange({ relationships: toggle(relationships, r.id, s), groups })}>
@@ -93,7 +97,7 @@ export function RecipientPicker({
           ))
         )}
       </div>
-      {tooMany ? <p className={styles.hint}>Narrow your search to find more recipients.</p> : null}
+      {tooMany ? <p className={styles.hint}>{uiCopy["ui"]["Narrow your search to find more recipients."]}</p> : null}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { ResourceError } from "~/shared/lib/ResourceError";
 import { useState } from "react";
 import { GitCompare, Plus } from "lucide-react";
@@ -18,6 +19,8 @@ function parse(value: string): CompareSource[] {
 }
 
 function Compare() {
+ const uiCopy = useUiCopy();
+
   const m = useT();
   const t = m.video.compare;
   const [state, update] = useUrlState({ with: "" });
@@ -32,14 +35,14 @@ function Compare() {
       <PageHeader
         context={<Breadcrumbs items={[{ id: "list", label: m.video.list.title, href: "/app/video-analyses" }, { id: "compare", label: t.title }]} />}
         title={t.title}
-        description="Choose two or more analyses. Their videos sit side by side and the repetitions you tick are drawn over each other."
-        actions={<Button variant={sources.length ? "secondary" : "primary"} iconStart={<Plus />} onPress={() => setOpen(true)}>{sources.length ? "Change analyses" : "Choose analyses"}</Button>}
+        description={uiCopy["ui"]["Choose two or more analyses. Their videos sit side by side and the repetitions you tick are drawn over each other."]}
+        actions={<Button variant={sources.length ? "secondary" : "primary"} iconStart={<Plus />} onPress={() => setOpen(true)}>{sources.length ? uiCopy["ui"]["Change analyses"] : uiCopy["ui"]["Choose analyses"]}</Button>}
       />
       {open ? <CompareDialog exclude={[]} initial={sources} onClose={() => setOpen(false)} onConfirm={save} /> : null}
       <div className={styles.page}>
         {failed ? <ResourceError error={failed.error} retry={() => { for (const query of results) if (query.isError) void query.refetch(); }} /> : sources.length ? <CompareView sources={sources} results={results.map((query) => query.data)}
           onRemove={(source) => save(sources.filter((item) => sourceKey(item) !== sourceKey(source)))} />
-          : <EmptyState icon={<GitCompare />} title="Nothing to compare yet" description="Choose analyses: yours or ones shared with you." actions={<Button variant="primary" onPress={() => setOpen(true)}>Choose analyses</Button>} />}
+          : <EmptyState icon={<GitCompare />} title={uiCopy["ui"]["Nothing to compare yet"]} description={uiCopy["ui"]["Choose analyses: yours or ones shared with you."]} actions={<Button variant="primary" onPress={() => setOpen(true)}>{uiCopy["ui"]["Choose analyses"]}</Button>} />}
       </div>
     </>
   );

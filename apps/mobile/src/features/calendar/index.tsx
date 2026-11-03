@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { useEffect, useState } from "react";
 import { Keyboard, Linking, Platform, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -56,16 +57,20 @@ const when = (event: Event) =>
               hour: "2-digit",
               minute: "2-digit",
           })}`;
-const responseBadge = (event: Event) =>
-    event.cancelled ? (
-        <Badge tone="danger">Cancelled</Badge>
+function ResponseBadge({ event }: { event: Event }) {
+ const nativeCopy = useNativeCopy().t;
+ return event.cancelled ? (
+        <Badge tone="danger">{nativeCopy("interface.Cancelled")}</Badge>
     ) : event.response === "Accepted" ? (
-        <Badge tone="success">Accepted</Badge>
+        <Badge tone="success">{nativeCopy("interface.Accepted")}</Badge>
     ) : event.response === "Declined" ? (
-        <Badge tone="danger">Declined</Badge>
+        <Badge tone="danger">{nativeCopy("interface.Declined")}</Badge>
     ) : undefined;
+}
 
 export function CalendarScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { role } = useMobile();
     const [month, setMonth] = useState(
         () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -92,12 +97,12 @@ export function CalendarScreen() {
     const theme = useTheme();
     return (
         <Screen
-            title="Calendar"
+            title={nativeCopy("interface.Calendar")}
             headerAction={
                 role === "coach" ? (
                     <IconButton
                         icon="add"
-                        label="New event or meeting"
+                        label={nativeCopy("interface.New event or meeting")}
                         filled
                         onPress={() =>
                             router.push({
@@ -118,7 +123,7 @@ export function CalendarScreen() {
             >
                 <IconButton
                     icon="back"
-                    label="Previous month"
+                    label={nativeCopy("interface.Previous month")}
                     filled
                     size={40}
                     onPress={() => move(-1)}
@@ -136,7 +141,7 @@ export function CalendarScreen() {
                 </View>
                 <IconButton
                     icon="chevronRight"
-                    label="Next month"
+                    label={nativeCopy("interface.Next month")}
                     filled
                     size={40}
                     onPress={() => move(1)}
@@ -163,7 +168,7 @@ export function CalendarScreen() {
                                 }
                                 title={event.title}
                                 subtitle={when(event)}
-                                trailing={responseBadge(event)}
+                                trailing={<ResponseBadge event={event} />}
                                 onPress={() =>
                                     router.push({
                                         pathname: "/event/[id]",
@@ -177,11 +182,11 @@ export function CalendarScreen() {
                 ) : (
                     <EmptyState
                         icon="calendar"
-                        title="Nothing planned this month"
+                        title={nativeCopy("interface.Nothing planned this month")}
                         description={
                             role === "coach"
-                                ? "Add a meeting or an event with the plus button."
-                                : "Meetings and events from your coach appear here."
+                                ? nativeCopy("interface.Add a meeting or an event with the plus button.")
+                                : nativeCopy("interface.Meetings and events from your coach appear here.")
                         }
                     />
                 ))
@@ -191,10 +196,12 @@ export function CalendarScreen() {
 }
 
 export function EventScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const { id } = useLocalSearchParams<{ id: string }>();
     const { accountId, role } = useMobile();
     return id === "new" ? (
-        <Screen title="New event">
+        <Screen title={nativeCopy("interface.New event")}>
             {role === "coach" ? (
                 <EventEditor
                     key={accountId}
@@ -208,8 +215,8 @@ export function EventScreen() {
             ) : (
                 <EmptyState
                     icon="lock"
-                    title="Only coaches create events"
-                    description="Switch to the Coach view in More to add one."
+                    title={nativeCopy("interface.Only coaches create events")}
+                    description={nativeCopy("interface.Switch to the Coach view in More to add one.")}
                 />
             )}
         </Screen>
@@ -219,6 +226,8 @@ export function EventScreen() {
 }
 
 function EventDetail({ id }: { id: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { role, profile } = useMobile();
     const theme = useTheme();
     const [editing, setEditing] = useState(false);
@@ -227,7 +236,7 @@ function EventDetail({ id }: { id: string }) {
     const event = query.data;
     if (editing && event)
         return (
-            <Screen title="Edit event">
+            <Screen title={nativeCopy("interface.Edit event")}>
                 <EventEditor
                     key={event.id}
                     initial={event}
@@ -241,13 +250,13 @@ function EventDetail({ id }: { id: string }) {
         );
     if (query.isPending)
         return (
-            <Screen title="Event">
+            <Screen title={nativeCopy("interface.Event")}>
                 <LoadingState />
             </Screen>
         );
     if (query.error || !event)
         return (
-            <Screen title="Event">
+            <Screen title={nativeCopy("interface.Event")}>
                 <ErrorState
                     error={query.error}
                     retry={() => void query.refetch()}
@@ -273,7 +282,7 @@ function EventDetail({ id }: { id: string }) {
                             <Button
                                 size="lg"
                                 tone="danger"
-                                title="Cancel event"
+                                title={nativeCopy("interface.Cancel event")}
                                 loading={action.isPending}
                                 onPress={async () => {
                                     if (
@@ -281,7 +290,7 @@ function EventDetail({ id }: { id: string }) {
                                             "Cancel this event?",
                                             "Participants will see it as cancelled.",
                                             "Cancel event",
-                                            { cancelLabel: "Keep event" },
+                                            { cancelLabel: nativeCopy("interface.Keep event") },
                                         )
                                     )
                                         action.mutate({
@@ -297,7 +306,7 @@ function EventDetail({ id }: { id: string }) {
                                 size="lg"
                                 tone="primary"
                                 icon="edit"
-                                title="Edit"
+                                title={nativeCopy("interface.Edit")}
                                 onPress={() => setEditing(true)}
                             />
                         </View>
@@ -316,11 +325,11 @@ function EventDetail({ id }: { id: string }) {
                                     title={
                                         status === "Accepted"
                                             ? event.response === "Accepted"
-                                                ? "Accepted"
-                                                : "Accept"
+                                                ? nativeCopy("interface.Accepted")
+                                                : nativeCopy("interface.Accept")
                                             : event.response === "Declined"
-                                              ? "Declined"
-                                              : "Decline"
+                                              ? nativeCopy("interface.Declined")
+                                              : nativeCopy("interface.Decline")
                                     }
                                     loading={action.isPending}
                                     disabled={event.response === status}
@@ -347,21 +356,21 @@ function EventDetail({ id }: { id: string }) {
                 }}
             >
                 <Badge>{event.kind}</Badge>
-                {responseBadge(event)}
+                {<ResponseBadge event={event} />}
             </View>
             {action.error && <ErrorState error={action.error} />}
             <Section>
                 <ListItem
                     icon="person"
                     title={event.organizerName}
-                    subtitle="Organizer"
+                    subtitle={nativeCopy("interface.Organizer")}
                 />
                 <ListItem
                     icon="schedule"
                     title={event.timeZone}
                     subtitle={
                         event.timeZone === deviceZone()
-                            ? "Time zone"
+                            ? nativeCopy("interface.Time zone")
                             : `Event time zone · shown in ${deviceZone()}`
                     }
                 />
@@ -369,14 +378,14 @@ function EventDetail({ id }: { id: string }) {
                     <ListItem
                         icon="info"
                         title={event.location}
-                        subtitle="Location"
+                        subtitle={nativeCopy("interface.Location")}
                     />
                 ) : null}
                 {event.meetingUrl ? (
                     <ListItem
                         icon="video"
-                        title={link ? "Join the meeting" : event.meetingUrl}
-                        subtitle={link ? event.meetingUrl : "Meeting link"}
+                        title={link ? nativeCopy("interface.Join the meeting") : event.meetingUrl}
+                        subtitle={link ? event.meetingUrl : nativeCopy("interface.Meeting link")}
                         subtitleLines={1}
                         onPress={
                             link
@@ -393,12 +402,12 @@ function EventDetail({ id }: { id: string }) {
                 ) : null}
             </Section>
             {event.description ? (
-                <Section title="Details">
+                <Section title={nativeCopy("interface.Details")}>
                     <Text tone="mutedText">{event.description}</Text>
                 </Section>
             ) : null}
             {event.attendees && (
-                <Section title="Participants">
+                <Section title={nativeCopy("interface.Participants")}>
                     {event.attendees.map((attendee) => (
                         <Participant
                             key={attendee.clientId}
@@ -407,7 +416,8 @@ function EventDetail({ id }: { id: string }) {
                     ))}
                     {!event.attendees.length && (
                         <Text variant="caption" tone="mutedText">
-                            Nobody is invited yet.
+
+                            {nativeCopy("interface.Nobody is invited yet.")}
                         </Text>
                     )}
                 </Section>
@@ -417,6 +427,8 @@ function EventDetail({ id }: { id: string }) {
 }
 
 function Participant({ attendee }: { attendee: Schema<"AttendeeDto"> }) {
+ const nativeCopy = useNativeCopy().t;
+
     const client = useApiQuery<Schema<"CoachRelationshipDto">>(
         `/api/v1/coaching/clients/${attendee.relationshipId}`,
     );
@@ -429,11 +441,11 @@ function Participant({ attendee }: { attendee: Schema<"AttendeeDto"> }) {
             title={name}
             trailing={
                 attendee.response === "Accepted" ? (
-                    <Badge tone="success">Accepted</Badge>
+                    <Badge tone="success">{nativeCopy("interface.Accepted")}</Badge>
                 ) : attendee.response === "Declined" ? (
-                    <Badge tone="danger">Declined</Badge>
+                    <Badge tone="danger">{nativeCopy("interface.Declined")}</Badge>
                 ) : (
-                    <Badge>No reply</Badge>
+                    <Badge>{nativeCopy("interface.No reply")}</Badge>
                 )
             }
         />
@@ -449,6 +461,8 @@ function EventEditor({
     saved: (event: Event) => void;
     cancel?: () => void;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const navigation = useNavigation();
     const theme = useTheme();
     const [title, setTitle] = useState(initial?.title || "");
@@ -541,19 +555,19 @@ function EventEditor({
         >
             <Section flat>
                 <Field
-                    label="Title"
-                    placeholder="e.g. Monthly review call"
+                    label={nativeCopy("interface.Title")}
+                    placeholder={nativeCopy("interface.e.g. Monthly review call")}
                     value={title}
                     maxLength={200}
                     onChangeText={edit(setTitle)}
                 />
                 <SegmentedControl
-                    label="Type"
+                    label={nativeCopy("interface.Type")}
                     value={kind}
                     disabled={mutation.isPending}
                     options={[
-                        { value: "Meeting", label: "Meeting" },
-                        { value: "Event", label: "Event" },
+                        { value: "Meeting", label: nativeCopy("interface.Meeting") },
+                        { value: "Event", label: nativeCopy("interface.Event") },
                     ]}
                     onChange={(next) => {
                         setKind(next);
@@ -562,8 +576,8 @@ function EventEditor({
                     }}
                 />
                 <Field
-                    label="Description"
-                    placeholder="Optional"
+                    label={nativeCopy("interface.Description")}
+                    placeholder={nativeCopy("interface.Optional")}
                     value={description}
                     multiline
                     maxLength={10000}
@@ -571,13 +585,13 @@ function EventEditor({
                 />
             </Section>
 
-            <Section title="When">
+            <Section title={nativeCopy("interface.When")}>
                 {kind === "Event" && (
                     <ListItem
-                        title="All day"
+                        title={nativeCopy("interface.All day")}
                         trailing={
                             <Switch
-                                accessibilityLabel="All day event"
+                                accessibilityLabel={nativeCopy("interface.All day event")}
                                 value={allDay}
                                 onValueChange={edit(setAllDay)}
                             />
@@ -598,10 +612,10 @@ function EventEditor({
                                 <FieldButton
                                     label={
                                         target === "start"
-                                            ? "Starts"
+                                            ? nativeCopy("interface.Starts")
                                             : allDay
-                                              ? "Last day"
-                                              : "Ends"
+                                              ? nativeCopy("interface.Last day")
+                                              : nativeCopy("interface.Ends")
                                     }
                                     icon="calendar"
                                     value={value.toLocaleDateString(undefined, {
@@ -618,7 +632,7 @@ function EventEditor({
                             {!allDay && (
                                 <View style={{ flex: 1 }}>
                                     <FieldButton
-                                        label="Time"
+                                        label={nativeCopy("interface.Time")}
                                         icon="schedule"
                                         value={value.toLocaleTimeString(
                                             undefined,
@@ -638,7 +652,8 @@ function EventEditor({
                     );
                 })}
                 <Text variant="caption" tone="subtleText">
-                    Time zone: {zone}
+
+                    {nativeCopy("interface.Time zone:")} {zone}
                 </Text>
             </Section>
             {/* Android shows the system picker dialog; iOS shows the system wheel in a sheet. */}
@@ -656,7 +671,7 @@ function EventEditor({
             {Platform.OS === "ios" && (
                 <BottomSheet
                     title={
-                        picker?.mode === "time" ? "Choose a time" : "Choose a date"
+                        picker?.mode === "time" ? nativeCopy("interface.Choose a time") : nativeCopy("interface.Choose a date")
                     }
                     open={!!picker}
                     onClose={() => setPicker(undefined)}
@@ -664,7 +679,7 @@ function EventEditor({
                         <Button
                             size="lg"
                             tone="primary"
-                            title="Done"
+                            title={nativeCopy("interface.Done")}
                             onPress={() => setPicker(undefined)}
                         />
                     }
@@ -684,16 +699,16 @@ function EventEditor({
                 </BottomSheet>
             )}
 
-            <Section title="Where" flat>
+            <Section title={nativeCopy("interface.Where")} flat>
                 <Field
-                    label="Location"
-                    placeholder="Optional"
+                    label={nativeCopy("interface.Location")}
+                    placeholder={nativeCopy("interface.Optional")}
                     value={location}
                     maxLength={500}
                     onChangeText={edit(setLocation)}
                 />
                 <Field
-                    label="Meeting link"
+                    label={nativeCopy("interface.Meeting link")}
                     placeholder="https://"
                     value={meetingUrl}
                     maxLength={2048}
@@ -705,7 +720,7 @@ function EventEditor({
             </Section>
 
             <Section
-                title="Clients"
+                title={nativeCopy("interface.Clients")}
                 action={
                     relationships.length ? (
                         <Badge tone="brand">{relationships.length}</Badge>
@@ -713,10 +728,11 @@ function EventEditor({
                 }
             >
                 <Text variant="caption" tone="mutedText">
-                    Personal and Team clients cannot share one event.
+
+                    {nativeCopy("interface.Personal and Team clients cannot share one event.")}
                 </Text>
                 <SearchField
-                    label="Search clients"
+                    label={nativeCopy("interface.Search clients")}
                     value={search}
                     onChangeText={(value) => {
                         setSearch(value);
@@ -766,7 +782,8 @@ function EventEditor({
                             })}
                             {!clients.data.items.length && (
                                 <Text variant="caption" tone="mutedText">
-                                    No clients match.
+
+                                    {nativeCopy("interface.No clients match.")}
                                 </Text>
                             )}
                             <Pagination
@@ -791,7 +808,7 @@ function EventEditor({
                             <ListItem
                                 key={attendee.relationshipId}
                                 icon="person"
-                                title="Already invited participant"
+                                title={nativeCopy("interface.Already invited participant")}
                                 trailing={
                                     <Icon
                                         name={selected ? "checkCircle" : "circle"}
@@ -812,10 +829,10 @@ function EventEditor({
                     })}
             </Section>
 
-            <Section title="Groups" flat>
+            <Section title={nativeCopy("interface.Groups")} flat>
                 <Text variant="caption" tone="mutedText">
-                    Members are invited as the group is now; people who join
-                    later are not added.
+
+                    {nativeCopy("interface.Members are invited as the group is now; people who join later are not added.")}
                 </Text>
                 {groupQuery.error ? (
                     <ErrorState error={groupQuery.error} />
@@ -846,7 +863,8 @@ function EventEditor({
                             </View>
                             {!groupQuery.data.items.length && (
                                 <Text variant="caption" tone="subtleText">
-                                    You have no groups.
+
+                                    {nativeCopy("interface.You have no groups.")}
                                 </Text>
                             )}
                             <Pagination
@@ -865,7 +883,7 @@ function EventEditor({
                 <Button
                     size="lg"
                     tone="primary"
-                    title={initial ? "Save changes" : "Create event"}
+                    title={initial ? nativeCopy("interface.Save changes") : nativeCopy("interface.Create event")}
                     loading={mutation.isPending}
                     disabled={!title.trim()}
                     onPress={() => {
@@ -901,7 +919,7 @@ function EventEditor({
                 {cancel && (
                     <Button
                         tone="ghost"
-                        title="Cancel editing"
+                        title={nativeCopy("interface.Cancel editing")}
                         disabled={mutation.isPending}
                         onPress={close}
                     />

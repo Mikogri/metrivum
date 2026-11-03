@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dumbbell, Eye, EyeOff, Link2, Unlink } from 'lucide-react';
@@ -34,6 +36,8 @@ export function describeLink(locale: Locale, link: AnalysisSetReference) {
  * the numbers it shows. Only the owner of the analysis sees and changes the link.
  */
 export function WorkoutLink({ analysisId, version, canEdit }: { analysisId: string; version: number; canEdit: boolean }) {
+  const uiCopy = useUiCopy();
+
   const api = useApi();
   const account = useAccountKey();
   const locale = useLocale();
@@ -47,7 +51,7 @@ export function WorkoutLink({ analysisId, version, canEdit }: { analysisId: stri
   };
   const unlink = useMutation({
     mutationFn: () => unlinkWorkout(api, analysisId, version),
-    onSuccess: () => { refresh(); toast({ tone: 'success', title: 'Link to the set removed' }); },
+    onSuccess: () => { refresh(); toast({ tone: 'success', title: uiCopy["ui"]["Link to the set removed"] }); },
     onError: (error) => toast({ tone: 'danger', title: errorText(m, error) }),
   });
 
@@ -58,30 +62,32 @@ export function WorkoutLink({ analysisId, version, canEdit }: { analysisId: stri
   });
   const current = link.data ? describeLink(locale, link.data.set) : null;
   return <section className={styles.link} aria-labelledby={`link-${analysisId}`}>
-    <h3 id={`link-${analysisId}`} className={styles.label}>Linked set</h3>
+    <h3 id={`link-${analysisId}`} className={styles.label}>{uiCopy["ui"]["Linked set"]}</h3>
     {link.isPending ? <Skeleton height="2.5rem" radius="md" /> : current ? <div className={styles.current}>
       <span className={styles.icon} aria-hidden="true"><Dumbbell /></span>
       <span className={styles.text}>
         <strong>{current.title}</strong>
         <span>{current.detail}</span>
         <span className={styles.visibility} data-shared={link.data!.sharedWithClient || undefined}>
-          {link.data!.sharedWithClient ? <><Eye aria-hidden="true" />Visible to {link.data!.set.clientName} at this set</> : <><EyeOff aria-hidden="true" />Only you can see it</>}
+          {link.data!.sharedWithClient ? <><Eye aria-hidden="true" />{uiCopy["ui"]["Visible to"]} {link.data!.set.clientName}  {uiCopy["ui"]["at this set"]}</> : <><EyeOff aria-hidden="true" />{uiCopy["ui"]["Only you can see it"]}</>}
         </span>
       </span>
       {canEdit ? <span className={styles.actions}>
-        <Button size="sm" variant="secondary" loading={share.isPending} onPress={() => share.mutate(!link.data!.sharedWithClient)}>{link.data!.sharedWithClient ? 'Stop sharing' : 'Share with client'}</Button>
-        <Button size="sm" variant="ghost" onPress={() => setOpen(true)}>Change</Button>
-        <Button size="sm" variant="ghost" iconStart={<Unlink />} loading={unlink.isPending} onPress={() => unlink.mutate()}>Unlink</Button>
+        <Button size="sm" variant="secondary" loading={share.isPending} onPress={() => share.mutate(!link.data!.sharedWithClient)}>{link.data!.sharedWithClient ? uiCopy["video"]["share"]["revoke"] : uiCopy["ui"]["Share with client"]}</Button>
+        <Button size="sm" variant="ghost" onPress={() => setOpen(true)}>{uiCopy["ui"]["Change"]}</Button>
+        <Button size="sm" variant="ghost" iconStart={<Unlink />} loading={unlink.isPending} onPress={() => unlink.mutate()}>{uiCopy["ui"]["Unlink"]}</Button>
       </span> : null}
     </div> : <div className={styles.none}>
-      <span>Not linked to a logged set.</span>
-      {canEdit ? <Button size="sm" variant="secondary" iconStart={<Link2 />} onPress={() => setOpen(true)}>Link to a set</Button> : null}
+      <span>{uiCopy["ui"]["Not linked to a logged set."]}</span>
+      {canEdit ? <Button size="sm" variant="secondary" iconStart={<Link2 />} onPress={() => setOpen(true)}>{uiCopy["ui"]["Link to a set"]}</Button> : null}
     </div>}
     {open ? <LinkDialog analysisId={analysisId} version={version} current={link.data ?? null} onClose={() => setOpen(false)} onLinked={refresh} /> : null}
   </section>;
 }
 
 function LinkDialog({ analysisId, version, current: link, onClose, onLinked }: { analysisId: string; version: number; current: AnalysisWorkoutLink | null; onClose: () => void; onLinked: () => void }) {
+  const uiCopy = useUiCopy();
+
   const current: AnalysisSetReference | null = link?.set ?? null;
   const [shareWithClient, setShareWithClient] = useState(link?.sharedWithClient ?? true);
   const api = useApi();
@@ -114,28 +120,28 @@ function LinkDialog({ analysisId, version, current: link, onClose, onLinked }: {
     onSuccess: (next) => { onLinked(); onClose(); toast({ tone: 'success', title: next.sharedWithClient ? `Linked and shared with ${next.set.clientName}` : 'Analysis linked', description: describeLink(locale, next.set).title }); },
   });
 
-  return <Dialog isOpen onOpenChange={next => { if (!next) onClose(); }} placement="right" size="lg" title="Link to a logged set"
-    description="Choose the set this video shows. Only sets your clients have logged appear here."
+  return <Dialog isOpen onOpenChange={next => { if (!next) onClose(); }} placement="right" size="lg" title={uiCopy["ui"]["Link to a logged set"]}
+    description={uiCopy["ui"]["Choose the set this video shows. Only sets your clients have logged appear here."]}
     closeLabel={m.common.close}
     footer={close => <>
-      <Checkbox isSelected={shareWithClient} onChange={setShareWithClient} className={styles.shareBox}>Show it to the client at this set</Checkbox>
+      <Checkbox isSelected={shareWithClient} onChange={setShareWithClient} className={styles.shareBox}>{uiCopy["ui"]["Show it to the client at this set"]}</Checkbox>
       <Button variant="secondary" onPress={close}>{m.common.cancel}</Button>
-      <Button variant="primary" isDisabled={!choice} loading={save.isPending} onPress={() => save.mutate()}>Link</Button>
+      <Button variant="primary" isDisabled={!choice} loading={save.isPending} onPress={() => save.mutate()}>{uiCopy["ui"]["Link"]}</Button>
     </>}>
     <div className={styles.dialog}>
       <div className={styles.filters}>
-        <Select label="Client" selectedKey={client} onSelectionChange={key => { setClient(String(key)); setChoice(null); }}>
-          <Option id="all">All clients</Option>
+        <Select label={uiCopy["profile"]["roles"]["Client"]} selectedKey={client} onSelectionChange={key => { setClient(String(key)); setChoice(null); }}>
+          <Option id="all">{uiCopy["ui"]["All clients"]}</Option>
           {clients.map(([id, name]) => <Option key={id} id={id}>{name}</Option>)}
         </Select>
-        <Select label="Logged in the last" selectedKey={days} onSelectionChange={key => { setDays(String(key)); setChoice(null); }}>
-          <Option id="14">14 days</Option><Option id="60">60 days</Option><Option id="180">180 days</Option><Option id="365">year</Option>
+        <Select label={uiCopy["ui"]["Logged in the last"]} selectedKey={days} onSelectionChange={key => { setDays(String(key)); setChoice(null); }}>
+          <Option id="14">{uiCopy["ui"]["14 days"]}</Option><Option id="60">{uiCopy["ui"]["60 days"]}</Option><Option id="180">{uiCopy["ui"]["180 days"]}</Option><Option id="365">{uiCopy["ui"]["year"]}</Option>
         </Select>
       </div>
       {save.error ? <Alert tone="danger" title={errorText(m, save.error)} /> : null}
       {selected.isPending ? <Skeleton height="12rem" radius="lg" />
         : selected.isError ? <Alert tone="danger" title={errorText(m, selected.error)} />
-        : !workouts.length ? <EmptyState size="sm" title="No logged workouts" description="When a client logs a workout, its sets can be linked here." />
+        : !workouts.length ? <EmptyState size="sm" title={uiCopy["ui"]["No logged workouts"]} description={uiCopy["ui"]["When a client logs a workout, its sets can be linked here."]} />
         : <ol className={styles.workouts}>
           {workouts.map(workout => <WorkoutOption key={`${client}:${days}:${workout.executionId}`} workout={workout} days={Number(days)} locale={locale} choice={choice} onChoose={setChoice} showClient={client === 'all'} />)}
         </ol>}
@@ -144,6 +150,8 @@ function LinkDialog({ analysisId, version, current: link, onClose, onLinked }: {
 }
 
 function WorkoutOption({ workout, days, locale, choice, onChoose, showClient }: { workout: AnalysisWorkoutOption; days: number; locale: Locale; choice: { executionId: string; setId: string | null } | null; onChoose: (value: { executionId: string; setId: string | null }) => void; showClient: boolean }) {
+ const uiCopy = useUiCopy();
+
   const [expanded, setExpanded] = useState(false);
   const api = useApi();
   const account = useAccountKey();
@@ -159,20 +167,20 @@ function WorkoutOption({ workout, days, locale, choice, onChoose, showClient }: 
     <div className={styles.workoutHead}>
       <span>
         <strong>{workout.workoutName}</strong>
-        <span className={styles.muted}>{day(locale, workout.performedDate)}{showClient ? ` · ${workout.clientName}` : ''}{workout.status === 'InProgress' ? ' · in progress' : ''}</span>
+        <span className={styles.muted}>{day(locale, workout.performedDate)}{showClient ? ` · ${workout.clientName}` : ''}{workout.status === 'InProgress' ? uiCopy["ui"][" · in progress"] : ''}</span>
       </span>
-      <button type="button" className={styles.whole} aria-pressed={chosen(null)} onClick={() => onChoose({ executionId: workout.executionId, setId: null })}>Whole workout</button>
+      <button type="button" className={styles.whole} aria-pressed={chosen(null)} onClick={() => onChoose({ executionId: workout.executionId, setId: null })}>{uiCopy["ui"]["Whole workout"]}</button>
     </div>
-    <Button variant="ghost" size="sm" aria-expanded={expanded} onPress={() => setExpanded(value => !value)}>{expanded ? 'Hide sets' : 'Show sets'}</Button>
+    <Button variant="ghost" size="sm" aria-expanded={expanded} onPress={() => setExpanded(value => !value)}>{expanded ? uiCopy["ui"]["Hide sets"] : uiCopy["ui"]["Show sets"]}</Button>
     {expanded && detail.isPending ? <Skeleton height="3rem" /> : null}
     {expanded && detail.isError ? <Alert tone="danger" title={errorText(m, detail.error)} /> : null}
     {expanded && detail.data?.workouts.find(item => item.executionId === workout.executionId)?.exercises.map(exercise => <div key={exercise.id} className={styles.exercise}>
       <span className={styles.exerciseName}>{exercise.name}</span>
-      <span className={styles.sets} role="group" aria-label={`${exercise.name} sets`}>
+      <span className={styles.sets} role="group" aria-label={formatInterfaceText(uiCopy["ui"]["{0} sets"], [exercise.name])}>
         {exercise.sets.map(set => <button key={set.id} type="button" className={styles.set} aria-pressed={chosen(set.id)} data-skipped={set.skipped || undefined}
-          onClick={() => onChoose({ executionId: workout.executionId, setId: set.id })} aria-label={`${exercise.name}, set ${set.number}${setText(locale, set) ? `, ${setText(locale, set)}` : ''}`}>
+          onClick={() => onChoose({ executionId: workout.executionId, setId: set.id })} aria-label={formatInterfaceText(uiCopy["ui"]["{0}, set {1}{2}"], [exercise.name,set.number,setText(locale, set) ? `, ${setText(locale, set)}` : ''])}>
           <b>{set.number}</b>
-          <span>{set.skipped ? 'skipped' : setText(locale, set) || '—'}</span>
+          <span>{set.skipped ? uiCopy["ui"]["skipped"] : setText(locale, set) || '—'}</span>
         </button>)}
       </span>
     </div>)}

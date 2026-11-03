@@ -1,3 +1,4 @@
+import { useI18n as useNativeCopy } from "../../infrastructure/i18n";
 import { NativeDateField } from "./NativeDateField";
 import { useState } from "react";
 import { View } from "react-native";
@@ -94,6 +95,8 @@ export function Schedule({
     today?: boolean;
     title?: string;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { role } = useMobile();
     const initial = () => ({
         from: localDate(new Date(Date.now() - (today ? 0 : 30) * 86400000)),
@@ -125,7 +128,7 @@ export function Schedule({
             action={
                 today ? undefined : (
                     <Filters
-                        title="Filter workouts"
+                        title={nativeCopy("interface.Filter workouts")}
                         active={!!filter.status}
                         summary={joinParts(
                             `${formatDay(filter.from)} – ${formatDay(filter.to)}`,
@@ -137,17 +140,17 @@ export function Schedule({
                         }}
                     >
                         <NativeDateField
-                            label="From"
+                            label={nativeCopy("interface.From")}
                             value={filter.from}
                             onChange={(from) => update({ from })}
                         />
                         <NativeDateField
-                            label="Through"
+                            label={nativeCopy("interface.Through")}
                             value={filter.to}
                             onChange={(to) => update({ to })}
                         />
                         <Choices
-                            label="Status"
+                            label={nativeCopy("interface.Status")}
                             values={scheduleStatuses}
                             value={filter.status}
                             onChange={(status) => update({ status })}
@@ -179,13 +182,13 @@ export function Schedule({
                                 icon="workout"
                                 title={
                                     today
-                                        ? "No workouts today"
-                                        : "No workouts in this period"
+                                        ? nativeCopy("interface.No workouts today")
+                                        : nativeCopy("interface.No workouts in this period")
                                 }
                                 description={
                                     today
-                                        ? "Rest day. Earlier sessions are in History."
-                                        : "Change the dates or the status filter."
+                                        ? nativeCopy("interface.Rest day. Earlier sessions are in History.")
+                                        : nativeCopy("interface.Change the dates or the status filter.")
                                 }
                             />
                         )}
@@ -202,6 +205,8 @@ export function AssignmentList({
 }: {
     relationshipId?: string;
 }) {
+ const nativeCopy = useNativeCopy().t;
+
     const { role } = useMobile();
     const [page, setPage] = useState(1);
     const query = useApiQuery<Page<Schema<"AssignmentDto">>>(
@@ -209,7 +214,7 @@ export function AssignmentList({
         { relationshipId, page, pageSize: 20, view: role },
     );
     return (
-        <Section title="Assigned programs">
+        <Section title={nativeCopy("interface.Assigned programs")}>
             {query.isPending ? (
                 <LoadingState />
             ) : query.error ? (
@@ -225,7 +230,7 @@ export function AssignmentList({
                                 key={item.id}
                                 icon="plans"
                                 title={item.programName}
-                                subtitle={`Starts ${formatDay(item.startDate)}`}
+                                subtitle={nativeCopy("interface.Starts {0}", {"0": String(formatDay(item.startDate))})}
                                 trailing={<StatusBadge status={item.status} />}
                                 onPress={() =>
                                     router.push({
@@ -241,11 +246,11 @@ export function AssignmentList({
                         {!query.data.items.length && (
                             <EmptyState
                                 icon="plans"
-                                title="No assigned programs"
+                                title={nativeCopy("interface.No assigned programs")}
                                 description={
                                     role === "coach"
-                                        ? "Programs you assign in the web app appear here."
-                                        : "Programs from your coach appear here."
+                                        ? nativeCopy("interface.Programs you assign in the web app appear here.")
+                                        : nativeCopy("interface.Programs from your coach appear here.")
                                 }
                             />
                         )}
@@ -258,6 +263,8 @@ export function AssignmentList({
 }
 
 export function TrainingPlansScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const [page, setPage] = useState(1);
     const query = useApiQuery<Page<Schema<"PurchasedPlanDto">>>(
         "/api/v1/training/purchases",
@@ -265,11 +272,11 @@ export function TrainingPlansScreen() {
     );
     return (
         <Screen
-            title="Plans"
-            subtitle="Programs from your coach and plans you own"
+            title={nativeCopy("interface.Plans")}
+            subtitle={nativeCopy("interface.Programs from your coach and plans you own")}
         >
             <AssignmentList />
-            <Section title="Owned plans">
+            <Section title={nativeCopy("interface.Owned plans")}>
                 {query.isPending ? (
                     <LoadingState />
                 ) : query.error ? (
@@ -287,8 +294,8 @@ export function TrainingPlansScreen() {
                                     title={item.name}
                                     subtitle={
                                         item.planId
-                                            ? "Your own copy"
-                                            : "Locked until it is paid for. Payments are made in the web app."
+                                            ? nativeCopy("interface.Your own copy")
+                                            : nativeCopy("interface.Locked until it is paid for. Payments are made in the web app.")
                                     }
                                     onPress={
                                         item.planId
@@ -307,8 +314,8 @@ export function TrainingPlansScreen() {
                             {!query.data.items.length && (
                                 <EmptyState
                                     icon="document"
-                                    title="No owned plans"
-                                    description="Plans you buy from a coach appear here."
+                                    title={nativeCopy("interface.No owned plans")}
+                                    description={nativeCopy("interface.Plans you buy from a coach appear here.")}
                                 />
                             )}
                             <Pagination data={query.data} onChange={setPage} />
@@ -321,16 +328,18 @@ export function TrainingPlansScreen() {
 }
 
 export function HistoryScreen() {
+ const nativeCopy = useNativeCopy().t;
+
     const [view, setView] = useState<"log" | "progress">("log");
     return (
-        <Screen title="History" subtitle="Your training log and progress">
+        <Screen title={nativeCopy("interface.History")} subtitle={nativeCopy("interface.Your training log and progress")}>
             <SegmentedControl
-                label="History view"
+                label={nativeCopy("interface.History view")}
                 value={view}
                 onChange={setView}
                 options={[
-                    { value: "log", label: "Workouts" },
-                    { value: "progress", label: "Progress" },
+                    { value: "log", label: nativeCopy("interface.Workouts") },
+                    { value: "progress", label: nativeCopy("interface.Progress") },
                 ]}
             />
             {view === "log" ? <Schedule /> : <TrainingProgress />}
@@ -339,18 +348,20 @@ export function HistoryScreen() {
 }
 
 function AssignmentPlan({ id }: { id: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const query = useApiQuery<Schema<"AssignmentDto">>(
         `/api/v1/training/assignments/${id}`,
     );
     if (query.isPending)
         return (
-            <Screen title="Plan">
+            <Screen title={nativeCopy("interface.Plan")}>
                 <LoadingState />
             </Screen>
         );
     if (query.error || !query.data)
         return (
-            <Screen title="Plan">
+            <Screen title={nativeCopy("interface.Plan")}>
                 <ErrorState
                     error={query.error}
                     retry={() => void query.refetch()}
@@ -367,10 +378,11 @@ function AssignmentPlan({ id }: { id: string }) {
         >
             <StatusBadge status={query.data.status} />
             <Text variant="caption" tone="mutedText">
-                Open a workout to see exactly what was prescribed for that day.
+
+                {nativeCopy("interface.Open a workout to see exactly what was prescribed for that day.")}
             </Text>
             <Schedule
-                title="Workouts"
+                title={nativeCopy("interface.Workouts")}
                 relationshipId={query.data.relationshipId}
                 programId={query.data.programId}
             />
@@ -379,19 +391,21 @@ function AssignmentPlan({ id }: { id: string }) {
 }
 
 function OwnedPlan({ id }: { id: string }) {
+ const nativeCopy = useNativeCopy().t;
+
     const theme = useTheme();
     const query = useApiQuery<Schema<"PlanDto">>(
         `/api/v1/training/programs/${id}`,
     );
     if (query.isPending)
         return (
-            <Screen title="Plan">
+            <Screen title={nativeCopy("interface.Plan")}>
                 <LoadingState />
             </Screen>
         );
     if (query.error || !query.data)
         return (
-            <Screen title="Plan">
+            <Screen title={nativeCopy("interface.Plan")}>
                 <ErrorState
                     error={query.error}
                     retry={() => void query.refetch()}
@@ -408,7 +422,7 @@ function OwnedPlan({ id }: { id: string }) {
                         <View key={cycle.id} style={{ gap: theme.spacing.md }}>
                             {cycle.implicit ? null : (
                                 <Heading level="title">
-                                    {cycle.name} · {cycle.dayCount} days
+                                    {cycle.name} · {cycle.dayCount}  {nativeCopy("interface.days")}
                                 </Heading>
                             )}
                             {cycle.days.map((day) =>
@@ -463,7 +477,8 @@ function OwnedPlan({ id }: { id: string }) {
                                                     }}
                                                 >
                                                     <Text variant="bodyStrong">
-                                                        Exercise {index + 1}
+
+                                                        {nativeCopy("interface.Exercise")} {index + 1}
                                                     </Text>
                                                     {exercise.comment ? (
                                                         <Text

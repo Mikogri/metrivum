@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowUp, X } from 'lucide-react';
@@ -80,27 +81,31 @@ function AnalyzerUpdateState({ account, children }: { account: string; children:
 
 /** The next step as inline text links: "Update now or download the installer" (shared by the banner and Notifications). */
 export function AnalyzerUpdateActions({ className }: { className?: string }) {
+ const uiCopy = useUiCopy();
+
   const notice = useAnalyzerUpdate();
   if (!notice) return null;
   if (notice.error) return <span className={className} role="status">{notice.error}</span>;
-  const first = notice.offline ? <button type="button" className={styles.link} onClick={launchLocalAnalyzer}>Open the analyzer</button>
-    : notice.updates ? <button type="button" className={styles.link} disabled={notice.starting} onClick={() => void notice.update()}>{notice.starting ? 'Starting the update…' : 'Update now'}</button> : null;
+  const first = notice.offline ? <button type="button" className={styles.link} onClick={launchLocalAnalyzer}>{uiCopy["ui"]["Open the analyzer"]}</button>
+    : notice.updates ? <button type="button" className={styles.link} disabled={notice.starting} onClick={() => void notice.update()}>{notice.starting ? uiCopy["ui"]["Starting the update…"] : uiCopy["ui"]["Update now"]}</button> : null;
   return <span className={className}>
-    {first}{first ? ' or ' : ''}<a className={styles.link} href={DOWNLOAD} download="MetrivumAnalyzerSetup.exe">{first ? 'download the installer' : 'Download the installer'}</a>
+    {first}{first ? ' or ' : ''}<a className={styles.link} href={DOWNLOAD} download="MetrivumAnalyzerSetup.exe">{first ? uiCopy["ui"]["download the installer"] : uiCopy["ui"]["Download the installer"]}</a>
   </span>;
 }
 
 /** A thin full-width notice at the very top: what is new, the next step as inline links, and a close button. */
 export function AnalyzerUpdateBanner() {
+ const uiCopy = useUiCopy();
+
   const notice = useAnalyzerUpdate();
   if (!notice || notice.bannerHidden) return null;
-  return <aside className={styles.banner} aria-label="Analyzer update available">
+  return <aside className={styles.banner} aria-label={uiCopy["ui"]["Analyzer update available"]}>
     <p className={styles.message}>
       <span className={styles.badge} aria-hidden="true"><ArrowUp /></span>
-      <strong>Analyzer update available ({notice.version})</strong>
+      <strong>{uiCopy["ui"]["Analyzer update available ("]}{notice.version})</strong>
       <span className={styles.dot} aria-hidden="true">·</span>
       <AnalyzerUpdateActions className={styles.detail} />
     </p>
-    <button type="button" className={styles.close} aria-label="Close analyzer update banner" onClick={notice.dismissBanner}><X aria-hidden="true" /></button>
+    <button type="button" className={styles.close} aria-label={uiCopy["ui"]["Close analyzer update banner"]} onClick={notice.dismissBanner}><X aria-hidden="true" /></button>
   </aside>;
 }

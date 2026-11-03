@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookmarkCheck, GitCompare, LoaderCircle, MoreHorizontal, Plus, SearchX, Video } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -34,6 +36,8 @@ const DEFAULTS = { q: "", status: "", tag: "", sort: "newest", page: "1", view: 
 
 /** Analyses other people shared and this account kept: references opened through their link, never copies. */
 function SavedFromOthers() {
+  const uiCopy = useUiCopy();
+
   const api = useApi();
   const a = useAccountKey();
   const locale = useLocale();
@@ -41,7 +45,7 @@ function SavedFromOthers() {
   if (!saved.data?.length) return null;
   return (
     <section className={styles.saved} aria-labelledby="saved-title">
-      <h2 id="saved-title" className={styles.savedTitle}><BookmarkCheck aria-hidden="true" />Shared with you</h2>
+      <h2 id="saved-title" className={styles.savedTitle}><BookmarkCheck aria-hidden="true" />{uiCopy["video"]["share"]["sharedBadge"]}</h2>
       <ul className={styles.savedList}>
         {saved.data.map((item) => (
           <li key={item.token}>
@@ -56,6 +60,8 @@ function SavedFromOthers() {
 }
 
 export default function AnalysesRoute() {
+  const uiCopy = useUiCopy();
+
   const m = useT();
   const t = m.video.list;
   const locale = useLocale();
@@ -112,33 +118,33 @@ export default function AnalysesRoute() {
   // One menu per analysis: open, share, compare and delete (a running analysis stops when it is deleted).
   const actions = (analysis: AnalysisDto) => (
     <DropdownMenuTrigger>
-      <IconButton size="sm" variant="ghost" label={`Actions for ${analysis.name}`} icon={<MoreHorizontal />} />
-      <DropdownMenu aria-label={`Actions for ${analysis.name}`} onAction={(key) => {
+      <IconButton size="sm" variant="ghost" label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [analysis.name])} icon={<MoreHorizontal />} />
+      <DropdownMenu aria-label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [analysis.name])} onAction={(key) => {
         if (key === "open") navigate(`/app/video-analyses/${analysis.id}`);
         else if (key === "share") setSharing({ id: analysis.id, name: analysis.name });
         else if (key === "compare") navigate(`/app/video-analyses/compare?${new URLSearchParams({ with: encodeURIComponent(JSON.stringify([{ kind: "own", id: analysis.id, name: analysis.name, mediaId: analysis.mediaId }])) })}`);
         else if (key === "retry") retry.mutate(analysis);
         else if (key === "delete") setDeleting(analysis);
       }}>
-        <DropdownMenuItem id="open">Open</DropdownMenuItem>
-        {retryable(analysis) && access["video.analysis.run"].allowed ? <DropdownMenuItem id="retry">Retry</DropdownMenuItem> : null}
+        <DropdownMenuItem id="open">{uiCopy["common"]["open"]}</DropdownMenuItem>
+        {retryable(analysis) && access["video.analysis.run"].allowed ? <DropdownMenuItem id="retry">{uiCopy["ui"]["Retry"]}</DropdownMenuItem> : null}
         {analysis.status === "Completed" ? <DropdownMenuItem id="share">{m.video.share.action}</DropdownMenuItem> : null}
-        {analysis.status === "Completed" && access["video.analysis.compare"].allowed ? <DropdownMenuItem id="compare">Compare</DropdownMenuItem> : null}
+        {analysis.status === "Completed" && access["video.analysis.compare"].allowed ? <DropdownMenuItem id="compare">{uiCopy["video"]["compare"]["submit"]}</DropdownMenuItem> : null}
         {access["video.library.manage"].allowed ? <DropdownMenuSeparator /> : null}
-        {access["video.library.manage"].allowed ? <DropdownMenuItem id="delete" tone="danger">{working(analysis) ? "Stop and delete" : "Delete"}</DropdownMenuItem> : null}
+        {access["video.library.manage"].allowed ? <DropdownMenuItem id="delete" tone="danger">{working(analysis) ? uiCopy["ui"]["Stop and delete"] : uiCopy["common"]["delete"]}</DropdownMenuItem> : null}
       </DropdownMenu>
     </DropdownMenuTrigger>
   );
   const [removingJob, setRemovingJob] = useState<AnalyzerJob | null>(null);
   const jobActions = (job: AnalyzerJob) => (
     <DropdownMenuTrigger>
-      <IconButton size="sm" variant="ghost" label={`Actions for ${job.name}`} icon={<MoreHorizontal />} />
-      <DropdownMenu aria-label={`Actions for ${job.name}`} onAction={(key) => {
+      <IconButton size="sm" variant="ghost" label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [job.name])} icon={<MoreHorizontal />} />
+      <DropdownMenu aria-label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [job.name])} onAction={(key) => {
         if (key === "retry") void queue.retry(job.id).then(() => toast({ tone: "success", title: `Retrying ${job.name}` }), () => { queue.refresh(); toast({ tone: "danger", title: `Could not retry ${job.name}` }); });
         else if (key === "remove") setRemovingJob(job);
       }}>
-        {job.state === "failed" || queue.saveErrors[job.id] ? <DropdownMenuItem id="retry">Retry</DropdownMenuItem> : null}
-        <DropdownMenuItem id="remove" tone="danger">{job.state === "analyzing" ? "Stop and remove" : "Remove"}</DropdownMenuItem>
+        {job.state === "failed" || queue.saveErrors[job.id] ? <DropdownMenuItem id="retry">{uiCopy["ui"]["Retry"]}</DropdownMenuItem> : null}
+        <DropdownMenuItem id="remove" tone="danger">{job.state === "analyzing" ? uiCopy["ui"]["Stop and remove"] : uiCopy["editor"]["remove"]}</DropdownMenuItem>
       </DropdownMenu>
     </DropdownMenuTrigger>
   );
@@ -274,12 +280,12 @@ export default function AnalysesRoute() {
                 ]}
               />}
               {sharing ? <ShareAnalysisDialog analysisId={sharing.id} name={sharing.name} onClose={() => setSharing(null)} /> : null}
-              <AlertDialog isOpen={deleting !== null} onOpenChange={(open) => { if (!open) setDeleting(null); }} title="Delete this analysis?" tone="danger"
-                confirmLabel="Delete" cancelLabel="Keep it" isConfirming={remove.isPending} onConfirm={() => { if (deleting) remove.mutate(deleting); }}>
+              <AlertDialog isOpen={deleting !== null} onOpenChange={(open) => { if (!open) setDeleting(null); }} title={uiCopy["ui"]["Delete this analysis?"]} tone="danger"
+                confirmLabel={uiCopy["common"]["delete"]} cancelLabel={uiCopy["ui"]["Keep it"]} isConfirming={remove.isPending} onConfirm={() => { if (deleting) remove.mutate(deleting); }}>
                 <p>{deleting ? `${deleting.name} ${working(deleting) ? "stops and is" : "is"} deleted with its results and share links. The video is deleted too unless another analysis uses it. This cannot be undone.` : null}</p>
               </AlertDialog>
               <AlertDialog isOpen={removingJob !== null} onOpenChange={(open) => { if (!open) setRemovingJob(null); }} tone="danger"
-                title={removingJob?.state === "analyzing" ? "Stop and remove this video?" : "Remove this video?"} confirmLabel="Remove" cancelLabel="Keep it"
+                title={removingJob?.state === "analyzing" ? uiCopy["ui"]["Stop and remove this video?"] : uiCopy["ui"]["Remove this video?"]} confirmLabel={uiCopy["editor"]["remove"]} cancelLabel={uiCopy["ui"]["Keep it"]}
                 onConfirm={() => {
                   const job = removingJob; setRemovingJob(null);
                   if (job) void queue.remove(job.id).then(() => toast({ tone: "success", title: `Removed ${job.name}` }), () => { queue.refresh(); toast({ tone: "danger", title: `Could not remove ${job.name}` }); });

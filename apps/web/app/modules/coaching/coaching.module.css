@@ -33,6 +33,8 @@
 .sectionHead p { margin-top: var(--tf-space-1); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); line-height: var(--tf-leading-normal); text-wrap: pretty; }
 .sectionBody { display: grid; gap: var(--tf-space-4); padding: var(--tf-space-5); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-lg); background: var(--tf-color-surface); min-width: 0; }
 .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--tf-space-3) var(--tf-space-4); align-items: start; }
+/* The (i) beside a field label takes no extra height, so it lines up with plain labels next to it. */
+.fieldTip { align-self: center; margin-block: -0.5rem; }
 .fieldGroup { display: grid; gap: var(--tf-space-1-5); justify-items: start; }
 .fieldLabel { color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-medium); }
 .weekdays { display: flex; flex-wrap: wrap; gap: var(--tf-space-1-5); }

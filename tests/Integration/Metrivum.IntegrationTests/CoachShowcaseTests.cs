@@ -57,5 +57,15 @@ public sealed class CoachShowcaseTests
         Assert.Equal(HttpStatusCode.Forbidden, (await coach.PostAsJsonAsync("/api/v1/me/coach-showcase/cover/uploads", new { name = "cover.jpg", contentType = "image/jpeg", size = 1000 })).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await coach.PutAsJsonAsync("/api/v1/me/coach-showcase/cover", new { mediaId = Guid.NewGuid() })).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await viewer.PostAsync($"/api/v1/coaches/{coachId}/showcase/cover/read-url", null)).StatusCode);
+
+        // Anyone may set a profile photo: images only, up to 5 MB; without one there is nothing to read.
+        Assert.False(person.GetProperty("hasAvatar").GetBoolean());
+        Assert.Equal(HttpStatusCode.BadRequest, (await viewer.PostAsJsonAsync("/api/v1/me/avatar/uploads", new { name = "me.pdf", contentType = "application/pdf", size = 1000 })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await viewer.PostAsJsonAsync("/api/v1/me/avatar/uploads", new { name = "me.jpg", contentType = "image/jpeg", size = 6 * 1024 * 1024 })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await coach.PostAsync($"/api/v1/accounts/people/{viewerId}/avatar/read-url", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await viewer.PutAsJsonAsync("/api/v1/me/avatar", new { mediaId = Guid.NewGuid() })).StatusCode);
+        var cleared = await viewer.DeleteAsync("/api/v1/me/avatar");
+        Assert.True(cleared.IsSuccessStatusCode, await cleared.Content.ReadAsStringAsync());
+        Assert.False((await cleared.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("hasAvatar").GetBoolean());
     }
 }

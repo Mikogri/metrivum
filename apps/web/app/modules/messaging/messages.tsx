@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { useDebounced } from "~/shared/lib/useDebounced";
@@ -48,7 +50,9 @@ export const meta = () => privateMeta("Messages — Metrivum");
 export const handle = { workspace: true };
 
 export function Failure({ error, retry }: { error: unknown; retry?: () => void }) {
-  return <ErrorState title="Could not load messages" description={error instanceof Error ? error.message : "Please try again."} actions={retry && <Button onPress={retry}>Retry</Button>} />;
+  const uiCopy = useUiCopy();
+
+  return <ErrorState title={uiCopy["ui"]["Could not load messages"]} description={error instanceof Error ? error.message : uiCopy["ui"]["Please try again."]} actions={retry && <Button onPress={retry}>{uiCopy["ui"]["Retry"]}</Button>} />;
 }
 
 export function useChatAction<T = unknown>(done?: (value: T) => void) {
@@ -98,6 +102,8 @@ const dayLabel = (iso: string) => {
 };
 
 export default function Messages() {
+  const uiCopy = useUiCopy();
+
   const { accountKey } = useAccountContext();
   const mobile = useMobileLayout();
   const [params, setParams] = useSearchParams();
@@ -144,13 +150,13 @@ export default function Messages() {
   if (direct.pending || groups.pending)
     return (
       <div className={styles.center}>
-        <LoadingState label="Loading messages" />
+        <LoadingState label={uiCopy["ui"]["Loading messages"]} />
       </div>
     );
   if (!allowed)
     return (
       <div className={styles.center}>
-        <EmptyState icon={<MessageCircle />} title="Messaging is not available" description="Your account does not currently have messaging access." />
+        <EmptyState icon={<MessageCircle />} title={uiCopy["ui"]["Messaging is not available"]} description={uiCopy["ui"]["Your account does not currently have messaging access."]} />
       </div>
     );
 
@@ -160,10 +166,10 @@ export default function Messages() {
         {draft ? <DraftChat key={draft.userId} person={draft} back={() => setParams({})} open={select} /> : tab !== "conversations" ? (
           <div className={styles.pane}>
             <header className={styles.paneHeader}>
-              <IconButton className={styles.back} label="Back to conversations" icon={<ArrowLeft />} variant="ghost" size="sm" onPress={() => setParams({})} />
+              <IconButton className={styles.back} label={uiCopy["ui"]["Back to conversations"]} icon={<ArrowLeft />} variant="ghost" size="sm" onPress={() => setParams({})} />
               <div>
-                <h1>Blocked people</h1>
-                <p>They can't message you or send requests.</p>
+                <h1>{uiCopy["ui"]["Blocked people"]}</h1>
+                <p>{uiCopy["ui"]["They can't message you or send requests."]}</p>
               </div>
             </header>
             <div className={styles.paneBody}>
@@ -178,11 +184,12 @@ export default function Messages() {
               <span className={styles.welcomeIcon} aria-hidden="true">
                 <MessageCircle />
               </span>
-              <h2>Pick a conversation</h2>
-              <p>Choose a chat on the right or start a new one. Messages and shared files stay together.</p>
+              <h2>{uiCopy["ui"]["Pick a conversation"]}</h2>
+              <p>{uiCopy["ui"]["Choose a chat on the right or start a new one. Messages and shared files stay together."]}</p>
               {canCreate ? (
                 <Button variant="primary" iconStart={<Plus />} onPress={() => setCreate(true)}>
-                  New conversation
+
+                  {uiCopy["ui"]["New conversation"]}
                 </Button>
               ) : null}
             </div>
@@ -190,14 +197,14 @@ export default function Messages() {
         )}
       </section>
 
-      <aside className={styles.sidebar} aria-label="Conversations">
+      <aside className={styles.sidebar} aria-label={uiCopy["ui"]["Conversations"]}>
         <header className={styles.sidebarHeader}>
-          <h1>Chats</h1>
-          {canCreate ? <IconButton label="New conversation" icon={<Plus />} variant="ghost" size="sm" onPress={() => setCreate(true)} /> : null}
+          <h1>{uiCopy["ui"]["Chats"]}</h1>
+          {canCreate ? <IconButton label={uiCopy["ui"]["New conversation"]} icon={<Plus />} variant="ghost" size="sm" onPress={() => setCreate(true)} /> : null}
         </header>
         {direct.allowed ? (
           <SegmentedControl
-            aria-label="Messages sections"
+            aria-label={uiCopy["ui"]["Messages sections"]}
             size="sm"
             className={styles.sections}
             selectedKeys={[tab]}
@@ -207,12 +214,12 @@ export default function Messages() {
               setParams(value === "conversations" ? {} : { tab: value }, { replace: true });
             }}
           >
-            <Segment id="conversations">Chats</Segment>
-            <Segment id="blocked">Blocked</Segment>
+            <Segment id="conversations">{uiCopy["ui"]["Chats"]}</Segment>
+            <Segment id="blocked">{uiCopy["ui"]["Blocked"]}</Segment>
           </SegmentedControl>
         ) : null}
         {tab === "conversations" ? <><div className={styles.search}>
-          <SearchInput aria-label="Search conversations" placeholder="Search" size="sm" value={search} onChange={(value) => setFilter({ accountKey, search: value, page: 1 })} />
+          <SearchInput aria-label={uiCopy["ui"]["Search conversations"]} placeholder={uiCopy["training"]["library"]["searchPlaceholder"]} size="sm" value={search} onChange={(value) => setFilter({ accountKey, search: value, page: 1 })} />
         </div>
         <div className={styles.list} ref={listRef} onScroll={(event) => {
           // Near the bottom of the list: fetch the next batch (the end marker below covers lists that cannot scroll yet).
@@ -220,12 +227,12 @@ export default function Messages() {
           if (canLoadMore && el.scrollTop + el.clientHeight >= el.scrollHeight - 120) loadNext();
         }}>
           {list.isPending ? (
-            <LoadingState size="sm" label="Loading conversations" />
+            <LoadingState size="sm" label={uiCopy["ui"]["Loading conversations"]} />
           ) : list.isError ? (
             <Failure error={list.error} retry={() => list.refetch()} />
           ) : list.items.length === 0 ? (
             <div className={styles.listState}>
-              <p>{search ? "No conversations match your search." : "No conversations yet."}</p>
+              <p>{search ? uiCopy["ui"]["No conversations match your search."] : uiCopy["ui"]["No conversations yet."]}</p>
             </div>
           ) : (
             list.items.map((c) => {
@@ -235,7 +242,7 @@ export default function Messages() {
                   <ChatAvatar conversation={c} />
                   <span className={styles.summary}>
                     <span className={styles.summaryTop}>
-                      <strong>{c.title || "Conversation"}</strong>
+                      <strong>{c.title || uiCopy["ui"]["Conversation"]}</strong>
                       {c.lastMessage ? (
                         <time dateTime={c.lastMessage.createdAt} data-unread={unread > 0 || undefined}>
                           {unread > 0 ? <span className={styles.unreadDot} aria-hidden="true" /> : null}
@@ -244,9 +251,9 @@ export default function Messages() {
                       ) : null}
                     </span>
                     <span className={styles.summaryBottom}>
-                      <small>{c.membershipState !== "Active" ? "Previous messages only" : (c.lastMessage?.deletedAt ? "This message was deleted" : c.lastMessage?.body) || (c.lastMessage ? c.lastMessage.type : "Start the conversation")}</small>
+                      <small>{c.membershipState !== "Active" ? uiCopy["ui"]["Previous messages only"] : (c.lastMessage?.deletedAt ? "This message was deleted" : c.lastMessage?.body) || (c.lastMessage ? c.lastMessage.type : uiCopy["ui"]["Start the conversation"])}</small>
                       {unread > 0 ? (
-                        <span key={unread} className={styles.count} aria-label={`${unread} unread`}>
+                        <span key={unread} className={styles.count} aria-label={formatInterfaceText(uiCopy["ui"]["{0} unread"], [unread])}>
                           {unread}
                         </span>
                       ) : null}
@@ -256,7 +263,7 @@ export default function Messages() {
               );
             })
           )}
-          {list.isLoadingMore ? <div className={styles.loadingMore}><LoadingState size="sm" label="Loading more conversations" /></div> : null}
+          {list.isLoadingMore ? <div className={styles.loadingMore}><LoadingState size="sm" label={uiCopy["ui"]["Loading more conversations"]} /></div> : null}
           <div ref={endRef} className={styles.listEnd} aria-hidden="true" />
         </div>
         </> : null}
@@ -277,6 +284,8 @@ export default function Messages() {
 }
 
 function Thread({ id, back, realtime }: { id: string; back: () => void; realtime: ReturnType<typeof useRealtime> }) {
+  const uiCopy = useUiCopy();
+
   const { api, account, accountKey, lifecycle } = useAccountContext();
   const showError = useErrorToast();
   const cache = useQueryClient();
@@ -360,14 +369,14 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
   if (details.isPending)
     return (
       <div className={styles.center}>
-        <LoadingState label="Loading conversation" />
+        <LoadingState label={uiCopy["ui"]["Loading conversation"]} />
       </div>
     );
   if (details.isError)
     return (
       <div className={styles.center}>
         <Failure error={details.error} retry={() => void details.refetch()} />
-        <Button onPress={back}>Back to conversations</Button>
+        <Button onPress={back}>{uiCopy["ui"]["Back to conversations"]}</Button>
       </div>
     );
   const c = details.data;
@@ -382,17 +391,17 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
   return (
     <section className={styles.thread} aria-label={c.title}>
       <header className={styles.threadHeader}>
-        <IconButton className={styles.back} label="Back to conversations" icon={<ArrowLeft />} variant="ghost" size="sm" onPress={back} />
+        <IconButton className={styles.back} label={uiCopy["ui"]["Back to conversations"]} icon={<ArrowLeft />} variant="ghost" size="sm" onPress={back} />
         <ChatAvatar conversation={c} />
         <div className={styles.threadTitle}>
           <strong>{peer?.displayName || c.title}</strong>
           {subtitle ? <small>{subtitle}</small> : null}
         </div>
         <span className={styles.spacer} />
-        {c.type !== "Direct" ? <IconButton label="Conversation members" icon={<Users />} variant="ghost" size="sm" onPress={() => setMembers(true)} /> : null}
+        {c.type !== "Direct" ? <IconButton label={uiCopy["ui"]["Conversation members"]} icon={<Users />} variant="ghost" size="sm" onPress={() => setMembers(true)} /> : null}
         {peer ? (
           <DropdownMenuTrigger>
-            <AriaButton className={styles.menuButton} aria-label="Conversation options">
+            <AriaButton className={styles.menuButton} aria-label={uiCopy["ui"]["Conversation options"]}>
               <MoreVertical aria-hidden="true" />
             </AriaButton>
             <DropdownMenu placement="bottom end" onAction={() => action.mutate({ method: isBlocked ? "DELETE" : "POST", path: `/api/v1/me/blocked-users/${peer.userId}` })}>
@@ -414,7 +423,7 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
             setNearBottom(followBottom.current);
           }
         }}
-        aria-label="Message history"
+        aria-label={uiCopy["ui"]["Message history"]}
       >
         <div className={styles.messagesInner}>
           {history.hasNextPage ? (
@@ -436,11 +445,12 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
                 );
               }}
             >
-              Load older messages
+
+              {uiCopy["ui"]["Load older messages"]}
             </Button>
           ) : null}
           {history.isPending ? (
-            <LoadingState size="sm" label="Loading messages" />
+            <LoadingState size="sm" label={uiCopy["ui"]["Loading messages"]} />
           ) : history.isError ? (
             <Failure error={history.error} retry={() => void history.refetch()} />
           ) : messages.length === 0 ? (
@@ -449,8 +459,8 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
                 <span className={styles.welcomeIcon} aria-hidden="true">
                   <MessageCircle />
                 </span>
-                <h2>Start the conversation</h2>
-                <p>A quick check-in can make all the difference.</p>
+                <h2>{uiCopy["ui"]["Start the conversation"]}</h2>
+                <p>{uiCopy["ui"]["A quick check-in can make all the difference."]}</p>
               </div>
             </div>
           ) : (
@@ -465,11 +475,11 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
               const card = !message.deletedAt && !message.replyToMessageId && !message.attachments.length ? coachingCard(message.body, message.coachingEntry) : null;
               const messageMenu = !message.deletedAt && (mine || (canSend) || (canReport && !mine)) ? <div className={styles.messageActions}>
                           <DropdownMenuTrigger>
-                            <AriaButton className={styles.menuButton} aria-label="Message options"><MoreVertical aria-hidden="true" /></AriaButton>
-                            <DropdownMenu aria-label="Message actions" onAction={key => { if (key === "reply") setReply(message); if (key === "report") setReport(message); if (key === "delete") setDeleting(message); }}>
-                              {canSend ? <DropdownMenuItem id="reply">Reply</DropdownMenuItem> : null}
-                              {canReport && !mine ? <DropdownMenuItem id="report" tone="danger">Report</DropdownMenuItem> : null}
-                              {mine ? <DropdownMenuItem id="delete" tone="danger">Delete message</DropdownMenuItem> : null}
+                            <AriaButton className={styles.menuButton} aria-label={uiCopy["ui"]["Message options"]}><MoreVertical aria-hidden="true" /></AriaButton>
+                            <DropdownMenu aria-label={uiCopy["ui"]["Message actions"]} onAction={key => { if (key === "reply") setReply(message); if (key === "report") setReport(message); if (key === "delete") setDeleting(message); }}>
+                              {canSend ? <DropdownMenuItem id="reply">{uiCopy["ui"]["Reply"]}</DropdownMenuItem> : null}
+                              {canReport && !mine ? <DropdownMenuItem id="report" tone="danger">{uiCopy["ui"]["Report"]}</DropdownMenuItem> : null}
+                              {mine ? <DropdownMenuItem id="delete" tone="danger">{uiCopy["ui"]["Delete message"]}</DropdownMenuItem> : null}
                             </DropdownMenu>
                           </DropdownMenuTrigger>
                         </div> : null;
@@ -504,8 +514,8 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
                           {message.coachingEntry && message.body && message.body.trim() !== message.coachingEntry.title ? <div className={styles.bubble}><MessageText body={message.body} /></div> : null}
                           <CoachingCard card={card} mine={mine} />
                         </> : message.deletedAt || message.body || message.replyToMessageId || message.attachments.some(a => !a.contentType.startsWith("image/")) ? <div className={styles.bubble}>
-                          {!message.deletedAt && message.replyToMessageId ? <blockquote className={styles.reply}>{(messages.find((m) => m.id === message.replyToMessageId)?.deletedAt ? "This message was deleted" : messages.find((m) => m.id === message.replyToMessageId)?.body) || "Reply to an earlier message"}</blockquote> : null}
-                          {message.deletedAt ? <em className={styles.deletedMessage}>This message was deleted</em> : <MessageText body={message.body ?? ""} />}
+                          {!message.deletedAt && message.replyToMessageId ? <blockquote className={styles.reply}>{(messages.find((m) => m.id === message.replyToMessageId)?.deletedAt ? "This message was deleted" : messages.find((m) => m.id === message.replyToMessageId)?.body) || uiCopy["ui"]["Reply to an earlier message"]}</blockquote> : null}
+                          {message.deletedAt ? <em className={styles.deletedMessage}>{uiCopy["ui"]["This message was deleted"]}</em> : <MessageText body={message.body ?? ""} />}
                           {!message.deletedAt && message.attachments.filter(a => !a.contentType.startsWith("image/")).map((a) => (
                             <Attachment key={a.mediaId} message={message.id} attachment={a} mine={mine} />
                           ))}
@@ -514,14 +524,14 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
                         </div>
                         {!hasImages && messageMenu}
                       </div>
-                      {mine && message.id === statusMessageId ? <span className={styles.meta}>{messageWasRead(message, messages, peer?.lastReadMessageId) ? "Read" : "Sent"}</span> : null}
+                      {mine && message.id === statusMessageId ? <span className={styles.meta}>{messageWasRead(message, messages, peer?.lastReadMessageId) ? uiCopy["ui"]["Read"] : uiCopy["ui"]["Sent"]}</span> : null}
                     </div>
                   </article>
                 </Fragment>
               );
             })
           )}
-          {pendingVisible && outgoing ? <article className={styles.message} data-mine="true" data-new data-pending aria-label="Outgoing message"><div className={styles.messageBody}><div className={styles.bubble}>{outgoing.body}</div><span className={styles.meta} role="status">{outgoing.status}</span></div></article> : null}
+          {pendingVisible && outgoing ? <article className={styles.message} data-mine="true" data-new data-pending aria-label={uiCopy["ui"]["Outgoing message"]}><div className={styles.messageBody}><div className={styles.bubble}>{outgoing.body}</div><span className={styles.meta} role="status">{outgoing.status}</span></div></article> : null}
         </div>
       </div>
       <div className={styles.typing} role="status">
@@ -532,19 +542,20 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
               <i />
               <i />
             </span>
-            Typing…
+
+            {uiCopy["ui"]["Typing…"]}
           </span>
         ) : null}
       </div>
       {pendingRequest ? <div className={styles.closed} role="status">
-        <p>{pendingRequest.recipientUserId === account.userId ? "Accept this conversation to reply." : "Message sent. Waiting for this person to accept."}</p>
+        <p>{pendingRequest.recipientUserId === account.userId ? uiCopy["ui"]["Accept this conversation to reply."] : uiCopy["ui"]["Message sent. Waiting for this person to accept."]}</p>
         {pendingRequest.recipientUserId === account.userId ? <div className={styles.actions}>
-          <Button size="sm" loading={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${pendingRequest.id}/accept` })}>Accept</Button>
-          <Button size="sm" isDisabled={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${pendingRequest.id}/decline` })}>Decline</Button>
+          <Button size="sm" loading={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${pendingRequest.id}/accept` })}>{uiCopy["ui"]["Accept"]}</Button>
+          <Button size="sm" isDisabled={action.isPending} onPress={() => action.mutate({ method: "POST", path: `${root}/requests/${pendingRequest.id}/decline` })}>{uiCopy["ui"]["Decline"]}</Button>
         </div> : null}
       </div> : null}
       {c.membershipState !== "Active" || isBlocked ? (
-        <p className={styles.closed}>{isBlocked ? "You blocked this person. Previous messages stay available." : "You no longer take part in this conversation. Your earlier history is available."}</p>
+        <p className={styles.closed}>{isBlocked ? uiCopy["ui"]["You blocked this person. Previous messages stay available."] : uiCopy["ui"]["You no longer take part in this conversation. Your earlier history is available."]}</p>
       ) : history.isSuccess ? (
         <Composer
           key={id}
@@ -566,12 +577,12 @@ function Thread({ id, back, realtime }: { id: string; back: () => void; realtime
           typing={realtime.sendTyping}
         />
       ) : null}
-      <AlertDialog isOpen={Boolean(deleting)} isConfirming={action.isPending} onOpenChange={open => { if (!open && !action.isPending) setDeleting(null); }} title="Delete this message?" tone="danger" confirmLabel="Delete message" cancelLabel="Keep message" onConfirm={() => {
+      <AlertDialog isOpen={Boolean(deleting)} isConfirming={action.isPending} onOpenChange={open => { if (!open && !action.isPending) setDeleting(null); }} title={uiCopy["ui"]["Delete this message?"]} tone="danger" confirmLabel={uiCopy["ui"]["Delete message"]} cancelLabel={uiCopy["ui"]["Keep message"]} onConfirm={() => {
         if (deleting) action.mutate({ method: "DELETE", path: `${root}/messages/${deleting.id}` }, {
-          onSuccess: () => { if (lifecycle.isCurrent()) { setDeleting(null); toast({ tone: "success", title: "Message deleted" }); } },
+          onSuccess: () => { if (lifecycle.isCurrent()) { setDeleting(null); toast({ tone: "success", title: uiCopy["ui"]["Message deleted"] }); } },
           onError: error => { if (lifecycle.isCurrent()) showError(error, "Could not delete the message. Please retry."); },
         });
-      }}>This message will be deleted for everyone in the conversation.</AlertDialog>
+      }}>{uiCopy["ui"]["This message will be deleted for everyone in the conversation."]}</AlertDialog>
       {members ? <GroupMembers conversation={c} canManage={manage && (self?.role === "Owner" || self?.role === "Admin")} close={() => setMembers(false)} /> : null}
       {report ? <ReportDialog message={report} close={() => setReport(null)} /> : null}
     </section>
@@ -592,6 +603,8 @@ const EXTENSION: Record<string, string> = {
 };
 
 function Attachment({ message, attachment, mine }: { message: string; attachment: Schema<"AttachmentDto">; mine: boolean }) {
+  const uiCopy = useUiCopy();
+
   const api = useApi();
   const [file, setFile] = useState<{ url: string; blob: Blob } | null>(null);
   const [zoom, setZoom] = useState(false);
@@ -631,8 +644,8 @@ function Attachment({ message, attachment, mine }: { message: string; attachment
   if (voice) {
     return (
       <div className={styles.attachment}>
-        <VoicePlayer src={file?.url ?? null} label="Voice message" seed={attachment.mediaId} durationMs={attachment.durationMs ? Number(attachment.durationMs) : null} tone={mine ? "mine" : "default"} />
-        {load.error ? <p className={styles.error}>Could not load the voice message.</p> : null}
+        <VoicePlayer src={file?.url ?? null} label={uiCopy["ui"]["Voice message"]} seed={attachment.mediaId} durationMs={attachment.durationMs ? Number(attachment.durationMs) : null} tone={mine ? "mine" : "default"} />
+        {load.error ? <p className={styles.error}>{uiCopy["ui"]["Could not load the voice message."]}</p> : null}
       </div>
     );
   }
@@ -641,24 +654,25 @@ function Attachment({ message, attachment, mine }: { message: string; attachment
     return (
       <div className={styles.attachment}>
         {file ? (
-          <button type="button" className={styles.thumb} aria-label="Open image" onClick={() => setZoom(true)}>
+          <button type="button" className={styles.thumb} aria-label={uiCopy["ui"]["Open image"]} onClick={() => setZoom(true)}>
             <img src={file.url} alt="Shared image" />
           </button>
         ) : (
           <span className={styles.thumbLoading} aria-busy={load.isPending || undefined}>
-            {load.error ? "Could not load the image." : <Spinner size="sm" label="Loading image" />}
+            {load.error ? uiCopy["ui"]["Could not load the image."] : <Spinner size="sm" label={uiCopy["ui"]["Loading image"]} />}
           </span>
         )}
         {file && zoom ? (
           <ModalOverlay isOpen isDismissable onOpenChange={setZoom} className={styles.lightboxOverlay}>
             <Modal className={styles.lightbox}>
-              <AriaDialog aria-label="Image preview" className={styles.lightboxDialog}>
+              <AriaDialog aria-label={uiCopy["ui"]["Image preview"]} className={styles.lightboxDialog}>
                 <div className={styles.lightboxBar}>
                   <span>{size}</span>
                   <Button size="sm" iconStart={<Download />} onPress={() => saveBlob(file.blob, name)}>
-                    Download
+
+                    {uiCopy["training"]["export"]["submit"]}
                   </Button>
-                  <IconButton label="Close preview" icon={<X />} variant="ghost" size="sm" onPress={() => setZoom(false)} />
+                  <IconButton label={uiCopy["profile"]["editor"]["closePreview"]} icon={<X />} variant="ghost" size="sm" onPress={() => setZoom(false)} />
                 </div>
                 <img src={file.url} alt="Shared image, enlarged" className={styles.lightboxImage} />
               </AriaDialog>
@@ -679,15 +693,15 @@ function Attachment({ message, attachment, mine }: { message: string; attachment
             {video ? <Film /> : <FileText />}
           </span>
           <span className={styles.fileText}>
-            <span>{video ? "Play video" : "Download file"}</span>
+            <span>{video ? uiCopy["ui"]["Play video"] : uiCopy["ui"]["Download file"]}</span>
             <small>
               {(EXTENSION[type] ?? "file").toUpperCase()} · {size}
             </small>
           </span>
-          {load.isPending ? <Spinner size="sm" label="Loading" /> : <Download aria-hidden="true" />}
+          {load.isPending ? <Spinner size="sm" label={uiCopy["ui"]["Loading"]} /> : <Download aria-hidden="true" />}
         </button>
       )}
-      {load.error ? <p className={styles.error}>Could not download. Try again.</p> : null}
+      {load.error ? <p className={styles.error}>{uiCopy["ui"]["Could not download. Try again."]}</p> : null}
     </div>
   );
 }
@@ -717,6 +731,8 @@ function Composer({
   onSending: (message: LocalOutgoing | null) => void;
   typing: (id: string, value: boolean) => void;
 }) {
+  const uiCopy = useUiCopy();
+
   const { api, accountKey } = useAccountContext();
   const cache = useQueryClient();
   const attachments = useFeatureAccess("messaging.attachments").allowed;
@@ -831,24 +847,26 @@ function Composer({
         onOpenChange={(open) => {
           if (!open && blocker.state === "blocked") blocker.reset();
         }}
-        title="Discard this draft?"
+        title={uiCopy["ui"]["Discard this draft?"]}
         tone="danger"
-        confirmLabel="Discard draft"
-        cancelLabel="Keep writing"
+        confirmLabel={uiCopy["ui"]["Discard draft"]}
+        cancelLabel={uiCopy["ui"]["Keep writing"]}
         onConfirm={() => {
           if (blocker.state === "blocked") blocker.proceed();
         }}
       >
-        Your message has not been sent yet. If you leave now, the draft is deleted and the person never sees it.
+
+        {uiCopy["ui"]["Your message has not been sent yet. If you leave now, the draft is deleted and the person never sees it."]}
       </AlertDialog>
       <div className={styles.composerBox}>
         {reply ? (
           <div className={styles.replying}>
             <span>
-              Replying to <strong>{replyName}</strong>
+
+              {uiCopy["ui"]["Replying to"]} <strong>{replyName}</strong>
               <small>{reply.body || reply.type}</small>
             </span>
-            <IconButton label="Cancel reply" icon={<X />} variant="ghost" size="sm" onPress={clearReply} />
+            <IconButton label={uiCopy["ui"]["Cancel reply"]} icon={<X />} variant="ghost" size="sm" onPress={clearReply} />
           </div>
         ) : null}
         {!voiceFile && files.length ? (
@@ -857,7 +875,7 @@ function Composer({
               <li key={`${f.name}-${i}`}>
                 <Paperclip aria-hidden="true" />
                 <span>{f.name}</span>
-                <button type="button" aria-label={`Remove ${f.name}`} disabled={busy} onClick={() => setFiles(files.filter((x) => x !== f))}>
+                <button type="button" aria-label={formatInterfaceText(uiCopy["ui"]["Remove {0}"], [f.name])} disabled={busy} onClick={() => setFiles(files.filter((x) => x !== f))}>
                   <X aria-hidden="true" />
                 </button>
               </li>
@@ -883,7 +901,7 @@ function Composer({
                       e.target.value = "";
                     }}
                   />
-                  <IconButton label="Attach files" icon={<Plus />} variant="ghost" size="sm" isDisabled={disabled || uploadsDisabled || busy} onPress={() => input.current?.click()} />
+                  <IconButton label={uiCopy["ui"]["Attach files"]} icon={<Plus />} variant="ghost" size="sm" isDisabled={disabled || uploadsDisabled || busy} onPress={() => input.current?.click()} />
                 </>
               ) : null}
               {/* While recording, the recorder takes the place of the text field. */}
@@ -892,8 +910,8 @@ function Composer({
                 <textarea
                   ref={text}
                   rows={1}
-                  aria-label="Message"
-                  placeholder="Send message…"
+                  aria-label={uiCopy["profile"]["message"]}
+                  placeholder={uiCopy["ui"]["Send message…"]}
                   value={body}
                   maxLength={8000}
                   disabled={disabled || busy}
@@ -912,8 +930,8 @@ function Composer({
               ) : null}
             </>
           )}
-          <button type="submit" className={styles.send} aria-label="Send" disabled={disabled || busy || recording || (!body.trim() && files.length === 0)}>
-            {busy ? <Spinner size="sm" label="Sending" /> : <SendHorizontal aria-hidden="true" />}
+          <button type="submit" className={styles.send} aria-label={uiCopy["ui"]["Send"]} disabled={disabled || busy || recording || (!body.trim() && files.length === 0)}>
+            {busy ? <Spinner size="sm" label={uiCopy["ui"]["Sending"]} /> : <SendHorizontal aria-hidden="true" />}
           </button>
         </div>
       </div>
@@ -922,13 +940,15 @@ function Composer({
           {error}
         </p>
       ) : (
-        <p className={styles.keyboardHint}>Enter to send · Shift + Enter for a new line</p>
+        <p className={styles.keyboardHint}>{uiCopy["ui"]["Enter to send · Shift + Enter for a new line"]}</p>
       )}
     </form>
   );
 }
 
 function ReportDialog({ message, close }: { message: Message; close: () => void }) {
+  const uiCopy = useUiCopy();
+
   const [details, setDetails] = useState("");
   const action = useChatAction(close);
   return (
@@ -937,8 +957,8 @@ function ReportDialog({ message, close }: { message: Message; close: () => void 
       onOpenChange={(open) => {
         if (!open) close();
       }}
-      title="Report message"
-      description="The report includes a copy of this message for review."
+      title={uiCopy["ui"]["Report message"]}
+      description={uiCopy["ui"]["The report includes a copy of this message for review."]}
     >
       <form
         className={styles.form}
@@ -947,12 +967,13 @@ function ReportDialog({ message, close }: { message: Message; close: () => void 
           action.mutate({ method: "POST", path: `${root}/messages/${message.id}/report`, json: { category: "UserReport", details } });
         }}
       >
-        <TextArea label="Reason for reporting" placeholder="What is wrong with this message?" value={details} onChange={setDetails} isRequired maxLength={2000} />
+        <TextArea label={uiCopy["ui"]["Reason for reporting"]} placeholder={uiCopy["ui"]["What is wrong with this message?"]} value={details} onChange={setDetails} isRequired maxLength={2000} />
         {action.error ? <Failure error={action.error} /> : null}
         <DialogFooter>
-          <Button onPress={close}>Cancel</Button>
+          <Button onPress={close}>{uiCopy["common"]["cancel"]}</Button>
           <Button type="submit" variant="primary" loading={action.isPending} isDisabled={!details.trim()}>
-            Send report
+
+            {uiCopy["ui"]["Send report"]}
           </Button>
         </DialogFooter>
       </form>

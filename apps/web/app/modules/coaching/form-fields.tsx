@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { parseDate } from "@internationalized/date";
 import { Checkbox, DateField, NumberInput, Option, Select, TextArea, TextField } from "@metrivum/ui-web";
 import type { Schema } from "@metrivum/api-client-web";
@@ -43,6 +44,8 @@ export function focusFirstError(errors: AnswerErrors) {
 }
 
 export function FormAnswerFields({ definition, answers, onChange, disabled = false, errors = {} }: { definition: Definition; answers: Answers; onChange: (answers: Answers) => void; disabled?: boolean; errors?: AnswerErrors }) {
+  const uiCopy = useUiCopy();
+
   const set = (key: string, value: Answers[string]) => onChange({ ...answers, [key]: value });
   // Each problem shows in red under its own field.
   const invalid = (key: string) => ({ isInvalid: Boolean(errors[key]), errorMessage: errors[key] });
@@ -54,14 +57,14 @@ export function FormAnswerFields({ definition, answers, onChange, disabled = fal
       function field() {
       if (q.type === "ShortText" || q.type === "LongText") {
         const Field = q.type === "LongText" ? TextArea : TextField;
-        return <Field key={q.key} {...invalid(q.key)} label={q.label} placeholder={q.type === "LongText" ? "Write your answer" : "Your answer"} description={q.helpText ?? undefined} isRequired={q.required} isDisabled={disabled} value={typeof value === "string" ? value : ""} maxLength={q.maxLength ?? undefined} onChange={(text) => set(q.key, text)} />;
+        return <Field key={q.key} {...invalid(q.key)} label={q.label} placeholder={q.type === "LongText" ? uiCopy["ui"]["Write your answer"] : uiCopy["ui"]["Your answer"]} description={q.helpText ?? undefined} isRequired={q.required} isDisabled={disabled} value={typeof value === "string" ? value : ""} maxLength={q.maxLength ?? undefined} onChange={(text) => set(q.key, text)} />;
       }
       if (q.type === "MultiChoice") return <fieldset key={q.key} className={styles.choiceGroup} disabled={disabled}><legend className={styles.choiceLegend}>{q.label}{q.required ? <span aria-hidden="true"> *</span> : ""}{q.helpText && <small>{q.helpText}</small>}</legend>{q.choices?.map((choice) => <Checkbox key={choice.key} isSelected={Array.isArray(value) && value.includes(choice.key)} onChange={(checked) => set(q.key, checked ? [...(Array.isArray(value) ? value : []), choice.key] : (Array.isArray(value) ? value : []).filter((v) => v !== choice.key))}>{choice.label}</Checkbox>)}{errors[q.key] ? <p className={styles.fieldError} role="alert">{errors[q.key]}</p> : null}</fieldset>;
       if (q.type === "SingleChoice" || q.type === "YesNo")
-        return <Select key={q.key} {...invalid(q.key)} label={q.label} description={q.helpText ?? undefined} placeholder="Choose an answer" isRequired={q.required} isDisabled={disabled} selectedKey={value === undefined || value === null ? null : String(value)} onSelectionChange={(key) => set(q.key, q.type === "YesNo" ? key === "true" : String(key))}>
-          {q.type === "YesNo" ? [<Option key="true" id="true">Yes</Option>, <Option key="false" id="false">No</Option>] : (q.choices ?? []).map((c) => <Option key={c.key} id={c.key}>{c.label}</Option>)}
+        return <Select key={q.key} {...invalid(q.key)} label={q.label} description={q.helpText ?? undefined} placeholder={uiCopy["ui"]["Choose an answer"]} isRequired={q.required} isDisabled={disabled} selectedKey={value === undefined || value === null ? null : String(value)} onSelectionChange={(key) => set(q.key, q.type === "YesNo" ? key === "true" : String(key))}>
+          {q.type === "YesNo" ? [<Option key="true" id="true">{uiCopy["ui"]["Yes"]}</Option>, <Option key="false" id="false">No</Option>] : (q.choices ?? []).map((c) => <Option key={c.key} id={c.key}>{c.label}</Option>)}
         </Select>;
-      if (q.type === "FileAttachment") return <p key={q.key} role="alert">Attachments are not available for this form.</p>;
+      if (q.type === "FileAttachment") return <p key={q.key} role="alert">{uiCopy["ui"]["Attachments are not available for this form."]}</p>;
       if (q.type === "Date") {
         let date: ReturnType<typeof parseDate> | null;
         try { date = typeof value === "string" && value ? parseDate(value) : null; } catch { date = null; }
@@ -77,10 +80,12 @@ export function FormAnswerFields({ definition, answers, onChange, disabled = fal
 }
 
 export function AnswerReview({ definition, answers }: { definition: Definition; answers: Answers }) {
+ const uiCopy = useUiCopy();
+
   return <div className={styles.stack}>{definition.sections.map((s) => <section key={s.key}><h3>{s.title}</h3><dl className={styles.list}>{s.questions.map((q) => {
     const value = answers[q.key];
     const display = (v: string) => q.choices?.find((c) => c.key === v)?.label ?? v;
-    return <div key={q.key} className={styles.item}><dt className={styles.muted}>{q.label}</dt><dd>{value === null || value === undefined ? "Not answered" : Array.isArray(value) ? value.map(display).join(", ") : typeof value === "boolean" ? value ? "Yes" : "No" : display(String(value))}</dd></div>;
+    return <div key={q.key} className={styles.item}><dt className={styles.muted}>{q.label}</dt><dd>{value === null || value === undefined ? uiCopy["ui"]["Not answered"] : Array.isArray(value) ? value.map(display).join(", ") : typeof value === "boolean" ? value ? uiCopy["ui"]["Yes"] : "No" : display(String(value))}</dd></div>;
   })}</dl></section>)}</div>;
 }
 
@@ -101,18 +106,20 @@ export function AnswerSheet({ definition, answers, emptyText = "Not answered" }:
 }
 
 function SheetAnswer({ question: q, value, emptyText }: { question: Question; value: Answers[string] | undefined; emptyText: string }) {
+  const uiCopy = useUiCopy();
+
   const missing = value === null || value === undefined || value === "" || (Array.isArray(value) && !value.length);
   if (q.type === "SingleChoice" || q.type === "MultiChoice" || q.type === "YesNo") {
-    const options = q.type === "YesNo" ? [{ key: "true", label: "Yes" }, { key: "false", label: "No" }] : (q.choices ?? []).map((c) => ({ key: c.key, label: c.label }));
+    const options = q.type === "YesNo" ? [{ key: "true", label: uiCopy["ui"]["Yes"] }, { key: "false", label: "No" }] : (q.choices ?? []).map((c) => ({ key: c.key, label: c.label }));
     const picked = new Set(Array.isArray(value) ? value : value === null || value === undefined ? [] : [String(value)]);
     return <ul className={styles.sheetChoices} data-multi={q.type === "MultiChoice" || undefined} aria-label={q.label}>{options.map((o) => <li key={o.key} data-picked={picked.has(o.key) || undefined}>
-      <span className={styles.sheetMark} aria-hidden="true" />{o.label}{picked.has(o.key) ? <span className="tf-visually-hidden"> (selected)</span> : null}
+      <span className={styles.sheetMark} aria-hidden="true" />{o.label}{picked.has(o.key) ? <span className="tf-visually-hidden">  {uiCopy["ui"]["(selected)"]}</span> : null}
     </li>)}</ul>;
   }
   if (q.type === "Scale" && q.min != null && q.max != null && Number(q.max) - Number(q.min) <= 10) {
     const points = Array.from({ length: Number(q.max) - Number(q.min) + 1 }, (_, i) => Number(q.min) + i);
     return <div className={styles.sheetScale}>
-      <ol aria-label={q.label}>{points.map((p) => <li key={p} data-picked={Number(value) === p || undefined}>{p}{Number(value) === p ? <span className="tf-visually-hidden"> (selected)</span> : null}</li>)}</ol>
+      <ol aria-label={q.label}>{points.map((p) => <li key={p} data-picked={Number(value) === p || undefined}>{p}{Number(value) === p ? <span className="tf-visually-hidden">  {uiCopy["ui"]["(selected)"]}</span> : null}</li>)}</ol>
       <div className={styles.sheetScaleEnds}><span>{q.minLabel ?? ""}</span><span>{q.maxLabel ?? ""}</span></div>
     </div>;
   }

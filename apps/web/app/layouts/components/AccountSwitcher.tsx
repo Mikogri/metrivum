@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@metrivum/ui-web";
-import { useProfile, useProfileCompleteness } from "~/modules/accounts";
+import { useAvatarUrl, useProfile, useProfileCompleteness } from "~/modules/accounts";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useActiveAccount, useSessionState } from "~/shared/session/SessionProvider";
@@ -56,13 +56,14 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
     if (activeUserId && name) writeHint(activeUserId, { name, username: profile.username ?? null });
   }, [activeUserId, name, profile.username]);
   const completeness = useProfileCompleteness();
+  const photo = useAvatarUrl(profile.id, profile.hasAvatar);
   const next = completeness.items.find((item) => !item.done);
 
   return (
     <>
       <DropdownMenuTrigger>
         <AriaButton className={styles.trigger} data-compact={compact || undefined} aria-label={m.accounts.menuLabel(name)}>
-          <Avatar name={name} size="md" decorative className={styles.avatar} />
+          <Avatar name={name} size="md" decorative className={styles.avatar} src={photo} />
           {/* Kept in the DOM while the sidebar collapses so the text can fade instead of popping. */}
           <span className={styles.who} aria-hidden={compact || undefined}>
             <span className={styles.name}>{name}</span>
@@ -87,7 +88,7 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
           <MenuSection className={styles.profileSection}>
             <Header className={styles.profile}>
               <span className={styles.profileRow}>
-                <Avatar name={name} size="lg" decorative />
+                <Avatar name={name} size="lg" decorative src={photo} />
                 <span className={styles.profileText}>
                   <strong>{name}</strong>
                   <small>{handle}</small>
@@ -121,7 +122,7 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
                   key={`slot:${account.slot}`}
                   id={`slot:${account.slot}`}
                   textValue={label}
-                  icon={<Avatar name={hint?.name || account.email || "?"} size="sm" decorative className={styles.itemAvatar} />}
+                  icon={<Avatar name={hint?.name || account.email || "?"} size="sm" decorative className={styles.itemAvatar} src={current ? photo : undefined} />}
                   description={account.email ?? undefined}
                 >
                   <span className={styles.accountRow}>

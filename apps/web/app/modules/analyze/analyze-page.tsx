@@ -1,3 +1,5 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Analytics — Metrivum");
@@ -20,7 +22,9 @@ import type { CheckInsData, ClientsData, FinanceData, Overview, TrainingData } f
 import styles from "./analyze.module.css";
 
 function AnalyzeSkeleton() {
-  return <div className={`${styles.body} ${styles.grid}`} aria-busy="true" role="status" aria-label="Loading analysis">
+  const uiCopy = useUiCopy();
+
+  return <div className={`${styles.body} ${styles.grid}`} aria-busy="true" role="status" aria-label={uiCopy["ui"]["Loading analysis"]}>
     <div className={styles.kpis}>{Array.from({ length: 4 }, (_, i) => <div className={styles.skeletonPanel} key={i}>
       <Skeleton width="55%" /><Skeleton width="70%" height="2rem" /><Skeleton height="3rem" />
     </div>)}</div>
@@ -90,6 +94,8 @@ function Legend({ items }: { items: Array<{ label: string; tone: Tone; ghost?: b
 }
 
 function Workspace() {
+  const uiCopy = useUiCopy();
+
   const [state, update] = useUrlState({ preset: "30", from: "", to: "", tab: "overview", groupId: "", offerRevisionId: "", currency: "", grouping: "day", scope: "", memberId: "" });
   const { account } = useAccountContext();
   const context = useCoachingQuery<Schema<"TeamAccess"> | null>("/api/v1/me/team-context");
@@ -122,46 +128,46 @@ function Workspace() {
   return (
     <div className={styles.workspace}>
       <PageHeader
-        title="Analyze"
-        description={scope === "Personal" ? "Your private coaching business, measured from recorded activity." : `${team?.name ?? "Team"} · ${scope === "Team" ? "Organization-wide activity" : "Assigned Team activity"}. Personal client records are excluded.`}
+        title={uiCopy["dashboard"]["coach"]["openAnalyze"]}
+        description={scope === "Personal" ? uiCopy["ui"]["Your private coaching business, measured from recorded activity."] : `${team?.name ?? "Team"} · ${scope === "Team" ? "Organization-wide activity" : "Assigned Team activity"}. Personal client records are excluded.`}
         actions={
-          <SegmentedControl aria-label="Period" size="sm" selectedKeys={[preset]} onSelectionChange={(keys) => choosePreset(String([...keys][0] ?? "30"))}>
-            <Segment id="7">7 days</Segment>
-            <Segment id="30">30 days</Segment>
-            <Segment id="90">90 days</Segment>
-            <Segment id="month">This month</Segment>
-            <Segment id="custom">Custom</Segment>
+          <SegmentedControl aria-label={uiCopy["ui"]["Period"]} size="sm" selectedKeys={[preset]} onSelectionChange={(keys) => choosePreset(String([...keys][0] ?? "30"))}>
+            <Segment id="7">{uiCopy["ui"]["7 days"]}</Segment>
+            <Segment id="30">{uiCopy["ui"]["30 days"]}</Segment>
+            <Segment id="90">{uiCopy["ui"]["90 days"]}</Segment>
+            <Segment id="month">{uiCopy["ui"]["This month"]}</Segment>
+            <Segment id="custom">{uiCopy["ui"]["Custom"]}</Segment>
           </SegmentedControl>
         }
       />
 
-      <div className={styles.filters} role="group" aria-label="Analysis filters">
-        <Select aria-label="Analysis scope" size="sm" selectedKey={scope} onSelectionChange={key => update({ scope: String(key), memberId: "", groupId: "", offerRevisionId: "", currency: "" })} className={styles.filter}>
+      <div className={styles.filters} role="group" aria-label={uiCopy["ui"]["Analysis filters"]}>
+        <Select aria-label={uiCopy["ui"]["Analysis scope"]} size="sm" selectedKey={scope} onSelectionChange={key => update({ scope: String(key), memberId: "", groupId: "", offerRevisionId: "", currency: "" })} className={styles.filter}>
           {scopes.map(option => <Option key={option.id} id={option.id}>{option.name}</Option>)}
         </Select>
-        {admin && scope === "TeamMember" && <Select aria-label="Team member" size="sm" selectedKey={memberId} onSelectionChange={key => update({ memberId: String(key), groupId: "", offerRevisionId: "" })} className={styles.filter}>
+        {admin && scope === "TeamMember" && <Select aria-label={uiCopy["ui"]["Team member"]} size="sm" selectedKey={memberId} onSelectionChange={key => update({ memberId: String(key), groupId: "", offerRevisionId: "" })} className={styles.filter}>
           {(roster.data ?? []).map(member => <Option key={member.userId} id={member.userId}>{member.displayName || member.username}</Option>)}
         </Select>}
         {preset === "custom" ? (
           <>
-            <DateField aria-label="From" size="sm" value={parseDate(range.from)} onChange={(v) => v && update({ from: v.toString() })} />
+            <DateField aria-label={uiCopy["editor"]["panel"]["loadMin"]} size="sm" value={parseDate(range.from)} onChange={(v) => v && update({ from: v.toString() })} />
             <span className={styles.dash}>–</span>
-            <DateField aria-label="To" size="sm" value={parseDate(range.to)} onChange={(v) => v && update({ to: v.toString() })} />
+            <DateField aria-label={uiCopy["editor"]["panel"]["loadMax"]} size="sm" value={parseDate(range.to)} onChange={(v) => v && update({ to: v.toString() })} />
           </>
         ) : null}
-        <Select aria-label="Trend buckets" size="sm" selectedKey={grouping} onSelectionChange={(k) => update({ grouping: String(k) })} className={styles.filter}>
-          <Option id="day">Daily</Option>
-          <Option id="week">Weekly</Option>
-          <Option id="month">Monthly</Option>
+        <Select aria-label={uiCopy["ui"]["Trend buckets"]} size="sm" selectedKey={grouping} onSelectionChange={(k) => update({ grouping: String(k) })} className={styles.filter}>
+          <Option id="day">{uiCopy["ui"]["Daily"]}</Option>
+          <Option id="week">{uiCopy["ui"]["Weekly"]}</Option>
+          <Option id="month">{uiCopy["ui"]["Monthly"]}</Option>
         </Select>
-        <Select aria-label="Client group" size="sm" selectedKey={group || "all"} onSelectionChange={(k) => update({ groupId: k === "all" ? "" : String(k) })} className={styles.filter}>
+        <Select aria-label={uiCopy["ui"]["Client group"]} size="sm" selectedKey={group || "all"} onSelectionChange={(k) => update({ groupId: k === "all" ? "" : String(k) })} className={styles.filter}>
           {[{ id: "all", name: "All clients" }, ...(metadata?.filters.groups ?? [])].map((g) => (
             <Option key={g.id} id={g.id}>
               {g.name}
             </Option>
           ))}
         </Select>
-        <Select aria-label="Offer" size="sm" selectedKey={offer || "all"} onSelectionChange={(k) => update({ offerRevisionId: k === "all" ? "" : String(k) })} className={styles.filter}>
+        <Select aria-label={uiCopy["ui"]["Offer"]} size="sm" selectedKey={offer || "all"} onSelectionChange={(k) => update({ offerRevisionId: k === "all" ? "" : String(k) })} className={styles.filter}>
           {[{ id: "all", name: "All offers" }, ...(metadata?.filters.offers ?? [])].map((o) => (
             <Option key={o.id} id={o.id}>
               {o.name}
@@ -169,7 +175,7 @@ function Workspace() {
           ))}
         </Select>
         {finance && finance.totals.length > 1 ? (
-          <Select aria-label="Currency" size="sm" selectedKey={currency || finance.totals[0]!.currency} onSelectionChange={(k) => update({ currency: String(k) })} className={styles.filter}>
+          <Select aria-label={uiCopy["ui"]["Currency"]} size="sm" selectedKey={currency || finance.totals[0]!.currency} onSelectionChange={(k) => update({ currency: String(k) })} className={styles.filter}>
             {finance.totals.map((t) => (
               <Option key={t.currency} id={t.currency}>
                 {t.currency}
@@ -185,16 +191,16 @@ function Workspace() {
       </div>
 
       {context.isError && <Failure error={context.error} retry={() => void context.refetch()} />}
-      {context.isSuccess && scope !== requestedScope && <Alert tone="warning" title="Requested scope unavailable">Your current membership allows only the scopes listed above. Showing your Personal activity.</Alert>}
-      {scope === "TeamMember" && !admin && <p>Only your own assigned Team activity is available. Other coaches' private cases are excluded.</p>}
+      {context.isSuccess && scope !== requestedScope && <Alert tone="warning" title={uiCopy["ui"]["Requested scope unavailable"]}>{uiCopy["ui"]["Your current membership allows only the scopes listed above. Showing your Personal activity."]}</Alert>}
+      {scope === "TeamMember" && !admin && <p>{uiCopy["ui"]["Only your own assigned Team activity is available. Other coaches' private cases are excluded."]}</p>}
       {admin && scope === "TeamMember" && roster.isError && <Failure error={roster.error} retry={() => void roster.refetch()} />}
       <Tabs selectedKey={tab} onSelectionChange={(key) => update({ tab: String(key) })}>
-        <TabList aria-label="Analysis sections">
-          <Tab id="overview">Overview</Tab>
-          <Tab id="finance">Finance</Tab>
-          <Tab id="clients">Clients</Tab>
-          <Tab id="checkins">Check-ins</Tab>
-          <Tab id="training">Training</Tab>
+        <TabList aria-label={uiCopy["ui"]["Analysis sections"]}>
+          <Tab id="overview">{uiCopy["exercises"]["detail"]["overview"]}</Tab>
+          <Tab id="finance">{uiCopy["dashboard"]["coach"]["finance"]}</Tab>
+          <Tab id="clients">{uiCopy["dashboard"]["coach"]["clients"]}</Tab>
+          <Tab id="checkins">{uiCopy["ui"]["Check-ins"]}</Tab>
+          <Tab id="training">{uiCopy["profile"]["completeItems"]["training"]}</Tab>
         </TabList>
         {analysis.error ? (
           <Failure error={analysis.error} retry={() => void analysis.retry()} />
@@ -230,62 +236,64 @@ function useFinance(data: FinanceData, currency: string) {
 }
 
 function OverviewTab({ data, currency }: { data: Overview; currency: string }) {
+  const uiCopy = useUiCopy();
+
   const { selected, prior, series, previous, fmt, offers } = useFinance(data, currency);
   const c = data.clients;
   const k = data.checkIns;
   return (
     <div className={styles.grid}>
       <div className={styles.kpis}>
-        <Kpi index={0} label="Revenue" value={selected?.gross ?? 0} format={fmt} previous={prior?.gross ?? 0} spark={series.map((x) => x.gross)} />
-        <Kpi index={1} label="Active clients" tone="info" value={c.active} previous={data.previousClients.active} spark={c.series.map((x) => x.active)} />
-        <Kpi index={2} label="Check-ins submitted" tone="violet" value={k.submitted} previous={data.previousCheckIns.submitted} spark={k.series.map((x) => x.submitted)} />
-        <Kpi index={3} label="Applications accepted" tone="warning" value={data.acquisition.accepted} previous={data.previousAcquisition.accepted} caption={`${data.acquisition.submitted} submitted in this period`} />
+        <Kpi index={0} label={uiCopy["ui"]["Revenue"]} value={selected?.gross ?? 0} format={fmt} previous={prior?.gross ?? 0} spark={series.map((x) => x.gross)} />
+        <Kpi index={1} label={uiCopy["dashboard"]["coach"]["activeClients"]} tone="info" value={c.active} previous={data.previousClients.active} spark={c.series.map((x) => x.active)} />
+        <Kpi index={2} label={uiCopy["dashboard"]["coach"]["checkInsSubmitted"]} tone="violet" value={k.submitted} previous={data.previousCheckIns.submitted} spark={k.series.map((x) => x.submitted)} />
+        <Kpi index={3} label={uiCopy["ui"]["Applications accepted"]} tone="warning" value={data.acquisition.accepted} previous={data.previousAcquisition.accepted} caption={`${data.acquisition.submitted} submitted in this period`} />
       </div>
 
-      <Panel index={1} wide title="Revenue" description="Settled client payments compared with the previous period." action={<Legend items={[{ label: "This period", tone: "accent" }, { label: "Previous", tone: "neutral", ghost: true }]} />}>
+      <Panel index={1} wide title={uiCopy["ui"]["Revenue"]} description={uiCopy["ui"]["Settled client payments compared with the previous period."]} action={<Legend items={[{ label: uiCopy["ui"]["This period"], tone: "accent" }, { label: uiCopy["common"]["previous"], tone: "neutral", ghost: true }]} />}>
         {selected ? (
           <AreaChart
             labels={series.map((x) => x.date)}
             format={fmt}
             series={[
-              { label: "Previous", tone: "neutral", ghost: true, values: series.map((_, i) => previous[i]?.gross ?? 0) },
-              { label: "This period", tone: "accent", values: series.map((x) => x.gross) },
+              { label: uiCopy["common"]["previous"], tone: "neutral", ghost: true, values: series.map((_, i) => previous[i]?.gross ?? 0) },
+              { label: uiCopy["ui"]["This period"], tone: "accent", values: series.map((x) => x.gross) },
             ]}
           />
         ) : (
-          <NoData height={240} title="No payments in this period" hint="Settled client-service payments appear here." />
+          <NoData height={240} title={uiCopy["ui"]["No payments in this period"]} hint={uiCopy["ui"]["Settled client-service payments appear here."]} />
         )}
       </Panel>
-      <Panel index={2} title="Revenue by offer">
-        {offers.length ? <Donut center="gross" format={fmt} items={offers.map((o, i) => ({ label: o.name, value: o.gross, tone: OFFER_TONES[i % OFFER_TONES.length]! }))} /> : <NoData title="No offer revenue" hint="Revenue by offer appears after the first payment." />}
+      <Panel index={2} title={uiCopy["ui"]["Revenue by offer"]}>
+        {offers.length ? <Donut center="gross" format={fmt} items={offers.map((o, i) => ({ label: o.name, value: o.gross, tone: OFFER_TONES[i % OFFER_TONES.length]! }))} /> : <NoData title={uiCopy["ui"]["No offer revenue"]} hint={uiCopy["ui"]["Revenue by offer appears after the first payment."]} />}
       </Panel>
 
-      <Panel index={3} wide title="Active clients" action={<More to="/app/clients">Clients</More>}>
-        <AreaChart height={200} labels={c.series.map((x) => x.date)} series={[{ label: "Active clients", tone: "info", values: c.series.map((x) => x.active) }]} />
+      <Panel index={3} wide title={uiCopy["dashboard"]["coach"]["activeClients"]} action={<More to="/app/clients">{uiCopy["dashboard"]["coach"]["clients"]}</More>}>
+        <AreaChart height={200} labels={c.series.map((x) => x.date)} series={[{ label: uiCopy["dashboard"]["coach"]["activeClients"], tone: "info", values: c.series.map((x) => x.active) }]} />
       </Panel>
-      <Panel index={4} title="Health" description="Shares of clients and requests.">
+      <Panel index={4} title={uiCopy["ui"]["Health"]} description={uiCopy["ui"]["Shares of clients and requests."]}>
         <div className={styles.rings}>
-          <Ring value={c.retentionPercent} label="Retention" caption="Still active at period end" tone="info" />
-          <Ring value={k.submissionRate} label="Check-in rate" caption="Submitted of issued" tone="violet" />
+          <Ring value={c.retentionPercent} label={uiCopy["dashboard"]["coach"]["retention"]} caption="Still active at period end" tone="info" />
+          <Ring value={k.submissionRate} label={uiCopy["ui"]["Check-in rate"]} caption="Submitted of issued" tone="violet" />
         </div>
       </Panel>
 
-      <Panel index={5} wide title="Check-ins" description="Submitted and overdue requests per bucket." action={<Legend items={[{ label: "Submitted", tone: "violet" }, { label: "Overdue", tone: "warning" }]} />}>
-        <StackedBars labels={k.series.map((x) => x.date)} series={[{ label: "Submitted", tone: "violet", values: k.series.map((x) => x.submitted) }, { label: "Overdue", tone: "warning", values: k.series.map((x) => x.overdue) }]} />
+      <Panel index={5} wide title={uiCopy["ui"]["Check-ins"]} description={uiCopy["ui"]["Submitted and overdue requests per bucket."]} action={<Legend items={[{ label: uiCopy["ui"]["Submitted"], tone: "violet" }, { label: uiCopy["ui"]["Overdue"], tone: "warning" }]} />}>
+        <StackedBars labels={k.series.map((x) => x.date)} series={[{ label: uiCopy["ui"]["Submitted"], tone: "violet", values: k.series.map((x) => x.submitted) }, { label: uiCopy["ui"]["Overdue"], tone: "warning", values: k.series.map((x) => x.overdue) }]} />
       </Panel>
-      <Panel index={6} title="Roster flow" description="New and returning clients above the line, departures below.">
+      <Panel index={6} title={uiCopy["ui"]["Roster flow"]} description={uiCopy["ui"]["New and returning clients above the line, departures below."]}>
         <FlowBars labels={c.series.map((x) => x.date)} gains={c.series.map((x) => x.newClients + x.reactivated)} losses={c.series.map((x) => x.departed)} />
         <dl className={styles.facts}>
           <div>
-            <dt>Joined</dt>
+            <dt>{uiCopy["dashboard"]["coach"]["newClients"]}</dt>
             <dd data-tone="up">+{c.newClients + c.reactivated}</dd>
           </div>
           <div>
-            <dt>Left</dt>
+            <dt>{uiCopy["dashboard"]["coach"]["departed"]}</dt>
             <dd data-tone="down">−{c.departed}</dd>
           </div>
           <div>
-            <dt>Net</dt>
+            <dt>{uiCopy["ui"]["Net"]}</dt>
             <dd>{c.netGrowth > 0 ? `+${c.netGrowth}` : c.netGrowth}</dd>
           </div>
         </dl>
@@ -295,56 +303,58 @@ function OverviewTab({ data, currency }: { data: Overview; currency: string }) {
 }
 
 function FinanceTab({ data, currency }: { data: FinanceData; currency: string }) {
+  const uiCopy = useUiCopy();
+
   const { selected, prior, series, previous, fmt, offers } = useFinance(data, currency);
   if (!selected)
-    return <EmptyState title="No financial activity" description="Settled client-service payments, pending dues and recurring services appear here. Metrivum plan payments are excluded." />;
+    return <EmptyState title={uiCopy["ui"]["No financial activity"]} description={uiCopy["ui"]["Settled client-service payments, pending dues and recurring services appear here. Metrivum plan payments are excluded."]} />;
   return (
     <div className={styles.grid}>
       <div className={styles.kpis}>
-        <Kpi index={0} label="Settled gross" value={selected.gross} format={fmt} previous={prior?.gross ?? 0} spark={series.map((x) => x.gross)} />
-        <Kpi index={1} label="Coach net" tone="info" value={selected.net} format={fmt} previous={prior?.net ?? 0} spark={series.map((x) => x.net)} />
+        <Kpi index={0} label={uiCopy["ui"]["Settled gross"]} value={selected.gross} format={fmt} previous={prior?.gross ?? 0} spark={series.map((x) => x.gross)} />
+        <Kpi index={1} label={uiCopy["ui"]["Coach net"]} tone="info" value={selected.net} format={fmt} previous={prior?.net ?? 0} spark={series.map((x) => x.net)} />
         <Kpi index={2} label="MRR" tone="violet" value={selected.mrr} format={fmt} caption={`${selected.recurringSubscriptions} recurring ${selected.recurringSubscriptions === 1 ? "service" : "services"} at period end`}
           info="Monthly recurring revenue from contracted services: weekly prices × 52 / 12, monthly as they are, yearly / 12." />
-        <Kpi index={3} label="Unpaid dues" tone="warning" value={selected.pending} format={fmt} caption="Due within this period" />
+        <Kpi index={3} label={uiCopy["ui"]["Unpaid dues"]} tone="warning" value={selected.pending} format={fmt} caption="Due within this period" />
       </div>
-      <Panel index={1} wide title="Gross and net" description="What clients paid and what you kept after platform fees." action={<Legend items={[{ label: "Gross", tone: "accent" }, { label: "Net", tone: "info" }, { label: "Previous gross", tone: "neutral", ghost: true }]} />}>
+      <Panel index={1} wide title={uiCopy["ui"]["Gross and net"]} description={uiCopy["ui"]["What clients paid and what you kept after platform fees."]} action={<Legend items={[{ label: uiCopy["dashboard"]["coach"]["gross"], tone: "accent" }, { label: uiCopy["ui"]["Net"], tone: "info" }, { label: uiCopy["ui"]["Previous gross"], tone: "neutral", ghost: true }]} />}>
         <AreaChart
           height={260}
           labels={series.map((x) => x.date)}
           format={fmt}
           series={[
-            { label: "Previous gross", tone: "neutral", ghost: true, values: series.map((_, i) => previous[i]?.gross ?? 0) },
-            { label: "Gross", tone: "accent", values: series.map((x) => x.gross) },
-            { label: "Net", tone: "info", values: series.map((x) => x.net) },
+            { label: uiCopy["ui"]["Previous gross"], tone: "neutral", ghost: true, values: series.map((_, i) => previous[i]?.gross ?? 0) },
+            { label: uiCopy["dashboard"]["coach"]["gross"], tone: "accent", values: series.map((x) => x.gross) },
+            { label: uiCopy["ui"]["Net"], tone: "info", values: series.map((x) => x.net) },
           ]}
         />
       </Panel>
-      <Panel index={2} title="Payments" description="Settled in this period.">
+      <Panel index={2} title={uiCopy["ui"]["Payments"]} description={uiCopy["ui"]["Settled in this period."]}>
         <div className={styles.payHero}>
           <div>
             <strong><AnimatedNumber value={selected.payments} /></strong>
-            <span>{selected.payments === 1 ? "payment" : "payments"}</span>
+            <span>{selected.payments === 1 ? uiCopy["ui"]["payment"] : uiCopy["ui"]["payments"]}</span>
           </div>
           <div>
             <strong><AnimatedNumber value={selected.averagePayment} format={fmt} /></strong>
-            <span>average payment</span>
+            <span>{uiCopy["ui"]["average payment"]}</span>
           </div>
         </div>
         <dl className={styles.payRows}>
-          <PayRow label="Paying clients" value={String(selected.payingClients)} />
-          <PayRow label="Per paying client" value={fmt(selected.revenuePerPayingClient)} />
-          <PayRow label="Renewals" value={String(selected.renewals)} note={selected.payments ? `${Math.round((selected.renewals / selected.payments) * 100)}% of payments` : undefined} />
-          <PayRow label="Platform fee" value={fmt(selected.fee)} note={selected.gross ? `${((selected.fee / selected.gross) * 100).toFixed(1)}% of gross` : undefined} />
+          <PayRow label={uiCopy["dashboard"]["coach"]["payingClients"]} value={String(selected.payingClients)} />
+          <PayRow label={uiCopy["ui"]["Per paying client"]} value={fmt(selected.revenuePerPayingClient)} />
+          <PayRow label={uiCopy["ui"]["Renewals"]} value={String(selected.renewals)} note={selected.payments ? `${Math.round((selected.renewals / selected.payments) * 100)}% of payments` : undefined} />
+          <PayRow label={uiCopy["ui"]["Platform fee"]} value={fmt(selected.fee)} note={selected.gross ? `${((selected.fee / selected.gross) * 100).toFixed(1)}% of gross` : undefined} />
         </dl>
       </Panel>
-      <Panel index={3} title="Revenue by offer" action={<More to="/app/offers">Offers</More>}>
-        {offers.length ? <Donut center="gross" format={fmt} items={offers.map((o, i) => ({ label: o.name, value: o.gross, tone: OFFER_TONES[i % OFFER_TONES.length]! }))} /> : <NoData title="No offer revenue" hint="Revenue by offer appears after the first payment." />}
+      <Panel index={3} title={uiCopy["ui"]["Revenue by offer"]} action={<More to="/app/offers">{uiCopy["profile"]["showcase"]["offersStat"]}</More>}>
+        {offers.length ? <Donut center="gross" format={fmt} items={offers.map((o, i) => ({ label: o.name, value: o.gross, tone: OFFER_TONES[i % OFFER_TONES.length]! }))} /> : <NoData title={uiCopy["ui"]["No offer revenue"]} hint={uiCopy["ui"]["Revenue by offer appears after the first payment."]} />}
       </Panel>
-      <Panel index={4} title="Net by offer" description="Ranked by what you kept.">
+      <Panel index={4} title={uiCopy["ui"]["Net by offer"]} description={uiCopy["ui"]["Ranked by what you kept."]}>
         <RankList format={fmt} items={offers.map((o) => ({ key: o.offerRevisionId, label: o.name, value: o.net, note: `${o.payments} payments · ${o.clients} clients` }))} />
       </Panel>
-      <Panel index={5} title="How it was paid" description="Simulated payments move no real money.">
-        <Split stacked format={fmt} a={{ label: "Simulated", value: Math.round(selected.simulatedGross), tone: "violet" }} b={{ label: "Recorded externally", value: Math.round(selected.externalGross), tone: "info" }} />
+      <Panel index={5} title={uiCopy["ui"]["How it was paid"]} description={uiCopy["ui"]["Simulated payments move no real money."]}>
+        <Split stacked format={fmt} a={{ label: uiCopy["ui"]["Simulated"], value: Math.round(selected.simulatedGross), tone: "violet" }} b={{ label: uiCopy["ui"]["Recorded externally"], value: Math.round(selected.externalGross), tone: "info" }} />
       </Panel>
     </div>
   );
@@ -373,55 +383,57 @@ function PayRow({ label, value, note }: { label: string; value: string; note?: s
 }
 
 function ClientsTab({ data }: { data: ClientsData }) {
+  const uiCopy = useUiCopy();
+
   const c = data.clients;
   const a = data.acquisition;
   return (
     <div className={styles.grid}>
       <div className={styles.kpis}>
-        <Kpi index={0} label="Active clients" tone="info" value={c.active} previous={data.previousClients.active} spark={c.series.map((x) => x.active)} />
-        <Kpi index={1} label="First-time clients" value={c.newClients} previous={data.previousClients.newClients} spark={c.series.map((x) => x.newClients)} />
-        <Kpi index={2} label="Reactivated" tone="violet" value={c.reactivated} caption="Returned from suspended or completed" />
-        <Kpi index={3} label="Departed" tone="danger" value={c.departed} previous={data.previousClients.departed} invert caption="Active clients who left" />
+        <Kpi index={0} label={uiCopy["dashboard"]["coach"]["activeClients"]} tone="info" value={c.active} previous={data.previousClients.active} spark={c.series.map((x) => x.active)} />
+        <Kpi index={1} label={uiCopy["ui"]["First-time clients"]} value={c.newClients} previous={data.previousClients.newClients} spark={c.series.map((x) => x.newClients)} />
+        <Kpi index={2} label={uiCopy["ui"]["Reactivated"]} tone="violet" value={c.reactivated} caption="Returned from suspended or completed" />
+        <Kpi index={3} label={uiCopy["ui"]["Departed"]} tone="danger" value={c.departed} previous={data.previousClients.departed} invert caption="Active clients who left" />
       </div>
-      <Panel index={1} wide title="Active clients over time" action={<More to="/app/clients">Clients</More>}>
-        <AreaChart labels={c.series.map((x) => x.date)} series={[{ label: "Active clients", tone: "info", values: c.series.map((x) => x.active) }]} />
+      <Panel index={1} wide title={uiCopy["ui"]["Active clients over time"]} action={<More to="/app/clients">{uiCopy["dashboard"]["coach"]["clients"]}</More>}>
+        <AreaChart labels={c.series.map((x) => x.date)} series={[{ label: uiCopy["dashboard"]["coach"]["activeClients"], tone: "info", values: c.series.map((x) => x.active) }]} />
       </Panel>
-      <Panel index={2} title="Status">
+      <Panel index={2} title={uiCopy["usage"]["colState"]}>
         <div className={styles.rings}>
-          <Ring value={c.retentionPercent} label="Retention" caption="Starting clients still active" tone="info" />
-          <Ring value={a.conversionPercent} label="Conversion" caption="Accepted of submitted" tone="warning" />
+          <Ring value={c.retentionPercent} label={uiCopy["dashboard"]["coach"]["retention"]} caption="Starting clients still active" tone="info" />
+          <Ring value={a.conversionPercent} label={uiCopy["ui"]["Conversion"]} caption="Accepted of submitted" tone="warning" />
         </div>
-        <Split a={{ label: "Suspended", value: c.suspended, tone: "warning" }} b={{ label: "Completed", value: c.completed, tone: "neutral" }} />
+        <Split a={{ label: uiCopy["dashboard"]["coach"]["status"]["Suspended"]!, value: c.suspended, tone: "warning" }} b={{ label: uiCopy["video"]["detail"]["completed"], value: c.completed, tone: "neutral" }} />
       </Panel>
-      <Panel index={3} title="Applications" description="Applications submitted in this period, by their latest decision." action={<More to="/app/leads">Review</More>}>
+      <Panel index={3} title={uiCopy["ui"]["Applications"]} description={uiCopy["ui"]["Applications submitted in this period, by their latest decision."]} action={<More to="/app/leads">{uiCopy["ui"]["Review"]}</More>}>
         <Funnel
           steps={[
-            { label: "Submitted", value: a.submitted, tone: "info" },
-            { label: "Accepted", value: a.accepted, tone: "accent" },
+            { label: uiCopy["ui"]["Submitted"], value: a.submitted, tone: "info" },
+            { label: uiCopy["ui"]["Accepted"], value: a.accepted, tone: "accent" },
           ]}
         />
-        <p className={styles.muted}>{a.rejected} rejected, the rest still pending.</p>
+        <p className={styles.muted}>{a.rejected}  {uiCopy["ui"]["rejected, the rest still pending."]}</p>
       </Panel>
-      <Panel index={4} title="Where applications come from">
+      <Panel index={4} title={uiCopy["ui"]["Where applications come from"]}>
         <RankList
           tone="info"
           items={a.sources.map((s) => ({ key: s.source, label: s.source, value: s.submitted, note: `${s.accepted} accepted · ${s.pending} pending${s.conversionPercent === null ? "" : ` · ${s.conversionPercent}%`}` }))}
         />
       </Panel>
-      <Panel index={5} title="Invitations">
+      <Panel index={5} title={uiCopy["ui"]["Invitations"]}>
         <Funnel
           steps={[
-            { label: "Sent", value: a.invitationsSent, tone: "violet" },
-            { label: "Accepted", value: a.invitationsAccepted, tone: "accent" },
+            { label: uiCopy["ui"]["Sent"], value: a.invitationsSent, tone: "violet" },
+            { label: uiCopy["ui"]["Accepted"], value: a.invitationsAccepted, tone: "accent" },
           ]}
         />
-        <p className={styles.muted}>{a.invitationsDeclined} declined.</p>
+        <p className={styles.muted}>{a.invitationsDeclined}  {uiCopy["ui"]["declined."]}</p>
       </Panel>
-      <Panel index={6} wide title="Roster flow" description="New and returning clients above the line, departures below.">
+      <Panel index={6} wide title={uiCopy["ui"]["Roster flow"]} description={uiCopy["ui"]["New and returning clients above the line, departures below."]}>
         <FlowBars labels={c.series.map((x) => x.date)} gains={c.series.map((x) => x.newClients + x.reactivated)} losses={c.series.map((x) => x.departed)} />
       </Panel>
-      <Panel index={7} title="Groups" description="Current members. Groups overlap, so they don't add up." action={<More to="/app/groups">Groups</More>}>
-        {c.groups.length ? <RankList tone="violet" items={c.groups.map((g) => ({ key: g.id, label: g.name, value: g.clients }))} /> : <NoData height={120} title="No client groups yet" hint="Groups you create appear here with their members." />}
+      <Panel index={7} title={uiCopy["ui"]["Groups"]} description={uiCopy["ui"]["Current members. Groups overlap, so they don't add up."]} action={<More to="/app/groups">{uiCopy["ui"]["Groups"]}</More>}>
+        {c.groups.length ? <RankList tone="violet" items={c.groups.map((g) => ({ key: g.id, label: g.name, value: g.clients }))} /> : <NoData height={120} title={uiCopy["ui"]["No client groups yet"]} hint={uiCopy["ui"]["Groups you create appear here with their members."]} />}
       </Panel>
     </div>
   );
@@ -443,52 +455,54 @@ function lifts(progress: ProgressData) {
 }
 
 function TrainingTab({ data }: { data: TrainingData }) {
+  const uiCopy = useUiCopy();
+
   const t = data.training.progress;
-  if (!t) return <NoData height={260} title="No recorded training data" hint={data.training.reason} />;
+  if (!t) return <NoData height={260} title={uiCopy["ui"]["No recorded training data"]} hint={data.training.reason} />;
   const recorded = lifts(t);
   const onTime = Math.max(0, t.completed - t.loggedLate);
   return (
     <div className={styles.grid}>
       <div className={styles.kpis}>
-        <Kpi index={0} label="Workouts completed" tone="accent" value={t.completed} caption={`of ${t.due} due in this period`} />
-        <Kpi index={1} label="Not logged by deadline" tone="danger" value={t.missed} caption="Due workouts with no log" />
-        <Kpi index={2} label="Skipped" tone="warning" value={t.skipped} caption="Marked as skipped by the client" />
-        <Kpi index={3} label="Active assignments" tone="info" value={t.activeAssignments} caption={`${t.inProgress} workouts in progress`} />
+        <Kpi index={0} label={uiCopy["ui"]["Workouts completed"]} tone="accent" value={t.completed} caption={`of ${t.due} due in this period`} />
+        <Kpi index={1} label={uiCopy["ui"]["Not logged by deadline"]} tone="danger" value={t.missed} caption="Due workouts with no log" />
+        <Kpi index={2} label={uiCopy["ui"]["Skipped"]} tone="warning" value={t.skipped} caption="Marked as skipped by the client" />
+        <Kpi index={3} label={uiCopy["ui"]["Active assignments"]} tone="info" value={t.activeAssignments} caption={`${t.inProgress} workouts in progress`} />
       </div>
 
-      <Panel index={1} title="Completion" description="Due workouts that were logged as completed.">
+      <Panel index={1} title={uiCopy["ui"]["Completion"]} description={uiCopy["ui"]["Due workouts that were logged as completed."]}>
         <div className={styles.rings}>
-          <Ring value={t.completionPercentage} label="Completion" caption={`${t.completed} / ${t.due} due`} tone="accent" />
+          <Ring value={t.completionPercentage} label={uiCopy["ui"]["Completion"]} caption={`${t.completed} / ${t.due} due`} tone="accent" />
         </div>
-        <Split a={{ label: "On time", value: onTime, tone: "accent" }} b={{ label: "Logged late", value: t.loggedLate, tone: "warning" }} />
+        <Split a={{ label: uiCopy["ui"]["On time"], value: onTime, tone: "accent" }} b={{ label: uiCopy["ui"]["Logged late"], value: t.loggedLate, tone: "warning" }} />
       </Panel>
 
-      <Panel index={2} title="Workout outcomes" description="Every workout due in this period, by what happened to it.">
+      <Panel index={2} title={uiCopy["ui"]["Workout outcomes"]} description={uiCopy["ui"]["Every workout due in this period, by what happened to it."]}>
         {t.due + t.inProgress > 0 ? (
           <Donut
             center="workouts"
             format={(n) => String(Math.round(n))}
             items={[
-              { label: "Completed", value: t.completed, tone: "accent" },
-              { label: "In progress", value: t.inProgress, tone: "info" },
-              { label: "Skipped", value: t.skipped, tone: "warning" },
-              { label: "Not logged", value: t.missed, tone: "danger" },
+              { label: uiCopy["video"]["detail"]["completed"], value: t.completed, tone: "accent" },
+              { label: uiCopy["ui"]["In progress"], value: t.inProgress, tone: "info" },
+              { label: uiCopy["ui"]["Skipped"], value: t.skipped, tone: "warning" },
+              { label: uiCopy["ui"]["Not logged"], value: t.missed, tone: "danger" },
             ]}
           />
         ) : (
-          <NoData height={160} title="Nothing was due" hint="Assign a program to see outcomes here." />
+          <NoData height={160} title={uiCopy["ui"]["Nothing was due"]} hint={uiCopy["ui"]["Assign a program to see outcomes here."]} />
         )}
       </Panel>
 
-      <Panel index={3} title="Work done" description="From logged sets only. Prescribed weights never count as training.">
+      <Panel index={3} title={uiCopy["ui"]["Work done"]} description={uiCopy["ui"]["From logged sets only. Prescribed weights never count as training."]}>
         <div className={styles.stats}>
-          <Stat label="Sets" value={t.actualSets.toLocaleString()} />
-          <Stat label="Reps" value={t.actualReps.toLocaleString()} />
-          <Stat label="Volume" value={t.volumeKg == null ? "—" : `${compact(t.volumeKg)} kg`} />
+          <Stat label={uiCopy["editor"]["grid"]} value={t.actualSets.toLocaleString()} />
+          <Stat label={uiCopy["editor"]["columns"]["reps"]} value={t.actualReps.toLocaleString()} />
+          <Stat label={uiCopy["editor"]["sheet"]["volume"]["title"]} value={t.volumeKg == null ? "—" : `${compact(t.volumeKg)} kg`} />
         </div>
       </Panel>
 
-      <Panel index={4} wide title="Lifts" description="Best recorded load per training date. Each lift and load meaning is kept separate." action={<More to="/app/programs">Programs</More>}>
+      <Panel index={4} wide title={uiCopy["ui"]["Lifts"]} description={uiCopy["ui"]["Best recorded load per training date. Each lift and load meaning is kept separate."]} action={<More to="/app/programs">{uiCopy["training"]["programs"]["title"]}</More>}>
         {recorded.length ? (
           <ul className={styles.lifts}>
             {recorded.slice(0, 6).map((lift) => {
@@ -500,10 +514,10 @@ function TrainingTab({ data }: { data: TrainingData }) {
                   <div className={styles.liftName}>
                     <strong>{lift.name}</strong>
                     <span>
-                      {lift.meaning} · {lift.sets} sets
+                      {lift.meaning} · {lift.sets}  {uiCopy["ui"]["sets"]}
                     </span>
                   </div>
-                  {lift.points.length > 1 ? <Sparkline tone="accent" values={lift.points.map((p) => p.load)} /> : <span className={styles.muted}>One session</span>}
+                  {lift.points.length > 1 ? <Sparkline tone="accent" values={lift.points.map((p) => p.load)} /> : <span className={styles.muted}>{uiCopy["ui"]["One session"]}</span>}
                   <div className={styles.liftValue}>
                     <strong>{last == null ? "—" : `${last} kg`}</strong>
                     {delta ? <span data-tone={delta > 0 ? "up" : "down"}>{`${delta > 0 ? "+" : ""}${Math.round(delta * 10) / 10} kg`}</span> : null}
@@ -513,15 +527,15 @@ function TrainingTab({ data }: { data: TrainingData }) {
             })}
           </ul>
         ) : (
-          <NoData height={140} title="No recorded lifts yet" hint="Charts appear after clients log actual sets." />
+          <NoData height={140} title={uiCopy["ui"]["No recorded lifts yet"]} hint={uiCopy["ui"]["Charts appear after clients log actual sets."]} />
         )}
       </Panel>
 
-      <Panel index={5} title="Programs" description="Completed workouts per program.">
-        {t.programs.length ? <RankList tone="accent" items={t.programs.map((p) => ({ key: p.programId, label: p.programName, value: p.completed }))} /> : <NoData height={120} title="No completed workouts" />}
+      <Panel index={5} title={uiCopy["training"]["programs"]["title"]} description={uiCopy["ui"]["Completed workouts per program."]}>
+        {t.programs.length ? <RankList tone="accent" items={t.programs.map((p) => ({ key: p.programId, label: p.programName, value: p.completed }))} /> : <NoData height={120} title={uiCopy["ui"]["No completed workouts"]} />}
       </Panel>
 
-      <Panel index={6} full title="Clients" description="Due and completed workouts per client in this period." action={<More to="/app/clients">Clients</More>}>
+      <Panel index={6} full title={uiCopy["dashboard"]["coach"]["clients"]} description={uiCopy["ui"]["Due and completed workouts per client in this period."]} action={<More to="/app/clients">{uiCopy["dashboard"]["coach"]["clients"]}</More>}>
         {t.clients.length ? (
           <RankList
             tone="info"
@@ -529,51 +543,53 @@ function TrainingTab({ data }: { data: TrainingData }) {
               .sort((a, b) => b.missed - a.missed || a.completed / Math.max(1, a.due) - b.completed / Math.max(1, b.due))
               .map((c, i) => ({
                 key: c.relationshipId,
-                label: <Link to={`/app/clients/${c.relationshipId}?tab=progress`}>{`Client ${i + 1}`}</Link>,
+                label: <Link to={`/app/clients/${c.relationshipId}?tab=progress`}>{formatInterfaceText(uiCopy["ui"]["Client {0}"], [i + 1])}</Link>,
                 value: c.completed,
                 note: `${c.completed} / ${c.due} done · ${c.missed} not logged${c.latestCompletedAt ? ` · last ${shortDate(c.latestCompletedAt.slice(0, 10))}` : ""}`,
               }))}
           />
         ) : (
-          <NoData height={120} title="No client workouts in this period" />
+          <NoData height={120} title={uiCopy["ui"]["No client workouts in this period"]} />
         )}
       </Panel>
 
       {/* How the numbers are counted: behind a small info button instead of a paragraph under the page. */}
       <div className={styles.definition}>
-        <InfoTip label="How these numbers are calculated" placement="top start">{t.metricDefinition}</InfoTip>
-        <span className={styles.definitionLabel}>How these numbers are calculated</span>
+        <InfoTip label={uiCopy["ui"]["How these numbers are calculated"]} placement="top start">{t.metricDefinition}</InfoTip>
+        <span className={styles.definitionLabel}>{uiCopy["ui"]["How these numbers are calculated"]}</span>
       </div>
     </div>
   );
 }
 
 function CheckInsTab({ data }: { data: CheckInsData }) {
+  const uiCopy = useUiCopy();
+
   const k = data.checkIns;
   const p = data.previousCheckIns;
   return (
     <div className={styles.grid}>
       <div className={styles.kpis}>
-        <Kpi index={0} label="Issued" tone="info" value={k.issued} previous={p.issued} spark={k.series.map((x) => x.issued)} />
-        <Kpi index={1} label="Submitted" tone="violet" value={k.submitted} previous={p.submitted} spark={k.series.map((x) => x.submitted)} />
-        <Kpi index={2} label="Overdue" tone="warning" value={k.overdue} previous={p.overdue} invert spark={k.series.map((x) => x.overdue)} />
-        <Kpi index={3} label="Awaiting your review" tone="danger" value={k.pendingReview} caption="Submitted, not reviewed yet" />
+        <Kpi index={0} label={uiCopy["ui"]["Issued"]} tone="info" value={k.issued} previous={p.issued} spark={k.series.map((x) => x.issued)} />
+        <Kpi index={1} label={uiCopy["ui"]["Submitted"]} tone="violet" value={k.submitted} previous={p.submitted} spark={k.series.map((x) => x.submitted)} />
+        <Kpi index={2} label={uiCopy["ui"]["Overdue"]} tone="warning" value={k.overdue} previous={p.overdue} invert spark={k.series.map((x) => x.overdue)} />
+        <Kpi index={3} label={uiCopy["ui"]["Awaiting your review"]} tone="danger" value={k.pendingReview} caption="Submitted, not reviewed yet" />
       </div>
-      <Panel index={1} wide title="Requests per bucket" action={<Legend items={[{ label: "Submitted", tone: "violet" }, { label: "Overdue", tone: "warning" }]} />}>
-        <StackedBars height={240} labels={k.series.map((x) => x.date)} series={[{ label: "Submitted", tone: "violet", values: k.series.map((x) => x.submitted) }, { label: "Overdue", tone: "warning", values: k.series.map((x) => x.overdue) }]} />
+      <Panel index={1} wide title={uiCopy["ui"]["Requests per bucket"]} action={<Legend items={[{ label: uiCopy["ui"]["Submitted"], tone: "violet" }, { label: uiCopy["ui"]["Overdue"], tone: "warning" }]} />}>
+        <StackedBars height={240} labels={k.series.map((x) => x.date)} series={[{ label: uiCopy["ui"]["Submitted"], tone: "violet", values: k.series.map((x) => x.submitted) }, { label: uiCopy["ui"]["Overdue"], tone: "warning", values: k.series.map((x) => x.overdue) }]} />
       </Panel>
-      <Panel index={2} title="Response" action={<More to="/app/check-ins">Check-ins</More>}>
+      <Panel index={2} title={uiCopy["ui"]["Response"]} action={<More to="/app/check-ins">{uiCopy["ui"]["Check-ins"]}</More>}>
         <div className={styles.rings}>
-          <Ring value={k.submissionRate} label="Submission rate" tone="violet" />
-          <Ring value={k.averageReviewHours === null ? null : Math.max(0, 100 - (k.averageReviewHours / 48) * 100)} label={k.averageReviewHours === null ? "Review time" : `${k.averageReviewHours.toFixed(1)} h to review`} caption="Faster fills the ring (48 h = empty)" tone="accent" />
+          <Ring value={k.submissionRate} label={uiCopy["ui"]["Submission rate"]} tone="violet" />
+          <Ring value={k.averageReviewHours === null ? null : Math.max(0, 100 - (k.averageReviewHours / 48) * 100)} label={k.averageReviewHours === null ? uiCopy["ui"]["Review time"] : `${k.averageReviewHours.toFixed(1)} h to review`} caption="Faster fills the ring (48 h = empty)" tone="accent" />
         </div>
       </Panel>
-      <Panel index={3} wide title="Issued over time">
-        <AreaChart height={200} labels={k.series.map((x) => x.date)} format={(n) => String(Math.round(n))} series={[{ label: "Issued", tone: "info", values: k.series.map((x) => x.issued) }]} />
+      <Panel index={3} wide title={uiCopy["ui"]["Issued over time"]}>
+        <AreaChart height={200} labels={k.series.map((x) => x.date)} format={(n) => String(Math.round(n))} series={[{ label: uiCopy["ui"]["Issued"], tone: "info", values: k.series.map((x) => x.issued) }]} />
       </Panel>
-      <Panel index={4} title="Messages" description="Counts only; message contents are never analyzed." action={<More to="/app/messages">Messages</More>}>
-        <Split a={{ label: "Sent", value: data.messaging.sent, tone: "accent" }} b={{ label: "Received", value: data.messaging.received, tone: "info" }} />
-        <p className={styles.muted}>{data.messaging.conversations} conversations with activity.</p>
+      <Panel index={4} title={uiCopy["settings"]["areas"]["messaging"]!} description={uiCopy["ui"]["Counts only; message contents are never analyzed."]} action={<More to="/app/messages">{uiCopy["settings"]["areas"]["messaging"]!}</More>}>
+        <Split a={{ label: uiCopy["ui"]["Sent"], value: data.messaging.sent, tone: "accent" }} b={{ label: uiCopy["ui"]["Received"], value: data.messaging.received, tone: "info" }} />
+        <p className={styles.muted}>{data.messaging.conversations}  {uiCopy["ui"]["conversations with activity."]}</p>
       </Panel>
     </div>
   );

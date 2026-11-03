@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Mic, Pause, Play, Square, Trash2 } from "lucide-react";
 import { IconButton } from "@metrivum/ui-web";
@@ -60,6 +61,8 @@ function bars(seed: string, count = 36) {
  * time. The audio element is the real player; it stays in the DOM, just without native controls.
  */
 export function VoicePlayer({ src, label, seed, durationMs, tone = "default", preview = false }: { preview?: boolean; src: string | null; label: string; seed: string; durationMs?: number | null; tone?: "default" | "mine" }) {
+ const uiCopy = useUiCopy();
+
     const audio = useRef<HTMLAudioElement>(null);
     const [playing, setPlaying] = useState(false);
     const [time, setTime] = useState(0);
@@ -69,7 +72,7 @@ export function VoicePlayer({ src, label, seed, durationMs, tone = "default", pr
     return (
         <div className={styles.voicePlayer} data-tone={tone} role="group" aria-label={label}>
             <IconButton
-                label={playing ? "Pause" : "Play"}
+                label={playing ? uiCopy["ui"]["Pause"] : uiCopy["ui"]["Play"]}
                 variant="ghost"
                 size="sm"
                 isDisabled={!src}
@@ -120,6 +123,8 @@ export function VoicePlayer({ src, label, seed, durationMs, tone = "default", pr
 
 /** A recorded message waiting to be sent, in the composer row where the text would be. */
 export function VoicePreview({ file, disabled, cancel }: { file: File; disabled: boolean; cancel: () => void }) {
+ const uiCopy = useUiCopy();
+
     const [url, setUrl] = useState("");
     useEffect(() => {
         const next = URL.createObjectURL(file);
@@ -128,8 +133,8 @@ export function VoicePreview({ file, disabled, cancel }: { file: File; disabled:
     }, [file]);
     return (
         <div className={styles.voiceBar}>
-            <IconButton label="Delete recording" icon={<Trash2 />} variant="ghost" size="sm" isDisabled={disabled} onPress={cancel} />
-            <VoicePlayer preview src={url || null} label="Preview voice message" seed={`${file.name}${file.size}`} />
+            <IconButton label={uiCopy["ui"]["Delete recording"]} icon={<Trash2 />} variant="ghost" size="sm" isDisabled={disabled} onPress={cancel} />
+            <VoicePlayer preview src={url || null} label={uiCopy["ui"]["Preview voice message"]} seed={`${file.name}${file.size}`} />
         </div>
     );
 }
@@ -137,6 +142,8 @@ export function VoicePreview({ file, disabled, cancel }: { file: File; disabled:
 export function VoiceRecorder({ disabled, onFile, onBusyChange }: {
     disabled: boolean; onFile: (file: File) => void; onBusyChange: (busy: boolean) => void;
 }) {
+ const uiCopy = useUiCopy();
+
     const [phase, setPhase] = useState<"idle" | "preparing" | "recording">("idle");
     const [elapsed, setElapsed] = useState(0);
     const [levels, setLevels] = useState<number[]>(Array(32).fill(2));
@@ -218,15 +225,15 @@ export function VoiceRecorder({ disabled, onFile, onBusyChange }: {
     // Idle: just the microphone. Recording: the whole composer row becomes the recorder.
     if (phase === "idle") {
         return <>
-            <IconButton label="Record voice message" variant="ghost" size="sm" icon={<Mic />} isDisabled={disabled} onPress={() => void start()} />
+            <IconButton label={uiCopy["ui"]["Record voice message"]} variant="ghost" size="sm" icon={<Mic />} isDisabled={disabled} onPress={() => void start()} />
             {error && <span role="alert" className={styles.voiceError}>{error}</span>}
         </>;
     }
     return <div className={styles.voiceBar} data-recording={phase === "recording" || undefined}>
-        <IconButton label="Cancel recording" icon={<Trash2 />} variant="ghost" size="sm" onPress={cancel} />
+        <IconButton label={uiCopy["ui"]["Cancel recording"]} icon={<Trash2 />} variant="ghost" size="sm" onPress={cancel} />
         <span className={styles.recDot} aria-hidden="true" />
-        <span role="status" className={styles.voiceTime}>{phase === "recording" ? clock(elapsed) : "Preparing..."}</span>
-        <span className={styles.waveform} role="img" aria-label="Live audio waveform">{levels.map((level, index) => <i key={index} style={{ height: phase === "recording" ? level : 2 }} />)}</span>
-        <IconButton label="Stop recording" className={styles.recordingStop} variant="ghost" size="sm" icon={<Square fill="currentColor" />} isDisabled={phase !== "recording"} onPress={() => recorder.current?.stop()} />
+        <span role="status" className={styles.voiceTime}>{phase === "recording" ? clock(elapsed) : uiCopy["ui"]["Preparing..."]}</span>
+        <span className={styles.waveform} role="img" aria-label={uiCopy["ui"]["Live audio waveform"]}>{levels.map((level, index) => <i key={index} style={{ height: phase === "recording" ? level : 2 }} />)}</span>
+        <IconButton label={uiCopy["ui"]["Stop recording"]} className={styles.recordingStop} variant="ghost" size="sm" icon={<Square fill="currentColor" />} isDisabled={phase !== "recording"} onPress={() => recorder.current?.stop()} />
     </div>;
 }

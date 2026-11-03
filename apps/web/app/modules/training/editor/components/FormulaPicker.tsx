@@ -1,3 +1,5 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useQuery } from "@tanstack/react-query";
 import type { FormulaUse, Unit } from "@metrivum/api-client-web";
 import { Combobox, NumberInput, Option, Select, Spinner } from "@metrivum/ui-web";
@@ -19,6 +21,8 @@ import styles from "./FormulaPicker.module.css";
  * computed by the server; the editor never evaluates expressions itself.
  */
 export function FormulaPicker({ value, onChange, customAllowed, isDisabled }: { value: FormulaUse; onChange: (value: FormulaUse) => void; customAllowed: boolean; isDisabled: boolean }) {
+ const uiCopy = useUiCopy();
+
   const m = useT();
   const t = m.editor.panel;
   const locale = useLocale();
@@ -74,7 +78,7 @@ export function FormulaPicker({ value, onChange, customAllowed, isDisabled }: { 
           <span className={styles.label}>{t.formulaInputs}</span>
           {Object.entries(inputs).map(([name, unit]) => (
             <div key={name}>
-              <Select label={`${name} source`} size="sm" selectedKey={(value as InlineFormulaUse).variableBindings?.[name] ?? "manual"} isDisabled={isDisabled} onSelectionChange={(key) => {
+              <Select label={formatInterfaceText(uiCopy["ui"]["{0} source"], [name])} size="sm" selectedKey={(value as InlineFormulaUse).variableBindings?.[name] ?? "manual"} isDisabled={isDisabled} onSelectionChange={(key) => {
                 const variableBindings = { ...(value as InlineFormulaUse).variableBindings };
                 const nextInputs = { ...value.inputs };
                 if (key === "manual") { delete variableBindings[name]; delete nextInputs[name]; }

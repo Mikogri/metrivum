@@ -1,3 +1,4 @@
+import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import type { ReactNode } from "react";
 import { Skeleton } from "@metrivum/ui-web";
 import styles from "./Panel.module.css";
@@ -90,9 +91,11 @@ export function StatStrip({ items }: { items: Stat[] }) {
 
 /** The stat strip's shape while its numbers load. */
 export function StatStripSkeleton({ count = 4, labels }: { count?: number; labels?: string[] }) {
+  const uiCopy = useUiCopy();
+
   const items = labels ?? Array.from({ length: count }, () => "");
   return (
-    <div className={styles.stats} aria-busy="true" aria-label="Loading">
+    <div className={styles.stats} aria-busy="true" aria-label={uiCopy["ui"]["Loading"]}>
       {items.map((label, i) => (
         <div key={i} className={styles.stat}>
           {label ? <span className={styles.skeletonLabel}>{label}</span> : <Skeleton width="55%" height="0.75rem" />}
