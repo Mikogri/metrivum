@@ -3,3 +3,5 @@ Allow: /
 Disallow: /app
 Disallow: /auth
 Disallow: /onboarding
+
+Sitemap: https://metrivum.com/sitemap.xml
