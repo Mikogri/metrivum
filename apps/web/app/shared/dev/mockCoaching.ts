@@ -564,6 +564,10 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     item.version += 1;
     return ok(item);
   }
+  if ((m = path.match(/^\/api\/v1\/me\/ai-consent\/([^/]+)(\/deny)?$/))) {
+    if (method === "GET") return ok({ authorizationId: m[1], clientId: "chatgpt-6f2c1a", clientName: "ChatGPT", redirectUri: "https://chatgpt.com/connector_platform_oauth_redirect", scopes: ["openid", "email"], availableGrants: Object.keys({ read_training: 1, write_training_drafts: 1, assign_programs: 1, read_clients: 1, read_checkins: 1, manage_checkins: 1, read_messages: 1, prepare_messages: 1, send_approved_messages: 1, read_finances: 1, read_calendar: 1 }) });
+    return { status: 503, body: { title: "Mock: the assistant's callback is not available in developer mode." } };
+  }
   if (path === "/api/v1/me/ai-actions" && method === "GET") return ok(aiActions);
   if (path === "/api/v1/me/ai-activity" && method === "GET") return ok(aiActivity);
   if (path === "/api/v1/me/ai-programming-preferences" && method === "GET") return ok(aiPreferences);

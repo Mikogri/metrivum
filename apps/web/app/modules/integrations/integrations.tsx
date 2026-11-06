@@ -2,7 +2,7 @@ import { useAppLocale, useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useId, useState, type ReactNode } from "react";
 import { Ban, Bot, Check, ChevronDown, ChevronRight, ClipboardCheck, Copy, ExternalLink, History, KeyRound, MessageSquare, Plug, ShieldCheck, Sparkles, TriangleAlert, Unplug } from "lucide-react";
 import { Link } from "react-router";
-import { Alert, Badge, Button, Card, Checkbox, EmptyState, InfoTip, Pagination, Skeleton, TextArea, type BadgeTone } from "@metrivum/ui-web";
+import { Alert, Badge, Button, Card, Checkbox, EmptyState, InfoTip, Pagination, Segment, SegmentedControl, Skeleton, TextArea, type BadgeTone } from "@metrivum/ui-web";
 import { apiBaseUrl } from "~/shared/http/config";
 import { connectionStatus, grants, useIntegrationMutation, useIntegrationQuery, type Action, type Activity, type Connection, type Preferences } from "./api";
 import { useIntegrationCopy } from "./copy";
@@ -27,19 +27,72 @@ function Fold({ open, id, children }: { open: boolean; id?: string; children: Re
   return <div id={id} className={styles.fold} data-open={open || undefined} inert={!open}><div className={styles.foldClip}>{children}</div></div>;
 }
 
-/** A step-by-step guide that folds open, one per assistant. */
-function Guide({ icon, title, sub, children }: { icon: ReactNode; title: string; sub: string; children: ReactNode }) {
+type Assistant = "chatgpt" | "claude" | "other";
+
+/** The server address with a copy button that confirms in place. */
+function EndpointField({ endpoint }: { endpoint: string }) {
   const copy = useIntegrationCopy();
-  const [open, setOpen] = useState(false);
-  const id = useId();
-  return <div className={styles.guide} data-open={open || undefined}>
-    <button type="button" className={styles.guideHead} aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>
-      <span className={styles.guideIcon} aria-hidden="true">{icon}</span>
-      <span className={styles.guideText}><strong>{title}</strong><small>{sub}</small></span>
-      <span className={styles.guideTag}>{copy.setup}</span>
-      <ChevronDown aria-hidden="true" className={styles.chevron} />
-    </button>
-    <Fold open={open} id={id}><div className={styles.guideInner}>{children}</div></Fold>
+  const [status, setStatus] = useState<"" | "copied" | "error">("");
+  const copyEndpoint = async () => {
+    try {
+      await navigator.clipboard.writeText(endpoint);
+      setStatus("copied");
+      window.setTimeout(() => setStatus(value => (value === "copied" ? "" : value)), 2000);
+    } catch {
+      setStatus("error");
+    }
+  };
+  return <div className={styles.endpoint}>
+    <div className={styles.endpointField}>
+      <code title={endpoint}>{endpoint}</code>
+      <Button size="sm" variant="secondary" iconStart={status === "copied" ? <Check /> : <Copy />} onPress={() => void copyEndpoint()}>{status === "copied" ? copy.copied : copy.copyUrl}</Button>
+    </div>
+    <span role="status" className={status === "error" ? styles.copyError : styles.srOnly}>{status === "copied" ? copy.copied : status === "error" ? copy.copyError : ""}</span>
+  </div>;
+}
+
+/** How to connect: pick the assistant, then three steps on a line; the server address sits in the step that needs it. */
+function ConnectGuide({ endpoint }: { endpoint: string }) {
+  const uiCopy = useUiCopy();
+  const copy = useIntegrationCopy();
+  const [assistant, setAssistant] = useState<Assistant>("chatgpt");
+  const ui = uiCopy["ui"];
+  const guides: Record<Assistant, { steps: string[]; endpointStep: number; link?: { href: string; label: string } }> = {
+    chatgpt: {
+      steps: [ui["Enable developer mode on ChatGPT web if your plan and workspace allow it."], ui["Open Apps → Create, enter the MCP endpoint above and select OAuth."], ui["Sign in to Metrivum, choose permissions, then scan the tools and create the app."]],
+      endpointStep: 1,
+      link: { href: "https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt", label: ui["Current ChatGPT requirements"] },
+    },
+    claude: {
+      steps: [ui["Open Customize → Connectors → Add custom connector. Workspace owners may need to add it first."], ui["Enter the public HTTPS MCP endpoint above, review the detected OAuth settings and sign in."], ui["Review the Metrivum permissions, then enable the connector for your conversation."]],
+      endpointStep: 1,
+      link: { href: "https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp", label: ui["Current Claude requirements"] },
+    },
+    other: { steps: [copy.otherHelp], endpointStep: 0 },
+  };
+  const guide = guides[assistant];
+  return <div className={styles.how}>
+    <div className={styles.howHead}>
+      <div className={styles.howText}><h3>{copy.howTitle}</h3><p className={styles.hint}>{copy.howBody}</p></div>
+      <SegmentedControl size="sm" aria-label={copy.howTitle} selectedKeys={[assistant]} onSelectionChange={keys => { const next = [...keys][0]; if (typeof next === "string") setAssistant(next as Assistant); }}>
+        <Segment id="chatgpt">ChatGPT</Segment>
+        <Segment id="claude">Claude</Segment>
+        <Segment id="other">{copy.other}</Segment>
+      </SegmentedControl>
+    </div>
+    <ol key={assistant} className={styles.timeline}>
+      {guide.steps.map((step, index) => <li key={index} className={styles.timelineStep} style={{ animationDelay: `${index * 60}ms` }}>
+        <span className={styles.timelineDot} aria-hidden="true">{index + 1}</span>
+        <div className={styles.timelineBody}>
+          <p>{step}</p>
+          {index === guide.endpointStep ? <EndpointField endpoint={endpoint} /> : null}
+        </div>
+      </li>)}
+    </ol>
+    <div className={styles.howFoot}>
+      <span>{copy.compatible}</span>
+      {guide.link ? <a className={styles.external} href={guide.link.href} target="_blank" rel="noreferrer">{guide.link.label}<ExternalLink aria-hidden="true" /></a> : null}
+    </div>
   </div>;
 }
 
@@ -141,43 +194,13 @@ export function Integrations() {
   const history = useIntegrationQuery<Activity[]>("/api/v1/me/ai-activity");
   const preferences = useIntegrationQuery<Preferences>("/api/v1/me/ai-programming-preferences");
   const endpoint = `${apiBaseUrl()}/mcp`;
-  const [copyStatus, setCopyStatus] = useState<"" | "copied" | "error">("");
   const [page, setPage] = useState(1);
   const live = connections.data?.filter(item => !item.revokedAt).length ?? 0;
   const pages = history.data ? Math.max(1, Math.ceil(history.data.length / PAGE_SIZE)) : 1;
-  const copyEndpoint = async () => {
-    try {
-      await navigator.clipboard.writeText(endpoint);
-      setCopyStatus("copied");
-      window.setTimeout(() => setCopyStatus(value => (value === "copied" ? "" : value)), 2000);
-    } catch {
-      setCopyStatus("error");
-    }
-  };
   return <div className={styles.stack}>
     <Card as="section" padding="lg" className={styles.card} id="available-integrations" aria-labelledby="ai-setup-title">
       <SectionHead id="ai-setup-title" icon={<Plug />} title={copy.available} hint={uiCopy["ui"]["Connect from your assistant using OAuth and choose which data it may read or private drafts it may create. Returned private content is shared with that assistant. Messages require your review and explicit approval here. Disconnecting blocks the next tool request."]} />
-      <div className={styles.endpoint}>
-        <span className={styles.endpointLabel}>{copy.endpoint}</span>
-        <div className={styles.endpointField}>
-          <code>{endpoint}</code>
-          <Button size="sm" variant="secondary" iconStart={copyStatus === "copied" ? <Check /> : <Copy />} onPress={() => void copyEndpoint()}>{copyStatus === "copied" ? copy.copied : copy.copyUrl}</Button>
-        </div>
-        <span role="status" className={copyStatus === "error" ? styles.copyError : styles.srOnly}>{copyStatus === "copied" ? copy.copied : copyStatus === "error" ? copy.copyError : ""}</span>
-      </div>
-      <div className={styles.guides}>
-        <Guide icon={<Bot />} title={uiCopy["ui"]["Connect to ChatGPT"]} sub={copy.setupHint}>
-          <ol className={styles.steps}><li>{uiCopy["ui"]["Enable developer mode on ChatGPT web if your plan and workspace allow it."]}</li><li>{uiCopy["ui"]["Open Apps → Create, enter the MCP endpoint above and select OAuth."]}</li><li>{uiCopy["ui"]["Sign in to Metrivum, choose permissions, then scan the tools and create the app."]}</li></ol>
-          <p className={styles.guideNote}>{copy.compatible}</p>
-          <a className={styles.external} href="https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt" target="_blank" rel="noreferrer">{uiCopy["ui"]["Current ChatGPT requirements"]}<ExternalLink aria-hidden="true" /></a>
-        </Guide>
-        <Guide icon={<Sparkles />} title={uiCopy["ui"]["Connect to Claude"]} sub={copy.setupHint}>
-          <ol className={styles.steps}><li>{uiCopy["ui"]["Open Customize → Connectors → Add custom connector. Workspace owners may need to add it first."]}</li><li>{uiCopy["ui"]["Enter the public HTTPS MCP endpoint above, review the detected OAuth settings and sign in."]}</li><li>{uiCopy["ui"]["Review the Metrivum permissions, then enable the connector for your conversation."]}</li></ol>
-          <p className={styles.guideNote}>{copy.compatible}</p>
-          <a className={styles.external} href="https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp" target="_blank" rel="noreferrer">{uiCopy["ui"]["Current Claude requirements"]}<ExternalLink aria-hidden="true" /></a>
-        </Guide>
-        <Guide icon={<Plug />} title={copy.other} sub={copy.setupHint}><p>{copy.otherHelp}</p><code className={styles.inlineCode}>{endpoint}</code></Guide>
-      </div>
+      <ConnectGuide endpoint={endpoint} />
       <ul className={styles.rules}>
         <li><ShieldCheck aria-hidden="true" />{copy.actions}</li>
         <li><Ban aria-hidden="true" />{copy.forbidden}</li>

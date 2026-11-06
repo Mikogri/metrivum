@@ -15,6 +15,8 @@ const en = {
   clientId: "Client ID", permissions: (n: number) => `${n} ${n === 1 ? "permission" : "permissions"}`, statusInfo: "About connection status", historyInfo: "About this history",
   emptyHint: "Connect ChatGPT, Claude or another MCP client to work with your Metrivum data.", page: (page: number, pages: number | null) => `${page} / ${pages ?? "?"}`,
   statuses: { Executed: "Executed", Pending: "Pending", Approved: "Approved", Rejected: "Rejected", Failed: "Failed", Expired: "Expired" } as Record<string, string>,
+  consentTitle: "Connect an AI assistant", requestDetails: "Request details", selectAll: "Select all", selectedCount: (n: number, total: number) => `${n} of ${total} selected`,
+  howTitle: "How to connect", howBody: "Pick your assistant and follow three steps. You approve access in Metrivum; nothing is shared until you do.",
   previous: "Previous", next: "Next", historyLimit: "Latest 100 recorded actions. Read calls and rejected requests are retained in server audit logs, not this history.",
 
   forbidden: "AI cannot manage payments, subscriptions, account permissions or end client collaborations.",
@@ -48,6 +50,8 @@ const pl: typeof en = {
   clientId: "ID klienta", permissions: (n: number) => `${n} ${n === 1 ? "uprawnienie" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "uprawnienia" : "uprawnień"}`, statusInfo: "O statusie połączenia", historyInfo: "O tej historii",
   emptyHint: "Połącz ChatGPT, Claude lub inny klient MCP, aby pracować na danych z Metrivum.", page: (page: number, pages: number | null) => `${page} / ${pages ?? "?"}`,
   statuses: { Executed: "Wykonano", Pending: "Oczekuje", Approved: "Zatwierdzono", Rejected: "Odrzucono", Failed: "Błąd", Expired: "Wygasło" } as Record<string, string>,
+  consentTitle: "Połącz asystenta AI", requestDetails: "Szczegóły żądania", selectAll: "Zaznacz wszystkie", selectedCount: (n: number, total: number) => `Wybrano ${n} z ${total}`,
+  howTitle: "Jak połączyć", howBody: "Wybierz asystenta i wykonaj trzy kroki. Dostęp zatwierdzasz w Metrivum — do tego czasu nic nie jest udostępniane.",
   previous: "Poprzednia", next: "Następna", historyLimit: "Ostatnie 100 zapisanych działań. Odczyty i odrzucone żądania pozostają w logach audytowych serwera, poza tą historią.",
 
   forbidden: "AI nie może zarządzać płatnościami, subskrypcjami, uprawnieniami konta ani kończyć współpracy z klientami.",

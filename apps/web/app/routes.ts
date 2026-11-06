@@ -29,6 +29,8 @@ export default [
       route("auth/mfa", "modules/auth/routes/mfa.tsx"),
       route("onboarding", "modules/accounts/routes/onboarding.tsx"),
       route("onboarding/plan", "modules/subscription/routes/choose-plan.tsx"),
+      // An assistant's OAuth request: the address stays under /app (it is registered with the auth server).
+      layout("modules/integrations/consent-gate.tsx", [route("app/integrations/consent", "modules/integrations/consent.tsx")]),
     ]),
     route("app", "layouts/app-layout.tsx", [
       index("modules/dashboard/routes/app-index.tsx"),
@@ -110,7 +112,6 @@ export default [
       route("settings/security/recovery", "modules/settings/routes/security/recovery.tsx"),
       route("profile", "modules/people/routes/profile.tsx", { id: "my-profile" }),
       route("people/:username", "modules/people/routes/profile.tsx", { id: "person-profile" }),
-      route("integrations/consent", "modules/integrations/consent.tsx"),
       route("integrations/actions/:actionId", "modules/integrations/action-approval.tsx"),
       // The editor fills the content area (route handle `workspace`), keeping the sidebar and app bar.
       route("programs/:programId/edit", "modules/training/routes/program-editor.tsx", { id: "program-editor" }),

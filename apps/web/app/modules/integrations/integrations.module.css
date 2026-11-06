@@ -82,17 +82,10 @@
   transition: transform 240ms var(--tf-ease-out, ease-out);
 }
 
-.guide[data-open] .chevron,
 .chevron[data-open] { transform: rotate(180deg); }
 
 /* MCP server address with its copy button. */
 .endpoint { display: grid; gap: var(--tf-space-1-5); }
-
-.endpointLabel {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
-}
 
 .endpointField {
   display: flex;
@@ -102,7 +95,7 @@
   padding: var(--tf-space-1) var(--tf-space-1) var(--tf-space-1) var(--tf-space-3);
   border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
+  background: var(--tf-color-surface);
 }
 
 .endpointField code {
@@ -120,144 +113,111 @@
 
 .copyError { color: var(--tf-color-danger); font-size: var(--tf-text-xs); }
 
-/* Setup guides: one row per assistant that folds the steps open. */
-.guides { display: grid; gap: var(--tf-space-2); }
-
-.guide {
-  overflow: hidden;
+/* How to connect: assistant tabs and the steps on a vertical line. */
+.how {
+  display: grid;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-4);
   border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  transition: border-color 160ms ease;
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-bg-sunken);
 }
 
-.guide[data-open] { border-color: var(--tf-color-border); }
-
-.guideHead {
+.howHead {
   display: flex;
-  width: 100%;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: var(--tf-space-3);
-  padding: var(--tf-space-2-5) var(--tf-space-3);
-  border: 0;
-  background: transparent;
-  color: var(--tf-color-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 140ms ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .guideHead:hover { background: var(--tf-color-surface-hover, var(--tf-color-surface)); }
-}
+.howText { display: grid; flex: 1 1 16rem; gap: var(--tf-space-1); }
+.howText h3 { font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); }
 
-.guideHead:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring, var(--tf-color-accent));
-  outline-offset: -2px;
-}
-
-.guideIcon {
+.timeline {
   display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-secondary);
-}
-
-.guideIcon svg { width: 1rem; height: 1rem; }
-
-.guideText {
-  display: grid;
-  flex: 1;
-  gap: 1px;
-  min-width: 0;
-}
-
-.guideText strong { font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); }
-.guideText small { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
-
-.guideTag {
-  flex-shrink: 0;
-  padding: 0.125rem var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-full);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-}
-
-.guideInner {
-  display: grid;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4) calc(var(--tf-space-3) + 2rem + var(--tf-space-3));
-  border-top: 1px solid var(--tf-color-border-subtle);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
-}
-
-/* Numbered steps in small circles. */
-.steps {
-  display: grid;
-  gap: var(--tf-space-2-5);
   margin: 0;
   padding: 0;
   list-style: none;
-  counter-reset: step;
 }
 
-.steps li {
+.timelineStep {
   position: relative;
-  padding-left: 2rem;
-  color: var(--tf-color-text);
-  counter-increment: step;
+  display: flex;
+  gap: var(--tf-space-3);
+  padding-bottom: var(--tf-space-4);
+  animation: step-in 320ms var(--tf-ease-out, ease-out) both;
 }
 
-.steps li::before {
+.timelineStep:last-child { padding-bottom: 0; }
+
+/* The line joining one number to the next. */
+.timelineStep:not(:last-child)::after {
   position: absolute;
-  top: 0.0625rem;
-  left: 0;
+  top: 1.75rem;
+  bottom: 0.25rem;
+  left: calc(0.75rem - 0.5px);
+  width: 1px;
+  background: linear-gradient(var(--tf-color-border), var(--tf-color-border-subtle));
+  content: "";
+}
+
+.timelineDot {
   display: grid;
+  flex-shrink: 0;
   place-items: center;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--tf-color-accent) 40%, transparent);
   border-radius: var(--tf-radius-full);
   background: var(--tf-color-accent-soft);
   color: var(--tf-color-accent);
-  content: counter(step);
-  font-size: 0.6875rem;
+  font-size: var(--tf-text-xs);
   font-weight: var(--tf-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
-.guideNote { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+.timelineBody {
+  display: grid;
+  flex: 1;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  padding-top: 0.125rem;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+
+.howFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2) var(--tf-space-4);
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-normal);
+}
+
+.howFoot > span { flex: 1 1 18rem; }
 
 .external {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: var(--tf-space-1);
-  justify-self: start;
   color: var(--tf-color-accent);
-  font-size: var(--tf-text-sm);
+  font-size: var(--tf-text-xs);
   text-decoration: none;
 }
 
 .external:hover { text-decoration: underline; }
-.external svg { width: 0.8125rem; height: 0.8125rem; }
+.external svg { width: 0.75rem; height: 0.75rem; }
 
-.inlineCode {
-  justify-self: start;
-  max-width: 100%;
-  padding: var(--tf-space-1) var(--tf-space-2);
-  overflow-wrap: anywhere;
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-bg-sunken);
-  color: var(--tf-color-text);
-  font-family: var(--tf-font-mono, ui-monospace, monospace);
-  font-size: var(--tf-text-xs);
+@keyframes step-in {
+  from { opacity: 0; transform: translateY(4px); }
 }
 
 /* What the assistant may and may not do. */
@@ -535,8 +495,7 @@
   .connectionMain { flex-wrap: wrap; }
   .connectionActions { width: 100%; justify-content: flex-start; padding-left: calc(2.25rem + var(--tf-space-3)); }
   .notice { margin-left: var(--tf-space-4); }
-  .guideTag { display: none; }
-  .guideInner { padding-left: var(--tf-space-4); }
+  .how { padding: var(--tf-space-3); }
 }
 
 /* App bar plug with a consent dot. */
@@ -674,4 +633,5 @@
   .foldClip,
   .chevron,
   .actionArrow { transition: none; }
+  .timelineStep { animation: none; }
 }
