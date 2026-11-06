@@ -1,0 +1,21 @@
+{
+  "verifiedOn": "2026-11-05",
+  "integration": {
+    "total": 481,
+    "passed": 479,
+    "failed": 0,
+    "skipped": [
+      "Metrivum.IntegrationTests.SupabaseAuthTests.Local_password_session_is_validated_using_real_supabase_jwks",
+      "Metrivum.IntegrationTests.MediaSupabaseTests.LocalPrivateStorageSupportsNoOverwriteUploadInspectReadAndDelete"
+    ],
+    "mode": "Fresh-process batches; final McpApprovalTests override older results"
+  },
+  "unitPassed": 418,
+  "architecturePassed": 8,
+  "fullVitestPassed": 823,
+  "finalAuthRaceFilePassed": 7,
+  "browserAuthPassed": 12,
+  "browserIntegrationsPassed": 12,
+  "productionChanges": false,
+  "liveProviderVerification": false
+}

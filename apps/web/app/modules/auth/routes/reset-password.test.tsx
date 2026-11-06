@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("~/shared/session/SessionProvider", () => ({
   useSessionState: () => mocks.state,
-  useSessionManager: () => ({ client: () => ({ auth: { updateUser: mocks.updateUser, signOut: mocks.signOut, getSession: mocks.getSession, mfa: { challengeAndVerify: mocks.challengeAndVerify } } }), completeSignIn: mocks.completeSignIn }),
+  useSessionManager: () => ({ getState: () => mocks.state, client: () => ({ auth: { updateUser: mocks.updateUser, signOut: mocks.signOut, getSession: mocks.getSession, mfa: { challengeAndVerify: mocks.challengeAndVerify } } }), completeSignIn: mocks.completeSignIn }),
 }));
 vi.mock("~/modules/accounts", () => ({ BootScreen: () => <p>Loading</p> }));
 

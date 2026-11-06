@@ -565,6 +565,13 @@ export const appEn = {
     saved: "Profile saved",
     accounts: "Signed-in accounts",
     accountsBody: "You can be signed in to up to three accounts in this browser. Each keeps its own session.",
+    accountsCount: (used: number, max: number) => `${used} of ${max}`,
+    accountActive: "Active",
+    accountSwitch: "Switch",
+    freeSlots: (n: number) => (n === 1 ? "1 free slot" : `${n} free slots`),
+    freeSlotBody: "Add another account to switch between them in one click.",
+    signIn: "Sign in",
+    createAccount: "Create account",
     security: {
       emailTitle: "Email address",
       emailBody: "You sign in with this address and receive account emails on it.",
@@ -1291,6 +1298,28 @@ export const appEn = {
     },
   },
   editor: {
+    tips: {
+      label: "Editor tips",
+      step: (n: number, total: number) => `Tip ${n} of ${total}`,
+      next: "Next",
+      back: "Back",
+      done: "Got it",
+      skip: "Skip tips",
+      table: [
+        { target: "mode", title: "Two views, one plan", body: "Table builds the plan day by day. Sheet lays blocks and cycles out on a canvas. Switch any time." },
+        { target: "table-structure", title: "Blocks and cycles", body: "A plan is made of blocks, each with cycles of days. Pick one here, or add a cycle or block." },
+        { target: "table-days", title: "Pick a day", body: "Click a day to plan it. Drag a day onto another to move it." },
+        { target: "table-workout", title: "Add exercises", body: "Name the workout, then add exercises with sets, reps and load. Changes save on their own." },
+        { target: "volume", title: "Volume as you go", body: "Sets and load per muscle for the whole cycle update while you edit." },
+        { target: "publish", title: "Share with clients", body: "Your edits are a draft. Apply changes to publish a version your clients follow." },
+      ],
+      sheet: [
+        { target: "sheet-add", title: "Add to the sheet", body: "Add blocks, cycles and workouts here, or right-click any empty cell." },
+        { target: "sheet-canvas", title: "Arrange freely", body: "Drag cards to place them. Connect a block to its cycles with the handle on its edge." },
+        { target: "sheet-tools", title: "Move or select", body: "Move pans the sheet; Select picks several cards at once. Zoom with Ctrl and the wheel." },
+        { target: "publish", title: "Share with clients", body: "Your edits are a draft. Apply changes to publish a version your clients follow." },
+      ],
+    },
     mode: {
       simpleHint: "Two views of the same plan. Table edits it day by day; Sheet shows blocks and cycles side by side on a canvas. With Pro both edit everything: cycles, formulas, progression and maxes.",
       label: "Editor mode",

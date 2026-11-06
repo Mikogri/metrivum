@@ -41,9 +41,10 @@ public sealed class PersonProfileTests
         await db.SaveChangesAsync();
 
         var person = await http.GetFromJsonAsync<JsonElement>($"/api/v1/accounts/people/%40{prefix.ToUpperInvariant()}CLIENT");
-        Assert.Equal(new[] { "bio", "coverStyle", "displayName", "isSelf", "memberSince", "roles", "userId", "username" }, person.EnumerateObject().Select(p => p.Name).Order());
+        Assert.Equal(new[] { "bio", "coverStyle", "displayName", "hasAvatar", "isSelf", "memberSince", "roles", "userId", "username" }, person.EnumerateObject().Select(p => p.Name).Order());
         Assert.Equal(prefix + "client", person.GetProperty("username").GetString());
         Assert.False(person.GetProperty("isSelf").GetBoolean());
+        Assert.False(person.GetProperty("hasAvatar").GetBoolean());
         Assert.Equal(["Client"], person.GetProperty("roles").EnumerateArray().Select(x => x.GetString()));
 
         var self = await http.GetFromJsonAsync<JsonElement>($"/api/v1/accounts/people/{prefix}self");

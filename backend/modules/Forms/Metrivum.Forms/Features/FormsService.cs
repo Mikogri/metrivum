@@ -76,7 +76,11 @@ public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IF
     public async Task<FormTemplateDto> CreateAsync(FormTemplateRequest request, CancellationToken ct)
     {
         await Authorize(request.Purpose, ct);
-        if (request.Purpose == FormPurpose.CheckIn) abuse?.Require(accounts.UserId, AbusePolicies.CheckInTemplate);
+        if (abuse is not null)
+        {
+            await abuse.RequireAsync(accounts.UserId, AbusePolicies.FormWrite, cancellationToken: ct);
+            if (request.Purpose == FormPurpose.CheckIn) await abuse.RequireAsync(accounts.UserId, AbusePolicies.CheckInTemplate, cancellationToken: ct);
+        }
         FormRules.ValidateDefinition(request.Purpose, request.Name, request.Description, request.Draft);
         return await transaction.RunAsync(async token => { var t = New(request); db.Templates.Add(t); await db.SaveChangesAsync(token); return Dto(t); }, ct);
     }
@@ -90,6 +94,7 @@ public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IF
         if (t.Purpose != request.Purpose)
             throw ApiException.Invalid("Form purpose is immutable.");
         FormRules.ValidateDefinition(request.Purpose, request.Name, request.Description, request.Draft);
+        if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.FormWrite, cancellationToken: token);
         t.Name = request.Name.Trim();
         t.Description = request.Description;
         t.Draft = JsonSerializer.Serialize(request.Draft);
@@ -163,6 +168,11 @@ public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IF
             return Dto(await Owned(operation.ResultTemplateId, token));
         }
         Check(source, expected);
+        if (abuse is not null)
+        {
+            await abuse.RequireAsync(accounts.UserId, AbusePolicies.FormWrite, cancellationToken: token);
+            if (source.Purpose == FormPurpose.CheckIn) await abuse.RequireAsync(accounts.UserId, AbusePolicies.CheckInTemplate, cancellationToken: token);
+        }
         var copy = New(new(source.Purpose, source.Name, source.Description, JsonSerializer.Deserialize<FormDefinition>(source.Draft)!));
         db.Templates.Add(copy);
         db.Operations.Add(new()

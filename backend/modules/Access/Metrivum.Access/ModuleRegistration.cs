@@ -14,6 +14,8 @@ public static class ModuleRegistration
     public static IServiceCollection AddAccess(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddUsageReservations();
+        services.AddSingleton<IAbuseCounterStore>(_ => new PostgresAbuseCounterStore(
+            configuration.GetConnectionString("Database") ?? throw new InvalidOperationException("Database configuration is required for distributed admission.")));
         services.AddSingleton<FeatureCatalog>();
         services.AddScoped<IFeatureAccessService, FeatureAccessService>();
         services.AddScoped<IFeatureAudience, FeatureAudience>();

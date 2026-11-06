@@ -16,7 +16,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.IntegrationTests;
 
-public sealed class McpApprovalTests
+public sealed partial class McpApprovalTests
 {
     private static string Database => Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!;
 

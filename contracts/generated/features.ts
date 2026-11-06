@@ -271,6 +271,14 @@ export const features = [
     "limits": []
   },
   {
+    "key": "integrations.mcp.assign-programs",
+    "module": "Integrations",
+    "titleKey": "integrations.mcp.assign-programs.title",
+    "descriptionKey": "integrations.mcp.assign-programs.description",
+    "dependencies": [],
+    "limits": []
+  },
+  {
     "key": "integrations.mcp.connect",
     "module": "Integrations",
     "titleKey": "integrations.mcp.connect.title",

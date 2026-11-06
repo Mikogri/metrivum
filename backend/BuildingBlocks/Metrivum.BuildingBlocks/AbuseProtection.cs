@@ -10,13 +10,37 @@ public static class AbusePolicies
         ProgramCreate = "program-create", Export = "export", Heavy = "heavy", Message = "message", GroupCreate = "group-create",
         Invitation = "invitation", Application = "application", CheckInTemplate = "check-in-template", CheckInAssign = "check-in-assign",
         CheckInAnswer = "check-in-answer", UploadStart = "upload-start", SignedDownload = "signed-download", Payment = "payment",
-        McpRead = "mcp-read", McpWrite = "mcp-write", HubInvocation = "hub-invocation", HubConnection = "hub-connection", Typing = "typing";
+        McpRead = "mcp-read", McpWrite = "mcp-write", HubInvocation = "hub-invocation", HubConnection = "hub-connection", Typing = "typing",
+        OfferWrite = "offer-write", FormWrite = "form-write", AnalyticsQuery = "analytics-query";
 }
 
 public interface IAbuseProtection
 {
     void Require(Guid userId, string policy, string? scope = null);
     IDisposable Enter(Guid userId, string policy, string? scope = null);
+    Task RequireAsync(Guid userId, string policy, string? scope = null, CancellationToken cancellationToken = default)
+    {
+        Require(userId, policy, scope);
+        return Task.CompletedTask;
+    }
+    Task<IAsyncDisposable> EnterAsync(Guid userId, string policy, string? scope = null, CancellationToken cancellationToken = default)
+        => Task.FromResult<IAsyncDisposable>(new AsyncAbuseLease(Enter(userId, policy, scope)));
+}
+
+public interface IAbuseCounterStore
+{
+    Task<bool> TryAcquireAsync(Guid userId, string policy, AbuseLimit limit, CancellationToken cancellationToken);
+    Task<IAsyncDisposable?> TryEnterAsync(Guid userId, string policy, AbuseLimit limit, CancellationToken cancellationToken)
+        => throw new NotSupportedException("This counter store does not support concurrency leases.");
+}
+
+internal sealed class AsyncAbuseLease(IDisposable local, IAsyncDisposable? shared = null) : IAsyncDisposable
+{
+    public async ValueTask DisposeAsync()
+    {
+        try { if (shared is not null) await shared.DisposeAsync(); }
+        finally { local.Dispose(); }
+    }
 }
 
 public sealed class AbuseLimit
@@ -31,6 +55,7 @@ public sealed class AbuseProtectionOptions
 {
     public const string Section = "AbuseProtection";
     public int MaximumIdentities { get; set; } = 20000;
+    public bool DistributedEnabled { get; set; } = true;
     public string[] TrustedProxies { get; set; } = [];
     public Dictionary<string, AbuseLimit> Policies { get; set; } = new()
     {
@@ -43,7 +68,8 @@ public sealed class AbuseProtectionOptions
         [AbusePolicies.CheckInAnswer] = Window(10, 3600), [AbusePolicies.UploadStart] = Window(30, 3600),
         [AbusePolicies.SignedDownload] = Window(120), [AbusePolicies.Payment] = Window(10),
         [AbusePolicies.McpRead] = Window(60), [AbusePolicies.McpWrite] = Window(15),
-        [AbusePolicies.HubInvocation] = Window(300), [AbusePolicies.HubConnection] = Concurrent(5), [AbusePolicies.Typing] = Window(30)
+        [AbusePolicies.HubInvocation] = Window(300), [AbusePolicies.HubConnection] = Concurrent(5), [AbusePolicies.Typing] = Window(30),
+        [AbusePolicies.OfferWrite] = Window(60, 3600), [AbusePolicies.FormWrite] = Window(120, 3600), [AbusePolicies.AnalyticsQuery] = Window(60)
     };
     private static AbuseLimit Window(int permits, int seconds = 60) => new() { Permits = permits, WindowSeconds = seconds };
     private static AbuseLimit Concurrent(int permits) => new() { Permits = permits, Concurrent = true };
@@ -55,6 +81,7 @@ public sealed class AbuseProtectionOptions
             && Policies.All(pair => pair.Value is { } x && x.Permits is > 0 and <= 1000000
                 && x.WindowSeconds is > 0 and <= 86400 && x.Refill >= 0 && x.Refill <= x.Permits
                 && x.Concurrent == defaults[pair.Key].Concurrent
+                && (!x.Concurrent || x.Permits <= 100)
                 && (pair.Key == AbusePolicies.Message ? x.Refill > 0 : x.Refill == 0))
             && TrustedProxies.All(x => System.Net.IPAddress.TryParse(x, out _));
     }
@@ -67,15 +94,17 @@ public sealed class AbuseProtection : IAbuseProtection, IDisposable
     private readonly Dictionary<string, DateTimeOffset> identities = new(StringComparer.Ordinal);
     private readonly object identityLock = new();
     private readonly TimeProvider clock;
+    private readonly IAbuseCounterStore? distributed;
     private DateTimeOffset nextIdentitySweep;
     private readonly Meter meter = new("Metrivum.AbuseProtection", "1.0");
     private readonly Counter<long> decisions;
     private readonly Histogram<double> retrySeconds;
 
-    public AbuseProtection(IOptions<AbuseProtectionOptions> configured, TimeProvider? timeProvider = null)
+    public AbuseProtection(IOptions<AbuseProtectionOptions> configured, TimeProvider? timeProvider = null, IAbuseCounterStore? counterStore = null)
     {
         options = configured.Value;
         clock = timeProvider ?? TimeProvider.System;
+        distributed = counterStore;
         if (!options.IsValid()) throw new OptionsValidationException(AbuseProtectionOptions.Section, typeof(AbuseProtectionOptions), ["Invalid abuse protection limits."]);
         decisions = meter.CreateCounter<long>("trainflow.abuse.decisions");
         retrySeconds = meter.CreateHistogram<double>("trainflow.abuse.retry_after", "s");
@@ -94,6 +123,33 @@ public sealed class AbuseProtection : IAbuseProtection, IDisposable
     public void Require(Guid userId, string policy, string? scope = null) { using var lease = Acquire(userId.ToString("N"), policy); }
     public IDisposable Enter(Guid userId, string policy, string? scope = null) => Acquire(userId.ToString("N"), policy);
     public void RequireAnonymous(string address, string policy) { using var lease = Acquire("ip:" + address, policy); }
+
+    public async Task RequireAsync(Guid userId, string policy, string? scope = null, CancellationToken cancellationToken = default)
+    {
+        Require(userId, policy, scope);
+        var rule = options.Policies[policy];
+        if (!options.DistributedEnabled || rule.Concurrent) return;
+        if (distributed is null)
+            throw new InvalidOperationException("Distributed abuse protection requires the Access counter store.");
+        if (!await distributed.TryAcquireAsync(userId, policy, rule, cancellationToken))
+            throw Rejected(policy, TimeSpan.FromSeconds(rule.WindowSeconds));
+    }
+
+    public async Task<IAsyncDisposable> EnterAsync(Guid userId, string policy, string? scope = null, CancellationToken cancellationToken = default)
+    {
+        if (!options.Policies.TryGetValue(policy, out var rule) || !rule.Concurrent)
+            throw new ArgumentException("An async lease requires a registered concurrency policy.", nameof(policy));
+        var local = Enter(userId, policy, scope);
+        try
+        {
+            if (!options.DistributedEnabled) return new AsyncAbuseLease(local);
+            if (distributed is null) throw new InvalidOperationException("Distributed abuse protection requires the Access counter store.");
+            var shared = await distributed.TryEnterAsync(userId, policy, rule, cancellationToken);
+            if (shared is null) throw Rejected(policy, TimeSpan.FromSeconds(1));
+            return new AsyncAbuseLease(local, shared);
+        }
+        catch { local.Dispose(); throw; }
+    }
 
     private RateLimitLease Acquire(string identity, string policy)
     {

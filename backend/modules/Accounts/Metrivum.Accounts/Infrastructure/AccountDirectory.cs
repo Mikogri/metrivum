@@ -30,13 +30,13 @@ public sealed class AccountDirectory(AccountsDbContext db, IAccountContext? acto
             .Select(x => x.Id).ToArrayAsync(cancellationToken);
     }
 
-    public Task<AccountSearchEntry[]> SearchAsync(string prefix, CancellationToken cancellationToken)
+    public async Task<AccountSearchEntry[]> SearchAsync(string prefix, CancellationToken cancellationToken)
     {
-        if (actor != null) abuse?.Require(actor.UserId, AbusePolicies.Search);
+        if (actor != null && abuse is not null) await abuse.RequireAsync(actor.UserId, AbusePolicies.Search, cancellationToken: cancellationToken);
         var normalized = prefix.Trim().TrimStart('@').ToUpperInvariant();
         if (normalized.Length < 2 || normalized.Length > 30)
-            return Task.FromResult(Array.Empty<AccountSearchEntry>());
-        return db.Profiles.AsNoTracking()
+            return [];
+        return await db.Profiles.AsNoTracking()
             .Where(x => x.Active && x.Onboarded && x.NormalizedUsername != null && x.NormalizedUsername.StartsWith(normalized))
             .OrderBy(x => x.NormalizedUsername).Take(20)
             .Select(x => new AccountSearchEntry(x.Id, x.Username!, x.DisplayName)).ToArrayAsync(cancellationToken);

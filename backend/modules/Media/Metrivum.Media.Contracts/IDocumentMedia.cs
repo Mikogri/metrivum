@@ -10,5 +10,5 @@ public interface IDocumentMedia
     Task FinalizeDocumentUploadAsync(Guid relationshipId, Guid ownerId, Guid mediaId, CancellationToken ct);
     Task<ReadyMedia> RequireDocumentAsync(Guid relationshipId, Guid ownerId, Guid mediaId, CancellationToken ct);
     Task PinDocumentAsync(Guid relationshipId, Guid ownerId, Guid mediaId, CancellationToken ct);
-    Task<DocumentReadUrl> ReadDocumentAsync(Guid relationshipId, Guid ownerId, Guid mediaId, CancellationToken ct);
+    Task<DocumentReadUrl> ReadDocumentAsync(Guid relationshipId, Guid ownerId, Guid mediaId, Guid viewerId, CancellationToken ct);
 }

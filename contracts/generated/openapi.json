@@ -375,6 +375,33 @@
         ]
       }
     },
+    "/api/v1/me/ai-activity": {
+      "get": {
+        "tags": [
+          "Integrations"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationActivityDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/me/profile-fields": {
       "get": {
         "tags": [
@@ -25780,6 +25807,52 @@
         },
         "additionalProperties": false
       },
+      "IntegrationActivityDto": {
+        "required": [
+          "connectionId",
+          "clientName",
+          "operation",
+          "status",
+          "at",
+          "actionId",
+          "resultId"
+        ],
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "resultId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
       "IntRange": {
         "required": [
           "minimum",
@@ -26021,6 +26094,41 @@
         },
         "additionalProperties": false
       },
+      "McpAssignmentState": {
+        "required": [
+          "id",
+          "programName",
+          "effectiveRevisionId",
+          "status",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "programName": {
+            "type": "string"
+          },
+          "effectiveRevisionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
       "McpMessageRecipient": {
         "required": [
           "userId",
@@ -26033,6 +26141,87 @@
             "format": "uuid"
           },
           "displayName": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "McpProgramAssignmentPreview": {
+        "required": [
+          "request",
+          "clientId",
+          "clientName",
+          "programName",
+          "publishedVersion",
+          "currentAssignments",
+          "effect",
+          "contextHash"
+        ],
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/McpProgramAssignmentRequest"
+          },
+          "clientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "programName": {
+            "type": "string"
+          },
+          "publishedVersion": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "currentAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/McpAssignmentState"
+            }
+          },
+          "effect": {
+            "type": "string"
+          },
+          "contextHash": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "McpProgramAssignmentRequest": {
+        "required": [
+          "programId",
+          "relationshipId",
+          "revisionId",
+          "startDate",
+          "timeZone"
+        ],
+        "type": "object",
+        "properties": {
+          "programId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "relationshipId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revisionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "timeZone": {
             "type": "string"
           }
         },
@@ -28845,6 +29034,23 @@
           },
           "reviewUrl": {
             "type": "string"
+          },
+          "assignment": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/McpProgramAssignmentPreview"
+              }
+            ]
+          },
+          "assignmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -34546,6 +34752,9 @@
       "name": "PlatformSubscriptions"
     },
     {
+      "name": "Integrations"
+    },
+    {
       "name": "Access administration"
     },
     {
@@ -34613,9 +34822,6 @@
     },
     {
       "name": "Client documentation"
-    },
-    {
-      "name": "Integrations"
     }
   ]
 }

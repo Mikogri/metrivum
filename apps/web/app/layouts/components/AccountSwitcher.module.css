@@ -95,6 +95,19 @@
   gap: var(--tf-space-3);
   padding: var(--tf-space-3);
   border-bottom: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-md) var(--tf-radius-md) 0 0;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.profile[data-focused],
+.profile[data-hovered] {
+  background: var(--tf-color-surface-overlay);
+}
+
+.profile[data-focus-visible] {
+  box-shadow: inset 0 0 0 2px var(--tf-color-focus-ring);
 }
 
 .profileRow {

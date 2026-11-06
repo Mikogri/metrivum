@@ -466,6 +466,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/ai-activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IntegrationActivityDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/profile-fields": {
         parameters: {
             query?: never;
@@ -16163,6 +16198,19 @@ export interface components {
             version: number | string;
             document: components["schemas"]["TrainingDocument"];
         };
+        IntegrationActivityDto: {
+            /** Format: uuid */
+            connectionId: string;
+            clientName: string;
+            operation: string;
+            status: string;
+            /** Format: date-time */
+            at: string;
+            /** Format: uuid */
+            actionId: null | string;
+            /** Format: uuid */
+            resultId: null | string;
+        };
         IntRange: {
             /** Format: int32 */
             minimum: number | string;
@@ -16226,10 +16274,43 @@ export interface components {
                 [key: string]: string;
             };
         };
+        McpAssignmentState: {
+            /** Format: uuid */
+            id: string;
+            programName: string;
+            /** Format: uuid */
+            effectiveRevisionId: string;
+            status: string;
+            /** Format: int64 */
+            version: number | string;
+        };
         McpMessageRecipient: {
             /** Format: uuid */
             userId: string;
             displayName: string;
+        };
+        McpProgramAssignmentPreview: {
+            request: components["schemas"]["McpProgramAssignmentRequest"];
+            /** Format: uuid */
+            clientId: string;
+            clientName: string;
+            programName: string;
+            /** Format: int32 */
+            publishedVersion: number | string;
+            currentAssignments: components["schemas"]["McpAssignmentState"][];
+            effect: string;
+            contextHash: string;
+        };
+        McpProgramAssignmentRequest: {
+            /** Format: uuid */
+            programId: string;
+            /** Format: uuid */
+            relationshipId: string;
+            /** Format: uuid */
+            revisionId: string;
+            /** Format: date */
+            startDate: string;
+            timeZone: string;
         };
         MeasurementDefinition: {
             key: string;
@@ -16936,6 +17017,9 @@ export interface components {
             /** Format: int64 */
             version: number | string;
             reviewUrl: string;
+            assignment?: null | components["schemas"]["McpProgramAssignmentPreview"];
+            /** Format: uuid */
+            assignmentId?: null | string;
         };
         /** @enum {unknown} */
         PeriodUnit: "Week" | "Month" | "Year" | null;

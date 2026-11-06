@@ -419,7 +419,7 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
             }
 
             await RequireConversationConsentAsync(c, token);
-            abuse?.Require(Actor, AbusePolicies.Message);
+            if (abuse is not null) await abuse.RequireAsync(Actor, AbusePolicies.Message, cancellationToken: token);
             if (c.Type == ConversationType.Direct)
                 await AdmitDirectContactAsync(c, token);
 
@@ -724,7 +724,7 @@ public sealed partial class MessagingService(MessagingDbContext db, IAccountCont
             if (c.Sequence > 0 && (latest == null || latest.State == RequestState.Accepted))
                 throw ApiException.Conflict("Use the existing conversation.");
             var approval = await RequiresApprovalAsync(request.UserId, token);
-            abuse?.Require(Actor, AbusePolicies.Message);
+            if (abuse is not null) await abuse.RequireAsync(Actor, AbusePolicies.Message, cancellationToken: token);
             await AdmitDirectContactAsync(c, token);
             await Lock("messaging-conversation:" + c.Id, token);
             await db.Entry(c).ReloadAsync(token);

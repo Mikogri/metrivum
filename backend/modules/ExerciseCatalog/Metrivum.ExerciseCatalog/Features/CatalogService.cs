@@ -30,7 +30,7 @@ public sealed partial class CatalogService(ExerciseCatalogDbContext db, IAccount
     private async Task<CatalogPage> ListInternalAsync(CatalogQuery request, Guid[]? eligible, CancellationToken ct)
     {
         await access.RequireAsync("exercises.browse", ct);
-        abuse?.Require(account.UserId, AbusePolicies.Search);
+        if (abuse is not null) await abuse.RequireAsync(account.UserId, AbusePolicies.Search, cancellationToken: ct);
         if (request.FavoritesOnly)
             await access.RequireAsync("exercises.favorites", ct);
         ValidatePage(request.Page, request.PageSize);

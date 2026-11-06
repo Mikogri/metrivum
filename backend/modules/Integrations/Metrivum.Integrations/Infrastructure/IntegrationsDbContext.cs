@@ -29,11 +29,11 @@ public sealed class IntegrationsDbContext(DbContextOptions<IntegrationsDbContext
         {
             e.ToTable("PendingActions", t =>
             {
-                t.HasCheckConstraint("CK_Action_Type", "\"Type\" = 'SendMessage'");
+                t.HasCheckConstraint("CK_Action_Type", "\"Type\" IN ('SendMessage','AssignProgram')");
                 t.HasCheckConstraint("CK_Action_Status", "\"Status\" IN ('Pending','Approved','Executed','Rejected','Expired')");
                 t.HasCheckConstraint("CK_Action_Expiry", "\"ExpiresAt\" > \"CreatedAt\"");
                 t.HasCheckConstraint("CK_Action_Approval", "(\"Status\" NOT IN ('Approved','Executed')) OR (\"ApprovedAt\" IS NOT NULL AND \"ApprovedBy\" = \"UserId\")");
-                t.HasCheckConstraint("CK_Action_Execution", "(\"Status\" <> 'Executed') OR (\"ExecutedAt\" IS NOT NULL AND \"MessageId\" IS NOT NULL)");
+                t.HasCheckConstraint("CK_Action_Execution", "(\"Status\" <> 'Executed') OR (\"ExecutedAt\" IS NOT NULL AND ((\"Type\" = 'SendMessage' AND \"MessageId\" IS NOT NULL AND \"AssignmentId\" IS NULL) OR (\"Type\" = 'AssignProgram' AND \"AssignmentId\" IS NOT NULL AND \"MessageId\" IS NULL)))");
             });
             e.HasKey(x => x.Id);
             e.HasIndex(x => new { x.ConnectionId, x.IdempotencyKey }).IsUnique();

@@ -123,7 +123,7 @@ export function StructureBar({ doc, apply, cycleId, onSelectCycle, onEditNode, n
   };
 
   return (
-    <div className={styles.structure}>
+    <div data-tip="table-structure" className={styles.structure}>
       {/* Block and cycle are picked apart: first the block, then one of its cycles. */}
       {block ? (
         <Select label={t.block} size="sm" selectedKey={block.id} onSelectionChange={(key) => key && openBlock(String(key))} className={styles.blockSelect}>

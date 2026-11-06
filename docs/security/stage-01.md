@@ -1,5 +1,7 @@
 # Application abuse protection
 
+The [distributed admission supplement](distributed-abuse.md) updates the important service/HTTP budgets and deployment limits below. Its PostgreSQL-backed coverage supersedes the original per-process rate-window limitation; export concurrency also shares PostgreSQL advisory slots; hub concurrency and anonymous ingress remain process-local.
+
 ## Design and coverage
 
 `AbuseProtection` in BuildingBlocks owns bounded native .NET rate/concurrency limiters and low-cardinality metrics. `AbuseProtection:Policies` is typed and validated at startup. Global HTTP admission runs after verified authentication and before named limiters, integration consent and business handlers. Every new REST route inherits a read/write category. Specialized business budgets live in owning services, so switching REST/MCP cannot reset them. No ordinary GET writes a quota row.

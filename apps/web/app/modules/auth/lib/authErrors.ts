@@ -11,8 +11,6 @@ export function isEmailDeliveryFailure(error: unknown): boolean {
 
 /** Maps Supabase Auth errors to copy. Never echoes server text containing user input. */
 export function authErrorText(m: AppMessages, error: unknown): string {
-  // In development the console keeps the server's reason (it only describes the service, not the person).
-  if (import.meta.env.DEV && error instanceof AuthError) console.warn(`Supabase Auth ${error.status ?? ""} ${error.code ?? ""}: ${error.message}`);
   if (isEmailDeliveryFailure(error)) return m.auth.errors.emailDelivery;
   // Supabase also uses retryable fetch errors for HTTP 5xx (including SMTP failures).
   if (isAuthRetryableFetchError(error)) return error.status && error.status >= 500

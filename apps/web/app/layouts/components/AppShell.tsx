@@ -10,6 +10,7 @@ import { MOCK_MODE } from "~/shared/dev/mockMode";
 import { useHistoryTrail, useNavigateUp } from "~/shared/lib/navigateUp";
 import { TOP_NOTICE_ID } from "~/shared/ui/TopNotice";
 import { useT } from "~/shared/i18n/AppLocale";
+import { IntegrationMenu } from "~/modules/integrations";
 import { NotificationBell, useNotifications } from "~/modules/messaging";
 import { AnalyzerMenu, AnalyzerUpdateBanner } from "~/modules/video-analysis";
 import { useNavCounts } from "~/modules/coaching";
@@ -285,7 +286,7 @@ export function AppShell() {
       <div className={styles.column}>
         {phone ? (!conversation && <header className={`${styles.appBar} ${styles.phoneBar}`}>
           <Link to="/app/today" className={styles.phoneBrand}>Metrivum</Link>
-          <div className={styles.appBarActions}><IconButton label={m.nav.commandPalette} icon={<Search strokeWidth={1.75} />} size="sm" variant="ghost" showTooltip={false} onPress={() => setPalette({ open: true, animated: true })} /><AnalyzerMenu /><UsageButton /><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
+          <div className={styles.appBarActions}><IconButton label={m.nav.commandPalette} icon={<Search strokeWidth={1.75} />} size="sm" variant="ghost" showTooltip={false} onPress={() => setPalette({ open: true, animated: true })} /><AnalyzerMenu /><UsageButton /><IntegrationMenu /><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
         </header>) : <header className={styles.appBar}>
           <span className={styles.desktopOnly}>
             <IconButton
@@ -308,7 +309,7 @@ export function AppShell() {
             </button>
             <AnalyzerMenu />
             <UsageButton />
-            <NotificationBell />
+            <IntegrationMenu /><NotificationBell />
             <SubscriptionButton label={m.nav.subscription} />
           </div>
         </header>}

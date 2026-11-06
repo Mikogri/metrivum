@@ -53,6 +53,11 @@ public sealed record McpActualExercise(Guid ExerciseId, string Name, string Comm
 public sealed record McpWorkoutLog(Guid OccurrenceId, Guid RelationshipId, string ProgramName, DateOnly ScheduledDate, string Status,
     DateOnly? PerformedDate, DateTimeOffset? CompletedAt, string? Comment, McpActualExercise[] Exercises);
 public sealed record McpWorkoutLogPage(McpWorkoutLog[] Items, int Page, int PageSize, long Total);
+public sealed record McpProgramAssignmentRequest(Guid ProgramId, Guid RelationshipId, Guid RevisionId, DateOnly StartDate, string TimeZone);
+public sealed record McpAssignmentState(Guid Id, string ProgramName, Guid EffectiveRevisionId, string Status, long Version);
+public sealed record McpProgramAssignmentPreview(McpProgramAssignmentRequest Request, Guid ClientId, string ClientName,
+    string ProgramName, int PublishedVersion, McpAssignmentState[] CurrentAssignments, string Effect, string ContextHash);
+public sealed record McpAssignedProgram(Guid AssignmentId, Guid RelationshipId, Guid ProgramId, Guid RevisionId, DateOnly StartDate, string Status);
 
 public interface IMcpTrainingOperations
 {
@@ -66,4 +71,6 @@ public interface IMcpTrainingOperations
     Task<McpProgramValidation> ValidateAsync(Guid? programId, McpTrainingDocument document, CancellationToken ct);
     Task<McpWorkoutLogPage> LogsAsync(Guid relationshipId, DateOnly from, DateOnly to, int page, int pageSize, CancellationToken ct);
     Task<TrainingProgressDto> ProgressAsync(Guid relationshipId, DateOnly from, DateOnly to, CancellationToken ct);
+    Task<McpProgramAssignmentPreview> PreviewAssignmentAsync(McpProgramAssignmentRequest request, CancellationToken ct);
+    Task<McpAssignedProgram> AssignAsync(McpProgramAssignmentRequest request, string contextHash, string idempotencyKey, CancellationToken ct);
 }

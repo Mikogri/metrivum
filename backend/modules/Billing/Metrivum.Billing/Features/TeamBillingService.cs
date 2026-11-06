@@ -52,7 +52,7 @@ public sealed class TeamBillingService(BillingDbContext db, BillingService billi
 
     private Task<TeamBillingDto> Confirm(Guid? requestedTeam, TeamPaymentConfirmRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
-        abuse?.Require(accounts.UserId, AbusePolicies.Payment);
+        if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.Payment, cancellationToken: token);
         await accounts.RequireCoachAsync(token);
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey) || request.IdempotencyKey.Length > 100)
             throw ApiException.Invalid("A bounded idempotency key is required.");

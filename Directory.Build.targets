@@ -4,4 +4,9 @@
     <Content Update="appsettings.Local.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
     <None Update="appsettings.Local.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
   </ItemGroup>
+  <!-- Exclusions do not remove credentials left in output folders by older builds. -->
+  <Target Name="RemoveStaleLocalConfiguration" AfterTargets="Build;Publish">
+    <Delete Files="$(TargetDir)appsettings.Local.json" Condition="'$(TargetDir)' != ''" />
+    <Delete Files="$(PublishDir)appsettings.Local.json" Condition="'$(PublishDir)' != ''" />
+  </Target>
 </Project>

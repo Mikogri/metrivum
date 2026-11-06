@@ -63,10 +63,14 @@ public static class McpHosting
                     var guard = context.Services!.GetRequiredService<IAbuseProtection>();
                     var user = Guid.Parse(http.User.FindFirst("sub")!.Value);
                     var read = context.MatchedPrimitive is McpServerTool classified && classified.ProtocolTool.Annotations?.ReadOnlyHint == true;
-                    guard.Require(user, read ? AbusePolicies.McpRead : AbusePolicies.McpWrite, http.User.FindFirst("client_id")?.Value);
+                    await guard.RequireAsync(user, read ? AbusePolicies.McpRead : AbusePolicies.McpWrite, http.User.FindFirst("client_id")?.Value, timeout.Token);
                     var result = await next(context, timeout.Token);
+                    if (result.IsError == true) outcome = "denied";
                     if (JsonSerializer.SerializeToUtf8Bytes(result).Length > settings.MaximumResponseBytes)
+                    {
+                        outcome = "response_too_large";
                         return Failure("response_too_large", "Narrow the query or page size. The operation may have completed; retry writes only with the same idempotency key.");
+                    }
                     return result;
                 }
                 catch (JsonException)
@@ -98,7 +102,8 @@ public static class McpHosting
                 finally
                 {
                     logger.LogInformation("MCP {Tool} user {User} client {Client} outcome {Outcome} duration {Milliseconds} trace {Trace}",
-                        context.Params?.Name, http.User.FindFirst("sub")?.Value, http.User.FindFirst("client_id")?.Value,
+                        context.MatchedPrimitive is McpServerTool loggedTool ? loggedTool.ProtocolTool.Name : "unknown",
+                        http.User.FindFirst("sub")?.Value, http.User.FindFirst("client_id")?.Value,
                         outcome, Stopwatch.GetElapsedTime(started).TotalMilliseconds, http.TraceIdentifier);
                 }
             }));

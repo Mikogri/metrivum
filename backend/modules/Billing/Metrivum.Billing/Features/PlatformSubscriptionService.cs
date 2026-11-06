@@ -98,7 +98,7 @@ public sealed class PlatformSubscriptionService(BillingDbContext db, BillingServ
 
     public Task<PlatformSubscriptionDto> ConfirmAsync(PlatformConfirmRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
-        abuse?.Require(accounts.UserId, AbusePolicies.Payment);
+        if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.Payment, cancellationToken: token);
         await accounts.GetRolesAsync(token);
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey) || request.IdempotencyKey.Length > 100)
             throw ApiException.Invalid("A bounded idempotency key is required.");

@@ -5,6 +5,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";
 import { AddAccountSwitch } from "../components/AddAccountSwitch";
+import { useTurnstile } from "../components/Turnstile";
 import { AuthFooter, AuthFormError, AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
 import { authErrorField, authErrorText, isExistingAccount, passwordProblem } from "../lib/authErrors";
@@ -30,8 +31,10 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [accepted, setAccepted] = useState(false);
-  const [error, setError] = useState<{ text: string; field: "email" | "password" | null; exists?: boolean } | null>(null);
+  const [error, setError] = useState<{ text: string; field: "email" | "password" | null } | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  const captcha = useTurnstile(`register:${params.toString()}:${state.generation}:${normalizeEmail(email)}`);
 
   if (!supabaseConfigured()) {
     return <Alert tone="danger" title={m.shell.notConfiguredTitle}>{m.shell.notConfiguredBody}</Alert>;
@@ -44,34 +47,35 @@ export default function Register() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    if (!isValidEmail(email) || passwordProblem(m, password, email) || !accepted || slot === null) return;
+    if (pending || !isValidEmail(email) || passwordProblem(m, password, email) || !accepted || slot === null) return;
+    const captchaOptions = captcha.take();
+    if (!captchaOptions) return;
     const address = normalizeEmail(email);
     setPending(true);
     setError(null);
+    const client = manager.client(slot, captcha.isCurrent, { email: address });
     try {
-      const { data, error: signUpError } = await manager.client(slot).auth.signUp({
+      const { data, error: signUpError } = await client.auth.signUp({
         email: address,
         password,
-        options: { emailRedirectTo: callbackUrl(slot, onboardingUrl(role), address), data: { terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() } },
+        options: { ...captchaOptions, emailRedirectTo: callbackUrl(slot, onboardingUrl(role), address), data: { terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() } },
       });
-      // An address that already has a confirmed account: Supabase sends no email and returns a user without
-      // identities (or an "exists" error). Say so under the email field and point to sign-in and reset.
-      if (isExistingAccount(signUpError) || (!signUpError && data?.user && !data.session && (data.user.identities?.length ?? 0) === 0)) {
-        setError({ text: m.auth.errors.userExists, field: "email", exists: true });
-        return;
-      }
-      if (signUpError) throw signUpError;
+      if (!captcha.isCurrent()) return;
+      // Existing and fresh addresses share the same outward flow; Auth alone decides whether to send email.
+      if (signUpError && !isExistingAccount(signUpError)) throw signUpError;
       if (data?.session) {
         // Email confirmation disabled in this environment: continue straight to onboarding.
-        await manager.completeSignIn(slot, data.session);
+        await manager.completeSignIn(slot, data.session, captcha.isCurrent);
         navigate(onboardingUrl(role), { replace: true });
         return;
       }
       navigate(`/auth/verify?type=signup&slot=${slot}&email=${encodeURIComponent(address)}&role=${role}`);
     } catch (caught) {
+      if (!captcha.isCurrent()) return;
       setError({ text: authErrorText(m, caught), field: authErrorField(caught) });
     } finally {
-      setPending(false);
+      await client.auth.dispose?.();
+      if (captcha.isCurrent()) setPending(false);
     }
   }
 
@@ -90,6 +94,7 @@ export default function Register() {
           autoComplete="email"
           value={email}
           onChange={(value) => { setEmail(value); if (error?.field) setError(null); }}
+          isDisabled={pending}
           isRequired
           isInvalid={(submitted && !isValidEmail(email)) || error?.field === "email"}
           errorMessage={submitted && !isValidEmail(email) ? m.auth.errors.emailInvalid : error?.text}
@@ -100,6 +105,7 @@ export default function Register() {
           autoComplete="new-password"
           value={password}
           onChange={(value) => { setPassword(value); if (error?.field) setError(null); }}
+          isDisabled={pending}
           isRequired
           description={t.passwordHint}
           isInvalid={(submitted && Boolean(passwordProblem(m, password, email))) || error?.field === "password"}
@@ -111,13 +117,11 @@ export default function Register() {
           </Checkbox>
           {submitted && !accepted ? <p className={form.fieldError}>{t.termsRequired}</p> : null}
         </div>
-        <Button type="submit" variant="primary" block loading={pending}>
+        {captcha.widget}
+        <Button type="submit" variant="primary" block loading={pending} isDisabled={!captcha.ready}>
           {t.submit}
         </Button>
         {error && !error.field ? <AuthFormError>{error.text}</AuthFormError> : null}
-        {error?.exists ? (
-          <RouterLink className={form.textButton} to={`/auth/login?slot=${slot}${adding ? "&add=1" : ""}`}>{t.signInInstead}</RouterLink>
-        ) : null}
       </form>
       {adding ? null : (
         <AuthFooter>

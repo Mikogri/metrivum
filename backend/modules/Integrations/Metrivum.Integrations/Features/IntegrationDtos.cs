@@ -1,4 +1,5 @@
 using Metrivum.Messaging.Contracts;
+using Metrivum.Training.Contracts;
 
 namespace Metrivum.Integrations.Features;
 
@@ -14,13 +15,17 @@ public sealed record PreferencesUpdate(string Note, bool ShareWithIntegrations, 
 public sealed record MessagePayload(Guid ConversationId, string ConversationTitle, McpMessageRecipient[] Recipients, string Body, string ContextHash);
 public sealed record PendingActionDto(Guid Id, Guid ConnectionId, string ClientName, string Type, string Status, Guid ConversationId,
     string ConversationTitle, McpMessageRecipient[] Recipients, string Body, string PayloadHash, DateTimeOffset CreatedAt,
-    DateTimeOffset ExpiresAt, DateTimeOffset? ApprovedAt, DateTimeOffset? ExecutedAt, Guid? MessageId, long Version, string ReviewUrl);
+    DateTimeOffset ExpiresAt, DateTimeOffset? ApprovedAt, DateTimeOffset? ExecutedAt, Guid? MessageId, long Version, string ReviewUrl,
+    McpProgramAssignmentPreview? Assignment = null, Guid? AssignmentId = null);
 public sealed record SendApprovedResult(Guid ActionId, Guid MessageId, Guid ConversationId, string Status);
+public sealed record AssignApprovedResult(Guid ActionId, Guid AssignmentId, Guid RelationshipId, string Status);
+public sealed record IntegrationActivityDto(Guid ConnectionId, string ClientName, string Operation, string Status, DateTimeOffset At, Guid? ActionId, Guid? ResultId);
 
 public static class IntegrationGrants
 {
     public const string ReadTraining = "read_training";
     public const string WriteTrainingDrafts = "write_training_drafts";
+    public const string AssignPrograms = "assign_programs";
     public const string ReadClients = "read_clients";
     public const string ReadCheckins = "read_checkins";
     public const string ManageCheckins = "manage_checkins";
@@ -29,12 +34,13 @@ public static class IntegrationGrants
     public const string SendApprovedMessages = "send_approved_messages";
     public const string ReadFinances = "read_finances";
     public const string ReadCalendar = "read_calendar";
-    public static readonly string[] All = [ReadTraining, WriteTrainingDrafts, ReadClients, ReadCheckins, ManageCheckins, ReadMessages, PrepareMessages, SendApprovedMessages, ReadFinances, ReadCalendar];
+    public static readonly string[] All = [ReadTraining, WriteTrainingDrafts, AssignPrograms, ReadClients, ReadCheckins, ManageCheckins, ReadMessages, PrepareMessages, SendApprovedMessages, ReadFinances, ReadCalendar];
     public static string Feature(string grant) => grant switch
     {
         "connect" => "integrations.mcp.connect",
         ReadTraining => "integrations.mcp.read-training",
         WriteTrainingDrafts => "integrations.mcp.write-training-drafts",
+        AssignPrograms => "integrations.mcp.assign-programs",
         ReadClients => "integrations.mcp.read-clients",
         ReadCheckins => "integrations.mcp.read-checkins",
         ManageCheckins => "integrations.mcp.manage-checkins",

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Api.Security;
 
@@ -22,6 +23,8 @@ public static class SupabaseAuthentication
 {
     /// <summary>Marks a request refused only because its session still needs the second factor.</summary>
     public const string SecondFactorRequiredItem = "Metrivum.Auth.SecondFactorRequired";
+    public const string AdmissionChargedItem = "Metrivum.Auth.AdmissionCharged";
+    public const string AdmissionRejectedItem = "Metrivum.Auth.AdmissionRejected";
 
     public static IServiceCollection AddSupabaseAuthentication(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
@@ -67,6 +70,19 @@ public static class SupabaseAuthentication
                         !Guid.TryParse(principal.FindFirst("session_id")?.Value, out var session) || session == Guid.Empty)
                     {
                         context.Fail("A non-anonymous Supabase user session is required.");
+                        return;
+                    }
+                    // Signature/issuer/claims are validated, but even revoked signed tokens can otherwise
+                    // force unlimited session SQL reads before the ordinary HTTP limiter sees them.
+                    try
+                    {
+                        context.HttpContext.RequestServices.GetRequiredService<AbuseProtection>().Require(id, AbusePolicies.Global);
+                        context.HttpContext.Items[AdmissionChargedItem] = true;
+                    }
+                    catch (ApiException error) when (error.Status == StatusCodes.Status429TooManyRequests)
+                    {
+                        context.HttpContext.Items[AdmissionRejectedItem] = error;
+                        context.NoResult();
                         return;
                     }
                     var validator = context.HttpContext.RequestServices.GetRequiredService<IAuthSessionValidator>();

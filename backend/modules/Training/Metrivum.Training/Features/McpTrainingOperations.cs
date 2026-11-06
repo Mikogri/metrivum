@@ -76,6 +76,10 @@ public sealed class McpTrainingOperations(TrainingService programs, TrainingDeli
         delivery.ReadAsync(new(from, to, RelationshipId: relationshipId, View: "coach"), ct);
     public Task<McpWorkoutLogPage> LogsAsync(Guid relationshipId, DateOnly from, DateOnly to, int page, int pageSize, CancellationToken ct) =>
         delivery.McpLogsAsync(relationshipId, from, to, page, pageSize, ct);
+    public Task<McpProgramAssignmentPreview> PreviewAssignmentAsync(McpProgramAssignmentRequest request, CancellationToken ct) =>
+        delivery.PreviewMcpAssignmentAsync(request, ct);
+    public Task<McpAssignedProgram> AssignAsync(McpProgramAssignmentRequest request, string contextHash, string idempotencyKey, CancellationToken ct) =>
+        delivery.AssignMcpAsync(request, contextHash, idempotencyKey, ct);
     private static TrainingDocument Domain(McpTrainingDocument document) => TrainingJson.Deserialize<TrainingDocument>(TrainingJson.Serialize(document));
     private static McpProgram Map(PlanDto plan) => new(plan.Id, plan.Name, plan.Description, plan.FolderId, plan.Version, plan.UpdatedAt,
         TrainingJson.Deserialize<McpTrainingDocument>(TrainingJson.Serialize(plan.Document)), $"/app/programs/{plan.Id}/edit");

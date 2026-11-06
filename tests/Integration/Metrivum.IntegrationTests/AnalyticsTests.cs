@@ -556,7 +556,7 @@ public sealed class AnalyticsTests
         var commands = new AnalyticsCommands();
         using var original = new ApiFactory(Database);
         using var factory = original.WithWebHostBuilder(b =>
-            b.ConfigureServices(s => {
+            b.UseSetting("AbuseProtection:Policies:analytics-query:Permits", "200").ConfigureServices(s => {
                 s.AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures());
                 s.ConfigureDbContext<Metrivum.Accounts.Infrastructure.AccountsDbContext>(options => options.AddInterceptors(commands));
                 s.ConfigureDbContext<CoachingDbContext>(options => options.AddInterceptors(commands));

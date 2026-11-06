@@ -22,14 +22,9 @@ test('Expo Router query-string resolves patched CommonJS decoder and preserves q
   assert.deepEqual({ ...query.parse(query.stringify(parameters)) }, parameters);
 });
 
-test('xcode uses the patched CommonJS uuid release and generates compatible project identifiers', () => {
-  const xcodeRequire = createRequire(require.resolve('xcode'));
-  assert.equal(xcodeRequire('uuid/package.json').version, '11.1.1');
-  const uuid = xcodeRequire('uuid');
-  for (const version of ['v3', 'v5']) {
-    assert.throws(() => uuid[version]('x', uuid[version].DNS, new Uint8Array(8), 4), RangeError);
-  }
-  assert.throws(() => uuid.v6({}, new Uint8Array(8), 4), RangeError);
+test('xcode generates unique compatible project identifiers without the removed uuid dependency', () => {
+  const xcodePackage = require('xcode/package.json');
+  assert.equal(xcodePackage.dependencies?.uuid, undefined);
   const project = require('xcode').project('not-read.pbxproj');
   project.hash = { project: { objects: {} } };
   const identifiers = Array.from({ length: 100 }, () => project.generateUuid());

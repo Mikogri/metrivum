@@ -23,7 +23,7 @@ vi.mock("./shared", async (original) => ({
     lifecycle: { isCurrent: () => true }, sync: mocks.sync,
   }),
 }));
-vi.mock("~/shared/session/SessionProvider", () => ({ useSessionManager: () => ({ client: () => ({ auth: mocks.auth }) }) }));
+vi.mock("~/shared/session/SessionProvider", () => ({ useSessionManager: () => ({ client: () => ({ auth: mocks.auth }), getState: () => ({ generation: 0, accounts: [{ slot: 0, userId: "user-a" }] }) }) }));
 vi.mock("~/modules/auth", async (original) => ({ ...await original<typeof Auth>(), verifyPassword: mocks.verifyPassword }));
 
 const show = (page: ReactElement) => render(<MemoryRouter>{page}</MemoryRouter>);
@@ -86,7 +86,7 @@ describe("change email", () => {
     fireEvent.change(screen.getByLabelText(/Current password/), { target: { value: "right-password" } });
     fireEvent.click(screen.getByRole("button", { name: "Send confirmation links" }));
     await screen.findByText("Waiting for confirmation");
-    expect(mocks.verifyPassword).toHaveBeenCalledWith("member@example.test", "right-password");
+    expect(mocks.verifyPassword).toHaveBeenCalledWith("member@example.test", "right-password", {});
     const [attributes, options] = mocks.auth.updateUser.mock.calls[0]!;
     // Only the email is sent; the account keeps its id and nothing else changes.
     expect(attributes).toEqual({ email: "next@example.test" });

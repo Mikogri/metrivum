@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import type { Factor } from "@supabase/supabase-js";
 import { Smartphone, Trash2 } from "lucide-react";
 import { Alert, Badge, Button, Card, Dialog, List, ListRow, TextField, toast } from "@metrivum/ui-web";
-import { SecondFactorForm, factorName, hasPassword, isSixDigitCode, mfaErrorText, verifiedTotp, verifyAuthenticatorCode, verifyPassword } from "~/modules/auth";
+import { SecondFactorForm, factorName, hasPassword, isSixDigitCode, mfaErrorText, verifiedTotp, verifyAuthenticatorCode, verifyPassword, useTurnstile } from "~/modules/auth";
 import { formatDate } from "~/shared/i18n/format";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
@@ -213,12 +213,14 @@ function RemoveFactor({ slot, factor, factors, email, passwordAccount, onClose, 
 }) {
   const m = useT();
   const t = m.accountSecurity.twoFactor;
-  const { client } = useSecurityAccount();
+  const { client, lifecycle } = useSecurityAccount();
   const [password, setPassword] = useState("");
   const last = factors.length === 1;
+  const captcha = useTurnstile(`factor:${slot}:${factor.id}:${email}`);
   return (
     <Dialog isOpen onOpenChange={(open) => { if (!open) onClose(); }} title={t.removeTitle(factorName(factor, t.defaultName))} description={t.removeBody} closeLabel={m.common.close} size="sm">
       <div className={styles.section}>
+        {passwordAccount ? captcha.widget : null}
         {last ? <Alert tone="warning" title={t.removeLast} /> : null}
         <SecondFactorForm
           slot={slot}
@@ -226,9 +228,13 @@ function RemoveFactor({ slot, factor, factors, email, passwordAccount, onClose, 
           submitLabel={t.confirmRemove}
           check={async () => {
             if (!passwordAccount) return null;
-            return password && await verifyPassword(email, password) ? null : m.accountSecurity.email.wrongPassword;
+            if (!password) return m.accountSecurity.email.wrongPassword;
+            const captchaOptions = captcha.take();
+            if (!captchaOptions) return captcha.unavailable;
+            return await verifyPassword(email, password, captchaOptions) ? null : m.accountSecurity.email.wrongPassword;
           }}
           onVerified={async () => {
+            if (!lifecycle.isCurrent()) return captcha.unavailable;
             const { error } = await client.auth.mfa.unenroll({ factorId: factor.id });
             if (error) return mfaErrorText(m, error);
             await onRemoved(last);

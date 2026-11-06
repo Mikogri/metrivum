@@ -64,7 +64,7 @@ public sealed class CoachDiscoveryService(CoachingDbContext db, IAccountContext 
         string? mode, string? language, string? location, bool hasOffers, string? offerCategory, CancellationToken ct, string? specializations = null)
     {
         var roles = await accounts.GetRolesAsync(ct);
-        abuse?.Require(accounts.UserId, AbusePolicies.Search);
+        if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.Search, cancellationToken: ct);
         if (!roles.Any(x => x is AccountRole.Coach or AccountRole.Client) || !await directory.IsAdultAsync(accounts.UserId, ct))
             throw new ApiException(403, "ADULT_REQUIRED", "Discovery is available to adult coaches and clients.");
         await access.RequireAsync("discovery.coaches.search", ct);

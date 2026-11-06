@@ -22,6 +22,30 @@ namespace Metrivum.IntegrationTests;
 public sealed class DocumentationTests
 {
     [MediaPostgresFact]
+    public async Task Shared_document_downloads_charge_the_viewer_without_spending_the_authors_budget()
+    {
+        foreach (var clientAuthor in new[] { false, true })
+        {
+            await using var f = await Fixture.Create();
+            var limits = new AbuseProtectionOptions { DistributedEnabled = false };
+            limits.Policies[AbusePolicies.SignedDownload].Permits = 1;
+            using var protection = new AbuseProtection(Options.Create(limits));
+            var media = new MediaLibrary(f.MediaDb, f.Storage, Options.Create(new StorageOptions { Bucket = "private-test" }), abuse: protection);
+            var author = f.Service(clientAuthor ? f.Client : f.Coach, clientAuthor ? AccountRole.Client : AccountRole.Coach, media: media);
+            var viewer = f.Service(clientAuthor ? f.Coach : f.Client, clientAuthor ? AccountRole.Coach : AccountRole.Client, media: media);
+            var upload = await author.Upload(f.Relationship, new("Shared.png", "image/png", f.Storage.Bytes.Length), default);
+            await author.FinalizeUpload(f.Relationship, upload.MediaId, default);
+            var document = await author.AddDocument(f.Relationship, new("Shared", null, "ProgressPhoto", "SharedWithClient", null, upload.MediaId, f.Now), default);
+
+            await viewer.ReadFile(f.Relationship, document.Id, default);
+            await author.ReadFile(f.Relationship, document.Id, default);
+            Assert.Equal(2, f.Storage.ReadUrls);
+            Assert.Equal(429, (await Assert.ThrowsAsync<ApiException>(() => viewer.ReadFile(f.Relationship, document.Id, default))).Status);
+            Assert.Equal(2, f.Storage.ReadUrls);
+        }
+    }
+
+    [MediaPostgresFact]
     public async Task Both_participants_control_only_their_own_documents_and_private_files()
     {
         foreach (var clientAuthor in new[] { false, true })
@@ -361,11 +385,11 @@ public sealed class DocumentationTests
             MediaDb = new(new DbContextOptionsBuilder<MediaDbContext>().UseNpgsql(connection).Options);
             Media = new(MediaDb, Storage, Options.Create(new StorageOptions { Bucket = "private-test" }));
         }
-        public DocumentationService Service(Guid user, AccountRole role, DocumentationDbContext? docs = null)
+        public DocumentationService Service(Guid user, AccountRole role, DocumentationDbContext? docs = null, IDocumentMedia? media = null)
         {
             var account = new Account(user, role);
             var features = new Features();
-            return new(docs ?? Docs, account, new RelationshipRecipients(Coaching), new CoachingService(Coaching, account, null!, features, TimeProvider.System, null!), features, Media, TimeProvider.System, Notifications);
+            return new(docs ?? Docs, account, new RelationshipRecipients(Coaching), new CoachingService(Coaching, account, null!, features, TimeProvider.System, null!), features, media ?? Media, TimeProvider.System, Notifications);
         }
         public async Task Status(RelationshipStatus status)
         {

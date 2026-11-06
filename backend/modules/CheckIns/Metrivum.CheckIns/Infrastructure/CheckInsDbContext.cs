@@ -29,6 +29,7 @@ public sealed class CheckInsDbContext(DbContextOptions<CheckInsDbContext> option
         s.Property(x => x.LastFailure).HasMaxLength(1000);
         s.Property(x => x.Version).IsConcurrencyToken();
         s.HasIndex(x => new { x.Status, x.NextAvailableAtUtc, x.RetryAtUtc });
+        s.HasIndex(x => x.Status);
         s.HasIndex(x => new { x.CoachId, x.WorkspaceId, x.Status, x.UpdatedAt, x.Id });
         s.HasIndex(x => x.FormTemplateId);
         var t = model.Entity<ScheduleTarget>();

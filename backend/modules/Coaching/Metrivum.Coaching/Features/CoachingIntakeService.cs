@@ -25,7 +25,7 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
     public async Task<ApplicationDetailDto> StartApplicationAsync(StartApplicationRequest request, CancellationToken ct)
     {
         var client = await ClientAsync("coaching.applications.submit-own", ct);
-        abuse?.Require(client.UserId, AbusePolicies.Application);
+        if (abuse is not null) await abuse.RequireAsync(client.UserId, AbusePolicies.Application, cancellationToken: ct);
         return await transactions.RunAsync(async token =>
         {
             CoachingInvitation? invitation = null;
@@ -349,7 +349,7 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
     public async Task<InvitationDto> CreateInvitationAsync(CreateInvitationRequest request, CancellationToken ct, string? idempotencyKey = null)
     {
         var coach = await CoachAsync("coaching.invitations.send", ct);
-        abuse?.Require(coach.UserId, AbusePolicies.Invitation);
+        if (abuse is not null) await abuse.RequireAsync(coach.UserId, AbusePolicies.Invitation, cancellationToken: ct);
         Text(request.Username, 100, true);
         Text(request.Message, 2000);
         var target = await directory.ResolveExactUsernameAsync(request.Username.Trim(), ct) ?? throw ApiException.NotFound();
@@ -393,7 +393,7 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
     public async Task<CoachingChatDelivery> ShareFormAsync(ShareOfferFormRequest request, string key, CancellationToken ct)
     {
         var coach = await CoachAsync("coaching.invitations.send", ct);
-        abuse?.Require(coach.UserId, AbusePolicies.Invitation);
+        if (abuse is not null) await abuse.RequireAsync(coach.UserId, AbusePolicies.Invitation, cancellationToken: ct);
         if (!Guid.TryParse(key, out var clientKey) || clientKey == Guid.Empty)
             throw ApiException.Invalid("A UUID Idempotency-Key is required.");
         var revision = await offers.GetCurrentAsync(request.OfferId, ct);
@@ -409,7 +409,7 @@ public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext 
     public async Task<InvitationChatReplayDto> ReplayPendingInvitationChatsAsync(Guid? after, int limit, bool apply, CancellationToken ct)
     {
         var coach = await CoachAsync("coaching.invitations.send", ct);
-        abuse?.Require(coach.UserId, AbusePolicies.Invitation);
+        if (abuse is not null) await abuse.RequireAsync(coach.UserId, AbusePolicies.Invitation, cancellationToken: ct);
         if (limit is < 1 or > 100) throw ApiException.Invalid("Limit must be between 1 and 100.");
         var rows = await db.Invitations.AsNoTracking().Where(x => x.CoachId == coach.UserId && x.WorkspaceId == coach.WorkspaceId && x.Status == InvitationStatus.Pending && (!after.HasValue || x.Id.CompareTo(after.Value) > 0))
             .OrderBy(x => x.Id).Take(limit).ToArrayAsync(ct);

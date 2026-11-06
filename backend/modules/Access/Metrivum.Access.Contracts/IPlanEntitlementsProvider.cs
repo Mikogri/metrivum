@@ -18,7 +18,7 @@ public static class PlanFeaturePolicy
         "training.formulas.custom", "training.sets.advanced", "exercises.custom.create",
         "exercises.create", "video.analysis.cloud", "analytics.advanced", "automation.advanced",
         "integrations.mcp.manage-checkins", "integrations.mcp.prepare-message", "integrations.mcp.send-approved-message",
-        "integrations.mcp.write-training-drafts", "discovery.ranking.priority", "organization.workspace.manage"
+        "integrations.mcp.write-training-drafts", "integrations.mcp.assign-programs", "discovery.ranking.priority", "organization.workspace.manage"
     };
 
     public static string Canonical(string key) => key switch

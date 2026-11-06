@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown, ListChecks, LogOut, Plus, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button as AriaButton, Header, MenuSection } from "react-aria-components";
+import { Button as AriaButton, MenuItem, MenuSection } from "react-aria-components";
 import { useNavigate } from "react-router";
 import {
   Avatar,
@@ -78,15 +78,15 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
             const id = String(key);
             if (id.startsWith("slot:")) void actions.switchTo(Number(id.slice(5)) as SlotId);
             else if (id === "add") void actions.addAccount();
-            else if (id === "profile") navigate("/app/profile");
+            else if (id === "profile" || id === "profile-card") navigate("/app/profile");
             else if (id === "complete") navigate(next?.href ?? "/app/profile");
             else if (id === "settings") navigate("/app/settings");
             else if (id === "signout") setSigningOut(true);
           }}
         >
-          {/* Who is signed in, as a card above the actions. */}
+          {/* Who is signed in, as a card above the actions; choosing it opens the profile. */}
           <MenuSection className={styles.profileSection}>
-            <Header className={styles.profile}>
+            <MenuItem id="profile-card" textValue={`${name} ${m.accounts.viewProfile}`} className={styles.profile}>
               <span className={styles.profileRow}>
                 <Avatar name={name} size="lg" decorative src={photo} />
                 <span className={styles.profileText}>
@@ -105,7 +105,7 @@ export function AccountSwitcher({ compact = false }: { compact?: boolean }) {
                   </span>
                 </span>
               )}
-            </Header>
+            </MenuItem>
           </MenuSection>
           {!completeness.pending && completeness.percent < 100 ? (
             <DropdownMenuItem id="complete" icon={<ListChecks />} description={m.accounts.stepsLeft(completeness.items.length - completeness.done)}>

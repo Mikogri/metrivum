@@ -3,11 +3,12 @@ import { BarChart3, Bot, Building2, CalendarDays, Check, ChevronRight, Clipboard
 import { useMemo, useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
-import { Alert, Avatar, Badge, Button, Card, Checkbox, Combobox, EmptyState, LinkButton, List, ListRow, Option, PageHeader, Segment, SegmentedControl, Select, Skeleton, Switch, TextArea, TextField, toast } from "@metrivum/ui-web";
+import { Alert, Avatar, Badge, Button, Card, Checkbox, Combobox, EmptyState, IconButton, LinkButton, Option, PageHeader, Segment, SegmentedControl, Select, Skeleton, Switch, TextArea, TextField, toast } from "@metrivum/ui-web";
 import {
   DETAIL_GROUPS, DetailFields, ageFrom, detailProblems, detailsFromValues, detailsToValues, nameParts, namePartValid, normalizeDisplayName, profileFieldsKey,
-  profileKey, timeZones, updateProfile, useProfile, type DetailGroup, type Details,
+  profileKey, timeZones, updateProfile, useAvatarUrl, useProfile, type DetailGroup, type Details,
 } from "~/modules/accounts";
+import { MAX_ACCOUNTS } from "~/shared/session";
 import { CoachSpecializationsCard } from "~/modules/coaching";
 import { Integrations } from "~/modules/integrations";
 
@@ -229,55 +230,66 @@ function MessagingPrivacy() {
   </Card>;
 }
 
+/** The accounts signed in to this browser as cards, the active one first, then the free slots to add another. */
 function Accounts() {
   const m = useT();
   const t = m.settings;
   const state = useSessionState();
+  const profile = useProfile();
+  const photo = useAvatarUrl(profile.id, profile.hasAvatar);
   const navigate = useNavigate();
   const manager = useSessionManager();
   const { confirm, dialog } = useDiscardConfirm();
   const actions = useAccountActions(confirm);
   const slot = manager.slotForNewSignIn();
+  const accounts = [...state.accounts].sort((a, b) => Number(b.slot === state.activeSlot) - Number(a.slot === state.activeSlot));
+  const free = Math.max(0, MAX_ACCOUNTS - accounts.length);
   return (
     <Card as="section" padding="lg" aria-labelledby="accounts-title">
-      <h2 id="accounts-title" className={styles.title}>
-        {t.accounts}
-      </h2>
-      <p className={styles.hint}>{t.accountsBody}</p>
-      <List className={styles.list}>
-        {state.accounts.map((account) => (
-          <ListRow
-            key={account.slot}
-            leading={<Avatar name={account.email ?? "?"} size="sm" decorative />}
-            title={account.email}
-            subtitle={account.slot === state.activeSlot ? m.accounts.current : undefined}
-            trailing={
-              <>
-                {account.slot !== state.activeSlot ? (
-                  <Button size="sm" onPress={() => void actions.switchTo(account.slot)}>
-                    {m.accounts.switchTo(account.email ?? "")}
-                  </Button>
-                ) : null}
-                <Button size="sm" variant="ghost" iconStart={<LogOut />} aria-label={m.accounts.signOutOf(account.email ?? "")} onPress={() => void actions.signOut(account.slot)}>
-                  {m.accounts.signOut}
-                </Button>
-              </>
-            }
-          />
-        ))}
-      </List>
-      {slot === null ? (
-        <p className={styles.hint}>{m.accounts.maxReached}</p>
-      ) : (
-        <div className={styles.addAccount}>
-          <Button iconStart={<LogIn />} onPress={() => void actions.addAccount()}>
-            {m.accounts.signInExisting}
-          </Button>
-          <Button iconStart={<Plus />} onPress={() => navigate(`/auth/register?slot=${slot}&add=1`)}>
-            {m.accounts.createNew}
-          </Button>
+      <div className={styles.accountsHead}>
+        <div>
+          <h2 id="accounts-title" className={styles.title}>{t.accounts}</h2>
+          <p className={styles.hint}>{t.accountsBody}</p>
         </div>
-      )}
+        <Badge tone="neutral">{t.accountsCount(accounts.length, MAX_ACCOUNTS)}</Badge>
+      </div>
+      <ul className={styles.accountCards}>
+        {accounts.map((account) => {
+          const active = account.slot === state.activeSlot;
+          const name = active ? profile.displayName || profile.username || account.email || "?" : account.email ?? "?";
+          return (
+            <li key={account.slot} className={styles.accountCard} data-active={active || undefined}>
+              <Avatar name={name} size="lg" decorative src={active ? photo : undefined} />
+              <span className={styles.accountText}>
+                <strong>{name}</strong>
+                <small>{active && profile.username ? `@${profile.username} · ${account.email ?? ""}` : account.email}</small>
+              </span>
+              <span className={styles.accountActions}>
+                {active ? <Badge tone="success" dot>{t.accountActive}</Badge> : (
+                  <Button size="sm" aria-label={m.accounts.switchTo(account.email ?? "")} onPress={() => void actions.switchTo(account.slot)}>
+                    {t.accountSwitch}
+                  </Button>
+                )}
+                <IconButton size="sm" variant="ghost" icon={<LogOut />} label={m.accounts.signOutOf(account.email ?? "")} onPress={() => void actions.signOut(account.slot)} />
+              </span>
+            </li>
+          );
+        })}
+        {slot !== null && free > 0 ? (
+          <li className={styles.freeSlot}>
+            <span className={styles.freeIcon} aria-hidden="true"><Plus /></span>
+            <span className={styles.accountText} data-wrap>
+              <strong>{t.freeSlots(free)}</strong>
+              <small>{t.freeSlotBody}</small>
+            </span>
+            <span className={styles.freeActions}>
+              <Button size="sm" variant="ghost" iconStart={<LogIn />} onPress={() => void actions.addAccount()}>{t.signIn}</Button>
+              <Button size="sm" iconStart={<Plus />} onPress={() => navigate(`/auth/register?slot=${slot}&add=1`)}>{t.createAccount}</Button>
+            </span>
+          </li>
+        ) : null}
+      </ul>
+      {slot === null ? <p className={styles.hint}>{m.accounts.maxReached}</p> : null}
       {dialog}
     </Card>
   );

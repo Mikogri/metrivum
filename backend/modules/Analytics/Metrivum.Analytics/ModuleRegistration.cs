@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Metrivum.Access.Contracts;
 using Metrivum.Accounts.Contracts;
 using Metrivum.Analytics.Contracts;
+using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Analytics;
 
@@ -142,7 +143,8 @@ public sealed class AnalysisService(
     ICheckInsAnalytics checkins,
     IMessagingAnalytics messaging,
     Metrivum.Training.Contracts.ITrainingProgressReader? training = null,
-    ITeamContext? teams = null
+    ITeamContext? teams = null,
+    IAbuseProtection? abuse = null
 )
 {
     private async Task<AnalysisScope> ScopeAsync(AnalysisQuery q, CancellationToken ct, bool advanced = false)
@@ -150,6 +152,7 @@ public sealed class AnalysisService(
         var owner = await accounts.RequireCoachAsync(ct);
         await access.RequireAsync("analytics.view", ct);
         if (advanced) await access.RequireAsync("analytics.advanced", ct);
+        if (abuse is not null) await abuse.RequireAsync(owner.UserId, AbusePolicies.AnalyticsQuery, cancellationToken: ct);
         var today = AnalysisDates.Today(q.TimeZone ?? "UTC", DateTimeOffset.UtcNow);
         var window = AnalysisDates.Create(
             q.From ?? today.AddDays(-29),

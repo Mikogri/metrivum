@@ -24,6 +24,9 @@ public static class AbuseHttpProtection
 
     public static IServiceCollection AddAbuseHttpProtection(this IServiceCollection services, IConfiguration configuration)
     {
+        var readinessLimit = configuration.GetValue("Security:ReadinessRequestsPerMinute", 120);
+        if (readinessLimit is < 1 or > 600)
+            throw new InvalidOperationException("Security:ReadinessRequestsPerMinute must be between 1 and 600.");
         services.AddOptions<AbuseProtectionOptions>().Bind(configuration.GetSection(AbuseProtectionOptions.Section))
             .Validate(x => x.IsValid(), "Invalid abuse protection configuration.").ValidateOnStart();
         services.AddSingleton<AbuseProtection>();
@@ -41,6 +44,9 @@ public static class AbuseHttpProtection
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = 429;
+            // Railway health is anonymous, but database probes must not be an unlimited pool bypass.
+            options.AddPolicy("readiness", _ => RateLimitPartition.GetFixedWindowLimiter("readiness", _ => new FixedWindowRateLimiterOptions
+            { PermitLimit = readinessLimit, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
             // Existing stricter account enumeration limits remain in addition to the bounded central budgets.
             options.AddPolicy(AccountRateLimits.Identity, http => RateLimitPartition.GetFixedWindowLimiter(Key(http), _ => new FixedWindowRateLimiterOptions
             { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
@@ -62,14 +68,19 @@ public static class AbuseHttpProtection
 
     public static IApplicationBuilder UseAbuseHttpProtection(this IApplicationBuilder app) => app.Use(async (http, next) =>
     {
+        if (http.Items.TryGetValue(SupabaseAuthentication.AdmissionRejectedItem, out var rejected) && rejected is ApiException error)
+            throw error;
         if (IsExempt(http.Request.Path) || http.Request.Method == "OPTIONS") { await next(http); return; }
         var limiter = http.RequestServices.GetRequiredService<AbuseProtection>();
         var category = Category(http.Request.Method, http.Request.Path.Value ?? "");
         if (http.User.Identity?.IsAuthenticated == true && Guid.TryParse(http.User.FindFirst("sub")?.Value, out var user))
         {
-            limiter.Require(user, AbusePolicies.Global);
+            if (!http.Items.ContainsKey(SupabaseAuthentication.AdmissionChargedItem)) limiter.Require(user, AbusePolicies.Global);
             // MCP has a dedicated transport budget, and hub frames are charged after the handshake.
-            if (category != AbusePolicies.Autosave && category != AbusePolicies.Search && !http.Request.Path.StartsWithSegments("/mcp") && !http.Request.Path.StartsWithSegments("/api/v1/messaging/hub")) limiter.Require(user, category);
+            if (category != AbusePolicies.Autosave && category != AbusePolicies.Search && !http.Request.Path.StartsWithSegments("/mcp") && !http.Request.Path.StartsWithSegments("/api/v1/messaging/hub")) {
+                if (category == AbusePolicies.Read) limiter.Require(user, category);
+                else await limiter.RequireAsync(user, category, cancellationToken: http.RequestAborted);
+            }
         }
         else
         {

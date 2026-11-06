@@ -1,0 +1,192 @@
+/* First-run editor tips: a pulsing outline on the part being explained and a card beside it. */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  animation: layer-in 220ms var(--tf-ease-out, ease-out);
+}
+
+.layer[data-leaving] {
+  animation: layer-out 180ms ease-in forwards;
+}
+
+.ring {
+  position: fixed;
+  border: 2px solid var(--tf-color-accent);
+  border-radius: var(--tf-radius-lg);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tf-color-accent) 18%, transparent);
+  transition:
+    top 320ms var(--tf-ease-out, ease-out),
+    left 320ms var(--tf-ease-out, ease-out),
+    width 320ms var(--tf-ease-out, ease-out),
+    height 320ms var(--tf-ease-out, ease-out);
+  animation: ring-pulse 1.8s ease-in-out infinite;
+}
+
+.card {
+  position: fixed;
+  display: grid;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface-raised, var(--tf-color-surface));
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.35), 0 2px 8px rgb(0 0 0 / 0.2);
+  pointer-events: auto;
+  transition:
+    top 320ms var(--tf-ease-out, ease-out),
+    left 320ms var(--tf-ease-out, ease-out);
+  animation: card-in 260ms var(--tf-ease-out, ease-out);
+}
+
+.card[data-side="above"] {
+  animation-name: card-in-above;
+}
+
+/* Each step's text slides in as the card moves to its next place. */
+.content {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  animation: content-in 240ms var(--tf-ease-out, ease-out);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+
+.icon svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.count {
+  flex: 1;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  cursor: pointer;
+}
+
+.close svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .close:hover {
+    background: var(--tf-color-surface-overlay);
+    color: var(--tf-color-text);
+  }
+}
+
+.title {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.body {
+  margin: 0;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal, 1.5);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.dots {
+  display: flex;
+  flex: 1;
+  gap: 0.3125rem;
+}
+
+.dots span {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-overlay);
+  transition:
+    width 240ms var(--tf-ease-out, ease-out),
+    background-color 240ms ease;
+}
+
+.dots span[data-done] {
+  background: color-mix(in srgb, var(--tf-color-accent) 45%, transparent);
+}
+
+.dots span[data-active] {
+  width: 1rem;
+  background: var(--tf-color-accent);
+}
+
+@keyframes layer-in {
+  from { opacity: 0; }
+}
+
+@keyframes layer-out {
+  to { opacity: 0; }
+}
+
+@keyframes ring-pulse {
+  50% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--tf-color-accent) 6%, transparent); }
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+}
+
+@keyframes card-in-above {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+}
+
+@keyframes content-in {
+  from { opacity: 0; transform: translateX(8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer,
+  .card,
+  .content,
+  .ring {
+    animation: none;
+    transition: none;
+  }
+
+  .layer[data-leaving] {
+    opacity: 0;
+  }
+}

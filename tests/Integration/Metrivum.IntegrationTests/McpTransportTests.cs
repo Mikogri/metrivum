@@ -8,6 +8,20 @@ namespace Metrivum.IntegrationTests;
 
 public sealed class McpTransportTests
 {
+    [Theory]
+    [InlineData("resource", HttpStatusCode.Unauthorized)]
+    [InlineData("duplicate_client", HttpStatusCode.Forbidden)]
+    [InlineData("missing_client", HttpStatusCode.Forbidden)]
+    [InlineData("blank_client", HttpStatusCode.Forbidden)]
+    public async Task Invalid_resource_or_client_identity_is_denied_before_consent_queries(string fault, HttpStatusCode expected)
+    {
+        using var source = new ApiFactory();
+        using var factory = Enable(source);
+        using var http = factory.CreateClient();
+        http.DefaultRequestHeaders.Authorization = new("Bearer", source.Token(Guid.NewGuid(), fault, oauthClientId: "fixture-client"));
+        Assert.Equal(expected, (await http.PostAsJsonAsync("/mcp", new { jsonrpc = "2.0", id = 1, method = "tools/list" })).StatusCode);
+    }
+
     private static Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> Enable(ApiFactory source) => source.WithWebHostBuilder(builder =>
     {
         builder.UseSetting("Mcp:Enabled", "true");

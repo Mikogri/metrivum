@@ -62,8 +62,9 @@ public sealed class CoachingMigrationTests
             Assert.Equal("Coach", (await accounts.Roles.SingleAsync(x => x.UserId == user)).Role);
             Assert.Equal("Legacy Plan", (await training.Plans.SingleAsync(x => x.Id == plan)).Name);
             var config = await access.Configurations.SingleAsync(x => x.Id == "v1-default");
-            Assert.Equal(13, config.Version);
-            Assert.Equal(60, config.GrantedFeatures.Length);
+            Assert.Equal(14, config.Version);
+            Assert.Equal(61, config.GrantedFeatures.Length);
+            Assert.Contains("integrations.mcp.assign-programs", config.GrantedFeatures);
             Assert.Contains("video.analysis.local", config.GrantedFeatures);
             Assert.Contains("organization.workspace.manage", config.GrantedFeatures);
             Assert.Contains("integrations.mcp.connect", config.GrantedFeatures);

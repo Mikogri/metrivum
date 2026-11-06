@@ -221,7 +221,7 @@ export function WeekView({
           <button type="button" className={styles.copyCancel} onClick={() => setPlacing(null)}>{m.common.cancel}</button>
         </div>
       ) : null}
-      <div className={styles.strip} role="tablist" aria-label={t.label} data-copying={copying !== null || placing !== null || undefined} style={week ? (full && cycle ? { gridTemplateColumns: "repeat(7, minmax(0, 1fr)) 2.75rem" } : undefined) : { gridTemplateColumns: "repeat(auto-fill, minmax(7.5rem, 1fr))" }}
+      <div data-tip="table-days" className={styles.strip} role="tablist" aria-label={t.label} data-copying={copying !== null || placing !== null || undefined} style={week ? (full && cycle ? { gridTemplateColumns: "repeat(7, minmax(0, 1fr)) 2.75rem" } : undefined) : { gridTemplateColumns: "repeat(auto-fill, minmax(7.5rem, 1fr))" }}
         onKeyDown={(event) => { if (event.key === "Escape") { setCopying(null); setPlacing(null); } }}>
         {Array.from({ length }, (_, index) => {
           const number = index + 1;
@@ -286,7 +286,7 @@ export function WeekView({
       </div>
 
       <div className={styles.body}>
-        <section className={styles.panel} role="tabpanel" aria-label={dayName(current)}>
+        <section data-tip="table-workout" className={styles.panel} role="tabpanel" aria-label={dayName(current)}>
           {workout && day ? (
             <>
               <header className={styles.panelHeader}>
@@ -416,7 +416,7 @@ export function WeekView({
         >
           <p>{removing ? t.removeWorkoutBody(removing.name) : null}</p>
         </AlertDialog>
-        <aside className={styles.side} aria-label={m.editor.sheet.volume.title}>
+        <aside data-tip="volume" className={styles.side} aria-label={m.editor.sheet.volume.title}>
           {/* Volume of the whole selected cycle (not of one day). */}
           <VolumeContent
             names={names}

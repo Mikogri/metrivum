@@ -8,6 +8,7 @@ import { privateMeta } from "~/shared/i18n/site";
 import { useIntegrationMutation, useIntegrationQuery, type ConsentDetails } from "./api";
 import { IntegrationError, PermissionChoices } from "./integrations";
 import styles from "./integrations.module.css";
+import { useIntegrationCopy } from "./copy";
 
 export const meta = () => privateMeta("Connect an AI assistant — Metrivum");
 
@@ -25,6 +26,7 @@ export default function Consent() {
 }
 function ConsentRequest({ authorizationId }: { authorizationId: string }) {
   const uiCopy = useUiCopy();
+  const copy = useIntegrationCopy();
 
   const { account } = useAccountContext();
   const [selected, setSelected] = useState<string[]>([]);
@@ -43,6 +45,7 @@ function ConsentRequest({ authorizationId }: { authorizationId: string }) {
         <p className={styles.hint}>{uiCopy["ui"]["Identity scopes:"]} {query.data.scopes.join(", ") || uiCopy["editor"]["panel"]["effortModes"]["none"]}</p>
         <h2 className={styles.heading}>{uiCopy["ui"]["Choose Metrivum permissions"]}</h2>
         <PermissionChoices available={query.data.availableGrants} selected={selected} onChange={setSelected} disabled={save.isPending} />
+        <p className={styles.hint}>{copy.actions}</p><Alert tone="info" title={copy.forbidden} />
         <p className={styles.hint}>{uiCopy["ui"]["The assistant can see private content returned by these tools. Drafts stay private. Sending messages always requires your separate approval in Metrivum. You can change permissions or disconnect in Settings → Integrations."]}</p>
         <IntegrationError error={save.error ?? redirectError} />
         <div className={styles.actions}><Button variant="primary" isDisabled={!selected.length || save.isPending} onPress={() => save.mutate({ method: "POST", path, json: { grants: selected } })}>{uiCopy["ui"]["Allow selected permissions"]}</Button><Button isDisabled={save.isPending} onPress={() => save.mutate({ method: "POST", path: `${path}/deny` })}>{uiCopy["ui"]["Deny"]}</Button></div>

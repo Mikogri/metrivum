@@ -238,12 +238,14 @@ export default function Transactions() {
         <DataTable label={pl ? "Transakcje" : uiCopy["nav"]["transactions"]} rows={rows} rowKey={row => row.id} rowProps={row => ({ "data-overdue": row.overdue || undefined })} className={styles.table} columns={[
           { id: "name", header: pl ? "Operacja" : "Operation", cell: row => <span className={styles.op}>
             <span className={styles.dir} data-dir={row.direction} data-status={row.status} aria-hidden="true">{row.direction === "Incoming" ? <ArrowDownLeft /> : <ArrowUpRight />}</span>
-            <span className={styles.opText}><RouterLink to={recordHref(row.id)} data-row-link className={styles.opName}>{row.name}</RouterLink>
-              <span className={styles.opSub}>{row.type === "PlatformSubscription" ? "Metrivum" : row.direction === "Incoming" ? row.clientName || (pl ? "Klient" : uiCopy["profile"]["roles"]["Client"]) : row.coachName || (pl ? "Trener" : uiCopy["profile"]["roles"]["Coach"])}{row.mode === "Simulated" ? <span className={styles.sim}>{pl ? "symulacja" : "simulated"}</span> : null}</span></span>
+            {/* Simulated payments are flagged once in the page header; the row keeps it as a hint. */}
+            <RouterLink to={recordHref(row.id)} data-row-link className={styles.opName} title={row.mode === "Simulated" ? `${row.name} · ${pl ? "symulacja" : "simulated"}` : row.name}>{row.name}</RouterLink>
           </span> },
-          { id: "date", header: pl ? "Data" : "Date", width: "9rem", muted: true, hideOnMobile: true, cell: row => date(row.dueAt ?? row.date) },
-          { id: "status", header: "Status", width: "10rem", cell: statusBadge },
-          { id: "amount", header: pl ? "Kwota" : "Amount", width: "9rem", align: "end", cell: row => <span className={styles.amount} data-dir={row.direction} data-muted={row.status === "Failed" || row.status === "Cancelled" || undefined}>{row.direction === "Incoming" ? "+" : "−"}{money(Number(row.direction === "Incoming" ? row.netAmount : row.grossAmount), row.currency)}</span> },
+          // Who paid you, or whom you paid.
+          { id: "party", header: pl ? "Od / dla" : "From / to", width: "10rem", hideOnMobile: true, cell: row => <span className={styles.party}>{row.type === "PlatformSubscription" ? "Metrivum" : row.direction === "Incoming" ? row.clientName || (pl ? "Klient" : uiCopy["profile"]["roles"]["Client"]) : row.coachName || (pl ? "Trener" : uiCopy["profile"]["roles"]["Coach"])}</span> },
+          { id: "date", header: pl ? "Data" : "Date", width: "7.5rem", muted: true, hideOnMobile: true, cell: row => date(row.dueAt ?? row.date) },
+          { id: "status", header: "Status", width: "9rem", cell: statusBadge },
+          { id: "amount", header: pl ? "Kwota" : "Amount", width: "7.5rem", align: "end", cell: row => <span className={styles.amount} data-dir={row.direction} data-muted={row.status === "Failed" || row.status === "Cancelled" || undefined}>{row.direction === "Incoming" ? "+" : "−"}{money(Number(row.direction === "Incoming" ? row.netAmount : row.grossAmount), row.currency)}</span> },
         ]} />
         {!open && query.data ? <ListPagination data={query.data} onChange={page => setFilters({ page: String(page) })} /> : null}
       </>}

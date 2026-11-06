@@ -15,7 +15,7 @@ async function fixture(page: Page) {
   const preferences = { note: "Preserve exercise order", shareWithIntegrations: false, version: 1 };
   const action = { id: actionId, connectionId, clientName: connection.clientName, type: "SendMessage", status: "Pending", conversationId: "60000000-0000-4000-8000-000000000003", conversationTitle: "Client follow-up", recipients: [{ userId: "60000000-0000-4000-8000-000000000004", displayName: "Client Alice" }], body: "Please record your next workout.\nI will review your progress tomorrow.", payloadHash: "fixture-hash", createdAt: "2026-10-14T08:00:00Z", expiresAt: "2099-01-01T00:00:00Z", approvedAt: null as string | null, executedAt: null as string | null, messageId: null as string | null, version: 4, reviewUrl: `/app/integrations/actions/${actionId}` };
   await page.addInitScript(({ user }) => {
-    localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh-0", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: user, email: "integrations@trainflow.test", aud: "authenticated" } }));
+    localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh-0", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: user, email: "integrations@trainflow.test", email_confirmed_at: "2026-01-01T00:00:00Z", is_anonymous: false, aud: "authenticated" } }));
     localStorage.setItem("tf.auth.active-slot", "0");
     localStorage.setItem(`tf.workspace.0:${user}`, "coach");
   }, { user });
@@ -31,8 +31,12 @@ async function fixture(page: Page) {
     if (path === "/api/v1/me") return respond({ id: user, workspaceId: user, username: "integrations", displayName: "Integration coach", onboarded: true, roles: ["Coach", "Client"], contexts: ["Coach", "Client"], version: 1, locale: "en", timeZone: "UTC", birthDate: "1990-01-01" });
     if (path === "/api/v1/me/access") return respond({ version: "fixture", features: features.map(feature => ({ key: feature.key, available: true, reason: "available" })), limits: [] });
     if (path === "/api/v1/teams/mine") return respond({ teams: [], invitations: [] });
+    if (path === "/api/v1/subscriptions/plans") return respond([]);
+    if (path === "/api/v1/me/team-context") return respond(null);
+    if (path === "/api/v1/me/profile-fields") return respond({ values: {}, currency: "EUR", version: 1 });
     if (path === "/api/v1/notifications/unread-count") return respond({ count: 0 });
     if (path === "/api/v1/me/ai-integrations") return respond([connection]);
+    if (path === "/api/v1/me/ai-activity") return respond([{ connectionId, clientName: connection.clientName, operation: action.type, status: action.status, at: action.createdAt, actionId: action.id, resultId: action.messageId }]);
     if (path === `/api/v1/me/ai-integrations/${connectionId}/grants`) {
       const body = request.postDataJSON();
       if (body.expectedVersion !== connection.version) return respond({ title: "Permissions changed. Reload the connection.", status: 409 }, 409);
@@ -76,7 +80,8 @@ async function fixture(page: Page) {
 test("settings saves versioned permissions and opt-in notes, then revokes the connection", async ({ page }) => {
   const f = await fixture(page);
   await page.goto("/app/settings?section=integrations", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Connected AI assistants" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Available integrations" })).toBeVisible();
+  await page.getByRole("button", { name: "Manage access" }).click();
   await page.getByRole("checkbox", { name: "Create and edit private training drafts" }).press("Space");
   await page.getByRole("button", { name: "Save permissions", exact: true }).click();
   await expect.poll(() => f.connection.version).toBe(4);
@@ -87,9 +92,32 @@ test("settings saves versioned permissions and opt-in notes, then revokes the co
   await expect.poll(() => f.preferences.version).toBe(2);
   expect(f.preferences.shareWithIntegrations).toBe(true);
   await page.getByRole("button", { name: "Disconnect", exact: true }).click();
-  await expect(page.getByText("Disconnected", { exact: true })).toBeVisible();
+  await expect(page.getByText("Revoked", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Disconnect", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Manage access" }).click();
   await expect(page.getByRole("checkbox", { name: "Read training programs and exercises" })).toBeDisabled();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("program assignment shows exact published version and current-plan effects before human approval", async ({ page }) => {
+  const f = await fixture(page);
+  Object.assign(f.action, { type: "AssignProgram", conversationTitle: "Reviewed strength program", body: "", recipients: [], assignment: {
+    request: { programId: "60000000-0000-4000-8000-000000000010", relationshipId: "60000000-0000-4000-8000-000000000011", revisionId: "60000000-0000-4000-8000-000000000012", startDate: "2026-11-05", timeZone: "Europe/Warsaw" },
+    clientId: "60000000-0000-4000-8000-000000000004", clientName: "Client Alice", programName: "Reviewed strength program", publishedVersion: 3,
+    currentAssignments: [{ id: "60000000-0000-4000-8000-000000000013", programName: "Current endurance program", effectiveRevisionId: "60000000-0000-4000-8000-000000000014", status: "Active", version: 2 }], effect: "Adds one assignment", contextHash: "fixture-context",
+  } });
+  await page.goto(`/app/integrations/actions/${actionId}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Reviewed strength program", exact: true })).toBeVisible();
+  await expect(page.getByText("Client Alice (60000000-0000-4000-8000-000000000004)")).toBeVisible();
+  await expect(page.getByText("3 (60000000-0000-4000-8000-000000000012)")).toBeVisible();
+  await expect(page.getByText("2026-11-05", { exact: true })).toBeVisible();
+  await expect(page.getByText("Europe/Warsaw", { exact: true })).toBeVisible();
+  await expect(page.getByText("Current endurance program · Active · 2")).toBeVisible();
+  await expect(page.getByText(/Existing assignments and workout history remain unchanged/)).toBeVisible();
+  expect(f.writes).toHaveLength(0);
+  await page.getByRole("button", { name: "Approve this assignment", exact: true }).click();
+  await expect(page.getByText("Program assigned", { exact: true })).toBeVisible();
+  expect(f.writes).toEqual([{ path: `/api/v1/me/ai-actions/${actionId}/approve`, body: { expectedVersion: 4 } }]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 

@@ -352,6 +352,20 @@ const mockNotifications: Array<{ id: string; type: string; category: string; sou
 let mockTeamInviteOpen = true;
 
 /** Returns a response for the coaching, calendar and messaging endpoints, or null when the path isn't one of them. */
+
+// AI integrations: one active and one waiting connection, recent history and a message to approve.
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
+const aiConnections = [
+  { id: "ai-conn-1", clientId: "chatgpt-6f2c1a", clientName: "ChatGPT", grants: ["read_training", "write_training_drafts", "read_clients", "prepare_messages"], createdAt: hoursAgo(24 * 12), lastUsedAt: hoursAgo(2), revokedAt: null as string | null, version: 3 },
+  { id: "ai-conn-2", clientId: "claude-connector-91ab", clientName: "Claude", grants: [] as string[], createdAt: hoursAgo(24 * 3), lastUsedAt: null as string | null, revokedAt: null as string | null, version: 1 },
+];
+const aiActions = [
+  { id: "ai-action-1", connectionId: "ai-conn-1", clientName: "ChatGPT", type: "SendMessage", status: "Pending", conversationId: "conv-1", conversationTitle: "Plan na listopad", recipients: [{ userId: "u-1", displayName: "Anna Kowalska" }], body: "Hej Anna, nowy plan jest gotowy.", payloadHash: "x", createdAt: hoursAgo(1), expiresAt: hoursAgo(-23), approvedAt: null },
+];
+const aiOps = ["create_program_draft", "update_program_draft", "prepare_message", "create_checkin_draft"];
+const aiActivity = Array.from({ length: 14 }, (_, n) => ({ connectionId: "ai-conn-1", clientName: "ChatGPT", operation: aiOps[n % aiOps.length], status: n === 3 ? "Rejected" : n === 0 ? "Pending" : "Executed", at: hoursAgo(2 + n * 7), actionId: n === 0 ? "ai-action-1" : null, resultId: null }));
+const aiPreferences = { note: "", shareWithIntegrations: false, version: 1 };
+
 export function mockCoaching(path: string, method: string, q: URLSearchParams, body: Record<string, unknown> | undefined, auth: string | null): { status: number; body: unknown } | null {
   const me = `00000000-0000-4000-8000-00000000000${(auth ?? "").replace(/^Bearer mock-/, "") || "0"}`;
   const ok = (value: unknown) => ({ status: 200, body: value });
@@ -460,7 +474,7 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
   }
   if ((m = path.match(/^\/api\/v1\/accounts\/people\/([^/]+)$/))) {
     const name = decodeURIComponent(m[1]!).replace(/^@/, "").toLowerCase();
-    if (name === "demo_coach" || name === "demo.coach") return ok({ userId: me, username: "demo_coach", displayName: "Demo Coach", bio: null, roles: ["Coach"], isSelf: true, memberSince: "2026-05-12T09:00:00Z" });
+    if (name === "demo_coach" || name === "demo.coach") return ok({ userId: me, username: "demo_coach", displayName: "Demo Coach", bio: null, roles: ["Coach"], isSelf: true, memberSince: new Date(Date.now() - 10 * 86_400_000).toISOString() }); // a new account, so first-run tips show
     if (name === "ola.trains") return ok({ userId: OTHER_COACH, username: "ola.trains", displayName: "Ola Zielińska", bio: "Strength and conditioning coach in Gdańsk. I help runners and busy parents get strong without living in the gym.", roles: ["Coach"], isSelf: false, memberSince: "2026-03-04T10:00:00Z" });
     const person = people.find((p) => p.username.toLowerCase() === name);
     return person
@@ -541,8 +555,19 @@ export function mockCoaching(path: string, method: string, q: URLSearchParams, b
     if (key in slice) return ok(slice[key]);
   }
   if (path === "/api/v1/subscriptions/plans") return ok(platformPlans);
-  if (path === "/api/v1/me/ai-integrations" && method === "GET") return ok([]);
-  if (path === "/api/v1/me/ai-actions" && method === "GET") return ok([]);
+  if (path === "/api/v1/me/ai-integrations" && method === "GET") return ok(aiConnections);
+  if ((m = path.match(/^\/api\/v1\/me\/ai-integrations\/([^/]+)\/(grants|revoke)$/))) {
+    const item = aiConnections.find((c) => c.id === m![1]);
+    if (!item) return { status: 404, body: { title: "Not found" } };
+    if (m[2] === "grants") item.grants = [...((body as { grants?: string[] })?.grants ?? [])];
+    else item.revokedAt = new Date().toISOString();
+    item.version += 1;
+    return ok(item);
+  }
+  if (path === "/api/v1/me/ai-actions" && method === "GET") return ok(aiActions);
+  if (path === "/api/v1/me/ai-activity" && method === "GET") return ok(aiActivity);
+  if (path === "/api/v1/me/ai-programming-preferences" && method === "GET") return ok(aiPreferences);
+  if (path === "/api/v1/me/ai-programming-preferences" && method === "PATCH") return ok(Object.assign(aiPreferences, body ?? {}, { version: aiPreferences.version + 1 }));
   if (path === "/api/v1/me/discovery" && method === "GET") return ok(discoveryListing);
   if (path === "/api/v1/me/discovery" && method === "PUT") return ok(Object.assign(discoveryListing, body ?? {}, { version: discoveryListing.version + 1 }));
   if (path === "/api/v1/discovery/coaches") {

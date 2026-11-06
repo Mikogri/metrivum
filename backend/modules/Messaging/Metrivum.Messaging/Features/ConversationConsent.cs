@@ -121,7 +121,7 @@ public sealed partial class MessagingService
             await RequireConversationConsentAsync(c, token);
             if (!historical)
             {
-                abuse?.Require(Actor, AbusePolicies.Message);
+                if (abuse is not null) await abuse.RequireAsync(Actor, AbusePolicies.Message, cancellationToken: token);
                 await AdmitDirectContactAsync(c, token);
             }
             var initial = c.Sequence == 0 && await RequiresApprovalAsync(recipientId, token);

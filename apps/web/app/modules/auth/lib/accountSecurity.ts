@@ -17,7 +17,7 @@ export function emailChangeUrl(slot: SlotId, email: string, userId: string): str
  * signs in once and drops its session locally. This is a UI check; Supabase must enforce the policy server-side
  * ("require current password"); a browser check cannot prevent direct Auth API calls.
  */
-export async function verifyPassword(email: string, password: string): Promise<boolean> {
+export async function verifyPassword(email: string, password: string, captchaOptions: { captchaToken?: string } = {}): Promise<boolean> {
   if (MOCK_MODE) return true;
   const url = import.meta.env.VITE_SUPABASE_URL;
   const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -26,7 +26,7 @@ export async function verifyPassword(email: string, password: string): Promise<b
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: `tf-verify-${crypto.randomUUID()}` },
     global: { headers: { "X-Client-Info": "trainflow-web" } },
   });
-  const { error } = await probe.auth.signInWithPassword({ email, password });
+  const { error } = await probe.auth.signInWithPassword({ email, password, options: captchaOptions });
   if (error) {
     if (error instanceof AuthError && error.code === "invalid_credentials") return false;
     throw error;

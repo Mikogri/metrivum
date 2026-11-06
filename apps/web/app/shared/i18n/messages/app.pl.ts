@@ -569,6 +569,13 @@ export const appPl: AppMessages = {
     saved: "Profil zapisany",
     accounts: "Zalogowane konta",
     accountsBody: "W tej przeglądarce możesz być zalogowany na maksymalnie trzech kontach. Każde ma własną sesję.",
+    accountsCount: (used: number, max: number) => `${used} z ${max}`,
+    accountActive: "Aktywne",
+    accountSwitch: "Przełącz",
+    freeSlots: (n: number) => (n === 1 ? "1 wolne miejsce" : `${n} wolne miejsca`),
+    freeSlotBody: "Dodaj kolejne konto, żeby przełączać się między nimi jednym kliknięciem.",
+    signIn: "Zaloguj się",
+    createAccount: "Załóż konto",
     security: {
       emailTitle: "Adres e-mail",
       emailBody: "Logujesz się tym adresem i na niego dostajesz wiadomości o koncie.",
@@ -1300,6 +1307,28 @@ export const appPl: AppMessages = {
     },
   },
   editor: {
+    tips: {
+      label: "Wskazówki edytora",
+      step: (n: number, total: number) => `Wskazówka ${n} z ${total}`,
+      next: "Dalej",
+      back: "Wstecz",
+      done: "Rozumiem",
+      skip: "Pomiń wskazówki",
+      table: [
+        { target: "mode", title: "Dwa widoki, jeden plan", body: "Tabela buduje plan dzień po dniu. Arkusz układa bloki i cykle na płótnie. Możesz przełączać w każdej chwili." },
+        { target: "table-structure", title: "Bloki i cykle", body: "Plan składa się z bloków, a każdy z cykli dni. Wybierz je tutaj albo dodaj nowy cykl lub blok." },
+        { target: "table-days", title: "Wybierz dzień", body: "Kliknij dzień, żeby go zaplanować. Przeciągnij dzień na inny, żeby go przenieść." },
+        { target: "table-workout", title: "Dodaj ćwiczenia", body: "Nazwij trening i dodaj ćwiczenia z seriami, powtórzeniami i ciężarem. Zmiany zapisują się same." },
+        { target: "volume", title: "Objętość na bieżąco", body: "Serie i ciężar na każdą partię mięśni w całym cyklu aktualizują się podczas edycji." },
+        { target: "publish", title: "Udostępnij klientom", body: "Twoje zmiany to szkic. Kliknij Apply changes, żeby opublikować wersję, którą widzą klienci." },
+      ],
+      sheet: [
+        { target: "sheet-add", title: "Dodawaj do arkusza", body: "Tu dodasz bloki, cykle i treningi. Możesz też kliknąć prawym przyciskiem pustą komórkę." },
+        { target: "sheet-canvas", title: "Układaj dowolnie", body: "Przeciągaj karty, żeby je ustawić. Połącz blok z cyklami uchwytem na jego krawędzi." },
+        { target: "sheet-tools", title: "Przesuwanie i zaznaczanie", body: "Przesuwaj przewija arkusz, Zaznaczaj wybiera kilka kart naraz. Powiększaj Ctrl i kółkiem myszy." },
+        { target: "publish", title: "Udostępnij klientom", body: "Twoje zmiany to szkic. Kliknij Apply changes, żeby opublikować wersję, którą widzą klienci." },
+      ],
+    },
     mode: {
       simpleHint: "Dwa widoki tego samego planu. Tabela edytuje go dzień po dniu, Arkusz pokazuje bloki i cykle obok siebie. Z Pro oba edytują wszystko: cykle, formuły, progresje i maksy.",
       label: "Tryb edytora",

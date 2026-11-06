@@ -308,6 +308,6 @@ public sealed class DocumentationService(DocumentationDbContext db, IAccountCont
     {
         await Authorize(id, false, false, ct);
         var row = await Visible(id).AsNoTracking().SingleOrDefaultAsync(x => x.Id == documentId && x.MediaId != null, ct) ?? throw ApiException.NotFound();
-        return await media.ReadDocumentAsync(id, row.AuthorId, row.MediaId!.Value, ct);
+        return await media.ReadDocumentAsync(id, row.AuthorId, row.MediaId!.Value, account.UserId, ct);
     }
 }

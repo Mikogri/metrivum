@@ -111,7 +111,7 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         var plan = await PlanAsync(id, account, ct);
         CheckVersion(plan.Version, expectedVersion);
         Active(plan);
-        abuse?.Require(account.UserId, AbusePolicies.Autosave);
+        if (abuse is not null) await abuse.RequireAsync(account.UserId, AbusePolicies.Autosave, cancellationToken: ct);
         await TemplateAccessAsync(plan.Kind, ct);
         if (request.Document?.Blocks == null || request.Document.Blocks.Any(b => b == null)) throw ApiException.Invalid("Document blocks are required.");
         // An older client omits the additive table field; it must not erase existing block data.
@@ -317,7 +317,7 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
 
     private async Task<TrainingPlan> CreateInternalAsync(string name, string description, DocumentKind kind, Guid? folder, TrainingDocument content, AccountIdentity account, CancellationToken ct)
     {
-        abuse?.Require(account.UserId, AbusePolicies.ProgramCreate);
+        if (abuse is not null) await abuse.RequireAsync(account.UserId, AbusePolicies.ProgramCreate, cancellationToken: ct);
         Validate(() => { DocumentRules.Text(name, 200, true); DocumentRules.NonNullText(description, 4000); });
         await FolderAvailableAsync(folder, account, ct);
         Limit(await db.Plans.CountAsync(x => x.WorkspaceId == account.WorkspaceId, ct) < limits.MaximumDocuments, "Document limit exceeded.");

@@ -287,8 +287,105 @@
   gap: var(--tf-space-3);
 }
 
-.list {
-  margin: var(--tf-space-4) 0;
+/* Accounts: one card per signed-in account, the active one highlighted, then dashed free slots. */
+.accountsHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-5);
+}
+
+.accountCards {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.accountCard,
+.freeSlot {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-height: 4rem;
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface-raised);
+}
+
+.accountCard[data-active] {
+  border-color: color-mix(in srgb, var(--tf-color-accent) 45%, var(--tf-color-border));
+  background: color-mix(in srgb, var(--tf-color-accent) 5%, var(--tf-color-surface-raised));
+}
+
+.freeSlot {
+  border-style: dashed;
+  border-color: var(--tf-color-border);
+  background: transparent;
+}
+
+.accountText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.accountText[data-wrap] small {
+  white-space: normal;
+}
+
+.accountActions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+
+.accountText strong,
+.accountText small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountText strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.accountText small {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+
+.freeSlot .accountText strong {
+  color: var(--tf-color-text-secondary);
+}
+
+.freeIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px dashed var(--tf-color-border-strong);
+  border-radius: 50%;
+  color: var(--tf-color-text-tertiary);
+}
+
+.freeIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.freeActions {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
 }
 
 /* Plan and access: the plan with a feature meter, limits as tiles, then features by area. */

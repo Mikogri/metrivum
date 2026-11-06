@@ -20,7 +20,7 @@ public sealed record PublicOfferListDto(IReadOnlyList<OfferRevisionDto> Items, i
 public sealed record OfferCategoryDto(string Key, string Name, bool Active);
 
 public sealed class OffersService(OffersDbContext db, IAccountContext accounts, IFeatureAccessService access,
-    IAccountProfileFields profiles, IFormLibrary forms, TimeProvider clock, ModuleTransaction transaction, ITeamContext? teams = null, IEnumerable<IOfferUsage>? usage = null) : IOfferLibrary
+    IAccountProfileFields profiles, IFormLibrary forms, TimeProvider clock, ModuleTransaction transaction, ITeamContext? teams = null, IEnumerable<IOfferUsage>? usage = null, IAbuseProtection? abuse = null) : IOfferLibrary
 {
     public async Task<OfferListDto> ListAsync(int page, int pageSize, OfferStatus? status, string? search, string sort, CancellationToken ct, Guid? teamId = null)
     {
@@ -47,6 +47,7 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
     public Task<OfferDto> CreateAsync(OfferRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
         await Manage(token);
+        if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.OfferWrite, cancellationToken: token);
         var team = request.TeamId == null ? null : await RequireTeam(request.TeamId.Value, true, token);
         await Validate(request, token);
         var offer = new Offer { Id = Guid.NewGuid(), CoachId = accounts.UserId, TeamId = team?.TeamId, TeamName = team?.Name, Status = OfferStatus.Draft, CreatedAt = clock.GetUtcNow(), UpdatedAt = clock.GetUtcNow() };
@@ -69,6 +70,7 @@ public sealed class OffersService(OffersDbContext db, IAccountContext accounts, 
         if (offer.Status == OfferStatus.Archived)
             throw ApiException.Conflict("Archived offers cannot be edited.");
         await Validate(request, token, offer.CoachId);
+        if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.OfferWrite, cancellationToken: token);
         Apply(offer, request);
         Touch(offer);
         await SetChildren(id, request, token);

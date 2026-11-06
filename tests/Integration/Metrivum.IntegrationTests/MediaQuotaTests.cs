@@ -12,6 +12,54 @@ namespace Metrivum.IntegrationTests;
 public sealed class MediaQuotaTests
 {
     [MediaPostgresFact]
+    public async Task Cleanup_retains_legacy_early_delete_rows_until_upload_capability_expires()
+    {
+        await using var test = await Database.CreateAsync();
+        var owner = Guid.NewGuid();
+        await using var db = test.Context();
+        var library = test.Library(db);
+        var ticket = await library.CreateAsync(owner, new("Legacy analysis source", "video/mp4", 24), default);
+        // Rows queued by an older release must satisfy the capability invariant too.
+        await db.Files.Where(x => x.Id == ticket.File.Id).ExecuteUpdateAsync(update => update
+            .SetProperty(x => x.State, "Deleting")
+            .SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1)));
+
+        Assert.Equal(0, await library.CleanupAsync(default));
+        Assert.Equal(0, test.Storage.Deletes);
+        Assert.Equal("Deleting", (await db.Files.AsNoTracking().SingleAsync()).State);
+    }
+
+    [MediaPostgresFact]
+    public async Task Released_analysis_video_retains_storage_liability_until_upload_capability_expires()
+    {
+        await using var test = await Database.CreateAsync();
+        var owner = Guid.NewGuid();
+        test.Quotas.GlobalStorageBytes = test.StorageOptions.MaxVideoBytes;
+        await using var db = test.Context();
+        var library = test.Library(db);
+        var ticket = await library.CreateAsync(owner, new("Analysis source", "video/mp4", 24), default);
+        await library.FinalizeAsync(ticket.File.Id, owner, default);
+        await library.PinAsync(ticket.File.Id, owner, default);
+
+        // This is the owning-contract call made after the last analysis is deleted.
+        await library.ReleaseVideoAsync(ticket.File.Id, owner, default);
+        Assert.Equal(0, await library.CleanupAsync(default));
+        Assert.Equal(0, test.Storage.Deletes);
+        var retained = await db.Files.AsNoTracking().SingleAsync();
+        Assert.Equal("Deleting", retained.State);
+        Assert.Equal(retained.UploadExpiresAt, retained.DeleteAfter);
+        Assert.Equal(429, (await Assert.ThrowsAsync<ApiException>(() => library.CreateAsync(
+            Guid.NewGuid(), new("Budget still reserved", "video/mp4", 24), default))).Status);
+
+        // After expiration the capability cannot recreate the deleted object.
+        await db.Files.Where(x => x.Id == ticket.File.Id).ExecuteUpdateAsync(update => update
+            .SetProperty(x => x.UploadExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1))
+            .SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1)));
+        Assert.Equal(1, await library.CleanupAsync(default));
+        await library.CreateAsync(Guid.NewGuid(), new("Budget released", "video/mp4", 24), default);
+    }
+
+    [MediaPostgresFact]
     public async Task Three_parallel_uploads_share_all_routes_and_survive_new_service_instances()
     {
         await using var test = await Database.CreateAsync();

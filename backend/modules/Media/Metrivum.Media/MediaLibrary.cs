@@ -54,7 +54,7 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
         var extension = messaging ? AttachmentValidation.Extension(input.ContentType) : VideoFileValidation.Extension(input.ContentType);
         if (string.IsNullOrWhiteSpace(input.Name) || input.Name.Length > 200 || input.Size <= 0 || input.Size > (messaging ? options.MaxAttachmentBytes : options.AcceptedVideoBytes))
             throw ApiException.Invalid("Provide a name of up to 200 characters and a file within the configured size limit.");
-        abuse?.Require(owner, AbusePolicies.UploadStart);
+        if (abuse is not null) await abuse.RequireAsync(owner, AbusePolicies.UploadStart, cancellationToken: ct);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         // All admissions share this lock: pending signed capabilities reserve their maximum physical footprint.
         // ponytail: serializes upload admission only; use a locked aggregate counter if this query becomes costly.
@@ -189,7 +189,7 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
     public async Task<MediaReadUrl> ReadUrlForAsync(Guid id, Guid ownerId, Guid viewerId, CancellationToken ct)
     {
         var file = await RequireReadableFileAsync(id, ownerId, ct);
-        abuse?.Require(viewerId, AbusePolicies.SignedDownload);
+        if (abuse is not null) await abuse.RequireAsync(viewerId, AbusePolicies.SignedDownload, cancellationToken: ct);
         var actual = await storage.InspectAsync(file.Bucket, file.ObjectKey, ct);
         await ValidateAsync(file, actual, ct);
         if (actual.ContentType != file.ContentType)
@@ -200,7 +200,7 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
     public async Task<MediaReadTicket> ReadUrlAsync(Guid id, Guid owner, CancellationToken ct)
     {
         var file = await RequireReadableFileAsync(id, owner, ct);
-        abuse?.Require(owner, AbusePolicies.SignedDownload);
+        if (abuse is not null) await abuse.RequireAsync(owner, AbusePolicies.SignedDownload, cancellationToken: ct);
         var actual = await storage.InspectAsync(file.Bucket, file.ObjectKey, ct);
         await ValidateAsync(file, actual, ct);
         if (actual.ContentType != file.ContentType)
@@ -228,7 +228,9 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
         var now = DateTimeOffset.UtcNow;
         await db.Files.Where(x => x.Id == id && x.OwnerId == ownerId && x.Purpose == "Video" && x.State != "Deleting" && x.State != "Deleted")
             .ExecuteUpdateAsync(update => update.SetProperty(x => x.Pinned, false).SetProperty(x => x.State, "Deleting")
-                .SetProperty(x => x.DeleteAfter, (DateTimeOffset?)now).SetProperty(x => x.Version, x => x.Version + 1), ct);
+                // Deleting an analysis cannot revoke its source's still-valid upload capability.
+                .SetProperty(x => x.DeleteAfter, x => x.UploadExpiresAt > now ? x.UploadExpiresAt : now)
+                .SetProperty(x => x.Version, x => x.Version + 1), ct);
     }
 
     public async Task DeleteAsync(Guid id, Guid owner, long version, CancellationToken ct)
@@ -282,7 +284,8 @@ public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorag
             .OrderBy(x => x.UploadExpiresAt).ThenBy(x => x.Id).Select(x => x.Id).Take(quotas.CleanupBatchSize).ToListAsync(ct);
         await db.Files.Where(x => settled.Contains(x.Id) && x.State == "Ready")
             .ExecuteUpdateAsync(update => update.SetProperty(x => x.ReservedStorageBytes, x => x.Size), ct);
-        var files = await db.Files.AsNoTracking().Where(x => x.State == "Deleting" && x.DeleteAfter <= now && !x.Pinned)
+        // Enforce this at deletion too, including rows queued by older releases.
+        var files = await db.Files.AsNoTracking().Where(x => x.State == "Deleting" && x.DeleteAfter <= now && x.UploadExpiresAt <= now && !x.Pinned)
             .OrderBy(x => x.DeleteAfter).ThenBy(x => x.Id).Take(quotas.CleanupBatchSize).ToListAsync(ct);
         var deleted = 0;
         foreach (var file in files)

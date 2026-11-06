@@ -312,6 +312,30 @@ public sealed class MetrivumTools(IntegrationAccess access, IntegrationService i
         return await integrations.ReadProgrammingPreferencesAsync(ct);
     }
 
+    [McpServerTool(Name = "preview_program_assignment", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
+    [Description("Preview one authorized active client relationship and owned latest published program revision. Shows exact client, program/version, start date/timezone, current assignments and additive scheduling effects. Creates no assignment or approval. Uses assign_programs permission and normal domain validation; no groups or bulk recipients.")]
+    public async Task<McpProgramAssignmentPreview> PreviewProgramAssignment(McpProgramAssignmentRequest assignment, CancellationToken ct)
+    {
+        await access.RequireAsync(IntegrationGrants.AssignPrograms, ct);
+        return await training.PreviewAssignmentAsync(assignment, ct);
+    }
+
+    [McpServerTool(Name = "prepare_program_assignment", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
+    [Description("Prepare an immutable single-client program assignment for human review in Metrivum. Requires assign_programs permission, active authorized coaching relationship and owned latest published revision. No auto-publish or bulk operation. Exact program, client, date/timezone and effects are frozen for 30 minutes. Human must approve the review link; text or model arguments never prove approval. Retry identical content with the original UUID idempotency key.")]
+    public async Task<PendingActionDto> PrepareProgramAssignment(McpProgramAssignmentRequest assignment, Guid idempotencyKey, CancellationToken ct)
+    {
+        await access.RequireAsync(IntegrationGrants.AssignPrograms, ct);
+        return await integrations.PrepareAssignmentAsync(assignment, idempotencyKey, ct);
+    }
+
+    [McpServerTool(Name = "assign_approved_program", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
+    [Description("Execute one immutable program assignment explicitly approved in the owner's regular Metrivum session. Rechecks grant/revocation, program ownership/published revision, active relationship and unchanged client assignments. No replacement, cancellation or publishing. Transactional receipt and ordinary domain idempotency prevent duplicate assignments across concurrent retries. Requires assign_programs.")]
+    public async Task<AssignApprovedResult> AssignApprovedProgram(Guid actionId, CancellationToken ct)
+    {
+        await access.RequireAsync(IntegrationGrants.AssignPrograms, ct);
+        return await integrations.AssignApprovedProgramAsync(actionId, ct);
+    }
+
     private static void Page(int page, int size, int maximum = 50)
     {
         if (page is < 1 or > 10000 || size < 1 || size > maximum) throw ApiException.Invalid($"Page must be 1 to 10000 and pageSize 1 to {maximum}.");

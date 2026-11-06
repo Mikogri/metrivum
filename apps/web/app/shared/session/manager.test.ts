@@ -64,6 +64,29 @@ describe("SessionManager (three independent accounts)", () => {
     expect(clients.get(0)!.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
   });
 
+  it("accepts a re-created account without mistaking its own old-identity cleanup for an external switch", async () => {
+    await manager.start();
+    const generation = manager.getState().generation;
+    await manager.completeSignIn(1, session("new-id", "A@example.test"), () => manager.getState().generation === generation);
+    expect(manager.getState().accounts.map(a => a.userId)).toEqual(["new-id"]);
+    expect(manager.getState().activeSlot).toBe(1);
+  });
+
+  it("abandons a re-created account when an external switch happens during old-identity cleanup", async () => {
+    await manager.start();
+    await manager.completeSignIn(2, session("other", "other@example.test"));
+    manager.activate(0);
+    const generation = manager.getState().generation;
+    let finish!: () => void;
+    vi.mocked(clients.get(0)!.auth.signOut).mockImplementationOnce(() => new Promise(resolve => { finish = () => resolve({ error: null }); }));
+    const pending = manager.completeSignIn(1, session("new-id", "A@example.test"), () => manager.getState().generation === generation);
+    manager.activate(2);
+    finish();
+    await expect(pending).rejects.toBeInstanceOf(StaleAccountError);
+    expect(manager.getState().accounts.map(a => a.userId)).toEqual(["other"]);
+    expect(manager.getState().activeSlot).toBe(2);
+  });
+
   it("retains credentials without granting a session when Auth is temporarily rate limited", async () => {
     vi.mocked(clients.get(0)!.auth.getUser).mockResolvedValue({ data: { user: null }, error: { status: 429 } } as never);
     await manager.start();

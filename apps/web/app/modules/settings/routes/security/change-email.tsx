@@ -3,7 +3,7 @@ import { Link as RouterLink } from "react-router";
 import { Alert, Button, Card, TextField, toast } from "@metrivum/ui-web";
 import {
   EMAIL_RESEND_SECONDS, SecondFactorForm, authErrorText, emailChangeUrl, hasPassword, isValidEmail, normalizeEmail, requestEmailChange,
-  securityErrorCode, useCooldown, verifiedTotp, verifyPassword,
+  securityErrorCode, useCooldown, useTurnstile, verifiedTotp, verifyPassword,
 } from "~/modules/auth";
 import { useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
@@ -39,14 +39,19 @@ export default function ChangeEmail() {
   // Without an explicit restart, an open change shows its status first.
   const view = step ?? (pendingAddress ? "pending" : "address");
 
+  const captcha = useTurnstile(`email:${slot}:${account.userId}:${view}:${pendingAddress ?? ""}`);
+
   async function checkPassword(): Promise<string | null> {
     if (!passwordAccount) return null;
     if (!password) return t.wrongPassword;
-    return await verifyPassword(current, password) ? null : t.wrongPassword;
+    const captchaOptions = captcha.take();
+    if (!captchaOptions) return captcha.unavailable;
+    return await verifyPassword(current, password, captchaOptions) ? null : t.wrongPassword;
   }
 
   /** Runs once the person is confirmed; Supabase sends both links. */
   async function request(): Promise<string | void> {
+    if (!lifecycle.isCurrent()) return captcha.unavailable;
     try {
       await requestEmailChange(client, slot, address, account.userId);
       if (!lifecycle.isCurrent()) return;
@@ -67,27 +72,31 @@ export default function ChangeEmail() {
     setError(null);
     try {
       const refused = await checkPassword();
+      if (!lifecycle.isCurrent()) return;
       if (refused) { setError(refused); return; }
       const failed = await request();
       if (failed) setError(failed);
     } catch (caught) {
-      setError(authErrorText(m, caught));
+      if (lifecycle.isCurrent()) setError(authErrorText(m, caught));
     } finally {
       if (lifecycle.isCurrent()) setPending(false);
     }
   }
 
   async function resend() {
-    if (!pendingAddress || wait > 0) return;
+    if (!pendingAddress || wait > 0 || pending) return;
+    const captchaOptions = captcha.take();
+    if (!captchaOptions) return;
     setPending(true);
     setError(null);
     try {
-      const { error: resendError } = await client.auth.resend({ type: "email_change", email: pendingAddress, options: { emailRedirectTo: emailChangeUrl(slot, pendingAddress, account.userId) } });
+      const { error: resendError } = await client.auth.resend({ type: "email_change", email: pendingAddress, options: { ...captchaOptions, emailRedirectTo: emailChangeUrl(slot, pendingAddress, account.userId) } });
+      if (!lifecycle.isCurrent()) return;
       if (resendError) throw resendError;
       toast({ tone: "success", title: t.resent });
       startWait(EMAIL_RESEND_SECONDS);
     } catch (caught) {
-      setError(authErrorText(m, caught));
+      if (lifecycle.isCurrent()) setError(authErrorText(m, caught));
     } finally {
       if (lifecycle.isCurrent()) setPending(false);
     }
@@ -105,11 +114,12 @@ export default function ChangeEmail() {
       <Card as="section" padding="lg" className={styles.section} aria-label={t.title}>
         <Steps steps={t.steps} current={view === "address" ? 0 : view === "verify" ? 1 : 2} label={t.title} />
         {error ? <Alert tone="danger" title={error} live="assertive" /> : null}
+        {captcha.widget}
         {view === "pending" && pendingAddress ? (
           <>
             <Alert tone="info" title={t.pendingTitle} live="polite">{t.pendingBody(current, pendingAddress)}</Alert>
             <div className={styles.actions}>
-              <Button loading={pending} isDisabled={wait > 0} onPress={() => void resend()}>{wait > 0 ? m.accountSecurity.password.resendIn(wait) : t.resend}</Button>
+              <Button loading={pending} isDisabled={wait > 0 || !captcha.ready} onPress={() => void resend()}>{wait > 0 ? m.accountSecurity.password.resendIn(wait) : t.resend}</Button>
               <Button variant="ghost" onPress={() => { setStep("address"); setError(null); }}>{t.startOver}</Button>
             </div>
             <p className={styles.quiet}>{t.expiredHint}</p>

@@ -478,6 +478,51 @@
         "performanceHasMore": {
           "type": "boolean",
           "default": false
+        },
+        "feedback": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "occurrenceId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "rating": {
+                "type": "integer"
+              },
+              "sessionRpe": {
+                "type": "number"
+              },
+              "wellbeing": {
+                "type": "integer"
+              },
+              "sleepQuality": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "occurrenceId",
+              "date",
+              "rating",
+              "sessionRpe",
+              "wellbeing",
+              "sleepQuality"
+            ],
+            "additionalProperties": false
+          },
+          "default": null
+        },
+        "feedbackHasMore": {
+          "type": "boolean",
+          "default": false
         }
       },
       "required": [
@@ -687,57 +732,65 @@
       }
     },
     "outputSchema": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "membershipState": {
-            "type": "string"
-          },
-          "canSendMessages": {
-            "type": "boolean"
-          },
-          "members": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "userId": {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                "displayName": {
-                  "type": "string"
-                }
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
               },
-              "required": [
-                "userId",
-                "displayName"
-              ],
-              "additionalProperties": false
-            }
+              "title": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "membershipState": {
+                "type": "string"
+              },
+              "canSendMessages": {
+                "type": "boolean"
+              },
+              "members": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "displayName": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "displayName"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "type",
+              "membershipState",
+              "canSendMessages",
+              "members"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "id",
-          "title",
-          "type",
-          "membershipState",
-          "canSendMessages",
-          "members"
-        ],
-        "additionalProperties": false
-      }
+        }
+      },
+      "required": [
+        "result"
+      ]
     },
     "annotations": {
       "title": null,
@@ -981,6 +1034,11 @@
                             "InjuriesLimitationsPainNotes",
                             "AdditionalNotes",
                             "Sex",
+                            "Country",
+                            "Region",
+                            "City",
+                            "PostalCode",
+                            "Vo2Max",
                             null
                           ],
                           "default": null
@@ -1199,7 +1257,8 @@
                                                     "BackOff",
                                                     "DropSet",
                                                     "RestPause",
-                                                    "Cluster"
+                                                    "Cluster",
+                                                    "Warmup"
                                                   ]
                                                 },
                                                 "prescription": {
@@ -1496,6 +1555,23 @@
                                                             ],
                                                             "additionalProperties": false
                                                           }
+                                                        },
+                                                        "expression": {
+                                                          "type": [
+                                                            "string",
+                                                            "null"
+                                                          ],
+                                                          "default": null
+                                                        },
+                                                        "variableBindings": {
+                                                          "type": [
+                                                            "object",
+                                                            "null"
+                                                          ],
+                                                          "additionalProperties": {
+                                                            "type": "string"
+                                                          },
+                                                          "default": null
                                                         }
                                                       },
                                                       "required": [
@@ -1505,6 +1581,24 @@
                                                         "inputs"
                                                       ],
                                                       "additionalProperties": false,
+                                                      "default": null
+                                                    },
+                                                    "loadUnit": {
+                                                      "type": [
+                                                        "string",
+                                                        "null"
+                                                      ],
+                                                      "enum": [
+                                                        "Scalar",
+                                                        "Kg",
+                                                        "Lb",
+                                                        "Seconds",
+                                                        "Minutes",
+                                                        "Meters",
+                                                        "Kilometers",
+                                                        "Percent",
+                                                        null
+                                                      ],
                                                       "default": null
                                                     }
                                                   },
@@ -1586,6 +1680,24 @@
                                                           },
                                                           "loadFormula": {
                                                             "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula",
+                                                            "default": null
+                                                          },
+                                                          "loadUnit": {
+                                                            "type": [
+                                                              "string",
+                                                              "null"
+                                                            ],
+                                                            "enum": [
+                                                              "Scalar",
+                                                              "Kg",
+                                                              "Lb",
+                                                              "Seconds",
+                                                              "Minutes",
+                                                              "Meters",
+                                                              "Kilometers",
+                                                              "Percent",
+                                                              null
+                                                            ],
                                                             "default": null
                                                           }
                                                         },
@@ -1704,6 +1816,127 @@
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "exerciseMaxes": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "exerciseId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "reps": {
+                          "type": "integer"
+                        },
+                        "load": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "value": {
+                              "type": "number"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "Scalar",
+                                "Kg",
+                                "Lb",
+                                "Seconds",
+                                "Minutes",
+                                "Meters",
+                                "Kilometers",
+                                "Percent"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadFormula": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "formulaId": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "uuid"
+                            },
+                            "version": {
+                              "type": "integer"
+                            },
+                            "builtIn": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "inputs": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
+                            },
+                            "expression": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "default": null
+                            },
+                            "variableBindings": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/variableBindings",
+                              "default": null
+                            }
+                          },
+                          "required": [
+                            "formulaId",
+                            "version",
+                            "builtIn",
+                            "inputs"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadUnit": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "Scalar",
+                            "Kg",
+                            "Lb",
+                            "Seconds",
+                            "Minutes",
+                            "Meters",
+                            "Kilometers",
+                            "Percent",
+                            null
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "exerciseId",
+                        "reps"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": null
                   }
                 },
                 "required": [
@@ -1714,6 +1947,85 @@
                 ],
                 "additionalProperties": false
               }
+            },
+            "maxesTables": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "blockId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "rows": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/properties/document/properties/blocks/items/properties/exerciseMaxes/items"
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "blockId",
+                  "rows"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
+            },
+            "annotations": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "targetId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid",
+                    "default": null
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "default": "Coach"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "title",
+                  "content"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
             }
           },
           "required": [
@@ -2132,7 +2444,8 @@
                                                         "BackOff",
                                                         "DropSet",
                                                         "RestPause",
-                                                        "Cluster"
+                                                        "Cluster",
+                                                        "Warmup"
                                                       ]
                                                     },
                                                     "prescription": {
@@ -2429,6 +2742,23 @@
                                                                 ],
                                                                 "additionalProperties": false
                                                               }
+                                                            },
+                                                            "expression": {
+                                                              "type": [
+                                                                "string",
+                                                                "null"
+                                                              ],
+                                                              "default": null
+                                                            },
+                                                            "variableBindings": {
+                                                              "type": [
+                                                                "object",
+                                                                "null"
+                                                              ],
+                                                              "additionalProperties": {
+                                                                "type": "string"
+                                                              },
+                                                              "default": null
                                                             }
                                                           },
                                                           "required": [
@@ -2438,6 +2768,24 @@
                                                             "inputs"
                                                           ],
                                                           "additionalProperties": false,
+                                                          "default": null
+                                                        },
+                                                        "loadUnit": {
+                                                          "type": [
+                                                            "string",
+                                                            "null"
+                                                          ],
+                                                          "enum": [
+                                                            "Scalar",
+                                                            "Kg",
+                                                            "Lb",
+                                                            "Seconds",
+                                                            "Minutes",
+                                                            "Meters",
+                                                            "Kilometers",
+                                                            "Percent",
+                                                            null
+                                                          ],
                                                           "default": null
                                                         }
                                                       },
@@ -2519,6 +2867,24 @@
                                                               },
                                                               "loadFormula": {
                                                                 "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula",
+                                                                "default": null
+                                                              },
+                                                              "loadUnit": {
+                                                                "type": [
+                                                                  "string",
+                                                                  "null"
+                                                                ],
+                                                                "enum": [
+                                                                  "Scalar",
+                                                                  "Kg",
+                                                                  "Lb",
+                                                                  "Seconds",
+                                                                  "Minutes",
+                                                                  "Meters",
+                                                                  "Kilometers",
+                                                                  "Percent",
+                                                                  null
+                                                                ],
                                                                 "default": null
                                                               }
                                                             },
@@ -2637,6 +3003,127 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "exerciseMaxes": {
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "exerciseId": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "uuid"
+                            },
+                            "reps": {
+                              "type": "integer"
+                            },
+                            "load": {
+                              "type": [
+                                "object",
+                                "null"
+                              ],
+                              "properties": {
+                                "value": {
+                                  "type": "number"
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "enum": [
+                                    "Scalar",
+                                    "Kg",
+                                    "Lb",
+                                    "Seconds",
+                                    "Minutes",
+                                    "Meters",
+                                    "Kilometers",
+                                    "Percent"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "value",
+                                "unit"
+                              ],
+                              "additionalProperties": false,
+                              "default": null
+                            },
+                            "loadFormula": {
+                              "type": [
+                                "object",
+                                "null"
+                              ],
+                              "properties": {
+                                "formulaId": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "format": "uuid"
+                                },
+                                "version": {
+                                  "type": "integer"
+                                },
+                                "builtIn": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "inputs": {
+                                  "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
+                                },
+                                "expression": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "default": null
+                                },
+                                "variableBindings": {
+                                  "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/variableBindings",
+                                  "default": null
+                                }
+                              },
+                              "required": [
+                                "formulaId",
+                                "version",
+                                "builtIn",
+                                "inputs"
+                              ],
+                              "additionalProperties": false,
+                              "default": null
+                            },
+                            "loadUnit": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "enum": [
+                                "Scalar",
+                                "Kg",
+                                "Lb",
+                                "Seconds",
+                                "Minutes",
+                                "Meters",
+                                "Kilometers",
+                                "Percent",
+                                null
+                              ],
+                              "default": null
+                            }
+                          },
+                          "required": [
+                            "exerciseId",
+                            "reps"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "default": null
                       }
                     },
                     "required": [
@@ -2647,6 +3134,85 @@
                     ],
                     "additionalProperties": false
                   }
+                },
+                "maxesTables": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "blockId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "uuid"
+                      },
+                      "rows": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/exerciseMaxes/items"
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "blockId",
+                      "rows"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": null
+                },
+                "annotations": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "kind": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "targetId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "uuid",
+                        "default": null
+                      },
+                      "visibility": {
+                        "type": "string",
+                        "default": "Coach"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "kind",
+                      "title",
+                      "content"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": null
                 }
               },
               "required": [
@@ -2802,7 +3368,8 @@
                                                     "BackOff",
                                                     "DropSet",
                                                     "RestPause",
-                                                    "Cluster"
+                                                    "Cluster",
+                                                    "Warmup"
                                                   ]
                                                 },
                                                 "prescription": {
@@ -3099,6 +3666,23 @@
                                                             ],
                                                             "additionalProperties": false
                                                           }
+                                                        },
+                                                        "expression": {
+                                                          "type": [
+                                                            "string",
+                                                            "null"
+                                                          ],
+                                                          "default": null
+                                                        },
+                                                        "variableBindings": {
+                                                          "type": [
+                                                            "object",
+                                                            "null"
+                                                          ],
+                                                          "additionalProperties": {
+                                                            "type": "string"
+                                                          },
+                                                          "default": null
                                                         }
                                                       },
                                                       "required": [
@@ -3108,6 +3692,24 @@
                                                         "inputs"
                                                       ],
                                                       "additionalProperties": false,
+                                                      "default": null
+                                                    },
+                                                    "loadUnit": {
+                                                      "type": [
+                                                        "string",
+                                                        "null"
+                                                      ],
+                                                      "enum": [
+                                                        "Scalar",
+                                                        "Kg",
+                                                        "Lb",
+                                                        "Seconds",
+                                                        "Minutes",
+                                                        "Meters",
+                                                        "Kilometers",
+                                                        "Percent",
+                                                        null
+                                                      ],
                                                       "default": null
                                                     }
                                                   },
@@ -3189,6 +3791,24 @@
                                                           },
                                                           "loadFormula": {
                                                             "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula",
+                                                            "default": null
+                                                          },
+                                                          "loadUnit": {
+                                                            "type": [
+                                                              "string",
+                                                              "null"
+                                                            ],
+                                                            "enum": [
+                                                              "Scalar",
+                                                              "Kg",
+                                                              "Lb",
+                                                              "Seconds",
+                                                              "Minutes",
+                                                              "Meters",
+                                                              "Kilometers",
+                                                              "Percent",
+                                                              null
+                                                            ],
                                                             "default": null
                                                           }
                                                         },
@@ -3307,6 +3927,127 @@
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "exerciseMaxes": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "exerciseId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "reps": {
+                          "type": "integer"
+                        },
+                        "load": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "value": {
+                              "type": "number"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "Scalar",
+                                "Kg",
+                                "Lb",
+                                "Seconds",
+                                "Minutes",
+                                "Meters",
+                                "Kilometers",
+                                "Percent"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadFormula": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "formulaId": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "uuid"
+                            },
+                            "version": {
+                              "type": "integer"
+                            },
+                            "builtIn": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "inputs": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
+                            },
+                            "expression": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "default": null
+                            },
+                            "variableBindings": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/variableBindings",
+                              "default": null
+                            }
+                          },
+                          "required": [
+                            "formulaId",
+                            "version",
+                            "builtIn",
+                            "inputs"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadUnit": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "Scalar",
+                            "Kg",
+                            "Lb",
+                            "Seconds",
+                            "Minutes",
+                            "Meters",
+                            "Kilometers",
+                            "Percent",
+                            null
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "exerciseId",
+                        "reps"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": null
                   }
                 },
                 "required": [
@@ -3317,6 +4058,85 @@
                 ],
                 "additionalProperties": false
               }
+            },
+            "maxesTables": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "blockId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "rows": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/properties/document/properties/blocks/items/properties/exerciseMaxes/items"
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "blockId",
+                  "rows"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
+            },
+            "annotations": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "targetId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid",
+                    "default": null
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "default": "Coach"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "title",
+                  "content"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
             }
           },
           "required": [
@@ -3836,6 +4656,11 @@
                             "InjuriesLimitationsPainNotes",
                             "AdditionalNotes",
                             "Sex",
+                            "Country",
+                            "Region",
+                            "City",
+                            "PostalCode",
+                            "Vo2Max",
                             null
                           ],
                           "default": null
@@ -3998,6 +4823,59 @@
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
+    },
+    "icons": null,
+    "_meta": null
+  },
+  {
+    "name": "assign_approved_program",
+    "title": null,
+    "description": "Execute one immutable program assignment explicitly approved in the owner\u0027s regular Metrivum session. Rechecks grant/revocation, program ownership/published revision, active relationship and unchanged client assignments. No replacement, cancellation or publishing. Transactional receipt and ordinary domain idempotency prevent duplicate assignments across concurrent retries. Requires assign_programs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "actionId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "actionId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "actionId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "assignmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "relationshipId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "actionId",
+        "assignmentId",
+        "relationshipId",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "title": null,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
     },
     "icons": null,
     "_meta": null
@@ -4387,7 +5265,8 @@
                                                         "BackOff",
                                                         "DropSet",
                                                         "RestPause",
-                                                        "Cluster"
+                                                        "Cluster",
+                                                        "Warmup"
                                                       ]
                                                     },
                                                     "prescription": {
@@ -4684,6 +5563,23 @@
                                                                 ],
                                                                 "additionalProperties": false
                                                               }
+                                                            },
+                                                            "expression": {
+                                                              "type": [
+                                                                "string",
+                                                                "null"
+                                                              ],
+                                                              "default": null
+                                                            },
+                                                            "variableBindings": {
+                                                              "type": [
+                                                                "object",
+                                                                "null"
+                                                              ],
+                                                              "additionalProperties": {
+                                                                "type": "string"
+                                                              },
+                                                              "default": null
                                                             }
                                                           },
                                                           "required": [
@@ -4693,6 +5589,24 @@
                                                             "inputs"
                                                           ],
                                                           "additionalProperties": false,
+                                                          "default": null
+                                                        },
+                                                        "loadUnit": {
+                                                          "type": [
+                                                            "string",
+                                                            "null"
+                                                          ],
+                                                          "enum": [
+                                                            "Scalar",
+                                                            "Kg",
+                                                            "Lb",
+                                                            "Seconds",
+                                                            "Minutes",
+                                                            "Meters",
+                                                            "Kilometers",
+                                                            "Percent",
+                                                            null
+                                                          ],
                                                           "default": null
                                                         }
                                                       },
@@ -4774,6 +5688,24 @@
                                                               },
                                                               "loadFormula": {
                                                                 "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula",
+                                                                "default": null
+                                                              },
+                                                              "loadUnit": {
+                                                                "type": [
+                                                                  "string",
+                                                                  "null"
+                                                                ],
+                                                                "enum": [
+                                                                  "Scalar",
+                                                                  "Kg",
+                                                                  "Lb",
+                                                                  "Seconds",
+                                                                  "Minutes",
+                                                                  "Meters",
+                                                                  "Kilometers",
+                                                                  "Percent",
+                                                                  null
+                                                                ],
                                                                 "default": null
                                                               }
                                                             },
@@ -4892,6 +5824,127 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "exerciseMaxes": {
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "exerciseId": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "uuid"
+                            },
+                            "reps": {
+                              "type": "integer"
+                            },
+                            "load": {
+                              "type": [
+                                "object",
+                                "null"
+                              ],
+                              "properties": {
+                                "value": {
+                                  "type": "number"
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "enum": [
+                                    "Scalar",
+                                    "Kg",
+                                    "Lb",
+                                    "Seconds",
+                                    "Minutes",
+                                    "Meters",
+                                    "Kilometers",
+                                    "Percent"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "value",
+                                "unit"
+                              ],
+                              "additionalProperties": false,
+                              "default": null
+                            },
+                            "loadFormula": {
+                              "type": [
+                                "object",
+                                "null"
+                              ],
+                              "properties": {
+                                "formulaId": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "format": "uuid"
+                                },
+                                "version": {
+                                  "type": "integer"
+                                },
+                                "builtIn": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "inputs": {
+                                  "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
+                                },
+                                "expression": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "default": null
+                                },
+                                "variableBindings": {
+                                  "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/variableBindings",
+                                  "default": null
+                                }
+                              },
+                              "required": [
+                                "formulaId",
+                                "version",
+                                "builtIn",
+                                "inputs"
+                              ],
+                              "additionalProperties": false,
+                              "default": null
+                            },
+                            "loadUnit": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "enum": [
+                                "Scalar",
+                                "Kg",
+                                "Lb",
+                                "Seconds",
+                                "Minutes",
+                                "Meters",
+                                "Kilometers",
+                                "Percent",
+                                null
+                              ],
+                              "default": null
+                            }
+                          },
+                          "required": [
+                            "exerciseId",
+                            "reps"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "default": null
                       }
                     },
                     "required": [
@@ -4902,6 +5955,85 @@
                     ],
                     "additionalProperties": false
                   }
+                },
+                "maxesTables": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "blockId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "uuid"
+                      },
+                      "rows": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/exerciseMaxes/items"
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "blockId",
+                      "rows"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": null
+                },
+                "annotations": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "kind": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "targetId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "uuid",
+                        "default": null
+                      },
+                      "visibility": {
+                        "type": "string",
+                        "default": "Coach"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "kind",
+                      "title",
+                      "content"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": null
                 }
               },
               "required": [
@@ -5059,7 +6191,8 @@
                                                     "BackOff",
                                                     "DropSet",
                                                     "RestPause",
-                                                    "Cluster"
+                                                    "Cluster",
+                                                    "Warmup"
                                                   ]
                                                 },
                                                 "prescription": {
@@ -5356,6 +6489,23 @@
                                                             ],
                                                             "additionalProperties": false
                                                           }
+                                                        },
+                                                        "expression": {
+                                                          "type": [
+                                                            "string",
+                                                            "null"
+                                                          ],
+                                                          "default": null
+                                                        },
+                                                        "variableBindings": {
+                                                          "type": [
+                                                            "object",
+                                                            "null"
+                                                          ],
+                                                          "additionalProperties": {
+                                                            "type": "string"
+                                                          },
+                                                          "default": null
                                                         }
                                                       },
                                                       "required": [
@@ -5365,6 +6515,24 @@
                                                         "inputs"
                                                       ],
                                                       "additionalProperties": false,
+                                                      "default": null
+                                                    },
+                                                    "loadUnit": {
+                                                      "type": [
+                                                        "string",
+                                                        "null"
+                                                      ],
+                                                      "enum": [
+                                                        "Scalar",
+                                                        "Kg",
+                                                        "Lb",
+                                                        "Seconds",
+                                                        "Minutes",
+                                                        "Meters",
+                                                        "Kilometers",
+                                                        "Percent",
+                                                        null
+                                                      ],
                                                       "default": null
                                                     }
                                                   },
@@ -5446,6 +6614,24 @@
                                                           },
                                                           "loadFormula": {
                                                             "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula",
+                                                            "default": null
+                                                          },
+                                                          "loadUnit": {
+                                                            "type": [
+                                                              "string",
+                                                              "null"
+                                                            ],
+                                                            "enum": [
+                                                              "Scalar",
+                                                              "Kg",
+                                                              "Lb",
+                                                              "Seconds",
+                                                              "Minutes",
+                                                              "Meters",
+                                                              "Kilometers",
+                                                              "Percent",
+                                                              null
+                                                            ],
                                                             "default": null
                                                           }
                                                         },
@@ -5564,6 +6750,127 @@
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "exerciseMaxes": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "exerciseId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "reps": {
+                          "type": "integer"
+                        },
+                        "load": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "value": {
+                              "type": "number"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "Scalar",
+                                "Kg",
+                                "Lb",
+                                "Seconds",
+                                "Minutes",
+                                "Meters",
+                                "Kilometers",
+                                "Percent"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadFormula": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "formulaId": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "uuid"
+                            },
+                            "version": {
+                              "type": "integer"
+                            },
+                            "builtIn": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "inputs": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
+                            },
+                            "expression": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "default": null
+                            },
+                            "variableBindings": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/variableBindings",
+                              "default": null
+                            }
+                          },
+                          "required": [
+                            "formulaId",
+                            "version",
+                            "builtIn",
+                            "inputs"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadUnit": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "Scalar",
+                            "Kg",
+                            "Lb",
+                            "Seconds",
+                            "Minutes",
+                            "Meters",
+                            "Kilometers",
+                            "Percent",
+                            null
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "exerciseId",
+                        "reps"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": null
                   }
                 },
                 "required": [
@@ -5574,6 +6881,85 @@
                 ],
                 "additionalProperties": false
               }
+            },
+            "maxesTables": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "blockId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "rows": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/properties/document/properties/blocks/items/properties/exerciseMaxes/items"
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "blockId",
+                  "rows"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
+            },
+            "annotations": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "targetId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid",
+                    "default": null
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "default": "Coach"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "title",
+                  "content"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
             }
           },
           "required": [
@@ -5777,6 +7163,118 @@
         },
         "reviewUrl": {
           "type": "string"
+        },
+        "assignment": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "request": {
+              "type": "object",
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "relationshipId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "revisionId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "startDate": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "timeZone": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "programId",
+                "relationshipId",
+                "revisionId",
+                "startDate",
+                "timeZone"
+              ],
+              "additionalProperties": false
+            },
+            "clientId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "clientName": {
+              "type": "string"
+            },
+            "programName": {
+              "type": "string"
+            },
+            "publishedVersion": {
+              "type": "integer"
+            },
+            "currentAssignments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "programName": {
+                    "type": "string"
+                  },
+                  "effectiveRevisionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "id",
+                  "programName",
+                  "effectiveRevisionId",
+                  "status",
+                  "version"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "effect": {
+              "type": "string"
+            },
+            "contextHash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "request",
+            "clientId",
+            "clientName",
+            "programName",
+            "publishedVersion",
+            "currentAssignments",
+            "effect",
+            "contextHash"
+          ],
+          "additionalProperties": false,
+          "default": null
+        },
+        "assignmentId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "default": null
         }
       },
       "required": [
@@ -6066,7 +7564,8 @@
                                                     "BackOff",
                                                     "DropSet",
                                                     "RestPause",
-                                                    "Cluster"
+                                                    "Cluster",
+                                                    "Warmup"
                                                   ]
                                                 },
                                                 "prescription": {
@@ -6363,6 +7862,23 @@
                                                             ],
                                                             "additionalProperties": false
                                                           }
+                                                        },
+                                                        "expression": {
+                                                          "type": [
+                                                            "string",
+                                                            "null"
+                                                          ],
+                                                          "default": null
+                                                        },
+                                                        "variableBindings": {
+                                                          "type": [
+                                                            "object",
+                                                            "null"
+                                                          ],
+                                                          "additionalProperties": {
+                                                            "type": "string"
+                                                          },
+                                                          "default": null
                                                         }
                                                       },
                                                       "required": [
@@ -6372,6 +7888,24 @@
                                                         "inputs"
                                                       ],
                                                       "additionalProperties": false,
+                                                      "default": null
+                                                    },
+                                                    "loadUnit": {
+                                                      "type": [
+                                                        "string",
+                                                        "null"
+                                                      ],
+                                                      "enum": [
+                                                        "Scalar",
+                                                        "Kg",
+                                                        "Lb",
+                                                        "Seconds",
+                                                        "Minutes",
+                                                        "Meters",
+                                                        "Kilometers",
+                                                        "Percent",
+                                                        null
+                                                      ],
                                                       "default": null
                                                     }
                                                   },
@@ -6453,6 +7987,24 @@
                                                           },
                                                           "loadFormula": {
                                                             "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula",
+                                                            "default": null
+                                                          },
+                                                          "loadUnit": {
+                                                            "type": [
+                                                              "string",
+                                                              "null"
+                                                            ],
+                                                            "enum": [
+                                                              "Scalar",
+                                                              "Kg",
+                                                              "Lb",
+                                                              "Seconds",
+                                                              "Minutes",
+                                                              "Meters",
+                                                              "Kilometers",
+                                                              "Percent",
+                                                              null
+                                                            ],
                                                             "default": null
                                                           }
                                                         },
@@ -6571,6 +8123,127 @@
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "exerciseMaxes": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "exerciseId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "reps": {
+                          "type": "integer"
+                        },
+                        "load": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "value": {
+                              "type": "number"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "Scalar",
+                                "Kg",
+                                "Lb",
+                                "Seconds",
+                                "Minutes",
+                                "Meters",
+                                "Kilometers",
+                                "Percent"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadFormula": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "formulaId": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "uuid"
+                            },
+                            "version": {
+                              "type": "integer"
+                            },
+                            "builtIn": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "inputs": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
+                            },
+                            "expression": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "default": null
+                            },
+                            "variableBindings": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/variableBindings",
+                              "default": null
+                            }
+                          },
+                          "required": [
+                            "formulaId",
+                            "version",
+                            "builtIn",
+                            "inputs"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadUnit": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "Scalar",
+                            "Kg",
+                            "Lb",
+                            "Seconds",
+                            "Minutes",
+                            "Meters",
+                            "Kilometers",
+                            "Percent",
+                            null
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "exerciseId",
+                        "reps"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": null
                   }
                 },
                 "required": [
@@ -6581,6 +8254,85 @@
                 ],
                 "additionalProperties": false
               }
+            },
+            "maxesTables": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "blockId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "rows": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/properties/document/properties/blocks/items/properties/exerciseMaxes/items"
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "blockId",
+                  "rows"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
+            },
+            "annotations": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "targetId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid",
+                    "default": null
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "default": "Coach"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "title",
+                  "content"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
             }
           },
           "required": [
@@ -6845,6 +8597,11 @@
                                 "InjuriesLimitationsPainNotes",
                                 "AdditionalNotes",
                                 "Sex",
+                                "Country",
+                                "Region",
+                                "City",
+                                "PostalCode",
+                                "Vo2Max",
                                 null
                               ],
                               "default": null
@@ -7072,6 +8829,11 @@
                             "InjuriesLimitationsPainNotes",
                             "AdditionalNotes",
                             "Sex",
+                            "Country",
+                            "Region",
+                            "City",
+                            "PostalCode",
+                            "Vo2Max",
                             null
                           ],
                           "default": null
@@ -7132,6 +8894,160 @@
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": false
+    },
+    "icons": null,
+    "_meta": null
+  },
+  {
+    "name": "preview_program_assignment",
+    "title": null,
+    "description": "Preview one authorized active client relationship and owned latest published program revision. Shows exact client, program/version, start date/timezone, current assignments and additive scheduling effects. Creates no assignment or approval. Uses assign_programs permission and normal domain validation; no groups or bulk recipients.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assignment": {
+          "type": "object",
+          "properties": {
+            "programId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "relationshipId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revisionId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "startDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "timeZone": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "programId",
+            "relationshipId",
+            "revisionId",
+            "startDate",
+            "timeZone"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "assignment"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "type": "object",
+          "properties": {
+            "programId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "relationshipId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revisionId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "startDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "timeZone": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "programId",
+            "relationshipId",
+            "revisionId",
+            "startDate",
+            "timeZone"
+          ],
+          "additionalProperties": false
+        },
+        "clientId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "programName": {
+          "type": "string"
+        },
+        "publishedVersion": {
+          "type": "integer"
+        },
+        "currentAssignments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "programName": {
+                "type": "string"
+              },
+              "effectiveRevisionId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "status": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "programName",
+              "effectiveRevisionId",
+              "status",
+              "version"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "effect": {
+          "type": "string"
+        },
+        "contextHash": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "request",
+        "clientId",
+        "clientName",
+        "programName",
+        "publishedVersion",
+        "currentAssignments",
+        "effect",
+        "contextHash"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "title": null,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
     },
     "icons": null,
     "_meta": null
@@ -7280,7 +9196,8 @@
                                                     "BackOff",
                                                     "DropSet",
                                                     "RestPause",
-                                                    "Cluster"
+                                                    "Cluster",
+                                                    "Warmup"
                                                   ]
                                                 },
                                                 "prescription": {
@@ -7577,6 +9494,23 @@
                                                             ],
                                                             "additionalProperties": false
                                                           }
+                                                        },
+                                                        "expression": {
+                                                          "type": [
+                                                            "string",
+                                                            "null"
+                                                          ],
+                                                          "default": null
+                                                        },
+                                                        "variableBindings": {
+                                                          "type": [
+                                                            "object",
+                                                            "null"
+                                                          ],
+                                                          "additionalProperties": {
+                                                            "type": "string"
+                                                          },
+                                                          "default": null
                                                         }
                                                       },
                                                       "required": [
@@ -7586,6 +9520,24 @@
                                                         "inputs"
                                                       ],
                                                       "additionalProperties": false,
+                                                      "default": null
+                                                    },
+                                                    "loadUnit": {
+                                                      "type": [
+                                                        "string",
+                                                        "null"
+                                                      ],
+                                                      "enum": [
+                                                        "Scalar",
+                                                        "Kg",
+                                                        "Lb",
+                                                        "Seconds",
+                                                        "Minutes",
+                                                        "Meters",
+                                                        "Kilometers",
+                                                        "Percent",
+                                                        null
+                                                      ],
                                                       "default": null
                                                     }
                                                   },
@@ -7667,6 +9619,24 @@
                                                           },
                                                           "loadFormula": {
                                                             "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula",
+                                                            "default": null
+                                                          },
+                                                          "loadUnit": {
+                                                            "type": [
+                                                              "string",
+                                                              "null"
+                                                            ],
+                                                            "enum": [
+                                                              "Scalar",
+                                                              "Kg",
+                                                              "Lb",
+                                                              "Seconds",
+                                                              "Minutes",
+                                                              "Meters",
+                                                              "Kilometers",
+                                                              "Percent",
+                                                              null
+                                                            ],
                                                             "default": null
                                                           }
                                                         },
@@ -7785,6 +9755,127 @@
                       ],
                       "additionalProperties": false
                     }
+                  },
+                  "exerciseMaxes": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "exerciseId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "reps": {
+                          "type": "integer"
+                        },
+                        "load": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "value": {
+                              "type": "number"
+                            },
+                            "unit": {
+                              "type": "string",
+                              "enum": [
+                                "Scalar",
+                                "Kg",
+                                "Lb",
+                                "Seconds",
+                                "Minutes",
+                                "Meters",
+                                "Kilometers",
+                                "Percent"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "unit"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadFormula": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "formulaId": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "uuid"
+                            },
+                            "version": {
+                              "type": "integer"
+                            },
+                            "builtIn": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "inputs": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
+                            },
+                            "expression": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "default": null
+                            },
+                            "variableBindings": {
+                              "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/variableBindings",
+                              "default": null
+                            }
+                          },
+                          "required": [
+                            "formulaId",
+                            "version",
+                            "builtIn",
+                            "inputs"
+                          ],
+                          "additionalProperties": false,
+                          "default": null
+                        },
+                        "loadUnit": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "Scalar",
+                            "Kg",
+                            "Lb",
+                            "Seconds",
+                            "Minutes",
+                            "Meters",
+                            "Kilometers",
+                            "Percent",
+                            null
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "exerciseId",
+                        "reps"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "default": null
                   }
                 },
                 "required": [
@@ -7795,6 +9886,85 @@
                 ],
                 "additionalProperties": false
               }
+            },
+            "maxesTables": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "blockId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "rows": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/properties/document/properties/blocks/items/properties/exerciseMaxes/items"
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "blockId",
+                  "rows"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
+            },
+            "annotations": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "targetId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid",
+                    "default": null
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "default": "Coach"
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "title",
+                  "content"
+                ],
+                "additionalProperties": false
+              },
+              "default": null
             }
           },
           "required": [
@@ -7883,16 +10053,28 @@
                 "type": "number"
               },
               "revenuePerPayingClient": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               },
               "mrr": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               },
               "recurringSubscriptions": {
-                "type": "integer"
+                "type": [
+                  "integer",
+                  "null"
+                ]
               },
               "renewals": {
-                "type": "integer"
+                "type": [
+                  "integer",
+                  "null"
+                ]
               },
               "simulatedGross": {
                 "type": "number"
@@ -7957,7 +10139,10 @@
           }
         },
         "offers": {
-          "type": "array",
+          "type": [
+            "array",
+            "null"
+          ],
           "items": {
             "type": "object",
             "properties": {
@@ -8001,6 +10186,14 @@
         },
         "offersHasMore": {
           "type": "boolean"
+        },
+        "advanced": {
+          "type": "boolean",
+          "default": true
+        },
+        "simulatedPayments": {
+          "type": "boolean",
+          "default": true
         }
       },
       "required": [
@@ -8376,6 +10569,287 @@
       "idempotentHint": true,
       "openWorldHint": false,
       "readOnlyHint": true
+    },
+    "icons": null,
+    "_meta": null
+  },
+  {
+    "name": "prepare_program_assignment",
+    "title": null,
+    "description": "Prepare an immutable single-client program assignment for human review in Metrivum. Requires assign_programs permission, active authorized coaching relationship and owned latest published revision. No auto-publish or bulk operation. Exact program, client, date/timezone and effects are frozen for 30 minutes. Human must approve the review link; text or model arguments never prove approval. Retry identical content with the original UUID idempotency key.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "assignment": {
+          "type": "object",
+          "properties": {
+            "programId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "relationshipId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revisionId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "startDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "timeZone": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "programId",
+            "relationshipId",
+            "revisionId",
+            "startDate",
+            "timeZone"
+          ],
+          "additionalProperties": false
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "assignment",
+        "idempotencyKey"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "connectionId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "conversationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "conversationTitle": {
+          "type": "string"
+        },
+        "recipients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "displayName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "userId",
+              "displayName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "body": {
+          "type": "string"
+        },
+        "payloadHash": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "approvedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "executedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "messageId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "reviewUrl": {
+          "type": "string"
+        },
+        "assignment": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "request": {
+              "type": "object",
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "relationshipId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "revisionId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "startDate": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "timeZone": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "programId",
+                "relationshipId",
+                "revisionId",
+                "startDate",
+                "timeZone"
+              ],
+              "additionalProperties": false
+            },
+            "clientId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "clientName": {
+              "type": "string"
+            },
+            "programName": {
+              "type": "string"
+            },
+            "publishedVersion": {
+              "type": "integer"
+            },
+            "currentAssignments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "programName": {
+                    "type": "string"
+                  },
+                  "effectiveRevisionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "id",
+                  "programName",
+                  "effectiveRevisionId",
+                  "status",
+                  "version"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "effect": {
+              "type": "string"
+            },
+            "contextHash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "request",
+            "clientId",
+            "clientName",
+            "programName",
+            "publishedVersion",
+            "currentAssignments",
+            "effect",
+            "contextHash"
+          ],
+          "additionalProperties": false,
+          "default": null
+        },
+        "assignmentId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "connectionId",
+        "clientName",
+        "type",
+        "status",
+        "conversationId",
+        "conversationTitle",
+        "recipients",
+        "body",
+        "payloadHash",
+        "createdAt",
+        "expiresAt",
+        "approvedAt",
+        "executedAt",
+        "messageId",
+        "version",
+        "reviewUrl"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "title": null,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false
     },
     "icons": null,
     "_meta": null
@@ -8813,7 +11287,8 @@
                                   "BackOff",
                                   "DropSet",
                                   "RestPause",
-                                  "Cluster"
+                                  "Cluster",
+                                  "Warmup"
                                 ]
                               },
                               "prescription": {
@@ -9110,6 +11585,23 @@
                                           ],
                                           "additionalProperties": false
                                         }
+                                      },
+                                      "expression": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "default": null
+                                      },
+                                      "variableBindings": {
+                                        "type": [
+                                          "object",
+                                          "null"
+                                        ],
+                                        "additionalProperties": {
+                                          "type": "string"
+                                        },
+                                        "default": null
                                       }
                                     },
                                     "required": [
@@ -9119,6 +11611,24 @@
                                       "inputs"
                                     ],
                                     "additionalProperties": false,
+                                    "default": null
+                                  },
+                                  "loadUnit": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "enum": [
+                                      "Scalar",
+                                      "Kg",
+                                      "Lb",
+                                      "Seconds",
+                                      "Minutes",
+                                      "Meters",
+                                      "Kilometers",
+                                      "Percent",
+                                      null
+                                    ],
                                     "default": null
                                   }
                                 },
@@ -9200,6 +11710,24 @@
                                         },
                                         "loadFormula": {
                                           "$ref": "#/properties/changes/items/properties/exerciseChanges/items/properties/setChanges/items/properties/replacement/properties/prescription/properties/loadFormula",
+                                          "default": null
+                                        },
+                                        "loadUnit": {
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
+                                          "enum": [
+                                            "Scalar",
+                                            "Kg",
+                                            "Lb",
+                                            "Seconds",
+                                            "Minutes",
+                                            "Meters",
+                                            "Kilometers",
+                                            "Percent",
+                                            null
+                                          ],
                                           "default": null
                                         }
                                       },
@@ -9410,7 +11938,8 @@
                                                         "BackOff",
                                                         "DropSet",
                                                         "RestPause",
-                                                        "Cluster"
+                                                        "Cluster",
+                                                        "Warmup"
                                                       ]
                                                     },
                                                     "prescription": {
@@ -9707,6 +12236,23 @@
                                                                 ],
                                                                 "additionalProperties": false
                                                               }
+                                                            },
+                                                            "expression": {
+                                                              "type": [
+                                                                "string",
+                                                                "null"
+                                                              ],
+                                                              "default": null
+                                                            },
+                                                            "variableBindings": {
+                                                              "type": [
+                                                                "object",
+                                                                "null"
+                                                              ],
+                                                              "additionalProperties": {
+                                                                "type": "string"
+                                                              },
+                                                              "default": null
                                                             }
                                                           },
                                                           "required": [
@@ -9716,6 +12262,24 @@
                                                             "inputs"
                                                           ],
                                                           "additionalProperties": false,
+                                                          "default": null
+                                                        },
+                                                        "loadUnit": {
+                                                          "type": [
+                                                            "string",
+                                                            "null"
+                                                          ],
+                                                          "enum": [
+                                                            "Scalar",
+                                                            "Kg",
+                                                            "Lb",
+                                                            "Seconds",
+                                                            "Minutes",
+                                                            "Meters",
+                                                            "Kilometers",
+                                                            "Percent",
+                                                            null
+                                                          ],
                                                           "default": null
                                                         }
                                                       },
@@ -9797,6 +12361,24 @@
                                                               },
                                                               "loadFormula": {
                                                                 "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula",
+                                                                "default": null
+                                                              },
+                                                              "loadUnit": {
+                                                                "type": [
+                                                                  "string",
+                                                                  "null"
+                                                                ],
+                                                                "enum": [
+                                                                  "Scalar",
+                                                                  "Kg",
+                                                                  "Lb",
+                                                                  "Seconds",
+                                                                  "Minutes",
+                                                                  "Meters",
+                                                                  "Kilometers",
+                                                                  "Percent",
+                                                                  null
+                                                                ],
                                                                 "default": null
                                                               }
                                                             },
@@ -9915,6 +12497,127 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "exerciseMaxes": {
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "exerciseId": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "uuid"
+                            },
+                            "reps": {
+                              "type": "integer"
+                            },
+                            "load": {
+                              "type": [
+                                "object",
+                                "null"
+                              ],
+                              "properties": {
+                                "value": {
+                                  "type": "number"
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "enum": [
+                                    "Scalar",
+                                    "Kg",
+                                    "Lb",
+                                    "Seconds",
+                                    "Minutes",
+                                    "Meters",
+                                    "Kilometers",
+                                    "Percent"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "value",
+                                "unit"
+                              ],
+                              "additionalProperties": false,
+                              "default": null
+                            },
+                            "loadFormula": {
+                              "type": [
+                                "object",
+                                "null"
+                              ],
+                              "properties": {
+                                "formulaId": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "format": "uuid"
+                                },
+                                "version": {
+                                  "type": "integer"
+                                },
+                                "builtIn": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "inputs": {
+                                  "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
+                                },
+                                "expression": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "default": null
+                                },
+                                "variableBindings": {
+                                  "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/variableBindings",
+                                  "default": null
+                                }
+                              },
+                              "required": [
+                                "formulaId",
+                                "version",
+                                "builtIn",
+                                "inputs"
+                              ],
+                              "additionalProperties": false,
+                              "default": null
+                            },
+                            "loadUnit": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "enum": [
+                                "Scalar",
+                                "Kg",
+                                "Lb",
+                                "Seconds",
+                                "Minutes",
+                                "Meters",
+                                "Kilometers",
+                                "Percent",
+                                null
+                              ],
+                              "default": null
+                            }
+                          },
+                          "required": [
+                            "exerciseId",
+                            "reps"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "default": null
                       }
                     },
                     "required": [
@@ -9925,6 +12628,85 @@
                     ],
                     "additionalProperties": false
                   }
+                },
+                "maxesTables": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "blockId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "uuid"
+                      },
+                      "rows": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/exerciseMaxes/items"
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "blockId",
+                      "rows"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": null
+                },
+                "annotations": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "kind": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "targetId": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "uuid",
+                        "default": null
+                      },
+                      "visibility": {
+                        "type": "string",
+                        "default": "Coach"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "kind",
+                      "title",
+                      "content"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": null
                 }
               },
               "required": [

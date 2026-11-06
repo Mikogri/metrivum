@@ -13,3 +13,5 @@ export { SecondFactorForm, factorName } from "./components/SecondFactorForm";
 export { callbackUrl } from "./lib/urls";
 export { emailChangeUrl } from "./lib/accountSecurity";
 export { useCooldown } from "./lib/useCooldown";
+
+export { useTurnstile } from "./components/Turnstile";

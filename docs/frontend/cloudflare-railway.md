@@ -7,7 +7,7 @@ Provider projects, DNS, secrets and deployment are not provisioned by these file
 
 Create an API service from this GitHub repository. Use the repository root as build context;
 `railway.toml` selects the API Dockerfile and `/health/ready`. Start with one replica.
-Do not deploy the old `main` branch until the intended release changes have been reviewed and merged.
+Deploy only the reviewed release commit on `main`; apply required additive migrations before deploying code that depends on them.
 Never configure a migration pre-deploy/start command.
 
 Configure service variables, never Git files:
@@ -73,8 +73,7 @@ retain localhost only in the development environment. Configure production SMTP 
 
 ## Release gates
 
-The existing Supabase project is recorded as development and contains demo identities/data.
-Choose a separate production project or explicitly approve a reviewed conversion/data-cleanup plan first.
+Use the isolated production project (`metrivum-production`); never substitute the development project or import its demo identities/data.
 Do not silently publish it as a production database. Apply reviewed migrations/grants explicitly.
 Complete remaining dependency/security gates in `docs/security/hardening-2026-11-01.md`, verify database
 plus Storage restore, and disable/publicly label simulated billing before accepting real customers.
@@ -83,3 +82,5 @@ Provider account access and final DNS values are needed to perform deployment an
 Storage REST requests send opaque secret keys only through the `apikey` header; legacy JWT keys also use `Authorization: Bearer`. Keep `Storage__SecretKey` server-only. See [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys).
 
 Public-page production regressions: the night palette is global CSS (not a side-effect-only CSS module), and the shared LightRays container uses zero specificity so route geometry survives CSS chunk ordering. Pages SPA rewrites target `/__spa-fallback` without `.html` to avoid Pages canonicalization redirecting the browser away from the original route. After deployment, verify a fresh direct visit to `/auth/login` stays on that URL.
+
+Public MCP/Auth rollout and origin protection: see [security release gates](../security/public-mcp-hardening.md). Provider configuration always needs separate approval.

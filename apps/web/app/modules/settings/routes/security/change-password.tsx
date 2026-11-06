@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Alert, Button, Card } from "@metrivum/ui-web";
-import { EMAIL_RESEND_SECONDS, authErrorText, callbackUrl, hasPassword, useCooldown } from "~/modules/auth";
+import { EMAIL_RESEND_SECONDS, authErrorText, callbackUrl, hasPassword, useCooldown, useTurnstile } from "~/modules/auth";
 import { useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 import { SecurityPage, Steps, useSecurityAccount } from "./shared";
@@ -22,13 +22,16 @@ export default function ChangePassword() {
   const [error, setError] = useState<string | null>(null);
   const [wait, startWait] = useCooldown();
   const set = !hasPassword(user);
+  const captcha = useTurnstile(`password:${slot}:${account.userId}`);
 
   async function send() {
     if (!email || pending || wait > 0) return;
+    const captchaOptions = captcha.take();
+    if (!captchaOptions) return;
     setPending(true);
     setError(null);
     try {
-      const { error: sendError } = await client.auth.resetPasswordForEmail(email, { redirectTo: callbackUrl(slot, "/auth/reset-password", email) });
+      const { error: sendError } = await client.auth.resetPasswordForEmail(email, { ...captchaOptions, redirectTo: callbackUrl(slot, "/auth/reset-password", email) });
       if (sendError) throw sendError;
       if (!lifecycle.isCurrent()) return;
       setSent(true);
@@ -55,8 +58,9 @@ export default function ChangePassword() {
             {t.sent(email)} {t.sameBrowser}
           </Alert>
         ) : null}
+        {captcha.widget}
         <div className={styles.actions}>
-          <Button variant={sent ? "secondary" : "primary"} loading={pending} isDisabled={!email || wait > 0} onPress={() => void send()}>
+          <Button variant={sent ? "secondary" : "primary"} loading={pending} isDisabled={!email || wait > 0 || !captcha.ready} onPress={() => void send()}>
             {wait > 0 ? t.resendIn(wait) : sent ? t.resend : t.send}
           </Button>
         </div>

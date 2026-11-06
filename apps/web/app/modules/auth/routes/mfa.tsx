@@ -28,19 +28,25 @@ export default function SecondFactor() {
   const account = state.accounts.find((a) => a.slot === slot);
   const returnTo = sanitizeReturnTo(params.get("returnTo"));
   // Read the account's factors and level from Auth once, not only from the stored session.
-  const [fresh, setFresh] = useState(false);
-  const started = useRef(false);
+  const [freshFor, setFreshFor] = useState<string | null>(null);
+  const started = useRef<string | null>(null);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const accountSlot = account?.slot ?? null;
+  const refreshKey = `${state.generation}:${accountSlot}:${account?.userId}`;
   useEffect(() => {
-    if (state.phase !== "ready" || accountSlot === null || started.current) return;
-    started.current = true;
-    void manager.client(accountSlot).auth.refreshSession()
-      .then(async ({ data }) => { if (data.session) await manager.completeSignIn(accountSlot, data.session); })
+    if (state.phase !== "ready" || accountSlot === null || !account || started.current === refreshKey) return;
+    started.current = refreshKey;
+    const current = () => mounted.current && manager.getState().generation === state.generation
+      && manager.getState().accounts.some(a => a.slot === accountSlot && a.userId === account.userId);
+    const client = manager.client(accountSlot, current, { userId: account.userId });
+    void client.auth.refreshSession({ refresh_token: account.session.refresh_token })
+      .then(async ({ data }) => { if (current() && data.session) await manager.completeSignIn(accountSlot, data.session, current); })
       .catch(() => undefined)
-      .finally(() => setFresh(true));
-  }, [state.phase, accountSlot, manager]);
+      .finally(async () => { await client.auth.dispose?.(); if (current()) setFreshFor(refreshKey); });
+  }, [state.phase, state.generation, accountSlot, account, refreshKey, manager]);
 
-  if (state.phase === "loading" || (account && !fresh)) return <BootScreen />;
+  if (state.phase === "loading" || (account && freshFor !== refreshKey)) return <BootScreen />;
   if (!account) return <Navigate to="/auth/login" replace />;
   if (!needsSecondFactor(account.session)) return <Navigate to={returnTo} replace />;
 

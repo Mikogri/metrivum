@@ -1,7 +1,7 @@
 import { AuthError } from "@supabase/supabase-js";
 import type { AuthChangeEvent, Session, SupabaseClient } from "@supabase/supabase-js";
 import { StaleAccountError } from "../http/errors";
-import { authClient } from "./supabase";
+import { authAttemptClient, authClient, type AuthAttemptIdentity } from "./supabase";
 import { ACTIVE_SLOT_STORAGE_KEY, forgetSlot, SLOT_IDS, slotStorageKey, type SlotId } from "./storage-keys";
 
 export interface SignedInAccount {
@@ -64,6 +64,7 @@ export class SessionManager {
   private subscriptions = new Map<SlotId, () => void>();
   private refreshes = new Map<string, Promise<Session | null>>();
   private authEventVersions = new Map<SlotId, number>();
+  private signInCleanupSlots = new Set<SlotId>();
   private started = false;
   private readonly clientFor: (slot: SlotId) => SupabaseClient;
 
@@ -146,6 +147,7 @@ export class SessionManager {
     if (this.subscriptions.has(slot)) return;
     const { data } = client.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       if (this.state.phase === "loading" && event === "INITIAL_SESSION") return;
+      if (event === "SIGNED_OUT" && this.signInCleanupSlots.has(slot)) return;
       const version = (this.authEventVersions.get(slot) ?? 0) + 1;
       this.authEventVersions.set(slot, version);
       // Defer: Supabase forbids awaiting other auth calls inside this callback.
@@ -185,10 +187,11 @@ export class SessionManager {
     this.setState({ accounts });
   }
 
-  client(slot: SlotId): SupabaseClient {
+  client(slot: SlotId, isCurrent?: () => boolean, expected?: AuthAttemptIdentity): SupabaseClient {
     const client = this.clientFor(slot);
     this.watch(slot, client);
-    return client;
+    const initialSession = expected?.userId ? this.state.accounts.find(a => a.slot === slot && a.userId === expected.userId)?.session : undefined;
+    return isCurrent ? authAttemptClient(slot, isCurrent, expected, initialSession) : client;
   }
 
   /** Slot for a new sign-in: an explicit valid request, else the first free slot. */
@@ -198,25 +201,45 @@ export class SessionManager {
   }
 
   /** Records a fresh sign-in in `slot`. If that person is already signed in elsewhere, keeps one copy. */
-  async completeSignIn(slot: SlotId, session: Session): Promise<SlotId> {
+  async completeSignIn(slot: SlotId, session: Session, isCurrent: () => boolean = () => true): Promise<SlotId> {
+    const assertCurrent = () => { if (!isCurrent()) throw new StaleAccountError(); };
+    assertCurrent();
     if (!session.user.email_confirmed_at) {
       await this.signOut(slot);
       throw new AuthError("Email confirmation is required.", 403, "email_not_confirmed");
     }
     // A re-created Auth account may use the old email, but its ID and data must stay separate.
     const address = session.user.email?.trim().toLowerCase();
-    for (const old of this.state.accounts.filter(a => a.slot !== slot && a.userId !== session.user.id
-      && address && a.email?.trim().toLowerCase() === address)) await this.signOut(old.slot);
-    const duplicate = this.state.accounts.find((a) => a.userId === session.user.id && a.slot !== slot);
-    if (duplicate) {
-      await this.clientFor(slot).auth.signOut({ scope: "local" });
-      this.activate(duplicate.slot);
-      return duplicate.slot;
+    const replaced = this.state.accounts.filter(a => a.slot !== slot && a.userId !== session.user.id
+      && address && a.email?.trim().toLowerCase() === address);
+    const cleaned = new Set<SlotId>();
+    try {
+      for (const old of replaced) {
+        // Keep our own cleanup from invalidating the sign-in's generation before it can be accepted.
+        this.signInCleanupSlots.add(old.slot);
+        this.authEventVersions.set(old.slot, (this.authEventVersions.get(old.slot) ?? 0) + 1);
+        try { await this.clientFor(old.slot).auth.signOut({ scope: "local" }); }
+        finally { this.signInCleanupSlots.delete(old.slot); cleaned.add(old.slot); }
+        assertCurrent();
+      }
+      const duplicate = this.state.accounts.find((a) => a.userId === session.user.id && a.slot !== slot);
+      if (duplicate) {
+        await this.clientFor(slot).auth.signOut({ scope: "local" });
+        assertCurrent();
+        this.activate(duplicate.slot);
+        return duplicate.slot;
+      }
+      const others = this.state.accounts.filter((a) => a.slot !== slot && !cleaned.has(a.slot));
+      this.setState({ accounts: [...others, toAccount(slot, session)] });
+      this.activate(slot);
+      return slot;
+    } finally {
+      // A switch/unmount can abandon acceptance after credentials were already signed out.
+      for (const old of replaced) {
+        if (!cleaned.has(old.slot) || !this.state.accounts.some(a => a.slot === old.slot && a.userId === old.userId)) continue;
+        this.removeAccount(old.slot);
+      }
     }
-    const others = this.state.accounts.filter((a) => a.slot !== slot);
-    this.setState({ accounts: [...others, toAccount(slot, session)] });
-    this.activate(slot);
-    return slot;
   }
 
   /** Switches the account shown in this tab. Callers must have handled unsaved work first. */
@@ -232,12 +255,16 @@ export class SessionManager {
     try {
       await this.clientFor(slot).auth.signOut({ scope: "local" });
     } finally {
-      const accounts = this.state.accounts.filter((a) => a.slot !== slot);
-      const wasActive = this.state.activeSlot === slot;
-      const activeSlot = wasActive ? (accounts[0]?.slot ?? null) : this.state.activeSlot;
-      writeActiveSlotPreference(activeSlot);
-      this.setState({ accounts, activeSlot, generation: wasActive ? this.state.generation + 1 : this.state.generation });
+      this.removeAccount(slot);
     }
+  }
+
+  private removeAccount(slot: SlotId) {
+    const accounts = this.state.accounts.filter((a) => a.slot !== slot);
+    const wasActive = this.state.activeSlot === slot;
+    const activeSlot = wasActive ? (accounts[0]?.slot ?? null) : this.state.activeSlot;
+    writeActiveSlotPreference(activeSlot);
+    this.setState({ accounts, activeSlot, generation: wasActive ? this.state.generation + 1 : this.state.generation });
   }
 
   async accessToken(slot: SlotId, forceRefresh = false, expectedUserId?: string): Promise<string | null> {

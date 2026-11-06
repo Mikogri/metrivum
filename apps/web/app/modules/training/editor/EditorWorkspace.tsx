@@ -34,6 +34,7 @@ import { FormulaMark } from "../components/FormulaMark";
 import { SaveStatus } from "./components/SaveStatus";
 import { SheetCanvas, usePersistentSheet } from "./components/SheetCanvas";
 import { WeekView } from "./components/WeekView";
+import { EditorTips } from "./components/EditorTips";
 import { uniqueExerciseIds } from "./model/document";
 import { isSimpleShape } from "./model/structure";
 import { usesProFeatures } from "./model/pro-features";
@@ -248,7 +249,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
           <IconButton size="sm" label={t.export} icon={<Download />} onPress={() => setExportOpen(true)} />
           {clientContext.assign}
           <TooltipTrigger delay={200}>
-            <Button size="sm" variant="primary" iconStart={<Rocket />} isDisabled={readOnly} onPress={async () => { await saveDraft(); if (!editor.isDirty()) setPublishOpen(true); }}>
+            <Button data-tip="publish" size="sm" variant="primary" iconStart={<Rocket />} isDisabled={readOnly} onPress={async () => { await saveDraft(); if (!editor.isDirty()) setPublishOpen(true); }}>
               {t.publish}
             </Button>
             {editor.dirty ? <Tooltip>{t.publishDirty}</Tooltip> : <Tooltip>{m.training.detail.revisionsBody}</Tooltip>}
@@ -304,6 +305,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
         </div>
       ) : null}
 
+      <EditorTips mode={activeMode === "simple" ? "table" : "sheet"} enabled={!readOnly && !builderLocked} />
       <NodeDialog editor={editor} nodeId={editNode} onClose={() => setEditNode(null)} />
       <PublishDialog planId={plan.id} version={editor.version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={[...(hasActiveWorkout(editor.doc) ? [] : [t.issues.noWorkouts]), ...docIssues, ...invalidCells.values()]} />
       <ExportDialog planId={plan.id} planName={editor.meta.name || plan.name} draft={editor.doc} issues={allIssues} beforeExport={saveDraft} isOpen={exportOpen} onOpenChange={setExportOpen} />

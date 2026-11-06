@@ -19,6 +19,7 @@ public sealed class FeatureAccessService : IFeatureAccessService
     private readonly IEnumerable<ILimitUsageProvider> usageProviders;
     private readonly IPlanEntitlementsProvider? plans;
     private Policy? policy;
+    private Guid? policyTransactionId;
 
     public FeatureAccessService(AccessDbContext db, FeatureCatalog catalog, IAccountContext account,
         IEnumerable<ILimitUsageProvider> usageProviders, IPlanEntitlementsProvider? plans = null)
@@ -28,7 +29,7 @@ public sealed class FeatureAccessService : IFeatureAccessService
         this.account = account;
         this.usageProviders = usageProviders;
         this.plans = plans;
-        // Request-local only: configuration changes take effect on the next request or after a local write.
+        // Policy snapshots are scoped to the request/transaction boundary; local writes invalidate them.
         db.SavedChanges += (_, _) => policy = null;
     }
 
@@ -106,9 +107,10 @@ public sealed class FeatureAccessService : IFeatureAccessService
 
     private async Task<Policy> GetPolicyAsync(Guid userId, CancellationToken cancellationToken)
     {
-        if (policy is not null)
+        var transactionId = db.Database.CurrentTransaction?.TransactionId;
+        if (policy is not null && policyTransactionId == transactionId)
             return policy;
-        // One round-trip and one MVCC snapshot; still request-scoped, never a stale authorization cache.
+        // A mutation's inner check must not reuse preflight permissions after waiting for its lock.
         var json = await db.Database.SqlQuery<string>($"""
             SELECT jsonb_build_object(
                 'Configuration', (SELECT to_jsonb(c) FROM access.configurations c WHERE c."Id" =
@@ -118,6 +120,7 @@ public sealed class FeatureAccessService : IFeatureAccessService
                 'Flags', COALESCE((SELECT jsonb_agg(to_jsonb(f) ORDER BY f."Key") FROM access.flags f), '[]'::jsonb)
             )::text AS "Value"
             """).SingleAsync(cancellationToken);
+        policyTransactionId = transactionId;
         return policy = JsonSerializer.Deserialize<Policy>(json)
             ?? throw new InvalidOperationException("Access policy query returned no policy.");
     }

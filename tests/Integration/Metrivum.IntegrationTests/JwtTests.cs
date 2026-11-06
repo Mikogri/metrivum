@@ -36,6 +36,10 @@ public sealed class JwtTests
     [InlineData("session")]
     [InlineData("none")]
     [InlineData("unknown_kid")]
+    [InlineData("missing_sub")]
+    [InlineData("missing_role")]
+    [InlineData("missing_session_id")]
+    [InlineData("missing_is_anonymous")]
     public async Task Invalid_sessions_are_rejected_before_database_access(string fault)
     {
         using var factory = new ApiFactory();
@@ -138,6 +142,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         foreach (var setting in new Dictionary<string, string?>
         {
             ["ConnectionStrings:Database"] = database ?? "Host=127.0.0.1;Port=1;Database=unused;Username=test;Timeout=1",
+            ["AbuseProtection:DistributedEnabled"] = database is null ? "false" : "true",
             ["Supabase:Auth:ProjectUrl"] = "https://test-project.supabase.co",
             ["Supabase:Auth:RequireSecondFactorWhenEnrolled"] = RequireSecondFactor ? "true" : "false",
             ["AllowedHosts"] = "*"
@@ -183,7 +188,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             new("session_id", fault == "session" ? "invalid" : Guid.NewGuid().ToString()),
             new("user_metadata", metadataAdmin ? "{\"Admin\":true,\"role\":\"AccessAdmin\",\"capabilities\":[\"all\"]}" : "{}", "JSON")
         };
-        if (oauthClientId != null) claims.Add(new("client_id", oauthClientId));
+        if (fault?.StartsWith("missing_", StringComparison.Ordinal) == true)
+            claims.RemoveAll(claim => claim.Type == fault["missing_".Length..]);
+        if (oauthClientId != null && fault != "missing_client") claims.Add(new("client_id", fault == "blank_client" ? " " : oauthClientId));
+        if (fault == "duplicate_client") claims.Add(new("client_id", "another-client"));
+        if (fault == "resource") claims.Add(new("resource", "https://unrelated-resource.invalid/mcp"));
         if (aal != null) claims.Add(new("aal", aal));
         using var other = RSA.Create(2048);
         var key = fault == "signature" ? new RsaSecurityKey(other) { KeyId = "test-key" } : SigningKey ?? Key;

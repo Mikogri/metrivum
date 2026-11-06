@@ -33,6 +33,8 @@ public static class ModuleRegistration
     {
         var connections = endpoints.MapGroup("/api/v1/me/ai-integrations").WithTags("Integrations").RequireAuthorization();
         connections.MapGet("", (IntegrationService service, CancellationToken ct) => service.ConnectionsAsync(ct));
+        endpoints.MapGet("/api/v1/me/ai-activity", (IntegrationService service, CancellationToken ct) => service.ActivityAsync(ct))
+            .WithTags("Integrations").RequireAuthorization();
         connections.MapGet("/{id:guid}", (Guid id, IntegrationService service, CancellationToken ct) => service.ConnectionAsync(id, ct));
         connections.MapPatch("/{id:guid}/grants", (Guid id, GrantUpdate request, IntegrationService service, CancellationToken ct) => service.UpdateGrantsAsync(id, request, ct));
         connections.MapPost("/{id:guid}/revoke", (Guid id, IntegrationService service, CancellationToken ct) => service.RevokeAsync(id, ct));

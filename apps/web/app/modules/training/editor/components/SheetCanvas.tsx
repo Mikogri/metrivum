@@ -1017,7 +1017,7 @@ export function SheetCanvas({
     >
       {maxesMenu ? <ContextMenu x={maxesMenu.x} y={maxesMenu.y} label={uiCopy["ui"]["Table connection"]} onClose={() => setMaxesMenu(null)} items={[{ id: "disconnect", label: uiCopy["ui"]["Disconnect"] }]} onAction={ () => { apply?.(current => withMaxesTables(current, maxesTables(current).map(t => t.id === maxesMenu.id ? { ...t, blockId: null } : t))); setMaxesMenu(null); }} /> : null}
       <div className={styles.tools}>
-        <div className={styles.toolsMain}>
+        <div data-tip="sheet-add" className={styles.toolsMain}>
         {!readOnly ? (
           <>
             <Button size="sm" iconStart={<Plus />} onPress={() => addBlockAt(null)}>
@@ -1044,7 +1044,7 @@ export function SheetCanvas({
         </Button>
         {!readOnly ? <InfoTip label={uiCopy["ui"]["Sheet help"]} className={styles.help}>{doc.blocks.length ? `${t.openCycle} · ${t.zoomHint}` : t.empty}</InfoTip> : null}
         </div>
-        <div className={styles.toolsEnd}>
+        <div data-tip="sheet-tools" className={styles.toolsEnd}>
           {!readOnly ? (
             <SegmentedControl size="sm" aria-label={t.dragMode} className={styles.dragMode} selectedKeys={[dragMode]} onSelectionChange={keys => setDragMode([...keys][0] === "select" ? "select" : "pan")}>
               <TooltipTrigger delay={300}>
@@ -1061,7 +1061,7 @@ export function SheetCanvas({
         </div>
       </div>
 
-      <div ref={scrollerRef} className={styles.scroller}>
+      <div ref={scrollerRef} data-tip="sheet-canvas" className={styles.scroller}>
         <div style={{ width: boardW * zoom, height: boardH * zoom }}>
           <div
             ref={boardRef}

@@ -48,7 +48,7 @@ public static class PlanCatalog
         "training.formulas.custom", "training.sets.advanced", "exercises.custom.create", "video.analysis.cloud",
         "analytics.advanced", "automation.advanced", "discovery.ranking.priority",
         "integrations.mcp.manage-checkins", "integrations.mcp.prepare-message",
-        "integrations.mcp.send-approved-message", "integrations.mcp.write-training-drafts"
+        "integrations.mcp.send-approved-message", "integrations.mcp.write-training-drafts", "integrations.mcp.assign-programs"
     }.ToFrozenSet(StringComparer.Ordinal);
     public static readonly IReadOnlySet<string> WorkspaceFeatures = ProfessionalFeatures
         .Append("organization.workspace.manage").ToFrozenSet(StringComparer.Ordinal);

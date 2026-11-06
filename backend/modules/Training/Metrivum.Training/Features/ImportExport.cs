@@ -115,8 +115,8 @@ public sealed partial class TrainingService
             throw ApiException.Invalid("Format must be csv or pdf.");
         await access.RequireAsync("training.export." + format, ct);
         var source = (await RevisionAsync(id, revision, ct)).Snapshot;
-        abuse?.Require(accounts.UserId, AbusePolicies.Export);
-        using var heavyLease = abuse?.Enter(accounts.UserId, AbusePolicies.Heavy);
+        if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.Export, cancellationToken: ct);
+        await using var heavyLease = abuse is null ? null : await abuse.EnterAsync(accounts.UserId, AbusePolicies.Heavy, cancellationToken: ct);
         var selected = SelectScope(source, scope, scopeId);
         ct.ThrowIfCancellationRequested();
         try
@@ -136,8 +136,8 @@ public sealed partial class TrainingService
         await access.RequireAsync("training.export." + format, ct);
         var account = await ReadAsync(ct);
         var plan = await PlanAsync(id, account, ct);
-        abuse?.Require(accounts.UserId, AbusePolicies.Export);
-        using var heavyLease = abuse?.Enter(accounts.UserId, AbusePolicies.Heavy);
+        if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.Export, cancellationToken: ct);
+        await using var heavyLease = abuse is null ? null : await abuse.EnterAsync(accounts.UserId, AbusePolicies.Heavy, cancellationToken: ct);
         var exerciseIds = DocumentRules.Workouts(plan.Draft).SelectMany(w => w.Exercises).Select(e => e.ExerciseId).Distinct().ToArray();
         var exercises = await catalog.SnapshotAsync(exerciseIds, ct);
         var document = KnownExercises(plan.Draft, exercises.Keys.ToHashSet());

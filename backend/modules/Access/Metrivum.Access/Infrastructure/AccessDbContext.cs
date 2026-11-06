@@ -11,10 +11,18 @@ public sealed class AccessDbContext(DbContextOptions<AccessDbContext> options) :
     public DbSet<FeatureFlag> Flags => Set<FeatureFlag>();
     public DbSet<AccessAudit> Audit => Set<AccessAudit>();
     public DbSet<UsageReservation> Usage => Set<UsageReservation>();
+    public DbSet<AbuseWindow> AbuseWindows => Set<AbuseWindow>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.HasDefaultSchema("access");
+        model.Entity<AbuseWindow>(e =>
+        {
+            e.ToTable("abuse_windows", table => table.HasCheckConstraint("CK_abuse_count", "\"Count\" >= 0"));
+            e.HasKey(x => new { x.UserId, x.Policy });
+            e.Property(x => x.Policy).HasMaxLength(64);
+            e.HasIndex(x => x.WindowStart);
+        });
         model.Entity<UsageReservation>(e =>
         {
             e.ToTable("usage_reservations", t =>

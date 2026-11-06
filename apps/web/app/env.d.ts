@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly VITE_SITE_URL?: string;
   readonly VITE_DEV_MOCKS?: string;
   readonly VITE_SUPPORT_EMAIL?: string;
+  readonly VITE_TURNSTILE_SITE_KEY?: string;
+  readonly VITE_AUTH_CAPTCHA_REQUIRED?: string;
 }
 
 interface ImportMeta {

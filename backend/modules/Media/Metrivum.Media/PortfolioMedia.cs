@@ -38,7 +38,7 @@ public sealed partial class MediaLibrary : IPortfolioMedia
         var file = await PortfolioFileAsync(ownerId, mediaId, ct);
         if (file.State != "Ready")
             throw ApiException.NotFound();
-        abuse?.Require(viewerId, AbusePolicies.SignedDownload);
+        if (abuse is not null) await abuse.RequireAsync(viewerId, AbusePolicies.SignedDownload, cancellationToken: ct);
         var actual = await storage.InspectAsync(file.Bucket, file.ObjectKey, ct);
         await ValidateAsync(file, actual, ct);
         return new(await storage.CreateReadUrlAsync(file.Bucket, file.ObjectKey, ct), DateTimeOffset.UtcNow.AddSeconds(options.ReadUrlSeconds));

@@ -276,6 +276,10 @@ END IF;
 END $$;
 
 DO $$ BEGIN
+IF to_regclass('access.abuse_windows') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON access.abuse_windows TO trainflow_api;
+    REVOKE ALL ON access.abuse_windows FROM trainflow_worker;
+END IF;
 IF to_regclass('access.usage_reservations') IS NOT NULL THEN
     GRANT SELECT, INSERT, UPDATE ON access.usage_reservations TO trainflow_api, trainflow_worker;
     GRANT USAGE ON SCHEMA access, billing TO trainflow_worker;

@@ -262,7 +262,7 @@ public sealed partial class BillingService(BillingDbContext db, IAccountContext 
     }
     public Task<PaymentResultDto> PayAsync(Guid id, PayRequest request, CancellationToken ct) => transaction.RunAsync(async token =>
     {
-        abuse?.Require(accounts.UserId, AbusePolicies.Payment);
+        if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.Payment, cancellationToken: token);
         await Client("billing.pay-own", token);
         Key(request.IdempotencyKey);
         var due = await OwnedDue(id, false, token);

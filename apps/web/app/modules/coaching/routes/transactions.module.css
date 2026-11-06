@@ -260,37 +260,14 @@
   stroke-width: 2.25;
 }
 
-.opText {
-  display: grid;
-  gap: 1px;
-  min-width: 0;
-}
-
 .opName {
+  min-width: 0;
   overflow: hidden;
   color: var(--tf-color-text);
   font-weight: var(--tf-weight-medium);
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.opSub {
-  display: flex;
-  align-items: center;
-  gap: var(--tf-space-2);
-  overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  white-space: nowrap;
-}
-
-.sim {
-  padding: 0 0.375rem;
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text-tertiary);
-  font-size: 0.6875rem;
 }
 
 .amount {
@@ -364,20 +341,13 @@
   color: var(--tf-color-text-tertiary);
 }
 
-/* Rows breathe a little more. tbody/thead in the selectors outrank the table's own cell padding,
-   whatever order the built CSS ends up in. */
-.table tbody td {
-  padding-block: var(--tf-space-3);
-}
-
-.table tbody td:first-child,
-.table thead th:first-child {
-  padding-left: var(--tf-space-5);
-}
-
-.table tbody td:last-child,
-.table thead th:last-child {
-  padding-right: var(--tf-space-5);
+/* One line per row now (the person has its own column): the table's own cell padding, edges aligned with the toolbar. */
+.party {
+  display: block;
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Transaction details, in the side panel. */

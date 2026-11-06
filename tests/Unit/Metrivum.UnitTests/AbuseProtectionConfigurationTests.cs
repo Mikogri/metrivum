@@ -6,6 +6,23 @@ namespace Metrivum.UnitTests;
 public sealed class AbuseProtectionConfigurationTests
 {
     [Fact]
+    public async Task Distributed_admission_fails_closed_when_store_is_missing_or_unavailable()
+    {
+        using var missing = new AbuseProtection(Options.Create(new AbuseProtectionOptions()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => missing.RequireAsync(Guid.NewGuid(), AbusePolicies.McpWrite));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => missing.EnterAsync(Guid.NewGuid(), AbusePolicies.Heavy));
+        using var unavailable = new AbuseProtection(Options.Create(new AbuseProtectionOptions()), counterStore: new UnavailableStore());
+        await Assert.ThrowsAsync<TimeoutException>(() => unavailable.RequireAsync(Guid.NewGuid(), AbusePolicies.McpWrite));
+    }
+
+    [Fact]
+    public async Task Explicit_local_test_mode_does_not_require_a_database()
+    {
+        using var guard = new AbuseProtection(Options.Create(new AbuseProtectionOptions { DistributedEnabled = false }));
+        await guard.RequireAsync(Guid.NewGuid(), AbusePolicies.McpWrite);
+    }
+
+    [Fact]
     public void Malformed_or_semantically_invalid_options_fail_validation()
     {
         Assert.False(new AbuseProtectionOptions { Policies = null! }.IsValid());
@@ -50,5 +67,11 @@ public sealed class AbuseProtectionConfigurationTests
     {
         public DateTimeOffset Now { get; set; } = DateTimeOffset.Parse("2026-01-01T00:00:00Z");
         public override DateTimeOffset GetUtcNow() => Now;
+    }
+
+    private sealed class UnavailableStore : IAbuseCounterStore
+    {
+        public Task<bool> TryAcquireAsync(Guid userId, string policy, AbuseLimit limit, CancellationToken cancellationToken)
+            => throw new TimeoutException("Admission store unavailable.");
     }
 }

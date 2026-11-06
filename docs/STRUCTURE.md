@@ -19,7 +19,7 @@
 - `tools/Metrivum.LocalAnalyzer`: opt-in loopback companion for desktop web analysis using the existing MotionTrace Python/Core bridge; see its README for pairing, offline dependencies and limits.
 - `tools/Metrivum.AnalyzerSetup`: per-user Windows installer for hash-pinned, relocatable local-analysis runtimes. Generated downloads are ignored; completed videos/results use the existing Media and VideoAnalysis modules.
 - `contracts/generated`: generated OpenAPI and feature catalog, consumed by the web client through `packages/api-client-web`.
-- `apps/web`: React Router site — pre-rendered public pages, `/auth`, `/onboarding` and the `/app` SPA. Feature code lives in `app/modules/<name>` with a public `index.ts`; `app/shared` holds only cross-cutting infrastructure (session, http, access, i18n).
+- `apps/web`: React Router site â€” pre-rendered public pages, `/auth`, `/onboarding` and the `/app` SPA. Feature code lives in `app/modules/<name>` with a public `index.ts`; `app/shared` holds only cross-cutting infrastructure (session, http, access, i18n).
 - `packages/ui-web`: Metrivum component library (tokens, styles, accessible components); knows nothing about the API or users.
 - `apps/ui-catalog`: Storybook for `ui-web` (developer tool, not deployed).
 - `docs/frontend`: frontend architecture, design reference, API integration map, API gaps and hosting rules.
@@ -62,3 +62,9 @@ Billing owns Team roles/memberships, organizational subscriptions, frozen quotes
 `apps/mobile` contains Expo native routes, daily feature screens and account-scoped infrastructure. `packages/ui-mobile` owns mobile-only semantic tokens, controls and charts; it has no business/API dependencies. The existing `packages/api-client-web` exposes a platform-neutral transport and generated contracts to both frontends. `apps/mobile/modules/metrivum-voice` is a reproducible Android PCM WAV Expo module. Generated native projects and private local configuration remain ignored. See [mobile architecture and setup](mobile/README.md) and its verification matrix.
 
 Application abuse policies and durable resource reservations are documented in [Security stage 1](security/stage-01.md), with the registered REST policy map and reproducible local load test.
+
+Web Auth CAPTCHA integration, Supabase server-enforcement prerequisites and compatible-client rollout/rollback are documented in [Turnstile](security/turnstile.md).
+
+Security preparation for public MCP: [hardening and deployment gates](security/public-mcp-hardening.md), [Auth Turnstile](security/turnstile.md), and [distributed admission](security/distributed-abuse.md).
+
+Independent security audit: [findings, evidence and readiness gates](security/independent-redteam-2026-11-05.md), [all MCP permissions](security/redteam-mcp-matrix.md).

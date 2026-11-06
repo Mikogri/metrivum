@@ -34,6 +34,7 @@ public sealed class PendingAction
     public Guid? ApprovedBy { get; set; }
     public DateTimeOffset? ExecutedAt { get; set; }
     public Guid? MessageId { get; set; }
+    public Guid? AssignmentId { get; set; }
     public string CorrelationId { get; set; } = "";
     public long Version { get; set; } = 1;
 }

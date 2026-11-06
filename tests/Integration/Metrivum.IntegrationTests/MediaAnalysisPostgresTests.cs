@@ -307,6 +307,8 @@ public sealed class MediaAnalysisPostgresTests
         Assert.Equal(0, await media.CleanupAsync(default));
         Assert.Equal(0, test.Storage.Deletes);
         await db.Files.Where(x => x.Id == id).ExecuteUpdateAsync(u => u.SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1)));
+        // Simulate expiry of the capability as well as its scheduled cleanup time.
+        await db.Files.Where(x => x.Id == id).ExecuteUpdateAsync(u => u.SetProperty(x => x.UploadExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1)));
         test.Storage.FailDelete = true;
         Assert.Equal(0, await media.CleanupAsync(default));
         Assert.Equal(1, (await db.Files.AsNoTracking().SingleAsync()).DeleteAttempts);

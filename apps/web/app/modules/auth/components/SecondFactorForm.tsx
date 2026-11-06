@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { Factor, Session } from "@supabase/supabase-js";
 import { Alert, Button, Option, Select, TextField } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -36,25 +36,38 @@ export function SecondFactorForm({ slot, factors, check, onVerified, submitLabel
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     if (pending) return;
     if (!isSixDigitCode(code)) { setError(t.errors.codeFormat); return; }
+    const state = manager.getState();
+    const account = state.accounts.find(a => a.slot === slot);
+    if (!account) return;
+    const current = () => mounted.current && manager.getState().generation === state.generation
+      && manager.getState().accounts.some(a => a.slot === slot && a.userId === account.userId);
     setPending(true);
     setError(null);
     setFormError(null);
+    let client: ReturnType<typeof manager.client> | undefined;
     try {
       const refused = await check?.();
+      if (!current()) return;
       if (refused) { setFormError(refused); return; }
-      const session = await verifyAuthenticatorCode(manager.client(slot), factorId, code);
+      client = manager.client(slot, current, { userId: account.userId });
+      const session = await verifyAuthenticatorCode(client, factorId, code);
+      if (!current()) return;
       const problem = await onVerified(session);
-      if (problem) { setFormError(problem); setCode(""); }
+      if (current() && problem) { setFormError(problem); setCode(""); }
     } catch (caught) {
+      if (!current()) return;
       setError(mfaErrorText(m, caught));
       setCode("");
     } finally {
-      setPending(false);
+      await client?.auth.dispose?.();
+      if (current()) setPending(false);
     }
   }
 

@@ -27,7 +27,7 @@ public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContex
             var now = clock.GetUtcNow();
             var schedule = new CheckInSchedule { CoachId = owner.UserId, WorkspaceId = owner.WorkspaceId, FormTemplateId = request.FormTemplateId, Name = request.Name.Trim(), Description = request.Description, TimeZone = request.TimeZone, RecurrenceJson = JsonSerializer.Serialize(request.Recurrence), ResponseWindowHours = request.ResponseWindowHours, NextAvailableAtUtc = Next(request.Recurrence, request.TimeZone, assignment), CreatedAt = now, UpdatedAt = now };
             db.Schedules.Add(schedule);
-            AddTargets(schedule, request);
+            await AddTargetsAsync(schedule, request, token);
             await SaveAsync(token);
             return await DtoAsync(schedule, token);
         }, ct);
@@ -76,7 +76,7 @@ public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContex
             var targets = await db.Targets.Where(x => x.ScheduleId == id).ToArrayAsync(token);
             db.Targets.RemoveRange(targets);
             await SaveAsync(token);
-            AddTargets(s, request);
+            await AddTargetsAsync(s, request, token);
             Touch(s);
             await SaveAsync(token);
             return await DtoAsync(s, token);
@@ -248,7 +248,7 @@ public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContex
             }
             if (r.Status == RequestStatus.Cancelled || r.AvailableAtUtc > clock.GetUtcNow())
                 throw ApiException.Conflict("This check-in cannot be submitted.");
-            abuse?.Require(accounts.UserId, AbusePolicies.CheckInAnswer);
+            if (abuse is not null) await abuse.RequireAsync(accounts.UserId, AbusePolicies.CheckInAnswer, cancellationToken: token);
             var submission = await forms.SubmitAsync(new(r.FormVersionId, r.ClientId, "checkin:" + r.Id, request.Answers), token);
             r.FormSubmissionId = submission.Id;
             r.SubmittedAt = clock.GetUtcNow();
@@ -537,9 +537,9 @@ public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContex
             throw ApiException.Invalid("Targets must be unique.");
         CheckInRules.Validate(r.Recurrence, r.TimeZone, r.ResponseWindowHours);
     }
-    private void AddTargets(CheckInSchedule s, ScheduleRequest r)
+    private async Task AddTargetsAsync(CheckInSchedule s, ScheduleRequest r, CancellationToken ct)
     {
-        abuse?.Require(s.CoachId, AbusePolicies.CheckInAssign);
+        if (abuse is not null) await abuse.RequireAsync(s.CoachId, AbusePolicies.CheckInAssign, cancellationToken: ct);
         db.Targets.AddRange(r.RelationshipIds.Select(x => new ScheduleTarget { ScheduleId = s.Id, TargetId = x, CoachId = s.CoachId, WorkspaceId = s.WorkspaceId }));
         db.Targets.AddRange(r.GroupIds.Select(x => new ScheduleTarget { ScheduleId = s.Id, TargetId = x, IsGroup = true, CoachId = s.CoachId, WorkspaceId = s.WorkspaceId }));
     }

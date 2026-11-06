@@ -5,7 +5,7 @@ using Metrivum.Accounts.Contracts;
 
 namespace Metrivum.Coaching.Infrastructure;
 
-public sealed class RelationshipRecipients(CoachingDbContext db, ITeamContext? teams = null) : IRelationshipRecipients
+public sealed class RelationshipRecipients(CoachingDbContext db, ITeamContext? teams = null, ModuleTransaction? transaction = null) : IRelationshipRecipients
 {
     public async Task<IReadOnlyList<RelationshipGroupSource>> GetGroupSourcesAsync(Guid coachId, Guid workspaceId, IReadOnlyCollection<Guid> groupIds, CancellationToken ct) =>
         await (from membership in db.Memberships.AsNoTracking()
@@ -19,6 +19,19 @@ public sealed class RelationshipRecipients(CoachingDbContext db, ITeamContext? t
     {
         var direct = relationshipIds.Distinct().ToArray();
         var groups = groupIds.Distinct().ToArray();
+        if (transaction?.IsActive == true)
+        {
+            // Serialize active relationship checks with status transitions through the caller's commit.
+            // Ordinary status updates take row locks too; unrelated advisory locks cannot protect this read.
+            await db.Relationships.FromSqlInterpolated($"""
+                SELECT r.* FROM coaching."Relationships" r
+                WHERE r."CoachId" = {coachId} AND r."WorkspaceId" = {workspaceId}
+                  AND (r."Id" = ANY ({direct}) OR EXISTS (
+                    SELECT FROM coaching."Memberships" m WHERE m."RelationshipId" = r."Id"
+                      AND m."GroupId" = ANY ({groups}) AND m."CoachId" = {coachId} AND m."WorkspaceId" = {workspaceId}))
+                ORDER BY r."Id" FOR SHARE OF r
+                """).AsNoTracking().ToArrayAsync(ct);
+        }
         if (await db.Relationships.CountAsync(x => direct.Contains(x.Id) && x.CoachId == coachId && x.WorkspaceId == workspaceId, ct) != direct.Length ||
             await db.Groups.CountAsync(x => groups.Contains(x.Id) && x.CoachId == coachId && x.WorkspaceId == workspaceId && !x.Archived, ct) != groups.Length)
             throw ApiException.NotFound();

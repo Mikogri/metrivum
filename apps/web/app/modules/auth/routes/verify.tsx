@@ -5,6 +5,7 @@ import { Alert, Button, Spinner, TextField, toast } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
+import { useTurnstile } from "../components/Turnstile";
 import { AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
 import styles from "./verify.module.css";
@@ -42,6 +43,8 @@ export default function Verify() {
   const wait = Math.max(0, Math.ceil((resendAt - now) / 1000));
   const [error, setError] = useState<string | null>(null);
 
+  const captcha = useTurnstile(`resend:${params.toString()}:${state.generation}`);
+
   // The link was opened in another tab: that tab signed this slot in, so continue here too.
   const confirmed = slot !== null && state.accounts.some((account) => account.slot === slot && (!email || account.email?.toLowerCase() === email.toLowerCase()));
   useEffect(() => {
@@ -61,43 +64,52 @@ export default function Verify() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     const token = code.replace(/\s/g, "");
+    if (pending) return;
     if (!email || token.length < 6 || slot === null) {
       setError(m.auth.errors.invalidCode);
       return;
     }
     setPending(true);
     setError(null);
+    const client = manager.client(slot, captcha.isCurrent, { email });
     try {
-      const { data, error: verifyError } = await manager.client(slot).auth.verifyOtp({ email, token, type });
+      const { data, error: verifyError } = await client.auth.verifyOtp({ email, token, type });
+      if (!captcha.isCurrent()) return;
       if (verifyError) throw verifyError;
       if (!data.session) throw new Error("No session");
-      await manager.completeSignIn(slot, data.session);
+      await manager.completeSignIn(slot, data.session, captcha.isCurrent);
       navigate(returnTo, { replace: true });
     } catch (caught) {
+      if (!captcha.isCurrent()) return;
       setError(authErrorText(m, caught));
     } finally {
-      setPending(false);
+      await client.auth.dispose?.();
+      if (captcha.isCurrent()) setPending(false);
     }
   }
 
   async function resend() {
-    if (!email || slot === null) return;
+    if (!email || slot === null || resending || wait > 0) return;
+    const captchaOptions = captcha.take();
+    if (!captchaOptions) return;
     setResending(true);
     setError(null);
     try {
       const client = manager.client(slot);
       const { error: resendError } =
         type === "signup"
-          ? await client.auth.resend({ type: "signup", email, options: { emailRedirectTo: callbackUrl(slot, returnTo, email) } })
-          : await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(slot, returnTo, email) } });
+          ? await client.auth.resend({ type: "signup", email, options: { ...captchaOptions, emailRedirectTo: callbackUrl(slot, returnTo, email) } })
+          : await client.auth.signInWithOtp({ email, options: { ...captchaOptions, shouldCreateUser: false, emailRedirectTo: callbackUrl(slot, returnTo, email) } });
+      if (!captcha.isCurrent()) return;
       if (resendError) throw resendError;
       toast({ tone: "success", title: t.resent });
       setResendAt(Date.now() + RESEND_WAIT * 1000);
       setNow(Date.now());
     } catch (caught) {
+      if (!captcha.isCurrent()) return;
       setError(authErrorText(m, caught));
     } finally {
-      setResending(false);
+      if (captcha.isCurrent()) setResending(false);
     }
   }
 
@@ -113,8 +125,9 @@ export default function Verify() {
         {t.waiting}
       </p>
       <p className={styles.hint}>{t.spamHint}</p>
+      {captcha.widget}
       <div className={form.row}>
-        <Button variant="ghost" size="sm" onPress={resend} loading={resending} isDisabled={!email || wait > 0}>
+        <Button variant="ghost" size="sm" onPress={resend} loading={resending} isDisabled={!email || wait > 0 || !captcha.ready}>
           {wait > 0 ? t.resendIn(wait) : t.resend}
         </Button>
         <RouterLink className={form.link} to={type === "signup" ? `/auth/register?role=${registrationRole(params.get("role"))}` : "/auth/login"}>

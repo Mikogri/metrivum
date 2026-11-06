@@ -12,6 +12,7 @@ public sealed class AccountContext : IAccountContext
     private readonly IHttpContextAccessor http;
     private readonly AccountsDbContext database;
     private AccountState? state;
+    private Guid? stateTransactionId;
     private bool workspaceEnsured;
 
     public AccountContext(IHttpContextAccessor http, AccountsDbContext database)
@@ -90,7 +91,10 @@ public sealed class AccountContext : IAccountContext
 
     private async Task<AccountState> GetStateAsync(CancellationToken cancellationToken)
     {
-        if (state is null)
+        var transactionId = database.Database.CurrentTransaction?.TransactionId;
+        // A mutation may wait for its transaction lock after preflight authorization.
+        // Do not carry an earlier account/role snapshot across that boundary.
+        if (state is null || stateTransactionId != transactionId)
         {
             var id = UserId;
             var query = database.Profiles.AsNoTracking().AsSingleQuery().Where(x => x.Id == id)
@@ -108,6 +112,7 @@ public sealed class AccountContext : IAccountContext
                 state = await query.SingleAsync(cancellationToken);
             }
             workspaceEnsured = true;
+            stateTransactionId = transactionId;
         }
         if (!state.Active)
             throw new ApiException(403, "ACCOUNT_DISABLED", "This account is disabled.");

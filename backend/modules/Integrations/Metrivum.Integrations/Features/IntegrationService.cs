@@ -10,11 +10,12 @@ using Metrivum.BuildingBlocks;
 using Metrivum.Integrations.Domain;
 using Metrivum.Integrations.Infrastructure;
 using Metrivum.Messaging.Contracts;
+using Metrivum.Training.Contracts;
 
 namespace Metrivum.Integrations.Features;
 
-public sealed class IntegrationService(IntegrationsDbContext db, IAccountContext accounts, IFeatureAccessService features,
-    IntegrationAccess access, ModuleTransaction tx, IMcpMessageOperations messaging, SupabaseOAuthConsent oauth,
+public sealed partial class IntegrationService(IntegrationsDbContext db, IAccountContext accounts, IFeatureAccessService features,
+    IntegrationAccess access, ModuleTransaction tx, IMcpMessageOperations messaging, IMcpTrainingOperations training, SupabaseOAuthConsent oauth,
     TimeProvider clock, IHttpContextAccessor http, IConfiguration configuration)
 {
     public async Task<ConnectionDto[]> ConnectionsAsync(CancellationToken ct)
@@ -109,6 +110,7 @@ public sealed class IntegrationService(IntegrationsDbContext db, IAccountContext
             var existing = await db.PendingActions.SingleOrDefaultAsync(x => x.ConnectionId == connection.Id && x.IdempotencyKey == idempotencyKey, token);
             if (existing != null)
             {
+                RequireType(existing, "SendMessage");
                 var prior = Payload(existing);
                 if (prior.ConversationId != conversationId || prior.Body != body) throw ApiException.Conflict("Idempotency key was used for different message content.");
                 return ActionDto(existing, connection.ClientName);
@@ -141,6 +143,23 @@ public sealed class IntegrationService(IntegrationsDbContext db, IAccountContext
         else if (status is not null) query = query.Where(x => x.Action.Status == status && (status != "Pending" && status != "Approved" || x.Action.ExpiresAt > now));
         return (await query.OrderByDescending(x => x.Action.CreatedAt).Take(100).ToArrayAsync(ct)).Select(x => ActionDto(x.Action, x.ClientName)).ToArray();
     }
+    public async Task<IntegrationActivityDto[]> ActivityAsync(CancellationToken ct)
+    {
+        await access.RequireOwnerSessionAsync(ct);
+        var commands = await (from receipt in db.CommandReceipts.AsNoTracking()
+            join connection in db.Connections.AsNoTracking() on receipt.ConnectionId equals connection.Id
+            where connection.UserId == accounts.UserId
+            orderby receipt.CreatedAt descending
+            select new IntegrationActivityDto(connection.Id, connection.ClientName, receipt.Tool, "Executed", receipt.CreatedAt, null, null)).Take(100).ToArrayAsync(ct);
+        var actions = await (from action in db.PendingActions.AsNoTracking()
+            join connection in db.Connections.AsNoTracking() on action.ConnectionId equals connection.Id
+            where action.UserId == accounts.UserId
+            orderby action.CreatedAt descending
+            select new { Action = action, connection.ClientName }).Take(100).ToArrayAsync(ct);
+        return commands.Concat(actions.Select(x => new IntegrationActivityDto(x.Action.ConnectionId, x.ClientName,
+            x.Action.Type, EffectiveStatus(x.Action), x.Action.ExecutedAt ?? x.Action.CreatedAt, x.Action.Id, x.Action.AssignmentId ?? x.Action.MessageId)))
+            .OrderByDescending(x => x.At).Take(100).ToArray();
+    }
     public async Task<PendingActionDto> ActionAsync(Guid id, CancellationToken ct)
     {
         await access.RequireOwnerSessionAsync(ct);
@@ -161,12 +180,22 @@ public sealed class IntegrationService(IntegrationsDbContext db, IAccountContext
             if (approve)
             {
                 ValidAction(action, connection);
-                if (!connection.Grants.Contains(IntegrationGrants.SendApprovedMessages))
-                    throw new ApiException(403, "INTEGRATION_PERMISSION_REQUIRED", "This assistant has no approved-send permission.");
-                await features.RequireAsync(IntegrationGrants.Feature(IntegrationGrants.SendApprovedMessages), token);
-                var payload = Payload(action);
-                var preview = await messaging.PreviewAsync(payload.ConversationId, token);
-                if (preview.ContextHash != payload.ContextHash) throw new ApiException(409, "STALE_REVISION", "Conversation state changed. Prepare and review a new action.");
+                var grant = action.Type switch
+                {
+                    "SendMessage" => IntegrationGrants.SendApprovedMessages,
+                    "AssignProgram" => IntegrationGrants.AssignPrograms,
+                    _ => throw ApiException.Invalid("Unsupported action type.")
+                };
+                if (!connection.Grants.Contains(grant))
+                    throw new ApiException(403, "INTEGRATION_PERMISSION_REQUIRED", "This assistant has no permission to execute this action.");
+                await features.RequireAsync(IntegrationGrants.Feature(grant), token);
+                if (action.Type == "SendMessage")
+                {
+                    var payload = Payload(action);
+                    var preview = await messaging.PreviewAsync(payload.ConversationId, token);
+                    if (preview.ContextHash != payload.ContextHash) throw new ApiException(409, "STALE_REVISION", "Conversation state changed. Prepare and review a new action.");
+                }
+                else await CheckAssignmentAsync(action, token);
                 action.ApprovedAt = clock.GetUtcNow();
                 action.ApprovedBy = accounts.UserId;
             }
@@ -183,6 +212,7 @@ public sealed class IntegrationService(IntegrationsDbContext db, IAccountContext
             await access.LockAsync(accounts.UserId, access.ClientId, token);
             var connection = await access.RequireAsync(IntegrationGrants.SendApprovedMessages, token);
             var action = await db.PendingActions.SingleOrDefaultAsync(x => x.Id == actionId && x.UserId == accounts.UserId && x.ConnectionId == connection.Id, token) ?? throw ApiException.NotFound();
+            RequireType(action, "SendMessage");
             if (action.Status == "Executed") return new SendApprovedResult(action.Id, action.MessageId!.Value, action.TargetId, action.Status);
             ValidAction(action, connection);
             if (action.Status != "Approved" || action.ApprovedBy != accounts.UserId || action.ApprovedAt == null)
@@ -273,11 +303,25 @@ public sealed class IntegrationService(IntegrationsDbContext db, IAccountContext
         if (connection.RevokedAt != null || connection.Version != action.ConnectionVersion)
             throw new ApiException(403, "INTEGRATION_REVOKED", "The connection or its permissions changed. Prepare a new action.");
         if (action.ExpiresAt <= clock.GetUtcNow()) throw new ApiException(409, "ACTION_EXPIRED", "This action expired. Prepare and review a new action.");
-        if (Hash(JsonSerializer.Serialize(Payload(action))) != action.PayloadHash)
+        var json = action.Type switch
+        {
+            "SendMessage" => JsonSerializer.Serialize(Payload(action)),
+            "AssignProgram" => JsonSerializer.Serialize(AssignmentPayload(action)),
+            _ => throw ApiException.Invalid("Unsupported action type.")
+        };
+        if (Hash(json) != action.PayloadHash)
             throw ApiException.Conflict("The immutable action payload failed verification.");
     }
     private PendingActionDto ActionDto(PendingAction action, string name)
     {
+        if (action.Type == "AssignProgram")
+        {
+            var assignment = AssignmentPayload(action);
+            return new(action.Id, action.ConnectionId, name, action.Type, EffectiveStatus(action), Guid.Empty, assignment.ProgramName,
+                [], "", action.PayloadHash, action.CreatedAt, action.ExpiresAt, action.ApprovedAt, action.ExecutedAt, null,
+                action.Version, ReviewUrl(action.Id), assignment, action.AssignmentId);
+        }
+        RequireType(action, "SendMessage");
         var payload = Payload(action);
         var status = action.Status is "Pending" or "Approved" && action.ExpiresAt <= clock.GetUtcNow() ? "Expired" : action.Status;
         return new(action.Id, action.ConnectionId, name, action.Type, status, payload.ConversationId, payload.ConversationTitle,
@@ -291,6 +335,12 @@ public sealed class IntegrationService(IntegrationsDbContext db, IAccountContext
         return string.IsNullOrWhiteSpace(webUrl) ? path : webUrl.TrimEnd('/') + path;
     }
     private static MessagePayload Payload(PendingAction action) => JsonSerializer.Deserialize<MessagePayload>(action.PayloadJson) ?? throw ApiException.Conflict("Invalid action payload.");
+    private static McpProgramAssignmentPreview AssignmentPayload(PendingAction action) => JsonSerializer.Deserialize<McpProgramAssignmentPreview>(action.PayloadJson) ?? throw ApiException.Conflict("Invalid assignment payload.");
+    private string EffectiveStatus(PendingAction action) => action.Status is "Pending" or "Approved" && action.ExpiresAt <= clock.GetUtcNow() ? "Expired" : action.Status;
+    private static void RequireType(PendingAction action, string type)
+    {
+        if (action.Type != type) throw ApiException.Invalid("This action cannot be executed by this tool.");
+    }
     private static ConnectionDto ConnectionDto(IntegrationConnection x) => new(x.Id, x.ClientId, x.ClientName, x.Grants, x.CreatedAt, x.LastUsedAt, x.RevokedAt, x.Version);
     private static string Hash(string input) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(input)));
     private static void Version(long actual, long expected)

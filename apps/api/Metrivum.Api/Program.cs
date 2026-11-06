@@ -243,14 +243,6 @@ var app = builder.Build();
 _ = app.Services.GetRequiredService<FeatureCatalog>();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
-app.UseForwardedHeaders();
-app.UseCors();
-app.UseAuthentication();
-app.UseAbuseHttpProtection();
-app.UseRateLimiter();
-app.UseIntegrationTokenIsolation();
-app.UseAuthorization();
-app.UseReviewedJsonCompression();
 app.Use(async (http, next) =>
 {
     http.Response.Headers.CacheControl = "no-store";
@@ -262,12 +254,28 @@ app.Use(async (http, next) =>
     http.Response.Headers["Cross-Origin-Opener-Policy"] = "same-origin";
     await next(http);
 });
+app.UseForwardedHeaders();
+app.UseOriginProtection(builder.Configuration);
+app.UseCors();
+app.UseAuthentication();
+app.UseAbuseHttpProtection();
+app.UseRateLimiter();
+app.UseIntegrationTokenIsolation();
+app.UseAuthorization();
+app.UseReviewedJsonCompression();
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
-app.MapGet("/health/ready", async (NpgsqlDataSource dataSource, CancellationToken ct) =>
+using var readinessSlots = new SemaphoreSlim(2, 2);
+app.MapGet("/health/ready", async (NpgsqlDataSource dataSource, HttpContext http, CancellationToken ct) =>
 {
+    if (!await readinessSlots.WaitAsync(0, ct))
+    {
+        http.Response.Headers.RetryAfter = "1";
+        return Results.Problem(statusCode: 429, title: "RATE_LIMIT_EXCEEDED");
+    }
     try
     {
         await using var command = dataSource.CreateCommand("SELECT 1");
+        command.CommandTimeout = 3;
         await command.ExecuteScalarAsync(ct);
         return Results.Ok(new
         {
@@ -275,7 +283,8 @@ app.MapGet("/health/ready", async (NpgsqlDataSource dataSource, CancellationToke
         });
     }
     catch (NpgsqlException) { return Results.Problem(statusCode: 503, title: "DATABASE_UNAVAILABLE"); }
-}).AllowAnonymous();
+    finally { readinessSlots.Release(); }
+}).AllowAnonymous().RequireRateLimiting("readiness");
 var openApi = app.MapOpenApi();
 if (exportContracts) openApi.AllowAnonymous();
 app.MapAccounts();

@@ -1,0 +1,48 @@
+{
+  "auditedOn": "2026-11-05",
+  "baseline": "66ae2604ab59f09663d35eafd3f5c73b3fc1debb plus uncommitted hardening",
+  "integration": {
+    "passed": 499,
+    "total": 501,
+    "method": "Fresh-process batches plus final authorization overlay using rebuilt source",
+    "failed": 0,
+    "skipped": [
+      "Metrivum.IntegrationTests.MediaSupabaseTests.LocalPrivateStorageSupportsNoOverwriteUploadInspectReadAndDelete",
+      "Metrivum.IntegrationTests.SupabaseAuthTests.Local_password_session_is_validated_using_real_supabase_jwks"
+    ]
+  },
+  "fullVitest": {
+    "failed": 0,
+    "passed": 848,
+    "files": 168
+  },
+  "browserAuth": {
+    "provider": "Intercepted local Auth/Turnstile; real SDK and Chromium",
+    "passed": 14
+  },
+  "provider": {
+    "oauthLive": "UNVERIFIED",
+    "pendingHardeningMigrations": 3,
+    "railwayMfaFlag": "UNVERIFIED",
+    "privateBucketBytes": 52428800,
+    "leakedPasswordProtection": "DISABLED",
+    "browserApplicationTableGrants": 0,
+    "liveAbuseTests": false,
+    "captchaEnforcement": "UNVERIFIED",
+    "metadataReadOnly": true,
+    "productionMutations": false
+  },
+  "findingsFixed": [
+    "RT-AUTH-01",
+    "RT-MCP-01",
+    "RT-MCP-02",
+    "RT-RES-01",
+    "RT-RES-02",
+    "RT-HOST-01",
+    "RT-HOST-02"
+  ],
+  "unitPassed": 418,
+  "architecturePassed": 8,
+  "browserIntegrationsPassed": 12,
+  "dependencyRegressionsPassed": 17
+}
