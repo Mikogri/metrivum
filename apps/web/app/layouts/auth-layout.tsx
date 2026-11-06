@@ -17,8 +17,8 @@ export default function AuthLayout() {
   const m = useT();
   const { locale, setLocale } = useAppLocale();
   const { pathname } = useLocation();
-  // Setting up the profile and an assistant's permissions hold more: a wider card; choosing a plan needs room for the plan cards.
-  const width = pathname === "/onboarding" || pathname === "/app/integrations/consent" ? "wide" : pathname === "/onboarding/plan" ? "plans" : undefined;
+  // Setting up the profile holds more fields: a wider card; choosing a plan needs room for the plan cards.
+  const width = pathname === "/onboarding" ? "wide" : pathname === "/onboarding/plan" ? "plans" : undefined;
   // The night palette also applies to menus rendered in portals.
   useEffect(() => {
     document.documentElement.setAttribute("data-public-theme", "night");

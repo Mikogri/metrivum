@@ -17,6 +17,11 @@ const en = {
   statuses: { Executed: "Executed", Pending: "Pending", Approved: "Approved", Rejected: "Rejected", Failed: "Failed", Expired: "Expired" } as Record<string, string>,
   consentTitle: "Connect an AI assistant", requestDetails: "Request details", selectAll: "Select all", selectedCount: (n: number, total: number) => `${n} of ${total} selected`,
   howTitle: "How to connect", howBody: "Pick your assistant and follow three steps. You approve access in Metrivum; nothing is shared until you do.",
+  permissionsLabel: "Permissions", allPermissions: (n: number) => `All permissions (${n})`, somePermissions: (n: number, total: number) => `${n} of ${total} permissions`, noPermissions: "No permissions selected", clearAll: "Clear",
+  consentNote: "The assistant sees data returned by its tools. Messages and assignments always need your approval. Change access anytime in Settings.",
+  confirmTitle: (name: string) => `Allow ${name} to access Metrivum?`, confirmAllow: "Allow access", confirmBack: "Go back",
+  confirmDoes: "What this does", confirmDoesBody: (count: string) => `The assistant gets ${count} in your account until you disconnect it. It can read the data you allowed and create private drafts.`,
+  confirmRisk: "Risks", confirmRiskBody: "Data it reads, including your clients' private information, is sent to the assistant's provider and handled under its policy. The client name is not verified — continue only if you started this connection yourself.",
   previous: "Previous", next: "Next", historyLimit: "Latest 100 recorded actions. Read calls and rejected requests are retained in server audit logs, not this history.",
 
   forbidden: "AI cannot manage payments, subscriptions, account permissions or end client collaborations.",
@@ -52,6 +57,11 @@ const pl: typeof en = {
   statuses: { Executed: "Wykonano", Pending: "Oczekuje", Approved: "Zatwierdzono", Rejected: "Odrzucono", Failed: "Błąd", Expired: "Wygasło" } as Record<string, string>,
   consentTitle: "Połącz asystenta AI", requestDetails: "Szczegóły żądania", selectAll: "Zaznacz wszystkie", selectedCount: (n: number, total: number) => `Wybrano ${n} z ${total}`,
   howTitle: "Jak połączyć", howBody: "Wybierz asystenta i wykonaj trzy kroki. Dostęp zatwierdzasz w Metrivum — do tego czasu nic nie jest udostępniane.",
+  permissionsLabel: "Uprawnienia", allPermissions: (n: number) => `Wszystkie uprawnienia (${n})`, somePermissions: (n: number, total: number) => `Wybrano ${n} z ${total} uprawnień`, noPermissions: "Nie wybrano uprawnień", clearAll: "Wyczyść",
+  consentNote: "Asystent widzi dane zwracane przez narzędzia. Wiadomości i przypisania zawsze wymagają Twojej zgody. Dostęp zmienisz w Ustawieniach.",
+  confirmTitle: (name: string) => `Zezwolić ${name} na dostęp do Metrivum?`, confirmAllow: "Zezwól na dostęp", confirmBack: "Wróć",
+  confirmDoes: "Co to robi", confirmDoesBody: (count: string) => `Asystent otrzyma ${count} na Twoim koncie, dopóki go nie odłączysz. Może czytać dozwolone dane i tworzyć prywatne wersje robocze.`,
+  confirmRisk: "Ryzyko", confirmRiskBody: "Odczytane dane, w tym prywatne informacje Twoich klientów, trafiają do dostawcy asystenta i podlegają jego zasadom. Nazwa klienta nie jest weryfikowana — kontynuuj tylko, jeśli to połączenie zostało rozpoczęte przez Ciebie.",
   previous: "Poprzednia", next: "Następna", historyLimit: "Ostatnie 100 zapisanych działań. Odczyty i odrzucone żądania pozostają w logach audytowych serwera, poza tą historią.",
 
   forbidden: "AI nie może zarządzać płatnościami, subskrypcjami, uprawnieniami konta ani kończyć współpracy z klientami.",

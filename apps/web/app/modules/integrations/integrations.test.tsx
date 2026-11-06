@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, expect, it, vi } from "vitest";
@@ -56,20 +56,26 @@ it("shows the exact recipients and text and never approves until the user clicks
   await waitFor(() => expect(state.api).toHaveBeenCalledWith(expect.objectContaining({ method: "POST", path: "/api/v1/me/ai-actions/action/approve", json: { expectedVersion: 4 } })));
   await screen.findByText("Message sent");
 });
-it("renders only server-verified OAuth identity and starts with all grants unchecked", async () => {
+it("renders only server-verified OAuth identity and starts with every requested grant selected", async () => {
   setup(<Consent />, "/?authorization_id=verified&client_name=Spoofed&redirect_uri=https://attacker.test");
   await screen.findByRole("heading", { name: "Connect Verified assistant" });
   expect(screen.queryByText("Spoofed")).not.toBeInTheDocument();
   expect(screen.getByText("https://assistant.example.test/callback")).toBeInTheDocument();
-  expect(screen.getAllByRole("checkbox").every(box => box.getAttribute("aria-checked") !== "true")).toBe(true);
-  expect(screen.getByRole("button", { name: "Allow selected permissions" })).toBeDisabled();
+  expect(screen.getByText("All permissions (2)")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Allow selected permissions" })).toBeEnabled();
 });
-it("submits only selected permissions to the verified consent request", async () => {
+it("asks for confirmation, then submits only the selected permissions", async () => {
   setup(<Consent />, "/?authorization_id=verified&client_id=attacker");
   await screen.findByRole("heading", { name: "Connect Verified assistant" });
-  state.api.mockImplementationOnce(async () => { throw new Error("Provider unavailable"); });
-  await userEvent.click(screen.getByRole("checkbox", { name: "Read training programs and exercises" }));
+  await userEvent.click(screen.getByRole("button", { name: /Permissions/ }));
+  await userEvent.click(await screen.findByRole("option", { name: "Create and edit private training drafts" }));
+  await userEvent.keyboard("{Escape}");
+  expect(screen.getByText("1 of 2 permissions")).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Allow selected permissions" }));
+  const dialog = await screen.findByRole("alertdialog", { name: "Allow Verified assistant to access Metrivum?" });
+  expect(state.api.mock.calls.some(([r]) => r.method === "POST")).toBe(false);
+  state.api.mockImplementationOnce(async () => { throw new Error("Provider unavailable"); });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Allow access" }));
   await waitFor(() => expect(state.api).toHaveBeenCalledWith(expect.objectContaining({ method: "POST", path: "/api/v1/me/ai-consent/verified", json: { grants: ["read_training"] } })));
   await screen.findByText("Provider unavailable");
 });

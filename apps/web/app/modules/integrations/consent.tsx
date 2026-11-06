@@ -1,15 +1,16 @@
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
-import { Ban, Bot, ShieldCheck } from "lucide-react";
+import { Bot, Check, ChevronDown } from "lucide-react";
+import { Button as AriaButton, DialogTrigger, Header, ListBox, ListBoxItem, ListBoxSection, type Selection } from "react-aria-components";
 import { useSearchParams } from "react-router";
-import { Alert, Button, Skeleton } from "@metrivum/ui-web";
+import { Alert, AlertDialog, Button, Popover, Skeleton } from "@metrivum/ui-web";
 import { AuthHeader } from "~/modules/auth/components/AuthHeader";
 import { BrandMark } from "~/shared/ui/BrandMark";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { privateMeta } from "~/shared/i18n/site";
 import { useIntegrationMutation, useIntegrationQuery, type ConsentDetails } from "./api";
-import { IntegrationError, PermissionChoices } from "./integrations";
+import { IntegrationError } from "./integrations";
 import { useIntegrationCopy } from "./copy";
 import styles from "./consent.module.css";
 
@@ -38,12 +39,48 @@ function LinkVisual() {
   </div>;
 }
 
+/** One field that opens a checklist of permissions, grouped into read access and actions. */
+function PermissionSelect({ available, selected, onChange, disabled }: { available: string[]; selected: string[]; onChange: (value: string[]) => void; disabled: boolean }) {
+  const copy = useIntegrationCopy();
+  const groups = [
+    { id: "read", title: copy.read, grants: available.filter(grant => grant.startsWith("read_")) },
+    { id: "write", title: copy.write, grants: available.filter(grant => !grant.startsWith("read_")) },
+  ].filter(group => group.grants.length);
+  const summary = !selected.length ? copy.noPermissions : selected.length === available.length ? copy.allPermissions(available.length) : copy.somePermissions(selected.length, available.length);
+  const change = (keys: Selection) => onChange(keys === "all" ? available : available.filter(grant => keys.has(grant)));
+  return <div className={styles.field}>
+    <span className={styles.fieldLabel} id="consent-permissions">{copy.permissionsLabel}</span>
+    <DialogTrigger>
+      <AriaButton className={styles.trigger} isDisabled={disabled} aria-labelledby="consent-permissions consent-permissions-value">
+        <span id="consent-permissions-value" className={styles.triggerValue} data-empty={!selected.length || undefined}>{summary}</span>
+        <ChevronDown aria-hidden="true" className={styles.triggerChevron} />
+      </AriaButton>
+      <Popover width="trigger" placement="bottom" aria-label={copy.permissionsLabel} className={styles.menu}>
+        <div className={styles.menuHead}>
+          <button type="button" className={styles.textButton} disabled={selected.length === available.length} onClick={() => onChange(available)}>{copy.selectAll}</button>
+          <button type="button" className={styles.textButton} disabled={!selected.length} onClick={() => onChange([])}>{copy.clearAll}</button>
+        </div>
+        <ListBox aria-label={copy.permissionsLabel} selectionMode="multiple" escapeKeyBehavior="none" selectedKeys={selected} onSelectionChange={change} className={styles.list}>
+          {groups.map(group => <ListBoxSection key={group.id} id={group.id} className={styles.section}>
+            <Header className={styles.sectionTitle}>{group.title}</Header>
+            {group.grants.map(grant => <ListBoxItem key={grant} id={grant} textValue={copy.grants[grant as keyof typeof copy.grants] ?? grant} className={styles.option}>
+              <span className={styles.box} aria-hidden="true"><Check /></span>
+              <span>{copy.grants[grant as keyof typeof copy.grants] ?? grant}</span>
+            </ListBoxItem>)}
+          </ListBoxSection>)}
+        </ListBox>
+      </Popover>
+    </DialogTrigger>
+  </div>;
+}
+
 /** The assistant's OAuth request, shown in the sign-in card: who asks, where it returns, and which permissions to grant. */
 function ConsentRequest({ authorizationId }: { authorizationId: string }) {
   const uiCopy = useUiCopy();
   const copy = useIntegrationCopy();
   const { account } = useAccountContext();
-  const [selected, setSelected] = useState<string[]>([]);
+  const [chosen, setChosen] = useState<string[] | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const [redirectError, setRedirectError] = useState<unknown>(null);
   const path = `/api/v1/me/ai-consent/${encodeURIComponent(authorizationId)}`;
   const query = useIntegrationQuery<ConsentDetails>(path, undefined, !!authorizationId);
@@ -60,7 +97,7 @@ function ConsentRequest({ authorizationId }: { authorizationId: string }) {
   if (query.isPending) return <>
     <LinkVisual />
     <AuthHeader title={copy.consentTitle} subtitle={signedIn} />
-    <div className={styles.loading}><Skeleton height="4.5rem" /><Skeleton height="10rem" /><Skeleton height="2.5rem" /></div>
+    <div className={styles.loading}><Skeleton height="4rem" /><Skeleton height="2.75rem" /><Skeleton height="2.75rem" /></div>
   </>;
   if (query.error) return <>
     <LinkVisual />
@@ -70,31 +107,37 @@ function ConsentRequest({ authorizationId }: { authorizationId: string }) {
   </>;
 
   const details = query.data;
+  // Everything the assistant asks for starts selected; the coach can narrow it before allowing.
+  const selected = chosen ?? details.availableGrants;
+  const allow = () => save.mutate({ method: "POST", path, json: { grants: selected } }, { onSettled: () => setConfirming(false) });
   return <>
     <LinkVisual />
     <AuthHeader title={formatInterfaceText(uiCopy["ui"]["Connect {0}"], [details.clientName])} subtitle={signedIn} />
     <dl className={styles.details} aria-label={copy.requestDetails}>
       <div><dt>{copy.clientId}</dt><dd><code>{details.clientId}</code></dd></div>
       <div><dt>{uiCopy["ui"]["Registered callback"]}</dt><dd><code>{details.redirectUri}</code></dd></div>
-      <div><dt>{uiCopy["ui"]["Identity scopes:"].replace(/:$/, "")}</dt><dd>{details.scopes.join(", ") || uiCopy["editor"]["panel"]["effortModes"]["none"]}</dd></div>
     </dl>
-    <section className={styles.permissions} aria-labelledby="consent-permissions">
-      <div className={styles.permissionsHead}>
-        <h2 id="consent-permissions">{uiCopy["ui"]["Choose Metrivum permissions"]}</h2>
-        <button type="button" className={styles.textButton} disabled={save.isPending || selected.length === details.availableGrants.length} onClick={() => setSelected(details.availableGrants)}>{copy.selectAll}</button>
-      </div>
-      <PermissionChoices available={details.availableGrants} selected={selected} onChange={setSelected} disabled={save.isPending} />
-    </section>
-    <ul className={styles.rules}>
-      <li><ShieldCheck aria-hidden="true" />{copy.actions}</li>
-      <li><Ban aria-hidden="true" />{copy.forbidden}</li>
-    </ul>
-    <p className={styles.note}>{uiCopy["ui"]["The assistant can see private content returned by these tools. Drafts stay private. Sending messages always requires your separate approval in Metrivum. You can change permissions or disconnect in Settings → Integrations."]}</p>
+    <PermissionSelect available={details.availableGrants} selected={selected} onChange={setChosen} disabled={save.isPending} />
+    <p className={styles.note}>{copy.consentNote}</p>
     <IntegrationError error={save.error ?? redirectError} />
     <div className={styles.actions}>
       <Button variant="secondary" isDisabled={save.isPending} onPress={() => save.mutate({ method: "POST", path: `${path}/deny` })}>{uiCopy["ui"]["Deny"]}</Button>
-      <Button variant="primary" loading={save.isPending} isDisabled={!selected.length || save.isPending} onPress={() => save.mutate({ method: "POST", path, json: { grants: selected } })}>{uiCopy["ui"]["Allow selected permissions"]}</Button>
+      <Button variant="primary" loading={save.isPending && !confirming} isDisabled={!selected.length || save.isPending} onPress={() => setConfirming(true)}>{uiCopy["ui"]["Allow selected permissions"]}</Button>
     </div>
-    <p className={styles.count} aria-live="polite">{copy.selectedCount(selected.length, details.availableGrants.length)}</p>
+    <AlertDialog
+      isOpen={confirming}
+      onOpenChange={setConfirming}
+      title={copy.confirmTitle(details.clientName)}
+      confirmLabel={copy.confirmAllow}
+      cancelLabel={copy.confirmBack}
+      isConfirming={save.isPending}
+      onConfirm={allow}
+    >
+      <div className={styles.confirm}>
+        <section><h3>{copy.confirmDoes}</h3><p>{copy.confirmDoesBody(copy.permissions(selected.length))}</p></section>
+        <section><h3>{copy.confirmRisk}</h3><p>{copy.confirmRiskBody}</p></section>
+        <p className={styles.confirmFoot}>{copy.forbidden}</p>
+      </div>
+    </AlertDialog>
   </>;
 }

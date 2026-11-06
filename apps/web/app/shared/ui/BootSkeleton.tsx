@@ -65,12 +65,12 @@ export function AuthBootSkeleton({ label, width }: { label: string; width?: Auth
 
 /** Pages drawn in the sign-in layout, and the card width each one uses. */
 export function authCardFor(pathname: string): { auth: boolean; width?: AuthCardWidth } {
-  if (pathname === "/onboarding" || pathname === "/app/integrations/consent") return { auth: true, width: "wide" };
+  if (pathname === "/onboarding") return { auth: true, width: "wide" };
   if (pathname === "/onboarding/plan") return { auth: true, width: "plans" };
-  return { auth: pathname.startsWith("/auth/") };
+  return { auth: pathname.startsWith("/auth/") || pathname === "/app/integrations/consent" };
 }
 
 /** Run before the page paints (as an inline script): marks sign-in pages so the start-up placeholder takes their shape. */
 export const BOOT_SHAPE_SCRIPT =
-  "(function(p){var w=p==='/onboarding'||p==='/app/integrations/consent'?'wide':p==='/onboarding/plan'?'plans':p.indexOf('/auth/')===0?'':null;" +
+  "(function(p){var w=p==='/onboarding'?'wide':p==='/onboarding/plan'?'plans':p.indexOf('/auth/')===0||p==='/app/integrations/consent'?'':null;" +
   "if(w!==null){var d=document.documentElement;d.setAttribute('data-boot','auth');if(w)d.setAttribute('data-boot-width',w)}})(location.pathname)";
