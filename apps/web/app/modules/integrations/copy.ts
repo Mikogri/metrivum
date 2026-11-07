@@ -22,6 +22,10 @@ const en = {
   confirmTitle: (name: string) => `Allow ${name} to access Metrivum?`, confirmAllow: "Allow access", confirmBack: "Go back",
   confirmDoes: "What this does", confirmDoesBody: (count: string) => `The assistant gets ${count} in your account until you disconnect it. It can read the data you allowed and create private drafts.`,
   confirmRisk: "Risks", confirmRiskBody: "Data it reads, including your clients' private information, is sent to the assistant's provider and handled under its policy. The client name is not verified — continue only if you started this connection yourself.",
+  needs: "You need", needsItems: ["An assistant plan with custom MCP connectors", "The Metrivum server address", "Your Metrivum sign-in"],
+  stepTitles: { chatgpt: ["Turn on developer mode", "Add Metrivum as an app", "Sign in and approve"], claude: ["Add a custom connector", "Paste the server address", "Approve and turn it on"], other: ["Add the server", "Choose OAuth", "Sign in and approve"] },
+  otherSteps: ["Add this server address in your MCP client.", "Select OAuth as the authentication method.", "Sign in to Metrivum and choose what the assistant may do."],
+  stepLabel: (n: number) => `Step ${n}`,
   previous: "Previous", next: "Next", historyLimit: "Latest 100 recorded actions. Read calls and rejected requests are retained in server audit logs, not this history.",
 
   forbidden: "AI cannot manage payments, subscriptions, account permissions or end client collaborations.",
@@ -62,6 +66,10 @@ const pl: typeof en = {
   confirmTitle: (name: string) => `Zezwolić ${name} na dostęp do Metrivum?`, confirmAllow: "Zezwól na dostęp", confirmBack: "Wróć",
   confirmDoes: "Co to robi", confirmDoesBody: (count: string) => `Asystent otrzyma ${count} na Twoim koncie, dopóki go nie odłączysz. Może czytać dozwolone dane i tworzyć prywatne wersje robocze.`,
   confirmRisk: "Ryzyko", confirmRiskBody: "Odczytane dane, w tym prywatne informacje Twoich klientów, trafiają do dostawcy asystenta i podlegają jego zasadom. Nazwa klienta nie jest weryfikowana — kontynuuj tylko, jeśli to połączenie zostało rozpoczęte przez Ciebie.",
+  needs: "Potrzebujesz", needsItems: ["Planu asystenta z własnymi konektorami MCP", "Adresu serwera Metrivum", "Logowania do Metrivum"],
+  stepTitles: { chatgpt: ["Włącz tryb deweloperski", "Dodaj Metrivum jako aplikację", "Zaloguj się i zatwierdź"], claude: ["Dodaj własny konektor", "Wklej adres serwera", "Zatwierdź i włącz"], other: ["Dodaj serwer", "Wybierz OAuth", "Zaloguj się i zatwierdź"] },
+  otherSteps: ["Dodaj ten adres serwera w swoim kliencie MCP.", "Wybierz OAuth jako metodę uwierzytelniania.", "Zaloguj się do Metrivum i wybierz, co asystent może robić."],
+  stepLabel: (n: number) => `Krok ${n}`,
   previous: "Poprzednia", next: "Następna", historyLimit: "Ostatnie 100 zapisanych działań. Odczyty i odrzucone żądania pozostają w logach audytowych serwera, poza tą historią.",
 
   forbidden: "AI nie może zarządzać płatnościami, subskrypcjami, uprawnieniami konta ani kończyć współpracy z klientami.",

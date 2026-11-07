@@ -1,6 +1,6 @@
 import { useAppLocale, useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useId, useState, type ReactNode } from "react";
-import { Ban, Bot, Check, ChevronDown, ChevronRight, ClipboardCheck, Copy, ExternalLink, History, KeyRound, MessageSquare, Plug, ShieldCheck, Sparkles, TriangleAlert, Unplug } from "lucide-react";
+import { AppWindow, Ban, Bot, Check, ChevronDown, ChevronRight, ClipboardCheck, Copy, ExternalLink, History, KeyRound, Link2, MessageSquare, Plug, Puzzle, ShieldCheck, Sparkles, ToggleRight, TriangleAlert, Unplug, type LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { Alert, Badge, Button, Card, Checkbox, EmptyState, InfoTip, Pagination, Segment, SegmentedControl, Skeleton, TextArea, type BadgeTone } from "@metrivum/ui-web";
 import { apiBaseUrl } from "~/shared/http/config";
@@ -57,37 +57,49 @@ function ConnectGuide({ endpoint }: { endpoint: string }) {
   const copy = useIntegrationCopy();
   const [assistant, setAssistant] = useState<Assistant>("chatgpt");
   const ui = uiCopy["ui"];
-  const guides: Record<Assistant, { steps: string[]; endpointStep: number; link?: { href: string; label: string } }> = {
+  const guides: Record<Assistant, { steps: string[]; icons: LucideIcon[]; endpointStep: number; link?: { href: string; label: string } }> = {
     chatgpt: {
       steps: [ui["Enable developer mode on ChatGPT web if your plan and workspace allow it."], ui["Open Apps → Create, enter the MCP endpoint above and select OAuth."], ui["Sign in to Metrivum, choose permissions, then scan the tools and create the app."]],
+      icons: [ToggleRight, AppWindow, ShieldCheck],
       endpointStep: 1,
       link: { href: "https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt", label: ui["Current ChatGPT requirements"] },
     },
     claude: {
       steps: [ui["Open Customize → Connectors → Add custom connector. Workspace owners may need to add it first."], ui["Enter the public HTTPS MCP endpoint above, review the detected OAuth settings and sign in."], ui["Review the Metrivum permissions, then enable the connector for your conversation."]],
+      icons: [Puzzle, Link2, ShieldCheck],
       endpointStep: 1,
       link: { href: "https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp", label: ui["Current Claude requirements"] },
     },
-    other: { steps: [copy.otherHelp], endpointStep: 0 },
+    other: { steps: copy.otherSteps, icons: [Link2, KeyRound, ShieldCheck], endpointStep: 0 },
   };
   const guide = guides[assistant];
+  const needIcons = [Bot, Link2, KeyRound];
   return <div className={styles.how}>
     <div className={styles.howHead}>
       <div className={styles.howText}><h3>{copy.howTitle}</h3><p className={styles.hint}>{copy.howBody}</p></div>
       <SegmentedControl size="sm" aria-label={copy.howTitle} selectedKeys={[assistant]} onSelectionChange={keys => { const next = [...keys][0]; if (typeof next === "string") setAssistant(next as Assistant); }}>
-        <Segment id="chatgpt">ChatGPT</Segment>
-        <Segment id="claude">Claude</Segment>
-        <Segment id="other">{copy.other}</Segment>
+        <Segment id="chatgpt"><span className={styles.segment}><Bot aria-hidden="true" />ChatGPT</span></Segment>
+        <Segment id="claude"><span className={styles.segment}><Sparkles aria-hidden="true" />Claude</span></Segment>
+        <Segment id="other"><span className={styles.segment}><Plug aria-hidden="true" />{copy.other}</span></Segment>
       </SegmentedControl>
     </div>
+    <div className={styles.needs}>
+      <span className={styles.needsLabel}>{copy.needs}</span>
+      <ul>{copy.needsItems.map((item, index) => { const Icon = needIcons[index]!; return <li key={item}><Icon aria-hidden="true" />{item}</li>; })}</ul>
+    </div>
     <ol key={assistant} className={styles.timeline}>
-      {guide.steps.map((step, index) => <li key={index} className={styles.timelineStep} style={{ animationDelay: `${index * 60}ms` }}>
-        <span className={styles.timelineDot} aria-hidden="true">{index + 1}</span>
-        <div className={styles.timelineBody}>
-          <p>{step}</p>
-          {index === guide.endpointStep ? <EndpointField endpoint={endpoint} /> : null}
-        </div>
-      </li>)}
+      {guide.steps.map((step, index) => {
+        const Icon = guide.icons[index] ?? Check;
+        return <li key={index} className={styles.timelineStep} style={{ animationDelay: `${index * 70}ms` }}>
+          <span className={styles.stepIcon} aria-hidden="true"><Icon /><span className={styles.stepNumber}>{index + 1}</span></span>
+          <div className={styles.timelineBody}>
+            <span className={styles.stepEyebrow}>{copy.stepLabel(index + 1)}</span>
+            <strong className={styles.stepTitle}>{copy.stepTitles[assistant][index]}</strong>
+            <p className={styles.stepText}>{step}</p>
+            {index === guide.endpointStep ? <EndpointField endpoint={endpoint} /> : null}
+          </div>
+        </li>;
+      })}
     </ol>
     <div className={styles.howFoot}>
       <span>{copy.compatible}</span>

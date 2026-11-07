@@ -22,7 +22,8 @@
     background-color var(--tf-duration-fast) ease,
     border-color var(--tf-duration-fast) ease,
     color var(--tf-duration-fast) ease,
-    box-shadow var(--tf-duration-fast) ease;
+    box-shadow var(--tf-duration-fast) ease,
+    opacity var(--tf-duration-base, 200ms) ease;
 }
 
 /* Press feedback: the interface heard the click. */
@@ -104,6 +105,15 @@
   inset: 0;
   display: grid;
   place-items: center;
+  animation: spinner-in var(--tf-duration-fast, 150ms) ease both;
+}
+
+@keyframes spinner-in {
+  from { opacity: 0; transform: scale(0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
 }
 
 /* Variants */
