@@ -1,0 +1,39 @@
+/* "Verifying…" under the form: a small spinner and a quiet line that folds in and out smoothly. */
+.waiting {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 280ms var(--tf-ease-out, ease-out), opacity 200ms ease;
+}
+
+/* A short delay so a fast, invisible check never flashes the line. */
+.waiting[data-show] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition-delay: 250ms;
+}
+
+.clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  padding-top: var(--tf-space-1);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  line-height: var(--tf-leading-snug);
+}
+
+.line > span {
+  flex-shrink: 0;
+  color: var(--tf-color-text-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waiting { transition: opacity 120ms ease; }
+}

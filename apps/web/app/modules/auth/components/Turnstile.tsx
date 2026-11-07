@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Button } from "@metrivum/ui-web";
+import { Alert, Button, Spinner } from "@metrivum/ui-web";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { turnstileConfig } from "../lib/turnstile-config";
 import { turnstileCopy } from "../lib/turnstile-copy";
+import styles from "./Turnstile.module.css";
 
 type WidgetOptions = {
   sitekey: string; theme: "dark"; appearance: "interaction-only"; size: "flexible"; language: string;
@@ -100,7 +101,12 @@ export function useTurnstile(scope: string) {
     {!config.valid ? <Alert tone="danger" title={copy.unavailable} live="assertive" /> : status === "failed" || status === "expired" ? <>
       <Alert tone="danger" title={status === "expired" ? copy.expired : copy.failed} live="assertive" />
       <Button variant="ghost" size="sm" onPress={() => setVersion(value => value + 1)}>{copy.retry}</Button>
-    </> : status === "waiting" ? <p role="status">{copy.waiting}</p> : null}
+    </> : null}
+    {config.valid ? <div className={styles.waiting} data-show={status === "waiting" || undefined} aria-hidden={status !== "waiting"}>
+      <div className={styles.clip}>
+        <p role={status === "waiting" ? "status" : undefined} className={styles.line}><Spinner size="sm" />{copy.waiting}</p>
+      </div>
+    </div> : null}
   </div> : null;
   return { ready, take, widget, unavailable: copy.unavailable, isCurrent: () => mounted.current && currentScope.current === scope };
 }
