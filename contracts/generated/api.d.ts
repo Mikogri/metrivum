@@ -17287,6 +17287,7 @@ export interface components {
             fieldFormulas?: null | {
                 [key: string]: components["schemas"]["FormulaUse"];
             };
+            workTimeMax?: null | boolean;
         };
         ProfileFieldsRequest: {
             values: {

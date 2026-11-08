@@ -4,7 +4,40 @@ namespace Metrivum.UnitTests;
 
 public sealed class TrainingDocumentTests
 {
+    [Fact]
+    public void Mcp_roundtrip_preserves_formula_units_field_formulas_and_linked_block_sources()
+    {
+        var blockId = Guid.NewGuid();
+        var exerciseId = Guid.NewGuid();
+        var formula = new FormulaUse(null, 1, null, [], "oneRepMax_kg * 80%", new() { ["oneRepMax_kg"] = "exercise1Rm_" + exerciseId.ToString("N") }, Unit.Kg);
+        var prescription = new Prescription(LoadFormula: formula, FieldFormulas: new() { ["Reps"] = new(null, 1, null, [], "5", OutputUnit: Unit.Scalar) }, WorkTimeMax: true);
+        var workout = new Workout(Guid.NewGuid(), "Workout", "", [new(Guid.NewGuid(), exerciseId, "", [new(Guid.NewGuid(), SetKind.Standard, prescription)])], []);
+        var document = new TrainingDocument(1, [new(blockId, "Block", "", [new(Guid.NewGuid(), "Cycle", "", 7, [new(Guid.NewGuid(), 1, [workout])], Repeats: 2, Implicit: false)], Inactive: false, Implicit: false)],
+            [new(Guid.NewGuid(), blockId, [new(exerciseId, 1, TimeFormula: new(null, 1, null, [], "30", OutputUnit: Unit.Seconds))])]);
+        var json = TrainingJson.Serialize(document);
+        var mcp = TrainingJson.Deserialize<Metrivum.Training.Contracts.McpTrainingDocument>(json);
+        var roundtrip = TrainingJson.Serialize(TrainingJson.Deserialize<TrainingDocument>(TrainingJson.Serialize(mcp)));
+        Assert.True(System.Text.Json.Nodes.JsonNode.DeepEquals(System.Text.Json.Nodes.JsonNode.Parse(json), System.Text.Json.Nodes.JsonNode.Parse(roundtrip)));
+    }
+
+    [Fact]
+    public void Maximum_effort_prescriptions_roundtrip_without_fixed_targets()
+    {
+        var prescription = new Prescription(WorkTimeMax: true);
+        DocumentRules.ValidatePrescription(prescription);
+        var json = TrainingJson.Serialize(prescription);
+        Assert.True(TrainingJson.Deserialize<Prescription>(json).WorkTimeMax);
+        var mcp = TrainingJson.Deserialize<Metrivum.Training.Contracts.McpPrescription>(json);
+        Assert.True(TrainingJson.Deserialize<Prescription>(TrainingJson.Serialize(mcp)).WorkTimeMax);
+        DocumentRules.ValidateSet(new(Guid.NewGuid(), SetKind.Amrap, new()));
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidatePrescription(prescription with { WorkTime = new(30, Unit.Seconds) }));
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidatePrescription(prescription with { FieldFormulas = new() { ["WorkTime"] = new(null, 1, null, [], "30") } }));
+        Assert.Throws<TrainingValidationException>(() => DocumentRules.ValidateSet(new(Guid.NewGuid(), SetKind.Amrap,
+            new(FieldFormulas: new() { ["Reps"] = new(null, 1, null, [], "5") }))));
+    }
+
     [Theory]
+    [InlineData(SetKind.Amrap)]
     [InlineData(SetKind.Warmup)]
     [InlineData(SetKind.BackOff)]
     public void Basic_set_markers_do_not_require_advanced_structures(SetKind kind)
@@ -12,7 +45,7 @@ public sealed class TrainingDocumentTests
         var document = Example();
         var workout = document.Blocks[0].Cycles[0].Days[0].Workouts[0];
         var exercise = workout.Exercises[0];
-        exercise.Sets[0] = exercise.Sets[0] with { Kind = kind };
+        exercise.Sets[0] = exercise.Sets[0] with { Kind = kind, Prescription = kind == SetKind.Amrap ? new() : exercise.Sets[0].Prescription };
         DocumentRules.Validate(document, new());
         Assert.False(DocumentRules.IsAdvancedSet(kind));
     }

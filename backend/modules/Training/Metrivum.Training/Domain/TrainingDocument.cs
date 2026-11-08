@@ -25,7 +25,7 @@ public sealed record FormulaUse(Guid? FormulaId, int Version, string? BuiltIn, D
 public sealed record FormulaEvaluation(string Expression, int Version, Dictionary<string, Quantity> Inputs, Quantity Result, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, string>? SourceVersions = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, Quantity>? FieldValues = null);
 public sealed record Prescription(IntRange? Reps = null, QuantityRange? Load = null, decimal? LoadPercent = null, Quantity? BaseValue = null,
     decimal? Rpe = null, decimal? Rir = null, Quantity? WorkTime = null, Quantity? Rest = null, string? Tempo = null,
-    Quantity? Distance = null, string? Comment = null, FormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Unit? LoadUnit = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, FormulaUse>? FieldFormulas = null);
+    Quantity? Distance = null, string? Comment = null, FormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Unit? LoadUnit = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, FormulaUse>? FieldFormulas = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? WorkTimeMax = null);
 public sealed record SetSegment(Guid Id, Prescription Prescription);
 public sealed record TrainingSet(Guid Id, SetKind Kind, Prescription Prescription, SetSegment[]? Segments = null, Guid? SourceSetId = null);
 public sealed record ExerciseInstance(Guid Id, Guid ExerciseId, string Comment, TrainingSet[] Sets);
@@ -111,7 +111,7 @@ public static class DocumentRules
     }
     public static IEnumerable<Workout> Workouts(TrainingDocument document) => document.Blocks.SelectMany(b => b.Cycles).SelectMany(c => c.Days).SelectMany(d => d.Workouts);
     public static IEnumerable<TrainingSet> Sets(TrainingDocument document) => Workouts(document).SelectMany(w => w.Exercises).SelectMany(e => e.Sets);
-    public static bool IsAdvancedSet(SetKind kind) => kind is not (SetKind.Standard or SetKind.Warmup or SetKind.BackOff);
+    public static bool IsAdvancedSet(SetKind kind) => kind is not (SetKind.Standard or SetKind.Warmup or SetKind.BackOff or SetKind.Amrap);
     public static bool HasAdvanced(TrainingDocument document) => Workouts(document).Any(w => w.Groups.Any(g => g.Kind != GroupKind.Superset)) || Sets(document).Any(s => IsAdvancedSet(s.Kind));
     public static bool HasCustomFormulas(TrainingDocument document) => Prescriptions(document).Any(p => PrescriptionFormulas.Uses(p).Any(f => f.FormulaId != null || f.Expression != null || f.VariableBindings?.Count > 0));
     public static IEnumerable<Prescription> Prescriptions(TrainingDocument document) => Sets(document).SelectMany(s => new[] { s.Prescription }.Concat((s.Segments ?? []).Select(x => x.Prescription))).Concat(BlockMaxes.Rows(document).SelectMany(r => new[] { new Prescription(LoadFormula: r.LoadFormula, LoadUnit: r.LoadUnit), new Prescription(LoadFormula: r.TimeFormula) }));
@@ -289,7 +289,7 @@ public static class DocumentRules
             throw new TrainingValidationException("Invalid segments for set kind.");
         if (set.Kind != SetKind.BackOff && set.SourceSetId != null)
             throw new TrainingValidationException("Only back-off sets reference a top set.");
-        if (set.Kind == SetKind.Amrap && set.Prescription.Reps != null)
+        if (set.Kind == SetKind.Amrap && (set.Prescription.Reps != null || set.Prescription.FieldFormulas?.ContainsKey("Reps") == true))
             throw new TrainingValidationException("AMRAP does not prescribe a fixed repetition range.");
         foreach (var segment in segments)
         {
@@ -324,6 +324,8 @@ public static class DocumentRules
         }
         if (prescription.Rpe is < 0 or > 10 || prescription.Rir is < 0 or > 100 || prescription.Rpe != null && prescription.Rir != null)
             throw new TrainingValidationException("Invalid or conflicting RPE/RIR.");
+        if (prescription.WorkTimeMax == true && (prescription.WorkTime != null || prescription.FieldFormulas?.ContainsKey("WorkTime") == true))
+            throw new TrainingValidationException("Maximum effort time cannot prescribe a fixed duration or formula.");
         if (prescription.WorkTime is { } work)
             CheckQuantity(work, "time");
         if (prescription.Rest is { } rest)

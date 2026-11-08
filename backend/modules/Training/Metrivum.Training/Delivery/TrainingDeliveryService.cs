@@ -413,7 +413,7 @@ public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccou
         }
         DeliveryRules.Version(e.Version, version);
         Eligible(a);
-        if (!e.Exercises.SelectMany(x => x.Sets).Any(s => !s.Skipped && (s.Reps > 0 || s.DurationSeconds > 0 || s.DistanceMeters > 0)))
+        if (!DeliveryRules.HasPerformedSet(e))
             throw ApiException.Invalid("Record at least one performed set before completing, or explicitly skip the workout.");
         e.Status = ExecutionStatus.Completed;
         Touch(e);

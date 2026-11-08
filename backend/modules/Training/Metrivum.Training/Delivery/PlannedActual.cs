@@ -19,7 +19,7 @@ public sealed record WorkoutComparison(Guid ExecutionId, Guid OccurrenceId, Guid
 
 public static class PlannedActual
 {
-    private sealed record Expected(Guid SetId, Guid? SegmentId, Prescription Prescription);
+    private sealed record Expected(Guid SetId, Guid? SegmentId, Prescription Prescription, bool MaximumEffort);
     public static WorkoutComparison Compare(WorkoutExecution execution, string name)
     {
         var workout = execution.Prescription.Workout;
@@ -28,8 +28,8 @@ public static class PlannedActual
         {
             var actual = execution.Exercises.SingleOrDefault(x => x.PrescribedInstanceId == planned.Id);
             var expected = planned.Sets.SelectMany(s => s.Segments?.Length > 0
-                ? s.Segments.Select(segment => new Expected(s.Id, segment.Id, segment.Prescription))
-                : [new Expected(s.Id, null, s.Prescription)]).ToArray();
+                ? s.Segments.Select(segment => new Expected(s.Id, segment.Id, segment.Prescription, segment.Prescription.WorkTimeMax == true))
+                : [new Expected(s.Id, null, s.Prescription, s.Kind == SetKind.Amrap || s.Prescription.WorkTimeMax == true)]).ToArray();
             result.Add(Exercise(planned.Id, planned.ExerciseId, actual, expected,
                 execution.Prescription.Exercises.GetValueOrDefault(planned.ExerciseId)?.Name ?? "Exercise", execution.Prescription));
         }
@@ -53,7 +53,8 @@ public static class PlannedActual
             comparisons.Add(Set(p, set, snapshot));
         }
         foreach (var extra in actual?.Sets.Where(x => x.PrescribedSetId == null) ?? []) comparisons.Add(Set(null, extra, snapshot));
-        var done = actual?.Sets.Where(Performed).ToArray() ?? [];
+        var openTargets = expected.Where(x => x.MaximumEffort).Select(x => (x.SetId, x.SegmentId)).ToHashSet();
+        var done = actual?.Sets.Where(x => DeliveryRules.IsPerformedSet(x, x.PrescribedSetId is { } id && openTargets.Contains((id, x.PrescribedSegmentId)))).ToArray() ?? [];
         var explicitlySkipped = actual?.Sets.Count > 0 && actual.Sets.All(x => x.Skipped);
         var volume = done.Select(s => s.Reps is {} reps && ActualKg(s) is {} kg ? (decimal?)(kg * reps) : null).ToArray();
         var targets = comparisons.Where(x => x.PlannedSetId != null).ToArray();
@@ -82,7 +83,7 @@ public static class PlannedActual
         if (loadDelta is not (null or 0)) deviations.Add("load_outside_target");
         if (performed && p?.Rpe is {} rpe && actual!.Rpe is {} actualRpe && actualRpe != rpe) deviations.Add("rpe_differs");
         if (performed && p?.Rir is {} rir && actual!.Rir is {} actualRir && actualRir != rir) deviations.Add("rir_differs");
-        return new(planned?.SetId, planned?.SegmentId, planned == null ? "Added" : actual == null ? "Missing" : actual.Skipped ? "Skipped" : Performed(actual) ? "Performed" : "NotLogged",
+        return new(planned?.SetId, planned?.SegmentId, planned == null ? "Added" : actual == null ? "Missing" : actual.Skipped ? "Skipped" : DeliveryRules.IsPerformedSet(actual, planned?.MaximumEffort == true) ? "Performed" : "NotLogged",
             reps, actualReps, load, kg, p?.Rpe, performed ? actual!.Rpe : null, p?.Rir, performed ? actual!.Rir : null, repDelta, loadDelta, deviations.ToArray());
     }
     private static TargetRange? Target(Expected? set, WorkoutPrescription snapshot, string field)
@@ -95,7 +96,6 @@ public static class PlannedActual
     }
     private static decimal? ActualKg(SetExecution actual) => actual.LoadMeaning == LoadMeaning.TotalExternal && actual.Load is {} value
         ? actual.LoadUnit == "kg" ? value : actual.LoadUnit == "lb" ? value * 0.45359237m : null : null;
-    private static bool Performed(SetExecution actual) => !actual.Skipped && (actual.Reps > 0 || actual.DurationSeconds > 0 || actual.DistanceMeters > 0);
     private static decimal? Deviation(TargetRange? range, decimal? value) => range == null || value == null ? null
         : value < range.Minimum ? value - range.Minimum : value > range.Maximum ? value - range.Maximum : 0;
     private static decimal? SumKnown(IEnumerable<decimal?> values)

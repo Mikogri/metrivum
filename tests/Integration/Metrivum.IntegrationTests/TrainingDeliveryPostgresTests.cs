@@ -21,6 +21,29 @@ namespace Metrivum.IntegrationTests;
 public sealed class TrainingDeliveryPostgresTests
 {
     [TrainingPostgresFact]
+    public async Task Maximum_effort_can_be_completed_with_a_saved_set_and_no_numerical_result()
+    {
+        foreach (var repetitions in new[] { true, false })
+        {
+            await using var f = new Fixture();
+            var program = await f.Seed(repetitions ? SetKind.Amrap : SetKind.Standard, new(WorkTimeMax: repetitions ? null : true));
+            await f.Assign(program.Id);
+            await using var client = f.Scope(f.Client);
+            var occurrence = (await client.Service.ScheduleAsync(new(2026, 1, 1), new(2026, 1, 31), null, program.Id, 1, 100, default)).Items[0];
+            var execution = await client.Service.StartAsync(occurrence.Id, default);
+            Assert.Equal(400, (await Assert.ThrowsAsync<ApiException>(() => client.Service.CompleteAsync(execution.Id, execution.Version, default))).Status);
+            var exercise = (await client.Service.WorkoutAsync(occurrence.Id, default)).Prescription.Workout.Exercises.Single();
+            var actual = new ActualSet(exercise.Sets[0].Id, null, false, null, null, null, LoadMeaning.TotalExternal, null, null, null, null, null, null, null);
+            var saved = await client.Service.SaveAsync(execution.Id, new(new(2026, 1, 1), "", null, [new(exercise.Id, exercise.ExerciseId, null, [actual])]), execution.Version, default);
+            var completed = await client.Service.CompleteAsync(execution.Id, saved.Version, default);
+            Assert.Equal(ExecutionStatus.Completed, completed.Status);
+            var result = Assert.Single(Assert.Single(completed.Exercises).Sets);
+            Assert.Null(result.Reps);
+            Assert.Null(result.DurationSeconds);
+        }
+    }
+
+    [TrainingPostgresFact]
     public async Task Analysis_picker_summaries_skip_set_reads_and_details_project_only_picker_columns()
     {
         await using var f = new Fixture();
@@ -871,10 +894,10 @@ public sealed class TrainingDeliveryPostgresTests
             Directory = new(Coach, Client, Relationship, Group);
         }
         public TestScope Scope(Guid actor) => new(source, actor, this);
-        public async Task<TrainingPlan> Seed()
+        public async Task<TrainingPlan> Seed(SetKind kind = SetKind.Standard, Prescription? target = null)
         {
             await using var scope = Scope(Coach);
-            var exercise = new ExerciseInstance(Guid.NewGuid(), Guid.NewGuid(), "", [new(Guid.NewGuid(), SetKind.Standard, new(Reps: new(5, 8)))]);
+            var exercise = new ExerciseInstance(Guid.NewGuid(), Guid.NewGuid(), "", [new(Guid.NewGuid(), kind, target ?? new(Reps: new(5, 8)))]);
             Workout W() => new(Guid.NewGuid(), "Session", "", [exercise with { Id = Guid.NewGuid() }], []);
             var document = new TrainingDocument(1, [new(Guid.NewGuid(), "Block", "", [new(Guid.NewGuid(), "10", "", 10, [new(Guid.NewGuid(), 1, [W()])]), new(Guid.NewGuid(), "7", "", 7, [new(Guid.NewGuid(), 1, [W()])])])]);
             var plan = new TrainingPlan { Id = Guid.NewGuid(), OwnerId = Coach, WorkspaceId = Coach, Name = "Program", Draft = document, CreatedAt = Clock.Now, UpdatedAt = Clock.Now };

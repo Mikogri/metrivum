@@ -11,21 +11,21 @@ public enum McpUnit { Scalar, Kg, Lb, Seconds, Minutes, Meters, Kilometers, Perc
 public sealed record McpQuantity(decimal Value, McpUnit Unit);
 public sealed record McpIntRange(int Minimum, int Maximum);
 public sealed record McpQuantityRange(McpQuantity Minimum, McpQuantity Maximum);
-public sealed record McpFormulaUse(Guid? FormulaId, int Version, string? BuiltIn, Dictionary<string, McpQuantity> Inputs, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Expression = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, string>? VariableBindings = null);
+public sealed record McpFormulaUse(Guid? FormulaId, int Version, string? BuiltIn, Dictionary<string, McpQuantity> Inputs, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Expression = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, string>? VariableBindings = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpUnit? OutputUnit = null);
 public sealed record McpPrescription(McpIntRange? Reps = null, McpQuantityRange? Load = null, decimal? LoadPercent = null,
     McpQuantity? BaseValue = null, decimal? Rpe = null, decimal? Rir = null, McpQuantity? WorkTime = null,
-    McpQuantity? Rest = null, string? Tempo = null, McpQuantity? Distance = null, string? Comment = null, McpFormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpUnit? LoadUnit = null);
+    McpQuantity? Rest = null, string? Tempo = null, McpQuantity? Distance = null, string? Comment = null, McpFormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpUnit? LoadUnit = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Dictionary<string, McpFormulaUse>? FieldFormulas = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? WorkTimeMax = null);
 public sealed record McpSetSegment(Guid Id, McpPrescription Prescription);
 public sealed record McpTrainingSet(Guid Id, McpSetKind Kind, McpPrescription Prescription, McpSetSegment[]? Segments = null, Guid? SourceSetId = null);
 public sealed record McpExerciseInstance(Guid Id, Guid ExerciseId, string Comment, McpTrainingSet[] Sets);
 public sealed record McpExerciseGroup(Guid Id, McpGroupKind Kind, Guid[] ExerciseIds, int Rounds, decimal RestSeconds);
 public sealed record McpWorkout(Guid Id, string Name, string Description, McpExerciseInstance[] Exercises, McpExerciseGroup[] Groups);
 public sealed record McpTrainingDay(Guid Id, int DayNumber, McpWorkout[] Workouts, string? Note = null);
-public sealed record McpCycle(Guid Id, string Name, string Description, int DayCount, McpTrainingDay[] Days);
-public sealed record McpBlockMax(Guid? ExerciseId, int Reps, McpQuantity? Load = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpFormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpUnit? LoadUnit = null);
+public sealed record McpCycle(Guid Id, string Name, string Description, int DayCount, McpTrainingDay[] Days, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? Repeats = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? Implicit = null);
+public sealed record McpBlockMax(Guid? ExerciseId, int Reps, McpQuantity? Load = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpFormulaUse? LoadFormula = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpUnit? LoadUnit = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpQuantity? Time = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpFormulaUse? TimeFormula = null);
 public sealed record McpMaxesTable(Guid Id, Guid? BlockId, McpBlockMax[] Rows);
 public sealed record McpPlanAnnotation(Guid Id, string Kind, string Title, string Content, Guid? TargetId = null, string Visibility = "Coach");
-public sealed record McpBlock(Guid Id, string Name, string Description, McpCycle[] Cycles, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpBlockMax[]? ExerciseMaxes = null);
+public sealed record McpBlock(Guid Id, string Name, string Description, McpCycle[] Cycles, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpBlockMax[]? ExerciseMaxes = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? Inactive = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? Implicit = null);
 public sealed record McpTrainingDocument(int SchemaVersion, McpBlock[] Blocks, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpMaxesTable[]? MaxesTables = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] McpPlanAnnotation[]? Annotations = null);
 public sealed record McpProgramSummary(Guid Id, string Name, string Description, long Revision, DateTimeOffset UpdatedAt);
 public sealed record McpProgramPage(McpProgramSummary[] Items, int Page, int PageSize, long Total);

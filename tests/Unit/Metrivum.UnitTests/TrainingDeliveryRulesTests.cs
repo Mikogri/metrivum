@@ -6,6 +6,60 @@ namespace Metrivum.UnitTests;
 
 public sealed class TrainingDeliveryRulesTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Maximum_effort_results_are_optional_but_require_a_matching_non_skipped_saved_set(bool repetitions)
+    {
+        var id = Guid.NewGuid();
+        var target = new TrainingSet(id, repetitions ? SetKind.Amrap : SetKind.Standard, new(WorkTimeMax: repetitions ? null : true));
+        var execution = new WorkoutExecution {
+            Prescription = new(Guid.NewGuid(), "Plan", new(Guid.NewGuid(), "Workout", "", [new(Guid.NewGuid(), Guid.NewGuid(), "", [target])], []), [], []),
+            Exercises = [new() { Sets = [new() { PrescribedSetId = id }] }]
+        };
+        Assert.True(DeliveryRules.HasPerformedSet(execution));
+        execution.Exercises[0].PrescribedInstanceId = execution.Prescription.Workout.Exercises[0].Id;
+        execution.Exercises[0].ExerciseId = execution.Prescription.Workout.Exercises[0].ExerciseId;
+        var comparison = PlannedActual.Compare(execution, "Workout");
+        Assert.Equal(1, comparison.PerformedSets);
+        Assert.Null(comparison.ActualReps);
+        Assert.Null(comparison.ActualVolumeKg);
+        Assert.Equal("Performed", Assert.Single(Assert.Single(comparison.Exercises).Sets).Status);
+        var actual = execution.Exercises[0].Sets[0];
+        Assert.Null(actual.Reps);
+        Assert.Null(actual.DurationSeconds);
+        actual.Skipped = true;
+        Assert.False(DeliveryRules.HasPerformedSet(execution));
+        actual.Skipped = false;
+        actual.PrescribedSetId = Guid.NewGuid();
+        Assert.False(DeliveryRules.HasPerformedSet(execution));
+        actual.PrescribedSetId = null;
+        Assert.False(DeliveryRules.HasPerformedSet(execution));
+        actual.Reps = 3;
+        Assert.True(DeliveryRules.HasPerformedSet(execution));
+        execution.Exercises.Clear();
+        Assert.False(DeliveryRules.HasPerformedSet(execution));
+    }
+
+    [Fact]
+    public void Maximum_effort_segment_requires_both_prescribed_identifiers()
+    {
+        var setId = Guid.NewGuid(); var segmentId = Guid.NewGuid();
+        var target = new TrainingSet(setId, SetKind.Cluster, new(), [new(segmentId, new(WorkTimeMax: true)), new(Guid.NewGuid(), new(WorkTime: new(30, Unit.Seconds)))]);
+        var actual = new SetExecution { PrescribedSetId = setId, PrescribedSegmentId = segmentId };
+        var execution = new WorkoutExecution {
+            Prescription = new(Guid.NewGuid(), "Plan", new(Guid.NewGuid(), "Workout", "", [new(Guid.NewGuid(), Guid.NewGuid(), "", [target])], []), [], []),
+            Exercises = [new() { Sets = [actual] }]
+        };
+        Assert.True(DeliveryRules.HasPerformedSet(execution));
+        actual.PrescribedSegmentId = target.Segments![1].Id;
+        Assert.False(DeliveryRules.HasPerformedSet(execution));
+        actual.PrescribedSegmentId = null;
+        Assert.False(DeliveryRules.HasPerformedSet(execution));
+        actual.PrescribedSegmentId = segmentId; actual.PrescribedSetId = Guid.NewGuid();
+        Assert.False(DeliveryRules.HasPerformedSet(execution));
+    }
+
     [Fact]
     public void Repeated_cycles_schedule_each_run_and_a_lone_open_cycle_runs_for_a_year()
     {

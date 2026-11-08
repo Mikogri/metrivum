@@ -6,6 +6,23 @@ namespace Metrivum.Training.Delivery;
 
 public static class DeliveryRules
 {
+    public static bool IsPerformedSet(SetExecution set, bool maximumEffort = false) => !set.Skipped &&
+        (set.Reps > 0 || set.DurationSeconds > 0 || set.DistanceMeters > 0 || maximumEffort);
+
+    // A saved, non-skipped maximum-effort set is an explicit log even when its result was omitted.
+    public static bool HasPerformedSet(WorkoutExecution execution)
+    {
+        var openTargets = new HashSet<(Guid Set, Guid? Segment)>();
+        foreach (var target in execution.Prescription.Workout.Exercises.SelectMany(ex => ex.Sets))
+        {
+            if (target.Kind == SetKind.Amrap || target.Prescription.WorkTimeMax == true) openTargets.Add((target.Id, null));
+            foreach (var segment in target.Segments ?? [])
+                if (segment.Prescription.WorkTimeMax == true) openTargets.Add((target.Id, segment.Id));
+        }
+        return execution.Exercises.SelectMany(ex => ex.Sets).Any(set => IsPerformedSet(set,
+            set.PrescribedSetId is { } id && openTargets.Contains((id, set.PrescribedSegmentId))));
+    }
+
     public static TimeZoneInfo Zone(string id)
     {
         try
