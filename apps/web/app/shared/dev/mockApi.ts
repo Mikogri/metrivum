@@ -543,7 +543,10 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
   if (path === "/api/v1/training/formulas/evaluate") {
     const inputs = body.inputs as Record<string, { value: number; unit: string }>;
     const values = Object.values(inputs).map((i) => i.value);
-    const result = body.builtIn === "percentage-1rm" ? (values[0] ?? 0) * (values[1] ?? 0) : values.reduce((a, b) => a + b, 0);
+    // Plain arithmetic expressions are worked out; anything else (variables, functions) sums its inputs.
+    const expression = typeof body.expression === "string" ? body.expression.replace(/^=/, "") : "";
+    const arithmetic = /^[\d.,+\-*/() ]+$/.test(expression) ? Number(new Function(`return (${expression.replace(/,/g, ".")});`)()) : NaN;
+    const result = Number.isFinite(arithmetic) ? arithmetic : body.builtIn === "percentage-1rm" ? (values[0] ?? 0) * (values[1] ?? 0) : values.reduce((a, b) => a + b, 0);
     return json(200, { expression: "mock", version: body.version, inputs, result: { value: Math.round(result * 100) / 100, unit: "Kg" } });
   }
   if ((m = path.match(/^\/api\/v1\/training\/formulas\/([^/]+)$/))) {

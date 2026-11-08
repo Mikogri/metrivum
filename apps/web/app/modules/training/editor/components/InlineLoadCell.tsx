@@ -86,6 +86,8 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
   const completed = useRef(true);
   const changed = useRef(false);
   const cell = useRef<HTMLDivElement>(null);
+  // Pressing the formula mark must not end typing: the cell's blur ignores that press.
+  const formulaPress = useRef(false);
   const auxiliary = useRef<HTMLDivElement>(null);
   const suggestions = useRef<HTMLDivElement>(null);
   const listId = useId();
@@ -394,8 +396,8 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
   );
 
   return (
-    <div ref={cell} className={`${styles.cell} ${className ?? ""}`} style={style} data-no-drag data-inline-formula data-inline-load={valueKind === "mass" || undefined} data-validation-id={validationId} data-expression={editing || Boolean(saved) || !display.trim() || undefined} data-unit-select={hasUnitSelect || undefined} data-linked={Boolean(saved) || markedVariable || undefined} data-invalid={invalid || undefined} title={invalid ? `${label}: ${validationReason}` : !editing && saved ? formulaTitle : undefined} onMouseDown={(event) => event.stopPropagation()} onBlur={(event) => {
-      if (expanded) return;
+    <div ref={cell} className={`${styles.cell} ${className ?? ""}`} style={style} data-no-drag data-inline-formula data-inline-load={valueKind === "mass" || undefined} data-validation-id={validationId} data-expression={editing || Boolean(saved) || !display.trim() || undefined} data-unit-select={hasUnitSelect || undefined} data-linked={Boolean(saved) || Boolean(editing && text?.startsWith("=")) || markedVariable || undefined} data-invalid={invalid || undefined} title={invalid ? `${label}: ${validationReason}` : !editing && saved ? formulaTitle : undefined} onMouseDown={(event) => event.stopPropagation()} onBlur={(event) => {
+      if (expanded || formulaPress.current) return;
       const target = event.relatedTarget as Node | null;
       if (target instanceof Element && target.closest('[role="listbox"], [role="option"]')) return;
       // Portalled controls belong to this editor even though they are outside its DOM cell.
@@ -411,12 +413,26 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
       event.preventDefault(); event.stopPropagation(); if (!editing) begin(raw); setDismissed(true); setSourcesOpen(true);
     }} onKeyDown={(event) => event.stopPropagation()}>
       {/* A formula cell shows its result; the mark in front of it opens what it is made of and how to edit it. */}
-      {saved && !editing ? readOnly
-        ? <span role="img" aria-label={formulaLabel} title={formulaTitle} className={styles.linked} data-waiting={missing.length > 0 || undefined}><FormulaMark size="sm" /></span>
-        : <button type="button" className={`${styles.linked} ${styles.formulaButton}`} data-no-drag data-waiting={missing.length > 0 || undefined} aria-label={formulaLabel} title={formulaTitle}
-            onPointerDown={event => { event.preventDefault(); event.stopPropagation(); }}
-            onClick={event => { event.stopPropagation(); begin(raw); setDismissed(true); setSourcesOpen(true); }}><FormulaMark size="sm" /></button>
-        : markedVariable && editing ? <span role="img" aria-label={uiCopy["ui"]["Linked variable"]} className={styles.linked} data-waiting={missing.length > 0 || undefined}><FormulaMark size="sm" /></span> : null}
+      {(saved || (editing && text?.startsWith("="))) ? readOnly
+        ? <span role="img" aria-label={markedVariable ? uiCopy["ui"]["Linked variable"] : formulaLabel} title={formulaTitle} className={styles.linked} data-waiting={missing.length > 0 || undefined}><FormulaMark size="sm" /></span>
+        : <button type="button" className={`${styles.linked} ${styles.formulaButton}`} data-no-drag data-waiting={missing.length > 0 || undefined} data-open={(editing && (sourcesOpen || showOptions)) || undefined} aria-label={editing ? uiCopy["ui"]["Formula data sources"] : markedVariable ? uiCopy["ui"]["Linked variable"] : formulaLabel} title={formulaTitle}
+            onPointerDown={event => {
+              formulaPress.current = true;
+              // The press ends with its click; a press dragged away ends here too.
+              window.addEventListener("pointerup", () => window.setTimeout(() => { formulaPress.current = false; }, 0), { once: true });
+              event.preventDefault(); event.stopPropagation();
+            }}
+            onMouseDown={event => { event.preventDefault(); event.stopPropagation(); }}
+            onClick={event => {
+              event.stopPropagation();
+              formulaPress.current = false;
+              // While typing, the formula menu opens over what was typed; one click is enough.
+              if (!editing) begin(raw);
+              setDismissed(true);
+              setSourcesOpen(true);
+              if (editing) focusInput();
+            }}><FormulaMark size="sm" /></button>
+        : null}
       {/* A formula that still waits for values says so on the cell: an amber pill that opens its data. */}
       {!editing && saved && missing.length && !readOnly ? <button type="button" className={styles.needsData} data-no-drag
         aria-label={locale === "pl" ? `Uzupełnij dane formuły (${missing.length})` : `Fill in formula data (${missing.length})`}
@@ -440,7 +456,7 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
         const selected = key as "Kg" | "Lb";
         onChange({ ...prescription, loadUnit: selected, load: prescription.load ? { minimum: convertMass(prescription.load.minimum, selected), maximum: convertMass(prescription.load.maximum, selected) } : prescription.load });
       }}>{valueKind === "time" ? <><Option id="Seconds">s</Option><Option id="Minutes">min</Option></> : <><Option id="Kg">kg</Option><Option id="Lb">lb</Option></>}</Select> : null}
-      {editing && draft && !showOptions && !sourcesOpen ? <button type="button" className={styles.more} data-waiting={missing.length > 0 || undefined} aria-label={uiCopy["ui"]["Formula data sources"]} onPointerDown={event => event.preventDefault()} onClick={() => setSourcesOpen(true)}>ƒ</button> : null}
+
 
 
     </div>

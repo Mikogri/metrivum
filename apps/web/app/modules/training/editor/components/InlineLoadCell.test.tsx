@@ -25,6 +25,18 @@ function openSources() {
 }
 
 describe("inline load cell", () => {
+  it("shows the result of a saved formula beside its mark, and opens the formula menu in one click while typing", async () => {
+    const user = userEvent.setup();
+    render(<InlineLoadCell prescription={{ loadFormula: { formulaId: null, builtIn: null, version: 1, inputs: {}, expression: "100 * 0.8" } }} onChange={vi.fn()} readOnly={false} label="Load" />);
+    const input = screen.getByRole("combobox", { name: "Load" });
+    expect(input).toHaveValue("80");
+    expect(screen.getByRole("button", { name: "Formula details and editing" })).toBeInTheDocument();
+    await user.click(input);
+    await user.keyboard("{End}+5");
+    await user.click(screen.getByRole("button", { name: "Formula data sources" }));
+    expect(screen.getByText("Formula data")).toBeInTheDocument();
+    expect(input).toHaveValue("=100 * 0.8+5");
+  });
   it("moves the current expression and manual inputs to the side editor", async () => {
     const onChange = vi.fn();
     render(<InlineLoadCell prescription={{}} onChange={onChange} readOnly={false} label="Load" />);
@@ -163,7 +175,8 @@ describe("inline load cell", () => {
     render(<InlineLoadCell exerciseId="exercise-a" prescription={{}} onChange={onChange} readOnly={false} label="Load" />);
     const input = focusLoad();
     fireEvent.change(input, { target: { value: "=oneRepMax * .8" } });
-    expect(screen.getByLabelText("Linked variable")).toBeInTheDocument();
+    // While typing, the formula mark is the button that opens the formula's data.
+    expect(screen.getByRole("button", { name: "Formula data sources" })).toBeInTheDocument();
     await userEvent.setup().click((openSources(), screen.getByRole("button", { name: "Keep variable" })));
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange.mock.calls[0]?.[0].loadFormula.variableBindings.oneRepMax).toBe("exercise1Rm_exercisea");

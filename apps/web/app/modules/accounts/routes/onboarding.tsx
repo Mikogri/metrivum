@@ -97,7 +97,8 @@ function OnboardingForm() {
     onSuccess: (profile) => {
       if (!lifecycle.isCurrent()) return;
       queryClient.setQueryData(profileKey(accountKey), profile);
-      const next = sanitizeReturnTo(params.get("returnTo"));
+      // Without a page to return to, coaches start on the dashboard and clients on their training.
+      const next = sanitizeReturnTo(params.get("returnTo"), profile.roles.includes("Coach") ? "/app/dashboard" : "/app/my-training");
       // Coaches pick a plan before they start; everyone else goes straight in.
       navigate(profile.roles.includes("Coach") ? `/onboarding/plan?returnTo=${encodeURIComponent(next)}` : next, { replace: true });
     },

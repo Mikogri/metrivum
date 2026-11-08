@@ -18,6 +18,8 @@ export function routeWorkspace(path: string): WorkspaceMode | null {
 export function twinRoute(path: string, mode: WorkspaceMode): string | null {
   const workout = /^\/app\/(?:my-training|training)\/workouts\/([^/]+)$/.exec(path);
   if (workout) return mode === "coach" ? `/app/training/workouts/${workout[1]}` : `/app/my-training/workouts/${workout[1]}`;
+  // The dashboard is the coach's home; a client lands on their training instead (e.g. right after signing up).
+  if (path === "/app/dashboard" && mode === "client") return "/app/my-training";
   return null;
 }
 

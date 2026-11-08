@@ -22,6 +22,8 @@ describe("workspace boundaries", () => {
   it("opens a client's workout in whichever workspace is active", () => {
     expect(twinRoute("/app/my-training/workouts/w1", "coach")).toBe("/app/training/workouts/w1");
     expect(twinRoute("/app/training/workouts/w1", "client")).toBe("/app/my-training/workouts/w1");
+    expect(twinRoute("/app/dashboard", "client")).toBe("/app/my-training");
+    expect(twinRoute("/app/dashboard", "coach")).toBeNull();
     expect(twinRoute("/app/training/workouts/w1", "coach")).toBe("/app/training/workouts/w1");
     expect(twinRoute("/app/programs/p1", "client")).toBe(null);
   });
