@@ -19,3 +19,10 @@ describe("translations", () => {
     expect(keys(publicPl).sort()).toEqual(keys(publicEn).sort());
   });
 });
+
+it("translated interface messages preserve every numbered interpolation parameter", () => {
+  const parameters = (text: string) => (text.match(/\{\d+\}/g) ?? []).sort();
+  for (const [key, english] of Object.entries(appEn.ui)) {
+    expect(parameters(appPl.ui[key as keyof typeof appPl.ui]), key).toEqual(parameters(english));
+  }
+});

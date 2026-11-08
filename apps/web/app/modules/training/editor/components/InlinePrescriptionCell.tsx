@@ -17,14 +17,9 @@ export function InlinePrescriptionCell({ field, prescription, count, onChange, m
     : field === "Reps" ? prescription.reps ? { value: prescription.reps.minimum, unit: "Scalar" as const } : null
     : field === "WorkTime" ? prescription.workTime : prescription.rest;
   if (time) return <InlineDurationCell {...props} maxEffort={field === "WorkTime" && prescription.workTimeMax === true} onMaxEffort={field === "WorkTime" ? onMaximumChange : undefined} parts={field === "Rest" ? "ms" : "hms"} value={literal} formula={prescription.fieldFormulas?.[field]} onChange={onChange} />;
-  return <InlineLoadCell {...props} maxEffort={maximum} onMaxEffort={field === "Reps" ? onMaximumChange : undefined} valueKind={time ? "time" : "scalar"} valueUnit={literal?.unit ?? prescription.fieldFormulas?.[field]?.outputUnit ?? (time ? "Seconds" : "Scalar")}
-    constraints={time ? { min: 0, max: 86400 } : { min: 1, max: field === "Sets" ? 50 : 10000, integer: true }} allowRange={field === "Reps"}
+  return <InlineLoadCell {...props} maxEffort={maximum} onMaxEffort={field === "Reps" ? onMaximumChange : undefined} valueKind="scalar" valueUnit={literal?.unit ?? prescription.fieldFormulas?.[field]?.outputUnit ?? "Scalar"}
+    constraints={{ min: 1, max: field === "Sets" ? 50 : 10000, integer: true }} allowRange={field === "Reps"}
     prescription={{ loadFormula: prescription.fieldFormulas?.[field], load: literal ? { minimum: literal, maximum: field === "Reps" && prescription.reps ? { ...literal, value: prescription.reps.maximum } : literal } : null }}
     fallbackValue={field === "Reps" && !prescription.fieldFormulas?.Reps ? formatReps(prescription.reps) : undefined}
-    onUnitChange={unit => {
-      if (!literal) return;
-      const value = { value: literal.value * (literal.unit === "Minutes" ? 60 : 1) / (unit === "Minutes" ? 60 : 1), unit };
-      onChange(prescription.fieldFormulas?.[field] ?? null, value);
-    }}
     onChange={value => onChange(value.loadFormula ?? null, value.load?.minimum ?? null, value.load?.maximum.value)} />;
 }

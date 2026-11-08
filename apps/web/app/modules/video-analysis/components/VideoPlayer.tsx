@@ -135,7 +135,7 @@ export function VideoPlayer({
   /** Inside a card that already draws the frame: no border or radius of its own. */
   inset?: boolean;
 }) {
-  const uiCopy = useUiCopy();
+
 
   const m = useT();
   const api = useApi();
@@ -261,20 +261,20 @@ export function VideoPlayer({
       <div className={styles.bar}>
         <Scrubber time={time} duration={duration} markers={markers} onSeek={seek} />
         <div className={styles.row}>
-          <span className={styles.steps} role="group" aria-label={uiCopy["ui"]["Playback"]}>
-            <PlayerButton label={uiCopy["ui"]["Previous frame"]} onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
-            <PlayerButton label={paused ? uiCopy["ui"]["Play"] : uiCopy["ui"]["Pause"]} onPress={toggle}>{paused ? <Play /> : <Pause />}</PlayerButton>
-            <PlayerButton label={uiCopy["ui"]["Next frame"]} onPress={() => step(FRAME)}><StepForward /></PlayerButton>
+          <span className={styles.steps} role="group" aria-label={m["ui"]["Playback"]}>
+            <PlayerButton label={m["ui"]["Previous frame"]} onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
+            <PlayerButton label={paused ? m["ui"]["Play"] : m["ui"]["Pause"]} onPress={toggle}>{paused ? <Play /> : <Pause />}</PlayerButton>
+            <PlayerButton label={m["ui"]["Next frame"]} onPress={() => step(FRAME)}><StepForward /></PlayerButton>
           </span>
           <span className={styles.clock}>{clock(time)}<span className={styles.total}> / {clock(duration)}</span></span>
           <span className={styles.spacer} />
           <TooltipTrigger delay={400}>
-            <AriaButton className={styles.speed} aria-label={formatInterfaceText(uiCopy["ui"]["Playback speed {0}×"], [rate])} onPress={nextSpeed}>{rate}×</AriaButton>
-            <Tooltip>{uiCopy["ui"]["Playback speed"]}</Tooltip>
+            <AriaButton className={styles.speed} aria-label={formatInterfaceText(m["ui"]["Playback speed {0}×"], [rate])} onPress={nextSpeed}>{rate}×</AriaButton>
+            <Tooltip>{m["ui"]["Playback speed"]}</Tooltip>
           </TooltipTrigger>
           {tools}
-          {onCollapse && !full ? <PlayerButton label={collapsed ? uiCopy["ui"]["Show video"] : uiCopy["ui"]["Hide video"]} onPress={() => onCollapse(!collapsed)}>{collapsed ? <ChevronDown /> : <ChevronUp />}</PlayerButton> : null}
-          <PlayerButton label={full ? uiCopy["ui"]["Exit full screen"] : uiCopy["ui"]["Full screen"]} onPress={fullscreen}>{full ? <Minimize /> : <Maximize />}</PlayerButton>
+          {onCollapse && !full ? <PlayerButton label={collapsed ? m["ui"]["Show video"] : m["ui"]["Hide video"]} onPress={() => onCollapse(!collapsed)}>{collapsed ? <ChevronDown /> : <ChevronUp />}</PlayerButton> : null}
+          <PlayerButton label={full ? m["ui"]["Exit full screen"] : m["ui"]["Full screen"]} onPress={fullscreen}>{full ? <Minimize /> : <Maximize />}</PlayerButton>
         </div>
       </div>
     </div>

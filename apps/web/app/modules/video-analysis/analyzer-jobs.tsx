@@ -1,5 +1,6 @@
+import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useEffectEvent, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from '@metrivum/ui-web';
@@ -95,6 +96,18 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
   // Last known state per job, so a failure is announced once, when it happens.
   const lastState = useRef(new Map<string, AnalyzerJob['state']>());
 
+  // Read the current language without restarting polling or aborting an in-flight upload.
+  const announceResult = useEffectEvent((state: 'ready' | 'failed' | 'saving', name: string, reason?: string, open?: () => void) => {
+    const key = state === 'ready' ? 'Analysis ready: {0}' : state === 'failed' ? 'Analysis failed: {0}' : 'Saving failed: {0}';
+    const title = formatInterfaceText(uiCopy.ui[key], [name]);
+    const description = state === 'ready' ? uiCopy.ui['The video and results are saved in your library.']
+      : state === 'saving' ? formatInterfaceText(uiCopy.ui['{0} It is tried again automatically.'], [reason ?? ''])
+      : reason ?? uiCopy.ui['You can retry it from the analyses menu.'];
+    toast({ tone: state === 'ready' ? 'success' : 'danger', title, description,
+      ...(open ? { action: { label: uiCopy.common.open, onAction: open } } : {}) });
+    notifyInBackground(title, description, open);
+  });
+
   useEffect(() => {
     try { sessionStorage.setItem(savedKey(accountKey), JSON.stringify(saved.slice(0, 10))); } catch { /* private mode */ }
   }, [saved, accountKey]);
@@ -156,9 +169,7 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
           void queryClient.invalidateQueries({ queryKey: [accountKey, 'usage'] });
           const open = () => navigateRef.current(`/app/video-analyses/${analysis.id}`);
           setUnseen(count => count + 1);
-          toast({ tone: 'success', title: `Analysis ready: ${job.name}`, description: uiCopy["ui"]["The video and results are saved in your library."],
-            action: { label: uiCopy["common"]["open"], onAction: open } });
-          notifyInBackground(`Analysis ready: ${job.name}`, 'The video and results are saved in your Metrivum library.', open);
+          announceResult('ready', job.name, undefined, open);
         } catch (failure) {
           if (signal.aborted) return;
           retryAt.current.set(job.id, Date.now() + RETRY_SAVE);
@@ -166,8 +177,7 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
           setSaveErrors(state => ({ ...state, [job.id]: reason }));
           // Shown once per video and reason; the row in the queue keeps it while saving is retried.
           announceOnce(`save:${job.id}:${reason}`, () => {
-            toast({ tone: 'danger', title: `Saving failed: ${job.name}`, description: `${reason} It is tried again automatically.` });
-            notifyInBackground(`Saving failed: ${job.name}`, reason);
+            announceResult('saving', job.name, reason);
           });
         } finally {
           setSaving(state => without(state, job.id));
@@ -200,8 +210,7 @@ export function AnalyzerJobsProvider({ children }: { children: ReactNode }) {
           // Every failure is announced once, also one that happened while Metrivum was closed.
           if (job.state === 'failed' && before !== 'failed') announceOnce(`failed:${job.id}:${job.error ?? ''}`, () => {
             setUnseen(count => count + 1);
-            toast({ tone: 'danger', title: `Analysis failed: ${job.name}`, description: job.error ?? 'You can retry it from the analyses menu.' });
-            notifyInBackground(`Analysis failed: ${job.name}`, job.error ?? 'Open Metrivum to retry it.');
+            announceResult('failed', job.name, job.error ?? undefined);
           });
           lastState.current.set(job.id, job.state);
         }

@@ -111,7 +111,7 @@ function ExerciseDetail() {
     );
   }
   const exercise = query.data;
-  const canEdit = exercise.isAuthor && createAccess.allowed && !exercise.isArchived;
+  const canEdit = (exercise.canEdit ?? (exercise.isAuthor && createAccess.allowed)) && !exercise.isArchived;
   const demo = safeHttps(exercise.demonstrationUrl);
   const conflict = edit.error instanceof ApiError && edit.error.code === "VERSION_CONFLICT";
 
@@ -156,9 +156,9 @@ function ExerciseDetail() {
                 >
                   {t.edit}
                 </Button>
-                <Button variant="danger" iconStart={<Archive />} onPress={() => setArchiveOpen(true)}>
+                {exercise.isAuthor && createAccess.allowed ? <Button variant="danger" iconStart={<Archive />} onPress={() => setArchiveOpen(true)}>
                   {t.archive}
-                </Button>
+                </Button> : null}
               </>
             ) : null}
           </>

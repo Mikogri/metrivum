@@ -23511,6 +23511,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "canEdit": {
+            "type": "boolean",
+            "default": false
           }
         },
         "additionalProperties": false

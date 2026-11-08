@@ -60,7 +60,7 @@ function SavedFromOthers() {
 }
 
 export default function AnalysesRoute() {
-  const uiCopy = useUiCopy();
+
 
   const m = useT();
   const t = m.video.list;
@@ -118,33 +118,33 @@ export default function AnalysesRoute() {
   // One menu per analysis: open, share, compare and delete (a running analysis stops when it is deleted).
   const actions = (analysis: AnalysisDto) => (
     <DropdownMenuTrigger>
-      <IconButton size="sm" variant="ghost" label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [analysis.name])} icon={<MoreHorizontal />} />
-      <DropdownMenu aria-label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [analysis.name])} onAction={(key) => {
+      <IconButton size="sm" variant="ghost" label={formatInterfaceText(m["ui"]["Actions for {0}"], [analysis.name])} icon={<MoreHorizontal />} />
+      <DropdownMenu aria-label={formatInterfaceText(m["ui"]["Actions for {0}"], [analysis.name])} onAction={(key) => {
         if (key === "open") navigate(`/app/video-analyses/${analysis.id}`);
         else if (key === "share") setSharing({ id: analysis.id, name: analysis.name });
         else if (key === "compare") navigate(`/app/video-analyses/compare?${new URLSearchParams({ with: encodeURIComponent(JSON.stringify([{ kind: "own", id: analysis.id, name: analysis.name, mediaId: analysis.mediaId }])) })}`);
         else if (key === "retry") retry.mutate(analysis);
         else if (key === "delete") setDeleting(analysis);
       }}>
-        <DropdownMenuItem id="open">{uiCopy["common"]["open"]}</DropdownMenuItem>
-        {retryable(analysis) && access["video.analysis.run"].allowed ? <DropdownMenuItem id="retry">{uiCopy["ui"]["Retry"]}</DropdownMenuItem> : null}
+        <DropdownMenuItem id="open">{m["common"]["open"]}</DropdownMenuItem>
+        {retryable(analysis) && access["video.analysis.run"].allowed ? <DropdownMenuItem id="retry">{m["ui"]["Retry"]}</DropdownMenuItem> : null}
         {analysis.status === "Completed" ? <DropdownMenuItem id="share">{m.video.share.action}</DropdownMenuItem> : null}
-        {analysis.status === "Completed" && access["video.analysis.compare"].allowed ? <DropdownMenuItem id="compare">{uiCopy["video"]["compare"]["submit"]}</DropdownMenuItem> : null}
+        {analysis.status === "Completed" && access["video.analysis.compare"].allowed ? <DropdownMenuItem id="compare">{m["video"]["compare"]["submit"]}</DropdownMenuItem> : null}
         {access["video.library.manage"].allowed ? <DropdownMenuSeparator /> : null}
-        {access["video.library.manage"].allowed ? <DropdownMenuItem id="delete" tone="danger">{working(analysis) ? uiCopy["ui"]["Stop and delete"] : uiCopy["common"]["delete"]}</DropdownMenuItem> : null}
+        {access["video.library.manage"].allowed ? <DropdownMenuItem id="delete" tone="danger">{working(analysis) ? m["ui"]["Stop and delete"] : m["common"]["delete"]}</DropdownMenuItem> : null}
       </DropdownMenu>
     </DropdownMenuTrigger>
   );
   const [removingJob, setRemovingJob] = useState<AnalyzerJob | null>(null);
   const jobActions = (job: AnalyzerJob) => (
     <DropdownMenuTrigger>
-      <IconButton size="sm" variant="ghost" label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [job.name])} icon={<MoreHorizontal />} />
-      <DropdownMenu aria-label={formatInterfaceText(uiCopy["ui"]["Actions for {0}"], [job.name])} onAction={(key) => {
+      <IconButton size="sm" variant="ghost" label={formatInterfaceText(m["ui"]["Actions for {0}"], [job.name])} icon={<MoreHorizontal />} />
+      <DropdownMenu aria-label={formatInterfaceText(m["ui"]["Actions for {0}"], [job.name])} onAction={(key) => {
         if (key === "retry") void queue.retry(job.id).then(() => toast({ tone: "success", title: `Retrying ${job.name}` }), () => { queue.refresh(); toast({ tone: "danger", title: `Could not retry ${job.name}` }); });
         else if (key === "remove") setRemovingJob(job);
       }}>
-        {job.state === "failed" || queue.saveErrors[job.id] ? <DropdownMenuItem id="retry">{uiCopy["ui"]["Retry"]}</DropdownMenuItem> : null}
-        <DropdownMenuItem id="remove" tone="danger">{job.state === "analyzing" ? uiCopy["ui"]["Stop and remove"] : uiCopy["editor"]["remove"]}</DropdownMenuItem>
+        {job.state === "failed" || queue.saveErrors[job.id] ? <DropdownMenuItem id="retry">{m["ui"]["Retry"]}</DropdownMenuItem> : null}
+        <DropdownMenuItem id="remove" tone="danger">{job.state === "analyzing" ? m["ui"]["Stop and remove"] : m["editor"]["remove"]}</DropdownMenuItem>
       </DropdownMenu>
     </DropdownMenuTrigger>
   );
@@ -280,12 +280,12 @@ export default function AnalysesRoute() {
                 ]}
               />}
               {sharing ? <ShareAnalysisDialog analysisId={sharing.id} name={sharing.name} onClose={() => setSharing(null)} /> : null}
-              <AlertDialog isOpen={deleting !== null} onOpenChange={(open) => { if (!open) setDeleting(null); }} title={uiCopy["ui"]["Delete this analysis?"]} tone="danger"
-                confirmLabel={uiCopy["common"]["delete"]} cancelLabel={uiCopy["ui"]["Keep it"]} isConfirming={remove.isPending} onConfirm={() => { if (deleting) remove.mutate(deleting); }}>
+              <AlertDialog isOpen={deleting !== null} onOpenChange={(open) => { if (!open) setDeleting(null); }} title={m["ui"]["Delete this analysis?"]} tone="danger"
+                confirmLabel={m["common"]["delete"]} cancelLabel={m["ui"]["Keep it"]} isConfirming={remove.isPending} onConfirm={() => { if (deleting) remove.mutate(deleting); }}>
                 <p>{deleting ? `${deleting.name} ${working(deleting) ? "stops and is" : "is"} deleted with its results and share links. The video is deleted too unless another analysis uses it. This cannot be undone.` : null}</p>
               </AlertDialog>
               <AlertDialog isOpen={removingJob !== null} onOpenChange={(open) => { if (!open) setRemovingJob(null); }} tone="danger"
-                title={removingJob?.state === "analyzing" ? uiCopy["ui"]["Stop and remove this video?"] : uiCopy["ui"]["Remove this video?"]} confirmLabel={uiCopy["editor"]["remove"]} cancelLabel={uiCopy["ui"]["Keep it"]}
+                title={removingJob?.state === "analyzing" ? m["ui"]["Stop and remove this video?"] : m["ui"]["Remove this video?"]} confirmLabel={m["editor"]["remove"]} cancelLabel={m["ui"]["Keep it"]}
                 onConfirm={() => {
                   const job = removingJob; setRemovingJob(null);
                   if (job) void queue.remove(job.id).then(() => toast({ tone: "success", title: `Removed ${job.name}` }), () => { queue.refresh(); toast({ tone: "danger", title: `Could not remove ${job.name}` }); });

@@ -191,7 +191,7 @@ function PhaseBars({ rows, locale }: { rows: RepRow[]; locale: Locale }) {
 
 /** Choose analyses to compare with: yours (completed) and the ones shared with you. Several at once. */
 export function CompareDialog({ exclude, initial, onClose, onConfirm }: { exclude: string[]; initial: CompareSource[]; onClose: () => void; onConfirm: (sources: CompareSource[]) => void }) {
-  const uiCopy = useUiCopy();
+
 
   const m = useT();
   const api = useApi();
@@ -219,19 +219,19 @@ export function CompareDialog({ exclude, initial, onClose, onConfirm }: { exclud
     return next;
   });
 
-  return <Dialog isOpen title={uiCopy["ui"]["Compare with"]} description={uiCopy["ui"]["Choose one or more analyses. Their repetitions join the table and the charts."]} onOpenChange={open => { if (!open) onClose(); }}
+  return <Dialog isOpen title={m["ui"]["Compare with"]} description={m["ui"]["Choose one or more analyses. Their repetitions join the table and the charts."]} onOpenChange={open => { if (!open) onClose(); }}
     size="lg" placement="right" closeLabel={m.common.close}
     footer={close => <>
       <Button variant="secondary" onPress={close}>{m.common.cancel}</Button>
-      <Button variant="primary" isDisabled={!chosen.size} onPress={() => { onConfirm([...chosen.values()]); close(); }}>{chosen.size > 1 ? `Compare ${chosen.size} analyses` : uiCopy["video"]["compare"]["submit"]}</Button>
+      <Button variant="primary" isDisabled={!chosen.size} onPress={() => { onConfirm([...chosen.values()]); close(); }}>{chosen.size > 1 ? `Compare ${chosen.size} analyses` : m["video"]["compare"]["submit"]}</Button>
     </>}>
     <div className={styles.dialog}>
-      <SearchInput aria-label={uiCopy["video"]["list"]["searchLabel"]} placeholder={uiCopy["ui"]["Search by name or exercise"]} value={search} onChange={setSearch} />
-      <ChipGroup aria-label={uiCopy["ui"]["Filter by lift"]} selectedKeys={lift ? [lift] : []} onSelectionChange={keys => { const key = [...keys][0]; setLift(key == null ? null : String(key)); }}>
+      <SearchInput aria-label={m["video"]["list"]["searchLabel"]} placeholder={m["ui"]["Search by name or exercise"]} value={search} onChange={setSearch} />
+      <ChipGroup aria-label={m["ui"]["Filter by lift"]} selectedKeys={lift ? [lift] : []} onSelectionChange={keys => { const key = [...keys][0]; setLift(key == null ? null : String(key)); }}>
         {LIFTS.map(name => <Chip key={name} id={name}>{name}</Chip>)}
       </ChipGroup>
-      <p className={styles.hint}>Up to {MAX_COMPARED}  {uiCopy["ui"]["videos at once"]}{exclude.length ? `, including this one` : ''}: {chosen.size} of {room}  {uiCopy["ui"]["chosen."]}</p>
-      {own.isPending ? <Skeleton height="12rem" radius="lg" /> : !options.length ? <p className={styles.hint}><Search aria-hidden="true" />{text || lift ? uiCopy["ui"]["No matching analyses."] : uiCopy["ui"]["No other completed analyses."]}</p>
+      <p className={styles.hint}>Up to {MAX_COMPARED}  {m["ui"]["videos at once"]}{exclude.length ? `, including this one` : ''}: {chosen.size} of {room}  {m["ui"]["chosen."]}</p>
+      {own.isPending ? <Skeleton height="12rem" radius="lg" /> : !options.length ? <p className={styles.hint}><Search aria-hidden="true" />{text || lift ? m["ui"]["No matching analyses."] : m["ui"]["No other completed analyses."]}</p>
         : <ul className={styles.options}>
           {options.map(({ source, meta, movement }) => {
             const on = chosen.has(sourceKey(source));

@@ -95,7 +95,7 @@ function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { det
   const footer = canEdit ? <div className={styles.wkPanelFoot}>
     <Button variant="ghost" iconStart={<Eraser />} isDisabled={mutate.isPending} onPress={clear}>{uiCopy["editor"]["sheet"]["clear"]}</Button>
     <Button variant="secondary" isDisabled={mutate.isPending} onPress={close}>{uiCopy["common"]["cancel"]}</Button>
-    <Button variant="primary" loading={mutate.isPending} onPress={() => { void save(draft.exercises, "Log saved").catch(() => {}); }}>{uiCopy["common"]["save"]}</Button>
+    <Button variant="primary" loading={mutate.isPending} onPress={() => { void save(draft.exercises, uiCopy.ui["Log saved"]).catch(() => {}); }}>{uiCopy["common"]["save"]}</Button>
   </div> : <div className={styles.wkPanelFoot}><Button variant="secondary" onPress={onClose}>{uiCopy["common"]["close"]}</Button></div>;
   const state = mutate.isPending ? "saving" : mutate.isError ? "error" : dirty ? "dirty" : null;
   const title = <span className={styles.wkPanelTitle}>
@@ -251,7 +251,7 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
   const volume = logged ? logged.exercises.reduce((n, x) => n + x.sets.reduce((m, set) => m + (performed(set) && set.reps && set.load && set.loadUnit !== "lb" ? set.reps * set.load : 0), 0), 0) : 0;
   const stats: { label: string; value: ReactNode }[] = [
     { label: uiCopy["exercises"]["title"], value: plan.length },
-    { label: logged ? "Sets done" : "Sets", value: logged ? <>{doneSets}<small>/{totalSets}</small></> : totalSets },
+    { label: logged ? uiCopy.ui["Sets done"] : uiCopy.editor.sheet.columns.sets, value: logged ? <>{doneSets}<small>/{totalSets}</small></> : totalSets },
     ...(logged && totalSets ? [{ label: uiCopy["ui"]["Completion"], value: <span style={{ color: completionColor(Math.round(Math.min(1, doneSets / totalSets) * 100)) }}>{Math.round(Math.min(1, doneSets / totalSets) * 100)}<small>%</small></span> }] : []),
     ...(volume ? [{ label: uiCopy["editor"]["sheet"]["volume"]["title"], value: <>{Math.round(volume).toLocaleString()}<small> kg</small></> }] : []),
     ...(logged?.durationSeconds ? [{ label: uiCopy["editor"]["sheet"]["columns"]["time"], value: <>{Math.max(1, Math.round(logged.durationSeconds / 60))}<small> min</small></> }]
@@ -450,7 +450,7 @@ function SetRow({ label, kind, prescription, actual, missing = false }: { label:
     <span className={styles.wkRowMain}>
       {main ? <><b>{main.value}</b> {main.unit}</> : <b>—</b>}
       {load ? <><span className={styles.wkTimes} aria-hidden="true">×</span><b>{load}</b></> : null}
-      {kind !== "Standard" ? <small className={styles.wkKind}>{kind === "Warmup" ? uiCopy["editor"]["setKinds"]["Warmup"] : kind}</small> : null}
+      {kind !== "Standard" ? <small className={styles.wkKind}>{uiCopy.editor.setKinds[kind as keyof typeof uiCopy.editor.setKinds] ?? kind}</small> : null}
     </span>
     <span className={styles.wkRowMeta}>{state === "skipped" ? <span className={styles.wkFlag} data-tone="skipped">{uiCopy["ui"]["Skipped"]}</span> : done ? <>{plan ? `plan ${plan}` : ""}{effort.length ? `${plan ? " · " : ""}${effort.join(" · ")}` : ""}</> : effort.join(" · ")}</span>
     <span className={styles.wkRowCheck} aria-label={done ? uiCopy["dashboard"]["discovery"]["done"] : state === "skipped" ? uiCopy["ui"]["Skipped"] : undefined}>{done ? <Check aria-hidden="true" /> : state === "skipped" ? <X aria-hidden="true" /> : null}</span>
@@ -486,13 +486,13 @@ function WorkoutAnalysis({ detail, execution, feedbackOwn }: { detail: Detail; e
   const rpe = avg(done.map(set => set.rpe).filter((v): v is number => v != null));
   const completion = plannedSets ? Math.round(Math.min(1, done.length / plannedSets) * 100) : 0;
   const tiles = [
-    { label: uiCopy["ui"]["Completion"], value: `${completion}%`, sub: `${done.length} of ${plannedSets} sets`, color: completionColor(completion), bar: completion },
-    { label: uiCopy["editor"]["sheet"]["volume"]["title"], value: `${fmt(volume)} kg`, sub: plannedVolume ? `plan ${fmt(plannedVolume)} kg · ${volume >= plannedVolume ? "+" : ""}${fmt(volume - plannedVolume)}` : "load × reps" },
+    { label: uiCopy["ui"]["Completion"], value: `${completion}%`, sub: formatInterfaceText(uiCopy.ui["{0} of {1} sets"], [done.length, plannedSets]), color: completionColor(completion), bar: completion },
+    { label: uiCopy["editor"]["sheet"]["volume"]["title"], value: `${fmt(volume)} kg`, sub: plannedVolume ? `plan ${fmt(plannedVolume)} kg · ${volume >= plannedVolume ? "+" : ""}${fmt(volume - plannedVolume)}` : uiCopy.ui["load × reps"] },
     { label: uiCopy["editor"]["columns"]["reps"], value: fmt(reps), sub: plannedReps ? `plan ${fmt(plannedReps)}` : "" },
-    { label: uiCopy["editor"]["sheet"]["columns"]["time"], value: minutes ? `${fmt(minutes)} min` : "—", sub: minutes && done.length ? `${fmt((minutes * 60) / done.length)} s per set` : "" },
-    { label: uiCopy["ui"]["Density"], value: minutes ? `${fmt(volume / minutes)} kg/min` : "—", sub: "volume per minute" },
-    { label: uiCopy["ui"]["Average RPE"], value: fmt(rpe, 1), sub: execution.feedback?.sessionRpe != null ? `session ${execution.feedback.sessionRpe}` : "from logged sets" },
-    { label: uiCopy["ui"]["Skipped sets"], value: fmt(skipped), sub: `${execution.exercises.filter(x => !x.prescribedInstanceId).length} added exercises` },
+    { label: uiCopy["editor"]["sheet"]["columns"]["time"], value: minutes ? `${fmt(minutes)} min` : "—", sub: minutes && done.length ? formatInterfaceText(uiCopy.ui["{0} s per set"], [fmt((minutes * 60) / done.length)]) : "" },
+    { label: uiCopy["ui"]["Density"], value: minutes ? `${fmt(volume / minutes)} kg/min` : "—", sub: uiCopy.ui["volume per minute"] },
+    { label: uiCopy["ui"]["Average RPE"], value: fmt(rpe, 1), sub: execution.feedback?.sessionRpe != null ? `session ${execution.feedback.sessionRpe}` : uiCopy.ui["from logged sets"] },
+    { label: uiCopy["ui"]["Skipped sets"], value: fmt(skipped), sub: formatInterfaceText(uiCopy.ui["{0} added exercises"], [execution.exercises.filter(x => !x.prescribedInstanceId).length]) },
   ];
   const rows = [
     ...plan.map(exercise => {
@@ -581,7 +581,7 @@ function WorkoutHeatmap({ execution, plan }: { execution: Execution; plan: Worko
     <div className={styles.anHeatmap}>
       <MuscleHeatmap values={values} label={key => dictionaryLabel("muscles", key)}
         format={value => metric === "sets" ? `${fmt(value, 1)} sets` : `${fmt(value)} kg`}
-        caption={metric === "sets" ? "Sets done per muscle (secondary muscles count half)." : "Volume (load × reps) per muscle (secondary muscles count half)."} />
+        caption={metric === "sets" ? uiCopy.ui["Sets done per muscle (secondary muscles count half)."] : uiCopy.ui["Volume (load × reps) per muscle (secondary muscles count half)."]} />
     </div>
   </section>;
 }

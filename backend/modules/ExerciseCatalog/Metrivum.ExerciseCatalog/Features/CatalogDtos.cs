@@ -14,7 +14,7 @@ public sealed record DictionariesDto(IReadOnlyList<DictionaryEntryDto> Muscles, 
 public sealed record ExerciseDto(Guid Id, string Name, string Description, string Instructions, string? DemonstrationUrl,
     int Version, bool IsArchived, bool IsFavorite, bool IsAuthor, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt,
     IReadOnlyList<TagDto> Tags, IReadOnlyList<string> PrimaryMuscleKeys, IReadOnlyList<string> SecondaryMuscleKeys,
-    IReadOnlyList<string> MovementPatternKeys);
+    IReadOnlyList<string> MovementPatternKeys, bool CanEdit = false);
 public sealed record ExerciseListItemDto(Guid Id, string Name, string Description, int Version, bool IsFavorite, DateTimeOffset CreatedAt, string[] PrimaryMuscleKeys);
 public sealed record CatalogPage(IReadOnlyList<ExerciseListItemDto> Items, int Total, int Page, int PageSize);
 public sealed record ExerciseRevisionDto(int Version, string Description, string Instructions, bool IsArchived, DateTimeOffset CreatedAt);

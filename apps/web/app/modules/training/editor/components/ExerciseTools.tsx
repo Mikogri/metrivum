@@ -1,4 +1,3 @@
-import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { Check, ChevronDown, ChevronsUpDown, Lock } from "lucide-react";
 import { useState } from "react";
 import { SET_KINDS, type ExerciseInstance, type GroupKind, type SetKind, type Workout } from "@metrivum/api-client-web";
@@ -23,7 +22,7 @@ export function ExerciseTools({ workout, instance, names, apply, advancedAllowed
   workout: Workout; instance: ExerciseInstance; names: Map<string, ExerciseLabel>; apply?: Apply;
   advancedAllowed: boolean; style: React.CSSProperties;
 }) {
- const uiCopy = useUiCopy();
+
 
   const pl = useAppLocale().locale === "pl";
   const m = useT();
@@ -73,7 +72,7 @@ export function ExerciseTools({ workout, instance, names, apply, advancedAllowed
       <div className={styles.content}>
         <section className={styles.section} aria-labelledby="tools-kind">
           <header className={styles.sectionHead}>
-            <h3 id="tools-kind">{pl ? "Typ serii" : uiCopy["editor"]["panel"]["kind"]}</h3>
+            <h3 id="tools-kind">{pl ? "Typ serii" : m["editor"]["panel"]["kind"]}</h3>
             <span>{allKind ? (pl ? "Wszystkie serie" : "All sets") : (pl ? "Różne typy" : "Mixed types")}</span>
           </header>
           <ul className={styles.kindList}>
@@ -108,12 +107,12 @@ export function ExerciseTools({ workout, instance, names, apply, advancedAllowed
           <header className={styles.sectionHead}><h3 id="tools-group">{pl ? "Łączenie ćwiczeń" : "Linking exercises"}</h3></header>
           {group ? <>
             <div className={styles.groupCard}>
-              <strong>{group.kind === "Circuit" ? (pl ? "Obwód" : uiCopy["editor"]["panel"]["groupKind"]["Circuit"]) : uiCopy["ui"]["Super Set"]} {groupIndex}</strong>
+              <strong>{group.kind === "Circuit" ? (pl ? "Obwód" : m["editor"]["panel"]["groupKind"]["Circuit"]) : m["ui"]["Super Set"]} {groupIndex}</strong>
               <span>{group.exerciseIds.map(name).join(" + ")}</span>
             </div>
             <NumberInput label={pl ? "Przerwa po rundzie (s)" : "Rest after round (s)"} minValue={0} maxValue={86400} value={Number(group.restSeconds)} isDisabled={!apply || (group.kind !== "Superset" && !advancedAllowed)}
               onChange={value => Number.isFinite(value) && apply?.(doc => updateGroup(doc, workout.id, group.id, { restSeconds: value }))} />
-            {group.kind === "Circuit" ? <NumberInput label={pl ? "Rundy" : uiCopy["editor"]["panel"]["rounds"]} minValue={1} maxValue={20} value={Number(group.rounds)} isDisabled={!apply || !advancedAllowed}
+            {group.kind === "Circuit" ? <NumberInput label={pl ? "Rundy" : m["editor"]["panel"]["rounds"]} minValue={1} maxValue={20} value={Number(group.rounds)} isDisabled={!apply || !advancedAllowed}
               onChange={value => Number.isFinite(value) && apply?.(doc => updateGroup(doc, workout.id, group.id, { rounds: value }))} /> : null}
             <Button isDisabled={!apply} onPress={() => apply?.(doc => removeGroup(doc, workout.id, group.id))}>{pl ? "Rozłącz ćwiczenia" : "Unlink exercises"}</Button>
           </> : <>
@@ -121,7 +120,7 @@ export function ExerciseTools({ workout, instance, names, apply, advancedAllowed
               {(["None", "Superset", "Circuit"] as const).map(kind => <li key={kind}>
                 <button type="button" role="radio" aria-checked={groupKind === kind} className={styles.kindRow} disabled={!apply || (kind !== "None" && !candidates.length) || (kind === "Circuit" && circuitLocked)}
                   onClick={() => { setGroupKind(kind); setPartners(candidates[0] ? [candidates[0].id] : []); }}>
-                  <span>{kind === "None" ? (pl ? "Bez łączenia" : "Not linked") : kind === "Superset" ? uiCopy["ui"]["Super Set"] : (pl ? "Obwód (Circuit)" : uiCopy["editor"]["panel"]["groupKind"]["Circuit"])}</span>
+                  <span>{kind === "None" ? (pl ? "Bez łączenia" : "Not linked") : kind === "Superset" ? m["ui"]["Super Set"] : (pl ? "Obwód (Circuit)" : m["editor"]["panel"]["groupKind"]["Circuit"])}</span>
                   {kind === "Circuit" && circuitLocked ? <Lock aria-hidden="true" className={styles.kindLock} /> : groupKind === kind ? <Check aria-hidden="true" className={styles.kindCheck} /> : null}
                 </button>
               </li>)}

@@ -42,6 +42,7 @@ function exercise(id: string, name: string, description: string, primary: string
     isArchived: false,
     isFavorite: false,
     isAuthor: false,
+    canEdit: Boolean(extra.isAuthor) && !extra.isArchived,
     createdAt: ago(days),
     updatedAt: ago(days),
     tags: [],

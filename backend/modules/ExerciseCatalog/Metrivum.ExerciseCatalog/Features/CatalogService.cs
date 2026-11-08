@@ -142,8 +142,12 @@ public sealed partial class CatalogService(ExerciseCatalogDbContext db, IAccount
 
     public async Task<ExerciseDto> UpdateAsync(Guid id, UpdateExerciseRequest request, CancellationToken ct)
     {
-        await access.RequireAsync("exercises.create", ct);
-        var exercise = await OwnedAsync(id, request.ExpectedVersion, ct);
+        await access.RequireAsync("exercises.browse", ct);
+        var editor = await IsCatalogEditorAsync(ct);
+        if (!editor) await access.RequireAsync("exercises.create", ct);
+        var exercise = await db.Exercises.SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw ApiException.NotFound();
+        if (!editor && exercise.AuthorId != account.UserId) throw ApiException.NotFound();
+        CheckVersion(exercise.Version, request.ExpectedVersion);
         if (exercise.IsArchived)
             throw new ApiException(409, "EXERCISE_ARCHIVED", "Archived exercises cannot be edited.");
         exercise.Description = Text(request.Description, 10000, "description");
@@ -327,7 +331,14 @@ public sealed partial class CatalogService(ExerciseCatalogDbContext db, IAccount
             exercise.Tags.OrderBy(x => x.Tag.NormalizedName).ThenBy(x => x.TagId).Select(x => new TagDto(x.TagId, x.Tag.Name)).ToArray(),
             exercise.Muscles.Where(x => x.IsPrimary).Select(x => x.MuscleKey).Order().ToArray(),
             exercise.Muscles.Where(x => !x.IsPrimary).Select(x => x.MuscleKey).Order().ToArray(),
-            exercise.MovementPatterns.Select(x => x.PatternKey).Order().ToArray());
+            exercise.MovementPatterns.Select(x => x.PatternKey).Order().ToArray(),
+            !exercise.IsArchived && (await IsCatalogEditorAsync(ct) || exercise.AuthorId == account.UserId && (await access.GetAsync(ct)).Features.Any(x => x.Key == "exercises.create" && x.Available)));
+    }
+
+    private async Task<bool> IsCatalogEditorAsync(CancellationToken ct)
+    {
+        try { await account.RequireAdminAsync("catalog.exercises.edit", ct); return true; }
+        catch (ApiException exception) when (exception.Code == "ADMIN_PERMISSION_REQUIRED") { return false; }
     }
 
     private async Task<Exercise> OwnedAsync(Guid id, int expectedVersion, CancellationToken ct)

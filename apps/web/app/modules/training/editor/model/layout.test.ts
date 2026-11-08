@@ -77,3 +77,23 @@ it("cached geometry matches the original across sparse widths and repeated looku
     expect(geometry.span(col, 9)).toBe(columnSpan(widths, col, 9));
   }
 });
+
+it("compact auto arrange ignores open cycle/workout sizes and keeps folded cards one cell apart", async () => {
+  const { addBlock, addCycle, emptyDocument } = await import("./document");
+  const { addCycleWorkout } = await import("./workouts");
+  const { compactAutoLayout, CYCLE_COLS, resolveLayout } = await import("./layout");
+  const b = addBlock(emptyDocument(), "Block");
+  const c = addCycle(b.doc, b.id, "Cycle");
+  const next = addCycle(c.doc, b.id, "Next");
+  const a = addCycleWorkout(next.doc, c.id!, "A");
+  const z = addCycleWorkout(a.doc, c.id!, "B");
+  const openSizes = { [c.id!]: { cols: 40, rows: 50 }, [a.id!]: { cols: 9, rows: 80 }, [z.id!]: { cols: 9, rows: 60 } };
+  const layout = compactAutoLayout(z.doc, openSizes);
+  expect(layout).toEqual(compactAutoLayout(z.doc));
+  expect(layout[a.id!]!.row - layout[c.id!]!.row).toBe(3);
+  expect(layout[z.id!]!.row - layout[a.id!]!.row).toBe(2);
+  expect(layout[next.id!]!.col - layout[c.id!]!.col).toBe(CYCLE_COLS + 1);
+  const folded = { [b.id]: { cols: 2, rows: 3 }, [c.id!]: { cols: 2, rows: 2 }, [next.id!]: { cols: 2, rows: 2 }, [a.id!]: { cols: 3, rows: 1 }, [z.id!]: { cols: 3, rows: 1 } };
+  expect(resolveLayout(layout, folded)).toEqual(layout);
+  expect(z.doc.blocks[0]!.cycles).toHaveLength(2);
+});

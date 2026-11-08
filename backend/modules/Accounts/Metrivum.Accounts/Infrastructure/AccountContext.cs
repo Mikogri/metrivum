@@ -82,6 +82,7 @@ public sealed class AccountContext : IAccountContext
         var role = permission switch
         {
             "catalog.manage" => "CatalogAdmin",
+            "catalog.exercises.edit" => current.Roles.Contains("CatalogAdmin") ? "CatalogAdmin" : "ExerciseEditor",
             "access.manage" => "AccessAdmin",
             _ => ""
         };

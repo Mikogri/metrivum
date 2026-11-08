@@ -1,5 +1,4 @@
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
-import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { X, Save, Trash2, Variable, Undo2, Maximize2, CircleAlert, CircleCheck } from "lucide-react";
 import { Select, Option, Dialog, overlayPosition, overlayViewport } from "@metrivum/ui-web";
 import { useCellValidation } from "../cell-validation";
@@ -47,9 +46,9 @@ type Props = {
   onMaxEffort?: (active: boolean) => void;
 };
 /** Labels for the formula picker's groups. */
-function kindLabel(kind: "variable" | "function" | "builtIn" | "custom" | "maximum", locale: string) {
+function kindLabel(kind: "variable" | "function" | "builtIn" | "custom" | "maximum", locale: string, maximumLabel: string) {
   const pl = locale === "pl";
-  if (kind === "maximum") return pl ? "Maksymalny czas" : "Maximum effort time";
+  if (kind === "maximum") return maximumLabel;
   return kind === "variable" ? (pl ? "Dane klienta" : "Client data") : kind === "function" ? (pl ? "Funkcje" : "Functions") : kind === "builtIn" ? (pl ? "Wbudowane formuły" : "Built-in formulas") : pl ? "Twoje formuły" : "Your formulas";
 }
 /** "base1Rm" reads as "Base 1RM". */
@@ -65,7 +64,7 @@ function convertQuantity(value: Quantity, unit: Unit): Quantity {
 type Choice = { key: string; label: string; kind: "variable" | "function" | "builtIn" | "custom" | "maximum"; version?: number; inputs?: Record<string, Unit> };
 
 export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, label, style, className, initialText, onDone, customAllowed = false, formulaAllowed = true, effortAsLoad = false, fallbackValue, required = false, maxReps, valueKind = "mass", valueUnit, onUnitChange, constraints, allowRange = true, maxEffort = false, onMaxEffort }: Props) {
-  const uiCopy = useUiCopy();
+
 
   const m = useT();
   const locale = useLocale();
@@ -322,35 +321,35 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
   const invalid = Boolean(constraintError || error || evaluation.error || required && (!saved && !prescription.load && !text?.trim() || prescription.load?.minimum.value === 0 || Boolean(saved && evaluation.data && evaluation.data.result.value <= 0)));
   const validationReason = constraintError || error || evaluationError || (required && !prescription.load && !saved ? "Enter a positive load or a formula; blank values cannot be applied." : "The formula must produce a valid positive load.");
   const validationId = useCellValidation(invalid, label, validationReason);
-  const invalidText = locale === "pl" ? "Niepoprawny format" : "Invalid format";
+  const invalidText = m.ui["Invalid format"];
 
   // What the formula mark says: the formula, and that a click shows its details.
-  const formulaLabel = locale === "pl" ? "Szczegóły i edycja formuły" : "Formula details and editing";
+  const formulaLabel = m.ui["Formula details and editing"];
   const formulaTitle = saved ? `${formulaText(saved)}${result ? ` → ${result}` : ""}${missing.length ? (locale === "pl" ? " · czeka na dane" : " · waiting for data") : ""}` : undefined;
 
   const inspector = (
         <div ref={auxiliary} className={styles.auxiliary} data-expanded={expanded || undefined} style={expanded ? undefined : popupStyle} data-no-drag onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()} onMouseDown={(event) => event.stopPropagation()} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); cancel(); } }}>
           {expanded ? <FormulaExpressionInput label={label} value={text ?? raw} inputNames={variableNames} onChange={value => { changed.current = true; setText(value); setBinding(null); setDismissed(false); setError(""); }} /> : null}
-          <div className={styles.popupHeader}>{showOptions ? <span className={styles.group}>{kindLabel(options[0]?.kind ?? "function", locale)}</span> : <span className={styles.popupTitle}><FormulaMark size="sm" />{locale === "pl" ? "Dane formuły" : "Formula data"}</span>}{!expanded ? <button type="button" className={styles.closeOptions} aria-label={uiCopy["ui"]["Expand formula editor"]} onPointerDown={event => event.preventDefault()} onClick={() => { setExpanded(true); setSourcesOpen(true); }}><Maximize2 aria-hidden="true" /></button> : null}<button type="button" className={styles.closeOptions} aria-label={uiCopy["ui"]["Close variable options"]} onPointerDown={event => event.preventDefault()} onMouseDown={event => event.preventDefault()} onClick={closeOptions}><X aria-hidden="true" /></button></div>
+          <div className={styles.popupHeader}>{showOptions ? <span className={styles.group}>{kindLabel(options[0]?.kind ?? "function", locale, m.ui["Maximum effort time"])}</span> : <span className={styles.popupTitle}><FormulaMark size="sm" />{locale === "pl" ? "Dane formuły" : "Formula data"}</span>}{!expanded ? <button type="button" className={styles.closeOptions} aria-label={m["ui"]["Expand formula editor"]} onPointerDown={event => event.preventDefault()} onClick={() => { setExpanded(true); setSourcesOpen(true); }}><Maximize2 aria-hidden="true" /></button> : null}<button type="button" className={styles.closeOptions} aria-label={m["ui"]["Close variable options"]} onPointerDown={event => event.preventDefault()} onMouseDown={event => event.preventDefault()} onClick={closeOptions}><X aria-hidden="true" /></button></div>
           {showOptions ? <>
             <ul id={listId} className={styles.options} role="listbox" aria-label={m.editor.panel.formula}>
               {options.map((option, i) => <li key={option.key}>
-                {i > 0 && options[i - 1]!.kind !== option.kind ? <span className={styles.group} aria-hidden="true">{kindLabel(option.kind, locale)}</span> : null}
+                {i > 0 && options[i - 1]!.kind !== option.kind ? <span className={styles.group} aria-hidden="true">{kindLabel(option.kind, locale, m.ui["Maximum effort time"])}</span> : null}
                 <button type="button" role="option" id={`${listId}-${i}`} aria-selected={active === i} data-kind={option.kind}
                   onPointerDown={(event) => event.preventDefault()} onMouseDown={(event) => event.preventDefault()} onPointerMove={() => setActive(i)} onClick={() => void choose(option)}>{option.label}{option.kind === "variable" && clientVariableSource(option.key.slice(2), exerciseId, exerciseReps) ? <small aria-hidden="true"> · {(option.key === "v:oneRepMax" || option.key === "v:repMax") ? (locale === "pl" ? "Wybrane ćwiczenie" : "Selected exercise") : (locale === "pl" ? "Profil klienta" : "Client profile")}</small> : null}</button>
               </li>)}
-              {!options.length ? <li className={styles.empty}>{locale === "pl" ? "Nic nie pasuje" : uiCopy["training"]["library"]["noResultsTitle"]}</li> : null}
+              {!options.length ? <li className={styles.empty}>{locale === "pl" ? "Nic nie pasuje" : m["training"]["library"]["noResultsTitle"]}</li> : null}
             </ul>
             <p className={styles.keys} aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> {locale === "pl" ? "wybierz" : "choose"} <kbd>Enter</kbd> {locale === "pl" ? "wstaw" : "insert"} <kbd>Esc</kbd> {locale === "pl" ? "anuluj" : "cancel"}</p>
           </> : null}
-          {!draft ? <p className={styles.sourceNote}>{locale === "pl" ? "Wpisane ręcznie" : "Entered manually"}</p> : null}
-          {!draft && effortAsLoad ? <div className={styles.loadModes} aria-label={uiCopy["ui"]["Load format"]}>{["kg", "lb", "%", "RPE", "RIR"].map(mode => <button key={mode} type="button" onPointerDown={event => event.preventDefault()} onClick={() => {
+          {!draft ? <p className={styles.sourceNote}>{m.ui["Entered manually"]}</p> : null}
+          {!draft && effortAsLoad ? <div className={styles.loadModes} aria-label={m["ui"]["Load format"]}>{["kg", "lb", "%", "RPE", "RIR"].map(mode => <button key={mode} type="button" onPointerDown={event => event.preventDefault()} onClick={() => {
             changed.current = true;
             const value = (text ?? "").match(/[\d.,]+/)?.[0] ?? "";
             setText(mode === "RPE" || mode === "RIR" ? `${mode} ${value}` : `${value}${mode === "%" ? "%" : ` ${mode}`}`);
             setError(""); focusInput();
           }}>{mode}</button>)}</div> : null}
-          {binding && dismissed ? <p className={styles.heading}>{(text ?? "").replace(/^\//, "")}<span>{locale === "pl" ? "Formuła" : uiCopy["editor"]["panel"]["formula"]}</span></p> : null}
+          {binding && dismissed ? <p className={styles.heading}>{(text ?? "").replace(/^\//, "")}<span>{locale === "pl" ? "Formuła" : m["editor"]["panel"]["formula"]}</span></p> : null}
           {binding && dismissed ? <div className={styles.parameters}>{Object.entries(parameters).map(([name, unit]) => <label key={name}><span className={styles.paramName}>{humanName(name)}{binding.builtIn === "percentage-1rm" && name === "percentage" ? <em>%</em> : unitLabel(unit) ? <em>{unitLabel(unit)}</em> : null}</span>
             <span className={styles.paramRow}><Select size="sm" aria-label={`${name} ${locale === "pl" ? "źródło" : "source"}`} selectedKey={binding.variableBindings?.[name] ?? "manual"} onSelectionChange={(key) => {
               changed.current = true;
@@ -358,7 +357,7 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
               if (alias) { variableBindings[name] = alias; if (context.variables[alias]) inputs[name] = context.variables[alias]; else delete inputs[name]; } else { delete variableBindings[name]; delete inputs[name]; }
               setBinding({ ...binding, inputs, variableBindings });
             }}><Option id="manual">{locale === "pl" ? "Wartość własna" : "Manual value"}</Option>{exerciseId && unit === "Kg" ? <Option id={exerciseMaxAlias(exerciseId)}>oneRepMax</Option> : null}{Object.entries(context.variables).filter(([alias, quantity]) => quantity.unit === unit && !/^exercise(?:Time)?\d+Rm_/.test(alias)).map(([alias]) => <Option key={alias} id={alias}>{alias}</Option>)}</Select>
-            <input aria-label={formatInterfaceText(uiCopy["ui"]["{0} value"], [name])} inputMode="decimal" type="number" disabled={Boolean(binding.variableBindings?.[name])} value={binding.inputs[name] ? Number((binding.inputs[name].value * (binding.builtIn === "percentage-1rm" && name === "percentage" ? 100 : 1)).toPrecision(12)) : ""} onChange={(event) => {
+            <input aria-label={formatInterfaceText(m["ui"]["{0} value"], [name])} inputMode="decimal" type="number" disabled={Boolean(binding.variableBindings?.[name])} value={binding.inputs[name] ? Number((binding.inputs[name].value * (binding.builtIn === "percentage-1rm" && name === "percentage" ? 100 : 1)).toPrecision(12)) : ""} onChange={(event) => {
               changed.current = true;
               const inputs = { ...binding.inputs }; if (event.target.value === "") delete inputs[name]; else inputs[name] = { value: Number(event.target.value) / (binding.builtIn === "percentage-1rm" && name === "percentage" ? 100 : 1), unit }; setBinding({ ...binding, inputs });
             }} placeholder="0" /></span>
@@ -376,26 +375,26 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
             const own = Boolean(manual[name]) || manualInputs.includes(name);
             const unit = CLIENT_VARIABLE_UNITS[name as keyof typeof CLIENT_VARIABLE_UNITS] ?? available?.unit ?? saved?.inputs[name]?.unit ?? "Kg";
             return <label key={name} className={styles.source} data-state={own ? "manual" : available ? "ready" : "waiting"}><span className={styles.paramName}>{humanName(name)}<em>{unitLabel(unit)}</em><i className={styles.sourceState}>{own ? (locale === "pl" ? "ręcznie" : "manual") : available ? (locale === "pl" ? "dostępne" : "available") : (locale === "pl" ? "brak danych" : "no data yet")}</i></span>
-              <span className={styles.paramRow}><Select size="sm" aria-label={formatInterfaceText(uiCopy["ui"]["{0} source"], [name])} selectedKey={own ? "manual" : "variable"} onSelectionChange={key => {
+              <span className={styles.paramRow}><Select size="sm" aria-label={formatInterfaceText(m["ui"]["{0} source"], [name])} selectedKey={own ? "manual" : "variable"} onSelectionChange={key => {
                 changed.current = true;
                 setManualInputs(current => key === "manual" ? [...new Set([...current, name])] : current.filter(item => item !== name));
                 if (key !== "manual") { const next = { ...manual }; delete next[name]; setManual(next); }
-              }}><Option id="variable">{available ? (context.blockSources?.includes(alias) ? (locale === "pl" ? "Z tabeli bloku" : "From block table") : (locale === "pl" ? "Z zawodnika" : "From athlete")) : (locale === "pl" ? "Zmienna — oczekuje na dane" : "Variable — waiting for data")}</Option><Option id="manual">{locale === "pl" ? "Wpisane ręcznie" : "Entered manually"}</Option></Select>
-              <input aria-label={formatInterfaceText(uiCopy["ui"]["{0} manual value"], [name])} inputMode="decimal" type="number" min="0" value={manual[name]?.value ?? (available && !own ? available.value : "")} disabled={Boolean(available) && !own} onChange={event => {
+              }}><Option id="variable">{available ? (context.blockSources?.includes(alias) ? (locale === "pl" ? "Z tabeli bloku" : "From block table") : (locale === "pl" ? "Z zawodnika" : "From athlete")) : (locale === "pl" ? "Zmienna — oczekuje na dane" : "Variable — waiting for data")}</Option><Option id="manual">{m.ui["Entered manually"]}</Option></Select>
+              <input aria-label={formatInterfaceText(m["ui"]["{0} manual value"], [name])} inputMode="decimal" type="number" min="0" value={manual[name]?.value ?? (available && !own ? available.value : "")} disabled={Boolean(available) && !own} onChange={event => {
                 changed.current = true;
                 const next = { ...manual };
                 if (event.target.value !== "") next[name] = { value: Number(event.target.value), unit }; else delete next[name];
                 setManual(next); setManualInputs(current => [...new Set([...current, name])]);
-              }} placeholder={locale === "pl" ? "Wartość" : uiCopy["editor"]["sheet"]["loadValue"]} /></span>
+              }} placeholder={locale === "pl" ? "Wartość" : m["editor"]["sheet"]["loadValue"]} /></span>
             </label>;
           })}</div> : null}
           {hasParameters ? <p className={styles.result} aria-live="polite" data-state={evaluationError ? "error" : result ? "ok" : "pending"}>
-            <span>{locale === "pl" ? "Wynik" : uiCopy["video"]["detail"]["result"]}</span>
+            <span>{locale === "pl" ? "Wynik" : m["video"]["detail"]["result"]}</span>
             <strong>{result ?? (evaluationError ? invalidText : "…")}</strong>
           </p> : null}
           {!showOptions || expanded ? <div className={styles.actions}>
             {(linked || manualNames.length > 0) ? <button type="button" className={styles.ghost} onPointerDown={event => event.preventDefault()} onMouseDown={event => event.preventDefault()} onClick={keepVariables}><Variable aria-hidden="true" />{locale === "pl" ? "Zostaw zmienną" : "Keep variable"}</button> : null}
-            <button type="button" className={styles.ghost} onPointerDown={event => event.preventDefault()} onClick={() => { onChange({ ...prescription, load: null, loadFormula: null, loadPercent: null, baseValue: null, rpe: null, rir: null }); cancel(); }}><Trash2 aria-hidden="true" />{locale === "pl" ? "Wyczyść" : uiCopy["editor"]["sheet"]["clear"]}</button>
+            <button type="button" className={styles.ghost} onPointerDown={event => event.preventDefault()} onClick={() => { onChange({ ...prescription, load: null, loadFormula: null, loadPercent: null, baseValue: null, rpe: null, rir: null }); cancel(); }}><Trash2 aria-hidden="true" />{locale === "pl" ? "Wyczyść" : m["editor"]["sheet"]["clear"]}</button>
             <span className={styles.spacer} />
             <button type="button" className={styles.ghost} onPointerDown={event => event.preventDefault()} onMouseDown={event => event.preventDefault()} onClick={cancel}><Undo2 aria-hidden="true" />{m.common.cancel}</button>
             <button type="button" className={styles.primary} onPointerDown={event => event.preventDefault()} onMouseDown={event => event.preventDefault()} onClick={finish}><Save aria-hidden="true" />{m.common.save}</button>
@@ -422,8 +421,8 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
     }} onKeyDown={(event) => event.stopPropagation()}>
       {/* A formula cell shows its result; the mark in front of it opens what it is made of and how to edit it. */}
       {(saved || (editing && text?.startsWith("="))) ? readOnly
-        ? <span role="img" aria-label={markedVariable ? uiCopy["ui"]["Linked variable"] : formulaLabel} title={formulaTitle} className={styles.linked} data-waiting={missing.length > 0 || undefined}><FormulaMark size="sm" /></span>
-        : <button type="button" className={`${styles.linked} ${styles.formulaButton}`} data-no-drag data-waiting={missing.length > 0 || undefined} data-open={(editing && (sourcesOpen || showOptions)) || undefined} aria-label={editing ? uiCopy["ui"]["Formula data sources"] : markedVariable ? uiCopy["ui"]["Linked variable"] : formulaLabel} title={formulaTitle}
+        ? <span role="img" aria-label={markedVariable ? m["ui"]["Linked variable"] : formulaLabel} title={formulaTitle} className={styles.linked} data-waiting={missing.length > 0 || undefined}><FormulaMark size="sm" /></span>
+        : <button type="button" className={`${styles.linked} ${styles.formulaButton}`} data-no-drag data-waiting={missing.length > 0 || undefined} data-open={(editing && (sourcesOpen || showOptions)) || undefined} aria-label={editing ? m["ui"]["Formula data sources"] : markedVariable ? m["ui"]["Linked variable"] : formulaLabel} title={formulaTitle}
             onPointerDown={event => {
               formulaPress.current = true;
               // The press ends with its click; a press dragged away ends here too.
@@ -459,7 +458,7 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
           else if (event.key === "Escape") { event.preventDefault(); cancel(); }
         }} />
       {editing && (showOptions || sourcesOpen || expanded) ? expanded ? <Dialog isOpen title={locale === "pl" ? `Formuła · ${label}` : `Formula · ${label}`} description={locale === "pl" ? "Edytuj formułę i uzupełnij dane, z których korzysta." : "Edit the formula and fill in the data it uses."} size="lg" placement="right" onOpenChange={open => { if (!open) cancel(); }}>{inspector}</Dialog> : createPortal(inspector, document.body) : null}
-      {hasUnitSelect ? <Select className={styles.unitSelect} aria-label={formatInterfaceText(uiCopy["ui"]["{0} unit"], [label])} data-no-drag selectedKey={unit} onSelectionChange={key => {
+      {hasUnitSelect ? <Select className={styles.unitSelect} aria-label={formatInterfaceText(m["ui"]["{0} unit"], [label])} data-no-drag selectedKey={unit} onSelectionChange={key => {
         if (onUnitChange) { setUnitOverride(key as Unit); onUnitChange(key as Unit); return; }
         const selected = key as "Kg" | "Lb";
         onChange({ ...prescription, loadUnit: selected, load: prescription.load ? { minimum: convertMass(prescription.load.minimum, selected), maximum: convertMass(prescription.load.maximum, selected) } : prescription.load });

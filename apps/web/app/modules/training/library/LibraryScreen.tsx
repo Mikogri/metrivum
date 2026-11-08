@@ -1,4 +1,3 @@
-import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { HubNavigation } from "~/shared/navigation/HubNavigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Archive, ArchiveRestore, Copy, Folder, FolderInput, FolderPlus, FolderUp, LayoutGrid, LayoutTemplate, MoreVertical, Pencil, Plus, RefreshCw, SearchX, Table2, Trash2, Upload, WandSparkles } from "lucide-react";
@@ -36,7 +35,7 @@ const PAGE_SIZE = 20;
 const DEFAULTS = { folder: "", q: "", sort: "updated", archived: "", page: "1", view: "" };
 
 export function LibraryScreen({ kind }: { kind: DocumentKind }) {
-  const uiCopy = useUiCopy();
+
 
   const m = useT();
   const t = m.training.library;
@@ -50,7 +49,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
   const publish = useMutation({
     mutationFn: (plan: PlanListItem) => publishRevision(api, plan.id, Number(plan.version), crypto.randomUUID()),
     onSuccess: (_, plan) => {
-      toast({ tone: "success", title: plan.publishedNumber == null ? "Program published" : "Changes applied", description: uiCopy["ui"]["Clients assigned to it get this version."] });
+      toast({ tone: "success", title: plan.publishedNumber == null ? "Program published" : "Changes applied", description: m["ui"]["Clients assigned to it get this version."] });
       void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(a) });
       void queryClient.invalidateQueries({ queryKey: trainingKeys.all(a) });
     },
@@ -60,7 +59,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
   const planStatus = (plan: PlanListItem) => {
     const never = plan.publishedNumber == null;
     const pending = !never && Number(plan.publishedDraftVersion) !== Number(plan.version);
-    const badge = never ? <NotPublishedBadge size="sm" /> : pending ? <Badge size="sm" tone="danger" className={styles.pendingBadge}>{uiCopy["editor"]["draftState"]["draft"]}</Badge> : <Badge size="sm" tone="success">{uiCopy["ui"]["Published · v"]}{Number(plan.publishedNumber)}</Badge>;
+    const badge = never ? <NotPublishedBadge size="sm" /> : pending ? <Badge size="sm" tone="danger" className={styles.pendingBadge}>{m["editor"]["draftState"]["draft"]}</Badge> : <Badge size="sm" tone="success">{m["ui"]["Published · v"]}{Number(plan.publishedNumber)}</Badge>;
     return badge;
   };
   const showError = useErrorToast();
@@ -205,7 +204,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
         </DropdownMenuItem>
         {plan.kind === "Program" && !plan.archived && (plan.publishedNumber == null || Number(plan.publishedDraftVersion) !== Number(plan.version)) ? (
           <DropdownMenuItem id="publish" icon={<Upload />} isDisabled={!canManage || publish.isPending}>
-            {plan.publishedNumber == null ? uiCopy["ui"]["Publish"] : uiCopy["ui"]["Apply changes"]}
+            {plan.publishedNumber == null ? m["ui"]["Publish"] : m["ui"]["Apply changes"]}
           </DropdownMenuItem>
         ) : null}
         {isTemplate ? (
@@ -500,7 +499,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
           description={folderId ? undefined : texts.description}
           actions={
             <>
-              {!isTemplate && <LinkButton href="/app/programs/generate" iconStart={<WandSparkles />}>{uiCopy["ui"]["Generate program"]}</LinkButton>}
+              {!isTemplate && <LinkButton href="/app/programs/generate" iconStart={<WandSparkles />}>{m["ui"]["Generate program"]}</LinkButton>}
               {canFolders ? (
                 <Button iconStart={<FolderPlus />} onPress={() => setFolderDialog({ mode: "create", parentId: folderId })}>
                   {t.newFolder}

@@ -13,6 +13,43 @@ namespace Metrivum.IntegrationTests;
 public sealed class AccountAccessTests
 {
     [CatalogPostgresFact]
+    public async Task Exercise_editor_can_edit_foreign_entries_but_cannot_administer_archive_or_keep_access_after_revocation()
+    {
+        using var factory = new ApiFactory(Database);
+        using var owner = Client(factory, out var ownerId);
+        using var editor = Client(factory, out var editorId);
+        await Onboard(owner, ownerId); await Onboard(editor, editorId);
+        using (var db = Access()) {
+            var configuration = "editor-test-" + Guid.NewGuid().ToString("N");
+            db.Configurations.Add(new AccessConfiguration { Id = configuration, GrantedFeatures = ["exercises.browse", "exercises.create"] });
+            db.Assignments.AddRange(new AccessAssignment { UserId = ownerId, ConfigurationId = configuration }, new AccessAssignment { UserId = editorId, ConfigurationId = configuration });
+            await db.SaveChangesAsync();
+        }
+        var id = Guid.NewGuid();
+        using (var db = new Metrivum.ExerciseCatalog.Infrastructure.ExerciseCatalogDbContext(new DbContextOptionsBuilder<Metrivum.ExerciseCatalog.Infrastructure.ExerciseCatalogDbContext>().UseNpgsql(Database).Options)) {
+            var name = "Editor test " + id.ToString("N");
+            db.Exercises.Add(new Metrivum.ExerciseCatalog.Domain.Exercise { Id = id, AuthorId = ownerId, Name = name, NormalizedName = name.ToUpperInvariant(), Description = "Original", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow });
+            await db.SaveChangesAsync();
+        }
+        var path = $"/api/v1/exercises/{id}";
+        Assert.False((await Json(await editor.GetAsync(path))).GetProperty("canEdit").GetBoolean());
+        Assert.Equal(HttpStatusCode.Forbidden, (await editor.PatchAsJsonAsync(path, new { expectedVersion = 1, description = "Denied", instructions = "" })).StatusCode);
+        using (var db = Accounts()) { db.Roles.Add(new UserRole { UserId = editorId, Role = "ExerciseEditor" }); await db.SaveChangesAsync(); }
+        var visible = await Json(await editor.GetAsync(path));
+        Assert.True(visible.GetProperty("canEdit").GetBoolean());
+        Assert.False(visible.GetProperty("isAuthor").GetBoolean());
+        Assert.Equal(HttpStatusCode.OK, (await editor.PatchAsJsonAsync(path, new { expectedVersion = 1, description = "Reviewed", instructions = "Updated" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await editor.PatchAsJsonAsync(path, new { expectedVersion = 1, description = "Stale", instructions = "" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await editor.GetAsync("/api/v1/admin/access")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await editor.PutAsJsonAsync("/api/v1/admin/exercise-dictionaries/muscles/test", new { expectedVersion = 0, labelEn = "Test", labelPl = "Test", isActive = true })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await editor.PostAsJsonAsync(path + "/archive", new { expectedVersion = 2 })).StatusCode);
+        using (var db = Accounts()) { await db.Roles.Where(x => x.UserId == editorId && x.Role == "ExerciseEditor").ExecuteDeleteAsync(); }
+        Assert.False((await Json(await editor.GetAsync(path))).GetProperty("canEdit").GetBoolean());
+        Assert.Equal(HttpStatusCode.Forbidden, (await editor.PatchAsJsonAsync(path, new { expectedVersion = 2, description = "Revoked", instructions = "" })).StatusCode);
+        Assert.Equal("Reviewed", (await Json(await owner.GetAsync(path))).GetProperty("description").GetString());
+    }
+
+    [CatalogPostgresFact]
     public async Task Signed_session_provisions_one_profile_and_requires_onboarding_for_tools()
     {
         using var factory = new ApiFactory(Database);

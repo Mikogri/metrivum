@@ -90,7 +90,7 @@ public sealed class CatalogPostgresTests
         var service = Service(db, owner);
         var created = await service.CreateAsync(new($"History {Guid.NewGuid():N}", "Before", "Original"), default);
         using var strangerDb = Context();
-        var forbidden = await Assert.ThrowsAsync<ApiException>(() => Service(strangerDb).UpdateAsync(created.Id, new(1, "Stolen", ""), default));
+        var forbidden = await Assert.ThrowsAsync<ApiException>(() => new CatalogService(strangerDb, new Account(Guid.NewGuid(), false), new Features(true)).UpdateAsync(created.Id, new(1, "Stolen", ""), default));
         Assert.Equal(404, forbidden.Status);
         var edited = await service.UpdateAsync(created.Id, new(1, "After", "Updated"), default);
         Assert.Equal(2, edited.Version);
@@ -292,13 +292,13 @@ public sealed class CatalogPostgresTests
         public Task<AccountIdentity> RequireClientAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<AccountRole>> GetRolesAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AccountRole>>([AccountRole.Coach]);
         public Task<AccountIdentity> RequireCoachAsync(CancellationToken cancellationToken) => Task.FromResult(new AccountIdentity(user, user));
-        public Task RequireAdminAsync(string permission, CancellationToken cancellationToken) => admin && permission == "catalog.manage"
+        public Task RequireAdminAsync(string permission, CancellationToken cancellationToken) => admin && permission is "catalog.manage" or "catalog.exercises.edit"
             ? Task.CompletedTask : Task.FromException(new ApiException(403, "ADMIN_PERMISSION_REQUIRED", "Catalog permission required."));
     }
     private sealed class Features(bool available) : IFeatureAccessService
     {
         public Task RequireAsync(string key, CancellationToken cancellationToken) => available ? Task.CompletedTask : Task.FromException(new ApiException(403, "FEATURE_UNAVAILABLE", "Feature revoked."));
-        public Task<AccessSnapshot> GetAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<AccessSnapshot> GetAsync(CancellationToken cancellationToken) => Task.FromResult(new AccessSnapshot("test", [new("exercises.create", available, "test")], []));
     }
 }
 

@@ -100,6 +100,7 @@ public sealed class DatabasePrivilegeTests
             await Denied(runtime, "UPDATE training.revisions SET \"Number\" = 99");
             await Denied(runtime, "UPDATE access.audit SET \"Operation\" = 'tampered'");
             await Denied(runtime, $"INSERT INTO accounts.user_roles (\"UserId\",\"Role\") VALUES ('{userId}', 'AccessAdmin')");
+            await Denied(runtime, $"INSERT INTO accounts.user_roles (\"UserId\",\"Role\") VALUES ('{userId}', 'ExerciseEditor')");
             await Denied(runtime, "SELECT * FROM accounts.\"__EFMigrationsHistory\"");
             await Denied(runtime, "SELECT * FROM auth.users");
             await Denied(runtime, "CREATE TABLE coaching.forbidden (id int)");

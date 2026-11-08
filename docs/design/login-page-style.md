@@ -1,3 +1,5 @@
+> Current ownership: LightRays lives in `apps/web/app/shared/ui/effects/LightRays.tsx`. Import it from `~/shared/ui/effects/LightRays`; it is no longer exported by `@metrivum/ui-web`. The embedded source below is a historical design reference.
+
 # Strona logowania Metrivum — pełna specyfikacja stylu (do odtworzenia 1:1)
 
 Ten dokument opisuje **wszystko**, co składa się na wygląd i ruch strony logowania (`/auth/login`): tło z promieniami światła (WebGL), siatkę, górny pasek, szklaną kartę, typografię, pola, przyciski, animacje wejścia, stany (focus, błąd, ładowanie), responsywność i ograniczony ruch. Pod opisem są **dosłowne kopie** wszystkich plików źródłowych, z których strona jest zbudowana. Żeby odtworzyć stronę w innym projekcie, wystarczy przenieść te pliki (lub ich treść) zgodnie z sekcją „Jak odtworzyć”.

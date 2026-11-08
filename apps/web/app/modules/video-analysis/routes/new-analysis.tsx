@@ -55,7 +55,7 @@ const isReady = (draft: Draft) => !draft.jobId && Boolean(draft.movement) && dra
  * is open again (see AnalyzerJobsProvider). A sent video stays visible here until it is closed or replaced.
  */
 function LocalAnalysis() {
-  const uiCopy = useUiCopy();
+
 
   const m = useT();
   const t = m.video.new;
@@ -199,7 +199,7 @@ function LocalAnalysis() {
         queue.refresh();
       }
       toast({ tone: 'success', title: queued === 1 ? 'Video sent to the analyzer' : `${queued} videos sent to the analyzer`,
-        description: uiCopy["ui"]["You can add other videos, leave this page or close the browser. Results are saved to your library when they are ready."] });
+        description: m["ui"]["You can add other videos, leave this page or close the browser. Results are saved to your library when they are ready."] });
     } catch (failure) {
       if (lifecycle.isCurrent() && !operation.signal.aborted) {
         const reason = failure instanceof TypeError ? 'Connection to the local analyzer failed.' : failure instanceof Error ? failure.message : 'Sending videos failed.';
@@ -218,7 +218,7 @@ function LocalAnalysis() {
   const sentSaved = current?.jobId ? queue.saved.find(item => item.id === current.jobId) : undefined;
   const sentStatus = sentJob ? jobStatus(sentJob, queue.saving[sentJob.id], queue.saveErrors[sentJob.id]) : null;
 
-  const chips = drafts.length ? <div className={styles.drafts} role="tablist" aria-label={uiCopy["ui"]["Chosen videos"]} aria-orientation="vertical">
+  const chips = drafts.length ? <div className={styles.drafts} role="tablist" aria-label={m["ui"]["Chosen videos"]} aria-orientation="vertical">
     {drafts.map((draft, index) => {
       const job = draft.jobId ? queue.jobs.find(item => item.id === draft.jobId) : undefined;
       const saved = draft.jobId ? queue.saved.some(item => item.id === draft.jobId) : false;
@@ -232,53 +232,53 @@ function LocalAnalysis() {
         <span className={styles.draftMark} aria-hidden="true">{mark}</span>
         <span className={styles.draftName}>{draft.name || draft.file.name}</span>
         {status && status.state !== 'queued' && status.state !== 'failed' && !saved ? <span className={styles.draftPercent}>{status.percent}%</span> : null}
-        <span className="tf-visually-hidden">{draft.jobId ? ` — ${saved ? "saved" : status?.text ?? "in the analyzer"}` : isReady(draft) ? uiCopy["ui"][" — points marked"] : uiCopy["ui"][" — mark points"]}</span>
+        <span className="tf-visually-hidden">{draft.jobId ? ` — ${saved ? "saved" : status?.text ?? "in the analyzer"}` : isReady(draft) ? m["ui"][" — points marked"] : m["ui"][" — mark points"]}</span>
       </button>
-      {draft.jobId ? null : <IconButton size="sm" variant="ghost" icon={<Trash2 />} label={formatInterfaceText(uiCopy["ui"]["Remove {0}"], [draft.name || draft.file.name])} isDisabled={busy}
+      {draft.jobId ? null : <IconButton size="sm" variant="ghost" icon={<Trash2 />} label={formatInterfaceText(m["ui"]["Remove {0}"], [draft.name || draft.file.name])} isDisabled={busy}
         className={styles.draftRemove} onPress={() => setRemoving(draft)} />}
       </div>;
     })}
     <div className={styles.draftActions}>
-      {room > 0 ? <button type="button" className={styles.draftAdd} onClick={() => input.current?.click()} disabled={busy}><Plus aria-hidden="true" />{drafts.some(draft => draft.jobId) ? uiCopy["ui"]["Another video"] : uiCopy["ui"]["Add videos"]}</button> : null}
-      {current && !current.jobId ? <button type="button" className={styles.draftAdd} data-tone="danger" onClick={() => setRemoving(current)} disabled={busy}><Trash2 aria-hidden="true" />{uiCopy["editor"]["remove"]}</button> : null}
+      {room > 0 ? <button type="button" className={styles.draftAdd} onClick={() => input.current?.click()} disabled={busy}><Plus aria-hidden="true" />{drafts.some(draft => draft.jobId) ? m["ui"]["Another video"] : m["ui"]["Add videos"]}</button> : null}
+      {current && !current.jobId ? <button type="button" className={styles.draftAdd} data-tone="danger" onClick={() => setRemoving(current)} disabled={busy}><Trash2 aria-hidden="true" />{m["editor"]["remove"]}</button> : null}
     </div>
   </div> : null;
 
   const details = current ? <Card as="section" padding="md" aria-labelledby="details-title" className={styles.card}>
     <div className={styles.cardHead}>
       <h2 id="details-title" className={styles.cardTitle}>{drafts.length > 1 ? `Video ${drafts.indexOf(current) + 1} of ${drafts.length}` : t.step.details}</h2>
-      {current.jobId ? null : <IconButton size="sm" variant="ghost" icon={<Trash2 />} label={uiCopy["ui"]["Remove this video"]} isDisabled={busy} onPress={() => setRemoving(current)} />}
+      {current.jobId ? null : <IconButton size="sm" variant="ghost" icon={<Trash2 />} label={m["ui"]["Remove this video"]} isDisabled={busy} onPress={() => setRemoving(current)} />}
     </div>
     {current.jobId ? <div className={styles.sent} data-state={sentSaved ? 'saved' : sentStatus?.state ?? 'sent'} role="status">
       <span className={styles.sentHead}>
         <strong>{current.name || current.file.name}</strong>
         {sentStatus && sentStatus.state !== 'queued' && sentStatus.state !== 'failed' ? <span className={styles.sentPercent}>{sentStatus.percent}%</span> : null}
       </span>
-      <span className={styles.sentText}>{sentSaved ? uiCopy["ui"]["Saved in your library."] : sentStatus?.text ?? uiCopy["ui"]["In the analyzer."]}</span>
+      <span className={styles.sentText}>{sentSaved ? m["ui"]["Saved in your library."] : sentStatus?.text ?? m["ui"]["In the analyzer."]}</span>
       {sentStatus && sentStatus.state !== 'queued' && sentStatus.state !== 'failed' ? <span className={styles.runBar} aria-hidden="true"><span style={{ transform: `scaleX(${sentStatus.percent / 100})` }} /></span> : null}
       <span className={styles.sentActions}>
-        {sentSaved ? <LinkButton size="sm" variant="secondary" href={`/app/video-analyses/${sentSaved.analysisId}`}>{uiCopy["ui"]["Open analysis"]}</LinkButton> : null}
-        {room > 0 ? <Button size="sm" variant="secondary" iconStart={<Plus />} isDisabled={busy} onPress={() => input.current?.click()}>{uiCopy["video"]["new"]["changeVideo"]}</Button> : null}
-        <Button size="sm" variant="ghost" iconStart={<X />} onPress={() => drop(current.key)}>{uiCopy["common"]["close"]}</Button>
+        {sentSaved ? <LinkButton size="sm" variant="secondary" href={`/app/video-analyses/${sentSaved.analysisId}`}>{m["ui"]["Open analysis"]}</LinkButton> : null}
+        {room > 0 ? <Button size="sm" variant="secondary" iconStart={<Plus />} isDisabled={busy} onPress={() => input.current?.click()}>{m["video"]["new"]["changeVideo"]}</Button> : null}
+        <Button size="sm" variant="ghost" iconStart={<X />} onPress={() => drop(current.key)}>{m["common"]["close"]}</Button>
       </span>
-      {sentSaved ? null : <span className={styles.hint}>{uiCopy["ui"]["Closing it here does not stop the analysis."]}</span>}
+      {sentSaved ? null : <span className={styles.hint}>{m["ui"]["Closing it here does not stop the analysis."]}</span>}
     </div> : <>
       <TextField placeholder={m.common.ph.analysisName} label={t.name} value={current.name} onChange={name => update(current.key, { name })} maxLength={200} isDisabled={busy} />
       <MovementField isRequired value={current.movement || null} isDisabled={busy} errorMessage={checked && !current.movement ? 'Choose the exercise to analyze.' : undefined}
         onChange={exercise => { update(current.key, { movement: exercise }); setMovement(exercise); }} />
-      {unsent.length > 1 && current.movement ? <Button size="sm" variant="ghost" isDisabled={busy} onPress={() => setDrafts(list => list.map(draft => (draft.jobId ? draft : { ...draft, movement: current.movement })))}>{uiCopy["ui"]["Same movement for all"]}</Button> : null}
+      {unsent.length > 1 && current.movement ? <Button size="sm" variant="ghost" isDisabled={busy} onPress={() => setDrafts(list => list.map(draft => (draft.jobId ? draft : { ...draft, movement: current.movement })))}>{m["ui"]["Same movement for all"]}</Button> : null}
       <StabilityControl draft={current} disabled={busy} onChange={stabilize => update(current.key, { stabilize })} />
       <ol className={styles.checklist}>
         <li data-done="" title={current.file.name}><span aria-hidden="true">✓</span><small>{current.file.name} · {formatBytes(locale, current.file.size)}</small></li>
-        <li data-done={current.movement ? '' : undefined} data-error={(checked && !current.movement) || undefined}><span aria-hidden="true">{current.movement ? '✓' : '!'}</span><small>{current.movement ? uiCopy["ui"]["Movement chosen"] : uiCopy["ui"]["Choose the movement"]}</small></li>
-        <li data-done={points === 2 ? '' : undefined} data-error={(checked && points < 2) || undefined}><span aria-hidden="true">{points === 2 ? '✓' : '2'}</span><small>{points === 2 ? uiCopy["ui"]["Points marked"] : `Mark ${2 - points} more ${2 - points === 1 ? "point" : "points"}`}</small></li>
+        <li data-done={current.movement ? '' : undefined} data-error={(checked && !current.movement) || undefined}><span aria-hidden="true">{current.movement ? '✓' : '!'}</span><small>{current.movement ? m["ui"]["Movement chosen"] : m["ui"]["Choose the movement"]}</small></li>
+        <li data-done={points === 2 ? '' : undefined} data-error={(checked && points < 2) || undefined}><span aria-hidden="true">{points === 2 ? '✓' : '2'}</span><small>{points === 2 ? m["ui"]["Points marked"] : `Mark ${2 - points} more ${2 - points === 1 ? "point" : "points"}`}</small></li>
       </ol>
-      <Disclosure className={styles.howTo} title={uiCopy["ui"]["How to mark the points"]}>
+      <Disclosure className={styles.howTo} title={m["ui"]["How to mark the points"]}>
         <ol className={styles.howToSteps}>
-          <li>{uiCopy["ui"]["Play to a moment where the end of the bar is sharp, then"]} <strong>{uiCopy["ui"]["Freeze"]}</strong>.</li>
-          <li>{uiCopy["ui"]["Zoom in and mark"]} <strong>{uiCopy["ui"]["two points very close together"]}</strong>  {uiCopy["ui"]["on one small, contrasting spot — the end of the sleeve or the edge of a plate."]}</li>
-          <li>{uiCopy["ui"]["Pick a spot that"]} <strong>{uiCopy["ui"]["stays visible for the whole lift"]}</strong>{uiCopy["ui"][": not covered by hands, plates or the body. The analyzer follows these two points frame by frame."]}</li>
-          <li>{uiCopy["ui"]["Wheel or + / − zooms, dragging moves the frame, arrows and Enter mark points. Speed is in px/s."]}</li>
+          <li>{m["ui"]["Play to a moment where the end of the bar is sharp, then"]} <strong>{m["ui"]["Freeze"]}</strong>.</li>
+          <li>{m["ui"]["Zoom in and mark"]} <strong>{m["ui"]["two points very close together"]}</strong>  {m["ui"]["on one small, contrasting spot — the end of the sleeve or the edge of a plate."]}</li>
+          <li>{m["ui"]["Pick a spot that"]} <strong>{m["ui"]["stays visible for the whole lift"]}</strong>{m["ui"][": not covered by hands, plates or the body. The analyzer follows these two points frame by frame."]}</li>
+          <li>{m["ui"]["Wheel or + / − zooms, dragging moves the frame, arrows and Enter mark points. Speed is in px/s."]}</li>
         </ol>
       </Disclosure>
     </>}
@@ -288,9 +288,9 @@ function LocalAnalysis() {
   const startBar = <section aria-label={t.start} className={styles.startBar}>
     {sending ? <div className={styles.run}>
       <div className={styles.runHead}>
-        <span className={styles.runLabel}>{sending.starting ? uiCopy["ui"]["Starting the local analyzer…"] : `Sending videos to the analyzer… ${sending.done + 1} of ${sending.total}`}</span>
+        <span className={styles.runLabel}>{sending.starting ? m["ui"]["Starting the local analyzer…"] : `Sending videos to the analyzer… ${sending.done + 1} of ${sending.total}`}</span>
       </div>
-      <div className={styles.runBar} role="progressbar" aria-label={uiCopy["ui"]["Sending videos"]} aria-valuemin={0} aria-valuemax={sending.total} aria-valuenow={sending.done}>
+      <div className={styles.runBar} role="progressbar" aria-label={m["ui"]["Sending videos"]} aria-valuemin={0} aria-valuemax={sending.total} aria-valuenow={sending.done}>
         <span style={{ transform: `scaleX(${sending.starting ? 0.03 : Math.max(0.05, sending.done / sending.total)})` }} />
       </div>
     </div> : null}
@@ -298,15 +298,15 @@ function LocalAnalysis() {
     <Button variant="primary" block loading={busy} isDisabled={!canRun || !unsent.length || connection === 'runtime_missing' || connection === 'incompatible'} onPress={() => void start()}>
       {ready.length > 1 ? `Analyze ${ready.length} videos` : t.start}
     </Button>
-    {!busy && unsent.length > 0 && waiting > 0 ? <p className={styles.hint} data-error={checked || undefined} role={checked ? 'alert' : undefined}>{waiting === 1 ? uiCopy["ui"]["1 video needs"] : `${waiting} videos need`}  {uiCopy["ui"]["a movement and two points."]}</p> : null}
-    {busy ? <Button onPress={() => controller.current?.abort()}>{uiCopy["ui"]["Stop sending"]}</Button> : null}
+    {!busy && unsent.length > 0 && waiting > 0 ? <p className={styles.hint} data-error={checked || undefined} role={checked ? 'alert' : undefined}>{waiting === 1 ? m["ui"]["1 video needs"] : `${waiting} videos need`}  {m["ui"]["a movement and two points."]}</p> : null}
+    {busy ? <Button onPress={() => controller.current?.abort()}>{m["ui"]["Stop sending"]}</Button> : null}
   </section>;
 
   return <>
     <PageHeader
       context={<Breadcrumbs items={[{ id: 'list', label: m.video.list.title, href: '/app/video-analyses' }, { id: 'new', label: t.title }]} />}
       title={t.title}
-      description={formatInterfaceText(uiCopy["ui"]["Up to {0} videos, analyzed on this computer and saved privately."], [QUEUE_LIMIT])}
+      description={formatInterfaceText(m["ui"]["Up to {0} videos, analyzed on this computer and saved privately."], [QUEUE_LIMIT])}
     />
     <div className={styles.intro}>
     <QuotaContextField context={quotaContext} disabled={busy} />
@@ -331,7 +331,7 @@ function LocalAnalysis() {
         </div> : <div className={styles.empty}>
           <span className={styles.emptyIcon} aria-hidden="true"><FileVideo /></span>
           <p className={styles.emptyTitle}>{t.dropTitle}</p>
-          <Button variant="primary" iconStart={<Upload />} isDisabled={room === 0} onPress={() => input.current?.click()}>{uiCopy["ui"]["Choose videos"]}</Button>
+          <Button variant="primary" iconStart={<Upload />} isDisabled={room === 0} onPress={() => input.current?.click()}>{m["ui"]["Choose videos"]}</Button>
           <p className={styles.hint}>{room === 0 ? `The analyzer already holds ${QUEUE_LIMIT} videos. Wait until some are saved.` : `Up to ${room} ${room === 1 ? "video" : "videos"} · ${t.fileHint}`}</p>
         </div>}
         {error ? <Alert tone="danger" title={error} /> : null}
@@ -347,8 +347,8 @@ function LocalAnalysis() {
         <div className={styles.queueSlot}><AnalysisQueue fill /></div>
       </div>
     </div>
-    <AlertDialog isOpen={removing !== null} onOpenChange={open => { if (!open) setRemoving(null); }} title={uiCopy["ui"]["Remove this video?"]} tone="danger"
-      confirmLabel={uiCopy["editor"]["remove"]} cancelLabel={uiCopy["ui"]["Keep it"]} onConfirm={() => { if (removing) drop(removing.key); setRemoving(null); }}>
+    <AlertDialog isOpen={removing !== null} onOpenChange={open => { if (!open) setRemoving(null); }} title={m["ui"]["Remove this video?"]} tone="danger"
+      confirmLabel={m["editor"]["remove"]} cancelLabel={m["ui"]["Keep it"]} onConfirm={() => { if (removing) drop(removing.key); setRemoving(null); }}>
       <p>{removing ? `${removing.name || removing.file.name} and its marked points are removed from this list. The file on your computer stays.` : null}</p>
     </AlertDialog>
   </>;

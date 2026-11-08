@@ -277,3 +277,5 @@ Environment: copy `apps/web/.env.example` to `apps/web/.env.local`. Only public 
 ### User selection
 
 `accounts/UserAutocomplete` is the shared username picker for client invitations, Team invitations and new conversations. It debounces a minimum two-character prefix, hides stale suggestions, cancels obsolete queries and keys its cache by account and search policy. Accounts exposes only public active/onboarded directory entries through `/api/v1/accounts/people`; messaging retains its own endpoint to enforce block filtering. Invitation details use a person header and no list hub navigation; viewing an invitation does not create a coaching relationship.
+
+Decorative React Bits code lives in the web application (`shared/ui/effects` and `shared/ui/cover/backgrounds`), not in the reusable component library. Analyzer completion/failure announcements share one effect event so language changes update notification copy without restarting uploads. UI copy belongs to the typed English/Polish dictionaries; preserve account-lifetime checks independently of presentation refactors.

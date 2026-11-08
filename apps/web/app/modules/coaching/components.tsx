@@ -39,7 +39,7 @@ export function Failure({ error, retry }: { error: unknown; retry?: () => void }
 }
 
 export function MutationError({ error }: { error: unknown }) {
-  const uiCopy = useUiCopy();
+
 
   const m = useT();
   const [reload, setReload] = useState(false);
@@ -50,8 +50,8 @@ export function MutationError({ error }: { error: unknown }) {
   useEffect(() => { if (error && message && !validation) showError(error, message); }, [error, message, showError, validation]);
   if (!error) return null;
   const conflict = error instanceof ApiError && (error.status === 412 || error.status === 409 && error.code === "VERSION_CONFLICT");
-  return <><Alert tone="danger" title={error instanceof ApiError && error.status < 500 ? error.message : errorText(m, error)} live="assertive" actions={conflict && <Button onPress={() => setReload(true)}>{uiCopy["ui"]["Reload latest version"]}</Button>} />
-    <AlertDialog isOpen={reload} onOpenChange={setReload} title={uiCopy["ui"]["Reload the latest version?"]} tone="danger" confirmLabel={uiCopy["ui"]["Discard changes and reload"]} cancelLabel={uiCopy["common"]["keepEditing"]} onConfirm={() => window.location.reload()}>{uiCopy["ui"]["Your unsaved changes on this page will be discarded. Copy any text you want to keep before reloading."]}</AlertDialog></>;
+  return <><Alert tone="danger" title={error instanceof ApiError && error.status < 500 ? error.message : errorText(m, error)} live="assertive" actions={conflict && <Button onPress={() => setReload(true)}>{m["ui"]["Reload latest version"]}</Button>} />
+    <AlertDialog isOpen={reload} onOpenChange={setReload} title={m["ui"]["Reload the latest version?"]} tone="danger" confirmLabel={m["ui"]["Discard changes and reload"]} cancelLabel={m["common"]["keepEditing"]} onConfirm={() => window.location.reload()}>{m["ui"]["Your unsaved changes on this page will be discarded. Copy any text you want to keep before reloading."]}</AlertDialog></>;
 }
 
 export function Loading() {

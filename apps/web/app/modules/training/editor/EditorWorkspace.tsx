@@ -1,4 +1,3 @@
-import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useNavigateUp } from "~/shared/lib/navigateUp";
 import { flushSync } from "react-dom";
 import { CellValidationContext } from "./cell-validation";
@@ -51,7 +50,7 @@ function isTextTarget(target: EventTarget | null) {
 }
 
 export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: number }) {
-  const uiCopy = useUiCopy();
+
 
   const m = useT();
   const t = m.editor;
@@ -240,7 +239,7 @@ export function EditorWorkspace({ plan, version }: { plan: PlanDto; version: num
         </TooltipTrigger>
         <div className={styles.tools}>
           {activeMode === "advanced" ? <>
-            <IconButton size="sm" label={uiCopy["training"]["formulas"]["createTitle"]} icon={<FormulaMark />} isDisabled={readOnly || !access["training.formulas.custom"].allowed} onPress={() => setFormulaOpen(true)} />
+            <IconButton size="sm" label={m["training"]["formulas"]["createTitle"]} icon={<FormulaMark />} isDisabled={readOnly || !access["training.formulas.custom"].allowed} onPress={() => setFormulaOpen(true)} />
             <FormulaHelp compact />
           </> : null}
           <IconButton label={t.undo} icon={<Undo2 />} onPress={editor.undo} isDisabled={readOnly || !editor.canUndo} />

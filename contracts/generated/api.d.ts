@@ -15649,6 +15649,8 @@ export interface components {
             primaryMuscleKeys: string[];
             secondaryMuscleKeys: string[];
             movementPatternKeys: string[];
+            /** @default false */
+            canEdit: boolean;
         };
         ExerciseExecutionDto: {
             /** Format: uuid */

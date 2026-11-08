@@ -52,3 +52,5 @@ Zoom timing/raster follow-up: gestures now interpolate with a 200 ms elapsed-tim
 Browser coverage includes zoom in/out on six blocks, twelve cycles, 36 open workout cards and 288 exercise rows, final extent alignment and compositor-hint cleanup. This verifies behavior on a representative local fixture, not a measured FPS improvement on the user's production device. Native/browser device-specific profiling remains separate.
 
 Latest local Chromium fixture result (36 open workouts / 288 exercise rows): zoom-in completed at 216.9 ms and zoom-out at 213.6 ms for the nominal 200 ms duration. These are single-run completion timings, not before/after FPS benchmarks or guarantees for production hardware.
+
+Auto arrange stores cycle/workout positions using their minimised footprints, regardless of current folding. Expanded cards still resolve collisions temporarily; minimising restores the compact anchors with a one-cell gap. The action does not change folding state or training data.

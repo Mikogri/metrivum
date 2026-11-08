@@ -70,3 +70,7 @@ Security preparation for public MCP: [hardening and deployment gates](security/p
 Independent security audit: [findings, evidence and readiness gates](security/independent-redteam-2026-11-05.md), [all MCP permissions](security/redteam-mcp-matrix.md).
 
 Training program/template deletion and retained-history rules: [document lifecycle](features/training-document-deletion.md).
+
+React Bits effects belong to `apps/web/app/shared/ui` (profile covers in `cover/backgrounds`, landing/auth LightRays in `effects`). They are not exported by `packages/ui-web`, which owns reusable controls and tokens. Preserve third-party attribution when moving effects.
+
+Exercise catalogue cross-author editing and the server-managed ExerciseEditor role are described in [exercise editors](features/exercise-editors.md).

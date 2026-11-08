@@ -102,6 +102,16 @@ export function autoLayout(doc: TrainingDocument, sizes: Record<string, Size> = 
   return layout;
 }
 
+/** Store compact anchors regardless of what is open; resolveLayout makes room only while expanded. */
+export function compactAutoLayout(doc: TrainingDocument, sizes: Record<string, Size> = {}): Layout {
+  const compact = { ...sizes };
+  for (const block of doc.blocks) for (const cycle of block.cycles) {
+    compact[cycle.id] = { cols: BLOCK_COLS, rows: 2 };
+    for (const { workout } of cycleWorkouts(cycle)) compact[workout.id] = { cols: CYCLE_COLS, rows: 1 };
+  }
+  return autoLayout(doc, compact);
+}
+
 /** Width of a workout card in cells. */
 export const WORKOUT_CARD_COLS = WORKOUT_COLS;
 

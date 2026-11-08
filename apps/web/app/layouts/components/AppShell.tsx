@@ -1,4 +1,3 @@
-import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { ChevronRight, Menu, PanelLeft, Search, X } from "lucide-react";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
@@ -174,7 +173,7 @@ function useBack(pathname: string, search: string, navigate: ReturnType<typeof u
 }
 
 export function AppShell() {
- const uiCopy = useUiCopy();
+
 
   const m = useT();
   const phone = useMobileLayout();
@@ -330,7 +329,7 @@ export function AppShell() {
         {MOCK_MODE ? (
           <p className={styles.mockBanner} role="note">
 
-            {uiCopy["ui"]["Developer mock data — not connected to the Metrivum API (VITE_DEV_MOCKS=1)."]}
+            {m["ui"]["Developer mock data — not connected to the Metrivum API (VITE_DEV_MOCKS=1)."]}
           </p>
         ) : null}
         <main id="app-main" ref={main} className={styles.main} aria-busy={switching || undefined} tabIndex={-1} onScroll={event => scrollPositions.current.set(location.key, event.currentTarget.scrollTop)}>

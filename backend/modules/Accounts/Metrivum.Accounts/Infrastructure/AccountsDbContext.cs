@@ -55,7 +55,7 @@ public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> option
         });
         model.Entity<UserRole>(e =>
         {
-            e.ToTable("user_roles", t => t.HasCheckConstraint("CK_user_roles_role", "\"Role\" IN ('Coach', 'Client', 'CatalogAdmin', 'AccessAdmin')"));
+            e.ToTable("user_roles", t => t.HasCheckConstraint("CK_user_roles_role", "\"Role\" IN ('Coach', 'Client', 'CatalogAdmin', 'AccessAdmin', 'ExerciseEditor')"));
             e.HasKey(x => new { x.UserId, x.Role });
             e.Property(x => x.Role).HasMaxLength(32);
             e.HasOne<Profile>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);

@@ -149,7 +149,7 @@ namespace Metrivum.Accounts.Infrastructure.Migrations
 
                     b.ToTable("user_roles", "accounts", t =>
                         {
-                            t.HasCheckConstraint("CK_user_roles_role", "\"Role\" IN ('Coach', 'Client', 'CatalogAdmin', 'AccessAdmin')");
+                            t.HasCheckConstraint("CK_user_roles_role", "\"Role\" IN ('Coach', 'Client', 'CatalogAdmin', 'AccessAdmin', 'ExerciseEditor')");
                         });
                 });
 

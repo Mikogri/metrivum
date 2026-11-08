@@ -1,10 +1,10 @@
 /**
  * Light Rays background from React Bits (https://reactbits.dev/backgrounds/light-rays, MIT + Commons Clause),
- * adapted: CSS module instead of a global stylesheet, `cx` for classes, a named export, decorative (aria-hidden).
+ * adapted: CSS module instead of a global stylesheet, a named export, decorative (aria-hidden).
  * WebGL2 only; without it nothing is drawn and the page keeps its plain background.
  */
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { cx } from "../../lib/cx";
+
 import styles from "./LightRays.module.css";
 
 export type RaysOrigin =
@@ -633,7 +633,7 @@ export const LightRays = ({
   }, [generation]);
 
   return (
-    <div ref={containerRef} className={cx(styles.rays, className)} style={style} aria-hidden="true">
+    <div ref={containerRef} className={[styles.rays, className].filter(Boolean).join(" ")} style={style} aria-hidden="true">
       <canvas ref={canvasRef} className={styles.canvas} />
     </div>
   );

@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { AppLocaleProvider, useAppLocale } from "~/shared/i18n/AppLocale";
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, expect, it, vi } from 'vitest';
@@ -88,4 +89,19 @@ it('releases a known failed run while retaining its workspace scope for a future
   await waitFor(() => expect(scope.api).toHaveBeenCalledWith(expect.objectContaining({ method: 'DELETE', path: '/api/v1/analyses/local-authorizations/permit-1' })));
   await waitFor(() => expect(JSON.parse(localStorage.getItem('trainflow.analyzer.authorizations:user-1')!)).toEqual({ 'job-1': { teamId: 'team-1' } }));
   expect(state.persist).not.toHaveBeenCalled();
+});
+
+it('changes notification language without restarting or cancelling an active result upload', async () => {
+  let finish!: (value: { id: string }) => void;
+  state.list.mockResolvedValueOnce([done]).mockResolvedValue([]);
+  state.persist.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  function Language() { const { setLocale } = useAppLocale(); return <button onClick={() => setLocale('pl')}>Polish</button>; }
+  render(<AppLocaleProvider><QueryClientProvider client={new QueryClient()}><MemoryRouter><Language /><AnalyzerJobsProvider><Probe /></AnalyzerJobsProvider></MemoryRouter></QueryClientProvider></AppLocaleProvider>);
+  await waitFor(() => expect(state.persist).toHaveBeenCalledOnce());
+  const signal = state.persist.mock.calls[0]![3] as AbortSignal;
+  fireEvent.click(screen.getByRole('button', { name: 'Polish' }));
+  expect(signal.aborted).toBe(false);
+  expect(state.persist).toHaveBeenCalledOnce();
+  await act(async () => finish({ id: 'analysis-pl' }));
+  await waitFor(() => expect(state.toast).toHaveBeenCalledWith(expect.objectContaining({ title: 'Analiza gotowa: Heavy squat' })));
 });
