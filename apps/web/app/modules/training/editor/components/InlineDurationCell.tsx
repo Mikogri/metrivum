@@ -14,13 +14,14 @@ export function InlineDurationCell({ value, formula, parts = "hms", onChange, in
   onChange: (formula: FormulaUse | null, value: Quantity | null) => void;
   label: string; readOnly: boolean; style?: CSSProperties; className?: string;
   exerciseId?: string; maxReps?: number; customAllowed?: boolean; formulaAllowed?: boolean;
+  maxEffort?: boolean; onMaxEffort?: (active: boolean) => void;
   initialText?: string; onDone?: () => void;
 }) {
   const uiCopy = useUiCopy();
 
   const [expression, setExpression] = useState<string | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
-  if (formula || expression !== null || initialText?.startsWith("=") || initialText?.startsWith("/")) {
+  if (props.maxEffort || formula || expression !== null || initialText?.startsWith("=") || initialText?.startsWith("/")) {
     return <InlineLoadCell {...props} valueKind="time" valueUnit={value?.unit ?? formula?.outputUnit ?? "Seconds"}
       prescription={{ loadFormula: formula, load: value ? { minimum: value, maximum: value } : null }}
       initialText={expression ?? initialText} onDone={() => { setExpression(null); props.onDone?.(); }}
@@ -28,7 +29,7 @@ export function InlineDurationCell({ value, formula, parts = "hms", onChange, in
   }
   return <div style={{ ...props.style, minWidth: 0, height: "100%" }} data-no-drag
     onKeyDownCapture={event => {
-      if (!props.readOnly && props.formulaAllowed !== false && (event.key === "=" || event.key === "/")) {
+      if (!props.readOnly && (props.formulaAllowed !== false || props.onMaxEffort) && (event.key === "=" || event.key === "/")) {
         event.preventDefault(); event.stopPropagation(); setExpression(event.key);
       }
     }} onContextMenu={event => {

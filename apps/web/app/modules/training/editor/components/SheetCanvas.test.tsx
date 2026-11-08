@@ -53,7 +53,7 @@ describe("sheet column controls", () => {
     HTMLElement.prototype.hasPointerCapture = vi.fn(() => true);
     HTMLElement.prototype.releasePointerCapture = vi.fn();
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
   function Canvas({ zoom = 1, editable = false }: { zoom?: number; editable?: boolean }) {
     const [sheet, setSheet] = useState(emptySheet);
@@ -80,12 +80,17 @@ describe("sheet column controls", () => {
     const scale = Number(board.style.transform.match(/scale\(([^)]+)\)/)![1]);
     expect(scale).toBeGreaterThan(1);
     expect(board.dataset.sheetZoom).toBe("1");
-    expect(parseFloat(extent.style.width)).toBeCloseTo(parseFloat(board.style.width) * scale);
+    expect(parseFloat(extent.style.width)).toBeCloseTo(parseFloat(board.style.width) * 1.2);
+    expect(board.style.willChange).toBe("transform");
     expect(scroller.scrollLeft).toBeCloseTo(130 * scale - 30);
+    const reservedWidth = extent.style.width;
+    flush();
+    expect(extent.style.width).toBe(reservedWidth);
     for (let i = 0; i < 40; i++) flush();
     const settled = Number(board.dataset.sheetZoom);
     expect(settled).toBeCloseTo(Math.exp(0.18));
     expect(board.style.transform).toBe(`scale(${settled})`);
+    expect(board.style.willChange).toBe("");
     fireEvent.wheel(scroller, { ctrlKey: true, deltaY: 100, clientX: 30, clientY: 20 });
     flush();
     expect(Number(board.style.transform.match(/scale\(([^)]+)\)/)![1])).toBeLessThan(settled);

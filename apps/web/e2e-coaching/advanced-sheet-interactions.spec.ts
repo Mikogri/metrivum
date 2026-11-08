@@ -10,13 +10,26 @@ const relationship = "20000000-0000-4000-8000-000000000081";
 const features = JSON.parse(readFileSync(new URL("../../../contracts/generated/features.json", import.meta.url), "utf8")) as { key: string }[];
 const pageOf = (items: unknown[]) => ({ items, total: items.length, page: 1, pageSize: 30 });
 
-async function fixture(page: Page, preview = false, locale: "en" | "pl" = "en") {
+async function fixture(page: Page, preview = false, locale: "en" | "pl" = "en", large = false) {
   const exercise = { id: "50000000-0000-4000-8000-000000000081", name: "Bench press", version: 1, description: "", instructions: "" };
   let plan = {
     id: planId, name: "Interaction test", updatedAt: "2026-01-01T00:00:00Z", description: "", kind: "Program", folderId: null, archived: false, version: 1,
     document: { schemaVersion: 1, blocks: [{ id: "30000000-0000-4000-8000-000000000083", name: "Block", description: "", cycles: [{ id: cycleId, name: "Cycle", description: "", dayCount: 7,
       days: [{ id: "30000000-0000-4000-8000-000000000084", dayNumber: 1, workouts: [{ id: "30000000-0000-4000-8000-000000000085", name: "Workout A", description: "", groups: [], exercises: [{ id: "30000000-0000-4000-8000-000000000086", exerciseId: exercise.id, comment: "", sets: [{ id: "30000000-0000-4000-8000-000000000087", kind: "Standard", prescription: { load: { minimum: { value: 70, unit: "Kg" }, maximum: { value: 70, unit: "Kg" } } } }] }] }] }] }] }] },
   };
+  if (large) {
+    const copy = <T,>(input: T): T => JSON.parse(JSON.stringify(input, (key, value) => key === "id" ? crypto.randomUUID() : value)) as T;
+    const source = plan.document.blocks[0]!;
+    plan.document.blocks = Array.from({ length: 6 }, (_, b) => ({ ...copy(source), name: `Block ${b + 1}`, cycles: Array.from({ length: 2 }, (_, c) => {
+      const cycle = copy(source.cycles[0]!);
+      return { ...cycle, name: `Cycle ${c + 1}`, days: Array.from({ length: 3 }, (_, day) => {
+        const row = copy(cycle.days[0]!);
+        row.dayNumber = day + 1;
+        row.workouts[0]!.exercises = Array.from({ length: 8 }, () => copy(row.workouts[0]!.exercises[0]!));
+        return row;
+      }) };
+    }) }));
+  }
   await page.addInitScript(({ coach, locale }) => {
     localStorage.setItem("tf.locale", locale);
     localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh-0", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: coach, email: "sheet@trainflow.test", email_confirmed_at: "2026-01-01T00:00:00Z", aud: "authenticated" } }));
@@ -49,7 +62,7 @@ async function fixture(page: Page, preview = false, locale: "en" | "pl" = "en") 
     return respond(pageOf([]));
   });
   await page.goto(`/app/programs/${planId}${preview ? "" : "/edit"}`, { waitUntil: "domcontentloaded" });
-  await expect(page.locator('[data-node][data-kind="cycle"]')).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('[data-node][data-kind="cycle"]').first()).toBeVisible({ timeout: 15_000 });
   await page.addStyleTag({ content: "*, *::before, *::after { animation: none !important; transition: none !important; }" });
 }
 
@@ -542,4 +555,33 @@ test("zoom keeps pointer anchoring and scroll extent aligned while committing on
   });
   expect(result.extent).toBeCloseTo(result.width * result.scale, 2);
   expect(result.commits).toBe(1);
+});
+
+test("large sheet completes time-based zoom in both directions and releases compositor hint", async ({ page }, testInfo) => {
+  await fixture(page, true, "en", true);
+  await expect(page.locator('[data-node][data-kind="workout"]')).toHaveCount(36);
+  const board = page.locator("[data-sheet-zoom]");
+  const results = [];
+  for (const delta of [-100, 100]) {
+    const result = await board.evaluate((node, deltaY) => new Promise<{ elapsed: number; scale: number; expected: number; hint: string; width: number; extent: number }>(resolve => {
+      const el = node as HTMLElement;
+      const expected = Math.round(Number(el.dataset.sheetZoom) * Math.exp(-deltaY * 0.0018) * 100) / 100;
+      const started = performance.now();
+      const observer = new MutationObserver(() => {
+        observer.disconnect();
+        resolve({ elapsed: performance.now() - started, expected, scale: Number(el.dataset.sheetZoom), hint: el.style.willChange, width: parseFloat(el.style.width), extent: parseFloat(el.parentElement!.style.width) });
+      });
+      observer.observe(el, { attributes: true, attributeFilter: ["data-sheet-zoom"] });
+      const scroller = el.parentElement!.parentElement!;
+      const rect = scroller.getBoundingClientRect();
+      scroller.dispatchEvent(new WheelEvent("wheel", { ctrlKey: true, deltaY, clientX: rect.left + 40, clientY: rect.top + 40, bubbles: true, cancelable: true }));
+    }), delta);
+    expect(result.scale).toBe(result.expected);
+    expect(result.elapsed).toBeGreaterThanOrEqual(195);
+    expect(result.hint).toBe("");
+    // CSSOM rounds large style dimensions; require alignment within one CSS pixel.
+    expect(Math.abs(result.extent - result.width * result.scale)).toBeLessThan(1);
+    results.push(result);
+  }
+  await testInfo.attach("large-sheet-zoom-timings", { body: JSON.stringify({ workouts: 36, exerciseRows: 288, results }, null, 2), contentType: "application/json" });
 });

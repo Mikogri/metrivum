@@ -31,7 +31,7 @@ export function FormulaPicker({ value, onChange, customAllowed, isDisabled }: { 
   const custom = useFormulaList("", 1);
   const account = useAccountKey();
   const context = useClientFormulaContext();
-  const resolved = withClientVariables(value, context.variables, Boolean(context.relationshipId));
+  const resolved = withClientVariables(value, context.variables, Boolean(context.relationshipId) || Object.keys(context.variables).length > 0);
   const evaluation = useFormulaEvaluation(resolved);
   const result = evaluation.data ? formatQuantity(locale, evaluation.data.result) : null;
   const full = useQuery({ queryKey: [account, "training", "formula-definition", value.formulaId, value.version], queryFn: ({ signal }) => getFormula(api, value.formulaId!, value.version, signal), enabled: Boolean(value.formulaId), staleTime: 300_000 });

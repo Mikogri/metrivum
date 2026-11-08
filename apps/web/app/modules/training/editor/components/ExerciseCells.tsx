@@ -1,3 +1,4 @@
+import { commentKeyDown } from "./comment-keydown";
 import { useCellValidation } from "../cell-validation";
 import { Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -9,7 +10,7 @@ import { rememberPickedExercise, useDictionaryLabel, useExerciseList } from "~/m
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useDebounced } from "~/shared/lib/useDebounced";
-import { addSet, findExercise, setPrescription, updateNode } from "../model/document";
+import { addSet, changeSetKind, findExercise, setPrescription, updateNode } from "../model/document";
 import { exerciseRow, setExerciseSets } from "../model/workouts";
 import styles from "./SheetCanvas.module.css";
 import { InlinePrescriptionCell, type FormulaField } from "./InlinePrescriptionCell";
@@ -396,6 +397,16 @@ export function ExerciseRow({
   const mixed = values.mixed ? styles.mixedCell : undefined;
   const p = instance.sets[0]?.prescription;
   const formulaCell = (field: FormulaField, column: ExerciseColumn, extra?: React.CSSProperties) => <InlinePrescriptionCell field={field} prescription={p ?? {}} count={instance.sets.length} exerciseId={instance.exerciseId}
+    maximum={field === "Reps" && instance.sets[0]?.kind === "Amrap"}
+    onMaximumChange={field === "Reps" || field === "WorkTime" ? () => apply?.(doc => {
+      let next = doc;
+      if (!instance.sets.length) next = addSet(next, instance.id).doc;
+      return findExercise(next, instance.id)?.exercise.sets.reduce((document, set) => {
+        if (field === "Reps") return changeSetKind(document, set.id, "Amrap");
+        const fieldFormulas = { ...set.prescription.fieldFormulas }; delete fieldFormulas.WorkTime;
+        return setPrescription(document, set.id, { ...set.prescription, workTimeMax: true, workTime: null, fieldFormulas });
+      }, next) ?? next;
+    }) : undefined}
     label={t.columns[column]} style={extra ? { ...cells[column], ...extra } : cells[column]} className={`${styles.cell} ${mixed ?? ""}`} readOnly={readOnly} formulaAllowed={formulaAllowed} customAllowed={customFormulas}
     onChange={(formula, value, maximum) => apply?.(doc => {
       let next = doc;
@@ -409,9 +420,10 @@ export function ExerciseRow({
         }
         const fieldFormulas = { ...set.prescription.fieldFormulas };
         if (formula) fieldFormulas[field] = formula; else delete fieldFormulas[field];
+        if (field === "Reps" && set.kind === "Amrap") document = changeSetKind(document, set.id, "Standard");
         return setPrescription(document, set.id, { ...set.prescription, fieldFormulas,
           ...(field === "Reps" ? { reps: !formula && value ? { minimum: value.value, maximum: maximum ?? value.value } : null } : {}),
-          ...(field === "WorkTime" ? { workTime: formula ? null : value } : {}),
+          ...(field === "WorkTime" ? { workTime: formula ? null : value, workTimeMax: null } : {}),
           ...(field === "Rest" ? { rest: formula ? null : value } : {}) });
       }, next) ?? next;
     })} />;
@@ -480,6 +492,7 @@ export function ExerciseRow({
               maxLength={2000}
               aria-label={t.columns.comment}
               placeholder={t.commentPlaceholder}
+              onKeyDown={event => commentKeyDown(event, () => setPopup(null), text => apply?.(doc => updateNode(doc, instance.id, { comment: text })))}
               defaultValue={instance.comment}
               onChange={(event) => apply?.((doc) => updateNode(doc, instance.id, { comment: event.target.value }))}
             />

@@ -1,7 +1,8 @@
 import { MailCheck } from "lucide-react";
+import { CodeInput } from "../components/CodeInput";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import { Alert, Button, Spinner, TextField, toast } from "@metrivum/ui-web";
+import { Alert, Button, Spinner, toast } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
@@ -136,17 +137,7 @@ export default function Verify() {
       </div>
       {showCode ? (
         <form className={`${form.form} ${styles.codeForm}`} onSubmit={onSubmit} noValidate>
-          <TextField
-            placeholder={t.codePlaceholder}
-            label={t.code}
-            className={form.code}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            autoFocus
-            value={code}
-            onChange={(value) => setCode(value.replace(/[^\d\s]/g, "").slice(0, 10))}
-            isRequired
-          />
+          <CodeInput label={t.code} autoFocus value={code} onChange={setCode} />
           <Button type="submit" variant="primary" block loading={pending}>
             {t.submit}
           </Button>

@@ -7,7 +7,8 @@ import { evaluateFormula } from "../../api";
 export function useFormulaEvaluation(value: FormulaUse | null | undefined) {
   const api = useApi();
   const account = useAccountKey();
-  const serialized = value ? JSON.stringify(value) : "";
+  const unresolved = value && Object.keys(value.variableBindings ?? {}).some(name => !value.inputs?.[name]);
+  const serialized = value && !unresolved ? JSON.stringify(value) : "";
   const debounced = useDebounced(serialized, 350);
   const query = useQuery({
     queryKey: [account, "training", "inline-formula", debounced],

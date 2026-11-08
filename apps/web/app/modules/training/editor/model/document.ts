@@ -408,7 +408,11 @@ export function changeSetKind(doc: TrainingDocument, setId: string, kind: SetKin
   if (!found) return doc;
   const { set, exercise } = found;
   const next: TrainingSet = { ...set, kind, prescription: { ...set.prescription } };
-  if (kind === "Amrap") delete next.prescription.reps;
+  if (kind === "Amrap") {
+    delete next.prescription.reps;
+    next.prescription.fieldFormulas = { ...next.prescription.fieldFormulas };
+    delete next.prescription.fieldFormulas.Reps;
+  }
   if (SEGMENTED.has(kind)) {
     next.segments = set.segments && set.segments.length >= 2 ? set.segments : [newSegment(set.prescription), newSegment(set.prescription)];
   } else {
@@ -491,5 +495,5 @@ export function documentStats(doc: TrainingDocument) {
 
 /** Whether a document uses constructs gated by `training.sets.advanced`. */
 export function setIsAdvanced(set: TrainingSet): boolean {
-  return !["Standard", "Warmup", "BackOff"].includes(set.kind);
+  return !["Standard", "Warmup", "BackOff", "Amrap"].includes(set.kind);
 }

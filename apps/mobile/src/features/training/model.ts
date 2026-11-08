@@ -97,6 +97,7 @@ export function describePrescription(p: Prescription): string {
             p.loadPercent != null && `${p.loadPercent}% 1RM`,
             p.rpe != null && `RPE ${p.rpe}`,
             p.rir != null && `RIR ${p.rir}`,
+            p.workTimeMax && "MAX time",
             p.workTime && `${p.workTime.value} ${p.workTime.unit}`,
             p.distance && `${p.distance.value} ${p.distance.unit}`,
             p.rest && `rest ${p.rest.value} ${p.rest.unit}`,

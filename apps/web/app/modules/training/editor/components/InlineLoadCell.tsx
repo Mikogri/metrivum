@@ -43,10 +43,13 @@ type Props = {
   effortAsLoad?: boolean;
   fallbackValue?: string;
   required?: boolean;
+  maxEffort?: boolean;
+  onMaxEffort?: (active: boolean) => void;
 };
 /** Labels for the formula picker's groups. */
-function kindLabel(kind: "variable" | "function" | "builtIn" | "custom", locale: string) {
+function kindLabel(kind: "variable" | "function" | "builtIn" | "custom" | "maximum", locale: string) {
   const pl = locale === "pl";
+  if (kind === "maximum") return pl ? "Maksymalny czas" : "Maximum effort time";
   return kind === "variable" ? (pl ? "Dane klienta" : "Client data") : kind === "function" ? (pl ? "Funkcje" : "Functions") : kind === "builtIn" ? (pl ? "Wbudowane formuły" : "Built-in formulas") : pl ? "Twoje formuły" : "Your formulas";
 }
 /** "base1Rm" reads as "Base 1RM". */
@@ -59,9 +62,9 @@ function convertQuantity(value: Quantity, unit: Unit): Quantity {
   return value;
 }
 
-type Choice = { key: string; label: string; kind: "variable" | "function" | "builtIn" | "custom"; version?: number; inputs?: Record<string, Unit> };
+type Choice = { key: string; label: string; kind: "variable" | "function" | "builtIn" | "custom" | "maximum"; version?: number; inputs?: Record<string, Unit> };
 
-export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, label, style, className, initialText, onDone, customAllowed = false, formulaAllowed = true, effortAsLoad = false, fallbackValue, required = false, maxReps, valueKind = "mass", valueUnit, onUnitChange, constraints, allowRange = true }: Props) {
+export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, label, style, className, initialText, onDone, customAllowed = false, formulaAllowed = true, effortAsLoad = false, fallbackValue, required = false, maxReps, valueKind = "mass", valueUnit, onUnitChange, constraints, allowRange = true, maxEffort = false, onMaxEffort }: Props) {
   const uiCopy = useUiCopy();
 
   const m = useT();
@@ -97,8 +100,8 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
   const effortMode = effortAsLoad && !prescription.load && !saved && prescription.loadPercent == null ? prescription.rpe != null ? "RPE" : prescription.rir != null ? "RIR" : null : null;
   const hasUnitSelect = valueKind !== "scalar" && !readOnly && !effortMode && prescription.loadPercent == null;
   const withoutUnit = (value: string) => hasUnitSelect && !value.startsWith("=") ? value.replace(/\s+(kg|lb|s|min)\b/g, "") : value;
-  const raw = formulaText(saved) || (effortMode ? `${effortMode} ${prescription.rpe ?? prescription.rir}` : withoutUnit(fallbackValue || editText(locale, "load", prescription)));
-  const search = text !== null && !dismissed && formulaAllowed ? librarySearch(text) : null;
+  const raw = maxEffort ? (valueKind === "time" ? "MAX" : "AMRAP") : formulaText(saved) || (effortMode ? `${effortMode} ${prescription.rpe ?? prescription.rir}` : withoutUnit(fallbackValue || editText(locale, "load", prescription)));
+  const search = text !== null && !dismissed && (formulaAllowed || onMaxEffort) ? librarySearch(text) : null;
   const builtIns = useBuiltInFormulas();
   const functionSearch = text !== null && !dismissed && formulaAllowed ? /^=([A-Za-z_][A-Za-z0-9_ -]*|)$/.exec(text)?.[1] ?? null : null;
   const library = useFormulaList(functionSearch ?? "", 1, 50);
@@ -106,7 +109,8 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
   const allVariableNames = [...new Set([...Object.keys(CLIENT_VARIABLE_UNITS).filter(name => !(CLIENT_VARIABLE_UNITS[name as keyof typeof CLIENT_VARIABLE_UNITS] === "Kg" && !name.endsWith("_kg") || ["weight_kg", "weight_lb"].includes(name))).filter(name => unqualified(name) === "oneRepMax" ? Boolean(exerciseId) : unqualified(name) === "repMax" ? Boolean(exerciseId && (maxReps || context.exerciseMaxReps?.[exerciseId])) : true), ...Object.keys(context.variables).filter(name => !/^exercise(?:Time)?\d+Rm_/.test(name) && !["weight", "bodyweight", "bodyWeight"].includes(name)).flatMap(name => context.variables[name]?.unit === "Kg" || context.variables[name]?.unit === "Lb" ? [`${name}_kg`, `${name}_lb`] : [name])])];
   const variableNames = allVariableNames.filter(name => valueKind === "mass" || !["Kg", "Lb"].includes(CLIENT_VARIABLE_UNITS[name as keyof typeof CLIENT_VARIABLE_UNITS] ?? context.variables[name]?.unit));
   const options: Choice[] = [
-    ...(search !== null ? variableNames : []).filter((name) => name.toLowerCase().startsWith(prefix)).slice(0, 6).map((name): Choice => ({ key: `v:${name}`, label: name.replace(/^bodyWeight_/, "Body weight "), kind: "variable" })),
+    ...(onMaxEffort && valueKind === "time" && search !== null && "max".startsWith(prefix) ? [{ key: "maximum", label: "MAX", kind: "maximum" as const }] : []),
+    ...(search !== null && formulaAllowed ? variableNames : []).filter((name) => name.toLowerCase().startsWith(prefix)).slice(0, 6).map((name): Choice => ({ key: `v:${name}`, label: name.replace(/^bodyWeight_/, "Body weight "), kind: "variable" })),
     ...(functionSearch !== null ? FORMULA_FUNCTIONS : []).filter((name) => name.toLowerCase().startsWith(prefix)).map((name): Choice => ({ key: `f:${name}`, label: `${functionLabel(name)}(…)`, kind: "function" })),
     ...(functionSearch !== null ? builtIns.data ?? [] : []).filter(f => valueKind === "mass" || f.definition.outputUnit === (valueKind === "time" ? "Seconds" : "Scalar")).filter((f) => (m.training.formulas.builtInNames[f.key ?? ""] ?? f.key ?? "").toLowerCase().includes(prefix)).map((f): Choice => ({ key: `b:${f.key}`, label: m.training.formulas.builtInNames[f.key ?? ""] ?? f.key ?? "", kind: "builtIn", version: f.version, inputs: f.definition.inputs })),
     ...(customAllowed && functionSearch !== null ? library.data?.items ?? [] : []).filter((f) => !f.archived && f.name.toLowerCase().includes(prefix)).slice(0, 12).map((f): Choice => ({ key: `c:${f.id}`, label: f.name, kind: "custom", version: f.version })),
@@ -121,7 +125,7 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
   const result = evaluation.data ? formatQuantity(locale, convertQuantity(evaluation.data.result, unit)) : null;
   const displayWithUnit = saved && missing.length ? formulaText(saved) : saved ? result ?? (evaluation.error ? formulaText(saved) : "…") : fallbackValue ?? (valueKind === "mass" ? formatLoad(locale, prescription) : prescription.load ? formatQuantity(locale, prescription.load.minimum) : "");
 
-  const display = withoutUnit(displayWithUnit);
+  const display = maxEffort ? (valueKind === "time" ? "MAX" : "AMRAP") : withoutUnit(displayWithUnit);
 
   const focusInput = (position?: number) => { const generation = request.current; requestAnimationFrame(() => {
     if (completed.current || request.current !== generation || !lifecycle.isCurrent()) return;
@@ -221,6 +225,9 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
     if (text === null || completed.current) return;
     if (!changed.current) { cancel(); return; }
     if (!formulaAllowed && (/^\s*[=/]/.test(text))) { setError(m.editor.panel.advancedLocked); return; }
+    if (onMaxEffort && text.trim().toUpperCase() === (valueKind === "time" ? "MAX" : "AMRAP")) {
+      onMaxEffort(true); cancel(); return;
+    }
     const next: Prescription = { ...prescription };
     if (draft && search === null) {
       next.loadFormula = storedFormula({ ...draft, ...(valueKind === "mass" ? {} : { outputUnit: unit }) });
@@ -270,6 +277,7 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
     changed.current = true;
 
     setError("");
+    if (option.kind === "maximum") { onMaxEffort?.(true); cancel(); return; }
     if (option.kind === "variable" || option.kind === "function") {
       const next = option.kind === "variable" ? `=${option.key.slice(2)}` : `=${option.key.slice(2)}()`;
       setText(next); setBinding(null); setDismissed(true);

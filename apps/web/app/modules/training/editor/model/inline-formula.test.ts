@@ -66,3 +66,14 @@ it("uses the existing profile source for the renamed, unit-qualified body weight
   expect(formula.inputs.bodyWeight_lb?.unit).toBe("Lb");
   expect(formula.inputs.bodyWeight_lb?.value).toBeCloseTo(220.462262, 5);
 });
+
+it("resolves API-created implicit snapshot inputs and qualified binding aliases without changing manual inputs", () => {
+  const use = { formulaId: null, builtIn: null, version: 1, expression: "weight_kg * factor", inputs: { factor: { value: .8, unit: "Scalar" as const } }, variableBindings: {} };
+  const variables = { weight: { value: 100, unit: "Kg" as const } };
+  expect(withClientVariables(use, variables, true)?.inputs).toEqual({ weight_kg: variables.weight, factor: use.inputs.factor });
+  expect(use.inputs).not.toHaveProperty("weight_kg");
+  const bound = { ...use, expression: "base1Rm * factor", variableBindings: { base1Rm: "weight_kg" } };
+  expect(withClientVariables(bound, variables, true)?.inputs.base1Rm).toEqual(variables.weight);
+  const manual = { ...use, inputs: { ...use.inputs, weight_kg: { value: 80, unit: "Kg" as const } } };
+  expect(withClientVariables(manual, variables, true)?.inputs.weight_kg?.value).toBe(80);
+});

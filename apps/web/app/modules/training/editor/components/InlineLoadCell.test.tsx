@@ -327,3 +327,24 @@ describe("inline load cell", () => {
     client.relationshipId = "client-a";
   });
 });
+
+it("accepts AMRAP directly in repetitions without a slash", () => {
+  const maximum = vi.fn();
+  render(<InlinePrescriptionCell field="Reps" prescription={{}} onMaximumChange={maximum} label="Reps" readOnly={false} onChange={vi.fn()} />);
+  const input = screen.getByRole("combobox", { name: "Reps" });
+  fireEvent.focus(input); fireEvent.change(input, { target: { value: "amrap" } }); fireEvent.keyDown(input, { key: "Enter" });
+  expect(maximum).toHaveBeenCalledWith(true);
+});
+it("offers maximum duration through slash without evaluating a formula", () => {
+  const maximum = vi.fn();
+  render(<InlinePrescriptionCell field="WorkTime" prescription={{}} onMaximumChange={maximum} label="Time" readOnly={false} onChange={vi.fn()} />);
+  fireEvent.keyDown(screen.getByRole("gridcell"), { key: "/" });
+  fireEvent.click(screen.getByRole("option", { name: "MAX" }));
+  expect(maximum).toHaveBeenCalledWith(true);
+});
+
+it("does not apply maximum work time to rest", () => {
+  render(<InlinePrescriptionCell field="Rest" prescription={{ workTimeMax: true, rest: { value: 60, unit: "Seconds" } }} label="Rest" readOnly={false} onChange={vi.fn()} />);
+  expect(screen.getByRole("gridcell", { name: "Rest: 1:00" })).toBeInTheDocument();
+  expect(screen.queryByDisplayValue("MAX")).not.toBeInTheDocument();
+});

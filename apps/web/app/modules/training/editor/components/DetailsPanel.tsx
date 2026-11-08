@@ -6,6 +6,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { changeSetKind, findSet, groupOf, makeGroup, newSegment, removeGroup, setIsAdvanced, setPrescription, updateGroup, updateNode, updateSegments, SEGMENTED } from "../model/document";
 import { TEMPO_PATTERN } from "../model/notation";
 import type { EditorApi } from "../useEditor";
+import { InlinePrescriptionCell } from "./InlinePrescriptionCell";
 import { FormulaPicker } from "./FormulaPicker";
 import type { GridSelection } from "./SetGrid";
 import styles from "./DetailsPanel.module.css";
@@ -176,6 +177,12 @@ function PrescriptionFields({ p, onChange, disabled, isAmrap, customFormulas, si
           ["distance", t.distance, DISTANCE],
         ] as const
       ).map(([key, label, units]) => {
+        if (key === "workTime") return <div key={key}>
+          <span>{label}</span>
+          <InlinePrescriptionCell field="WorkTime" prescription={p} label={label} readOnly={disabled} customAllowed={customFormulas}
+            onMaximumChange={() => { const fieldFormulas = { ...p.fieldFormulas }; delete fieldFormulas.WorkTime; set({ workTimeMax: true, workTime: null, fieldFormulas }); }}
+            onChange={(formula, value) => { const fieldFormulas = { ...p.fieldFormulas }; if (formula) fieldFormulas.WorkTime = formula; else delete fieldFormulas.WorkTime; set({ workTimeMax: null, workTime: formula ? null : value, fieldFormulas }); }} />
+        </div>;
         const quantity = p[key];
         return (
           <div key={key} className={styles.row2}>

@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { BlockFormulaScope } from "../block-maxes";
+import { effectiveBlock } from "../model/maxes";
+import { locate } from "../model/document";
+import { useMemo, useState } from "react";
 import type { Workout } from "@metrivum/api-client-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import type { EditorApi } from "../useEditor";
@@ -28,8 +31,13 @@ export function WorkoutEditor({
   simple?: boolean;
 }) {
   const [selection, setSelection] = useState<GridSelection>({ instanceId: null, setId: null });
+  // Every entry point (week dialog, sheet panel, table tools) uses the owning workout's sources.
+  const block = useMemo(() => {
+    const at = locate(editor.doc, workout.id);
+    return effectiveBlock(editor.doc, at ? editor.doc.blocks[at.blockIndex] : undefined);
+  }, [editor.doc, workout.id]);
   return (
-    <div className={styles.editor}>
+    <BlockFormulaScope block={block}><div className={styles.editor}>
       <div className={styles.grid}>
         <SetGrid key={workout.id} editor={editor} workout={workout} names={names} advancedAllowed={advancedAllowed && !simple} customFormulas={customFormulas && !simple} readOnly={readOnly} onSelectionChange={setSelection} />
       </div>
@@ -44,6 +52,6 @@ export function WorkoutEditor({
           simple={simple}
         />
       </aside>
-    </div>
+    </div></BlockFormulaScope>
   );
 }

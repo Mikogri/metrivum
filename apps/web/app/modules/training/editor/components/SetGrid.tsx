@@ -15,6 +15,7 @@ import {
   moveNode,
   removeNode,
   SEGMENTED,
+  setIsAdvanced,
   setPrescription,
   updateNode,
   updateSegments,
@@ -124,7 +125,7 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
     return { r1: Math.min(anchor.r, active.r), r2: Math.max(anchor.r, active.r), c1: Math.min(anchor.c, active.c), c2: Math.max(anchor.c, active.c) };
   }, [anchor, active]);
 
-  const isAdvancedLocked = (set: TrainingSet | null) => Boolean(set && set.kind !== "Standard" && !advancedAllowed);
+  const isAdvancedLocked = (set: TrainingSet | null) => Boolean(set && setIsAdvanced(set) && !advancedAllowed);
 
   function display(row: Row, column: Column): string {
     const set = row.set;
@@ -158,10 +159,12 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
     const p: Prescription = { ...set.prescription };
     switch (column) {
       case "reps": {
+        if (text.trim().toUpperCase() === "AMRAP") { editor.apply(doc => changeSetKind(doc, set.id, "Amrap")); return true; }
         const parsed = parseReps(text);
         if (!parsed.ok) return false;
-        if (set.kind === "Amrap" && parsed.value) return false;
+
         p.reps = parsed.value;
+        p.fieldFormulas = { ...p.fieldFormulas }; delete p.fieldFormulas.Reps;
         break;
       }
       case "load": {
@@ -209,7 +212,7 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
         p.comment = text.trim() || null;
         break;
     }
-    editor.apply((doc) => setPrescription(doc, set.id, p));
+    editor.apply((doc) => setPrescription(column === "reps" && set.kind === "Amrap" ? changeSetKind(doc, set.id, "Standard") : doc, set.id, p));
     return true;
   }
 
@@ -480,8 +483,10 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
                     {column === "load" && row.set && advancedAllowed ? (
                       <InlineLoadCell exerciseId={row.exerciseId} customAllowed={customFormulas} prescription={row.set.prescription} readOnly={readOnly || locked} label={m.editor.columns.load} initialText={editingHere ? editing.text : undefined} onDone={() => setEditing(null)} onChange={(p) => editor.apply((doc) => setPrescription(doc, row.set!.id, p))} />
                     ) : (column === "reps" || column === "rest") && row.set && advancedAllowed ? (
-                      <InlinePrescriptionCell field={column === "reps" ? "Reps" : "Rest"} prescription={row.set.prescription} exerciseId={row.exerciseId} customAllowed={customFormulas} readOnly={readOnly || locked} label={m.editor.columns[column]} initialText={editingHere ? editing.text : undefined} onDone={() => setEditing(null)}
-                        onChange={(formula, value, maximum) => editor.apply(doc => setPrescription(doc, row.set!.id, { ...row.set!.prescription,
+                      <InlinePrescriptionCell field={column === "reps" ? "Reps" : "Rest"} prescription={row.set.prescription} maximum={column === "reps" && row.set.kind === "Amrap"}
+                        onMaximumChange={column === "reps" ? () => editor.apply(doc => changeSetKind(doc, row.set!.id, "Amrap")) : undefined}
+                        exerciseId={row.exerciseId} customAllowed={customFormulas} readOnly={readOnly || locked} label={m.editor.columns[column]} initialText={editingHere ? editing.text : undefined} onDone={() => setEditing(null)}
+                        onChange={(formula, value, maximum) => editor.apply(doc => setPrescription(column === "reps" && row.set!.kind === "Amrap" ? changeSetKind(doc, row.set!.id, "Standard") : doc, row.set!.id, { ...row.set!.prescription,
                           fieldFormulas: Object.fromEntries([...Object.entries(row.set!.prescription.fieldFormulas ?? {}).filter(([key]) => key !== (column === "reps" ? "Reps" : "Rest")), ...(formula ? [[column === "reps" ? "Reps" : "Rest", formula] as const] : [])]),
                           ...(column === "reps" ? { reps: formula || !value ? null : { minimum: value.value, maximum: maximum ?? value.value } } : { rest: formula ? null : value })
                         }))} />

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 export type Side = "left" | "right" | "top" | "bottom";
-export interface Bounds { left: number; top: number; width: number; height: number }
+/** `sideY`: where a cable meets the left or right edge, fixed (e.g. a card's title row, clear of its column handles). */
+export interface Bounds { left: number; top: number; width: number; height: number; sideY?: number }
 export interface Port { x: number; y: number; side: Side }
 const normal = { left: [-1, 0], right: [1, 0], top: [0, -1], bottom: [0, 1] } as const;
 const clamp = (value: number, low: number, high: number) => Math.max(low, Math.min(high, value));
@@ -8,7 +9,7 @@ function port(box: Bounds, side: Side, toward: Bounds): Port {
   const insetX = Math.min(16, box.width / 2); const insetY = Math.min(16, box.height / 2);
   return { side,
     x: side === "left" ? box.left : side === "right" ? box.left + box.width : clamp(toward.left + toward.width / 2, box.left + insetX, box.left + box.width - insetX),
-    y: side === "top" ? box.top : side === "bottom" ? box.top + box.height : clamp(toward.top + toward.height / 2, box.top + insetY, box.top + box.height - insetY),
+    y: side === "top" ? box.top : side === "bottom" ? box.top + box.height : box.sideY ?? clamp(toward.top + toward.height / 2, box.top + insetY, box.top + box.height - insetY),
   };
 }
 /** Only outward-facing pairs are eligible; overlapping cards use the least obstructed axis. */
@@ -24,6 +25,9 @@ export function connectBounds(source: Bounds, target: Bounds) {
       const low = Math.max(source.top + Math.min(16, source.height / 2), target.top + Math.min(16, target.height / 2));
       const high = Math.min(source.top + source.height - Math.min(16, source.height / 2), target.top + target.height - Math.min(16, target.height / 2));
       if (low <= high) from.y = to.y = (low + high) / 2;
+      // A card with a fixed side point keeps it, so the cable never lands on its column handles.
+      if (source.sideY != null) from.y = source.sideY;
+      if (target.sideY != null) to.y = target.sideY;
     }
     const dx = to.x - from.x; const dy = to.y - from.y; const n = normal[a];
     return { from, to, score: Math.hypot(dx, dy) + (dx * n[0] + dy * n[1] < 0 ? 100000 : 0) };

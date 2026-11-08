@@ -10,6 +10,7 @@ export {
   needsSecondFactor, sessionAal, verifiedFactors, verifiedTotp, verifyAuthenticatorCode, type AssuranceLevel,
 } from "./lib/assurance";
 export { SecondFactorForm, factorName } from "./components/SecondFactorForm";
+export { CodeInput } from "./components/CodeInput";
 export { callbackUrl } from "./lib/urls";
 export { emailChangeUrl } from "./lib/accountSecurity";
 export { useCooldown } from "./lib/useCooldown";

@@ -38,3 +38,19 @@ describe("inline server evaluation", () => {
     queryClient.clear();
   });
 });
+
+it("does not evaluate unresolved source bindings or retain a previous numeric result", async () => {
+  const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = ({ children }: { children: React.ReactNode }) => <QueryClientProvider client={cache}>{children}</QueryClientProvider>;
+  api.mockResolvedValue({ data: { result: { value: 80, unit: "Kg" } } });
+  const formula = { formulaId: null, builtIn: null, version: 1, expression: "base1Rm*.8", variableBindings: { base1Rm: "exercise1Rm_bench" } };
+  const { result, rerender } = renderHook(({ available }) => useFormulaEvaluation({ ...formula, inputs: available ? { base1Rm: { value: 100, unit: "Kg" as const } } : {} }), { initialProps: { available: true }, wrapper });
+  await waitFor(() => expect(result.current.data?.result.value).toBe(80));
+  const calls = api.mock.calls.length;
+  rerender({ available: false });
+  expect(result.current.data).toBeUndefined();
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 400)); });
+  expect(api.mock.calls.length).toBe(calls);
+  expect(result.current.error).toBeNull();
+  cache.clear();
+});

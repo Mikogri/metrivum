@@ -2337,3 +2337,17 @@ button.tile[data-kind="workout"]:hover {
   }
 }
 .cycleMeta > .blockFolded::before { content: none; }
+
+/* Tables written into the sheet (workouts, maxes) get the sheet's own background and lines, but opaque, so
+   cables running underneath don't show through them. */
+.sheet .card[data-expanded],
+.sheet .card[data-kind="maxes"]:not([data-collapsed]) {
+  background-color: var(--tf-color-bg-sunken);
+  background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: 100% var(--cell-h);
+}
+
+.sheet .card[data-expanded] .cell,
+.sheet .card[data-kind="maxes"] .cell {
+  border-right-color: rgb(255 255 255 / 0.045);
+}

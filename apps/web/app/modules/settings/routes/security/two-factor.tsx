@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import type { Factor } from "@supabase/supabase-js";
 import { Smartphone, Trash2 } from "lucide-react";
 import { Alert, Badge, Button, Card, Dialog, List, ListRow, TextField, toast } from "@metrivum/ui-web";
-import { SecondFactorForm, factorName, hasPassword, isSixDigitCode, mfaErrorText, verifiedTotp, verifyAuthenticatorCode, verifyPassword, useTurnstile } from "~/modules/auth";
+import { CodeInput, SecondFactorForm, factorName, hasPassword, isSixDigitCode, mfaErrorText, verifiedTotp, verifyAuthenticatorCode, verifyPassword, useTurnstile } from "~/modules/auth";
 import { formatDate } from "~/shared/i18n/format";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
@@ -160,15 +160,11 @@ export default function TwoFactor() {
                   <div><Button size="sm" variant="ghost" onPress={() => void copySecret(setup.enrollment!.secret)}>{t.copy}</Button></div>
                 </div>
               </div>
-              <TextField
+              <CodeInput
                 label={t.code}
                 description={t.codeHint}
-                placeholder="000000"
-                inputMode="numeric"
-                autoComplete="one-time-code"
                 value={code}
-                onChange={(value) => { setCode(value.replace(/\D/g, "").slice(0, 6)); if (setup.step === 1 && value) setSetup({ ...setup, step: 2 }); setError(null); }}
-                isRequired
+                onChange={(value) => { setCode(value); if (setup.step === 1 && value) setSetup({ ...setup, step: 2 }); setError(null); }}
               />
               <div className={styles.actions}>
                 <Button type="submit" variant="primary" loading={pending}>{t.turnOn}</Button>

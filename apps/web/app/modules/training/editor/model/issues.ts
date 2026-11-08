@@ -59,6 +59,7 @@ function prescriptionIssues(p: Prescription | null | undefined): IssueCode[] {
   if (p.baseValue && p.loadPercent == null) found.push("percent");
   const rpe = p.rpe == null ? null : Number(p.rpe), rir = p.rir == null ? null : Number(p.rir);
   if ((rpe != null && (rpe < 0 || rpe > 10)) || (rir != null && (rir < 0 || rir > 100)) || (rpe != null && rir != null)) found.push("rpeRir");
+  if (p.workTimeMax && (p.workTime || p.fieldFormulas?.WorkTime)) found.push("quantity");
   if (p.tempo != null && !TEMPO.test(p.tempo)) found.push("tempo");
   if (![p.baseValue, p.workTime, p.rest, p.distance].every(quantityOk)) found.push("quantity");
   return found;
@@ -68,7 +69,7 @@ function setIssues(set: TrainingSet, earlierTopSets: Set<string>): IssueCode[] {
   const found = prescriptionIssues(set.prescription);
   const segments = set.segments ?? [];
   if (SEGMENTED.has(set.kind) ? segments.length < 2 || segments.length > MAX_SEGMENTS : segments.length !== 0) found.push("segments");
-  if (set.kind === "Amrap" && set.prescription?.reps) found.push("amrapReps");
+  if (set.kind === "Amrap" && (set.prescription?.reps || set.prescription?.fieldFormulas?.Reps)) found.push("amrapReps");
   if (set.kind === "BackOff" && set.sourceSetId && !earlierTopSets.has(set.sourceSetId)) found.push("backOffSource");
   for (const segment of segments) for (const code of prescriptionIssues(segment.prescription)) if (!found.includes(code)) found.push(code);
   return found;

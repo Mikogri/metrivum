@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { CodeInput } from "./CodeInput";
 import type { Factor, Session } from "@supabase/supabase-js";
-import { Alert, Button, Option, Select, TextField } from "@metrivum/ui-web";
+import { Alert, Button, Option, Select } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useSessionManager } from "~/shared/session/SessionProvider";
 import type { SlotId } from "~/shared/session/storage-keys";
@@ -80,16 +81,11 @@ export function SecondFactorForm({ slot, factors, check, onVerified, submitLabel
           {factors.map((factor) => <Option key={factor.id} id={factor.id}>{factorName(factor, t.twoFactor.defaultName)}</Option>)}
         </Select>
       ) : null}
-      <TextField
+      <CodeInput
         label={t.challenge.code}
-        placeholder="000000"
-        className={form.code}
-        inputMode="numeric"
-        autoComplete="one-time-code"
         autoFocus={!children}
         value={code}
-        onChange={(value) => { setCode(value.replace(/\D/g, "").slice(0, 6)); setError(null); }}
-        isRequired
+        onChange={(value) => { setCode(value); setError(null); }}
         isInvalid={Boolean(error)}
         errorMessage={error ?? undefined}
       />

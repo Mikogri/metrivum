@@ -1,3 +1,4 @@
+import { isRecordedSet, recordedSetPredicate } from "./set-results";
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
@@ -58,6 +59,7 @@ function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { det
   const [feedback, setFeedback] = useState<Partial<NonNullable<Execution["feedback"]>>>(() => execution.feedback ?? {});
   const feedbackReady = feedback.rating != null && feedback.wellbeing != null && feedback.sleepQuality != null && feedback.sessionRpe != null;
   const feedbackChanged = JSON.stringify(feedback) !== JSON.stringify(execution.feedback ?? {});
+  const performed = useMemo(() => recordedSetPredicate(detail.prescription.workout.exercises), [detail.prescription.workout.exercises]);
   const [draft, setDraft] = useState(() => ({ performedDate: execution.performedDate || localDate(), comment: execution.comment, durationSeconds: execution.durationSeconds,
     // Nothing logged yet: start from the plan, so saving straight away records it as planned.
     exercises: execution.exercises.some(exercise => exercise.sets.some(performed)) ? execution.exercises : asPlanned(detail) }));
@@ -144,7 +146,7 @@ function ExecutionEditor({ detail, execution, own, feedbackOwn, onClose }: { det
               <tbody>{exercise.sets.map((set, setIndex) => {
                 const original = prescribed?.sets.find(item => item.id === set.prescribedSetId);
                 const p = original?.segments?.find(segment => segment.id === set.prescribedSegmentId)?.prescription || original?.prescription;
-                const target = p ? targetOf(p) : null;
+                const target = p ? targetOf(p, original?.kind) : null;
                 const label = original?.kind === "Warmup" ? "W" : original ? String(++working) : "+";
                 return <tr key={setIndex} data-skipped={set.skipped || undefined} data-extra={!original || undefined}>
                   <td><span className={styles.wkRowNo}>{label}</span>{set.id ? <CoachAnalysisChips executionId={execution.id} setId={set.id} enabled={own} /> : null}</td>
@@ -236,6 +238,7 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
   const e = detail.execution;
   const logged = e && e.status !== "Skipped" ? e : null;
   const plan = detail.prescription.workout.exercises;
+  const performed = recordedSetPredicate(plan);
   const canStart = o.allowedActions.includes("start");
   const canSkip = o.allowedActions.includes("skip");
   const decision = !e && (canStart || canSkip) ? <div className={styles.wkActions}>
@@ -389,11 +392,6 @@ function visibleCue(comment: string | undefined) {
   return text.startsWith("Generator role:") ? "" : text;
 }
 
-/** A set that was actually done (not skipped, with something recorded). */
-function performed(set: ActualSet) {
-  return !set.skipped && (set.reps != null || set.durationSeconds != null || set.distanceMeters != null || set.load != null);
-}
-
 /** A rough length of the session: each set's work (or about 40 s) plus its rest, rounded to 5 minutes. */
 function estimateMinutes(plan: Workout["exercises"]) {
   const seconds = plan.reduce((total, exercise) => total + exercise.sets.reduce((sum, set) => {
@@ -423,13 +421,14 @@ const range = (min: number, max: number) => (min === max ? String(min) : `${min}
 const UNIT: Record<string, string> = { kg: "kg", lb: "lb", seconds: "s", minutes: "min", meters: "m", kilometers: "km", percent: "%", scalar: "" };
 const unitLabel = (unit: string) => UNIT[unit.toLowerCase()] ?? unit;
 
-function targetOf(p: Prescription) {
-  const main = p.reps ? { value: range(p.reps.minimum, p.reps.maximum), unit: "reps" }
+function targetOf(p: Prescription, kind?: string) {
+  const main = kind === "Amrap" ? { value: "AMRAP", unit: "reps" } : p.reps ? { value: range(p.reps.minimum, p.reps.maximum), unit: "reps" }
+    : p.workTimeMax ? { value: "MAX", unit: "s" }
     : p.workTime ? { value: String(p.workTime.value), unit: unitLabel(p.workTime.unit) }
     : p.distance ? { value: String(p.distance.value), unit: unitLabel(p.distance.unit) }
     : null;
   const load = p.load ? `${range(p.load.minimum.value, p.load.maximum.value)} ${unitLabel(p.load.minimum.unit)}` : p.loadPercent ? `${p.loadPercent}% 1RM` : null;
-  const extras = [p.rpe != null && `RPE ${p.rpe}`, p.rir != null && `RIR ${p.rir}`, p.tempo && `Tempo ${p.tempo}`].filter(Boolean) as string[];
+  const extras = [p.workTimeMax && main?.value !== "MAX" && "MAX s", p.rpe != null && `RPE ${p.rpe}`, p.rir != null && `RIR ${p.rir}`, p.tempo && `Tempo ${p.tempo}`].filter(Boolean) as string[];
   return { main, load, extras };
 }
 
@@ -437,8 +436,8 @@ function targetOf(p: Prescription) {
 function SetRow({ label, kind, prescription, actual, missing = false }: { label: string; kind: string; prescription?: Prescription; actual?: ActualSet; missing?: boolean }) {
   const uiCopy = useUiCopy();
 
-  const target = prescription ? targetOf(prescription) : { main: null, load: null, extras: [] as string[] };
-  const done = actual ? performed(actual) : false;
+  const target = prescription ? targetOf(prescription, kind) : { main: null, load: null, extras: [] as string[] };
+  const done = actual ? isRecordedSet(actual, prescription ? { kind, prescription } : undefined) : false;
   // A planned set with nothing logged (the exercise left out, or the set left blank) counts as skipped once logged.
   const state = actual ? (actual.skipped ? "skipped" : done ? "done" : missing ? "skipped" : "open") : missing ? "skipped" : undefined;
   const actualMain = actual?.reps != null ? { value: String(actual.reps), unit: "reps" } : actual?.durationSeconds != null ? { value: String(actual.durationSeconds), unit: "s" } : actual?.distanceMeters != null ? { value: String(actual.distanceMeters), unit: "m" } : null;
@@ -474,6 +473,7 @@ function WorkoutAnalysis({ detail, execution, feedbackOwn }: { detail: Detail; e
   const uiCopy = useUiCopy();
 
   const plan = detail.prescription.workout.exercises;
+  const performed = useMemo(() => recordedSetPredicate(plan), [plan]);
   const plannedSets = plan.reduce((n, x) => n + x.sets.length, 0);
   const sets = execution.exercises.flatMap(x => x.sets);
   const done = sets.filter(performed);
@@ -541,16 +541,17 @@ function WorkoutAnalysis({ detail, execution, feedbackOwn }: { detail: Detail; e
       </div>
     </section>
 
-    <WorkoutHeatmap execution={execution} />
+    <WorkoutHeatmap execution={execution} plan={plan} />
 
     <WorkoutFeedbackForm key={`feedback:${execution.id}:${execution.version}`} execution={execution} own={feedbackOwn} />
   </div>;
 }
 
 /** Where the work went: volume (or sets) per muscle on the 3D body. Primary muscles count fully, secondary half. */
-function WorkoutHeatmap({ execution }: { execution: Execution }) {
+function WorkoutHeatmap({ execution, plan }: { execution: Execution; plan: Workout["exercises"] }) {
   const uiCopy = useUiCopy();
 
+  const performed = useMemo(() => recordedSetPredicate(plan), [plan]);
   const [metric, setMetric] = useState<"volume" | "sets">("volume");
   const ids = useMemo(() => execution.exercises.map(x => x.exerciseId), [execution.exercises]);
   const catalog = useExerciseNames(ids);
@@ -568,7 +569,7 @@ function WorkoutHeatmap({ execution }: { execution: Execution }) {
       info.secondaryMuscleKeys.forEach(key => add(key, amount / 2));
     }
     return map;
-  }, [catalog, execution.exercises, metric]);
+  }, [catalog, execution.exercises, metric, performed]);
   return <section className={styles.anSection}>
     <div className={styles.anSectionHead}>
       <h2>{uiCopy["exercises"]["detail"]["musclesWorked"]}</h2>

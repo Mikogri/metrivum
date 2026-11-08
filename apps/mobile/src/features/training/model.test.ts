@@ -118,3 +118,7 @@ describe("mobile execution adapter", () => {
         expect(pickerDate("09:30:00", "time")?.getHours()).toBe(9);
     });
 });
+
+it("describes maximum effort time without inventing a numerical target", () => {
+  expect(describePrescription({ workTimeMax: true })).toContain("MAX time");
+});

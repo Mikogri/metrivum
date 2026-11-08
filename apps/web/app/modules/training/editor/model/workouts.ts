@@ -264,13 +264,13 @@ export interface ExerciseRow {
 
 export function exerciseRow(locale: Locale, instance: ExerciseInstance, formulaLabel?: (key: string) => string): ExerciseRow {
   const p = first(instance);
-  const shown = (x: Prescription) => JSON.stringify([x.reps, x.load, x.loadPercent, x.rpe, x.rir, x.workTime, x.rest, x.loadFormula]);
+  const shown = (x: Prescription) => JSON.stringify([x.reps, x.load, x.loadPercent, x.rpe, x.rir, x.workTimeMax, x.workTime, x.rest, x.loadFormula]);
   const reps = p.reps ? (Number(p.reps.minimum) === Number(p.reps.maximum) ? `${p.reps.minimum}` : `${p.reps.minimum}–${p.reps.maximum}`) : "";
   return {
     sets: String(instance.sets.length),
     reps,
     load: formatLoadCell(locale, p, formulaLabel),
-    time: formatClock(p.workTime),
+    time: p.workTimeMax ? "MAX" : formatClock(p.workTime),
     rest: formatClock(p.rest),
     mixed: instance.sets.some((s) => s.kind !== "Standard" || shown(s.prescription) !== shown(p)),
   };

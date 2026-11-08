@@ -1,4 +1,5 @@
-import { createZoomState } from "../zoom-state";
+import { commentKeyDown } from "./comment-keydown";
+import { createZoomState, zoomAt } from "../zoom-state";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useColumnWidths } from "../useColumnWidths";
 import { columnGeometry, elementColumnWidths, sanitizeElementWidths, type ElementWidths } from "../model/layout";
@@ -236,22 +237,29 @@ export function SheetCanvas({
   const [marquee, setMarquee] = useState<Marquee | null>(null);
   const [openWorkout, setOpenWorkout] = useState<string | null>(null);
   const [progressionBlock, setProgressionBlock] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(initialZoom);
-  // Zoom glides: each change sets a goal and the sheet eases towards it over a few frames.
+  const committedZoom = useRef(initialZoom);
+  // Zoom uses a fixed duration, even if rendering drops frames.
   const zoomNow = useRef(initialZoom);
   const [zoomSource] = useState(() => createZoomState(initialZoom));
   const zoomGoal = useRef<number | null>(null);
   const zoomFrame = useRef(0);
+  const zoomTween = useRef({ from: initialZoom, startedAt: 0 });
   const glideZoom = useCallback((goal: number, anchor: { bx: number; by: number; px: number; py: number } | null) => {
+    if (goal === zoomNow.current && !zoomFrame.current) return;
+    zoomTween.current = { from: zoomNow.current, startedAt: performance.now() };
     zoomGoal.current = goal;
     if (anchor) zoomAnchor.current = anchor;
+    // Reserve the largest extent once; intermediate frames need only a transform and anchor scroll.
+    const extent = extentRef.current;
+    const largest = Math.max(zoomNow.current, goal);
+    if (extent) { extent.style.width = `${boardDimensions.current.w * largest}px`; extent.style.height = `${boardDimensions.current.h * largest}px`; }
     if (zoomFrame.current) return;
     const reduce = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce && boardRef.current) boardRef.current.style.willChange = "transform";
     const step = () => {
       const target = zoomGoal.current;
       if (target == null) { zoomFrame.current = 0; return; }
-      const current = zoomNow.current;
-      const next = reduce || Math.abs(target - current) < 0.004 ? target : current + (target - current) * 0.28;
+      const next = zoomAt(zoomTween.current.from, target, zoomTween.current.startedAt, performance.now(), reduce);
       zoomNow.current = next;
       if (next === target) { zoomGoal.current = null; zoomFrame.current = 0; }
       else zoomFrame.current = requestAnimationFrame(step);
@@ -259,15 +267,18 @@ export function SheetCanvas({
       const extent = extentRef.current;
       const scroller = scrollerRef.current;
       if (board) board.style.transform = `scale(${next})`;
-      if (extent) { extent.style.width = `${boardDimensions.current.w * next}px`; extent.style.height = `${boardDimensions.current.h * next}px`; }
+      if (extent && next === target) { extent.style.width = `${boardDimensions.current.w * next}px`; extent.style.height = `${boardDimensions.current.h * next}px`; }
       const anchor = zoomAnchor.current;
       if (scroller && anchor) { scroller.scrollLeft = anchor.bx * next - anchor.px; scroller.scrollTop = anchor.by * next - anchor.py; }
       zoomSource.set(next);
-      if (next === target) { zoomAnchor.current = null; setZoom(next); }
+      if (next === target) { board?.style.removeProperty("will-change"); zoomAnchor.current = null; committedZoom.current = next; if (board) board.dataset.sheetZoom = String(next); }
     };
     zoomFrame.current = requestAnimationFrame(step);
   }, [zoomSource]);
-  useEffect(() => () => cancelAnimationFrame(zoomFrame.current), []);
+  useEffect(() => {
+    const board = boardRef.current;
+    return () => { cancelAnimationFrame(zoomFrame.current); board?.style.removeProperty("will-change"); };
+  }, []);
   const [volumeOpen, setVolumeOpen] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const zoomAnchor = useRef<{ bx: number; by: number; px: number; py: number } | null>(null);
@@ -770,7 +781,14 @@ export function SheetCanvas({
     return () => { cancelAnimationFrame(frame); setGlide(null); };
   }, [layout, widths, dragging]);
 
-  const computeBounds = (id: string): Bounds => {
+  // Workout cards and maxes tables have column headings with resize handles under their title row: cables meet
+  // their left and right edges in the title row instead.
+  const titleRowSide = (id: string, box: Bounds): Bounds => {
+    const headed = !collapsedCards.has(id) && (allWorkouts.some(w => w.workout.id === id) || maxesTables(doc).some(t => t.id === id));
+    return headed ? { ...box, sideY: box.top + CELL_H / 2 } : box;
+  };
+  const computeBounds = (id: string): Bounds => titleRowSide(id, rawBounds(id));
+  const rawBounds = (id: string): Bounds => {
     const p = pos(id); const cellSize = sizes[id]!;
     const box = nodeBoxes[id];
     const live = glide?.[id];
@@ -844,7 +862,7 @@ export function SheetCanvas({
                 { type: "separator", id: "s1" },
               ] as ContextMenuEntry[])),
           { id: "arrange", label: t.arrange, icon: <LayoutGrid /> },
-          { id: "zoom-reset", icon: <RotateCcw />, label: t.zoomReset, shortcut: `${Math.round(zoom * 100)}%` },
+          { id: "zoom-reset", icon: <RotateCcw />, label: t.zoomReset, shortcut: `${Math.round(zoomNow.current * 100)}%` },
         ];
       case "block":
         return readOnly
@@ -1121,7 +1139,7 @@ export function SheetCanvas({
             className={styles.board}
             role="group"
             aria-label={t.label}
-            data-sheet-zoom={zoom}
+            data-sheet-zoom={committedZoom.current}
             data-dragging={drag?.moved || undefined}
             data-panning={panning || undefined}
             data-select-key={(selectKey !== (dragMode === "select") && !readOnly) || undefined}
@@ -1378,6 +1396,7 @@ export function SheetCanvas({
               autoFocus
               aria-label={t.restDayNote(menu.dayNumber)}
               placeholder={t.restDayNotePlaceholder}
+              onKeyDown={event => commentKeyDown(event, () => setMenu(null), text => apply?.(d => setDayNote(d, menu.cycleId, menu.dayNumber, text)))}
               defaultValue={menu.note}
               onChange={(event) => {
                 const { cycleId, dayNumber } = menu;
@@ -1410,7 +1429,6 @@ export function SheetCanvas({
       {volumeOpen ? <VolumePanel doc={doc} names={names} onClose={() => setVolumeOpen(false)} /> : null}
 
       {workout && editor ? (
-        <BlockFormulaScope block={effectiveBlock(doc, doc.blocks.find(b => b.cycles.some(c => c.days.some(d => d.workouts.some(w => w.id === workout.id)))))}>
         <WorkoutPanel
           workout={workout}
           editor={editor}
@@ -1419,7 +1437,7 @@ export function SheetCanvas({
           customFormulas={customFormulas}
           readOnly={readOnly}
           onClose={() => setOpenWorkout(null)}
-        /></BlockFormulaScope>
+        />
       ) : null}
     </div>
   );

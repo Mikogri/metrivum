@@ -61,8 +61,16 @@ export function withClientVariables(value: InlineFormulaUse | null | undefined, 
   if (!value || !selected) return value;
   const inputs = { ...value.inputs };
   for (const [input, alias] of Object.entries(value.variableBindings ?? {})) {
-    if (variables[alias]) inputs[input] = qualifiedValue(input, variables[alias]!);
+    const source = variables[alias] ?? variables[unqualified(alias)];
+    if (source) inputs[input] = qualifiedValue(input, source);
     else delete inputs[input];
+  }
+  // API expressions can reference snapshot variables directly without UI-created bindings.
+  // Explicit/manual constants still win; only absent expression inputs are resolved here.
+  for (const name of value.expression?.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g) ?? []) {
+    if (inputs[name] || value.variableBindings?.[name]) continue;
+    const source = variables[name] ?? variables[unqualified(name)];
+    if (source) inputs[name] = qualifiedValue(name, source);
   }
   return { ...value, inputs };
 }
