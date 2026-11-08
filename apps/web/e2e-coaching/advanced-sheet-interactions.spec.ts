@@ -521,3 +521,25 @@ test("Polish preview localizes controls without translating plan and exercise na
   await expect(page.getByText("Bench press", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Open editor", exact: true })).toHaveCount(0);
 });
+
+test("zoom keeps pointer anchoring and scroll extent aligned while committing only the final scale", async ({ page }) => {
+  await fixture(page, true);
+  const board = page.locator("[data-sheet-zoom]");
+  const initial = Number(await board.getAttribute("data-sheet-zoom"));
+  await board.evaluate(node => {
+    const target = node as HTMLElement;
+    const history: string[] = [];
+    (window as unknown as { sheetZoomCommits: string[] }).sheetZoomCommits = history;
+    new MutationObserver(records => { for (const record of records) if (record.attributeName === "data-sheet-zoom") history.push(target.dataset.sheetZoom!); }).observe(target, { attributes: true, attributeFilter: ["data-sheet-zoom"] });
+    const scroller = target.parentElement!.parentElement!;
+    const rect = scroller.getBoundingClientRect();
+    scroller.dispatchEvent(new WheelEvent("wheel", { ctrlKey: true, deltaY: -100, clientX: rect.left + 40, clientY: rect.top + 40, bubbles: true, cancelable: true }));
+  });
+  await expect.poll(async () => Number(await board.getAttribute("data-sheet-zoom"))).toBe(Math.round(initial * Math.exp(0.18) * 100) / 100);
+  const result = await board.evaluate(node => {
+    const el = node as HTMLElement;
+    return { scale: Number(el.dataset.sheetZoom), width: parseFloat(el.style.width), extent: parseFloat(el.parentElement!.style.width), commits: (window as unknown as { sheetZoomCommits: string[] }).sheetZoomCommits.length };
+  });
+  expect(result.extent).toBeCloseTo(result.width * result.scale, 2);
+  expect(result.commits).toBe(1);
+});

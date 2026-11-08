@@ -60,6 +60,40 @@ describe("sheet column controls", () => {
     return <SheetCanvas doc={{ schemaVersion: 1, blocks: [{ ...newBlock("Block"), id: "block" }] }} sheet={sheet} onSheetChange={setSheet} names={new Map()} initialZoom={zoom} apply={editable ? () => {} : undefined} />;
   }
 
+  it("animates zoom without committing intermediate board zoom state and keeps extent and anchor aligned", () => {
+    let id = 0;
+    let now = 0;
+    const frames = new Map<number, FrameRequestCallback>();
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+    vi.stubGlobal("requestAnimationFrame", (fn: FrameRequestCallback) => { frames.set(++id, fn); return id; });
+    vi.stubGlobal("cancelAnimationFrame", (key: number) => frames.delete(key));
+    const flush = () => act(() => { now += 20; const pending = [...frames.values()]; frames.clear(); pending.forEach(fn => fn(now)); });
+    const { container, unmount } = render(<Canvas />);
+    for (let i = 0; i < 40; i++) flush();
+    const board = container.querySelector<HTMLElement>("[data-sheet-zoom]")!;
+    const extent = board.parentElement!;
+    const scroller = extent.parentElement!;
+    scroller.scrollLeft = 100;
+    scroller.scrollTop = 80;
+    fireEvent.wheel(scroller, { ctrlKey: true, deltaY: -100, clientX: 30, clientY: 20 });
+    flush();
+    const scale = Number(board.style.transform.match(/scale\(([^)]+)\)/)![1]);
+    expect(scale).toBeGreaterThan(1);
+    expect(board.dataset.sheetZoom).toBe("1");
+    expect(parseFloat(extent.style.width)).toBeCloseTo(parseFloat(board.style.width) * scale);
+    expect(scroller.scrollLeft).toBeCloseTo(130 * scale - 30);
+    for (let i = 0; i < 40; i++) flush();
+    const settled = Number(board.dataset.sheetZoom);
+    expect(settled).toBeCloseTo(Math.exp(0.18));
+    expect(board.style.transform).toBe(`scale(${settled})`);
+    fireEvent.wheel(scroller, { ctrlKey: true, deltaY: 100, clientX: 30, clientY: 20 });
+    flush();
+    expect(Number(board.style.transform.match(/scale\(([^)]+)\)/)![1])).toBeLessThan(settled);
+    unmount();
+    expect(frames.size).toBe(0);
+    vi.restoreAllMocks();
+  });
+
   it("updates card span and later column positions through keyboard resizing in previews", async () => {
     const { container, getByRole } = render(<Canvas />);
     const block = container.querySelector<HTMLElement>("[data-kind=block][data-node]")!;

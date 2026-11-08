@@ -1,3 +1,4 @@
+import { createZoomState } from "../zoom-state";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useColumnWidths } from "../useColumnWidths";
 import { columnGeometry, elementColumnWidths, sanitizeElementWidths, type ElementWidths } from "../model/layout";
@@ -30,7 +31,7 @@ import {
   Unlink,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { Block, Cycle, ExerciseInstance, FormulaUse, TrainingDocument, Workout } from "@metrivum/api-client-web";
 import { AlertDialog, Button, ContextMenu, IconButton, InfoTip, Segment, SegmentedControl, Tooltip, TooltipTrigger, type ContextMenuEntry } from "@metrivum/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
@@ -46,6 +47,7 @@ import type { EditorApi } from "../useEditor";
 import { ProgressionDialog } from "./ProgressionDialog";
 import { VolumePanel } from "./VolumePanel";
 import { NotConnected } from "./NotConnected";
+import { sameCardProps, useStableHandlers } from "./stable-props";
 import { useHideCollapsedChildren } from "../sheet-preferences";
 import { SheetMinimap, type MinimapNode } from "./SheetMinimap";
 import { BlockFormulaScope } from "../block-maxes";
@@ -216,6 +218,8 @@ export function SheetCanvas({
   const readOnly = !apply;
   const scrollerRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const extentRef = useRef<HTMLDivElement>(null);
+  const boardDimensions = useRef({ w: 0, h: 0 });
   const pointerCapture = useRef<{ element: Element; pointerId: number } | null>(null);
   const resizing = useRef<{ col: number; pointerId: number; x: number; width: number; resize: (col: number, width: number) => void } | null>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -224,6 +228,7 @@ export function SheetCanvas({
   const [menu, setMenu] = useState<Menu | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
   const [hoverNode, setHoverNode] = useState<string | null>(null);
+  const stableHandlers = useStableHandlers();
   // Each card's real box on the sheet (offset from its cell and size), so cables meet the card edges exactly.
   const [nodeBoxes, setNodeBoxes] = useState<Record<string, { dx: number; dy: number; w: number; h: number }>>({});
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
@@ -234,10 +239,10 @@ export function SheetCanvas({
   const [zoom, setZoom] = useState(initialZoom);
   // Zoom glides: each change sets a goal and the sheet eases towards it over a few frames.
   const zoomNow = useRef(initialZoom);
-  zoomNow.current = zoom;
+  const [zoomSource] = useState(() => createZoomState(initialZoom));
   const zoomGoal = useRef<number | null>(null);
   const zoomFrame = useRef(0);
-  const glideZoom = (goal: number, anchor: { bx: number; by: number; px: number; py: number } | null) => {
+  const glideZoom = useCallback((goal: number, anchor: { bx: number; by: number; px: number; py: number } | null) => {
     zoomGoal.current = goal;
     if (anchor) zoomAnchor.current = anchor;
     if (zoomFrame.current) return;
@@ -250,10 +255,18 @@ export function SheetCanvas({
       zoomNow.current = next;
       if (next === target) { zoomGoal.current = null; zoomFrame.current = 0; }
       else zoomFrame.current = requestAnimationFrame(step);
-      setZoom(next);
+      const board = boardRef.current;
+      const extent = extentRef.current;
+      const scroller = scrollerRef.current;
+      if (board) board.style.transform = `scale(${next})`;
+      if (extent) { extent.style.width = `${boardDimensions.current.w * next}px`; extent.style.height = `${boardDimensions.current.h * next}px`; }
+      const anchor = zoomAnchor.current;
+      if (scroller && anchor) { scroller.scrollLeft = anchor.bx * next - anchor.px; scroller.scrollTop = anchor.by * next - anchor.py; }
+      zoomSource.set(next);
+      if (next === target) { zoomAnchor.current = null; setZoom(next); }
     };
     zoomFrame.current = requestAnimationFrame(step);
-  };
+  }, [zoomSource]);
   useEffect(() => () => cancelAnimationFrame(zoomFrame.current), []);
   const [volumeOpen, setVolumeOpen] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -325,10 +338,18 @@ export function SheetCanvas({
   });
   // A minimised block hides its cycles and workouts (unless that is turned off in Settings).
   const hideCollapsed = useHideCollapsedChildren();
-  const hidden = useMemo(
-    () => new Set(hideCollapsed ? shown.blocks.filter((block) => collapsedCards.has(block.id)).flatMap((block) => childrenOf.get(block.id) ?? []) : []),
-    [hideCollapsed, shown, collapsedCards, childrenOf],
-  );
+  const foldInto = useMemo(() => {
+    const map = new Map<string, { blockId: string; order: number }>();
+    if (!hideCollapsed) return map;
+    for (const block of shown.blocks) {
+      if (!collapsedCards.has(block.id)) continue;
+      block.cycles.forEach((cycle, index) => map.set(cycle.id, { blockId: block.id, order: index }));
+      let order = block.cycles.length;
+      for (const cycle of block.cycles) for (const { workout } of cycleWorkouts(cycle)) map.set(workout.id, { blockId: block.id, order: order++ });
+    }
+    return map;
+  }, [hideCollapsed, shown, collapsedCards]);
+  const hidden = useMemo(() => new Set(foldInto.keys()), [foldInto]);
   const sizes = useMemo(() => {
     const result: Record<string, Size> = {};
     for (const block of shown.blocks) {
@@ -379,7 +400,7 @@ export function SheetCanvas({
                       const start = resizing.current;
                       if (!start || start.pointerId !== event.pointerId) return;
                       event.stopPropagation();
-                      start.resize(start.col, resizedColumnWidth(start.width, event.clientX - start.x, zoom));
+                      start.resize(start.col, resizedColumnWidth(start.width, event.clientX - start.x, zoomNow.current));
                     }}
                     onPointerUp={(event) => { event.stopPropagation(); cancelPointer(); }}
                     onPointerCancel={cancelPointer}
@@ -402,6 +423,7 @@ export function SheetCanvas({
   const rows = Math.max(40, fillRows, ...Object.entries(visibleSizes).map(([id, s]) => (layout[id]?.row ?? 0) + s.rows + 10));
   const boardW = HEADER + xAt(cols);
   const boardH = HEADER + rows * CELL_H;
+  boardDimensions.current = { w: boardW, h: boardH };
 
   // Viewport tracking for the minimap ---------------------------------------------------------
   useEffect(() => {
@@ -431,33 +453,23 @@ export function SheetCanvas({
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, []);
-  useLayoutEffect(() => {
-    const el = scrollerRef.current;
-    const anchor = zoomAnchor.current;
-    if (el && anchor) {
-      el.scrollLeft = anchor.bx * zoom - anchor.px;
-      el.scrollTop = anchor.by * zoom - anchor.py;
-      // The anchor holds while a glide is under way, so the point under the pointer stays put throughout.
-      if (zoomGoal.current == null) zoomAnchor.current = null;
-    }
-  }, [zoom]);
+  }, [glideZoom]);
 
   const zoomTo = (next: number | "reset") => {
     const el = scrollerRef.current;
     const target = next === "reset" ? 1 : clampZoom(next);
-    glideZoom(target, el ? { bx: (el.scrollLeft + el.clientWidth / 2) / zoom, by: (el.scrollTop + el.clientHeight / 2) / zoom, px: el.clientWidth / 2, py: el.clientHeight / 2 } : null);
+    glideZoom(target, el ? { bx: (el.scrollLeft + el.clientWidth / 2) / zoomNow.current, by: (el.scrollTop + el.clientHeight / 2) / zoomNow.current, px: el.clientWidth / 2, py: el.clientHeight / 2 } : null);
   };
   const navigate = (cx: number, cy: number) => {
     const el = scrollerRef.current;
     if (!el) return;
-    el.scrollTo({ left: cx * zoom - el.clientWidth / 2, top: cy * zoom - el.clientHeight / 2 });
+    el.scrollTo({ left: cx * zoomNow.current - el.clientWidth / 2, top: cy * zoomNow.current - el.clientHeight / 2 });
   };
 
   /** Pointer position in board (cell area) coordinates, independent of zoom and scroll. */
   const toBoard = (clientX: number, clientY: number) => {
     const rect = boardRef.current!.getBoundingClientRect();
-    return { x: (clientX - rect.left) / zoom - HEADER, y: (clientY - rect.top) / zoom - HEADER };
+    return { x: (clientX - rect.left) / zoomNow.current - HEADER, y: (clientY - rect.top) / zoomNow.current - HEADER };
   };
 
   // Moving cards ---------------------------------------------------------------------------
@@ -478,8 +490,8 @@ export function SheetCanvas({
   };
   const moveDrag = (event: ReactPointerEvent) => {
     if (!drag || event.pointerId !== drag.pointerId) return;
-    const dx = (event.clientX - drag.startX) / zoom;
-    const dy = (event.clientY - drag.startY) / zoom;
+    const dx = (event.clientX - drag.startX) / zoomNow.current;
+    const dy = (event.clientY - drag.startY) / zoomNow.current;
     if (readOnly) return;
     setDrag({ ...drag, dx, dy, moved: drag.moved || Math.abs(dx) > 3 || Math.abs(dy) > 3 });
   };
@@ -708,6 +720,13 @@ export function SheetCanvas({
     setMenu({ kind: "canvas", x: event.clientX, y: event.clientY, cell: { col: columnAt(widths, p.x), row: Math.max(0, Math.floor(p.y / CELL_H)) } });
   };
 
+  const foldStyle = (id: string): React.CSSProperties => {
+    const fold = foldInto.get(id);
+    if (!fold || !layout[id] || !layout[fold.blockId]) return {};
+    const dx = xAt(layout[fold.blockId]!.col) - xAt(layout[id]!.col);
+    const dy = (layout[fold.blockId]!.row - layout[id]!.row) * CELL_H;
+    return { "--fold-x": `${dx}px`, "--fold-y": `${dy}px`, "--fold-delay": `${Math.min(fold.order, 8) * 45}ms` } as React.CSSProperties;
+  };
   const pos = (id: string) => {
     const cell = layout[id] ?? { col: 0, row: 0 };
     const moving = Boolean(drag?.moved && (drag.id === id || drag.group[id]));
@@ -774,6 +793,7 @@ export function SheetCanvas({
     ...(doc.annotations ?? []).filter(n => n.targetId).map(n => ({ id: n.id, sourceId: n.id, targetId: n.targetId!, cycleId: "", tableId: undefined as string | undefined, annotationId: n.id, workoutId: undefined as string | undefined })),
   ];
   const rawEdges = hidden.size ? allEdges.filter((edge) => !hidden.has(edge.sourceId) && !hidden.has(edge.targetId)) : allEdges;
+  const fadingEdges = hidden.size ? allEdges.filter((edge) => hidden.has(edge.sourceId) || hidden.has(edge.targetId)) : [];
   // Every card has one socket: all of its cables leave from the same point, on the side facing the middle of
   // what it connects to. Each cable then meets its target on the target's side facing that socket.
   const point = (p: { x: number; y: number }): Bounds => ({ left: p.x, top: p.y, width: 0, height: 0 });
@@ -788,10 +808,13 @@ export function SheetCanvas({
     const middle = { x: targets.reduce((n, b) => n + b.left + b.width / 2, 0) / targets.length, y: targets.reduce((n, b) => n + b.top + b.height / 2, 0) / targets.length };
     sockets.set(sourceId, connectBounds(bounds(sourceId), point(middle)).from);
   }
-  const edges = rawEdges.map(edge => {
-    const from = sockets.get(edge.sourceId)!;
-    return { ...edge, from, to: connectBounds(point(from), bounds(edge.targetId)).to, live: hoverEdge === edge.id || hoverNode === edge.sourceId || hoverNode === edge.targetId };
-  });
+  const edges = [
+    ...rawEdges.map(edge => {
+      const from = sockets.get(edge.sourceId)!;
+      return { ...edge, from, to: connectBounds(point(from), bounds(edge.targetId)).to, live: hoverEdge === edge.id || hoverNode === edge.sourceId || hoverNode === edge.targetId, folded: false };
+    }),
+    ...fadingEdges.map(edge => ({ ...edge, ...connectBounds(bounds(edge.sourceId), bounds(edge.targetId)), live: false, folded: true })),
+  ];
   // While dragging a new cable, it leaves from the card's socket when the card already has one.
   const draftCable = link ? (() => {
     const target = link.hoveredId ? bounds(link.hoveredId) : point(link);
@@ -1092,12 +1115,13 @@ export function SheetCanvas({
       </div>
 
       <div ref={scrollerRef} data-tip="sheet-canvas" className={styles.scroller}>
-        <div style={{ width: boardW * zoom, height: boardH * zoom }}>
+        <div ref={extentRef} style={{ width: boardW * zoomNow.current, height: boardH * zoomNow.current }}>
           <div
             ref={boardRef}
             className={styles.board}
             role="group"
             aria-label={t.label}
+            data-sheet-zoom={zoom}
             data-dragging={drag?.moved || undefined}
             data-panning={panning || undefined}
             data-select-key={(selectKey !== (dragMode === "select") && !readOnly) || undefined}
@@ -1105,7 +1129,7 @@ export function SheetCanvas({
               {
                 width: boardW,
                 height: boardH,
-                transform: `scale(${zoom})`,
+                transform: `scale(${zoomNow.current})`,
                 "--cell-w": `${CELL_W}px`,
                 "--cell-h": `${CELL_H}px`,
                 "--gutter": `${HEADER}px`,
@@ -1150,7 +1174,7 @@ export function SheetCanvas({
                   const d = cablePath(edge.from, edge.to);
                   const kind: Link["kind"] = edge.annotationId ? "annotation" : edge.tableId ? "maxes" : edge.workoutId ? "workout" : "cycle";
                   return (
-                    <g key={edge.id} data-edge data-maxes-connection={edge.tableId} data-annotation-connection={edge.annotationId} data-live={edge.live || undefined} data-rewiring={edge.id === link?.rewire?.edgeId || undefined} className={styles.edgeGroup}>
+                    <g key={edge.id} data-edge data-folded={edge.folded || undefined} data-maxes-connection={edge.tableId} data-annotation-connection={edge.annotationId} data-live={edge.live || undefined} data-rewiring={edge.id === link?.rewire?.edgeId || undefined} className={styles.edgeGroup}>
                       <path d={d} className={styles.edgeHit} onPointerEnter={() => setHoverEdge(edge.id)} onPointerLeave={() => setHoverEdge(null)}
                         onContextMenu={(event) => {
                           event.preventDefault();
@@ -1247,7 +1271,7 @@ export function SheetCanvas({
                   inactive={Boolean(blockId && blockById.get(blockId)?.inactive)}
                   onAddDay={readOnly ? undefined : () => changeDays(cycle.id, 1)}
                   loose={blockId === null}
-                  style={pos(cycle.id)}
+                  style={{ ...pos(cycle.id), ...foldStyle(cycle.id) }}
                   dragging={Boolean(drag?.moved && drag.group[cycle.id])}
                   selected={selected.includes(cycle.id)}
                   linkTarget={link?.targetId === cycle.id}
@@ -1287,50 +1311,53 @@ export function SheetCanvas({
               ))}
 
               {allWorkouts.map(({ workout: w, cycle, dayNumber }) => (
-                <BlockFormulaScope key={w.id} block={cycle ? formulaBlocks.get(blockForCycle.get(cycle.id) ?? "") : undefined}>
-                  <WorkoutCard
-                    workout={w}
-                    inactive={Boolean(cycle && blockById.get(blockForCycle.get(cycle.id) ?? "")?.inactive)}
-                    dayNumber={dayNumber}
-                    dayCount={cycle ? Number(cycle.dayCount) : null}
-                    size={sizes[w.id]!}
-                    style={pos(w.id)}
-                    dragging={Boolean(drag?.moved && drag.group[w.id])}
-                    selected={selected.includes(w.id)}
-                    linkTarget={link?.targetId === w.id}
-                    collapsed={collapsedCards.has(w.id)}
-                    hidden={hidden.has(w.id)}
-                    renaming={renaming === w.id}
-                    apply={apply}
-                    names={names}
-                    advancedAllowed={advancedAllowed}
-                    customFormulas={customFormulas}
-                    onToggleCollapse={() => toggleCard(w.id)}
-                    onMenuButton={(x, y) => setMenu({ kind: "workout", x, y, id: w.id })}
-                    onRenameDone={() => setRenaming((r) => (r === w.id ? null : r))}
-                    onExerciseMenu={(event, instance, owner) => setMenu({ kind: "exercise", x: event.clientX, y: event.clientY, instance, workout: owner })}
-                    onColumnContextMenu={(col, event) => columnMenu(w.id, col, event)}
-                    renderColumnResize={(col, label) => elementResizeHandle(w.id, col, label)}
-                    onPointerEnter={() => setHoverNode(w.id)}
-                    onPointerLeave={() => setHoverNode((h) => (h === w.id ? null : h))}
-                    onPointerDown={(e) => startDrag(e, w.id)}
-                    onPointerMove={moveDrag}
-                    onPointerUp={endDrag}
-                    onKeyDown={(e) => cardKeys(e, w.id, "workout")}
-                    onContextMenu={(e) => {
+                <SheetWorkout
+                  key={w.id}
+                  formulaBlock={cycle ? formulaBlocks.get(blockForCycle.get(cycle.id) ?? "") : undefined}
+                  workout={w}
+                  inactive={Boolean(cycle && blockById.get(blockForCycle.get(cycle.id) ?? "")?.inactive)}
+                  dayNumber={dayNumber}
+                  dayCount={cycle ? Number(cycle.dayCount) : null}
+                  size={sizes[w.id]!}
+                  style={{ ...pos(w.id), ...foldStyle(w.id) }}
+                  dragging={Boolean(drag?.moved && drag.group[w.id])}
+                  selected={selected.includes(w.id)}
+                  linkTarget={link?.targetId === w.id}
+                  collapsed={collapsedCards.has(w.id)}
+                  hidden={hidden.has(w.id)}
+                  renaming={renaming === w.id}
+                  names={names}
+                  advancedAllowed={advancedAllowed}
+                  customFormulas={customFormulas}
+                  // Stable callbacks: hovering, dragging other cards or a cable gliding never re-renders this card.
+                  {...stableHandlers(w.id, {
+                    apply,
+                    onToggleCollapse: () => toggleCard(w.id),
+                    onMenuButton: (x: number, y: number) => setMenu({ kind: "workout", x, y, id: w.id }),
+                    onRenameDone: () => setRenaming((r) => (r === w.id ? null : r)),
+                    onExerciseMenu: (event: { clientX: number; clientY: number }, instance: ExerciseInstance, owner: Workout) => setMenu({ kind: "exercise", x: event.clientX, y: event.clientY, instance, workout: owner }),
+                    onColumnContextMenu: (col: number, event: React.MouseEvent) => columnMenu(w.id, col, event),
+                    renderColumnResize: (col: number, label: string) => elementResizeHandle(w.id, col, label),
+                    onPointerEnter: () => setHoverNode(w.id),
+                    onPointerLeave: () => setHoverNode((h) => (h === w.id ? null : h)),
+                    onPointerDown: (e: ReactPointerEvent) => startDrag(e, w.id),
+                    onPointerMove: moveDrag,
+                    onPointerUp: endDrag,
+                    onKeyDown: (e: React.KeyboardEvent) => cardKeys(e, w.id, "workout"),
+                    onContextMenu: (e: React.MouseEvent) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setMenu({ kind: "workout", x: e.clientX, y: e.clientY, id: w.id });
-                    }}
-                  />
-                </BlockFormulaScope>
+                    },
+                  })}
+                />
               ))}
             </div>
           </div>
         </div>
       </div>
 
-      <SheetMinimap boardWidth={boardW} boardHeight={boardH} nodes={nodesForMinimap} scroller={scrollerRef} zoom={zoom} onNavigate={navigate} onZoom={zoomTo} />
+      <SheetMinimap boardWidth={boardW} boardHeight={boardH} nodes={nodesForMinimap} scroller={scrollerRef} zoomSource={zoomSource} onNavigate={navigate} onZoom={zoomTo} />
 
       {menu ? (
         <ContextMenu
@@ -1804,3 +1831,15 @@ function WorkoutPanel({
     </aside>
   );
 }
+
+/**
+ * A workout card on the sheet, with its block's maxes in scope. Memoised: it re-renders only when its own data,
+ * place or state changes, not on every hover, drag step or cable frame of the sheet around it.
+ */
+const SheetWorkout = memo(function SheetWorkout({ formulaBlock, ...props }: { formulaBlock?: Block } & React.ComponentProps<typeof WorkoutCard>) {
+  return (
+    <BlockFormulaScope block={formulaBlock}>
+      <WorkoutCard {...props} />
+    </BlockFormulaScope>
+  );
+}, (previous, next) => sameCardProps(previous as unknown as Record<string, unknown>, next as unknown as Record<string, unknown>));

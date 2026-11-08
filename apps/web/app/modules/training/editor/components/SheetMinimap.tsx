@@ -1,5 +1,6 @@
+import type { ZoomState } from "../zoom-state";
 import { Minus, Plus } from "lucide-react";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { memo, useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./SheetCanvas.module.css";
 
@@ -24,7 +25,7 @@ export function SheetMinimap({
   boardHeight,
   nodes,
   scroller,
-  zoom,
+  zoomSource,
   onNavigate,
   onZoom,
 }: {
@@ -32,10 +33,11 @@ export function SheetMinimap({
   boardHeight: number;
   nodes: MinimapNode[];
   scroller: RefObject<HTMLDivElement | null>;
-  zoom: number;
+  zoomSource: ZoomState;
   onNavigate: (centerX: number, centerY: number) => void;
   onZoom: (next: number | "reset") => void;
 }) {
+  const zoom = useSyncExternalStore(zoomSource.subscribe, zoomSource.getSnapshot, zoomSource.getSnapshot);
   const view = useSheetViewport(scroller, zoom);
   const m = useT();
   const t = m.editor.sheet;
@@ -66,9 +68,7 @@ export function SheetMinimap({
           if (event.buttons === 1) go(event);
         }}
       >
-        {nodes.map((node) => (
-          <rect key={node.id} x={node.x * scale} y={node.y * scale} width={Math.max(2, node.w * scale)} height={Math.max(2, node.h * scale)} rx={1} data-kind={node.kind} />
-        ))}
+        <NodeRects nodes={nodes} scale={scale} />
         <rect className={styles.minimapView} x={view.x * scale} y={view.y * scale} width={view.w * scale} height={view.h * scale} rx={2} />
       </svg>
       <div className={styles.zoom}>
@@ -107,3 +107,7 @@ export function useSheetViewport(scroller: RefObject<HTMLDivElement | null>, zoo
   }, [scroller, zoom]);
   return view;
 }
+
+const NodeRects = memo(function NodeRects({ nodes, scale }: { nodes: MinimapNode[]; scale: number }) {
+  return <>{nodes.map(node => <rect key={node.id} x={node.x * scale} y={node.y * scale} width={Math.max(2, node.w * scale)} height={Math.max(2, node.h * scale)} rx={1} data-kind={node.kind} />)}</>;
+});
