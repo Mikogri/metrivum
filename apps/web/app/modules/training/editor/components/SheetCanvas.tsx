@@ -1,6 +1,6 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useColumnWidths } from "../useColumnWidths";
-import { elementColumnWidths, sanitizeElementWidths, type ElementWidths } from "../model/layout";
+import { columnGeometry, elementColumnWidths, sanitizeElementWidths, type ElementWidths } from "../model/layout";
 import { AnnotationCard } from "./AnnotationCard";
 import { connectBounds, cablePath, handleStyle, plugRotation, type Bounds } from "../model/connections";
 import { SheetMenuButton as MenuButton } from "./SheetMenuButton";
@@ -40,7 +40,7 @@ import { useBuiltInFormulas, useFormulaList } from "../../queries";
 import { setExerciseFormula } from "../model/cells";
 import { REPEAT_CHOICES, WORKOUT_COLS, countedCycles, cycleCalendar, cycleRuns, cycleWorkouts, nextWorkoutLetter, setDayNote, withWorkout, workoutCardRows } from "../model/workouts";
 import { addBlock, addCycle, cloneWithNewIds, duplicateNode, findWorkout, locate, moveNode, newCycle, newWorkout, removeNode, updateNode } from "../model/document";
-import { BLOCK_COLS, CELL_H, CELL_W, CYCLE_COLS, autoLayout, cycleRows, mergeLayout, resolveLayout, snap, columnAt, columnLeft, columnSpan, columnWidth, clampColumnWidth, resizedColumnWidth, sanitizeColumnWidths, MIN_COLUMN_WIDTH, MAX_COLUMN_WIDTH, MAX_SAVED_COLUMNS, type ColumnWidths, type Cell, type Layout, type Size } from "../model/layout";
+import { BLOCK_COLS, CELL_H, CELL_W, CYCLE_COLS, autoLayout, cycleRows, mergeLayout, resolveLayout, snap, columnAt, columnWidth, clampColumnWidth, resizedColumnWidth, sanitizeColumnWidths, MIN_COLUMN_WIDTH, MAX_COLUMN_WIDTH, MAX_SAVED_COLUMNS, type ColumnWidths, type Cell, type Layout, type Size } from "../model/layout";
 import { addLooseCycle, addLooseWorkout, attachCycle, attachWorkout, detachCycle, detachWorkout, pruneHolders, sheetView } from "../model/structure";
 import type { EditorApi } from "../useEditor";
 import { ProgressionDialog } from "./ProgressionDialog";
@@ -257,7 +257,6 @@ export function SheetCanvas({
   useEffect(() => () => cancelAnimationFrame(zoomFrame.current), []);
   const [volumeOpen, setVolumeOpen] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
-  const [view, setView] = useState({ x: 0, y: 0, w: 1, h: 1 });
   const zoomAnchor = useRef<{ bx: number; by: number; px: number; py: number } | null>(null);
 
   const cancelPointer = useCallback(() => {
@@ -280,6 +279,10 @@ export function SheetCanvas({
   // Cycles outside every block and workouts outside every cycle are part of the plan; the sheet draws them on their own.
   const shown = useMemo(() => sheetView(doc), [doc]);
   const { loose, looseWorkouts } = shown;
+  const blockById = useMemo(() => new Map(doc.blocks.map(block => [block.id, block])), [doc]);
+  const blockForCycle = useMemo(() => new Map(doc.blocks.flatMap(block => block.cycles.map(cycle => [cycle.id, block.id] as const))), [doc]);
+  // Stable block scopes avoid rebuilding formula context on hover/drag/minimap updates.
+  const formulaBlocks = useMemo(() => new Map(doc.blocks.map(block => [block.id, effectiveBlock(doc, block)])), [doc]);
   const stored = useMemo(() => mergeLayout(sheet.layout, doc), [sheet.layout, doc]);
   const workout = openWorkout ? findWorkout(doc, openWorkout) : null;
 
@@ -348,8 +351,9 @@ export function SheetCanvas({
 
   const targetWidths = useMemo(() => elementColumnWidths(sheet.columnWidths, stored, sheet.elementWidths, new Set([...allWorkouts.filter(w => !collapsedCards.has(w.workout.id)).map(w => w.workout.id), ...maxesTables(doc).filter(t => !collapsedCards.has(t.id)).map(t => t.id)])), [sheet.columnWidths, sheet.elementWidths, stored, allWorkouts, doc, collapsedCards]);
   const widths = useColumnWidths(targetWidths, Boolean(resizing.current));
-  const xAt = (col: number) => columnLeft(widths, col);
-  const span = (col: number, count: number) => columnSpan(widths, col, count);
+  const geometry = useMemo(() => columnGeometry(widths), [widths]);
+  const xAt = geometry.left;
+  const span = geometry.span;
   const resizeColumn = (col: number, width: number) => update(s => ({ ...s, columnWidths: { ...s.columnWidths, [col]: clampColumnWidth(width) }, elementWidths: Object.fromEntries(Object.entries(s.elementWidths ?? {}).map(([id, values]) => [id, Object.fromEntries(Object.entries(values).filter(([relative]) => (stored[id]?.col ?? -100) + Number(relative) !== col))])) }));
   const resizeElementColumn = (id: string, col: number, width: number) => update(s => ({ ...s, elementWidths: { ...s.elementWidths, [id]: { ...s.elementWidths?.[id], [col]: clampColumnWidth(width) } } }));
 
@@ -400,30 +404,15 @@ export function SheetCanvas({
   const boardH = HEADER + rows * CELL_H;
 
   // Viewport tracking for the minimap ---------------------------------------------------------
-  const syncView = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    setView({ x: el.scrollLeft / zoom, y: el.scrollTop / zoom, w: el.clientWidth / zoom, h: el.clientHeight / zoom });
-    setViewport((v) => (v.w === el.clientWidth && v.h === el.clientHeight ? v : { w: el.clientWidth, h: el.clientHeight }));
-  }, [zoom]);
   useEffect(() => {
-    syncView();
     const el = scrollerRef.current;
     if (!el) return;
-    let frame = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(syncView);
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    const observer = new ResizeObserver(syncView);
+    const resize = () => setViewport(current => current.w === el.clientWidth && current.h === el.clientHeight ? current : { w: el.clientWidth, h: el.clientHeight });
+    resize();
+    const observer = new ResizeObserver(resize);
     observer.observe(el);
-    return () => {
-      el.removeEventListener("scroll", onScroll);
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-    };
-  }, [syncView]);
+    return () => observer.disconnect();
+  }, []);
 
   // Ctrl + wheel zooms around the pointer (a non-passive listener so the browser doesn't zoom the page).
   useEffect(() => {
@@ -452,8 +441,7 @@ export function SheetCanvas({
       // The anchor holds while a glide is under way, so the point under the pointer stays put throughout.
       if (zoomGoal.current == null) zoomAnchor.current = null;
     }
-    syncView();
-  }, [zoom, syncView]);
+  }, [zoom]);
 
   const zoomTo = (next: number | "reset") => {
     const el = scrollerRef.current;
@@ -754,7 +742,8 @@ export function SheetCanvas({
     let frame = 0;
     const end = performance.now() + 380;
     const tick = () => {
-      setGlide(Object.fromEntries(nodes.map(node => [node.dataset.nodeId!, { left: node.offsetLeft, top: node.offsetTop }])));
+      const next = Object.fromEntries(nodes.map(node => [node.dataset.nodeId!, { left: node.offsetLeft, top: node.offsetTop }]));
+      setGlide(current => current && Object.keys(current).length === nodes.length && Object.entries(next).every(([id, at]) => current[id]?.left === at.left && current[id]?.top === at.top) ? current : next);
       if (performance.now() < end) frame = requestAnimationFrame(tick);
       else setGlide(null);
     };
@@ -762,7 +751,7 @@ export function SheetCanvas({
     return () => { cancelAnimationFrame(frame); setGlide(null); };
   }, [layout, widths, dragging]);
 
-  const bounds = (id: string): Bounds => {
+  const computeBounds = (id: string): Bounds => {
     const p = pos(id); const cellSize = sizes[id]!;
     const box = nodeBoxes[id];
     const live = glide?.[id];
@@ -771,6 +760,12 @@ export function SheetCanvas({
     const isTable = maxesTables(doc).some(t => t.id === id);
     const open = isTable || (doc.annotations ?? []).some(n => n.id === id) || allWorkouts.some(w => w.workout.id === id);
     return { left: p.left + (open ? -1 : 4), top: p.top + (open ? -1 : 4), width: p.width + (open ? 2 : -8), height: cellSize.rows * CELL_H + (open ? 2 : -8) };
+  };
+  const boundsCache = new Map<string, Bounds>();
+  const bounds = (id: string) => {
+    let value = boundsCache.get(id);
+    if (!value) { value = computeBounds(id); boundsCache.set(id, value); }
+    return value;
   };
   const allEdges = [
     ...shown.blocks.flatMap(block => block.cycles.map(cycle => ({ id: `${block.id}-${cycle.id}`, sourceId: block.id, targetId: cycle.id, cycleId: cycle.id, tableId: undefined as string | undefined, annotationId: undefined as string | undefined, workoutId: undefined as string | undefined }))),
@@ -783,8 +778,13 @@ export function SheetCanvas({
   // what it connects to. Each cable then meets its target on the target's side facing that socket.
   const point = (p: { x: number; y: number }): Bounds => ({ left: p.x, top: p.y, width: 0, height: 0 });
   const sockets = new Map<string, ReturnType<typeof connectBounds>["from"]>();
-  for (const sourceId of new Set(rawEdges.map((edge) => edge.sourceId))) {
-    const targets = rawEdges.filter((edge) => edge.sourceId === sourceId).map((edge) => bounds(edge.targetId));
+  const targetsBySource = new Map<string, Bounds[]>();
+  for (const edge of rawEdges) {
+    const targets = targetsBySource.get(edge.sourceId) ?? [];
+    targets.push(bounds(edge.targetId));
+    targetsBySource.set(edge.sourceId, targets);
+  }
+  for (const [sourceId, targets] of targetsBySource) {
     const middle = { x: targets.reduce((n, b) => n + b.left + b.width / 2, 0) / targets.length, y: targets.reduce((n, b) => n + b.top + b.height / 2, 0) / targets.length };
     sockets.set(sourceId, connectBounds(bounds(sourceId), point(middle)).from);
   }
@@ -1236,7 +1236,7 @@ export function SheetCanvas({
               ))}
 
               {allCycles.map(({ cycle, blockId }) => (
-                <BlockFormulaScope key={cycle.id} block={effectiveBlock(doc, doc.blocks.find(b => b.id === blockId))}>
+                <BlockFormulaScope key={cycle.id} block={blockId ? formulaBlocks.get(blockId) : undefined}>
                 <CycleCard
                   key={cycle.id}
                   cycle={cycle}
@@ -1244,7 +1244,7 @@ export function SheetCanvas({
                   collapsed={collapsedCards.has(cycle.id)}
                   hidden={hidden.has(cycle.id)}
                   onToggleCollapse={() => toggleTree(cycle.id)}
-                  inactive={Boolean(doc.blocks.find((b) => b.id === blockId)?.inactive)}
+                  inactive={Boolean(blockId && blockById.get(blockId)?.inactive)}
                   onAddDay={readOnly ? undefined : () => changeDays(cycle.id, 1)}
                   loose={blockId === null}
                   style={pos(cycle.id)}
@@ -1287,10 +1287,10 @@ export function SheetCanvas({
               ))}
 
               {allWorkouts.map(({ workout: w, cycle, dayNumber }) => (
-                <BlockFormulaScope key={w.id} block={effectiveBlock(doc, doc.blocks.find((b) => cycle && b.cycles.some((c) => c.id === cycle.id)))}>
+                <BlockFormulaScope key={w.id} block={cycle ? formulaBlocks.get(blockForCycle.get(cycle.id) ?? "") : undefined}>
                   <WorkoutCard
                     workout={w}
-                    inactive={Boolean(cycle && doc.blocks.find((b) => b.cycles.some((c) => c.id === cycle.id))?.inactive)}
+                    inactive={Boolean(cycle && blockById.get(blockForCycle.get(cycle.id) ?? "")?.inactive)}
                     dayNumber={dayNumber}
                     dayCount={cycle ? Number(cycle.dayCount) : null}
                     size={sizes[w.id]!}
@@ -1330,7 +1330,7 @@ export function SheetCanvas({
         </div>
       </div>
 
-      <SheetMinimap boardWidth={boardW} boardHeight={boardH} nodes={nodesForMinimap} view={view} zoom={zoom} onNavigate={navigate} onZoom={zoomTo} />
+      <SheetMinimap boardWidth={boardW} boardHeight={boardH} nodes={nodesForMinimap} scroller={scrollerRef} zoom={zoom} onNavigate={navigate} onZoom={zoomTo} />
 
       {menu ? (
         <ContextMenu

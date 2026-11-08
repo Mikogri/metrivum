@@ -213,3 +213,16 @@ export function elementColumnWidths(base: ColumnWidths | undefined, layout: Layo
   }
   return { ...sanitizeColumnWidths(base), ...owned };
 }
+
+/** One cache per width snapshot; repeated card/header/edge lookups reuse computed offsets. */
+export function columnGeometry(widths: ColumnWidths) {
+  const offsets = new Map<number, number>();
+  const left = (col: number) => {
+    const cached = offsets.get(col);
+    if (cached !== undefined) return cached;
+    const value = columnLeft(widths, col);
+    offsets.set(col, value);
+    return value;
+  };
+  return { left, span: (col: number, count: number) => left(col + count) - left(col) };
+}

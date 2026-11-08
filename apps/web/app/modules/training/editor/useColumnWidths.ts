@@ -10,6 +10,8 @@ export function useColumnWidths(target: ColumnWidths, immediate: boolean) {
     const from = latest.current;
     const destination: ColumnWidths = JSON.parse(key);
     const columns = [...new Set([...Object.keys(from), ...Object.keys(destination)])];
+    // Opening cards must not animate an unchanged geometry for another 220 ms.
+    if (columns.every(col => columnWidth(from, Number(col)) === columnWidth(destination, Number(col)))) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let start: number | undefined;
     let frame = 0;

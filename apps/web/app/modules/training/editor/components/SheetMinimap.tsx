@@ -1,5 +1,5 @@
 import { Minus, Plus } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./SheetCanvas.module.css";
 
@@ -23,7 +23,7 @@ export function SheetMinimap({
   boardWidth,
   boardHeight,
   nodes,
-  view,
+  scroller,
   zoom,
   onNavigate,
   onZoom,
@@ -31,11 +31,12 @@ export function SheetMinimap({
   boardWidth: number;
   boardHeight: number;
   nodes: MinimapNode[];
-  view: { x: number; y: number; w: number; h: number };
+  scroller: RefObject<HTMLDivElement | null>;
   zoom: number;
   onNavigate: (centerX: number, centerY: number) => void;
   onZoom: (next: number | "reset") => void;
 }) {
+  const view = useSheetViewport(scroller, zoom);
   const m = useT();
   const t = m.editor.sheet;
   const ref = useRef<SVGSVGElement>(null);
@@ -83,4 +84,26 @@ export function SheetMinimap({
       </div>
     </div>
   );
+}
+
+/** Scroll position belongs to the minimap, never to the editable card tree. */
+export function useSheetViewport(scroller: RefObject<HTMLDivElement | null>, zoom: number) {
+  const [view, setView] = useState({ x: 0, y: 0, w: 1, h: 1 });
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    let frame = 0;
+    const sync = () => {
+      frame = 0;
+      const next = { x: el.scrollLeft / zoom, y: el.scrollTop / zoom, w: el.clientWidth / zoom, h: el.clientHeight / zoom };
+      setView(current => current.x === next.x && current.y === next.y && current.w === next.w && current.h === next.h ? current : next);
+    };
+    const scroll = () => { if (!frame) frame = requestAnimationFrame(sync); };
+    sync();
+    el.addEventListener("scroll", scroll, { passive: true });
+    const observer = new ResizeObserver(scroll);
+    observer.observe(el);
+    return () => { el.removeEventListener("scroll", scroll); observer.disconnect(); cancelAnimationFrame(frame); };
+  }, [scroller, zoom]);
+  return view;
 }

@@ -306,7 +306,7 @@
 
 /* Changes not applied: a solid red badge, not just red text. */
 .pendingBadge.pendingBadge {
-  border-color: var(--tf-color-danger);
-  background: var(--tf-color-danger);
-  color: #fff;
+  border: 1px solid color-mix(in srgb, var(--tf-color-danger) 80%, white);
+  background: color-mix(in srgb, var(--tf-color-danger) 32%, #0d0606);
+  color: color-mix(in srgb, var(--tf-color-danger) 30%, white);
 }

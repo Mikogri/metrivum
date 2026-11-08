@@ -25,3 +25,12 @@ it("interpolates one shared width map, retargets from the current frame and canc
   unmount();
   expect(frames.size).toBe(0);
 });
+
+it("does not schedule animation frames for unchanged effective widths", () => {
+  const frame = vi.fn();
+  vi.stubGlobal("requestAnimationFrame", frame);
+  const { rerender } = renderHook(({ widths }) => useColumnWidths(widths, false), { initialProps: { widths: { 1: 104 } } });
+  expect(frame).not.toHaveBeenCalled();
+  rerender({ widths: { 1: 104 } });
+  expect(frame).not.toHaveBeenCalled();
+});

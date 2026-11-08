@@ -1,3 +1,4 @@
+import { PlanDescription } from "./PlanDescription";
 import { isUnavailableResource } from "~/shared/lib/ResourceError";
 import { AssignProgramButton, AssignmentList } from "../delivery/Assignments";
 import { Archive, ArchiveRestore, Copy, Download, Pencil, Rocket } from "lucide-react";
@@ -126,7 +127,7 @@ function ProgramDetail() {
           />
         }
         title={plan.name}
-        description={plan.description || t.emptyDescription}
+        description={<PlanDescription text={plan.description || t.emptyDescription} title={plan.name} />}
         meta={
           <>
             {isTemplate ? <Badge tone="violet">{m.training.library.templateBadge}</Badge> : null}

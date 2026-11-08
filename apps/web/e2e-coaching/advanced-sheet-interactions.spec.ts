@@ -32,7 +32,7 @@ async function fixture(page: Page, preview = false, locale: "en" | "pl" = "en") 
     if (path === "/api/v1/me") return respond({ id: coach, workspaceId: coach, username: "sheet_coach", displayName: "Sheet Coach", onboarded: true, roles: ["Coach"], contexts: ["Coach"], version: 1, locale, timeZone: "UTC" });
     if (path === "/api/v1/me/access") return respond({ version: "test", features: features.map(item => ({ key: item.key, available: true, reason: "available" })), limits: [] });
     if (path === "/api/v1/me/profile-fields") return respond({ values: {}, currency: "USD", version: 1 });
-    if (path === "/api/v1/subscriptions/plans") return respond([]);
+    if (path === "/api/v1/me/ai-integrations" || path === "/api/v1/subscriptions/plans") return respond([]);
     if (path === "/api/v1/notifications/unread-count") return respond({ count: 0 });
     if (path === "/api/v1/messaging/conversations" || path === "/api/v1/messaging/requests") return respond([]);
     if (path === "/api/v1/teams/mine") return respond({ teams: [], invitations: [] });

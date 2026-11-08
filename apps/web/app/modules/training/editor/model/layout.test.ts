@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CELL_W, MAX_COLUMN_WIDTH, MIN_COLUMN_WIDTH, columnAt, columnLeft, columnSpan, resizedColumnWidth, sanitizeColumnWidths } from "./layout";
+import { columnGeometry, CELL_W, MAX_COLUMN_WIDTH, MIN_COLUMN_WIDTH, columnAt, columnLeft, columnSpan, resizedColumnWidth, sanitizeColumnWidths } from "./layout";
 
 describe("sheet column geometry", () => {
   it("preserves the default spreadsheet coordinates and snapping", () => {
@@ -67,4 +67,13 @@ describe("auto arrange", () => {
     expect(layout[c2.id!]!.col).toBeGreaterThan(layout[w1.id!]!.col + 6);
     expect(layout[b2.id]!.col).toBeGreaterThan(layout[c2.id!]!.col + BLOCK_COLS);
   });
+});
+
+it("cached geometry matches the original across sparse widths and repeated lookups", () => {
+  const widths = { 0: 155, 4: 83, 31: 190 };
+  const geometry = columnGeometry(widths);
+  for (let pass = 0; pass < 3; pass++) for (let col = 0; col < 100; col++) {
+    expect(geometry.left(col)).toBe(columnLeft(widths, col));
+    expect(geometry.span(col, 9)).toBe(columnSpan(widths, col, 9));
+  }
 });
