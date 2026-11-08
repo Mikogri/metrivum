@@ -157,6 +157,19 @@ function useBack(pathname: string, search: string, navigate: ReturnType<typeof u
     };
   }
   const parent = `/${parts.slice(0, -1).join("/")}`;
+  // A workout's page has no "workouts" list above it: back returns to where it was opened from (the training
+  // list, a client, the calendar), or to the training page when it was opened directly.
+  if (parent === "/app/my-training/workouts" || parent === "/app/training/workouts") {
+    const fallback = parent === "/app/my-training/workouts" ? "/app/my-training" : "/app/clients";
+    return {
+      label,
+      onPress: () => {
+        const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+        if (idx > 0) navigate(-1);
+        else navigate(fallback);
+      },
+    };
+  }
   return { label, onPress: () => up(parent) };
 }
 

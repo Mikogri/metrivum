@@ -331,11 +331,15 @@ a.rowLink { text-decoration: none; }
 }
 
 .workoutCard[data-status="Completed"] .workoutCardDate {
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  background: var(--tf-color-success-soft);
+  color: var(--tf-color-success);
 }
 
-.workoutCard[data-status="Missed"] .workoutCardDate,
+.workoutCard[data-status="Missed"] .workoutCardDate {
+  background: var(--tf-color-danger-soft, color-mix(in srgb, var(--tf-color-danger) 14%, transparent));
+  color: var(--tf-color-danger);
+}
+
 .workoutCard[data-status="Skipped"] .workoutCardDate {
   opacity: 0.6;
 }
@@ -2064,3 +2068,32 @@ a.rowLink { text-decoration: none; }
 .exChips button:focus-visible { outline: 2px solid var(--tf-color-focus-ring); }
 .exChips button svg { width: 0.75rem; height: 0.75rem; }
 .exCell { display: inline-flex; align-items: center; gap: var(--tf-space-1-5); }
+
+/* Workout rows: a coloured edge for done (green) and missed (red) workouts. */
+.workoutRow[data-status="Completed"] { box-shadow: inset 3px 0 0 var(--tf-color-success); }
+.workoutRow[data-status="Missed"] { box-shadow: inset 3px 0 0 var(--tf-color-danger); }
+
+/* Phone Training tab: the three views, the next workout as a big card, sections per week. */
+.mobileTabs { width: 100%; }
+.mobileTabs [role="tab"] { flex: 1; justify-content: center; }
+.mobileView { display: grid; gap: var(--tf-space-4); animation: mobile-view-in 220ms var(--tf-ease-out, ease-out); }
+@keyframes mobile-view-in { from { opacity: 0; transform: translateY(4px); } }
+.nextWorkout { position: relative; display: grid; gap: var(--tf-space-1-5); padding: var(--tf-space-5) var(--tf-space-4) var(--tf-space-4); overflow: hidden; border: 1px solid color-mix(in srgb, var(--tf-color-success) 40%, var(--tf-color-border)); border-radius: var(--tf-radius-lg); background: linear-gradient(160deg, color-mix(in srgb, var(--tf-color-success) 16%, var(--tf-color-surface)), var(--tf-color-surface) 70%); color: var(--tf-color-text); text-decoration: none; }
+.nextWorkout[data-started] { border-color: color-mix(in srgb, var(--tf-color-accent) 45%, var(--tf-color-border)); background: linear-gradient(160deg, var(--tf-color-accent-soft), var(--tf-color-surface) 70%); }
+.nextWorkout:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 2px; }
+.nextLabel { color: var(--tf-color-success); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
+.nextWorkout[data-started] .nextLabel { color: var(--tf-color-accent); }
+.nextName { font-size: var(--tf-text-xl); font-weight: var(--tf-weight-semibold); line-height: 1.2; overflow-wrap: anywhere; }
+.nextMeta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
+.nextMeta svg { width: 0.875rem; height: 0.875rem; }
+.nextAction { display: inline-flex; align-items: center; justify-self: start; gap: var(--tf-space-1-5); margin-top: var(--tf-space-2); padding: var(--tf-space-2) var(--tf-space-3-5, 0.875rem); border-radius: var(--tf-radius-full); background: var(--tf-color-primary, var(--tf-color-success)); color: var(--tf-color-on-primary, #06140d); font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); }
+.nextAction svg { width: 0.875rem; height: 0.875rem; }
+.mobileSection { display: grid; gap: var(--tf-space-2); }
+.mobileSection > h2 { display: flex; align-items: baseline; justify-content: space-between; gap: var(--tf-space-2); padding: 0 var(--tf-space-1); color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
+.mobileSection > h2 span { color: var(--tf-color-text-tertiary); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.mobileSection > ul { overflow: hidden; border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); }
+.planHead { display: grid; gap: var(--tf-space-1-5); padding: var(--tf-space-4); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-lg); background: var(--tf-color-surface); color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
+.planHead strong { color: var(--tf-color-text); font-size: var(--tf-text-lg); font-weight: var(--tf-weight-semibold); }
+.planBar { display: block; height: 6px; margin-top: var(--tf-space-1); overflow: hidden; border-radius: var(--tf-radius-full); background: var(--tf-color-surface-overlay); }
+.planBar > span { display: block; height: 100%; background: var(--tf-color-success); transform-origin: left; transition: transform 400ms var(--tf-ease-out, ease-out); }
+@media (prefers-reduced-motion: reduce) { .mobileView { animation: none; } .planBar > span { transition: none; } }

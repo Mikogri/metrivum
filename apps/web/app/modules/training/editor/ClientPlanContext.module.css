@@ -41,3 +41,46 @@
 .pickerEmpty svg { width: 1.125rem; height: 1.125rem; margin-bottom: var(--tf-space-1); color: var(--tf-color-text-tertiary); }
 .pickerEmpty strong { color: var(--tf-color-text); font-size: var(--tf-text-sm); font-weight: var(--tf-weight-medium); }
 .pickerEmpty span { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); line-height: var(--tf-leading-normal); }
+
+/* Client data dialog: measurements as stat tiles, results as a quiet table, and a framed form to add one. */
+.metrics { display: grid; gap: var(--tf-space-5); padding: var(--tf-space-1) 0 var(--tf-space-2); }
+.lead { margin: 0; color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); line-height: var(--tf-leading-normal); }
+.section { display: grid; gap: var(--tf-space-2-5); }
+.sectionHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--tf-space-2) var(--tf-space-3); }
+.sectionTitle { display: inline-flex; align-items: center; gap: var(--tf-space-2); margin: 0; color: var(--tf-color-text); font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); }
+.sectionCount { min-width: 1.25rem; padding: 0 var(--tf-space-1-5); border-radius: var(--tf-radius-full); background: var(--tf-color-surface-overlay); color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-medium); line-height: 1.25rem; text-align: center; font-variant-numeric: tabular-nums; }
+.search { width: min(16rem, 100%); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: var(--tf-space-2); margin: 0; }
+.tileStat { display: grid; gap: 2px; padding: var(--tf-space-2-5) var(--tf-space-3); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); background: var(--tf-color-surface-raised); }
+.tileStat dt { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+.tileStat dd { margin: 0; color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); }
+.tileStat dd strong { color: var(--tf-color-text); font-size: var(--tf-text-lg); font-weight: var(--tf-weight-semibold); font-variant-numeric: tabular-nums; }
+.tileStat code { justify-self: start; color: var(--tf-color-text-tertiary); font-size: var(--tf-text-2xs, 0.6875rem); }
+.metrics .tableWrap { max-height: 16rem; overflow: auto; border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-md); }
+.metrics .table { font-size: var(--tf-text-sm); }
+.metrics .table th, .metrics .table td { padding: var(--tf-space-2) var(--tf-space-3); border-bottom: 1px solid var(--tf-color-border-subtle); vertical-align: middle; }
+.metrics .table thead th { position: sticky; top: 0; z-index: 1; background: var(--tf-color-surface); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-medium); }
+.metrics .table tbody tr:last-child td { border-bottom: 0; }
+.metrics .table tbody tr { transition: background-color 140ms ease; }
+.metrics .table tbody tr:hover, .metrics .table tbody tr[data-editing] { background: var(--tf-color-surface-hover); }
+.num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.exerciseName { color: var(--tf-color-text); font-weight: var(--tf-weight-medium); }
+.date { color: var(--tf-color-text-tertiary); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.alias { padding: 1px var(--tf-space-1-5); border-radius: var(--tf-radius-sm); background: var(--tf-color-accent-soft); color: var(--tf-color-accent); font-size: var(--tf-text-xs); }
+.rowAction { width: 1%; text-align: right; }
+.empty { display: flex; align-items: center; gap: var(--tf-space-2-5); margin: 0; padding: var(--tf-space-4); border: 1px dashed var(--tf-color-border); border-radius: var(--tf-radius-md); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); line-height: var(--tf-leading-normal); }
+.empty svg { flex-shrink: 0; width: 1.125rem; height: 1.125rem; }
+.formCard { display: grid; gap: var(--tf-space-3); padding: var(--tf-space-4); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-lg); background: var(--tf-color-bg-sunken); transition: border-color 160ms ease; }
+.formCard[data-editing] { border-color: color-mix(in srgb, var(--tf-color-accent) 45%, transparent); }
+.exerciseButton { display: flex; align-items: center; gap: var(--tf-space-2-5); width: 100%; min-height: var(--tf-control-md, 2.25rem); padding: var(--tf-space-1-5) var(--tf-space-3) var(--tf-space-1-5) var(--tf-space-1-5); border: 1px solid var(--tf-color-border); border-radius: var(--tf-radius-md); background: var(--tf-color-field); color: var(--tf-color-text); font: inherit; font-size: var(--tf-text-sm); text-align: left; cursor: pointer; transition: border-color 140ms ease; }
+.exerciseButton:hover { border-color: var(--tf-color-border-strong); }
+.exerciseButton:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 2px; }
+.exerciseButton[data-empty] > span:nth-child(2) { color: var(--tf-color-text-tertiary); }
+.exerciseButton > span:nth-child(2) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exerciseIcon { display: grid; flex-shrink: 0; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: var(--tf-radius-sm); background: var(--tf-color-accent-soft); color: var(--tf-color-accent); }
+.exerciseIcon svg { width: 0.9375rem; height: 0.9375rem; }
+.exerciseChevron { flex-shrink: 0; width: 0.9375rem; height: 0.9375rem; color: var(--tf-color-text-tertiary); }
+.fieldRow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--tf-space-3); align-items: start; }
+.fieldRow[data-two] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.formActions { display: flex; justify-content: flex-end; gap: var(--tf-space-2); padding-top: var(--tf-space-1); }
+@media (max-width: 640px) { .fieldRow, .fieldRow[data-two] { grid-template-columns: minmax(0, 1fr); } .metrics .table { min-width: 32rem; } }

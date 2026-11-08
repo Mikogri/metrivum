@@ -68,3 +68,5 @@ Web Auth CAPTCHA integration, Supabase server-enforcement prerequisites and comp
 Security preparation for public MCP: [hardening and deployment gates](security/public-mcp-hardening.md), [Auth Turnstile](security/turnstile.md), and [distributed admission](security/distributed-abuse.md).
 
 Independent security audit: [findings, evidence and readiness gates](security/independent-redteam-2026-11-05.md), [all MCP permissions](security/redteam-mcp-matrix.md).
+
+Training program/template deletion and retained-history rules: [document lifecycle](features/training-document-deletion.md).

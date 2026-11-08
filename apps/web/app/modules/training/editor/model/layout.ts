@@ -1,5 +1,5 @@
 import { maxesTables } from "./maxes";
-import type { Cycle, TrainingDocument } from "@metrivum/api-client-web";
+import type { Cycle, TrainingDocument, Workout } from "@metrivum/api-client-web";
 import { sheetView } from "./structure";
 import { WORKOUT_COLS, cycleWorkouts, workoutCardRows } from "./workouts";
 
@@ -16,7 +16,7 @@ export type Layout = Record<string, Cell>;
 
 export const BLOCK_COLS = 2;
 export const CYCLE_COLS = 3;
-const BLOCK_ROWS = 3;
+export const BLOCK_ROWS = 3;
 
 /**
  * Height of a folded cycle card in rows: header and name, a mini calendar (7 day tiles per line)
@@ -29,37 +29,75 @@ export function cycleRows(cycle: Cycle): number {
   return Math.ceil(px / CELL_H);
 }
 
+/** Gaps between neighbouring cards and groups, in cells. */
+const GAP = 1;
+const GROUP_GAP = 2;
+
 /**
- * Default, tidy arrangement: blocks in the first column, their cycles in a row to the right,
- * cycles that are not connected to any block underneath, and every workout card stacked in a
- * column to the right of the cycles (in cycle order, then the unconnected ones).
+ * Default, tidy arrangement, as a tree: blocks side by side along the top; under each block its cycles side by side;
+ * under each cycle its workouts one below another. Each block's group is as wide as everything under it with the
+ * workouts open, so the next block starts only after the last workout column of the one before. Cycles outside every
+ * block and workouts outside every cycle follow as their own groups, then maxes tables and notes in a last column.
+ * `sizes` (cards as currently drawn, e.g. folded) take precedence over the default card sizes.
  */
-export function autoLayout(doc: TrainingDocument): Layout {
+export function autoLayout(doc: TrainingDocument, sizes: Record<string, Size> = {}): Layout {
   const { blocks, loose, looseWorkouts } = sheetView(doc);
   const layout: Layout = {};
-  let row = 1;
-  for (const block of blocks) {
-    layout[block.id] = { col: 1, row };
+  const size = (id: string, fallback: Size): Size => sizes[id] ?? fallback;
+  const cycleSize = (cycle: Cycle) => size(cycle.id, { cols: CYCLE_COLS, rows: cycleRows(cycle) });
+  const workoutSize = (workout: Workout) => size(workout.id, { cols: WORKOUT_COLS, rows: workoutCardRows(workout, false, true) });
+  const top = 1;
+  let col = 1;
 
-    let height = BLOCK_ROWS;
-    block.cycles.forEach((cycle, index) => {
-      layout[cycle.id] = { col: 1 + BLOCK_COLS + 1 + index * (CYCLE_COLS + 1), row };
-      height = Math.max(height, cycleRows(cycle));
-    });
-    row += height + 1;
+  // Cycles in a row from `start` at `row`, each with its workouts stacked underneath; returns the columns used.
+  const placeCycles = (cycles: Cycle[], start: number, row: number) => {
+    const cyclesHeight = Math.max(0, ...cycles.map((cycle) => cycleSize(cycle).rows));
+    let at = start;
+    for (const cycle of cycles) {
+      const own = cycleSize(cycle);
+      layout[cycle.id] = { col: at, row };
+      let workoutRow = row + cyclesHeight + GAP;
+      let width = own.cols;
+      for (const { workout } of cycleWorkouts(cycle)) {
+        const w = workoutSize(workout);
+        layout[workout.id] = { col: at, row: workoutRow };
+        workoutRow += w.rows + GAP;
+        width = Math.max(width, w.cols);
+      }
+      at += width + GAP;
+    }
+    return Math.max(0, at - start - GAP);
+  };
+
+  for (const block of blocks) {
+    const own = size(block.id, { cols: BLOCK_COLS, rows: BLOCK_ROWS });
+    layout[block.id] = { col, row: top };
+    const used = placeCycles(block.cycles, col, top + own.rows + GAP);
+    col += Math.max(own.cols, used) + GROUP_GAP;
   }
-  loose.forEach((cycle, index) => {
-    layout[cycle.id] = { col: 1 + BLOCK_COLS + 1 + index * (CYCLE_COLS + 1), row };
-  });
-  for (const table of maxesTables(doc)) { layout[table.id] = { col: 1, row }; row += table.rows.length + 4; }
-  for (const note of doc.annotations ?? []) { layout[note.id] = { col: 1, row }; row += 7; }
-  const widest = Math.max(1, loose.length, ...blocks.map((block) => block.cycles.length));
-  const workoutCol = 1 + BLOCK_COLS + 1 + widest * (CYCLE_COLS + 1);
-  let workoutRow = 1;
-  const workouts = [...blocks.flatMap((block) => block.cycles.flatMap((cycle) => cycleWorkouts(cycle).map((item) => item.workout))), ...loose.flatMap((cycle) => cycleWorkouts(cycle).map((item) => item.workout)), ...looseWorkouts];
-  for (const workout of workouts) {
-    layout[workout.id] = { col: workoutCol, row: workoutRow };
-    workoutRow += workoutCardRows(workout, false, true) + 1;
+  // Cycles outside every block: a group of their own, on the blocks' row.
+  if (loose.length) col += placeCycles(loose, col, top) + GROUP_GAP;
+  // Workouts outside every cycle: one column.
+  if (looseWorkouts.length) {
+    let row = top;
+    let width = 0;
+    for (const workout of looseWorkouts) {
+      const w = workoutSize(workout);
+      layout[workout.id] = { col, row };
+      row += w.rows + GAP;
+      width = Math.max(width, w.cols);
+    }
+    col += width + GROUP_GAP;
+  }
+  // Maxes tables and notes: a last column.
+  let row = top;
+  for (const table of maxesTables(doc)) {
+    layout[table.id] = { col, row };
+    row += size(table.id, { cols: 5, rows: table.rows.length + 3 }).rows + GAP;
+  }
+  for (const note of doc.annotations ?? []) {
+    layout[note.id] = { col, row };
+    row += size(note.id, { cols: 3, rows: 5 }).rows + GAP;
   }
   return layout;
 }

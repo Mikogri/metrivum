@@ -371,11 +371,12 @@ export function workoutRows(cycle: Cycle, collapsed: ReadonlySet<string>, editab
 }
 
 // ---------------------------------------------------------------------------------------------
-// Volume per primary muscle, secondary muscle or movement pattern. Each exercise counts fully for
-// every key it lists. Metrics per set: reps (middle of a range), hard sets (RPE ≥ 7, RIR ≤ 3 or
-// AMRAP) and tonnage (reps × absolute load in kg; percentages and formulas have no known weight).
+// Volume per main muscle or movement pattern. An exercise counts only for its main muscle (the first
+// primary muscle it lists: chest for a bench press, triceps for a close-grip one), never for helpers.
+// Metrics per set: reps (middle of a range), hard sets (RPE ≥ 7, RIR ≤ 3 or AMRAP), tonnage (reps ×
+// absolute load in kg) and INOL (reps / (100 − % of 1RM)), when the intensity is known.
 
-export type VolumeBy = "primary" | "secondary" | "patterns";
+export type VolumeBy = "primary" | "patterns";
 
 export interface Taxonomy {
   movementPatternKeys: string[];
@@ -388,6 +389,10 @@ export interface VolumeStats {
   reps: number;
   hardSets: number;
   tonnage: number;
+  /** Sum of reps / (100 − %1RM) over the sets whose intensity is known. */
+  inol: number;
+  /** Sets that had a known intensity (the rest add nothing to INOL). */
+  inolSets: number;
 }
 
 export interface VolumeLine {
@@ -396,19 +401,23 @@ export interface VolumeLine {
   total: VolumeStats;
 }
 
+/** The 1RM in kg of an exercise where the workout runs (from the block's maxes table), when known. */
+export type OneRepMax = (workoutId: string, exerciseId: string) => number | null;
+
 const LB = 0.45359237;
-const emptyStats = (): VolumeStats => ({ sets: 0, reps: 0, hardSets: 0, tonnage: 0 });
+const emptyStats = (): VolumeStats => ({ sets: 0, reps: 0, hardSets: 0, tonnage: 0, inol: 0, inolSets: 0 });
 
 function repsOf(set: TrainingSet): number {
   const r = set.prescription.reps;
   return r ? (Number(r.minimum) + Number(r.maximum)) / 2 : 0;
 }
 
+const kg = (q: { value: number | string; unit: string }) => Number(q.value) * (q.unit === "Lb" ? LB : 1);
+
 function kgOf(set: TrainingSet): number {
   const load = set.prescription.load;
   if (!load) return 0;
-  const toKg = (q: { value: number | string; unit: string }) => Number(q.value) * (q.unit === "Lb" ? LB : 1);
-  return (toKg(load.minimum) + toKg(load.maximum)) / 2;
+  return (kg(load.minimum) + kg(load.maximum)) / 2;
 }
 
 function isHard(set: TrainingSet): boolean {
@@ -419,8 +428,49 @@ function isHard(set: TrainingSet): boolean {
   return false;
 }
 
+// % of 1RM at RPE 10 for 1–12 reps (Tuchscherer's chart). Each rep in reserve shifts one column.
+const RPE10 = [100, 95.5, 92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0];
+
+/** % of 1RM for reps done with some reps in reserve, read off the RPE chart (fractions interpolated). */
+export function percentFromEffort(reps: number, rir: number): number | null {
+  const at = reps + rir;
+  if (!(reps >= 1) || !(rir >= 0) || at > RPE10.length) return null;
+  const low = Math.floor(at);
+  const high = Math.ceil(at);
+  const value = (i: number) => RPE10[Math.min(RPE10.length, Math.max(1, i)) - 1]!;
+  return low === high ? value(low) : value(low) + (value(high) - value(low)) * (at - low);
+}
+
+/** Epley's estimate of a 1RM from a heavier set: load × (1 + reps / 30). */
+export function estimatedOneRm(load: number, reps: number): number {
+  return reps <= 1 ? load : load * (1 + reps / 30);
+}
+
+/**
+ * Intensity of a set in % of 1RM: a percentage prescription as is, a fixed load against the known 1RM,
+ * else the RPE/RIR chart. Null when nothing tells it (a formula, or reps alone).
+ */
+export function percentOfMax(set: TrainingSet, oneRm: number | null): number | null {
+  const p = set.prescription;
+  const reps = repsOf(set);
+  if (p.loadPercent !== null && p.loadPercent !== undefined && Number.isFinite(Number(p.loadPercent))) return Number(p.loadPercent);
+  const load = kgOf(set);
+  if (load > 0 && oneRm && oneRm > 0) return (load / oneRm) * 100;
+  if (p.rir !== null && p.rir !== undefined) return percentFromEffort(reps, Number(p.rir));
+  if (p.rpe !== null && p.rpe !== undefined) return percentFromEffort(reps, 10 - Number(p.rpe));
+  return null;
+}
+
+/** INOL of one set: reps / (100 − %1RM). Null when the intensity is unknown or at or above 100%. */
+export function setInol(set: TrainingSet, oneRm: number | null): number | null {
+  const percent = percentOfMax(set, oneRm);
+  const reps = repsOf(set);
+  if (percent === null || !(reps > 0) || percent >= 100) return null;
+  return reps / (100 - percent);
+}
+
 /** Metrics of one exercise instance (all its sets). */
-export function exerciseStats(instance: ExerciseInstance): VolumeStats {
+export function exerciseStats(instance: ExerciseInstance, oneRm: number | null = null): VolumeStats {
   const stats = emptyStats();
   for (const set of instance.sets) {
     const reps = repsOf(set);
@@ -428,6 +478,11 @@ export function exerciseStats(instance: ExerciseInstance): VolumeStats {
     stats.reps += reps;
     stats.hardSets += isHard(set) ? 1 : 0;
     stats.tonnage += reps * kgOf(set);
+    const inol = setInol(set, oneRm);
+    if (inol !== null) {
+      stats.inol += inol;
+      stats.inolSets += 1;
+    }
   }
   return stats;
 }
@@ -437,43 +492,99 @@ function add(into: VolumeStats, from: VolumeStats) {
   into.reps += from.reps;
   into.hardSets += from.hardSets;
   into.tonnage += from.tonnage;
+  into.inol += from.inol;
+  into.inolSets += from.inolSets;
 }
 
+const noMax: OneRepMax = () => null;
+
 /** Totals over workouts, counting each exercise once. */
-export function workoutsStats(workouts: Workout[]): VolumeStats {
+export function workoutsStats(workouts: Workout[], oneRm: OneRepMax = noMax): VolumeStats {
   const total = emptyStats();
-  for (const workout of workouts) for (const instance of workout.exercises) add(total, exerciseStats(instance));
+  for (const workout of workouts) for (const instance of workout.exercises) add(total, exerciseStats(instance, oneRm(workout.id, instance.exerciseId)));
   return total;
 }
 
-function keysOf(info: Taxonomy | undefined, by: VolumeBy): string[] {
-  if (!info) return [];
-  if (by === "patterns") return info.movementPatternKeys;
-  if (by === "secondary") return info.secondaryMuscleKeys ?? [];
-  return info.primaryMuscleKeys;
+/** The single key an exercise counts for: its main muscle, or its main movement pattern. */
+export function mainKey(info: Taxonomy | undefined, by: VolumeBy): string | null {
+  if (!info) return null;
+  return (by === "patterns" ? info.movementPatternKeys[0] : info.primaryMuscleKeys[0]) ?? null;
 }
 
-/** Lines per key over the given workouts. Exercises without the key type count as "—" (not for secondary muscles). */
-export function volumeLines(workouts: Workout[], taxonomy: (exerciseId: string) => Taxonomy | undefined, by: VolumeBy): VolumeLine[] {
+/** Lines per key over the given workouts. Exercises without a classification count as "—". */
+export function volumeLines(workouts: Workout[], taxonomy: (exerciseId: string) => Taxonomy | undefined, by: VolumeBy, oneRm: OneRepMax = noMax): VolumeLine[] {
   const lines = new Map<string, VolumeLine>();
   for (const workout of workouts) {
     for (const instance of workout.exercises) {
-      const keys = keysOf(taxonomy(instance.exerciseId), by);
-      const stats = exerciseStats(instance);
-      for (const key of keys.length ? keys : by === "secondary" ? [] : ["—"]) {
-        const line = lines.get(key) ?? { key, perWorkout: {}, total: emptyStats() };
-        const cell = line.perWorkout[workout.id] ?? emptyStats();
-        add(cell, stats);
-        add(line.total, stats);
-        line.perWorkout[workout.id] = cell;
-        lines.set(key, line);
-      }
+      const key = mainKey(taxonomy(instance.exerciseId), by) ?? "—";
+      const stats = exerciseStats(instance, oneRm(workout.id, instance.exerciseId));
+      const line = lines.get(key) ?? { key, perWorkout: {}, total: emptyStats() };
+      const cell = line.perWorkout[workout.id] ?? emptyStats();
+      add(cell, stats);
+      add(line.total, stats);
+      line.perWorkout[workout.id] = cell;
+      lines.set(key, line);
     }
   }
   return [...lines.values()].sort((a, b) => b.total.sets - a.total.sets || a.key.localeCompare(b.key));
 }
 
-export function cycleVolume(cycle: Cycle, taxonomy: (exerciseId: string) => Taxonomy | undefined, by: VolumeBy): { workouts: CycleWorkout[]; lines: VolumeLine[] } {
+export function cycleVolume(cycle: Cycle, taxonomy: (exerciseId: string) => Taxonomy | undefined, by: VolumeBy, oneRm: OneRepMax = noMax): { workouts: CycleWorkout[]; lines: VolumeLine[] } {
   const workouts = cycleWorkouts(cycle);
-  return { workouts, lines: volumeLines(workouts.map((w) => w.workout), taxonomy, by) };
+  return { workouts, lines: volumeLines(workouts.map((w) => w.workout), taxonomy, by, oneRm) };
+}
+
+/** Something volume can be shown for: one workout, a cycle, a block or the whole plan. */
+export type VolumeScope = "workout" | "cycle" | "block" | "all";
+
+export interface VolumeRange {
+  id: string;
+  title: string;
+  workouts: Workout[];
+}
+
+/** Every range the volume view can switch between, per scope, in plan order. */
+export function volumeRanges(doc: TrainingDocument, labels: { untitled: string; all: string }): Record<VolumeScope, VolumeRange[]> {
+  const ranges: Record<VolumeScope, VolumeRange[]> = { workout: [], cycle: [], block: [], all: [] };
+  const everything: Workout[] = [];
+  for (const block of doc.blocks) {
+    const blockWorkouts: Workout[] = [];
+    for (const cycle of block.cycles) {
+      const workouts = cycleWorkouts(cycle).map((item) => item.workout);
+      blockWorkouts.push(...workouts);
+      for (const workout of workouts) ranges.workout.push({ id: workout.id, title: workout.name || labels.untitled, workouts: [workout] });
+      if (cycle.implicit !== true) ranges.cycle.push({ id: cycle.id, title: cycle.name || labels.untitled, workouts });
+    }
+    everything.push(...blockWorkouts);
+    if (block.implicit !== true) ranges.block.push({ id: block.id, title: block.name || labels.untitled, workouts: blockWorkouts });
+  }
+  ranges.all.push({ id: "all", title: labels.all, workouts: everything });
+  return ranges;
+}
+
+interface MaxesRow {
+  exerciseId?: string | null;
+  reps: number | string;
+  load?: { value: number | string; unit: string } | null;
+}
+
+/** Each workout's block maxes, as 1RMs in kg (a heavier set is converted with Epley). */
+export function oneRepMaxes(doc: TrainingDocument, tables: { blockId?: string | null; rows: MaxesRow[] }[]): OneRepMax {
+  const blockOf = new Map<string, string>();
+  for (const block of doc.blocks) for (const cycle of block.cycles) for (const day of cycle.days) for (const workout of day.workouts) blockOf.set(workout.id, block.id);
+  const byBlock = new Map<string, Map<string, number>>();
+  for (const table of tables) {
+    if (!table.blockId) continue;
+    const maxes = byBlock.get(table.blockId) ?? new Map<string, number>();
+    for (const row of table.rows) {
+      if (!row.exerciseId || !row.load || !(Number(row.load.value) > 0) || row.load.unit === "Percent") continue;
+      const value = estimatedOneRm(kg(row.load), Number(row.reps) || 1);
+      maxes.set(row.exerciseId, Math.max(maxes.get(row.exerciseId) ?? 0, value));
+    }
+    byBlock.set(table.blockId, maxes);
+  }
+  return (workoutId, exerciseId) => {
+    const block = blockOf.get(workoutId);
+    return (block && byBlock.get(block)?.get(exerciseId)) || null;
+  };
 }

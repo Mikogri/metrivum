@@ -12,15 +12,16 @@ import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useProfile } from "~/modules/accounts";
 import { Failure, Loading, ScheduleEditorPanel, type ScheduleSeed } from "~/modules/coaching";
-import { useCalendarRange, type CalendarEvent, type CalendarCheckIn } from "../api";
+import { useCalendarRange, useCalendarWorkouts, type CalendarEvent, type CalendarCheckIn } from "../api";
 import { CalendarViews, onDay, type CalendarEntry } from "../CalendarViews";
 import { EventEditor } from "../EventEditor";
 import { EventDetail } from "../EventDetail";
 import { MobileAgenda } from "../MobileAgenda";
-import { moveDate, validDate, visibleRange, type CalendarView } from "../calendar-model";
+import { localDay, moveDate, validDate, visibleRange, type CalendarView } from "../calendar-model";
 import styles from "../calendar.module.css";
 
 const KINDS = [
+  ["Workout", "Workouts"],
   ["Meeting", "Meetings"],
   ["Event", "Events"],
   ["Check-in", "Check-ins"],
@@ -46,6 +47,9 @@ export default function CalendarRoute() {
   const events = useCalendarRange<CalendarEvent>("/api/v1/calendar/events", range, zone);
   const requests = useCalendarRange<CalendarCheckIn>("/api/v1/check-ins/calendar", range, zone, "Request");
   const planned = useCalendarRange<CalendarCheckIn>("/api/v1/check-ins/calendar", range, zone, mode === "coach" ? "Planned" : "Request");
+  // A client sees their own scheduled workouts too (a coach sees clients' workouts on each client's page).
+  const workouts = useCalendarWorkouts({ from: localDay(range.from, zone), to: localDay(new Date(new Date(range.to).valueOf() - 1).toISOString(), zone) }, mode === "client");
+  const kinds = KINDS.filter(([kind]) => kind !== "Workout" || mode === "client");
   const [filters, setFilters] = useState<string[]>(KINDS.map(([kind]) => kind));
   const [editor, setEditor] = useState<{ kind: "Meeting" | "Event"; initial?: CalendarEvent } | null>(null);
   const detail = params.get("event") || null;
@@ -68,12 +72,19 @@ export default function CalendarRoute() {
   const entries: CalendarEntry[] = [
     ...(events.data ?? []).map((e) => ({ id: e.id, title: e.title, start: e.startsAtUtc, end: e.endsAtUtc, day: e.startDate, until: e.endDateExclusive, kind: e.kind, status: e.cancelled ? "Cancelled" : (e.response ?? "Scheduled"), event: e })),
     ...[...(requests.data ?? []), ...(coach ? (planned.data ?? []) : [])].map((c) => ({ id: c.id, title: c.name, start: c.availableAtUtc, end: c.dueAtUtc, kind: "Check-in", status: c.status, checkIn: c })),
+    // Workouts are whole-day entries on their scheduled date.
+    ...(coach ? [] : workouts.data ?? []).map((w) => {
+      const next = new Date(`${w.scheduledDate}T00:00:00Z`);
+      next.setUTCDate(next.getUTCDate() + 1);
+      const until = next.toISOString().slice(0, 10);
+      return { id: w.id, title: w.name, start: new Date(`${w.scheduledDate}T00:00:00`).toISOString(), end: new Date(`${until}T00:00:00`).toISOString(), day: w.scheduledDate, until, kind: "Workout", status: w.status === "InProgress" ? "In progress" : w.status, workoutId: w.id };
+    }),
   ].filter((e) => filters.includes(e.kind));
-  const open = (e: CalendarEntry) => (e.event ? setDetail(e.event.id) : navigate(e.checkIn?.requestId ? `/app/check-ins/${e.checkIn.requestId}` : `/app/check-in-schedules/${e.checkIn!.scheduleId}`));
+  const open = (e: CalendarEntry) => (e.workoutId ? navigate(`/app/my-training/workouts/${e.workoutId}`) : e.event ? setDetail(e.event.id) : navigate(e.checkIn?.requestId ? `/app/check-ins/${e.checkIn.requestId}` : `/app/check-in-schedules/${e.checkIn!.scheduleId}`));
   const agenda = entries.filter((e) => onDay(e, date, zone)).sort((a, b) => a.start.localeCompare(b.start));
-  const pending = events.isPending || requests.isPending || (coach && planned.isPending);
+  const pending = events.isPending || requests.isPending || (coach && planned.isPending) || (!coach && workouts.isPending);
   const fetching = events.isPlaceholderData || requests.isPlaceholderData || (coach && planned.isPlaceholderData);
-  const failures = [events, requests, ...(coach ? [planned] : [])].filter((q) => q.isError);
+  const failures = [events, requests, ...(coach ? [planned] : [workouts])].filter((q) => q.isError);
   const label = new Intl.DateTimeFormat("en-GB", view === "year" ? { year: "numeric", timeZone: "UTC" } : { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(date));
   const dayLabel = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(date));
   const time = (iso: string) => new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: zone }).format(new Date(iso));
@@ -84,7 +95,7 @@ export default function CalendarRoute() {
   };
 
   const filterControls = <div className={styles.filters} role="group" aria-label={uiCopy["editor"]["sheet"]["volume"]["show"]}>
-    {KINDS.map(([kind, text]) => <button key={kind} type="button" className={styles.filter} data-kind={kind} aria-pressed={filters.includes(kind)} onClick={() => setFilters(filters.includes(kind) ? filters.filter(f => f !== kind) : [...filters, kind])}>{text}</button>)}
+    {kinds.map(([kind, text]) => <button key={kind} type="button" className={styles.filter} data-kind={kind} aria-pressed={filters.includes(kind)} onClick={() => setFilters(filters.includes(kind) ? filters.filter(f => f !== kind) : [...filters, kind])}>{text}</button>)}
     <span className={styles.zone}>{zone.replace(/_/g, " ")}</span>
   </div>;
 

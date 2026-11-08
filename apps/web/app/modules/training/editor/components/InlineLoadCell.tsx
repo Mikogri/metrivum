@@ -314,6 +314,10 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
   const validationId = useCellValidation(invalid, label, validationReason);
   const invalidText = locale === "pl" ? "Niepoprawny format" : "Invalid format";
 
+  // What the formula mark says: the formula, and that a click shows its details.
+  const formulaLabel = locale === "pl" ? "Szczegóły i edycja formuły" : "Formula details and editing";
+  const formulaTitle = saved ? `${formulaText(saved)}${result ? ` → ${result}` : ""}${missing.length ? (locale === "pl" ? " · czeka na dane" : " · waiting for data") : ""}` : undefined;
+
   const inspector = (
         <div ref={auxiliary} className={styles.auxiliary} data-expanded={expanded || undefined} style={expanded ? undefined : popupStyle} data-no-drag onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()} onMouseDown={(event) => event.stopPropagation()} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); cancel(); } }}>
           {expanded ? <FormulaExpressionInput label={label} value={text ?? raw} inputNames={variableNames} onChange={value => { changed.current = true; setText(value); setBinding(null); setDismissed(false); setError(""); }} /> : null}
@@ -390,7 +394,7 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
   );
 
   return (
-    <div ref={cell} className={`${styles.cell} ${className ?? ""}`} style={style} data-no-drag data-inline-formula data-inline-load={valueKind === "mass" || undefined} data-validation-id={validationId} data-expression={editing || Boolean(saved) || !display.trim() || undefined} data-unit-select={hasUnitSelect || undefined} data-linked={markedVariable || undefined} data-invalid={invalid || undefined} title={invalid ? `${label}: ${validationReason}` : undefined} onMouseDown={(event) => event.stopPropagation()} onBlur={(event) => {
+    <div ref={cell} className={`${styles.cell} ${className ?? ""}`} style={style} data-no-drag data-inline-formula data-inline-load={valueKind === "mass" || undefined} data-validation-id={validationId} data-expression={editing || Boolean(saved) || !display.trim() || undefined} data-unit-select={hasUnitSelect || undefined} data-linked={Boolean(saved) || markedVariable || undefined} data-invalid={invalid || undefined} title={invalid ? `${label}: ${validationReason}` : !editing && saved ? formulaTitle : undefined} onMouseDown={(event) => event.stopPropagation()} onBlur={(event) => {
       if (expanded) return;
       const target = event.relatedTarget as Node | null;
       if (target instanceof Element && target.closest('[role="listbox"], [role="option"]')) return;
@@ -406,7 +410,13 @@ export function InlineLoadCell({ exerciseId, prescription, onChange, readOnly, l
       if (readOnly) return;
       event.preventDefault(); event.stopPropagation(); if (!editing) begin(raw); setDismissed(true); setSourcesOpen(true);
     }} onKeyDown={(event) => event.stopPropagation()}>
-      {markedVariable ? <span role="img" aria-label={uiCopy["ui"]["Linked variable"]} title={missing.length ? (locale === "pl" ? "Aktywna zmienna — oczekuje na dane" : "Active variable — waiting for data") : (locale === "pl" ? "Zmienna powiązana z danymi klienta" : "Variable linked to client data")} className={styles.linked} data-waiting={missing.length > 0 || undefined}><FormulaMark size="sm" /></span> : null}
+      {/* A formula cell shows its result; the mark in front of it opens what it is made of and how to edit it. */}
+      {saved && !editing ? readOnly
+        ? <span role="img" aria-label={formulaLabel} title={formulaTitle} className={styles.linked} data-waiting={missing.length > 0 || undefined}><FormulaMark size="sm" /></span>
+        : <button type="button" className={`${styles.linked} ${styles.formulaButton}`} data-no-drag data-waiting={missing.length > 0 || undefined} aria-label={formulaLabel} title={formulaTitle}
+            onPointerDown={event => { event.preventDefault(); event.stopPropagation(); }}
+            onClick={event => { event.stopPropagation(); begin(raw); setDismissed(true); setSourcesOpen(true); }}><FormulaMark size="sm" /></button>
+        : markedVariable && editing ? <span role="img" aria-label={uiCopy["ui"]["Linked variable"]} className={styles.linked} data-waiting={missing.length > 0 || undefined}><FormulaMark size="sm" /></span> : null}
       {/* A formula that still waits for values says so on the cell: an amber pill that opens its data. */}
       {!editing && saved && missing.length && !readOnly ? <button type="button" className={styles.needsData} data-no-drag
         aria-label={locale === "pl" ? `Uzupełnij dane formuły (${missing.length})` : `Fill in formula data (${missing.length})`}

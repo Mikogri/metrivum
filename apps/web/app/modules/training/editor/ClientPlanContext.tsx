@@ -1,9 +1,9 @@
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useEffect, useRef, useState } from "react";
-import { UserSearch, Users } from "lucide-react";
+import { ChevronDown, Dumbbell, Pencil, UserSearch, Users } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, Combobox, Dialog, DialogFooter, Hint, NumberInput, Option, SearchInput, TextField, toast } from "@metrivum/ui-web";
+import { Alert, Button, Combobox, Dialog, Hint, IconButton, NumberInput, Option, SearchInput, Select, TextField, toast } from "@metrivum/ui-web";
 import { Failure, ListPagination, useCoachingQuery, type Page, type Relationship } from "~/modules/coaching";
 import { ExercisePicker, useExerciseNames } from "~/modules/exercises";
 import { useDebounced } from "~/shared/lib/useDebounced";
@@ -171,28 +171,65 @@ function ClientMetrics({ relationshipId, title, onClose }: { relationshipId: str
     void cache.invalidateQueries({ queryKey: [account, "training", "formula-snapshot"] });
     toast({ tone: "success", title: uiCopy["ui"]["Client result saved. Existing plan values were not changed."] });
   }, onError: error => { if (mounted.current && lifecycle.isCurrent()) toast({ tone: "danger", title: error instanceof Error ? error.message : "Could not save this result." }); } });
+  const body = Object.entries(values.data?.variables ?? {}).filter(([name]) => ["weight", "height", "hrMax"].includes(name));
+  const bodyLabel = (name: string) => (name === "height" ? uiCopy["ui"]["Height"] : name === "hrMax" ? uiCopy["ui"]["Max heart rate"] : uiCopy["ui"]["Body weight"]);
+  const bodyUnit = (name: string) => (name === "height" ? "cm" : name === "hrMax" ? uiCopy["profile"]["units"]["bpm"] : "kg");
+  const results = (values.data?.exerciseMaxes ?? []).filter(item => `${item.alias} ${names.get(item.exerciseId)?.name ?? ""}`.toLowerCase().includes(filter.toLowerCase()));
+  const edit = (item: ExerciseMax) => { setEditing(item); setExercise({ id: item.exerciseId, name: names.get(item.exerciseId)?.name ?? "Exercise" }); setAlias(item.alias); setReps(item.reps); setLoad(Number(item.load.value)); setUnit(item.load.unit === "Lb" ? "Lb" : "Kg"); setRecordedOn(item.recordedOn); };
   return <Dialog title={formatInterfaceText(uiCopy["ui"]["{0} · Client data"], [title])} size="lg" isOpen onOpenChange={open => { if (!open && !save.isPending) onClose(); }}>
-    <div className={styles.stack}>
-      <p>{uiCopy["ui"]["Enter a measured result for an exercise and repetition count. Variable names can be used directly in formulas. Saving a new result does not recalculate existing plans."]}</p>
+    <div className={styles.metrics}>
+      <p className={styles.lead}>{uiCopy["ui"]["Enter a measured result for an exercise and repetition count. Variable names can be used directly in formulas. Saving a new result does not recalculate existing plans."]}</p>
       {values.isError ? <Failure error={values.error} retry={() => void values.refetch()} /> : null}
-      <dl className={styles.variables}>{Object.entries(values.data?.variables ?? {}).filter(([name]) => ["weight", "height", "hrMax"].includes(name)).map(([name, quantity]) => <div key={name}><dt>{name}</dt><dd>{quantity.value} {name === "height" ? "cm" : name === "hrMax" ? uiCopy["profile"]["units"]["bpm"] : "kg"}</dd></div>)}</dl>
-      <SearchInput aria-label={uiCopy["ui"]["Search exercise results"]} placeholder={uiCopy["ui"]["Search variable or exercise"]} value={filter} onChange={setFilter} />
-      <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>{uiCopy["editor"]["panel"]["exercise"]}</th><th>{uiCopy["editor"]["columns"]["reps"]}</th><th>{uiCopy["video"]["detail"]["result"]}</th><th>{uiCopy["ui"]["Variable"]}</th><th>{uiCopy["ui"]["Date"]}</th><th><span className="tf-visually-hidden">{uiCopy["editor"]["sheet"]["contextLabel"]}</span></th></tr></thead>
-        <tbody>{(values.data?.exerciseMaxes ?? []).filter(item => `${item.alias} ${names.get(item.exerciseId)?.name ?? ""}`.toLowerCase().includes(filter.toLowerCase())).map(item => <tr key={item.id}>
-          <td>{names.get(item.exerciseId)?.name ?? uiCopy["editor"]["panel"]["exercise"]}</td><td>{item.reps}</td><td>{item.load.value} {item.load.unit === "Lb" ? "lb" : "kg"}</td><td><code>{item.alias}</code></td><td>{item.recordedOn}</td>
-          <td><Button size="sm" variant="ghost" onPress={() => { setEditing(item); setExercise({ id: item.exerciseId, name: names.get(item.exerciseId)?.name ?? "Exercise" }); setAlias(item.alias); setReps(item.reps); setLoad(Number(item.load.value)); setUnit(item.load.unit === "Lb" ? "Lb" : "Kg"); setRecordedOn(item.recordedOn); }}>{uiCopy["profile"]["showcase"]["edit"]}</Button></td>
-        </tr>)}</tbody></table></div>
-      {!values.isPending && values.data?.exerciseMaxes.length === 0 ? <p className={styles.hint}>{uiCopy["ui"]["No exercise results yet. Add the first one below — formulas that use this client's maxes need it."]}</p> : null}
-      <form className={styles.form} onSubmit={event => { event.preventDefault(); if (!save.isPending) save.mutate(); }}>
-        <h3>{editing ? uiCopy["ui"]["Edit result"] : uiCopy["ui"]["Add result"]}</h3>
-        <Button onPress={() => setPicker(true)}>{exercise?.name ?? uiCopy["editor"]["picker"]["title"]}</Button>
-        <div className={styles.fields}><NumberInput label={uiCopy["video"]["detail"]["repetitions"]} value={reps} onChange={setReps} minValue={1} maxValue={100} step={1} />
-          <NumberInput label={uiCopy["editor"]["panel"]["loadModes"]["absolute"]} value={load} onChange={setLoad} minValue={0.01} />
-          <label>{uiCopy["editor"]["panel"]["unit"]}<select value={unit} onChange={event => setUnit(event.target.value as "Kg" | "Lb")}><option value="Kg">kg</option><option value="Lb">lb</option></select></label>
+
+      <section className={styles.section} aria-labelledby="client-measurements">
+        <h3 id="client-measurements" className={styles.sectionTitle}>{uiCopy["ui"]["Measurements"]}</h3>
+        {body.length ? <dl className={styles.tiles}>{body.map(([name, quantity]) => <div key={name} className={styles.tileStat}>
+          <dt>{bodyLabel(name)}</dt>
+          <dd><strong>{quantity.value}</strong> <span>{bodyUnit(name)}</span></dd>
+          <code>{name}</code>
+        </div>)}</dl> : <p className={styles.hint}>{values.isPending ? uiCopy["common"]["loading"] : uiCopy["ui"]["No body measurements yet."]}</p>}
+      </section>
+
+      <section className={styles.section} aria-labelledby="client-results">
+        <div className={styles.sectionHead}>
+          <h3 id="client-results" className={styles.sectionTitle}>{uiCopy["ui"]["Exercise results"]}{values.data?.exerciseMaxes.length ? <span className={styles.sectionCount}>{values.data.exerciseMaxes.length}</span> : null}</h3>
+          {values.data?.exerciseMaxes.length ? <SearchInput aria-label={uiCopy["ui"]["Search exercise results"]} placeholder={uiCopy["ui"]["Search variable or exercise"]} value={filter} onChange={setFilter} className={styles.search} /> : null}
         </div>
-        <TextField label={uiCopy["ui"]["Variable name"]} placeholder="maxBench1r" value={alias} onChange={setAlias} maxLength={64} description={uiCopy["ui"]["Letters, numbers and underscores; start with a letter or underscore."]} />
-        <TextField label={uiCopy["ui"]["Measured on"]} type="date" value={recordedOn} onChange={setRecordedOn} />
-        <DialogFooter>{editing ? <Button onPress={reset}>{uiCopy["ui"]["Cancel edit"]}</Button> : null}<Button type="submit" variant="primary" loading={save.isPending} isDisabled={!exercise || !validMax(reps, load, alias) || !recordedOn}>{uiCopy["ui"]["Save result"]}</Button></DialogFooter>
+        {values.isError || values.isPending ? null : !values.data?.exerciseMaxes.length ? <p className={styles.empty}><Dumbbell aria-hidden="true" />{uiCopy["ui"]["No exercise results yet. Add the first one below — formulas that use this client's maxes need it."]}</p>
+          : <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>{uiCopy["editor"]["panel"]["exercise"]}</th><th className={styles.num}>{uiCopy["editor"]["columns"]["reps"]}</th><th className={styles.num}>{uiCopy["video"]["detail"]["result"]}</th><th>{uiCopy["ui"]["Variable"]}</th><th>{uiCopy["ui"]["Date"]}</th><th><span className="tf-visually-hidden">{uiCopy["editor"]["sheet"]["contextLabel"]}</span></th></tr></thead>
+            <tbody>{results.map(item => <tr key={item.id} data-editing={editing?.id === item.id || undefined}>
+              <td className={styles.exerciseName}>{names.get(item.exerciseId)?.name ?? uiCopy["editor"]["panel"]["exercise"]}</td>
+              <td className={styles.num}>{item.reps}</td>
+              <td className={styles.num}><strong>{item.load.value}</strong> {item.load.unit === "Lb" ? "lb" : "kg"}</td>
+              <td><code className={styles.alias}>{item.alias}</code></td>
+              <td className={styles.date}>{item.recordedOn}</td>
+              <td className={styles.rowAction}><IconButton size="sm" variant="ghost" icon={<Pencil />} label={`${uiCopy["profile"]["showcase"]["edit"]}: ${item.alias}`} onPress={() => edit(item)} /></td>
+            </tr>)}</tbody></table></div>}
+      </section>
+
+      <form className={styles.formCard} data-editing={editing ? "" : undefined} onSubmit={event => { event.preventDefault(); if (!save.isPending) save.mutate(); }}>
+        <h3 className={styles.sectionTitle}>{editing ? uiCopy["ui"]["Edit result"] : uiCopy["ui"]["Add result"]}</h3>
+        <button type="button" className={styles.exerciseButton} data-empty={!exercise || undefined} onClick={() => setPicker(true)}>
+          <span className={styles.exerciseIcon} aria-hidden="true"><Dumbbell /></span>
+          <span>{exercise?.name ?? uiCopy["ui"]["Choose an exercise"]}</span>
+          <ChevronDown aria-hidden="true" className={styles.exerciseChevron} />
+        </button>
+        <div className={styles.fieldRow}>
+          <NumberInput label={uiCopy["video"]["detail"]["repetitions"]} value={reps} onChange={setReps} minValue={1} maxValue={100} step={1} />
+          <NumberInput label={uiCopy["editor"]["panel"]["loadModes"]["absolute"]} value={load} onChange={setLoad} minValue={0.01} />
+          <Select label={uiCopy["editor"]["panel"]["unit"]} selectedKey={unit} onSelectionChange={key => setUnit(key === "Lb" ? "Lb" : "Kg")}>
+            <Option id="Kg">kg</Option>
+            <Option id="Lb">lb</Option>
+          </Select>
+        </div>
+        <div className={styles.fieldRow} data-two="">
+          <TextField label={uiCopy["ui"]["Variable name"]} placeholder="maxBench1r" value={alias} onChange={setAlias} maxLength={64} description={uiCopy["ui"]["Letters, numbers and underscores; start with a letter or underscore."]} />
+          <TextField label={uiCopy["ui"]["Measured on"]} type="date" value={recordedOn} onChange={setRecordedOn} />
+        </div>
+        <div className={styles.formActions}>
+          {editing ? <Button variant="ghost" onPress={reset}>{uiCopy["ui"]["Cancel edit"]}</Button> : null}
+          <Button type="submit" variant="primary" loading={save.isPending} isDisabled={!exercise || !validMax(reps, load, alias) || !recordedOn}>{uiCopy["ui"]["Save result"]}</Button>
+        </div>
       </form>
       <ExercisePicker isOpen={picker} onOpenChange={setPicker} selectedId={exercise?.id} onPick={item => { setExercise({ id: item.id, name: item.name }); if (!alias) setAlias(`max${item.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 48)}${reps}r`); }} />
     </div>

@@ -1656,6 +1656,56 @@ button.tile[data-kind="rest"]:hover {
   color: var(--tf-color-info);
 }
 
+.volumeInol {
+  color: var(--tf-color-violet, #a78bfa);
+}
+
+/* Range switch: kind of range, then which one with arrows either side. */
+.volumeRange {
+  display: grid;
+  gap: var(--tf-space-1-5);
+}
+
+.volumeScopes {
+  justify-self: stretch;
+}
+
+.volumeScopes > * {
+  flex: 1;
+}
+
+.volumePicker {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  min-width: 0;
+}
+
+.volumeSelect {
+  flex: 1;
+  min-width: 0;
+}
+
+.volumeTable tfoot th,
+.volumeTable tfoot td {
+  border-top: 1px solid var(--tf-color-border);
+  border-bottom: 0;
+  color: var(--tf-color-text);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.volumeCycle {
+  animation: volume-in 220ms var(--tf-ease-out, ease-out);
+}
+
+@keyframes volume-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .volumeCycle { animation: none; }
+}
+
 /* v6: aligned headings, plain day labels, area selection, top glass toolbar ----------------------- */
 
 /* Workout heading: laid on the cycle's own columns — name in the first two cells, the day in the
@@ -2188,3 +2238,87 @@ button.tile[data-kind="workout"]:hover {
 .chip {
   flex: none;
 }
+
+/* "Not connected": an amber pill on cards that aren't plugged into anything. */
+.notConnected {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 3px;
+  height: 1.125rem;
+  margin-left: auto;
+  padding: 0 6px 0 4px;
+  border: 1px solid rgb(242 169 59 / 0.45);
+  border-radius: var(--tf-radius-full);
+  background: color-mix(in srgb, var(--tf-color-warning) 14%, transparent);
+  color: var(--tf-color-warning);
+  font: inherit;
+  font-size: 0.625rem;
+  font-weight: var(--tf-weight-semibold);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: help;
+  outline: none;
+}
+
+.notConnected svg {
+  width: 0.6875rem;
+  height: 0.6875rem;
+}
+
+.notConnected[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* Minimised block: its cycles and workouts fade and shrink away (and back in when it opens). */
+.card {
+  transition:
+    left 320ms var(--tf-ease-in-out),
+    top 320ms var(--tf-ease-in-out),
+    width 280ms var(--tf-ease-in-out),
+    min-height 280ms var(--tf-ease-in-out),
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    opacity 240ms ease,
+    transform 260ms var(--tf-ease-out),
+    visibility 0s linear 0s;
+}
+
+.card[data-hidden] {
+  opacity: 0;
+  transform: scale(0.94) translateY(-6px);
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    left 320ms var(--tf-ease-in-out),
+    top 320ms var(--tf-ease-in-out),
+    opacity 200ms ease,
+    transform 220ms var(--tf-ease-in-out),
+    visibility 0s linear 220ms;
+}
+
+.card[data-inactive][data-hidden] {
+  opacity: 0;
+}
+
+/* "Minimised" on a block: a quiet tag after its counts. */
+.blockFolded {
+  padding: 0 5px;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-text-tertiary);
+}
+
+.card[data-kind="block"] .cardHead .toggle {
+  margin-left: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card[data-hidden] {
+    transition: none;
+  }
+}
+.cycleMeta > .blockFolded::before { content: none; }

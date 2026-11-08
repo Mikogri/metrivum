@@ -3,13 +3,14 @@ import { mobileDestinations, mobileSelection, immersiveMobileRoute, mobileViewpo
 
 describe("native-aligned web navigation", () => {
   it("keeps exactly the implemented native destinations for each role", () => {
-    expect(mobileDestinations("client").map(x => x.label)).toEqual(["Today", "Plans", "History", "Messages", "More"]);
+    expect(mobileDestinations("client").map(x => x.label)).toEqual(["Training", "Calendar", "Messages", "More"]);
     expect(mobileDestinations("coach").map(x => x.label)).toEqual(["Today", "Clients", "Messages", "Calendar", "More"]);
   });
   it("keeps list/detail and query-based training context without prefix collisions", () => {
-    expect(mobileSelection("client", "/app/my-training", "?tab=plans")).toBe("plans");
-    expect(mobileSelection("client", "/app/my-training", "?tab=history&view=progress")).toBe("history");
-    expect(mobileSelection("client", "/app/training-plans/one", "")).toBe("plans");
+    expect(mobileSelection("client", "/app/my-training", "?view=plan")).toBe("training");
+    expect(mobileSelection("client", "/app/my-training/workouts/one", "")).toBe("training");
+    expect(mobileSelection("client", "/app/training-plans/one", "")).toBe("training");
+    expect(mobileSelection("client", "/app/calendar", "")).toBe("calendar");
     expect(mobileSelection("coach", "/app/clients/one", "")).toBe("clients");
     expect(mobileSelection("coach", "/app/clients-other", "")).toBe("more");
     expect(mobileSelection("client", "/app/settings", "")).toBe("more");

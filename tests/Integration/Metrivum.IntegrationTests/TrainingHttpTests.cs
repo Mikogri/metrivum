@@ -101,6 +101,31 @@ public sealed class TrainingHttpTests
         })).StatusCode);
     }
 
+    [TrainingPostgresFact]
+    public async Task Delete_requires_owner_and_current_etag_and_removes_only_unused_documents()
+    {
+        using var factory = new ApiFactory(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"));
+        using var owner = await Coach(factory);
+        using var other = await Coach(factory);
+        await TestPlans.ActivateProAsync(owner);
+        await TestPlans.ActivateProAsync(other);
+        var created = await owner.PostAsJsonAsync("/api/v1/training/programs", new { name = "Unused", description = "", kind = "Program", document = new { schemaVersion = 1, blocks = Array.Empty<object>() } });
+        Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+        var id = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        Assert.Equal((HttpStatusCode)428, (await owner.DeleteAsync($"/api/v1/training/programs/{id}")).StatusCode);
+        async Task<HttpResponseMessage> Delete(HttpClient client, int version)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/training/programs/{id}");
+            request.Headers.TryAddWithoutValidation("If-Match", $"\"{version}\"");
+            return await client.SendAsync(request);
+        }
+        Assert.Equal(HttpStatusCode.NotFound, (await Delete(other, 1)).StatusCode);
+        Assert.Equal(HttpStatusCode.PreconditionFailed, (await Delete(owner, 2)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await Delete(owner, 1)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await owner.GetAsync($"/api/v1/training/programs/{id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await Delete(owner, 1)).StatusCode);
+    }
+
     private static async Task<HttpClient> Coach(ApiFactory factory)
     {
         var user = Guid.NewGuid();

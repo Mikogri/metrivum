@@ -303,3 +303,10 @@
   display: flex;
   margin-top: var(--tf-space-1);
 }
+
+/* Changes not applied: a solid red badge, not just red text. */
+.pendingBadge.pendingBadge {
+  border-color: var(--tf-color-danger);
+  background: var(--tf-color-danger);
+  color: #fff;
+}

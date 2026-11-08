@@ -12,7 +12,7 @@ vi.mock("~/shared/lib/useConfirm", () => ({ useDiscardConfirm: () => ({ confirm:
 vi.mock("~/modules/coaching", () => ({ Failure: () => null, Loading: () => null, ScheduleEditorPanel: () => null }));
 vi.mock("./EventEditor", () => ({ EventEditor: () => null }));
 vi.mock("./EventDetail", () => ({ EventDetail: ({ id }: { id: string }) => <p>Event detail: {id}</p> }));
-vi.mock("./api", () => ({ useCalendarRange: (path: string) => ({ data: path.includes("/events") ? [{ id: "meeting-one", title: "Training review", startsAtUtc: "2026-10-12T09:00:00Z", endsAtUtc: "2026-10-12T10:00:00Z", kind: "Meeting" }] : [], isPending: false }) }));
+vi.mock("./api", () => ({ useCalendarWorkouts: () => ({ data: [], isPending: false }), useCalendarRange: (path: string) => ({ data: path.includes("/events") ? [{ id: "meeting-one", title: "Training review", startsAtUtc: "2026-10-12T09:00:00Z", endsAtUtc: "2026-10-12T10:00:00Z", kind: "Meeting" }] : [], isPending: false }) }));
 
 function setup(url: string) {
   const router = createMemoryRouter([{ path: "/app/calendar", Component: CalendarRoute }], { initialEntries: [url] });

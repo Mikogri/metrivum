@@ -193,3 +193,7 @@ export async function commitImport(api: Transport, importId: string, body: Commi
     await api<PlanDto>({ method: "POST", path: `${base}/imports/${id(importId)}/commit`, json: body, ifMatch: version, idempotencyKey }),
   );
 }
+
+export async function deletePlan(api: Transport, planId: string, version: number) {
+  await api({ method: "DELETE", path: `${base}/programs/${id(planId)}`, ifMatch: version });
+}

@@ -5,7 +5,7 @@ import { daysForMonth, localDay, type CalendarView } from "./calendar-model";
 import type { CalendarEvent, CalendarCheckIn } from "./api";
 import styles from "./calendar.module.css";
 
-export interface CalendarEntry { id: string; title: string; start: string; end: string; day?: string | null; until?: string | null; kind: string; status: string; event?: CalendarEvent; checkIn?: CalendarCheckIn }
+export interface CalendarEntry { id: string; title: string; start: string; end: string; day?: string | null; until?: string | null; kind: string; status: string; event?: CalendarEvent; checkIn?: CalendarCheckIn; workoutId?: string }
 export function onDay(entry: CalendarEntry, day: string, zone: string) {
   if (entry.day) return entry.day <= day && day < entry.until!;
   return localDay(entry.start, zone) <= day && localDay(new Date(new Date(entry.end).valueOf() - 1).toISOString(), zone) >= day;

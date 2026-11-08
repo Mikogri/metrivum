@@ -45,6 +45,8 @@ import { addLooseCycle, addLooseWorkout, attachCycle, attachWorkout, detachCycle
 import type { EditorApi } from "../useEditor";
 import { ProgressionDialog } from "./ProgressionDialog";
 import { VolumePanel } from "./VolumePanel";
+import { NotConnected } from "./NotConnected";
+import { useHideCollapsedChildren } from "../sheet-preferences";
 import { SheetMinimap, type MinimapNode } from "./SheetMinimap";
 import { BlockFormulaScope } from "../block-maxes";
 import { BlockMaxesTable } from "./BlockMaxesTable";
@@ -303,6 +305,27 @@ export function SheetCanvas({
     ],
     [allCycles, looseWorkouts],
   );
+  // What sits under a card: a cycle's workouts; a block's cycles and their workouts.
+  const childrenOf = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const { cycle } of allCycles) map.set(cycle.id, cycleWorkouts(cycle).map((item) => item.workout.id));
+    for (const block of shown.blocks) map.set(block.id, block.cycles.flatMap((cycle) => [cycle.id, ...(map.get(cycle.id) ?? [])]));
+    return map;
+  }, [allCycles, shown]);
+  // Minimising a block or cycle minimises everything under it too; expanding it opens them again.
+  const toggleTree = (id: string) => update((s) => {
+    const folded = new Set(s.collapsedCards ?? []);
+    const ids = [id, ...(childrenOf.get(id) ?? [])];
+    if (folded.has(id)) ids.forEach((x) => folded.delete(x));
+    else ids.forEach((x) => folded.add(x));
+    return { ...s, collapsedCards: [...folded] };
+  });
+  // A minimised block hides its cycles and workouts (unless that is turned off in Settings).
+  const hideCollapsed = useHideCollapsedChildren();
+  const hidden = useMemo(
+    () => new Set(hideCollapsed ? shown.blocks.filter((block) => collapsedCards.has(block.id)).flatMap((block) => childrenOf.get(block.id) ?? []) : []),
+    [hideCollapsed, shown, collapsedCards, childrenOf],
+  );
   const sizes = useMemo(() => {
     const result: Record<string, Size> = {};
     for (const block of shown.blocks) {
@@ -317,8 +340,11 @@ export function SheetCanvas({
     for (const note of doc.annotations ?? []) result[note.id] = { cols: 3, rows: collapsedCards.has(note.id) ? 2 : 5 };
     return result;
   }, [doc, shown, allCycles, allWorkouts, readOnly, collapsedCards]);
+  // Cards on the sheet (hidden ones take no room); hidden cards keep their place to fade in and out there.
+  const visibleSizes = useMemo(() => (hidden.size ? Object.fromEntries(Object.entries(sizes).filter(([id]) => !hidden.has(id))) : sizes), [sizes, hidden]);
   // Where cards are drawn: no overlaps; a card that would land on another moves down.
-  const layout = useMemo(() => resolveLayout(stored, sizes), [stored, sizes]);
+  const layout = useMemo(() => ({ ...stored, ...resolveLayout(stored, visibleSizes) }), [stored, visibleSizes]);
+  const arrange = () => update((s) => ({ ...s, layout: autoLayout(doc, visibleSizes) }));
 
   const targetWidths = useMemo(() => elementColumnWidths(sheet.columnWidths, stored, sheet.elementWidths, new Set([...allWorkouts.filter(w => !collapsedCards.has(w.workout.id)).map(w => w.workout.id), ...maxesTables(doc).filter(t => !collapsedCards.has(t.id)).map(t => t.id)])), [sheet.columnWidths, sheet.elementWidths, stored, allWorkouts, doc, collapsedCards]);
   const widths = useColumnWidths(targetWidths, Boolean(resizing.current));
@@ -368,8 +394,8 @@ export function SheetCanvas({
   // Enough cells, letters and row numbers to fill the screen even fully zoomed out.
   const fillCols = columnAt(widths, Math.max(0, viewport.w / MIN_ZOOM - HEADER)) + 2;
   const fillRows = Math.ceil((viewport.h / MIN_ZOOM - HEADER) / CELL_H) + 1;
-  const cols = Math.max(26, fillCols, ...Object.entries(sizes).map(([id, s]) => (layout[id]?.col ?? 0) + s.cols + 6));
-  const rows = Math.max(40, fillRows, ...Object.entries(sizes).map(([id, s]) => (layout[id]?.row ?? 0) + s.rows + 10));
+  const cols = Math.max(26, fillCols, ...Object.entries(visibleSizes).map(([id, s]) => (layout[id]?.col ?? 0) + s.cols + 6));
+  const rows = Math.max(40, fillRows, ...Object.entries(visibleSizes).map(([id, s]) => (layout[id]?.row ?? 0) + s.rows + 10));
   const boardW = HEADER + xAt(cols);
   const boardH = HEADER + rows * CELL_H;
 
@@ -574,7 +600,7 @@ export function SheetCanvas({
     const tiny = right - left < 4 && bottom - top < 4;
     const hit = tiny
       ? []
-      : Object.entries(sizes)
+      : Object.entries(visibleSizes)
           .filter(([id, size]) => {
             const at = layout[id];
             if (!at) return false;
@@ -644,7 +670,7 @@ export function SheetCanvas({
   };
   const linkHit = (event: ReactPointerEvent, current: Link) => {
     const point = toBoard(event.clientX, event.clientY);
-    const hoveredId = Object.keys(sizes).reverse().find(id => { const b = bounds(id); return id !== current.blockId && point.x >= b.left && point.x <= b.left + b.width && point.y >= b.top && point.y <= b.top + b.height; });
+    const hoveredId = Object.keys(visibleSizes).reverse().find(id => { const b = bounds(id); return id !== current.blockId && point.x >= b.left && point.x <= b.left + b.width && point.y >= b.top && point.y <= b.top + b.height; });
     return { ...current, ...point, hoveredId, targetId: hoveredId && eligibleTarget(current.kind, current.blockId, hoveredId) ? hoveredId : undefined };
   };
   const moveLink = (event: ReactPointerEvent) => {
@@ -746,12 +772,13 @@ export function SheetCanvas({
     const open = isTable || (doc.annotations ?? []).some(n => n.id === id) || allWorkouts.some(w => w.workout.id === id);
     return { left: p.left + (open ? -1 : 4), top: p.top + (open ? -1 : 4), width: p.width + (open ? 2 : -8), height: cellSize.rows * CELL_H + (open ? 2 : -8) };
   };
-  const rawEdges = [
+  const allEdges = [
     ...shown.blocks.flatMap(block => block.cycles.map(cycle => ({ id: `${block.id}-${cycle.id}`, sourceId: block.id, targetId: cycle.id, cycleId: cycle.id, tableId: undefined as string | undefined, annotationId: undefined as string | undefined, workoutId: undefined as string | undefined }))),
     ...allWorkouts.filter(w => w.cycle).map(w => ({ id: `${w.cycle!.id}-${w.workout.id}`, sourceId: w.cycle!.id, targetId: w.workout.id, cycleId: w.cycle!.id, tableId: undefined as string | undefined, annotationId: undefined as string | undefined, workoutId: w.workout.id as string | undefined })),
     ...maxesTables(doc).filter(t => t.blockId).map(t => ({ id: t.id, sourceId: t.id, targetId: t.blockId!, cycleId: "", tableId: t.id, annotationId: undefined as string | undefined, workoutId: undefined as string | undefined })),
     ...(doc.annotations ?? []).filter(n => n.targetId).map(n => ({ id: n.id, sourceId: n.id, targetId: n.targetId!, cycleId: "", tableId: undefined as string | undefined, annotationId: n.id, workoutId: undefined as string | undefined })),
   ];
+  const rawEdges = hidden.size ? allEdges.filter((edge) => !hidden.has(edge.sourceId) && !hidden.has(edge.targetId)) : allEdges;
   // Every card has one socket: all of its cables leave from the same point, on the side facing the middle of
   // what it connects to. Each cable then meets its target on the target's side facing that socket.
   const point = (p: { x: number; y: number }): Bounds => ({ left: p.x, top: p.y, width: 0, height: 0 });
@@ -800,6 +827,8 @@ export function SheetCanvas({
         return readOnly
           ? []
           : [
+              { id: "collapse", label: collapsedCards.has(current.id) ? t.expandBlock : t.minimiseBlock, icon: <ChevronRight /> },
+              { type: "separator", id: "s0" },
               { id: "add-cycle", label: m.editor.addCycle, icon: <Plus /> },
               { id: "progression", label: t.progression.menu, icon: <TrendingUp /> },
               doc.blocks.find((b) => b.id === current.id)?.inactive
@@ -872,12 +901,13 @@ export function SheetCanvas({
       if (id === "add-block") addBlockAt(current.cell);
       else if (id === "add-cycle") addCycleAt(current.cell);
       else if (id === "add-workout") addWorkoutAt(current.cell);
-      else if (id === "arrange") update((s) => ({ ...s, layout: autoLayout(doc) }));
+      else if (id === "arrange") arrange();
       else if (id === "zoom-reset") zoomTo("reset");
     } else if (current.kind === "block") {
       const block = doc.blocks.find((b) => b.id === current.id);
       if (!block) return;
-      if (id === "add-cycle") apply?.((d) => addCycle(d, block.id, m.editor.cycleName(block.cycles.length + 1)).doc);
+      if (id === "collapse") toggleTree(block.id);
+      else if (id === "add-cycle") apply?.((d) => addCycle(d, block.id, m.editor.cycleName(block.cycles.length + 1)).doc);
       else if (id === "progression") setProgressionBlock(block.id);
       else if (id === "activate" || id === "deactivate") apply?.((d) => updateNode(d, block.id, { inactive: id === "deactivate" ? true : null }));
       else if (id === "rename") setRenaming(block.id);
@@ -994,7 +1024,7 @@ export function SheetCanvas({
     );
   };
 
-  const nodesForMinimap: MinimapNode[] = Object.entries(sizes).map(([id, s]) => ({
+  const nodesForMinimap: MinimapNode[] = Object.entries(visibleSizes).map(([id, s]) => ({
     id,
     kind: doc.blocks.some((b) => b.id === id) ? "block" : allWorkouts.some((w) => w.workout.id === id) ? "workout" : "cycle",
     x: HEADER + pos(id).left,
@@ -1034,7 +1064,7 @@ export function SheetCanvas({
           </>
         ) : null}
         <TooltipTrigger delay={300}>
-          <Button size="sm" variant="ghost" iconStart={<LayoutGrid />} onPress={() => update((s) => ({ ...s, layout: autoLayout(doc) }))}>
+          <Button size="sm" variant="ghost" iconStart={<LayoutGrid />} onPress={arrange}>
             {t.arrange}
           </Button>
           <Tooltip>{t.arrangeHint}</Tooltip>
@@ -1164,6 +1194,8 @@ export function SheetCanvas({
                 <BlockCard
                   key={block.id}
                   block={block}
+                  collapsed={collapsedCards.has(block.id)}
+                  onToggleCollapse={() => toggleTree(block.id)}
                   inactive={Boolean(block.inactive)}
                   linkTarget={link?.targetId === block.id}
                   style={pos(block.id)}
@@ -1210,7 +1242,8 @@ export function SheetCanvas({
                   cycle={cycle}
                   runs={blockId ? cycleRuns(doc, cycle) : cycle.repeats != null ? Number(cycle.repeats) : 1}
                   collapsed={collapsedCards.has(cycle.id)}
-                  onToggleCollapse={() => toggleCard(cycle.id)}
+                  hidden={hidden.has(cycle.id)}
+                  onToggleCollapse={() => toggleTree(cycle.id)}
                   inactive={Boolean(doc.blocks.find((b) => b.id === blockId)?.inactive)}
                   onAddDay={readOnly ? undefined : () => changeDays(cycle.id, 1)}
                   loose={blockId === null}
@@ -1266,6 +1299,7 @@ export function SheetCanvas({
                     selected={selected.includes(w.id)}
                     linkTarget={link?.targetId === w.id}
                     collapsed={collapsedCards.has(w.id)}
+                    hidden={hidden.has(w.id)}
                     renaming={renaming === w.id}
                     apply={apply}
                     names={names}
@@ -1471,6 +1505,8 @@ function InlineName({
 
 function BlockCard({
   block,
+  collapsed,
+  onToggleCollapse,
   inactive,
   linkTarget,
   style,
@@ -1495,15 +1531,17 @@ function BlockCard({
   onMenuButton: (x: number, y: number) => void;
   renaming: string | null;
   onRename: (key: string | null) => void;
-} & CardEvents) {
+} & CardEvents & { collapsed: boolean; onToggleCollapse: () => void }) {
   const m = useT();
   const t = m.editor.sheet;
   const readOnly = !apply;
+  const workoutCount = block.cycles.reduce((n, cycle) => n + cycleWorkouts(cycle).length, 0);
   return (
     <div
       className={styles.card}
       data-node
       data-kind="block"
+      data-collapsed={collapsed || undefined}
       data-node-id={block.id}
       data-block-id={block.id}
       data-inactive={inactive || undefined}
@@ -1516,10 +1554,14 @@ function BlockCard({
       {...events}
     >
       <div className={styles.cardHead}>
+        <button type="button" className={styles.toggle} aria-label={collapsed ? t.expandBlock : t.minimiseBlock} aria-expanded={!collapsed} data-no-drag onClick={onToggleCollapse}>
+          <ChevronRight aria-hidden="true" data-open={!collapsed || undefined} />
+        </button>
         <span className={styles.chip} data-kind="block" aria-hidden="true">
           <Repeat />
         </span>
         <span className={styles.kind}>{inactive ? `${t.blockLabel} · ${t.inactive}` : t.blockLabel}</span>
+        {!block.cycles.length ? <NotConnected kind="block" /> : null}
         {!readOnly ? <MenuButton label={block.name} onOpen={onMenuButton} /> : null}
       </div>
       <InlineName
@@ -1531,7 +1573,13 @@ function BlockCard({
         onDone={() => onRename(null)}
         onChange={(name) => apply?.((doc) => updateNode(doc, block.id, { name }))}
       />
-      <InlineName
+      {/* How much is in it, always: it is the only trace of the cycles and workouts while the block is minimised. */}
+      <p className={styles.cycleMeta}>
+        <span>{t.blockCycles(block.cycles.length)}</span>
+        <span>{m.editor.week.workouts(workoutCount)}</span>
+        {collapsed ? <span className={styles.blockFolded}>{t.minimised}</span> : null}
+      </p>
+      {collapsed ? null : <InlineName
         value={block.description}
         readOnly={readOnly}
         label={m.common.col.description}
@@ -1541,7 +1589,7 @@ function BlockCard({
         renameKey={`${block.id}:description`}
         onDone={() => onRename(null)}
         onChange={(description) => apply?.((doc) => updateNode(doc, block.id, { description }))}
-      />
+      />}
       {handle}
     </div>
   );
@@ -1551,6 +1599,7 @@ function CycleCard({
   cycle,
   runs,
   collapsed,
+  hidden = false,
   onToggleCollapse,
   inactive,
   onAddDay,
@@ -1573,6 +1622,8 @@ function CycleCard({
   runs: number | null;
   /** Minimised to its header and name. */
   collapsed: boolean;
+  /** Its block is minimised: the card fades away (and takes no room). */
+  hidden?: boolean;
   onToggleCollapse: () => void;
   inactive: boolean;
   /** Adds a day at the end of the cycle (the "+" tile). */
@@ -1604,6 +1655,9 @@ function CycleCard({
       data-cycle-id={cycle.id}
       data-inactive={inactive || undefined}
       data-loose={loose || undefined}
+      data-hidden={hidden || undefined}
+      aria-hidden={hidden || undefined}
+      inert={hidden || undefined}
       data-link-target={linkTarget || undefined}
       data-dragging={dragging || undefined}
       data-selected={selected || undefined}
@@ -1632,6 +1686,7 @@ function CycleCard({
             onChange={(name) => apply?.((doc) => updateNode(doc, cycle.id, { name }))}
           />
         </div>
+        {loose ? <NotConnected kind="cycle" /> : null}
         {!readOnly ? <MenuButton label={cycle.name} onOpen={onMenuButton} /> : null}
       </div>
       {/* Length, how many times it runs and its workouts, in one quiet line. */}

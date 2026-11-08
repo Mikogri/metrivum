@@ -124,12 +124,23 @@
   color: var(--tf-color-success);
 }
 
-/* Never published: clients can't get the plan, so it stands out in red. */
+/* Changes clients don't have yet, or never published: the whole pill is red so it reads as something to act on. */
+.state:not([data-applied]),
 .state[data-unpublished] {
-  border-color: color-mix(in srgb, var(--tf-color-danger) 60%, transparent);
-  background: color-mix(in srgb, var(--tf-color-danger) 20%, transparent);
-  color: var(--tf-color-danger);
+  border-color: var(--tf-color-danger);
+  background: var(--tf-color-danger);
+  color: #fff;
   font-weight: var(--tf-weight-semibold);
+}
+
+.state:not([data-applied]) svg {
+  color: currentColor;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .state:not([data-applied])[data-hovered] {
+    background: color-mix(in srgb, var(--tf-color-danger) 88%, white);
+  }
 }
 
 .state[data-focus-visible] {

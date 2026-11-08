@@ -1,3 +1,4 @@
+import { NotConnected } from "./NotConnected";
 import { CalendarDays, ChevronRight, Dumbbell } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { ExerciseInstance, Workout } from "@metrivum/api-client-web";
@@ -32,6 +33,7 @@ export function WorkoutCard({
   selected,
   linkTarget,
   collapsed,
+  hidden = false,
   renaming,
   apply,
   names,
@@ -57,6 +59,8 @@ export function WorkoutCard({
   selected: boolean;
   linkTarget: boolean;
   collapsed: boolean;
+  /** Its block is minimised: the card fades away (and takes no room). */
+  hidden?: boolean;
   renaming: boolean;
   apply?: Apply;
   names: Map<string, ExerciseLabel>;
@@ -95,6 +99,9 @@ export function WorkoutCard({
       data-workout-id={workout.id}
       data-expanded
       data-loose={loose || undefined}
+      data-hidden={hidden || undefined}
+      aria-hidden={hidden || undefined}
+      inert={hidden || undefined}
       data-inactive={inactive || undefined}
       data-collapsed={collapsed || undefined}
       data-link-target={linkTarget || undefined}
@@ -132,7 +139,7 @@ export function WorkoutCard({
         </div>
         {collapsed ? (
           <span className={styles.kind} title={m.editor.week.exercises(workout.exercises.length)}>{workout.exercises.length}</span>
-        ) : loose ? null : (
+        ) : loose ? <NotConnected kind="workout" /> : (
           <button
             type="button"
             className={styles.dayChip}

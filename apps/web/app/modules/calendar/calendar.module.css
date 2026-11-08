@@ -1,4 +1,9 @@
-/* Kind colours come from the status tokens: meetings blue, events violet, check-ins amber. */
+/* Kind colours come from the status tokens: workouts green, meetings blue, events violet, check-ins amber. */
+[data-kind="Workout"] {
+  --kind: var(--tf-color-success);
+  --kind-soft: var(--tf-color-success-soft);
+}
+
 [data-kind="Meeting"] {
   --kind: var(--tf-color-info);
   --kind-soft: var(--tf-color-info-soft);

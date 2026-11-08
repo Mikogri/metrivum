@@ -226,7 +226,6 @@ it("navigates from the empty popover to available integrations", async () => {
   state.api.mockResolvedValue({ data: [] });
   setup(<Routes><Route path="/" element={<IntegrationMenu />} /><Route path="/app/settings" element={<p>Integration settings destination</p>} /></Routes>);
   await userEvent.click(await screen.findByRole("button", { name: "Connect an assistant" }));
-  const buttons = screen.getAllByRole("button", { name: "Connect an assistant" });
-  await userEvent.click(buttons[buttons.length - 1]);
+  await userEvent.click(within(screen.getByRole("dialog", { name: "AI Integrations" })).getByRole("button", { name: "Connect an assistant" }));
   expect(await screen.findByText("Integration settings destination")).toBeInTheDocument();
 });

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PlanEditorPreferences } from "~/modules/training";
 import { BarChart3, Bot, Building2, CalendarDays, Check, ChevronRight, ClipboardList, Compass, Dumbbell, Gauge, HeartPulse, KeyRound, Lock, LogIn, LogOut, MessageSquare, Plug, Plus, ShieldCheck, Sparkles, UserRound, Users, Video, Wallet } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
@@ -605,7 +606,7 @@ export default function Settings() {
           </nav>
         </aside>
         <div className={styles.content} key={section}>
-          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "security" ? <SignInSecurity /> : section === "accounts" ? <><Accounts /><DevAccountErasure /></> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <><CoachSpecializationsCard editable initialEditing /><CoachingPreferences /><ProgramEndingAlerts /></> : section === "integrations" ? <Integrations /> : <AccessOverview />}
+          {section === "profile" ? <ProfileForm /> : section === "body" ? <BodyDetails /> : section === "security" ? <SignInSecurity /> : section === "accounts" ? <><Accounts /><DevAccountErasure /></> : section === "privacy" ? <MessagingPrivacy /> : section === "coaching" ? <><CoachSpecializationsCard editable initialEditing /><CoachingPreferences /><ProgramEndingAlerts /><PlanEditorPreferences /></> : section === "integrations" ? <Integrations /> : <AccessOverview />}
         </div>
       </div>
     </>

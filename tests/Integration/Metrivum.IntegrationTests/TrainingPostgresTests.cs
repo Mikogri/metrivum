@@ -309,6 +309,42 @@ public sealed class TrainingPostgresTests : IDisposable
         Assert.Equal("FEATURE_UNAVAILABLE", (await Assert.ThrowsAsync<ApiException>(() => revoked.SaveAsync(plan.Id, new("Rebound", "", null, moved), unchanged.Version, default))).Code);
     }
 
+    [TrainingPostgresFact]
+    public async Task Unused_documents_can_be_deleted_but_history_ownership_and_versions_are_preserved()
+    {
+        await using var db = Context();
+        var owner = Guid.NewGuid();
+        var service = Service(db, owner);
+        var plan = await service.CreateAsync(new("Unused", "", DocumentKind.Program, null, TrainingDocuments.OneWorkout()), default);
+        Assert.True((await service.ListAsync(new(), default)).Items.Single(x => x.Id == plan.Id).CanDelete);
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => Service(db).DeleteAsync(plan.Id, plan.Version, default))).Status);
+        Assert.Equal(412, (await Assert.ThrowsAsync<ApiException>(() => service.DeleteAsync(plan.Id, plan.Version + 1, default))).Status);
+        var archived = await service.ArchiveAsync(plan.Id, true, plan.Version, default);
+        Assert.True(await service.DeleteAsync(plan.Id, archived.Version, default));
+        Assert.Equal(404, (await Assert.ThrowsAsync<ApiException>(() => service.GetAsync(plan.Id, default))).Status);
+        var used = await service.CreateAsync(new("Applied", "", DocumentKind.Program, null, TrainingDocuments.OneWorkout()), default);
+        await service.ApplyAsync(used.Id, used.Version, Guid.NewGuid().ToString(), default);
+        Assert.False((await service.ListAsync(new(), default)).Items.Single(x => x.Id == used.Id).CanDelete);
+        var current = await service.GetAsync(used.Id, default);
+        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => service.DeleteAsync(used.Id, current.Version, default))).Status);
+        Assert.NotEmpty(await db.Revisions.Where(x => x.PlanId == used.Id).ToArrayAsync());
+    }
+
+    [TrainingPostgresFact]
+    public async Task Template_deletion_uses_same_policy_and_retains_import_provenance()
+    {
+        await using var db = Context();
+        var owner = Guid.NewGuid();
+        var service = Service(db, owner);
+        var template = await service.CreateAsync(new("Unused template", "", DocumentKind.Template, null, TrainingDocuments.OneWorkout()), default);
+        Assert.True(await service.DeleteAsync(template.Id, template.Version, default));
+        var imported = await service.CreateAsync(new("Imported", "", DocumentKind.Program, null, TrainingDocuments.OneWorkout()), default);
+        db.Imports.Add(new TrainingImport { Id = Guid.NewGuid(), WorkspaceId = owner, OwnerId = owner, ExpiresAt = DateTimeOffset.UtcNow.AddHours(1), CommittedPlanId = imported.Id });
+        await db.SaveChangesAsync();
+        Assert.False((await service.ListAsync(new(), default)).Items.Single(x => x.Id == imported.Id).CanDelete);
+        Assert.Equal(409, (await Assert.ThrowsAsync<ApiException>(() => service.DeleteAsync(imported.Id, imported.Version, default))).Status);
+    }
+
     private static TrainingDocument Content(SetKind kind = SetKind.Standard, FormulaUse? formula = null)
     {
         var exercise = new ExerciseInstance(Guid.NewGuid(), Guid.NewGuid(), "", [new(Guid.NewGuid(), kind, new(LoadFormula: formula))]);

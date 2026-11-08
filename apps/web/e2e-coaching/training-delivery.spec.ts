@@ -30,7 +30,7 @@ async function fixture(page: Page, options: { assigned?: boolean; conflict?: boo
   await page.addInitScript(({ coach, client, initialRole }) => {
     const role = sessionStorage.getItem("training-fixture-role") || initialRole;
     const user = role === "Coach" ? coach : client;
-    localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh-0", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: user, email: `${role.toLowerCase()}@trainflow.test`, aud: "authenticated" } }));
+    localStorage.setItem("tf.auth.slot.0", JSON.stringify({ access_token: "mock-0", refresh_token: "mock-refresh-0", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: user, email: `${role.toLowerCase()}@trainflow.test`, email_confirmed_at: "2026-01-01T00:00:00Z", aud: "authenticated" } }));
     localStorage.setItem("tf.auth.active-slot", "0"); localStorage.setItem(`tf.workspace.0:${user}`, role.toLowerCase());
   }, { coach: ids.coach, client: ids.client, initialRole: actor });
   await page.route("**/shared/dev/mockApi.ts*", route => route.fulfill({ contentType: "text/javascript", body: "export const mockFetch = (input, init) => fetch(input, init);" }));
@@ -40,6 +40,8 @@ async function fixture(page: Page, options: { assigned?: boolean; conflict?: boo
     if (request.method() === "OPTIONS") return respond({});
     if (request.method() === "GET") reads.push(path);
     if (path === "/api/v1/me") return respond({ id: actor === "Coach" ? ids.coach : ids.client, workspaceId: ids.coach, username: actor.toLowerCase(), displayName: `Training ${actor}`, onboarded: true, roles: [actor], contexts: [actor], version: 1, locale: "en", timeZone: "UTC", birthDate: "1990-01-01" });
+    if (path === "/api/v1/subscriptions/plans" || path === "/api/v1/me/ai-integrations") return respond([]);
+    if (path === "/api/v1/me/team-context") return respond(null);
     if (path === "/api/v1/me/access") return respond({ version: "test", features: catalog.map(f => ({ key: f.key, available: true, reason: "available" })), limits: [] });
     if (path === "/api/v1/me/profile-fields") return respond({ currency: "EUR", values: {}, version: 1 });
     if (path === "/api/v1/messaging/conversations" || path === "/api/v1/messaging/requests") return respond([]);
@@ -228,4 +230,24 @@ test("responsive Plans, History, workout and client details retain native priori
   await expect(page.getByRole("button", { name: /Upper body A/ })).toBeVisible();
   await fits();
   await page.screenshot({ path: testInfo.outputPath("client-activity.png"), fullPage: true, animations: "disabled" });
+});
+
+test("unused library document requires confirmation before permanent deletion", async ({ page }) => {
+  await fixture(page);
+  let deleted = false;
+  await page.route(/http:\/\/mock\.trainflow\.invalid\/api\/v1\/training\/programs(?:\?.*)?$/, route => route.fulfill({ json: paged(deleted ? [] : [{ id: ids.program, name: "Unused draft", description: "", kind: "Program", folderId: null, archived: false, version: 1, updatedAt: new Date().toISOString(), canDelete: true }]), headers: { "Access-Control-Allow-Origin": "*" } }));
+  await page.route(`http://mock.trainflow.invalid/api/v1/training/programs/${ids.program}`, route => {
+    if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "DELETE", "Access-Control-Allow-Headers": "*" } });
+    expect(route.request().method()).toBe("DELETE");
+    expect(route.request().headers()["if-match"]).toBe('"1"');
+    deleted = true;
+    return route.fulfill({ status: 204, headers: { "Access-Control-Allow-Origin": "*" } });
+  });
+  await page.goto("/app/programs");
+  await page.getByText("Unused draft", { exact: true }).first().click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Delete permanently" }).click();
+  expect(deleted).toBe(false);
+  await page.getByRole("button", { name: "Delete permanently", exact: true }).click();
+  await expect.poll(() => deleted).toBe(true);
+  await expect(page.getByText("Unused draft", { exact: true })).toHaveCount(0);
 });

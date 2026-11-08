@@ -216,12 +216,14 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
   // The log opens in a side panel over the plan.
   const [logging, setLogging] = useState(false);
   const [view, setView] = useState<"plan" | "analysis">("plan");
-  // "Mark as done" starts and completes the workout in one go; the sets can still be corrected afterwards.
+  // "Mark as done" means it went as planned: the workout is started, every set is logged exactly as prescribed and
+  // the workout is completed, in one go. The sets can still be corrected afterwards.
   const markDone = async () => {
     const started = await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/workouts/${occurrenceId}/start` }) as { id: string; version: number };
-    await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/executions/${started.id}/complete`, ifMatch: started.version });
-    toast({ tone: "success", title: uiCopy["ui"]["Workout marked as done"], description: uiCopy["ui"]["Add your sets, or skip the details to save it as planned."] });
-    setLogging(true);
+    const exercises = asPlanned(query.data!).map(({ prescribedInstanceId, exerciseId, comment, sets }) => ({ prescribedInstanceId, exerciseId, comment, sets: sets.map(set => ({ ...set, loadUnit: set.load == null ? null : set.loadUnit || "kg" })) }));
+    const saved = await mutate.mutateAsync({ method: "PUT", path: `/api/v1/training/executions/${started.id}`, ifMatch: started.version, json: { performedDate: localDate(), comment: "", durationSeconds: null, exercises } }) as { version: number };
+    await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/executions/${started.id}/complete`, ifMatch: saved.version });
+    toast({ tone: "success", title: uiCopy["ui"]["Workout marked as done"], description: uiCopy["ui"]["Logged as planned. Open the log to change anything."] });
   };
   if (query.isPending) return <Loading />;
   // Someone else's workout (or one that no longer exists): say so, and show nothing of it.
@@ -278,7 +280,7 @@ export function WorkoutDetail({ occurrenceId, relationshipId, onBack }: { occurr
           <span aria-hidden="true">·</span>
           <span>{longDay(o.scheduledDate)}</span>
           {logged?.completedAt ? <><span aria-hidden="true">·</span><span>{uiCopy["ui"]["completed"]} {completedLabel(logged.completedAt)}</span></> : logged?.performedDate && logged.performedDate !== o.scheduledDate ? <><span aria-hidden="true">·</span><span>{uiCopy["ui"]["done"]} {longDay(logged.performedDate)}</span></> : null}
-          {o.loggedLate ? <><span aria-hidden="true">·</span><span className={styles.wkLate}>{uiCopy["ui"]["logged late"]}</span></> : null}
+          {o.loggedLate && (relationshipId || mode === "coach") ? <><span aria-hidden="true">·</span><span className={styles.wkLate}>{uiCopy["ui"]["logged late"]}</span></> : null}
         </p>
         <div className={styles.wkTitle}>
           <h1>{o.name}</h1>

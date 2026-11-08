@@ -17,8 +17,8 @@ import { useDebounced } from "~/shared/lib/useDebounced";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
-import { useAccountKey, useApi } from "~/shared/session/AccountScope";
-import { publishRevision, setArchived } from "../api";
+import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
+import { deletePlan, publishRevision, setArchived } from "../api";
 import { NotPublishedBadge } from "~/modules/coaching";
 import { ImportWizard } from "../import-export/ImportWizard";
 import { trainingKeys, useFolderChildren, usePlanList } from "../queries";
@@ -44,6 +44,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
   const navigate = useNavigate();
   const api = useApi();
   const a = useAccountKey();
+  const { lifecycle } = useAccountContext();
   const queryClient = useQueryClient();
   // Publishing straight from the list: a program clients can't get yet, or one with changes not applied.
   const publish = useMutation({
@@ -59,7 +60,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
   const planStatus = (plan: PlanListItem) => {
     const never = plan.publishedNumber == null;
     const pending = !never && Number(plan.publishedDraftVersion) !== Number(plan.version);
-    const badge = never ? <NotPublishedBadge size="sm" /> : pending ? <Badge size="sm" tone="warning">{uiCopy["editor"]["draftState"]["draft"]}</Badge> : <Badge size="sm" tone="success">{uiCopy["ui"]["Published · v"]}{Number(plan.publishedNumber)}</Badge>;
+    const badge = never ? <NotPublishedBadge size="sm" /> : pending ? <Badge size="sm" tone="danger" className={styles.pendingBadge}>{uiCopy["editor"]["draftState"]["draft"]}</Badge> : <Badge size="sm" tone="success">{uiCopy["ui"]["Published · v"]}{Number(plan.publishedNumber)}</Badge>;
     return badge;
   };
   const showError = useErrorToast();
@@ -134,6 +135,19 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
     return `${kind === "Template" ? "/app/templates" : "/app/programs"}${query ? `?${query}` : ""}`;
   };
 
+  const deletion = useMutation({
+    mutationFn: (plan: PlanListItem) => deletePlan(api, plan.id, plan.version),
+    onSuccess: (_, plan) => {
+      if (!lifecycle.isCurrent()) return;
+      // Drop it from every loaded list at once, then refetch the counts and pages.
+      queryClient.setQueriesData<{ items: PlanListItem[]; total?: number }>({ queryKey: trainingKeys.plans(a) }, (data) =>
+        data && Array.isArray(data.items) ? { ...data, items: data.items.filter((item) => item.id !== plan.id), ...(typeof data.total === "number" ? { total: Math.max(0, data.total - 1) } : {}) } : data);
+      queryClient.removeQueries({ queryKey: trainingKeys.plan(a, plan.id) });
+      void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(a) });
+      toast({ tone: "success", title: t.deleteConfirm.done(plan.name) });
+    },
+    onError: (error) => { if (lifecycle.isCurrent()) showError(error); },
+  });
   const archive = useMutation({
     mutationFn: ({ plan, archived }: { plan: PlanListItem; archived: boolean }) => setArchived(api, plan.id, archived, plan.version),
     onSuccess: (_, { archived }) => {
@@ -163,6 +177,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
     else if (key === "use") setCopyTarget({ plan, fromTemplate: true });
     else if (key === "move") setMoveTarget(plan);
     else if (key === "publish") publish.mutate(plan);
+    else if (key === "delete") void (async () => { const c = t.deleteConfirm; if (await ask({ title: c.title(plan.name), body: c.body, confirmLabel: c.confirm, cancelLabel: c.cancel })) deletion.mutate(plan); })();
     else if (key === "archive") void confirmArchive(plan);
     else if (key === "restore") archive.mutate({ plan, archived: false });
   };
@@ -219,6 +234,8 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
             {m.common.archive}
           </DropdownMenuItem>
         )}
+        {plan.canDelete ? <DropdownMenuSeparator /> : null}
+        {plan.canDelete ? <DropdownMenuItem id="delete" icon={<Trash2 />} tone="danger" isDisabled={!canManage || deletion.isPending}>{t.deleteConfirm.menu}</DropdownMenuItem> : null}
       </DropdownMenu>
     </DropdownMenuTrigger>
   );
@@ -264,6 +281,7 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
     plan.archived
       ? { id: "restore", label: m.common.restore, icon: <ArchiveRestore />, isDisabled: !canManage }
       : { id: "archive", label: m.common.archive, icon: <Archive />, tone: "danger", isDisabled: !canManage },
+    ...(plan.canDelete ? [{ type: "separator" as const, id: "s2" }, { id: "delete", label: t.deleteConfirm.menu, icon: <Trash2 />, tone: "danger" as const, isDisabled: !canManage || deletion.isPending }] : []),
   ];
   const folderItems = (): ContextMenuEntry[] => [
     { id: "open", label: ctx.openFolder, icon: <Folder /> },

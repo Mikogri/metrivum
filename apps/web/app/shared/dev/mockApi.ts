@@ -262,7 +262,7 @@ const page = <T,>(items: T[], params: URLSearchParams, size = 25) => {
   const s = Number(params.get("pageSize") ?? params.get("PageSize") ?? size);
   return { items: items.slice((p - 1) * s, p * s), total: items.length, page: p, pageSize: s };
 };
-const listItem = (plan: PlanDto) => ({ id: plan.id, name: plan.name, description: plan.description, kind: plan.kind, folderId: plan.folderId, archived: plan.archived, version: plan.version, updatedAt: plan.updatedAt });
+const listItem = (plan: PlanDto) => ({ id: plan.id, name: plan.name, description: plan.description, kind: plan.kind, folderId: plan.folderId, archived: plan.archived, version: plan.version, updatedAt: plan.updatedAt, canDelete: !(db.revisions.get(plan.id)?.length) });
 const ifMatch = (init: RequestInit) => Number(String(new Headers(init.headers).get("If-Match") ?? "").replace(/"/g, ""));
 
 const mockShares = new Map<string, { token: string; createdAt: string }>();
@@ -463,6 +463,13 @@ export async function mockFetch(input: RequestInfo | URL, init: RequestInit = {}
     const plan: PlanDto = { id: uid(), name: body.name, description: body.description, kind: body.kind, folderId: body.folderId, archived: false, version: 1, updatedAt: now(), document: body.document };
     db.plans.push(plan);
     return json(200, plan, plan.version);
+  }
+  if ((m = path.match(/^\/api\/v1\/training\/programs\/([^/]+)$/)) && method === "DELETE") {
+    const index = db.plans.findIndex((p) => p.id === m![1]);
+    if (index < 0) return problem(404, "RESOURCE_NOT_FOUND");
+    if (db.revisions.get(m[1]!)?.length) return problem(409, "PLAN_IN_USE", "This document has published versions.");
+    db.plans.splice(index, 1);
+    return new Response(null, { status: 204 });
   }
   if ((m = path.match(/^\/api\/v1\/training\/programs\/([^/]+)$/))) {
     const plan = db.plans.find((p) => p.id === m![1]);

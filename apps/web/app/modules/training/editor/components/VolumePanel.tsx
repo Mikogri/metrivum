@@ -1,29 +1,24 @@
-import { X } from "lucide-react";
-import { useState, type ReactNode } from "react";
-import type { TrainingDocument, Workout } from "@metrivum/api-client-web";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import type { TrainingDocument } from "@metrivum/api-client-web";
 import { IconButton, InfoTip, Option, Segment, SegmentedControl, Select } from "@metrivum/ui-web";
 import { MuscleHeatmap } from "~/modules/anatomy";
 import { useDictionaryLabel, type ExerciseLabel } from "~/modules/exercises";
 import { formatNumber } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
-import { cycleWorkouts, volumeLines, workoutsStats, type VolumeBy, type VolumeStats } from "../model/workouts";
+import { maxesTables } from "../model/maxes";
+import { oneRepMaxes, volumeLines, volumeRanges, workoutsStats, type VolumeBy, type VolumeScope, type VolumeStats } from "../model/workouts";
 import styles from "./SheetCanvas.module.css";
 
-export interface VolumeSection {
-  id: string;
-  title: string;
-  workouts: { workout: Workout; dayNumber?: number }[];
-  /** One table per workout before the section total. */
-  perWorkout: boolean;
-}
+const SCOPES: VolumeScope[] = ["workout", "cycle", "block", "all"];
 
 /**
- * Volume tables: sets, reps, hard sets (RPE/RIR) and kg per primary muscle (default), secondary
- * muscle or movement pattern. Primary and secondary muscles are counted separately. Each section
- * shows its workouts (optionally one table each) and a total; nothing scrolls sideways.
+ * Volume of one range at a time: a workout, a cycle, a block or the whole plan, switched with a segmented
+ * control and a picker (with previous/next arrows). Each exercise counts only for its main muscle. Table
+ * (sets, reps, hard sets, kg, INOL) or heatmap.
  */
-export function VolumeContent({ sections, names, title }: { sections: VolumeSection[]; names: Map<string, ExerciseLabel>; title?: ReactNode }) {
+export function VolumeContent({ doc, names, title, initial }: { doc: TrainingDocument; names: Map<string, ExerciseLabel>; title?: ReactNode; initial?: { scope: VolumeScope; id?: string | null } }) {
   const m = useT();
   const t = m.editor.sheet.volume;
   const locale = useLocale();
@@ -31,99 +26,79 @@ export function VolumeContent({ sections, names, title }: { sections: VolumeSect
   const [by, setBy] = useState<VolumeBy>("primary");
   const [mode, setMode] = useState<"table" | "heatmap">("table");
   const [metric, setMetric] = useState<"sets" | "hardSets">("sets");
-  // The heatmap shows one range at a time; the last one (the cycle total or the latest cycle) by default.
-  const [sectionId, setSectionId] = useState<string | null>(null);
+  const ranges = useMemo(() => volumeRanges(doc, { untitled: m.editor.untitled, all: t.scopes.all }), [doc, m.editor.untitled, t.scopes.all]);
+  // Scopes with nothing in them (a plan without blocks) are left out of the switch.
+  const scopes = SCOPES.filter((scope) => ranges[scope].length > 0);
+  const [scope, setScope] = useState<VolumeScope>(initial?.scope && ranges[initial.scope].length ? initial.scope : "cycle");
+  const [picked, setPicked] = useState<Partial<Record<VolumeScope, string>>>(initial?.id ? { [initial.scope]: initial.id } : {});
+  const activeScope = scopes.includes(scope) ? scope : (scopes[0] ?? "all");
+  const list = ranges[activeScope];
+  const index = Math.max(0, list.findIndex((range) => range.id === picked[activeScope]));
+  const range = list[index];
+  const oneRm = useMemo(() => oneRepMaxes(doc, maxesTables(doc)), [doc]);
+
   const label = (key: string) => (key === "—" ? t.unassigned : dictionaryLabel(by === "patterns" ? "movementPatterns" : "muscles", key));
   const n = (value: number) => formatNumber(locale, Math.round(value));
-  const heading = by === "patterns" ? t.patternsLong : by === "secondary" ? t.secondaryLong : t.primaryLong;
+  const inol = (stats: VolumeStats) => (stats.inolSets ? formatNumber(locale, Math.round(stats.inol * 100) / 100) : "—");
   const taxonomy = (id: string) => {
     const info = names.get(id);
     return info ? { movementPatternKeys: info.movementPatternKeys, primaryMuscleKeys: info.primaryMuscleKeys, secondaryMuscleKeys: info.secondaryMuscleKeys } : undefined;
   };
-
-  const table = (rows: { key: string; stats: VolumeStats }[]) => (
-    <table className={styles.volumeTable}>
-      <thead>
-        <tr>
-          <th scope="col">{heading}</th>
-          <th scope="col" title={t.setsHint}>
-            {t.sets}
-          </th>
-          <th scope="col" title={t.repsHint}>
-            {t.reps}
-          </th>
-          <th scope="col" title={t.hardHint}>
-            {t.hard}
-          </th>
-          <th scope="col" title={t.tonnageHint}>
-            {t.tonnage}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map(({ key, stats }) => (
-          <tr key={key}>
-            <th scope="row" title={label(key)}>
-              {label(key)}
-            </th>
-            <td>{n(stats.sets)}</td>
-            <td>{n(stats.reps)}</td>
-            <td className={styles.volumeHard}>{n(stats.hardSets)}</td>
-            <td className={styles.volumeKg}>{stats.tonnage ? n(stats.tonnage) : "—"}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
-  const heatSection = sections.find((section) => section.id === sectionId) ?? sections[sections.length - 1];
-  const heatValues = (() => {
-    const values = new Map<string, number>();
-    if (!heatSection) return values;
-    const workouts = heatSection.workouts.map((w) => w.workout);
-    for (const [kind, weight] of [["primary", 1], ["secondary", 0.5]] as const) {
-      for (const line of volumeLines(workouts, taxonomy, kind)) {
-        if (line.key === "—") continue;
-        values.set(line.key, (values.get(line.key) ?? 0) + line.total[metric] * weight);
-      }
-    }
-    return values;
-  })();
-  const formatAmount = (value: number) => formatNumber(locale, Math.round(value * 10) / 10);
+  const workouts = range?.workouts ?? [];
+  const lines = volumeLines(workouts, taxonomy, by, oneRm);
+  const total = workoutsStats(workouts, oneRm);
+  const pick = (id: string) => setPicked((current) => ({ ...current, [activeScope]: id }));
+  const step = (delta: number) => {
+    const next = list[index + delta];
+    if (next) pick(next.id);
+  };
 
   const modeSwitch = (
-    <SegmentedControl aria-label={t.show} size="sm" selectedKeys={[mode]} onSelectionChange={(keys) => setMode(([...keys][0] as "table" | "heatmap") ?? "table")} className={styles.volumeBy}>
+    <SegmentedControl aria-label={t.show} size="sm" selectedKeys={[mode]} onSelectionChange={(keys) => setMode(([...keys][0] as "table" | "heatmap") ?? "table")}>
       <Segment id="table">{t.table}</Segment>
       <Segment id="heatmap">{t.heatmap}</Segment>
     </SegmentedControl>
   );
   // How the numbers are counted: behind a small info button beside the switch, not a paragraph under the tables.
   const info = <InfoTip label={t.noteLabel} placement="bottom end">{t.note}</InfoTip>;
-  // With a title, Table / Heatmap sits beside it and the view's own switches go underneath.
   const head = title
     ? <div className={styles.volumeHeader}>{title}<span className={styles.volumeHeadEnd}>{info}{modeSwitch}</span></div>
     : <span className={styles.volumeHeadEnd}>{modeSwitch}{info}</span>;
 
+  // Which range: the kind of range, then which one of them (with arrows to step through).
+  const rangeControls = (
+    <div className={styles.volumeRange}>
+      <SegmentedControl aria-label={t.scope} size="sm" selectedKeys={[activeScope]} onSelectionChange={(keys) => setScope(([...keys][0] as VolumeScope) ?? "cycle")} className={styles.volumeScopes}>
+        {scopes.map((value) => <Segment key={value} id={value}>{t.scopes[value]}</Segment>)}
+      </SegmentedControl>
+      {activeScope !== "all" && list.length ? (
+        <div className={styles.volumePicker}>
+          <IconButton size="sm" variant="ghost" icon={<ChevronLeft />} label={m.common.previous} isDisabled={index === 0} onPress={() => step(-1)} />
+          <Select aria-label={t.pick(t.scopes[activeScope])} selectedKey={range?.id ?? null} onSelectionChange={(key) => pick(String(key))} className={styles.volumeSelect} size="sm">
+            {list.map((item) => <Option key={item.id} id={item.id}>{item.title}</Option>)}
+          </Select>
+          <IconButton size="sm" variant="ghost" icon={<ChevronRight />} label={m.common.next} isDisabled={index >= list.length - 1} onPress={() => step(1)} />
+        </div>
+      ) : null}
+    </div>
+  );
+
   if (mode === "heatmap") {
+    const values = new Map<string, number>();
+    for (const line of volumeLines(workouts, taxonomy, "primary", oneRm)) if (line.key !== "—") values.set(line.key, line.total[metric]);
     return (
       <div className={styles.volumeContent}>
         {head}
-        <div className={styles.heatControls}>
-          <SegmentedControl aria-label={t.metric} size="sm" selectedKeys={[metric]} onSelectionChange={(keys) => setMetric(([...keys][0] as "sets" | "hardSets") ?? "sets")}>
-            <Segment id="sets">{t.sets}</Segment>
-            <Segment id="hardSets">{t.hard}</Segment>
-          </SegmentedControl>
-          {sections.length > 1 ? (
-            <Select aria-label={t.section} selectedKey={heatSection?.id ?? null} onSelectionChange={(key) => setSectionId(String(key))} className={styles.heatSection}>
-              {sections.map((section) => <Option key={section.id} id={section.id}>{section.title}</Option>)}
-            </Select>
-          ) : null}
-        </div>
+        {rangeControls}
+        <SegmentedControl aria-label={t.metric} size="sm" selectedKeys={[metric]} onSelectionChange={(keys) => setMetric(([...keys][0] as "sets" | "hardSets") ?? "sets")} className={styles.volumeBy}>
+          <Segment id="sets">{t.sets}</Segment>
+          <Segment id="hardSets">{t.hard}</Segment>
+        </SegmentedControl>
         <MuscleHeatmap
-          values={heatValues}
+          values={values}
           label={(key) => dictionaryLabel("muscles", key)}
-          format={formatAmount}
-          caption={t.heatCaption(metric === "sets" ? t.setsHint : t.hardHint, heatSection?.title ?? "")}
+          format={(value) => formatNumber(locale, Math.round(value * 10) / 10)}
+          caption={t.heatCaption(metric === "sets" ? t.setsHint : t.hardHint, range?.title ?? "")}
         />
       </div>
     );
@@ -132,66 +107,71 @@ export function VolumeContent({ sections, names, title }: { sections: VolumeSect
   return (
     <div className={styles.volumeContent}>
       {head}
+      {rangeControls}
       <SegmentedControl aria-label={t.by} size="sm" selectedKeys={[by]} onSelectionChange={(keys) => setBy(([...keys][0] as VolumeBy) ?? "primary")} className={styles.volumeBy}>
         <Segment id="primary">{t.primary}</Segment>
-        <Segment id="secondary">{t.secondary}</Segment>
         <Segment id="patterns">{t.patterns}</Segment>
       </SegmentedControl>
-      {sections.map((section) => {
-        const workouts = section.workouts.map((w) => w.workout);
-        const lines = volumeLines(workouts, taxonomy, by);
-        const total = workoutsStats(workouts);
-        return (
-          <section key={section.id} className={styles.volumeCycle}>
-            <h3 className={styles.volumeCycleTitle}>
-              <span>{section.title}</span>
-              <span className={styles.volumeTotal}>{t.setsReps(Math.round(total.sets), Math.round(total.reps))}</span>
-            </h3>
-            {total.sets === 0 ? (
-              <p className={styles.volumeEmpty}>{t.empty}</p>
-            ) : lines.length === 0 ? (
-              <p className={styles.volumeEmpty}>{t.noSecondary}</p>
-            ) : (
-              <>
-                {section.perWorkout && section.workouts.length > 1
-                  ? section.workouts.map(({ workout, dayNumber }) => {
-                      const rows = lines.filter((line) => line.perWorkout[workout.id]).map((line) => ({ key: line.key, stats: line.perWorkout[workout.id]! }));
-                      return rows.length ? (
-                        <div key={workout.id} className={styles.volumeGroup}>
-                          <p className={styles.volumeGroupTitle}>
-                            {workout.name || m.editor.untitled}
-                            {dayNumber ? <span>{m.editor.sheet.dayShort(dayNumber)}</span> : null}
-                          </p>
-                          {table(rows)}
-                        </div>
-                      ) : null;
-                    })
-                  : null}
-                <div className={`${styles.volumeGroup} ${styles.volumeGroupTotal}`}>
-                  <p className={styles.volumeGroupTitle}>{t.total}</p>
-                  {table(lines.map((line) => ({ key: line.key, stats: line.total })))}
-                </div>
-              </>
-            )}
-          </section>
-        );
-      })}
+      {!range ? (
+        <p className={styles.volumeEmpty}>{t.noRange}</p>
+      ) : (
+        <section key={`${activeScope}:${range.id}`} className={styles.volumeCycle} aria-label={range.title}>
+          <h3 className={styles.volumeCycleTitle}>
+            <span>{range.title}</span>
+            <span className={styles.volumeTotal}>{t.setsReps(Math.round(total.sets), Math.round(total.reps))}</span>
+          </h3>
+          {total.sets === 0 ? (
+            <p className={styles.volumeEmpty}>{t.empty}</p>
+          ) : (
+            <>
+              <table className={styles.volumeTable}>
+                <thead>
+                  <tr>
+                    <th scope="col">{by === "patterns" ? t.patternsLong : t.primaryLong}</th>
+                    <th scope="col" title={t.setsHint}>{t.sets}</th>
+                    <th scope="col" title={t.repsHint}>{t.reps}</th>
+                    <th scope="col" title={t.hardHint}>{t.hard}</th>
+                    <th scope="col" title={t.tonnageHint}>{t.tonnage}</th>
+                    <th scope="col" title={t.inolHint}>{t.inol}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lines.map(({ key, total: stats }) => (
+                    <tr key={key}>
+                      <th scope="row" title={label(key)}>{label(key)}</th>
+                      <td>{n(stats.sets)}</td>
+                      <td>{n(stats.reps)}</td>
+                      <td className={styles.volumeHard}>{n(stats.hardSets)}</td>
+                      <td className={styles.volumeKg}>{stats.tonnage ? n(stats.tonnage) : "—"}</td>
+                      <td className={styles.volumeInol}>{inol(stats)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                {lines.length > 1 ? (
+                  <tfoot>
+                    <tr>
+                      <th scope="row">{t.total}</th>
+                      <td>{n(total.sets)}</td>
+                      <td>{n(total.reps)}</td>
+                      <td className={styles.volumeHard}>{n(total.hardSets)}</td>
+                      <td className={styles.volumeKg}>{total.tonnage ? n(total.tonnage) : "—"}</td>
+                      <td className={styles.volumeInol}>{inol(total)}</td>
+                    </tr>
+                  </tfoot>
+                ) : null}
+              </table>
+              {total.inolSets && total.inolSets < total.sets ? <p className={styles.volumeNote}>{t.inolPartial(total.inolSets, total.sets)}</p> : null}
+            </>
+          )}
+        </section>
+      )}
     </div>
   );
 }
 
-/** Sheet side panel: every cycle of the plan, one table per workout plus the cycle total. */
-export function VolumePanel({ doc, names, onClose }: { doc: TrainingDocument; names: Map<string, ExerciseLabel>; onClose: () => void }) {
+/** Sheet side panel: volume of a workout, cycle, block or the whole plan, one at a time. */
+export function VolumePanel({ doc, names, onClose, initial }: { doc: TrainingDocument; names: Map<string, ExerciseLabel>; onClose: () => void; initial?: { scope: VolumeScope; id?: string | null } }) {
   const t = useT().editor.sheet.volume;
-  const sections: VolumeSection[] = doc.blocks.flatMap((block) =>
-    block.cycles.map((cycle) => ({
-      id: cycle.id,
-      // Holders of a cycle or workout outside a block or cycle add nothing to the title.
-      title: [block.implicit ? null : block.name, cycle.implicit ? cycleWorkouts(cycle)[0]?.workout.name : cycle.name].filter(Boolean).join(" · "),
-      workouts: cycleWorkouts(cycle),
-      perWorkout: true,
-    })),
-  );
   return (
     <aside className={styles.volume} aria-label={t.title}>
       <header className={styles.volumeHead}>
@@ -199,7 +179,7 @@ export function VolumePanel({ doc, names, onClose }: { doc: TrainingDocument; na
         <IconButton label={t.close} icon={<X />} size="sm" variant="ghost" onPress={onClose} showTooltip={false} />
       </header>
       <div className={styles.volumeBody}>
-        <VolumeContent sections={sections} names={names} />
+        <VolumeContent doc={doc} names={names} initial={initial} />
       </div>
     </aside>
   );

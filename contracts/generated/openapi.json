@@ -3223,6 +3223,32 @@
             "Bearer": [ ]
           }
         ]
+      },
+      "delete": {
+        "tags": [
+          "Training"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
       }
     },
     "/api/v1/training/programs/{id}/draft": {
@@ -29340,6 +29366,10 @@
               "string"
             ],
             "format": "int64"
+          },
+          "canDelete": {
+            "type": "boolean",
+            "default": false
           }
         },
         "additionalProperties": false

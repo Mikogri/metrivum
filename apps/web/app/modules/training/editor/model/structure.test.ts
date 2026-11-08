@@ -66,12 +66,13 @@ describe("sheet connections", () => {
     expect(pruneHolders(cycle)).toBe(cycle);
   });
 
-  it("lays out blocks in a column and their cycles to the right; user positions survive new nodes", () => {
+  it("lays out blocks side by side with their cycles underneath; user positions survive new nodes", () => {
     const { doc, a, b, cycle } = twoBlocks();
     const layout = autoLayout(doc);
     expect(layout[a]!.col).toBe(1);
-    expect(layout[cycle]!.row).toBe(layout[a]!.row);
-    expect(layout[b]!.row).toBeGreaterThan(layout[a]!.row);
+    expect(layout[cycle]!.row).toBeGreaterThan(layout[a]!.row);
+    expect(layout[b]!.row).toBe(layout[a]!.row);
+    expect(layout[b]!.col).toBeGreaterThan(layout[a]!.col);
     const moved = { ...layout, [a]: { col: 9, row: 9 } };
     const added = addCycle(doc, b, "C2");
     const merged = mergeLayout(moved, added.doc);

@@ -5,7 +5,7 @@ import { Bot, Check, ChevronDown } from "lucide-react";
 import { Button as AriaButton, DialogTrigger, Header, ListBox, ListBoxItem, ListBoxSection, type Selection } from "react-aria-components";
 import { useSearchParams } from "react-router";
 import { Alert, AlertDialog, Button, Popover, Skeleton } from "@metrivum/ui-web";
-import { AuthHeader } from "~/modules/auth/components/AuthHeader";
+import { AuthHeader } from "~/modules/auth";
 import { BrandMark } from "~/shared/ui/BrandMark";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { privateMeta } from "~/shared/i18n/site";

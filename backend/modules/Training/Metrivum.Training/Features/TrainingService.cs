@@ -23,7 +23,7 @@ public sealed record PlanDto(Guid Id, string Name, string Description, DocumentK
 /// <summary>One plan in the library. <c>PublishedNumber</c> is the newest version clients can get (null: never
 /// published); <c>PublishedDraftVersion</c> is the draft it was made from, so a different <c>Version</c> means unapplied changes.</summary>
 public sealed record PlanListItem(Guid Id, string Name, string Description, DocumentKind Kind, Guid? FolderId, bool Archived, long Version, DateTimeOffset UpdatedAt,
-    int? PublishedNumber = null, long? PublishedDraftVersion = null);
+    int? PublishedNumber = null, long? PublishedDraftVersion = null, bool CanDelete = false);
 public sealed record RevisionDto(Guid Id, int Number, long DraftVersion, DateTimeOffset PublishedAt, RevisionSnapshot Snapshot);
 public sealed record RevisionListItem(Guid Id, int Number, long DraftVersion, DateTimeOffset PublishedAt);
 public sealed record Paged<T>(T[] Items, int Page, int PageSize, long Total);
@@ -85,6 +85,7 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
             var text = request.Search.Trim().ToLowerInvariant();
             query = query.Where(x => x.Name.ToLower().Contains(text));
         }
+        var deletable = DeletablePlans();
         var total = await query.LongCountAsync(ct);
         var ordered = request.Sort switch
         {
@@ -95,7 +96,8 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         };
         return new(await ordered.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).Select(x => new PlanListItem(x.Id, x.Name, x.Description, x.Kind, x.FolderId, x.Archived, x.Version, x.UpdatedAt,
             db.Revisions.Where(r => r.PlanId == x.Id).OrderByDescending(r => r.Number).Select(r => (int?)r.Number).FirstOrDefault(),
-            db.Revisions.Where(r => r.PlanId == x.Id).OrderByDescending(r => r.Number).Select(r => (long?)r.DraftVersion).FirstOrDefault())).ToArrayAsync(ct), request.Page, request.PageSize, total);
+            db.Revisions.Where(r => r.PlanId == x.Id).OrderByDescending(r => r.Number).Select(r => (long?)r.DraftVersion).FirstOrDefault(),
+            deletable.Any(p => p.Id == x.Id))).ToArrayAsync(ct), request.Page, request.PageSize, total);
     }
     public async Task<PlanDto> GetAsync(Guid id, CancellationToken ct) => Dto(await PlanAsync(id, await ReadAsync(ct), ct));
     public Task<PlanDto> CreateAsync(CreatePlanRequest request, CancellationToken ct) => WriteAsync("training.programs.create", async account =>
@@ -139,6 +141,33 @@ public sealed partial class TrainingService(TrainingDbContext db, IAccountContex
         await ValidateContentAsync(copy, null, account, ct);
         return Dto(await CreateInternalAsync(request.Name, original.Description, request.Kind, request.FolderId, copy, account, ct));
     }, ct);
+    // One conservative policy for list capabilities and writes. Applied history is retained,
+    // even when its assignments have ended. Foreign keys remain the final race-safe guard.
+    private IQueryable<TrainingPlan> DeletablePlans() => db.Plans.Where(p =>
+        !db.Revisions.Any(r => r.PlanId == p.Id) &&
+        !db.Imports.Any(i => i.CommittedPlanId == p.Id) &&
+        !db.Set<Metrivum.Training.Purchases.TrainingPurchase>().Any(x => x.PlanId == p.Id) &&
+        !db.Set<ProgramAssignment>().Any(x => x.ProgramId == p.Id));
+
+    public Task<bool> DeleteAsync(Guid id, long expectedVersion, CancellationToken ct) => WriteAsync("training.programs.manage", async account =>
+    {
+        var plan = await PlanAsync(id, account, ct);
+        CheckVersion(plan.Version, expectedVersion);
+        await TemplateAccessAsync(plan.Kind, ct);
+        if (!await DeletablePlans().AnyAsync(p => p.Id == id, ct))
+            throw ApiException.Conflict("This document has history or linked records. Archive it instead.");
+        try
+        {
+            db.Plans.Remove(plan);
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException error) when (error.InnerException is Npgsql.PostgresException { SqlState: "23503" })
+        {
+            throw ApiException.Conflict("This document has linked records. Reload and archive it instead.");
+        }
+        return true;
+    }, ct);
+
     public Task<PlanDto> ArchiveAsync(Guid id, bool archived, long expectedVersion, CancellationToken ct) => WriteAsync("training.programs.manage", async account =>
     {
         var plan = await PlanAsync(id, account, ct);

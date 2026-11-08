@@ -7,7 +7,7 @@ import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { addWorkout, duplicateNode, newWorkout, removeNode, updateNode } from "../model/document";
 import { WEEK_DAYS, copyDay, ensureWeekday, ensureWeekdayWorkout, nodeLabel, swapDays } from "../model/structure";
-import { copyWorkoutToDay, cycleWorkouts, moveWorkoutToDay, reorderWorkout, setDayNote } from "../model/workouts";
+import { copyWorkoutToDay, moveWorkoutToDay, reorderWorkout, setDayNote } from "../model/workouts";
 import type { TrainingDocument } from "@metrivum/api-client-web";
 import { BlockFormulaScope } from "../block-maxes";
 import { SimpleWorkoutTable } from "./SimpleWorkoutTable";
@@ -417,11 +417,13 @@ export function WeekView({
           <p>{removing ? t.removeWorkoutBody(removing.name) : null}</p>
         </AlertDialog>
         <aside data-tip="volume" className={styles.side} aria-label={m.editor.sheet.volume.title}>
-          {/* Volume of the whole selected cycle (not of one day). */}
+          {/* Volume of the selected cycle by default; the panel switches to a workout, block or the whole plan. */}
           <VolumeContent
+            key={cycle?.id ?? "none"}
+            doc={doc}
+            initial={{ scope: "cycle", id: cycle?.id ?? null }}
             names={names}
             title={<h2 className={styles.sideTitle}>{m.editor.sheet.volume.title}</h2>}
-            sections={cycle ? [{ id: "cycle", title: `${m.editor.sheet.volume.cycleTotal} · ${cycle.name}`, workouts: cycleWorkouts(cycle), perWorkout: false }] : []}
           />
         </aside>
     </div>

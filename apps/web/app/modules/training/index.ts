@@ -7,3 +7,4 @@ export { TrainingActivity } from "./delivery/Activity";
 export { RelationshipTraining } from "./delivery/TrainingHome";
 export { TrainingProgress } from "./delivery/Progress";
 export type { ProgressData } from "./delivery/Progress";
+export { PlanEditorPreferences } from "./editor/PlanEditorPreferences";

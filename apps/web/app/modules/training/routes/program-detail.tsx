@@ -260,7 +260,7 @@ function ProgramDetail() {
       <PublishDialog planId={plan.id} version={version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={issues} />
       <ExportDialog planId={plan.id} planName={plan.name} draft={plan.document} isOpen={exportOpen} onOpenChange={setExportOpen} />
       <CopyPlanDialog
-        plan={copyOpen ? { id: plan.id, name: plan.name, description: plan.description, kind: plan.kind, folderId: plan.folderId, archived: plan.archived, version, updatedAt: plan.updatedAt } : null}
+        plan={copyOpen ? { id: plan.id, name: plan.name, description: plan.description, kind: plan.kind, folderId: plan.folderId, archived: plan.archived, version, updatedAt: plan.updatedAt, canDelete: false } : null}
         fromTemplate={isTemplate}
         onClose={() => setCopyOpen(false)}
       />

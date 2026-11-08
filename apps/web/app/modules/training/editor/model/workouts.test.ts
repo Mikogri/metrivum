@@ -18,6 +18,7 @@ import {
   setExerciseDuration,
   setExerciseLoad,
   setExerciseReps,
+  setInol,
   setDayNote,
   setExerciseSets,
   workoutRows,
@@ -154,13 +155,32 @@ describe("exercise row values", () => {
     doc = setExerciseLoad("en", doc, ex.id!, "kg", "100")!;
     const taxonomy = () => ({ movementPatternKeys: ["squat"], primaryMuscleKeys: ["quadriceps"], secondaryMuscleKeys: ["gluteus-maximus"] });
     const volume = cycleVolume(doc.blocks[0]!.cycles[0]!, taxonomy, "patterns");
-    const stats = { sets: 3, reps: 30, hardSets: 0, tonnage: 3000 };
+    const stats = { sets: 3, reps: 30, hardSets: 0, tonnage: 3000, inol: 0, inolSets: 0 };
     expect(volume.lines).toEqual([{ key: "squat", perWorkout: { [w.id!]: stats }, total: stats }]);
-    expect(cycleVolume(doc.blocks[0]!.cycles[0]!, taxonomy, "secondary").lines.map((l) => l.key)).toEqual(["gluteus-maximus"]);
 
     // RIR 2 makes every set a hard set (and replaces the absolute load, so no tonnage).
     doc = setExerciseLoad("en", doc, ex.id!, "rir", "2")!;
-    expect(cycleVolume(doc.blocks[0]!.cycles[0]!, taxonomy, "primary").lines[0]!.total).toEqual({ sets: 3, reps: 30, hardSets: 3, tonnage: 0 });
+    // RIR 2 also gives the intensity: 10 reps + 2 in reserve is 68% of 1RM, so INOL = 3 x 10 / 32.
+    const total = cycleVolume(doc.blocks[0]!.cycles[0]!, taxonomy, "primary").lines[0]!.total;
+    expect({ ...total, inol: Math.round(total.inol * 1000) / 1000 }).toEqual({ sets: 3, reps: 30, hardSets: 3, tonnage: 0, inol: 0.938, inolSets: 3 });
+  });
+
+  it("counts an exercise only for its main muscle", () => {
+    const { doc: start, cycleId } = setup();
+    const w = addCycleWorkout(start, cycleId, "A");
+    const ex = addExercise(w.doc, w.id!, "bench");
+    const doc = setExerciseReps(setExerciseSets(ex.doc, ex.id!, "3")!, ex.id!, "5")!;
+    const taxonomy = () => ({ movementPatternKeys: ["horizontal-push"], primaryMuscleKeys: ["pectoralis-major", "triceps"], secondaryMuscleKeys: ["deltoids"] });
+    expect(cycleVolume(doc.blocks[0]!.cycles[0]!, taxonomy, "primary").lines.map((l) => l.key)).toEqual(["pectoralis-major"]);
+  });
+
+  it("works out INOL from a percentage, from a fixed load against the block max, and from RPE", () => {
+    const set = (prescription: Record<string, unknown>) => ({ id: "s", kind: "Standard", prescription: { reps: { minimum: 5, maximum: 5 }, ...prescription } }) as never;
+    expect(setInol(set({ loadPercent: 80 }), null)).toBeCloseTo(5 / 20);
+    expect(setInol(set({ load: { minimum: { value: 75, unit: "Kg" }, maximum: { value: 75, unit: "Kg" } } }), 100)).toBeCloseTo(5 / 25);
+    expect(setInol(set({ load: { minimum: { value: 75, unit: "Kg" }, maximum: { value: 75, unit: "Kg" } } }), null)).toBeNull();
+    expect(setInol(set({ rpe: 10 }), null)).toBeCloseTo(5 / (100 - 86.3));
+    expect(setInol(set({ loadPercent: 100 }), null)).toBeNull();
   });
 
   it("keeps a rest day only while it has a note, and keeps it when a workout moves away", () => {

@@ -26,3 +26,21 @@ export function useCalendarRange<T>(path: string, range: { from: string; to: str
     }
   } });
 }
+
+/** A client's scheduled workout, as the training schedule lists it. */
+export interface CalendarWorkout { id: string; name: string; programName: string; scheduledDate: string; status: string }
+
+/** The client's own workouts for the visible dates (the schedule works in plain dates). */
+export function useCalendarWorkouts(range: { from: string; to: string }, enabled: boolean) {
+  const api = useApi(); const account = useAccountKey();
+  return useQuery({ queryKey: [account, "coaching", "client", "calendar-workouts", range], enabled, placeholderData: keepPreviousData, queryFn: async ({ signal }) => {
+    const items: CalendarWorkout[] = [];
+    let page = 1;
+    while (true) {
+      const result = (await api<Page<CalendarWorkout>>({ path: "/api/v1/training/schedule", query: { ...range, view: "client", page, pageSize: 100 }, signal })).data;
+      items.push(...result.items);
+      if (items.length >= result.total || !result.items.length || page >= 20) return items;
+      page++;
+    }
+  } });
+}

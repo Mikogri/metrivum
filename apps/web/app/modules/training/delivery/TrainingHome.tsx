@@ -7,12 +7,13 @@ export const meta = () => privateMeta("My training — Metrivum");
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
-import { Button, DataTable, EmptyState, PageHeader, Tab, TabList, Tabs, TextField, Toolbar, Select, Option, useMobileLayout } from "@metrivum/ui-web";
+import { Badge, Button, DataTable, EmptyState, PageHeader, type BadgeTone, Tab, TabList, Tabs, TextField, Toolbar, Select, Option, useMobileLayout } from "@metrivum/ui-web";
 import { useCoachingQuery, type Page } from "~/modules/coaching";
-import { Failure, ListPagination, Loading, StatusBadge } from "~/modules/coaching";
+import { Failure, ListPagination, Loading } from "~/modules/coaching";
 import { AssignmentList, localDate } from "./Assignments";
 import { TrainingProgress } from "./Progress";
 import { TrainingPlansTab } from "../purchases/TrainingPlans";
+import { MobileTraining } from "./MobileTraining";
 import { LibraryViewToggle, type LibraryView } from "~/shared/library/LibraryViewToggle";
 import { CalendarDays, Clock, Dumbbell, MessageSquare } from "lucide-react";
 import styles from "./delivery.module.css";
@@ -20,7 +21,14 @@ import styles from "./delivery.module.css";
 /** "Mon, 27 Oct" for a plain date. */
 const dayLabel = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
 const minutes = (seconds: number | null) => (seconds == null ? null : `${Math.max(1, Math.round(seconds / 60))} min`);
-const statusOf = (item: Occurrence) => <StatusBadge status={item.status === "InProgress" ? "In progress" : item.status} />;
+/** A workout's status in colour: done green, missed red, in progress accent, the rest neutral. */
+export function WorkoutStatus({ status }: { status: string }) {
+  const uiCopy = useUiCopy();
+  const tone: BadgeTone = status === "Completed" ? "success" : status === "Missed" ? "danger" : status === "InProgress" ? "accent" : "neutral";
+  const label = status === "InProgress" ? uiCopy["ui"]["In progress"] : status;
+  return <Badge dot tone={tone}>{label}</Badge>;
+}
+const statusOf = (item: Occurrence) => <WorkoutStatus status={item.status} />;
 const VIEW_KEY = "tf.training.scheduleView";
 
 /** Workouts as cards: the date block, the workout and program, what was logged and its status. */
@@ -41,7 +49,7 @@ function WorkoutCards({ items, coach }: { items: Occurrence[]; coach: boolean })
           {item.hasComment ? <span><MessageSquare aria-hidden="true" />{uiCopy["video"]["new"]["note"]}</span> : null}
         </span>
       </span>
-      <span className={styles.workoutCardStatus}>{statusOf(item)}{item.loggedLate ? <small>{uiCopy["ui"]["Logged late"]}</small> : null}</span>
+      <span className={styles.workoutCardStatus}>{statusOf(item)}{coach && item.loggedLate ? <small>{uiCopy["ui"]["Logged late"]}</small> : null}</span>
     </Link></li>;
   })}</ul>;
 }
@@ -73,8 +81,8 @@ export function MobileWorkoutRows({ items, coach = false, onOpen }: { items: Occ
   const uiCopy = useUiCopy();
 
   return <ul className={styles.rows} aria-label={uiCopy["ui"]["Workouts"]}>{items.map(item => {
-    const content = <><span className={styles.itemMain}><strong>{item.name}</strong><span className={styles.itemMeta}>{item.programName} · {item.scheduledDate}{item.exerciseCount != null ? ` · ${item.exerciseCount} exercises` : ""}</span>{completionOf(item) != null ? <span className={styles.itemMeta}>{completionOf(item)}{uiCopy["ui"]["% done ·"]} {item.performedSets}/{item.plannedSets}  {uiCopy["ui"]["sets"]}{item.completedAt ? ` · ${completedLabel(item.completedAt)}` : ""}</span> : null}{item.loggedLate && <span className={styles.itemMeta}>{uiCopy["ui"]["Logged late"]}</span>}</span><StatusBadge status={item.status === "InProgress" ? "In progress" : item.status} /></>;
-    return <li key={item.id}>{onOpen ? <button type="button" className={styles.workoutRow} onClick={() => onOpen(item.id)}>{content}</button> : <Link className={styles.workoutRow} to={`/app/${coach ? "training" : "my-training"}/workouts/${item.id}`}>{content}</Link>}</li>;
+    const content = <><span className={styles.itemMain}><strong>{item.name}</strong><span className={styles.itemMeta}>{item.programName} · {item.scheduledDate}{item.exerciseCount != null ? ` · ${item.exerciseCount} exercises` : ""}</span>{completionOf(item) != null ? <span className={styles.itemMeta}>{completionOf(item)}{uiCopy["ui"]["% done ·"]} {item.performedSets}/{item.plannedSets}  {uiCopy["ui"]["sets"]}{item.completedAt ? ` · ${completedLabel(item.completedAt)}` : ""}</span> : null}{coach && item.loggedLate && <span className={styles.itemMeta}>{uiCopy["ui"]["Logged late"]}</span>}</span><WorkoutStatus status={item.status} /></>;
+    return <li key={item.id}>{onOpen ? <button type="button" className={styles.workoutRow} data-status={item.status} onClick={() => onOpen(item.id)}>{content}</button> : <Link className={styles.workoutRow} data-status={item.status} to={`/app/${coach ? "training" : "my-training"}/workouts/${item.id}`}>{content}</Link>}</li>;
   })}</ul>;
 }
 export function TrainingSchedule({ relationshipId, programId, coach = false }: { relationshipId?: string; programId?: string; coach?: boolean }) {
@@ -103,7 +111,7 @@ export function TrainingSchedule({ relationshipId, programId, coach = false }: {
         { id: "completion", header: "Completion", width: "10rem", hideOnMobile: true, cell: item => <CompletionCell item={item} /> },
         { id: "performed", header: "Completed", width: "10rem", hideOnMobile: true, muted: true, cell: item => item.completedAt ? completedLabel(item.completedAt) : item.performedDate ? dayLabel(item.performedDate) : "—" },
         { id: "duration", header: "Time", width: "6rem", hideOnMobile: true, muted: true, cell: item => minutes(item.durationSeconds) ?? "—" },
-        { id: "status", header: "Status", width: "9.5rem", cell: item => <span className={styles.scheduleStatus}>{statusOf(item)}{item.loggedLate ? <small>{uiCopy["ui"]["Logged late"]}</small> : null}</span> },
+        { id: "status", header: "Status", width: "9.5rem", cell: item => <span className={styles.scheduleStatus}>{statusOf(item)}{coach && item.loggedLate ? <small>{uiCopy["ui"]["Logged late"]}</small> : null}</span> },
       ]} />}
       <p className={styles.hint}>{uiCopy["ui"]["Dates follow each assignment’s time zone. You can still log a missed workout later."]}</p>
       {Number(query.data.total) > Number(query.data.pageSize) ? <ListPagination data={query.data} onChange={setPage} /> : null}
@@ -118,18 +126,12 @@ export default function TrainingHome() {
 
   const [params, setParams] = useSearchParams();
   const mobile = useMobileLayout();
-  const historyView = params.get("historyView") === "progress" ? "progress" : "workouts";
   const tab = ["schedule", "plans", "progress", "history"].includes(params.get("tab") ?? "") ? params.get("tab")! : "schedule";
   // The tab lives in the URL (links can open "Training plans" directly) but replaces history, so Back leaves the page.
   const setTab = (next: string) => setParams(previous => { const url = new URLSearchParams(previous); if (next === "schedule") url.delete("tab"); else url.set("tab", next); return url; }, { replace: true });
   const relationshipId = params.get("relationshipId") || undefined;
   const programId = params.get("programId") || undefined;
-  if (mobile) return <><PageHeader title={tab === "plans" ? uiCopy["ui"]["Plans"] : uiCopy["ui"]["History"]} description={tab === "plans" ? uiCopy["ui"]["Programs from your coach and plans you own"] : uiCopy["ui"]["Your training log and progress"]} /><div className={styles.stack}>
-    {tab === "plans" ? <TrainingPlansTab relationshipId={relationshipId} /> : <>
-      <Tabs selectedKey={tab === "progress" ? "progress" : historyView} onSelectionChange={key => setParams(previous => { const next = new URLSearchParams(previous); next.set("tab", "history"); if (key === "progress") next.set("historyView", "progress"); else next.delete("historyView"); return next; }, { replace: true })}><TabList aria-label={uiCopy["ui"]["History view"]}><Tab id="workouts">{uiCopy["ui"]["Workouts"]}</Tab><Tab id="progress">{uiCopy["editor"]["sheet"]["progression"]["kind"]}</Tab></TabList></Tabs>
-      {tab === "progress" || historyView === "progress" ? <TrainingProgress relationshipId={relationshipId} /> : <TrainingSchedule relationshipId={relationshipId} programId={programId} />}
-    </>}
-  </div></>;
+  if (mobile) return <MobileTraining />;
   return <><PageHeader title={uiCopy["profile"]["completeItems"]["training"]} description={uiCopy["ui"]["Your workouts, training plans and progress."]} /><div className={styles.stack}>
     <Tabs selectedKey={tab === "history" ? "schedule" : tab} onSelectionChange={key => setTab(String(key))}><TabList aria-label={uiCopy["ui"]["Training views"]}><Tab id="schedule">{uiCopy["ui"]["Schedule & history"]}</Tab><Tab id="plans">{uiCopy["ui"]["Training plans"]}</Tab><Tab id="progress">{uiCopy["editor"]["sheet"]["progression"]["kind"]}</Tab></TabList></Tabs>
     {tab === "schedule" || tab === "history" ? <TrainingSchedule relationshipId={relationshipId} programId={programId} /> : tab === "plans" ? <TrainingPlansTab relationshipId={relationshipId} /> : <TrainingProgress relationshipId={relationshipId} />}

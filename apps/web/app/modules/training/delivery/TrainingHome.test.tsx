@@ -11,18 +11,24 @@ vi.mock("~/modules/coaching", () => ({ useCoachingQuery: (_path: string, filters
 vi.mock("./Assignments", () => ({ AssignmentList: () => null, localDate: () => "2026-10-12" }));
 vi.mock("./Progress", () => ({ TrainingProgress: () => <div>Training progress content</div> }));
 vi.mock("../purchases/TrainingPlans", () => ({ TrainingPlansTab: () => <div>Assigned and owned plans</div> }));
-it("opens the History deep link with native Workouts and Progress views", async () => {
+it("opens the History deep link on All workouts, with Workouts and Progress", async () => {
   render(<MemoryRouter initialEntries={["/app/my-training?tab=history"]}><TrainingHome /></MemoryRouter>);
-  expect(screen.getByRole("heading", { name: "History" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Training" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "All workouts" })).toHaveAttribute("aria-selected", "true");
   expect(screen.getByRole("region", { name: "Workout schedule and history" })).toBeInTheDocument();
-  await userEvent.click(screen.getByRole("tab", { name: "Progress" }));
+  await userEvent.click(screen.getByRole("radio", { name: "Progress" }));
   expect(screen.getByText("Training progress content")).toBeInTheDocument();
 });
-it("opens Plans without rendering the desktop training navigation", () => {
+it("opens the old Plans link on the whole plan, with the plans the client owns", () => {
   render(<MemoryRouter initialEntries={["/app/my-training?tab=plans"]}><TrainingHome /></MemoryRouter>);
-  expect(screen.getByRole("heading", { name: "Plans" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "Whole plan" })).toHaveAttribute("aria-selected", "true");
   expect(screen.getByText("Assigned and owned plans")).toBeInTheDocument();
   expect(screen.queryByRole("tab", { name: "Schedule & history" })).not.toBeInTheDocument();
+});
+it("starts on upcoming workouts by default", () => {
+  render(<MemoryRouter initialEntries={["/app/my-training"]}><TrainingHome /></MemoryRouter>);
+  expect(screen.getByRole("tab", { name: "Upcoming" })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByText("No upcoming workouts")).toBeInTheDocument();
 });
 vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
 
@@ -56,6 +62,6 @@ it("makes the whole workout row a detail link with program, date and exercise co
 
 it("restores the History progress view from its URL", () => {
   render(<MemoryRouter initialEntries={["/app/my-training?tab=history&historyView=progress"]}><TrainingHome /></MemoryRouter>);
-  expect(screen.getByRole("tab", { name: "Progress" })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByRole("radio", { name: "Progress" })).toBeChecked();
   expect(screen.getByText("Training progress content")).toBeInTheDocument();
 });

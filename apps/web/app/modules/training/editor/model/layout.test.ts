@@ -40,3 +40,31 @@ describe("sheet column geometry", () => {
     expect(sanitizeColumnWidths([100])).toEqual({});
   });
 });
+
+describe("auto arrange", () => {
+  it("puts blocks side by side, their cycles under them side by side, and workouts stacked under each cycle", async () => {
+    const { addBlock, addCycle, emptyDocument } = await import("./document");
+    const { addCycleWorkout } = await import("./workouts");
+    const { autoLayout, BLOCK_COLS } = await import("./layout");
+    let doc = emptyDocument();
+    const b1 = addBlock(doc, "B1"); doc = b1.doc;
+    const c1 = addCycle(doc, b1.id, "C1"); doc = c1.doc;
+    const c2 = addCycle(doc, b1.id, "C2"); doc = c2.doc;
+    const w1 = addCycleWorkout(doc, c1.id!, "A"); doc = w1.doc;
+    const w2 = addCycleWorkout(doc, c1.id!, "B"); doc = w2.doc;
+    const b2 = addBlock(doc, "B2"); doc = b2.doc;
+    const layout = autoLayout(doc);
+    // Blocks share the top row; cycles share the row under the block.
+    expect(layout[b1.id]!.row).toBe(layout[b2.id]!.row);
+    expect(layout[c1.id!]!.row).toBe(layout[c2.id!]!.row);
+    expect(layout[c1.id!]!.row).toBeGreaterThan(layout[b1.id]!.row);
+    // Workouts stack under their cycle, in its column.
+    expect(layout[w1.id!]!.col).toBe(layout[c1.id!]!.col);
+    expect(layout[w2.id!]!.col).toBe(layout[c1.id!]!.col);
+    expect(layout[w2.id!]!.row).toBeGreaterThan(layout[w1.id!]!.row);
+    expect(layout[w1.id!]!.row).toBeGreaterThan(layout[c1.id!]!.row);
+    // The second cycle starts after the first cycle's open workouts, and block 2 after all of block 1.
+    expect(layout[c2.id!]!.col).toBeGreaterThan(layout[w1.id!]!.col + 6);
+    expect(layout[b2.id]!.col).toBeGreaterThan(layout[c2.id!]!.col + BLOCK_COLS);
+  });
+});
