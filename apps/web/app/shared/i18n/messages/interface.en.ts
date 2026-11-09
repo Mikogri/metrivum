@@ -1,4 +1,6 @@
 export const interfaceEn = {
+  "{0}: enter whole numbers from {1} to {2}; the upper bound must be at least the lower bound.": "{0}: enter whole numbers from {1} to {2}; the upper bound must be at least the lower bound.",
+  "{0}: enter values from {1} to {2}.": "{0}: enter values from {1} to {2}.",
   "Analysis ready: {0}": "Analysis ready: {0}",
   "Analysis failed: {0}": "Analysis failed: {0}",
   "Saving failed: {0}": "Saving failed: {0}",

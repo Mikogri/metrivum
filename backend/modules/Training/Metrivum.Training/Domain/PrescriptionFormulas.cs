@@ -12,6 +12,7 @@ public static class PrescriptionFormulas
         "WorkTime" or "Rest" => Unit.Seconds,
         _ => throw new TrainingValidationException("Unknown prescription formula field.")
     };
+
     public static IEnumerable<FormulaUse> Uses(Prescription p) =>
         (p.LoadFormula == null ? Enumerable.Empty<FormulaUse>() : [p.LoadFormula]).Concat(p.FieldFormulas?.Values ?? Enumerable.Empty<FormulaUse>());
 
@@ -19,14 +20,28 @@ public static class PrescriptionFormulas
     {
         var number = value.In(UnitFor(field));
         var count = field is "Sets" or "Reps";
-        if (number < (count ? 1 : 0) || number > (field == "Sets" ? 50 : count ? 10000 : 86400) || count && decimal.Truncate(number) != number)
-            throw new TrainingValidationException($"{field} formula must produce {(count ? "a positive whole number" : "a duration from zero to 86400 seconds")} within its allowed range.");
+        var maximum = field == "Sets" ? 50 : count ? DocumentRules.MaximumRepetitions : 86400;
+
+        if (number < (count ? 1 : 0) || number > maximum || count && decimal.Truncate(number) != number)
+            throw new TrainingValidationException($"{field} formula must produce {(count ? "a whole number" : "a duration in seconds")} from {(count ? 1 : 0)} to {maximum}.");
         return new(number, UnitFor(field));
     }
+
     public static Prescription Freeze(Prescription p, FormulaEvaluation? evaluation)
     {
-        var value = p with { FieldFormulas = null, LoadFormula = null };
-        if (p.LoadFormula != null && evaluation != null) value = value with { Load = new(evaluation.Result, evaluation.Result), LoadPercent = null, BaseValue = null };
+        var value = p with
+        {
+            FieldFormulas = null,
+            LoadFormula = null
+        };
+
+        if (p.LoadFormula != null && evaluation != null)
+            value = value with
+            {
+                Load = new(evaluation.Result, evaluation.Result),
+                LoadPercent = null,
+                BaseValue = null
+            };
         foreach (var (field, result) in evaluation?.FieldValues ?? [])
             value = field switch
             {
@@ -37,12 +52,14 @@ public static class PrescriptionFormulas
             };
         return value;
     }
+
     public static Workout Freeze(Workout workout, IReadOnlyDictionary<Guid, FormulaEvaluation> evaluations) => workout with
     {
         Exercises = workout.Exercises.Select(exercise =>
         {
             var sets = exercise.Sets;
             var first = sets.FirstOrDefault();
+
             if (first != null && evaluations.GetValueOrDefault(first.Id)?.FieldValues?.TryGetValue("Sets", out var count) == true)
             {
                 var size = (int)ValidateValue("Sets", count).Value;
@@ -52,11 +69,14 @@ public static class PrescriptionFormulas
                     Id = new Guid(SHA256.HashData(Encoding.UTF8.GetBytes($"{first.Id:N}:formula-set:{i}"))[..16])
                 }).ToArray();
             }
-            return exercise with { Sets = sets.Select(set => set with
+            return exercise with
             {
-                Prescription = Freeze(set.Prescription, evaluations.GetValueOrDefault(set.Id) ?? (first == null || exercise.Sets.Any(original => original.Id == set.Id) ? null : evaluations.GetValueOrDefault(first.Id))),
-                Segments = set.Segments?.Select(segment => segment with { Prescription = Freeze(segment.Prescription, evaluations.GetValueOrDefault(segment.Id)) }).ToArray()
-            }).ToArray() };
+                Sets = sets.Select(set => set with
+                {
+                    Prescription = Freeze(set.Prescription, evaluations.GetValueOrDefault(set.Id) ?? (first == null || exercise.Sets.Any(original => original.Id == set.Id) ? null : evaluations.GetValueOrDefault(first.Id))),
+                    Segments = set.Segments?.Select(segment => segment with { Prescription = Freeze(segment.Prescription, evaluations.GetValueOrDefault(segment.Id)) }).ToArray()
+                }).ToArray()
+            };
         }).ToArray()
     };
 }

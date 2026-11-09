@@ -25,6 +25,16 @@ function openSources() {
 }
 
 describe("inline load cell", () => {
+  it("offers AMRAP after a slash in a reps cell, without client body data", async () => {
+    const onMaximumChange = vi.fn();
+    render(<InlinePrescriptionCell field="Reps" prescription={{ reps: { minimum: 5, maximum: 5 } }} label="Reps" readOnly={false} formulaAllowed onChange={vi.fn()} onMaximumChange={onMaximumChange} />);
+    const input = screen.getByRole("combobox", { name: "Reps" });
+    fireEvent.focus(input); fireEvent.change(input, { target: { value: "/" } });
+    expect(screen.getByRole("option", { name: /AMRAP/ })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /height|hrMax/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("option", { name: /AMRAP/ }));
+    expect(onMaximumChange).toHaveBeenCalledWith(true);
+  });
   it("shows the result of a saved formula beside its mark, and opens the formula menu in one click while typing", async () => {
     const user = userEvent.setup();
     render(<InlineLoadCell prescription={{ loadFormula: { formulaId: null, builtIn: null, version: 1, inputs: {}, expression: "100 * 0.8" } }} onChange={vi.fn()} readOnly={false} label="Load" />);
@@ -347,4 +357,12 @@ it("does not apply maximum work time to rest", () => {
   render(<InlinePrescriptionCell field="Rest" prescription={{ workTimeMax: true, rest: { value: 60, unit: "Seconds" } }} label="Rest" readOnly={false} onChange={vi.fn()} />);
   expect(screen.getByRole("gridcell", { name: "Rest: 1:00" })).toBeInTheDocument();
   expect(screen.queryByDisplayValue("MAX")).not.toBeInTheDocument();
+});
+
+it("reports the full repetition range, including an excessive upper bound", () => {
+  render(<InlinePrescriptionCell field="Reps" prescription={{ reps: { minimum: 5, maximum: 1000 } }} label="Reps" readOnly={false} onChange={vi.fn()} />);
+  const cell = screen.getByRole("combobox", { name: "Reps" }).closest("[data-inline-formula]");
+  expect(cell).toHaveAttribute("data-invalid", "true");
+  expect(cell).toHaveAttribute("title", expect.stringContaining("1 to 999"));
+  expect(cell).toHaveAttribute("title", expect.stringContaining("upper bound"));
 });

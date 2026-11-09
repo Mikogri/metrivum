@@ -12,3 +12,6 @@ csharp_style_namespace_declarations = file_scoped:warning
 dotnet_sort_system_directives_first = true
 csharp_preserve_single_line_statements = false
 csharp_preserve_single_line_blocks = false
+
+[*.{ts,tsx,js,jsx,mjs,cjs}]
+indent_size = 2

@@ -382,15 +382,18 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
             <RouterLink to={`/app/programs/${entry.plan.id}`} className={styles.cardTitle} data-card-link draggable={false}>
               {entry.plan.name}
             </RouterLink>
-            {entry.plan.description ? <span className={styles.cardDescription}>{entry.plan.description}</span> : null}
-            {entry.plan.kind === "Program" ? <span className={styles.cardStatus}>{planStatus(entry.plan)}</span> : null}
-            <span className={styles.cardMeta}>
-              {entry.plan.archived ? (
-                <Badge tone="warning" size="sm">
-                  {t.archivedBadge}
-                </Badge>
-              ) : null}
-              {m.common.updated(formatRelative(locale, entry.plan.updatedAt))}
+            <span className={styles.cardDescription} data-empty={!entry.plan.description || undefined}>{entry.plan.description || t.noDescription}</span>
+            {/* Status and last update sit at the bottom of every card, however long the description is. */}
+            <span className={styles.cardFoot}>
+              {entry.plan.kind === "Program" ? <span className={styles.cardStatus}>{planStatus(entry.plan)}</span> : null}
+              <span className={styles.cardMeta}>
+                {entry.plan.archived ? (
+                  <Badge tone="warning" size="sm">
+                    {t.archivedBadge}
+                  </Badge>
+                ) : null}
+                {m.common.updated(formatRelative(locale, entry.plan.updatedAt))}
+              </span>
             </span>
           </li>
         ),

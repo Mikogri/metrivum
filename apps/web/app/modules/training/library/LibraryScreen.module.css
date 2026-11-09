@@ -310,3 +310,19 @@
   background: var(--tf-color-danger-soft);
   color: var(--tf-color-danger);
 }
+
+/* Card bottom: status above the update date, pinned to the bottom edge. */
+.cardFoot {
+  display: grid;
+  gap: var(--tf-space-1-5);
+  margin-top: auto;
+  padding-top: var(--tf-space-2);
+}
+
+.cardFoot .cardStatus { margin-top: 0; }
+.cardFoot .cardMeta { margin-top: 0; padding-top: 0; }
+
+.cardDescription[data-empty] {
+  color: var(--tf-color-text-tertiary);
+  font-style: italic;
+}

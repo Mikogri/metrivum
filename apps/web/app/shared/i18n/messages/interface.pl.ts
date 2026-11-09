@@ -1,5 +1,7 @@
 import type { interfaceEn } from "./interface.en";
 export const interfacePl: Record<keyof typeof interfaceEn, string> = {
+  "{0}: enter whole numbers from {1} to {2}; the upper bound must be at least the lower bound.": "{0}: wpisz liczby całkowite od {1} do {2}; górna granica musi być co najmniej równa dolnej.",
+  "{0}: enter values from {1} to {2}.": "{0}: wpisz wartości od {1} do {2}.",
   "Analysis ready: {0}": "Analiza gotowa: {0}",
   "Analysis failed: {0}": "Analiza nie powiodła się: {0}",
   "Saving failed: {0}": "Zapis nie powiódł się: {0}",

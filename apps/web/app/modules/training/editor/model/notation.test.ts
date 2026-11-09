@@ -13,9 +13,21 @@ describe("cell notation", () => {
   });
 
   it("parses loads with units, ranges and percentages", () => {
-    expect(parseLoad("en", "80")).toEqual({ ok: true, value: { kind: "absolute", load: { minimum: { value: 80, unit: "Kg" }, maximum: { value: 80, unit: "Kg" } } } });
-    expect(parseLoad("en", "175 lb")).toMatchObject({ ok: true, value: { kind: "absolute", load: { minimum: { value: 175, unit: "Lb" } } } });
-    expect(parseLoad("pl", "82,5-85")).toMatchObject({ ok: true, value: { load: { minimum: { value: 82.5 }, maximum: { value: 85 } } } });
+    expect(parseLoad("en", "80")).toEqual({
+      ok: true,
+      value: {
+        kind: "absolute",
+        load: { minimum: { value: 80, unit: "Kg" }, maximum: { value: 80, unit: "Kg" } },
+      },
+    });
+    expect(parseLoad("en", "175 lb")).toMatchObject({
+      ok: true,
+      value: { kind: "absolute", load: { minimum: { value: 175, unit: "Lb" } } },
+    });
+    expect(parseLoad("pl", "82,5-85")).toMatchObject({
+      ok: true,
+      value: { load: { minimum: { value: 82.5 }, maximum: { value: 85 } } },
+    });
     expect(parseLoad("en", "85%")).toEqual({ ok: true, value: { kind: "percent", percent: 85 } });
     expect(parseLoad("en", "-5").ok).toBe(false);
     expect(parseLoad("en", "90-80").ok).toBe(false);
@@ -33,8 +45,14 @@ describe("cell notation", () => {
 
   it("parses rest durations", () => {
     expect(parseDuration("en", "90")).toEqual({ ok: true, value: { value: 90, unit: "Seconds" } });
-    expect(parseDuration("en", "2 min")).toEqual({ ok: true, value: { value: 2, unit: "Minutes" } });
-    expect(parseDuration("en", "1:30")).toEqual({ ok: true, value: { value: 90, unit: "Seconds" } });
+    expect(parseDuration("en", "2 min")).toEqual({
+      ok: true,
+      value: { value: 2, unit: "Minutes" },
+    });
+    expect(parseDuration("en", "1:30")).toEqual({
+      ok: true,
+      value: { value: 90, unit: "Seconds" },
+    });
     expect(parseDuration("en", "soon").ok).toBe(false);
   });
 
@@ -43,4 +61,10 @@ describe("cell notation", () => {
     expect(parseTempo("3-1-0").ok).toBe(false);
     expect(parseTempo("100-1-1-1").ok).toBe(false);
   });
+});
+
+it("accepts at most 999 repetitions and rejects reversed or fractional ranges", () => {
+  expect(parseReps("999").ok).toBe(true);
+  expect(parseReps("1-999").ok).toBe(true);
+  for (const text of ["1000", "1-1000", "9-2", "1.5"]) expect(parseReps(text).ok).toBe(false);
 });
