@@ -5,6 +5,7 @@ using Metrivum.Accounts.Contracts;
 
 namespace Metrivum.Coaching.Infrastructure;
 
+/// <summary>Resolves authorized coach/client and group recipients from the Coaching database for other modules.</summary>
 public sealed class RelationshipRecipients(CoachingDbContext db, ITeamContext? teams = null, ModuleTransaction? transaction = null) : IRelationshipRecipients
 {
     public async Task<IReadOnlyList<RelationshipGroupSource>> GetGroupSourcesAsync(Guid coachId, Guid workspaceId, IReadOnlyCollection<Guid> groupIds, CancellationToken ct) =>

@@ -7,6 +7,7 @@ using Metrivum.Forms.Contracts;
 
 namespace Metrivum.Forms.Domain;
 
+/// <summary>Validates form definitions and answers and creates canonical answer values without database access.</summary>
 public static class FormRules
 {
     public static void ValidateDefinition(FormPurpose purpose, string name, string description, FormDefinition definition)

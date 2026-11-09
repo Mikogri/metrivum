@@ -127,22 +127,22 @@
 /* Changes clients don't have yet, or never published: the whole pill is red so it reads as something to act on. */
 .state:not([data-applied]),
 .state[data-unpublished] {
-  /* A saturated deep red with a clearly lighter red edge and crisp white text. */
-  border-color: #ff8a80;
-  background: #b4232a;
-  color: #fff;
+  /* The same look as the toned badges (e.g. "Simulated payments"), in red: a soft red fill, a red edge, red text. */
+  border-color: rgb(240 96 93 / 0.45);
+  background: var(--tf-color-danger-soft);
+  color: var(--tf-color-danger);
   font-weight: var(--tf-weight-semibold);
   transition: background-color 140ms ease, border-color 140ms ease;
 }
 
 .state:not([data-applied]) svg {
-  color: #fff;
+  color: var(--tf-color-danger);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .state:not([data-applied])[data-hovered] {
-    background: #c42a31;
-    border-color: #ffa39b;
+    border-color: rgb(240 96 93 / 0.65);
+    background: color-mix(in srgb, var(--tf-color-danger) 18%, transparent);
   }
 }
 

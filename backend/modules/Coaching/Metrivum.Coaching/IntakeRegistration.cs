@@ -10,6 +10,7 @@ using Metrivum.Coaching.Contracts;
 
 namespace Metrivum.Coaching;
 
+/// <summary>Registers Coaching services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class IntakeRegistration
 {
     public static IServiceCollection AddCoachingIntake(this IServiceCollection services)

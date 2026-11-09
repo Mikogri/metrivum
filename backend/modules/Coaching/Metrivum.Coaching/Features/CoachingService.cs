@@ -12,6 +12,7 @@ using Metrivum.Coaching.Infrastructure;
 
 namespace Metrivum.Coaching.Features;
 
+/// <summary>Manages coach-client relationships and groups with ownership checks, version checks and persisted status history.</summary>
 public sealed class CoachingService(CoachingDbContext db, IAccountContext accounts, IAccountDirectory directory, IFeatureAccessService access, TimeProvider clock, IHostEnvironment environment, ModuleTransaction? moduleTransaction = null, IEnumerable<ICoachingMessagingObserver>? messagingObservers = null, INotificationPublisher? notifications = null, ITeamContext? teams = null, ClientCapacity? capacity = null) : IRelationshipAccessPolicy, IRelationshipActivation
 {
     private readonly Dictionary<Guid, TeamAccess> teamScopes = [];

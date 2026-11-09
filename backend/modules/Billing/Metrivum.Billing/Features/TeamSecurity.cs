@@ -4,6 +4,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Billing.Features;
 
+/// <summary>Enforces team membership and role checks before team billing and administration operations.</summary>
 public static class TeamSecurity
 {
     public static void RequireRecentAuthentication(ClaimsPrincipal user, DateTimeOffset now)

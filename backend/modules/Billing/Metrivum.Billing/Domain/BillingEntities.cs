@@ -19,6 +19,7 @@ public enum SimulatedOutcome
 {
     Success, Decline
 }
+/// <summary>Represents persisted order state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class Order
 {
     public Guid? ApplicationId { get; set; }
@@ -99,6 +100,7 @@ public sealed class Order
         get; set;
     }
 }
+/// <summary>Represents persisted payment due state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class PaymentDue
 {
     public int? ValidityDays { get; set; }
@@ -197,6 +199,7 @@ public sealed class PaymentDue
         get; set;
     }
 }
+/// <summary>Represents persisted payment method state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class PaymentMethod
 {
     public Guid Id
@@ -215,6 +218,7 @@ public sealed class PaymentMethod
         get; set;
     }
 }
+/// <summary>Represents persisted payment attempt state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class PaymentAttempt
 {
     public Guid Id
@@ -251,6 +255,7 @@ public sealed class PaymentAttempt
         get; set;
     }
 }
+/// <summary>Represents persisted payment state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class Payment
 {
     public Guid? TeamId
@@ -317,6 +322,7 @@ public sealed class Payment
         get; set;
     }
 }
+/// <summary>Represents persisted payment transaction state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class PaymentTransaction
 {
     public Guid Id
@@ -343,6 +349,7 @@ public sealed class PaymentTransaction
         get; set;
     }
 }
+/// <summary>Represents persisted subscription state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class Subscription
 {
     public bool AutoRenew
@@ -396,6 +403,7 @@ public sealed class Subscription
         get; set;
     }
 }
+/// <summary>Represents persisted renewal failure state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class RenewalFailure
 {
     public Guid Id

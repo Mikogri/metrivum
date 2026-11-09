@@ -3,6 +3,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training.Generation;
 
+/// <summary>Represents persisted program generation record state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class ProgramGenerationRecord
 {
     public Guid ProgramId
@@ -28,6 +29,7 @@ public sealed class ProgramGenerationRecord
     }
 }
 
+/// <summary>Configures EF mappings, relationships and constraints for program generation in Training; does not execute data mutations.</summary>
 public static class ProgramGenerationModel
 {
     public static void ConfigureProgramGeneration(this ModelBuilder model)

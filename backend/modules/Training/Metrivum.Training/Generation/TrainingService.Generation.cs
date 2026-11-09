@@ -6,6 +6,7 @@ using Metrivum.Training.Generation;
 
 namespace Metrivum.Training.Features;
 
+/// <summary>Manages training plan drafts, revisions, formulas, imports and client metrics in the Training database.</summary>
 public sealed partial class TrainingService
 {
     public async Task<GenerationOptions> GeneratorOptionsAsync(CancellationToken ct)

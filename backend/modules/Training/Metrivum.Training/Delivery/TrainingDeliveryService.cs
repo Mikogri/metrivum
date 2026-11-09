@@ -14,6 +14,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training.Delivery;
 
+/// <summary>Manages assignments, frozen workout prescriptions, executions and progress in the Training database.</summary>
 public sealed partial class TrainingDeliveryService(TrainingDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IRelationshipRecipients relationships, IRelationshipAccessPolicy policy, IExerciseCatalog catalog, INotificationPublisher notifications,
     ModuleTransaction transaction, TimeProvider clock, IAccountDirectory directory, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers, ITeamContext? teams = null, TrainingService? formulaService = null) : ITrainingProgressReader

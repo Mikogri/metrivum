@@ -11,6 +11,7 @@ public sealed record MediaDto(Guid Id, string Name, string ContentType, long Siz
 public sealed record UploadTicket(MediaDto File, string UploadUrl, DateTimeOffset ExpiresAt, string Method = "PUT");
 public sealed record MediaReadTicket(string Url, DateTimeOffset ExpiresAt);
 
+/// <summary>Coordinates authorized media metadata, quota and attachment operations with private object storage.</summary>
 public sealed partial class MediaLibrary(MediaDbContext db, IPrivateObjectStorage storage, IOptions<StorageOptions> configured,
     IOptions<MediaQuotaOptions>? quotaOptions = null, IAbuseProtection? abuse = null) : IMediaLibrary, IDocumentMedia
 {

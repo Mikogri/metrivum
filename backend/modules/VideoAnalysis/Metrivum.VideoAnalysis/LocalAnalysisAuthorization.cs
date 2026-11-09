@@ -6,6 +6,7 @@ namespace Metrivum.VideoAnalysis;
 
 public sealed record LocalAnalysisPermitRequest(Guid LocalAnalysisId, double DurationSeconds, Guid? TeamId = null);
 
+/// <summary>Reserves and releases authorization for local analysis jobs and result synchronization.</summary>
 public sealed class LocalAnalysisAuthorization(IUsageReservations usage, IFeatureAccessService features, IAccountContext account)
 {
     public async Task<UsageReceipt> AuthorizeAsync(LocalAnalysisPermitRequest input, CancellationToken ct)

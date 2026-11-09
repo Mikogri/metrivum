@@ -4,6 +4,7 @@ using Metrivum.Coaching.Contracts;
 using Metrivum.Notifications.Contracts;
 namespace Metrivum.CheckIns.Infrastructure;
 
+/// <summary>Synchronizes CheckIns state when team membership or client assignments change through module contracts.</summary>
 public sealed class TeamCheckInLifecycle(CheckInsDbContext db, INotificationPublisher notifications) : ITeamRelationshipLifecycle
 {
     public async Task CloseAsync(Guid teamId, Guid[] relationshipIds, Guid actorId, DateTimeOffset effectiveAt, CancellationToken ct)

@@ -3,6 +3,7 @@ using Metrivum.Analytics.Contracts;
 
 namespace Metrivum.CheckIns.Infrastructure;
 
+/// <summary>Reads and aggregates check ins analytics information for authorized CheckIns reporting and quota contracts.</summary>
 public sealed class CheckInsAnalytics(CheckInsDbContext db) : ICheckInsAnalytics
 {
     public async Task<CheckInsAnalysis> QueryAsync(AnalysisScope s, CancellationToken ct)
@@ -42,6 +43,7 @@ public sealed class CheckInsAnalytics(CheckInsDbContext db) : ICheckInsAnalytics
     }
 }
 
+/// <summary>Carries check in aggregate row fields for CheckIns filtering or query projection; has no independent database writes.</summary>
 public sealed class CheckInAggregateRow
 {
     public DateOnly Date

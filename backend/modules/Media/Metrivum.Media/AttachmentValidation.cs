@@ -4,6 +4,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Media;
 
+/// <summary>Validates attachment names, formats and size limits before media acceptance.</summary>
 public static class AttachmentValidation
 {
     public static string Extension(string mime) => mime switch

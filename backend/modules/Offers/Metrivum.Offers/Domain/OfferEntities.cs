@@ -2,6 +2,7 @@ using Metrivum.Offers.Contracts;
 
 namespace Metrivum.Offers.Domain;
 
+/// <summary>Represents persisted offer state in Offers; mapped and saved by the owning module's EF services.</summary>
 public sealed class Offer
 {
     public OfferPurpose Purpose { get; set; }
@@ -50,10 +51,12 @@ public sealed class Offer
         get; set;
     }
 }
+/// <summary>Represents persisted offer category state in Offers; mapped and saved by the owning module's EF services.</summary>
 public sealed class OfferCategory
 {
     public string Key { get; set; } = ""; public string Name { get; set; } = ""; public bool Active { get; set; } = true;
 }
+/// <summary>Represents persisted offer tag state in Offers; mapped and saved by the owning module's EF services.</summary>
 public sealed class OfferTag
 {
     public Guid Id
@@ -62,6 +65,7 @@ public sealed class OfferTag
     }
     public string Name { get; set; } = "";
 }
+/// <summary>Represents persisted offer tag link state in Offers; mapped and saved by the owning module's EF services.</summary>
 public sealed class OfferTagLink
 {
     public Guid OfferId
@@ -73,6 +77,7 @@ public sealed class OfferTagLink
         get; set;
     }
 }
+/// <summary>Represents persisted offer revision state in Offers; mapped and saved by the owning module's EF services.</summary>
 public sealed class OfferRevision
 {
     public OfferPurpose Purpose { get; set; }
@@ -122,6 +127,7 @@ public sealed class OfferRevision
         get; set;
     }
 }
+/// <summary>Represents persisted offer billing option state in Offers; mapped and saved by the owning module's EF services.</summary>
 public sealed class OfferBillingOption
 {
     public int? ValidityDays { get; set; }
@@ -171,6 +177,7 @@ public sealed class OfferBillingOption
         get; set;
     }
 }
+/// <summary>Represents persisted revision billing option state in Offers; mapped and saved by the owning module's EF services.</summary>
 public sealed class RevisionBillingOption
 {
     public int? ValidityDays { get; set; }

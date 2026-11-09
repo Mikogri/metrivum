@@ -47,6 +47,7 @@ public sealed class ProgramEndingAlertsJob(TrainingDbContext db, IProgramEndingA
     }
 }
 
+/// <summary>Runs the program-ending alert job on its background schedule.</summary>
 public sealed class ProgramEndingAlertsWorker(IServiceScopeFactory scopes, ILogger<ProgramEndingAlertsWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

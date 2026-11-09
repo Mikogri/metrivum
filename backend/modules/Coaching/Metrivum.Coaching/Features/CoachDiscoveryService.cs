@@ -14,6 +14,7 @@ public sealed record DiscoveryProfileRequest(bool Published, IReadOnlyList<strin
 public sealed record DiscoveredCoachDto(Guid CoachId, string Username, string DisplayName, string? Bio, IReadOnlyList<string> Specializations, IReadOnlyList<string> Languages, IReadOnlyList<string> Modes, string? Location, bool Featured, DiscoveryOfferSummary? Offer, IReadOnlyList<PublicSpecializationDto>? SpecializationSelections = null);
 public sealed record CoachDiscoveryPage(IReadOnlyList<DiscoveredCoachDto> Items, int Page, int PageSize, long Total);
 
+/// <summary>Reads and updates opt-in coach discovery profiles and publication state.</summary>
 public sealed class CoachDiscoveryService(CoachingDbContext db, IAccountContext accounts, ICoachDiscoveryDirectory directory,
     IPlatformPlans plans, IDiscoveryOffers offers, IFeatureAccessService access, TimeProvider clock, IAbuseProtection? abuse = null)
 {

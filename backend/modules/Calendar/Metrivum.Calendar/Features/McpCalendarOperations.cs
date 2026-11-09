@@ -2,6 +2,7 @@ using Metrivum.Calendar.Contracts;
 
 namespace Metrivum.Calendar.Features;
 
+/// <summary>Adapts MCP calendar requests to authorized Calendar operations; owning services control persistence.</summary>
 public sealed class McpCalendarOperations(CalendarService calendar) : IMcpCalendarOperations
 {
     public async Task<McpCalendarPage> ListAsync(DateTimeOffset from, DateTimeOffset to, string timeZone, int page, int pageSize, CancellationToken ct)

@@ -9,6 +9,7 @@ using Metrivum.Integrations.Infrastructure;
 
 namespace Metrivum.Integrations.Features;
 
+/// <summary>Checks AI connection consent and resource grants before integration operations.</summary>
 public sealed class IntegrationAccess(IntegrationsDbContext db, IAccountContext accounts, IFeatureAccessService features, IHttpContextAccessor http)
 {
     public string ClientId

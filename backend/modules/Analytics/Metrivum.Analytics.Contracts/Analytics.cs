@@ -182,6 +182,7 @@ public interface ICheckInsAnalytics
     Task<CheckInsAnalysis> QueryAsync(AnalysisScope scope, CancellationToken ct);
 }
 
+/// <summary>Calculates percentages and changes for analytics results in memory.</summary>
 public static class MetricMath
 {
     public static decimal? Percent(decimal numerator, decimal denominator) =>
@@ -200,6 +201,7 @@ public static class MetricMath
         };
 }
 
+/// <summary>Groups dated analytics values into reporting buckets without changing source records.</summary>
 public static class AnalysisBuckets
 {
     public static DateOnly Start(DateOnly date, string grouping) =>

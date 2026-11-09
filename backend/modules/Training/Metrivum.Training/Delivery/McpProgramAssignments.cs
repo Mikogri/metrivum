@@ -7,6 +7,7 @@ using Metrivum.Training.Domain;
 
 namespace Metrivum.Training.Delivery;
 
+/// <summary>Manages assignments, frozen workout prescriptions, executions and progress in the Training database.</summary>
 public sealed partial class TrainingDeliveryService
 {
     public Task<McpProgramAssignmentPreview> PreviewMcpAssignmentAsync(McpProgramAssignmentRequest request, CancellationToken ct) =>

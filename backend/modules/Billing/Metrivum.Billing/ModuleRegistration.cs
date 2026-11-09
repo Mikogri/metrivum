@@ -14,6 +14,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Billing;
 
+/// <summary>Registers Billing services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddBilling(this IServiceCollection services, IConfiguration configuration)

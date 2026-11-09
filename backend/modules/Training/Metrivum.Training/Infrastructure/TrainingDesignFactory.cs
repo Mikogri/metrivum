@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Metrivum.Training.Infrastructure;
 
+/// <summary>Creates the Training DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class TrainingDesignFactory : IDesignTimeDbContextFactory<TrainingDbContext>
 {
     public TrainingDbContext CreateDbContext(string[] args)

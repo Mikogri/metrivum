@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Metrivum.Accounts.Contracts;
 using Metrivum.BuildingBlocks;
 using Metrivum.Coaching.Domain;
@@ -12,6 +12,7 @@ public sealed record CoachSpecializationsDto(IReadOnlyList<string> SelectedCodes
 public sealed record CoachSpecializationsRequest(IReadOnlyList<string> SelectedCodes, IReadOnlyList<string> PrimaryCodes, long Version);
 public sealed record PublicSpecializationDto(string Code, string Name, string CategoryCode, bool IsPrimary);
 
+/// <summary>Manages a coach's selected specializations and validates them against the specialization taxonomy.</summary>
 public sealed class CoachSpecializationsService(CoachingDbContext db, IAccountContext accounts, ModuleTransaction transaction, TimeProvider clock)
 {
     public async Task<IReadOnlyList<SpecializationCategoryDto>> TaxonomyAsync(CancellationToken ct)

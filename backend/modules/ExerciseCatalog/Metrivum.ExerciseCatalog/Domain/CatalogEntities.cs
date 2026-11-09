@@ -1,5 +1,6 @@
 namespace Metrivum.ExerciseCatalog.Domain;
 
+/// <summary>Represents persisted exercise state in ExerciseCatalog; mapped and saved by the owning module's EF services.</summary>
 public sealed class Exercise
 {
     public Guid Id
@@ -36,6 +37,7 @@ public sealed class Exercise
     public List<ExerciseMovementPattern> MovementPatterns { get; set; } = [];
 }
 
+/// <summary>Represents persisted exercise revision state in ExerciseCatalog; mapped and saved by the owning module's EF services.</summary>
 public sealed class ExerciseRevision
 {
     public Guid ExerciseId
@@ -62,6 +64,7 @@ public sealed class ExerciseRevision
     }
 }
 
+/// <summary>Represents persisted exercise tag definition state in ExerciseCatalog; mapped and saved by the owning module's EF services.</summary>
 public sealed class ExerciseTagDefinition
 {
     public Guid Id
@@ -76,6 +79,7 @@ public sealed class ExerciseTagDefinition
     }
 }
 
+/// <summary>Represents persisted exercise tag state in ExerciseCatalog; mapped and saved by the owning module's EF services.</summary>
 public sealed class ExerciseTag
 {
     public Guid ExerciseId
@@ -89,6 +93,7 @@ public sealed class ExerciseTag
     public ExerciseTagDefinition Tag { get; set; } = null!;
 }
 
+/// <summary>Represents persisted muscle state in ExerciseCatalog; mapped and saved by the owning module's EF services.</summary>
 public sealed class Muscle
 {
     public string Key { get; set; } = "";
@@ -98,6 +103,7 @@ public sealed class Muscle
     public int Version { get; set; } = 1;
 }
 
+/// <summary>Represents persisted movement pattern state in ExerciseCatalog; mapped and saved by the owning module's EF services.</summary>
 public sealed class MovementPattern
 {
     public string Key { get; set; } = "";
@@ -107,6 +113,7 @@ public sealed class MovementPattern
     public int Version { get; set; } = 1;
 }
 
+/// <summary>Represents persisted exercise muscle state in ExerciseCatalog; mapped and saved by the owning module's EF services.</summary>
 public sealed class ExerciseMuscle
 {
     public Guid ExerciseId
@@ -121,6 +128,7 @@ public sealed class ExerciseMuscle
     public Muscle Muscle { get; set; } = null!;
 }
 
+/// <summary>Represents persisted exercise movement pattern state in ExerciseCatalog; mapped and saved by the owning module's EF services.</summary>
 public sealed class ExerciseMovementPattern
 {
     public Guid ExerciseId
@@ -131,6 +139,7 @@ public sealed class ExerciseMovementPattern
     public MovementPattern Pattern { get; set; } = null!;
 }
 
+/// <summary>Represents persisted exercise favorite state in ExerciseCatalog; mapped and saved by the owning module's EF services.</summary>
 public sealed class ExerciseFavorite
 {
     public Guid UserId

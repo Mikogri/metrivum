@@ -9,6 +9,7 @@ public sealed record ActivityOptionsDto(ActivityProgramOption[] Programs, Activi
 public sealed record AssignmentSummaryDto(AssignmentDto Assignment, DateOnly? EndDate, int Scheduled, int Completed, Guid? CurrentBlockId, Guid? CurrentCycleId);
 public sealed record LastTrainingActivityDto(DateOnly? PerformedDate, DateTimeOffset? CompletedAt);
 
+/// <summary>Manages assignments, frozen workout prescriptions, executions and progress in the Training database.</summary>
 public sealed partial class TrainingDeliveryService
 {
     public async Task<LastTrainingActivityDto> LastActivityAsync(Guid relationshipId, CancellationToken ct)

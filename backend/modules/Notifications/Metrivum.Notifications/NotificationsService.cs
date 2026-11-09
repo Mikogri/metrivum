@@ -11,6 +11,7 @@ public sealed record NotificationPage(NotificationDto[] Items, int Page, int Pag
 public sealed record NotificationTargetRequest(string Target);
 /// <summary>ProgramEnding is optional on write: clients that do not send it keep the saved choice.</summary>
 public sealed record PreferenceRequest(bool Messaging, bool CheckIns, bool Coaching, bool System, string[]? ProgramEnding = null);
+/// <summary>Queries notifications and updates authorized notification preferences and read state.</summary>
 public sealed class NotificationsService(NotificationsDbContext db, ModuleTransaction tx, TimeProvider clock, IAccountContext accounts, IHubContext<NotificationsHub> hub)
 {
     private Guid UserId => accounts.UserId;

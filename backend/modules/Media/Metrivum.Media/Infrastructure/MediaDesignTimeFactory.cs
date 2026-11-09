@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Metrivum.Media.Infrastructure;
 
+/// <summary>Creates the Media DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class MediaDesignTimeFactory : IDesignTimeDbContextFactory<MediaDbContext>
 {
     public MediaDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<MediaDbContext>()

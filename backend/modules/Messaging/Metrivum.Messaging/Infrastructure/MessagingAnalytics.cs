@@ -4,6 +4,7 @@ using Metrivum.Messaging.Domain;
 
 namespace Metrivum.Messaging.Infrastructure;
 
+/// <summary>Reads and aggregates messaging analytics information for authorized Messaging reporting and quota contracts.</summary>
 public sealed class MessagingAnalytics(MessagingDbContext db) : IMessagingAnalytics
 {
     public async Task<MessagingAnalysis> QueryAsync(AnalysisScope scope, CancellationToken ct)

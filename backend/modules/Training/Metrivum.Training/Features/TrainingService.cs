@@ -27,6 +27,7 @@ public sealed record PlanListItem(Guid Id, string Name, string Description, Docu
 public sealed record RevisionDto(Guid Id, int Number, long DraftVersion, DateTimeOffset PublishedAt, RevisionSnapshot Snapshot);
 public sealed record RevisionListItem(Guid Id, int Number, long DraftVersion, DateTimeOffset PublishedAt);
 public sealed record Paged<T>(T[] Items, int Page, int PageSize, long Total);
+/// <summary>Carries training list query fields for Training filtering or query projection; has no independent database writes.</summary>
 public sealed class TrainingListQuery
 {
     public int Page { get; set; } = 1;
@@ -58,6 +59,7 @@ public sealed record FormulaRequest(string Name, FormulaDefinition Definition);
 public sealed record FormulaDto(Guid Id, string Name, int Version, bool Archived, FormulaDefinition Definition);
 public sealed record FormulaListItem(Guid Id, string Name, int Version, bool Archived);
 
+/// <summary>Manages training plan drafts, revisions, formulas, imports and client metrics in the Training database.</summary>
 public sealed partial class TrainingService(TrainingDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IExerciseCatalog catalog, IOptions<TrainingOptions> options, TimeProvider clock, IRelationshipAccessPolicy relationshipPolicy, ModuleTransaction transaction, IEnumerable<IAssignedProgramScheduleObserver> assignmentObservers, IAccountProfileFields? profileFields = null, IRelationshipRecipients? metricRelationships = null, IAbuseProtection? abuse = null, IUsageReservations? usage = null)
 {

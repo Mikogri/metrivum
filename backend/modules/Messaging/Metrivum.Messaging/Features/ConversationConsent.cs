@@ -8,6 +8,7 @@ using Metrivum.Messaging.Domain;
 
 namespace Metrivum.Messaging.Features;
 
+/// <summary>Reads and changes authorized conversations, messages, requests and moderation state in the Messaging database.</summary>
 public sealed partial class MessagingService
 {
     public async Task<MessagingPreferenceDto> PreferencesAsync(CancellationToken ct)

@@ -10,6 +10,7 @@ using Metrivum.Calendar.Infrastructure;
 
 namespace Metrivum.Calendar;
 
+/// <summary>Registers Calendar services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddCalendar(this IServiceCollection services, IConfiguration configuration)

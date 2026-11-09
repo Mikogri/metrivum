@@ -3,6 +3,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Media;
 
+/// <summary>Checks uploaded video file metadata and signatures before the file enters media/analysis workflows.</summary>
 public static class VideoFileValidation
 {
     public static string Extension(string contentType) => contentType switch

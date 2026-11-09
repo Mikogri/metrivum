@@ -4,6 +4,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Billing.Infrastructure;
 
+/// <summary>Reads coach-seat usage for billing and entitlement checks.</summary>
 public sealed class CoachSeatUsage(BillingDbContext db) : ILimitUsageProvider
 {
     public Task<IReadOnlyList<LimitDecision>> GetUsageAsync(Guid ownerId, CancellationToken ct) =>

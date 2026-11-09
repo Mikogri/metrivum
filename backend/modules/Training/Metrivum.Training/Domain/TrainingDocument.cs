@@ -61,6 +61,7 @@ public sealed record TrainingDocument(int SchemaVersion, Block[] Blocks,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ExerciseMaxesTable[]? MaxesTables = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] PlanAnnotation[]? Annotations = null);
 
+/// <summary>Contains the configured document settings and bounds for Training; does not itself access the database.</summary>
 public sealed class DocumentLimits
 {
     public int MaximumBytes { get; set; } = 1_048_576;
@@ -69,6 +70,7 @@ public sealed class DocumentLimits
     public int MaximumSegments { get; set; } = 20;
 }
 
+/// <summary>Serializes and deserializes versioned training documents with the shared strict JSON rules.</summary>
 public static class TrainingJson
 {
     public static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, MaxDepth = 48 };
@@ -76,6 +78,7 @@ public static class TrainingJson
     public static T Deserialize<T>(string value) => JsonSerializer.Deserialize<T>(value, Options) ?? throw new TrainingValidationException("Empty JSON document.");
 }
 
+/// <summary>Validates training document structure and builds client-safe or active-only projections without database access.</summary>
 public static class DocumentRules
 {
     // Privacy is enforced before content leaves the owning API, including purchased copies.
@@ -401,6 +404,7 @@ public static class DocumentRules
     private static Prescription CopyPrescription(Prescription value) => value with { LoadFormula = value.LoadFormula is { } f ? f with { Inputs = new(f.Inputs), VariableBindings = f.VariableBindings == null ? null : new(f.VariableBindings) } : null };
 }
 
+/// <summary>Validates training-folder moves and prevents invalid parent relationships before persistence.</summary>
 public static class FolderRules
 {
     public static void ValidateMove(Guid id, Guid? parentId, IReadOnlyDictionary<Guid, Guid?> parents, int maximumDepth)

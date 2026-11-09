@@ -4,6 +4,7 @@ using Metrivum.Billing.Domain;
 
 namespace Metrivum.Billing.Infrastructure;
 
+/// <summary>Maps Billing entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options) : DbContext(options)
 {
     public DbSet<Order> Orders => Set<Order>();
@@ -155,6 +156,7 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
         return base.SaveChangesAsync(ct);
     }
 }
+/// <summary>Creates the Billing DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class BillingDesignFactory : IDesignTimeDbContextFactory<BillingDbContext>
 {
     public BillingDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<BillingDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_MIGRATION_DATABASE") ?? "Host=127.0.0.1;Database=trainflow_design;Username=unconfigured", o => o.MigrationsHistoryTable("__EFMigrationsHistory", "billing")).Options);

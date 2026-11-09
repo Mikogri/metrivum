@@ -7,6 +7,7 @@ using Metrivum.Offers.Contracts;
 
 namespace Metrivum.Billing.Features;
 
+/// <summary>Creates service orders and payment schedules and records simulated settlements in the Billing database.</summary>
 public sealed partial class BillingService
 {
     public Task<ServiceOrderSnapshot> CreateForPlanPurchaseAsync(CreatePlanPurchaseOrderCommand command, CancellationToken ct) => transaction.RunAsync(async token =>

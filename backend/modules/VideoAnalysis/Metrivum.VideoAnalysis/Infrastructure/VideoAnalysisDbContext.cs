@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Metrivum.VideoAnalysis.Infrastructure;
 
+/// <summary>Represents persisted analysis job state in VideoAnalysis; mapped and saved by the owning module's EF services.</summary>
 public sealed class AnalysisJob
 {
     public Guid Id
@@ -142,6 +143,7 @@ public sealed class SavedShare
     }
 }
 
+/// <summary>Maps VideoAnalysis entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class VideoAnalysisDbContext(DbContextOptions<VideoAnalysisDbContext> options) : DbContext(options)
 {
     public DbSet<AnalysisJob> Jobs => Set<AnalysisJob>();

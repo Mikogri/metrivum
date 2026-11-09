@@ -3,6 +3,7 @@ using Metrivum.Offers.Contracts;
 
 namespace Metrivum.Billing.Domain;
 
+/// <summary>Calculates billing splits, rounding and payment periods in memory; payment services own persistence.</summary>
 public static class BillingRules
 {
     public static decimal Round(decimal value) => decimal.Round(value, 2, MidpointRounding.AwayFromZero);

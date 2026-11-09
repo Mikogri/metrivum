@@ -6,6 +6,7 @@ using Metrivum.Training.Domain;
 
 namespace Metrivum.Training.Features;
 
+/// <summary>Adapts MCP training requests to authorized Training operations; owning services control persistence.</summary>
 public sealed class McpTrainingOperations(TrainingService programs, TrainingDeliveryService delivery, IAccountContext accounts) : IMcpTrainingOperations
 {
     public async Task<McpProgramPage> ListAsync(int page, int pageSize, string? search, CancellationToken ct)
@@ -85,6 +86,7 @@ public sealed class McpTrainingOperations(TrainingService programs, TrainingDeli
         TrainingJson.Deserialize<McpTrainingDocument>(TrainingJson.Serialize(plan.Document)), $"/app/programs/{plan.Id}/edit");
 }
 
+/// <summary>Manages training plan drafts, revisions, formulas, imports and client metrics in the Training database.</summary>
 public sealed partial class TrainingService
 {
     public async Task<McpProgramValidation> ValidateMcpDocumentAsync(Guid? id, TrainingDocument content, CancellationToken ct)
@@ -108,6 +110,7 @@ public sealed partial class TrainingService
     }
 }
 
+/// <summary>Applies bounded MCP workout/set patches to an in-memory training document while preserving identifiers.</summary>
 public static class McpProgramPatches
 {
     public static McpTrainingDocument Apply(McpTrainingDocument document, McpWorkoutChange[] changes)

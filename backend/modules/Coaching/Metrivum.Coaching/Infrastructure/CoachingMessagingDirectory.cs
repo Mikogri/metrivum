@@ -6,6 +6,7 @@ using Metrivum.Coaching.Infrastructure;
 
 namespace Metrivum.Coaching.Infrastructure;
 
+/// <summary>Reads coaching relationships and group recipients for Messaging through contracts.</summary>
 public sealed class CoachingMessagingDirectory(CoachingDbContext db, IAccountContext accounts, ITeamContext? teams = null) : ICoachingMessagingDirectory
 {
     public Task<bool> HasActiveRelationshipAsync(Guid userId, CancellationToken ct) => db.Relationships.AnyAsync(x =>

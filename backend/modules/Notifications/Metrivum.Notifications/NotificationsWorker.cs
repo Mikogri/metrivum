@@ -10,6 +10,7 @@ using Metrivum.BuildingBlocks;
 using Microsoft.Extensions.Options;
 namespace Metrivum.Notifications;
 
+/// <summary>Provides authenticated, account-scoped SignalR notification delivery.</summary>
 [Authorize]
 public sealed class NotificationsHub(IAccountContext accounts) : Hub
 {
@@ -19,6 +20,7 @@ public sealed class NotificationsHub(IAccountContext accounts) : Hub
         await base.OnConnectedAsync();
     }
 }
+/// <summary>Processes durable notifications in the background and schedules delivery attempts.</summary>
 public sealed class NotificationsWorker(IServiceScopeFactory scopes, ILogger<NotificationsWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -37,6 +39,7 @@ public sealed class NotificationsWorker(IServiceScopeFactory scopes, ILogger<Not
         }
     }
 }
+/// <summary>Delivers eligible notification records through the configured realtime and push channels.</summary>
 public sealed class NotificationsDelivery(NotificationsDbContext db, ModuleTransaction tx, IHubContext<NotificationsHub> hub, TimeProvider clock, IEnumerable<INotificationDeliveryPolicy> policies, IAccountDirectory accounts, IOptions<ExpoPushOptions> pushOptions)
 {
     public Task DeliverAsync(CancellationToken ct) => tx.RunAsync(async token =>

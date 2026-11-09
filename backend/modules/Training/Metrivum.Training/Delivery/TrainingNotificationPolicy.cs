@@ -6,6 +6,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training.Delivery;
 
+/// <summary>Resolves permitted recipients and visibility of Training notifications before delivery.</summary>
 public sealed class TrainingNotificationPolicy(TrainingDbContext db, IRelationshipRecipients relationships, ITeamContext? teams = null) : INotificationDeliveryPolicy
 {
     public string SourceModule => "Training";

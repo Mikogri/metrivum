@@ -10,6 +10,7 @@ using Metrivum.Integrations.Features;
 
 namespace Metrivum.Integrations.Infrastructure;
 
+/// <summary>Calls the configured Supabase OAuth consent API; does not grant direct application-table access.</summary>
 public sealed class SupabaseOAuthConsent(HttpClient client, IConfiguration configuration, IHttpContextAccessor http, IAccountContext accounts, ILogger<SupabaseOAuthConsent> logger)
 {
     public async Task TryRevokeAsync(string clientId, CancellationToken ct)

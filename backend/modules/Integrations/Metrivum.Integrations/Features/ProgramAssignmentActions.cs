@@ -6,6 +6,7 @@ using Metrivum.Training.Contracts;
 
 namespace Metrivum.Integrations.Features;
 
+/// <summary>Manages AI consent, pending actions and command receipts, coordinating approved writes through owning-module contracts.</summary>
 public sealed partial class IntegrationService
 {
     public async Task<PendingActionDto> PrepareAssignmentAsync(McpProgramAssignmentRequest request, Guid idempotencyKey, CancellationToken ct)

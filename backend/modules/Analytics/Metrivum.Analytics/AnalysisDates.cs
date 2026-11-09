@@ -3,6 +3,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Analytics;
 
+/// <summary>Builds current and preceding date windows for analytics; performs no database writes.</summary>
 public static class AnalysisDates
 {
     public static DateOnly Today(string zone, DateTimeOffset now)

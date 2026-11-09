@@ -14,6 +14,7 @@ using Metrivum.Training.Contracts;
 
 namespace Metrivum.Integrations.Features;
 
+/// <summary>Manages AI consent, pending actions and command receipts, coordinating approved writes through owning-module contracts.</summary>
 public sealed partial class IntegrationService(IntegrationsDbContext db, IAccountContext accounts, IFeatureAccessService features,
     IntegrationAccess access, ModuleTransaction tx, IMcpMessageOperations messaging, IMcpTrainingOperations training, SupabaseOAuthConsent oauth,
     TimeProvider clock, IHttpContextAccessor http, IConfiguration configuration)

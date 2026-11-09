@@ -7,6 +7,7 @@ namespace Metrivum.CheckIns.Features;
 
 public sealed record CheckInCalendarItem(string Id, string Kind, Guid ScheduleId, Guid? RequestId, string Name, DateTimeOffset AvailableAtUtc, DateTimeOffset DueAtUtc, string Status);
 
+/// <summary>Manages check-in schedules, assignments and issued requests in the CheckIns database.</summary>
 public sealed partial class CheckInsService
 {
     public async Task<CheckInPage<CheckInCalendarItem>> CalendarAsync(string role, string kind, DateTimeOffset from, DateTimeOffset to, int page, int size, CancellationToken ct)

@@ -10,6 +10,7 @@ public sealed record GroupDto(Guid Id, string Name, string Description, string C
 public sealed record GroupRequest(string Name, string Description, string Color, Guid? TeamId = null);
 public sealed record StatusRequest(string? InternalReason);
 public sealed record Paged<T>(T[] Items, int Page, int PageSize, long Total);
+/// <summary>Carries coaching list query fields for Coaching filtering or query projection; has no independent database writes.</summary>
 public sealed class CoachingListQuery
 {
     public Guid? TeamId

@@ -3,6 +3,7 @@ using Metrivum.Analytics.Contracts;
 
 namespace Metrivum.Billing.Infrastructure;
 
+/// <summary>Reads and aggregates billing analytics information for authorized Billing reporting and quota contracts.</summary>
 public sealed class BillingAnalytics(BillingDbContext db) : IFinanceAnalytics
 {
     public async Task<FinancialAnalysis> QueryAsync(AnalysisScope s, CancellationToken ct)
@@ -171,6 +172,7 @@ public sealed class BillingAnalytics(BillingDbContext db) : IFinanceAnalytics
     }
 }
 
+/// <summary>Carries finance aggregate row fields for Billing filtering or query projection; has no independent database writes.</summary>
 public sealed class FinanceAggregateRow
 {
     public string Kind { get; set; } = "";

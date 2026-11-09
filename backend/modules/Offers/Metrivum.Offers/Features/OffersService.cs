@@ -19,6 +19,7 @@ public sealed record OfferListDto(IReadOnlyList<OfferDto> Items, int Page, int P
 public sealed record PublicOfferListDto(IReadOnlyList<OfferRevisionDto> Items, int Page, int PageSize, int Total);
 public sealed record OfferCategoryDto(string Key, string Name, bool Active);
 
+/// <summary>Manages authorized offer drafts, revisions and billing options in the Offers database.</summary>
 public sealed class OffersService(OffersDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IAccountProfileFields profiles, IFormLibrary forms, TimeProvider clock, ModuleTransaction transaction, ITeamContext? teams = null, IEnumerable<IOfferUsage>? usage = null, IAbuseProtection? abuse = null) : IOfferLibrary
 {

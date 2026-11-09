@@ -10,6 +10,7 @@ using Metrivum.Messaging.Features;
 
 namespace Metrivum.Messaging.Infrastructure;
 
+/// <summary>Delivers committed messaging changes to authorized SignalR recipients.</summary>
 public sealed class MessagingDispatcher(MessagingDbContext db, ModuleTransaction tx, IHubContext<MessagingHub> hub, ILogger<MessagingDispatcher> logger, IFeatureAudience audience)
 {
     public async Task ConversationAsync(Guid id, string eventName, object payload, CancellationToken ct, Guid? activePublisher = null)
@@ -54,11 +55,13 @@ public sealed class MessagingDispatcher(MessagingDbContext db, ModuleTransaction
     }
 }
 
+/// <summary>Maps the authenticated account identity to a SignalR user identifier.</summary>
 public sealed class MessagingUserIdProvider : IUserIdProvider
 {
     public string? GetUserId(HubConnectionContext connection) => Guid.TryParse(connection.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? connection.User?.FindFirst("sub")?.Value, out var id) ? id.ToString() : null;
 }
 
+/// <summary>Handles authorized realtime conversation subscriptions; realtime membership never replaces resource authorization.</summary>
 [Authorize]
 public sealed class MessagingHub(MessagingService service, IAccountContext accounts, MessagingDispatcher dispatcher, TimeProvider clock, MessagingHubAbuse abuse) : Hub
 {

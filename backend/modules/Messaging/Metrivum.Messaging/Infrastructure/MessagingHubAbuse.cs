@@ -3,6 +3,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Messaging.Infrastructure;
 
+/// <summary>Applies abuse limits to realtime messaging operations.</summary>
 public sealed class MessagingHubAbuse(IAbuseProtection abuse, TimeProvider clock) : IHubFilter
 {
     private const string LeaseKey = "Metrivum.HubConnectionLease";

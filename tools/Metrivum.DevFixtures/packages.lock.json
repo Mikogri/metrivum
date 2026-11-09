@@ -35,6 +35,7 @@
           "Metrivum.Access.Contracts": "[1.0.0, )",
           "Metrivum.Accounts.Contracts": "[1.0.0, )",
           "Metrivum.BuildingBlocks": "[1.0.0, )",
+          "Metrivum.Media.Contracts": "[1.0.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
       },

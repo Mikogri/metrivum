@@ -7,6 +7,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.VideoAnalysis;
 
+/// <summary>Contains the configured motion trace settings and bounds for VideoAnalysis; does not itself access the database.</summary>
 public sealed class MotionTraceOptions
 {
     public bool Enabled
@@ -23,6 +24,7 @@ public sealed class MotionTraceOptions
     public string WorkDirectory { get; set; } = Path.Combine(Path.GetTempPath(), "Metrivum.MotionTrace");
 }
 
+/// <summary>Invokes the configured MotionTrace analysis process and translates its result; model work runs outside HTTP request handling.</summary>
 public sealed class MotionTraceAnalyzer(IOptions<MotionTraceOptions> configured, IOptions<AnalysisOptions> limits,
     IConfiguration configuration, ILogger<MotionTraceAnalyzer> logger) : IVideoAnalyzer
 {

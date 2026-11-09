@@ -11,6 +11,7 @@ using Metrivum.Notifications.Contracts;
 
 namespace Metrivum.ClientDocumentation;
 
+/// <summary>Registers ClientDocumentation services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ClientDocumentationModule
 {
     public static IServiceCollection AddClientDocumentation(this IServiceCollection services)

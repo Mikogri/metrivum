@@ -5,6 +5,7 @@ using Metrivum.Notifications.Contracts;
 
 namespace Metrivum.Notifications;
 
+/// <summary>Reads and updates notification read state for the current account and resource.</summary>
 public sealed class NotificationReadStore(NotificationsDbContext db, TimeProvider clock, ModuleTransaction tx, IHubContext<NotificationsHub> hub) : INotificationReadStore
 {
     public Task<string[]> UnreadEventKeysAsync(Guid recipient, string module, Guid source, string type, CancellationToken ct) =>

@@ -4,6 +4,7 @@ using Metrivum.Coaching.Domain;
 
 namespace Metrivum.Coaching.Infrastructure;
 
+/// <summary>Maps Coaching entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class CoachingDbContext(DbContextOptions<CoachingDbContext> options) : DbContext(options)
 {
     public DbSet<Relationship> Relationships => Set<Relationship>();
@@ -144,6 +145,7 @@ public sealed class CoachingDbContext(DbContextOptions<CoachingDbContext> option
         history.HasOne<CoachingApplication>().WithMany().HasForeignKey(x => x.ApplicationId).OnDelete(DeleteBehavior.Restrict);
     }
 }
+/// <summary>Creates the Coaching DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class CoachingDesignFactory : IDesignTimeDbContextFactory<CoachingDbContext>
 {
     public CoachingDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<CoachingDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_MIGRATION_DATABASE") ?? "Host=localhost;Database=trainflow_design;Username=design_only", x => x.MigrationsHistoryTable("__EFMigrationsHistory", "coaching")).Options);

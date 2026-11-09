@@ -8,6 +8,7 @@ using Metrivum.Messaging.Domain;
 
 namespace Metrivum.Messaging.Features;
 
+/// <summary>Reads and changes authorized conversations, messages, requests and moderation state in the Messaging database.</summary>
 public sealed partial class MessagingService : IMcpMessageOperations
 {
     async Task<McpConversation[]> IMcpMessageOperations.ListAsync(string? search, int limit, CancellationToken ct)

@@ -26,6 +26,7 @@ public sealed record TeamDissolutionRequest(long Version, bool Confirmed);
 public sealed record TeamCancelDissolutionRequest(long Version, bool ResumeRenewal = false);
 public sealed record TeamOwnershipRequest(Guid RecipientUserId, long Version);
 
+/// <summary>Manages team membership, invitations and organization state in the Billing database.</summary>
 public sealed class TeamService(BillingDbContext db, IAccountContext accounts, IAccountDirectory directory,
     ModuleTransaction transaction, TimeProvider clock, INotificationPublisher? notifications = null, ITeamLifecycle? lifecycle = null, ILogger<TeamService>? logger = null)
 {

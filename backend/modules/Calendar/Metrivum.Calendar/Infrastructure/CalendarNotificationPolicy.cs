@@ -4,6 +4,7 @@ using Metrivum.Coaching.Contracts;
 using Metrivum.Notifications.Contracts;
 namespace Metrivum.Calendar.Infrastructure;
 
+/// <summary>Resolves permitted recipients and visibility of Calendar notifications before delivery.</summary>
 public sealed class CalendarNotificationPolicy(CalendarDbContext db, IRelationshipRecipients relationships, ITeamContext? teams = null) : INotificationDeliveryPolicy
 {
     public string SourceModule => "Calendar";

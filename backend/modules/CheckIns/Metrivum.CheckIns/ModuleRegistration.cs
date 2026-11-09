@@ -16,6 +16,7 @@ using Metrivum.CheckIns.Infrastructure;
 
 namespace Metrivum.CheckIns;
 
+/// <summary>Registers CheckIns services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddCheckIns(this IServiceCollection services, IConfiguration configuration)
@@ -70,6 +71,7 @@ public static class ModuleRegistration
         return Results.Ok(value);
     }
 }
+/// <summary>Runs scheduled check ins processing in CheckIns through the owning services.</summary>
 public sealed class CheckInsWorker(IServiceScopeFactory scopes, IConfiguration configuration, IHostEnvironment environment, ILogger<CheckInsWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

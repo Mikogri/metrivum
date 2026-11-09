@@ -4,6 +4,7 @@ using Metrivum.Messaging.Domain;
 
 namespace Metrivum.Messaging.Infrastructure;
 
+/// <summary>Maps Messaging entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class MessagingDbContext(DbContextOptions<MessagingDbContext> options) : DbContext(options)
 {
     public DbSet<MessagingAbuseRecord> AbuseRecords => Set<MessagingAbuseRecord>();
@@ -97,6 +98,7 @@ public sealed class MessagingDbContext(DbContextOptions<MessagingDbContext> opti
     }
 }
 
+/// <summary>Creates the Messaging DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class MessagingDesignFactory : IDesignTimeDbContextFactory<MessagingDbContext>
 {
     public MessagingDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<MessagingDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_MIGRATION_DATABASE") ?? "Host=localhost;Database=trainflow_design;Username=design_only", x => x.MigrationsHistoryTable("__EFMigrationsHistory", "messaging")).Options);

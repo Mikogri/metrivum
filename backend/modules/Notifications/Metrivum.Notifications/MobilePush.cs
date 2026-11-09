@@ -10,11 +10,13 @@ using Metrivum.Notifications.Contracts;
 
 namespace Metrivum.Notifications;
 
+/// <summary>Contains the configured expo push settings and bounds for Notifications; does not itself access the database.</summary>
 public sealed class ExpoPushOptions
 {
     public bool Enabled { get; set; }
     public string? AccessToken { get; set; }
 }
+/// <summary>Represents persisted push device state in Notifications; mapped and saved by the owning module's EF services.</summary>
 public sealed class PushDevice
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -27,6 +29,7 @@ public sealed class PushDevice
     public DateTimeOffset UpdatedAt { get; set; }
     public DateTimeOffset? ActiveUntil { get; set; }
 }
+/// <summary>Represents persisted push delivery state in Notifications; mapped and saved by the owning module's EF services.</summary>
 public sealed class PushDelivery
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -41,6 +44,7 @@ public sealed class PushDelivery
 }
 public sealed record RegisterPushDeviceRequest(string ExpoPushToken, string Platform, bool Enabled, Guid? ActiveConversationId = null);
 public sealed record PushDeviceDto(Guid InstallationId, string Platform, bool Enabled);
+/// <summary>Registers and revokes account-owned mobile push devices in the notification database.</summary>
 public sealed class PushDevices(NotificationsDbContext db, ModuleTransaction tx, IAccountContext accounts, TimeProvider clock)
 {
     public Task<PushDeviceDto> RegisterAsync(Guid installation, RegisterPushDeviceRequest input, CancellationToken ct) => tx.RunAsync(async token =>
@@ -74,6 +78,7 @@ public sealed class PushDevices(NotificationsDbContext db, ModuleTransaction tx,
 }
 
 public sealed record ExpoPushResult(string? TicketId, string? Error);
+/// <summary>Sends push payloads to Expo over HTTP and interprets delivery results.</summary>
 public sealed class ExpoPushTransport(HttpClient http, IOptions<ExpoPushOptions> options)
 {
     public async Task<ExpoPushResult> SendAsync(string token, Notification notification, CancellationToken ct)
@@ -116,6 +121,7 @@ public sealed class ExpoPushTransport(HttpClient http, IOptions<ExpoPushOptions>
     }
 }
 
+/// <summary>Coordinates persisted mobile push deliveries and retries through the Expo transport.</summary>
 public sealed class MobilePushDelivery(NotificationsDbContext db, ModuleTransaction tx, ExpoPushTransport transport,
     IOptions<ExpoPushOptions> options, TimeProvider clock, IAccountDirectory accounts, IEnumerable<INotificationDeliveryPolicy> policies)
 {

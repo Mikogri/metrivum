@@ -4,6 +4,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training.Delivery;
 
+/// <summary>Validates training delivery state, dates and execution completion and resolves occurrence schedules without writing data.</summary>
 public static class DeliveryRules
 {
     public static bool IsPerformedSet(SetExecution set, bool maximumEffort = false) => !set.Skipped &&

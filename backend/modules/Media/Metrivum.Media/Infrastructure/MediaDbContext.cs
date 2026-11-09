@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Metrivum.Media.Infrastructure;
 
+/// <summary>Represents persisted media file state in Media; mapped and saved by the owning module's EF services.</summary>
 public sealed class MediaFile
 {
     public Guid Id
@@ -51,6 +52,7 @@ public sealed class MediaFile
     public long Version { get; set; } = 1;
 }
 
+/// <summary>Maps Media entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class MediaDbContext(DbContextOptions<MediaDbContext> options) : DbContext(options)
 {
     public DbSet<MediaFile> Files => Set<MediaFile>();

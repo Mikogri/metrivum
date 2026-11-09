@@ -12,6 +12,7 @@ public sealed record AnalysisWorkoutOptionDto(Guid ExecutionId, Guid Relationshi
 public sealed record AnalysisExerciseOptionDto(Guid Id, string Name, AnalysisSetOptionDto[] Sets);
 public sealed record AnalysisSetOptionDto(Guid Id, int Number, bool Skipped, int? Reps, decimal? Load, string? LoadUnit, decimal? Rpe);
 
+/// <summary>Manages assignments, frozen workout prescriptions, executions and progress in the Training database.</summary>
 public sealed partial class TrainingDeliveryService : IAnalysisWorkoutReferences
 {
     public async Task RequireOwnedAsync(Guid userId, Guid executionId, Guid? setId, CancellationToken ct)

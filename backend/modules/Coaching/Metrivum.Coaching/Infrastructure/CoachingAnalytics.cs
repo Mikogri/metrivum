@@ -6,6 +6,7 @@ using Metrivum.Coaching.Domain;
 
 namespace Metrivum.Coaching.Infrastructure;
 
+/// <summary>Reads and aggregates coaching analytics information for authorized Coaching reporting and quota contracts.</summary>
 public sealed class CoachingAnalytics(CoachingDbContext db) : ICoachingAnalytics
 {
     public async Task<Guid[]> ResolveTeamRelationshipsAsync(Guid teamId, Guid? memberId, Guid? groupId, Guid? offerRevisionId, CancellationToken ct)
@@ -323,6 +324,7 @@ public sealed class CoachingAnalytics(CoachingDbContext db) : ICoachingAnalytics
     }
 }
 
+/// <summary>Carries client series row fields for Coaching filtering or query projection; has no independent database writes.</summary>
 public sealed class ClientSeriesRow
 {
     public DateOnly Date
@@ -347,6 +349,7 @@ public sealed class ClientSeriesRow
     }
 }
 
+/// <summary>Carries client summary row fields for Coaching filtering or query projection; has no independent database writes.</summary>
 public sealed class ClientSummaryRow
 {
     public int Active

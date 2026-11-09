@@ -3,6 +3,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.VideoAnalysis;
 
+/// <summary>Enforces cloud-analysis cost and resource budgets before admitting jobs.</summary>
 public sealed class CloudAnalysisBudget(IUsageReservations usage, IPlanEntitlementsProvider plans)
 {
     public const string Key = "video.cloud_gpu_seconds_per_period";

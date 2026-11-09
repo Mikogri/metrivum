@@ -11,6 +11,7 @@ using Metrivum.Integrations.Features;
 
 namespace Metrivum.Api.Security;
 
+/// <summary>Contains the configured mcp hosting settings and bounds for API host; does not itself access the database.</summary>
 public sealed class McpHostingOptions
 {
     public bool Enabled { get; set; }
@@ -22,6 +23,7 @@ public sealed class McpHostingOptions
     public int MaximumResponseBytes { get; set; } = 1048576;
 }
 
+/// <summary>Configures the authenticated MCP transport and advertised resource endpoints in the API host.</summary>
 public static class McpHosting
 {
     public static IServiceCollection AddMetrivumMcp(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)

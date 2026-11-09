@@ -11,6 +11,7 @@ using Metrivum.Media.Infrastructure;
 
 namespace Metrivum.Media;
 
+/// <summary>Registers Media services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class MediaModule
 {
     public static IServiceCollection AddMedia(this IServiceCollection services, IConfiguration config)

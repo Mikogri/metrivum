@@ -15,6 +15,7 @@ using Metrivum.Offers.Contracts;
 
 namespace Metrivum.Coaching.Features;
 
+/// <summary>Processes applications and invitations and coordinates resulting collaboration, offer and message changes.</summary>
 public sealed class CoachingIntakeService(CoachingDbContext db, IAccountContext accounts, IAccountDirectory directory,
     IAccountProfileFields profile, IFeatureAccessService access, IOfferLibrary offers, IFormLibrary forms,
     IBillingOrders billing, IRelationshipActivation activation, IRelationshipAccessPolicy policy,

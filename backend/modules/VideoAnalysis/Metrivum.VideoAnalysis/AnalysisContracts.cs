@@ -4,6 +4,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.VideoAnalysis;
 
+/// <summary>Contains the configured analysis settings and bounds for VideoAnalysis; does not itself access the database.</summary>
 public sealed class AnalysisOptions
 {
     // Technical safety limits are identical for Free and Pro.
@@ -60,6 +61,7 @@ public interface IVideoAnalyzer
     }
 }
 
+/// <summary>Rejects analysis requests when no executable analyzer implementation is configured.</summary>
 public sealed class UnavailableVideoAnalyzer : IVideoAnalyzer
 {
     public bool IsConfigured => false;
@@ -67,6 +69,7 @@ public sealed class UnavailableVideoAnalyzer : IVideoAnalyzer
         Task.FromException<AnalysisResult>(new ApiException(503, "ANALYZER_NOT_CONFIGURED", "No video analysis engine is configured."));
 }
 
+/// <summary>Validates and projects analyzer output without performing inference or database writes.</summary>
 public static class AnalysisResults
 {
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);

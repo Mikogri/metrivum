@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace Metrivum.BuildingBlocks;
 
+/// <summary>Defines the named request-abuse budgets used by API modules.</summary>
 public static class AbusePolicies
 {
     public const string Global = "global", Read = "read", Write = "write", Search = "search", Autosave = "autosave",
@@ -34,6 +35,7 @@ public interface IAbuseCounterStore
         => throw new NotSupportedException("This counter store does not support concurrency leases.");
 }
 
+/// <summary>Releases an acquired abuse-protection lease when an operation completes.</summary>
 internal sealed class AsyncAbuseLease(IDisposable local, IAsyncDisposable? shared = null) : IAsyncDisposable
 {
     public async ValueTask DisposeAsync()
@@ -43,6 +45,7 @@ internal sealed class AsyncAbuseLease(IDisposable local, IAsyncDisposable? share
     }
 }
 
+/// <summary>Describes one abuse budget and its time window; contains no persistence logic.</summary>
 public sealed class AbuseLimit
 {
     public int Permits { get; set; }
@@ -51,6 +54,7 @@ public sealed class AbuseLimit
     public bool Concurrent { get; set; }
 }
 
+/// <summary>Contains the configured abuse protection settings and bounds for shared infrastructure; does not itself access the database.</summary>
 public sealed class AbuseProtectionOptions
 {
     public const string Section = "AbuseProtection";
@@ -87,6 +91,7 @@ public sealed class AbuseProtectionOptions
     }
 }
 
+/// <summary>Enforces abuse budgets and concurrency leases through the configured counter store.</summary>
 public sealed class AbuseProtection : IAbuseProtection, IDisposable
 {
     private readonly AbuseProtectionOptions options;

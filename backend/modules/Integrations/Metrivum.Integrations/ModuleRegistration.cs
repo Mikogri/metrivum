@@ -11,6 +11,7 @@ using Metrivum.Integrations.Infrastructure;
 
 namespace Metrivum.Integrations;
 
+/// <summary>Registers Integrations services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddIntegrations(this IServiceCollection services, IConfiguration configuration)

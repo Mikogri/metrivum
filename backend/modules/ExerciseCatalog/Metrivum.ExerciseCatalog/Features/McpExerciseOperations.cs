@@ -2,6 +2,7 @@ using Metrivum.ExerciseCatalog.Contracts;
 
 namespace Metrivum.ExerciseCatalog.Features;
 
+/// <summary>Adapts MCP exercise requests to authorized ExerciseCatalog operations; owning services control persistence.</summary>
 public sealed class McpExerciseOperations(CatalogService catalog) : IMcpExerciseOperations
 {
     public async Task<McpExercisePage> SearchAsync(string? search, string? muscleKey, string? movementPatternKey, bool favoritesOnly, int page, int pageSize, CancellationToken ct,

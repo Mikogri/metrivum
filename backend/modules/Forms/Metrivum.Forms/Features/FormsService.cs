@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Metrivum.Access.Contracts;
 using Metrivum.Accounts.Contracts;
@@ -21,6 +21,7 @@ public sealed record FormSummaryListDto(IReadOnlyList<FormSummaryDto> Items, int
 internal sealed record FormSummaryRow(Guid Id, string Name, string Description,
     Guid? CurrentPublishedVersionId, bool Archived, DateTimeOffset UpdatedAt, long Version, int QuestionCount, int EstimatedSeconds);
 
+/// <summary>Manages form drafts, frozen versions and submissions in the Forms database.</summary>
 public sealed class FormsService(FormsDbContext db, IAccountContext accounts, IFeatureAccessService access, TimeProvider clock, ModuleTransaction transaction, IAbuseProtection? abuse = null) : IFormLibrary
 {
     public async Task<FormSummaryListDto> SummariesAsync(int page, int pageSize, FormPurpose purpose, bool archived, string? search, string sort, CancellationToken ct)

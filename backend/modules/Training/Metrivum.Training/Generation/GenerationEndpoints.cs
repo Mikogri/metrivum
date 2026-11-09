@@ -5,6 +5,7 @@ using Metrivum.Training.Features;
 
 namespace Metrivum.Training.Generation;
 
+/// <summary>Maps generation HTTP operations in Training; owning handlers validate requests and perform persistence.</summary>
 public static class GenerationEndpoints
 {
     public static void MapProgramGenerator(this RouteGroupBuilder training)

@@ -17,6 +17,7 @@ using System.Text.Json.Serialization;
 
 namespace Metrivum.Messaging;
 
+/// <summary>Registers Messaging services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddMessaging(this IServiceCollection services, IConfiguration configuration)

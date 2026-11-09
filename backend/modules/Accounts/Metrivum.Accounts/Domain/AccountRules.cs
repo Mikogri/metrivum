@@ -3,6 +3,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Accounts.Domain;
 
+/// <summary>Validates onboarding, account settings and phone values before Accounts services persist them.</summary>
 public static partial class AccountRules
 {
     public static void ValidateOnboarding(string username, string displayName, DateOnly birthDate, bool acceptedTerms,

@@ -4,6 +4,7 @@ using Metrivum.Integrations.Domain;
 
 namespace Metrivum.Integrations.Infrastructure;
 
+/// <summary>Maps Integrations entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class IntegrationsDbContext(DbContextOptions<IntegrationsDbContext> options) : DbContext(options)
 {
     public DbSet<IntegrationConnection> Connections => Set<IntegrationConnection>();
@@ -65,6 +66,7 @@ public sealed class IntegrationsDbContext(DbContextOptions<IntegrationsDbContext
     }
 }
 
+/// <summary>Creates the Integrations DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class IntegrationsDesignFactory : IDesignTimeDbContextFactory<IntegrationsDbContext>
 {
     public IntegrationsDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<IntegrationsDbContext>()

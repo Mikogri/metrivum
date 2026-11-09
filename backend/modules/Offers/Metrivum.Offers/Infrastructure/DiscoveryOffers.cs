@@ -4,6 +4,7 @@ using Metrivum.Offers.Domain;
 
 namespace Metrivum.Offers.Infrastructure;
 
+/// <summary>Projects published discoverable offers for coach discovery through Offers contracts.</summary>
 internal sealed class DiscoveryOffers(OffersDbContext db) : IDiscoveryOffers
 {
     public Task<Guid[]> CoachIdsWithOffersAsync(IReadOnlyCollection<Guid> coachIds, string? category, CancellationToken ct) =>

@@ -14,6 +14,7 @@ public sealed record CommitImportRequest(string Name, DocumentKind Kind, Guid? F
 public sealed record ExportFile(byte[] Content, string ContentType, string Name);
 public sealed record ImportValidation(bool Valid, long Version, TrainingDocument Document);
 
+/// <summary>Manages training plan drafts, revisions, formulas, imports and client metrics in the Training database.</summary>
 public sealed partial class TrainingService
 {
     public Task<ImportPreview> PreviewImportAsync(string content, string delimiter, CancellationToken ct) => WriteAsync("training.import.csv", async account =>

@@ -487,6 +487,7 @@ export function ExerciseRow({
       {popup ? (
         <ContextMenu x={popup.rect.left} y={popup.rect.bottom + 2} items={[]} label={t.columns.comment} onAction={() => undefined} onClose={() => setPopup(null)}>
             <textarea
+              autoFocus
               className={styles.menuTextarea}
               rows={5}
               maxLength={2000}

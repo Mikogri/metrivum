@@ -3,6 +3,7 @@ using Metrivum.Access.Contracts;
 
 namespace Metrivum.Analytics;
 
+/// <summary>Adapts MCP analytics requests to authorized Analytics operations; owning services control persistence.</summary>
 public sealed class McpAnalyticsOperations(AnalysisService analytics, IFeatureAccessService access) : IMcpAnalyticsOperations
 {
     public async Task<McpFinancialSummary> FinancialAsync(DateOnly from, DateOnly to, string timeZone, CancellationToken ct)

@@ -10,6 +10,7 @@ using Metrivum.VideoAnalysis.Infrastructure;
 
 namespace Metrivum.VideoAnalysis;
 
+/// <summary>Reads and changes authorized saved video analyses, including result metadata and retention state.</summary>
 public sealed class AnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary media, IVideoAnalyzer analyzer, IOptions<AnalysisOptions> configured,
     ICloudGpuMeter? gpuMeter = null, ModuleTransaction? transaction = null, CloudAnalysisBudget? cloudBudget = null)
 {

@@ -1,5 +1,6 @@
 namespace Metrivum.Calendar.Domain;
 
+/// <summary>Represents persisted calendar event state in Calendar; mapped and saved by the owning module's EF services.</summary>
 public sealed class CalendarEvent
 {
     public Guid? TeamId
@@ -49,6 +50,7 @@ public sealed class CalendarEvent
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted calendar attendee state in Calendar; mapped and saved by the owning module's EF services.</summary>
 public sealed class CalendarAttendee
 {
     public Guid EventId
@@ -74,6 +76,7 @@ public sealed class CalendarAttendee
     public string Response { get; set; } = "Pending";
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted calendar audit state in Calendar; mapped and saved by the owning module's EF services.</summary>
 public sealed class CalendarAudit
 {
     public Guid Id { get; set; } = Guid.NewGuid();

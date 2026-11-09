@@ -5,6 +5,7 @@ using Metrivum.Training.Contracts;
 
 namespace Metrivum.CheckIns.Infrastructure;
 
+/// <summary>Updates plan-relative check-in scheduling after Training publishes assignment-cycle changes.</summary>
 public sealed class AssignedProgramScheduleObserver(CheckInsDbContext db, TimeProvider clock) : IAssignedProgramScheduleObserver
 {
     public async Task ChangedAsync(Guid coachId, AssignedProgramCycles assignment, CancellationToken ct)

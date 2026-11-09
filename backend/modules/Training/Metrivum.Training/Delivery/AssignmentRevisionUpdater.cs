@@ -6,6 +6,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training.Delivery;
 
+/// <summary>Applies new plan revisions to eligible unstarted workout occurrences while preserving started and completed history.</summary>
 internal static class AssignmentRevisionUpdater
 {
     public static async Task ApplyAsync(TrainingDbContext db, TrainingRevision revision, IRelationshipAccessPolicy policy, TimeProvider clock, IEnumerable<IAssignedProgramScheduleObserver> observers, CancellationToken ct, TrainingService? formulaService = null)

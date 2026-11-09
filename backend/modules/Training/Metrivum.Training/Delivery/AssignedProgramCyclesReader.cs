@@ -5,6 +5,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training.Delivery;
 
+/// <summary>Reads effective assigned program cycles for other modules without exposing the Training DbContext.</summary>
 public sealed class AssignedProgramCyclesReader(TrainingDbContext db) : IAssignedProgramCycles
 {
     public async Task<AssignedProgramCycles?> GetAsync(Guid coachId, Guid assignmentId, CancellationToken ct)

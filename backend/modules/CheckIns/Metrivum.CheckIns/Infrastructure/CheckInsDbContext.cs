@@ -4,6 +4,7 @@ using Metrivum.CheckIns.Domain;
 
 namespace Metrivum.CheckIns.Infrastructure;
 
+/// <summary>Maps CheckIns entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class CheckInsDbContext(DbContextOptions<CheckInsDbContext> options) : DbContext(options)
 {
     public DbSet<CheckInSchedule> Schedules => Set<CheckInSchedule>();
@@ -68,6 +69,7 @@ public sealed class CheckInsDbContext(DbContextOptions<CheckInsDbContext> option
         r.HasOne<CheckInSchedule>().WithMany().HasForeignKey(x => new { x.ScheduleId, x.CoachId, x.WorkspaceId }).HasPrincipalKey(x => new { x.Id, x.CoachId, x.WorkspaceId }).OnDelete(DeleteBehavior.Restrict);
     }
 }
+/// <summary>Creates the CheckIns DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class CheckInsDesignFactory : IDesignTimeDbContextFactory<CheckInsDbContext>
 {
     public CheckInsDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<CheckInsDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_MIGRATION_DATABASE") ?? "Host=localhost;Database=trainflow_design;Username=design_only", x => x.MigrationsHistoryTable("__EFMigrationsHistory", "checkins")).Options);

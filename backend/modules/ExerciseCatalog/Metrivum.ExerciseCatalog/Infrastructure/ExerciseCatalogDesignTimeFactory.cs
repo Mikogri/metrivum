@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Metrivum.ExerciseCatalog.Infrastructure;
 
+/// <summary>Creates the ExerciseCatalog DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class ExerciseCatalogDesignTimeFactory : IDesignTimeDbContextFactory<ExerciseCatalogDbContext>
 {
     public ExerciseCatalogDbContext CreateDbContext(string[] args)

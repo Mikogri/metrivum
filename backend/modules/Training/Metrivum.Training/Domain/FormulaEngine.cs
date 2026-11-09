@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Metrivum.Training.Domain;
 
+/// <summary>Reports an invalid training document or formula to the module validation boundary.</summary>
 public sealed class TrainingValidationException(string message) : Exception(message);
 
 [JsonConverter(typeof(JsonStringEnumConverter<Unit>))]
@@ -38,6 +39,7 @@ public sealed record Quantity(decimal Value, Unit Unit)
     };
 }
 
+/// <summary>Contains the configured formula settings and bounds for Training; does not itself access the database.</summary>
 public sealed class FormulaLimits
 {
     public int MaximumLength { get; set; } = 2048;
@@ -46,6 +48,7 @@ public sealed class FormulaLimits
     public int MaximumGraphNodes { get; set; } = 64;
 }
 
+/// <summary>Parses, validates and evaluates bounded typed training formulas in memory; performs no database writes.</summary>
 public sealed class FormulaEngine(FormulaLimits? limits = null)
 {
     private readonly FormulaLimits limits = limits ?? new();
@@ -105,6 +108,7 @@ public sealed class FormulaEngine(FormulaLimits? limits = null)
         return new Parser(expression, limits, resolve, budget, typesOnly).Run();
     }
 
+    /// <summary>Tracks formula evaluation cost and rejects expressions exceeding configured limits.</summary>
     private sealed class Budget(int maximum)
     {
         private int operations;
@@ -114,6 +118,7 @@ public sealed class FormulaEngine(FormulaLimits? limits = null)
                 throw new TrainingValidationException("Formula operation limit exceeded.");
         }
     }
+    /// <summary>Parses a training expression and evaluates its typed terms within the formula complexity budget.</summary>
     private sealed class Parser(string expression, FormulaLimits limits, Func<string, Quantity> resolve, Budget budget, bool typesOnly)
     {
         private int position;

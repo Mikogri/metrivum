@@ -2,6 +2,7 @@ using Metrivum.Coaching.Contracts;
 
 namespace Metrivum.Coaching.Domain;
 
+/// <summary>Represents persisted relationship state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class Relationship
 {
     public Guid? TeamId
@@ -56,6 +57,7 @@ public sealed class Relationship
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted client group state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class ClientGroup
 {
     public Guid? TeamId
@@ -88,6 +90,7 @@ public sealed class ClientGroup
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted group membership state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class GroupMembership
 {
     public Guid GroupId
@@ -111,6 +114,7 @@ public sealed class GroupMembership
         get; set;
     }
 }
+/// <summary>Represents persisted relationship status changed state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class RelationshipStatusChanged
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -143,6 +147,7 @@ public sealed class RelationshipStatusChanged
         get; set;
     }
 }
+/// <summary>Represents persisted client group membership changed state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class ClientGroupMembershipChanged
 {
     public Guid Id { get; set; } = Guid.NewGuid();

@@ -1,9 +1,10 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Metrivum.Accounts.Contracts;
 using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Accounts.Domain;
 
+/// <summary>Validates typed profile fields and numeric bounds before their values enter storage.</summary>
 public static class SystemFieldRules
 {
     public static void Validate(IReadOnlyDictionary<SystemFieldKey, JsonElement> values)

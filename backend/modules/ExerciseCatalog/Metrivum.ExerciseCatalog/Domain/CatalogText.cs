@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Metrivum.ExerciseCatalog.Domain;
 
+/// <summary>Normalizes catalog names and validates dictionary keys before queries or writes.</summary>
 public static partial class CatalogText
 {
     public static string Clean(string value) => Whitespace().Replace(value.Normalize(NormalizationForm.FormKC).Trim(), " ");

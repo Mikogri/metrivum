@@ -18,6 +18,7 @@ it("saves and closes the comment on Enter, but inserts a newline with Ctrl+Enter
   render(<Harness />);
   fireEvent.click(screen.getByRole("button", { name: /Comment:/ }));
   const input = screen.getByRole("textbox", { name: "Comment" });
+  expect(input).toHaveFocus();
   fireEvent.change(input, { target: { value: "First" } });
   fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
   expect(input).toHaveValue("First\n");
@@ -45,4 +46,14 @@ it("persists AMRAP and MAX, and replaces them with numeric targets", () => {
   fireEvent.focus(time); fireEvent.change(time, { target: { value: "30" } }); fireEvent.keyDown(time, { key: "Enter" });
   expect(saved().sets[0].prescription.workTimeMax == null).toBe(true);
   expect(saved().sets[0].prescription.workTime.value).toBe(30);
+});
+
+it("focuses the note immediately on every opening", () => {
+  render(<Harness />);
+  const trigger = screen.getByRole("button", { name: /Comment:/ });
+  fireEvent.click(trigger);
+  expect(screen.getByRole("textbox", { name: "Comment" })).toHaveFocus();
+  fireEvent.keyDown(screen.getByRole("textbox", { name: "Comment" }), { key: "Escape" });
+  fireEvent.click(trigger);
+  expect(screen.getByRole("textbox", { name: "Comment" })).toHaveFocus();
 });

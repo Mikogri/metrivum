@@ -10,6 +10,7 @@ using Metrivum.Notifications.Contracts;
 
 namespace Metrivum.Coaching.Features;
 
+/// <summary>Manages team client cases, coach assignments and transfers with persisted history.</summary>
 public sealed class TeamClientsService(CoachingDbContext db, IAccountContext accounts, IAccountDirectory directory,
     ITeamContext teams, IFeatureAccessService features, IBillingOrders billing, ModuleTransaction transaction,
     INotificationPublisher notifications, TimeProvider clock, CoachingService personalRelationships,

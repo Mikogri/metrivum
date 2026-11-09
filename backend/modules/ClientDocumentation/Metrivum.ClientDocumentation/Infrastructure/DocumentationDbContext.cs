@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Metrivum.ClientDocumentation.Infrastructure;
 
+/// <summary>Represents persisted measurement record state in ClientDocumentation; mapped and saved by the owning module's EF services.</summary>
 public sealed class MeasurementRecord
 {
     public long Version { get; set; } = 1;
@@ -42,6 +43,7 @@ public sealed class MeasurementRecord
         get; set;
     }
 }
+/// <summary>Represents persisted private coach note state in ClientDocumentation; mapped and saved by the owning module's EF services.</summary>
 public sealed class PrivateCoachNote
 {
     public string Title { get; set; } = "";
@@ -68,6 +70,7 @@ public sealed class PrivateCoachNote
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted relationship document state in ClientDocumentation; mapped and saved by the owning module's EF services.</summary>
 public sealed class RelationshipDocument
 {
     public DateTimeOffset? DeletedAt { get; set; }
@@ -118,6 +121,7 @@ public sealed class RelationshipDocument
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Maps ClientDocumentation entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class DocumentationDbContext(DbContextOptions<DocumentationDbContext> options) : DbContext(options)
 {
     public DbSet<MeasurementRecord> Measurements => Set<MeasurementRecord>();
@@ -164,6 +168,7 @@ public sealed class DocumentationDbContext(DbContextOptions<DocumentationDbConte
         });
     }
 }
+/// <summary>Creates the ClientDocumentation DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class DocumentationDesignFactory : IDesignTimeDbContextFactory<DocumentationDbContext>
 {
     public DocumentationDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<DocumentationDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_MIGRATION_DATABASE") ?? "Host=127.0.0.1;Database=trainflow_design;Username=unconfigured", o => o.MigrationsHistoryTable("__EFMigrationsHistory", "client_documentation")).Options);

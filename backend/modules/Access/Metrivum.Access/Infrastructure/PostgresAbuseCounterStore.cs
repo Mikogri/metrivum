@@ -3,6 +3,7 @@ using Npgsql;
 
 namespace Metrivum.Access.Infrastructure;
 
+/// <summary>Atomically reads and updates PostgreSQL abuse counters and operation leases across API instances.</summary>
 public sealed class PostgresAbuseCounterStore : IAbuseCounterStore, IDisposable
 {
     private readonly NpgsqlDataSource source;
@@ -97,6 +98,7 @@ public sealed class PostgresAbuseCounterStore : IAbuseCounterStore, IDisposable
 
     public void Dispose() { source.Dispose(); leases.Dispose(); leaseSlots.Dispose(); }
 
+    /// <summary>Releases a PostgreSQL-backed operation lease when disposed.</summary>
     private sealed class OperationLease(NpgsqlConnection connection, NpgsqlTransaction transaction, SemaphoreSlim slots) : IAsyncDisposable
     {
         private int released;

@@ -4,6 +4,7 @@ using Metrivum.Notifications.Contracts;
 using Metrivum.Training.Infrastructure;
 namespace Metrivum.Training.Delivery;
 
+/// <summary>Synchronizes Training state when team membership or client assignments change through module contracts.</summary>
 public sealed class TeamTrainingLifecycle(TrainingDbContext db, INotificationPublisher notifications) : ITeamRelationshipLifecycle
 {
     public async Task CloseAsync(Guid teamId, Guid[] relationshipIds, Guid actorId, DateTimeOffset effectiveAt, CancellationToken ct)

@@ -12,6 +12,7 @@ using Metrivum.Offers.Infrastructure;
 
 namespace Metrivum.Offers;
 
+/// <summary>Registers Offers services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddOffers(this IServiceCollection services, IConfiguration configuration)

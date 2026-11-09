@@ -1,5 +1,6 @@
 namespace Metrivum.Accounts.Domain;
 
+/// <summary>Represents persisted profile state in Accounts; mapped and saved by the owning module's EF services.</summary>
 public sealed class Profile
 {
     public Guid Id
@@ -72,6 +73,7 @@ public sealed class Profile
     }
 }
 
+/// <summary>Represents persisted workspace state in Accounts; mapped and saved by the owning module's EF services.</summary>
 public sealed class Workspace
 {
     public Guid Id
@@ -84,6 +86,7 @@ public sealed class Workspace
     }
 }
 
+/// <summary>Represents persisted user role state in Accounts; mapped and saved by the owning module's EF services.</summary>
 public sealed class UserRole
 {
     public Guid UserId

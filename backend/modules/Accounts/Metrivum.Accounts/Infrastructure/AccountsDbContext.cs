@@ -3,6 +3,7 @@ using Metrivum.Accounts.Domain;
 
 namespace Metrivum.Accounts.Infrastructure;
 
+/// <summary>Maps Accounts entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class AccountsDbContext(DbContextOptions<AccountsDbContext> options) : DbContext(options)
 {
     public DbSet<Profile> Profiles => Set<Profile>();

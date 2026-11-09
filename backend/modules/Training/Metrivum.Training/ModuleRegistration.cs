@@ -19,6 +19,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training;
 
+/// <summary>Registers Training services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddTraining(this IServiceCollection services, IConfiguration configuration)
@@ -161,6 +162,7 @@ public static class ModuleRegistration
 public sealed record ArchiveRequest(bool Archived);
 public sealed record FormulaCopyRequest(string Name);
 
+/// <summary>Reads and aggregates training usage provider information for authorized Training reporting and quota contracts.</summary>
 internal sealed class TrainingUsageProvider(TrainingDbContext db, IOptions<TrainingOptions> options) : ILimitUsageProvider
 {
     public async Task<IReadOnlyList<LimitDecision>> GetUsageAsync(Guid ownerId, CancellationToken ct) =>

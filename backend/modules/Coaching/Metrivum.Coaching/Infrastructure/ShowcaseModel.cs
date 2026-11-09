@@ -3,6 +3,7 @@ using Metrivum.Coaching.Domain;
 
 namespace Metrivum.Coaching.Infrastructure;
 
+/// <summary>Configures EF mappings, relationships and constraints for showcase in Coaching; does not execute data mutations.</summary>
 internal static class ShowcaseModel
 {
     public static void Configure(ModelBuilder model)

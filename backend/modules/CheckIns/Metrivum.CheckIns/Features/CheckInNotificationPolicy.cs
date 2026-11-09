@@ -6,6 +6,7 @@ using Metrivum.Coaching.Contracts;
 using Metrivum.Notifications.Contracts;
 namespace Metrivum.CheckIns.Features;
 
+/// <summary>Resolves permitted recipients and visibility of CheckIns notifications before delivery.</summary>
 public sealed class CheckInNotificationPolicy(CheckInsDbContext db, IRelationshipRecipients recipients, ITeamContext? teams = null) : INotificationDeliveryPolicy
 {
     public string SourceModule => "CheckIns";

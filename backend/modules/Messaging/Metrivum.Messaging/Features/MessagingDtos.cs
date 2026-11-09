@@ -44,6 +44,7 @@ public sealed record MessageCursor(Guid ConversationId, DateTimeOffset CreatedAt
     }
 }
 
+/// <summary>Contains the configured messaging settings and bounds for Messaging; does not itself access the database.</summary>
 public sealed class MessagingOptions
 {
     public int MaxAttachments { get; set; } = 10;
@@ -52,6 +53,7 @@ public sealed class MessagingOptions
     public int MaxGroupMembers { get; set; } = 500;
 }
 
+/// <summary>Validates messaging payloads and conversation rules without accessing the database.</summary>
 public static class MessagingRules
 {
     public static (Guid First, Guid Second) Pair(Guid a, Guid b)

@@ -21,6 +21,7 @@ public sealed record TeamBillingDto(Guid TeamId, string Status, int PurchasedSea
     DateTimeOffset PeriodStart, DateTimeOffset PeriodEnd, bool AutoRenew, long Version, decimal UnitPrice, string Currency,
     bool RenewalMethodEligible, IReadOnlyList<TeamBillingQuoteDto> History, string PlanId = "Team", string? PendingPlanId = null, bool OverSeatLimit = false, bool Simulated = true);
 
+/// <summary>Calculates and persists team subscription quotes, purchases and billing transitions.</summary>
 public sealed class TeamBillingService(BillingDbContext db, BillingService billing, PlatformSubscriptionService platform,
     IAccountContext accounts, ModuleTransaction transaction, TimeProvider clock, INotificationPublisher notifications, IAbuseProtection? abuse = null)
 {

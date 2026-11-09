@@ -3,6 +3,7 @@ using Metrivum.Training.Contracts;
 
 namespace Metrivum.Training.Delivery;
 
+/// <summary>Manages assignments, frozen workout prescriptions, executions and progress in the Training database.</summary>
 public sealed partial class TrainingDeliveryService
 {
     public async Task<McpWorkoutLogPage> McpLogsAsync(Guid relationshipId, DateOnly from, DateOnly to, int page, int pageSize, CancellationToken ct)

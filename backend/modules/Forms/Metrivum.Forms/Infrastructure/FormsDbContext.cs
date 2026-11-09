@@ -4,6 +4,7 @@ using Metrivum.Forms.Domain;
 
 namespace Metrivum.Forms.Infrastructure;
 
+/// <summary>Maps Forms entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class FormsDbContext(DbContextOptions<FormsDbContext> options) : DbContext(options)
 {
     public DbSet<FormTemplate> Templates => Set<FormTemplate>();
@@ -55,6 +56,7 @@ public sealed class FormsDbContext(DbContextOptions<FormsDbContext> options) : D
         return base.SaveChangesAsync(cancellationToken);
     }
 }
+/// <summary>Creates the Forms DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class FormsDesignFactory : IDesignTimeDbContextFactory<FormsDbContext>
 {
     public FormsDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<FormsDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_MIGRATION_DATABASE") ?? "Host=127.0.0.1;Database=trainflow_design;Username=unconfigured", o => o.MigrationsHistoryTable("__EFMigrationsHistory", "forms")).Options);

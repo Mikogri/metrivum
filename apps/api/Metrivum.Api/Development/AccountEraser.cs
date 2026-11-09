@@ -36,6 +36,7 @@ public sealed record AccountEraserOptions(string ConnectionString, bool UseMigra
     }
 }
 
+/// <summary>Deletes an explicitly selected development account and its related module data; never runs automatically during API startup.</summary>
 public static class AccountEraser
 {
     private const int MaxRounds = 25;

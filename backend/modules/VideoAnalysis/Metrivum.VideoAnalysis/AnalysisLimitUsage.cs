@@ -5,6 +5,7 @@ using Metrivum.VideoAnalysis.Infrastructure;
 
 namespace Metrivum.VideoAnalysis;
 
+/// <summary>Reads analysis usage for Access quota decisions.</summary>
 public sealed class AnalysisLimitUsage(VideoAnalysisDbContext db, IOptions<AnalysisOptions> options) : ILimitUsageProvider
 {
     public async Task<IReadOnlyList<LimitDecision>> GetUsageAsync(Guid ownerId, CancellationToken cancellationToken)

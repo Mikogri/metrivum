@@ -1,5 +1,6 @@
 namespace Metrivum.Coaching.Domain;
 
+/// <summary>Represents persisted specialization category state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class SpecializationCategory
 {
     public string Code { get; set; } = "";
@@ -7,6 +8,7 @@ public sealed class SpecializationCategory
     public int SortOrder { get; set; }
     public bool Active { get; set; } = true;
 }
+/// <summary>Represents persisted specialization state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class Specialization
 {
     public string Code { get; set; } = "";
@@ -15,12 +17,14 @@ public sealed class Specialization
     public int SortOrder { get; set; }
     public bool Active { get; set; } = true;
 }
+/// <summary>Represents persisted coach specialization profile state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class CoachSpecializationProfile
 {
     public Guid CoachId { get; set; }
     public long Version { get; set; } = 1;
     public DateTimeOffset UpdatedAt { get; set; }
 }
+/// <summary>Represents persisted coach specialization state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class CoachSpecialization
 {
     public Guid CoachId { get; set; }
@@ -28,6 +32,7 @@ public sealed class CoachSpecialization
     public bool IsPrimary { get; set; }
     public Specialization Specialization { get; set; } = null!;
 }
+/// <summary>Represents persisted coach specializations changed state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class CoachSpecializationsChanged
 {
     public Guid CoachId { get; set; }
@@ -37,6 +42,7 @@ public sealed class CoachSpecializationsChanged
     public DateTimeOffset ChangedAt { get; set; }
 }
 
+/// <summary>Defines the reviewed coach specialization taxonomy used by discovery; contains no persistence operations.</summary>
 public static class CoachSpecializationTaxonomy
 {
     public static IReadOnlyList<SpecializationCategory> Categories => [

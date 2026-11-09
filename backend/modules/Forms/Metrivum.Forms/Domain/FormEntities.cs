@@ -2,6 +2,7 @@ using Metrivum.Forms.Contracts;
 
 namespace Metrivum.Forms.Domain;
 
+/// <summary>Represents persisted form template state in Forms; mapped and saved by the owning module's EF services.</summary>
 public sealed class FormTemplate
 {
     public Guid Id
@@ -37,6 +38,7 @@ public sealed class FormTemplate
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted form version state in Forms; mapped and saved by the owning module's EF services.</summary>
 public sealed class FormVersion
 {
     public Guid Id
@@ -71,6 +73,7 @@ public sealed class FormVersion
         get; set;
     }
 }
+/// <summary>Represents persisted form submission state in Forms; mapped and saved by the owning module's EF services.</summary>
 public sealed class FormSubmission
 {
     public Guid Id
@@ -92,6 +95,7 @@ public sealed class FormSubmission
         get; set;
     }
 }
+/// <summary>Represents persisted form operation state in Forms; mapped and saved by the owning module's EF services.</summary>
 public sealed class FormOperation
 {
     public Guid SourceTemplateId

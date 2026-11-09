@@ -8,6 +8,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training.Purchases;
 
+/// <summary>Creates and delivers authorized frozen copies of purchased training plans in the Training database.</summary>
 public sealed class TrainingPurchaseService(TrainingDbContext db, IAccountContext accounts, IAccountDirectory directory, ModuleTransaction transaction, TimeProvider clock) : ITrainingPurchases
 {
     public async Task PrepareAsync(Guid orderId, Guid applicationId, Guid revisionId, Guid sellerId, Guid buyerId, Guid? teamId, CancellationToken ct)

@@ -7,6 +7,7 @@ using Metrivum.Training.Domain;
 
 namespace Metrivum.Training.Infrastructure;
 
+/// <summary>Parses and exports the supported training CSV format without directly writing application tables.</summary>
 public static class TrainingCsv
 {
     public static readonly string[] Columns = ["format_version", "row_kind", "program_name", "program_description", "block_id", "block_name", "block_description", "cycle_id", "cycle_name", "cycle_description", "cycle_days", "day_id", "day_number", "workout_id", "workout_name", "workout_description", "instance_id", "exercise_name", "comment", "sets_json", "groups_json", "exercise_snapshot_json", "formula_snapshots_json"];

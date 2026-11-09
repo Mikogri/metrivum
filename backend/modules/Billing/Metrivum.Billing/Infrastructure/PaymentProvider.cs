@@ -12,6 +12,7 @@ public interface IPaymentProvider
 }
 
 // Deterministic across processes/restarts. Only opaque simulator tokens are accepted.
+/// <summary>Returns deterministic simulated payment outcomes; never charges a real payment card.</summary>
 public sealed class SimulatedPaymentProvider : IPaymentProvider
 {
     public Task<ProviderResult> ChargeAsync(ProviderCharge charge, CancellationToken ct)

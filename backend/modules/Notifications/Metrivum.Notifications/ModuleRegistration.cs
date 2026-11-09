@@ -10,6 +10,7 @@ using Metrivum.Notifications.Contracts;
 namespace Metrivum.Notifications;
 
 public sealed record NotificationCountDto(int Count);
+/// <summary>Registers Notifications services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddNotifications(this IServiceCollection services, IConfiguration configuration)

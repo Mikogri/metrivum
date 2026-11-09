@@ -3,6 +3,7 @@ using Metrivum.ExerciseCatalog.Contracts;
 
 namespace Metrivum.ExerciseCatalog.Features;
 
+/// <summary>Reads the exercise catalog and changes authorized exercises, tags and dictionaries while retaining revision and version checks.</summary>
 public sealed partial class CatalogService
 {
     public async Task<GeneratorCatalog> GeneratorPoolAsync(CancellationToken cancellationToken)

@@ -3,6 +3,7 @@ using Metrivum.Accounts.Contracts;
 
 namespace Metrivum.Coaching.Features;
 
+/// <summary>Adapts MCP client requests to authorized Coaching operations; owning services control persistence.</summary>
 public sealed class McpClientOperations(CoachingService coaching, CoachingIntakeService intake) : IMcpClientOperations
 {
     public async Task<McpClientPage> ListAsync(int page, int pageSize, string? search, CancellationToken ct)

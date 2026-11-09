@@ -15,6 +15,7 @@ public sealed record SaveClientAnalysisRequest(Guid LocalAnalysisId, string Exec
     string[] Tags, AnalysisConfiguration Configuration, AnalysisSourceVideo SourceVideo, AnalysisResult Result,
     Guid? MediaId = null, Guid? WorkoutExecutionId = null, Guid? SetId = null, Guid? AuthorizationId = null);
 
+/// <summary>Reads analyses available through an authorized coach-client collaboration.</summary>
 public sealed class ClientAnalysisLibrary(VideoAnalysisDbContext db, IMediaLibrary media, IAnalysisWorkoutReferences workouts,
     ModuleTransaction transaction, IOptions<AnalysisOptions> options, IUsageReservations? usage = null)
 {

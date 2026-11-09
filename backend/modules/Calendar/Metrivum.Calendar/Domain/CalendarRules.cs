@@ -3,6 +3,7 @@ using Metrivum.Calendar.Features;
 
 namespace Metrivum.Calendar.Domain;
 
+/// <summary>Validates event ranges, time zones and versions and resolves local dates without database writes.</summary>
 public static class CalendarRules
 {
     public static TimeZoneInfo Zone(string id)

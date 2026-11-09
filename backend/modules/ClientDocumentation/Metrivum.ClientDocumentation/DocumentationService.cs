@@ -10,6 +10,7 @@ using Metrivum.Notifications.Contracts;
 
 namespace Metrivum.ClientDocumentation;
 
+/// <summary>Reads and changes authorized client measurements, coach notes and relationship documents through the owning documentation store.</summary>
 public sealed class DocumentationService(DocumentationDbContext db, IAccountContext account, IRelationshipRecipients relationships,
     IRelationshipAccessPolicy policy, IFeatureAccessService features, IDocumentMedia media, TimeProvider clock,
     INotificationPublisher? notifications = null, ModuleTransaction? transaction = null, ITeamCaseAccess? teamCases = null) : INotificationDeliveryPolicy

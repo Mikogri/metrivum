@@ -5,6 +5,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Training.Delivery;
 
+/// <summary>Maps the Training delivery HTTP endpoints and delegates authorized reads and writes to delivery services.</summary>
 public static class DeliveryEndpoints
 {
     public static void MapTrainingDelivery(this RouteGroupBuilder group)

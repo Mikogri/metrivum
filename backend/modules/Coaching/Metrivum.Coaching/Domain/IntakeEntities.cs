@@ -17,6 +17,7 @@ public enum ServiceStatus
     Active, Completed
 }
 
+/// <summary>Represents persisted coaching application state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class CoachingApplication
 {
     public Guid? TeamId
@@ -106,6 +107,7 @@ public sealed class CoachingApplication
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted coaching invitation state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class CoachingInvitation
 {
     public Guid? TeamId
@@ -153,6 +155,7 @@ public sealed class CoachingInvitation
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted relationship service state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class RelationshipService
 {
     public Guid? TeamId
@@ -225,6 +228,7 @@ public sealed class RelationshipService
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted application status changed state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class ApplicationStatusChanged
 {
     public Guid Id { get; set; } = Guid.NewGuid();

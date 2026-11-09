@@ -3,6 +3,7 @@ using Metrivum.Forms.Contracts;
 
 namespace Metrivum.Forms.Features;
 
+/// <summary>Adapts MCP form requests to authorized Forms operations; owning services control persistence.</summary>
 public sealed class McpFormOperations(FormsService forms) : IMcpFormOperations
 {
     public async Task<McpFormPage> ListAsync(int page, int pageSize, string? search, CancellationToken ct)

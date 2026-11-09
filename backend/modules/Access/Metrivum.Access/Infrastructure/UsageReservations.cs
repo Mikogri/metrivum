@@ -5,6 +5,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Access.Infrastructure;
 
+/// <summary>Reserves, commits and releases durable usage allowances in PostgreSQL with concurrency protection.</summary>
 public sealed class UsageReservations(AccessDbContext db, IPlanEntitlementsProvider plans, ModuleTransaction transaction, TimeProvider clock)
     : IUsageReservations, ILimitUsageProvider
 {

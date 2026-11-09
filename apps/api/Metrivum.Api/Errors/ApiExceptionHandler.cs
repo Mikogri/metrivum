@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +8,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Api.Errors;
 
+/// <summary>Converts API and infrastructure failures into consistent HTTP problem responses without exposing internal database errors.</summary>
 public sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExceptionHandler> logger, IHostEnvironment environment) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext http, Exception exception, CancellationToken cancellationToken)

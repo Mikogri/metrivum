@@ -4,6 +4,7 @@ using Metrivum.Notifications.Contracts;
 
 namespace Metrivum.Billing.Infrastructure;
 
+/// <summary>Resolves permitted recipients and visibility of Billing notifications before delivery.</summary>
 public sealed class BillingNotificationPolicy(BillingDbContext db) : INotificationDeliveryPolicy
 {
     public string SourceModule => "Billing";

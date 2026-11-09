@@ -28,6 +28,7 @@ public sealed record PlanChangeDto(Guid Id, Guid SubscriptionId, string Type, st
     DateTimeOffset CreatedAt, DateTimeOffset? EffectiveAt);
 public sealed record PlatformHistoryDto(IReadOnlyList<PlanChangeDto> Changes, IReadOnlyList<PaymentDto> Payments, IReadOnlyList<SimulatedRefundDto>? Refunds = null);
 
+/// <summary>Handles platform subscription quotes and plan changes, persisting Billing state and transaction history.</summary>
 public sealed class PlatformSubscriptionService(BillingDbContext db, BillingService billing, IAccountContext accounts,
     TimeProvider clock, ModuleTransaction transaction, INotificationPublisher notifications,
     IEnumerable<FeatureDefinition> features, IAbuseProtection? abuse = null)

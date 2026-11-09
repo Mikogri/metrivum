@@ -6,6 +6,7 @@ using Metrivum.CheckIns.Domain;
 
 namespace Metrivum.CheckIns.Features;
 
+/// <summary>Adapts MCP check in requests to authorized CheckIns operations; owning services control persistence.</summary>
 public sealed class McpCheckInOperations(CheckInsService checkins, IAccountContext accounts) : IMcpCheckInOperations
 {
     public async Task<McpCheckInPage> ListAsync(Guid? relationshipId, DateTimeOffset from, DateTimeOffset to, string? status, int page, int pageSize, CancellationToken ct)
@@ -32,6 +33,7 @@ public sealed class McpCheckInOperations(CheckInsService checkins, IAccountConte
         x.Status.ToString(), x.SubmittedAt, x.ReviewedAt, x.WasLate);
 }
 
+/// <summary>Manages check-in schedules, assignments and issued requests in the CheckIns database.</summary>
 public sealed partial class CheckInsService
 {
     public async Task<McpAssignmentPreview> PreviewMcpAssignmentAsync(McpCheckInAssignment input, CancellationToken ct)

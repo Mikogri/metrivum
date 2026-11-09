@@ -1,5 +1,6 @@
 namespace Metrivum.Coaching.Domain;
 
+/// <summary>Represents persisted coach discovery profile state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class CoachDiscoveryProfile
 {
     public Guid CoachId { get; set; }
@@ -13,6 +14,7 @@ public sealed class CoachDiscoveryProfile
     public long Version { get; set; } = 1;
 }
 
+/// <summary>Represents persisted discovery publication changed state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class DiscoveryPublicationChanged
 {
     public Guid Id { get; set; } = Guid.NewGuid();

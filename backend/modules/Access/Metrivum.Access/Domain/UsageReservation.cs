@@ -1,5 +1,6 @@
 namespace Metrivum.Access.Domain;
 
+/// <summary>Represents persisted usage reservation state in Access; mapped and saved by the owning module's EF services.</summary>
 public sealed class UsageReservation
 {
     public Guid Id { get; set; }

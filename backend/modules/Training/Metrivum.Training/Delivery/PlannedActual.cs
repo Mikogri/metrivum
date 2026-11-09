@@ -17,6 +17,7 @@ public sealed record WorkoutComparison(Guid ExecutionId, Guid OccurrenceId, Guid
     TargetRange? PlannedVolumeKg, decimal? ActualVolumeKg, WorkoutFeedback? Feedback, ExerciseComparison[] Exercises,
     string Definition = "Frozen prescription vs recorded results. Segment efforts count separately. Volume includes explicitly total external kg/lb loads only; unresolved targets stay unknown. Target deviations also show deviations from that workout's planned progression; no progression or 1RM is inferred.");
 
+/// <summary>Compares a frozen workout prescription with recorded results in memory; does not change either version.</summary>
 public static class PlannedActual
 {
     private sealed record Expected(Guid SetId, Guid? SegmentId, Prescription Prescription, bool MaximumEffort);
@@ -108,6 +109,7 @@ public static class PlannedActual
     }
 }
 
+/// <summary>Manages assignments, frozen workout prescriptions, executions and progress in the Training database.</summary>
 public sealed partial class TrainingDeliveryService
 {
     public async Task<WorkoutComparison> CompareExecutionAsync(Guid id, CancellationToken ct)

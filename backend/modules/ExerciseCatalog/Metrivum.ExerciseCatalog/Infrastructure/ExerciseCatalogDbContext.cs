@@ -3,6 +3,7 @@ using Metrivum.ExerciseCatalog.Domain;
 
 namespace Metrivum.ExerciseCatalog.Infrastructure;
 
+/// <summary>Maps ExerciseCatalog entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class ExerciseCatalogDbContext(DbContextOptions<ExerciseCatalogDbContext> options) : DbContext(options)
 {
     public DbSet<Exercise> Exercises => Set<Exercise>();

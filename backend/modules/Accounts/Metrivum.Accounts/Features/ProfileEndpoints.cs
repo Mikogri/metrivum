@@ -32,6 +32,7 @@ public static class AccountRateLimits
     public const string Directory = "account-directory";
 }
 
+/// <summary>Maps profile HTTP operations in Accounts; owning handlers validate requests and perform persistence.</summary>
 public static class ProfileEndpoints
 {
     public static void Map(IEndpointRouteBuilder endpoints)

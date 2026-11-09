@@ -12,6 +12,7 @@ using Metrivum.Forms.Infrastructure;
 
 namespace Metrivum.Forms;
 
+/// <summary>Registers Forms services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddForms(this IServiceCollection services, IConfiguration configuration)

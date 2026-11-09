@@ -3,6 +3,7 @@ using Metrivum.Training.Contracts;
 
 namespace Metrivum.CheckIns.Domain;
 
+/// <summary>Validates check-in schedules and calculates cycle-relative release dates and UTC instants in memory.</summary>
 public static class CheckInRules
 {
     public static TimeZoneInfo Zone(string id)

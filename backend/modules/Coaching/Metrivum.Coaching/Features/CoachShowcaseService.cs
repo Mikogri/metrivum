@@ -18,6 +18,7 @@ public sealed record ShowcaseRequest(string? Headline, int? YearsExperience, IRe
 public sealed record PortfolioUploadRequest(string Name, string ContentType, long Size);
 public sealed record PortfolioItemRequest(Guid MediaId, PortfolioKind Kind, string Title, string? Description);
 
+/// <summary>Reads and updates authorized coach showcase content and portfolio references.</summary>
 public sealed class CoachShowcaseService(CoachingDbContext db, IAccountContext accounts, IAccountDirectory directory, IPortfolioMedia media, IPlatformPlans plans, TimeProvider clock)
 {
     private const int MaxItems = 30;

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 namespace Metrivum.Notifications;
 
+/// <summary>Represents persisted notification state in Notifications; mapped and saved by the owning module's EF services.</summary>
 public sealed class Notification
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -46,6 +47,7 @@ public sealed class Notification
         get; set;
     }
 }
+/// <summary>Represents persisted notification preference state in Notifications; mapped and saved by the owning module's EF services.</summary>
 public sealed class NotificationPreference
 {
     public Guid UserId
@@ -59,6 +61,7 @@ public sealed class NotificationPreference
     /// <summary>Which "client's program is ending" alerts the coach gets (see ProgramEndingAlerts).</summary>
     public string[] ProgramEnding { get; set; } = ["LastWeek"];
 }
+/// <summary>Maps Notifications entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class NotificationsDbContext(DbContextOptions<NotificationsDbContext> options) : DbContext(options)
 {
     public DbSet<Notification> Notifications => Set<Notification>();
@@ -104,6 +107,7 @@ public sealed class NotificationsDbContext(DbContextOptions<NotificationsDbConte
         push.HasOne<PushDevice>().WithMany().HasForeignKey(x => x.DeviceId).OnDelete(DeleteBehavior.Cascade);
     }
 }
+/// <summary>Creates the Notifications DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class NotificationsDesignFactory : IDesignTimeDbContextFactory<NotificationsDbContext>
 {
     public NotificationsDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<NotificationsDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_MIGRATION_DATABASE") ?? "Host=localhost;Database=trainflow_design;Username=design_only", x => x.MigrationsHistoryTable("__EFMigrationsHistory", "notifications")).Options);

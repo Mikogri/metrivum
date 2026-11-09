@@ -366,4 +366,5 @@ if (!builder.Environment.IsEnvironment("Testing"))
     await RuntimeDatabaseGuard.ValidateAsync(app.Services.GetRequiredService<NpgsqlDataSource>(), CancellationToken.None);
 await app.RunAsync();
 
+/// <summary>Exposes the ASP.NET API entry point for hosting and integration tests; startup wires modules, authentication and HTTP endpoints.</summary>
 public partial class Program;

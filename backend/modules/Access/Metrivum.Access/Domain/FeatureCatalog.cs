@@ -2,6 +2,7 @@ using Metrivum.Access.Contracts;
 
 namespace Metrivum.Access.Domain;
 
+/// <summary>Loads and validates the registered feature definitions and their dependencies.</summary>
 public sealed class FeatureCatalog
 {
     public IReadOnlyDictionary<string, FeatureDefinition> Definitions

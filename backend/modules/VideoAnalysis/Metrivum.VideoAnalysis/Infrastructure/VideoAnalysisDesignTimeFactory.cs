@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Metrivum.VideoAnalysis.Infrastructure;
 
+/// <summary>Creates the VideoAnalysis DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class VideoAnalysisDesignTimeFactory : IDesignTimeDbContextFactory<VideoAnalysisDbContext>
 {
     public VideoAnalysisDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<VideoAnalysisDbContext>()

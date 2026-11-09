@@ -12,6 +12,7 @@ using Metrivum.VideoAnalysis.Infrastructure;
 
 namespace Metrivum.VideoAnalysis;
 
+/// <summary>Registers VideoAnalysis services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class VideoAnalysisModule
 {
     public static IServiceCollection AddVideoAnalysis(this IServiceCollection services, IConfiguration config)

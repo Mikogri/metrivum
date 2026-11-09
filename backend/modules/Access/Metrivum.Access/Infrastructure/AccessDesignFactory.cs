@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Metrivum.Access.Infrastructure;
 
+/// <summary>Creates the Access DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class AccessDesignFactory : IDesignTimeDbContextFactory<AccessDbContext>
 {
     public AccessDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<AccessDbContext>()

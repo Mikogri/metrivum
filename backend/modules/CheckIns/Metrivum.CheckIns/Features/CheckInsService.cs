@@ -13,6 +13,7 @@ using Metrivum.Forms.Contracts;
 
 namespace Metrivum.CheckIns.Features;
 
+/// <summary>Manages check-in schedules, assignments and issued requests in the CheckIns database.</summary>
 public sealed partial class CheckInsService(CheckInsDbContext db, IAccountContext accounts, IFeatureAccessService access, IRelationshipRecipients recipients,
     IRelationshipAccessPolicy relationshipPolicy, IFormLibrary forms, ModuleTransaction transaction, TimeProvider clock, INotificationPublisher notifications, ITeamContext? teams = null, IAssignedProgramCycles? assignedPrograms = null, IAbuseProtection? abuse = null)
 {

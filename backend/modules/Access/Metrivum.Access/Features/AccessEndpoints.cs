@@ -17,6 +17,7 @@ public sealed record FlagRequest(long ExpectedVersion, bool Enabled);
 public sealed record AssignmentRequest(long ExpectedVersion, string ConfigurationId);
 public sealed record PlanUsageDto(string PlanId, Guid ScopeId, DateTimeOffset PeriodStart, DateTimeOffset PeriodEnd, IReadOnlyList<LimitDecision> Usage);
 
+/// <summary>Maps access HTTP operations in Access; owning handlers validate requests and perform persistence.</summary>
 public static class AccessEndpoints
 {
     public static void Map(IEndpointRouteBuilder endpoints)

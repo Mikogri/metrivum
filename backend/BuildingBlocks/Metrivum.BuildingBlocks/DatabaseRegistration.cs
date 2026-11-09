@@ -5,6 +5,7 @@ using Npgsql;
 
 namespace Metrivum.BuildingBlocks;
 
+/// <summary>Registers module DbContexts and shared PostgreSQL transaction infrastructure in dependency injection.</summary>
 public static class DatabaseRegistration
 {
     public static IServiceCollection AddModuleDatabase<T>(this IServiceCollection services, string schema) where T : DbContext

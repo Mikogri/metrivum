@@ -6,6 +6,7 @@ using Metrivum.Coaching.Contracts;
 
 namespace Metrivum.Coaching.Infrastructure;
 
+/// <summary>Checks and reserves client capacity under the applicable coach/team allowance.</summary>
 public sealed class ClientCapacity(CoachingDbContext db, IPlanEntitlementsProvider plans)
 {
     public async Task RequireAsync(Guid coach, Guid client, Guid? teamId, CancellationToken ct)

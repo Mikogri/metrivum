@@ -7,6 +7,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Accounts.Infrastructure;
 
+/// <summary>Loads the current account and database-owned roles, provisions missing profile/workspace records and enforces account permissions.</summary>
 public sealed class AccountContext : IAccountContext
 {
     private readonly IHttpContextAccessor http;
@@ -120,6 +121,7 @@ public sealed class AccountContext : IAccountContext
         return state;
     }
 
+    /// <summary>Holds the request-local account, role and workspace projection; it is not a separate database entity.</summary>
     private sealed class AccountState
     {
         public bool Active

@@ -2,6 +2,7 @@ using Metrivum.Training.Infrastructure;
 using System.Text.RegularExpressions;
 namespace Metrivum.Training.Domain;
 
+/// <summary>Resolves formula inputs from explicit values and authorized client/block snapshots without updating their sources.</summary>
 public static class FormulaBindings
 {
     public static (string Name, Unit? Unit) Qualified(string name) => name.EndsWith("_kg", StringComparison.Ordinal) ? (name[..^3], Unit.Kg) : name.EndsWith("_lb", StringComparison.Ordinal) ? (name[..^3], Unit.Lb) : name.EndsWith("_min", StringComparison.Ordinal) ? (name[..^4], Unit.Minutes) : name.EndsWith("_s", StringComparison.Ordinal) ? (name[..^2], Unit.Seconds) : (name, null);

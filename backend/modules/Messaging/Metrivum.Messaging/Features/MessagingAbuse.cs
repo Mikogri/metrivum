@@ -4,6 +4,7 @@ using Metrivum.Messaging.Domain;
 
 namespace Metrivum.Messaging.Features;
 
+/// <summary>Reads and changes authorized conversations, messages, requests and moderation state in the Messaging database.</summary>
 public sealed partial class MessagingService
 {
     // A nonempty direct conversation is already an established contact, including incoming introductions.

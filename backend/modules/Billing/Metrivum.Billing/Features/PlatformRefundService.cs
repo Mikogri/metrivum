@@ -11,6 +11,7 @@ namespace Metrivum.Billing.Features;
 public sealed record SimulatedRefundRequest(string IdempotencyKey);
 public sealed record SimulatedRefundDto(Guid Id, Guid PaymentId, decimal Amount, string Currency, DateTimeOffset CreatedAt, bool Simulated = true);
 
+/// <summary>Processes simulated platform refunds and records the corresponding Billing state transitions.</summary>
 public sealed class PlatformRefundService(BillingDbContext db, IAccountContext account, ModuleTransaction transaction, TimeProvider clock)
 {
     public Task<SimulatedRefundDto> RefundAsync(Guid paymentId, SimulatedRefundRequest request, CancellationToken ct) => transaction.RunAsync(async token =>

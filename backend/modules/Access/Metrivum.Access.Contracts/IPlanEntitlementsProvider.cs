@@ -10,6 +10,7 @@ public interface IPlanEntitlementsProvider
     Task<PlanEntitlements> GetForFeaturesAsync(Guid userId, CancellationToken ct) => GetAsync(userId, ct);
 }
 
+/// <summary>Applies the shared plan-to-feature eligibility rules without accessing the database.</summary>
 public static class PlanFeaturePolicy
 {
     public static readonly IReadOnlySet<string> PremiumKeys = new HashSet<string>(StringComparer.Ordinal)

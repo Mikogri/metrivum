@@ -12,6 +12,7 @@ public interface IPlatformCurrencyConverter
     Task<PlatformCurrencyQuote> ConvertAsync(decimal amount, string baseCurrency, string targetCurrency, CancellationToken ct);
 }
 
+/// <summary>Converts platform quote amounts using configured currency rates; does not settle payments.</summary>
 public sealed class PlatformCurrencyConverter(HttpClient http, IMemoryCache cache, TimeProvider clock) : IPlatformCurrencyConverter
 {
     public async Task<PlatformCurrencyQuote> ConvertAsync(decimal amount, string baseCurrency, string targetCurrency, CancellationToken ct)

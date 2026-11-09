@@ -38,6 +38,7 @@ public sealed record CoachEarningsDto(string Currency, decimal GrossAmount, deci
 public sealed record ServiceRenewalRequest(bool AutoRenew, Guid? PaymentMethodId = null);
 public sealed record ServiceSubscriptionDto(Guid Id, Guid ServiceId, bool AutoRenew, Guid? PaymentMethodId, DateTimeOffset NextPeriodAt, bool Active);
 
+/// <summary>Creates service orders and payment schedules and records simulated settlements in the Billing database.</summary>
 public sealed partial class BillingService(BillingDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IRelationshipAccessPolicy relationships, IOfferLibrary offers, IPaymentProvider provider,
     TimeProvider clock, ModuleTransaction transaction, Metrivum.Notifications.Contracts.INotificationPublisher notifications, ITrainingPurchases? trainingPurchases = null, ITeamContext? teams = null, IAbuseProtection? abuse = null) : IBillingOrders, IPlatformPlans

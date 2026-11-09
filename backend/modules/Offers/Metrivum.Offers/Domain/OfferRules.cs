@@ -4,6 +4,7 @@ using Metrivum.Offers.Contracts;
 
 namespace Metrivum.Offers.Domain;
 
+/// <summary>Validates offer prices and billing options and calculates rounded amounts before persistence.</summary>
 public static class OfferRules
 {
     // numeric(28,2) monetary storage; no commercial price cap.

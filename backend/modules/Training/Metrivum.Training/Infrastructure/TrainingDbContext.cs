@@ -8,6 +8,7 @@ using Metrivum.Training.Domain;
 
 namespace Metrivum.Training.Infrastructure;
 
+/// <summary>Contains the configured training settings and bounds for Training; does not itself access the database.</summary>
 public sealed class TrainingOptions
 {
     public int MaximumDocuments { get; set; } = 1000;
@@ -23,6 +24,7 @@ public sealed class TrainingOptions
     public FormulaLimits Formula { get; set; } = new();
 }
 
+/// <summary>Represents persisted training folder state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class TrainingFolder
 {
     public Guid Id
@@ -48,6 +50,7 @@ public sealed class TrainingFolder
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted training plan state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class TrainingPlan
 {
     public Guid Id
@@ -89,6 +92,7 @@ public sealed class TrainingPlan
 }
 public sealed record RevisionSnapshot(int SchemaVersion, string Name, string Description, DocumentKind Kind, TrainingDocument Document,
     Dictionary<Guid, ExerciseSnapshot> Exercises, Dictionary<Guid, FormulaEvaluation> Formulas);
+/// <summary>Represents persisted training revision state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class TrainingRevision
 {
     public Guid Id
@@ -116,6 +120,7 @@ public sealed class TrainingRevision
     public string RequestHash { get; set; } = "";
 }
 public sealed record FormulaDefinition(string Expression, Dictionary<string, Unit> Inputs, Unit OutputUnit);
+/// <summary>Represents persisted training formula state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class TrainingFormula
 {
     public Guid Id
@@ -137,6 +142,7 @@ public sealed class TrainingFormula
         get; set;
     }
 }
+/// <summary>Represents persisted training formula version state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class TrainingFormulaVersion
 {
     public Guid FormulaId
@@ -153,6 +159,7 @@ public sealed class TrainingFormulaVersion
         get; set;
     }
 }
+/// <summary>Represents persisted training import state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class TrainingImport
 {
     public Guid Id
@@ -188,6 +195,7 @@ public sealed class TrainingImport
     }
 }
 
+/// <summary>Maps Training entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class TrainingDbContext(DbContextOptions<TrainingDbContext> options) : DbContext(options)
 {
     public DbSet<TrainingFolder> Folders => Set<TrainingFolder>();

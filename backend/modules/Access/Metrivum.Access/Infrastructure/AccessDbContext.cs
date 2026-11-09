@@ -3,6 +3,7 @@ using Metrivum.Access.Domain;
 
 namespace Metrivum.Access.Infrastructure;
 
+/// <summary>Maps Access entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbContext(options)
 {
     public DbSet<AccessConfiguration> Configurations => Set<AccessConfiguration>();

@@ -1,6 +1,7 @@
 using Metrivum.BuildingBlocks;
 namespace Metrivum.Billing.Domain;
 
+/// <summary>Represents persisted team platform subscription state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class TeamPlatformSubscription
 {
     public string? PendingPlanId { get; set; }
@@ -39,6 +40,7 @@ public sealed class TeamPlatformSubscription
     public string Status { get; set; } = "Active";
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted team billing quote state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class TeamBillingQuote
 {
     public Guid Id
@@ -122,6 +124,7 @@ public sealed class TeamBillingQuote
         get; set;
     }
 }
+/// <summary>Represents persisted proration credit state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class ProrationCredit
 {
     public Guid Id
@@ -162,6 +165,7 @@ public sealed class ProrationCredit
         get; set;
     }
 }
+/// <summary>Calculates unused subscription value and amounts due for team changes without settling payments.</summary>
 public static class TeamBillingRules
 {
     public static decimal UnusedValue(decimal actuallyPaid, DateTimeOffset start, DateTimeOffset end, DateTimeOffset at)

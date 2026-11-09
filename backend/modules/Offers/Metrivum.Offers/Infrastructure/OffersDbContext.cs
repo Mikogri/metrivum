@@ -5,6 +5,7 @@ using Metrivum.Offers.Domain;
 
 namespace Metrivum.Offers.Infrastructure;
 
+/// <summary>Maps Offers entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class OffersDbContext(DbContextOptions<OffersDbContext> options) : DbContext(options)
 {
     public DbSet<Offer> Offers => Set<Offer>();
@@ -42,6 +43,7 @@ public sealed class OffersDbContext(DbContextOptions<OffersDbContext> options) :
         return base.SaveChangesAsync(ct);
     }
 }
+/// <summary>Creates the Offers DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class OffersDesignFactory : IDesignTimeDbContextFactory<OffersDbContext>
 {
     public OffersDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<OffersDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_MIGRATION_DATABASE") ?? "Host=127.0.0.1;Database=trainflow_design;Username=unconfigured", o => o.MigrationsHistoryTable("__EFMigrationsHistory", "offers")).Options);

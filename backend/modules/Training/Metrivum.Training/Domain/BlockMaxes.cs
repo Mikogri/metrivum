@@ -1,5 +1,6 @@
 namespace Metrivum.Training.Domain;
 
+/// <summary>Reads and validates block-local exercise maxes and their linked tables inside a training document.</summary>
 public static class BlockMaxes
 {
     public static IEnumerable<BlockExerciseMax> Rows(TrainingDocument document) => document.Blocks.SelectMany(b => b.ExerciseMaxes ?? []).Concat((document.MaxesTables ?? []).SelectMany(t => t.Rows));

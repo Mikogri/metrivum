@@ -3,6 +3,7 @@ using Metrivum.BuildingBlocks;
 using Metrivum.Notifications.Contracts;
 namespace Metrivum.Notifications;
 
+/// <summary>Persists durable notification events for later account-scoped delivery.</summary>
 public sealed class NotificationPublisher(NotificationsDbContext db, ModuleTransaction tx, TimeProvider clock) : INotificationPublisher
 {
     public Task PublishAsync(NotificationEvent n, CancellationToken ct) => tx.RunAsync(async token =>

@@ -4,6 +4,7 @@ using Metrivum.Accounts.Domain;
 
 namespace Metrivum.Accounts.Infrastructure;
 
+/// <summary>Reads coach account information exposed to discovery through the Accounts contract.</summary>
 internal sealed class CoachDiscoveryDirectory(AccountsDbContext db, TimeProvider clock) : ICoachDiscoveryDirectory
 {
     private DateOnly AdultBirthDate => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime).AddYears(-18);

@@ -5,6 +5,7 @@ using Metrivum.Media.Infrastructure;
 
 namespace Metrivum.Media;
 
+/// <summary>Coordinates authorized media metadata, quota and attachment operations with private object storage.</summary>
 public sealed partial class MediaLibrary
 {
     public async Task<DocumentUpload> CreateDocumentUploadAsync(Guid relationshipId, Guid ownerId, string name, string contentType, long size, CancellationToken ct)

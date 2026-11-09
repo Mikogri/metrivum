@@ -4,6 +4,7 @@ using Metrivum.Calendar.Domain;
 
 namespace Metrivum.Calendar.Infrastructure;
 
+/// <summary>Maps Calendar entities to PostgreSQL, exposes queries and tracks changes for explicit saves by callers.</summary>
 public sealed class CalendarDbContext(DbContextOptions<CalendarDbContext> options) : DbContext(options)
 {
     public DbSet<CalendarEvent> Events => Set<CalendarEvent>();
@@ -46,6 +47,7 @@ public sealed class CalendarDbContext(DbContextOptions<CalendarDbContext> option
         audit.HasIndex(x => new { x.EventId, x.At });
     }
 }
+/// <summary>Creates the Calendar DbContext for EF migration tooling; never applies migrations at normal API startup.</summary>
 public sealed class CalendarDesignFactory : IDesignTimeDbContextFactory<CalendarDbContext>
 {
     public CalendarDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<CalendarDbContext>().UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_MIGRATION_DATABASE") ?? "Host=localhost;Database=trainflow_design;Username=design_only", x => x.MigrationsHistoryTable("__EFMigrationsHistory", "calendar")).Options);

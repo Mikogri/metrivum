@@ -7,6 +7,7 @@ using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training.Features;
 
+/// <summary>Represents a persisted client exercise maximum, including repetitions, load, date and alias; Training services save and version it.</summary>
 public sealed class ClientExerciseMax
 {
     public Guid Id { get; set; }
@@ -24,6 +25,7 @@ public sealed record ClientVariablesDto(Dictionary<string, Quantity> Variables, 
 public sealed record ClientPreviewRequest(Guid RelationshipId, TrainingDocument? Document = null);
 public sealed record ClientFormulaPreview(Dictionary<string, Quantity> Variables, Dictionary<string, string> SourceVersions, Dictionary<Guid, FormulaEvaluation> Evaluations);
 
+/// <summary>Manages training plan drafts, revisions, formulas, imports and client metrics in the Training database.</summary>
 public sealed partial class TrainingService
 {
     private async Task<RelationshipRecipient> MetricClientAsync(Guid relationshipId, CancellationToken ct)

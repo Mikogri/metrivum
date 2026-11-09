@@ -10,6 +10,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Access.Infrastructure;
 
+/// <summary>Evaluates feature availability from account roles, plans and access configuration; enforces decisions before module operations.</summary>
 public sealed class FeatureAccessService : IFeatureAccessService
 {
     private static readonly Counter<long> Denials = new Meter("Metrivum.Access").CreateCounter<long>("metrivum.feature.denied");

@@ -1,5 +1,6 @@
 namespace Metrivum.Integrations.Domain;
 
+/// <summary>Represents persisted integration connection state in Integrations; mapped and saved by the owning module's EF services.</summary>
 public sealed class IntegrationConnection
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -15,6 +16,7 @@ public sealed class IntegrationConnection
     public long Version { get; set; } = 1;
 }
 
+/// <summary>Represents persisted pending action state in Integrations; mapped and saved by the owning module's EF services.</summary>
 public sealed class PendingAction
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -39,6 +41,7 @@ public sealed class PendingAction
     public long Version { get; set; } = 1;
 }
 
+/// <summary>Represents persisted command receipt state in Integrations; mapped and saved by the owning module's EF services.</summary>
 public sealed class CommandReceipt
 {
     public Guid ConnectionId { get; set; }
@@ -49,6 +52,7 @@ public sealed class CommandReceipt
     public DateTimeOffset CreatedAt { get; set; }
 }
 
+/// <summary>Represents persisted programming preferences state in Integrations; mapped and saved by the owning module's EF services.</summary>
 public sealed class ProgrammingPreferences
 {
     public Guid UserId { get; set; }

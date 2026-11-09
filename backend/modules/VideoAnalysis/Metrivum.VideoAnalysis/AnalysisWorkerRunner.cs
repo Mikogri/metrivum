@@ -8,6 +8,7 @@ using Metrivum.Media.Contracts;
 
 namespace Metrivum.VideoAnalysis;
 
+/// <summary>Claims queued analysis jobs and persists processing outcomes through the video-analysis pipeline.</summary>
 public sealed class AnalysisWorkerRunner(IServiceScopeFactory scopes, IOptions<AnalysisOptions> configured, ILogger<AnalysisWorkerRunner> logger)
 {
     private readonly AnalysisOptions options = configured.Value;

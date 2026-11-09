@@ -8,6 +8,7 @@ public enum BillingContext
     CoachingService, Platform, TrainingPlan
 }
 
+/// <summary>Represents persisted platform plan state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class PlatformPlan
 {
     public string Id { get; set; } = "";
@@ -17,6 +18,7 @@ public sealed class PlatformPlan
         get; set;
     }
 }
+/// <summary>Represents persisted plan price state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class PlanPrice
 {
     public Guid Id
@@ -36,6 +38,7 @@ public sealed class PlanPrice
         get; set;
     }
 }
+/// <summary>Represents persisted platform subscription state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class PlatformSubscription
 {
     public Guid Id
@@ -95,6 +98,7 @@ public sealed class PlatformSubscription
         get; set;
     }
 }
+/// <summary>Represents persisted plan change state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class PlanChange
 {
     public Guid Id
@@ -121,6 +125,7 @@ public sealed class PlanChange
     }
 }
 
+/// <summary>Represents persisted team state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class Team
 {
     public Guid Id
@@ -152,6 +157,7 @@ public sealed class Team
         get; set;
     }
 }
+/// <summary>Represents persisted team membership state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class TeamMembership
 {
     public Guid TeamId
@@ -173,6 +179,7 @@ public sealed class TeamMembership
         get; set;
     }
 }
+/// <summary>Represents persisted team request state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class TeamRequest
 {
     public Guid Id
@@ -208,6 +215,7 @@ public sealed class TeamRequest
     }
 }
 
+/// <summary>Represents persisted team audit state in Billing; mapped and saved by the owning module's EF services.</summary>
 public sealed class TeamAudit
 {
     public Guid Id

@@ -6,6 +6,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Accounts.Infrastructure;
 
+/// <summary>Reads and updates authorized profile field values in the Accounts database.</summary>
 public sealed class AccountProfileFieldsService(AccountsDbContext db, IAccountContext account) : IAccountProfileFields
 {
     public async Task<AccountProfileFields> GetOwnAsync(CancellationToken cancellationToken) => Dto(await Own(cancellationToken));

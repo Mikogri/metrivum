@@ -1,5 +1,6 @@
 namespace Metrivum.Coaching.Domain;
 
+/// <summary>Represents persisted team client case state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class TeamClientCase
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -23,6 +24,7 @@ public sealed class TeamClientCase
     public long Version { get; set; } = 1;
 }
 
+/// <summary>Represents persisted team coach assignment state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class TeamCoachAssignment
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -52,6 +54,7 @@ public sealed class TeamCoachAssignment
     }
 }
 
+/// <summary>Represents persisted client transfer request state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class ClientTransferRequest
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -102,6 +105,7 @@ public sealed class ClientTransferRequest
     public long Version { get; set; } = 1;
 }
 
+/// <summary>Represents persisted team case change state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class TeamCaseChange
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -128,6 +132,7 @@ public sealed class TeamCaseChange
     }
 }
 
+/// <summary>Represents persisted team transfer change state in Coaching; mapped and saved by the owning module's EF services.</summary>
 public sealed class TeamTransferChange
 {
     public Guid Id { get; set; } = Guid.NewGuid();

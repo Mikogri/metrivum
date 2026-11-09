@@ -7,6 +7,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Api.Security;
 
+/// <summary>Applies HTTP abuse policies before requests reach module operations.</summary>
 public static class AbuseHttpProtection
 {
     // Explicit special cases; all new business routes inherit Read/Write and Global.

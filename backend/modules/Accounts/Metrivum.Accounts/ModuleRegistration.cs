@@ -8,6 +8,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Accounts;
 
+/// <summary>Registers Accounts services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddAccounts(this IServiceCollection services, IConfiguration configuration)

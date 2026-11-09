@@ -11,6 +11,7 @@ using Metrivum.ExerciseCatalog.Infrastructure;
 
 namespace Metrivum.ExerciseCatalog;
 
+/// <summary>Registers ExerciseCatalog services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddExerciseCatalog(this IServiceCollection services, IConfiguration configuration)

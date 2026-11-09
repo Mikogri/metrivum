@@ -21,6 +21,7 @@ public sealed record McpClientContext(McpClientTrainingContext Coaching, string 
 public sealed record McpClientFollowup(Guid RelationshipId, Guid[] OverdueRequestIds, DateTimeOffset OldestDueAt);
 public sealed record McpFollowupPage(McpClientFollowup[] Items, int Page, int PageSize, long TotalOverdueRequests);
 
+/// <summary>Exposes MCP tools that validate AI requests and delegate work to authorized owning-module operations.</summary>
 [McpServerToolType]
 public sealed class MetrivumTools(IntegrationAccess access, IntegrationService integrations, IAccountContext accounts,
     IMcpTrainingOperations training, IMcpExerciseOperations exercises, IMcpClientOperations clients,

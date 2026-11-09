@@ -1,5 +1,6 @@
 namespace Metrivum.BuildingBlocks;
 
+/// <summary>Carries a safe HTTP status, error code and validation details from backend operations to the API error handler.</summary>
 public sealed class ApiException(int status, string code, string message, IDictionary<string, string[]>? errors = null, TimeSpan? retryAfter = null)
     : Exception(message)
 {

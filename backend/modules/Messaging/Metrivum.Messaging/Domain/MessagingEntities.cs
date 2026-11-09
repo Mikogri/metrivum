@@ -47,6 +47,7 @@ public enum RequestState
     Cancelled
 }
 
+/// <summary>Represents persisted conversation state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class Conversation
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -81,6 +82,7 @@ public sealed class Conversation
     }
 }
 
+/// <summary>Represents persisted conversation member state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class ConversationMember
 {
     public Guid ConversationId
@@ -133,6 +135,7 @@ public sealed class ConversationMember
     }
 }
 
+/// <summary>Represents persisted membership change state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class MembershipChange
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -166,6 +169,7 @@ public sealed class MembershipChange
     }
 }
 
+/// <summary>Represents persisted message state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class Message
 {
     public string? CoachingEntryJson { get; set; }
@@ -206,6 +210,7 @@ public sealed class Message
     public string RequestHash { get; set; } = "";
 }
 
+/// <summary>Represents persisted message attachment state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class MessageAttachment
 {
     public Guid MessageId
@@ -231,6 +236,7 @@ public sealed class MessageAttachment
     }
 }
 
+/// <summary>Represents persisted message request state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class MessageRequest
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -270,6 +276,7 @@ public sealed class MessageRequest
     }
 }
 
+/// <summary>Represents persisted user block state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class UserBlock
 {
     public Guid UserId
@@ -286,12 +293,14 @@ public sealed class UserBlock
     }
 }
 
+/// <summary>Represents persisted messaging preference state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class MessagingPreference
 {
     public Guid UserId { get; set; }
     public bool RequireApproval { get; set; }
 }
 
+/// <summary>Represents persisted message report state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class MessageReport
 {
     public Guid Id { get; set; } = Guid.NewGuid();

@@ -18,6 +18,7 @@ public enum RequestStatus
     Scheduled, Available, Overdue, Submitted, Reviewed, Cancelled
 }
 public sealed record Recurrence(RecurrenceKind Kind, int Interval, DateOnly StartDate, TimeOnly ReleaseTime, IReadOnlyList<int>? WeekDays = null, int? DayOfMonth = null, Guid? AssignmentId = null, IReadOnlyList<int>? CycleDays = null);
+/// <summary>Represents persisted check in schedule state in CheckIns; mapped and saved by the owning module's EF services.</summary>
 public sealed class CheckInSchedule
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -71,6 +72,7 @@ public sealed class CheckInSchedule
         get; set;
     }
 }
+/// <summary>Represents persisted schedule target state in CheckIns; mapped and saved by the owning module's EF services.</summary>
 public sealed class ScheduleTarget
 {
     public Guid ScheduleId
@@ -102,6 +104,7 @@ public sealed class ScheduleTarget
         get; set;
     }
 }
+/// <summary>Represents persisted check in request state in CheckIns; mapped and saved by the owning module's EF services.</summary>
 public sealed class CheckInRequest
 {
     public string? AssignmentSource { get; set; }

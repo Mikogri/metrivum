@@ -9,6 +9,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Access;
 
+/// <summary>Registers Access services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddAccess(this IServiceCollection services, IConfiguration configuration)

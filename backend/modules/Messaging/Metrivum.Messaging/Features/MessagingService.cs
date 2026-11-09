@@ -14,6 +14,7 @@ using Metrivum.Messaging.Infrastructure;
 
 namespace Metrivum.Messaging.Features;
 
+/// <summary>Reads and changes authorized conversations, messages, requests and moderation state in the Messaging database.</summary>
 public sealed partial class MessagingService(MessagingDbContext db, IAccountContext accounts, IAccountDirectory directory, IFeatureAccessService access, ICoachingMessagingDirectory coaching, IMediaLibrary media, ModuleTransaction tx, TimeProvider clock, IOptions<MessagingOptions> options, MessagingDispatcher dispatcher, INotificationPublisher notifications, IFeatureAudience audience, INotificationReadStore notificationReads, IAbuseProtection? abuse = null, IOptions<MessagingAbuseOptions>? abuseOptions = null) : ICoachingMessagingObserver, ICoachingChatPublisher, IMessagingUploadAuthorization
 {
     private Guid Actor => accounts.UserId;

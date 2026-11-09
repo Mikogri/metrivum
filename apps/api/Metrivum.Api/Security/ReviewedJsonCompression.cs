@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 
 namespace Metrivum.Api.Security;
 
+/// <summary>Applies the reviewed HTTP JSON compression policy without changing application data.</summary>
 public static class ReviewedJsonCompression
 {
     // Opt in data-only reads. Auth, reflected message content, signed URLs and writes stay excluded.

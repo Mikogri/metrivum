@@ -17,6 +17,7 @@ using Metrivum.Notifications.Contracts;
 
 namespace Metrivum.Coaching;
 
+/// <summary>Registers Coaching services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddCoaching(this IServiceCollection services, IConfiguration configuration)
@@ -129,6 +130,7 @@ public static class ModuleRegistration
         return Results.Ok(value);
     }
 }
+/// <summary>Reads and aggregates coaching usage provider information for authorized Coaching reporting and quota contracts.</summary>
 internal sealed class CoachingUsageProvider(CoachingDbContext db, IPlanEntitlementsProvider plans) : ILimitUsageProvider
 {
     public async Task<IReadOnlyList<LimitDecision>> GetScopedUsageAsync(Guid ownerId, Guid? teamId, CancellationToken ct)

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Metrivum.BuildingBlocks;
 
+/// <summary>Validates HTTP version preconditions before optimistic-concurrency writes.</summary>
 public static class RequestPreconditions
 {
     public static long RequireVersion(HttpRequest request)

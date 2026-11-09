@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Metrivum.Billing.Domain;
 namespace Metrivum.Billing.Infrastructure;
 
+/// <summary>Configures EF mappings, relationships and constraints for team billing in Billing; does not execute data mutations.</summary>
 public static class TeamBillingModel
 {
     public static void Configure(ModelBuilder m)

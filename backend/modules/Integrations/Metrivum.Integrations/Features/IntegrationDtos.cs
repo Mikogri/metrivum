@@ -21,6 +21,7 @@ public sealed record SendApprovedResult(Guid ActionId, Guid MessageId, Guid Conv
 public sealed record AssignApprovedResult(Guid ActionId, Guid AssignmentId, Guid RelationshipId, string Status);
 public sealed record IntegrationActivityDto(Guid ConnectionId, string ClientName, string Operation, string Status, DateTimeOffset At, Guid? ActionId, Guid? ResultId);
 
+/// <summary>Defines supported AI integration grants and their validation rules.</summary>
 public static class IntegrationGrants
 {
     public const string ReadTraining = "read_training";

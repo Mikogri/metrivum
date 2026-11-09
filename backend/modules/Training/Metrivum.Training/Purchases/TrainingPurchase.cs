@@ -1,5 +1,6 @@
 using Metrivum.Training.Infrastructure;
 namespace Metrivum.Training.Purchases;
+/// <summary>Represents persisted training purchase state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class TrainingPurchase
 {
     public Guid OrderId { get; set; }

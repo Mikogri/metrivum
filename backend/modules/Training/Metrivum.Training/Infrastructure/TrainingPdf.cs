@@ -7,6 +7,7 @@ using Metrivum.Training.Domain;
 
 namespace Metrivum.Training.Infrastructure;
 
+/// <summary>Renders a training document as a PDF without changing the saved plan.</summary>
 public static class TrainingPdf
 {
     private static readonly object FontLock = new();
@@ -153,6 +154,7 @@ public static class TrainingPdf
             parts.Add(p.Comment);
         return string.Join(" | ", parts);
     }
+    /// <summary>Resolves embedded font resources for training PDF generation.</summary>
     private sealed class EmbeddedFontResolver : IFontResolver
     {
         public FontResolverInfo? ResolveTypeface(string familyName, bool bold, bool italic) => familyName == "Metrivum Noto Sans" ? new("noto-sans", false, false) : null;
@@ -168,6 +170,7 @@ public static class TrainingPdf
     }
 }
 
+/// <summary>Measures and wraps text for training PDF output.</summary>
 public static class PdfTextLayout
 {
     public static string[] Wrap(string text, double maximumWidth, Func<string, double> measure)

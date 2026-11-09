@@ -7,6 +7,7 @@ public sealed record BasicClientCounts(int Active, int Suspended, int Completed)
 public sealed record BasicAnalysis(AnalysisWindow Period, BasicClientCounts Clients, BasicFinancialAnalysis Finance,
     CheckInsAnalysis CheckIns, MessagingAnalysis Messaging, bool SimulatedPayments = true);
 
+/// <summary>Builds basic financial analytics projections from contract data; does not access module databases.</summary>
 public static class BasicAnalysisProjection
 {
     public static BasicMoneyMetric Money(MoneyMetric value) => new(value.Currency, value.Gross, value.Fee, value.Net,

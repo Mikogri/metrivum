@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Metrivum.Notifications.Contracts;
 namespace Metrivum.Notifications;
 
+/// <summary>Reads and updates preferences for training-program ending notifications.</summary>
 public sealed class ProgramEndingAlertPreferences(NotificationsDbContext db) : IProgramEndingAlertPreferences
 {
     public async Task<IReadOnlyDictionary<Guid, string[]>> GetAsync(IReadOnlyCollection<Guid> coachIds, CancellationToken ct)

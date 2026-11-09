@@ -6,6 +6,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Api.Security;
 
+/// <summary>Contains the configured supabase auth settings and bounds for API host; does not itself access the database.</summary>
 public sealed class SupabaseAuthOptions
 {
     public string ProjectUrl { get; set; } = "http://127.0.0.1:54321";
@@ -19,6 +20,7 @@ public sealed class SupabaseAuthOptions
     public string JwksUrl => Issuer + "/.well-known/jwks.json";
 }
 
+/// <summary>Configures Supabase JWT validation and authentication events for the API host.</summary>
 public static class SupabaseAuthentication
 {
     /// <summary>Marks a request refused only because its session still needs the second factor.</summary>
@@ -137,6 +139,7 @@ public static class SupabaseAuthentication
     };
 }
 
+/// <summary>Downloads Supabase signing keys for JWT verification; does not access application tables.</summary>
 public sealed class SupabaseJwksRetriever(string issuer) : IConfigurationRetriever<OpenIdConnectConfiguration>
 {
     public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(string address, IDocumentRetriever retriever, CancellationToken cancellationToken)

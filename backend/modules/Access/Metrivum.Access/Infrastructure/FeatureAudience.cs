@@ -6,6 +6,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Access.Infrastructure;
 
+/// <summary>Defines which business roles can use each feature; evaluates audience rules without granting administrative roles.</summary>
 public sealed class FeatureAudience(AccessDbContext db, FeatureCatalog catalog, IAccountDirectory directory) : IFeatureAudience
 {
     public async Task<IReadOnlySet<Guid>> GetAllowedUsersAsync(IReadOnlyCollection<Guid> userIds, string key, CancellationToken ct)

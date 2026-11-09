@@ -8,6 +8,7 @@ namespace Metrivum.Training.Delivery;
 
 public sealed record AssignmentFormulaSnapshot(Dictionary<string, Quantity> Variables, Dictionary<string, string> SourceVersions, Dictionary<Guid, FormulaEvaluation> Evaluations, bool Stale);
 public sealed record RefreshFormulaSnapshotRequest(Dictionary<string, string> SourceVersions);
+/// <summary>Manages assignments, frozen workout prescriptions, executions and progress in the Training database.</summary>
 public sealed partial class TrainingDeliveryService
 {
     public async Task<AssignmentFormulaSnapshot> FormulaSnapshotAsync(Guid id, bool preview, CancellationToken ct)

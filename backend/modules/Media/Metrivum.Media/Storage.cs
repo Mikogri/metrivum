@@ -7,6 +7,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Media;
 
+/// <summary>Contains the configured storage settings and bounds for Media; does not itself access the database.</summary>
 public sealed class StorageOptions
 {
     public string Url { get; set; } = "";
@@ -38,6 +39,7 @@ public interface IPrivateObjectStorage
     Task DeleteAsync(string bucket, string key, CancellationToken ct);
 }
 
+/// <summary>Calls Supabase Storage REST endpoints to inspect, upload, read, sign and delete private objects; does not write PostgreSQL tables directly.</summary>
 public sealed class SupabaseObjectStorage(HttpClient client, IOptions<StorageOptions> configured) : IPrivateObjectStorage
 {
     private readonly StorageOptions options = configured.Value;
@@ -157,6 +159,7 @@ public sealed class SupabaseObjectStorage(HttpClient client, IOptions<StorageOpt
         using var response = await SendAsync(request, ct, allowMissing: true);
     }
 
+    /// <summary>Keeps an HTTP storage response alive while its content stream is read and disposes both together.</summary>
     private sealed class ResponseStream(Stream inner, HttpResponseMessage response) : Stream
     {
         public override bool CanRead => inner.CanRead;

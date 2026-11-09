@@ -5,6 +5,7 @@ using Metrivum.Billing.Features;
 
 namespace Metrivum.Billing.Infrastructure;
 
+/// <summary>Runs scheduled billing processing in Billing through the owning services.</summary>
 public sealed class BillingWorker(IServiceScopeFactory scopes, ILogger<BillingWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

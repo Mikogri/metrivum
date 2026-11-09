@@ -9,6 +9,7 @@ using Metrivum.ExerciseCatalog.Infrastructure;
 
 namespace Metrivum.ExerciseCatalog.Features;
 
+/// <summary>Reads the exercise catalog and changes authorized exercises, tags and dictionaries while retaining revision and version checks.</summary>
 public sealed partial class CatalogService(ExerciseCatalogDbContext db, IAccountContext account, IFeatureAccessService access, IAbuseProtection? abuse = null) : IExerciseCatalog
 {
     public Task<CatalogPage> ListAsync(CatalogQuery request, CancellationToken ct) => ListInternalAsync(request, null, ct);

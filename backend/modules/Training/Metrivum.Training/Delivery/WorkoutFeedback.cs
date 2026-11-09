@@ -4,6 +4,7 @@ namespace Metrivum.Training.Delivery;
 
 public sealed record WorkoutFeedback(int Rating, decimal SessionRpe, int Wellbeing, int SleepQuality, string? Note = null);
 
+/// <summary>Validates optional post-workout feedback ranges before persistence.</summary>
 public static class WorkoutFeedbackRules
 {
     public static void Validate(WorkoutFeedback value)
@@ -14,6 +15,7 @@ public static class WorkoutFeedbackRules
     }
 }
 
+/// <summary>Manages assignments, frozen workout prescriptions, executions and progress in the Training database.</summary>
 public sealed partial class TrainingDeliveryService
 {
     public Task<ExecutionDto> SaveFeedbackAsync(Guid id, WorkoutFeedback feedback, long version, CancellationToken ct) => MutateAsync(async () =>

@@ -2,6 +2,7 @@ using System.Diagnostics.Metrics;
 
 namespace Metrivum.Media;
 
+/// <summary>Contains the configured media quota settings and bounds for Media; does not itself access the database.</summary>
 public sealed class MediaQuotaOptions
 {
     public int UploadStartsPerHour { get; set; } = 30;
@@ -11,6 +12,7 @@ public sealed class MediaQuotaOptions
     public int CleanupBatchSize { get; set; } = 25;
 }
 
+/// <summary>Records media quota instrumentation; does not store application records.</summary>
 internal static class MediaQuotaMetrics
 {
     private static readonly Meter Meter = new("Metrivum.Media.Quotas");

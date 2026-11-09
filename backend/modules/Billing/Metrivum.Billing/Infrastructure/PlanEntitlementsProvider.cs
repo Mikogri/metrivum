@@ -7,6 +7,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Billing.Infrastructure;
 
+/// <summary>Reads platform and team subscriptions to supply plan entitlements through the Access contract.</summary>
 public sealed class PlanEntitlementsProvider : IPlanEntitlementsProvider
 {
     private readonly BillingDbContext db;

@@ -1,5 +1,6 @@
 namespace Metrivum.Messaging.Infrastructure;
 
+/// <summary>Represents persisted messaging abuse record state in Messaging; mapped and saved by the owning module's EF services.</summary>
 public sealed class MessagingAbuseRecord
 {
     public Guid Id { get; set; } = Guid.NewGuid();

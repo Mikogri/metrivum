@@ -4,6 +4,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Accounts.Infrastructure;
 
+/// <summary>Reads account identities and display information for other modules through the Accounts contract.</summary>
 public sealed class AccountDirectory(AccountsDbContext db, IAccountContext? actor = null, IAbuseProtection? abuse = null) : IAccountDirectory
 {
     public Task<Guid[]> GetActiveUserIdsAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken)

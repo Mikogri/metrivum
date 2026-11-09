@@ -7,6 +7,7 @@ using Metrivum.VideoAnalysis.Infrastructure;
 
 namespace Metrivum.VideoAnalysis;
 
+/// <summary>Creates and manages durable video-analysis jobs and their PostgreSQL queue state.</summary>
 public sealed class AnalysisQueue(VideoAnalysisDbContext db, IOptions<AnalysisOptions> configured, ModuleTransaction? transaction = null,
     INotificationPublisher? notifications = null, CloudAnalysisBudget? cloudBudget = null)
 {

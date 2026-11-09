@@ -3,6 +3,7 @@ using Metrivum.Coaching.Domain;
 
 namespace Metrivum.Coaching.Infrastructure;
 
+/// <summary>Configures EF mappings, relationships and constraints for discovery in Coaching; does not execute data mutations.</summary>
 internal static class DiscoveryModel
 {
     public static void Configure(ModelBuilder model)

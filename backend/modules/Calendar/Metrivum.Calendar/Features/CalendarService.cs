@@ -9,6 +9,7 @@ using Metrivum.Coaching.Contracts;
 
 namespace Metrivum.Calendar.Features;
 
+/// <summary>Reads and changes authorized calendar events and attendance, preserving versions and immutable audit records.</summary>
 public sealed class CalendarService(CalendarDbContext db, IAccountContext accounts, IFeatureAccessService access,
     IRelationshipRecipients recipients, IAccountDirectory directory, ModuleTransaction transaction, TimeProvider clock, INotificationPublisher notifications, ITeamContext? teams = null, IRelationshipAccessPolicy? policy = null)
 {

@@ -2,6 +2,7 @@ using Npgsql;
 
 namespace Metrivum.Api.Security;
 
+/// <summary>Checks that the API PostgreSQL login has restricted runtime privileges at startup; does not change grants or schema.</summary>
 public static class RuntimeDatabaseGuard
 {
     public static async Task ValidateAsync(NpgsqlDataSource database, CancellationToken cancellationToken)

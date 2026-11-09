@@ -21,6 +21,7 @@ public enum LoadMeaning
 {
     TotalExternal, PerHand, Bodyweight, Assisted
 }
+/// <summary>Represents persisted assignment batch state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class AssignmentBatch
 {
     public Guid Id
@@ -38,6 +39,7 @@ public sealed class AssignmentBatch
         get; set;
     }
 }
+/// <summary>Represents persisted group program assignment state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class GroupProgramAssignment
 {
     public Guid Id
@@ -53,6 +55,7 @@ public sealed class GroupProgramAssignment
         get; set;
     }
 }
+/// <summary>Represents persisted program assignment state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class ProgramAssignment
 {
     public Metrivum.Training.Features.ClientFormulaPreview FormulaSnapshot { get; set; } = null!;
@@ -112,6 +115,7 @@ public sealed class ProgramAssignment
     }
     public long Version { get; set; } = 1;
 }
+/// <summary>Represents persisted assignment group source state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class AssignmentGroupSource
 {
     public Guid AssignmentId
@@ -123,6 +127,7 @@ public sealed class AssignmentGroupSource
         get; set;
     }
 }
+/// <summary>Represents persisted workout occurrence state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class WorkoutOccurrence
 {
     public Guid Id
@@ -174,6 +179,7 @@ public sealed class WorkoutOccurrence
     public WorkoutPrescription Prescription { get; set; } = null!;
 }
 public sealed record WorkoutPrescription(Guid RevisionId, string ProgramName, Workout Workout, Dictionary<Guid, ExerciseSnapshot> Exercises, Dictionary<Guid, FormulaEvaluation> Formulas, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] PlanAnnotation[]? Annotations = null);
+/// <summary>Represents persisted workout execution state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class WorkoutExecution
 {
     public WorkoutFeedback? Feedback { get; set; }
@@ -218,6 +224,7 @@ public sealed class WorkoutExecution
     public long Version { get; set; } = 1;
     public List<ExerciseExecution> Exercises { get; set; } = [];
 }
+/// <summary>Represents persisted exercise execution state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class ExerciseExecution
 {
     public Guid Id
@@ -248,6 +255,7 @@ public sealed class ExerciseExecution
     }
     public List<SetExecution> Sets { get; set; } = [];
 }
+/// <summary>Represents persisted set execution state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class SetExecution
 {
     public Guid Id
@@ -321,6 +329,7 @@ public sealed class SetExecution
     }
 }
 
+/// <summary>Configures EF mappings, relationships and constraints for delivery in Training; does not execute data mutations.</summary>
 public static class DeliveryModel
 {
     public static void Configure(ModelBuilder model)

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Metrivum.Accounts.Contracts;
 using Metrivum.Billing.Domain;
@@ -27,6 +27,7 @@ public sealed record TransactionCurrencySummary(string Currency, decimal Earned,
 public sealed record TransactionSummary(IReadOnlyList<TransactionCurrencySummary> Currencies, int Settled, int Upcoming,
     int OverdueIncoming, int OverdueOutgoing, DateTimeOffset? NextDueAt);
 
+/// <summary>Queries the authorized, filtered history of incoming and outgoing Billing transactions.</summary>
 public sealed class TransactionHistoryService(BillingDbContext db, IAccountContext account, ITeamContext teams, IAccountDirectory directory, TimeProvider clock)
 {
     public async Task<BillingPage<FinancialHistoryItem>> ListAsync(TransactionHistoryQuery request, CancellationToken ct)
@@ -196,6 +197,7 @@ public sealed class TransactionHistoryService(BillingDbContext db, IAccountConte
             || r.Type is not (null or "PlatformSubscription" or "CoachingService" or "CoachingSubscription" or "TrainingPlan" or "Refund" or "SubscriptionChange"))
             throw ApiException.Invalid("Invalid transaction history filters.");
     }
+    /// <summary>Holds an internal Billing transaction query projection; has no independent persistence behavior.</summary>
     private sealed class Row
     {
         public Guid Id { get; set; } public Guid DueId { get; set; } public Guid? PaymentId { get; set; } public Guid? AttemptId { get; set; } public Guid OrderId { get; set; }

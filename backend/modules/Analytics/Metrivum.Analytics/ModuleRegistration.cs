@@ -10,6 +10,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Analytics;
 
+/// <summary>Registers Analytics services and HTTP routes; request handlers delegate database work to the owning module.</summary>
 public static class ModuleRegistration
 {
     public static IServiceCollection AddAnalyticsModule(
@@ -99,6 +100,7 @@ public static class ModuleRegistration
     }
 }
 
+/// <summary>Carries analytics filters bound from API requests; contains no database access.</summary>
 public sealed class AnalysisQuery
 {
     public DateOnly? From
@@ -135,6 +137,7 @@ public sealed class AnalysisQuery
     }
 }
 
+/// <summary>Builds authorized analytics views through owning-module contracts; does not maintain a second analytics database.</summary>
 public sealed class AnalysisService(
     IAccountContext accounts,
     IFeatureAccessService access,

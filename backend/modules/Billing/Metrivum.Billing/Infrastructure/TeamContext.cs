@@ -5,6 +5,7 @@ using Metrivum.BuildingBlocks;
 
 namespace Metrivum.Billing.Infrastructure;
 
+/// <summary>Resolves the current team workspace and membership permissions from Billing state.</summary>
 public sealed class TeamContext(BillingDbContext db, TimeProvider clock) : ITeamContext
 {
     public async Task<TeamAccess?> GetForUserAsync(Guid userId, CancellationToken ct)
