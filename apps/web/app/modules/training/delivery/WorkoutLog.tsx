@@ -260,6 +260,7 @@ function ExecutionEditor({
   feedbackOwn,
   onClose,
   intent = "edit",
+  startOn,
 }: {
   detail: Detail;
   execution: Execution;
@@ -268,9 +269,13 @@ function ExecutionEditor({
   onClose: () => void;
   /** live: logging during the workout ("Start workout"); review: everything filled in as planned ("Mark as done"). */
   intent?: "edit" | "live" | "review";
+  /** Mark as done: nothing is started until the log is finished; finishing starts, saves and completes it. */
+  startOn?: string;
 }) {
   const uiCopy = useUiCopy();
   const inProgress = execution.status === "InProgress";
+  // Only a workout being done right now is saved as it goes; editing or reviewing a log saves when it is finished.
+  const live = intent === "live" && inProgress;
 
   const [feedback, setFeedback] = useState<
     Partial<NonNullable<Execution["feedback"]>>
@@ -320,7 +325,7 @@ function ExecutionEditor({
   const versionRef = useRef(version);
   versionRef.current = version;
   useEffect(() => {
-    if (!inProgress || !dirty || mutate.isPending) return;
+    if (!live || !dirty || mutate.isPending) return;
     const timer = window.setTimeout(() => {
       const sent = draftRef.current;
       autosave.mutate(
@@ -342,8 +347,8 @@ function ExecutionEditor({
     }, 1200);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs after each edit while the workout is in progress
-  }, [draft, dirty, inProgress]);
-  useUnsavedWorkGuard(() => dirty && !inProgress);
+  }, [draft, dirty, live]);
+  useUnsavedWorkGuard(() => dirty && !live);
   const canEdit =
     execution.allowedActions.includes("edit") ||
     execution.allowedActions.includes("save") ||
@@ -369,10 +374,18 @@ function ExecutionEditor({
     });
   async function save(exercises: ActualExercise[], message: string) {
     const body = executionBody({ ...draft, exercises });
+    // Mark as done: the workout starts only now, when the log is finished.
+    let id = execution.id;
+    let ifMatch = versionRef.current;
+    if (startOn) {
+      const started = await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/workouts/${startOn}/start` });
+      id = started.id;
+      ifMatch = started.version;
+    }
     const saved = await mutate.mutateAsync({
       method: "PUT",
-      path: `/api/v1/training/executions/${execution.id}`,
-      ifMatch: versionRef.current,
+      path: `/api/v1/training/executions/${id}`,
+      ifMatch,
       json: body,
     });
     setVersion(saved.version);
@@ -382,7 +395,7 @@ function ExecutionEditor({
       current = (
         await mutate.mutateAsync({
           method: "POST",
-          path: `/api/v1/training/executions/${execution.id}/complete`,
+          path: `/api/v1/training/executions/${id}/complete`,
           ifMatch: saved.version,
         })
       ).version;
@@ -390,7 +403,7 @@ function ExecutionEditor({
     if (feedbackOwn && feedbackReady && feedbackChanged)
       await mutate.mutateAsync({
         method: "PUT",
-        path: `/api/v1/training/executions/${execution.id}/feedback`,
+        path: `/api/v1/training/executions/${id}/feedback`,
         ifMatch: current,
         json: feedback,
       });
@@ -409,7 +422,7 @@ function ExecutionEditor({
   };
   const close = () => {
     // An in-progress workout is saved as it goes: closing just leaves it to continue later.
-    if (dirty && !inProgress) setConfirmClose(true);
+    if (dirty && !live) setConfirmClose(true);
     else onClose();
   };
   const field = (
@@ -459,18 +472,18 @@ function ExecutionEditor({
       </Button>
       <Button
         variant="primary"
-        iconStart={inProgress ? <Check /> : undefined}
+        iconStart={inProgress || startOn ? <Check /> : undefined}
         loading={mutate.isPending}
         // Finishing waits for a save in flight, so both never race on the same version.
         isDisabled={autosave.isPending}
         onPress={() => {
           void save(
             draft.exercises,
-            inProgress ? uiCopy.ui["Workout finished"] : uiCopy.ui["Log saved"],
+            (inProgress || startOn) ? uiCopy.ui["Workout finished"] : uiCopy.ui["Log saved"],
           ).catch(() => {});
         }}
       >
-        {inProgress ? uiCopy["ui"]["Finish workout"] : uiCopy["common"]["save"]}
+        {inProgress || startOn ? uiCopy["ui"]["Finish workout"] : uiCopy["common"]["save"]}
       </Button>
     </div>
   ) : (
@@ -485,9 +498,9 @@ function ExecutionEditor({
       ? "saving"
       : mutate.isError || autosave.isError
         ? "error"
-        : dirty && !inProgress
+        : dirty && !live
           ? "dirty"
-          : inProgress && savedAt
+          : live && savedAt
             ? "saved"
             : null;
   const title = (
@@ -1060,11 +1073,13 @@ export function WorkoutDetail({
   // "Start workout" and "Mark as done" both start the workout and open the log filled in with the plan. Started, it is
   // saved as the athlete goes; "Finish workout" completes it, so finishing straight away records it as planned.
   const begin = async (next: "live" | "review") => {
-    await mutate.mutateAsync({
-      method: "POST",
-      path: `/api/v1/training/workouts/${occurrenceId}/start`,
-    });
-    await query.refetch();
+    if (next === "live") {
+      await mutate.mutateAsync({
+        method: "POST",
+        path: `/api/v1/training/workouts/${occurrenceId}/start`,
+      });
+      await query.refetch();
+    }
     setIntent(next);
     setLogging(true);
   };
@@ -1451,8 +1466,9 @@ export function WorkoutDetail({
                 : 0;
               const complete =
                 Boolean(logged) && finished === exercise.sets.length;
+              // While the workout is still in progress nothing counts as not done yet.
               const skippedAll =
-                Boolean(logged) &&
+                logged?.status === "Completed" &&
                 finished === 0 &&
                 (!actual ||
                   actual.sets.every((set) => set.skipped || !performed(set)));
@@ -1544,7 +1560,9 @@ export function WorkoutDetail({
                             prescription={set.prescription}
                             actual={done}
                             missing={
-                              Boolean(logged) && !done && set.optional !== true
+                              logged?.status === "Completed" &&
+                              !done &&
+                              set.optional !== true
                             }
                             optional={set.optional === true}
                           />
@@ -1622,11 +1640,12 @@ export function WorkoutDetail({
       {logged ? (
         <CoachAnalysisChips executionId={logged.id} enabled={!relationshipId} />
       ) : null}
-      {logged && logging ? (
+      {logging && (logged || intent === "review") ? (
         <ExecutionEditor
-          key={`${logged.id}:${logged.version}`}
+          key={logged?.id ?? "review"}
           detail={detail}
-          execution={logged}
+          execution={logged ?? { id: "", version: 0, status: "Scheduled", startedAt: "", completedAt: null, performedDate: localDate(), comment: "", durationSeconds: null, exercises: [], allowedActions: ["save"], feedback: null }}
+          startOn={logged ? undefined : occurrenceId}
           own={!relationshipId}
           feedbackOwn={feedbackOwn}
           intent={intent}
