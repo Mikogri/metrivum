@@ -116,6 +116,13 @@ public static class DeliveryEndpoints
             )
             .Produces<AssignmentDto>();
         group
+            .MapGet(
+                "/assignments/{id:guid}/plan",
+                (Guid id, TrainingDeliveryService service, CancellationToken ct) =>
+                    service.AssignedPlanAsync(id, ct)
+            )
+            .Produces<AssignedPlanDto>();
+        group
             .MapPut(
                 "/assignments/{id:guid}/status",
                 async (

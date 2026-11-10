@@ -35,7 +35,9 @@ export function StatusBadge({
       tone={
         ["Active", "Accepted", "Reviewed", "Paid"].includes(status)
           ? "success"
-          : ["Suspended", "Overdue", "AwaitingPayment"].includes(status)
+          : ["Suspended", "Overdue", "AwaitingPayment", "In progress"].includes(
+                status,
+              )
             ? "warning"
             : "neutral"
       }

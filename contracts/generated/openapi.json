@@ -2094,6 +2094,41 @@
         ]
       }
     },
+    "/api/v1/training/assignments/{id}/plan": {
+      "get": {
+        "tags": [
+          "Training"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignedPlanDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/training/assignments/{id}/status": {
       "put": {
         "tags": [
@@ -19021,6 +19056,29 @@
         "properties": {
           "archived": {
             "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AssignedPlanDto": {
+        "required": [
+          "name",
+          "document",
+          "exercises"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "document": {
+            "$ref": "#/components/schemas/TrainingDocument"
+          },
+          "exercises": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ExerciseSnapshot"
+            }
           }
         },
         "additionalProperties": false

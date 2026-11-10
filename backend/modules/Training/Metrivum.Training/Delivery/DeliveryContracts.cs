@@ -1,3 +1,5 @@
+using Metrivum.ExerciseCatalog.Contracts;
+using Metrivum.Training.Domain;
 using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.Training.Delivery;
@@ -134,4 +136,10 @@ public sealed record WorkoutDetailDto(
     OccurrenceDto Occurrence,
     WorkoutPrescription Prescription,
     ExecutionDto? Execution
+);
+
+public sealed record AssignedPlanDto(
+    string Name,
+    TrainingDocument Document,
+    Dictionary<Guid, ExerciseSnapshot> Exercises
 );

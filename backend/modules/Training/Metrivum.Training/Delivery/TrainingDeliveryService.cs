@@ -355,6 +355,17 @@ public sealed partial class TrainingDeliveryService(
         );
     }
 
+    public async Task<AssignedPlanDto> AssignedPlanAsync(Guid id, CancellationToken ct)
+    {
+        var assignment = await AssignmentAsync(id, RelationshipOperation.HistoricalSharedRead, ct);
+        var snapshot = await db
+            .Revisions.AsNoTracking()
+            .Where(r => r.Id == assignment.EffectiveRevisionId && r.PlanId == assignment.ProgramId)
+            .Select(r => r.Snapshot)
+            .SingleAsync(ct);
+        return new(snapshot.Name, DocumentRules.ForClient(snapshot.Document), snapshot.Exercises);
+    }
+
     public Task<AssignmentDto> SetStatusAsync(
         Guid id,
         AssignmentStatus status,

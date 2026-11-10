@@ -2795,12 +2795,12 @@ a.rowLink {
 .nextWorkout[data-started] {
   border-color: color-mix(
     in srgb,
-    var(--tf-color-accent) 45%,
+    var(--tf-color-warning) 45%,
     var(--tf-color-border)
   );
   background: linear-gradient(
     160deg,
-    var(--tf-color-accent-soft),
+    var(--tf-color-warning-soft),
     var(--tf-color-surface) 70%
   );
 }
@@ -2816,7 +2816,7 @@ a.rowLink {
   text-transform: uppercase;
 }
 .nextWorkout[data-started] .nextLabel {
-  color: var(--tf-color-accent);
+  color: var(--tf-color-warning);
 }
 .nextName {
   font-size: var(--tf-text-xl);

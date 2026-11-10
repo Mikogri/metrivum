@@ -45,7 +45,7 @@ const dayLabel = (iso: string) =>
   });
 const minutes = (seconds: number | null) =>
   seconds == null ? null : `${Math.max(1, Math.round(seconds / 60))} min`;
-/** A workout's status in colour: done green, missed red, in progress accent, the rest neutral. */
+/** A workout's status in colour: done green, missed red, in progress yellow, the rest neutral. */
 export function WorkoutStatus({ status }: { status: string }) {
   const uiCopy = useUiCopy();
   const tone: BadgeTone =
@@ -54,7 +54,7 @@ export function WorkoutStatus({ status }: { status: string }) {
       : status === "Missed"
         ? "danger"
         : status === "InProgress"
-          ? "accent"
+          ? "warning"
           : "neutral";
   const label = status === "InProgress" ? uiCopy["ui"]["In progress"] : status;
   return (

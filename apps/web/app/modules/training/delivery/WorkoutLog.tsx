@@ -378,7 +378,10 @@ function ExecutionEditor({
     let id = execution.id;
     let ifMatch = versionRef.current;
     if (startOn) {
-      const started = await mutate.mutateAsync({ method: "POST", path: `/api/v1/training/workouts/${startOn}/start` });
+      const started = await mutate.mutateAsync({
+        method: "POST",
+        path: `/api/v1/training/workouts/${startOn}/start`,
+      });
       id = started.id;
       ifMatch = started.version;
     }
@@ -479,11 +482,15 @@ function ExecutionEditor({
         onPress={() => {
           void save(
             draft.exercises,
-            (inProgress || startOn) ? uiCopy.ui["Workout finished"] : uiCopy.ui["Log saved"],
+            inProgress || startOn
+              ? uiCopy.ui["Workout finished"]
+              : uiCopy.ui["Log saved"],
           ).catch(() => {});
         }}
       >
-        {inProgress || startOn ? uiCopy["ui"]["Finish workout"] : uiCopy["common"]["save"]}
+        {inProgress || startOn
+          ? uiCopy["ui"]["Finish workout"]
+          : uiCopy["common"]["save"]}
       </Button>
     </div>
   ) : (
@@ -1329,7 +1336,15 @@ export function WorkoutDetail({
             </Link>
           ) : null}
           <p className={styles.wkKicker}>
-            <Link to={`/app/programs/${o.programId}`}>{o.programName}</Link>
+            <Link
+              to={
+                mode === "client"
+                  ? `/app/my-training/plans/${o.assignmentId}`
+                  : `/app/programs/${o.programId}`
+              }
+            >
+              {o.programName}
+            </Link>
             <span aria-hidden="true">·</span>
             <span>{longDay(o.scheduledDate)}</span>
             {logged?.completedAt ? (
@@ -1645,7 +1660,21 @@ export function WorkoutDetail({
           // One editor for the page: starting the workout on finish (Mark as done) must not remount it.
           key="execution-editor"
           detail={detail}
-          execution={logged ?? { id: "", version: 0, status: "Scheduled", startedAt: "", completedAt: null, performedDate: localDate(), comment: "", durationSeconds: null, exercises: [], allowedActions: ["save"], feedback: null }}
+          execution={
+            logged ?? {
+              id: "",
+              version: 0,
+              status: "Scheduled",
+              startedAt: "",
+              completedAt: null,
+              performedDate: localDate(),
+              comment: "",
+              durationSeconds: null,
+              exercises: [],
+              allowedActions: ["save"],
+              feedback: null,
+            }
+          }
           startOn={logged ? undefined : occurrenceId}
           own={!relationshipId}
           feedbackOwn={feedbackOwn}

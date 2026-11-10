@@ -623,7 +623,7 @@ export function AssignmentList({
                 <li key={item.id}>
                   <Link
                     className={styles.workoutRow}
-                    to={`/app/my-training?tab=history&relationshipId=${item.relationshipId}&programId=${item.programId}`}
+                    to={`/app/my-training/plans/${item.id}`}
                   >
                     <span className={styles.itemMain}>
                       <strong>{item.programName}</strong>
@@ -658,7 +658,7 @@ export function AssignmentList({
                     ) : (
                       <Link
                         data-row-link
-                        to={`/app/my-training?relationshipId=${item.relationshipId}`}
+                        to={`/app/my-training/plans/${item.id}`}
                       >
                         {item.programName}
                       </Link>

@@ -174,6 +174,10 @@ export default [
         "modules/training/purchases/PurchasedPlan.tsx",
         { id: "purchased-plan-editor" },
       ),
+      route(
+        "my-training/plans/:assignmentId",
+        "modules/training/delivery/AssignedPlan.tsx",
+      ),
       route("my-training", "modules/training/delivery/TrainingHome.tsx"),
       route(
         "my-training/workouts/:occurrenceId",

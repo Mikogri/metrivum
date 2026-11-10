@@ -21,6 +21,26 @@ namespace Metrivum.IntegrationTests;
 public sealed class TrainingDeliveryPostgresTests
 {
     [TrainingPostgresFact]
+    public async Task Assigned_plan_returns_only_the_authorized_applied_document()
+    {
+        await using var f = new Fixture();
+        var plan = await f.Seed();
+        var assignment = await f.Assign(plan.Id);
+        await using var client = f.Scope(f.Client);
+        var view = await client.Service.AssignedPlanAsync(assignment.Id, default);
+        Assert.NotEmpty(view.Document.Blocks);
+        await using var stranger = f.Scope(Guid.NewGuid());
+        Assert.Equal(
+            404,
+            (
+                await Assert.ThrowsAsync<Metrivum.BuildingBlocks.ApiException>(() =>
+                    stranger.Service.AssignedPlanAsync(assignment.Id, default)
+                )
+            ).Status
+        );
+    }
+
+    [TrainingPostgresFact]
     public async Task Maximum_effort_can_be_completed_with_a_saved_set_and_no_numerical_result()
     {
         foreach (var repetitions in new[] { true, false })
@@ -389,6 +409,9 @@ public sealed class TrainingDeliveryPostgresTests
                 )
             ).Assignments
         );
+        var clientPlan = await client.Service.AssignedPlanAsync(assignment.Id, default);
+        Assert.Equal(2, clientPlan.Document.Annotations!.Length);
+        Assert.DoesNotContain(clientPlan.Document.Annotations, note => note.Id == secret.Id);
         var occurrences = await coach
             .Db.Set<WorkoutOccurrence>()
             .AsNoTracking()
