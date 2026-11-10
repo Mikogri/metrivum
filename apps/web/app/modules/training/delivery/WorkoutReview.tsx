@@ -186,7 +186,6 @@ export function WorkoutFeedbackForm({
         notePlaceholder: "Co poszło dobrze, co bolało, co zmienić",
         save: "Zapisz",
         later: "Później",
-        edit: "Edytuj",
         add: "Dodaj feedback",
         none: "Klient nie dodał jeszcze feedbacku.",
         noneOwn: "Nie dodano jeszcze feedbacku.",
@@ -213,7 +212,6 @@ export function WorkoutFeedbackForm({
         notePlaceholder: "What went well, what hurt, what to change",
         save: "Save",
         later: "Later",
-        edit: "Edit",
         add: "Add feedback",
         none: "The client hasn't added feedback yet.",
         noneOwn: "No feedback yet.",
@@ -258,14 +256,15 @@ export function WorkoutFeedbackForm({
           <h2 id={`feedback-${execution.id}`}>{own ? t.titleOwn : t.title}</h2>
           <p>{own ? t.subOwn : t.sub}</p>
         </div>
-        {own && !open ? (
+        {/* Feedback is given once: it can be added, not edited afterwards. */}
+        {own && !open && !fb ? (
           <Button
             size="sm"
             variant="secondary"
             iconStart={<PencilLine />}
             onPress={() => setOpen(true)}
           >
-            {fb ? t.edit : t.add}
+            {t.add}
           </Button>
         ) : null}
       </header>

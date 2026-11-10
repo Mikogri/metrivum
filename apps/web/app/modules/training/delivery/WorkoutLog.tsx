@@ -1642,7 +1642,8 @@ export function WorkoutDetail({
       ) : null}
       {logging && (logged || intent === "review") ? (
         <ExecutionEditor
-          key={logged?.id ?? "review"}
+          // One editor for the page: starting the workout on finish (Mark as done) must not remount it.
+          key="execution-editor"
           detail={detail}
           execution={logged ?? { id: "", version: 0, status: "Scheduled", startedAt: "", completedAt: null, performedDate: localDate(), comment: "", durationSeconds: null, exercises: [], allowedActions: ["save"], feedback: null }}
           startOn={logged ? undefined : occurrenceId}
