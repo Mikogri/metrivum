@@ -40,5 +40,6 @@ describe("isValidEmail", () => {
 });
 
 describe("normalizeEmail", () => {
-  it("trims but keeps case for the server to decide", () => expect(normalizeEmail("  Anna@Example.com ")).toBe("Anna@Example.com"));
+  it("trims but keeps case for the server to decide", () =>
+    expect(normalizeEmail("  Anna@Example.com ")).toBe("Anna@Example.com"));
 });

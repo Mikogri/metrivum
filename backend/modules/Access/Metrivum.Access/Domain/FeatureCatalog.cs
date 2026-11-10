@@ -5,10 +5,7 @@ namespace Metrivum.Access.Domain;
 /// <summary>Loads and validates the registered feature definitions and their dependencies.</summary>
 public sealed class FeatureCatalog
 {
-    public IReadOnlyDictionary<string, FeatureDefinition> Definitions
-    {
-        get;
-    }
+    public IReadOnlyDictionary<string, FeatureDefinition> Definitions { get; }
 
     public FeatureCatalog(IEnumerable<FeatureDefinition> definitions)
     {
@@ -34,7 +31,12 @@ public sealed class FeatureCatalog
         visited.Add(key);
     }
 
-    public FeatureDecision Decide(string key, IReadOnlyCollection<string> grants, IReadOnlyCollection<string> denies, IReadOnlyCollection<string> disabled)
+    public FeatureDecision Decide(
+        string key,
+        IReadOnlyCollection<string> grants,
+        IReadOnlyCollection<string> denies,
+        IReadOnlyCollection<string> disabled
+    )
     {
         // Keep the established exercise permission and its new public name as one policy.
         var canonical = PlanFeaturePolicy.Canonical(key);

@@ -14,7 +14,8 @@
   display: flex;
   align-items: center;
   gap: var(--tf-space-2);
-  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-1) var(--tf-space-3);
+  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-1)
+    var(--tf-space-3);
 }
 
 .head h2 {
@@ -72,4 +73,3 @@
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
 }
-

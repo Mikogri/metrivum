@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Metrivum.Access.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Metrivum.Access.Infrastructure;
 
@@ -19,26 +19,48 @@ public sealed class AccessDbContext(DbContextOptions<AccessDbContext> options) :
         model.HasDefaultSchema("access");
         model.Entity<AbuseWindow>(e =>
         {
-            e.ToTable("abuse_windows", table => table.HasCheckConstraint("CK_abuse_count", "\"Count\" >= 0"));
+            e.ToTable(
+                "abuse_windows",
+                table => table.HasCheckConstraint("CK_abuse_count", "\"Count\" >= 0")
+            );
             e.HasKey(x => new { x.UserId, x.Policy });
             e.Property(x => x.Policy).HasMaxLength(64);
             e.HasIndex(x => x.WindowStart);
         });
         model.Entity<UsageReservation>(e =>
         {
-            e.ToTable("usage_reservations", t =>
-            {
-                t.HasCheckConstraint("CK_usage_amount", "\"Amount\" >= 0");
-                t.HasCheckConstraint("CK_usage_status", "\"Status\" IN ('Reserved','Settled','Released')");
-            });
+            e.ToTable(
+                "usage_reservations",
+                t =>
+                {
+                    t.HasCheckConstraint("CK_usage_amount", "\"Amount\" >= 0");
+                    t.HasCheckConstraint(
+                        "CK_usage_status",
+                        "\"Status\" IN ('Reserved','Settled','Released')"
+                    );
+                }
+            );
             e.HasKey(x => x.Id);
             e.Property(x => x.Key).HasMaxLength(100);
             e.Property(x => x.Operation).HasMaxLength(100);
             e.Property(x => x.Status).HasMaxLength(16);
             e.Property(x => x.Consumer).HasMaxLength(100);
             // An operation remains unique across periods so retries cannot charge next month's budget.
-            e.HasIndex(x => new { x.OwnerId, x.Key, x.Operation }).IsUnique();
-            e.HasIndex(x => new { x.ScopeId, x.Key, x.PeriodStart, x.Status, x.ExpiresAt });
+            e.HasIndex(x => new
+                {
+                    x.OwnerId,
+                    x.Key,
+                    x.Operation,
+                })
+                .IsUnique();
+            e.HasIndex(x => new
+            {
+                x.ScopeId,
+                x.Key,
+                x.PeriodStart,
+                x.Status,
+                x.ExpiresAt,
+            });
         });
         model.Entity<AccessConfiguration>(e =>
         {
@@ -52,7 +74,10 @@ public sealed class AccessDbContext(DbContextOptions<AccessDbContext> options) :
             e.ToTable("assignments");
             e.HasKey(x => x.UserId);
             e.Property(x => x.Version).IsConcurrencyToken();
-            e.HasOne<AccessConfiguration>().WithMany().HasForeignKey(x => x.ConfigurationId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<AccessConfiguration>()
+                .WithMany()
+                .HasForeignKey(x => x.ConfigurationId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<FeatureOverride>(e =>
         {

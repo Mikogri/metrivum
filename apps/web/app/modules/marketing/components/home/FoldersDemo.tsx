@@ -1,4 +1,10 @@
-import { Copy, FileText, Folder, FolderOpen, LayoutTemplate } from "lucide-react";
+import {
+  Copy,
+  FileText,
+  Folder,
+  FolderOpen,
+  LayoutTemplate,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { prefersReducedMotion, useInView } from "../../lib/useInView";
 import { usePublicMessages } from "../../messages";
@@ -21,7 +27,12 @@ export function FoldersDemo() {
 
   const [offSeason, hypertrophy, templates, strength] = f.tree;
   return (
-    <div ref={ref} className={styles.card} data-inview={inView || undefined} data-copied={copied || undefined}>
+    <div
+      ref={ref}
+      className={styles.card}
+      data-inview={inView || undefined}
+      data-copied={copied || undefined}
+    >
       <ul role="list" className={styles.tree}>
         <li className={styles.folder}>
           <FolderOpen aria-hidden="true" />
@@ -50,7 +61,9 @@ export function FoldersDemo() {
                 className={styles.copy}
                 onClick={() => {
                   setCopied(false);
-                  requestAnimationFrame(() => requestAnimationFrame(() => setCopied(true)));
+                  requestAnimationFrame(() =>
+                    requestAnimationFrame(() => setCopied(true)),
+                  );
                 }}
               >
                 <Copy aria-hidden="true" />

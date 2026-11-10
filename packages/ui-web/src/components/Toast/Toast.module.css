@@ -26,12 +26,15 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   column-gap: var(--tf-space-2-5);
-  padding: var(--tf-space-3) var(--tf-space-2) var(--tf-space-3) var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-2) var(--tf-space-3)
+    var(--tf-space-3);
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 0.09);
   border-radius: var(--tf-radius-lg);
   background: var(--toast-bg);
-  box-shadow: 0 16px 36px -14px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(0 0 0 / 0.35);
+  box-shadow:
+    0 16px 36px -14px rgb(0 0 0 / 0.75),
+    0 0 0 1px rgb(0 0 0 / 0.35);
   pointer-events: auto;
   /* Slides in from the right edge, leaves back to it. */
   opacity: 0;
@@ -54,10 +57,18 @@
 }
 
 /* Only the icon carries the type colour. */
-.success { --toast: var(--tf-color-success); }
-.warning { --toast: var(--tf-color-warning); }
-.danger { --toast: var(--tf-color-danger); }
-.neutral { --toast: var(--tf-color-info); }
+.success {
+  --toast: var(--tf-color-success);
+}
+.warning {
+  --toast: var(--tf-color-warning);
+}
+.danger {
+  --toast: var(--tf-color-danger);
+}
+.neutral {
+  --toast: var(--tf-color-info);
+}
 
 .icon {
   display: grid;

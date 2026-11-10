@@ -3,7 +3,11 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PlanDto } from "@metrivum/api-client-web";
-import { ApiError, NetworkError, StaleAccountError } from "~/shared/http/errors";
+import {
+  ApiError,
+  NetworkError,
+  StaleAccountError,
+} from "~/shared/http/errors";
 import type { ApiRequest } from "~/shared/http/transport";
 import { addBlock } from "./model/document";
 import { useEditor } from "./useEditor";
@@ -32,28 +36,49 @@ const plan: PlanDto = {
 };
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={new QueryClient()}>
+      {children}
+    </QueryClientProvider>
+  );
 }
 
 describe("useEditor saving", () => {
   beforeEach(() => {
     calls.length = 0;
-    respond = async (request) => ({ data: { ...plan, version: Number(request.ifMatch) + 1 }, version: Number(request.ifMatch) + 1, status: 200, etag: null, headers: new Headers() });
+    respond = async (request) => ({
+      data: { ...plan, version: Number(request.ifMatch) + 1 },
+      version: Number(request.ifMatch) + 1,
+      status: 200,
+      etag: null,
+      headers: new Headers(),
+    });
   });
 
   it("does not serialize the whole plan again for an unchanged rerender", () => {
     const stringify = vi.spyOn(JSON, "stringify");
     try {
-      const { rerender } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
-      const serializedPlans = () => stringify.mock.calls.filter(([value]) => value && typeof value === "object" && "doc" in value).length;
+      const { rerender } = renderHook(
+        () => useEditor(plan, 1, { readOnly: false }),
+        { wrapper },
+      );
+      const serializedPlans = () =>
+        stringify.mock.calls.filter(
+          ([value]) => value && typeof value === "object" && "doc" in value,
+        ).length;
       const initial = serializedPlans();
       rerender();
       expect(serializedPlans()).toBe(initial);
-    } finally { stringify.mockRestore(); }
+    } finally {
+      stringify.mockRestore();
+    }
   });
 
   it("saves with the version it started from and becomes clean", async () => {
-    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    const { result } = renderHook(
+      () => useEditor(plan, 1, { readOnly: false }),
+      { wrapper },
+    );
     act(() => result.current.apply((doc) => addBlock(doc, "Block 1").doc));
     expect(result.current.dirty).toBe(true);
     await act(() => result.current.save());
@@ -65,14 +90,25 @@ describe("useEditor saving", () => {
   });
 
   it("keeps edits and the expected version after 429 and saves them on explicit retry", async () => {
-    respond = async () => { throw new ApiError(429, { status: 429, code: "RATE_LIMIT_EXCEEDED" }, 30); };
-    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    respond = async () => {
+      throw new ApiError(429, { status: 429, code: "RATE_LIMIT_EXCEEDED" }, 30);
+    };
+    const { result } = renderHook(
+      () => useEditor(plan, 1, { readOnly: false }),
+      { wrapper },
+    );
     act(() => result.current.apply((doc) => addBlock(doc, "Unsaved").doc));
     await act(() => result.current.save());
     expect(result.current.dirty).toBe(true);
     expect(result.current.status).toBe("error");
     expect(calls).toHaveLength(1);
-    respond = async () => ({ data: { ...plan, version: 2 }, version: 2, status: 200, etag: null, headers: new Headers() });
+    respond = async () => ({
+      data: { ...plan, version: 2 },
+      version: 2,
+      status: 200,
+      etag: null,
+      headers: new Headers(),
+    });
     await act(() => result.current.save());
     expect(calls[1]!.ifMatch).toBe(1);
     expect(result.current.dirty).toBe(false);
@@ -82,7 +118,10 @@ describe("useEditor saving", () => {
     respond = async () => {
       throw new ApiError(412, { status: 412, code: "VERSION_CONFLICT" });
     };
-    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    const { result } = renderHook(
+      () => useEditor(plan, 1, { readOnly: false }),
+      { wrapper },
+    );
     act(() => result.current.apply((doc) => addBlock(doc, "Mine").doc));
     await act(() => result.current.save());
     expect(result.current.status).toBe("conflict");
@@ -95,9 +134,19 @@ describe("useEditor saving", () => {
     let release: () => void = () => {};
     respond = (request) =>
       new Promise((resolve) => {
-        release = () => resolve({ data: { ...plan, version: Number(request.ifMatch) + 1 }, version: Number(request.ifMatch) + 1, status: 200, etag: null, headers: new Headers() });
+        release = () =>
+          resolve({
+            data: { ...plan, version: Number(request.ifMatch) + 1 },
+            version: Number(request.ifMatch) + 1,
+            status: 200,
+            etag: null,
+            headers: new Headers(),
+          });
       });
-    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    const { result } = renderHook(
+      () => useEditor(plan, 1, { readOnly: false }),
+      { wrapper },
+    );
     act(() => result.current.apply((doc) => addBlock(doc, "First").doc));
     let first!: Promise<void>;
     act(() => {
@@ -124,7 +173,10 @@ describe("useEditor saving", () => {
     respond = async () => {
       throw new NetworkError("Failed to fetch");
     };
-    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    const { result } = renderHook(
+      () => useEditor(plan, 1, { readOnly: false }),
+      { wrapper },
+    );
     act(() => result.current.apply((doc) => addBlock(doc, "Block").doc));
     await act(() => result.current.save());
     expect(result.current.status).toBe("offline");
@@ -133,44 +185,82 @@ describe("useEditor saving", () => {
 
   it("keeps every queued save caller pending until its edits are saved", async () => {
     const releases: (() => void)[] = [];
-    respond = (request) => new Promise(resolve => {
-      releases.push(() => resolve({ data: { ...plan, version: Number(request.ifMatch) + 1 }, version: Number(request.ifMatch) + 1 }));
-    });
-    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    respond = (request) =>
+      new Promise((resolve) => {
+        releases.push(() =>
+          resolve({
+            data: { ...plan, version: Number(request.ifMatch) + 1 },
+            version: Number(request.ifMatch) + 1,
+          }),
+        );
+      });
+    const { result } = renderHook(
+      () => useEditor(plan, 1, { readOnly: false }),
+      { wrapper },
+    );
     act(() => result.current.updateMeta({ name: "First" }));
     let first!: Promise<void>;
-    act(() => { first = result.current.save(); });
+    act(() => {
+      first = result.current.save();
+    });
     act(() => result.current.updateMeta({ name: "Second" }));
     const finished = vi.fn();
     let second!: Promise<void>;
-    act(() => { second = result.current.save().then(finished); });
-    await act(async () => { releases[0]!(); });
+    act(() => {
+      second = result.current.save().then(finished);
+    });
+    await act(async () => {
+      releases[0]!();
+    });
     expect(calls).toHaveLength(2);
     expect(finished).not.toHaveBeenCalled();
-    await act(async () => { releases[1]!(); await Promise.all([first, second]); });
+    await act(async () => {
+      releases[1]!();
+      await Promise.all([first, second]);
+    });
     expect(finished).toHaveBeenCalledOnce();
     expect(result.current.dirty).toBe(false);
     expect(result.current.version).toBe(3);
   });
 
   it("ignores edits when read-only", () => {
-    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: true }), { wrapper });
+    const { result } = renderHook(
+      () => useEditor(plan, 1, { readOnly: true }),
+      { wrapper },
+    );
     act(() => result.current.apply((doc) => addBlock(doc, "Block").doc));
     expect(result.current.dirty).toBe(false);
   });
 
   it("drops queued saves when the current request loses its account", async () => {
     let reject!: (reason: unknown) => void;
-    respond = vi.fn().mockImplementationOnce(() => new Promise((_, fail) => { reject = fail; }))
+    respond = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((_, fail) => {
+            reject = fail;
+          }),
+      )
       .mockRejectedValue(new StaleAccountError());
-    const { result } = renderHook(() => useEditor(plan, 1, { readOnly: false }), { wrapper });
+    const { result } = renderHook(
+      () => useEditor(plan, 1, { readOnly: false }),
+      { wrapper },
+    );
     act(() => result.current.updateMeta({ name: "First" }));
     let first!: Promise<void>;
-    act(() => { first = result.current.save(); });
+    act(() => {
+      first = result.current.save();
+    });
     act(() => result.current.updateMeta({ name: "Second" }));
     let second!: Promise<void>;
-    act(() => { second = result.current.save(); });
-    await act(async () => { reject(new StaleAccountError()); await Promise.all([first, second]); });
+    act(() => {
+      second = result.current.save();
+    });
+    await act(async () => {
+      reject(new StaleAccountError());
+      await Promise.all([first, second]);
+    });
     expect(calls).toHaveLength(1);
     expect(result.current.dirty).toBe(true);
   });

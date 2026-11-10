@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { clampTarget, easeInOutCubic, fitDistance, lerp3, viewPosition } from "./camera";
+import {
+  clampTarget,
+  easeInOutCubic,
+  fitDistance,
+  lerp3,
+  viewPosition,
+} from "./camera";
 
 describe("anatomy camera", () => {
   it("fits a tall body on a portrait panel by its width and on a landscape panel by its height", () => {
@@ -19,8 +25,12 @@ describe("anatomy camera", () => {
   });
 
   it("keeps the orbit target near the model", () => {
-    expect(clampTarget([5000, 900, -5000], [-300, 0, -150], [300, 1700, 150])).toEqual([360, 900, -180]);
-    expect(clampTarget([0, 850, 0], [-300, 0, -150], [300, 1700, 150])).toEqual([0, 850, 0]);
+    expect(
+      clampTarget([5000, 900, -5000], [-300, 0, -150], [300, 1700, 150]),
+    ).toEqual([360, 900, -180]);
+    expect(clampTarget([0, 850, 0], [-300, 0, -150], [300, 1700, 150])).toEqual(
+      [0, 850, 0],
+    );
   });
 
   it("eases flights from start to end", () => {

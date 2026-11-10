@@ -14,6 +14,9 @@ describe("calendar dates", () => {
     expect(range.to).toBe("2026-03-29T22:00:00.000Z");
   });
   it("handles a complete year including its exclusive next-year boundary", () => {
-    expect(visibleRange("year", "2028-12-31", "UTC")).toEqual({ from: "2028-01-01T00:00:00.000Z", to: "2029-01-01T00:00:00.000Z" });
+    expect(visibleRange("year", "2028-12-31", "UTC")).toEqual({
+      from: "2028-01-01T00:00:00.000Z",
+      to: "2029-01-01T00:00:00.000Z",
+    });
   });
 });

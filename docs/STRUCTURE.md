@@ -74,3 +74,5 @@ Training program/template deletion and retained-history rules: [document lifecyc
 React Bits effects belong to `apps/web/app/shared/ui` (profile covers in `cover/backgrounds`, landing/auth LightRays in `effects`). They are not exported by `packages/ui-web`, which owns reusable controls and tokens. Preserve third-party attribution when moving effects.
 
 Exercise catalogue cross-author editing and the server-managed ExerciseEditor role are described in [exercise editors](features/exercise-editors.md).
+
+Code formatting, pinned tools, VS Code setup and CI checks: [formatting](development/formatting.md).

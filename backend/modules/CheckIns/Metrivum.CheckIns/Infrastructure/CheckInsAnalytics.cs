@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Metrivum.Analytics.Contracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace Metrivum.CheckIns.Infrastructure;
 
@@ -13,7 +13,9 @@ public sealed class CheckInsAnalytics(CheckInsDbContext db) : ICheckInsAnalytics
         var all = s.RelationshipIds is null;
         var team = s.TeamId != null;
         if (team && all)
-            throw new InvalidOperationException("Team analytics requires resolved relationship scope.");
+            throw new InvalidOperationException(
+                "Team analytics requires resolved relationship scope."
+            );
         var rows = await db
             .Database.SqlQuery<CheckInAggregateRow>(
                 $"""
@@ -46,32 +48,11 @@ public sealed class CheckInsAnalytics(CheckInsDbContext db) : ICheckInsAnalytics
 /// <summary>Carries check in aggregate row fields for CheckIns filtering or query projection; has no independent database writes.</summary>
 public sealed class CheckInAggregateRow
 {
-    public DateOnly Date
-    {
-        get; set;
-    }
-    public int Issued
-    {
-        get; set;
-    }
-    public int Submitted
-    {
-        get; set;
-    }
-    public int Overdue
-    {
-        get; set;
-    }
-    public int PendingReview
-    {
-        get; set;
-    }
-    public double? ReviewHours
-    {
-        get; set;
-    }
-    public int Reviewed
-    {
-        get; set;
-    }
+    public DateOnly Date { get; set; }
+    public int Issued { get; set; }
+    public int Submitted { get; set; }
+    public int Overdue { get; set; }
+    public int PendingReview { get; set; }
+    public double? ReviewHours { get; set; }
+    public int Reviewed { get; set; }
 }

@@ -1,7 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { addBlock, addCycle, addExercise, emptyDocument, findWorkout, newCycle, newWorkout, removeNode } from "./document";
+import {
+  addBlock,
+  addCycle,
+  addExercise,
+  emptyDocument,
+  findWorkout,
+  newCycle,
+  newWorkout,
+  removeNode,
+} from "./document";
 import { autoLayout, mergeLayout } from "./layout";
-import { addLooseCycle, addLooseWorkout, attachCycle, attachWorkout, detachCycle, detachWorkout, ensureWeekdayWorkout, isSimpleShape, parentBlockId, pruneHolders, sheetView, workoutHome } from "./structure";
+import {
+  addLooseCycle,
+  addLooseWorkout,
+  attachCycle,
+  attachWorkout,
+  detachCycle,
+  detachWorkout,
+  ensureWeekdayWorkout,
+  isSimpleShape,
+  parentBlockId,
+  pruneHolders,
+  sheetView,
+  workoutHome,
+} from "./structure";
 
 const names = { block: "Plan", cycle: "Week", workout: "Workout" };
 
@@ -29,7 +51,9 @@ describe("sheet connections", () => {
     const detached = detachCycle(doc, cycle);
     expect(parentBlockId(detached, cycle)).toBeNull();
     expect(sheetView(detached).loose.map((c) => c.id)).toEqual([cycle]);
-    expect(sheetView(detached).blocks.map((b) => b.id)).toEqual(doc.blocks.map((b) => b.id));
+    expect(sheetView(detached).blocks.map((b) => b.id)).toEqual(
+      doc.blocks.map((b) => b.id),
+    );
     const back = attachCycle(detached, cycle, a);
     expect(parentBlockId(back, cycle)).toBe(a);
     // The holder is gone once the cycle is back in a block.
@@ -40,10 +64,16 @@ describe("sheet connections", () => {
     const { doc, cycle } = twoBlocks();
     const workout = newWorkout("Lone");
     const loose = addLooseWorkout(doc, workout);
-    expect(sheetView(loose).looseWorkouts.map((w) => w.id)).toEqual([workout.id]);
+    expect(sheetView(loose).looseWorkouts.map((w) => w.id)).toEqual([
+      workout.id,
+    ]);
     const holder = loose.blocks.at(-1)!;
     expect(holder.implicit).toBe(true);
-    expect(holder.cycles[0]).toMatchObject({ implicit: true, dayCount: 1, repeats: 1 });
+    expect(holder.cycles[0]).toMatchObject({
+      implicit: true,
+      dayCount: 1,
+      repeats: 1,
+    });
     expect(workoutHome(loose, workout.id)?.cycle).toBeNull();
     // Exercises can be added while it is on no cycle.
     const withExercise = addExercise(loose, workout.id, "ex-1").doc;
@@ -89,7 +119,9 @@ describe("simple mode", () => {
     expect(cycle.days.map((d) => Number(d.dayNumber))).toEqual([3]);
     expect(cycle.days[0]!.workouts[0]!.id).toBe(result.workoutId);
     // Asking again returns the same workout.
-    expect(ensureWeekdayWorkout(result.doc, names, 3).workoutId).toBe(result.workoutId);
+    expect(ensureWeekdayWorkout(result.doc, names, 3).workoutId).toBe(
+      result.workoutId,
+    );
   });
 
   it("recognises plans that need the advanced editor", () => {
@@ -101,8 +133,16 @@ describe("simple mode", () => {
 describe("sheet reflow", () => {
   it("pushes cards out from under an expanded card and keeps the expanded one in place", async () => {
     const { resolveLayout } = await import("./layout");
-    const layout = { big: { col: 0, row: 0 }, small: { col: 2, row: 2 }, far: { col: 20, row: 0 } };
-    const sizes = { big: { cols: 8, rows: 6 }, small: { cols: 3, rows: 4 }, far: { cols: 2, rows: 2 } };
+    const layout = {
+      big: { col: 0, row: 0 },
+      small: { col: 2, row: 2 },
+      far: { col: 20, row: 0 },
+    };
+    const sizes = {
+      big: { cols: 8, rows: 6 },
+      small: { cols: 3, rows: 4 },
+      far: { cols: 2, rows: 2 },
+    };
     const result = resolveLayout(layout, sizes, ["big"]);
     expect(result.big).toEqual({ col: 0, row: 0 });
     expect(result.small).toEqual({ col: 2, row: 7 });

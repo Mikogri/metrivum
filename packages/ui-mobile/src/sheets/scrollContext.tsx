@@ -2,10 +2,10 @@ import type { Context, ReactNode } from "react";
 import { ScrollView, VirtualizedList } from "react-native";
 
 const VirtualizedListContext = (
-    VirtualizedList as unknown as { contextType?: Context<unknown> }
+  VirtualizedList as unknown as { contextType?: Context<unknown> }
 ).contextType;
 const ScrollViewContext = (
-    ScrollView as unknown as { Context?: Context<unknown> }
+  ScrollView as unknown as { Context?: Context<unknown> }
 ).Context;
 
 /**
@@ -14,18 +14,18 @@ const ScrollViewContext = (
  * Native resets the same contexts.
  */
 export function SheetScrollContextReset({ children }: { children: ReactNode }) {
-    let node: ReactNode = children;
-    if (ScrollViewContext)
-        node = (
-            <ScrollViewContext.Provider value={null}>
-                {node}
-            </ScrollViewContext.Provider>
-        );
-    if (VirtualizedListContext)
-        node = (
-            <VirtualizedListContext.Provider value={null}>
-                {node}
-            </VirtualizedListContext.Provider>
-        );
-    return <>{node}</>;
+  let node: ReactNode = children;
+  if (ScrollViewContext)
+    node = (
+      <ScrollViewContext.Provider value={null}>
+        {node}
+      </ScrollViewContext.Provider>
+    );
+  if (VirtualizedListContext)
+    node = (
+      <VirtualizedListContext.Provider value={null}>
+        {node}
+      </VirtualizedListContext.Provider>
+    );
+  return <>{node}</>;
 }

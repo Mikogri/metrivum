@@ -78,7 +78,11 @@
   gap: var(--tf-space-4);
   padding: var(--tf-space-5);
   border-bottom: 1px solid var(--tf-color-border-subtle);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--tf-color-accent) 5%, transparent), transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--tf-color-accent) 5%, transparent),
+    transparent
+  );
 }
 
 .mark {
@@ -375,16 +379,47 @@
 }
 
 @media (max-width: 767px) {
-  .page, .stack, .workspace, .body, .settings { min-width: 0; }
-  .hero, .body { padding: var(--tf-space-4); }
-  .links { grid-template-columns: minmax(0, 1fr); }
-  .teamName, .grow, .personText, .inline { overflow-wrap: anywhere; }
-  .requestList li { flex-wrap: wrap; }
-  .requestList .inline { flex-basis: calc(100% - 3rem); }
-  .inviteForm > .grow { flex-basis: 100%; }
-  .roleSelect, .ownerSelect, .seats { width: 100%; min-width: 0; }
-  .body table { min-width: 36rem; }
-  .zone > button, .inviteForm > button, .rowActions > button {
+  .page,
+  .stack,
+  .workspace,
+  .body,
+  .settings {
+    min-width: 0;
+  }
+  .hero,
+  .body {
+    padding: var(--tf-space-4);
+  }
+  .links {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .teamName,
+  .grow,
+  .personText,
+  .inline {
+    overflow-wrap: anywhere;
+  }
+  .requestList li {
+    flex-wrap: wrap;
+  }
+  .requestList .inline {
+    flex-basis: calc(100% - 3rem);
+  }
+  .inviteForm > .grow {
+    flex-basis: 100%;
+  }
+  .roleSelect,
+  .ownerSelect,
+  .seats {
+    width: 100%;
+    min-width: 0;
+  }
+  .body table {
+    min-width: 36rem;
+  }
+  .zone > button,
+  .inviteForm > button,
+  .rowActions > button {
     max-width: 100%;
     min-height: 44px;
     height: auto;

@@ -13,11 +13,31 @@
   user-select: none;
 }
 
-.sm { width: 1.5rem; height: 1.5rem; font-size: 0.625rem; }
-.md { width: 2rem; height: 2rem; font-size: var(--tf-text-2xs); }
-.lg { width: 2.75rem; height: 2.75rem; font-size: var(--tf-text-sm); }
-.xl { width: 4.5rem; height: 4.5rem; font-size: var(--tf-text-xl); }
-.xxl { width: 6rem; height: 6rem; font-size: var(--tf-text-2xl); }
+.sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.625rem;
+}
+.md {
+  width: 2rem;
+  height: 2rem;
+  font-size: var(--tf-text-2xs);
+}
+.lg {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: var(--tf-text-sm);
+}
+.xl {
+  width: 4.5rem;
+  height: 4.5rem;
+  font-size: var(--tf-text-xl);
+}
+.xxl {
+  width: 6rem;
+  height: 6rem;
+  font-size: var(--tf-text-2xl);
+}
 
 /* The photo fades in over the initials once it has loaded. */
 .photo {

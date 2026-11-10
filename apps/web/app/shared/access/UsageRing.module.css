@@ -11,7 +11,10 @@
   width: var(--size);
   height: var(--size);
   border-radius: 50%;
-  background: conic-gradient(var(--c) calc(var(--p, 0) * 360deg), color-mix(in srgb, var(--tf-color-text) 14%, transparent) 0);
+  background: conic-gradient(
+    var(--c) calc(var(--p, 0) * 360deg),
+    color-mix(in srgb, var(--tf-color-text) 14%, transparent) 0
+  );
 }
 
 .ring[data-size="sm"] {
@@ -24,10 +27,18 @@
   --track: 10px;
 }
 
-.ring[data-state="near"] { --c: var(--tf-color-warning); }
-.ring[data-state="full"] { --c: var(--tf-color-danger); }
-.ring[data-state="cap"] { --c: var(--tf-color-info); }
-.ring[data-state="unlimited"] { --c: var(--tf-color-violet); }
+.ring[data-state="near"] {
+  --c: var(--tf-color-warning);
+}
+.ring[data-state="full"] {
+  --c: var(--tf-color-danger);
+}
+.ring[data-state="cap"] {
+  --c: var(--tf-color-info);
+}
+.ring[data-state="unlimited"] {
+  --c: var(--tf-color-violet);
+}
 
 /* Neutral: one quiet colour whatever the state (the state is told in words beside it). */
 .ring[data-neutral] {

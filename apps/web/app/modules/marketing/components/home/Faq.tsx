@@ -1,5 +1,11 @@
 import { ChevronDown } from "lucide-react";
-import { Button, Disclosure, DisclosureGroup, DisclosurePanel, Heading } from "react-aria-components";
+import {
+  Button,
+  Disclosure,
+  DisclosureGroup,
+  DisclosurePanel,
+  Heading,
+} from "react-aria-components";
 import styles from "./Faq.module.css";
 
 export function Faq({ items }: { items: Array<{ q: string; a: string }> }) {

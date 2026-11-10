@@ -32,16 +32,43 @@ export function CodeInput({
   const digits = value.replace(/\D/g, "").slice(0, length);
   // The box the next digit goes into; with all six filled, the last one stays marked.
   const active = Math.min(digits.length, length - 1);
-  const describedBy = [description ? `${id}-description` : null, isInvalid && errorMessage ? `${id}-error` : null].filter(Boolean).join(" ") || undefined;
+  const describedBy =
+    [
+      description ? `${id}-description` : null,
+      isInvalid && errorMessage ? `${id}-error` : null,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
   return (
     <div className={styles.field} data-invalid={isInvalid || undefined}>
-      <label htmlFor={id} className={styles.label}>{label}</label>
-      {description ? <p id={`${id}-description`} className={styles.description}>{description}</p> : null}
-      <div className={styles.boxes} style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }} onMouseDown={(event) => { event.preventDefault(); input.current?.focus(); }}>
+      <label htmlFor={id} className={styles.label}>
+        {label}
+      </label>
+      {description ? (
+        <p id={`${id}-description`} className={styles.description}>
+          {description}
+        </p>
+      ) : null}
+      <div
+        className={styles.boxes}
+        style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }}
+        onMouseDown={(event) => {
+          event.preventDefault();
+          input.current?.focus();
+        }}
+      >
         {Array.from({ length }, (_, index) => (
-          <span key={index} className={styles.box} data-filled={index < digits.length || undefined} data-active={(focused && index === active) || undefined} aria-hidden="true">
+          <span
+            key={index}
+            className={styles.box}
+            data-filled={index < digits.length || undefined}
+            data-active={(focused && index === active) || undefined}
+            aria-hidden="true"
+          >
             {digits[index] ?? ""}
-            {focused && index === active && index >= digits.length ? <i className={styles.caret} /> : null}
+            {focused && index === active && index >= digits.length ? (
+              <i className={styles.caret} />
+            ) : null}
           </span>
         ))}
         <input
@@ -58,13 +85,27 @@ export function CodeInput({
           required
           aria-invalid={isInvalid || undefined}
           aria-describedby={describedBy}
-          onFocus={(event) => { setFocused(true); const end = event.currentTarget.value.length; event.currentTarget.setSelectionRange(end, end); }}
+          onFocus={(event) => {
+            setFocused(true);
+            const end = event.currentTarget.value.length;
+            event.currentTarget.setSelectionRange(end, end);
+          }}
           onBlur={() => setFocused(false)}
-          onChange={(event) => onChange(event.target.value.replace(/\D/g, "").slice(0, length))}
-          onSelect={(event) => { const end = event.currentTarget.value.length; if (event.currentTarget.selectionStart !== end) event.currentTarget.setSelectionRange(end, end); }}
+          onChange={(event) =>
+            onChange(event.target.value.replace(/\D/g, "").slice(0, length))
+          }
+          onSelect={(event) => {
+            const end = event.currentTarget.value.length;
+            if (event.currentTarget.selectionStart !== end)
+              event.currentTarget.setSelectionRange(end, end);
+          }}
         />
       </div>
-      {isInvalid && errorMessage ? <p id={`${id}-error`} className={styles.error} role="alert">{errorMessage}</p> : null}
+      {isInvalid && errorMessage ? (
+        <p id={`${id}-error`} className={styles.error} role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
     </div>
   );
 }

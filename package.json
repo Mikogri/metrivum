@@ -28,7 +28,11 @@
     "e2e": "npm run e2e --workspace @metrivum/web",
     "e2e:coaching": "npm run e2e:coaching --workspace @metrivum/web",
     "catalog:seed": "node infra/catalog/build-catalog-seed.mjs",
-    "dev:mobile": "npm run dev --workspace @metrivum/mobile"
+    "dev:mobile": "npm run dev --workspace @metrivum/mobile",
+    "format:api": "dotnet csharpier format apps/api backend workers tools tests infra",
+    "format:api:check": "dotnet csharpier check apps/api backend workers tools tests infra",
+    "format:frontend": "prettier --write \"{apps/web,apps/mobile,apps/ui-catalog,packages,contracts,test}/**/*.{ts,tsx,js,jsx,mjs,cjs,css,scss,less,html,json,jsonc,md,mdx,yml,yaml}\" \"*.{js,mjs,cjs,ts,json}\" \".vscode/*.json\"",
+    "format:frontend:check": "prettier --check \"{apps/web,apps/mobile,apps/ui-catalog,packages,contracts,test}/**/*.{ts,tsx,js,jsx,mjs,cjs,css,scss,less,html,json,jsonc,md,mdx,yml,yaml}\" \"*.{js,mjs,cjs,ts,json}\" \".vscode/*.json\""
   },
   "overrides": {
     "braces": "$braces",
@@ -44,16 +48,17 @@
     "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.6.7",
     "@types/node": "24.19.1",
+    "braces": "file:./vendor/braces",
+    "decode-uri-component": "file:./vendor/decode-uri-component",
     "eslint": "10.12.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.13.0",
     "jsdom": "30.1.2",
+    "node-forge": "file:./vendor/node-forge",
     "openapi-typescript": "7.13.0",
+    "prettier": "3.9.10",
     "typescript": "5.9.3",
     "typescript-eslint": "8.71.0",
-    "vitest": "5.0.3",
-    "braces": "file:./vendor/braces",
-    "decode-uri-component": "file:./vendor/decode-uri-component",
-    "node-forge": "file:./vendor/node-forge"
+    "vitest": "5.0.3"
   }
 }

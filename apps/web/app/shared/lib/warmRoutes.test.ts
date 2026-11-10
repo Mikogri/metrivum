@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { appRoutes } from "./warmRoutes";
 
 describe("appRoutes", () => {
-  const route = (id: string, parentId?: string, path?: string) => ({ id, parentId, path, module: `/${id}.js` });
+  const route = (id: string, parentId?: string, path?: string) => ({
+    id,
+    parentId,
+    path,
+    module: `/${id}.js`,
+  });
   const routes = Object.fromEntries(
     [
       route("root"),
@@ -17,7 +22,10 @@ describe("appRoutes", () => {
   );
 
   it("lists only the pages below the /app layout", () => {
-    expect(appRoutes(routes).map((item) => item.id)).toEqual(["offers", "offer"]);
+    expect(appRoutes(routes).map((item) => item.id)).toEqual([
+      "offers",
+      "offer",
+    ]);
   });
 
   it("lists nothing when there is no /app layout", () => {

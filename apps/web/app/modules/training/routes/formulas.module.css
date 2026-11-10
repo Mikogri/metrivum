@@ -198,14 +198,84 @@
 }
 
 /* Custom formula cards: compact, the expression is the content. */
-.formulaGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); gap: var(--tf-space-3); margin: 0; padding: 0; list-style: none; }
-.formulaCard { display: flex; flex-direction: column; gap: var(--tf-space-2-5); min-width: 0; padding: var(--tf-space-3) var(--tf-space-3) var(--tf-space-2); border: 1px solid var(--tf-color-border-subtle); border-radius: var(--tf-radius-lg); background: var(--tf-color-surface); transition: border-color var(--tf-duration-fast) ease; }
-@media (hover: hover) and (pointer: fine) { .formulaCard:hover { border-color: var(--tf-color-border-strong); } }
-.formulaCardHead { display: flex; align-items: center; gap: var(--tf-space-2); min-width: 0; }
-.formulaCardHead h3 { flex: 1; min-width: 0; overflow: hidden; font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); text-overflow: ellipsis; white-space: nowrap; }
-.formulaCard .expression { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.inputChips { display: flex; flex-wrap: wrap; gap: var(--tf-space-1); min-height: 1.375rem; }
-.inputChip { display: inline-flex; align-items: center; gap: var(--tf-space-1); padding: 1px var(--tf-space-2); border-radius: var(--tf-radius-full); background: var(--tf-color-violet-soft); color: var(--tf-color-text); font-family: var(--tf-font-mono, monospace); font-size: var(--tf-text-xs); }
-.inputChip small { color: var(--tf-color-text-tertiary); font-family: var(--tf-font-sans); font-size: 0.625rem; font-weight: var(--tf-weight-medium); letter-spacing: 0.02em; line-height: 1; }
-.formulaCardFoot { display: flex; align-items: center; gap: var(--tf-space-1); margin-top: auto; padding-top: var(--tf-space-2); border-top: 1px solid var(--tf-color-border-subtle); }
-.spacer { flex: 1; }
+.formulaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.formulaCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2-5);
+  min-width: 0;
+  padding: var(--tf-space-3) var(--tf-space-3) var(--tf-space-2);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  transition: border-color var(--tf-duration-fast) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .formulaCard:hover {
+    border-color: var(--tf-color-border-strong);
+  }
+}
+.formulaCardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+}
+.formulaCardHead h3 {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.formulaCard .expression {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inputChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1);
+  min-height: 1.375rem;
+}
+.inputChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  padding: 1px var(--tf-space-2);
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-text);
+  font-family: var(--tf-font-mono, monospace);
+  font-size: var(--tf-text-xs);
+}
+.inputChip small {
+  color: var(--tf-color-text-tertiary);
+  font-family: var(--tf-font-sans);
+  font-size: 0.625rem;
+  font-weight: var(--tf-weight-medium);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.formulaCardFoot {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  margin-top: auto;
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+.spacer {
+  flex: 1;
+}

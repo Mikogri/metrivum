@@ -1,29 +1,39 @@
 export const interfaceEnglish = {
-  "interface.: file answers are not supported yet. Answer this one in the web app.": ": file answers are not supported yet. Answer this one in the web app.",
+  "interface.: file answers are not supported yet. Answer this one in the web app.":
+    ": file answers are not supported yet. Answer this one in the web app.",
   "interface.@username": "@username",
-  "interface.A long list scrolls inside the sheet": "A long list scrolls inside the sheet",
-  "interface.A short note shown with the invitation": "A short note shown with the invitation",
-  "interface.A value is not a valid number. Fix it to keep saving.": "A value is not a valid number. Fix it to keep saving.",
+  "interface.A long list scrolls inside the sheet":
+    "A long list scrolls inside the sheet",
+  "interface.A short note shown with the invitation":
+    "A short note shown with the invitation",
+  "interface.A value is not a valid number. Fix it to keep saving.":
+    "A value is not a valid number. Fix it to keep saving.",
   "interface.Accept": "Accept",
   "interface.Accept Team access": "Accept Team access",
-  "interface.Accept an invitation or apply to an offer to start.": "Accept an invitation or apply to an offer to start.",
+  "interface.Accept an invitation or apply to an offer to start.":
+    "Accept an invitation or apply to an offer to start.",
   "interface.Accept and start": "Accept and start",
   "interface.Accept invitation": "Accept invitation",
-  "interface.Accept this conversation to reply.": "Accept this conversation to reply.",
+  "interface.Accept this conversation to reply.":
+    "Accept this conversation to reply.",
   "interface.Accepted": "Accepted",
   "interface.Action sheet": "Action sheet",
   "interface.Actions": "Actions",
   "interface.Actions for {0}": "Actions for {0}",
-  "interface.Activate an offer in the web app first.": "Activate an offer in the web app first.",
-  "interface.Activate an offer with an application form first.": "Activate an offer with an application form first.",
+  "interface.Activate an offer in the web app first.":
+    "Activate an offer in the web app first.",
+  "interface.Activate an offer with an application form first.":
+    "Activate an offer with an application form first.",
   "interface.Active": "Active",
   "interface.Active clients": "Active clients",
-  "interface.Active · last workout yesterday": "Active · last workout yesterday",
+  "interface.Active · last workout yesterday":
+    "Active · last workout yesterday",
   "interface.Add": "Add",
   "interface.Add a file": "Add a file",
   "interface.Add a file or photo": "Add a file or photo",
   "interface.Add a measurement": "Add a measurement",
-  "interface.Add a meeting or an event with the plus button.": "Add a meeting or an event with the plus button.",
+  "interface.Add a meeting or an event with the plus button.":
+    "Add a meeting or an event with the plus button.",
   "interface.Add a note": "Add a note",
   "interface.Add a set": "Add a set",
   "interface.Add to message": "Add to message",
@@ -33,45 +43,57 @@ export const interfaceEnglish = {
   "interface.All day": "All day",
   "interface.All day event": "All day event",
   "interface.Already invited participant": "Already invited participant",
-  "interface.Analyses made in the web app appear here.": "Analyses made in the web app appear here.",
+  "interface.Analyses made in the web app appear here.":
+    "Analyses made in the web app appear here.",
   "interface.Analysis": "Analysis",
   "interface.Answer {0}": "Answer {0}",
-  "interface.Answers appear here once the check-in is sent.": "Answers appear here once the check-in is sent.",
+  "interface.Answers appear here once the check-in is sent.":
+    "Answers appear here once the check-in is sent.",
   "interface.Answers from your clients": "Answers from your clients",
-  "interface.Anyone can message you by default. Require approval for new conversations; accepted chats stay open.": "Anyone can message you by default. Require approval for new conversations; accepted chats stay open.",
+  "interface.Anyone can message you by default. Require approval for new conversations; accepted chats stay open.":
+    "Anyone can message you by default. Require approval for new conversations; accepted chats stay open.",
   "interface.Anything about this set": "Anything about this set",
   "interface.Application": "Application",
   "interface.Application form": "Application form",
   "interface.Applications": "Applications",
-  "interface.Applications to your offers appear here.": "Applications to your offers appear here.",
-  "interface.Ask your coach or upgrade on the web.": "Ask your coach or upgrade on the web.",
+  "interface.Applications to your offers appear here.":
+    "Applications to your offers appear here.",
+  "interface.Ask your coach or upgrade on the web.":
+    "Ask your coach or upgrade on the web.",
   "interface.Assign a check-in": "Assign a check-in",
   "interface.Assign a program": "Assign a program",
   "interface.Assign check-in": "Assign check-in",
-  "interface.Assign one to a client to start collecting answers.": "Assign one to a client to start collecting answers.",
+  "interface.Assign one to a client to start collecting answers.":
+    "Assign one to a client to start collecting answers.",
   "interface.Assign program": "Assign program",
   "interface.Assigned program": "Assigned program",
   "interface.Assigned programs": "Assigned programs",
   "interface.Attach a file or voice message": "Attach a file or voice message",
   "interface.Attach to message": "Attach to message",
   "interface.Attachment": "Attachment",
-  "interface.Bar path and speed, on your device": "Bar path and speed, on your device",
+  "interface.Bar path and speed, on your device":
+    "Bar path and speed, on your device",
   "interface.Billing option": "Billing option",
   "interface.Body measurements": "Body measurements",
   "interface.Busy": "Busy",
-  "interface.By exact username. They see the offer before accepting.": "By exact username. They see the offer before accepting.",
+  "interface.By exact username. They see the offer before accepting.":
+    "By exact username. They see the offer before accepting.",
   "interface.Calendar": "Calendar",
   "interface.Cancel editing": "Cancel editing",
   "interface.Cancel event": "Cancel event",
   "interface.Cancelled": "Cancelled",
-  "interface.Change the dates or the status filter.": "Change the dates or the status filter.",
-  "interface.Change the dates, or add the first one.": "Change the dates, or add the first one.",
+  "interface.Change the dates or the status filter.":
+    "Change the dates or the status filter.",
+  "interface.Change the dates, or add the first one.":
+    "Change the dates, or add the first one.",
   "interface.Check recipients": "Check recipients",
-  "interface.Check the spelling or change the status filter.": "Check the spelling or change the status filter.",
+  "interface.Check the spelling or change the status filter.":
+    "Check the spelling or change the status filter.",
   "interface.Check-in": "Check-in",
   "interface.Check-in details": "Check-in details",
   "interface.Check-ins": "Check-ins",
-  "interface.Check-ins from your coach appear here.": "Check-ins from your coach appear here.",
+  "interface.Check-ins from your coach appear here.":
+    "Check-ins from your coach appear here.",
   "interface.Choose a date": "Choose a date",
   "interface.Choose a file": "Choose a file",
   "interface.Choose a form": "Choose a form",
@@ -85,12 +107,15 @@ export const interfaceEnglish = {
   "interface.Clients": "Clients",
   "interface.Close anyway": "Close anyway",
   "interface.Close without saving?": "Close without saving?",
-  "interface.Closing with typed text asks inside the sheet": "Closing with typed text asks inside the sheet",
+  "interface.Closing with typed text asks inside the sheet":
+    "Closing with typed text asks inside the sheet",
   "interface.Coaches": "Coaches",
   "interface.Coaching invitation": "Coaching invitation",
-  "interface.Collaborations, invitations and your applications": "Collaborations, invitations and your applications",
+  "interface.Collaborations, invitations and your applications":
+    "Collaborations, invitations and your applications",
   "interface.Comment": "Comment",
-  "interface.Compare with the server version": "Compare with the server version",
+  "interface.Compare with the server version":
+    "Compare with the server version",
   "interface.Complete a set": "Complete a set",
   "interface.Completed": "Completed",
   "interface.Components": "Components",
@@ -98,13 +123,16 @@ export const interfaceEnglish = {
   "interface.Continue workout": "Continue workout",
   "interface.Conversation": "Conversation",
   "interface.Conversation unavailable": "Conversation unavailable",
-  "interface.Create and apply a program in the web app first.": "Create and apply a program in the web app first.",
+  "interface.Create and apply a program in the web app first.":
+    "Create and apply a program in the web app first.",
   "interface.Create event": "Create event",
-  "interface.Create groups in the web app to message and assign to several clients at once.": "Create groups in the web app to message and assign to several clients at once.",
+  "interface.Create groups in the web app to message and assign to several clients at once.":
+    "Create groups in the web app to message and assign to several clients at once.",
   "interface.Dark": "Dark",
   "interface.Day of the month": "Day of the month",
   "interface.Day {0}": "Day {0}",
-  "interface.Days in each assigned cycle. The schedule ends with the assigned program. For different cycle lengths, select days present in every cycle.": "Days in each assigned cycle. The schedule ends with the assigned program. For different cycle lengths, select days present in every cycle.",
+  "interface.Days in each assigned cycle. The schedule ends with the assigned program. For different cycle lengths, select days present in every cycle.":
+    "Days in each assigned cycle. The schedule ends with the assigned program. For different cycle lengths, select days present in every cycle.",
   "interface.Decline": "Decline",
   "interface.Declined": "Declined",
   "interface.Delete for everyone": "Delete for everyone",
@@ -125,7 +153,8 @@ export const interfaceEnglish = {
   "interface.Edit event": "Edit event",
   "interface.End collaboration": "End collaboration",
   "interface.Ends": "Ends",
-  "interface.Energy, sleep, anything worth noting": "Energy, sleep, anything worth noting",
+  "interface.Energy, sleep, anything worth noting":
+    "Energy, sleep, anything worth noting",
   "interface.Event": "Event",
   "interface.Every how many days": "Every how many days",
   "interface.Every how many months": "Every how many months",
@@ -167,7 +196,8 @@ export const interfaceEnglish = {
   "interface.How did it feel?": "How did it feel?",
   "interface.How the load was recorded": "How the load was recorded",
   "interface.How the service is settled": "How the service is settled",
-  "interface.I agree that the Team can access my coaching data if this offer belongs to a Team.": "I agree that the Team can access my coaching data if this offer belongs to a Team.",
+  "interface.I agree that the Team can access my coaching data if this offer belongs to a Team.":
+    "I agree that the Team can access my coaching data if this offer belongs to a Team.",
   "interface.Image": "Image",
   "interface.Image attachment": "Image attachment",
   "interface.Imperative action choice": "Imperative action choice",
@@ -180,9 +210,11 @@ export const interfaceEnglish = {
   "interface.Invitation": "Invitation",
   "interface.Invitation from {0}": "Invitation from {0}",
   "interface.Invitations": "Invitations",
-  "interface.Invitations to a team appear below.": "Invitations to a team appear below.",
+  "interface.Invitations to a team appear below.":
+    "Invitations to a team appear below.",
   "interface.Invite a client": "Invite a client",
-  "interface.Invite someone from the Invitations tab.": "Invite someone from the Invitations tab.",
+  "interface.Invite someone from the Invitations tab.":
+    "Invite someone from the Invitations tab.",
   "interface.Join the meeting": "Join the meeting",
   "interface.Keep event": "Keep event",
   "interface.Keep my answers and continue": "Keep my answers and continue",
@@ -195,15 +227,18 @@ export const interfaceEnglish = {
   "interface.Leads": "Leads",
   "interface.Leads to answer": "Leads to answer",
   "interface.Light": "Light",
-  "interface.Liquid Glass where the system provides it; an opaque raised surface otherwise.": "Liquid Glass where the system provides it; an opaque raised surface otherwise.",
+  "interface.Liquid Glass where the system provides it; an opaque raised surface otherwise.":
+    "Liquid Glass where the system provides it; an opaque raised surface otherwise.",
   "interface.Load (kg)": "Load (kg)",
   "interface.Load ({0})": "Load ({0})",
   "interface.Load older messages": "Load older messages",
   "interface.Load unit": "Load unit",
   "interface.Loading draft…": "Loading draft…",
   "interface.Location": "Location",
-  "interface.Locked until it is paid for. Payments are made in the web app.": "Locked until it is paid for. Payments are made in the web app.",
-  "interface.Logged sets appear here as a chart.": "Logged sets appear here as a chart.",
+  "interface.Locked until it is paid for. Payments are made in the web app.":
+    "Locked until it is paid for. Payments are made in the web app.",
+  "interface.Logged sets appear here as a chart.":
+    "Logged sets appear here as a chart.",
   "interface.Make visible only to me": "Make visible only to me",
   "interface.Mark all as read": "Mark all as read",
   "interface.Mark as reviewed": "Mark as reviewed",
@@ -213,9 +248,11 @@ export const interfaceEnglish = {
   "interface.Measurements": "Measurements",
   "interface.Meeting": "Meeting",
   "interface.Meeting link": "Meeting link",
-  "interface.Meetings and events from your coach appear here.": "Meetings and events from your coach appear here.",
+  "interface.Meetings and events from your coach appear here.":
+    "Meetings and events from your coach appear here.",
   "interface.Members": "Members",
-  "interface.Members are invited as the group is now; people who join later are not added.": "Members are invited as the group is now; people who join later are not added.",
+  "interface.Members are invited as the group is now; people who join later are not added.":
+    "Members are invited as the group is now; people who join later are not added.",
   "interface.Message": "Message",
   "interface.Message (optional)": "Message (optional)",
   "interface.Message actions": "Message actions",
@@ -223,9 +260,11 @@ export const interfaceEnglish = {
   "interface.Message deleted": "Message deleted",
   "interface.Message privacy": "Message privacy",
   "interface.Message received": "Message received",
-  "interface.Message sent. Waiting for this person to accept.": "Message sent. Waiting for this person to accept.",
+  "interface.Message sent. Waiting for this person to accept.":
+    "Message sent. Waiting for this person to accept.",
   "interface.Messages": "Messages",
-  "interface.Messages, check-ins and coaching updates appear here.": "Messages, check-ins and coaching updates appear here.",
+  "interface.Messages, check-ins and coaching updates appear here.":
+    "Messages, check-ins and coaching updates appear here.",
   "interface.Metric": "Metric",
   "interface.Microphone level": "Microphone level",
   "interface.Missed": "Missed",
@@ -235,7 +274,8 @@ export const interfaceEnglish = {
   "interface.My coaches": "My coaches",
   "interface.Name": "Name",
   "interface.Neutral": "Neutral",
-  "interface.New analysis is not available on this phone yet": "New analysis is not available on this phone yet",
+  "interface.New analysis is not available on this phone yet":
+    "New analysis is not available on this phone yet",
   "interface.New event": "New event",
   "interface.New event or meeting": "New event or meeting",
   "interface.New items appear here.": "New items appear here.",
@@ -244,8 +284,10 @@ export const interfaceEnglish = {
   "interface.New private note": "New private note",
   "interface.Next month": "Next month",
   "interface.Next page": "Next page",
-  "interface.No application form is required. Review the offer and submit when ready.": "No application form is required. Review the offer and submit when ready.",
-  "interface.No application form was required.": "No application form was required.",
+  "interface.No application form is required. Review the offer and submit when ready.":
+    "No application form is required. Review the offer and submit when ready.",
+  "interface.No application form was required.":
+    "No application form was required.",
   "interface.No applications on record.": "No applications on record.",
   "interface.No assigned programs": "No assigned programs",
   "interface.No check-ins match": "No check-ins match",
@@ -272,9 +314,11 @@ export const interfaceEnglish = {
   "interface.No notifications": "No notifications",
   "interface.No owned plans": "No owned plans",
   "interface.No payment dues yet.": "No payment dues yet.",
-  "interface.No person matches. Try their exact username below.": "No person matches. Try their exact username below.",
+  "interface.No person matches. Try their exact username below.":
+    "No person matches. Try their exact username below.",
   "interface.No programs to assign": "No programs to assign",
-  "interface.No recorded results in this period": "No recorded results in this period",
+  "interface.No recorded results in this period":
+    "No recorded results in this period",
   "interface.No repetitions detected": "No repetitions detected",
   "interface.No reply": "No reply",
   "interface.No saved analyses": "No saved analyses",
@@ -283,10 +327,12 @@ export const interfaceEnglish = {
   "interface.No workouts in this period": "No workouts in this period",
   "interface.No workouts today": "No workouts today",
   "interface.Nobody is invited yet.": "Nobody is invited yet.",
-  "interface.Not confirmed yet. Use Retry below.": "Not confirmed yet. Use Retry below.",
+  "interface.Not confirmed yet. Use Retry below.":
+    "Not confirmed yet. Use Retry below.",
   "interface.Not included in your plan": "Not included in your plan",
   "interface.Not open yet": "Not open yet",
-  "interface.Not synced — kept on this phone": "Not synced — kept on this phone",
+  "interface.Not synced — kept on this phone":
+    "Not synced — kept on this phone",
   "interface.Note": "Note",
   "interface.Nothing planned this month": "Nothing planned this month",
   "interface.Nothing yet": "Nothing yet",
@@ -298,13 +344,15 @@ export const interfaceEnglish = {
   "interface.Only you can see it": "Only you can see it",
   "interface.Only you see it": "Only you see it",
   "interface.Only you see these": "Only you see these",
-  "interface.Open a workout to see exactly what was prescribed for that day.": "Open a workout to see exactly what was prescribed for that day.",
+  "interface.Open a workout to see exactly what was prescribed for that day.":
+    "Open a workout to see exactly what was prescribed for that day.",
   "interface.Open application": "Open application",
   "interface.Open client": "Open client",
   "interface.Open file": "Open file",
   "interface.Open group chat": "Open group chat",
   "interface.Optional": "Optional",
-  "interface.Optional, e.g. morning, before breakfast": "Optional, e.g. morning, before breakfast",
+  "interface.Optional, e.g. morning, before breakfast":
+    "Optional, e.g. morning, before breakfast",
   "interface.Options for {0}": "Options for {0}",
   "interface.Organizations you coach with": "Organizations you coach with",
   "interface.Organizer": "Organizer",
@@ -318,12 +366,15 @@ export const interfaceEnglish = {
   "interface.Payments": "Payments",
   "interface.Peak speed": "Peak speed",
   "interface.Performed on": "Performed on",
-  "interface.Personal and Team clients cannot share one event.": "Personal and Team clients cannot share one event.",
+  "interface.Personal and Team clients cannot share one event.":
+    "Personal and Team clients cannot share one event.",
   "interface.Phases": "Phases",
   "interface.Plan": "Plan",
-  "interface.Planned values are a snapshot. Record only what you actually did; blank means unknown.": "Planned values are a snapshot. Record only what you actually did; blank means unknown.",
+  "interface.Planned values are a snapshot. Record only what you actually did; blank means unknown.":
+    "Planned values are a snapshot. Record only what you actually did; blank means unknown.",
   "interface.Plans": "Plans",
-  "interface.Plans you buy from a coach appear here.": "Plans you buy from a coach appear here.",
+  "interface.Plans you buy from a coach appear here.":
+    "Plans you buy from a coach appear here.",
   "interface.Play": "Play",
   "interface.Playback position": "Playback position",
   "interface.Previous month": "Previous month",
@@ -332,18 +383,26 @@ export const interfaceEnglish = {
   "interface.Private coaching": "Private coaching",
   "interface.Private notes": "Private notes",
   "interface.Program": "Program",
-  "interface.Program-cycle days require one client with an active assigned program.": "Program-cycle days require one client with an active assigned program.",
-  "interface.Programs from your coach and plans you own": "Programs from your coach and plans you own",
-  "interface.Programs from your coach appear here.": "Programs from your coach appear here.",
-  "interface.Programs you assign in the web app appear here.": "Programs you assign in the web app appear here.",
+  "interface.Program-cycle days require one client with an active assigned program.":
+    "Program-cycle days require one client with an active assigned program.",
+  "interface.Programs from your coach and plans you own":
+    "Programs from your coach and plans you own",
+  "interface.Programs from your coach appear here.":
+    "Programs from your coach appear here.",
+  "interface.Programs you assign in the web app appear here.":
+    "Programs you assign in the web app appear here.",
   "interface.Progress": "Progress",
-  "interface.Publish a check-in form in the web app first. It then appears here.": "Publish a check-in form in the web app first. It then appears here.",
-  "interface.Read-only here. Payments are managed in the web app.": "Read-only here. Payments are managed in the web app.",
+  "interface.Publish a check-in form in the web app first. It then appears here.":
+    "Publish a check-in form in the web app first. It then appears here.",
+  "interface.Read-only here. Payments are managed in the web app.":
+    "Read-only here. Payments are managed in the web app.",
   "interface.Reason (optional)": "Reason (optional)",
-  "interface.Reason for rejecting (only you see it)": "Reason for rejecting (only you see it)",
+  "interface.Reason for rejecting (only you see it)":
+    "Reason for rejecting (only you see it)",
   "interface.Record a voice message": "Record a voice message",
   "interface.Recorded sessions": "Recorded sessions",
-  "interface.Recording needs the Metrivum Android build. You can attach an existing WAV file instead.": "Recording needs the Metrivum Android build. You can attach an existing WAV file instead.",
+  "interface.Recording needs the Metrivum Android build. You can attach an existing WAV file instead.":
+    "Recording needs the Metrivum Android build. You can attach an existing WAV file instead.",
   "interface.Recording… up to 5 minutes": "Recording… up to 5 minutes",
   "interface.Reject application": "Reject application",
   "interface.Release time": "Release time",
@@ -359,14 +418,17 @@ export const interfaceEnglish = {
   "interface.Reply to the client": "Reply to the client",
   "interface.Reps": "Reps",
   "interface.Require approval": "Require approval",
-  "interface.Require approval for new conversations": "Require approval for new conversations",
+  "interface.Require approval for new conversations":
+    "Require approval for new conversations",
   "interface.Rest": "Rest",
-  "interface.Rest day. Earlier sessions are in History.": "Rest day. Earlier sessions are in History.",
+  "interface.Rest day. Earlier sessions are in History.":
+    "Rest day. Earlier sessions are in History.",
   "interface.Rest, {0} seconds left": "Rest, {0} seconds left",
   "interface.Restart audio": "Restart audio",
   "interface.Retry send": "Retry send",
   "interface.Review": "Review",
-  "interface.Review the current offer before starting your application.": "Review the current offer before starting your application.",
+  "interface.Review the current offer before starting your application.":
+    "Review the current offer before starting your application.",
   "interface.Revoke": "Revoke",
   "interface.Revoke invitation": "Revoke invitation",
   "interface.Row with a badge": "Row with a badge",
@@ -382,7 +444,8 @@ export const interfaceEnglish = {
   "interface.Saved on this phone": "Saved on this phone",
   "interface.Saved result": "Saved result",
   "interface.Saving…": "Saving…",
-  "interface.Say hello to start the conversation.": "Say hello to start the conversation.",
+  "interface.Say hello to start the conversation.":
+    "Say hello to start the conversation.",
   "interface.Search check-ins": "Search check-ins",
   "interface.Search clients": "Search clients",
   "interface.Search conversations": "Search conversations",
@@ -398,7 +461,8 @@ export const interfaceEnglish = {
   "interface.Send invitation": "Send invitation",
   "interface.Send message": "Send message",
   "interface.Sending…": "Sending…",
-  "interface.Sends a form to fill in, once or on a schedule": "Sends a form to fill in, once or on a schedule",
+  "interface.Sends a form to fill in, once or on a schedule":
+    "Sends a form to fill in, once or on a schedule",
   "interface.Sent invitations": "Sent invitations",
   "interface.Services": "Services",
   "interface.Session": "Session",
@@ -416,7 +480,8 @@ export const interfaceEnglish = {
   "interface.Shared with coach": "Shared with coach",
   "interface.Sheets": "Sheets",
   "interface.Show results": "Show results",
-  "interface.Showing part of the detailed results. Totals include all matching records. Narrow the date range, client or exercise filters to see more detail.": "Showing part of the detailed results. Totals include all matching records. Narrow the date range, client or exercise filters to see more detail.",
+  "interface.Showing part of the detailed results. Totals include all matching records. Narrow the date range, client or exercise filters to see more detail.":
+    "Showing part of the detailed results. Totals include all matching records. Narrow the date range, client or exercise filters to see more detail.",
   "interface.Since": "Since",
   "interface.Skip": "Skip",
   "interface.Skip all sets": "Skip all sets",
@@ -425,9 +490,11 @@ export const interfaceEnglish = {
   "interface.Skip this workout?": "Skip this workout?",
   "interface.Skip workout": "Skip workout",
   "interface.Skipped": "Skipped",
-  "interface.Start a conversation. Approval is only needed if this person requires it.": "Start a conversation. Approval is only needed if this person requires it.",
+  "interface.Start a conversation. Approval is only needed if this person requires it.":
+    "Start a conversation. Approval is only needed if this person requires it.",
   "interface.Start date": "Start date",
-  "interface.Start one with the pencil button above.": "Start one with the pencil button above.",
+  "interface.Start one with the pencil button above.":
+    "Start one with the pencil button above.",
   "interface.Start recording": "Start recording",
   "interface.Start workout": "Start workout",
   "interface.Starts": "Starts",
@@ -441,7 +508,8 @@ export const interfaceEnglish = {
   "interface.Structure": "Structure",
   "interface.Submit application": "Submit application",
   "interface.Substitute exercise": "Substitute exercise",
-  "interface.Switch to the Coach view in More to add one.": "Switch to the Coach view in More to add one.",
+  "interface.Switch to the Coach view in More to add one.":
+    "Switch to the Coach view in More to add one.",
   "interface.System": "System",
   "interface.Tall scrolling sheet": "Tall scrolling sheet",
   "interface.Team": "Team",
@@ -449,15 +517,22 @@ export const interfaceEnglish = {
   "interface.Team coaching": "Team coaching",
   "interface.Tempo": "Tempo",
   "interface.Text": "Text",
-  "interface.The client shares no profile details.": "The client shares no profile details.",
-  "interface.The on-device model has not been validated for this device. Videos are never sent to a server instead. Saved results stay readable below.": "The on-device model has not been validated for this device. Videos are never sent to a server instead. Saved results stay readable below.",
+  "interface.The client shares no profile details.":
+    "The client shares no profile details.",
+  "interface.The on-device model has not been validated for this device. Videos are never sent to a server instead. Saved results stay readable below.":
+    "The on-device model has not been validated for this device. Videos are never sent to a server instead. Saved results stay readable below.",
   "interface.The saved version changed": "The saved version changed",
   "interface.Theme": "Theme",
-  "interface.These are the answers on the server. Your own draft is below.": "These are the answers on the server. Your own draft is below.",
-  "interface.These results combine the clients included in the current filters.": "These results combine the clients included in the current filters.",
-  "interface.This analysis has no repetition data.": "This analysis has no repetition data.",
-  "interface.This check-in changed on the server. Your answers are kept; look through them before sending.": "This check-in changed on the server. Your answers are kept; look through them before sending.",
-  "interface.This program has no applied version yet. Apply its changes in the web app first.": "This program has no applied version yet. Apply its changes in the web app first.",
+  "interface.These are the answers on the server. Your own draft is below.":
+    "These are the answers on the server. Your own draft is below.",
+  "interface.These results combine the clients included in the current filters.":
+    "These results combine the clients included in the current filters.",
+  "interface.This analysis has no repetition data.":
+    "This analysis has no repetition data.",
+  "interface.This check-in changed on the server. Your answers are kept; look through them before sending.":
+    "This check-in changed on the server. Your answers are kept; look through them before sending.",
+  "interface.This program has no applied version yet. Apply its changes in the web app first.":
+    "This program has no applied version yet. Apply its changes in the web app first.",
   "interface.This week": "This week",
   "interface.Through": "Through",
   "interface.Time": "Time",
@@ -475,14 +550,16 @@ export const interfaceEnglish = {
   "interface.Up to 5 minutes": "Up to 5 minutes",
   "interface.Uploading…": "Uploading…",
   "interface.Username": "Username",
-  "interface.Uses the latest applied version of the program": "Uses the latest applied version of the program",
+  "interface.Uses the latest applied version of the program":
+    "Uses the latest applied version of the program",
   "interface.Value ({0})": "Value ({0})",
   "interface.Video analysis": "Video analysis",
   "interface.Visibility": "Visibility",
   "interface.Visible to the client": "Visible to the client",
   "interface.Voice message": "Voice message",
   "interface.Voice message attached": "Voice message attached",
-  "interface.Volume uses recorded total external loads only, as calculated by the API.": "Volume uses recorded total external loads only, as calculated by the API.",
+  "interface.Volume uses recorded total external loads only, as calculated by the API.":
+    "Volume uses recorded total external loads only, as calculated by the API.",
   "interface.Waiting for the client": "Waiting for the client",
   "interface.What do you want to remember?": "What do you want to remember?",
   "interface.What the load means": "What the load means",
@@ -494,14 +571,17 @@ export const interfaceEnglish = {
   "interface.Workout set": "Workout set",
   "interface.Workouts": "Workouts",
   "interface.Workouts today": "Workouts today",
-  "interface.Write something, then try to close": "Write something, then try to close",
+  "interface.Write something, then try to close":
+    "Write something, then try to close",
   "interface.Yes": "Yes",
   "interface.You are not in a team": "You are not in a team",
-  "interface.You can fill it in once it is released.": "You can fill it in once it is released.",
+  "interface.You can fill it in once it is released.":
+    "You can fill it in once it is released.",
   "interface.You cannot send messages here": "You cannot send messages here",
   "interface.You have no groups.": "You have no groups.",
   "interface.Your answer": "Your answer",
-  "interface.Your coach sees that it was skipped": "Your coach sees that it was skipped",
+  "interface.Your coach sees that it was skipped":
+    "Your coach sees that it was skipped",
   "interface.Your own copy": "Your own copy",
   "interface.Your reply": "Your reply",
   "interface.Your training log and progress": "Your training log and progress",
@@ -511,34 +591,44 @@ export const interfaceEnglish = {
   "interface.e.g. Monthly review call": "e.g. Monthly review call",
   "interface.e.g. Weekly check-in": "e.g. Weekly check-in",
   "interface.sets": "sets",
-  "interface.· positions in": "· positions in"
+  "interface.· positions in": "· positions in",
 };
 export const interfacePolish = {
-  "interface.: file answers are not supported yet. Answer this one in the web app.": ": odpowiedzi w postaci plików nie są jeszcze obsługiwane. Odpowiedz na to pytanie w aplikacji webowej.",
+  "interface.: file answers are not supported yet. Answer this one in the web app.":
+    ": odpowiedzi w postaci plików nie są jeszcze obsługiwane. Odpowiedz na to pytanie w aplikacji webowej.",
   "interface.@username": "@nazwa_użytkownika",
-  "interface.A long list scrolls inside the sheet": "Długa lista przewija się wewnątrz panelu",
-  "interface.A short note shown with the invitation": "Krótka wiadomość wyświetlana z zaproszeniem",
-  "interface.A value is not a valid number. Fix it to keep saving.": "Jedna z wartości nie jest poprawną liczbą. Popraw ją, aby kontynuować zapisywanie.",
+  "interface.A long list scrolls inside the sheet":
+    "Długa lista przewija się wewnątrz panelu",
+  "interface.A short note shown with the invitation":
+    "Krótka wiadomość wyświetlana z zaproszeniem",
+  "interface.A value is not a valid number. Fix it to keep saving.":
+    "Jedna z wartości nie jest poprawną liczbą. Popraw ją, aby kontynuować zapisywanie.",
   "interface.Accept": "Akceptuj",
   "interface.Accept Team access": "Zezwól na dostęp zespołu",
-  "interface.Accept an invitation or apply to an offer to start.": "Zaakceptuj zaproszenie lub zgłoś się do oferty, aby rozpocząć.",
+  "interface.Accept an invitation or apply to an offer to start.":
+    "Zaakceptuj zaproszenie lub zgłoś się do oferty, aby rozpocząć.",
   "interface.Accept and start": "Zaakceptuj i rozpocznij",
   "interface.Accept invitation": "Zaakceptuj zaproszenie",
-  "interface.Accept this conversation to reply.": "Zaakceptuj tę rozmowę, aby odpowiedzieć.",
+  "interface.Accept this conversation to reply.":
+    "Zaakceptuj tę rozmowę, aby odpowiedzieć.",
   "interface.Accepted": "Zaakceptowano",
   "interface.Action sheet": "Panel akcji",
   "interface.Actions": "Akcje",
   "interface.Actions for {0}": "Działania dla {0}",
-  "interface.Activate an offer in the web app first.": "Najpierw aktywuj ofertę w aplikacji webowej.",
-  "interface.Activate an offer with an application form first.": "Najpierw aktywuj ofertę z formularzem zgłoszeniowym.",
+  "interface.Activate an offer in the web app first.":
+    "Najpierw aktywuj ofertę w aplikacji webowej.",
+  "interface.Activate an offer with an application form first.":
+    "Najpierw aktywuj ofertę z formularzem zgłoszeniowym.",
   "interface.Active": "Aktywny",
   "interface.Active clients": "Aktywni klienci",
-  "interface.Active · last workout yesterday": "Aktywny · ostatni trening wczoraj",
+  "interface.Active · last workout yesterday":
+    "Aktywny · ostatni trening wczoraj",
   "interface.Add": "Dodaj",
   "interface.Add a file": "Dodaj plik",
   "interface.Add a file or photo": "Dodaj plik lub zdjęcie",
   "interface.Add a measurement": "Dodaj pomiar",
-  "interface.Add a meeting or an event with the plus button.": "Dodaj spotkanie lub wydarzenie przyciskiem plus.",
+  "interface.Add a meeting or an event with the plus button.":
+    "Dodaj spotkanie lub wydarzenie przyciskiem plus.",
   "interface.Add a note": "Dodaj notatkę",
   "interface.Add a set": "Dodaj serię",
   "interface.Add to message": "Dodaj do wiadomości",
@@ -548,51 +638,65 @@ export const interfacePolish = {
   "interface.All day": "Cały dzień",
   "interface.All day event": "Wydarzenie całodniowe",
   "interface.Already invited participant": "Uczestnik już zaproszony",
-  "interface.Analyses made in the web app appear here.": "Tutaj pojawiają się analizy wykonane w aplikacji webowej.",
+  "interface.Analyses made in the web app appear here.":
+    "Tutaj pojawiają się analizy wykonane w aplikacji webowej.",
   "interface.Analysis": "Analiza",
   "interface.Answer {0}": "Odpowiedź {0}",
-  "interface.Answers appear here once the check-in is sent.": "Odpowiedzi pojawią się tutaj po wysłaniu ankiety.",
+  "interface.Answers appear here once the check-in is sent.":
+    "Odpowiedzi pojawią się tutaj po wysłaniu ankiety.",
   "interface.Answers from your clients": "Odpowiedzi od Twoich podopiecznych",
-  "interface.Anyone can message you by default. Require approval for new conversations; accepted chats stay open.": "Domyślnie każdy może do Ciebie napisać. Możesz wymagać zgody na nowe rozmowy; zaakceptowane czaty pozostaną otwarte.",
+  "interface.Anyone can message you by default. Require approval for new conversations; accepted chats stay open.":
+    "Domyślnie każdy może do Ciebie napisać. Możesz wymagać zgody na nowe rozmowy; zaakceptowane czaty pozostaną otwarte.",
   "interface.Anything about this set": "Informacje o tej serii",
   "interface.Application": "Zgłoszenie",
   "interface.Application form": "Formularz zgłoszeniowy",
   "interface.Applications": "Zgłoszenia",
-  "interface.Applications to your offers appear here.": "Tutaj pojawiają się zgłoszenia do Twoich ofert.",
-  "interface.Ask your coach or upgrade on the web.": "Zapytaj trenera lub przejdź na wyższy plan w aplikacji internetowej.",
+  "interface.Applications to your offers appear here.":
+    "Tutaj pojawiają się zgłoszenia do Twoich ofert.",
+  "interface.Ask your coach or upgrade on the web.":
+    "Zapytaj trenera lub przejdź na wyższy plan w aplikacji internetowej.",
   "interface.Assign a check-in": "Przypisz ankietę kontrolną",
   "interface.Assign a program": "Przypisz plan",
   "interface.Assign check-in": "Przypisz ankietę kontrolną",
-  "interface.Assign one to a client to start collecting answers.": "Przypisz ankietę podopiecznemu, aby zacząć zbierać odpowiedzi.",
+  "interface.Assign one to a client to start collecting answers.":
+    "Przypisz ankietę podopiecznemu, aby zacząć zbierać odpowiedzi.",
   "interface.Assign program": "Przypisz plan",
   "interface.Assigned program": "Przypisany plan",
   "interface.Assigned programs": "Przypisane plany",
-  "interface.Attach a file or voice message": "Załącz plik lub wiadomość głosową",
+  "interface.Attach a file or voice message":
+    "Załącz plik lub wiadomość głosową",
   "interface.Attach to message": "Dołącz do wiadomości",
   "interface.Attachment": "Załącznik",
-  "interface.Bar path and speed, on your device": "Tor ruchu i prędkość sztangi na Twoim urządzeniu",
+  "interface.Bar path and speed, on your device":
+    "Tor ruchu i prędkość sztangi na Twoim urządzeniu",
   "interface.Billing option": "Opcja rozliczenia",
   "interface.Body measurements": "Pomiary ciała",
   "interface.Busy": "W trakcie",
-  "interface.By exact username. They see the offer before accepting.": "Podaj dokładną nazwę użytkownika. Użytkownik zobaczy ofertę przed jej przyjęciem.",
+  "interface.By exact username. They see the offer before accepting.":
+    "Podaj dokładną nazwę użytkownika. Użytkownik zobaczy ofertę przed jej przyjęciem.",
   "interface.Calendar": "Kalendarz",
   "interface.Cancel editing": "Anuluj edycję",
   "interface.Cancel event": "Anuluj wydarzenie",
   "interface.Cancelled": "Anulowano",
-  "interface.Change the dates or the status filter.": "Zmień daty lub filtr statusu.",
-  "interface.Change the dates, or add the first one.": "Zmień daty lub dodaj pierwszy pomiar.",
+  "interface.Change the dates or the status filter.":
+    "Zmień daty lub filtr statusu.",
+  "interface.Change the dates, or add the first one.":
+    "Zmień daty lub dodaj pierwszy pomiar.",
   "interface.Check recipients": "Sprawdź odbiorców",
-  "interface.Check the spelling or change the status filter.": "Sprawdź pisownię lub zmień filtr statusu.",
+  "interface.Check the spelling or change the status filter.":
+    "Sprawdź pisownię lub zmień filtr statusu.",
   "interface.Check-in": "Ankieta",
   "interface.Check-in details": "Szczegóły ankiety kontrolnej",
   "interface.Check-ins": "Ankiety kontrolne",
-  "interface.Check-ins from your coach appear here.": "Tutaj pojawią się ankiety od Twojego trenera.",
+  "interface.Check-ins from your coach appear here.":
+    "Tutaj pojawią się ankiety od Twojego trenera.",
   "interface.Choose a date": "Wybierz datę",
   "interface.Choose a file": "Wybierz plik",
   "interface.Choose a form": "Wybierz formularz",
   "interface.Choose a program": "Wybierz plan",
   "interface.Choose a time": "Wybierz godzinę",
-  "interface.Choose who can see this file": "Wybierz, kto może zobaczyć ten plik",
+  "interface.Choose who can see this file":
+    "Wybierz, kto może zobaczyć ten plik",
   "interface.Clear filters": "Wyczyść filtry",
   "interface.Client": "Klient",
   "interface.Client details": "Szczegóły klienta",
@@ -600,10 +704,12 @@ export const interfacePolish = {
   "interface.Clients": "Klienci",
   "interface.Close anyway": "Zamknij mimo to",
   "interface.Close without saving?": "Zamknąć bez zapisywania?",
-  "interface.Closing with typed text asks inside the sheet": "Zamknięcie po wpisaniu tekstu wymaga potwierdzenia w panelu",
+  "interface.Closing with typed text asks inside the sheet":
+    "Zamknięcie po wpisaniu tekstu wymaga potwierdzenia w panelu",
   "interface.Coaches": "Trenerzy",
   "interface.Coaching invitation": "Zaproszenie do współpracy",
-  "interface.Collaborations, invitations and your applications": "Współprace, zaproszenia i Twoje zgłoszenia",
+  "interface.Collaborations, invitations and your applications":
+    "Współprace, zaproszenia i Twoje zgłoszenia",
   "interface.Comment": "Komentarz",
   "interface.Compare with the server version": "Porównaj z wersją na serwerze",
   "interface.Complete a set": "Wykonaj serię",
@@ -613,13 +719,16 @@ export const interfacePolish = {
   "interface.Continue workout": "Kontynuuj trening",
   "interface.Conversation": "Rozmowa",
   "interface.Conversation unavailable": "Rozmowa niedostępna",
-  "interface.Create and apply a program in the web app first.": "Najpierw utwórz plan i zastosuj zmiany w aplikacji webowej.",
+  "interface.Create and apply a program in the web app first.":
+    "Najpierw utwórz plan i zastosuj zmiany w aplikacji webowej.",
   "interface.Create event": "Utwórz wydarzenie",
-  "interface.Create groups in the web app to message and assign to several clients at once.": "Twórz grupy w aplikacji webowej, aby wysyłać wiadomości i przypisywać plany wielu klientom jednocześnie.",
+  "interface.Create groups in the web app to message and assign to several clients at once.":
+    "Twórz grupy w aplikacji webowej, aby wysyłać wiadomości i przypisywać plany wielu klientom jednocześnie.",
   "interface.Dark": "Ciemny",
   "interface.Day of the month": "Dzień miesiąca",
   "interface.Day {0}": "Dzień {0}",
-  "interface.Days in each assigned cycle. The schedule ends with the assigned program. For different cycle lengths, select days present in every cycle.": "Dni każdego przypisanego cyklu. Harmonogram kończy się razem z przypisanym planem. Dla cykli różnej długości wybierz dni występujące w każdym z nich.",
+  "interface.Days in each assigned cycle. The schedule ends with the assigned program. For different cycle lengths, select days present in every cycle.":
+    "Dni każdego przypisanego cyklu. Harmonogram kończy się razem z przypisanym planem. Dla cykli różnej długości wybierz dni występujące w każdym z nich.",
   "interface.Decline": "Odrzuć",
   "interface.Declined": "Odrzucono",
   "interface.Delete for everyone": "Usuń dla wszystkich",
@@ -633,14 +742,16 @@ export const interfacePolish = {
   "interface.Done": "Gotowe",
   "interface.Due {0}": "Termin: {0}",
   "interface.Duration (minutes)": "Czas trwania (minuty)",
-  "interface.Each unit has its own scale. ": "Każda jednostka ma własną skalę. ",
+  "interface.Each unit has its own scale. ":
+    "Każda jednostka ma własną skalę. ",
   "interface.Earlier message": "Wcześniejsza wiadomość",
   "interface.Edit": "Edytuj",
   "interface.Edit details": "Edytuj szczegóły",
   "interface.Edit event": "Edytuj wydarzenie",
   "interface.End collaboration": "Zakończ współpracę",
   "interface.Ends": "Koniec",
-  "interface.Energy, sleep, anything worth noting": "Energia, sen i inne ważne informacje",
+  "interface.Energy, sleep, anything worth noting":
+    "Energia, sen i inne ważne informacje",
   "interface.Event": "Wydarzenie",
   "interface.Every how many days": "Co ile dni",
   "interface.Every how many months": "Co ile miesięcy",
@@ -682,7 +793,8 @@ export const interfacePolish = {
   "interface.How did it feel?": "Jak się czujesz?",
   "interface.How the load was recorded": "Sposób zapisu obciążenia",
   "interface.How the service is settled": "Sposób rozliczenia usługi",
-  "interface.I agree that the Team can access my coaching data if this offer belongs to a Team.": "Wyrażam zgodę na dostęp zespołu do moich danych dotyczących współpracy z trenerem, jeśli ta oferta należy do zespołu.",
+  "interface.I agree that the Team can access my coaching data if this offer belongs to a Team.":
+    "Wyrażam zgodę na dostęp zespołu do moich danych dotyczących współpracy z trenerem, jeśli ta oferta należy do zespołu.",
   "interface.Image": "Obraz",
   "interface.Image attachment": "Załączony obraz",
   "interface.Imperative action choice": "Wybór akcji wywoływany programowo",
@@ -695,12 +807,15 @@ export const interfacePolish = {
   "interface.Invitation": "Zaproszenie",
   "interface.Invitation from {0}": "Zaproszenie od {0}",
   "interface.Invitations": "Zaproszenia",
-  "interface.Invitations to a team appear below.": "Zaproszenia do zespołu pojawią się poniżej.",
+  "interface.Invitations to a team appear below.":
+    "Zaproszenia do zespołu pojawią się poniżej.",
   "interface.Invite a client": "Zaproś klienta",
-  "interface.Invite someone from the Invitations tab.": "Zaproś kogoś w zakładce Zaproszenia.",
+  "interface.Invite someone from the Invitations tab.":
+    "Zaproś kogoś w zakładce Zaproszenia.",
   "interface.Join the meeting": "Dołącz do spotkania",
   "interface.Keep event": "Zachowaj wydarzenie",
-  "interface.Keep my answers and continue": "Zachowaj moje odpowiedzi i kontynuuj",
+  "interface.Keep my answers and continue":
+    "Zachowaj moje odpowiedzi i kontynuuj",
   "interface.Keep my draft": "Zachowaj mój szkic",
   "interface.Keep training": "Kontynuuj trening",
   "interface.Language / Język": "Język",
@@ -710,15 +825,18 @@ export const interfacePolish = {
   "interface.Leads": "Zgłoszenia",
   "interface.Leads to answer": "Zgłoszenia do rozpatrzenia",
   "interface.Light": "Jasny",
-  "interface.Liquid Glass where the system provides it; an opaque raised surface otherwise.": "Liquid Glass tam, gdzie udostępnia go system; w pozostałych przypadkach nieprzezroczysta, wypukła powierzchnia.",
+  "interface.Liquid Glass where the system provides it; an opaque raised surface otherwise.":
+    "Liquid Glass tam, gdzie udostępnia go system; w pozostałych przypadkach nieprzezroczysta, wypukła powierzchnia.",
   "interface.Load (kg)": "Obciążenie (kg)",
   "interface.Load ({0})": "Obciążenie ({0})",
   "interface.Load older messages": "Wczytaj starsze wiadomości",
   "interface.Load unit": "Jednostka obciążenia",
   "interface.Loading draft…": "Wczytywanie wersji roboczej…",
   "interface.Location": "Lokalizacja",
-  "interface.Locked until it is paid for. Payments are made in the web app.": "Zablokowane do czasu opłacenia. Płatności dokonuje się w aplikacji internetowej.",
-  "interface.Logged sets appear here as a chart.": "Zapisane serie pojawią się tutaj na wykresie.",
+  "interface.Locked until it is paid for. Payments are made in the web app.":
+    "Zablokowane do czasu opłacenia. Płatności dokonuje się w aplikacji internetowej.",
+  "interface.Logged sets appear here as a chart.":
+    "Zapisane serie pojawią się tutaj na wykresie.",
   "interface.Make visible only to me": "Ustaw widoczność tylko dla mnie",
   "interface.Mark all as read": "Oznacz wszystkie jako przeczytane",
   "interface.Mark as reviewed": "Oznacz jako sprawdzone",
@@ -728,9 +846,11 @@ export const interfacePolish = {
   "interface.Measurements": "Pomiary",
   "interface.Meeting": "Spotkanie",
   "interface.Meeting link": "Link do spotkania",
-  "interface.Meetings and events from your coach appear here.": "Tutaj pojawią się spotkania i wydarzenia od Twojego trenera.",
+  "interface.Meetings and events from your coach appear here.":
+    "Tutaj pojawią się spotkania i wydarzenia od Twojego trenera.",
   "interface.Members": "Członkowie",
-  "interface.Members are invited as the group is now; people who join later are not added.": "Zapraszani są obecni członkowie grupy; osoby dołączające później nie są dodawane.",
+  "interface.Members are invited as the group is now; people who join later are not added.":
+    "Zapraszani są obecni członkowie grupy; osoby dołączające później nie są dodawane.",
   "interface.Message": "Napisz",
   "interface.Message (optional)": "Wiadomość (opcjonalnie)",
   "interface.Message actions": "Działania wiadomości",
@@ -738,9 +858,11 @@ export const interfacePolish = {
   "interface.Message deleted": "Wiadomość usunięta",
   "interface.Message privacy": "Prywatność wiadomości",
   "interface.Message received": "Otrzymano wiadomość",
-  "interface.Message sent. Waiting for this person to accept.": "Wiadomość wysłana. Oczekiwanie na akceptację odbiorcy.",
+  "interface.Message sent. Waiting for this person to accept.":
+    "Wiadomość wysłana. Oczekiwanie na akceptację odbiorcy.",
   "interface.Messages": "Wiadomości",
-  "interface.Messages, check-ins and coaching updates appear here.": "Tutaj pojawiają się wiadomości, ankiety kontrolne i aktualizacje współpracy.",
+  "interface.Messages, check-ins and coaching updates appear here.":
+    "Tutaj pojawiają się wiadomości, ankiety kontrolne i aktualizacje współpracy.",
   "interface.Metric": "Miara",
   "interface.Microphone level": "Poziom mikrofonu",
   "interface.Missed": "Pominięte",
@@ -750,7 +872,8 @@ export const interfacePolish = {
   "interface.My coaches": "Moi trenerzy",
   "interface.Name": "Nazwa",
   "interface.Neutral": "Neutralny",
-  "interface.New analysis is not available on this phone yet": "Nowa analiza nie jest jeszcze dostępna na tym telefonie",
+  "interface.New analysis is not available on this phone yet":
+    "Nowa analiza nie jest jeszcze dostępna na tym telefonie",
   "interface.New event": "Nowe wydarzenie",
   "interface.New event or meeting": "Nowe wydarzenie lub spotkanie",
   "interface.New items appear here.": "Tutaj pojawią się nowe elementy.",
@@ -759,8 +882,10 @@ export const interfacePolish = {
   "interface.New private note": "Nowa prywatna notatka",
   "interface.Next month": "Następny miesiąc",
   "interface.Next page": "Następna strona",
-  "interface.No application form is required. Review the offer and submit when ready.": "Formularz zgłoszeniowy nie jest wymagany. Sprawdź ofertę i wyślij zgłoszenie, gdy będziesz gotowy.",
-  "interface.No application form was required.": "Formularz zgłoszeniowy nie był wymagany.",
+  "interface.No application form is required. Review the offer and submit when ready.":
+    "Formularz zgłoszeniowy nie jest wymagany. Sprawdź ofertę i wyślij zgłoszenie, gdy będziesz gotowy.",
+  "interface.No application form was required.":
+    "Formularz zgłoszeniowy nie był wymagany.",
   "interface.No applications on record.": "Brak zapisanych zgłoszeń.",
   "interface.No assigned programs": "Brak przypisanych planów",
   "interface.No check-ins match": "Brak ankiet pasujących do filtrów",
@@ -778,7 +903,8 @@ export const interfacePolish = {
   "interface.No fixed expiry": "Bez określonego terminu wygaśnięcia",
   "interface.No groups yet": "Nie ma jeszcze grup",
   "interface.No invitations sent": "Nie wysłano zaproszeń",
-  "interface.No leads match": "Brak potencjalnych podopiecznych pasujących do filtrów",
+  "interface.No leads match":
+    "Brak potencjalnych podopiecznych pasujących do filtrów",
   "interface.No leads yet": "Nie ma jeszcze potencjalnych podopiecznych",
   "interface.No measurements in this period": "Brak pomiarów w tym okresie",
   "interface.No members yet.": "Nie ma jeszcze członków.",
@@ -787,9 +913,11 @@ export const interfacePolish = {
   "interface.No notifications": "Brak powiadomień",
   "interface.No owned plans": "Brak własnych planów",
   "interface.No payment dues yet.": "Brak należności do zapłaty.",
-  "interface.No person matches. Try their exact username below.": "Brak pasujących osób. Wpisz poniżej dokładną nazwę użytkownika.",
+  "interface.No person matches. Try their exact username below.":
+    "Brak pasujących osób. Wpisz poniżej dokładną nazwę użytkownika.",
   "interface.No programs to assign": "Brak planów do przypisania",
-  "interface.No recorded results in this period": "Brak zapisanych wyników w tym okresie",
+  "interface.No recorded results in this period":
+    "Brak zapisanych wyników w tym okresie",
   "interface.No repetitions detected": "Nie wykryto powtórzeń",
   "interface.No reply": "Brak odpowiedzi",
   "interface.No saved analyses": "Brak zapisanych analiz",
@@ -798,30 +926,36 @@ export const interfacePolish = {
   "interface.No workouts in this period": "Brak treningów w tym okresie",
   "interface.No workouts today": "Dzisiaj nie ma treningów",
   "interface.Nobody is invited yet.": "Nie zaproszono jeszcze żadnych osób.",
-  "interface.Not confirmed yet. Use Retry below.": "Jeszcze nie potwierdzono. Użyj przycisku Spróbuj ponownie poniżej.",
+  "interface.Not confirmed yet. Use Retry below.":
+    "Jeszcze nie potwierdzono. Użyj przycisku Spróbuj ponownie poniżej.",
   "interface.Not included in your plan": "Niedostępne w Twoim planie",
   "interface.Not open yet": "Jeszcze niedostępne",
-  "interface.Not synced — kept on this phone": "Niezsynchronizowane — przechowywane na tym telefonie",
+  "interface.Not synced — kept on this phone":
+    "Niezsynchronizowane — przechowywane na tym telefonie",
   "interface.Note": "Notatka",
   "interface.Nothing planned this month": "Nic nie zaplanowano na ten miesiąc",
   "interface.Nothing yet": "Jeszcze nic tu nie ma",
   "interface.Notifications": "Powiadomienia",
   "interface.Number of sessions": "Liczba sesji",
   "interface.Offer": "Oferta",
-  "interface.Only coaches create events": "Tylko trenerzy mogą tworzyć wydarzenia",
+  "interface.Only coaches create events":
+    "Tylko trenerzy mogą tworzyć wydarzenia",
   "interface.Only me": "Tylko ja",
   "interface.Only you can see it": "Widoczne tylko dla Ciebie",
   "interface.Only you see it": "Widoczne tylko dla Ciebie",
   "interface.Only you see these": "Widoczne tylko dla Ciebie",
-  "interface.Open a workout to see exactly what was prescribed for that day.": "Otwórz trening, aby zobaczyć dokładny plan na ten dzień.",
+  "interface.Open a workout to see exactly what was prescribed for that day.":
+    "Otwórz trening, aby zobaczyć dokładny plan na ten dzień.",
   "interface.Open application": "Otwórz zgłoszenie",
   "interface.Open client": "Otwórz klienta",
   "interface.Open file": "Otwórz plik",
   "interface.Open group chat": "Otwórz czat grupowy",
   "interface.Optional": "Opcjonalne",
-  "interface.Optional, e.g. morning, before breakfast": "Opcjonalnie, np. rano, przed śniadaniem",
+  "interface.Optional, e.g. morning, before breakfast":
+    "Opcjonalnie, np. rano, przed śniadaniem",
   "interface.Options for {0}": "Opcje: {0}",
-  "interface.Organizations you coach with": "Organizacje, z którymi współpracujesz jako trener",
+  "interface.Organizations you coach with":
+    "Organizacje, z którymi współpracujesz jako trener",
   "interface.Organizer": "Organizator",
   "interface.Overdue": "Po terminie",
   "interface.Overdue check-ins": "Zaległe check-iny",
@@ -833,12 +967,15 @@ export const interfacePolish = {
   "interface.Payments": "Płatności",
   "interface.Peak speed": "Maksymalna prędkość",
   "interface.Performed on": "Data wykonania",
-  "interface.Personal and Team clients cannot share one event.": "Klienci prywatni i zespołowi nie mogą uczestniczyć w jednym wydarzeniu.",
+  "interface.Personal and Team clients cannot share one event.":
+    "Klienci prywatni i zespołowi nie mogą uczestniczyć w jednym wydarzeniu.",
   "interface.Phases": "Fazy",
   "interface.Plan": "Plan",
-  "interface.Planned values are a snapshot. Record only what you actually did; blank means unknown.": "Zaplanowane wartości są zachowaną wersją planu. Zapisuj tylko to, co rzeczywiście wykonano; puste pole oznacza brak danych.",
+  "interface.Planned values are a snapshot. Record only what you actually did; blank means unknown.":
+    "Zaplanowane wartości są zachowaną wersją planu. Zapisuj tylko to, co rzeczywiście wykonano; puste pole oznacza brak danych.",
   "interface.Plans": "Plany",
-  "interface.Plans you buy from a coach appear here.": "Tutaj pojawiają się plany kupione od trenera.",
+  "interface.Plans you buy from a coach appear here.":
+    "Tutaj pojawiają się plany kupione od trenera.",
   "interface.Play": "Odtwórz",
   "interface.Playback position": "Pozycja odtwarzania",
   "interface.Previous month": "Poprzedni miesiąc",
@@ -847,18 +984,26 @@ export const interfacePolish = {
   "interface.Private coaching": "Prowadzenie prywatne",
   "interface.Private notes": "Prywatne notatki",
   "interface.Program": "Plan treningowy",
-  "interface.Program-cycle days require one client with an active assigned program.": "Dni cyklu planu wymagają jednego klienta z aktywnym przypisanym planem.",
-  "interface.Programs from your coach and plans you own": "Programy od Twojego trenera i Twoje własne plany",
-  "interface.Programs from your coach appear here.": "Tutaj pojawią się programy od Twojego trenera.",
-  "interface.Programs you assign in the web app appear here.": "Tutaj pojawią się programy przypisane przez Ciebie w aplikacji internetowej.",
+  "interface.Program-cycle days require one client with an active assigned program.":
+    "Dni cyklu planu wymagają jednego klienta z aktywnym przypisanym planem.",
+  "interface.Programs from your coach and plans you own":
+    "Programy od Twojego trenera i Twoje własne plany",
+  "interface.Programs from your coach appear here.":
+    "Tutaj pojawią się programy od Twojego trenera.",
+  "interface.Programs you assign in the web app appear here.":
+    "Tutaj pojawią się programy przypisane przez Ciebie w aplikacji internetowej.",
   "interface.Progress": "Co zwiększać",
-  "interface.Publish a check-in form in the web app first. It then appears here.": "Najpierw opublikuj formularz ankiety kontrolnej w aplikacji webowej. Pojawi się wtedy tutaj.",
-  "interface.Read-only here. Payments are managed in the web app.": "Tutaj dostępny jest tylko podgląd. Płatnościami zarządza się w aplikacji webowej.",
+  "interface.Publish a check-in form in the web app first. It then appears here.":
+    "Najpierw opublikuj formularz ankiety kontrolnej w aplikacji webowej. Pojawi się wtedy tutaj.",
+  "interface.Read-only here. Payments are managed in the web app.":
+    "Tutaj dostępny jest tylko podgląd. Płatnościami zarządza się w aplikacji webowej.",
   "interface.Reason (optional)": "Powód (opcjonalnie)",
-  "interface.Reason for rejecting (only you see it)": "Powód odrzucenia (widoczny tylko dla Ciebie)",
+  "interface.Reason for rejecting (only you see it)":
+    "Powód odrzucenia (widoczny tylko dla Ciebie)",
   "interface.Record a voice message": "Nagraj wiadomość głosową",
   "interface.Recorded sessions": "Zapisane treningi",
-  "interface.Recording needs the Metrivum Android build. You can attach an existing WAV file instead.": "Nagrywanie wymaga aplikacji Metrivum na Androida. Zamiast tego możesz załączyć istniejący plik WAV.",
+  "interface.Recording needs the Metrivum Android build. You can attach an existing WAV file instead.":
+    "Nagrywanie wymaga aplikacji Metrivum na Androida. Zamiast tego możesz załączyć istniejący plik WAV.",
   "interface.Recording… up to 5 minutes": "Nagrywanie… do 5 minut",
   "interface.Reject application": "Odrzuć zgłoszenie",
   "interface.Release time": "Godzina udostępnienia",
@@ -874,14 +1019,17 @@ export const interfacePolish = {
   "interface.Reply to the client": "Odpowiedź dla klienta",
   "interface.Reps": "Powt.",
   "interface.Require approval": "Wymagaj zgody",
-  "interface.Require approval for new conversations": "Wymagaj akceptacji nowych rozmów",
+  "interface.Require approval for new conversations":
+    "Wymagaj akceptacji nowych rozmów",
   "interface.Rest": "Przerwa",
-  "interface.Rest day. Earlier sessions are in History.": "Dzień odpoczynku. Wcześniejsze treningi znajdziesz w Historii.",
+  "interface.Rest day. Earlier sessions are in History.":
+    "Dzień odpoczynku. Wcześniejsze treningi znajdziesz w Historii.",
   "interface.Rest, {0} seconds left": "Przerwa, pozostało sekund: {0}",
   "interface.Restart audio": "Odtwórz od początku",
   "interface.Retry send": "Ponów wysyłanie",
   "interface.Review": "Sprawdź",
-  "interface.Review the current offer before starting your application.": "Sprawdź aktualną ofertę przed rozpoczęciem zgłoszenia.",
+  "interface.Review the current offer before starting your application.":
+    "Sprawdź aktualną ofertę przed rozpoczęciem zgłoszenia.",
   "interface.Revoke": "Wycofaj",
   "interface.Revoke invitation": "Wycofaj zaproszenie",
   "interface.Row with a badge": "Wiersz z oznaczeniem",
@@ -897,7 +1045,8 @@ export const interfacePolish = {
   "interface.Saved on this phone": "Zapisano na tym telefonie",
   "interface.Saved result": "Zapisany wynik",
   "interface.Saving…": "Zapisywanie…",
-  "interface.Say hello to start the conversation.": "Przywitaj się, aby rozpocząć rozmowę.",
+  "interface.Say hello to start the conversation.":
+    "Przywitaj się, aby rozpocząć rozmowę.",
   "interface.Search check-ins": "Szukaj ankiet kontrolnych",
   "interface.Search clients": "Szukaj klientów",
   "interface.Search conversations": "Szukaj rozmów",
@@ -913,14 +1062,16 @@ export const interfacePolish = {
   "interface.Send invitation": "Wyślij zaproszenie",
   "interface.Send message": "Wyślij wiadomość",
   "interface.Sending…": "Wysyłanie…",
-  "interface.Sends a form to fill in, once or on a schedule": "Wysyła formularz do wypełnienia jednorazowo lub zgodnie z harmonogramem",
+  "interface.Sends a form to fill in, once or on a schedule":
+    "Wysyła formularz do wypełnienia jednorazowo lub zgodnie z harmonogramem",
   "interface.Sent invitations": "Wysłane zaproszenia",
   "interface.Services": "Usługi",
   "interface.Session": "Trening",
   "interface.Session note": "Notatka z treningu",
   "interface.Set": "Seria",
   "interface.Set done": "Seria wykonana",
-  "interface.Set {0} done, start rest": "Seria {0} wykonana, rozpocznij przerwę",
+  "interface.Set {0} done, start rest":
+    "Seria {0} wykonana, rozpocznij przerwę",
   "interface.Sets": "Serie",
   "interface.Sets completed": "Wykonane serie",
   "interface.Sets done": "Wykonane serie",
@@ -931,7 +1082,8 @@ export const interfacePolish = {
   "interface.Shared with coach": "Udostępniono trenerowi",
   "interface.Sheets": "Panele",
   "interface.Show results": "Pokaż wyniki",
-  "interface.Showing part of the detailed results. Totals include all matching records. Narrow the date range, client or exercise filters to see more detail.": "Wyświetlana jest część szczegółowych wyników. Podsumowania obejmują wszystkie pasujące dane. Zawęź daty lub filtry klienta i ćwiczenia, aby zobaczyć więcej szczegółów.",
+  "interface.Showing part of the detailed results. Totals include all matching records. Narrow the date range, client or exercise filters to see more detail.":
+    "Wyświetlana jest część szczegółowych wyników. Podsumowania obejmują wszystkie pasujące dane. Zawęź daty lub filtry klienta i ćwiczenia, aby zobaczyć więcej szczegółów.",
   "interface.Since": "Od",
   "interface.Skip": "Pomiń",
   "interface.Skip all sets": "Pomiń wszystkie serie",
@@ -940,9 +1092,11 @@ export const interfacePolish = {
   "interface.Skip this workout?": "Pominąć ten trening?",
   "interface.Skip workout": "Pomiń trening",
   "interface.Skipped": "Pominięte",
-  "interface.Start a conversation. Approval is only needed if this person requires it.": "Rozpocznij rozmowę. Zgoda jest potrzebna tylko wtedy, gdy wymaga jej odbiorca.",
+  "interface.Start a conversation. Approval is only needed if this person requires it.":
+    "Rozpocznij rozmowę. Zgoda jest potrzebna tylko wtedy, gdy wymaga jej odbiorca.",
   "interface.Start date": "Data rozpoczęcia",
-  "interface.Start one with the pencil button above.": "Rozpocznij rozmowę przyciskiem ołówka powyżej.",
+  "interface.Start one with the pencil button above.":
+    "Rozpocznij rozmowę przyciskiem ołówka powyżej.",
   "interface.Start recording": "Rozpocznij nagrywanie",
   "interface.Start workout": "Rozpocznij trening",
   "interface.Starts": "Początek",
@@ -956,7 +1110,8 @@ export const interfacePolish = {
   "interface.Structure": "Struktura",
   "interface.Submit application": "Wyślij zgłoszenie",
   "interface.Substitute exercise": "Zamień ćwiczenie",
-  "interface.Switch to the Coach view in More to add one.": "Aby dodać wydarzenie, przełącz na widok trenera w sekcji Więcej.",
+  "interface.Switch to the Coach view in More to add one.":
+    "Aby dodać wydarzenie, przełącz na widok trenera w sekcji Więcej.",
   "interface.System": "Systemowy",
   "interface.Tall scrolling sheet": "Wysoki panel z przewijaniem",
   "interface.Team": "Zespół",
@@ -964,15 +1119,22 @@ export const interfacePolish = {
   "interface.Team coaching": "Prowadzenie w zespole",
   "interface.Tempo": "Tempo",
   "interface.Text": "Tekst",
-  "interface.The client shares no profile details.": "Klient nie udostępnia danych profilu.",
-  "interface.The on-device model has not been validated for this device. Videos are never sent to a server instead. Saved results stay readable below.": "Model lokalny nie został zweryfikowany na tym urządzeniu. Nagrania nie są zamiast tego wysyłane na serwer. Zapisane wyniki pozostają dostępne poniżej.",
+  "interface.The client shares no profile details.":
+    "Klient nie udostępnia danych profilu.",
+  "interface.The on-device model has not been validated for this device. Videos are never sent to a server instead. Saved results stay readable below.":
+    "Model lokalny nie został zweryfikowany na tym urządzeniu. Nagrania nie są zamiast tego wysyłane na serwer. Zapisane wyniki pozostają dostępne poniżej.",
   "interface.The saved version changed": "Zapisana wersja uległa zmianie",
   "interface.Theme": "Motyw",
-  "interface.These are the answers on the server. Your own draft is below.": "To odpowiedzi zapisane na serwerze. Twój szkic znajduje się poniżej.",
-  "interface.These results combine the clients included in the current filters.": "Wyniki łączą dane klientów objętych obecnymi filtrami.",
-  "interface.This analysis has no repetition data.": "Ta analiza nie zawiera danych o powtórzeniach.",
-  "interface.This check-in changed on the server. Your answers are kept; look through them before sending.": "Ankieta kontrolna uległa zmianie na serwerze. Twoje odpowiedzi zostały zachowane; sprawdź je przed wysłaniem.",
-  "interface.This program has no applied version yet. Apply its changes in the web app first.": "Ten plan nie ma jeszcze wersji z zastosowanymi zmianami. Najpierw zastosuj zmiany w aplikacji webowej.",
+  "interface.These are the answers on the server. Your own draft is below.":
+    "To odpowiedzi zapisane na serwerze. Twój szkic znajduje się poniżej.",
+  "interface.These results combine the clients included in the current filters.":
+    "Wyniki łączą dane klientów objętych obecnymi filtrami.",
+  "interface.This analysis has no repetition data.":
+    "Ta analiza nie zawiera danych o powtórzeniach.",
+  "interface.This check-in changed on the server. Your answers are kept; look through them before sending.":
+    "Ankieta kontrolna uległa zmianie na serwerze. Twoje odpowiedzi zostały zachowane; sprawdź je przed wysłaniem.",
+  "interface.This program has no applied version yet. Apply its changes in the web app first.":
+    "Ten plan nie ma jeszcze wersji z zastosowanymi zmianami. Najpierw zastosuj zmiany w aplikacji webowej.",
   "interface.This week": "Ten tydzień",
   "interface.Through": "Do",
   "interface.Time": "Czas",
@@ -990,14 +1152,16 @@ export const interfacePolish = {
   "interface.Up to 5 minutes": "Do 5 minut",
   "interface.Uploading…": "Wysyłanie…",
   "interface.Username": "Nazwa użytkownika",
-  "interface.Uses the latest applied version of the program": "Korzysta z ostatnio zastosowanej wersji programu",
+  "interface.Uses the latest applied version of the program":
+    "Korzysta z ostatnio zastosowanej wersji programu",
   "interface.Value ({0})": "Wartość ({0})",
   "interface.Video analysis": "Analiza wideo",
   "interface.Visibility": "Widoczność",
   "interface.Visible to the client": "Widoczne dla klienta",
   "interface.Voice message": "Wiadomość głosowa",
   "interface.Voice message attached": "Załączono wiadomość głosową",
-  "interface.Volume uses recorded total external loads only, as calculated by the API.": "Objętość uwzględnia wyłącznie zapisane całkowite obciążenia zewnętrzne, zgodnie z obliczeniami API.",
+  "interface.Volume uses recorded total external loads only, as calculated by the API.":
+    "Objętość uwzględnia wyłącznie zapisane całkowite obciążenia zewnętrzne, zgodnie z obliczeniami API.",
   "interface.Waiting for the client": "Oczekiwanie na podopiecznego",
   "interface.What do you want to remember?": "Co chcesz zapamiętać?",
   "interface.What the load means": "Znaczenie obciążenia",
@@ -1009,22 +1173,27 @@ export const interfacePolish = {
   "interface.Workout set": "Seria ćwiczenia",
   "interface.Workouts": "Treningi",
   "interface.Workouts today": "Dzisiejsze treningi",
-  "interface.Write something, then try to close": "Napisz coś, a następnie spróbuj zamknąć",
+  "interface.Write something, then try to close":
+    "Napisz coś, a następnie spróbuj zamknąć",
   "interface.Yes": "Tak",
   "interface.You are not in a team": "Nie należysz do zespołu",
-  "interface.You can fill it in once it is released.": "Możesz wypełnić formularz, gdy zostanie udostępniony.",
-  "interface.You cannot send messages here": "Nie możesz tutaj wysyłać wiadomości",
+  "interface.You can fill it in once it is released.":
+    "Możesz wypełnić formularz, gdy zostanie udostępniony.",
+  "interface.You cannot send messages here":
+    "Nie możesz tutaj wysyłać wiadomości",
   "interface.You have no groups.": "Nie masz grup.",
   "interface.Your answer": "Twoja odpowiedź",
-  "interface.Your coach sees that it was skipped": "Twój trener widzi, że ta seria została pominięta",
+  "interface.Your coach sees that it was skipped":
+    "Twój trener widzi, że ta seria została pominięta",
   "interface.Your own copy": "Twoja własna kopia",
   "interface.Your reply": "Twoja odpowiedź",
-  "interface.Your training log and progress": "Twój dziennik treningowy i postępy",
+  "interface.Your training log and progress":
+    "Twój dziennik treningowy i postępy",
   "interface.days": "dni",
   "interface.e.g. Blood test results": "np. wyniki badań krwi",
   "interface.e.g. Felt sick, travelling": "np. choroba, podróż",
   "interface.e.g. Monthly review call": "np. miesięczne podsumowanie",
   "interface.e.g. Weekly check-in": "np. cotygodniowa ankieta kontrolna",
   "interface.sets": "serii",
-  "interface.· positions in": "· pozycji w"
+  "interface.· positions in": "· pozycji w",
 };

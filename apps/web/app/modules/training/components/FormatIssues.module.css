@@ -59,7 +59,8 @@
   align-items: center;
   gap: var(--tf-space-2);
   margin: 0;
-  padding: var(--tf-space-1-5) var(--tf-space-1-5) var(--tf-space-1-5) var(--tf-space-3);
+  padding: var(--tf-space-1-5) var(--tf-space-1-5) var(--tf-space-1-5)
+    var(--tf-space-3);
   border: 1px solid color-mix(in srgb, var(--tf-color-danger) 22%, transparent);
   border-radius: var(--tf-radius-md);
   background: color-mix(in srgb, var(--tf-color-danger) 6%, transparent);
@@ -132,7 +133,9 @@
   background: var(--tf-color-danger-soft);
   color: var(--tf-color-danger);
   font-weight: var(--tf-weight-semibold);
-  transition: background-color 140ms ease, border-color 140ms ease;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
 }
 
 .state:not([data-applied]) svg {

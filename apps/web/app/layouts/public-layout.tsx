@@ -25,7 +25,10 @@ export default function PublicLayout() {
     <LocaleProvider locale={locale}>
       <PublicMessagesProvider locale={locale}>
         <div className={styles.shell} data-public-theme="night">
-          <PublicHeader hasSession={hasSession} onSignedOut={() => setHasSession(hasStoredSessionHint())} />
+          <PublicHeader
+            hasSession={hasSession}
+            onSignedOut={() => setHasSession(hasStoredSessionHint())}
+          />
           <main id="main" className={styles.main} tabIndex={-1}>
             <Outlet context={{ hasSession }} />
           </main>

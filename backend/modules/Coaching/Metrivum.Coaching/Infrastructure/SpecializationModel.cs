@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Metrivum.Coaching.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Metrivum.Coaching.Infrastructure;
 
@@ -20,7 +20,10 @@ internal static class SpecializationModel
         item.Property(x => x.Code).HasMaxLength(80);
         item.Property(x => x.CategoryCode).HasMaxLength(80);
         item.Property(x => x.Name).HasMaxLength(160);
-        item.HasOne<SpecializationCategory>().WithMany().HasForeignKey(x => x.CategoryCode).OnDelete(DeleteBehavior.Restrict);
+        item.HasOne<SpecializationCategory>()
+            .WithMany()
+            .HasForeignKey(x => x.CategoryCode)
+            .OnDelete(DeleteBehavior.Restrict);
         item.HasData(CoachSpecializationTaxonomy.Items);
         var profile = model.Entity<CoachSpecializationProfile>();
         profile.ToTable("CoachSpecializationProfiles");
@@ -30,12 +33,27 @@ internal static class SpecializationModel
         link.ToTable("CoachSpecializations");
         link.HasKey(x => new { x.CoachId, x.SpecializationCode });
         link.Property(x => x.SpecializationCode).HasMaxLength(80);
-        link.HasOne<CoachSpecializationProfile>().WithMany().HasForeignKey(x => x.CoachId).OnDelete(DeleteBehavior.Restrict);
-        link.HasOne(x => x.Specialization).WithMany().HasForeignKey(x => x.SpecializationCode).OnDelete(DeleteBehavior.Restrict);
-        link.HasIndex(x => new { x.SpecializationCode, x.CoachId, x.IsPrimary });
+        link.HasOne<CoachSpecializationProfile>()
+            .WithMany()
+            .HasForeignKey(x => x.CoachId)
+            .OnDelete(DeleteBehavior.Restrict);
+        link.HasOne(x => x.Specialization)
+            .WithMany()
+            .HasForeignKey(x => x.SpecializationCode)
+            .OnDelete(DeleteBehavior.Restrict);
+        link.HasIndex(x => new
+        {
+            x.SpecializationCode,
+            x.CoachId,
+            x.IsPrimary,
+        });
         var history = model.Entity<CoachSpecializationsChanged>();
         history.ToTable("CoachSpecializationChanges");
         history.HasKey(x => new { x.CoachId, x.Version });
-        history.HasOne<CoachSpecializationProfile>().WithMany().HasForeignKey(x => x.CoachId).OnDelete(DeleteBehavior.Restrict);
+        history
+            .HasOne<CoachSpecializationProfile>()
+            .WithMany()
+            .HasForeignKey(x => x.CoachId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

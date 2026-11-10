@@ -1,10 +1,29 @@
 import { ChevronRight, Menu, PanelLeft, Search, X } from "lucide-react";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
-import { Link, Navigate, Outlet, useLocation, useMatches, useNavigate, useNavigation, useNavigationType } from "react-router";
-import { Hint, IconButton, Kbd, PageBackContext, useMobileLayout, type PageBack } from "@metrivum/ui-web";
+import {
+  Link,
+  Navigate,
+  Outlet,
+  useLocation,
+  useMatches,
+  useNavigate,
+  useNavigation,
+  useNavigationType,
+} from "react-router";
+import {
+  Hint,
+  IconButton,
+  Kbd,
+  PageBackContext,
+  useMobileLayout,
+  type PageBack,
+} from "@metrivum/ui-web";
 import { UsageButton, useAccessSnapshot } from "~/shared/access";
-import { useWorkspace, WorkspaceRouteGuard } from "~/shared/session/WorkspaceScope";
+import {
+  useWorkspace,
+  WorkspaceRouteGuard,
+} from "~/shared/session/WorkspaceScope";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
 import { useHistoryTrail, useNavigateUp } from "~/shared/lib/navigateUp";
 import { TOP_NOTICE_ID } from "~/shared/ui/TopNotice";
@@ -48,33 +67,85 @@ function Brand() {
   );
 }
 
-function NavItem({ to, label, icon: Icon, count, tone, collapsed, onNavigate }: { to: string; label: string; icon: NavIcon; count?: string; tone?: "neutral" | "danger"; collapsed: boolean; onNavigate?: () => void }) {
+function NavItem({
+  to,
+  label,
+  icon: Icon,
+  count,
+  tone,
+  collapsed,
+  onNavigate,
+}: {
+  to: string;
+  label: string;
+  icon: NavIcon;
+  count?: string;
+  tone?: "neutral" | "danger";
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
   const { pathname } = useLocation();
-  const active = pathname === to || pathname.startsWith(`${to}/`) || (to === "/app/clients" && !!clientSection(pathname)) || (to === "/app/programs" && pathname.startsWith("/app/templates"));
+  const active =
+    pathname === to ||
+    pathname.startsWith(`${to}/`) ||
+    (to === "/app/clients" && !!clientSection(pathname)) ||
+    (to === "/app/programs" && pathname.startsWith("/app/templates"));
   return (
     <li>
       {/* The active state switches in place: no highlight travelling between items. */}
       {/* On the collapsed rail the label lives in a tooltip beside the icon. */}
-      <Hint label={count ? `${label} · ${count}` : label} placement="right" delay={150} disabled={!collapsed}>
-        <Link to={to} prefetch="render" aria-current={active ? "page" : undefined} className={styles.navLink} onClick={onNavigate}>
+      <Hint
+        label={count ? `${label} · ${count}` : label}
+        placement="right"
+        delay={150}
+        disabled={!collapsed}
+      >
+        <Link
+          to={to}
+          prefetch="render"
+          aria-current={active ? "page" : undefined}
+          className={styles.navLink}
+          onClick={onNavigate}
+        >
           <Icon aria-hidden="true" strokeWidth={1.5} />
           <span className={styles.navLabel}>{label}</span>
-          {count ? <span className={styles.navCount} data-tone={tone}>{count}</span> : null}
+          {count ? (
+            <span className={styles.navCount} data-tone={tone}>
+              {count}
+            </span>
+          ) : null}
         </Link>
       </Hint>
     </li>
   );
 }
 
-function SidebarContent({ collapsed = false, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
+function SidebarContent({
+  collapsed = false,
+  onNavigate,
+}: {
+  collapsed?: boolean;
+  onNavigate?: () => void;
+}) {
   const m = useT();
   const { mode } = useWorkspace();
-  const groups = [...appNavGroups(m, mode === "coach" ? ["Coach"] : ["Client"]), { id: "others", label: m.nav.groups.others, items: [settingsNavItem(m)] }];
+  const groups = [
+    ...appNavGroups(m, mode === "coach" ? ["Coach"] : ["Client"]),
+    { id: "others", label: m.nav.groups.others, items: [settingsNavItem(m)] },
+  ];
   // Running analyses, from the already-loaded access snapshot (no extra request).
   const { unreadMessages } = useNotifications();
   const { pathname } = useLocation();
-  const running = useAccessSnapshot().data?.limits.find((limit) => limit.key === "analysis.concurrent")?.used;
-  const counts: Record<string, string | undefined> = { "/app/messages": pathname !== "/app/messages" && unreadMessages > 0 ? String(unreadMessages > 99 ? "99+" : unreadMessages) : undefined, "/app/video-analyses": Number(running) > 0 ? String(running) : undefined };
+  const running = useAccessSnapshot().data?.limits.find(
+    (limit) => limit.key === "analysis.concurrent",
+  )?.used;
+  const counts: Record<string, string | undefined> = {
+    "/app/messages":
+      pathname !== "/app/messages" && unreadMessages > 0
+        ? String(unreadMessages > 99 ? "99+" : unreadMessages)
+        : undefined,
+    "/app/video-analyses": Number(running) > 0 ? String(running) : undefined,
+  };
   const waiting = useNavCounts(mode);
   const capped = (value: number) => (value > 99 ? "99+" : String(value));
   return (
@@ -83,10 +154,24 @@ function SidebarContent({ collapsed = false, onNavigate }: { collapsed?: boolean
       <nav aria-label={m.nav.main} className={styles.nav}>
         {groups.map((group, index) => (
           <div key={group.id} className={styles.navGroup}>
-            {index > 0 ? <span className={styles.navGroupSeparator} aria-hidden="true" /> : null}
+            {index > 0 ? (
+              <span className={styles.navGroupSeparator} aria-hidden="true" />
+            ) : null}
             <ul className={styles.navList} aria-label={group.label}>
               {group.items.map((item) => (
-                <NavItem key={item.to} {...item} count={counts[item.to] ?? (waiting[item.to] ? capped(waiting[item.to]!.value) : undefined)} tone={counts[item.to] ? undefined : waiting[item.to]?.tone} collapsed={collapsed} onNavigate={onNavigate} />
+                <NavItem
+                  key={item.to}
+                  {...item}
+                  count={
+                    counts[item.to] ??
+                    (waiting[item.to]
+                      ? capped(waiting[item.to]!.value)
+                      : undefined)
+                  }
+                  tone={counts[item.to] ? undefined : waiting[item.to]?.tone}
+                  collapsed={collapsed}
+                  onNavigate={onNavigate}
+                />
               ))}
             </ul>
           </div>
@@ -114,14 +199,20 @@ function PathCrumbs() {
           const last = i === crumbs.length - 1;
           return (
             <Fragment key={`${crumb.label}-${i}`}>
-              {i > 0 ? <ChevronRight aria-hidden="true" className={styles.crumbSep} /> : null}
+              {i > 0 ? (
+                <ChevronRight aria-hidden="true" className={styles.crumbSep} />
+              ) : null}
               <li>
                 {last ? (
                   <span aria-current="page" className={styles.crumbCurrent}>
                     {crumb.label}
                   </span>
                 ) : crumb.href ? (
-                  <Link to={crumb.href} prefetch="intent" className={styles.crumbLink}>
+                  <Link
+                    to={crumb.href}
+                    prefetch="intent"
+                    className={styles.crumbLink}
+                  >
                     {crumb.label}
                   </Link>
                 ) : (
@@ -140,7 +231,13 @@ function PathCrumbs() {
  * Back for detail pages (/app/section/:id…) and for folders (?folder=). Returns to the page the
  * person came from when that was inside the app, otherwise to the parent list.
  */
-function useBack(pathname: string, search: string, navigate: ReturnType<typeof useNavigate>, up: (target: string) => void, label: string): PageBack | null {
+function useBack(
+  pathname: string,
+  search: string,
+  navigate: ReturnType<typeof useNavigate>,
+  up: (target: string) => void,
+  label: string,
+): PageBack | null {
   const parts = pathname.split("/").filter(Boolean);
   const inFolder = new URLSearchParams(search).has("folder");
   if (parts.length < 3 && !inFolder) return null;
@@ -158,8 +255,14 @@ function useBack(pathname: string, search: string, navigate: ReturnType<typeof u
   const parent = `/${parts.slice(0, -1).join("/")}`;
   // A workout's page has no "workouts" list above it: back returns to where it was opened from (the training
   // list, a client, the calendar), or to the training page when it was opened directly.
-  if (parent === "/app/my-training/workouts" || parent === "/app/training/workouts") {
-    const fallback = parent === "/app/my-training/workouts" ? "/app/my-training" : "/app/clients";
+  if (
+    parent === "/app/my-training/workouts" ||
+    parent === "/app/training/workouts"
+  ) {
+    const fallback =
+      parent === "/app/my-training/workouts"
+        ? "/app/my-training"
+        : "/app/clients";
     return {
       label,
       onPress: () => {
@@ -173,28 +276,36 @@ function useBack(pathname: string, search: string, navigate: ReturnType<typeof u
 }
 
 export function AppShell() {
-
-
   const m = useT();
   const phone = useMobileLayout();
   const shell = useRef<HTMLDivElement>(null);
-  const [palette, setPalette] = useState<{ open: boolean; animated: boolean }>({ open: false, animated: false });
+  const [palette, setPalette] = useState<{ open: boolean; animated: boolean }>({
+    open: false,
+    animated: false,
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const location = useLocation();
   const navigationType = useNavigationType();
   const scrollPositions = useRef(new Map<string, number>());
-  const immersive = phone && immersiveMobileRoute(location.pathname, location.search);
+  const immersive =
+    phone && immersiveMobileRoute(location.pathname, location.search);
   const conversation = immersive && location.pathname === "/app/messages";
   const matches = useMatches();
-  const workspace = matches.some((match) => (match.handle as { workspace?: boolean } | undefined)?.workspace);
+  const workspace = matches.some(
+    (match) => (match.handle as { workspace?: boolean } | undefined)?.workspace,
+  );
   // `fit` pages (calendar, dashboard) size their content to the window instead of scrolling.
-  const fit = matches.some((match) => (match.handle as { fit?: boolean } | undefined)?.fit);
+  const fit = matches.some(
+    (match) => (match.handle as { fit?: boolean } | undefined)?.fit,
+  );
   const main = useRef<HTMLElement>(null);
   const navigate = useNavigate();
   // Keep the current outlet mounted during navigation; destination pages load their own content.
   const navigation = useNavigation();
-  const switching = navigation.state === "loading" && navigation.location.pathname !== location.pathname;
+  const switching =
+    navigation.state === "loading" &&
+    navigation.location.pathname !== location.pathname;
   // Page code is loaded ahead in the background; a page not loaded yet shows its skeleton almost at once
   // instead of leaving the old page on screen (the short wait only avoids a flash on instant switches).
   const [slowSwitch, setSlowSwitch] = useState(false);
@@ -203,11 +314,18 @@ export function AppShell() {
     const timer = setTimeout(() => setSlowSwitch(true), 60);
     return () => clearTimeout(timer);
   }, [switching]);
-  const toEditor = switching && /\/edit$/.test(navigation.location?.pathname ?? "");
+  const toEditor =
+    switching && /\/edit$/.test(navigation.location?.pathname ?? "");
   useHistoryTrail();
   useWarmRoutes();
   const up = useNavigateUp();
-  const back = useBack(location.pathname, location.search, navigate, up, m.common.back);
+  const back = useBack(
+    location.pathname,
+    location.search,
+    navigate,
+    up,
+    m.common.back,
+  );
   useEffect(() => setDrawerOpen(false), [location.pathname]);
   // The shell owns scrolling, so browser Back restores its entry rather than the window's scroll.
   // Filters and tabs replace the address on the same page; those keep the reader where they are.
@@ -215,10 +333,15 @@ export function AppShell() {
   useLayoutEffect(() => {
     const element = main.current;
     if (!element) return;
-    const samePage = navigationType === "REPLACE" && shownPath.current === location.pathname;
+    const samePage =
+      navigationType === "REPLACE" && shownPath.current === location.pathname;
     shownPath.current = location.pathname;
     if (samePage) scrollPositions.current.set(location.key, element.scrollTop);
-    else element.scrollTop = navigationType === "POP" ? scrollPositions.current.get(location.key) ?? 0 : 0;
+    else
+      element.scrollTop =
+        navigationType === "POP"
+          ? (scrollPositions.current.get(location.key) ?? 0)
+          : 0;
     const positions = scrollPositions.current;
     if (positions.size > 40) positions.delete(positions.keys().next().value!);
   }, [location.key, location.pathname, navigationType]);
@@ -228,12 +351,26 @@ export function AppShell() {
     let height = window.innerHeight;
     let width = window.innerWidth;
     const update = () => {
-      if (width !== window.innerWidth) { width = window.innerWidth; height = window.innerHeight; }
+      if (width !== window.innerWidth) {
+        width = window.innerWidth;
+        height = window.innerHeight;
+      }
       height = Math.max(height, window.innerHeight);
       const focused = document.activeElement;
-      const editing = focused instanceof HTMLElement && focused.matches("input:not([type=checkbox]):not([type=radio]), textarea, [contenteditable=true]");
-      const viewport = mobileViewport(height, window.visualViewport ?? undefined, editing);
-      element.style.setProperty("--mobile-viewport-height", `${viewport.height}px`);
+      const editing =
+        focused instanceof HTMLElement &&
+        focused.matches(
+          "input:not([type=checkbox]):not([type=radio]), textarea, [contenteditable=true]",
+        );
+      const viewport = mobileViewport(
+        height,
+        window.visualViewport ?? undefined,
+        editing,
+      );
+      element.style.setProperty(
+        "--mobile-viewport-height",
+        `${viewport.height}px`,
+      );
       element.style.setProperty("--mobile-viewport-top", `${viewport.top}px`);
       element.toggleAttribute("data-keyboard", viewport.keyboard);
     };
@@ -279,7 +416,16 @@ export function AppShell() {
   }, []);
 
   return (
-    <div ref={shell} className={styles.shell} data-phone={phone || undefined} data-immersive={immersive || undefined} data-conversation={conversation || undefined} data-collapsed={collapsed || undefined} data-workspace={workspace || undefined} data-fit={fit || undefined}>
+    <div
+      ref={shell}
+      className={styles.shell}
+      data-phone={phone || undefined}
+      data-immersive={immersive || undefined}
+      data-conversation={conversation || undefined}
+      data-collapsed={collapsed || undefined}
+      data-workspace={workspace || undefined}
+      data-fit={fit || undefined}
+    >
       <a href="#app-main" className="tf-skip-link">
         {m.common.skipToContent}
       </a>
@@ -288,71 +434,159 @@ export function AppShell() {
       {/* Pages put their own full-width notice here (e.g. the profile preview), in the same top row. */}
       <div id={TOP_NOTICE_ID} style={{ display: "contents" }} />
 
-      {!phone && <aside className={styles.sidebar}>
-        <div className={styles.logo}>
-          <Brand />
-        </div>
-        <SidebarContent collapsed={collapsed} />
-      </aside>}
+      {!phone && (
+        <aside className={styles.sidebar}>
+          <div className={styles.logo}>
+            <Brand />
+          </div>
+          <SidebarContent collapsed={collapsed} />
+        </aside>
+      )}
 
       <div className={styles.column}>
-        {phone ? (!conversation && <header className={`${styles.appBar} ${styles.phoneBar}`}>
-          <Link to="/app/today" className={styles.phoneBrand}>Metrivum</Link>
-          <div className={styles.appBarActions}><IconButton label={m.nav.commandPalette} icon={<Search strokeWidth={1.75} />} size="sm" variant="ghost" showTooltip={false} onPress={() => setPalette({ open: true, animated: true })} /><AnalyzerMenu /><UsageButton /><IntegrationMenu /><NotificationBell /><span className={styles.phoneAccount}><AccountSwitcher compact /></span></div>
-        </header>) : <header className={styles.appBar}>
-          <span className={styles.desktopOnly}>
-            <IconButton
-              label={collapsed ? m.nav.expand : m.nav.collapse}
-              icon={<PanelLeft strokeWidth={1.5} />}
-              size="sm"
-              variant="ghost"
-              onPress={toggleCollapsed}
-            />
-          </span>
-          <span className={styles.mobileOnly}>
-            <IconButton label={m.nav.openMenu} icon={<Menu />} size="sm" variant="ghost" onPress={() => setDrawerOpen(true)} showTooltip={false} />
-          </span>
-          <PathCrumbs />
-          <div className={styles.appBarActions}>
-            <button type="button" className={styles.search} onClick={() => setPalette({ open: true, animated: true })} aria-label={m.nav.commandPalette}>
-              <Search aria-hidden="true" strokeWidth={1.75} />
-              <span>{m.nav.searchShort}</span>
-              <Kbd>⌘K</Kbd>
-            </button>
-            <AnalyzerMenu />
-            <UsageButton />
-            <IntegrationMenu /><NotificationBell />
-            <SubscriptionButton label={m.nav.subscription} />
-          </div>
-        </header>}
+        {phone ? (
+          !conversation && (
+            <header className={`${styles.appBar} ${styles.phoneBar}`}>
+              <Link to="/app/today" className={styles.phoneBrand}>
+                Metrivum
+              </Link>
+              <div className={styles.appBarActions}>
+                <IconButton
+                  label={m.nav.commandPalette}
+                  icon={<Search strokeWidth={1.75} />}
+                  size="sm"
+                  variant="ghost"
+                  showTooltip={false}
+                  onPress={() => setPalette({ open: true, animated: true })}
+                />
+                <AnalyzerMenu />
+                <UsageButton />
+                <IntegrationMenu />
+                <NotificationBell />
+                <span className={styles.phoneAccount}>
+                  <AccountSwitcher compact />
+                </span>
+              </div>
+            </header>
+          )
+        ) : (
+          <header className={styles.appBar}>
+            <span className={styles.desktopOnly}>
+              <IconButton
+                label={collapsed ? m.nav.expand : m.nav.collapse}
+                icon={<PanelLeft strokeWidth={1.5} />}
+                size="sm"
+                variant="ghost"
+                onPress={toggleCollapsed}
+              />
+            </span>
+            <span className={styles.mobileOnly}>
+              <IconButton
+                label={m.nav.openMenu}
+                icon={<Menu />}
+                size="sm"
+                variant="ghost"
+                onPress={() => setDrawerOpen(true)}
+                showTooltip={false}
+              />
+            </span>
+            <PathCrumbs />
+            <div className={styles.appBarActions}>
+              <button
+                type="button"
+                className={styles.search}
+                onClick={() => setPalette({ open: true, animated: true })}
+                aria-label={m.nav.commandPalette}
+              >
+                <Search aria-hidden="true" strokeWidth={1.75} />
+                <span>{m.nav.searchShort}</span>
+                <Kbd>⌘K</Kbd>
+              </button>
+              <AnalyzerMenu />
+              <UsageButton />
+              <IntegrationMenu />
+              <NotificationBell />
+              <SubscriptionButton label={m.nav.subscription} />
+            </div>
+          </header>
+        )}
 
         {MOCK_MODE ? (
           <p className={styles.mockBanner} role="note">
-
-            {m["ui"]["Developer mock data — not connected to the Metrivum API (VITE_DEV_MOCKS=1)."]}
+            {
+              m["ui"][
+                "Developer mock data — not connected to the Metrivum API (VITE_DEV_MOCKS=1)."
+              ]
+            }
           </p>
         ) : null}
-        <main id="app-main" ref={main} className={styles.main} aria-busy={switching || undefined} tabIndex={-1} onScroll={event => scrollPositions.current.set(location.key, event.currentTarget.scrollTop)}>
+        <main
+          id="app-main"
+          ref={main}
+          className={styles.main}
+          aria-busy={switching || undefined}
+          tabIndex={-1}
+          onScroll={(event) =>
+            scrollPositions.current.set(
+              location.key,
+              event.currentTarget.scrollTop,
+            )
+          }
+        >
           <div className={styles.content}>
-            <PageBackContext.Provider value={back}>{phone && location.pathname === "/app/dashboard" ? <Navigate to="/app/today" replace /> : <WorkspaceRouteGuard>{slowSwitch && switching ? <RouteSkeleton editor={toEditor} /> : <Outlet />}</WorkspaceRouteGuard>}</PageBackContext.Provider>
+            <PageBackContext.Provider value={back}>
+              {phone && location.pathname === "/app/dashboard" ? (
+                <Navigate to="/app/today" replace />
+              ) : (
+                <WorkspaceRouteGuard>
+                  {slowSwitch && switching ? (
+                    <RouteSkeleton editor={toEditor} />
+                  ) : (
+                    <Outlet />
+                  )}
+                </WorkspaceRouteGuard>
+              )}
+            </PageBackContext.Provider>
           </div>
         </main>
-        {phone && !immersive && <div className={styles.phoneNav}><MobileNavigation /></div>}
+        {phone && !immersive && (
+          <div className={styles.phoneNav}>
+            <MobileNavigation />
+          </div>
+        )}
       </div>
 
-      {!phone && <ModalOverlay isOpen={drawerOpen} onOpenChange={setDrawerOpen} isDismissable className={styles.drawerOverlay}>
-        <Modal className={styles.drawer}>
-          <Dialog aria-label={m.nav.main} className={styles.drawerDialog}>
-            <div className={styles.logo}>
-              <Brand />
-              <IconButton label={m.nav.closeMenu} icon={<X />} size="sm" variant="ghost" onPress={() => setDrawerOpen(false)} showTooltip={false} />
-            </div>
-            <SidebarContent onNavigate={() => setDrawerOpen(false)} />
-          </Dialog>
-        </Modal>
-      </ModalOverlay>}
+      {!phone && (
+        <ModalOverlay
+          isOpen={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          isDismissable
+          className={styles.drawerOverlay}
+        >
+          <Modal className={styles.drawer}>
+            <Dialog aria-label={m.nav.main} className={styles.drawerDialog}>
+              <div className={styles.logo}>
+                <Brand />
+                <IconButton
+                  label={m.nav.closeMenu}
+                  icon={<X />}
+                  size="sm"
+                  variant="ghost"
+                  onPress={() => setDrawerOpen(false)}
+                  showTooltip={false}
+                />
+              </div>
+              <SidebarContent onNavigate={() => setDrawerOpen(false)} />
+            </Dialog>
+          </Modal>
+        </ModalOverlay>
+      )}
 
-      <CommandPalette isOpen={palette.open} animated={palette.animated} onOpenChange={(open) => setPalette((state) => ({ ...state, open }))} />
+      <CommandPalette
+        isOpen={palette.open}
+        animated={palette.animated}
+        onOpenChange={(open) => setPalette((state) => ({ ...state, open }))}
+      />
     </div>
   );
 }

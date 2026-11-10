@@ -2,8 +2,8 @@
 /* eslint-disable */
 // Profile cover: React Bits "Topography" background, copied unchanged from
 // https://github.com/DavidHDev/react-bits (MIT + Commons Clause). Loaded on demand by ../catalog.ts.
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import './Topography.css';
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import "./Topography.css";
 
 const FOV = 0.32;
 const ORBIT = 9;
@@ -18,10 +18,10 @@ const SCULPT_SIZE = 256;
 const SCULPT_SPAN = 48;
 const MAX_CELLS = 200000;
 const SUN = [-0.81, 0.58, -0.02];
-export type TopographyDirection = 'forward' | 'backward' | 'left' | 'right';
-export type TopographyHoverEffect = 'lift' | 'trace' | 'light';
-export type TopographyClickEffect = 'pulse' | 'peak' | 'none';
-export type TopographyMarkers = 'none' | 'plus' | 'dots';
+export type TopographyDirection = "forward" | "backward" | "left" | "right";
+export type TopographyHoverEffect = "lift" | "trace" | "light";
+export type TopographyClickEffect = "pulse" | "peak" | "none";
+export type TopographyMarkers = "none" | "plus" | "dots";
 
 export interface TopographyProps {
   color?: string;
@@ -123,8 +123,13 @@ interface TopographyState {
   scale: number;
 }
 
-const DIRECTIONS: Record<string, number[]> = { forward: [0, 1], backward: [0, -1], left: [-1, 0], right: [1, 0] };
-const HOVER_EFFECTS = ['lift', 'trace', 'light'];
+const DIRECTIONS: Record<string, number[]> = {
+  forward: [0, 1],
+  backward: [0, -1],
+  left: [-1, 0],
+  right: [1, 0],
+};
+const HOVER_EFFECTS = ["lift", "trace", "light"];
 const MARKER_STYLES: Record<string, number> = { plus: 0, dots: 1 };
 const MARKER_SPACING = 1.25;
 
@@ -629,7 +634,8 @@ void main() {
   outColor = vec4(color, max(max(color.r, color.g), color.b));
 }`;
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 const smoother = (x: number) => {
   const t = clamp(x, 0, 1);
@@ -637,7 +643,10 @@ const smoother = (x: number) => {
 };
 
 const lattice = (x: number, y: number) => {
-  let h = (Math.imul(x + 1073741824, 2654435761) + Math.imul(y + 1073741824, 2246822519)) >>> 0;
+  let h =
+    (Math.imul(x + 1073741824, 2654435761) +
+      Math.imul(y + 1073741824, 2246822519)) >>>
+    0;
   h = Math.imul(h ^ (h >>> 15), 739982445) >>> 0;
   h = Math.imul(h ^ (h >>> 12), 695872825) >>> 0;
   return (h ^ (h >>> 15)) >>> 0;
@@ -663,7 +672,13 @@ const noise = (x: number, y: number) => {
   return top + (d + (e - d) * ux - top) * uy;
 };
 
-const relief = (tx: number, tz: number, frequency: number, morphX: number, morphZ: number) => {
+const relief = (
+  tx: number,
+  tz: number,
+  frequency: number,
+  morphX: number,
+  morphZ: number,
+) => {
   let px = tx * frequency;
   let pz = tz * frequency;
   const wx = noise(px * 0.42 + morphX, pz * 0.42 + morphZ);
@@ -682,7 +697,10 @@ const relief = (tx: number, tz: number, frequency: number, morphX: number, morph
 const fineDetail = (tx: number, tz: number, frequency: number) => {
   const px = tx * frequency * 5 + 13.1;
   const pz = tz * frequency * 5 + 4.7;
-  return noise(px, pz) * 0.6 + noise(1.6 * px - 1.2 * pz + 2.3, 1.2 * px + 1.6 * pz + 6.1) * 0.3;
+  return (
+    noise(px, pz) * 0.6 +
+    noise(1.6 * px - 1.2 * pz + 2.3, 1.2 * px + 1.6 * pz + 6.1) * 0.3
+  );
 };
 
 const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
@@ -695,7 +713,11 @@ const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
   return null;
 };
 
-const link = (gl: WebGL2RenderingContext, vertexSource: string, fragmentSource: string): Program | null => {
+const link = (
+  gl: WebGL2RenderingContext,
+  vertexSource: string,
+  fragmentSource: string,
+): Program | null => {
   const vertex = compile(gl, gl.VERTEX_SHADER, vertexSource);
   const fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
   const program = gl.createProgram();
@@ -713,37 +735,53 @@ const link = (gl: WebGL2RenderingContext, vertexSource: string, fragmentSource: 
   const total = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
   for (let i = 0; i < total; i++) {
     const info = gl.getActiveUniform(program, i);
-    if (info) uniforms[info.name.replace(/\[0\]$/, '')] = gl.getUniformLocation(program, info.name);
+    if (info)
+      uniforms[info.name.replace(/\[0\]$/, "")] = gl.getUniformLocation(
+        program,
+        info.name,
+      );
   }
   return { program, uniforms };
 };
 
 const toRgb = (hex: string): number[] => {
-  let h = String(hex || '#ffffff')
-    .replace('#', '')
+  let h = String(hex || "#ffffff")
+    .replace("#", "")
     .trim();
   if (h.length === 3 || h.length === 4)
     h = h
       .slice(0, 3)
-      .split('')
-      .map(c => c + c)
-      .join('');
+      .split("")
+      .map((c) => c + c)
+      .join("");
   const num = parseInt(h.slice(0, 6), 16);
   if (Number.isNaN(num)) return [1, 1, 1];
-  return [((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255];
+  return [
+    ((num >> 16) & 255) / 255,
+    ((num >> 8) & 255) / 255,
+    (num & 255) / 255,
+  ];
 };
 
 const orient = (yaw: number, pitch: number) => {
   const cp = Math.cos(pitch);
   const f = [Math.sin(yaw) * cp, -Math.sin(pitch), Math.cos(yaw) * cp];
   const r = [Math.cos(yaw), 0, -Math.sin(yaw)];
-  const u = [f[1] * r[2] - f[2] * r[1], f[2] * r[0] - f[0] * r[2], f[0] * r[1] - f[1] * r[0]];
+  const u = [
+    f[1] * r[2] - f[2] * r[1],
+    f[2] * r[0] - f[0] * r[2],
+    f[0] * r[1] - f[1] * r[0],
+  ];
   return { f, r, u };
 };
 
 const lens = (aspect: number) => clamp(0.4877 / aspect, FOV, 0.6);
 
-const viewProjection = ({ eye, f, r, u }: Frame, aspect: number, out: Float32Array) => {
+const viewProjection = (
+  { eye, f, r, u }: Frame,
+  aspect: number,
+  out: Float32Array,
+) => {
   const t = 1 / lens(aspect);
   const nf = 1 / (NEAR - FAR);
   const view = [
@@ -762,13 +800,31 @@ const viewProjection = ({ eye, f, r, u }: Frame, aspect: number, out: Float32Arr
     -(r[0] * eye[0] + r[1] * eye[1] + r[2] * eye[2]),
     -(u[0] * eye[0] + u[1] * eye[1] + u[2] * eye[2]),
     f[0] * eye[0] + f[1] * eye[1] + f[2] * eye[2],
-    1
+    1,
   ];
-  const projection = [t / aspect, 0, 0, 0, 0, t, 0, 0, 0, 0, (FAR + NEAR) * nf, -1, 0, 0, 2 * FAR * NEAR * nf, 0];
+  const projection = [
+    t / aspect,
+    0,
+    0,
+    0,
+    0,
+    t,
+    0,
+    0,
+    0,
+    0,
+    (FAR + NEAR) * nf,
+    -1,
+    0,
+    0,
+    2 * FAR * NEAR * nf,
+    0,
+  ];
   for (let c = 0; c < 4; c++) {
     for (let row = 0; row < 4; row++) {
       let sum = 0;
-      for (let k = 0; k < 4; k++) sum += projection[k * 4 + row] * view[c * 4 + k];
+      for (let k = 0; k < 4; k++)
+        sum += projection[k * 4 + row] * view[c * 4 + k];
       out[c * 4 + row] = sum;
     }
   }
@@ -776,7 +832,7 @@ const viewProjection = ({ eye, f, r, u }: Frame, aspect: number, out: Float32Arr
 };
 
 const Topography = ({
-  color = '#4f7cff',
+  color = "#4f7cff",
   lineCount = 22,
   lineWidth = 1.2,
   majorLines = true,
@@ -786,7 +842,7 @@ const Topography = ({
   detail = 0.35,
   tilt = 32,
   speed = 0.25,
-  direction = 'forward',
+  direction = "forward",
   morph = 0.2,
   glow = 0.6,
   depthOfField = 0.4,
@@ -794,19 +850,19 @@ const Topography = ({
   brightness = 1,
   opacity = 1,
   mouseInteraction = true,
-  hoverEffect = 'lift',
+  hoverEffect = "lift",
   mouseRadius = 1,
   mouseStrength = 0.6,
   trail = 0.3,
   parallax = 0.5,
-  clickEffect = 'pulse',
-  markers = 'none',
+  clickEffect = "pulse",
+  markers = "none",
   glitch = 0,
   intro = true,
   lightMode = false,
   dpr,
-  className = '',
-  style
+  className = "",
+  style,
 }: TopographyProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -831,7 +887,7 @@ const Topography = ({
     brightness: Math.max(0, brightness),
     opacity: clamp(opacity, 0, 1),
     mouseInteraction,
-    hoverEffect: HOVER_EFFECTS.includes(hoverEffect) ? hoverEffect : 'lift',
+    hoverEffect: HOVER_EFFECTS.includes(hoverEffect) ? hoverEffect : "lift",
     mouseRadius: Math.max(0.1, mouseRadius),
     mouseStrength: Math.max(0, mouseStrength),
     trail: clamp(trail, 0, 1),
@@ -841,7 +897,7 @@ const Topography = ({
     glitch: clamp(glitch, 0, 1),
     intro,
     lightMode,
-    dpr
+    dpr,
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -849,36 +905,55 @@ const Topography = ({
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
-    const ratio = Math.min(settingsRef.current.dpr || window.devicePixelRatio || 1, 2);
-    const gl = canvas?.getContext('webgl2', {
+    const ratio = Math.min(
+      settingsRef.current.dpr || window.devicePixelRatio || 1,
+      2,
+    );
+    const gl = canvas?.getContext("webgl2", {
       alpha: true,
       premultipliedAlpha: true,
       antialias: ratio < 1.5,
       depth: true,
       stencil: false,
-      powerPreference: 'high-performance'
+      powerPreference: "high-performance",
     });
     if (!container || !canvas || !gl) return undefined;
 
-    const floatTargets = !!gl.getExtension('EXT_color_buffer_float');
-    const terrain = link(gl, terrainVertex(floatTargets), terrainFragment(floatTargets));
+    const floatTargets = !!gl.getExtension("EXT_color_buffer_float");
+    const terrain = link(
+      gl,
+      terrainVertex(floatTargets),
+      terrainFragment(floatTargets),
+    );
     const fieldProgram = floatTargets ? link(gl, FULLSCREEN, FIELD) : null;
     const sculptProgram = floatTargets ? link(gl, FULLSCREEN, SCULPT) : null;
     const downProgram = link(gl, FULLSCREEN, DOWNSAMPLE);
     const blurProgram = link(gl, FULLSCREEN, BLUR);
     const compositeProgram = link(gl, FULLSCREEN, COMPOSITE);
     const markerProgram = link(gl, MARKER_VERTEX, MARKER_FRAGMENT);
-    if (!terrain || !downProgram || !blurProgram || !compositeProgram || !markerProgram) return undefined;
+    if (
+      !terrain ||
+      !downProgram ||
+      !blurProgram ||
+      !compositeProgram ||
+      !markerProgram
+    )
+      return undefined;
 
     const onContextLost = (event: Event) => event.preventDefault();
-    const onContextRestored = () => setGeneration(value => value + 1);
-    canvas.addEventListener('webglcontextlost', onContextLost);
-    canvas.addEventListener('webglcontextrestored', onContextRestored);
+    const onContextRestored = () => setGeneration((value) => value + 1);
+    canvas.addEventListener("webglcontextlost", onContextLost);
+    canvas.addEventListener("webglcontextrestored", onContextRestored);
 
     const vao = gl.createVertexArray();
     const format = floatTargets ? gl.RGBA16F : gl.RGBA8;
 
-    const createTexture = (width: number, height: number, internal: number, wrap: number) => {
+    const createTexture = (
+      width: number,
+      height: number,
+      internal: number,
+      wrap: number,
+    ) => {
       const texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texStorage2D(gl.TEXTURE_2D, 1, internal, width, height);
@@ -894,33 +969,69 @@ const Topography = ({
       framebuffer: gl.createFramebuffer(),
       depth: null,
       width: 0,
-      height: 0
+      height: 0,
     });
 
-    const allocate = (target: Target, width: number, height: number, withDepth: boolean) => {
-      if (target.texture && target.width === width && target.height === height) return;
+    const allocate = (
+      target: Target,
+      width: number,
+      height: number,
+      withDepth: boolean,
+    ) => {
+      if (target.texture && target.width === width && target.height === height)
+        return;
       if (target.texture) gl.deleteTexture(target.texture);
       target.texture = createTexture(width, height, format, gl.CLAMP_TO_EDGE);
       target.width = width;
       target.height = height;
       gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target.texture, 0);
+      gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        target.texture,
+        0,
+      );
       if (withDepth) {
         if (!target.depth) target.depth = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, target.depth);
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, target.depth);
+        gl.renderbufferStorage(
+          gl.RENDERBUFFER,
+          gl.DEPTH_COMPONENT24,
+          width,
+          height,
+        );
+        gl.framebufferRenderbuffer(
+          gl.FRAMEBUFFER,
+          gl.DEPTH_ATTACHMENT,
+          gl.RENDERBUFFER,
+          target.depth,
+        );
       }
     };
 
     const source = createTarget();
-    const levels = Array.from({ length: BLOOM_LEVELS }, () => [createTarget(), createTarget()]);
+    const levels = Array.from({ length: BLOOM_LEVELS }, () => [
+      createTarget(),
+      createTarget(),
+    ]);
     const sculpt = sculptProgram
       ? [0, 1].map(() => {
-          const texture = createTexture(SCULPT_SIZE, SCULPT_SIZE, gl.RG16F, gl.REPEAT);
+          const texture = createTexture(
+            SCULPT_SIZE,
+            SCULPT_SIZE,
+            gl.RG16F,
+            gl.REPEAT,
+          );
           const framebuffer = gl.createFramebuffer();
           gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-          gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+          gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            gl.COLOR_ATTACHMENT0,
+            gl.TEXTURE_2D,
+            texture,
+            0,
+          );
           gl.clearColor(0, 0, 0, 0);
           gl.clear(gl.COLOR_BUFFER_BIT);
           return { texture, framebuffer };
@@ -933,23 +1044,52 @@ const Topography = ({
       framebuffer: WebGLFramebuffer | null;
       width: number;
       height: number;
-    } = { texture: null, heights: null, framebuffer: gl.createFramebuffer(), width: 0, height: 0 };
+    } = {
+      texture: null,
+      heights: null,
+      framebuffer: gl.createFramebuffer(),
+      width: 0,
+      height: 0,
+    };
     let sculptIndex = 0;
 
     const reserveField = (width: number, height: number) => {
-      if (field.texture && width <= field.width && height <= field.height) return;
+      if (field.texture && width <= field.width && height <= field.height)
+        return;
       if (field.texture) gl.deleteTexture(field.texture);
       if (field.heights) gl.deleteTexture(field.heights);
       field.width = Math.max(width, Math.ceil(field.width * 1.25), 64);
       field.height = Math.max(height, Math.ceil(field.height * 1.25), 64);
-      field.texture = createTexture(field.width, field.height, gl.RGBA16F, gl.CLAMP_TO_EDGE);
-      field.heights = createTexture(field.width, field.height, gl.R32F, gl.CLAMP_TO_EDGE);
+      field.texture = createTexture(
+        field.width,
+        field.height,
+        gl.RGBA16F,
+        gl.CLAMP_TO_EDGE,
+      );
+      field.heights = createTexture(
+        field.width,
+        field.height,
+        gl.R32F,
+        gl.CLAMP_TO_EDGE,
+      );
       gl.bindTexture(gl.TEXTURE_2D, field.heights);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
       gl.bindFramebuffer(gl.FRAMEBUFFER, field.framebuffer);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, field.texture, 0);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, field.heights, 0);
+      gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        field.texture,
+        0,
+      );
+      gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT1,
+        gl.TEXTURE_2D,
+        field.heights,
+        0,
+      );
       gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
     };
 
@@ -958,7 +1098,8 @@ const Topography = ({
       gl.bindTexture(gl.TEXTURE_2D, texture);
     };
 
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const reduce =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     const matrix = new Float32Array(16);
     const pulseData = new Float32Array(MAX_PULSES * 4);
     const glitchData = new Float32Array(12);
@@ -970,7 +1111,7 @@ const Topography = ({
     };
     const pulses: Pulse[] = [];
     const pointer = { x: 0, y: 0, inside: false };
-    const view = { width: 1, height: 1, ratio: 1, cell: 0.05, cellKey: '' };
+    const view = { width: 1, height: 1, ratio: 1, cell: 0.05, cellKey: "" };
     const state: TopographyState = {
       intro: settingsRef.current.intro && !reduce ? 0 : 1,
       rise: 1,
@@ -992,7 +1133,7 @@ const Topography = ({
       clock: 0,
       tilt: settingsRef.current.tilt,
       elevation: settingsRef.current.elevation,
-      scale: settingsRef.current.scale
+      scale: settingsRef.current.scale,
     };
     state.rise = smoother(state.intro);
     let raf = 0;
@@ -1001,7 +1142,10 @@ const Topography = ({
     let quiet = 0;
 
     const camera = (): Frame => {
-      const pitch = Math.min((state.tilt * Math.PI) / 180 + state.pitch, Math.PI / 2 - 1e-4);
+      const pitch = Math.min(
+        (state.tilt * Math.PI) / 180 + state.pitch,
+        Math.PI / 2 - 1e-4,
+      );
       const frame = orient(state.yaw, pitch);
       const lift = state.elevation * HEIGHT * state.rise * 0.18;
       const clearance = state.elevation * HEIGHT * state.rise * 1.3 + 0.9;
@@ -1009,19 +1153,26 @@ const Topography = ({
       return {
         ...frame,
         distance,
-        eye: [-frame.f[0] * distance, lift - frame.f[1] * distance, -frame.f[2] * distance]
+        eye: [
+          -frame.f[0] * distance,
+          lift - frame.f[1] * distance,
+          -frame.f[2] * distance,
+        ],
       };
     };
 
     const rayDirection = (cam: Frame, nx: number, ny: number) => {
       const aspect = view.width / view.height;
       const t = lens(aspect);
-      const d = [0, 1, 2].map(i => cam.f[i] + cam.r[i] * nx * t * aspect + cam.u[i] * ny * t);
+      const d = [0, 1, 2].map(
+        (i) => cam.f[i] + cam.r[i] * nx * t * aspect + cam.u[i] * ny * t,
+      );
       const length = Math.hypot(d[0], d[1], d[2]);
-      return d.map(v => v / length);
+      return d.map((v) => v / length);
     };
 
-    const along = (cam: Frame, d: number[]) => d[0] * cam.f[0] + d[1] * cam.f[1] + d[2] * cam.f[2];
+    const along = (cam: Frame, d: number[]) =>
+      d[0] * cam.f[0] + d[1] * cam.f[1] + d[2] * cam.f[2];
 
     const groundDepth = (cam: Frame, ny: number) => {
       const d = rayDirection(cam, 0, ny);
@@ -1029,14 +1180,30 @@ const Topography = ({
       return (cam.eye[1] / -d[1]) * along(cam, d);
     };
 
-    const nearRange = (cam: Frame, s: typeof settings) => [groundDepth(cam, -1) * 0.9, cam.distance, s.foreground];
+    const nearRange = (cam: Frame, s: typeof settings) => [
+      groundDepth(cam, -1) * 0.9,
+      cam.distance,
+      s.foreground,
+    ];
 
     const settleAt = (cam: Frame, near: number[], x: number, z: number) => {
-      const depth = (x - cam.eye[0]) * cam.f[0] - cam.eye[1] * cam.f[1] + (z - cam.eye[2]) * cam.f[2];
-      return near[2] + (1 - near[2]) * smoother((depth - near[0]) / Math.max(near[1] - near[0], 1e-3));
+      const depth =
+        (x - cam.eye[0]) * cam.f[0] -
+        cam.eye[1] * cam.f[1] +
+        (z - cam.eye[2]) * cam.f[2];
+      return (
+        near[2] +
+        (1 - near[2]) *
+          smoother((depth - near[0]) / Math.max(near[1] - near[0], 1e-3))
+      );
     };
 
-    const pick = (cam: Frame, s: typeof settings, nx: number, ny: number): Hit | null => {
+    const pick = (
+      cam: Frame,
+      s: typeof settings,
+      nx: number,
+      ny: number,
+    ): Hit | null => {
       const d = rayDirection(cam, nx, ny);
       const height = state.elevation * HEIGHT * state.rise;
       const frequency = FREQUENCY / state.scale;
@@ -1044,8 +1211,18 @@ const Topography = ({
       const above = (distance: number) => {
         const x = cam.eye[0] + d[0] * distance;
         const z = cam.eye[2] + d[2] * distance;
-        const ground = relief(state.travelX + x, state.travelZ + z, frequency, state.morph * 0.37, state.morph * 0.23);
-        return cam.eye[1] + d[1] * distance - ground * height * settleAt(cam, near, x, z);
+        const ground = relief(
+          state.travelX + x,
+          state.travelZ + z,
+          frequency,
+          state.morph * 0.37,
+          state.morph * 0.23,
+        );
+        return (
+          cam.eye[1] +
+          d[1] * distance -
+          ground * height * settleAt(cam, near, x, z)
+        );
       };
       let distance = NEAR;
       let gap = above(distance);
@@ -1064,7 +1241,7 @@ const Topography = ({
             x: state.travelX + cam.eye[0] + d[0] * hi,
             y: cam.eye[1] + d[1] * hi,
             z: state.travelZ + cam.eye[2] + d[2] * hi,
-            depth: hi * along(cam, d)
+            depth: hi * along(cam, d),
           };
         }
         distance = next;
@@ -1074,8 +1251,15 @@ const Topography = ({
     };
 
     const footprint = (cam: Frame, s: typeof settings, fadeEnd: number) => {
-      const ceiling = state.elevation * HEIGHT * state.rise * 1.7 + 0.2 + s.mouseStrength;
-      const box: Box = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity, near: Infinity };
+      const ceiling =
+        state.elevation * HEIGHT * state.rise * 1.7 + 0.2 + s.mouseStrength;
+      const box: Box = {
+        minX: Infinity,
+        maxX: -Infinity,
+        minZ: Infinity,
+        maxZ: -Infinity,
+        near: Infinity,
+      };
       const add = (d: number[], distance: number) => {
         const x = cam.eye[0] + d[0] * distance;
         const z = cam.eye[2] + d[2] * distance;
@@ -1110,8 +1294,16 @@ const Topography = ({
       const fracZ = state.travelZ - camZ * cell;
       const k0 = Math.floor((box.minX + fracX) / cell) - 2;
       const m0 = Math.floor((box.minZ + fracZ) / cell) - 2;
-      const columns = clamp(Math.ceil((box.maxX + fracX) / cell) + 2 - k0, 1, 4000);
-      const rows = clamp(Math.ceil((box.maxZ + fracZ) / cell) + 2 - m0, 1, Math.floor((MAX_CELLS * 1.5) / columns));
+      const columns = clamp(
+        Math.ceil((box.maxX + fracX) / cell) + 2 - k0,
+        1,
+        4000,
+      );
+      const rows = clamp(
+        Math.ceil((box.maxZ + fracZ) / cell) + 2 - m0,
+        1,
+        Math.floor((MAX_CELLS * 1.5) / columns),
+      );
       return { cell, camX, camZ, fracX, fracZ, k0, m0, columns, rows };
     };
 
@@ -1130,9 +1322,11 @@ const Topography = ({
       const cellKey = `${view.width}x${view.height}@${view.ratio}|${Math.round(state.tilt / 4)}|${Math.round(state.elevation * 5)}|${s.fog}`;
       if (cellKey !== view.cellKey) {
         view.cellKey = cellKey;
-        const focal = (view.height * view.ratio * 0.5) / lens(view.width / view.height);
+        const focal =
+          (view.height * view.ratio * 0.5) / lens(view.width / view.height);
         let cell = clamp((14 * Math.max(box.near, 0.5)) / focal, 0.02, 0.4);
-        const cells = ((box.maxX - box.minX) * (box.maxZ - box.minZ)) / (cell * cell);
+        const cells =
+          ((box.maxX - box.minX) * (box.maxZ - box.minZ)) / (cell * cell);
         if (cells > MAX_CELLS) cell *= Math.sqrt(cells / MAX_CELLS);
         view.cell = cell;
       }
@@ -1151,7 +1345,15 @@ const Topography = ({
 
       pulseData.fill(0);
       pulses.forEach((p, i) => {
-        pulseData.set([p.x, p.z, p.age * 4.2, Math.exp(-p.age * 1.1) * smoother(p.age / 0.08)], i * 4);
+        pulseData.set(
+          [
+            p.x,
+            p.z,
+            p.age * 4.2,
+            Math.exp(-p.age * 1.1) * smoother(p.age / 0.08),
+          ],
+          i * 4,
+        );
       });
 
       gl.bindVertexArray(vao);
@@ -1169,7 +1371,11 @@ const Topography = ({
         gl.uniform1f(f.uFrequency, FREQUENCY / state.scale);
         gl.uniform2f(f.uMorph, state.morph * 0.37, state.morph * 0.23);
         gl.uniform4fv(f.uPulses, pulseData);
-        gl.uniform2i(f.uBase, layout.k0 - 2 + layout.camX, layout.m0 - 2 + layout.camZ);
+        gl.uniform2i(
+          f.uBase,
+          layout.k0 - 2 + layout.camX,
+          layout.m0 - 2 + layout.camZ,
+        );
         gl.uniform1f(f.uCell, layout.cell);
         gl.uniform1f(f.uDetail, s.detail);
         gl.disable(gl.DEPTH_TEST);
@@ -1177,7 +1383,12 @@ const Topography = ({
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       }
 
-      const drawTerrain = (pixel: number, width: number, targetHeight: number, stride: number) => {
+      const drawTerrain = (
+        pixel: number,
+        width: number,
+        targetHeight: number,
+        stride: number,
+      ) => {
         gl.viewport(0, 0, width, targetHeight);
         gl.useProgram(terrain.program);
         const u = terrain.uniforms;
@@ -1206,9 +1417,20 @@ const Topography = ({
         gl.uniform3fv(u.uColor, color);
         gl.uniform1f(u.uBrightness, s.brightness);
         gl.uniform2f(u.uFade, fadeStart, fadeEnd);
-        gl.uniform3f(u.uFocus, state.focus, focusScale * pixel, view.height * 0.03 * pixel);
+        gl.uniform3f(
+          u.uFocus,
+          state.focus,
+          focusScale * pixel,
+          view.height * 0.03 * pixel,
+        );
         gl.uniform4f(u.uHeat, hitX, hitZ, 0.9 * s.mouseRadius, heatStrength);
-        gl.uniform4f(u.uLamp, hitX, state.hit ? state.hit.y + 1.4 : 0, hitZ, heatStrength);
+        gl.uniform4f(
+          u.uLamp,
+          hitX,
+          state.hit ? state.hit.y + 1.4 : 0,
+          hitZ,
+          heatStrength,
+        );
         gl.uniform4f(u.uTrace, state.level, state.trace, hitX, hitZ);
         gl.uniform3fv(u.uSun, SUN);
         gl.uniform1f(u.uReveal, reveal);
@@ -1227,7 +1449,7 @@ const Topography = ({
           gl.TRIANGLE_STRIP,
           0,
           2 * (Math.ceil(layout.columns / stride) + 1),
-          Math.ceil(layout.rows / stride)
+          Math.ceil(layout.rows / stride),
         );
         if (dots) {
           gl.useProgram(markerProgram.program);
@@ -1266,7 +1488,12 @@ const Topography = ({
           gl.depthMask(false);
           gl.enable(gl.BLEND);
           gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-          gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, (dots.columns + 1) * (dots.rows + 1));
+          gl.drawArraysInstanced(
+            gl.TRIANGLE_STRIP,
+            0,
+            4,
+            (dots.columns + 1) * (dots.rows + 1),
+          );
           gl.disable(gl.BLEND);
           gl.depthMask(true);
         }
@@ -1294,7 +1521,11 @@ const Topography = ({
           bind(0, from.texture);
           gl.uniform1i(downProgram.uniforms.uSource, 0);
           gl.uniform2f(downProgram.uniforms.uTarget, front.width, front.height);
-          gl.uniform2f(downProgram.uniforms.uTexel, 1 / from.width, 1 / from.height);
+          gl.uniform2f(
+            downProgram.uniforms.uTexel,
+            1 / from.width,
+            1 / from.height,
+          );
           gl.drawArrays(gl.TRIANGLES, 0, 3);
           gl.useProgram(blurProgram.program);
           gl.uniform1i(blurProgram.uniforms.uSource, 0);
@@ -1336,7 +1567,10 @@ const Topography = ({
 
     const updateSculpt = (s: typeof settings, dt: number) => {
       if (!sculpt || !sculptProgram) return false;
-      const brush = s.mouseInteraction && s.hoverEffect === 'lift' && state.presence > 0.001 ? state.hit : null;
+      const brush =
+        s.mouseInteraction && s.hoverEffect === "lift" && state.presence > 0.001
+          ? state.hit
+          : null;
       const burst = state.burst;
       if (!brush && !burst && state.sculptLife <= 0) return false;
       const from = state.brushFrom || brush;
@@ -1348,19 +1582,23 @@ const Topography = ({
       const u = sculptProgram.uniforms;
       bind(0, read.texture);
       gl.uniform1i(u.uPrevious, 0);
-      if (brush && from) gl.uniform4f(u.uSegment, from.x, from.z, brush.x, brush.z);
+      if (brush && from)
+        gl.uniform4f(u.uSegment, from.x, from.z, brush.x, brush.z);
       else gl.uniform4f(u.uSegment, 0, 0, 0, 0);
       gl.uniform4f(
         u.uBrush,
         1.1 * s.mouseRadius,
         0.9 * s.mouseStrength,
         1 - Math.exp(-dt * 7),
-        brush ? state.presence : 0
+        brush ? state.presence : 0,
       );
       if (burst) {
         const before = smoother(burst.age / 0.7);
         burst.age += dt;
-        const amount = (smoother(burst.age / 0.7) - before) * 0.9 * Math.max(s.mouseStrength, 0.3);
+        const amount =
+          (smoother(burst.age / 0.7) - before) *
+          0.9 *
+          Math.max(s.mouseStrength, 0.3);
         gl.uniform4f(u.uBurst, burst.x, burst.z, 1.6 * s.mouseRadius, amount);
         if (burst.age >= 0.7) state.burst = null;
       } else {
@@ -1400,7 +1638,8 @@ const Topography = ({
       last = now;
 
       if (!s.intro || reduce) state.intro = 1;
-      else if (state.intro < 1) state.intro = Math.min(1, state.intro + dt / INTRO_SECONDS);
+      else if (state.intro < 1)
+        state.intro = Math.min(1, state.intro + dt / INTRO_SECONDS);
       state.rise = smoother(state.intro);
       const ease = reduce ? 1 : 1 - Math.exp(-dt / 0.4);
       state.tilt += (s.tilt - state.tilt) * ease;
@@ -1411,8 +1650,10 @@ const Topography = ({
       const glitching = reduce ? 0 : s.glitch;
       if (glitching > 0) {
         if (state.clock >= glitch.next && state.clock >= glitch.until) {
-          glitch.until = state.clock + 0.1 + random() * 0.22 * (0.5 + glitching);
-          glitch.next = glitch.until + (9 - 7.4 * glitching) * (0.45 + random() * 1.1);
+          glitch.until =
+            state.clock + 0.1 + random() * 0.22 * (0.5 + glitching);
+          glitch.next =
+            glitch.until + (9 - 7.4 * glitching) * (0.45 + random() * 1.1);
           glitch.roll = 0;
         }
         if (state.clock < glitch.until) {
@@ -1423,7 +1664,10 @@ const Topography = ({
               const band = 3 + random() * random() * view.height * 0.14;
               const y = random() * view.height;
               const shift = (random() - 0.5) * 2 * (10 + 46 * glitching);
-              glitchData.set([y, y + band, shift, 1 + random() * 3 * glitching], i * 4);
+              glitchData.set(
+                [y, y + band, shift, 1 + random() * 3 * glitching],
+                i * 4,
+              );
             }
             glitch.seed = random();
             glitch.roll = state.clock + 0.04 + random() * 0.05;
@@ -1438,15 +1682,19 @@ const Topography = ({
       }
 
       const engaged = pointer.inside && s.mouseInteraction;
-      state.presence += ((engaged ? 1 : 0) - state.presence) * (1 - Math.exp(-dt / (engaged ? 0.18 : 0.45)));
+      state.presence +=
+        ((engaged ? 1 : 0) - state.presence) *
+        (1 - Math.exp(-dt / (engaged ? 0.18 : 0.45)));
 
       const nx = (pointer.x / view.width) * 2 - 1;
       const ny = 1 - (pointer.y / view.height) * 2;
       const lean = reduce || !engaged ? 0 : s.parallax;
       const targetYaw = nx * lean * 0.09;
       const targetPitch = -ny * lean * 0.045;
-      state.yawVelocity += (38 * (targetYaw - state.yaw) - 11 * state.yawVelocity) * dt;
-      state.pitchVelocity += (38 * (targetPitch - state.pitch) - 11 * state.pitchVelocity) * dt;
+      state.yawVelocity +=
+        (38 * (targetYaw - state.yaw) - 11 * state.yawVelocity) * dt;
+      state.pitchVelocity +=
+        (38 * (targetPitch - state.pitch) - 11 * state.pitchVelocity) * dt;
       state.yaw += state.yawVelocity * dt;
       state.pitch += state.pitchVelocity * dt;
 
@@ -1454,7 +1702,10 @@ const Topography = ({
       if (engaged) {
         state.hit = pick(cam, s, nx, ny);
         if (state.hit && state.brushFrom) {
-          const jump = Math.hypot(state.hit.x - state.brushFrom.x, state.hit.z - state.brushFrom.z);
+          const jump = Math.hypot(
+            state.hit.x - state.brushFrom.x,
+            state.hit.z - state.brushFrom.z,
+          );
           if (jump > 3 * s.mouseRadius) state.brushFrom = null;
         }
       } else if (state.presence < 0.002) {
@@ -1462,17 +1713,30 @@ const Topography = ({
         state.brushFrom = null;
       }
 
-      const tracing = state.hit && s.mouseInteraction && s.hoverEffect === 'trace' ? state.presence : 0;
+      const tracing =
+        state.hit && s.mouseInteraction && s.hoverEffect === "trace"
+          ? state.presence
+          : 0;
       if (state.hit) {
         const frequency = FREQUENCY / state.scale;
         const target =
-          relief(state.hit.x, state.hit.z, frequency, state.morph * 0.37, state.morph * 0.23) +
+          relief(
+            state.hit.x,
+            state.hit.z,
+            frequency,
+            state.morph * 0.37,
+            state.morph * 0.23,
+          ) +
           s.detail * 0.1 * fineDetail(state.hit.x, state.hit.z, frequency);
-        state.level = state.trace < 0.01 ? target : state.level + (target - state.level) * (1 - Math.exp(-dt / 0.09));
+        state.level =
+          state.trace < 0.01
+            ? target
+            : state.level + (target - state.level) * (1 - Math.exp(-dt / 0.09));
       }
       state.trace += (tracing - state.trace) * (1 - Math.exp(-dt / 0.2));
 
-      const focusTarget = state.hit && s.depthOfField > 0 ? state.hit.depth : cam.distance;
+      const focusTarget =
+        state.hit && s.depthOfField > 0 ? state.hit.depth : cam.distance;
       state.focus += (focusTarget - state.focus) * (1 - Math.exp(-dt / 0.35));
 
       for (let i = pulses.length - 1; i >= 0; i--) {
@@ -1493,7 +1757,8 @@ const Topography = ({
         Math.abs(focusTarget - state.focus) > 1e-3 ||
         Math.abs(tracing - state.trace) > 1e-3;
       const busy =
-        (!reduce && (s.speed !== 0 || s.morph !== 0 || s.glitch > 0 || s.markers >= 0)) ||
+        (!reduce &&
+          (s.speed !== 0 || s.morph !== 0 || s.glitch > 0 || s.markers >= 0)) ||
         state.intro < 1 ||
         pulses.length > 0 ||
         sculpting ||
@@ -1515,7 +1780,11 @@ const Topography = ({
       const rect = container.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
-      return { x, y, inside: x >= 0 && y >= 0 && x <= rect.width && y <= rect.height };
+      return {
+        x,
+        y,
+        inside: x >= 0 && y >= 0 && x <= rect.width && y <= rect.height,
+      };
     };
 
     const onPointerMove = (event: PointerEvent) => {
@@ -1541,19 +1810,28 @@ const Topography = ({
         glitch.until = state.clock + 0.16;
         glitch.roll = 0;
       }
-      if (!s.mouseInteraction || (s.clickEffect !== 'pulse' && s.clickEffect !== 'peak')) return;
-      const hit = pick(camera(), s, (x / view.width) * 2 - 1, 1 - (y / view.height) * 2);
+      if (
+        !s.mouseInteraction ||
+        (s.clickEffect !== "pulse" && s.clickEffect !== "peak")
+      )
+        return;
+      const hit = pick(
+        camera(),
+        s,
+        (x / view.width) * 2 - 1,
+        1 - (y / view.height) * 2,
+      );
       if (!hit) return;
-      if (s.clickEffect === 'peak' && sculpt) {
+      if (s.clickEffect === "peak" && sculpt) {
         state.burst = { x: hit.x, z: hit.z, age: 0 };
-      } else if (s.clickEffect === 'pulse') {
+      } else if (s.clickEffect === "pulse") {
         if (pulses.length >= MAX_PULSES) pulses.shift();
         pulses.push({ x: hit.x, z: hit.z, age: 0 });
       }
     };
 
     const onPointerUp = (event: PointerEvent) => {
-      if (event.pointerType !== 'touch') return;
+      if (event.pointerType !== "touch") return;
       pointer.inside = false;
       wake();
     };
@@ -1567,17 +1845,17 @@ const Topography = ({
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
-    const intersection = new IntersectionObserver(entries => {
-      visible = entries.some(entry => entry.isIntersecting);
+    const intersection = new IntersectionObserver((entries) => {
+      visible = entries.some((entry) => entry.isIntersecting);
       if (visible) wake();
     });
     intersection.observe(container);
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('pointerdown', onPointerDown, { passive: true });
-    window.addEventListener('pointerup', onPointerUp, { passive: true });
-    window.addEventListener('pointercancel', onPointerUp, { passive: true });
-    document.documentElement.addEventListener('pointerleave', onPointerLeave);
-    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
+    window.addEventListener("pointercancel", onPointerUp, { passive: true });
+    document.documentElement.addEventListener("pointerleave", onPointerLeave);
+    document.addEventListener("visibilitychange", onVisibility);
     resize();
     wakeRef.current = wake;
 
@@ -1586,20 +1864,23 @@ const Topography = ({
       wakeRef.current = null;
       resizeObserver.disconnect();
       intersection.disconnect();
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('pointerup', onPointerUp);
-      window.removeEventListener('pointercancel', onPointerUp);
-      document.documentElement.removeEventListener('pointerleave', onPointerLeave);
-      document.removeEventListener('visibilitychange', onVisibility);
-      canvas.removeEventListener('webglcontextlost', onContextLost);
-      canvas.removeEventListener('webglcontextrestored', onContextRestored);
-      [source, ...levels.flat()].forEach(target => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      document.documentElement.removeEventListener(
+        "pointerleave",
+        onPointerLeave,
+      );
+      document.removeEventListener("visibilitychange", onVisibility);
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
+      [source, ...levels.flat()].forEach((target) => {
         if (target.texture) gl.deleteTexture(target.texture);
         if (target.depth) gl.deleteRenderbuffer(target.depth);
         gl.deleteFramebuffer(target.framebuffer);
       });
-      sculpt?.forEach(target => {
+      sculpt?.forEach((target) => {
         gl.deleteTexture(target.texture);
         gl.deleteFramebuffer(target.framebuffer);
       });
@@ -1608,10 +1889,16 @@ const Topography = ({
       if (field.texture) gl.deleteTexture(field.texture);
       if (field.heights) gl.deleteTexture(field.heights);
       gl.deleteFramebuffer(field.framebuffer);
-      [terrain, fieldProgram, sculptProgram, downProgram, blurProgram, compositeProgram, markerProgram].forEach(
-        program => program && gl.deleteProgram(program.program)
-      );
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      [
+        terrain,
+        fieldProgram,
+        sculptProgram,
+        downProgram,
+        blurProgram,
+        compositeProgram,
+        markerProgram,
+      ].forEach((program) => program && gl.deleteProgram(program.program));
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, [generation]);
 
@@ -1620,8 +1907,16 @@ const Topography = ({
   });
 
   return (
-    <div ref={containerRef} className={`topography-container ${className}`.trim()} style={style}>
-      <canvas ref={canvasRef} className="topography-canvas" aria-hidden="true" />
+    <div
+      ref={containerRef}
+      className={`topography-container ${className}`.trim()}
+      style={style}
+    >
+      <canvas
+        ref={canvasRef}
+        className="topography-canvas"
+        aria-hidden="true"
+      />
     </div>
   );
 };

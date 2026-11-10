@@ -10,7 +10,15 @@ public sealed class PlanCatalogTests
     [InlineData("Pro", 24, 1, 60, 500, null, 7200)]
     [InlineData("Team", 69, 3, 200, 2000, null, 30000)]
     [InlineData("Studio", 159, 10, 600, 5000, null, 90000)]
-    public void Canonical_monthly_prices_and_allowances(string id, int price, int seats, int clients, int runs, long? local, long gpu)
+    public void Canonical_monthly_prices_and_allowances(
+        string id,
+        int price,
+        int seats,
+        int clients,
+        int runs,
+        long? local,
+        long gpu
+    )
     {
         var plan = PlanCatalog.Get(id);
         Assert.Equal(price, plan.MonthlyPriceEur);

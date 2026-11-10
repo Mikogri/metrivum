@@ -62,11 +62,26 @@
 }
 
 /* Tones per kind of limit; nearly full or full overrides them. */
-.row[data-tone="green"] { --tone: var(--tf-color-accent); --tone-soft: var(--tf-color-accent-deep); }
-.row[data-tone="violet"] { --tone: var(--tf-color-violet); --tone-soft: var(--tf-color-violet-soft); }
-.row[data-tone="blue"] { --tone: var(--tf-color-info); --tone-soft: var(--tf-color-info-soft); }
-.row[data-tone="orange"] { --tone: var(--tf-color-warning); --tone-soft: var(--tf-color-warning-soft); }
-.row[data-tone="rose"] { --tone: var(--tf-color-danger); --tone-soft: var(--tf-color-danger-soft); }
+.row[data-tone="green"] {
+  --tone: var(--tf-color-accent);
+  --tone-soft: var(--tf-color-accent-deep);
+}
+.row[data-tone="violet"] {
+  --tone: var(--tf-color-violet);
+  --tone-soft: var(--tf-color-violet-soft);
+}
+.row[data-tone="blue"] {
+  --tone: var(--tf-color-info);
+  --tone-soft: var(--tf-color-info-soft);
+}
+.row[data-tone="orange"] {
+  --tone: var(--tf-color-warning);
+  --tone-soft: var(--tf-color-warning-soft);
+}
+.row[data-tone="rose"] {
+  --tone: var(--tf-color-danger);
+  --tone-soft: var(--tf-color-danger-soft);
+}
 
 .row + .row {
   border-top: 1px solid var(--tf-color-border-subtle);
@@ -144,8 +159,14 @@
   transition: transform 500ms var(--tf-ease-out);
 }
 
-.row[data-state="near"] { --tone: var(--tf-color-warning); --tone-soft: var(--tf-color-warning-soft); }
-.row[data-state="full"] { --tone: var(--tf-color-danger); --tone-soft: var(--tf-color-danger-soft); }
+.row[data-state="near"] {
+  --tone: var(--tf-color-warning);
+  --tone-soft: var(--tf-color-warning-soft);
+}
+.row[data-state="full"] {
+  --tone: var(--tf-color-danger);
+  --tone-soft: var(--tf-color-danger-soft);
+}
 
 .row[data-state="near"] .bar span {
   background: var(--tf-color-warning);

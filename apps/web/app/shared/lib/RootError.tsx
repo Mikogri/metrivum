@@ -23,7 +23,13 @@ const copy = {
 };
 
 /** Last-resort error screen for route errors outside module-level boundaries. */
-export function RootError({ status, error }: { status: number; error: unknown }) {
+export function RootError({
+  status,
+  error,
+}: {
+  status: number;
+  error: unknown;
+}) {
   const location = useLocation();
   const locale = localeFromPathname(location.pathname);
   const t = copy[locale];
@@ -41,7 +47,10 @@ export function RootError({ status, error }: { status: number; error: unknown })
               {t.home}
             </LinkButton>
             {notFound ? null : (
-              <Button variant="secondary" onPress={() => window.location.reload()}>
+              <Button
+                variant="secondary"
+                onPress={() => window.location.reload()}
+              >
                 {t.reload}
               </Button>
             )}

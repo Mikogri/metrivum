@@ -33,17 +33,23 @@ const exists = (path) => {
 function send(res, status, path, extraHeaders = {}) {
   const full = join(root, path);
   const type = types[extname(full)] ?? "application/octet-stream";
-  const immutable = path.startsWith("/assets/") || /^\/anatomy\/bodyparts3d-[\d.]+\/[a-z]+-[a-f0-9]{16}\.glb$/.test(path);
+  const immutable =
+    path.startsWith("/assets/") ||
+    /^\/anatomy\/bodyparts3d-[\d.]+\/[a-z]+-[a-f0-9]{16}\.glb$/.test(path);
   res.writeHead(status, {
     "Content-Type": type,
-    "Cache-Control": immutable ? "public, max-age=31536000, immutable" : "no-cache",
+    "Cache-Control": immutable
+      ? "public, max-age=31536000, immutable"
+      : "no-cache",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "X-Frame-Options": "DENY",
     // Origins for scripts and requests depend on the deployment (see docs/frontend/hosting.md); these parts do not.
-    "Content-Security-Policy": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
+    "Content-Security-Policy":
+      "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
     "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
-    "Permissions-Policy": "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()",
+    "Permissions-Policy":
+      "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()",
     ...extraHeaders,
   });
   createReadStream(full).pipe(res);
@@ -59,7 +65,10 @@ createServer((req, res) => {
   }
   const decision = classify(url.pathname, exists);
   if (decision.kind === "file") return send(res, 200, decision.path);
-  if (decision.kind === "spa") return send(res, 200, "/__spa-fallback.html", { "X-Robots-Tag": "noindex" });
+  if (decision.kind === "spa")
+    return send(res, 200, "/__spa-fallback.html", {
+      "X-Robots-Tag": "noindex",
+    });
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/assets/")) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     return res.end("Not found");

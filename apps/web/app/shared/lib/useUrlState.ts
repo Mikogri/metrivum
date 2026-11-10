@@ -26,14 +26,21 @@ function writeStored(key: string, value: string) {
  * A `view` key (cards / table) is also remembered per page in this browser: the last choice
  * becomes the page's default, while an explicit `?view=` in the URL still wins.
  */
-export function useUrlState<K extends string>(staticDefaults: Record<K, string>) {
+export function useUrlState<K extends string>(
+  staticDefaults: Record<K, string>,
+) {
   const [params, setParams] = useSearchParams();
   const { pathname } = useLocation();
   const viewKey = VIEW_PREFIX + pathname;
   const hasView = "view" in staticDefaults;
-  const [rememberedView, setRememberedView] = useState(() => (hasView ? readStored(viewKey) : null));
+  const [rememberedView, setRememberedView] = useState(() =>
+    hasView ? readStored(viewKey) : null,
+  );
   const defaults = useMemo(
-    () => (hasView && rememberedView ? { ...staticDefaults, view: rememberedView } : staticDefaults),
+    () =>
+      hasView && rememberedView
+        ? { ...staticDefaults, view: rememberedView }
+        : staticDefaults,
     // static defaults per screen
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [rememberedView],
@@ -48,7 +55,10 @@ export function useUrlState<K extends string>(staticDefaults: Record<K, string>)
   }, [params, defaults]);
 
   const update = useCallback(
-    (patch: Partial<Record<K | "page", string | null>>, options: { replace?: boolean } = {}) => {
+    (
+      patch: Partial<Record<K | "page", string | null>>,
+      options: { replace?: boolean } = {},
+    ) => {
       const view = (patch as Record<string, string | null | undefined>).view;
       if (hasView && view) {
         writeStored(viewKey, view);
@@ -57,12 +67,25 @@ export function useUrlState<K extends string>(staticDefaults: Record<K, string>)
       setParams(
         (current) => {
           const next = new URLSearchParams(current);
-          const touchesFilters = Object.keys(patch).some((key) => key !== "page");
-          for (const [key, value] of Object.entries(patch) as Array<[string, string | null | undefined]>) {
+          const touchesFilters = Object.keys(patch).some(
+            (key) => key !== "page",
+          );
+          for (const [key, value] of Object.entries(patch) as Array<
+            [string, string | null | undefined]
+          >) {
             // The view keeps its static fallback, so an explicit choice stays in the URL; the remembered
             // value only fills in when the URL has none.
-            const fallback = key === "view" ? (staticDefaults as Record<string, string>)[key] : (defaults as Record<string, string>)[key];
-            if (value === null || value === undefined || value === "" || value === fallback) next.delete(key);
+            const fallback =
+              key === "view"
+                ? (staticDefaults as Record<string, string>)[key]
+                : (defaults as Record<string, string>)[key];
+            if (
+              value === null ||
+              value === undefined ||
+              value === "" ||
+              value === fallback
+            )
+              next.delete(key);
             else next.set(key, value);
           }
           if (touchesFilters && !("page" in patch)) next.delete("page");

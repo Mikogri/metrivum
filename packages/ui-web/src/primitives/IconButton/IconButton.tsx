@@ -1,11 +1,17 @@
 import type { ReactNode } from "react";
-import { Button as AriaButton, type ButtonProps as AriaButtonProps } from "react-aria-components";
+import {
+  Button as AriaButton,
+  type ButtonProps as AriaButtonProps,
+} from "react-aria-components";
 import { cx } from "../../lib/cx";
 import { Spinner } from "../../components/Spinner/Spinner";
 import { Tooltip, TooltipTrigger } from "../../components/Tooltip/Tooltip";
 import styles from "./IconButton.module.css";
 
-export interface IconButtonProps extends Omit<AriaButtonProps, "className" | "children" | "aria-label"> {
+export interface IconButtonProps extends Omit<
+  AriaButtonProps,
+  "className" | "children" | "aria-label"
+> {
   /** Required accessible name. Also used as the tooltip text. */
   label: string;
   icon: ReactNode;
@@ -26,7 +32,16 @@ export function IconButton({
   ...props
 }: IconButtonProps) {
   const button = (
-    <AriaButton {...props} aria-label={label} className={cx(styles.iconButton, styles[variant], styles[size], className)}>
+    <AriaButton
+      {...props}
+      aria-label={label}
+      className={cx(
+        styles.iconButton,
+        styles[variant],
+        styles[size],
+        className,
+      )}
+    >
       <span aria-hidden="true" className={styles.glyph}>
         {props.isPending ? <Spinner size="sm" tone="current" /> : icon}
       </span>

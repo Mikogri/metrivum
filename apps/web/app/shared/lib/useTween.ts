@@ -25,8 +25,15 @@ export function useTween(target: number[], duration = 450): number[] {
   useEffect(() => {
     const goal = latest.current;
     const from = resample(onScreen.current, goal.length);
-    const still = typeof requestAnimationFrame === "undefined" || typeof matchMedia === "undefined" || matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (still || from.length !== goal.length || from.every((value, i) => value === goal[i])) {
+    const still =
+      typeof requestAnimationFrame === "undefined" ||
+      typeof matchMedia === "undefined" ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (
+      still ||
+      from.length !== goal.length ||
+      from.every((value, i) => value === goal[i])
+    ) {
       onScreen.current = goal;
       setShown(goal);
       return;
@@ -36,7 +43,9 @@ export function useTween(target: number[], duration = 450): number[] {
     const step = (now: number) => {
       const progress = Math.min(1, (now - started) / duration);
       const eased = 1 - Math.pow(1 - progress, 3);
-      const next = goal.map((value, i) => from[i]! + (value - from[i]!) * eased);
+      const next = goal.map(
+        (value, i) => from[i]! + (value - from[i]!) * eased,
+      );
       onScreen.current = next;
       setShown(next);
       if (progress < 1) frame = requestAnimationFrame(step);

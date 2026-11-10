@@ -1,13 +1,29 @@
 /** Date and "time ago" formatting for the integration screens, in the app's language. */
 export function formatDate(value: string, locale: string) {
-  return new Date(value).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
+  return new Date(value).toLocaleDateString(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export function formatDateTime(value: string, locale: string) {
-  return new Date(value).toLocaleString(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  return new Date(value).toLocaleString(locale, {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
-const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [["minute", 60], ["hour", 24], ["day", 7], ["week", 4.35], ["month", 12], ["year", Infinity]];
+const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ["minute", 60],
+  ["hour", 24],
+  ["day", 7],
+  ["week", 4.35],
+  ["month", 12],
+  ["year", Infinity],
+];
 
 /** "2 hours ago" / "2 godziny temu". */
 export function formatAgo(value: string, locale: string, now = Date.now()) {

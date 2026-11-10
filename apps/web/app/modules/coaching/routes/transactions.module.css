@@ -30,14 +30,30 @@
   background: var(--tf-color-surface);
 }
 
-.tile[data-tone="green"] { --tone: var(--tf-color-accent); --tone-soft: var(--tf-color-accent-soft); }
-.tile[data-tone="blue"] { --tone: var(--tf-color-info); --tone-soft: var(--tf-color-info-soft); }
-.tile[data-tone="violet"] { --tone: var(--tf-color-violet); --tone-soft: var(--tf-color-violet-soft); }
-.tile[data-tone="rose"] { --tone: var(--tf-color-danger); --tone-soft: var(--tf-color-danger-soft); }
+.tile[data-tone="green"] {
+  --tone: var(--tf-color-accent);
+  --tone-soft: var(--tf-color-accent-soft);
+}
+.tile[data-tone="blue"] {
+  --tone: var(--tf-color-info);
+  --tone-soft: var(--tf-color-info-soft);
+}
+.tile[data-tone="violet"] {
+  --tone: var(--tf-color-violet);
+  --tone-soft: var(--tf-color-violet-soft);
+}
+.tile[data-tone="rose"] {
+  --tone: var(--tf-color-danger);
+  --tone-soft: var(--tf-color-danger-soft);
+}
 
 .tile[data-alert] {
   border-color: color-mix(in srgb, var(--tf-color-danger) 55%, transparent);
-  background: color-mix(in srgb, var(--tf-color-danger) 7%, var(--tf-color-surface));
+  background: color-mix(
+    in srgb,
+    var(--tf-color-danger) 7%,
+    var(--tf-color-surface)
+  );
 }
 
 /* Empty window: one wide, quiet row across the tile grid. */
@@ -161,7 +177,10 @@
 }
 
 .tabCount[data-danger] {
-  background: var(--tf-color-danger-soft, color-mix(in srgb, var(--tf-color-danger) 18%, transparent));
+  background: var(
+    --tf-color-danger-soft,
+    color-mix(in srgb, var(--tf-color-danger) 18%, transparent)
+  );
   color: var(--tf-color-danger);
 }
 
@@ -195,7 +214,9 @@
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows 280ms var(--tf-ease-out, ease-out), opacity 200ms ease;
+  transition:
+    grid-template-rows 280ms var(--tf-ease-out, ease-out),
+    opacity 200ms ease;
 }
 
 .moreWrap[data-open] {
@@ -209,7 +230,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .moreWrap { transition: none; }
+  .moreWrap {
+    transition: none;
+  }
 }
 
 .more {
@@ -319,9 +342,14 @@
   align-items: center;
   gap: var(--tf-space-3);
   padding: var(--tf-space-3) var(--tf-space-4);
-  border: 1px solid color-mix(in srgb, var(--tf-color-danger) 30%, var(--tf-color-border));
+  border: 1px solid
+    color-mix(in srgb, var(--tf-color-danger) 30%, var(--tf-color-border));
   border-radius: var(--tf-radius-lg);
-  background: color-mix(in srgb, var(--tf-color-danger) 6%, var(--tf-color-surface));
+  background: color-mix(
+    in srgb,
+    var(--tf-color-danger) 6%,
+    var(--tf-color-surface)
+  );
   font-size: var(--tf-text-sm);
 }
 

@@ -46,7 +46,11 @@
   border: 1px solid var(--tf-color-border-strong);
   border-radius: var(--tf-radius-xl);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--tf-color-text) 2.5%, transparent), transparent 30%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--tf-color-text) 2.5%, transparent),
+      transparent 30%
+    ),
     var(--tf-color-surface);
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--tf-color-text) 6%, transparent) inset,
@@ -228,7 +232,9 @@
 .headRow,
 .row {
   display: grid;
-  grid-template-columns: minmax(9rem, 2.2fr) minmax(5.5rem, 1.1fr) 0.8fr 1.3fr 0.9fr 0.8fr;
+  grid-template-columns:
+    minmax(9rem, 2.2fr) minmax(5.5rem, 1.1fr)
+    0.8fr 1.3fr 0.9fr 0.8fr;
 }
 
 .headCell {
@@ -317,7 +323,8 @@
   border: 1.5px solid var(--tf-color-accent);
   border-radius: var(--tf-radius-sm);
   background: color-mix(in srgb, var(--tf-color-accent) 6%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tf-color-accent) 12%, transparent);
+  box-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--tf-color-accent) 12%, transparent);
   opacity: 0;
   pointer-events: none;
   transition:

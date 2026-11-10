@@ -18,27 +18,91 @@ public class AttachmentValidationTests
     {
         var bytes = Convert.FromHexString(hex);
         AttachmentValidation.Validate(mime, bytes.Length, new(bytes.Length, mime, bytes), new());
-        Assert.Throws<ApiException>(() => AttachmentValidation.Validate(mime, bytes.Length + 1, new(bytes.Length, mime, bytes), new()));
-        Assert.Throws<ApiException>(() => AttachmentValidation.Validate(mime, bytes.Length, new(bytes.Length, mime, bytes), new() { AllowedAttachmentTypes = [] }));
-        Assert.Throws<ApiException>(() => AttachmentValidation.Validate(mime, bytes.Length, new(bytes.Length, "text/html", bytes), new()));
+        Assert.Throws<ApiException>(() =>
+            AttachmentValidation.Validate(
+                mime,
+                bytes.Length + 1,
+                new(bytes.Length, mime, bytes),
+                new()
+            )
+        );
+        Assert.Throws<ApiException>(() =>
+            AttachmentValidation.Validate(
+                mime,
+                bytes.Length,
+                new(bytes.Length, mime, bytes),
+                new() { AllowedAttachmentTypes = [] }
+            )
+        );
+        Assert.Throws<ApiException>(() =>
+            AttachmentValidation.Validate(
+                mime,
+                bytes.Length,
+                new(bytes.Length, "text/html", bytes),
+                new()
+            )
+        );
     }
 
     [Fact]
     public void Arbitrary_bytes_cannot_become_image_and_binary_cannot_become_text()
     {
-        Assert.Throws<ApiException>(() => AttachmentValidation.Validate("image/png", 5, new(5, "image/png", "hello"u8.ToArray()), new()));
-        Assert.Throws<ApiException>(() => AttachmentValidation.Validate("text/plain", 2, new(2, "text/plain", [0, 255]), new()));
+        Assert.Throws<ApiException>(() =>
+            AttachmentValidation.Validate(
+                "image/png",
+                5,
+                new(5, "image/png", "hello"u8.ToArray()),
+                new()
+            )
+        );
+        Assert.Throws<ApiException>(() =>
+            AttachmentValidation.Validate("text/plain", 2, new(2, "text/plain", [0, 255]), new())
+        );
     }
 
     [Fact]
     public async Task Voice_duration_is_derived_from_complete_pcm_and_cannot_be_forged()
     {
         var bytes = Wav();
-        Assert.Equal(1000, await AttachmentValidation.WavDurationAsync(new MemoryStream(bytes), bytes.Length, 1000, default));
-        Assert.Equal("MEDIA_DURATION_INVALID", (await Assert.ThrowsAsync<ApiException>(() => AttachmentValidation.WavDurationAsync(new MemoryStream(bytes), bytes.Length, 999, default))).Code);
-        await Assert.ThrowsAsync<ApiException>(() => AttachmentValidation.WavDurationAsync(new MemoryStream(bytes[..^1]), bytes.Length, 1000, default));
+        Assert.Equal(
+            1000,
+            await AttachmentValidation.WavDurationAsync(
+                new MemoryStream(bytes),
+                bytes.Length,
+                1000,
+                default
+            )
+        );
+        Assert.Equal(
+            "MEDIA_DURATION_INVALID",
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    AttachmentValidation.WavDurationAsync(
+                        new MemoryStream(bytes),
+                        bytes.Length,
+                        999,
+                        default
+                    )
+                )
+            ).Code
+        );
+        await Assert.ThrowsAsync<ApiException>(() =>
+            AttachmentValidation.WavDurationAsync(
+                new MemoryStream(bytes[..^1]),
+                bytes.Length,
+                1000,
+                default
+            )
+        );
         bytes[28] = 1;
-        await Assert.ThrowsAsync<ApiException>(() => AttachmentValidation.WavDurationAsync(new MemoryStream(bytes), bytes.Length, 1000, default));
+        await Assert.ThrowsAsync<ApiException>(() =>
+            AttachmentValidation.WavDurationAsync(
+                new MemoryStream(bytes),
+                bytes.Length,
+                1000,
+                default
+            )
+        );
     }
 
     private static byte[] Wav()

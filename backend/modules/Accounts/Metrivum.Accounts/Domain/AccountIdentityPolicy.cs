@@ -18,14 +18,66 @@ public static partial class AccountIdentityPolicy
     public const int NamePartMaxLength = 50;
 
     /// <summary>Names a person could use to impersonate the service or its staff, compared case-insensitively.</summary>
-    public static readonly IReadOnlySet<string> ReservedUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    public static readonly IReadOnlySet<string> ReservedUsernames = new HashSet<string>(
+        StringComparer.OrdinalIgnoreCase
+    )
     {
-        "admin", "administrator", "root", "system", "sysadmin", "superuser", "support", "help", "helpdesk",
-        "staff", "team", "official", "moderator", "mod", "security", "abuse", "privacy", "legal", "billing",
-        "payments", "noreply", "no_reply", "postmaster", "webmaster", "hostmaster", "mailer", "info", "contact",
-        "api", "www", "app", "auth", "login", "logout", "signin", "signup", "register", "onboarding",
-        "settings", "account", "accounts", "profile", "me", "null", "undefined", "anonymous", "unknown",
-        "everyone", "all", "here", "owner", "coaches", "clients", "status", "test", "demo"
+        "admin",
+        "administrator",
+        "root",
+        "system",
+        "sysadmin",
+        "superuser",
+        "support",
+        "help",
+        "helpdesk",
+        "staff",
+        "team",
+        "official",
+        "moderator",
+        "mod",
+        "security",
+        "abuse",
+        "privacy",
+        "legal",
+        "billing",
+        "payments",
+        "noreply",
+        "no_reply",
+        "postmaster",
+        "webmaster",
+        "hostmaster",
+        "mailer",
+        "info",
+        "contact",
+        "api",
+        "www",
+        "app",
+        "auth",
+        "login",
+        "logout",
+        "signin",
+        "signup",
+        "register",
+        "onboarding",
+        "settings",
+        "account",
+        "accounts",
+        "profile",
+        "me",
+        "null",
+        "undefined",
+        "anonymous",
+        "unknown",
+        "everyone",
+        "all",
+        "here",
+        "owner",
+        "coaches",
+        "clients",
+        "status",
+        "test",
+        "demo",
     };
 
     /// <summary>
@@ -35,12 +87,24 @@ public static partial class AccountIdentityPolicy
     /// </summary>
     public static void ValidateUsername(string? username)
     {
-        if (string.IsNullOrEmpty(username) || !UsernamePattern().IsMatch(username) || username.Contains("__", StringComparison.Ordinal))
-            throw UsernameError("USERNAME_INVALID",
-                $"Username must be {UsernameMinLength}-{UsernameMaxLength} characters: letters, digits and single underscores, starting with a letter and not ending with an underscore.");
-        if (ReservedUsernames.Contains(username) || username.StartsWith("trainflow", StringComparison.OrdinalIgnoreCase)
-            || username.StartsWith("metrivum", StringComparison.OrdinalIgnoreCase))
-            throw UsernameError("USERNAME_RESERVED", "This username is reserved. Choose another one.");
+        if (
+            string.IsNullOrEmpty(username)
+            || !UsernamePattern().IsMatch(username)
+            || username.Contains("__", StringComparison.Ordinal)
+        )
+            throw UsernameError(
+                "USERNAME_INVALID",
+                $"Username must be {UsernameMinLength}-{UsernameMaxLength} characters: letters, digits and single underscores, starting with a letter and not ending with an underscore."
+            );
+        if (
+            ReservedUsernames.Contains(username)
+            || username.StartsWith("trainflow", StringComparison.OrdinalIgnoreCase)
+            || username.StartsWith("metrivum", StringComparison.OrdinalIgnoreCase)
+        )
+            throw UsernameError(
+                "USERNAME_RESERVED",
+                "This username is reserved. Choose another one."
+            );
     }
 
     /// <summary>The comparison key for uniqueness and exact lookups. Valid usernames are ASCII, so this is culture-free.</summary>
@@ -56,14 +120,27 @@ public static partial class AccountIdentityPolicy
 
     /// <summary>A first or last name: the same Unicode rules as the display name, at most 50 characters.</summary>
     public static string NormalizeNamePart(string? value, bool last) =>
-        NormalizeName(value, last ? "Last name" : "First name", NamePartMaxLength,
-            message => new ApiException(400, "NAME_INVALID", message, new Dictionary<string, string[]> { [last ? "lastName" : "firstName"] = [message] }));
+        NormalizeName(
+            value,
+            last ? "Last name" : "First name",
+            NamePartMaxLength,
+            message => new ApiException(
+                400,
+                "NAME_INVALID",
+                message,
+                new Dictionary<string, string[]> { [last ? "lastName" : "firstName"] = [message] }
+            )
+        );
 
     /// <summary>
     /// The name of an account from a request: first and last name when given (the display name is then built from them),
     /// otherwise the older single display name, split at its first space so both parts are still stored.
     /// </summary>
-    public static (string DisplayName, string? FirstName, string? LastName) ResolveName(string? displayName, string? firstName, string? lastName)
+    public static (string DisplayName, string? FirstName, string? LastName) ResolveName(
+        string? displayName,
+        string? firstName,
+        string? lastName
+    )
     {
         if (firstName is not null || lastName is not null)
         {
@@ -73,12 +150,18 @@ public static partial class AccountIdentityPolicy
         }
         var display = NormalizeDisplayName(displayName);
         var space = display.IndexOf(' ');
-        return space < 0 ? (display, display.Length <= NamePartMaxLength ? display : null, null)
+        return space < 0
+            ? (display, display.Length <= NamePartMaxLength ? display : null, null)
             : (display, Fit(display[..space]), Fit(display[(space + 1)..]));
         static string? Fit(string part) => part.Length <= NamePartMaxLength ? part : null;
     }
 
-    private static string NormalizeName(string? value, string label, int maxLength, Func<string, ApiException> error)
+    private static string NormalizeName(
+        string? value,
+        string label,
+        int maxLength,
+        Func<string, ApiException> error
+    )
     {
         if (value is null)
             throw error($"{label} is required.");
@@ -88,13 +171,21 @@ public static partial class AccountIdentityPolicy
         var pendingSpace = false;
         foreach (var rune in value.Normalize(NormalizationForm.FormC).EnumerateRunes())
         {
-            if (rune.Value is ' ' or '\t' || (Rune.IsWhiteSpace(rune) && Rune.GetUnicodeCategory(rune) == UnicodeCategory.SpaceSeparator))
+            if (
+                rune.Value is ' ' or '\t'
+                || (
+                    Rune.IsWhiteSpace(rune)
+                    && Rune.GetUnicodeCategory(rune) == UnicodeCategory.SpaceSeparator
+                )
+            )
             {
                 pendingSpace = builder.Length > 0;
                 continue;
             }
             if (!IsAllowedDisplayRune(rune))
-                throw error($"{label} cannot contain control, line-break, invisible or text-direction characters.");
+                throw error(
+                    $"{label} cannot contain control, line-break, invisible or text-direction characters."
+                );
             if (pendingSpace)
                 builder.Append(' ');
             pendingSpace = false;
@@ -121,7 +212,12 @@ public static partial class AccountIdentityPolicy
             throw BioError("The introduction must contain valid Unicode text.");
         var builder = new StringBuilder(bio.Length);
         var newlines = 0;
-        foreach (var rune in bio.Normalize(NormalizationForm.FormC).Replace("\r\n", "\n").Replace('\r', '\n').EnumerateRunes())
+        foreach (
+            var rune in bio.Normalize(NormalizationForm.FormC)
+                .Replace("\r\n", "\n")
+                .Replace('\r', '\n')
+                .EnumerateRunes()
+        )
         {
             if (rune.Value == '\n')
             {
@@ -129,20 +225,26 @@ public static partial class AccountIdentityPolicy
                 continue;
             }
             if (!IsAllowedDisplayRune(rune) && rune.Value != '\t')
-                throw BioError("The introduction cannot contain control, invisible or text-direction characters.");
+                throw BioError(
+                    "The introduction cannot contain control, invisible or text-direction characters."
+                );
             if (newlines > 0 && builder.Length > 0)
                 builder.Append(newlines > 1 ? "\n\n" : "\n");
             newlines = 0;
             builder.Append(rune.Value == '\t' ? " " : rune.ToString());
         }
-        var normalized = string.Join('\n', builder.ToString().Split('\n').Select(line => line.Trim())).Trim();
+        var normalized = string.Join(
+                '\n',
+                builder.ToString().Split('\n').Select(line => line.Trim())
+            )
+            .Trim();
         if (normalized.Length > BioMaxLength)
             throw BioError($"The introduction must be at most {BioMaxLength} characters.");
         return normalized.Length == 0 ? null : normalized;
     }
 
-    private static ApiException BioError(string message) => new(400, "BIO_INVALID", message,
-        new Dictionary<string, string[]> { ["bio"] = [message] });
+    private static ApiException BioError(string message) =>
+        new(400, "BIO_INVALID", message, new Dictionary<string, string[]> { ["bio"] = [message] });
 
     private static bool IsAllowedDisplayRune(Rune rune)
     {
@@ -151,9 +253,13 @@ public static partial class AccountIdentityPolicy
             return true;
         return Rune.GetUnicodeCategory(rune) switch
         {
-            UnicodeCategory.Control or UnicodeCategory.Format or UnicodeCategory.LineSeparator
-                or UnicodeCategory.ParagraphSeparator or UnicodeCategory.PrivateUse or UnicodeCategory.Surrogate => false,
-            _ => true
+            UnicodeCategory.Control
+            or UnicodeCategory.Format
+            or UnicodeCategory.LineSeparator
+            or UnicodeCategory.ParagraphSeparator
+            or UnicodeCategory.PrivateUse
+            or UnicodeCategory.Surrogate => false,
+            _ => true,
         };
     }
 
@@ -164,14 +270,22 @@ public static partial class AccountIdentityPolicy
             _ = new UTF8Encoding(false, true).GetByteCount(value);
             return true;
         }
-        catch (EncoderFallbackException) { return false; }
+        catch (EncoderFallbackException)
+        {
+            return false;
+        }
     }
 
     private static ApiException UsernameError(string code, string message) =>
         new(400, code, message, new Dictionary<string, string[]> { ["username"] = [message] });
 
     private static ApiException DisplayNameError(string message) =>
-        new(400, "DISPLAY_NAME_INVALID", message, new Dictionary<string, string[]> { ["displayName"] = [message] });
+        new(
+            400,
+            "DISPLAY_NAME_INVALID",
+            message,
+            new Dictionary<string, string[]> { ["displayName"] = [message] }
+        );
 
     [GeneratedRegex(@"\A[A-Za-z][A-Za-z0-9_]{1,30}[A-Za-z0-9]\z", RegexOptions.CultureInvariant)]
     private static partial Regex UsernamePattern();

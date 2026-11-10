@@ -136,7 +136,9 @@
   color: var(--tf-color-text-secondary);
   font: inherit;
   cursor: pointer;
-  transition: color 160ms ease, transform 200ms var(--tf-ease-out, ease-out);
+  transition:
+    color 160ms ease,
+    transform 200ms var(--tf-ease-out, ease-out);
 }
 
 .stepBack svg {

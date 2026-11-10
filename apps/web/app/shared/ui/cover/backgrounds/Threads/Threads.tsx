@@ -2,11 +2,14 @@
 /* eslint-disable */
 // Profile cover: React Bits "Threads" background, copied unchanged from
 // https://github.com/DavidHDev/react-bits (MIT + Commons Clause). Loaded on demand by ../catalog.ts.
-import { useEffect, useRef, type HTMLAttributes } from 'react';
+import { useEffect, useRef, type HTMLAttributes } from "react";
 
-import './Threads.css';
+import "./Threads.css";
 
-export interface ThreadsProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'> {
+export interface ThreadsProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "color"
+> {
   color?: string | [number, number, number];
   accentColor?: string | [number, number, number];
   amplitude?: number;
@@ -186,7 +189,8 @@ void main() {
 
 const MAX_RENDER_DIM = 1920;
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
   const shader = gl.createShader(type);
@@ -198,7 +202,11 @@ const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
   return null;
 };
 
-const link = (gl: WebGL2RenderingContext, vertexSource: string, fragmentSource: string) => {
+const link = (
+  gl: WebGL2RenderingContext,
+  vertexSource: string,
+  fragmentSource: string,
+) => {
   const vertex = compile(gl, gl.VERTEX_SHADER, vertexSource);
   const fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
   const program = gl.createProgram();
@@ -213,7 +221,11 @@ const link = (gl: WebGL2RenderingContext, vertexSource: string, fragmentSource: 
   return null;
 };
 
-const locate = (gl: WebGL2RenderingContext, program: WebGLProgram, names: string[]) => {
+const locate = (
+  gl: WebGL2RenderingContext,
+  program: WebGLProgram,
+  names: string[],
+) => {
   const result: Record<string, WebGLUniformLocation | null> = {};
   for (const name of names) result[name] = gl.getUniformLocation(program, name);
   return result;
@@ -245,8 +257,10 @@ const Threads = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wakeRef = useRef<(() => void) | null>(null);
-  const colorKey = `${Array.isArray(color) ? color.join(',') : String(color)}|${
-    Array.isArray(accentColor) ? accentColor.join(',') : String(accentColor ?? '')
+  const colorKey = `${Array.isArray(color) ? color.join(",") : String(color)}|${
+    Array.isArray(accentColor)
+      ? accentColor.join(",")
+      : String(accentColor ?? "")
   }`;
   const settings: Settings = {
     color,
@@ -269,7 +283,7 @@ const Threads = ({
     brightness: clamp(brightness, 0.25, 2),
     fade: clamp(fade, 0, 1),
     opacity: clamp(opacity, 0, 1),
-    paused
+    paused,
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -277,12 +291,12 @@ const Threads = ({
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
-    const gl = canvas?.getContext('webgl2', {
+    const gl = canvas?.getContext("webgl2", {
       alpha: true,
       premultipliedAlpha: true,
       antialias: false,
       depth: false,
-      stencil: false
+      stencil: false,
     });
     if (!container || !canvas || !gl) return undefined;
 
@@ -291,32 +305,38 @@ const Threads = ({
     if (!lineProgram || !screenProgram) return undefined;
 
     const lineUniforms = locate(gl, lineProgram, [
-      'uTime',
-      'uResolution',
-      'uFrame',
-      'uAmplitude',
-      'uDistance',
-      'uMouse',
-      'uCount',
-      'uThickness',
-      'uSoftness',
-      'uWaves',
-      'uSplit',
-      'uFray',
-      'uSeed',
-      'uTurn',
-      'uPart',
-      'uTaper',
-      'uColor',
-      'uAccent'
+      "uTime",
+      "uResolution",
+      "uFrame",
+      "uAmplitude",
+      "uDistance",
+      "uMouse",
+      "uCount",
+      "uThickness",
+      "uSoftness",
+      "uWaves",
+      "uSplit",
+      "uFray",
+      "uSeed",
+      "uTurn",
+      "uPart",
+      "uTaper",
+      "uColor",
+      "uAccent",
     ]);
-    const screenUniforms = locate(gl, screenProgram, ['uLines', 'uResolution', 'uFade', 'uOpacity', 'uCurve']);
+    const screenUniforms = locate(gl, screenProgram, [
+      "uLines",
+      "uResolution",
+      "uFade",
+      "uOpacity",
+      "uCurve",
+    ]);
 
     const lineVao = gl.createVertexArray();
     const lineBuffer = gl.createBuffer();
     gl.bindVertexArray(lineVao);
     gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
-    const pointLocation = gl.getAttribLocation(lineProgram, 'aPoint');
+    const pointLocation = gl.getAttribLocation(lineProgram, "aPoint");
     gl.enableVertexAttribArray(pointLocation);
     gl.vertexAttribPointer(pointLocation, 2, gl.FLOAT, false, 0, 0);
 
@@ -324,8 +344,12 @@ const Threads = ({
     const screenBuffer = gl.createBuffer();
     gl.bindVertexArray(screenVao);
     gl.bindBuffer(gl.ARRAY_BUFFER, screenBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    const positionLocation = gl.getAttribLocation(screenProgram, 'aPosition');
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 3, -1, -1, 3]),
+      gl.STATIC_DRAW,
+    );
+    const positionLocation = gl.getAttribLocation(screenProgram, "aPosition");
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null);
@@ -338,17 +362,18 @@ const Threads = ({
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    const probe = document.createElement('canvas');
+    const probe = document.createElement("canvas");
     probe.width = 1;
     probe.height = 1;
-    const probeContext = probe.getContext('2d', { willReadFrequently: true });
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const probeContext = probe.getContext("2d", { willReadFrequently: true });
+    const reduce =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     const state = {
       time: 0,
       width: 1,
       height: 1,
       segments: 0,
-      colorKey: '',
+      colorKey: "",
       color: [1, 1, 1] as number[],
       accent: [1, 1, 1] as number[],
       mouse: [0.5, 0.5],
@@ -356,7 +381,7 @@ const Threads = ({
       pointer: [0, 0],
       targetPointer: [0, 0],
       presence: 0,
-      inside: false
+      inside: false,
     };
     let raf = 0;
     let last = 0;
@@ -364,10 +389,11 @@ const Threads = ({
     let alive = true;
 
     const toRgb = (value: string | number[]): number[] => {
-      if (Array.isArray(value)) return [0, 1, 2].map(i => clamp(Number(value[i] ?? 1), 0, 1));
+      if (Array.isArray(value))
+        return [0, 1, 2].map((i) => clamp(Number(value[i] ?? 1), 0, 1));
       if (!probeContext) return [1, 1, 1];
       probeContext.clearRect(0, 0, 1, 1);
-      probeContext.fillStyle = '#ffffff';
+      probeContext.fillStyle = "#ffffff";
       probeContext.fillStyle = String(value);
       probeContext.fillRect(0, 0, 1, 1);
       const [r, g, b] = probeContext.getImageData(0, 0, 1, 1).data;
@@ -378,7 +404,10 @@ const Threads = ({
       if (s.colorKey === state.colorKey) return;
       state.colorKey = s.colorKey;
       state.color = toRgb(s.color);
-      state.accent = s.accentColor === undefined || s.accentColor === null ? state.color : toRgb(s.accentColor);
+      state.accent =
+        s.accentColor === undefined || s.accentColor === null
+          ? state.color
+          : toRgb(s.accentColor);
     };
 
     const buildStrip = (segments: number) => {
@@ -398,15 +427,34 @@ const Threads = ({
       const height = Math.max(1, container.clientHeight);
       const baseDpr = Math.min(window.devicePixelRatio || 1, 2);
       const longest = Math.max(width, height) * baseDpr;
-      const dpr = longest > MAX_RENDER_DIM ? (baseDpr * MAX_RENDER_DIM) / longest : baseDpr;
+      const dpr =
+        longest > MAX_RENDER_DIM
+          ? (baseDpr * MAX_RENDER_DIM) / longest
+          : baseDpr;
       canvas.width = Math.max(1, Math.round(width * dpr));
       canvas.height = Math.max(1, Math.round(height * dpr));
       state.width = width;
       state.height = height;
       gl.bindTexture(gl.TEXTURE_2D, target);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        canvas.width,
+        canvas.height,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        null,
+      );
       gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target, 0);
+      gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        target,
+        0,
+      );
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       buildStrip(clamp(Math.round(width / 3), 96, 640));
       render();
@@ -450,12 +498,33 @@ const Threads = ({
       gl.uniform1f(lineUniforms.uFray, s.fray);
       gl.uniform1f(lineUniforms.uSeed, s.seed * 13.37);
       gl.uniform2f(lineUniforms.uTurn, cos, sin);
-      gl.uniform4f(lineUniforms.uPart, local[0], local[1], strength, Math.min(w, h) * 0.16);
+      gl.uniform4f(
+        lineUniforms.uPart,
+        local[0],
+        local[1],
+        strength,
+        Math.min(w, h) * 0.16,
+      );
       gl.uniform1f(lineUniforms.uTaper, s.taper);
-      gl.uniform3f(lineUniforms.uColor, state.color[0], state.color[1], state.color[2]);
-      gl.uniform3f(lineUniforms.uAccent, state.accent[0], state.accent[1], state.accent[2]);
+      gl.uniform3f(
+        lineUniforms.uColor,
+        state.color[0],
+        state.color[1],
+        state.color[2],
+      );
+      gl.uniform3f(
+        lineUniforms.uAccent,
+        state.accent[0],
+        state.accent[1],
+        state.accent[2],
+      );
       gl.bindVertexArray(lineVao);
-      gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, (state.segments + 1) * 2, s.lineCount);
+      gl.drawArraysInstanced(
+        gl.TRIANGLE_STRIP,
+        0,
+        (state.segments + 1) * 2,
+        s.lineCount,
+      );
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, w, h);
@@ -488,20 +557,24 @@ const Threads = ({
       const glide = 1 - Math.exp(-dt * 10);
       state.pointer[0] += (state.targetPointer[0] - state.pointer[0]) * glide;
       state.pointer[1] += (state.targetPointer[1] - state.pointer[1]) * glide;
-      state.presence += ((state.inside && s.parting > 0 ? 1 : 0) - state.presence) * (1 - Math.exp(-dt * 4));
+      state.presence +=
+        ((state.inside && s.parting > 0 ? 1 : 0) - state.presence) *
+        (1 - Math.exp(-dt * 4));
       render();
       const settling =
         Math.abs(state.targetMouse[0] - state.mouse[0]) > 0.0005 ||
         Math.abs(state.targetMouse[1] - state.mouse[1]) > 0.0005 ||
         Math.abs(state.targetPointer[0] - state.pointer[0]) > 0.05 ||
         Math.abs(state.targetPointer[1] - state.pointer[1]) > 0.05 ||
-        Math.abs((state.inside && s.parting > 0 ? 1 : 0) - state.presence) > 0.002;
+        Math.abs((state.inside && s.parting > 0 ? 1 : 0) - state.presence) >
+          0.002;
       if (moving || settling) raf = requestAnimationFrame(frame);
       else last = 0;
     };
 
     const wake = () => {
-      if (!raf && alive && visible && !document.hidden) raf = requestAnimationFrame(frame);
+      if (!raf && alive && visible && !document.hidden)
+        raf = requestAnimationFrame(frame);
     };
 
     const onPointerMove = (event: PointerEvent) => {
@@ -513,9 +586,10 @@ const Threads = ({
         state.targetMouse = [x, 1 - y];
         state.targetPointer = [
           event.clientX - rect.left - rect.width / 2,
-          rect.height / 2 - (event.clientY - rect.top)
+          rect.height / 2 - (event.clientY - rect.top),
         ];
-        if (!state.inside && state.presence < 0.01) state.pointer = [...state.targetPointer];
+        if (!state.inside && state.presence < 0.01)
+          state.pointer = [...state.targetPointer];
       } else if (state.inside) {
         state.targetMouse = [0.5, 0.5];
       }
@@ -536,17 +610,17 @@ const Threads = ({
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
-    const intersection = new IntersectionObserver(entries => {
-      visible = entries.some(entry => entry.isIntersecting);
+    const intersection = new IntersectionObserver((entries) => {
+      visible = entries.some((entry) => entry.isIntersecting);
       if (visible) {
         last = 0;
         wake();
       }
     });
     intersection.observe(container);
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-    document.documentElement.addEventListener('pointerleave', onPointerLeave);
-    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    document.documentElement.addEventListener("pointerleave", onPointerLeave);
+    document.addEventListener("visibilitychange", onVisibility);
     resize();
 
     wakeRef.current = () => {
@@ -560,9 +634,12 @@ const Threads = ({
       wakeRef.current = null;
       resizeObserver.disconnect();
       intersection.disconnect();
-      window.removeEventListener('pointermove', onPointerMove);
-      document.documentElement.removeEventListener('pointerleave', onPointerLeave);
-      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener("pointermove", onPointerMove);
+      document.documentElement.removeEventListener(
+        "pointerleave",
+        onPointerLeave,
+      );
+      document.removeEventListener("visibilitychange", onVisibility);
       gl.deleteFramebuffer(framebuffer);
       gl.deleteTexture(target);
       gl.deleteBuffer(lineBuffer);
@@ -578,10 +655,14 @@ const Threads = ({
     wakeRef.current?.();
   });
 
-  const { className = '', ...attributes } = rest;
+  const { className = "", ...attributes } = rest;
 
   return (
-    <div ref={containerRef} className={`threads-container${className ? ` ${className}` : ''}`} {...attributes}>
+    <div
+      ref={containerRef}
+      className={`threads-container${className ? ` ${className}` : ""}`}
+      {...attributes}
+    >
       <canvas ref={canvasRef} className="threads-canvas" aria-hidden="true" />
     </div>
   );

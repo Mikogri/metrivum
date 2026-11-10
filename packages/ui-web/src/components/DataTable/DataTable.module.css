@@ -106,7 +106,9 @@
   border-radius: var(--tf-radius-sm);
 }
 
-.table td :where(button:not([data-row-link]), a:not([data-row-link]), [role="button"]) {
+.table
+  td
+  :where(button:not([data-row-link]), a:not([data-row-link]), [role="button"]) {
   position: relative;
   z-index: 1;
 }

@@ -35,7 +35,9 @@ export function HeroSheet({ flat = false }: { flat?: boolean }) {
     let timer: ReturnType<typeof setTimeout>;
     const move = () => {
       const [row, col] = CURSOR_PATH[index % CURSOR_PATH.length]!;
-      const cell = body.querySelector<HTMLElement>(`[data-cell="${row}-${col}"]`);
+      const cell = body.querySelector<HTMLElement>(
+        `[data-cell="${row}-${col}"]`,
+      );
       if (cell) {
         ring.style.opacity = "1";
         ring.style.width = `${cell.offsetWidth}px`;
@@ -53,7 +55,14 @@ export function HeroSheet({ flat = false }: { flat?: boolean }) {
     return () => clearTimeout(timer);
   }, []);
 
-  const columns = [sheet.columns.exercise, sheet.columns.set, sheet.columns.reps, sheet.columns.load, sheet.columns.effort, sheet.columns.rest];
+  const columns = [
+    sheet.columns.exercise,
+    sheet.columns.set,
+    sheet.columns.reps,
+    sheet.columns.load,
+    sheet.columns.effort,
+    sheet.columns.rest,
+  ];
 
   return (
     <div className={styles.stage} data-flat={flat || undefined}>
@@ -86,39 +95,67 @@ export function HeroSheet({ flat = false }: { flat?: boolean }) {
                 ].map(([Icon, label], i) => {
                   const Glyph = Icon as typeof Table2;
                   return (
-                    <span key={String(label)} className={styles.tool} data-active={i === 0 || undefined} title={String(label)}>
+                    <span
+                      key={String(label)}
+                      className={styles.tool}
+                      data-active={i === 0 || undefined}
+                      title={String(label)}
+                    >
                       <Glyph />
                     </span>
                   );
                 })}
               </div>
-            <div className={styles.table}>
-              <div className={styles.headRow}>
-                {columns.map((column) => (
-                  <span key={column} className={styles.headCell}>
-                    {column}
-                  </span>
-                ))}
+              <div className={styles.table}>
+                <div className={styles.headRow}>
+                  {columns.map((column) => (
+                    <span key={column} className={styles.headCell}>
+                      {column}
+                    </span>
+                  ))}
+                </div>
+                <div ref={bodyRef} className={styles.body}>
+                  {sheet.rows.map((row, r) => (
+                    <div
+                      key={r}
+                      className={styles.row}
+                      style={{ "--r": r } as React.CSSProperties}
+                      data-kind={
+                        r === 0 ? "top" : r === 1 ? "backoff" : undefined
+                      }
+                    >
+                      {[
+                        row.exercise,
+                        row.set,
+                        row.reps,
+                        row.load,
+                        row.effort,
+                        row.rest,
+                      ].map((value, c) => (
+                        <span
+                          key={c}
+                          className={styles.cell}
+                          data-cell={`${r}-${c}`}
+                          data-col={c}
+                        >
+                          <span className={styles.value}>{value}</span>
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                  <span ref={ringRef} className={styles.ring} />
+                </div>
               </div>
-              <div ref={bodyRef} className={styles.body}>
-                {sheet.rows.map((row, r) => (
-                  <div key={r} className={styles.row} style={{ "--r": r } as React.CSSProperties} data-kind={r === 0 ? "top" : r === 1 ? "backoff" : undefined}>
-                    {[row.exercise, row.set, row.reps, row.load, row.effort, row.rest].map((value, c) => (
-                      <span key={c} className={styles.cell} data-cell={`${r}-${c}`} data-col={c}>
-                        <span className={styles.value}>{value}</span>
-                      </span>
-                    ))}
-                  </div>
-                ))}
-                <span ref={ringRef} className={styles.ring} />
-              </div>
-            </div>
             </div>
             {/* Recent edits, listed like a run log. */}
             <div className={styles.log}>
               <span className={styles.logTitle}>{sheet.recentTitle}</span>
               {sheet.recent.map((item, i) => (
-                <span key={item.what} className={styles.logRow} style={{ "--r": i } as React.CSSProperties}>
+                <span
+                  key={item.what}
+                  className={styles.logRow}
+                  style={{ "--r": i } as React.CSSProperties}
+                >
                   <i data-first={i === 0 || undefined} />
                   <span className={styles.logWhat}>{item.what}</span>
                   <span className={styles.logValue}>{item.value}</span>

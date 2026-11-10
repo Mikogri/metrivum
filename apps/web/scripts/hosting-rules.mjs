@@ -5,7 +5,12 @@
 export const SPA_PREFIXES = ["/app", "/auth", "/onboarding"];
 
 /** Never answered with HTML: API calls and build assets must fail loudly when missing. */
-export const NEVER_FALLBACK_PREFIXES = ["/api/", "/assets/", "/brand/", "/anatomy/"];
+export const NEVER_FALLBACK_PREFIXES = [
+  "/api/",
+  "/assets/",
+  "/brand/",
+  "/anatomy/",
+];
 
 /**
  * Decides how a request path is served.
@@ -14,7 +19,8 @@ export const NEVER_FALLBACK_PREFIXES = ["/api/", "/assets/", "/brand/", "/anatom
 export function classify(pathname, exists) {
   let clean;
   try {
-    clean = decodeURIComponent(pathname.split("?")[0]).replace(/\/+$/, "") || "/";
+    clean =
+      decodeURIComponent(pathname.split("?")[0]).replace(/\/+$/, "") || "/";
   } catch {
     return { kind: "not-found" };
   }
@@ -25,9 +31,19 @@ export function classify(pathname, exists) {
   const html = clean === "/" ? "/index.html" : `${clean}/index.html`;
   if (clean !== "/404" && exists(html)) return { kind: "file", path: html };
   // 3. Things that must never be masked by HTML.
-  if (NEVER_FALLBACK_PREFIXES.some((prefix) => clean.startsWith(prefix.replace(/\/$/, "")))) return { kind: "not-found" };
+  if (
+    NEVER_FALLBACK_PREFIXES.some((prefix) =>
+      clean.startsWith(prefix.replace(/\/$/, "")),
+    )
+  )
+    return { kind: "not-found" };
   // 4. Client-rendered areas get the SPA fallback (not the pre-rendered landing).
-  if (SPA_PREFIXES.some((prefix) => clean === prefix || clean.startsWith(`${prefix}/`))) return { kind: "spa" };
+  if (
+    SPA_PREFIXES.some(
+      (prefix) => clean === prefix || clean.startsWith(`${prefix}/`),
+    )
+  )
+    return { kind: "spa" };
   // 5. Everything else is a real 404.
   return { kind: "not-found" };
 }

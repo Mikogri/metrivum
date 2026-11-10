@@ -26,13 +26,21 @@ export interface HeatmapProps {
  * Muscles painted by how much work they get: pale yellow for a little, red for the most-trained muscle.
  * Click a muscle to read its amount.
  */
-export function MuscleHeatmap({ values, label, format, caption }: HeatmapProps) {
+export function MuscleHeatmap({
+  values,
+  label,
+  format,
+  caption,
+}: HeatmapProps) {
   const { locale } = useAppLocale();
   const m = anatomyMessages[locale];
   const model = useAnatomyManifest();
   const { camera, controls } = useViewControls(m);
   const [picked, setPicked] = useState<string | null>(null);
-  const index = useMemo(() => model.data ? mappingIndex(model.data) : null, [model.data]);
+  const index = useMemo(
+    () => (model.data ? mappingIndex(model.data) : null),
+    [model.data],
+  );
   const max = Math.max(0, ...values.values());
   // A mesh shared by several catalogue muscles shows the hardest-worked one.
   const heat = useMemo(() => {
@@ -40,41 +48,95 @@ export function MuscleHeatmap({ values, label, format, caption }: HeatmapProps) 
     if (!index || max <= 0) return result;
     for (const [key, value] of values) {
       if (value <= 0) continue;
-      for (const mesh of index.byMuscle.get(key) ?? []) result.set(mesh, Math.max(result.get(mesh) ?? 0, value / max));
+      for (const mesh of index.byMuscle.get(key) ?? [])
+        result.set(mesh, Math.max(result.get(mesh) ?? 0, value / max));
     }
     return result;
   }, [index, values, max]);
-  const missing = index ? [...values].filter(([key, value]) => value > 0 && !index.byMuscle.get(key)?.size).map(([key]) => key) : [];
+  const missing = index
+    ? [...values]
+        .filter(([key, value]) => value > 0 && !index.byMuscle.get(key)?.size)
+        .map(([key]) => key)
+    : [];
   const pick = (mesh: string) => {
     const keys = index?.byMesh.get(mesh) ?? [];
-    const key = [...keys].sort((a, b) => (values.get(b) ?? 0) - (values.get(a) ?? 0))[0] ?? null;
-    setPicked(current => current === key ? null : key);
+    const key =
+      [...keys].sort(
+        (a, b) => (values.get(b) ?? 0) - (values.get(a) ?? 0),
+      )[0] ?? null;
+    setPicked((current) => (current === key ? null : key));
   };
-  return <div className={`${styles.preview} ${styles.heatmap}`}>
-    <div className={styles.stage}>
-      {model.data ? <Suspense fallback={<div className={styles.placeholder} />}>
-        <AnatomyViewer manifest={model.data} categories={MUSCLES} selected={NONE} heat={heat} followSelection={false}
-          hidden={NONE} isolated={false} transparent={false} camera={camera} onPick={pick} messages={m} />
-      </Suspense> : <div className={styles.placeholder}>{model.isError ? <p className={styles.notice}>{m.failure}</p> : <LoadingState label={m.loading} />}</div>}
-      {controls}
-      {picked ? <div className={styles.heatPick} role="status">
-        <span className={styles.heatSwatch} data-none={(values.get(picked) ?? 0) > 0 ? undefined : ""} aria-hidden="true" />
-        <span className={styles.heatPickName}>{label(picked)}</span>
-        <span className={styles.heatPickValue}>{format(values.get(picked) ?? 0)}</span>
-        <IconButton size="sm" label={m.clear} icon={<X />} onPress={() => setPicked(null)} showTooltip={false} />
-      </div> : null}
-    </div>
-    {/* Under the model: the colour scale with its two ends, what the amount is, and how to read a muscle. */}
-    <footer className={styles.heatFooter}>
-      <div className={styles.heatScale}>
-        <span className={styles.heatNone}><span aria-hidden="true" />{m.heatNone}</span>
-        <span className={styles.heatEnd}>{format(0)}</span>
-        <span className={styles.heatBar} aria-hidden="true" />
-        <span className={styles.heatEnd}>{format(max)}</span>
+  return (
+    <div className={`${styles.preview} ${styles.heatmap}`}>
+      <div className={styles.stage}>
+        {model.data ? (
+          <Suspense fallback={<div className={styles.placeholder} />}>
+            <AnatomyViewer
+              manifest={model.data}
+              categories={MUSCLES}
+              selected={NONE}
+              heat={heat}
+              followSelection={false}
+              hidden={NONE}
+              isolated={false}
+              transparent={false}
+              camera={camera}
+              onPick={pick}
+              messages={m}
+            />
+          </Suspense>
+        ) : (
+          <div className={styles.placeholder}>
+            {model.isError ? (
+              <p className={styles.notice}>{m.failure}</p>
+            ) : (
+              <LoadingState label={m.loading} />
+            )}
+          </div>
+        )}
+        {controls}
+        {picked ? (
+          <div className={styles.heatPick} role="status">
+            <span
+              className={styles.heatSwatch}
+              data-none={(values.get(picked) ?? 0) > 0 ? undefined : ""}
+              aria-hidden="true"
+            />
+            <span className={styles.heatPickName}>{label(picked)}</span>
+            <span className={styles.heatPickValue}>
+              {format(values.get(picked) ?? 0)}
+            </span>
+            <IconButton
+              size="sm"
+              label={m.clear}
+              icon={<X />}
+              onPress={() => setPicked(null)}
+              showTooltip={false}
+            />
+          </div>
+        ) : null}
       </div>
-      <p className={styles.heatCaption}>{caption}</p>
-      <p className={styles.heatHint}>{m.heatHint.charAt(0).toUpperCase() + m.heatHint.slice(1)}.</p>
-      {missing.length ? <p className={styles.heatHint}>{m.heatMissing(missing.map(label).join(", "))}</p> : null}
-    </footer>
-  </div>;
+      {/* Under the model: the colour scale with its two ends, what the amount is, and how to read a muscle. */}
+      <footer className={styles.heatFooter}>
+        <div className={styles.heatScale}>
+          <span className={styles.heatNone}>
+            <span aria-hidden="true" />
+            {m.heatNone}
+          </span>
+          <span className={styles.heatEnd}>{format(0)}</span>
+          <span className={styles.heatBar} aria-hidden="true" />
+          <span className={styles.heatEnd}>{format(max)}</span>
+        </div>
+        <p className={styles.heatCaption}>{caption}</p>
+        <p className={styles.heatHint}>
+          {m.heatHint.charAt(0).toUpperCase() + m.heatHint.slice(1)}.
+        </p>
+        {missing.length ? (
+          <p className={styles.heatHint}>
+            {m.heatMissing(missing.map(label).join(", "))}
+          </p>
+        ) : null}
+      </footer>
+    </div>
+  );
 }

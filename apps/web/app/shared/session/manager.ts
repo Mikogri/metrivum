@@ -1,8 +1,22 @@
 import { AuthError } from "@supabase/supabase-js";
-import type { AuthChangeEvent, Session, SupabaseClient } from "@supabase/supabase-js";
+import type {
+  AuthChangeEvent,
+  Session,
+  SupabaseClient,
+} from "@supabase/supabase-js";
 import { StaleAccountError } from "../http/errors";
-import { authAttemptClient, authClient, type AuthAttemptIdentity } from "./supabase";
-import { ACTIVE_SLOT_STORAGE_KEY, forgetSlot, SLOT_IDS, slotStorageKey, type SlotId } from "./storage-keys";
+import {
+  authAttemptClient,
+  authClient,
+  type AuthAttemptIdentity,
+} from "./supabase";
+import {
+  ACTIVE_SLOT_STORAGE_KEY,
+  forgetSlot,
+  SLOT_IDS,
+  slotStorageKey,
+  type SlotId,
+} from "./storage-keys";
 
 export interface SignedInAccount {
   slot: SlotId;
@@ -24,9 +38,13 @@ type Listener = () => void;
 
 function readActiveSlotPreference(): SlotId | null {
   try {
-    const value = window.sessionStorage.getItem(ACTIVE_SLOT_STORAGE_KEY) ?? window.localStorage.getItem(ACTIVE_SLOT_STORAGE_KEY);
+    const value =
+      window.sessionStorage.getItem(ACTIVE_SLOT_STORAGE_KEY) ??
+      window.localStorage.getItem(ACTIVE_SLOT_STORAGE_KEY);
     const slot = Number(value);
-    return (SLOT_IDS as readonly number[]).includes(slot) ? (slot as SlotId) : null;
+    return (SLOT_IDS as readonly number[]).includes(slot)
+      ? (slot as SlotId)
+      : null;
   } catch {
     return null;
   }
@@ -59,7 +77,12 @@ function hasStoredSession(slot: SlotId): boolean {
  * storage key; the manager only decides which one the UI shows in this tab.
  */
 export class SessionManager {
-  private state: SessionState = { phase: "loading", accounts: [], activeSlot: null, generation: 0 };
+  private state: SessionState = {
+    phase: "loading",
+    accounts: [],
+    activeSlot: null,
+    generation: 0,
+  };
   private listeners = new Set<Listener>();
   private subscriptions = new Map<SlotId, () => void>();
   private refreshes = new Map<string, Promise<Session | null>>();
@@ -81,9 +104,14 @@ export class SessionManager {
 
   private setState(patch: Partial<SessionState>) {
     const next = { ...this.state, ...patch };
-    const previousUser = this.state.accounts.find(a => a.slot === this.state.activeSlot)?.userId;
-    const nextUser = next.accounts.find(a => a.slot === next.activeSlot)?.userId;
-    if (patch.generation === undefined && previousUser !== nextUser) next.generation++;
+    const previousUser = this.state.accounts.find(
+      (a) => a.slot === this.state.activeSlot,
+    )?.userId;
+    const nextUser = next.accounts.find(
+      (a) => a.slot === next.activeSlot,
+    )?.userId;
+    if (patch.generation === undefined && previousUser !== nextUser)
+      next.generation++;
     this.state = next;
     for (const listener of this.listeners) listener();
   }
@@ -108,18 +136,33 @@ export class SessionManager {
         }
         continue; // Network errors retain stored credentials for a later attempt, but grant no session.
       }
-      if (!verified.data.user || verified.data.user.id !== data.session.user.id || verified.data.user.is_anonymous || !verified.data.user.email_confirmed_at) {
+      if (
+        !verified.data.user ||
+        verified.data.user.id !== data.session.user.id ||
+        verified.data.user.is_anonymous ||
+        !verified.data.user.email_confirmed_at
+      ) {
         await client.auth.signOut({ scope: "local" });
         forgetSlot(slot);
         continue;
       }
-      if (!accounts.some(account => account.userId === verified.data.user.id))
-        accounts.push(toAccount(slot, { ...data.session, user: verified.data.user }));
+      if (!accounts.some((account) => account.userId === verified.data.user.id))
+        accounts.push(
+          toAccount(slot, { ...data.session, user: verified.data.user }),
+        );
     }
     const preferred = readActiveSlotPreference();
-    const activeSlot = accounts.find((a) => a.slot === preferred)?.slot ?? accounts[0]?.slot ?? null;
+    const activeSlot =
+      accounts.find((a) => a.slot === preferred)?.slot ??
+      accounts[0]?.slot ??
+      null;
     writeActiveSlotPreference(activeSlot);
-    this.setState({ phase: "ready", accounts, activeSlot, generation: this.state.generation + 1 });
+    this.setState({
+      phase: "ready",
+      accounts,
+      activeSlot,
+      generation: this.state.generation + 1,
+    });
   }
 
   /**
@@ -134,7 +177,10 @@ export class SessionManager {
       const { data } = await client.auth.getSession();
       if (!data.session) continue;
       const verified = await client.auth.getUser(data.session.access_token);
-      const gone = verified.error ? [400, 401, 403, 404].includes(verified.error.status ?? 0) : verified.data.user?.id !== account.userId || !verified.data.user?.email_confirmed_at;
+      const gone = verified.error
+        ? [400, 401, 403, 404].includes(verified.error.status ?? 0)
+        : verified.data.user?.id !== account.userId ||
+          !verified.data.user?.email_confirmed_at;
       if (gone) {
         await this.signOut(account.slot);
         forgetSlot(account.slot);
@@ -145,18 +191,28 @@ export class SessionManager {
   /** Keeps the account list in sync with refreshes, sign-outs and other tabs. */
   private watch(slot: SlotId, client: SupabaseClient) {
     if (this.subscriptions.has(slot)) return;
-    const { data } = client.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
-      if (this.state.phase === "loading" && event === "INITIAL_SESSION") return;
-      if (event === "SIGNED_OUT" && this.signInCleanupSlots.has(slot)) return;
-      const version = (this.authEventVersions.get(slot) ?? 0) + 1;
-      this.authEventVersions.set(slot, version);
-      // Defer: Supabase forbids awaiting other auth calls inside this callback.
-      setTimeout(() => { void this.onAuthEvent(slot, event, session, version); }, 0);
-    });
+    const { data } = client.auth.onAuthStateChange(
+      (event: AuthChangeEvent, session: Session | null) => {
+        if (this.state.phase === "loading" && event === "INITIAL_SESSION")
+          return;
+        if (event === "SIGNED_OUT" && this.signInCleanupSlots.has(slot)) return;
+        const version = (this.authEventVersions.get(slot) ?? 0) + 1;
+        this.authEventVersions.set(slot, version);
+        // Defer: Supabase forbids awaiting other auth calls inside this callback.
+        setTimeout(() => {
+          void this.onAuthEvent(slot, event, session, version);
+        }, 0);
+      },
+    );
     this.subscriptions.set(slot, () => data.subscription.unsubscribe());
   }
 
-  private async onAuthEvent(slot: SlotId, event: AuthChangeEvent, session: Session | null, version: number) {
+  private async onAuthEvent(
+    slot: SlotId,
+    event: AuthChangeEvent,
+    session: Session | null,
+    version: number,
+  ) {
     if (this.authEventVersions.get(slot) !== version) return;
     // Only an explicit sign-out removes an account. Supabase also reports "no session" as INITIAL_SESSION
     // (and on lock or storage errors) while a fresh sign-in in this slot is still being saved.
@@ -166,7 +222,13 @@ export class SessionManager {
       const wasActive = this.state.activeSlot === slot;
       const activeSlot = wasActive ? null : this.state.activeSlot;
       if (wasActive) writeActiveSlotPreference(null);
-      this.setState({ accounts, activeSlot, generation: wasActive ? this.state.generation + 1 : this.state.generation });
+      this.setState({
+        accounts,
+        activeSlot,
+        generation: wasActive
+          ? this.state.generation + 1
+          : this.state.generation,
+      });
       return;
     }
     if (session.user.is_anonymous) return;
@@ -174,69 +236,140 @@ export class SessionManager {
       await this.signOut(slot);
       return;
     }
-    if (!this.state.accounts.some(account => account.slot === slot && account.userId === session.user.id)) {
-      const verified = await this.clientFor(slot).auth.getUser(session.access_token);
-      if (this.authEventVersions.get(slot) !== version || verified.error
-        || verified.data.user?.id !== session.user.id || verified.data.user.is_anonymous || !verified.data.user.email_confirmed_at) return;
+    if (
+      !this.state.accounts.some(
+        (account) =>
+          account.slot === slot && account.userId === session.user.id,
+      )
+    ) {
+      const verified = await this.clientFor(slot).auth.getUser(
+        session.access_token,
+      );
+      if (
+        this.authEventVersions.get(slot) !== version ||
+        verified.error ||
+        verified.data.user?.id !== session.user.id ||
+        verified.data.user.is_anonymous ||
+        !verified.data.user.email_confirmed_at
+      )
+        return;
     }
     const next = toAccount(slot, session);
     // Another saved slot is not a second identity for the same Auth subject.
-    if (this.state.accounts.some(account => account.slot !== slot && account.userId === next.userId)) return;
+    if (
+      this.state.accounts.some(
+        (account) => account.slot !== slot && account.userId === next.userId,
+      )
+    )
+      return;
     const exists = this.state.accounts.some((a) => a.slot === slot);
-    const accounts = exists ? this.state.accounts.map((a) => (a.slot === slot ? next : a)) : [...this.state.accounts, next];
+    const accounts = exists
+      ? this.state.accounts.map((a) => (a.slot === slot ? next : a))
+      : [...this.state.accounts, next];
     this.setState({ accounts });
   }
 
-  client(slot: SlotId, isCurrent?: () => boolean, expected?: AuthAttemptIdentity): SupabaseClient {
+  client(
+    slot: SlotId,
+    isCurrent?: () => boolean,
+    expected?: AuthAttemptIdentity,
+  ): SupabaseClient {
     const client = this.clientFor(slot);
     this.watch(slot, client);
-    const initialSession = expected?.userId ? this.state.accounts.find(a => a.slot === slot && a.userId === expected.userId)?.session : undefined;
-    return isCurrent ? authAttemptClient(slot, isCurrent, expected, initialSession) : client;
+    const initialSession = expected?.userId
+      ? this.state.accounts.find(
+          (a) => a.slot === slot && a.userId === expected.userId,
+        )?.session
+      : undefined;
+    return isCurrent
+      ? authAttemptClient(slot, isCurrent, expected, initialSession)
+      : client;
   }
 
   /** Slot for a new sign-in: an explicit valid request, else the first free slot. */
   slotForNewSignIn(requested?: number | null): SlotId | null {
-    if (requested !== undefined && requested !== null && (SLOT_IDS as readonly number[]).includes(requested)) return requested as SlotId;
-    return SLOT_IDS.find((slot) => !this.state.accounts.some((a) => a.slot === slot)) ?? null;
+    if (
+      requested !== undefined &&
+      requested !== null &&
+      (SLOT_IDS as readonly number[]).includes(requested)
+    )
+      return requested as SlotId;
+    return (
+      SLOT_IDS.find(
+        (slot) => !this.state.accounts.some((a) => a.slot === slot),
+      ) ?? null
+    );
   }
 
   /** Records a fresh sign-in in `slot`. If that person is already signed in elsewhere, keeps one copy. */
-  async completeSignIn(slot: SlotId, session: Session, isCurrent: () => boolean = () => true): Promise<SlotId> {
-    const assertCurrent = () => { if (!isCurrent()) throw new StaleAccountError(); };
+  async completeSignIn(
+    slot: SlotId,
+    session: Session,
+    isCurrent: () => boolean = () => true,
+  ): Promise<SlotId> {
+    const assertCurrent = () => {
+      if (!isCurrent()) throw new StaleAccountError();
+    };
     assertCurrent();
     if (!session.user.email_confirmed_at) {
       await this.signOut(slot);
-      throw new AuthError("Email confirmation is required.", 403, "email_not_confirmed");
+      throw new AuthError(
+        "Email confirmation is required.",
+        403,
+        "email_not_confirmed",
+      );
     }
     // A re-created Auth account may use the old email, but its ID and data must stay separate.
     const address = session.user.email?.trim().toLowerCase();
-    const replaced = this.state.accounts.filter(a => a.slot !== slot && a.userId !== session.user.id
-      && address && a.email?.trim().toLowerCase() === address);
+    const replaced = this.state.accounts.filter(
+      (a) =>
+        a.slot !== slot &&
+        a.userId !== session.user.id &&
+        address &&
+        a.email?.trim().toLowerCase() === address,
+    );
     const cleaned = new Set<SlotId>();
     try {
       for (const old of replaced) {
         // Keep our own cleanup from invalidating the sign-in's generation before it can be accepted.
         this.signInCleanupSlots.add(old.slot);
-        this.authEventVersions.set(old.slot, (this.authEventVersions.get(old.slot) ?? 0) + 1);
-        try { await this.clientFor(old.slot).auth.signOut({ scope: "local" }); }
-        finally { this.signInCleanupSlots.delete(old.slot); cleaned.add(old.slot); }
+        this.authEventVersions.set(
+          old.slot,
+          (this.authEventVersions.get(old.slot) ?? 0) + 1,
+        );
+        try {
+          await this.clientFor(old.slot).auth.signOut({ scope: "local" });
+        } finally {
+          this.signInCleanupSlots.delete(old.slot);
+          cleaned.add(old.slot);
+        }
         assertCurrent();
       }
-      const duplicate = this.state.accounts.find((a) => a.userId === session.user.id && a.slot !== slot);
+      const duplicate = this.state.accounts.find(
+        (a) => a.userId === session.user.id && a.slot !== slot,
+      );
       if (duplicate) {
         await this.clientFor(slot).auth.signOut({ scope: "local" });
         assertCurrent();
         this.activate(duplicate.slot);
         return duplicate.slot;
       }
-      const others = this.state.accounts.filter((a) => a.slot !== slot && !cleaned.has(a.slot));
+      const others = this.state.accounts.filter(
+        (a) => a.slot !== slot && !cleaned.has(a.slot),
+      );
       this.setState({ accounts: [...others, toAccount(slot, session)] });
       this.activate(slot);
       return slot;
     } finally {
       // A switch/unmount can abandon acceptance after credentials were already signed out.
       for (const old of replaced) {
-        if (!cleaned.has(old.slot) || !this.state.accounts.some(a => a.slot === old.slot && a.userId === old.userId)) continue;
+        if (
+          !cleaned.has(old.slot) ||
+          !this.state.accounts.some(
+            (a) => a.slot === old.slot && a.userId === old.userId,
+          )
+        )
+          continue;
         this.removeAccount(old.slot);
       }
     }
@@ -251,7 +384,10 @@ export class SessionManager {
 
   /** Signs one account out of this browser without touching the others. */
   async signOut(slot: SlotId) {
-    this.authEventVersions.set(slot, (this.authEventVersions.get(slot) ?? 0) + 1);
+    this.authEventVersions.set(
+      slot,
+      (this.authEventVersions.get(slot) ?? 0) + 1,
+    );
     try {
       await this.clientFor(slot).auth.signOut({ scope: "local" });
     } finally {
@@ -262,20 +398,31 @@ export class SessionManager {
   private removeAccount(slot: SlotId) {
     const accounts = this.state.accounts.filter((a) => a.slot !== slot);
     const wasActive = this.state.activeSlot === slot;
-    const activeSlot = wasActive ? (accounts[0]?.slot ?? null) : this.state.activeSlot;
+    const activeSlot = wasActive
+      ? (accounts[0]?.slot ?? null)
+      : this.state.activeSlot;
     writeActiveSlotPreference(activeSlot);
-    this.setState({ accounts, activeSlot, generation: wasActive ? this.state.generation + 1 : this.state.generation });
+    this.setState({
+      accounts,
+      activeSlot,
+      generation: wasActive ? this.state.generation + 1 : this.state.generation,
+    });
   }
 
-  async accessToken(slot: SlotId, forceRefresh = false, expectedUserId?: string): Promise<string | null> {
+  async accessToken(
+    slot: SlotId,
+    forceRefresh = false,
+    expectedUserId?: string,
+  ): Promise<string | null> {
     const client = this.clientFor(slot);
     let session: Session | null;
     if (forceRefresh) {
-      const key = `${slot}:${this.state.accounts.find(a => a.slot === slot)?.userId ?? ""}`;
+      const key = `${slot}:${this.state.accounts.find((a) => a.slot === slot)?.userId ?? ""}`;
       let pending = this.refreshes.get(key);
       if (!pending) {
-        pending = client.auth.refreshSession()
-          .then(({ data, error }) => error ? null : data.session)
+        pending = client.auth
+          .refreshSession()
+          .then(({ data, error }) => (error ? null : data.session))
           .finally(() => this.refreshes.delete(key));
         this.refreshes.set(key, pending);
       }
@@ -285,7 +432,12 @@ export class SessionManager {
       session = data.session;
     }
     // Auth events are deferred; the SDK can already contain another user's session.
-    if (session && expectedUserId !== undefined && session.user.id !== expectedUserId) throw new StaleAccountError();
+    if (
+      session &&
+      expectedUserId !== undefined &&
+      session.user.id !== expectedUserId
+    )
+      throw new StaleAccountError();
     if (session && !session.user.email_confirmed_at) {
       await this.signOut(slot);
       return null;
@@ -295,7 +447,12 @@ export class SessionManager {
 }
 
 function toAccount(slot: SlotId, session: Session): SignedInAccount {
-  return { slot, userId: session.user.id, email: session.user.email ?? null, session };
+  return {
+    slot,
+    userId: session.user.id,
+    email: session.user.email ?? null,
+    session,
+  };
 }
 
 let singleton: SessionManager | null = null;

@@ -2,8 +2,19 @@ import { useState, type FormEvent } from "react";
 import { Link as RouterLink } from "react-router";
 import { Alert, Button, Card, TextField, toast } from "@metrivum/ui-web";
 import {
-  EMAIL_RESEND_SECONDS, SecondFactorForm, authErrorText, emailChangeUrl, hasPassword, isValidEmail, normalizeEmail, requestEmailChange,
-  securityErrorCode, useCooldown, useTurnstile, verifiedTotp, verifyPassword,
+  EMAIL_RESEND_SECONDS,
+  SecondFactorForm,
+  authErrorText,
+  emailChangeUrl,
+  hasPassword,
+  isValidEmail,
+  normalizeEmail,
+  requestEmailChange,
+  securityErrorCode,
+  useCooldown,
+  useTurnstile,
+  verifiedTotp,
+  verifyPassword,
 } from "~/modules/auth";
 import { useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
@@ -35,18 +46,26 @@ export default function ChangeEmail() {
   const passwordAccount = hasPassword(user);
   const factors = verifiedTotp(user);
   const address = normalizeEmail(email);
-  const problem = !isValidEmail(email) ? m.auth.errors.emailInvalid : address === current.toLowerCase() ? t.sameEmail : null;
+  const problem = !isValidEmail(email)
+    ? m.auth.errors.emailInvalid
+    : address === current.toLowerCase()
+      ? t.sameEmail
+      : null;
   // Without an explicit restart, an open change shows its status first.
   const view = step ?? (pendingAddress ? "pending" : "address");
 
-  const captcha = useTurnstile(`email:${slot}:${account.userId}:${view}:${pendingAddress ?? ""}`);
+  const captcha = useTurnstile(
+    `email:${slot}:${account.userId}:${view}:${pendingAddress ?? ""}`,
+  );
 
   async function checkPassword(): Promise<string | null> {
     if (!passwordAccount) return null;
     if (!password) return t.wrongPassword;
     const captchaOptions = captcha.take();
     if (!captchaOptions) return captcha.unavailable;
-    return await verifyPassword(current, password, captchaOptions) ? null : t.wrongPassword;
+    return (await verifyPassword(current, password, captchaOptions))
+      ? null
+      : t.wrongPassword;
   }
 
   /** Runs once the person is confirmed; Supabase sends both links. */
@@ -61,7 +80,9 @@ export default function ChangeEmail() {
       setPassword("");
       startWait(EMAIL_RESEND_SECONDS);
     } catch (caught) {
-      return securityErrorCode(caught) === "email_exists" ? m.auth.errors.userExists : authErrorText(m, caught);
+      return securityErrorCode(caught) === "email_exists"
+        ? m.auth.errors.userExists
+        : authErrorText(m, caught);
     }
   }
 
@@ -73,7 +94,10 @@ export default function ChangeEmail() {
     try {
       const refused = await checkPassword();
       if (!lifecycle.isCurrent()) return;
-      if (refused) { setError(refused); return; }
+      if (refused) {
+        setError(refused);
+        return;
+      }
       const failed = await request();
       if (failed) setError(failed);
     } catch (caught) {
@@ -90,7 +114,14 @@ export default function ChangeEmail() {
     setPending(true);
     setError(null);
     try {
-      const { error: resendError } = await client.auth.resend({ type: "email_change", email: pendingAddress, options: { ...captchaOptions, emailRedirectTo: emailChangeUrl(slot, pendingAddress, account.userId) } });
+      const { error: resendError } = await client.auth.resend({
+        type: "email_change",
+        email: pendingAddress,
+        options: {
+          ...captchaOptions,
+          emailRedirectTo: emailChangeUrl(slot, pendingAddress, account.userId),
+        },
+      });
       if (!lifecycle.isCurrent()) return;
       if (resendError) throw resendError;
       toast({ tone: "success", title: t.resent });
@@ -104,34 +135,109 @@ export default function ChangeEmail() {
 
   const passwordField = passwordAccount ? (
     <>
-      <input type="email" name="username" autoComplete="username" value={current} readOnly hidden />
-      <TextField label={t.password} type="password" autoComplete="current-password" value={password} onChange={setPassword} isRequired autoFocus />
+      <input
+        type="email"
+        name="username"
+        autoComplete="username"
+        value={current}
+        readOnly
+        hidden
+      />
+      <TextField
+        label={t.password}
+        type="password"
+        autoComplete="current-password"
+        value={password}
+        onChange={setPassword}
+        isRequired
+        autoFocus
+      />
     </>
-  ) : <p className={styles.hint}>{t.noPasswordNote}</p>;
+  ) : (
+    <p className={styles.hint}>{t.noPasswordNote}</p>
+  );
 
   return (
     <SecurityPage title={t.title} description={t.description}>
-      <Card as="section" padding="lg" className={styles.section} aria-label={t.title}>
-        <Steps steps={t.steps} current={view === "address" ? 0 : view === "verify" ? 1 : 2} label={t.title} />
+      <Card
+        as="section"
+        padding="lg"
+        className={styles.section}
+        aria-label={t.title}
+      >
+        <Steps
+          steps={t.steps}
+          current={view === "address" ? 0 : view === "verify" ? 1 : 2}
+          label={t.title}
+        />
         {error ? <Alert tone="danger" title={error} live="assertive" /> : null}
         {captcha.widget}
         {view === "pending" && pendingAddress ? (
           <>
-            <Alert tone="info" title={t.pendingTitle} live="polite">{t.pendingBody(current, pendingAddress)}</Alert>
+            <Alert tone="info" title={t.pendingTitle} live="polite">
+              {t.pendingBody(current, pendingAddress)}
+            </Alert>
             <div className={styles.actions}>
-              <Button loading={pending} isDisabled={wait > 0 || !captcha.ready} onPress={() => void resend()}>{wait > 0 ? m.accountSecurity.password.resendIn(wait) : t.resend}</Button>
-              <Button variant="ghost" onPress={() => { setStep("address"); setError(null); }}>{t.startOver}</Button>
+              <Button
+                loading={pending}
+                isDisabled={wait > 0 || !captcha.ready}
+                onPress={() => void resend()}
+              >
+                {wait > 0
+                  ? m.accountSecurity.password.resendIn(wait)
+                  : t.resend}
+              </Button>
+              <Button
+                variant="ghost"
+                onPress={() => {
+                  setStep("address");
+                  setError(null);
+                }}
+              >
+                {t.startOver}
+              </Button>
             </div>
             <p className={styles.quiet}>{t.expiredHint}</p>
           </>
         ) : view === "address" ? (
-          <form className={styles.section} noValidate onSubmit={(event) => { event.preventDefault(); setSubmitted(true); if (!problem) { setError(null); setStep("verify"); } }}>
+          <form
+            className={styles.section}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              setSubmitted(true);
+              if (!problem) {
+                setError(null);
+                setStep("verify");
+              }
+            }}
+          >
             <TextField label={t.current} value={current} isReadOnly />
-            <TextField label={t.newEmail} placeholder={m.common.ph.email} type="email" autoComplete="email" value={email} onChange={setEmail} isRequired autoFocus
-              isInvalid={submitted && Boolean(problem)} errorMessage={problem ?? undefined} />
+            <TextField
+              label={t.newEmail}
+              placeholder={m.common.ph.email}
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={setEmail}
+              isRequired
+              autoFocus
+              isInvalid={submitted && Boolean(problem)}
+              errorMessage={problem ?? undefined}
+            />
             <div className={styles.actions}>
-              <Button type="submit" variant="primary" isDisabled={!email.trim()}>{t.next}</Button>
-              {pendingAddress ? <Button variant="ghost" onPress={() => setStep(null)}>{m.common.cancel}</Button> : null}
+              <Button
+                type="submit"
+                variant="primary"
+                isDisabled={!email.trim()}
+              >
+                {t.next}
+              </Button>
+              {pendingAddress ? (
+                <Button variant="ghost" onPress={() => setStep(null)}>
+                  {m.common.cancel}
+                </Button>
+              ) : null}
             </div>
           </form>
         ) : (
@@ -141,20 +247,48 @@ export default function ChangeEmail() {
               <p className={styles.hint}>{t.verifyBody(address)}</p>
             </div>
             {factors.length ? (
-              <SecondFactorForm slot={slot} factors={factors} check={checkPassword} onVerified={request} submitLabel={t.submit} block={false}>
+              <SecondFactorForm
+                slot={slot}
+                factors={factors}
+                check={checkPassword}
+                onVerified={request}
+                submitLabel={t.submit}
+                block={false}
+              >
                 {passwordField}
               </SecondFactorForm>
             ) : (
-              <form className={styles.section} onSubmit={onVerifyWithoutCode} noValidate>
+              <form
+                className={styles.section}
+                onSubmit={onVerifyWithoutCode}
+                noValidate
+              >
                 {passwordField}
-                <div><Button type="submit" variant="primary" loading={pending}>{t.submit}</Button></div>
+                <div>
+                  <Button type="submit" variant="primary" loading={pending}>
+                    {t.submit}
+                  </Button>
+                </div>
               </form>
             )}
-            <div><Button variant="ghost" size="sm" onPress={() => setStep("address")}>{t.change}</Button></div>
+            <div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={() => setStep("address")}
+              >
+                {t.change}
+              </Button>
+            </div>
           </div>
         )}
       </Card>
-      <p className={styles.hint}>{t.lostAccess} <RouterLink to="/app/settings/security/recovery">{t.lostAccessLink}</RouterLink></p>
+      <p className={styles.hint}>
+        {t.lostAccess}{" "}
+        <RouterLink to="/app/settings/security/recovery">
+          {t.lostAccessLink}
+        </RouterLink>
+      </p>
     </SecurityPage>
   );
 }

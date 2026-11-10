@@ -11,8 +11,12 @@ public sealed class ConsistencyDiagnosticTests
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "Metrivum.slnx")))
             root = root.Parent;
         Assert.NotNull(root);
-        var sql = await File.ReadAllTextAsync(Path.Combine(root.FullName, "infra", "diagnostics", "consistency.sql"));
-        await using var connection = new NpgsqlConnection(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"));
+        var sql = await File.ReadAllTextAsync(
+            Path.Combine(root.FullName, "infra", "diagnostics", "consistency.sql")
+        );
+        await using var connection = new NpgsqlConnection(
+            Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")
+        );
         await connection.OpenAsync();
         await using (var command = new NpgsqlCommand(sql, connection))
         await using (var reader = await command.ExecuteReaderAsync())
@@ -34,7 +38,8 @@ public sealed class ConsistencyDiagnosticTests
         }
 
         // Even accidental future writes fail at PostgreSQL, including writes matching zero rows.
-        var guardedWrite = sql[..sql.IndexOf("WITH checks", StringComparison.Ordinal)]
+        var guardedWrite =
+            sql[..sql.IndexOf("WITH checks", StringComparison.Ordinal)]
             + "UPDATE coaching.\"Applications\" SET \"Status\" = \"Status\" WHERE false; ROLLBACK;";
         await using var write = new NpgsqlCommand(guardedWrite, connection);
         var error = await Assert.ThrowsAsync<PostgresException>(() => write.ExecuteNonQueryAsync());

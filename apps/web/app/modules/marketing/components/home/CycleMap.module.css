@@ -38,7 +38,8 @@
 
 .dotOn {
   background: var(--tf-color-accent);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--tf-color-accent) 60%, transparent);
+  box-shadow: 0 0 8px
+    color-mix(in srgb, var(--tf-color-accent) 60%, transparent);
 }
 
 .dotOff {
@@ -109,7 +110,8 @@
 
 .map[data-inview] .dot[data-on] {
   background: var(--tf-color-accent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--tf-color-accent) 55%, transparent);
+  box-shadow: 0 0 12px
+    color-mix(in srgb, var(--tf-color-accent) 55%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

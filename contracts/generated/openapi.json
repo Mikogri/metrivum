@@ -33939,6 +33939,12 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "optional": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         },
         "additionalProperties": false

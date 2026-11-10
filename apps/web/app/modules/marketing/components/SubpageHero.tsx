@@ -4,7 +4,15 @@ import { Spotlight } from "./Spotlight";
 import { SplitHeading } from "./SplitHeading";
 import styles from "./SubpageHero.module.css";
 
-export function SubpageHero({ title, lead, back }: { title: string; lead: string; back?: { to: string; label: string } }) {
+export function SubpageHero({
+  title,
+  lead,
+  back,
+}: {
+  title: string;
+  lead: string;
+  back?: { to: string; label: string };
+}) {
   return (
     <header className={styles.hero}>
       <Spotlight />

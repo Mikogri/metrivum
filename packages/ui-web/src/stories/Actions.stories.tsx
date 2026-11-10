@@ -6,7 +6,14 @@ import { pick } from "./copy";
 const meta = {
   title: "Actions/Button",
   component: Button,
-  parameters: { docs: { description: { component: "Primary actions are white, progress/positive actions use the green accent. Press feedback scales to 0.97." } } },
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Primary actions are white, progress/positive actions use the green accent. Press feedback scales to 0.97.",
+      },
+    },
+  },
 } satisfies Meta<typeof Button>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -15,7 +22,14 @@ export const Variants: Story = {
   render: (_, { globals }) => {
     const t = pick(globals.locale);
     return (
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <Button variant="primary" iconStart={<Rocket />}>
           {t.publish}
         </Button>

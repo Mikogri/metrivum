@@ -9,8 +9,10 @@ public sealed class CatalogRulesTests
     [InlineData("Cafe\u0301 squat", "CAFÉ SQUAT")]
     [InlineData("Ｂｅｎｃｈ\u00a0press", "BENCH PRESS")]
     [InlineData("Żółć", "ŻÓŁĆ")]
-    public void Name_identity_normalizes_unicode_case_and_whitespace(string value, string expected)
-        => Assert.Equal(expected, CatalogText.Normalize(value));
+    public void Name_identity_normalizes_unicode_case_and_whitespace(
+        string value,
+        string expected
+    ) => Assert.Equal(expected, CatalogText.Normalize(value));
 
     [Fact]
     public void Display_text_preserves_case_and_does_not_translate_names()
@@ -26,6 +28,6 @@ public sealed class CatalogRulesTests
     [InlineData("", false)]
     [InlineData("-back", false)]
     [InlineData("upper-back\n", false)]
-    public void Dictionary_keys_are_stable_lowercase_slugs(string key, bool expected)
-        => Assert.Equal(expected, CatalogText.IsDictionaryKey(key));
+    public void Dictionary_keys_are_stable_lowercase_slugs(string key, bool expected) =>
+        Assert.Equal(expected, CatalogText.IsDictionaryKey(key));
 }

@@ -1,6 +1,6 @@
+using Metrivum.BuildingBlocks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
-using Metrivum.BuildingBlocks;
 
 namespace Metrivum.UnitTests;
 
@@ -37,7 +37,9 @@ public sealed class RequestPreconditionsTests
         var error = Assert.Throws<ApiException>(() => RequestPreconditions.RequireVersion(request));
         Assert.Equal(400, error.Status);
         Assert.Equal("VALIDATION_FAILED", error.Code);
-        var legacy = Assert.Throws<ApiException>(() => RequestPreconditions.RequireMediaVersion(request));
+        var legacy = Assert.Throws<ApiException>(() =>
+            RequestPreconditions.RequireMediaVersion(request)
+        );
         Assert.Equal(428, legacy.Status);
         Assert.Equal("IF_MATCH_REQUIRED", legacy.Code);
     }
@@ -47,7 +49,10 @@ public sealed class RequestPreconditionsTests
     {
         var request = new DefaultHttpContext().Request;
         request.Headers.IfMatch = new StringValues(["\"1\"", "\"2\""]);
-        Assert.Equal(400, Assert.Throws<ApiException>(() => RequestPreconditions.RequireVersion(request)).Status);
+        Assert.Equal(
+            400,
+            Assert.Throws<ApiException>(() => RequestPreconditions.RequireVersion(request)).Status
+        );
     }
 
     [Theory]
@@ -55,7 +60,11 @@ public sealed class RequestPreconditionsTests
     [InlineData("IF_MATCH_REQUIRED")]
     public void Preserves_the_endpoint_missing_precondition_code(string code)
     {
-        var error = Assert.Throws<ApiException>(() => code == "VERSION_REQUIRED" ? RequestPreconditions.RequireVersion(new DefaultHttpContext().Request) : RequestPreconditions.RequireMediaVersion(new DefaultHttpContext().Request));
+        var error = Assert.Throws<ApiException>(() =>
+            code == "VERSION_REQUIRED"
+                ? RequestPreconditions.RequireVersion(new DefaultHttpContext().Request)
+                : RequestPreconditions.RequireMediaVersion(new DefaultHttpContext().Request)
+        );
         Assert.Equal(428, error.Status);
         Assert.Equal(code, error.Code);
     }

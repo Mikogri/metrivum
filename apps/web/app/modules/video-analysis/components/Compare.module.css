@@ -29,7 +29,8 @@
   align-items: center;
   gap: var(--tf-space-2);
   min-width: 0;
-  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2) var(--tf-space-3);
+  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2)
+    var(--tf-space-3);
   border-bottom: 1px solid var(--tf-color-border-subtle);
 }
 
@@ -177,15 +178,29 @@
 }
 
 @container (max-width: 1.75rem) {
-  .phaseSegment > span { visibility: hidden; }
+  .phaseSegment > span {
+    visibility: hidden;
+  }
 }
 
-.phaseSegment[data-kind="eccentric"] { background: var(--phase-eccentric); }
-.phaseSegment[data-kind="pause"] { background: var(--phase-pause); }
-.phaseSegment[data-kind="concentric"] { background: var(--phase-concentric); }
-.phaseKey [data-kind="eccentric"] { --key: var(--phase-eccentric); }
-.phaseKey [data-kind="pause"] { --key: var(--phase-pause); }
-.phaseKey [data-kind="concentric"] { --key: var(--phase-concentric); }
+.phaseSegment[data-kind="eccentric"] {
+  background: var(--phase-eccentric);
+}
+.phaseSegment[data-kind="pause"] {
+  background: var(--phase-pause);
+}
+.phaseSegment[data-kind="concentric"] {
+  background: var(--phase-concentric);
+}
+.phaseKey [data-kind="eccentric"] {
+  --key: var(--phase-eccentric);
+}
+.phaseKey [data-kind="pause"] {
+  --key: var(--phase-pause);
+}
+.phaseKey [data-kind="concentric"] {
+  --key: var(--phase-concentric);
+}
 
 /* Legend swatches use the same colours as the phase segments. */
 .phaseKey {
@@ -207,7 +222,7 @@
 }
 
 .phaseKey li::before {
-  content: '';
+  content: "";
   flex: none;
   width: 1rem;
   height: 0.5rem;
@@ -216,7 +231,9 @@
 }
 
 @media (max-width: 64rem) {
-  .pathRow { grid-template-columns: 1fr; }
+  .pathRow {
+    grid-template-columns: 1fr;
+  }
 }
 
 .hint {
@@ -234,7 +251,9 @@
 }
 
 @media (max-width: 64rem) {
-  .videos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .videos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .option:disabled {

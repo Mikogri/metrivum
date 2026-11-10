@@ -10,7 +10,12 @@ export interface SpinnerProps {
   className?: string;
 }
 
-export function Spinner({ size = "md", tone = "default", label, className }: SpinnerProps) {
+export function Spinner({
+  size = "md",
+  tone = "default",
+  label,
+  className,
+}: SpinnerProps) {
   return (
     <span
       className={cx(styles.spinner, styles[size], styles[tone], className)}
@@ -19,8 +24,20 @@ export function Spinner({ size = "md", tone = "default", label, className }: Spi
       aria-hidden={label ? undefined : true}
     >
       <svg viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" />
-        <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        <circle
+          cx="12"
+          cy="12"
+          r="9"
+          stroke="currentColor"
+          strokeOpacity="0.2"
+          strokeWidth="2.5"
+        />
+        <path
+          d="M21 12a9 9 0 0 0-9-9"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
       </svg>
     </span>
   );

@@ -58,7 +58,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--tf-space-2);
-  padding: var(--tf-space-2-5) var(--tf-space-2) var(--tf-space-2-5) var(--tf-space-4);
+  padding: var(--tf-space-2-5) var(--tf-space-2) var(--tf-space-2-5)
+    var(--tf-space-4);
   border-bottom: 1px solid var(--tf-color-border-subtle);
 }
 
@@ -260,9 +261,13 @@
 }
 
 @keyframes spin {
-  to { rotate: 360deg; }
+  to {
+    rotate: 360deg;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spin { animation-duration: 3s; }
+  .spin {
+    animation-duration: 3s;
+  }
 }

@@ -28,13 +28,32 @@ export function ExercisePicker({
   const m = useT();
   const [search, setSearch] = useState("");
   const debounced = useDebounced(search, 200);
-  const list = useExerciseList({ search: debounced || undefined, pageSize: 30, sort: "name" }, isOpen);
+  const list = useExerciseList(
+    { search: debounced || undefined, pageSize: 30, sort: "name" },
+    isOpen,
+  );
   const items = list.data?.items ?? [];
   return (
-    <Dialog isOpen={isOpen} onOpenChange={onOpenChange} title={title ?? m.editor.picker.title} size="md" closeLabel={m.common.close}>
+    <Dialog
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      title={title ?? m.editor.picker.title}
+      size="md"
+      closeLabel={m.common.close}
+    >
       <div className={styles.body}>
-        <SearchInput aria-label={m.editor.picker.search} placeholder={m.editor.picker.search} value={search} onChange={setSearch} autoFocus />
-        <div className={styles.listWrap} aria-busy={list.isFetching} data-refreshing={list.isFetching && items.length > 0 ? "" : undefined}>
+        <SearchInput
+          aria-label={m.editor.picker.search}
+          placeholder={m.editor.picker.search}
+          value={search}
+          onChange={setSearch}
+          autoFocus
+        />
+        <div
+          className={styles.listWrap}
+          aria-busy={list.isFetching}
+          data-refreshing={list.isFetching && items.length > 0 ? "" : undefined}
+        >
           {list.isFetching && items.length > 0 ? (
             <span className={styles.spinner}>
               <Spinner size="sm" />
@@ -46,9 +65,25 @@ export function ExercisePicker({
             selectionMode="single"
             selectedKeys={selectedId ? [selectedId] : []}
             className={styles.list}
-            renderEmptyState={() => list.isPending || list.isFetching ? (
-              <div className={styles.loading} role="status"><Spinner size="md" /><span>{m.common.loading}</span></div>
-            ) : <p className={styles.empty} role={list.isError ? "alert" : undefined}>{list.isError ? m.editor.picker.failed : debounced ? m.editor.picker.noMatch(debounced) : m.editor.picker.none}</p>}
+            renderEmptyState={() =>
+              list.isPending || list.isFetching ? (
+                <div className={styles.loading} role="status">
+                  <Spinner size="md" />
+                  <span>{m.common.loading}</span>
+                </div>
+              ) : (
+                <p
+                  className={styles.empty}
+                  role={list.isError ? "alert" : undefined}
+                >
+                  {list.isError
+                    ? m.editor.picker.failed
+                    : debounced
+                      ? m.editor.picker.noMatch(debounced)
+                      : m.editor.picker.none}
+                </p>
+              )
+            }
             onAction={(key) => {
               const exercise = items.find((item) => item.id === key);
               if (exercise) {
@@ -58,14 +93,24 @@ export function ExercisePicker({
             }}
           >
             {(item) => (
-              <ListBoxItem id={item.id} textValue={item.name} className={styles.item}>
+              <ListBoxItem
+                id={item.id}
+                textValue={item.name}
+                className={styles.item}
+              >
                 {({ isSelected }) => (
                   <>
                     <span className={styles.text}>
                       <span className={styles.name}>{item.name}</span>
-                      {item.description ? <span className={styles.description}>{item.description}</span> : null}
+                      {item.description ? (
+                        <span className={styles.description}>
+                          {item.description}
+                        </span>
+                      ) : null}
                     </span>
-                    {isSelected ? <Check aria-hidden="true" className={styles.check} /> : null}
+                    {isSelected ? (
+                      <Check aria-hidden="true" className={styles.check} />
+                    ) : null}
                   </>
                 )}
               </ListBoxItem>

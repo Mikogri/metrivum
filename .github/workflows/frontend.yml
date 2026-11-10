@@ -44,6 +44,7 @@ jobs:
       - run: npm install --global npm@11.21.0 --ignore-scripts
       - run: npm ci --ignore-scripts
       - run: npm run test:security-dependencies
+      - run: npm run format:frontend:check
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

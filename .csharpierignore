@@ -1,0 +1,16 @@
+# Only C# source; leave XML/project files and immutable EF history untouched.
+**/*
+!**/
+!**/*.cs
+**/Migrations/**
+**/bin/**
+**/obj/**
+**/*.g.cs
+**/*.generated.cs
+**/*.Designer.cs
+contracts/generated/**
+vendor/**
+.local/**
+.artifacts/**
+artifacts/**
+node_modules/**

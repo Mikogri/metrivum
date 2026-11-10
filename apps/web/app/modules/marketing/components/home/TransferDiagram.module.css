@@ -1,7 +1,10 @@
 /* Three panels joined by small arrows: spreadsheet in, processing, files out. */
 .flow {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.15fr) auto minmax(0, 1fr) auto minmax(
+      0,
+      1fr
+    );
   align-items: stretch;
   gap: var(--tf-space-3);
 }
@@ -84,7 +87,9 @@
 
 .sheet td {
   color: var(--tf-color-text-secondary);
-  transition: color 300ms ease, background-color 300ms ease;
+  transition:
+    color 300ms ease,
+    background-color 300ms ease;
   transition-delay: calc(var(--i) * 120ms);
 }
 
@@ -146,7 +151,10 @@
   border-radius: var(--tf-radius-full);
   font-family: var(--tf-font-mono);
   font-size: 0.625rem;
-  transition: background-color 240ms ease, border-color 240ms ease, color 240ms ease;
+  transition:
+    background-color 240ms ease,
+    border-color 240ms ease,
+    color 240ms ease;
 }
 
 .stepMark svg {
@@ -264,7 +272,9 @@
   box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.8);
   opacity: 0.35;
   transform: translateY(6px);
-  transition: opacity 400ms ease, transform 500ms var(--tf-ease-out);
+  transition:
+    opacity 400ms ease,
+    transform 500ms var(--tf-ease-out);
 }
 
 .flow[data-done] .page {

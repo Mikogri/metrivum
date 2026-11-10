@@ -7,7 +7,8 @@ import { ApiError, isAbortError, NetworkError } from "~/shared/http/errors";
  */
 export function createQueryClient(onFeatureUnavailable: () => void) {
   const handle = (error: unknown) => {
-    if (error instanceof ApiError && error.code === "FEATURE_UNAVAILABLE") onFeatureUnavailable();
+    if (error instanceof ApiError && error.code === "FEATURE_UNAVAILABLE")
+      onFeatureUnavailable();
   };
   return new QueryClient({
     queryCache: new QueryCache({ onError: handle }),
@@ -21,7 +22,10 @@ export function createQueryClient(onFeatureUnavailable: () => void) {
           if (isAbortError(error)) return false;
           // Only transient failures are retried; 4xx (incl. 401/403) never loop.
           if (error instanceof NetworkError) return failureCount < 2;
-          if (error instanceof ApiError) return error.status >= 500 && error.status !== 501 && failureCount < 2;
+          if (error instanceof ApiError)
+            return (
+              error.status >= 500 && error.status !== 501 && failureCount < 2
+            );
           return false;
         },
       },

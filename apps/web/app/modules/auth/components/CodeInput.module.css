@@ -36,7 +36,11 @@
   font-size: var(--tf-text-2xl, 1.5rem);
   font-weight: var(--tf-weight-semibold);
   font-variant-numeric: tabular-nums;
-  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease, transform 160ms var(--tf-ease-out, ease-out);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease,
+    transform 160ms var(--tf-ease-out, ease-out);
 }
 
 .box[data-filled] {
@@ -46,7 +50,12 @@
 
 .box[data-active] {
   border-color: var(--tf-color-focus-ring, var(--tf-color-accent));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-color-focus-ring, var(--tf-color-accent)) 30%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--tf-color-focus-ring, var(--tf-color-accent)) 30%,
+      transparent
+    );
 }
 
 .field[data-invalid] .box {
@@ -85,18 +94,30 @@
 }
 
 @keyframes digit-in {
-  from { transform: scale(0.92); }
+  from {
+    transform: scale(0.92);
+  }
 }
 
 @keyframes caret-blink {
-  50% { opacity: 0; }
+  50% {
+    opacity: 0;
+  }
 }
 
 @media (max-width: 360px) {
-  .boxes { gap: var(--tf-space-1-5); }
-  .box { height: 2.875rem; font-size: var(--tf-text-xl); }
+  .boxes {
+    gap: var(--tf-space-1-5);
+  }
+  .box {
+    height: 2.875rem;
+    font-size: var(--tf-text-xl);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .box[data-filled], .caret { animation: none; }
+  .box[data-filled],
+  .caret {
+    animation: none;
+  }
 }

@@ -121,7 +121,6 @@
   line-height: var(--tf-leading-normal);
 }
 
-
 .tags {
   display: flex;
   flex-wrap: wrap;
@@ -304,7 +303,6 @@
   font-size: var(--tf-text-sm);
   font-weight: var(--tf-weight-medium);
 }
-
 
 /* Cover controls float over the top-right corner of the cover. */
 .coverControls {

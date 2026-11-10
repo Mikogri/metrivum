@@ -1,7 +1,23 @@
-import type { Cycle, ExerciseInstance, Prescription, TrainingDocument, TrainingSet, Workout } from "@metrivum/api-client-web";
+import type {
+  Cycle,
+  ExerciseInstance,
+  Prescription,
+  TrainingDocument,
+  TrainingSet,
+  Workout,
+} from "@metrivum/api-client-web";
 import { formatNumber, parseLocaleNumber } from "~/shared/i18n/format";
 import type { Locale } from "~/shared/i18n/locale";
-import { cloneWithNewIds, copyPrescription, findExercise, locate, newDay, newSet, newWorkout, updateNode } from "./document";
+import {
+  cloneWithNewIds,
+  copyPrescription,
+  findExercise,
+  locate,
+  newDay,
+  newSet,
+  newWorkout,
+  updateNode,
+} from "./document";
 import { parseReps } from "./notation";
 
 // ---------------------------------------------------------------------------------------------
@@ -16,7 +32,12 @@ export interface CycleWorkout {
 export function cycleWorkouts(cycle: Cycle): CycleWorkout[] {
   return [...cycle.days]
     .sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber))
-    .flatMap((day) => day.workouts.map((workout) => ({ workout, dayNumber: Number(day.dayNumber) })));
+    .flatMap((day) =>
+      day.workouts.map((workout) => ({
+        workout,
+        dayNumber: Number(day.dayNumber),
+      })),
+    );
 }
 
 /** "Workout A", "Workout B", … continuing after the workouts already in the cycle. */
@@ -32,18 +53,32 @@ export function nextWorkoutLetter(cycle: Cycle): string {
 }
 
 /** Adds a workout to a cycle on the given day (default: the first day without a workout, else day 1). */
-export function addCycleWorkout(doc: TrainingDocument, cycleId: string, name: string, dayNumber?: number): { doc: TrainingDocument; id: string | null } {
+export function addCycleWorkout(
+  doc: TrainingDocument,
+  cycleId: string,
+  name: string,
+  dayNumber?: number,
+): { doc: TrainingDocument; id: string | null } {
   const at = locate(doc, cycleId);
   if (!at || at.kind !== "cycle") return { doc, id: null };
   const cycle = doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!;
   const length = Number(cycle.dayCount);
-  const used = new Set(cycle.days.filter((d) => d.workouts.length).map((d) => Number(d.dayNumber)));
-  const day = dayNumber ?? (Array.from({ length }, (_, i) => i + 1).find((n) => !used.has(n)) ?? 1);
+  const used = new Set(
+    cycle.days.filter((d) => d.workouts.length).map((d) => Number(d.dayNumber)),
+  );
+  const day =
+    dayNumber ??
+    Array.from({ length }, (_, i) => i + 1).find((n) => !used.has(n)) ??
+    1;
   const workout = newWorkout(name);
   const existing = cycle.days.find((d) => Number(d.dayNumber) === day);
   const days = existing
-    ? cycle.days.map((d) => (d === existing ? { ...d, workouts: [...d.workouts, workout] } : d))
-    : [...cycle.days, { ...newDay(day), workouts: [workout] }].sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
+    ? cycle.days.map((d) =>
+        d === existing ? { ...d, workouts: [...d.workouts, workout] } : d,
+      )
+    : [...cycle.days, { ...newDay(day), workouts: [workout] }].sort(
+        (a, b) => Number(a.dayNumber) - Number(b.dayNumber),
+      );
   return { doc: updateNode(doc, cycleId, { days }), id: workout.id };
 }
 
@@ -51,25 +86,52 @@ export function addCycleWorkout(doc: TrainingDocument, cycleId: string, name: st
  * The cycle without this workout. A day left with no workouts and no note is removed. Returns the day it was on,
  * so reconnecting it elsewhere can keep that day when it fits.
  */
-export function withoutWorkout(cycle: Cycle, workoutId: string): { cycle: Cycle; workout: Workout | null; dayNumber: number | null } {
-  const day = cycle.days.find((d) => d.workouts.some((w) => w.id === workoutId));
+export function withoutWorkout(
+  cycle: Cycle,
+  workoutId: string,
+): { cycle: Cycle; workout: Workout | null; dayNumber: number | null } {
+  const day = cycle.days.find((d) =>
+    d.workouts.some((w) => w.id === workoutId),
+  );
   if (!day) return { cycle, workout: null, dayNumber: null };
   const workout = day.workouts.find((w) => w.id === workoutId)!;
   const days = cycle.days
-    .map((d) => (d === day ? { ...d, workouts: d.workouts.filter((w) => w.id !== workoutId) } : d))
+    .map((d) =>
+      d === day
+        ? { ...d, workouts: d.workouts.filter((w) => w.id !== workoutId) }
+        : d,
+    )
     .filter((d) => d.workouts.length > 0 || d.note);
-  return { cycle: { ...cycle, days }, workout, dayNumber: Number(day.dayNumber) };
+  return {
+    cycle: { ...cycle, days },
+    workout,
+    dayNumber: Number(day.dayNumber),
+  };
 }
 
 /** The cycle with this workout on a day: the wanted day when it exists in the cycle, else the first free day, else day 1. */
-export function withWorkout(cycle: Cycle, workout: Workout, dayNumber?: number | null): Cycle {
+export function withWorkout(
+  cycle: Cycle,
+  workout: Workout,
+  dayNumber?: number | null,
+): Cycle {
   const length = Number(cycle.dayCount);
-  const used = new Set(cycle.days.filter((d) => d.workouts.length).map((d) => Number(d.dayNumber)));
-  const day = dayNumber && dayNumber >= 1 && dayNumber <= length ? dayNumber : (Array.from({ length }, (_, i) => i + 1).find((n) => !used.has(n)) ?? 1);
+  const used = new Set(
+    cycle.days.filter((d) => d.workouts.length).map((d) => Number(d.dayNumber)),
+  );
+  const day =
+    dayNumber && dayNumber >= 1 && dayNumber <= length
+      ? dayNumber
+      : (Array.from({ length }, (_, i) => i + 1).find((n) => !used.has(n)) ??
+        1);
   const existing = cycle.days.find((d) => Number(d.dayNumber) === day);
   const days = existing
-    ? cycle.days.map((d) => (d === existing ? { ...d, workouts: [...d.workouts, workout] } : d))
-    : [...cycle.days, { ...newDay(day), workouts: [workout] }].sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
+    ? cycle.days.map((d) =>
+        d === existing ? { ...d, workouts: [...d.workouts, workout] } : d,
+      )
+    : [...cycle.days, { ...newDay(day), workouts: [workout] }].sort(
+        (a, b) => Number(a.dayNumber) - Number(b.dayNumber),
+      );
   return { ...cycle, days };
 }
 
@@ -84,7 +146,10 @@ export function cycleRuns(doc: TrainingDocument, cycle: Cycle): number | null {
 
 /** Cycles that count for the "only cycle runs until stopped" rule: a lone workout's holder cycle does not. */
 export function countedCycles(doc: TrainingDocument): number {
-  return doc.blocks.reduce((n, b) => n + b.cycles.filter((c) => !c.implicit).length, 0);
+  return doc.blocks.reduce(
+    (n, b) => n + b.cycles.filter((c) => !c.implicit).length,
+    0,
+  );
 }
 
 /** Options for a cycle's repeat count; "open" (until stopped) only when the cycle is the plan's only one. */
@@ -92,16 +157,28 @@ export const REPEAT_CHOICES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
 /** Whether the plan has a workout clients would get (inactive blocks are left out when changes are applied). */
 export function hasActiveWorkout(doc: TrainingDocument): boolean {
-  return doc.blocks.some((b) => !b.inactive && b.cycles.some((c) => c.days.some((d) => d.workouts.length > 0)));
+  return doc.blocks.some(
+    (b) =>
+      !b.inactive &&
+      b.cycles.some((c) => c.days.some((d) => d.workouts.length > 0)),
+  );
 }
 
 /** Rows of a workout card on the sheet: header, column headings, one per exercise, and the add row when editable. */
-export function workoutCardRows(workout: Workout, collapsed: boolean, editable: boolean): number {
+export function workoutCardRows(
+  workout: Workout,
+  collapsed: boolean,
+  editable: boolean,
+): number {
   return collapsed ? 1 : 2 + workout.exercises.length + (editable ? 1 : 0);
 }
 
 /** Moves a workout to another day of its cycle; a day left with no workouts and no note is removed. */
-export function moveWorkoutToDay(doc: TrainingDocument, workoutId: string, dayNumber: number): TrainingDocument {
+export function moveWorkoutToDay(
+  doc: TrainingDocument,
+  workoutId: string,
+  dayNumber: number,
+): TrainingDocument {
   const at = locate(doc, workoutId);
   if (!at || at.kind !== "workout") return doc;
   const cycle = doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!;
@@ -109,34 +186,58 @@ export function moveWorkoutToDay(doc: TrainingDocument, workoutId: string, dayNu
   const from = cycle.days[at.dayIndex!]!;
   if (Number(from.dayNumber) === dayNumber) return doc;
   const workout = from.workouts[at.workoutIndex!]!;
-  let days = cycle.days.map((d) => (d === from ? { ...d, workouts: d.workouts.filter((w) => w.id !== workoutId) } : d));
+  let days = cycle.days.map((d) =>
+    d === from
+      ? { ...d, workouts: d.workouts.filter((w) => w.id !== workoutId) }
+      : d,
+  );
   const target = days.find((d) => Number(d.dayNumber) === dayNumber);
   days = target
-    ? days.map((d) => (d === target ? { ...d, workouts: [...d.workouts, workout] } : d))
+    ? days.map((d) =>
+        d === target ? { ...d, workouts: [...d.workouts, workout] } : d,
+      )
     : [...days, { ...newDay(dayNumber), workouts: [workout] }];
-  days = days.filter((d) => d.workouts.length > 0 || d.note).sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
+  days = days
+    .filter((d) => d.workouts.length > 0 || d.note)
+    .sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
   return updateNode(doc, cycle.id, { days });
 }
 
 /** A copy of the workout (new ids) at the end of a day of the same cycle, which may be its own day. */
-export function copyWorkoutToDay(doc: TrainingDocument, workoutId: string, dayNumber: number): TrainingDocument {
+export function copyWorkoutToDay(
+  doc: TrainingDocument,
+  workoutId: string,
+  dayNumber: number,
+): TrainingDocument {
   const at = locate(doc, workoutId);
   if (!at || at.kind !== "workout") return doc;
   const cycle = doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!;
   if (dayNumber < 1 || dayNumber > Number(cycle.dayCount)) return doc;
-  const copy = cloneWithNewIds(cycle.days[at.dayIndex!]!.workouts[at.workoutIndex!]!);
+  const copy = cloneWithNewIds(
+    cycle.days[at.dayIndex!]!.workouts[at.workoutIndex!]!,
+  );
   const target = cycle.days.find((d) => Number(d.dayNumber) === dayNumber);
   const days = target
-    ? cycle.days.map((d) => (d === target ? { ...d, workouts: [...d.workouts, copy] } : d))
-    : [...cycle.days, { ...newDay(dayNumber), workouts: [copy] }].sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
+    ? cycle.days.map((d) =>
+        d === target ? { ...d, workouts: [...d.workouts, copy] } : d,
+      )
+    : [...cycle.days, { ...newDay(dayNumber), workouts: [copy] }].sort(
+        (a, b) => Number(a.dayNumber) - Number(b.dayNumber),
+      );
   return updateNode(doc, cycle.id, { days });
 }
 
 /** Moves an exercise to another position within its workout. */
-export function reorderExercise(doc: TrainingDocument, instanceId: string, toIndex: number): TrainingDocument {
+export function reorderExercise(
+  doc: TrainingDocument,
+  instanceId: string,
+  toIndex: number,
+): TrainingDocument {
   const at = locate(doc, instanceId);
   if (!at || at.kind !== "exercise") return doc;
-  const workout = doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!.days[at.dayIndex!]!.workouts[at.workoutIndex!]!;
+  const workout =
+    doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!.days[at.dayIndex!]!
+      .workouts[at.workoutIndex!]!;
   const target = Math.max(0, Math.min(toIndex, workout.exercises.length - 1));
   if (target === at.exerciseIndex) return doc;
   const exercises = workout.exercises.slice();
@@ -146,10 +247,15 @@ export function reorderExercise(doc: TrainingDocument, instanceId: string, toInd
 }
 
 /** Moves a workout to another position within its day. */
-export function reorderWorkout(doc: TrainingDocument, workoutId: string, toIndex: number): TrainingDocument {
+export function reorderWorkout(
+  doc: TrainingDocument,
+  workoutId: string,
+  toIndex: number,
+): TrainingDocument {
   const at = locate(doc, workoutId);
   if (!at || at.kind !== "workout") return doc;
-  const day = doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!.days[at.dayIndex!]!;
+  const day =
+    doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!.days[at.dayIndex!]!;
   const target = Math.max(0, Math.min(toIndex, day.workouts.length - 1));
   if (target === at.workoutIndex) return doc;
   const workouts = day.workouts.slice();
@@ -162,20 +268,33 @@ export function reorderWorkout(doc: TrainingDocument, workoutId: string, toIndex
  * Note for a day of the cycle (e.g. what to do on a rest day). A rest day only exists in the
  * document while it has a note; clearing the note of a day without workouts removes the day.
  */
-export function withDayNote(cycle: Cycle, dayNumber: number, note: string): Cycle {
+export function withDayNote(
+  cycle: Cycle,
+  dayNumber: number,
+  note: string,
+): Cycle {
   if (dayNumber < 1 || dayNumber > Number(cycle.dayCount)) return cycle;
   const text = note.slice(0, 2000);
   const existing = cycle.days.find((d) => Number(d.dayNumber) === dayNumber);
   let days = existing
-    ? cycle.days.map((d) => (d === existing ? { ...d, note: text.trim() ? text : null } : d))
+    ? cycle.days.map((d) =>
+        d === existing ? { ...d, note: text.trim() ? text : null } : d,
+      )
     : text.trim()
       ? [...cycle.days, { ...newDay(dayNumber), note: text }]
       : cycle.days;
-  days = days.filter((d) => d.workouts.length > 0 || d.note).sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
+  days = days
+    .filter((d) => d.workouts.length > 0 || d.note)
+    .sort((a, b) => Number(a.dayNumber) - Number(b.dayNumber));
   return { ...cycle, days };
 }
 
-export function setDayNote(doc: TrainingDocument, cycleId: string, dayNumber: number, note: string): TrainingDocument {
+export function setDayNote(
+  doc: TrainingDocument,
+  cycleId: string,
+  dayNumber: number,
+  note: string,
+): TrainingDocument {
   const at = locate(doc, cycleId);
   if (!at || at.kind !== "cycle") return doc;
   const cycle = doc.blocks[at.blockIndex]!.cycles[at.cycleIndex!]!;
@@ -184,10 +303,16 @@ export function setDayNote(doc: TrainingDocument, cycleId: string, dayNumber: nu
 }
 
 /** Every day of the cycle in order, with its workouts (none = rest day) and note. */
-export function cycleCalendar(cycle: Cycle): { dayNumber: number; workouts: Workout[]; note: string }[] {
+export function cycleCalendar(
+  cycle: Cycle,
+): { dayNumber: number; workouts: Workout[]; note: string }[] {
   return Array.from({ length: Number(cycle.dayCount) }, (_, i) => {
     const day = cycle.days.find((d) => Number(d.dayNumber) === i + 1);
-    return { dayNumber: i + 1, workouts: day?.workouts ?? [], note: day?.note ?? "" };
+    return {
+      dayNumber: i + 1,
+      workouts: day?.workouts ?? [],
+      note: day?.note ?? "",
+    };
   });
 }
 
@@ -202,35 +327,57 @@ function first(instance: ExerciseInstance): Prescription {
 }
 
 /** What the load cell shows and which unit its editor opens with (RIR when nothing is set). */
-export function loadOf(p: Prescription): { unit: LoadUnit; value: number | null } {
-  if (p.load) return { unit: p.load.minimum.unit === "Lb" ? "lb" : "kg", value: Number(p.load.minimum.value) };
+export function loadOf(p: Prescription): {
+  unit: LoadUnit;
+  value: number | null;
+} {
+  if (p.load)
+    return {
+      unit: p.load.minimum.unit === "Lb" ? "lb" : "kg",
+      value: Number(p.load.minimum.value),
+    };
   if (p.rpe != null) return { unit: "rpe", value: Number(p.rpe) };
   if (p.rir != null) return { unit: "rir", value: Number(p.rir) };
   return { unit: "rir", value: null };
 }
 
-export function formatLoadCell(locale: Locale, p: Prescription, formulaLabel?: (key: string) => string): string {
-  if (p.loadFormula) return p.loadFormula.builtIn ? (formulaLabel?.(p.loadFormula.builtIn) ?? p.loadFormula.builtIn) : "ƒ";
-  if (p.loadPercent != null) return `${formatNumber(locale, Number(p.loadPercent))}%`;
+export function formatLoadCell(
+  locale: Locale,
+  p: Prescription,
+  formulaLabel?: (key: string) => string,
+): string {
+  if (p.loadFormula)
+    return p.loadFormula.builtIn
+      ? (formulaLabel?.(p.loadFormula.builtIn) ?? p.loadFormula.builtIn)
+      : "ƒ";
+  if (p.loadPercent != null)
+    return `${formatNumber(locale, Number(p.loadPercent))}%`;
   const { unit, value } = loadOf(p);
   if (value === null) return "";
   if (unit === "rir") return `RIR ${formatNumber(locale, value)}`;
   if (unit === "rpe") return `RPE ${formatNumber(locale, value)}`;
   const max = p.load ? Number(p.load.maximum.value) : value;
-  const range = max !== value ? `${formatNumber(locale, value)}–${formatNumber(locale, max)}` : formatNumber(locale, value);
+  const range =
+    max !== value
+      ? `${formatNumber(locale, value)}–${formatNumber(locale, max)}`
+      : formatNumber(locale, value);
   return `${range} ${unit === "lb" ? "lbs" : "kg"}`;
 }
 
 // ---------------------------------------------------------------------------------------------
 // Time cells use one clock format: m:ss under an hour, h:mm:ss from an hour; plain digits are seconds.
 
-export function seconds(q: { value: number | string; unit: string } | null | undefined): number | null {
+export function seconds(
+  q: { value: number | string; unit: string } | null | undefined,
+): number | null {
   if (!q) return null;
   const v = Number(q.value);
   return q.unit === "Minutes" ? v * 60 : v;
 }
 
-export function formatClock(q: { value: number | string; unit: string } | null | undefined): string {
+export function formatClock(
+  q: { value: number | string; unit: string } | null | undefined,
+): string {
   const total = seconds(q);
   if (total === null) return "";
   const s = Math.round(total);
@@ -241,7 +388,11 @@ export function formatClock(q: { value: number | string; unit: string } | null |
 }
 
 /** "", "45" (seconds), "1:30" or "1:02:30". Minutes and seconds after a colon must be 0–59. */
-export function parseClock(text: string): { ok: true; value: { value: number; unit: "Seconds" } | null } | { ok: false } {
+export function parseClock(
+  text: string,
+):
+  | { ok: true; value: { value: number; unit: "Seconds" } | null }
+  | { ok: false } {
   const raw = text.trim();
   if (!raw) return { ok: true, value: null };
   if (!/^\d{1,6}(?::\d{1,2}){0,2}$/.test(raw)) return { ok: false };
@@ -262,51 +413,122 @@ export interface ExerciseRow {
   mixed: boolean;
 }
 
-export function exerciseRow(locale: Locale, instance: ExerciseInstance, formulaLabel?: (key: string) => string): ExerciseRow {
+export function exerciseRow(
+  locale: Locale,
+  instance: ExerciseInstance,
+  formulaLabel?: (key: string) => string,
+): ExerciseRow {
   const p = first(instance);
-  const shown = (x: Prescription) => JSON.stringify([x.reps, x.load, x.loadPercent, x.rpe, x.rir, x.workTimeMax, x.workTime, x.rest, x.loadFormula]);
-  const reps = p.reps ? (Number(p.reps.minimum) === Number(p.reps.maximum) ? `${p.reps.minimum}` : `${p.reps.minimum}–${p.reps.maximum}`) : "";
+  const shown = (x: Prescription) =>
+    JSON.stringify([
+      x.reps,
+      x.load,
+      x.loadPercent,
+      x.rpe,
+      x.rir,
+      x.workTimeMax,
+      x.workTime,
+      x.rest,
+      x.loadFormula,
+    ]);
+  const reps = p.reps
+    ? Number(p.reps.minimum) === Number(p.reps.maximum)
+      ? `${p.reps.minimum}`
+      : `${p.reps.minimum}–${p.reps.maximum}`
+    : "";
   return {
-    sets: String(instance.sets.length),
+    sets: setsText(instance),
     reps,
     load: formatLoadCell(locale, p, formulaLabel),
     time: p.workTimeMax ? "MAX" : formatClock(p.workTime),
     rest: formatClock(p.rest),
-    mixed: instance.sets.some((s) => s.kind !== "Standard" || shown(s.prescription) !== shown(p)),
+    mixed: instance.sets.some(
+      (s) => s.kind !== "Standard" || shown(s.prescription) !== shown(p),
+    ),
   };
 }
 
-function writeAll(doc: TrainingDocument, instanceId: string, fn: (p: Prescription) => Prescription): TrainingDocument {
+function writeAll(
+  doc: TrainingDocument,
+  instanceId: string,
+  fn: (p: Prescription) => Prescription,
+): TrainingDocument {
   const found = findExercise(doc, instanceId);
   if (!found) return doc;
-  return updateNode(doc, instanceId, { sets: found.exercise.sets.map((s) => ({ ...s, prescription: fn({ ...s.prescription }) })) });
+  return updateNode(doc, instanceId, {
+    sets: found.exercise.sets.map((s) => ({
+      ...s,
+      prescription: fn({ ...s.prescription }),
+    })),
+  });
 }
 
 /** Number of sets (1–50). New sets copy the first set's values. */
-export function setExerciseSets(doc: TrainingDocument, instanceId: string, text: string): TrainingDocument | null {
-  const count = Number(text.trim());
-  if (!Number.isInteger(count) || count < 1 || count > 50) return null;
+export function setExerciseSets(
+  doc: TrainingDocument,
+  instanceId: string,
+  text: string,
+): TrainingDocument | null {
+  // "3" is three sets; "2-3" is a range: three sets, the ones past the minimum optional.
+  const parts = text.trim().split(/\s*(?:-|–|—|\.\.)\s*/);
+  if (parts.length > 2 || parts.some((part) => !/^\d{1,2}$/.test(part)))
+    return null;
+  const minimum = Number(parts[0]);
+  const count = Number(parts[1] ?? parts[0]);
+  if (minimum < 1 || count < minimum || count > 50) return null;
   const found = findExercise(doc, instanceId);
   if (!found) return null;
   const sets = found.exercise.sets;
   const template = sets[0]?.prescription ?? {};
-  const next: TrainingSet[] = Array.from({ length: count }, (_, i) => sets[i] ?? newSet("Standard", copyPrescription(template)));
+  const next: TrainingSet[] = Array.from({ length: count }, (_, i) => {
+    const set = sets[i] ?? newSet("Standard", copyPrescription(template));
+    const { optional: _optional, ...rest } = set;
+    return i >= minimum ? { ...rest, optional: true } : rest;
+  });
   return updateNode(doc, instanceId, { sets: next });
 }
 
+/** How many sets: "3", or "2–3" when some are optional. */
+export function setsText(instance: ExerciseInstance): string {
+  const required = requiredSets(instance);
+  return required < instance.sets.length
+    ? `${required}–${instance.sets.length}`
+    : String(instance.sets.length);
+}
+
+/** Sets that must be done (the minimum of a range). */
+export function requiredSets(instance: ExerciseInstance): number {
+  return instance.sets.filter((set) => set.optional !== true).length;
+}
+
 /** "8", "8-10" or empty (no reps). */
-export function setExerciseReps(doc: TrainingDocument, instanceId: string, text: string): TrainingDocument | null {
+export function setExerciseReps(
+  doc: TrainingDocument,
+  instanceId: string,
+  text: string,
+): TrainingDocument | null {
   const parsed = parseReps(text);
   if (!parsed.ok) return null;
   return writeAll(doc, instanceId, (p) => ({ ...p, reps: parsed.value }));
 }
 
 /** One load column: RIR, RPE, kg or lbs. Setting it replaces whatever load the column held before. */
-export function setExerciseLoad(locale: Locale, doc: TrainingDocument, instanceId: string, unit: LoadUnit, text: string): TrainingDocument | null {
+export function setExerciseLoad(
+  locale: Locale,
+  doc: TrainingDocument,
+  instanceId: string,
+  unit: LoadUnit,
+  text: string,
+): TrainingDocument | null {
   const raw = text.trim();
   const value = raw === "" ? null : parseLocaleNumber(locale, raw);
   if (raw !== "" && (value === null || value < 0)) return null;
-  if (value !== null && (unit === "rir" || unit === "rpe") && value > (unit === "rpe" ? 10 : 20)) return null;
+  if (
+    value !== null &&
+    (unit === "rir" || unit === "rpe") &&
+    value > (unit === "rpe" ? 10 : 20)
+  )
+    return null;
   return writeAll(doc, instanceId, (p) => {
     const next: Prescription = { ...p };
     delete next.load;
@@ -319,7 +541,10 @@ export function setExerciseLoad(locale: Locale, doc: TrainingDocument, instanceI
     if (unit === "rir") next.rir = value;
     else if (unit === "rpe") next.rpe = value;
     else {
-      const q = { value, unit: unit === "lb" ? ("Lb" as const) : ("Kg" as const) };
+      const q = {
+        value,
+        unit: unit === "lb" ? ("Lb" as const) : ("Kg" as const),
+      };
       next.load = { minimum: q, maximum: q };
     }
     return next;
@@ -327,7 +552,13 @@ export function setExerciseLoad(locale: Locale, doc: TrainingDocument, instanceI
 }
 
 /** Work time or rest in clock form ("45", "1:30", "1:02:30") or empty. */
-export function setExerciseDuration(_locale: Locale, doc: TrainingDocument, instanceId: string, field: "workTime" | "rest", text: string): TrainingDocument | null {
+export function setExerciseDuration(
+  _locale: Locale,
+  doc: TrainingDocument,
+  instanceId: string,
+  field: "workTime" | "rest",
+  text: string,
+): TrainingDocument | null {
   const parsed = parseClock(text);
   if (!parsed.ok) return null;
   return writeAll(doc, instanceId, (p) => ({ ...p, [field]: parsed.value }));
@@ -357,13 +588,18 @@ export type WorkoutRow =
 /** Card header + sticky column headings, then workouts one under another. */
 export const EXPANDED_TOP_ROWS = 2;
 
-export function workoutRows(cycle: Cycle, collapsed: ReadonlySet<string>, editable: boolean): WorkoutRow[] {
+export function workoutRows(
+  cycle: Cycle,
+  collapsed: ReadonlySet<string>,
+  editable: boolean,
+): WorkoutRow[] {
   const rows: WorkoutRow[] = [];
   for (const { workout, dayNumber } of cycleWorkouts(cycle)) {
     const isCollapsed = collapsed.has(workout.id);
     rows.push({ type: "workout", workout, dayNumber, collapsed: isCollapsed });
     if (isCollapsed) continue;
-    for (const instance of workout.exercises) rows.push({ type: "exercise", workout, instance });
+    for (const instance of workout.exercises)
+      rows.push({ type: "exercise", workout, instance });
     if (editable) rows.push({ type: "add-exercise", workout });
   }
   if (editable) rows.push({ type: "add-workout" });
@@ -402,17 +638,28 @@ export interface VolumeLine {
 }
 
 /** The 1RM in kg of an exercise where the workout runs (from the block's maxes table), when known. */
-export type OneRepMax = (workoutId: string, exerciseId: string) => number | null;
+export type OneRepMax = (
+  workoutId: string,
+  exerciseId: string,
+) => number | null;
 
 const LB = 0.45359237;
-const emptyStats = (): VolumeStats => ({ sets: 0, reps: 0, hardSets: 0, tonnage: 0, inol: 0, inolSets: 0 });
+const emptyStats = (): VolumeStats => ({
+  sets: 0,
+  reps: 0,
+  hardSets: 0,
+  tonnage: 0,
+  inol: 0,
+  inolSets: 0,
+});
 
 function repsOf(set: TrainingSet): number {
   const r = set.prescription.reps;
   return r ? (Number(r.minimum) + Number(r.maximum)) / 2 : 0;
 }
 
-const kg = (q: { value: number | string; unit: string }) => Number(q.value) * (q.unit === "Lb" ? LB : 1);
+const kg = (q: { value: number | string; unit: string }) =>
+  Number(q.value) * (q.unit === "Lb" ? LB : 1);
 
 function kgOf(set: TrainingSet): number {
   const load = set.prescription.load;
@@ -429,7 +676,9 @@ function isHard(set: TrainingSet): boolean {
 }
 
 // % of 1RM at RPE 10 for 1–12 reps (Tuchscherer's chart). Each rep in reserve shifts one column.
-const RPE10 = [100, 95.5, 92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0];
+const RPE10 = [
+  100, 95.5, 92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0,
+];
 
 /** % of 1RM for reps done with some reps in reserve, read off the RPE chart (fractions interpolated). */
 export function percentFromEffort(reps: number, rir: number): number | null {
@@ -437,8 +686,11 @@ export function percentFromEffort(reps: number, rir: number): number | null {
   if (!(reps >= 1) || !(rir >= 0) || at > RPE10.length) return null;
   const low = Math.floor(at);
   const high = Math.ceil(at);
-  const value = (i: number) => RPE10[Math.min(RPE10.length, Math.max(1, i)) - 1]!;
-  return low === high ? value(low) : value(low) + (value(high) - value(low)) * (at - low);
+  const value = (i: number) =>
+    RPE10[Math.min(RPE10.length, Math.max(1, i)) - 1]!;
+  return low === high
+    ? value(low)
+    : value(low) + (value(high) - value(low)) * (at - low);
 }
 
 /** Epley's estimate of a 1RM from a heavier set: load × (1 + reps / 30). */
@@ -450,14 +702,24 @@ export function estimatedOneRm(load: number, reps: number): number {
  * Intensity of a set in % of 1RM: a percentage prescription as is, a fixed load against the known 1RM,
  * else the RPE/RIR chart. Null when nothing tells it (a formula, or reps alone).
  */
-export function percentOfMax(set: TrainingSet, oneRm: number | null): number | null {
+export function percentOfMax(
+  set: TrainingSet,
+  oneRm: number | null,
+): number | null {
   const p = set.prescription;
   const reps = repsOf(set);
-  if (p.loadPercent !== null && p.loadPercent !== undefined && Number.isFinite(Number(p.loadPercent))) return Number(p.loadPercent);
+  if (
+    p.loadPercent !== null &&
+    p.loadPercent !== undefined &&
+    Number.isFinite(Number(p.loadPercent))
+  )
+    return Number(p.loadPercent);
   const load = kgOf(set);
   if (load > 0 && oneRm && oneRm > 0) return (load / oneRm) * 100;
-  if (p.rir !== null && p.rir !== undefined) return percentFromEffort(reps, Number(p.rir));
-  if (p.rpe !== null && p.rpe !== undefined) return percentFromEffort(reps, 10 - Number(p.rpe));
+  if (p.rir !== null && p.rir !== undefined)
+    return percentFromEffort(reps, Number(p.rir));
+  if (p.rpe !== null && p.rpe !== undefined)
+    return percentFromEffort(reps, 10 - Number(p.rpe));
   return null;
 }
 
@@ -470,17 +732,22 @@ export function setInol(set: TrainingSet, oneRm: number | null): number | null {
 }
 
 /** Metrics of one exercise instance (all its sets). */
-export function exerciseStats(instance: ExerciseInstance, oneRm: number | null = null): VolumeStats {
+export function exerciseStats(
+  instance: ExerciseInstance,
+  oneRm: number | null = null,
+): VolumeStats {
   const stats = emptyStats();
   for (const set of instance.sets) {
+    // A set past the minimum of a range ("2–3 sets") counts half, like the middle of a reps range.
+    const weight = set.optional === true ? 0.5 : 1;
     const reps = repsOf(set);
-    stats.sets += 1;
-    stats.reps += reps;
-    stats.hardSets += isHard(set) ? 1 : 0;
-    stats.tonnage += reps * kgOf(set);
+    stats.sets += weight;
+    stats.reps += reps * weight;
+    stats.hardSets += isHard(set) ? weight : 0;
+    stats.tonnage += reps * kgOf(set) * weight;
     const inol = setInol(set, oneRm);
     if (inol !== null) {
-      stats.inol += inol;
+      stats.inol += inol * weight;
       stats.inolSets += 1;
     }
   }
@@ -499,26 +766,53 @@ function add(into: VolumeStats, from: VolumeStats) {
 const noMax: OneRepMax = () => null;
 
 /** Totals over workouts, counting each exercise once. */
-export function workoutsStats(workouts: Workout[], oneRm: OneRepMax = noMax): VolumeStats {
+export function workoutsStats(
+  workouts: Workout[],
+  oneRm: OneRepMax = noMax,
+): VolumeStats {
   const total = emptyStats();
-  for (const workout of workouts) for (const instance of workout.exercises) add(total, exerciseStats(instance, oneRm(workout.id, instance.exerciseId)));
+  for (const workout of workouts)
+    for (const instance of workout.exercises)
+      add(
+        total,
+        exerciseStats(instance, oneRm(workout.id, instance.exerciseId)),
+      );
   return total;
 }
 
 /** The single key an exercise counts for: its main muscle, or its main movement pattern. */
-export function mainKey(info: Taxonomy | undefined, by: VolumeBy): string | null {
+export function mainKey(
+  info: Taxonomy | undefined,
+  by: VolumeBy,
+): string | null {
   if (!info) return null;
-  return (by === "patterns" ? info.movementPatternKeys[0] : info.primaryMuscleKeys[0]) ?? null;
+  return (
+    (by === "patterns"
+      ? info.movementPatternKeys[0]
+      : info.primaryMuscleKeys[0]) ?? null
+  );
 }
 
 /** Lines per key over the given workouts. Exercises without a classification count as "—". */
-export function volumeLines(workouts: Workout[], taxonomy: (exerciseId: string) => Taxonomy | undefined, by: VolumeBy, oneRm: OneRepMax = noMax): VolumeLine[] {
+export function volumeLines(
+  workouts: Workout[],
+  taxonomy: (exerciseId: string) => Taxonomy | undefined,
+  by: VolumeBy,
+  oneRm: OneRepMax = noMax,
+): VolumeLine[] {
   const lines = new Map<string, VolumeLine>();
   for (const workout of workouts) {
     for (const instance of workout.exercises) {
       const key = mainKey(taxonomy(instance.exerciseId), by) ?? "—";
-      const stats = exerciseStats(instance, oneRm(workout.id, instance.exerciseId));
-      const line = lines.get(key) ?? { key, perWorkout: {}, total: emptyStats() };
+      const stats = exerciseStats(
+        instance,
+        oneRm(workout.id, instance.exerciseId),
+      );
+      const line = lines.get(key) ?? {
+        key,
+        perWorkout: {},
+        total: emptyStats(),
+      };
       const cell = line.perWorkout[workout.id] ?? emptyStats();
       add(cell, stats);
       add(line.total, stats);
@@ -526,12 +820,27 @@ export function volumeLines(workouts: Workout[], taxonomy: (exerciseId: string) 
       lines.set(key, line);
     }
   }
-  return [...lines.values()].sort((a, b) => b.total.sets - a.total.sets || a.key.localeCompare(b.key));
+  return [...lines.values()].sort(
+    (a, b) => b.total.sets - a.total.sets || a.key.localeCompare(b.key),
+  );
 }
 
-export function cycleVolume(cycle: Cycle, taxonomy: (exerciseId: string) => Taxonomy | undefined, by: VolumeBy, oneRm: OneRepMax = noMax): { workouts: CycleWorkout[]; lines: VolumeLine[] } {
+export function cycleVolume(
+  cycle: Cycle,
+  taxonomy: (exerciseId: string) => Taxonomy | undefined,
+  by: VolumeBy,
+  oneRm: OneRepMax = noMax,
+): { workouts: CycleWorkout[]; lines: VolumeLine[] } {
   const workouts = cycleWorkouts(cycle);
-  return { workouts, lines: volumeLines(workouts.map((w) => w.workout), taxonomy, by, oneRm) };
+  return {
+    workouts,
+    lines: volumeLines(
+      workouts.map((w) => w.workout),
+      taxonomy,
+      by,
+      oneRm,
+    ),
+  };
 }
 
 /** Something volume can be shown for: one workout, a cycle, a block or the whole plan. */
@@ -544,19 +853,42 @@ export interface VolumeRange {
 }
 
 /** Every range the volume view can switch between, per scope, in plan order. */
-export function volumeRanges(doc: TrainingDocument, labels: { untitled: string; all: string }): Record<VolumeScope, VolumeRange[]> {
-  const ranges: Record<VolumeScope, VolumeRange[]> = { workout: [], cycle: [], block: [], all: [] };
+export function volumeRanges(
+  doc: TrainingDocument,
+  labels: { untitled: string; all: string },
+): Record<VolumeScope, VolumeRange[]> {
+  const ranges: Record<VolumeScope, VolumeRange[]> = {
+    workout: [],
+    cycle: [],
+    block: [],
+    all: [],
+  };
   const everything: Workout[] = [];
   for (const block of doc.blocks) {
     const blockWorkouts: Workout[] = [];
     for (const cycle of block.cycles) {
       const workouts = cycleWorkouts(cycle).map((item) => item.workout);
       blockWorkouts.push(...workouts);
-      for (const workout of workouts) ranges.workout.push({ id: workout.id, title: workout.name || labels.untitled, workouts: [workout] });
-      if (cycle.implicit !== true) ranges.cycle.push({ id: cycle.id, title: cycle.name || labels.untitled, workouts });
+      for (const workout of workouts)
+        ranges.workout.push({
+          id: workout.id,
+          title: workout.name || labels.untitled,
+          workouts: [workout],
+        });
+      if (cycle.implicit !== true)
+        ranges.cycle.push({
+          id: cycle.id,
+          title: cycle.name || labels.untitled,
+          workouts,
+        });
     }
     everything.push(...blockWorkouts);
-    if (block.implicit !== true) ranges.block.push({ id: block.id, title: block.name || labels.untitled, workouts: blockWorkouts });
+    if (block.implicit !== true)
+      ranges.block.push({
+        id: block.id,
+        title: block.name || labels.untitled,
+        workouts: blockWorkouts,
+      });
   }
   ranges.all.push({ id: "all", title: labels.all, workouts: everything });
   return ranges;
@@ -569,17 +901,32 @@ interface MaxesRow {
 }
 
 /** Each workout's block maxes, as 1RMs in kg (a heavier set is converted with Epley). */
-export function oneRepMaxes(doc: TrainingDocument, tables: { blockId?: string | null; rows: MaxesRow[] }[]): OneRepMax {
+export function oneRepMaxes(
+  doc: TrainingDocument,
+  tables: { blockId?: string | null; rows: MaxesRow[] }[],
+): OneRepMax {
   const blockOf = new Map<string, string>();
-  for (const block of doc.blocks) for (const cycle of block.cycles) for (const day of cycle.days) for (const workout of day.workouts) blockOf.set(workout.id, block.id);
+  for (const block of doc.blocks)
+    for (const cycle of block.cycles)
+      for (const day of cycle.days)
+        for (const workout of day.workouts) blockOf.set(workout.id, block.id);
   const byBlock = new Map<string, Map<string, number>>();
   for (const table of tables) {
     if (!table.blockId) continue;
     const maxes = byBlock.get(table.blockId) ?? new Map<string, number>();
     for (const row of table.rows) {
-      if (!row.exerciseId || !row.load || !(Number(row.load.value) > 0) || row.load.unit === "Percent") continue;
+      if (
+        !row.exerciseId ||
+        !row.load ||
+        !(Number(row.load.value) > 0) ||
+        row.load.unit === "Percent"
+      )
+        continue;
       const value = estimatedOneRm(kg(row.load), Number(row.reps) || 1);
-      maxes.set(row.exerciseId, Math.max(maxes.get(row.exerciseId) ?? 0, value));
+      maxes.set(
+        row.exerciseId,
+        Math.max(maxes.get(row.exerciseId) ?? 0, value),
+      );
     }
     byBlock.set(table.blockId, maxes);
   }

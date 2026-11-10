@@ -27,9 +27,9 @@
   opacity: 0;
   transform-box: fill-box;
   transform-origin: center;
-  animation: piece-cycle 2.4s calc(var(--i) * 160ms) var(--tf-ease-out, ease-out) infinite;
+  animation: piece-cycle 2.4s calc(var(--i) * 160ms)
+    var(--tf-ease-out, ease-out) infinite;
 }
-
 
 .text {
   display: grid;
@@ -65,24 +65,45 @@
   inset: 0 auto 0 0;
   width: 40%;
   border-radius: inherit;
-  background: linear-gradient(90deg, transparent, var(--tf-color-accent), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--tf-color-accent),
+    transparent
+  );
   animation: track-sweep 1.4s ease-in-out infinite;
 }
 
 @keyframes piece-cycle {
-  0% { opacity: 0; transform: translateY(6px) scale(0.96); }
-  18%, 70% { opacity: 1; transform: none; }
-  100% { opacity: 0.12; transform: none; }
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  18%,
+  70% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0.12;
+    transform: none;
+  }
 }
 
-
 @keyframes step-in {
-  from { opacity: 0; transform: translateY(4px); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
 @keyframes track-sweep {
-  from { transform: translateX(-110%); }
-  to { transform: translateX(260%); }
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(260%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

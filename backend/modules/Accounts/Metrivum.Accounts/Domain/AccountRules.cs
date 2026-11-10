@@ -6,8 +6,15 @@ namespace Metrivum.Accounts.Domain;
 /// <summary>Validates onboarding, account settings and phone values before Accounts services persist them.</summary>
 public static partial class AccountRules
 {
-    public static void ValidateOnboarding(string username, string displayName, DateOnly birthDate, bool acceptedTerms,
-        string locale, string timeZone, DateOnly today)
+    public static void ValidateOnboarding(
+        string username,
+        string displayName,
+        DateOnly birthDate,
+        bool acceptedTerms,
+        string locale,
+        string timeZone,
+        DateOnly today
+    )
     {
         AccountIdentityPolicy.ValidateUsername(username);
         ValidateSettings(displayName, locale, timeZone);
@@ -22,13 +29,24 @@ public static partial class AccountRules
         _ = AccountIdentityPolicy.NormalizeDisplayName(displayName);
         if (locale is not ("en" or "pl"))
             throw ApiException.Invalid("Supported locales are en and pl.");
-        if (string.IsNullOrWhiteSpace(timeZone) || timeZone.Length > 100 || !TimeZoneInfo.TryFindSystemTimeZoneById(timeZone, out _))
+        if (
+            string.IsNullOrWhiteSpace(timeZone)
+            || timeZone.Length > 100
+            || !TimeZoneInfo.TryFindSystemTimeZoneById(timeZone, out _)
+        )
             throw ApiException.Invalid("A valid time zone is required.");
     }
 
     public static void ValidatePhone(string? phone)
     {
-        if (!string.IsNullOrEmpty(phone) && !Regex.IsMatch(phone, @"\A\+?[0-9][0-9 ()-]{5,30}[0-9]\z", RegexOptions.CultureInvariant))
+        if (
+            !string.IsNullOrEmpty(phone)
+            && !Regex.IsMatch(
+                phone,
+                @"\A\+?[0-9][0-9 ()-]{5,30}[0-9]\z",
+                RegexOptions.CultureInvariant
+            )
+        )
             throw ApiException.Invalid("Phone must contain 7–32 phone-number characters.");
     }
 }

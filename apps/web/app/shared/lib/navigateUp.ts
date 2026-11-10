@@ -24,12 +24,17 @@ export function useHistoryTrail() {
 }
 
 /** How far back the nearest entry showing `target` is (pathname match, or exact address when it has a query). */
-export function stepsBackTo(target: string, from = currentIndex(), entries: ReadonlyMap<number, string> = trail): number | null {
+export function stepsBackTo(
+  target: string,
+  from = currentIndex(),
+  entries: ReadonlyMap<number, string> = trail,
+): number | null {
   const hasQuery = target.includes("?");
   for (let i = from - 1; i >= 0; i--) {
     const address = entries.get(i);
     if (address === undefined) return null;
-    if (hasQuery ? address === target : address.split("?")[0] === target) return from - i;
+    if (hasQuery ? address === target : address.split("?")[0] === target)
+      return from - i;
   }
   return null;
 }

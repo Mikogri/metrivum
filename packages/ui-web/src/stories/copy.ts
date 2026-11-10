@@ -5,7 +5,8 @@ export const copy = {
     publish: "Publish revision",
     delete: "Delete folder",
     cancel: "Cancel",
-    longLabel: "Export the whole program including every block, cycle and workout as a PDF",
+    longLabel:
+      "Export the whole program including every block, cycle and workout as a PDF",
     name: "Program name",
     nameHint: "Visible only to you.",
     required: "This field is required.",
@@ -22,12 +23,14 @@ export const copy = {
     alertTitle: "Delete this folder?",
     alertBody: "Only empty folders can be deleted.",
     emptyTitle: "No programs yet",
-    emptyBody: "Create a program from scratch, from a template or from a CSV file.",
+    emptyBody:
+      "Create a program from scratch, from a template or from a CSV file.",
     errorTitle: "Can't load your programs",
     errorBody: "Metrivum didn't respond. Try again in a moment.",
     toastSaved: "Draft saved",
     toastFailed: "Couldn't save",
-    page: (p: number, n: number | null) => (n ? `Page ${p} of ${n}` : `Page ${p}`),
+    page: (p: number, n: number | null) =>
+      n ? `Page ${p} of ${n}` : `Page ${p}`,
     previous: "Previous",
     next: "Next",
   },
@@ -36,7 +39,8 @@ export const copy = {
     publish: "Opublikuj rewizję",
     delete: "Usuń folder",
     cancel: "Anuluj",
-    longLabel: "Eksportuj cały program wraz z każdym blokiem, cyklem i treningiem jako PDF",
+    longLabel:
+      "Eksportuj cały program wraz z każdym blokiem, cyklem i treningiem jako PDF",
     name: "Nazwa programu",
     nameHint: "Widoczne tylko dla Ciebie.",
     required: "To pole jest wymagane.",
@@ -58,11 +62,13 @@ export const copy = {
     errorBody: "Metrivum nie odpowiedział. Spróbuj ponownie za chwilę.",
     toastSaved: "Szkic zapisany",
     toastFailed: "Nie udało się zapisać",
-    page: (p: number, n: number | null) => (n ? `Strona ${p} z ${n}` : `Strona ${p}`),
+    page: (p: number, n: number | null) =>
+      n ? `Strona ${p} z ${n}` : `Strona ${p}`,
     previous: "Poprzednia",
     next: "Następna",
   },
 };
 
 export type Copy = (typeof copy)["en"];
-export const pick = (locale: unknown): Copy => (locale === "pl" ? copy.pl : copy.en);
+export const pick = (locale: unknown): Copy =>
+  locale === "pl" ? copy.pl : copy.en;

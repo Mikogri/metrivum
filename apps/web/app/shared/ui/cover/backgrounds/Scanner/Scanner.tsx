@@ -2,12 +2,12 @@
 /* eslint-disable */
 // Profile cover: React Bits "Scanner" background, copied unchanged from
 // https://github.com/DavidHDev/react-bits (MIT + Commons Clause). Loaded on demand by ../catalog.ts.
-import { useEffect, useRef, type CSSProperties } from 'react';
-import './Scanner.css';
+import { useEffect, useRef, type CSSProperties } from "react";
+import "./Scanner.css";
 
 const MAX_PINGS = 6;
 const INTRO_SECONDS = 2;
-export type ScannerDirection = 'vertical' | 'horizontal' | 'diagonal';
+export type ScannerDirection = "vertical" | "horizontal" | "diagonal";
 
 export interface ScannerProps {
   color1?: string;
@@ -36,8 +36,8 @@ export interface ScannerProps {
   mouseInteraction?: boolean;
   mouseRadius?: number;
   mouseStrength?: number;
-  mouseMode?: 'repel' | 'attract';
-  clickEffect?: 'ping' | 'none';
+  mouseMode?: "repel" | "attract";
+  clickEffect?: "ping" | "none";
   intro?: boolean;
   lightMode?: boolean;
   dpr?: number;
@@ -45,7 +45,11 @@ export interface ScannerProps {
   style?: CSSProperties;
 }
 
-const DIRECTIONS: Record<string, number> = { vertical: 0, horizontal: 1, diagonal: 2 };
+const DIRECTIONS: Record<string, number> = {
+  vertical: 0,
+  horizontal: 1,
+  diagonal: 2,
+};
 
 const VERTEX = `#version 300 es
 void main() {
@@ -212,7 +216,8 @@ void main() {
   fragColor = vec4(col * uOpacity, alpha * uOpacity);
 }`;
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
   const shader = gl.createShader(type);
@@ -242,30 +247,38 @@ const link = (gl: WebGL2RenderingContext) => {
   const total = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
   for (let i = 0; i < total; i++) {
     const info = gl.getActiveUniform(program, i);
-    if (info) uniforms[info.name.replace(/\[0\]$/, '')] = gl.getUniformLocation(program, info.name);
+    if (info)
+      uniforms[info.name.replace(/\[0\]$/, "")] = gl.getUniformLocation(
+        program,
+        info.name,
+      );
   }
   return { program, uniforms };
 };
 
 const toRgb = (hex: string): number[] => {
-  let h = String(hex || '#ffffff')
-    .replace('#', '')
+  let h = String(hex || "#ffffff")
+    .replace("#", "")
     .trim();
   if (h.length === 3 || h.length === 4)
     h = h
       .slice(0, 3)
-      .split('')
-      .map(c => c + c)
-      .join('');
+      .split("")
+      .map((c) => c + c)
+      .join("");
   const num = parseInt(h.slice(0, 6), 16);
   if (Number.isNaN(num)) return [1, 1, 1];
-  return [((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255];
+  return [
+    ((num >> 16) & 255) / 255,
+    ((num >> 8) & 255) / 255,
+    (num & 255) / 255,
+  ];
 };
 
 const Scanner = ({
-  color1 = '#5227FF',
-  color2 = '#FF9FFC',
-  color3 = '#FFFFFF',
+  color1 = "#5227FF",
+  color2 = "#FF9FFC",
+  color3 = "#FFFFFF",
   speed = 0.5,
   sweepSpeed = 0.25,
   sweepWidth = 1.6,
@@ -277,7 +290,7 @@ const Scanner = ({
   bandDensity = 11,
   lineWidth = 1.2,
   glow = 0.6,
-  scanDirection = 'vertical',
+  scanDirection = "vertical",
   colorSpread = 0.7,
   brightness = 1,
   vignette = 0.3,
@@ -289,13 +302,13 @@ const Scanner = ({
   mouseInteraction = true,
   mouseRadius = 0.5,
   mouseStrength = 0.7,
-  mouseMode = 'repel',
-  clickEffect = 'ping',
+  mouseMode = "repel",
+  clickEffect = "ping",
   intro = true,
   lightMode = false,
   dpr,
-  className = '',
-  style
+  className = "",
+  style,
 }: ScannerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -324,11 +337,11 @@ const Scanner = ({
     mouseInteraction,
     mouseRadius: Math.max(0.05, mouseRadius),
     mouseStrength: Math.max(0, mouseStrength),
-    attract: mouseMode === 'attract',
+    attract: mouseMode === "attract",
     clickEffect,
     intro,
     lightMode,
-    dpr
+    dpr,
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -336,12 +349,12 @@ const Scanner = ({
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
-    const gl = canvas?.getContext('webgl2', {
+    const gl = canvas?.getContext("webgl2", {
       alpha: true,
       premultipliedAlpha: true,
       antialias: false,
       depth: false,
-      stencil: false
+      stencil: false,
     });
     if (!container || !canvas || !gl) return undefined;
     const shader = link(gl);
@@ -349,7 +362,8 @@ const Scanner = ({
     const u = shader.uniforms;
     const vao = gl.createVertexArray();
 
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const reduce =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     const view = { width: 1, height: 1, ratio: 1 };
     const pointer = { x: 0, y: 0, inside: false };
     const mouse = { x: 0, y: 0, ready: false };
@@ -366,7 +380,10 @@ const Scanner = ({
     let visible = true;
     let quiet = 0;
 
-    const toUv = (x: number, y: number) => [(x * 2 - view.width) / view.height, (view.height - y * 2) / view.height];
+    const toUv = (x: number, y: number) => [
+      (x * 2 - view.width) / view.height,
+      (view.height - y * 2) / view.height,
+    ];
 
     const draw = () => {
       const s = settingsRef.current;
@@ -437,13 +454,19 @@ const Scanner = ({
         wave += dt * s.speed;
         sweep += dt * s.sweepSpeed;
       }
-      if (introClock < 1) introClock = Math.min(1, introClock + dt / INTRO_SECONDS);
+      if (introClock < 1)
+        introClock = Math.min(1, introClock + dt / INTRO_SECONDS);
       const target = toUv(pointer.x, pointer.y);
       const follow = 1 - Math.exp(-dt / 0.09);
       mouse.x += (target[0] - mouse.x) * follow;
       mouse.y += (target[1] - mouse.y) * follow;
-      presence += ((pointer.inside && s.mouseInteraction ? 1 : 0) - presence) * (1 - Math.exp(-dt / 0.3));
-      let busy = (!reduce && (s.speed !== 0 || s.sweepSpeed !== 0)) || introClock < 1 || presence > 0.001;
+      presence +=
+        ((pointer.inside && s.mouseInteraction ? 1 : 0) - presence) *
+        (1 - Math.exp(-dt / 0.3));
+      let busy =
+        (!reduce && (s.speed !== 0 || s.sweepSpeed !== 0)) ||
+        introClock < 1 ||
+        presence > 0.001;
       for (let k = 0; k < MAX_PINGS; k++) {
         if (pings[k * 3 + 2] < 0) continue;
         pings[k * 3 + 2] += dt;
@@ -467,7 +490,11 @@ const Scanner = ({
       const rect = container.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
-      return { x, y, inside: x >= 0 && y >= 0 && x <= rect.width && y <= rect.height };
+      return {
+        x,
+        y,
+        inside: x >= 0 && y >= 0 && x <= rect.width && y <= rect.height,
+      };
     };
 
     const onPointerMove = (event: PointerEvent) => {
@@ -489,7 +516,7 @@ const Scanner = ({
 
     const onPointerDown = (event: PointerEvent) => {
       const s = settingsRef.current;
-      if (s.clickEffect !== 'ping' || reduce) return;
+      if (s.clickEffect !== "ping" || reduce) return;
       const { x, y, inside } = locate(event);
       if (!inside) return;
       const [ux, uy] = toUv(x, y);
@@ -509,15 +536,15 @@ const Scanner = ({
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
-    const intersection = new IntersectionObserver(entries => {
-      visible = entries.some(entry => entry.isIntersecting);
+    const intersection = new IntersectionObserver((entries) => {
+      visible = entries.some((entry) => entry.isIntersecting);
       if (visible) wake();
     });
     intersection.observe(container);
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('pointerdown', onPointerDown, { passive: true });
-    document.documentElement.addEventListener('pointerleave', onPointerLeave);
-    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    document.documentElement.addEventListener("pointerleave", onPointerLeave);
+    document.addEventListener("visibilitychange", onVisibility);
     resize();
     wakeRef.current = wake;
 
@@ -526,13 +553,16 @@ const Scanner = ({
       wakeRef.current = null;
       resizeObserver.disconnect();
       intersection.disconnect();
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerdown', onPointerDown);
-      document.documentElement.removeEventListener('pointerleave', onPointerLeave);
-      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
+      document.documentElement.removeEventListener(
+        "pointerleave",
+        onPointerLeave,
+      );
+      document.removeEventListener("visibilitychange", onVisibility);
       gl.deleteVertexArray(vao);
       gl.deleteProgram(shader.program);
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, []);
 
@@ -541,7 +571,11 @@ const Scanner = ({
   });
 
   return (
-    <div ref={containerRef} className={`scanner-container ${className}`.trim()} style={style}>
+    <div
+      ref={containerRef}
+      className={`scanner-container ${className}`.trim()}
+      style={style}
+    >
       <canvas ref={canvasRef} className="scanner-canvas" aria-hidden="true" />
     </div>
   );

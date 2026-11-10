@@ -2,7 +2,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import type { CreateExerciseRequest } from "@metrivum/api-client-web";
-import { Alert, Button, Dialog, TextArea, TextField, toast, DialogFooter } from "@metrivum/ui-web";
+import {
+  Alert,
+  Button,
+  Dialog,
+  TextArea,
+  TextField,
+  toast,
+  DialogFooter,
+} from "@metrivum/ui-web";
 import { ApiError } from "~/shared/http/errors";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -21,7 +29,13 @@ function safeHttpsUrl(value: string): boolean {
   }
 }
 
-export function CreateExerciseDialog({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) {
+export function CreateExerciseDialog({
+  isOpen,
+  onOpenChange,
+}: {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const m = useT();
   const t = m.exercises.create;
   const locale = useLocale();
@@ -41,10 +55,18 @@ export function CreateExerciseDialog({ isOpen, onOpenChange }: { isOpen: boolean
   const [patterns, setPatterns] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
-  const label = (entry: { labelEn: string; labelPl: string }) => (locale === "pl" ? entry.labelPl : entry.labelEn);
-  const byLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label);
-  const activeMuscles = (dictionaries.data?.muscles ?? []).filter((d) => d.isActive).map((d) => ({ id: d.key, label: label(d) })).sort(byLabel);
-  const activePatterns = (dictionaries.data?.movementPatterns ?? []).filter((d) => d.isActive).map((d) => ({ id: d.key, label: label(d) })).sort(byLabel);
+  const label = (entry: { labelEn: string; labelPl: string }) =>
+    locale === "pl" ? entry.labelPl : entry.labelEn;
+  const byLabel = (a: { label: string }, b: { label: string }) =>
+    a.label.localeCompare(b.label);
+  const activeMuscles = (dictionaries.data?.muscles ?? [])
+    .filter((d) => d.isActive)
+    .map((d) => ({ id: d.key, label: label(d) }))
+    .sort(byLabel);
+  const activePatterns = (dictionaries.data?.movementPatterns ?? [])
+    .filter((d) => d.isActive)
+    .map((d) => ({ id: d.key, label: label(d) }))
+    .sort(byLabel);
 
   const mutation = useMutation({
     mutationFn: (body: CreateExerciseRequest) => createExercise(api, body),
@@ -59,13 +81,17 @@ export function CreateExerciseDialog({ isOpen, onOpenChange }: { isOpen: boolean
   const tagMutation = useMutation({
     mutationFn: (tagName: string) => createTag(api, tagName),
     onSuccess: (tag) => {
-      void queryClient.invalidateQueries({ queryKey: [a, "exercises", "tags"] });
+      void queryClient.invalidateQueries({
+        queryKey: [a, "exercises", "tags"],
+      });
       setTagIds((ids) => [...ids, tag.id]);
       toast({ tone: "success", title: t.tagCreated(tag.name) });
     },
   });
 
-  const duplicate = mutation.error instanceof ApiError && mutation.error.code === "EXERCISE_NAME_EXISTS";
+  const duplicate =
+    mutation.error instanceof ApiError &&
+    mutation.error.code === "EXERCISE_NAME_EXISTS";
   const urlInvalid = url.trim() !== "" && !safeHttpsUrl(url.trim());
 
   function onSubmit(event: FormEvent) {
@@ -85,21 +111,57 @@ export function CreateExerciseDialog({ isOpen, onOpenChange }: { isOpen: boolean
   }
 
   return (
-    <Dialog isOpen={isOpen} onOpenChange={onOpenChange} title={t.title} description={t.body} size="lg" closeLabel={m.common.close}>
-      <form id="create-exercise" className={styles.form} onSubmit={onSubmit} noValidate>
-        {mutation.error && !duplicate ? <Alert tone="danger" title={errorText(m, mutation.error)} live="assertive" /> : null}
-        <TextField placeholder={m.common.ph.exerciseName}
+    <Dialog
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      title={t.title}
+      description={t.body}
+      size="lg"
+      closeLabel={m.common.close}
+    >
+      <form
+        id="create-exercise"
+        className={styles.form}
+        onSubmit={onSubmit}
+        noValidate
+      >
+        {mutation.error && !duplicate ? (
+          <Alert
+            tone="danger"
+            title={errorText(m, mutation.error)}
+            live="assertive"
+          />
+        ) : null}
+        <TextField
+          placeholder={m.common.ph.exerciseName}
           label={t.name}
           value={name}
           onChange={setName}
           isRequired
           autoFocus
           isInvalid={(submitted && !name.trim()) || duplicate}
-          errorMessage={duplicate ? m.errors.byCode.EXERCISE_NAME_EXISTS : m.auth.errors.required}
+          errorMessage={
+            duplicate
+              ? m.errors.byCode.EXERCISE_NAME_EXISTS
+              : m.auth.errors.required
+          }
         />
-        <TextArea placeholder={m.common.ph.description} label={t.description} value={description} onChange={setDescription} rows={3} />
-        <TextArea placeholder={m.common.ph.instructions} label={t.instructions} value={instructions} onChange={setInstructions} rows={4} />
-        <TextField placeholder={m.common.ph.url}
+        <TextArea
+          placeholder={m.common.ph.description}
+          label={t.description}
+          value={description}
+          onChange={setDescription}
+          rows={3}
+        />
+        <TextArea
+          placeholder={m.common.ph.instructions}
+          label={t.instructions}
+          value={instructions}
+          onChange={setInstructions}
+          rows={4}
+        />
+        <TextField
+          placeholder={m.common.ph.url}
           label={t.demonstrationUrl}
           type="url"
           value={url}
@@ -111,17 +173,32 @@ export function CreateExerciseDialog({ isOpen, onOpenChange }: { isOpen: boolean
         <div className={styles.grid}>
           <MultiPick
             label={t.tags}
-            options={(tags.data ?? []).map((tag) => ({ id: tag.id, label: tag.name }))}
+            options={(tags.data ?? []).map((tag) => ({
+              id: tag.id,
+              label: tag.name,
+            }))}
             selected={tagIds}
             onChange={setTagIds}
             onCreate={(value) => tagMutation.mutate(value)}
             createLabel={t.newTag}
           />
-          <MultiPick label={t.patterns} options={activePatterns} selected={patterns} onChange={setPatterns} />
-          <MultiPick label={t.primaryMuscles} options={activeMuscles} selected={primary} onChange={setPrimary} />
+          <MultiPick
+            label={t.patterns}
+            options={activePatterns}
+            selected={patterns}
+            onChange={setPatterns}
+          />
+          <MultiPick
+            label={t.primaryMuscles}
+            options={activeMuscles}
+            selected={primary}
+            onChange={setPrimary}
+          />
           <MultiPick
             label={t.secondaryMuscles}
-            options={activeMuscles.filter((muscle) => !primary.includes(muscle.id))}
+            options={activeMuscles.filter(
+              (muscle) => !primary.includes(muscle.id),
+            )}
             selected={secondary}
             onChange={setSecondary}
           />
@@ -131,7 +208,12 @@ export function CreateExerciseDialog({ isOpen, onOpenChange }: { isOpen: boolean
         <Button variant="secondary" onPress={() => onOpenChange(false)}>
           {m.common.cancel}
         </Button>
-        <Button variant="primary" type="submit" form="create-exercise" loading={mutation.isPending}>
+        <Button
+          variant="primary"
+          type="submit"
+          form="create-exercise"
+          loading={mutation.isPending}
+        >
           {t.submit}
         </Button>
       </DialogFooter>

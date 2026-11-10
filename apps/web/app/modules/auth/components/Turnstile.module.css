@@ -3,7 +3,9 @@
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows 280ms var(--tf-ease-out, ease-out), opacity 200ms ease;
+  transition:
+    grid-template-rows 280ms var(--tf-ease-out, ease-out),
+    opacity 200ms ease;
 }
 
 /* A short delay so a fast, invisible check never flashes the line. */
@@ -34,5 +36,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .waiting { transition: opacity 120ms ease; }
+  .waiting {
+    transition: opacity 120ms ease;
+  }
 }

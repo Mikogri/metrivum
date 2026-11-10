@@ -4,18 +4,31 @@ import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
 import { ErrorState, LinkButton, toast } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
-import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
+import {
+  useSessionManager,
+  useSessionState,
+} from "~/shared/session/SessionProvider";
 import { SLOT_IDS, type SlotId } from "~/shared/session/storage-keys";
 import { AuthWorking } from "../components/AuthWorking";
 import { slotParam } from "../lib/urls";
-import { consumeCallbackAttempt, readCallbackAttempt } from "../lib/callback-attempt";
+import {
+  consumeCallbackAttempt,
+  readCallbackAttempt,
+} from "../lib/callback-attempt";
 import { markPasswordRecovery } from "../lib/assurance";
 import styles from "./callback.module.css";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Signing in — Metrivum");
 
-const OTP_TYPES: EmailOtpType[] = ["signup", "invite", "magiclink", "recovery", "email_change", "email"];
+const OTP_TYPES: EmailOtpType[] = [
+  "signup",
+  "invite",
+  "magiclink",
+  "recovery",
+  "email_change",
+  "email",
+];
 
 /** Where a callback may continue: in-app pages plus the password reset form. */
 function nextPath(value: string | null): string {
@@ -35,7 +48,12 @@ export default function AuthCallback() {
   const [halfway, setHalfway] = useState(false);
   const ran = useRef(false);
   const mounted = useRef(true);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const currentParams = useRef(params.toString());
   currentParams.current = params.toString();
 
@@ -46,11 +64,18 @@ export default function AuthCallback() {
 
     const errorCode = params.get("error_code") ?? params.get("error");
     if (errorCode) {
-      setFailure(errorCode.includes("expired") || errorCode === "access_denied" ? "expired" : "failed");
+      setFailure(
+        errorCode.includes("expired") || errorCode === "access_denied"
+          ? "expired"
+          : "failed",
+      );
       return;
     }
     const requested = slotParam(params.get("slot"));
-    if (requested === null || !(SLOT_IDS as readonly number[]).includes(requested)) {
+    if (
+      requested === null ||
+      !(SLOT_IDS as readonly number[]).includes(requested)
+    ) {
       setFailure("failed");
       return;
     }
@@ -60,46 +85,98 @@ export default function AuthCallback() {
     const type = params.get("type") as EmailOtpType | null;
     const generation = state.generation;
     const requestParams = params.toString();
-    const current = () => mounted.current && manager.getState().generation === generation && currentParams.current === requestParams;
+    const current = () =>
+      mounted.current &&
+      manager.getState().generation === generation &&
+      currentParams.current === requestParams;
 
     // Email change: not a sign-in. The link must confirm the account already signed in on this slot.
     if (params.get("flow") === "email-change") {
-      const account = state.accounts.find(a => a.slot === slot);
-      const message = params.get("message") ?? new URLSearchParams(window.location.hash.slice(1)).get("message");
-      if (!account) { setFailure("failed"); return; }
+      const account = state.accounts.find((a) => a.slot === slot);
+      const message =
+        params.get("message") ??
+        new URLSearchParams(window.location.hash.slice(1)).get("message");
+      if (!account) {
+        setFailure("failed");
+        return;
+      }
       let attempt;
       try {
-        if (params.getAll("nonce").length !== 1 || params.getAll("slot").length !== 1 || (code && tokenHash)) throw new Error("Invalid link.");
-        attempt = readCallbackAttempt(slot, params.get("nonce"), "email-change");
-        if (attempt.userId !== account.userId) throw new Error("Invalid account.");
-      } catch { setFailure("failed"); return; }
-      const currentAccount = () => current() && manager.getState().accounts.some(a => a.slot === slot && a.userId === account.userId);
-      if (!code && !tokenHash) { if (message) setHalfway(true); else setFailure("failed"); return; }
+        if (
+          params.getAll("nonce").length !== 1 ||
+          params.getAll("slot").length !== 1 ||
+          (code && tokenHash)
+        )
+          throw new Error("Invalid link.");
+        attempt = readCallbackAttempt(
+          slot,
+          params.get("nonce"),
+          "email-change",
+        );
+        if (attempt.userId !== account.userId)
+          throw new Error("Invalid account.");
+      } catch {
+        setFailure("failed");
+        return;
+      }
+      const currentAccount = () =>
+        current() &&
+        manager
+          .getState()
+          .accounts.some((a) => a.slot === slot && a.userId === account.userId);
+      if (!code && !tokenHash) {
+        if (message) setHalfway(true);
+        else setFailure("failed");
+        return;
+      }
       void (async () => {
-        const client = manager.client(slot, currentAccount, { userId: account.userId });
+        const client = manager.client(slot, currentAccount, {
+          userId: account.userId,
+        });
         try {
           let session: Session | null = null;
           if (code) {
-            const { data, error } = await client.auth.exchangeCodeForSession(code);
+            const { data, error } =
+              await client.auth.exchangeCodeForSession(code);
             if (error) throw error;
             session = data.session;
           } else if (tokenHash) {
-            const { data, error } = await client.auth.verifyOtp({ token_hash: tokenHash, type: "email_change" });
+            const { data, error } = await client.auth.verifyOtp({
+              token_hash: tokenHash,
+              type: "email_change",
+            });
             if (error) throw error;
             session = data.session;
           }
-          if (!currentAccount()) { setFailure("failed"); return; }
-          if (!session) { setHalfway(true); return; }
-          if (session.user.id !== account.userId) throw new Error("Invalid account for this link.");
-          if (session.user.email?.toLowerCase() !== attempt.email) { setHalfway(true); return; }
+          if (!currentAccount()) {
+            setFailure("failed");
+            return;
+          }
+          if (!session) {
+            setHalfway(true);
+            return;
+          }
+          if (session.user.id !== account.userId)
+            throw new Error("Invalid account for this link.");
+          if (session.user.email?.toLowerCase() !== attempt.email) {
+            setHalfway(true);
+            return;
+          }
           consumeCallbackAttempt(slot, params.get("nonce"), "email-change");
           await manager.completeSignIn(slot, session, currentAccount);
           toast({ tone: "success", title: t.emailChanged });
           navigate("/app/settings?section=security", { replace: true });
         } catch (error) {
-          const text = error instanceof Error ? error.message.toLowerCase() : "";
-          setFailure(text.includes("expired") || text.includes("invalid") ? "expired" : "failed");
-        } finally { await client.auth.dispose?.(); }
+          const text =
+            error instanceof Error ? error.message.toLowerCase() : "";
+          setFailure(
+            text.includes("expired") || text.includes("invalid")
+              ? "expired"
+              : "failed",
+          );
+        } finally {
+          await client.auth.dispose?.();
+        }
       })();
       return;
     }
@@ -107,20 +184,32 @@ export default function AuthCallback() {
     void (async () => {
       let client: ReturnType<typeof manager.client> | undefined;
       try {
-        if (params.getAll("nonce").length !== 1 || params.getAll("slot").length !== 1 || (code && tokenHash)) throw new Error("Invalid sign-in link.");
+        if (
+          params.getAll("nonce").length !== 1 ||
+          params.getAll("slot").length !== 1 ||
+          (code && tokenHash)
+        )
+          throw new Error("Invalid sign-in link.");
         const attempt = consumeCallbackAttempt(slot, params.get("nonce"));
         client = manager.client(slot, current, { email: attempt.email });
         let session: Session | null = null;
         if (code) {
-          const { data, error } = await client.auth.exchangeCodeForSession(code);
+          const { data, error } =
+            await client.auth.exchangeCodeForSession(code);
           if (error) throw error;
           session = data.session;
         } else if (tokenHash && type && OTP_TYPES.includes(type)) {
-          const { data, error } = await client.auth.verifyOtp({ token_hash: tokenHash, type });
+          const { data, error } = await client.auth.verifyOtp({
+            token_hash: tokenHash,
+            type,
+          });
           if (error) throw error;
           session = data.session;
         }
-        if (!current()) { setFailure("failed"); return; }
+        if (!current()) {
+          setFailure("failed");
+          return;
+        }
         if (!session) {
           setFailure("failed");
           return;
@@ -130,24 +219,46 @@ export default function AuthCallback() {
           throw new Error("Invalid account for this sign-in link.");
         }
         const used = await manager.completeSignIn(slot, session, current);
-        const next = type === "recovery" ? "/auth/reset-password" : nextPath(params.get("next"));
+        const next =
+          type === "recovery"
+            ? "/auth/reset-password"
+            : nextPath(params.get("next"));
         // Only a reset link opened in this tab unlocks the new-password form.
-        if (next === "/auth/reset-password") markPasswordRecovery(used, session.user.id);
+        if (next === "/auth/reset-password")
+          markPasswordRecovery(used, session.user.id);
         // Replace history so the one-time code never stays in the back stack.
         navigate(next, { replace: true });
       } catch (error) {
         const text = error instanceof Error ? error.message.toLowerCase() : "";
-        setFailure(text.includes("expired") || text.includes("invalid") ? "expired" : "failed");
-      } finally { await client?.auth.dispose?.(); }
+        setFailure(
+          text.includes("expired") || text.includes("invalid")
+            ? "expired"
+            : "failed",
+        );
+      } finally {
+        await client?.auth.dispose?.();
+      }
     })();
-  }, [state.phase, state.accounts, state.generation, params, manager, navigate, t.emailChanged]);
+  }, [
+    state.phase,
+    state.accounts,
+    state.generation,
+    params,
+    manager,
+    navigate,
+    t.emailChanged,
+  ]);
 
   if (halfway) {
     return (
       <ErrorState
         title={t.emailHalfwayTitle}
         description={t.emailHalfway}
-        actions={<LinkButton href="/app/settings?section=security" variant="primary">{t.toSettings}</LinkButton>}
+        actions={
+          <LinkButton href="/app/settings?section=security" variant="primary">
+            {t.toSettings}
+          </LinkButton>
+        }
       />
     );
   }

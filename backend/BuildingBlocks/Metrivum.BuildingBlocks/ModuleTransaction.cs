@@ -1,18 +1,25 @@
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace Metrivum.BuildingBlocks;
+
 /// <summary>One physical transaction across module contracts within a request or worker scope.</summary>
-public sealed class ModuleTransaction(NpgsqlDataSource dataSource, ILogger<ModuleTransaction>? logger = null) : IDisposable, IAsyncDisposable
+public sealed class ModuleTransaction(
+    NpgsqlDataSource dataSource,
+    ILogger<ModuleTransaction>? logger = null
+) : IDisposable, IAsyncDisposable
 {
     private readonly List<DbContext> contexts = [];
     private NpgsqlTransaction? transaction;
     private readonly List<Func<CancellationToken, Task>> committedCallbacks = [];
+
     public void OnCommitted(Func<CancellationToken, Task> callback)
     {
         if (transaction is null)
-            throw new InvalidOperationException("After-commit callbacks require an active transaction.");
+            throw new InvalidOperationException(
+                "After-commit callbacks require an active transaction."
+            );
         committedCallbacks.Add(callback);
     }
 
@@ -50,10 +57,17 @@ public sealed class ModuleTransaction(NpgsqlDataSource dataSource, ILogger<Modul
             // original failure instead of replacing it with "transaction has completed".
             if (current.Connection is not null)
             {
-                try { await current.RollbackAsync(CancellationToken.None); }
-                catch (Exception rollback) when (rollback is InvalidOperationException or NpgsqlException)
+                try
                 {
-                    logger?.LogWarning("Rollback failed with {FailureType}; preserving the original operation failure", rollback.GetType().Name);
+                    await current.RollbackAsync(CancellationToken.None);
+                }
+                catch (Exception rollback)
+                    when (rollback is InvalidOperationException or NpgsqlException)
+                {
+                    logger?.LogWarning(
+                        "Rollback failed with {FailureType}; preserving the original operation failure",
+                        rollback.GetType().Name
+                    );
                 }
             }
             foreach (var context in contexts)
@@ -74,11 +88,17 @@ public sealed class ModuleTransaction(NpgsqlDataSource dataSource, ILogger<Modul
         return result;
     }
 
-    public Task RunAsync(Func<CancellationToken, Task> action, CancellationToken ct) => RunAsync(async token =>
-    {
-        await action(token);
-        return true;
-    }, ct);
+    public Task RunAsync(Func<CancellationToken, Task> action, CancellationToken ct) =>
+        RunAsync(
+            async token =>
+            {
+                await action(token);
+                return true;
+            },
+            ct
+        );
+
     public ValueTask DisposeAsync() => Connection.DisposeAsync();
+
     public void Dispose() => Connection.Dispose();
 }

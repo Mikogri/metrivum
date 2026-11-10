@@ -8,25 +8,35 @@ import { useEffect } from "react";
  * React Router keeps loaded route modules in `window.__reactRouterRouteModules` and skips the download for any
  * route found there; the CSS is fetched into the HTTP cache so the router's stylesheet preload resolves at once.
  */
-type ManifestRoute = { id: string; parentId?: string; path?: string; module: string; css?: string[] };
+type ManifestRoute = {
+  id: string;
+  parentId?: string;
+  path?: string;
+  module: string;
+  css?: string[];
+};
 type RouterWindow = Window & {
   __reactRouterManifest?: { routes: Record<string, ManifestRoute> };
   __reactRouterRouteModules?: Record<string, unknown>;
 };
 
 /** Routes below the `/app` layout, in the order they are declared. */
-export function appRoutes(routes: Record<string, ManifestRoute>): ManifestRoute[] {
+export function appRoutes(
+  routes: Record<string, ManifestRoute>,
+): ManifestRoute[] {
   const app = Object.values(routes).find((route) => route.path === "app");
   if (!app) return [];
   const below = (route: ManifestRoute): boolean => {
-    for (let parent = route.parentId; parent; parent = routes[parent]?.parentId) if (parent === app.id) return true;
+    for (let parent = route.parentId; parent; parent = routes[parent]?.parentId)
+      if (parent === app.id) return true;
     return false;
   };
   return Object.values(routes).filter(below);
 }
 
 const idle = (run: () => void) => {
-  if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(run, { timeout: 2000 });
+  if (typeof window.requestIdleCallback === "function")
+    window.requestIdleCallback(run, { timeout: 2000 });
   else setTimeout(run, 50);
 };
 
@@ -35,10 +45,20 @@ let started = false;
 export function useWarmRoutes() {
   useEffect(() => {
     const w = window as RouterWindow;
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    if (started || !w.__reactRouterManifest || !w.__reactRouterRouteModules || connection?.saveData) return;
+    const connection = (
+      navigator as Navigator & { connection?: { saveData?: boolean } }
+    ).connection;
+    if (
+      started ||
+      !w.__reactRouterManifest ||
+      !w.__reactRouterRouteModules ||
+      connection?.saveData
+    )
+      return;
     const cache = w.__reactRouterRouteModules;
-    const queue = appRoutes(w.__reactRouterManifest.routes).filter((route) => !(route.id in cache));
+    const queue = appRoutes(w.__reactRouterManifest.routes).filter(
+      (route) => !(route.id in cache),
+    );
     const seen = new Set<string>();
     const next = () => {
       const route = queue.shift();

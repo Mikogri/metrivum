@@ -2,23 +2,39 @@
  * Uploads bytes to the signed Storage URL with real progress. The URL is a temporary Storage
  * credential: no Metrivum bearer token is attached and it is never logged or persisted.
  */
-export function uploadToSignedUrl(url: string, file: File, contentType: string, onProgress: (ratio: number) => void, signal: AbortSignal): Promise<void> {
+export function uploadToSignedUrl(
+  url: string,
+  file: File,
+  contentType: string,
+  onProgress: (ratio: number) => void,
+  signal: AbortSignal,
+): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal.aborted) { reject(new DOMException("Upload cancelled", "AbortError")); return; }
+    if (signal.aborted) {
+      reject(new DOMException("Upload cancelled", "AbortError"));
+      return;
+    }
     const xhr = new XMLHttpRequest();
     const abort = () => xhr.abort();
     const settle = (error?: Error) => {
       signal.removeEventListener("abort", abort);
-      if (error) reject(error); else resolve();
+      if (error) reject(error);
+      else resolve();
     };
     xhr.open("PUT", url);
     xhr.setRequestHeader("Content-Type", contentType);
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) onProgress(event.loaded / event.total);
     };
-    xhr.onload = () => settle(xhr.status >= 200 && xhr.status < 300 ? undefined : new Error(`Upload failed (${xhr.status})`));
+    xhr.onload = () =>
+      settle(
+        xhr.status >= 200 && xhr.status < 300
+          ? undefined
+          : new Error(`Upload failed (${xhr.status})`),
+      );
     xhr.onerror = () => settle(new Error("Upload failed"));
-    xhr.onabort = () => settle(new DOMException("Upload cancelled", "AbortError"));
+    xhr.onabort = () =>
+      settle(new DOMException("Upload cancelled", "AbortError"));
     signal.addEventListener("abort", abort, { once: true });
     xhr.send(file);
   });

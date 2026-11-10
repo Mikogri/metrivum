@@ -1,4 +1,9 @@
-.lockedGroup { display: inline-flex; align-items: center; flex-wrap: wrap; gap: var(--tf-space-2); }
+.lockedGroup {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
 
 .lockedWrap {
   display: inline-flex;

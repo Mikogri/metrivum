@@ -28,7 +28,15 @@ export interface PageHeaderProps {
   className?: string;
 }
 
-export function PageHeader({ title, description, context, actions, meta, back, className }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  context,
+  actions,
+  meta,
+  back,
+  className,
+}: PageHeaderProps) {
   const fromShell = useContext(PageBackContext);
   const target = back === false ? null : (back ?? fromShell);
   return (
@@ -38,13 +46,19 @@ export function PageHeader({ title, description, context, actions, meta, back, c
         <div className={styles.lead} data-back={target ? "" : undefined}>
           <div className={styles.heading}>
             {target ? (
-              <AriaButton aria-label={target.label} onPress={target.onPress} className={styles.back}>
+              <AriaButton
+                aria-label={target.label}
+                onPress={target.onPress}
+                className={styles.back}
+              >
                 <ArrowLeft aria-hidden="true" />
               </AriaButton>
             ) : null}
             <div className={styles.titles}>
               <h1 className={styles.title}>{title}</h1>
-              {description ? <p className={styles.description}>{description}</p> : null}
+              {description ? (
+                <p className={styles.description}>{description}</p>
+              ) : null}
             </div>
           </div>
         </div>
@@ -68,7 +82,14 @@ export interface SectionHeaderProps {
   id?: string;
 }
 
-export function SectionHeader({ title, description, actions, level = 2, className, id }: SectionHeaderProps) {
+export function SectionHeader({
+  title,
+  description,
+  actions,
+  level = 2,
+  className,
+  id,
+}: SectionHeaderProps) {
   const Heading = level === 2 ? "h2" : "h3";
   return (
     <div className={cx(styles.section, className)}>
@@ -76,7 +97,9 @@ export function SectionHeader({ title, description, actions, level = 2, classNam
         <Heading id={id} className={styles.sectionTitle}>
           {title}
         </Heading>
-        {description ? <p className={styles.sectionDescription}>{description}</p> : null}
+        {description ? (
+          <p className={styles.sectionDescription}>{description}</p>
+        ) : null}
       </div>
       {actions ? <div className={styles.actions}>{actions}</div> : null}
     </div>
@@ -92,7 +115,11 @@ export interface ToolbarProps {
 /** Row of related controls with arrow-key friendly grouping semantics. */
 export function Toolbar({ children, className, ...props }: ToolbarProps) {
   return (
-    <div role="toolbar" aria-label={props["aria-label"]} className={cx(styles.toolbar, className)}>
+    <div
+      role="toolbar"
+      aria-label={props["aria-label"]}
+      className={cx(styles.toolbar, className)}
+    >
       {children}
     </div>
   );

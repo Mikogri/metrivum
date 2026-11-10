@@ -48,18 +48,31 @@ export function CycleMap() {
           </span>
         </div>
       </div>
-      <div className={styles.grid} role="img" aria-label={`${c.cycleLabel(1, days)}: ${pattern.map((on, i) => (on ? c.dayLabel(i + 1) : null)).filter(Boolean).join(", ")}`}>
+      <div
+        className={styles.grid}
+        role="img"
+        aria-label={`${c.cycleLabel(1, days)}: ${pattern
+          .map((on, i) => (on ? c.dayLabel(i + 1) : null))
+          .filter(Boolean)
+          .join(", ")}`}
+      >
         <div className={styles.dayHeader} aria-hidden="true">
           <span />
           {Array.from({ length: MAX_DAYS }, (_, i) => (
-            <span key={i} className={styles.dayNumber} data-hidden={i >= days || undefined}>
+            <span
+              key={i}
+              className={styles.dayNumber}
+              data-hidden={i >= days || undefined}
+            >
               {i + 1}
             </span>
           ))}
         </div>
         {Array.from({ length: CYCLES }, (_, cycle) => (
           <div key={cycle} className={styles.cycleRow} aria-hidden="true">
-            <span className={styles.cycleName}>{c.cycleLabel(cycle + 1, days)}</span>
+            <span className={styles.cycleName}>
+              {c.cycleLabel(cycle + 1, days)}
+            </span>
             {Array.from({ length: MAX_DAYS }, (_, day) => {
               const exists = day < days;
               const on = exists && pattern[day] === 1;

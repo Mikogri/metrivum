@@ -4,6 +4,8 @@ namespace Metrivum.Billing.Contracts;
 public interface IPlatformPlans
 {
     Task<bool> HasProAsync(Guid userId, CancellationToken ct);
-    Task<IReadOnlySet<Guid>> GetPriorityCoachIdsAsync(IReadOnlyCollection<Guid> userIds, CancellationToken ct)
-        => Task.FromResult<IReadOnlySet<Guid>>(new HashSet<Guid>());
+    Task<IReadOnlySet<Guid>> GetPriorityCoachIdsAsync(
+        IReadOnlyCollection<Guid> userIds,
+        CancellationToken ct
+    ) => Task.FromResult<IReadOnlySet<Guid>>(new HashSet<Guid>());
 }

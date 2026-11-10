@@ -9,7 +9,11 @@ import styles from "./RouteSkeleton.module.css";
 export function RouteSkeleton({ editor }: { editor: boolean }) {
   const m = useT();
   return (
-    <div className={styles.skeleton} data-editor={editor || undefined} aria-busy="true">
+    <div
+      className={styles.skeleton}
+      data-editor={editor || undefined}
+      aria-busy="true"
+    >
       <span className="tf-visually-hidden">{m.common.loading}</span>
       {editor ? (
         <>

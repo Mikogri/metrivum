@@ -56,8 +56,23 @@
   height: 1rem;
 }
 
-.chip[data-tone="green"] { background: var(--tf-color-accent-deep); color: var(--tf-color-accent); }
-.chip[data-tone="violet"] { background: var(--tf-color-violet-soft); color: var(--tf-color-violet); }
-.chip[data-tone="blue"] { background: var(--tf-color-info-soft); color: var(--tf-color-info); }
-.chip[data-tone="orange"] { background: var(--tf-color-warning-soft); color: var(--tf-color-warning); }
-.chip[data-tone="rose"] { background: var(--tf-color-danger-soft); color: var(--tf-color-danger); }
+.chip[data-tone="green"] {
+  background: var(--tf-color-accent-deep);
+  color: var(--tf-color-accent);
+}
+.chip[data-tone="violet"] {
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+.chip[data-tone="blue"] {
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+}
+.chip[data-tone="orange"] {
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+}
+.chip[data-tone="rose"] {
+  background: var(--tf-color-danger-soft);
+  color: var(--tf-color-danger);
+}

@@ -56,11 +56,21 @@
   background: color-mix(in srgb, var(--tone) 7%, var(--tf-color-surface));
 }
 
-.tile[data-tone="green"] { --tone: var(--tf-color-accent); }
-.tile[data-tone="violet"] { --tone: var(--tf-color-violet); }
-.tile[data-tone="blue"] { --tone: var(--tf-color-info); }
-.tile[data-tone="orange"] { --tone: var(--tf-color-warning); }
-.tile[data-tone="rose"] { --tone: var(--tf-color-danger); }
+.tile[data-tone="green"] {
+  --tone: var(--tf-color-accent);
+}
+.tile[data-tone="violet"] {
+  --tone: var(--tf-color-violet);
+}
+.tile[data-tone="blue"] {
+  --tone: var(--tf-color-info);
+}
+.tile[data-tone="orange"] {
+  --tone: var(--tf-color-warning);
+}
+.tile[data-tone="rose"] {
+  --tone: var(--tf-color-danger);
+}
 
 .icon {
   display: grid;

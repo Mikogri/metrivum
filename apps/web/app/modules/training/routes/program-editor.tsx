@@ -49,22 +49,37 @@ function Editor() {
   }
   if (query.isError) {
     // Missing or not this account's: the same "not found", with nothing of the plan shown.
-    const notFound = query.error instanceof ApiError && (query.error.status === 404 || query.error.status === 403);
+    const notFound =
+      query.error instanceof ApiError &&
+      (query.error.status === 404 || query.error.status === 403);
     return (
       <div className={styles.center}>
         <ErrorState
-          title={notFound ? m.training.detail.notFound : errorText(m, query.error)}
+          title={
+            notFound ? m.training.detail.notFound : errorText(m, query.error)
+          }
           reference={traceIdOf(query.error)}
-          actions={notFound ? undefined : <Button onPress={() => void query.refetch()}>{m.common.retry}</Button>}
+          actions={
+            notFound ? undefined : (
+              <Button onPress={() => void query.refetch()}>
+                {m.common.retry}
+              </Button>
+            )
+          }
         />
       </div>
     );
   }
   const plan = query.data.data;
   // Keep URLs truthful: templates live under /app/templates, programs under /app/programs.
-  const expected = plan.kind === "Template" ? `/app/templates/${plan.id}/edit` : `/app/programs/${plan.id}/edit`;
+  const expected =
+    plan.kind === "Template"
+      ? `/app/templates/${plan.id}/edit`
+      : `/app/programs/${plan.id}/edit`;
   if (location.pathname !== expected) return <Navigate to={expected} replace />;
-  return <EditorWorkspace key={plan.id} plan={plan} version={query.data.version} />;
+  return (
+    <EditorWorkspace key={plan.id} plan={plan} version={query.data.version} />
+  );
 }
 
 export default function ProgramEditorRoute() {

@@ -23,7 +23,13 @@ export function RevealHeading({
 }) {
   const [ref, inView] = useInView<HTMLElement>({ margin: "0px 0px -12% 0px" });
   return (
-    <Tag ref={ref} id={id} className={[styles.heading, className].filter(Boolean).join(" ")} data-align={align} data-inview={inView || undefined}>
+    <Tag
+      ref={ref}
+      id={id}
+      className={[styles.heading, className].filter(Boolean).join(" ")}
+      data-align={align}
+      data-inview={inView || undefined}
+    >
       <span className={styles.mask}>
         <span className={styles.line}>{title}</span>
       </span>

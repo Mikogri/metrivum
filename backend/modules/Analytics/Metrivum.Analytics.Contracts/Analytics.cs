@@ -125,7 +125,11 @@ public interface IMessagingAnalytics
     Task<MessagingAnalysis> QueryAsync(AnalysisScope scope, CancellationToken ct);
 }
 
-public sealed record TrainingAnalysis(bool Available, string Reason, Metrivum.Training.Contracts.TrainingProgressDto? Progress = null);
+public sealed record TrainingAnalysis(
+    bool Available,
+    string Reason,
+    Metrivum.Training.Contracts.TrainingProgressDto? Progress = null
+);
 
 public sealed record AnalysisOptions(
     IReadOnlyList<GroupAnalysis> Groups,
@@ -163,8 +167,15 @@ public interface IFinanceAnalytics
 
 public interface ICoachingAnalytics
 {
-    Task<Guid[]> ResolveTeamRelationshipsAsync(Guid teamId, Guid? memberId, Guid? groupId, Guid? offerRevisionId, CancellationToken ct) => Task.FromResult(Array.Empty<Guid>());
-    Task<AnalysisOptions> TeamOptionsAsync(Guid teamId, Guid? memberId, CancellationToken ct) => Task.FromResult(new AnalysisOptions([], []));
+    Task<Guid[]> ResolveTeamRelationshipsAsync(
+        Guid teamId,
+        Guid? memberId,
+        Guid? groupId,
+        Guid? offerRevisionId,
+        CancellationToken ct
+    ) => Task.FromResult(Array.Empty<Guid>());
+    Task<AnalysisOptions> TeamOptionsAsync(Guid teamId, Guid? memberId, CancellationToken ct) =>
+        Task.FromResult(new AnalysisOptions([], []));
     Task<Guid[]?> ResolveRelationshipsAsync(
         Guid coachId,
         Guid workspaceId,

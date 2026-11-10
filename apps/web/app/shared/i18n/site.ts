@@ -2,7 +2,9 @@ import { LOCALES, type Locale } from "./locale";
 import { pageFromPathname, publicPath } from "./public-routes";
 
 /** Public origin for canonical/hreflang/sitemap. Configure VITE_SITE_URL per environment. */
-export const SITE_URL = (import.meta.env.VITE_SITE_URL ?? "http://localhost:5173").replace(/\/+$/, "");
+export const SITE_URL = (
+  import.meta.env.VITE_SITE_URL ?? "http://localhost:5173"
+).replace(/\/+$/, "");
 
 export const OG_IMAGE_PATH = "/og-image.png?v=3";
 
@@ -14,7 +16,12 @@ interface PageMetaInput {
 }
 
 /** Title, description, canonical, hreflang alternates and share metadata for a public page. */
-export function publicPageMeta({ title, description, pathname, locale }: PageMetaInput) {
+export function publicPageMeta({
+  title,
+  description,
+  pathname,
+  locale,
+}: PageMetaInput) {
   const page = pageFromPathname(pathname);
   const canonical = `${SITE_URL}${page ? publicPath(page, locale) : pathname}`;
   const alternates = page
@@ -25,7 +32,12 @@ export function publicPageMeta({ title, description, pathname, locale }: PageMet
           hrefLang: alt,
           href: `${SITE_URL}${publicPath(page, alt)}`,
         })),
-        { tagName: "link" as const, rel: "alternate", hrefLang: "x-default", href: `${SITE_URL}${publicPath(page, "en")}` },
+        {
+          tagName: "link" as const,
+          rel: "alternate",
+          hrefLang: "x-default",
+          href: `${SITE_URL}${publicPath(page, "en")}`,
+        },
       ]
     : [];
   return [

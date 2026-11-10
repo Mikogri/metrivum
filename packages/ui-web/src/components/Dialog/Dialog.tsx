@@ -15,7 +15,10 @@ import styles from "./Dialog.module.css";
 
 export { DialogTrigger };
 
-export interface DialogProps extends Omit<ModalOverlayProps, "className" | "children"> {
+export interface DialogProps extends Omit<
+  ModalOverlayProps,
+  "className" | "children"
+> {
   title: ReactNode;
   description?: ReactNode;
   children?: ReactNode | ((close: () => void) => ReactNode);
@@ -52,7 +55,8 @@ export function Dialog({
   onOpenChange,
   ...overlayProps
 }: DialogProps) {
-  const side = placement ?? (size === "lg" || size === "xl" ? "right" : "center");
+  const side =
+    placement ?? (size === "lg" || size === "xl" ? "right" : "center");
   // Many dialogs are removed from the page the moment they close, which would cut the exit
   // animation off. When that happens, a still copy of the panel plays the exit and is then removed.
   const overlay = useRef<HTMLDivElement>(null);
@@ -64,20 +68,34 @@ export function Dialog({
     return () => {
       if (!node?.isConnected || node.hasAttribute("data-exiting")) return;
       // Only real browsers animate (not test DOMs), and never with reduced motion.
-      if (typeof window === "undefined" || typeof node.animate !== "function" || !window.matchMedia || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (
+        typeof window === "undefined" ||
+        typeof node.animate !== "function" ||
+        !window.matchMedia ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      )
+        return;
       const ghost = node.cloneNode(true) as HTMLElement;
       ghost.setAttribute("data-exiting", "");
       ghost.setAttribute("aria-hidden", "true");
       ghost.setAttribute("inert", "");
       ghost.style.pointerEvents = "none";
-      ghost.querySelectorAll("[data-placement]").forEach((el) => el.setAttribute("data-exiting", ""));
+      ghost
+        .querySelectorAll("[data-placement]")
+        .forEach((el) => el.setAttribute("data-exiting", ""));
       const parent = node.parentNode;
       const sibling = node.nextSibling;
       // StrictMode replays effects on opening; only a real unmount gets an exit copy.
       queueMicrotask(() => {
         if (animation.generation !== generation || !parent?.isConnected) return;
-        parent.insertBefore(ghost, sibling?.parentNode === parent ? sibling : null);
-        setTimeout(() => ghost.remove(), side === "right" ? EXIT_PANEL_MS + 60 : EXIT_MODAL_MS + 60);
+        parent.insertBefore(
+          ghost,
+          sibling?.parentNode === parent ? sibling : null,
+        );
+        setTimeout(
+          () => ghost.remove(),
+          side === "right" ? EXIT_PANEL_MS + 60 : EXIT_MODAL_MS + 60,
+        );
       });
     };
   }, [side]);
@@ -91,7 +109,10 @@ export function Dialog({
       className={styles.overlay}
       data-placement={side}
     >
-      <Modal className={cx(styles.modal, styles[size], className)} data-placement={side}>
+      <Modal
+        className={cx(styles.modal, styles[size], className)}
+        data-placement={side}
+      >
         <AriaDialog role={role} className={styles.dialog}>
           {({ close }) => (
             <>
@@ -100,16 +121,29 @@ export function Dialog({
                   <AriaHeading slot="title" className={styles.title}>
                     {title}
                   </AriaHeading>
-                  {description ? <p className={styles.description}>{description}</p> : null}
+                  {description ? (
+                    <p className={styles.description}>{description}</p>
+                  ) : null}
                 </div>
                 {isDismissable ? (
-                  <IconButton label={closeLabel} icon={<X />} size="sm" onPress={close} showTooltip={false} className={styles.close} />
+                  <IconButton
+                    label={closeLabel}
+                    icon={<X />}
+                    size="sm"
+                    onPress={close}
+                    showTooltip={false}
+                    className={styles.close}
+                  />
                 ) : null}
               </header>
               {children ? (
-                <div className={styles.body}>{typeof children === "function" ? children(close) : children}</div>
+                <div className={styles.body}>
+                  {typeof children === "function" ? children(close) : children}
+                </div>
               ) : null}
-              {footer ? <footer className={styles.footer}>{footer(close)}</footer> : null}
+              {footer ? (
+                <footer className={styles.footer}>{footer(close)}</footer>
+              ) : null}
             </>
           )}
         </AriaDialog>
@@ -122,11 +156,24 @@ export function Dialog({
  * Actions bar for dialogs whose buttons live inside a form in the body (so Enter submits):
  * renders like the `footer` prop, full-bleed with a hairline and equal-width buttons.
  */
-export function DialogFooter({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cx(styles.footer, styles.inlineFooter, className)}>{children}</div>;
+export function DialogFooter({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cx(styles.footer, styles.inlineFooter, className)}>
+      {children}
+    </div>
+  );
 }
 
-export interface AlertDialogProps extends Omit<DialogProps, "footer" | "children" | "role"> {
+export interface AlertDialogProps extends Omit<
+  DialogProps,
+  "footer" | "children" | "role"
+> {
   children?: ReactNode;
   confirmLabel: string;
   cancelLabel: string;
@@ -144,7 +191,14 @@ export interface AlertDialogProps extends Omit<DialogProps, "footer" | "children
 /** Outline warning triangle (Tabler); stroked in currentColor so the tone comes from CSS. */
 function WarningGlyph() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 9v4" />
       <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" />
       <path d="M12 16h.01" />
@@ -155,7 +209,14 @@ function WarningGlyph() {
 /** Outline circle check (Tabler), for confirmations of a positive step. */
 function CheckGlyph() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
       <path d="M9 12l2 2l4 -4" />
     </svg>
@@ -179,14 +240,27 @@ export function AlertDialog({
       role="alertdialog"
       size="sm"
       isDismissable={!isConfirming}
-      isKeyboardDismissDisabled={isConfirming || props.isKeyboardDismissDisabled}
+      isKeyboardDismissDisabled={
+        isConfirming || props.isKeyboardDismissDisabled
+      }
       footer={(close) => (
         <>
-          <Button variant="secondary" onPress={close} isDisabled={isConfirming} autoFocus={tone === "danger"}>
+          <Button
+            variant="secondary"
+            onPress={close}
+            isDisabled={isConfirming}
+            autoFocus={tone === "danger"}
+          >
             {cancelLabel}
           </Button>
           <Button
-            variant={tone === "danger" ? "danger" : tone === "success" ? "success" : "primary"}
+            variant={
+              tone === "danger"
+                ? "danger"
+                : tone === "success"
+                  ? "success"
+                  : "primary"
+            }
             loading={isConfirming}
             isDisabled={isConfirmDisabled}
             onPress={async () => {

@@ -1,6 +1,0 @@
-.card { display: grid; gap: var(--tf-space-4); }
-.text { display: grid; gap: var(--tf-space-1); }
-.title { font-size: var(--tf-text-md); font-weight: var(--tf-weight-semibold); }
-.hint { color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); line-height: var(--tf-leading-normal); }
-.row { display: grid; gap: var(--tf-space-1-5); }
-.row .hint { padding-left: calc(2.25rem + var(--tf-space-2)); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }

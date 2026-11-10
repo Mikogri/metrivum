@@ -2,10 +2,10 @@
 /* eslint-disable */
 // Profile cover: React Bits "LightTunnel" background, copied unchanged from
 // https://github.com/DavidHDev/react-bits (MIT + Commons Clause). Loaded on demand by ../catalog.ts.
-import { useEffect, useRef, type HTMLAttributes } from 'react';
-import './LightTunnel.css';
+import { useEffect, useRef, type HTMLAttributes } from "react";
+import "./LightTunnel.css";
 
-export type FlowDirection = 'inward' | 'outward';
+export type FlowDirection = "inward" | "outward";
 
 export interface LightTunnelProps extends HTMLAttributes<HTMLDivElement> {
   cableColor?: string;
@@ -83,7 +83,10 @@ type Settings = {
   dpr?: number;
 };
 
-type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
+type Program = {
+  program: WebGLProgram;
+  uniforms: Record<string, WebGLUniformLocation | null>;
+};
 
 const INTRO_SECONDS = 1.8;
 
@@ -242,7 +245,8 @@ void main() {
   outColor = vec4(mapped, max(mapped.r, max(mapped.g, mapped.b)));
 }`;
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
   const shader = gl.createShader(type);
@@ -261,7 +265,7 @@ const link = (gl: WebGL2RenderingContext): Program | null => {
   if (!vertex || !fragment || !program) return null;
   gl.attachShader(program, vertex);
   gl.attachShader(program, fragment);
-  gl.bindAttribLocation(program, 0, 'aPosition');
+  gl.bindAttribLocation(program, 0, "aPosition");
   gl.linkProgram(program);
   gl.deleteShader(vertex);
   gl.deleteShader(fragment);
@@ -279,12 +283,12 @@ const link = (gl: WebGL2RenderingContext): Program | null => {
 };
 
 const LightTunnel = ({
-  cableColor = '#ffffff',
-  pulseColor = '#ffffff',
-  tunnelColor = '#ffffff',
+  cableColor = "#ffffff",
+  pulseColor = "#ffffff",
+  tunnelColor = "#ffffff",
   tunnelOpacity = 0,
   speed = 0.1,
-  flowDirection = 'inward',
+  flowDirection = "inward",
   pulseSpeed = 2,
   pulseLength = 0.28,
   pulseBlend = 0.6,
@@ -314,7 +318,7 @@ const LightTunnel = ({
   variation = 0,
   lightMode = false,
   dpr,
-  className = '',
+  className = "",
   style,
   ...rest
 }: LightTunnelProps) => {
@@ -327,7 +331,7 @@ const LightTunnel = ({
     tunnelColor,
     tunnelOpacity: clamp(tunnelOpacity, 0, 1),
     speed: Math.max(0, speed),
-    flow: flowDirection === 'outward' ? 1 : -1,
+    flow: flowDirection === "outward" ? 1 : -1,
     pulseSpeed: Math.max(0, pulseSpeed),
     pulseLength: clamp(pulseLength, 0.02, 1),
     pulseBlend: clamp(pulseBlend, 0, 1),
@@ -356,7 +360,7 @@ const LightTunnel = ({
     intro,
     variation,
     lightMode,
-    dpr
+    dpr,
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -364,12 +368,12 @@ const LightTunnel = ({
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
-    const gl = canvas?.getContext('webgl2', {
+    const gl = canvas?.getContext("webgl2", {
       alpha: true,
       premultipliedAlpha: true,
       antialias: false,
       depth: false,
-      stencil: false
+      stencil: false,
     });
     if (!container || !canvas || !gl) return undefined;
 
@@ -381,11 +385,17 @@ const LightTunnel = ({
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 3, -1, -1, 3]),
+      gl.STATIC_DRAW,
+    );
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-    const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    const probe = document
+      .createElement("canvas")
+      .getContext("2d", { willReadFrequently: true });
     const cache = new Map<string, number[]>();
     const parse = (value: string | undefined, fallback: number[]): number[] => {
       if (!value) return fallback;
@@ -395,7 +405,7 @@ const LightTunnel = ({
       let rgb = fallback;
       if (probe) {
         probe.clearRect(0, 0, 1, 1);
-        probe.fillStyle = '#000000';
+        probe.fillStyle = "#000000";
         probe.fillStyle = key;
         probe.fillRect(0, 0, 1, 1);
         const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
@@ -405,7 +415,8 @@ const LightTunnel = ({
       return rgb;
     };
 
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const reduce =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     const pointer = { x: 0, y: 0, inside: false };
     const steer = { x: 0, y: 0 };
     const surge = { age: 10 };
@@ -426,7 +437,10 @@ const LightTunnel = ({
       const span = 3.4;
       const travel = surge.age * 2.6;
       const surgeDepth = flow > 0 ? span - travel : -0.6 + travel;
-      const surgeLevel = surge.age < 2.4 ? Math.min(1, surge.age / 0.12) * Math.exp(-surge.age * 1.1) : 0;
+      const surgeLevel =
+        surge.age < 2.4
+          ? Math.min(1, surge.age / 0.12) * Math.exp(-surge.age * 1.1)
+          : 0;
       const eased = reveal * reveal * (3 - 2 * reveal);
       gl.viewport(0, 0, width, height);
       gl.useProgram(program.program);
@@ -440,7 +454,10 @@ const LightTunnel = ({
       gl.uniform2f(u.uSteer, steer.x, steer.y);
       gl.uniform1f(u.uBend, s.bend * 0.45);
       gl.uniform1f(u.uCount, s.cableCount);
-      gl.uniform1f(u.uSwing, (Math.sin(drift * 0.9) * s.sway * 0.5) / (Math.PI * 2));
+      gl.uniform1f(
+        u.uSwing,
+        (Math.sin(drift * 0.9) * s.sway * 0.5) / (Math.PI * 2),
+      );
       gl.uniform1f(u.uWave, s.waviness * 0.15);
       gl.uniform1f(u.uWidth, (0.25 + s.thickness * 1.5) * ratio);
       gl.uniform1f(u.uPulseWidth, 0.6 + s.pulseWidth * 0.9);
@@ -480,7 +497,8 @@ const LightTunnel = ({
       time += dt * s.speed * motion;
       drift += dt * (s.speed + 0.2) * motion;
       surge.age += dt;
-      if (s.intro && !reduce && reveal < 1) reveal = Math.min(1, reveal + dt / INTRO_SECONDS);
+      if (s.intro && !reduce && reveal < 1)
+        reveal = Math.min(1, reveal + dt / INTRO_SECONDS);
       else if (!s.intro || reduce) reveal = 1;
 
       const engaged = s.mouseInteraction && pointer.inside && !reduce;
@@ -491,14 +509,17 @@ const LightTunnel = ({
       steer.y += (target[1] - steer.y) * follow;
 
       render();
-      const settled = Math.abs(target[0] - steer.x) < 0.0005 && Math.abs(target[1] - steer.y) < 0.0005;
+      const settled =
+        Math.abs(target[0] - steer.x) < 0.0005 &&
+        Math.abs(target[1] - steer.y) < 0.0005;
       const busy = motion > 0 || !settled || reveal < 1 || surge.age < 2.4;
       if (busy) raf = requestAnimationFrame(frame);
       else last = 0;
     };
 
     const wake = () => {
-      if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame);
+      if (!raf && visible && !document.hidden)
+        raf = requestAnimationFrame(frame);
     };
 
     const resize = () => {
@@ -535,7 +556,7 @@ const LightTunnel = ({
     };
 
     const onPointerUp = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') pointer.inside = false;
+      if (event.pointerType !== "mouse") pointer.inside = false;
     };
 
     const onPointerLeave = () => {
@@ -549,20 +570,20 @@ const LightTunnel = ({
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
-    const intersection = new IntersectionObserver(entries => {
-      visible = entries.some(entry => entry.isIntersecting);
+    const intersection = new IntersectionObserver((entries) => {
+      visible = entries.some((entry) => entry.isIntersecting);
       if (visible) {
         last = 0;
         wake();
       }
     });
     intersection.observe(container);
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('pointerdown', onPointerDown, { passive: true });
-    window.addEventListener('pointerup', onPointerUp, { passive: true });
-    window.addEventListener('pointercancel', onPointerUp, { passive: true });
-    document.documentElement.addEventListener('pointerleave', onPointerLeave);
-    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
+    window.addEventListener("pointercancel", onPointerUp, { passive: true });
+    document.documentElement.addEventListener("pointerleave", onPointerLeave);
+    document.addEventListener("visibilitychange", onVisibility);
     resize();
 
     let lastDpr = settingsRef.current.dpr;
@@ -582,16 +603,19 @@ const LightTunnel = ({
       wakeRef.current = null;
       resizeObserver.disconnect();
       intersection.disconnect();
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('pointerup', onPointerUp);
-      window.removeEventListener('pointercancel', onPointerUp);
-      document.documentElement.removeEventListener('pointerleave', onPointerLeave);
-      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      document.documentElement.removeEventListener(
+        "pointerleave",
+        onPointerLeave,
+      );
+      document.removeEventListener("visibilitychange", onVisibility);
       gl.deleteProgram(program.program);
       gl.deleteBuffer(buffer);
       gl.deleteVertexArray(vao);
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, []);
 
@@ -602,11 +626,15 @@ const LightTunnel = ({
   return (
     <div
       ref={containerRef}
-      className={`light-tunnel-container${className ? ` ${className}` : ''}`}
+      className={`light-tunnel-container${className ? ` ${className}` : ""}`}
       style={style}
       {...rest}
     >
-      <canvas ref={canvasRef} className="light-tunnel-canvas" aria-hidden="true" />
+      <canvas
+        ref={canvasRef}
+        className="light-tunnel-canvas"
+        aria-hidden="true"
+      />
     </div>
   );
 };

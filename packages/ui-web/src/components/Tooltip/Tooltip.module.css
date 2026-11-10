@@ -4,7 +4,11 @@
   border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-lg);
   /* Frosted: the page shows through, blurred. */
-  background: color-mix(in srgb, var(--tf-color-surface-overlay) 62%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--tf-color-surface-overlay) 62%,
+    transparent
+  );
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   backdrop-filter: blur(14px) saturate(1.4);
   box-shadow: var(--tf-shadow-md);
@@ -16,10 +20,18 @@
   transform-origin: var(--origin, center);
 }
 
-.tooltip[data-placement="top"] { --origin: bottom center; }
-.tooltip[data-placement="bottom"] { --origin: top center; }
-.tooltip[data-placement="left"] { --origin: center right; }
-.tooltip[data-placement="right"] { --origin: center left; }
+.tooltip[data-placement="top"] {
+  --origin: bottom center;
+}
+.tooltip[data-placement="bottom"] {
+  --origin: top center;
+}
+.tooltip[data-placement="left"] {
+  --origin: center right;
+}
+.tooltip[data-placement="right"] {
+  --origin: center left;
+}
 
 .tooltip[data-entering] {
   animation: tooltip-in var(--tf-duration-base) var(--tf-ease-out);
@@ -34,15 +46,23 @@
   display: none;
 }
 
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
   .tooltip {
     background: var(--tf-color-surface-overlay);
   }
 }
 
-.arrow[data-placement="bottom"] svg { transform: rotate(180deg); }
-.arrow[data-placement="left"] svg { transform: rotate(-90deg); }
-.arrow[data-placement="right"] svg { transform: rotate(90deg); }
+.arrow[data-placement="bottom"] svg {
+  transform: rotate(180deg);
+}
+.arrow[data-placement="left"] svg {
+  transform: rotate(-90deg);
+}
+.arrow[data-placement="right"] svg {
+  transform: rotate(90deg);
+}
 
 @keyframes tooltip-in {
   from {

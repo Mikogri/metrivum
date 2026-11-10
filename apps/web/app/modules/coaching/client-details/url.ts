@@ -6,13 +6,18 @@ import { useSearchParams } from "react-router";
  */
 export function useClientDetailsUrl() {
   const [params, setParams] = useSearchParams();
-  const update = (patch: Record<string, string | null>) => setParams(current => {
-    const next = new URLSearchParams(current);
-    for (const [key, value] of Object.entries(patch)) {
-      if (value) next.set(key, value); else next.delete(key);
-    }
-    return next;
-  }, { replace: true });
+  const update = (patch: Record<string, string | null>) =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        for (const [key, value] of Object.entries(patch)) {
+          if (value) next.set(key, value);
+          else next.delete(key);
+        }
+        return next;
+      },
+      { replace: true },
+    );
   return { params, update };
 }
 export function endExclusive(date: string | null) {

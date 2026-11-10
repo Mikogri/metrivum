@@ -83,7 +83,8 @@ export type PagedOfFormulaListItem = Schema<"PagedOfFormulaListItem">;
 export type FormulaRequest = Schema<"FormulaRequest">;
 export type FormulaEvaluation = Schema<"FormulaEvaluation">;
 /** Readable alias for the anonymous built-in formula schema. */
-export type BuiltInFormula = Schema<"AnonymousTypeOfstringAndintAndFormulaDefinition">;
+export type BuiltInFormula =
+  Schema<"AnonymousTypeOfstringAndintAndFormulaDefinition">;
 export type ImportPreview = Schema<"ImportPreview">;
 export type ImportRowPreview = Schema<"ImportRowPreview">;
 export type ImportValidation = Schema<"ImportValidation">;
@@ -170,10 +171,40 @@ export type FeatureReason =
   | "dependency_unavailable"
   | "limit_reached";
 
-export const SET_KINDS = ["Standard", "Warmup", "Amrap", "Ramp", "TopSet", "BackOff", "DropSet", "RestPause", "Cluster"] as const satisfies readonly SetKind[];
-export const SEGMENTED_SET_KINDS = ["Ramp", "DropSet", "RestPause", "Cluster"] as const satisfies readonly SetKind[];
-export const UNITS = ["Scalar", "Kg", "Lb", "Seconds", "Minutes", "Meters", "Kilometers", "Percent"] as const satisfies readonly Unit[];
-export const ANALYSIS_STATUSES = ["Queued", "Processing", "Completed", "Failed", "Cancelled"] as const;
+export const SET_KINDS = [
+  "Standard",
+  "Warmup",
+  "Amrap",
+  "Ramp",
+  "TopSet",
+  "BackOff",
+  "DropSet",
+  "RestPause",
+  "Cluster",
+] as const satisfies readonly SetKind[];
+export const SEGMENTED_SET_KINDS = [
+  "Ramp",
+  "DropSet",
+  "RestPause",
+  "Cluster",
+] as const satisfies readonly SetKind[];
+export const UNITS = [
+  "Scalar",
+  "Kg",
+  "Lb",
+  "Seconds",
+  "Minutes",
+  "Meters",
+  "Kilometers",
+  "Percent",
+] as const satisfies readonly Unit[];
+export const ANALYSIS_STATUSES = [
+  "Queued",
+  "Processing",
+  "Completed",
+  "Failed",
+  "Cancelled",
+] as const;
 export type AnalysisStatus = (typeof ANALYSIS_STATUSES)[number];
 export const MEDIA_STATES = ["Pending", "Ready", "Deleting"] as const;
 export type MediaState = (typeof MEDIA_STATES)[number];

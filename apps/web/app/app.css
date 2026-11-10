@@ -67,7 +67,13 @@ body {
   display: block;
   height: 0.625rem;
   border-radius: 4px;
-  background: linear-gradient(90deg, rgb(255 255 255 / 0.035) 0%, rgb(255 255 255 / 0.07) 50%, rgb(255 255 255 / 0.035) 100%) 0 0 / 300% 100%;
+  background: linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.035) 0%,
+      rgb(255 255 255 / 0.07) 50%,
+      rgb(255 255 255 / 0.035) 100%
+    )
+    0 0 / 300% 100%;
   animation: tf-boot-shimmer 1.8s ease-in-out infinite;
 }
 
@@ -149,7 +155,13 @@ body {
   display: block;
   height: 2.75rem;
   border-radius: 10px;
-  background: linear-gradient(90deg, rgb(255 255 255 / 0.035) 0%, rgb(255 255 255 / 0.07) 50%, rgb(255 255 255 / 0.035) 100%) 0 0 / 300% 100%;
+  background: linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.035) 0%,
+      rgb(255 255 255 / 0.07) 50%,
+      rgb(255 255 255 / 0.035) 100%
+    )
+    0 0 / 300% 100%;
   animation: tf-boot-shimmer 1.8s ease-in-out infinite;
 }
 

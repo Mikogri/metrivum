@@ -2,8 +2,8 @@
 /* eslint-disable */
 // Profile cover: React Bits "WebThreads" background, copied unchanged from
 // https://github.com/DavidHDev/react-bits (MIT + Commons Clause). Loaded on demand by ../catalog.ts.
-import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
-import './WebThreads.css';
+import { useEffect, useMemo, useRef, type CSSProperties } from "react";
+import "./WebThreads.css";
 
 export interface WebThreadsProps {
   colors?: string[];
@@ -60,8 +60,8 @@ interface Shape {
   position: number;
 }
 
-const ROOT = 'web-threads-container';
-const CANVAS = 'web-threads-canvas';
+const ROOT = "web-threads-container";
+const CANVAS = "web-threads-canvas";
 
 const MAX_THREADS = 24;
 const MAX_COLORS = 6;
@@ -296,31 +296,43 @@ void main() {
   }
 }`;
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 const mod = (value: number, base: number) => ((value % base) + base) % base;
 
 let probe: CanvasRenderingContext2D | null = null;
 
 const parseColor = (value: string, fallback: RGB | null): RGB | null => {
-  if (value === 'transparent') return null;
-  if (typeof document === 'undefined') return fallback;
-  if (!probe) probe = document.createElement('canvas').getContext('2d');
+  if (value === "transparent") return null;
+  if (typeof document === "undefined") return fallback;
+  if (!probe) probe = document.createElement("canvas").getContext("2d");
   if (!probe) return fallback;
-  probe.fillStyle = '#000000';
+  probe.fillStyle = "#000000";
   probe.fillStyle = value;
   const text = probe.fillStyle;
-  if (text.startsWith('#')) {
+  if (text.startsWith("#")) {
     const hex = parseInt(text.slice(1), 16);
-    return [((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255];
+    return [
+      ((hex >> 16) & 255) / 255,
+      ((hex >> 8) & 255) / 255,
+      (hex & 255) / 255,
+    ];
   }
-  const match = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(text);
+  const match = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(
+    text,
+  );
   if (!match) return fallback;
   if (match[4] !== undefined && Number(match[4]) === 0) return null;
-  return [Number(match[1]) / 255, Number(match[2]) / 255, Number(match[3]) / 255];
+  return [
+    Number(match[1]) / 255,
+    Number(match[2]) / 255,
+    Number(match[3]) / 255,
+  ];
 };
 
-const staggerFor = (count: number) => Math.min(0.12, 0.9 / Math.max(count - 1, 1));
+const staggerFor = (count: number) =>
+  Math.min(0.12, 0.9 / Math.max(count - 1, 1));
 
 const toThreadSpace = (point: number[], aspect: number, angle: number) => {
   const qx = (point[0] - 0.5) * aspect;
@@ -330,14 +342,25 @@ const toThreadSpace = (point: number[], aspect: number, angle: number) => {
   return [(qx * cos + qy * sin) / aspect + 0.5, -qx * sin + qy * cos + 0.5];
 };
 
-const threadY = (s: Shape, x: number, index: number, phase: number, clock: number) => {
+const threadY = (
+  s: Shape,
+  x: number,
+  index: number,
+  phase: number,
+  clock: number,
+) => {
   const lane = s.nodes <= 1 ? x - s.pinch : (x - s.pinch + 0.5) * s.nodes - 0.5;
   const side = s.mirror ? (mod(Math.floor(lane), 2) < 0.5 ? -1 : 1) : 1;
   const dx = x - s.pinch;
   const env =
-    s.nodes <= 1 ? s.spread * Math.abs(dx) : s.spread * 0.5 * Math.abs(Math.cos(Math.PI * s.nodes * (dx + 0.5)));
+    s.nodes <= 1
+      ? s.spread * Math.abs(dx)
+      : s.spread * 0.5 * Math.abs(Math.cos(Math.PI * s.nodes * (dx + 0.5)));
   const shimmer = s.shimmer ? Math.sin(clock * 1.7 + index * 1.3) * 0.35 : 0;
-  const angle = x * s.frequency + (phase + (index * TAU) / Math.max(s.count, 1)) * side + shimmer;
+  const angle =
+    x * s.frequency +
+    (phase + (index * TAU) / Math.max(s.count, 1)) * side +
+    shimmer;
   return s.position - env * (1 + index * s.taper) * Math.sin(angle);
 };
 
@@ -354,12 +377,13 @@ const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
 };
 
 const prefersReduced = () =>
-  typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+  typeof window !== "undefined" &&
+  (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
 
 export default function WebThreads({
-  colors = ['#5227FF', '#FF9FFC'],
-  coreColor = '#FFFFFF',
-  backgroundColor = 'transparent',
+  colors = ["#5227FF", "#FF9FFC"],
+  coreColor = "#FFFFFF",
+  backgroundColor = "transparent",
   lightMode = false,
   threadCount = 6,
   speed = 0.2,
@@ -387,21 +411,27 @@ export default function WebThreads({
   pulseOnClick = true,
   paused = false,
   dpr = 2,
-  className = '',
-  style
+  className = "",
+  style,
 }: WebThreadsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const colorKey = colors.join('|');
+  const colorKey = colors.join("|");
   const palette = useMemo(
     () =>
       colorKey
-        .split('|')
+        .split("|")
         .slice(0, MAX_COLORS)
         .map((value): RGB => parseColor(value, [1, 1, 1]) ?? [1, 1, 1]),
-    [colorKey]
+    [colorKey],
   );
-  const core = useMemo((): RGB => parseColor(coreColor, [1, 1, 1]) ?? [1, 1, 1], [coreColor]);
-  const paper = useMemo(() => parseColor(backgroundColor, null), [backgroundColor]);
+  const core = useMemo(
+    (): RGB => parseColor(coreColor, [1, 1, 1]) ?? [1, 1, 1],
+    [coreColor],
+  );
+  const paper = useMemo(
+    () => parseColor(backgroundColor, null),
+    [backgroundColor],
+  );
 
   const settings = {
     palette: palette.length ? palette : [[1, 1, 1]],
@@ -427,13 +457,13 @@ export default function WebThreads({
     mirror,
     shimmer,
     fade: clamp(fade, 0, 1),
-    grain: typeof grain === 'number' ? Math.max(0, grain) : grain ? 0.05 : 0,
+    grain: typeof grain === "number" ? Math.max(0, grain) : grain ? 0.05 : 0,
     intro,
     mouseInteraction,
     mouseStrength: clamp(mouseStrength, 0, 1),
     pulseOnClick,
     paused,
-    dpr: Math.max(0.5, dpr)
+    dpr: Math.max(0.5, dpr),
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -441,16 +471,16 @@ export default function WebThreads({
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return undefined;
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.className = CANVAS;
     container.appendChild(canvas);
-    const gl = canvas.getContext('webgl2', {
+    const gl = canvas.getContext("webgl2", {
       alpha: true,
       antialias: false,
       depth: false,
       stencil: false,
       premultipliedAlpha: true,
-      powerPreference: 'high-performance'
+      powerPreference: "high-performance",
     });
     if (!gl) {
       canvas.remove();
@@ -466,7 +496,7 @@ export default function WebThreads({
     }
     gl.attachShader(program, vertex);
     gl.attachShader(program, fragment);
-    gl.bindAttribLocation(program, 0, 'aPosition');
+    gl.bindAttribLocation(program, 0, "aPosition");
     gl.linkProgram(program);
     gl.deleteShader(vertex);
     gl.deleteShader(fragment);
@@ -476,41 +506,41 @@ export default function WebThreads({
       return undefined;
     }
     const names = [
-      'uResolution',
-      'uPhase',
-      'uClock',
-      'uCount',
-      'uFrequency',
-      'uSpread',
-      'uTaper',
-      'uPosition',
-      'uPinch',
-      'uNodes',
-      'uAngle',
-      'uGlow',
-      'uFalloff',
-      'uThickness',
-      'uBrightness',
-      'uOpacity',
-      'uMirror',
-      'uShimmer',
-      'uDepth',
-      'uPulses',
-      'uFade',
-      'uGrain',
-      'uColors',
-      'uColorCount',
-      'uCore',
-      'uBackground',
-      'uOpaque',
-      'uLight',
-      'uIntro',
-      'uFocus',
-      'uFocusState',
-      'uSurges'
+      "uResolution",
+      "uPhase",
+      "uClock",
+      "uCount",
+      "uFrequency",
+      "uSpread",
+      "uTaper",
+      "uPosition",
+      "uPinch",
+      "uNodes",
+      "uAngle",
+      "uGlow",
+      "uFalloff",
+      "uThickness",
+      "uBrightness",
+      "uOpacity",
+      "uMirror",
+      "uShimmer",
+      "uDepth",
+      "uPulses",
+      "uFade",
+      "uGrain",
+      "uColors",
+      "uColorCount",
+      "uCore",
+      "uBackground",
+      "uOpaque",
+      "uLight",
+      "uIntro",
+      "uFocus",
+      "uFocusState",
+      "uSurges",
     ];
     const u: Record<string, WebGLUniformLocation | null> = {};
-    names.forEach(name => {
+    names.forEach((name) => {
       u[name] = gl.getUniformLocation(program, name);
     });
 
@@ -518,7 +548,11 @@ export default function WebThreads({
     gl.bindVertexArray(vao);
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 3, -1, -1, 3]),
+      gl.STATIC_DRAW,
+    );
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     gl.useProgram(program);
@@ -542,7 +576,7 @@ export default function WebThreads({
       target: -1,
       surges: [] as Surge[],
       quiet: 0,
-      seen: null as typeof settings | null
+      seen: null as typeof settings | null,
     };
 
     const resize = () => {
@@ -558,7 +592,8 @@ export default function WebThreads({
       canvas.height = height;
     };
 
-    const introLength = (s: typeof settings) => (s.count - 1) * staggerFor(s.count) + STROKE_SECONDS;
+    const introLength = (s: typeof settings) =>
+      (s.count - 1) * staggerFor(s.count) + STROKE_SECONDS;
 
     const updateFocus = (s: typeof settings, dt: number, reduced: boolean) => {
       const wanted = s.mouseInteraction && state.inside;
@@ -568,7 +603,9 @@ export default function WebThreads({
         let best = -1;
         let bestDistance = Infinity;
         for (let index = 0; index < s.count; index++) {
-          const distance = Math.abs(threadY(s, cx, index, state.phase, reduced ? 0 : state.clock) - cy);
+          const distance = Math.abs(
+            threadY(s, cx, index, state.phase, reduced ? 0 : state.clock) - cy,
+          );
           const reach = index === state.target ? 0.11 : 0.085;
           if (distance < reach && distance < bestDistance) {
             best = index;
@@ -586,10 +623,13 @@ export default function WebThreads({
         focus[index] += (goal - focus[index]) * ease;
         strongest = Math.max(strongest, focus[index]);
       }
-      state.presence += ((wanted ? 1 : 0) - state.presence) * (1 - Math.exp(-dt / 0.3));
+      state.presence +=
+        ((wanted ? 1 : 0) - state.presence) * (1 - Math.exp(-dt / 0.3));
       const settleGoal = s.mouseStrength * 0.65 * strongest * state.presence;
       state.settle += (settleGoal - state.settle) * (1 - Math.exp(-dt / 0.3));
-      return strongest > 0.002 || state.presence > 0.002 || state.settle > 0.002;
+      return (
+        strongest > 0.002 || state.presence > 0.002 || state.settle > 0.002
+      );
     };
 
     const render = (reduced: boolean) => {
@@ -620,7 +660,9 @@ export default function WebThreads({
       gl.uniform1f(u.uFade, s.fade);
       gl.uniform1f(u.uGrain, s.grain);
       colorData.fill(0);
-      s.palette.slice(0, MAX_COLORS).forEach((rgb, index) => colorData.set(rgb, index * 3));
+      s.palette
+        .slice(0, MAX_COLORS)
+        .forEach((rgb, index) => colorData.set(rgb, index * 3));
       gl.uniform3fv(u.uColors, colorData);
       gl.uniform1i(u.uColorCount, Math.min(s.palette.length, MAX_COLORS));
       gl.uniform3f(u.uCore, s.core[0], s.core[1], s.core[2]);
@@ -628,12 +670,25 @@ export default function WebThreads({
       gl.uniform3f(u.uBackground, paperColor[0], paperColor[1], paperColor[2]);
       gl.uniform1f(u.uOpaque, s.paper ? 1 : 0);
       gl.uniform1f(u.uLight, s.lightMode ? 1 : 0);
-      gl.uniform4f(u.uIntro, introClock, staggerFor(s.count), STROKE_SECONDS, introRunning ? 1 : 0);
+      gl.uniform4f(
+        u.uIntro,
+        introClock,
+        staggerFor(s.count),
+        STROKE_SECONDS,
+        introRunning ? 1 : 0,
+      );
       gl.uniform1fv(u.uFocus, focus);
-      gl.uniform2f(u.uFocusState, state.presence * (0.4 + 0.6 * s.mouseStrength), state.settle);
+      gl.uniform2f(
+        u.uFocusState,
+        state.presence * (0.4 + 0.6 * s.mouseStrength),
+        state.settle,
+      );
       surgeData.fill(0);
       state.surges.slice(-MAX_SURGES).forEach((surge, index) => {
-        surgeData.set([surge.x, state.clock - surge.at, surge.direction, 1], index * 4);
+        surgeData.set(
+          [surge.x, state.clock - surge.at, surge.direction, 1],
+          index * 4,
+        );
       });
       gl.uniform4fv(u.uSurges, surgeData);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -657,12 +712,16 @@ export default function WebThreads({
       if (!s.paused && !reduced) state.phase += dt * s.speed;
       const focusing = updateFocus(s, dt, reduced);
       state.surges = state.surges.filter(
-        surge => state.clock - surge.at < SURGE_SECONDS + (s.count - 1) * SURGE_STAGGER
+        (surge) =>
+          state.clock - surge.at <
+          SURGE_SECONDS + (s.count - 1) * SURGE_STAGGER,
       );
 
       const still = s.paused || reduced;
       const transient =
-        state.surges.length > 0 || (s.intro && !reduced && state.clock - state.introAt < introLength(s)) || focusing;
+        state.surges.length > 0 ||
+        (s.intro && !reduced && state.clock - state.introAt < introLength(s)) ||
+        focusing;
       if (state.seen !== s || transient || !still) state.quiet = 0;
       else state.quiet += 1;
       state.seen = s;
@@ -681,7 +740,7 @@ export default function WebThreads({
           event.clientX >= rect.left &&
           event.clientX <= rect.right &&
           event.clientY >= rect.top &&
-          event.clientY <= rect.bottom
+          event.clientY <= rect.bottom,
       };
     };
 
@@ -700,7 +759,9 @@ export default function WebThreads({
       if (!s.pulseOnClick || event.button !== 0 || prefersReduced()) return;
       if (
         event.target instanceof Element &&
-        event.target.closest('a, button, input, textarea, select, label, [role="button"]')
+        event.target.closest(
+          'a, button, input, textarea, select, label, [role="button"]',
+        )
       )
         return;
       const point = local(event);
@@ -712,32 +773,38 @@ export default function WebThreads({
       if (state.surges.length > MAX_SURGES) state.surges.shift();
     };
 
-    const visibility = new IntersectionObserver(entries => {
-      state.visible = entries.some(entry => entry.isIntersecting);
+    const visibility = new IntersectionObserver((entries) => {
+      state.visible = entries.some((entry) => entry.isIntersecting);
     });
     visibility.observe(container);
     const sizes = new ResizeObserver(resize);
     sizes.observe(container);
     resize();
-    window.addEventListener('pointermove', onMove, { passive: true });
-    window.addEventListener('pointerdown', onDown);
-    document.documentElement.addEventListener('pointerleave', onLeave);
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerdown", onDown);
+    document.documentElement.addEventListener("pointerleave", onLeave);
     state.raf = requestAnimationFrame(tick);
 
     return () => {
       cancelAnimationFrame(state.raf);
       visibility.disconnect();
       sizes.disconnect();
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerdown', onDown);
-      document.documentElement.removeEventListener('pointerleave', onLeave);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      document.documentElement.removeEventListener("pointerleave", onLeave);
       gl.deleteProgram(program);
       gl.deleteBuffer(buffer);
       gl.deleteVertexArray(vao);
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
       canvas.remove();
     };
   }, []);
 
-  return <div ref={containerRef} className={[ROOT, className].filter(Boolean).join(' ')} style={style} />;
+  return (
+    <div
+      ref={containerRef}
+      className={[ROOT, className].filter(Boolean).join(" ")}
+      style={style}
+    />
+  );
 }

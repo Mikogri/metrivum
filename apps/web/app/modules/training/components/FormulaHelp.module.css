@@ -19,17 +19,36 @@
   transition: color var(--tf-duration-fast) ease;
 }
 
-.help summary::-webkit-details-marker { display: none; }
-.help summary svg { width: 0.9375rem; height: 0.9375rem; flex-shrink: 0; }
-.help summary span { flex: 1; }
-.help summary:focus-visible { border-radius: var(--tf-radius-lg); outline: 2px solid var(--tf-color-focus-ring); outline-offset: 2px; }
-
-@media (hover: hover) and (pointer: fine) {
-  .help summary:hover { color: var(--tf-color-text); }
+.help summary::-webkit-details-marker {
+  display: none;
+}
+.help summary svg {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  flex-shrink: 0;
+}
+.help summary span {
+  flex: 1;
+}
+.help summary:focus-visible {
+  border-radius: var(--tf-radius-lg);
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
 }
 
-.chevron { color: var(--tf-color-text-tertiary); transition: transform var(--tf-duration-base) var(--tf-ease-out); }
-.help[open] .chevron { transform: rotate(180deg); }
+@media (hover: hover) and (pointer: fine) {
+  .help summary:hover {
+    color: var(--tf-color-text);
+  }
+}
+
+.chevron {
+  color: var(--tf-color-text-tertiary);
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+}
+.help[open] .chevron {
+  transform: rotate(180deg);
+}
 
 .content {
   display: grid;
@@ -42,10 +61,15 @@
 }
 
 @keyframes open {
-  from { opacity: 0; transform: translateY(-3px); }
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
 }
 
-.content p { margin: 0; }
+.content p {
+  margin: 0;
+}
 
 .grid {
   display: grid;
@@ -54,8 +78,16 @@
   margin: 0;
 }
 
-.grid dt { padding-top: 2px; color: var(--tf-color-text-tertiary); }
-.grid dd { display: flex; flex-wrap: wrap; gap: var(--tf-space-1-5); margin: 0; }
+.grid dt {
+  padding-top: 2px;
+  color: var(--tf-color-text-tertiary);
+}
+.grid dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1-5);
+  margin: 0;
+}
 
 .grid code {
   padding: 1px var(--tf-space-1-5);
@@ -68,10 +100,21 @@
   white-space: nowrap;
 }
 
-.fn { display: flex; flex-basis: 100%; align-items: baseline; gap: var(--tf-space-2); }
-.fn code { flex-shrink: 0; }
+.fn {
+  display: flex;
+  flex-basis: 100%;
+  align-items: baseline;
+  gap: var(--tf-space-2);
+}
+.fn code {
+  flex-shrink: 0;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .content { animation: none; }
-  .chevron { transition: none; }
+  .content {
+    animation: none;
+  }
+  .chevron {
+    transition: none;
+  }
 }

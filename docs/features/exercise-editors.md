@@ -7,3 +7,5 @@ Exercise owners retain their existing update/archive access. Editors can update 
 Apply the additive Accounts `ExerciseEditorRole` migration before assigning this role with an administrator-owned database connection. Never expose role assignment through the browser or the runtime database role. Remove the role to revoke access on subsequent requests. Deploy API/contracts before the web client.
 
 HTTP/PostgreSQL coverage checks foreign edits, ownership flags, stale versions, restricted administration and immediate revocation.
+
+Catalogue search matches every normalized keyword against exercise names or worked-muscle labels, regardless of word order. Filtering runs in PostgreSQL before pagination and also applies to MCP searches.

@@ -1,10 +1,10 @@
+using Metrivum.Messaging.Domain;
+using Metrivum.Messaging.Features;
+using Metrivum.Messaging.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
-using Metrivum.Messaging.Domain;
-using Metrivum.Messaging.Features;
-using Metrivum.Messaging.Infrastructure;
 
 namespace Metrivum.IntegrationTests;
 
@@ -16,18 +16,32 @@ public sealed class MessagingMigrationTests
         var source = Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!;
         var name = "trainflow_messaging_test_" + Guid.NewGuid().ToString("N");
         await using var admin = NpgsqlDataSource.Create(source);
-        await using (var create = admin.CreateCommand($"CREATE DATABASE {name}")) await create.ExecuteNonQueryAsync();
+        await using (var create = admin.CreateCommand($"CREATE DATABASE {name}"))
+            await create.ExecuteNonQueryAsync();
         try
         {
-            var connection = new NpgsqlConnectionStringBuilder(source) { Database = name, Pooling = false };
-            await using var db = new MessagingDbContext(new DbContextOptionsBuilder<MessagingDbContext>().UseNpgsql(connection.ConnectionString, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "messaging")).Options);
+            var connection = new NpgsqlConnectionStringBuilder(source)
+            {
+                Database = name,
+                Pooling = false,
+            };
+            await using var db = new MessagingDbContext(
+                new DbContextOptionsBuilder<MessagingDbContext>()
+                    .UseNpgsql(
+                        connection.ConnectionString,
+                        x => x.MigrationsHistoryTable("__EFMigrationsHistory", "messaging")
+                    )
+                    .Options
+            );
             await db.GetService<IMigrator>().MigrateAsync("20261008173117_MessagingReadIndexes");
             var pair = MessagingRules.Pair(Guid.NewGuid(), Guid.NewGuid());
             var id = Guid.NewGuid();
-            await db.Database.ExecuteSqlInterpolatedAsync($"""
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
                 INSERT INTO messaging."Requests" ("Id","SenderUserId","RecipientUserId","PairFirst","PairSecond","Body","State","CreatedAt","UpdatedAt")
                 VALUES ({id},{pair.First},{pair.Second},{pair.First},{pair.Second},'Legacy hello','Pending',now(),now());
-                """);
+                """
+            );
             await db.Database.MigrateAsync();
             await db.Database.MigrateAsync();
             Assert.False(db.Database.HasPendingModelChanges());

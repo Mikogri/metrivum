@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { addBlock, addCycle, addExercise, addSet, addWorkout, addDay, changeSetKind, emptyDocument, updateNode } from "./document";
+import {
+  addBlock,
+  addCycle,
+  addExercise,
+  addSet,
+  addWorkout,
+  addDay,
+  changeSetKind,
+  emptyDocument,
+  updateNode,
+} from "./document";
 import { usesProFeatures } from "./pro-features";
 
 function week(dayCount = 7) {
@@ -9,7 +19,12 @@ function week(dayCount = 7) {
   const workout = addWorkout(day.doc, day.id!, "A");
   const exercise = addExercise(workout.doc, workout.id!, "squat");
   const set = addSet(exercise.doc, exercise.id!);
-  return { doc: set.doc, blockId: block.id, cycleId: cycle.id!, setId: set.id! };
+  return {
+    doc: set.doc,
+    blockId: block.id,
+    cycleId: cycle.id!,
+    setId: set.id!,
+  };
 }
 
 describe("plans made with Pro tools", () => {
@@ -23,7 +38,9 @@ describe("plans made with Pro tools", () => {
     const { doc, blockId, cycleId } = week();
     expect(usesProFeatures(addCycle(doc, blockId, "Week 2").doc)).toBe(true);
     expect(usesProFeatures(addBlock(doc, "Block 2").doc)).toBe(true);
-    expect(usesProFeatures(updateNode(doc, cycleId, { dayCount: 5 }))).toBe(true);
+    expect(usesProFeatures(updateNode(doc, cycleId, { dayCount: 5 }))).toBe(
+      true,
+    );
   });
 
   it("flags advanced set types", () => {

@@ -34,7 +34,11 @@
 .fill {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, var(--tf-color-accent), color-mix(in srgb, var(--tf-color-accent) 30%, transparent));
+  background: linear-gradient(
+    90deg,
+    var(--tf-color-accent),
+    color-mix(in srgb, var(--tf-color-accent) 30%, transparent)
+  );
   transform-origin: left;
   transform: scaleX(1);
 }
@@ -86,7 +90,9 @@
   color: var(--tf-color-accent);
   font-size: var(--tf-text-sm);
   font-weight: var(--tf-weight-semibold);
-  box-shadow: 0 0 0 4px var(--tf-color-bg), 0 0 16px color-mix(in srgb, var(--tf-color-accent) 25%, transparent);
+  box-shadow:
+    0 0 0 4px var(--tf-color-bg),
+    0 0 16px color-mix(in srgb, var(--tf-color-accent) 25%, transparent);
 }
 
 .stepTitle {

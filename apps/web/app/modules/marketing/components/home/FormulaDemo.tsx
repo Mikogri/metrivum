@@ -50,14 +50,22 @@ export function FormulaDemo() {
         </div>
         <p className={styles.code} aria-label={EXPRESSION}>
           <span aria-hidden="true">{EXPRESSION.slice(0, typed)}</span>
-          <span className={styles.caret} data-done={done || undefined} aria-hidden="true" />
+          <span
+            className={styles.caret}
+            data-done={done || undefined}
+            aria-hidden="true"
+          />
         </p>
         <dl className={styles.io}>
           <div>
             <dt>{f.inputs}</dt>
             <dd>
-              <span className={styles.chip}>base1Rm = {formatNumber(locale, 140)} kg</span>
-              <span className={styles.chip}>percentage = {formatNumber(locale, 0.85)}</span>
+              <span className={styles.chip}>
+                base1Rm = {formatNumber(locale, 140)} kg
+              </span>
+              <span className={styles.chip}>
+                percentage = {formatNumber(locale, 0.85)}
+              </span>
             </dd>
           </div>
           <div>
@@ -72,7 +80,11 @@ export function FormulaDemo() {
         <p className={styles.builtInsTitle}>{f.builtIns}</p>
         <ul role="list">
           {f.builtInNames.map((name, i) => (
-            <li key={name} style={{ "--i": i } as React.CSSProperties} data-inview={inView || undefined}>
+            <li
+              key={name}
+              style={{ "--i": i } as React.CSSProperties}
+              data-inview={inView || undefined}
+            >
               {name}
             </li>
           ))}

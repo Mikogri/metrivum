@@ -10,7 +10,10 @@ import { Logo } from "../components/Logo";
 // Pre-rendered at /404/index.html; the host serves that file with a real 404 status for unknown public URLs.
 export function meta({ location }: Route.MetaArgs) {
   const m = publicMessages(localeFromPathname(location.pathname));
-  return [{ title: m.notFound.meta.title }, { name: "robots", content: "noindex" }];
+  return [
+    { title: m.notFound.meta.title },
+    { name: "robots", content: "noindex" },
+  ];
 }
 
 export default function NotFound() {
@@ -28,7 +31,11 @@ function NotFoundView() {
         404
       </p>
       <EmptyState
-        title={<span role="heading" aria-level={1}>{m.notFound.title}</span>}
+        title={
+          <span role="heading" aria-level={1}>
+            {m.notFound.title}
+          </span>
+        }
         description={m.notFound.body}
         actions={
           <LinkButton href={publicPath("home", locale)} variant="primary">

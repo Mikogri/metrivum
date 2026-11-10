@@ -23,6 +23,8 @@ describe("stepsBackTo", () => {
   });
 
   it("stops at a gap in the trail, such as after a full reload", () => {
-    expect(stepsBackTo("/app/programs", 3, new Map([[3, "/app/programs/p1"]]))).toBeNull();
+    expect(
+      stepsBackTo("/app/programs", 3, new Map([[3, "/app/programs/p1"]])),
+    ).toBeNull();
   });
 });

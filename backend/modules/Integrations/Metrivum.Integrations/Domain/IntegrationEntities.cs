@@ -60,4 +60,3 @@ public sealed class ProgrammingPreferences
     public bool ShareWithIntegrations { get; set; }
     public long Version { get; set; } = 1;
 }
-

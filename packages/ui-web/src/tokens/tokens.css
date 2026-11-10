@@ -63,11 +63,17 @@
   --tf-color-scrim: rgb(0 0 0 / 0.6);
 
   /* Typography */
-  --tf-font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --tf-font-display: "Saira Variable", "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-  --tf-font-brand: "Orbitron Variable", "Geist Variable", ui-sans-serif, sans-serif;
-  --tf-font-label: "Source Code Pro Variable", "Geist Mono Variable", ui-monospace, monospace;
-  --tf-font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --tf-font-sans:
+    "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --tf-font-display:
+    "Saira Variable", "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --tf-font-brand:
+    "Orbitron Variable", "Geist Variable", ui-sans-serif, sans-serif;
+  --tf-font-label:
+    "Source Code Pro Variable", "Geist Mono Variable", ui-monospace, monospace;
+  --tf-font-mono:
+    "Geist Mono Variable", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
   --tf-text-2xs: 0.6875rem; /* 11 */
   --tf-text-xs: 0.75rem; /* 12 */
@@ -125,12 +131,17 @@
   --tf-radius-full: 999px;
 
   /* Elevation: shadows are dark and paired with a hairline. */
-  --tf-shadow-sm: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 1px 2px rgb(0 0 0 / 0.4);
-  --tf-shadow-md: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px -8px rgb(0 0 0 / 0.6);
-  --tf-shadow-lg: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 64px -16px rgb(0 0 0 / 0.75);
+  --tf-shadow-sm:
+    0 1px 0 rgb(255 255 255 / 0.03) inset, 0 1px 2px rgb(0 0 0 / 0.4);
+  --tf-shadow-md:
+    0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px -8px rgb(0 0 0 / 0.6);
+  --tf-shadow-lg:
+    0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 64px -16px rgb(0 0 0 / 0.75);
   /* Menus and popovers: a tight shadow that only darkens the edges. */
   --tf-shadow-menu: 0 0 0 1px rgb(0 0 0 / 0.2), 0 1px 3px rgb(0 0 0 / 0.3);
-  --tf-shadow-glow: 0 0 0 1px var(--tf-color-accent-border), 0 0 32px -4px rgb(62 224 154 / 0.35);
+  --tf-shadow-glow:
+    0 0 0 1px var(--tf-color-accent-border),
+    0 0 32px -4px rgb(62 224 154 / 0.35);
 
   /* Layers */
   --tf-z-base: 0;

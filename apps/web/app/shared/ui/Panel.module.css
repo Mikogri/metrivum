@@ -39,11 +39,26 @@
   height: 0.9375rem;
 }
 
-.icon[data-tone="green"] { background: var(--tf-color-accent-soft); color: var(--tf-color-accent); }
-.icon[data-tone="blue"] { background: var(--tf-color-info-soft); color: var(--tf-color-info); }
-.icon[data-tone="violet"] { background: var(--tf-color-violet-soft); color: var(--tf-color-violet); }
-.icon[data-tone="orange"] { background: var(--tf-color-warning-soft); color: var(--tf-color-warning); }
-.icon[data-tone="rose"] { background: var(--tf-color-danger-soft); color: var(--tf-color-danger); }
+.icon[data-tone="green"] {
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+.icon[data-tone="blue"] {
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+}
+.icon[data-tone="violet"] {
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+.icon[data-tone="orange"] {
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+}
+.icon[data-tone="rose"] {
+  background: var(--tf-color-danger-soft);
+  color: var(--tf-color-danger);
+}
 
 .title {
   font-size: var(--tf-text-sm);
@@ -150,7 +165,9 @@
   min-width: 0;
   padding: var(--tf-space-3) var(--tf-space-4);
   /* Hairlines on the left and top; the strip clips the outer ones, so wrapped rows stay divided. */
-  box-shadow: -1px 0 0 var(--tf-color-border-subtle), 0 -1px 0 var(--tf-color-border-subtle);
+  box-shadow:
+    -1px 0 0 var(--tf-color-border-subtle),
+    0 -1px 0 var(--tf-color-border-subtle);
 }
 
 .stat dt {
@@ -194,8 +211,6 @@
 .grid[data-equal] {
   grid-auto-rows: 1fr;
 }
-
-
 
 @media (max-width: 56rem) {
   .grid,

@@ -16,5 +16,8 @@ public static class ProgramEndingAlerts
 public interface IProgramEndingAlertPreferences
 {
     /// <summary>The alerts each coach chose; coaches without saved preferences get the default.</summary>
-    Task<IReadOnlyDictionary<Guid, string[]>> GetAsync(IReadOnlyCollection<Guid> coachIds, CancellationToken ct);
+    Task<IReadOnlyDictionary<Guid, string[]>> GetAsync(
+        IReadOnlyCollection<Guid> coachIds,
+        CancellationToken ct
+    );
 }

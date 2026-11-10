@@ -11,8 +11,15 @@ public sealed class TeamSecurityTests
     [Fact]
     public void RefreshedTokenIsNotRecentAuthentication()
     {
-        var user = new ClaimsPrincipal(new ClaimsIdentity([new("iat", Now.ToUnixTimeSeconds().ToString())], "test"));
-        Assert.Equal("REAUTHENTICATION_REQUIRED", Assert.Throws<ApiException>(() => TeamSecurity.RequireRecentAuthentication(user, Now)).Code);
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity([new("iat", Now.ToUnixTimeSeconds().ToString())], "test")
+        );
+        Assert.Equal(
+            "REAUTHENTICATION_REQUIRED",
+            Assert
+                .Throws<ApiException>(() => TeamSecurity.RequireRecentAuthentication(user, Now))
+                .Code
+        );
     }
 
     [Theory]
@@ -22,7 +29,12 @@ public sealed class TeamSecurityTests
     [InlineData(-60, false)]
     public void AuthenticationMustBeRecentAndNotInFuture(int secondsAgo, bool allowed)
     {
-        var user = new ClaimsPrincipal(new ClaimsIdentity([new("auth_time", Now.AddSeconds(-secondsAgo).ToUnixTimeSeconds().ToString())], "test"));
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                [new("auth_time", Now.AddSeconds(-secondsAgo).ToUnixTimeSeconds().ToString())],
+                "test"
+            )
+        );
         if (allowed)
             TeamSecurity.RequireRecentAuthentication(user, Now);
         else
@@ -32,14 +44,24 @@ public sealed class TeamSecurityTests
     [Fact]
     public void ExpandedJwtAmrObjectIsAccepted()
     {
-        var user = new ClaimsPrincipal(new ClaimsIdentity([new("amr", "{\"method\":\"password\",\"timestamp\":1800000000}")], "test"));
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                [new("amr", "{\"method\":\"password\",\"timestamp\":1800000000}")],
+                "test"
+            )
+        );
         TeamSecurity.RequireRecentAuthentication(user, Now);
     }
 
     [Fact]
     public void SupabasePasswordAuthenticationTimestampIsAccepted()
     {
-        var user = new ClaimsPrincipal(new ClaimsIdentity([new("amr", "[{\"method\":\"password\",\"timestamp\":1800000000}]")], "test"));
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                [new("amr", "[{\"method\":\"password\",\"timestamp\":1800000000}]")],
+                "test"
+            )
+        );
         TeamSecurity.RequireRecentAuthentication(user, Now);
     }
 }

@@ -1,6 +1,8 @@
 using Metrivum.Offers.Contracts;
 using Metrivum.Offers.Domain;
+
 namespace Metrivum.UnitTests;
+
 public sealed class PlanSaleRulesTests
 {
     [Fact]

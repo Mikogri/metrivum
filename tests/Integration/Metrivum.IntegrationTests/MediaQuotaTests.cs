@@ -1,11 +1,11 @@
+using Metrivum.BuildingBlocks;
+using Metrivum.Media;
+using Metrivum.Media.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using Metrivum.BuildingBlocks;
-using Metrivum.Media;
-using Metrivum.Media.Infrastructure;
 
 namespace Metrivum.IntegrationTests;
 
@@ -18,11 +18,19 @@ public sealed class MediaQuotaTests
         var owner = Guid.NewGuid();
         await using var db = test.Context();
         var library = test.Library(db);
-        var ticket = await library.CreateAsync(owner, new("Legacy analysis source", "video/mp4", 24), default);
+        var ticket = await library.CreateAsync(
+            owner,
+            new("Legacy analysis source", "video/mp4", 24),
+            default
+        );
         // Rows queued by an older release must satisfy the capability invariant too.
-        await db.Files.Where(x => x.Id == ticket.File.Id).ExecuteUpdateAsync(update => update
-            .SetProperty(x => x.State, "Deleting")
-            .SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1)));
+        await db
+            .Files.Where(x => x.Id == ticket.File.Id)
+            .ExecuteUpdateAsync(update =>
+                update
+                    .SetProperty(x => x.State, "Deleting")
+                    .SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1))
+            );
 
         Assert.Equal(0, await library.CleanupAsync(default));
         Assert.Equal(0, test.Storage.Deletes);
@@ -37,7 +45,11 @@ public sealed class MediaQuotaTests
         test.Quotas.GlobalStorageBytes = test.StorageOptions.MaxVideoBytes;
         await using var db = test.Context();
         var library = test.Library(db);
-        var ticket = await library.CreateAsync(owner, new("Analysis source", "video/mp4", 24), default);
+        var ticket = await library.CreateAsync(
+            owner,
+            new("Analysis source", "video/mp4", 24),
+            default
+        );
         await library.FinalizeAsync(ticket.File.Id, owner, default);
         await library.PinAsync(ticket.File.Id, owner, default);
 
@@ -48,13 +60,27 @@ public sealed class MediaQuotaTests
         var retained = await db.Files.AsNoTracking().SingleAsync();
         Assert.Equal("Deleting", retained.State);
         Assert.Equal(retained.UploadExpiresAt, retained.DeleteAfter);
-        Assert.Equal(429, (await Assert.ThrowsAsync<ApiException>(() => library.CreateAsync(
-            Guid.NewGuid(), new("Budget still reserved", "video/mp4", 24), default))).Status);
+        Assert.Equal(
+            429,
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    library.CreateAsync(
+                        Guid.NewGuid(),
+                        new("Budget still reserved", "video/mp4", 24),
+                        default
+                    )
+                )
+            ).Status
+        );
 
         // After expiration the capability cannot recreate the deleted object.
-        await db.Files.Where(x => x.Id == ticket.File.Id).ExecuteUpdateAsync(update => update
-            .SetProperty(x => x.UploadExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1))
-            .SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1)));
+        await db
+            .Files.Where(x => x.Id == ticket.File.Id)
+            .ExecuteUpdateAsync(update =>
+                update
+                    .SetProperty(x => x.UploadExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1))
+                    .SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1))
+            );
         Assert.Equal(1, await library.CleanupAsync(default));
         await library.CreateAsync(Guid.NewGuid(), new("Budget released", "video/mp4", 24), default);
     }
@@ -64,24 +90,54 @@ public sealed class MediaQuotaTests
     {
         await using var test = await Database.CreateAsync();
         var owner = Guid.NewGuid();
-        var outcomes = await Task.WhenAll(Enumerable.Range(0, 12).Select(async index =>
-        {
-            await using var db = test.Context();
-            var library = test.Library(db);
-            try
-            {
-                if (index % 3 == 0) await library.CreateAsync(owner, new("Video", "video/mp4", 24), default);
-                else if (index % 3 == 1) await library.CreateMessagingAsync(owner, new("Chat", "text/plain", 24), default);
-                else await library.CreateDocumentUploadAsync(Guid.NewGuid(), owner, "Document", "text/plain", 24, default);
-                return true;
-            }
-            catch (ApiException error) when (error.Status == 429) { Assert.NotNull(error.RetryAfter); return false; }
-        }));
+        var outcomes = await Task.WhenAll(
+            Enumerable
+                .Range(0, 12)
+                .Select(async index =>
+                {
+                    await using var db = test.Context();
+                    var library = test.Library(db);
+                    try
+                    {
+                        if (index % 3 == 0)
+                            await library.CreateAsync(
+                                owner,
+                                new("Video", "video/mp4", 24),
+                                default
+                            );
+                        else if (index % 3 == 1)
+                            await library.CreateMessagingAsync(
+                                owner,
+                                new("Chat", "text/plain", 24),
+                                default
+                            );
+                        else
+                            await library.CreateDocumentUploadAsync(
+                                Guid.NewGuid(),
+                                owner,
+                                "Document",
+                                "text/plain",
+                                24,
+                                default
+                            );
+                        return true;
+                    }
+                    catch (ApiException error) when (error.Status == 429)
+                    {
+                        Assert.NotNull(error.RetryAfter);
+                        return false;
+                    }
+                })
+        );
         Assert.Equal(3, outcomes.Count(x => x));
         await using var verify = test.Context();
         Assert.Equal(3, await verify.Files.CountAsync(x => x.OwnerId == owner));
-        Assert.All(await verify.Files.ToArrayAsync(), file => Assert.Equal(524288000, file.ReservedStorageBytes));
-        await test.Library(verify).CreateAsync(Guid.NewGuid(), new("Other user", "video/mp4", 24), default);
+        Assert.All(
+            await verify.Files.ToArrayAsync(),
+            file => Assert.Equal(524288000, file.ReservedStorageBytes)
+        );
+        await test.Library(verify)
+            .CreateAsync(Guid.NewGuid(), new("Other user", "video/mp4", 24), default);
     }
 
     [MediaPostgresFact]
@@ -96,9 +152,20 @@ public sealed class MediaQuotaTests
             await setup.SaveChangesAsync();
         }
         await using (var firstProcess = test.Context())
-            await test.Library(firstProcess).CreateDocumentUploadAsync(Guid.NewGuid(), owner, "Boundary", "text/plain", 24, default);
+            await test.Library(firstProcess)
+                .CreateDocumentUploadAsync(
+                    Guid.NewGuid(),
+                    owner,
+                    "Boundary",
+                    "text/plain",
+                    24,
+                    default
+                );
         await using var restarted = test.Context();
-        var error = await Assert.ThrowsAsync<ApiException>(() => test.Library(restarted).CreateMessagingAsync(owner, new("Over", "text/plain", 1), default));
+        var error = await Assert.ThrowsAsync<ApiException>(() =>
+            test.Library(restarted)
+                .CreateMessagingAsync(owner, new("Over", "text/plain", 1), default)
+        );
         Assert.Equal(429, error.Status);
         Assert.Equal(2, await restarted.Files.CountAsync());
     }
@@ -114,9 +181,18 @@ public sealed class MediaQuotaTests
             await setup.SaveChangesAsync();
         }
         await using (var first = test.Context())
-            await test.Library(first).CreateAsync(owner, new("Thirtieth", "video/mp4", 24), default);
+            await test.Library(first)
+                .CreateAsync(owner, new("Thirtieth", "video/mp4", 24), default);
         await using var restarted = test.Context();
-        Assert.Equal(429, (await Assert.ThrowsAsync<ApiException>(() => test.Library(restarted).CreateAsync(owner, new("Blocked", "video/mp4", 24), default))).Status);
+        Assert.Equal(
+            429,
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    test.Library(restarted)
+                        .CreateAsync(owner, new("Blocked", "video/mp4", 24), default)
+                )
+            ).Status
+        );
     }
 
     [MediaPostgresFact]
@@ -124,12 +200,28 @@ public sealed class MediaQuotaTests
     {
         await using var test = await Database.CreateAsync();
         test.Quotas.GlobalStorageBytes = 524288000;
-        var results = await Task.WhenAll(Enumerable.Range(0, 8).Select(async _ =>
-        {
-            await using var db = test.Context();
-            try { await test.Library(db).CreateMessagingAsync(Guid.NewGuid(), new("Tiny", "text/plain", 1), default); return true; }
-            catch (ApiException error) when (error.Status == 429) { return false; }
-        }));
+        var results = await Task.WhenAll(
+            Enumerable
+                .Range(0, 8)
+                .Select(async _ =>
+                {
+                    await using var db = test.Context();
+                    try
+                    {
+                        await test.Library(db)
+                            .CreateMessagingAsync(
+                                Guid.NewGuid(),
+                                new("Tiny", "text/plain", 1),
+                                default
+                            );
+                        return true;
+                    }
+                    catch (ApiException error) when (error.Status == 429)
+                    {
+                        return false;
+                    }
+                })
+        );
         Assert.Single(results, x => x);
     }
 
@@ -144,12 +236,24 @@ public sealed class MediaQuotaTests
             setup.Files.Add(File(owner, test.Quotas.DailyBytes - 24, "Deleted"));
             await setup.SaveChangesAsync();
         }
-        var accepted = await Task.WhenAll(Enumerable.Range(0, 8).Select(async _ =>
-        {
-            await using var db = test.Context();
-            try { await test.Library(db).CreateMessagingAsync(owner, new("Bytes", "text/plain", 16), default); return true; }
-            catch (ApiException error) when (error.Status == 429) { return false; }
-        }));
+        var accepted = await Task.WhenAll(
+            Enumerable
+                .Range(0, 8)
+                .Select(async _ =>
+                {
+                    await using var db = test.Context();
+                    try
+                    {
+                        await test.Library(db)
+                            .CreateMessagingAsync(owner, new("Bytes", "text/plain", 16), default);
+                        return true;
+                    }
+                    catch (ApiException error) when (error.Status == 429)
+                    {
+                        return false;
+                    }
+                })
+        );
         Assert.Single(accepted, x => x);
     }
 
@@ -163,24 +267,50 @@ public sealed class MediaQuotaTests
         {
             await using var db = test.Context();
             var library = test.Library(db);
-            var ticket = await library.CreateAsync(owner, new("Underdeclared", "video/mp4", 1), default);
-            Assert.Equal("MEDIA_SIZE_INVALID", (await Assert.ThrowsAsync<ApiException>(() => library.FinalizeAsync(ticket.File.Id, owner, default))).Code);
+            var ticket = await library.CreateAsync(
+                owner,
+                new("Underdeclared", "video/mp4", 1),
+                default
+            );
+            Assert.Equal(
+                "MEDIA_SIZE_INVALID",
+                (
+                    await Assert.ThrowsAsync<ApiException>(() =>
+                        library.FinalizeAsync(ticket.File.Id, owner, default)
+                    )
+                ).Code
+            );
             await library.DeleteAsync(ticket.File.Id, owner, ticket.File.Version, default);
             // Simulate expired capability and completed cleanup within the same rolling day.
-            await db.Files.Where(x => x.Id == ticket.File.Id).ExecuteUpdateAsync(update => update
-                .SetProperty(x => x.UploadExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1))
-                .SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1)));
+            await db
+                .Files.Where(x => x.Id == ticket.File.Id)
+                .ExecuteUpdateAsync(update =>
+                    update
+                        .SetProperty(x => x.UploadExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1))
+                        .SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1))
+                );
             Assert.Equal(1, await library.CleanupAsync(default));
         }
         await using var restarted = test.Context();
-        Assert.Equal(429, (await Assert.ThrowsAsync<ApiException>(() => test.Library(restarted).CreateAsync(owner, new("Blocked", "video/mp4", 1), default))).Status);
+        Assert.Equal(
+            429,
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    test.Library(restarted)
+                        .CreateAsync(owner, new("Blocked", "video/mp4", 1), default)
+                )
+            ).Status
+        );
         Assert.Equal(4, test.Storage.Signs);
-        Assert.All(await restarted.Files.ToArrayAsync(), file =>
-        {
-            Assert.Equal("Deleted", file.State);
-            Assert.Null(file.AcceptedAt);
-            Assert.Equal(524288000, file.ReservedStorageBytes);
-        });
+        Assert.All(
+            await restarted.Files.ToArrayAsync(),
+            file =>
+            {
+                Assert.Equal("Deleted", file.State);
+                Assert.Null(file.AcceptedAt);
+                Assert.Equal(524288000, file.ReservedStorageBytes);
+            }
+        );
     }
 
     [MediaPostgresFact]
@@ -192,10 +322,18 @@ public sealed class MediaQuotaTests
         await using var db = test.Context();
         var library = test.Library(db);
         var first = await library.CreateAsync(owner, new("Valid", "video/mp4", 24), default);
-        Assert.Equal(429, (await Assert.ThrowsAsync<ApiException>(() => library.CreateAsync(owner, new("Wait", "video/mp4", 24), default))).Status);
+        Assert.Equal(
+            429,
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    library.CreateAsync(owner, new("Wait", "video/mp4", 24), default)
+                )
+            ).Status
+        );
         await library.FinalizeAsync(first.File.Id, owner, default);
         await using var restarted = test.Context();
-        await test.Library(restarted).CreateAsync(owner, new("Now allowed", "video/mp4", 24), default);
+        await test.Library(restarted)
+            .CreateAsync(owner, new("Now allowed", "video/mp4", 24), default);
         Assert.Equal(2, test.Storage.Signs);
         Assert.Equal(2 * 524288000L, await restarted.Files.SumAsync(x => x.ReservedStorageBytes));
     }
@@ -208,10 +346,14 @@ public sealed class MediaQuotaTests
         var owner = Guid.NewGuid();
         var id = Guid.NewGuid();
         var now = DateTimeOffset.UtcNow;
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""
             INSERT INTO media.files ("Id","OwnerId","Purpose","Name","Bucket","ObjectKey","ContentType","Size","State","Pinned","CreatedAt","UploadExpiresAt","DeleteAttempts","Version")
-            VALUES ({id},{owner},'Video','Legacy','test-private','legacy.mp4','video/mp4',24,'Pending',false,{now},{now.AddHours(2)},0,1)
-            """);
+            VALUES ({id},{owner},'Video','Legacy','test-private','legacy.mp4','video/mp4',24,'Pending',false,{now},{now.AddHours(
+                2
+            )},0,1)
+            """
+        );
         await db.Database.MigrateAsync();
         var legacy = await db.Files.SingleAsync();
         Assert.Equal(id, legacy.Id);
@@ -229,16 +371,39 @@ public sealed class MediaQuotaTests
         var owner = Guid.NewGuid();
         await using var db = test.Context();
         for (var index = 0; index < 3; index++)
-            Assert.Equal(503, (await Assert.ThrowsAsync<ApiException>(() => test.Library(db).CreateAsync(owner, new("Fail", "video/mp4", 24), default))).Status);
-        Assert.Equal(429, (await Assert.ThrowsAsync<ApiException>(() => test.Library(db).CreateAsync(owner, new("Fourth", "video/mp4", 24), default))).Status);
-        await db.Files.ExecuteUpdateAsync(update => update.SetProperty(x => x.UploadExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1)));
+            Assert.Equal(
+                503,
+                (
+                    await Assert.ThrowsAsync<ApiException>(() =>
+                        test.Library(db).CreateAsync(owner, new("Fail", "video/mp4", 24), default)
+                    )
+                ).Status
+            );
+        Assert.Equal(
+            429,
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    test.Library(db).CreateAsync(owner, new("Fourth", "video/mp4", 24), default)
+                )
+            ).Status
+        );
+        await db.Files.ExecuteUpdateAsync(update =>
+            update.SetProperty(x => x.UploadExpiresAt, DateTimeOffset.UtcNow.AddMinutes(-1))
+        );
         test.Storage.FailDelete = true;
         Assert.Equal(0, await test.Library(db).CleanupAsync(default));
         Assert.Equal(2, test.Storage.Deletes);
         Assert.Equal(1, await db.Files.CountAsync(x => x.State == "Pending"));
-        Assert.Equal(2, await db.Files.CountAsync(x => x.State == "Deleting" && x.DeleteAttempts == 1));
+        Assert.Equal(
+            2,
+            await db.Files.CountAsync(x => x.State == "Deleting" && x.DeleteAttempts == 1)
+        );
         test.Storage.FailDelete = false;
-        await db.Files.Where(x => x.State == "Deleting").ExecuteUpdateAsync(update => update.SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1)));
+        await db
+            .Files.Where(x => x.State == "Deleting")
+            .ExecuteUpdateAsync(update =>
+                update.SetProperty(x => x.DeleteAfter, DateTimeOffset.UtcNow.AddMinutes(-1))
+            );
         Assert.Equal(2, await test.Library(db).CleanupAsync(default));
         Assert.Equal(3, await db.Files.CountAsync()); // History remains charged for the daily budget.
     }
@@ -252,11 +417,32 @@ public sealed class MediaQuotaTests
         var library = test.Library(db);
         var ticket = await library.CreateAsync(owner, new("Video", "video/mp4", 24), default);
         test.Storage.Actual = new(25, "video/mp4", Storage.Mp4);
-        Assert.Equal("MEDIA_SIZE_INVALID", (await Assert.ThrowsAsync<ApiException>(() => library.FinalizeAsync(ticket.File.Id, owner, default))).Code);
+        Assert.Equal(
+            "MEDIA_SIZE_INVALID",
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    library.FinalizeAsync(ticket.File.Id, owner, default)
+                )
+            ).Code
+        );
         test.Storage.Actual = new(24, "text/plain", Storage.Mp4);
-        Assert.Equal("MEDIA_FORMAT_INVALID", (await Assert.ThrowsAsync<ApiException>(() => library.FinalizeAsync(ticket.File.Id, owner, default))).Code);
+        Assert.Equal(
+            "MEDIA_FORMAT_INVALID",
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    library.FinalizeAsync(ticket.File.Id, owner, default)
+                )
+            ).Code
+        );
         test.Storage.Actual = new(24, "video/mp4", new byte[24]);
-        Assert.Equal("MEDIA_FORMAT_INVALID", (await Assert.ThrowsAsync<ApiException>(() => library.FinalizeAsync(ticket.File.Id, owner, default))).Code);
+        Assert.Equal(
+            "MEDIA_FORMAT_INVALID",
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    library.FinalizeAsync(ticket.File.Id, owner, default)
+                )
+            ).Code
+        );
         Assert.Null((await db.Files.AsNoTracking().SingleAsync()).AcceptedAt);
         test.Storage.Actual = new(24, "video/mp4", Storage.Mp4);
         Assert.Equal("Ready", (await library.FinalizeAsync(ticket.File.Id, owner, default)).State);
@@ -276,7 +462,14 @@ public sealed class MediaQuotaTests
         file.AcceptedAt = DateTimeOffset.UtcNow;
         db.Files.Add(file);
         await db.SaveChangesAsync();
-        Assert.Equal(429, (await Assert.ThrowsAsync<ApiException>(() => test.Library(db).CreateAsync(owner, new("Blocked", "video/mp4", 24), default))).Status);
+        Assert.Equal(
+            429,
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    test.Library(db).CreateAsync(owner, new("Blocked", "video/mp4", 24), default)
+                )
+            ).Status
+        );
     }
 
     [MediaPostgresFact]
@@ -284,53 +477,117 @@ public sealed class MediaQuotaTests
     {
         await using var test = await Database.CreateAsync();
         await using var db = test.Context();
-        await db.Database.ExecuteSqlRawAsync("""
+        await db.Database.ExecuteSqlRawAsync(
+            """
             CREATE FUNCTION media.reject_reservation() RETURNS trigger LANGUAGE plpgsql AS $$
             BEGIN RAISE EXCEPTION 'synthetic reservation failure'; END $$;
             CREATE TRIGGER reject_reservation BEFORE INSERT ON media.files FOR EACH ROW EXECUTE FUNCTION media.reject_reservation();
-            """);
-        await Assert.ThrowsAsync<DbUpdateException>(() => test.Library(db).CreateAsync(Guid.NewGuid(), new("Failure", "video/mp4", 24), default));
+            """
+        );
+        await Assert.ThrowsAsync<DbUpdateException>(() =>
+            test.Library(db).CreateAsync(Guid.NewGuid(), new("Failure", "video/mp4", 24), default)
+        );
         Assert.Equal(0, test.Storage.Signs);
         Assert.Equal(0, await db.Files.CountAsync());
     }
 
-    private static MediaFile File(Guid owner, long size, string state) => new()
-    {
-        Id = Guid.NewGuid(), OwnerId = owner, Name = "Fixture", Bucket = "test-private", ObjectKey = Guid.NewGuid().ToString("N"),
-        Size = size, State = state, ContentType = "video/mp4", CreatedAt = DateTimeOffset.UtcNow,
-        UploadExpiresAt = DateTimeOffset.UtcNow.AddHours(-1), ReservedStorageBytes = size
-    };
+    private static MediaFile File(Guid owner, long size, string state) =>
+        new()
+        {
+            Id = Guid.NewGuid(),
+            OwnerId = owner,
+            Name = "Fixture",
+            Bucket = "test-private",
+            ObjectKey = Guid.NewGuid().ToString("N"),
+            Size = size,
+            State = state,
+            ContentType = "video/mp4",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UploadExpiresAt = DateTimeOffset.UtcNow.AddHours(-1),
+            ReservedStorageBytes = size,
+        };
 
     private sealed class Storage : IPrivateObjectStorage
     {
-        internal static readonly byte[] Mp4 = [0, 0, 0, 24, 102, 116, 121, 112, 105, 115, 111, 109, 0, 0, 0, 0, 105, 115, 111, 109, 0, 0, 0, 0];
+        internal static readonly byte[] Mp4 =
+        [
+            0,
+            0,
+            0,
+            24,
+            102,
+            116,
+            121,
+            112,
+            105,
+            115,
+            111,
+            109,
+            0,
+            0,
+            0,
+            0,
+            105,
+            115,
+            111,
+            109,
+            0,
+            0,
+            0,
+            0,
+        ];
         internal StoredObject Actual = new(24, "video/mp4", Mp4);
-        internal bool FailSign, FailDelete;
-        internal int Deletes, Signs;
+        internal bool FailSign,
+            FailDelete;
+        internal int Deletes,
+            Signs;
+
         public Task<string> CreateUploadUrlAsync(string bucket, string key, CancellationToken ct)
         {
             Interlocked.Increment(ref Signs);
-            return FailSign ? throw new ApiException(503, "STORAGE_UNAVAILABLE", "Test failure") : Task.FromResult("https://storage.invalid/upload");
+            return FailSign
+                ? throw new ApiException(503, "STORAGE_UNAVAILABLE", "Test failure")
+                : Task.FromResult("https://storage.invalid/upload");
         }
-        public Task<string> CreateReadUrlAsync(string bucket, string key, CancellationToken ct) => Task.FromResult("https://storage.invalid/read");
-        public Task<StoredObject> InspectAsync(string bucket, string key, CancellationToken ct) => Task.FromResult(Actual);
-        public Task<Stream> OpenReadAsync(string bucket, string key, CancellationToken ct) => Task.FromResult<Stream>(new MemoryStream(Mp4));
+
+        public Task<string> CreateReadUrlAsync(string bucket, string key, CancellationToken ct) =>
+            Task.FromResult("https://storage.invalid/read");
+
+        public Task<StoredObject> InspectAsync(string bucket, string key, CancellationToken ct) =>
+            Task.FromResult(Actual);
+
+        public Task<Stream> OpenReadAsync(string bucket, string key, CancellationToken ct) =>
+            Task.FromResult<Stream>(new MemoryStream(Mp4));
+
         public Task DeleteAsync(string bucket, string key, CancellationToken ct)
         {
             Deletes++;
-            if (FailDelete) throw new ApiException(503, "STORAGE_UNAVAILABLE", "Test failure");
+            if (FailDelete)
+                throw new ApiException(503, "STORAGE_UNAVAILABLE", "Test failure");
             return Task.CompletedTask;
         }
     }
 
-    private sealed class Database(NpgsqlDataSource source, string admin, string name) : IAsyncDisposable
+    private sealed class Database(NpgsqlDataSource source, string admin, string name)
+        : IAsyncDisposable
     {
         internal Storage Storage { get; } = new();
         internal StorageOptions StorageOptions { get; } = new() { Bucket = "test-private" };
         internal MediaQuotaOptions Quotas { get; } = new();
-        internal MediaDbContext Context() => new(new DbContextOptionsBuilder<MediaDbContext>()
-            .UseNpgsql(source, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "media")).Options);
-        internal MediaLibrary Library(MediaDbContext db) => new(db, Storage, Options.Create(StorageOptions), Options.Create(Quotas));
+
+        internal MediaDbContext Context() =>
+            new(
+                new DbContextOptionsBuilder<MediaDbContext>()
+                    .UseNpgsql(
+                        source,
+                        x => x.MigrationsHistoryTable("__EFMigrationsHistory", "media")
+                    )
+                    .Options
+            );
+
+        internal MediaLibrary Library(MediaDbContext db) =>
+            new(db, Storage, Options.Create(StorageOptions), Options.Create(Quotas));
+
         internal static async Task<Database> CreateAsync(bool latest = true)
         {
             var admin = Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!;
@@ -339,12 +596,22 @@ public sealed class MediaQuotaTests
             await connection.OpenAsync();
             await using var create = new NpgsqlCommand($"CREATE DATABASE \"{name}\"", connection);
             await create.ExecuteNonQueryAsync();
-            var database = new Database(NpgsqlDataSource.Create(new NpgsqlConnectionStringBuilder(admin) { Database = name }.ConnectionString), admin, name);
+            var database = new Database(
+                NpgsqlDataSource.Create(
+                    new NpgsqlConnectionStringBuilder(admin) { Database = name }.ConnectionString
+                ),
+                admin,
+                name
+            );
             await using var db = database.Context();
-            if (latest) await db.Database.MigrateAsync();
-            else await db.GetService<IMigrator>().MigrateAsync("20261007153121_MessagingAttachments");
+            if (latest)
+                await db.Database.MigrateAsync();
+            else
+                await db.GetService<IMigrator>()
+                    .MigrateAsync("20261007153121_MessagingAttachments");
             return database;
         }
+
         public async ValueTask DisposeAsync()
         {
             await source.DisposeAsync();

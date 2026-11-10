@@ -16,34 +16,54 @@
   height: 2.75rem;
   border: 1px solid var(--tf-glass-border, var(--tf-color-border));
   border-radius: var(--tf-radius-lg);
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 10px 30px -12px rgb(0 0 0 / 0.8);
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.07),
+    rgb(255 255 255 / 0.02)
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 10px 30px -12px rgb(0 0 0 / 0.8);
   color: var(--tf-color-text-secondary);
   animation: tile-in 500ms var(--tf-ease-out) both;
 }
 
-.tile svg { width: 1.25rem; height: 1.25rem; }
+.tile svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
 
 .tile[data-brand] {
   color: var(--tf-color-text);
   animation-delay: 120ms;
 }
 
-.tile[data-brand] svg { width: 1.375rem; }
+.tile[data-brand] svg {
+  width: 1.375rem;
+}
 
 .wire {
   position: relative;
   width: 4.5rem;
   height: 1px;
   overflow: hidden;
-  background: repeating-linear-gradient(90deg, rgb(255 255 255 / 0.28) 0 4px, transparent 4px 8px);
+  background: repeating-linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.28) 0 4px,
+    transparent 4px 8px
+  );
 }
 
 .wire i {
   position: absolute;
   inset: -1px auto -1px 0;
   width: 40%;
-  background: linear-gradient(90deg, transparent, var(--tf-color-success, #3ee09a), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--tf-color-success, #3ee09a),
+    transparent
+  );
   animation: wire-run 2.4s 600ms ease-in-out infinite;
 }
 
@@ -64,9 +84,13 @@
   font-size: var(--tf-text-xs);
 }
 
-.details > div + div { border-top: 1px solid var(--tf-color-border-subtle); }
+.details > div + div {
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
 
-.details dt { color: var(--tf-color-text-tertiary); }
+.details dt {
+  color: var(--tf-color-text-tertiary);
+}
 
 .details dd {
   margin: 0;
@@ -91,10 +115,16 @@
   gap: var(--tf-space-2);
 }
 
-.loading { display: grid; gap: var(--tf-space-3); }
+.loading {
+  display: grid;
+  gap: var(--tf-space-3);
+}
 
 /* Permissions: a field like the sign-in inputs that opens a checklist. */
-.field { display: grid; gap: var(--tf-space-1-5); }
+.field {
+  display: grid;
+  gap: var(--tf-space-1-5);
+}
 
 .fieldLabel {
   color: var(--tf-color-text-secondary);
@@ -118,16 +148,37 @@
   text-align: left;
   cursor: pointer;
   outline: none;
-  transition: border-color 160ms ease, background-color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
 }
 
-.trigger[data-hovered] { border-color: var(--tf-color-border-strong); }
-.trigger[data-focus-visible] { border-color: var(--tf-color-border-strong); box-shadow: 0 0 0 3px var(--tf-color-focus-ring); }
-.trigger[aria-expanded="true"] { border-color: var(--tf-color-border-strong); background: color-mix(in srgb, var(--tf-color-field) 92%, white); }
-.trigger[data-disabled] { opacity: 0.6; cursor: default; }
+.trigger[data-hovered] {
+  border-color: var(--tf-color-border-strong);
+}
+.trigger[data-focus-visible] {
+  border-color: var(--tf-color-border-strong);
+  box-shadow: 0 0 0 3px var(--tf-color-focus-ring);
+}
+.trigger[aria-expanded="true"] {
+  border-color: var(--tf-color-border-strong);
+  background: color-mix(in srgb, var(--tf-color-field) 92%, white);
+}
+.trigger[data-disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
 
-.triggerValue { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.triggerValue[data-empty] { color: var(--tf-color-danger); }
+.triggerValue {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.triggerValue[data-empty] {
+  color: var(--tf-color-danger);
+}
 
 .triggerChevron {
   flex-shrink: 0;
@@ -137,9 +188,13 @@
   transition: transform 200ms var(--tf-ease-out);
 }
 
-.trigger[aria-expanded="true"] .triggerChevron { transform: rotate(180deg); }
+.trigger[aria-expanded="true"] .triggerChevron {
+  transform: rotate(180deg);
+}
 
-.menu { min-width: 16rem; }
+.menu {
+  min-width: 16rem;
+}
 
 .menuHead {
   display: flex;
@@ -147,7 +202,6 @@
   padding: var(--tf-space-2) var(--tf-space-3);
   border-bottom: 1px solid var(--tf-color-border-subtle);
 }
-
 
 .list {
   display: grid;
@@ -158,7 +212,11 @@
   overscroll-behavior: contain;
 }
 
-.section + .section { margin-top: var(--tf-space-1); padding-top: var(--tf-space-1); border-top: 1px solid var(--tf-color-border-subtle); }
+.section + .section {
+  margin-top: var(--tf-space-1);
+  padding-top: var(--tf-space-1);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
 
 .sectionTitle {
   padding: var(--tf-space-1-5) var(--tf-space-2) var(--tf-space-1);
@@ -182,7 +240,9 @@
   cursor: pointer;
 }
 
-.option[data-focused] { background: var(--tf-color-surface-hover); }
+.option[data-focused] {
+  background: var(--tf-color-surface-hover);
+}
 
 .box {
   display: grid;
@@ -194,10 +254,17 @@
   border: 1px solid var(--tf-color-border-strong);
   border-radius: 4px;
   color: transparent;
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
 }
 
-.box svg { width: 0.75rem; height: 0.75rem; stroke-width: 3; }
+.box svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  stroke-width: 3;
+}
 
 .option[data-selected] .box {
   border-color: var(--tf-color-success);
@@ -206,29 +273,64 @@
 }
 
 /* Confirmation before access is granted: what happens, then the risk. */
-.confirm { display: grid; gap: var(--tf-space-3); }
-.confirm section { display: grid; gap: var(--tf-space-1); }
-.confirm h3 { color: var(--tf-color-text); font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); }
-.confirm p { color: var(--tf-color-text-secondary); font-size: var(--tf-text-sm); line-height: var(--tf-leading-normal); }
-.confirm .confirmFoot { padding-top: var(--tf-space-2); border-top: 1px solid var(--tf-color-border-subtle); color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
+.confirm {
+  display: grid;
+  gap: var(--tf-space-3);
+}
+.confirm section {
+  display: grid;
+  gap: var(--tf-space-1);
+}
+.confirm h3 {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+.confirm p {
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-sm);
+  line-height: var(--tf-leading-normal);
+}
+.confirm .confirmFoot {
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-color-border-subtle);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
 
 @media (max-width: 30rem) {
-  .actions { grid-template-columns: 1fr; }
-  .actions > :last-child { order: -1; }
+  .actions {
+    grid-template-columns: 1fr;
+  }
+  .actions > :last-child {
+    order: -1;
+  }
 }
 
 @keyframes tile-in {
-  from { opacity: 0; transform: translateY(6px) scale(0.94); }
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.94);
+  }
 }
 
 @keyframes wire-run {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(250%); }
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile, .wire i { animation: none; }
-  .wire i { display: none; }
+  .tile,
+  .wire i {
+    animation: none;
+  }
+  .wire i {
+    display: none;
+  }
 }
 
 .textButton {
@@ -243,10 +345,24 @@
   text-decoration-color: var(--tf-color-border-strong);
   text-underline-offset: 3px;
   cursor: pointer;
-  transition: color 160ms ease, text-decoration-color 160ms ease;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
 }
 
-.textButton:hover:not(:disabled) { color: var(--tf-color-text); text-decoration-color: currentColor; }
-.textButton:disabled { opacity: 0.4; cursor: default; }
-.textButton:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 2px; border-radius: 2px; }
-.menuHead .textButton { font-size: var(--tf-text-xs); }
+.textButton:hover:not(:disabled) {
+  color: var(--tf-color-text);
+  text-decoration-color: currentColor;
+}
+.textButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.textButton:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.menuHead .textButton {
+  font-size: var(--tf-text-xs);
+}

@@ -12,21 +12,47 @@ public sealed class ApiBoundaryTests
     {
         using var discovery = new ApiFactory();
         using var discoveryClient = discovery.CreateClient();
-        var routes = discovery.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
-            .Where(x => x.RoutePattern.RawText!.StartsWith("/api/", StringComparison.Ordinal) || x.RoutePattern.RawText.StartsWith("/openapi/", StringComparison.Ordinal))
+        var routes = discovery
+            .Services.GetRequiredService<EndpointDataSource>()
+            .Endpoints.OfType<RouteEndpoint>()
+            .Where(x =>
+                x.RoutePattern.RawText!.StartsWith("/api/", StringComparison.Ordinal)
+                || x.RoutePattern.RawText.StartsWith("/openapi/", StringComparison.Ordinal)
+            )
             .Where(x => x.RoutePattern.RawText != "/api/v1/subscriptions/catalog") // Deliberate public price list; no account data.
-            .SelectMany(endpoint => (endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods ?? ["GET"]).Select(method =>
-            {
-                var segments = endpoint.RoutePattern.PathSegments.Select(segment => string.Concat(segment.Parts.Select(part => part switch
+            .SelectMany(endpoint =>
+                (
+                    endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods ?? ["GET"]
+                ).Select(method =>
                 {
-                    Microsoft.AspNetCore.Routing.Patterns.RoutePatternLiteralPart literal => literal.Content,
-                    Microsoft.AspNetCore.Routing.Patterns.RoutePatternSeparatorPart separator => separator.Content,
-                    Microsoft.AspNetCore.Routing.Patterns.RoutePatternParameterPart parameter => parameter.ParameterPolicies.Any(p => p.Content is "int" or "long")
-                        ? "1" : parameter.Name == "documentName" ? "v1" : "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                    _ => throw new InvalidOperationException("Unhandled route segment.")
-                })));
-                return (Method: method, Path: "/" + string.Join('/', segments));
-            })).Distinct().ToArray();
+                    var segments = endpoint.RoutePattern.PathSegments.Select(segment =>
+                        string.Concat(
+                            segment.Parts.Select(part =>
+                                part switch
+                                {
+                                    Microsoft.AspNetCore.Routing.Patterns.RoutePatternLiteralPart literal =>
+                                        literal.Content,
+                                    Microsoft.AspNetCore.Routing.Patterns.RoutePatternSeparatorPart separator =>
+                                        separator.Content,
+                                    Microsoft.AspNetCore.Routing.Patterns.RoutePatternParameterPart parameter =>
+                                        parameter.ParameterPolicies.Any(p =>
+                                            p.Content is "int" or "long"
+                                        )
+                                            ? "1"
+                                        : parameter.Name == "documentName" ? "v1"
+                                        : "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                                    _ => throw new InvalidOperationException(
+                                        "Unhandled route segment."
+                                    ),
+                                }
+                            )
+                        )
+                    );
+                    return (Method: method, Path: "/" + string.Join('/', segments));
+                })
+            )
+            .Distinct()
+            .ToArray();
         Assert.NotEmpty(routes);
         // Separate limiter instances keep this authentication audit independent of rate-limit rejection.
         foreach (var batch in routes.Chunk(80))
@@ -35,24 +61,41 @@ public sealed class ApiBoundaryTests
             using var client = factory.CreateClient();
             foreach (var route in batch)
             {
-                using var request = new HttpRequestMessage(new HttpMethod(route.Method), route.Path);
+                using var request = new HttpRequestMessage(
+                    new HttpMethod(route.Method),
+                    route.Path
+                );
                 using var response = await client.SendAsync(request);
-                Assert.True(response.StatusCode == HttpStatusCode.Unauthorized,
-                    $"{route.Method} {route.Path} returned {(int)response.StatusCode} instead of 401.");
+                Assert.True(
+                    response.StatusCode == HttpStatusCode.Unauthorized,
+                    $"{route.Method} {route.Path} returned {(int)response.StatusCode} instead of 401."
+                );
             }
         }
     }
 
     [Theory]
-    [InlineData("/api/v1/messaging/uploads", "{\"name\":\"voice\",\"contentType\":null,\"size\":24}")]
-    [InlineData("/api/v1/media/uploads", "{\"name\":null,\"contentType\":\"video/mp4\",\"size\":24}")]
+    [InlineData(
+        "/api/v1/messaging/uploads",
+        "{\"name\":\"voice\",\"contentType\":null,\"size\":24}"
+    )]
+    [InlineData(
+        "/api/v1/media/uploads",
+        "{\"name\":null,\"contentType\":\"video/mp4\",\"size\":24}"
+    )]
     [InlineData("/api/v1/media/uploads", "{\"name\":\"video\",\"contentType\":null,\"size\":24}")]
-    public async Task Explicit_null_required_fields_are_rejected_before_services_or_database(string path, string body)
+    public async Task Explicit_null_required_fields_are_rejected_before_services_or_database(
+        string path,
+        string body
+    )
     {
         using var factory = new ApiFactory();
         using var client = factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(Guid.NewGuid()));
-        using var response = await client.PostAsync(path, new StringContent(body, Encoding.UTF8, "application/json"));
+        using var response = await client.PostAsync(
+            path,
+            new StringContent(body, Encoding.UTF8, "application/json")
+        );
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.DoesNotContain("Exception", await response.Content.ReadAsStringAsync());
     }
@@ -70,7 +113,10 @@ public sealed class ApiBoundaryTests
     {
         using var factory = new ApiFactory();
         using var client = factory.CreateClient();
-        using var request = new HttpRequestMessage(new HttpMethod(method), path + "?access_token=" + factory.Token(Guid.NewGuid()));
+        using var request = new HttpRequestMessage(
+            new HttpMethod(method),
+            path + "?access_token=" + factory.Token(Guid.NewGuid())
+        );
         using var response = await client.SendAsync(request);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

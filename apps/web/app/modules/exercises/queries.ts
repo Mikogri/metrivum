@@ -1,14 +1,22 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useLocale } from "~/shared/i18n/LocaleContext";
-import { exerciseHistory, getDictionaries, getExercise, listExercises, listTags, type ExerciseSearch } from "./api";
+import {
+  exerciseHistory,
+  getDictionaries,
+  getExercise,
+  listExercises,
+  listTags,
+  type ExerciseSearch,
+} from "./api";
 
 export const exerciseKeys = {
   all: (a: string) => [a, "exercises"] as const,
   list: (a: string, q: ExerciseSearch) => [a, "exercises", "list", q] as const,
   detail: (a: string, id: string) => [a, "exercises", "detail", id] as const,
   history: (a: string, id: string) => [a, "exercises", "history", id] as const,
-  tags: (a: string, search: string) => [a, "exercises", "tags", search] as const,
+  tags: (a: string, search: string) =>
+    [a, "exercises", "tags", search] as const,
   dictionaries: (a: string) => [a, "exercises", "dictionaries"] as const,
 };
 
@@ -26,25 +34,40 @@ export function useExerciseList(q: ExerciseSearch, enabled = true) {
 export function useExercise(id: string | undefined) {
   const api = useApi();
   const a = useAccountKey();
-  return useQuery({ queryKey: exerciseKeys.detail(a, id ?? ""), queryFn: ({ signal }) => getExercise(api, id!, signal), enabled: Boolean(id) });
+  return useQuery({
+    queryKey: exerciseKeys.detail(a, id ?? ""),
+    queryFn: ({ signal }) => getExercise(api, id!, signal),
+    enabled: Boolean(id),
+  });
 }
 
 export function useExerciseHistory(id: string) {
   const api = useApi();
   const a = useAccountKey();
-  return useQuery({ queryKey: exerciseKeys.history(a, id), queryFn: ({ signal }) => exerciseHistory(api, id, 1, signal) });
+  return useQuery({
+    queryKey: exerciseKeys.history(a, id),
+    queryFn: ({ signal }) => exerciseHistory(api, id, 1, signal),
+  });
 }
 
 export function useTags(search = "") {
   const api = useApi();
   const a = useAccountKey();
-  return useQuery({ queryKey: exerciseKeys.tags(a, search), queryFn: ({ signal }) => listTags(api, search || undefined, signal), staleTime: 60_000 });
+  return useQuery({
+    queryKey: exerciseKeys.tags(a, search),
+    queryFn: ({ signal }) => listTags(api, search || undefined, signal),
+    staleTime: 60_000,
+  });
 }
 
 export function useDictionaries() {
   const api = useApi();
   const a = useAccountKey();
-  return useQuery({ queryKey: exerciseKeys.dictionaries(a), queryFn: ({ signal }) => getDictionaries(api, signal), staleTime: 10 * 60_000 });
+  return useQuery({
+    queryKey: exerciseKeys.dictionaries(a),
+    queryFn: ({ signal }) => getDictionaries(api, signal),
+    staleTime: 10 * 60_000,
+  });
 }
 
 /** Label of a muscle / movement pattern key in the UI language. */

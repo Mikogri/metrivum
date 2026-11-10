@@ -14,13 +14,30 @@ import styles from "./features.module.css";
 
 export function meta({ location }: Route.MetaArgs) {
   const locale = localeFromPathname(location.pathname);
-  return publicPageMeta({ ...publicMessages(locale).features.meta, pathname: location.pathname, locale });
+  return publicPageMeta({
+    ...publicMessages(locale).features.meta,
+    pathname: location.pathname,
+    locale,
+  });
 }
 
-function Group({ index, title, items }: { index: number; title: string; items: string[] }) {
+function Group({
+  index,
+  title,
+  items,
+}: {
+  index: number;
+  title: string;
+  items: string[];
+}) {
   const [ref, inView] = useInView<HTMLLIElement>();
   return (
-    <li ref={ref} className={styles.group} data-inview={inView || undefined} style={{ "--i": index } as React.CSSProperties}>
+    <li
+      ref={ref}
+      className={styles.group}
+      data-inview={inView || undefined}
+      style={{ "--i": index } as React.CSSProperties}
+    >
       <h2 className={styles.groupTitle}>{title}</h2>
       <ul className={prose.bullets}>
         {items.map((item) => (
@@ -41,14 +58,29 @@ export default function Features() {
       <div className={styles.wrap}>
         <ul role="list" className={styles.groups}>
           {f.groups.map((group, i) => (
-            <Group key={group.id} index={i} title={group.title} items={group.items} />
+            <Group
+              key={group.id}
+              index={i}
+              title={group.title}
+              items={group.items}
+            />
           ))}
         </ul>
         <div className={styles.details}>
-          <LinkButton href={publicPath("programBuilder", locale)} variant="secondary" size="lg" iconEnd={<ArrowRight />}>
+          <LinkButton
+            href={publicPath("programBuilder", locale)}
+            variant="secondary"
+            size="lg"
+            iconEnd={<ArrowRight />}
+          >
             {f.detailLinks.programBuilder}
           </LinkButton>
-          <LinkButton href={publicPath("videoAnalysis", locale)} variant="secondary" size="lg" iconEnd={<ArrowRight />}>
+          <LinkButton
+            href={publicPath("videoAnalysis", locale)}
+            variant="secondary"
+            size="lg"
+            iconEnd={<ArrowRight />}
+          >
             {f.detailLinks.videoAnalysis}
           </LinkButton>
         </div>

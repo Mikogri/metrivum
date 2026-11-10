@@ -55,7 +55,7 @@ export interface DangerConfirmOptions {
  * `await ask({...})` resolves true when confirmed. Render `dialog` once in the tree.
  */
 export function useDangerConfirm() {
- const uiCopy = useUiCopy();
+  const uiCopy = useUiCopy();
 
   const [options, setOptions] = useState<DangerConfirmOptions | null>(null);
   const resolver = useRef<((value: boolean) => void) | null>(null);

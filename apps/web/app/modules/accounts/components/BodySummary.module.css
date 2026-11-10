@@ -35,11 +35,21 @@
   height: 0.875rem;
 }
 
-.metricLabel svg[data-tone="green"] { color: var(--tf-color-accent); }
-.metricLabel svg[data-tone="violet"] { color: var(--tf-color-violet); }
-.metricLabel svg[data-tone="blue"] { color: var(--tf-color-info); }
-.metricLabel svg[data-tone="orange"] { color: var(--tf-color-warning); }
-.metricLabel svg[data-tone="rose"] { color: var(--tf-color-danger); }
+.metricLabel svg[data-tone="green"] {
+  color: var(--tf-color-accent);
+}
+.metricLabel svg[data-tone="violet"] {
+  color: var(--tf-color-violet);
+}
+.metricLabel svg[data-tone="blue"] {
+  color: var(--tf-color-info);
+}
+.metricLabel svg[data-tone="orange"] {
+  color: var(--tf-color-warning);
+}
+.metricLabel svg[data-tone="rose"] {
+  color: var(--tf-color-danger);
+}
 
 .metricValue {
   font-size: var(--tf-text-2xl);
@@ -151,10 +161,18 @@
   transition: transform 500ms var(--tf-ease-out);
 }
 
-.meter[data-tone="green"] span { background: var(--tf-color-accent); }
-.meter[data-tone="violet"] span { background: var(--tf-color-violet); }
-.meter[data-tone="orange"] span { background: var(--tf-color-warning); }
-.meter[data-tone="rose"] span { background: var(--tf-color-danger); }
+.meter[data-tone="green"] span {
+  background: var(--tf-color-accent);
+}
+.meter[data-tone="violet"] span {
+  background: var(--tf-color-violet);
+}
+.meter[data-tone="orange"] span {
+  background: var(--tf-color-warning);
+}
+.meter[data-tone="rose"] span {
+  background: var(--tf-color-danger);
+}
 
 .equipment {
   display: grid;
@@ -209,8 +227,12 @@
   background: color-mix(in srgb, var(--tone) 6%, var(--tf-color-surface));
 }
 
-.note[data-tone="orange"] { --tone: var(--tf-color-warning); }
-.note[data-tone="green"] { --tone: var(--tf-color-accent); }
+.note[data-tone="orange"] {
+  --tone: var(--tf-color-warning);
+}
+.note[data-tone="green"] {
+  --tone: var(--tf-color-accent);
+}
 
 .note .caption svg {
   color: var(--tone);
@@ -221,7 +243,6 @@
   line-height: var(--tf-leading-normal);
   white-space: pre-line;
 }
-
 
 .empty {
   color: var(--tf-color-text-tertiary);
@@ -242,8 +263,23 @@
   height: 1rem;
 }
 
-.chip[data-tone="green"] { background: var(--tf-color-accent-deep); color: var(--tf-color-accent); }
-.chip[data-tone="violet"] { background: var(--tf-color-violet-soft); color: var(--tf-color-violet); }
-.chip[data-tone="blue"] { background: var(--tf-color-info-soft); color: var(--tf-color-info); }
-.chip[data-tone="orange"] { background: var(--tf-color-warning-soft); color: var(--tf-color-warning); }
-.chip[data-tone="rose"] { background: var(--tf-color-danger-soft); color: var(--tf-color-danger); }
+.chip[data-tone="green"] {
+  background: var(--tf-color-accent-deep);
+  color: var(--tf-color-accent);
+}
+.chip[data-tone="violet"] {
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+.chip[data-tone="blue"] {
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+}
+.chip[data-tone="orange"] {
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+}
+.chip[data-tone="rose"] {
+  background: var(--tf-color-danger-soft);
+  color: var(--tf-color-danger);
+}

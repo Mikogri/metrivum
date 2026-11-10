@@ -171,7 +171,8 @@
 /* On a phone the search sits at the top, full width, with room for the keyboard below. */
 @media (max-width: 40rem) {
   .overlay {
-    padding: max(var(--tf-space-2), env(safe-area-inset-top)) var(--tf-space-2) var(--tf-space-2);
+    padding: max(var(--tf-space-2), env(safe-area-inset-top)) var(--tf-space-2)
+      var(--tf-space-2);
   }
 
   .list {

@@ -10,7 +10,14 @@ public sealed class ContractExportIsolationTests
     public void Build_outputs_do_not_include_machine_local_credentials()
     {
         Assert.False(File.Exists(Path.Combine(AppContext.BaseDirectory, "appsettings.Local.json")));
-        Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location)!, "appsettings.Local.json")));
+        Assert.False(
+            File.Exists(
+                Path.Combine(
+                    Path.GetDirectoryName(typeof(Program).Assembly.Location)!,
+                    "appsettings.Local.json"
+                )
+            )
+        );
     }
 
     [Fact]
@@ -18,28 +25,40 @@ public sealed class ContractExportIsolationTests
     {
         using var factory = new ApiFactory();
         using var client = factory.CreateClient();
-        Assert.DoesNotContain(factory.Services.GetServices<IHostedService>(),
-            service => service.GetType().Namespace?.StartsWith("Metrivum", StringComparison.Ordinal) == true);
+        Assert.DoesNotContain(
+            factory.Services.GetServices<IHostedService>(),
+            service =>
+                service.GetType().Namespace?.StartsWith("Metrivum", StringComparison.Ordinal)
+                == true
+        );
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task Export_ignores_local_settings_and_deployment_configuration(bool simultaneousMigration)
+    public async Task Export_ignores_local_settings_and_deployment_configuration(
+        bool simultaneousMigration
+    )
     {
-        var directory = Path.Combine(Path.GetTempPath(), "trainflow-export-" + Guid.NewGuid().ToString("N"));
+        var directory = Path.Combine(
+            Path.GetTempPath(),
+            "trainflow-export-" + Guid.NewGuid().ToString("N")
+        );
         Directory.CreateDirectory(directory);
         try
         {
             // Invalid JSON proves appsettings.Local.json is not loaded at all.
-            await File.WriteAllTextAsync(Path.Combine(directory, "appsettings.Local.json"), "invalid-json");
+            await File.WriteAllTextAsync(
+                Path.Combine(directory, "appsettings.Local.json"),
+                "invalid-json"
+            );
             var start = new ProcessStartInfo("dotnet")
             {
                 WorkingDirectory = directory,
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true
+                RedirectStandardError = true,
             };
             start.ArgumentList.Add(typeof(Program).Assembly.Location);
             start.ArgumentList.Add("--export-contracts");
@@ -61,7 +80,11 @@ public sealed class ContractExportIsolationTests
             {
                 await process.WaitForExitAsync(timeout.Token);
             }
-            finally { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+            finally
+            {
+                if (!process.HasExited)
+                    process.Kill(entireProcessTree: true);
+            }
             var diagnostics = await stdout + await stderr;
             if (simultaneousMigration)
             {
@@ -72,10 +95,16 @@ public sealed class ContractExportIsolationTests
             else
             {
                 Assert.True(process.ExitCode == 0, diagnostics);
-                Assert.Contains("/api/v1/training/progress", await File.ReadAllTextAsync(Path.Combine(directory, "openapi.json")));
+                Assert.Contains(
+                    "/api/v1/training/progress",
+                    await File.ReadAllTextAsync(Path.Combine(directory, "openapi.json"))
+                );
                 Assert.DoesNotContain("NpgsqlException", diagnostics);
             }
         }
-        finally { Directory.Delete(directory, recursive: true); }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
     }
 }

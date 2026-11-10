@@ -23,10 +23,22 @@ export interface FormulaSnapshot {
 }
 
 /** Only inputs actually frozen for this plan can make its results outdated. */
-export function sourcesChanged(frozen: Record<string, string>, current: Record<string, string>): boolean {
-  return Object.entries(frozen).some(([name, version]) => current[name] !== version);
+export function sourcesChanged(
+  frozen: Record<string, string>,
+  current: Record<string, string>,
+): boolean {
+  return Object.entries(frozen).some(
+    ([name, version]) => current[name] !== version,
+  );
 }
 
 export function validMax(reps: number, load: number, alias: string): boolean {
-  return Number.isInteger(reps) && reps >= 1 && reps <= 100 && Number.isFinite(load) && load > 0 && /^[A-Za-z_][A-Za-z0-9_]{0,63}$/.test(alias);
+  return (
+    Number.isInteger(reps) &&
+    reps >= 1 &&
+    reps <= 100 &&
+    Number.isFinite(load) &&
+    load > 0 &&
+    /^[A-Za-z_][A-Za-z0-9_]{0,63}$/.test(alias)
+  );
 }

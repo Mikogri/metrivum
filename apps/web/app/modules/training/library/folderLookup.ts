@@ -14,18 +14,29 @@ export function useFolderLookup(): Map<string, FolderDto> {
   const cache = queryClient.getQueryCache();
   const version = useSyncExternalStore(
     (notify) => cache.subscribe(notify),
-    () => cache.getAll().filter((q) => q.queryKey[1] === "training" && q.queryKey[2] === "folders").reduce((sum, q) => sum + q.state.dataUpdatedAt, 0),
+    () =>
+      cache
+        .getAll()
+        .filter(
+          (q) => q.queryKey[1] === "training" && q.queryKey[2] === "folders",
+        )
+        .reduce((sum, q) => sum + q.state.dataUpdatedAt, 0),
     () => 0,
   );
   void version;
   const map = new Map<string, FolderDto>();
-  for (const [, data] of queryClient.getQueriesData<PagedOfFolderDto>({ queryKey: trainingKeys.folders(a) })) {
+  for (const [, data] of queryClient.getQueriesData<PagedOfFolderDto>({
+    queryKey: trainingKeys.folders(a),
+  })) {
     for (const folder of data?.items ?? []) map.set(folder.id, folder);
   }
   return map;
 }
 
-export function folderPath(lookup: Map<string, FolderDto>, folderId: string | null): Array<FolderDto | { id: string; name: null }> {
+export function folderPath(
+  lookup: Map<string, FolderDto>,
+  folderId: string | null,
+): Array<FolderDto | { id: string; name: null }> {
   const path: Array<FolderDto | { id: string; name: null }> = [];
   let current = folderId;
   const seen = new Set<string>();

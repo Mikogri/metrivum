@@ -1,6 +1,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { clearToasts } from "@metrivum/ui-web";
-import { createContext, useContext, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import { MOCK_MODE } from "~/shared/dev/mockMode";
 import { mockFetch } from "~/shared/dev/mockApi";
 import { apiBaseUrl } from "~/shared/http/config";
@@ -17,7 +24,10 @@ export interface AccountContextValue {
   lifecycle: {
     isCurrent: () => boolean;
     signal: () => AbortSignal;
-    accessToken: (options?: { forceRefresh?: boolean; signal?: AbortSignal }) => Promise<string | null>;
+    accessToken: (options?: {
+      forceRefresh?: boolean;
+      signal?: AbortSignal;
+    }) => Promise<string | null>;
   };
 }
 
@@ -27,7 +37,15 @@ const AccountContext = createContext<AccountContextValue | null>(null);
  * Binds API access to one signed-in account. Rendered with `key={accountKey}` so switching
  * accounts remounts the whole subtree: editor state, selections and errors start fresh.
  */
-export function AccountScope({ account, generation, children }: { account: SignedInAccount; generation: number; children: ReactNode }) {
+export function AccountScope({
+  account,
+  generation,
+  children,
+}: {
+  account: SignedInAccount;
+  generation: number;
+  children: ReactNode;
+}) {
   const manager = useSessionManager();
   const queryClient = useQueryClient();
   const accountKey = `${account.slot}:${account.userId}`;
@@ -38,16 +56,26 @@ export function AccountScope({ account, generation, children }: { account: Signe
   const value = useMemo<AccountContextValue>(() => {
     const isCurrent = () => {
       const state = manager.getState();
-      return state.activeSlot === account.slot && state.generation === generation && !controllerRef.current.signal.aborted;
+      return (
+        state.activeSlot === account.slot &&
+        state.generation === generation &&
+        !controllerRef.current.signal.aborted
+      );
     };
     const lifecycle: AccountContextValue["lifecycle"] = {
       isCurrent,
       signal: () => controllerRef.current.signal,
       accessToken: async ({ forceRefresh, signal } = {}) => {
-        const assertCurrent = () => { if (!isCurrent() || signal?.aborted) throw new StaleAccountError(); };
+        const assertCurrent = () => {
+          if (!isCurrent() || signal?.aborted) throw new StaleAccountError();
+        };
         assertCurrent();
         try {
-          return await manager.accessToken(account.slot, forceRefresh, account.userId);
+          return await manager.accessToken(
+            account.slot,
+            forceRefresh,
+            account.userId,
+          );
         } finally {
           assertCurrent();
         }
@@ -67,10 +95,13 @@ export function AccountScope({ account, generation, children }: { account: Signe
 
   // Re-arm before descendant query effects run during StrictMode's effect replay.
   useLayoutEffect(() => {
-    if (controllerRef.current.signal.aborted) controllerRef.current = new AbortController();
+    if (controllerRef.current.signal.aborted)
+      controllerRef.current = new AbortController();
     const controller = controllerRef.current;
     // Stop network work synchronously, before React has unmounted the previous account.
-    const checkAccount = () => { if (!value.lifecycle.isCurrent()) controller.abort(); };
+    const checkAccount = () => {
+      if (!value.lifecycle.isCurrent()) controller.abort();
+    };
     const unsubscribe = manager.subscribe(checkAccount);
     checkAccount();
     return () => {
@@ -83,12 +114,15 @@ export function AccountScope({ account, generation, children }: { account: Signe
     };
   }, [queryClient, accountKey, generation, manager, value]);
 
-  return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
+  return (
+    <AccountContext.Provider value={value}>{children}</AccountContext.Provider>
+  );
 }
 
 export function useAccountContext(): AccountContextValue {
   const value = useContext(AccountContext);
-  if (!value) throw new Error("useAccountContext must be used inside <AccountScope>.");
+  if (!value)
+    throw new Error("useAccountContext must be used inside <AccountScope>.");
   return value;
 }
 

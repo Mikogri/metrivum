@@ -1,17 +1,31 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Metrivum.Access.Contracts;
 using Metrivum.Media.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Metrivum.Media;
 
 /// <summary>Reads media usage for quota checks through the Access contract.</summary>
-public sealed class MediaLimitUsage(MediaDbContext db, IOptions<StorageOptions> options) : ILimitUsageProvider
+public sealed class MediaLimitUsage(MediaDbContext db, IOptions<StorageOptions> options)
+    : ILimitUsageProvider
 {
-    public async Task<IReadOnlyList<LimitDecision>> GetUsageAsync(Guid ownerId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<LimitDecision>> GetUsageAsync(
+        Guid ownerId,
+        CancellationToken cancellationToken
+    )
     {
         var now = DateTimeOffset.UtcNow;
-        var pending = await db.Files.CountAsync(x => x.OwnerId == ownerId && (x.State == "Pending" || x.State == "Deleting") && x.UploadExpiresAt > now, cancellationToken);
-        return [new("media.maxVideoBytes", options.Value.AcceptedVideoBytes, 0), new("media.maxPendingUploads", options.Value.AcceptedPendingUploads, pending)];
+        var pending = await db.Files.CountAsync(
+            x =>
+                x.OwnerId == ownerId
+                && (x.State == "Pending" || x.State == "Deleting")
+                && x.UploadExpiresAt > now,
+            cancellationToken
+        );
+        return
+        [
+            new("media.maxVideoBytes", options.Value.AcceptedVideoBytes, 0),
+            new("media.maxPendingUploads", options.Value.AcceptedPendingUploads, pending),
+        ];
     }
 }

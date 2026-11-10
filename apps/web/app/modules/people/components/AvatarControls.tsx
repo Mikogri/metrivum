@@ -11,10 +11,19 @@ export function AvatarControls({ hasAvatar }: { hasAvatar: boolean }) {
   const { upload, remove } = useAvatarActions(t.invalid, t.failed);
   const busy = upload.isPending || remove.isPending;
   const error = upload.error ?? remove.error;
-  const changeLabel = upload.isPending ? t.uploading : hasAvatar ? t.change : t.add;
+  const changeLabel = upload.isPending
+    ? t.uploading
+    : hasAvatar
+      ? t.change
+      : t.add;
   return (
     <>
-      <label className={styles.button} data-place="change" data-busy={busy || undefined} title={changeLabel}>
+      <label
+        className={styles.button}
+        data-place="change"
+        data-busy={busy || undefined}
+        title={changeLabel}
+      >
         <input
           type="file"
           accept={AVATAR_TYPES}
@@ -49,7 +58,10 @@ export function AvatarControls({ hasAvatar }: { hasAvatar: boolean }) {
       ) : null}
       {error ? (
         <span className={styles.error} role="alert">
-          {error instanceof Error && (error.message === t.invalid || error.message === t.failed) ? error.message : errorText(m, error)}
+          {error instanceof Error &&
+          (error.message === t.invalid || error.message === t.failed)
+            ? error.message
+            : errorText(m, error)}
         </span>
       ) : null}
     </>

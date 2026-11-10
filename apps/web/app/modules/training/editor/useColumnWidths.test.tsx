@@ -6,12 +6,26 @@ afterEach(() => vi.unstubAllGlobals());
 it("interpolates one shared width map, retargets from the current frame and cancels on unmount", () => {
   let id = 0;
   const frames = new Map<number, FrameRequestCallback>();
-  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frames.set(++id, callback); return id; });
-  vi.stubGlobal("cancelAnimationFrame", (frame: number) => frames.delete(frame));
-  const step = (now: number) => act(() => { const pending = [...frames.values()]; frames.clear(); pending.forEach(callback => callback(now)); });
-  const { result, rerender, unmount } = renderHook(({ width, immediate }) => useColumnWidths({ 1: width }, immediate), { initialProps: { width: 104, immediate: false } });
+  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+    frames.set(++id, callback);
+    return id;
+  });
+  vi.stubGlobal("cancelAnimationFrame", (frame: number) =>
+    frames.delete(frame),
+  );
+  const step = (now: number) =>
+    act(() => {
+      const pending = [...frames.values()];
+      frames.clear();
+      pending.forEach((callback) => callback(now));
+    });
+  const { result, rerender, unmount } = renderHook(
+    ({ width, immediate }) => useColumnWidths({ 1: width }, immediate),
+    { initialProps: { width: 104, immediate: false } },
+  );
   rerender({ width: 200, immediate: false });
-  step(100); step(210);
+  step(100);
+  step(210);
   expect(result.current[1]).toBeGreaterThan(104);
   expect(result.current[1]).toBeLessThan(200);
   const midway = result.current[1];
@@ -29,7 +43,10 @@ it("interpolates one shared width map, retargets from the current frame and canc
 it("does not schedule animation frames for unchanged effective widths", () => {
   const frame = vi.fn();
   vi.stubGlobal("requestAnimationFrame", frame);
-  const { rerender } = renderHook(({ widths }) => useColumnWidths(widths, false), { initialProps: { widths: { 1: 104 } } });
+  const { rerender } = renderHook(
+    ({ widths }) => useColumnWidths(widths, false),
+    { initialProps: { widths: { 1: 104 } } },
+  );
   expect(frame).not.toHaveBeenCalled();
   rerender({ widths: { 1: 104 } });
   expect(frame).not.toHaveBeenCalled();

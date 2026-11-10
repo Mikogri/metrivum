@@ -114,7 +114,6 @@
   text-align: center;
 }
 
-
 .conversation {
   display: flex;
   align-items: center;
@@ -654,7 +653,9 @@
   min-width: 0;
 }
 
-.voicePlayback { color: #fff; }
+.voicePlayback {
+  color: #fff;
+}
 
 .voiceBars {
   display: flex;
@@ -801,7 +802,8 @@
   justify-content: space-between;
   gap: var(--tf-space-2);
   margin: var(--tf-space-1-5) var(--tf-space-1-5) 0;
-  padding: var(--tf-space-1-5) var(--tf-space-1) var(--tf-space-1-5) var(--tf-space-2-5);
+  padding: var(--tf-space-1-5) var(--tf-space-1) var(--tf-space-1-5)
+    var(--tf-space-2-5);
   border-left: 2px solid var(--tf-color-info);
   border-radius: var(--tf-radius-sm);
   background: var(--tf-color-surface-overlay);
@@ -1003,22 +1005,59 @@
     flex-shrink: 0;
   }
 
-  .messages { min-height: 0; }
-  .composer { max-height: 55%; overflow-y: auto; }
-  .composerRow textarea { font-size: 1rem; max-height: 6rem; }
-  .messageActions { opacity: 1; flex-shrink: 0; }
+  .messages {
+    min-height: 0;
+  }
+  .composer {
+    max-height: 55%;
+    overflow-y: auto;
+  }
+  .composerRow textarea {
+    font-size: 1rem;
+    max-height: 6rem;
+  }
+  .messageActions {
+    opacity: 1;
+    flex-shrink: 0;
+  }
   .menuButton,
-  .send { min-width: 2.75rem; min-height: 2.75rem; }
-  .message { max-width: 100%; }
-  .threadTitle { flex: 1; }
-  .threadHeader .spacer { display: none; }
-  .threadTitle small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .conversation { min-height: 4.5rem; }
-  .lightboxOverlay { padding: var(--tf-space-3); }
-  .lightboxBar span { min-width: 0; overflow-wrap: anywhere; }
-  .actionCard { max-width: min(100%, calc(100vw - 8rem)); }
-  .voicePlayer { max-width: calc(100vw - 10rem); }
-  .voiceBar .voicePlayer { max-width: 100%; }
+  .send {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+  .message {
+    max-width: 100%;
+  }
+  .threadTitle {
+    flex: 1;
+  }
+  .threadHeader .spacer {
+    display: none;
+  }
+  .threadTitle small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .conversation {
+    min-height: 4.5rem;
+  }
+  .lightboxOverlay {
+    padding: var(--tf-space-3);
+  }
+  .lightboxBar span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .actionCard {
+    max-width: min(100%, calc(100vw - 8rem));
+  }
+  .voicePlayer {
+    max-width: calc(100vw - 10rem);
+  }
+  .voiceBar .voicePlayer {
+    max-width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1249,9 +1288,20 @@
   gap: var(--tf-space-2);
 }
 
-.messages::-webkit-scrollbar { width: 10px; height: 10px; }
-.messages::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 999px; background: var(--tf-color-border-strong); background-clip: content-box; }
-.messages::-webkit-scrollbar-track, .messages::-webkit-scrollbar-corner { background: transparent; }
+.messages::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.messages::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--tf-color-border-strong);
+  background-clip: content-box;
+}
+.messages::-webkit-scrollbar-track,
+.messages::-webkit-scrollbar-corner {
+  background: transparent;
+}
 /* Recording and the ready recording replace the text field in the composer row. */
 .voiceBar {
   display: flex;
@@ -1318,11 +1368,21 @@
   font-size: var(--tf-text-xs);
 }
 
-.composerRow textarea:disabled { opacity: .55; }
+.composerRow textarea:disabled {
+  opacity: 0.55;
+}
 
-.messageContent { display: flex; flex-direction: column; align-items: flex-start; gap: var(--tf-space-1); min-width: 0; }
+.messageContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--tf-space-1);
+  min-width: 0;
+}
 
-.deletedMessage { color: var(--tf-color-text-tertiary); }
+.deletedMessage {
+  color: var(--tf-color-text-tertiary);
+}
 
 .message[data-mine] .messageContent {
   display: flex;
@@ -1330,13 +1390,27 @@
   align-items: flex-end;
 }
 
-.message[data-mine] .attachment { align-self: flex-end; }
+.message[data-mine] .attachment {
+  align-self: flex-end;
+}
 
-.imageRow { display: flex; align-items: center; gap: var(--tf-space-1); max-width: 100%; }
-.message[data-mine] .imageRow { flex-direction: row-reverse; align-self: flex-end; }
+.imageRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  max-width: 100%;
+}
+.message[data-mine] .imageRow {
+  flex-direction: row-reverse;
+  align-self: flex-end;
+}
 /* Images hug the sender's edge: the right for your own, the left for others. */
-.message[data-mine] .imageRow .attachment { margin-left: auto; }
-.message:not([data-mine]) .imageRow { align-self: flex-start; }
+.message[data-mine] .imageRow .attachment {
+  margin-left: auto;
+}
+.message:not([data-mine]) .imageRow {
+  align-self: flex-start;
+}
 
 /* Invitations and application forms: one pressable tile, clearly a control rather than a text bubble. */
 .actionCard {
@@ -1352,12 +1426,40 @@
   background: var(--tf-color-surface);
   color: var(--tf-color-text);
 }
-.actionCard[data-kind="form"] { --kind: var(--tf-color-info); }
-.actionIcon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--kind); color: #0d1410; }
-.actionIcon svg { width: 1.125rem; height: 1.125rem; }
-.actionText { display: grid; gap: 1px; min-width: 0; }
-.actionKind { color: var(--tf-color-text); font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); }
-.actionTitle { overflow: hidden; color: var(--tf-color-text-secondary); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-regular, 400); text-overflow: ellipsis; white-space: nowrap; }
+.actionCard[data-kind="form"] {
+  --kind: var(--tf-color-info);
+}
+.actionIcon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--kind);
+  color: #0d1410;
+}
+.actionIcon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+.actionText {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.actionKind {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+.actionTitle {
+  overflow: hidden;
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-regular, 400);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* The only interactive part of the card: hover tints just this button, and only slightly. */
 .actionLink {
   grid-column: 1 / -1;
@@ -1375,15 +1477,35 @@
   font-weight: var(--tf-weight-medium);
   text-align: start;
   cursor: pointer;
-  transition: background-color var(--tf-duration-fast) ease, border-color var(--tf-duration-fast) ease, transform 160ms var(--tf-ease-out);
+  transition:
+    background-color var(--tf-duration-fast) ease,
+    border-color var(--tf-duration-fast) ease,
+    transform 160ms var(--tf-ease-out);
 }
-.actionLink svg { width: 0.875rem; height: 0.875rem; color: var(--tf-color-text-secondary); transition: transform 200ms var(--tf-ease-out); }
-.actionLink:active { transform: scale(0.98); }
-.actionLink:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 2px; }
+.actionLink svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-text-secondary);
+  transition: transform 200ms var(--tf-ease-out);
+}
+.actionLink:active {
+  transform: scale(0.98);
+}
+.actionLink:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
 @media (hover: hover) and (pointer: fine) {
-  .actionLink:hover { border-color: var(--tf-color-border-strong); background: rgb(255 255 255 / 0.04); }
-  .actionLink:hover svg { color: var(--tf-color-text); }
-  .actionLink:hover svg { transform: translateX(2px); }
+  .actionLink:hover {
+    border-color: var(--tf-color-border-strong);
+    background: rgb(255 255 255 / 0.04);
+  }
+  .actionLink:hover svg {
+    color: var(--tf-color-text);
+  }
+  .actionLink:hover svg {
+    transform: translateX(2px);
+  }
 }
 
 /* Send-to-chat block (e.g. sharing an analysis link): conversation picker and the send button in one row. */

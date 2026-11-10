@@ -1,7 +1,56 @@
-.navigation { flex: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; padding: 6px max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); border-top: 1px solid var(--tf-color-border-subtle); background: var(--tf-color-bg); z-index: var(--tf-z-header); }
-.destination { min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 5px 2px; border-radius: var(--tf-radius-lg); color: var(--tf-color-text-tertiary); font-size: 0.6875rem; font-weight: 500; text-decoration: none; }
-.destination[aria-current] { background: var(--tf-color-surface-selected); color: var(--tf-color-text); }
-.destination:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: -2px; }
-.icon { position: relative; display: grid; place-items: center; }
-.icon svg { width: 21px; height: 21px; stroke-width: 1.7; }
-.badge { position: absolute; top: -5px; left: 14px; min-width: 15px; padding: 2px 3px; border-radius: 20px; font-size: 9px; line-height: 1; background: var(--tf-color-warning); color: #17120b; }
+.navigation {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
+  padding: 6px max(8px, env(safe-area-inset-right))
+    max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  border-top: 1px solid var(--tf-color-border-subtle);
+  background: var(--tf-color-bg);
+  z-index: var(--tf-z-header);
+}
+.destination {
+  min-width: 0;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 2px;
+  border-radius: var(--tf-radius-lg);
+  color: var(--tf-color-text-tertiary);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+.destination[aria-current] {
+  background: var(--tf-color-surface-selected);
+  color: var(--tf-color-text);
+}
+.destination:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: -2px;
+}
+.icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.icon svg {
+  width: 21px;
+  height: 21px;
+  stroke-width: 1.7;
+}
+.badge {
+  position: absolute;
+  top: -5px;
+  left: 14px;
+  min-width: 15px;
+  padding: 2px 3px;
+  border-radius: 20px;
+  font-size: 9px;
+  line-height: 1;
+  background: var(--tf-color-warning);
+  color: #17120b;
+}

@@ -1,9 +1,14 @@
 import type { ElementType, HTMLAttributes, ReactNode } from "react";
-import { Heading as AriaHeading, Label as AriaLabel, type LabelProps } from "react-aria-components";
+import {
+  Heading as AriaHeading,
+  Label as AriaLabel,
+  type LabelProps,
+} from "react-aria-components";
 import { cx } from "../../lib/cx";
 import styles from "./Typography.module.css";
 
-type TextTone = "default" | "secondary" | "tertiary" | "accent" | "danger" | "warning";
+type TextTone =
+  "default" | "secondary" | "tertiary" | "accent" | "danger" | "warning";
 
 export interface TextProps extends HTMLAttributes<HTMLElement> {
   as?: ElementType;
@@ -50,12 +55,23 @@ export interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
   children?: ReactNode;
 }
 
-export function Heading({ level = 2, size = "md", family = "ui", className, ...props }: HeadingProps) {
+export function Heading({
+  level = 2,
+  size = "md",
+  family = "ui",
+  className,
+  ...props
+}: HeadingProps) {
   return (
     <AriaHeading
       level={level}
       {...props}
-      className={cx(styles.heading, styles[`heading-${size}`], family === "display" && styles.display, className)}
+      className={cx(
+        styles.heading,
+        styles[`heading-${size}`],
+        family === "display" && styles.display,
+        className,
+      )}
     />
   );
 }
@@ -64,6 +80,9 @@ export function Label({ className, ...props }: LabelProps) {
   return <AriaLabel {...props} className={cx(styles.label, className)} />;
 }
 
-export function Caption({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
+export function Caption({
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) {
   return <span {...props} className={cx(styles.caption, className)} />;
 }

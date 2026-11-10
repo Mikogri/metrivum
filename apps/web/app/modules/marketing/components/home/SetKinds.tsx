@@ -3,10 +3,20 @@ import { prefersReducedMotion, useInView } from "../../lib/useInView";
 import { usePublicMessages } from "../../messages";
 import styles from "./SetKinds.module.css";
 
-type Kind = "Standard" | "Amrap" | "TopSet" | "Ramp" | "DropSet" | "RestPause" | "Cluster";
+type Kind =
+  | "Standard"
+  | "Amrap"
+  | "TopSet"
+  | "Ramp"
+  | "DropSet"
+  | "RestPause"
+  | "Cluster";
 
 // Bar heights (0–1) and gaps sketch the shape of each set type; illustrative only.
-const SHAPES: Record<Kind, { bars: number[]; gaps?: number[]; accent?: number[]; open?: boolean }> = {
+const SHAPES: Record<
+  Kind,
+  { bars: number[]; gaps?: number[]; accent?: number[]; open?: boolean }
+> = {
   Standard: { bars: [0.62, 0.62, 0.62, 0.62] },
   Amrap: { bars: [0.66], open: true },
   TopSet: { bars: [0.92, 0.72, 0.72, 0.72], accent: [0] },
@@ -15,7 +25,15 @@ const SHAPES: Record<Kind, { bars: number[]; gaps?: number[]; accent?: number[];
   RestPause: { bars: [0.7, 0.36, 0.24], gaps: [1, 1] },
   Cluster: { bars: [0.44, 0.44, 0.44, 0.44, 0.44], gaps: [1, 1, 1, 1] },
 };
-const ORDER: Kind[] = ["Standard", "Amrap", "TopSet", "Ramp", "DropSet", "RestPause", "Cluster"];
+const ORDER: Kind[] = [
+  "Standard",
+  "Amrap",
+  "TopSet",
+  "Ramp",
+  "DropSet",
+  "RestPause",
+  "Cluster",
+];
 
 export function SetKinds() {
   const m = usePublicMessages();
@@ -29,13 +47,18 @@ export function SetKinds() {
     if (!inView || prefersReducedMotion()) return;
     const timer = setInterval(() => {
       if (paused.current) return;
-      setActive((current) => ORDER[(ORDER.indexOf(current) + 1) % ORDER.length]!);
+      setActive(
+        (current) => ORDER[(ORDER.indexOf(current) + 1) % ORDER.length]!,
+      );
     }, 2800);
     return () => clearInterval(timer);
   }, [inView]);
 
   const shape = SHAPES[active];
-  const label = active === "TopSet" ? `${s.kinds.TopSet} + ${s.kinds.BackOff}` : s.kinds[active];
+  const label =
+    active === "TopSet"
+      ? `${s.kinds.TopSet} + ${s.kinds.BackOff}`
+      : s.kinds[active];
 
   return (
     <div
@@ -58,8 +81,16 @@ export function SetKinds() {
               setActive(kind);
             }}
           >
-            <span className={styles.kindName}>{kind === "TopSet" ? `${s.kinds.TopSet} → ${s.kinds.BackOff}` : s.kinds[kind]}</span>
-            <span className={styles.kindNote}>{kind === "TopSet" ? `${s.kindNotes.TopSet}; ${s.kindNotes.BackOff.toLowerCase()}` : s.kindNotes[kind]}</span>
+            <span className={styles.kindName}>
+              {kind === "TopSet"
+                ? `${s.kinds.TopSet} → ${s.kinds.BackOff}`
+                : s.kinds[kind]}
+            </span>
+            <span className={styles.kindNote}>
+              {kind === "TopSet"
+                ? `${s.kindNotes.TopSet}; ${s.kindNotes.BackOff.toLowerCase()}`
+                : s.kindNotes[kind]}
+            </span>
           </button>
         ))}
       </div>
@@ -80,7 +111,9 @@ export function SetKinds() {
               />
             );
           })}
-          {active === "TopSet" ? <span className={styles.reference} aria-hidden="true" /> : null}
+          {active === "TopSet" ? (
+            <span className={styles.reference} aria-hidden="true" />
+          ) : null}
         </div>
       </div>
     </div>

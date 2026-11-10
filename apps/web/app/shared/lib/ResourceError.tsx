@@ -5,12 +5,30 @@ import { errorText, traceIdOf } from "./errorText";
 
 /** Private detail pages conceal inaccessible resources; transient errors retain an explicit retry. */
 export function isUnavailableResource(error: unknown) {
-  return error instanceof ApiError && (error.status === 403 || error.status === 404);
+  return (
+    error instanceof ApiError && (error.status === 403 || error.status === 404)
+  );
 }
-export function ResourceError({ error, retry }: { error: unknown; retry?: () => void }) {
+export function ResourceError({
+  error,
+  retry,
+}: {
+  error: unknown;
+  retry?: () => void;
+}) {
   const m = useT();
   const missing = isUnavailableResource(error);
-  return <ErrorState title={missing ? m.errors.byCode.RESOURCE_NOT_FOUND! : errorText(m, error)}
-    reference={missing ? undefined : traceIdOf(error)}
-    actions={!missing && retry ? <Button onPress={retry}>{m.common.retry}</Button> : undefined} />;
+  return (
+    <ErrorState
+      title={
+        missing ? m.errors.byCode.RESOURCE_NOT_FOUND! : errorText(m, error)
+      }
+      reference={missing ? undefined : traceIdOf(error)}
+      actions={
+        !missing && retry ? (
+          <Button onPress={retry}>{m.common.retry}</Button>
+        ) : undefined
+      }
+    />
+  );
 }

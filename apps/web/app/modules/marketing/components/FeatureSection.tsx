@@ -14,10 +14,26 @@ export interface FeatureSectionProps {
   stacked?: boolean;
 }
 
-export function FeatureSection({ id, title, body, visual, reverse, footer, stacked }: FeatureSectionProps) {
+export function FeatureSection({
+  id,
+  title,
+  body,
+  visual,
+  reverse,
+  footer,
+  stacked,
+}: FeatureSectionProps) {
   const [ref, inView] = useInView<HTMLElement>({ margin: "0px 0px -20% 0px" });
   return (
-    <section ref={ref} id={id} aria-labelledby={`${id}-title`} className={styles.section} data-reverse={reverse || undefined} data-stacked={stacked || undefined} data-inview={inView || undefined}>
+    <section
+      ref={ref}
+      id={id}
+      aria-labelledby={`${id}-title`}
+      className={styles.section}
+      data-reverse={reverse || undefined}
+      data-stacked={stacked || undefined}
+      data-inview={inView || undefined}
+    >
       <div className={styles.copy}>
         <h2 id={`${id}-title`} className={styles.title}>
           <span className={styles.mask}>

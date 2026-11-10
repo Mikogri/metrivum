@@ -1,12 +1,25 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { InfoTip } from "@metrivum/ui-web";
-import { ArrowDownRight, ArrowUpRight, ChartNoAxesColumn, Minus } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  ChartNoAxesColumn,
+  Minus,
+} from "lucide-react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import styles from "./charts.module.css";
 
 /* ------------------------------------------------------------------ helpers */
 
-const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduced = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** Counts from the last shown value to the new one, easing out, so numbers feel measured rather than swapped. */
 export function useCountUp(value: number, duration = 900) {
@@ -35,7 +48,13 @@ export function useCountUp(value: number, duration = 900) {
   return shown;
 }
 
-export function AnimatedNumber({ value, format = (n) => Math.round(n).toLocaleString() }: { value: number; format?: (n: number) => string }) {
+export function AnimatedNumber({
+  value,
+  format = (n) => Math.round(n).toLocaleString(),
+}: {
+  value: number;
+  format?: (n: number) => string;
+}) {
   const shown = useCountUp(value);
   return <span className={styles.number}>{format(shown)}</span>;
 }
@@ -48,7 +67,9 @@ function useWidth<T extends HTMLElement>() {
     const node = ref.current;
     if (!node) return;
     setWidth(node.clientWidth);
-    const observer = new ResizeObserver(([entry]) => entry && setWidth(entry.contentRect.width));
+    const observer = new ResizeObserver(
+      ([entry]) => entry && setWidth(entry.contentRect.width),
+    );
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
@@ -61,7 +82,11 @@ function curve(points: Array<[number, number]>) {
   if (points.length === 1) return `M${points[0]![0]},${points[0]![1]}`;
   const n = points.length;
   const slopes: number[] = [];
-  for (let i = 0; i < n - 1; i++) slopes.push((points[i + 1]![1] - points[i]![1]) / (points[i + 1]![0] - points[i]![0] || 1));
+  for (let i = 0; i < n - 1; i++)
+    slopes.push(
+      (points[i + 1]![1] - points[i]![1]) /
+        (points[i + 1]![0] - points[i]![0] || 1),
+    );
   const tangents = points.map((_, i) => {
     if (i === 0) return slopes[0]!;
     if (i === n - 1) return slopes[n - 2]!;
@@ -84,17 +109,36 @@ function niceMax(value: number) {
   if (value <= 0) return 4;
   const raw = value / 4;
   const power = Math.pow(10, Math.floor(Math.log10(raw)));
-  const step = Math.max(1, ([1, 2, 5, 10].find((s) => s * power >= raw) ?? 10) * power);
+  const step = Math.max(
+    1,
+    ([1, 2, 5, 10].find((s) => s * power >= raw) ?? 10) * power,
+  );
   return step * 4;
 }
 
-export const shortDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-export const compact = (n: number) => new Intl.NumberFormat("en-GB", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+export const shortDate = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+  });
+export const compact = (n: number) =>
+  new Intl.NumberFormat("en-GB", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(n);
 
 /* ------------------------------------------------------------------ empty */
 
 /** What a chart shows when the period has nothing to plot: a quiet dashed box that says so. */
-export function NoData({ height = 160, title = "No data for this period", hint = "Try a longer period or clear the filters." }: { height?: number; title?: string; hint?: string }) {
+export function NoData({
+  height = 160,
+  title = "No data for this period",
+  hint = "Try a longer period or clear the filters.",
+}: {
+  height?: number;
+  title?: string;
+  hint?: string;
+}) {
   return (
     <div className={styles.noData} style={{ minHeight: height }} role="note">
       <span className={styles.noDataIcon} aria-hidden="true">
@@ -110,15 +154,30 @@ const allZero = (values: number[]) => values.every((v) => !v);
 
 /* ------------------------------------------------------------------ KPI */
 
-export function Delta({ current, previous, invert = false }: { current: number; previous: number; invert?: boolean }) {
- const uiCopy = useUiCopy();
+export function Delta({
+  current,
+  previous,
+  invert = false,
+}: {
+  current: number;
+  previous: number;
+  invert?: boolean;
+}) {
+  const uiCopy = useUiCopy();
 
-  if (previous === 0) return <span className={styles.delta}>{uiCopy["ui"]["No baseline"]}</span>;
+  if (previous === 0)
+    return <span className={styles.delta}>{uiCopy["ui"]["No baseline"]}</span>;
   const change = Math.round(((current - previous) / previous) * 1000) / 10;
   const good = invert ? change < 0 : change > 0;
   const Icon = change > 0 ? ArrowUpRight : change < 0 ? ArrowDownRight : Minus;
   return (
-    <span className={styles.delta} data-tone={change === 0 ? undefined : good ? "up" : "down"} title={uiCopy["ui"]["Compared with the previous period of the same length"]}>
+    <span
+      className={styles.delta}
+      data-tone={change === 0 ? undefined : good ? "up" : "down"}
+      title={
+        uiCopy["ui"]["Compared with the previous period of the same length"]
+      }
+    >
       <Icon aria-hidden="true" />
       {change > 0 ? "+" : ""}
       {change}%
@@ -126,15 +185,33 @@ export function Delta({ current, previous, invert = false }: { current: number; 
   );
 }
 
-export function Sparkline({ values, tone = "accent" }: { values: number[]; tone?: Tone }) {
+export function Sparkline({
+  values,
+  tone = "accent",
+}: {
+  values: number[];
+  tone?: Tone;
+}) {
   if (values.length < 2 || allZero(values)) return null;
   const max = Math.max(1, ...values);
   const min = Math.min(...values);
   const span = max - min || 1;
-  const points = values.map((v, i) => [(i / (values.length - 1)) * 240, 34 - ((v - min) / span) * 28] as [number, number]);
+  const points = values.map(
+    (v, i) =>
+      [(i / (values.length - 1)) * 240, 34 - ((v - min) / span) * 28] as [
+        number,
+        number,
+      ],
+  );
   const line = curve(points);
   return (
-    <svg className={styles.spark} viewBox="0 0 240 36" preserveAspectRatio="none" aria-hidden="true" data-tone={tone}>
+    <svg
+      className={styles.spark}
+      viewBox="0 0 240 36"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      data-tone={tone}
+    >
       <path className={styles.sparkLine} d={line} pathLength={1} />
     </svg>
   );
@@ -164,25 +241,45 @@ export function Kpi({
   caption?: string;
   index?: number;
 }) {
- const uiCopy = useUiCopy();
+  const uiCopy = useUiCopy();
 
   return (
-    <article className={styles.kpi} style={{ "--i": index } as React.CSSProperties} data-tone={tone}>
+    <article
+      className={styles.kpi}
+      style={{ "--i": index } as React.CSSProperties}
+      data-tone={tone}
+    >
       <header>
-        <span className={styles.kpiLabel}>{label}{info ? <InfoTip label={label} className={styles.kpiInfo}>{info}</InfoTip> : null}</span>
-        {previous !== undefined ? <Delta current={value} previous={previous} invert={invert} /> : null}
+        <span className={styles.kpiLabel}>
+          {label}
+          {info ? (
+            <InfoTip label={label} className={styles.kpiInfo}>
+              {info}
+            </InfoTip>
+          ) : null}
+        </span>
+        {previous !== undefined ? (
+          <Delta current={value} previous={previous} invert={invert} />
+        ) : null}
       </header>
       <strong className={styles.kpiValue}>
         <AnimatedNumber value={value} format={format} />
       </strong>
-      {spark && !allZero(spark) ? <Sparkline values={spark} tone={tone} /> : <p className={styles.kpiCaption}>{caption ?? (spark ? uiCopy["ui"]["No activity in this period"] : "")}</p>}
+      {spark && !allZero(spark) ? (
+        <Sparkline values={spark} tone={tone} />
+      ) : (
+        <p className={styles.kpiCaption}>
+          {caption ?? (spark ? uiCopy["ui"]["No activity in this period"] : "")}
+        </p>
+      )}
     </article>
   );
 }
 
 /* ------------------------------------------------------------------ area / line chart */
 
-export type Tone = "accent" | "info" | "violet" | "warning" | "danger" | "neutral";
+export type Tone =
+  "accent" | "info" | "violet" | "warning" | "danger" | "neutral";
 
 export interface Series {
   label: string;
@@ -192,7 +289,17 @@ export interface Series {
   ghost?: boolean;
 }
 
-export function AreaChart({ labels, series, format = compact, height = 240 }: { labels: string[]; series: Series[]; format?: (n: number) => string; height?: number }) {
+export function AreaChart({
+  labels,
+  series,
+  format = compact,
+  height = 240,
+}: {
+  labels: string[];
+  series: Series[];
+  format?: (n: number) => string;
+  height?: number;
+}) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
   const pad = { top: 12, right: 8, bottom: 26, left: 44 };
@@ -211,7 +318,9 @@ export function AreaChart({ labels, series, format = compact, height = 240 }: { 
   const onMove = (event: React.PointerEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const px = event.clientX - rect.left - pad.left;
-    setHover(Math.max(0, Math.min(n - 1, Math.round((px / (w || 1)) * (n - 1)))));
+    setHover(
+      Math.max(0, Math.min(n - 1, Math.round((px / (w || 1)) * (n - 1)))),
+    );
   };
 
   return (
@@ -222,7 +331,12 @@ export function AreaChart({ labels, series, format = compact, height = 240 }: { 
           width={width}
           height={height}
           role="img"
-          aria-label={series.map((s) => `${s.label}: ${s.values.map((v, i) => `${labels[i]} ${format(v)}`).join(", ")}`).join(". ")}
+          aria-label={series
+            .map(
+              (s) =>
+                `${s.label}: ${s.values.map((v, i) => `${labels[i]} ${format(v)}`).join(", ")}`,
+            )
+            .join(". ")}
           onPointerMove={onMove}
           onPointerLeave={() => setHover(null)}
         >
@@ -237,19 +351,41 @@ export function AreaChart({ labels, series, format = compact, height = 240 }: { 
           {labels.map((label, i) =>
             // Every nth label, plus the last one when it isn't crowding the previous label.
             (i % everyNth === 0 && n - 1 - i >= everyNth / 2) || i === n - 1 ? (
-              <text key={`${label}-${i}`} className={styles.xLabel} x={x(i)} y={height - 6} textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"}>
+              <text
+                key={`${label}-${i}`}
+                className={styles.xLabel}
+                x={x(i)}
+                y={height - 6}
+                textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"}
+              >
                 {shortDate(label)}
               </text>
             ) : null,
           )}
           {/* Keyed by point count: a new bucket size redraws, a new filter morphs. */}
           {series.map((s, i) => {
-            const points = s.values.map((v, j) => [x(j), y(v)] as [number, number]);
+            const points = s.values.map(
+              (v, j) => [x(j), y(v)] as [number, number],
+            );
             const line = curve(points);
             return (
-              <g key={`${s.label}-${n}`} className={styles.tone} data-tone={s.tone} data-ghost={s.ghost || undefined}>
-                {i === primary ? <path className={styles.fill} d={`${line}L${x(n - 1)},${y(0)}L${x(0)},${y(0)}Z`} /> : null}
-                <path className={styles.line} d={line} pathLength={s.ghost ? undefined : 1} />
+              <g
+                key={`${s.label}-${n}`}
+                className={styles.tone}
+                data-tone={s.tone}
+                data-ghost={s.ghost || undefined}
+              >
+                {i === primary ? (
+                  <path
+                    className={styles.fill}
+                    d={`${line}L${x(n - 1)},${y(0)}L${x(0)},${y(0)}Z`}
+                  />
+                ) : null}
+                <path
+                  className={styles.line}
+                  d={line}
+                  pathLength={s.ghost ? undefined : 1}
+                />
               </g>
             );
           })}
@@ -257,18 +393,33 @@ export function AreaChart({ labels, series, format = compact, height = 240 }: { 
             <g className={styles.cursor}>
               <line x1={x(hover)} x2={x(hover)} y1={pad.top} y2={pad.top + h} />
               {series.map((s) => (
-                <circle key={s.label} className={styles.tone} data-tone={s.tone} data-ghost={s.ghost || undefined} cx={x(hover)} cy={y(s.values[hover] ?? 0)} r={4} />
+                <circle
+                  key={s.label}
+                  className={styles.tone}
+                  data-tone={s.tone}
+                  data-ghost={s.ghost || undefined}
+                  cx={x(hover)}
+                  cy={y(s.values[hover] ?? 0)}
+                  r={4}
+                />
               ))}
             </g>
           ) : null}
         </svg>
       ) : null}
       {hover !== null && labels[hover] ? (
-        <div className={styles.tooltip} style={{ left: Math.min(Math.max(x(hover), 90), width - 90) }}>
+        <div
+          className={styles.tooltip}
+          style={{ left: Math.min(Math.max(x(hover), 90), width - 90) }}
+        >
           <strong>{shortDate(labels[hover]!)}</strong>
           {series.map((s) => (
             <span key={s.label} className={styles.tipRow}>
-              <i className={styles.tone} data-tone={s.tone} data-ghost={s.ghost || undefined} />
+              <i
+                className={styles.tone}
+                data-tone={s.tone}
+                data-ghost={s.ghost || undefined}
+              />
               {s.label}
               <b>{format(s.values[hover] ?? 0)}</b>
             </span>
@@ -282,25 +433,63 @@ export function AreaChart({ labels, series, format = compact, height = 240 }: { 
 /* ------------------------------------------------------------------ bars */
 
 /** Stacked columns per bucket; each column grows from the baseline in turn. */
-export function StackedBars({ labels, series, height = 200 }: { labels: string[]; series: Omit<Series, "ghost">[]; height?: number }) {
-  const totals = labels.map((_, i) => series.reduce((sum, s) => sum + (s.values[i] ?? 0), 0));
+export function StackedBars({
+  labels,
+  series,
+  height = 200,
+}: {
+  labels: string[];
+  series: Omit<Series, "ghost">[];
+  height?: number;
+}) {
+  const totals = labels.map((_, i) =>
+    series.reduce((sum, s) => sum + (s.values[i] ?? 0), 0),
+  );
   const max = niceMax(Math.max(1, ...totals));
   const [hover, setHover] = useState<number | null>(null);
   if (allZero(totals)) return <NoData height={height} />;
   return (
     <div className={styles.barsWrap}>
-      <div className={styles.bars} style={{ height }} role="img" aria-label={labels.map((l, i) => `${l}: ${series.map((s) => `${s.label} ${s.values[i]}`).join(", ")}`).join("; ")} onPointerLeave={() => setHover(null)}>
+      <div
+        className={styles.bars}
+        style={{ height }}
+        role="img"
+        aria-label={labels
+          .map(
+            (l, i) =>
+              `${l}: ${series.map((s) => `${s.label} ${s.values[i]}`).join(", ")}`,
+          )
+          .join("; ")}
+        onPointerLeave={() => setHover(null)}
+      >
         {labels.map((label, i) => (
-          <div key={`${label}-${labels.length}`} className={styles.column} style={{ "--i": i, "--n": labels.length } as React.CSSProperties} onPointerEnter={() => setHover(i)} data-hover={hover === i || undefined}>
-            <div className={styles.stack} style={{ transform: `scaleY(${totals[i]! / max})` }}>
+          <div
+            key={`${label}-${labels.length}`}
+            className={styles.column}
+            style={{ "--i": i, "--n": labels.length } as React.CSSProperties}
+            onPointerEnter={() => setHover(i)}
+            data-hover={hover === i || undefined}
+          >
+            <div
+              className={styles.stack}
+              style={{ transform: `scaleY(${totals[i]! / max})` }}
+            >
               {series.map((s) => (
-                <span key={s.label} className={styles.tone} data-tone={s.tone} style={{ flexGrow: s.values[i] ?? 0 }} />
+                <span
+                  key={s.label}
+                  className={styles.tone}
+                  data-tone={s.tone}
+                  style={{ flexGrow: s.values[i] ?? 0 }}
+                />
               ))}
             </div>
           </div>
         ))}
         {hover !== null ? (
-          <div className={styles.tooltip} style={{ left: `${((hover + 0.5) / labels.length) * 100}%` }}>
+          <div
+            className={styles.tooltip}
+            style={{ left: `${((hover + 0.5) / labels.length) * 100}%` }}
+          >
             <strong>{shortDate(labels[hover]!)}</strong>
             {series.map((s) => (
               <span key={s.label} className={styles.tipRow}>
@@ -321,17 +510,49 @@ export function StackedBars({ labels, series, height = 200 }: { labels: string[]
 }
 
 /** Gains above the line, losses below: how the roster moved in each bucket. */
-export function FlowBars({ labels, gains, losses }: { labels: string[]; gains: number[]; losses: number[] }) {
- const uiCopy = useUiCopy();
+export function FlowBars({
+  labels,
+  gains,
+  losses,
+}: {
+  labels: string[];
+  gains: number[];
+  losses: number[];
+}) {
+  const uiCopy = useUiCopy();
 
   const max = Math.max(1, ...gains, ...losses);
-  if (allZero([...gains, ...losses])) return <NoData height={140} title={uiCopy["ui"]["No one joined or left"]} hint={uiCopy["ui"]["Roster changes in this period appear here."]} />;
+  if (allZero([...gains, ...losses]))
+    return (
+      <NoData
+        height={140}
+        title={uiCopy["ui"]["No one joined or left"]}
+        hint={uiCopy["ui"]["Roster changes in this period appear here."]}
+      />
+    );
   return (
-    <div className={styles.flow} role="img" aria-label={labels.map((l, i) => `${l}: +${gains[i]} −${losses[i]}`).join("; ")}>
+    <div
+      className={styles.flow}
+      role="img"
+      aria-label={labels
+        .map((l, i) => `${l}: +${gains[i]} −${losses[i]}`)
+        .join("; ")}
+    >
       {labels.map((label, i) => (
-        <div key={`${label}-${labels.length}`} className={styles.flowColumn} style={{ "--i": i } as React.CSSProperties} title={`${shortDate(label)}: +${gains[i]} / −${losses[i]}`}>
-          <span className={styles.gain} style={{ transform: `scaleY(${(gains[i] ?? 0) / max})` }} />
-          <span className={styles.loss} style={{ transform: `scaleY(${(losses[i] ?? 0) / max})` }} />
+        <div
+          key={`${label}-${labels.length}`}
+          className={styles.flowColumn}
+          style={{ "--i": i } as React.CSSProperties}
+          title={`${shortDate(label)}: +${gains[i]} / −${losses[i]}`}
+        >
+          <span
+            className={styles.gain}
+            style={{ transform: `scaleY(${(gains[i] ?? 0) / max})` }}
+          />
+          <span
+            className={styles.loss}
+            style={{ transform: `scaleY(${(losses[i] ?? 0) / max})` }}
+          />
         </div>
       ))}
     </div>
@@ -340,11 +561,25 @@ export function FlowBars({ labels, gains, losses }: { labels: string[]; gains: n
 
 /* ------------------------------------------------------------------ donut, ring */
 
-export function Donut({ items, format, center }: { items: Array<{ label: string; value: number; tone: Tone }>; format: (n: number) => string; center: string }) {
- const uiCopy = useUiCopy();
+export function Donut({
+  items,
+  format,
+  center,
+}: {
+  items: Array<{ label: string; value: number; tone: Tone }>;
+  format: (n: number) => string;
+  center: string;
+}) {
+  const uiCopy = useUiCopy();
 
   const total = items.reduce((s, x) => s + x.value, 0);
-  if (!total) return <NoData title={uiCopy["ui"]["Nothing to split yet"]} hint={uiCopy["ui"]["Revenue by offer appears after the first payment."]} />;
+  if (!total)
+    return (
+      <NoData
+        title={uiCopy["ui"]["Nothing to split yet"]}
+        hint={uiCopy["ui"]["Revenue by offer appears after the first payment."]}
+      />
+    );
   const r = 52;
   const c = 2 * Math.PI * r;
   const gap = items.length > 1 ? 3 : 0;
@@ -352,7 +587,13 @@ export function Donut({ items, format, center }: { items: Array<{ label: string;
   return (
     <div className={styles.donutWrap}>
       <div className={styles.donut}>
-        <svg viewBox="0 0 128 128" role="img" aria-label={items.map((x) => `${x.label} ${format(x.value)}`).join(", ")}>
+        <svg
+          viewBox="0 0 128 128"
+          role="img"
+          aria-label={items
+            .map((x) => `${x.label} ${format(x.value)}`)
+            .join(", ")}
+        >
           <circle className={styles.track} cx="64" cy="64" r={r} />
           {items.map((item, i) => {
             const length = total ? (item.value / total) * c : 0;
@@ -364,7 +605,13 @@ export function Donut({ items, format, center }: { items: Array<{ label: string;
                 cx="64"
                 cy="64"
                 r={r}
-                style={{ strokeDasharray: `${Math.max(0, length - gap)} ${c}`, strokeDashoffset: -offset, "--i": i } as React.CSSProperties}
+                style={
+                  {
+                    strokeDasharray: `${Math.max(0, length - gap)} ${c}`,
+                    strokeDashoffset: -offset,
+                    "--i": i,
+                  } as React.CSSProperties
+                }
               />
             );
             offset += length;
@@ -393,8 +640,18 @@ export function Donut({ items, format, center }: { items: Array<{ label: string;
 }
 
 /** A single share out of 100, as an arc that fills to its value. */
-export function Ring({ value, label, caption, tone = "accent" }: { value: number | null; label: string; caption?: string; tone?: Tone }) {
- const uiCopy = useUiCopy();
+export function Ring({
+  value,
+  label,
+  caption,
+  tone = "accent",
+}: {
+  value: number | null;
+  label: string;
+  caption?: string;
+  tone?: Tone;
+}) {
+  const uiCopy = useUiCopy();
 
   const r = 40;
   const c = 2 * Math.PI * r;
@@ -404,9 +661,22 @@ export function Ring({ value, label, caption, tone = "accent" }: { value: number
       <div className={styles.ringArt}>
         <svg viewBox="0 0 96 96" aria-hidden="true">
           <circle className={styles.track} cx="48" cy="48" r={r} />
-          <circle className={`${styles.ringValue} ${styles.tone}`} data-tone={tone} cx="48" cy="48" r={r} style={{ strokeDasharray: `${share * c} ${c}` }} />
+          <circle
+            className={`${styles.ringValue} ${styles.tone}`}
+            data-tone={tone}
+            cx="48"
+            cy="48"
+            r={r}
+            style={{ strokeDasharray: `${share * c} ${c}` }}
+          />
         </svg>
-        <strong data-empty={value === null || undefined}>{value === null ? uiCopy["ui"]["No data"] : <AnimatedNumber value={value} format={(n) => `${Math.round(n)}%`} />}</strong>
+        <strong data-empty={value === null || undefined}>
+          {value === null ? (
+            uiCopy["ui"]["No data"]
+          ) : (
+            <AnimatedNumber value={value} format={(n) => `${Math.round(n)}%`} />
+          )}
+        </strong>
       </div>
       <figcaption>
         <span>{label}</span>
@@ -418,8 +688,12 @@ export function Ring({ value, label, caption, tone = "accent" }: { value: number
 
 /* ------------------------------------------------------------------ funnel, ranking, split */
 
-export function Funnel({ steps }: { steps: Array<{ label: string; value: number; tone: Tone }> }) {
- const uiCopy = useUiCopy();
+export function Funnel({
+  steps,
+}: {
+  steps: Array<{ label: string; value: number; tone: Tone }>;
+}) {
+  const uiCopy = useUiCopy();
 
   const max = Math.max(1, steps[0]?.value ?? 1);
   if (!steps[0]?.value) return <NoData height={120} />;
@@ -434,10 +708,19 @@ export function Funnel({ steps }: { steps: Array<{ label: string; value: number;
               <strong>
                 <AnimatedNumber value={step.value} />
               </strong>
-              {prev ? <small>{Math.round((step.value / prev) * 100)}{uiCopy["ui"]["% of previous"]}</small> : null}
+              {prev ? (
+                <small>
+                  {Math.round((step.value / prev) * 100)}
+                  {uiCopy["ui"]["% of previous"]}
+                </small>
+              ) : null}
             </div>
             <div className={styles.funnelTrack}>
-              <span className={styles.tone} data-tone={step.tone} style={{ transform: `scaleX(${step.value / max})` }} />
+              <span
+                className={styles.tone}
+                data-tone={step.tone}
+                style={{ transform: `scaleX(${step.value / max})` }}
+              />
             </div>
           </li>
         );
@@ -446,9 +729,18 @@ export function Funnel({ steps }: { steps: Array<{ label: string; value: number;
   );
 }
 
-export function RankList({ items, format = (n) => String(n), tone = "accent" }: { items: Array<{ label: ReactNode; key: string; value: number; note?: string }>; format?: (n: number) => string; tone?: Tone }) {
+export function RankList({
+  items,
+  format = (n) => String(n),
+  tone = "accent",
+}: {
+  items: Array<{ label: ReactNode; key: string; value: number; note?: string }>;
+  format?: (n: number) => string;
+  tone?: Tone;
+}) {
   const max = Math.max(1, ...items.map((x) => x.value));
-  if (!items.length || allZero(items.map((x) => x.value))) return <NoData height={120} />;
+  if (!items.length || allZero(items.map((x) => x.value)))
+    return <NoData height={120} />;
   return (
     <ul className={styles.rank}>
       {items.map((item, i) => (
@@ -458,7 +750,11 @@ export function RankList({ items, format = (n) => String(n), tone = "accent" }: 
             <b>{format(item.value)}</b>
           </div>
           <div className={styles.rankTrack}>
-            <span className={styles.tone} data-tone={tone} style={{ transform: `scaleX(${item.value / max})` }} />
+            <span
+              className={styles.tone}
+              data-tone={tone}
+              style={{ transform: `scaleX(${item.value / max})` }}
+            />
           </div>
           {item.note ? <small>{item.note}</small> : null}
         </li>
@@ -468,14 +764,36 @@ export function RankList({ items, format = (n) => String(n), tone = "accent" }: 
 }
 
 /** Two shares of one total: a bar, then each part with its value and percentage (stacked: one part per line). */
-export function Split({ a, b, format, stacked }: { a: { label: string; value: number; tone: Tone }; b: { label: string; value: number; tone: Tone }; format?: (n: number) => string; stacked?: boolean }) {
+export function Split({
+  a,
+  b,
+  format,
+  stacked,
+}: {
+  a: { label: string; value: number; tone: Tone };
+  b: { label: string; value: number; tone: Tone };
+  format?: (n: number) => string;
+  stacked?: boolean;
+}) {
   if (!a.value && !b.value) return <NoData height={96} />;
   const total = a.value + b.value;
   return (
     <div className={styles.split}>
-      <div className={styles.splitBar} role="img" aria-label={`${a.label} ${a.value}, ${b.label} ${b.value}`}>
-        <span className={styles.tone} data-tone={a.tone} style={{ flexGrow: a.value / total }} />
-        <span className={styles.tone} data-tone={b.tone} style={{ flexGrow: b.value / total }} />
+      <div
+        className={styles.splitBar}
+        role="img"
+        aria-label={`${a.label} ${a.value}, ${b.label} ${b.value}`}
+      >
+        <span
+          className={styles.tone}
+          data-tone={a.tone}
+          style={{ flexGrow: a.value / total }}
+        />
+        <span
+          className={styles.tone}
+          data-tone={b.tone}
+          style={{ flexGrow: b.value / total }}
+        />
       </div>
       <div className={styles.splitLegend} data-stacked={stacked || undefined}>
         {[a, b].map((x) => (

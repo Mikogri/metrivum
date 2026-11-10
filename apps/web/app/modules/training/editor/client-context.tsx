@@ -11,5 +11,9 @@ export interface ClientFormulaContextValue {
   blockSources?: string[];
 }
 
-export const ClientFormulaContext = createContext<ClientFormulaContextValue>({ variables: {}, sourceVersions: {}, isStale: false });
+export const ClientFormulaContext = createContext<ClientFormulaContextValue>({
+  variables: {},
+  sourceVersions: {},
+  isStale: false,
+});
 export const useClientFormulaContext = () => useContext(ClientFormulaContext);

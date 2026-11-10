@@ -2,7 +2,11 @@
   position: relative;
   isolation: isolate;
   margin-top: calc(var(--tf-header-height) * -1);
-  padding: calc(var(--tf-header-height) + clamp(var(--tf-space-12), 8vw, var(--tf-space-24))) 0 clamp(var(--tf-space-10), 6vw, var(--tf-space-16));
+  padding: calc(
+      var(--tf-header-height) +
+        clamp(var(--tf-space-12), 8vw, var(--tf-space-24))
+    )
+    0 clamp(var(--tf-space-10), 6vw, var(--tf-space-16));
   overflow: hidden;
   border-bottom: 1px solid var(--tf-color-border-subtle);
 }

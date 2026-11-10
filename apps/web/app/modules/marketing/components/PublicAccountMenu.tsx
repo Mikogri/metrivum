@@ -1,8 +1,25 @@
 import { ArrowUpRight, LogOut } from "lucide-react";
 import { useState } from "react";
-import { Button as AriaButton, Header, MenuSection } from "react-aria-components";
-import { Avatar, Badge, Dialog, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@metrivum/ui-web";
-import { forgetSlot, storedAccountsHint, type SlotId, type StoredAccountHint } from "~/shared/session/storage-keys";
+import {
+  Button as AriaButton,
+  Header,
+  MenuSection,
+} from "react-aria-components";
+import {
+  Avatar,
+  Badge,
+  Dialog,
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@metrivum/ui-web";
+import {
+  forgetSlot,
+  storedAccountsHint,
+  type SlotId,
+  type StoredAccountHint,
+} from "~/shared/session/storage-keys";
 import { usePublicMessages } from "../messages";
 import styles from "./PublicAccountMenu.module.css";
 
@@ -25,7 +42,9 @@ async function signOutSlot(slot: SlotId) {
  */
 export function PublicAccountMenu({ onChange }: { onChange: () => void }) {
   const m = usePublicMessages();
-  const [accounts, setAccounts] = useState<StoredAccountHint[]>(() => storedAccountsHint());
+  const [accounts, setAccounts] = useState<StoredAccountHint[]>(() =>
+    storedAccountsHint(),
+  );
   const [choosing, setChoosing] = useState(false);
   const [pending, setPending] = useState<SlotId | null>(null);
   const active = accounts.find((a) => a.active) ?? accounts[0];
@@ -44,7 +63,10 @@ export function PublicAccountMenu({ onChange }: { onChange: () => void }) {
   return (
     <>
       <DropdownMenuTrigger>
-        <AriaButton className={styles.trigger} aria-label={m.nav.accountMenu(active.email)}>
+        <AriaButton
+          className={styles.trigger}
+          aria-label={m.nav.accountMenu(active.email)}
+        >
           <Avatar name={active.email || "?"} size="md" decorative />
         </AriaButton>
         <DropdownMenu
@@ -72,14 +94,29 @@ export function PublicAccountMenu({ onChange }: { onChange: () => void }) {
           </DropdownMenuItem>
         </DropdownMenu>
       </DropdownMenuTrigger>
-      <Dialog isOpen={choosing} onOpenChange={setChoosing} size="sm" title={m.nav.signOutTitle} description={m.nav.signOutChoose} closeLabel={m.nav.cancel}>
+      <Dialog
+        isOpen={choosing}
+        onOpenChange={setChoosing}
+        size="sm"
+        title={m.nav.signOutTitle}
+        description={m.nav.signOutChoose}
+        closeLabel={m.nav.cancel}
+      >
         <ul className={styles.list}>
           {accounts.map((account) => (
             <li key={account.slot}>
-              <button type="button" className={styles.row} disabled={pending !== null} onClick={() => void signOut(account.slot)} aria-label={m.nav.signOutOf(account.email)}>
+              <button
+                type="button"
+                className={styles.row}
+                disabled={pending !== null}
+                onClick={() => void signOut(account.slot)}
+                aria-label={m.nav.signOutOf(account.email)}
+              >
                 <Avatar name={account.email || "?"} size="md" decorative />
                 <span className={styles.email}>{account.email}</span>
-                {account.active ? <Badge tone="neutral">{m.nav.inUse}</Badge> : null}
+                {account.active ? (
+                  <Badge tone="neutral">{m.nav.inUse}</Badge>
+                ) : null}
                 <LogOut aria-hidden="true" className={styles.icon} />
               </button>
             </li>

@@ -10,6 +10,7 @@ export function InlinePrescriptionCell({
   field,
   prescription,
   count,
+  countMax,
   onChange,
   maximum = false,
   onMaximumChange,
@@ -18,6 +19,8 @@ export function InlinePrescriptionCell({
   field: FormulaField;
   prescription: Prescription;
   count?: number;
+  /** Sets: all sets, with the optional ones past the minimum of a range. */
+  countMax?: number;
   onChange: (
     formula: NonNullable<Prescription["fieldFormulas"]>[string] | null,
     value: Quantity | null,
@@ -67,9 +70,17 @@ export function InlinePrescriptionCell({
       maxEffort={maximum}
       onMaxEffort={field === "Reps" ? onMaximumChange : undefined}
       valueKind="scalar"
-      valueUnit={literal?.unit ?? prescription.fieldFormulas?.[field]?.outputUnit ?? "Scalar"}
-      constraints={{ min: 1, max: field === "Sets" ? 50 : MAX_REPS, integer: true }}
-      allowRange={field === "Reps"}
+      valueUnit={
+        literal?.unit ??
+        prescription.fieldFormulas?.[field]?.outputUnit ??
+        "Scalar"
+      }
+      constraints={{
+        min: 1,
+        max: field === "Sets" ? 50 : MAX_REPS,
+        integer: true,
+      }}
+      allowRange={field === "Reps" || field === "Sets"}
       prescription={{
         loadFormula: prescription.fieldFormulas?.[field],
         load: literal
@@ -78,17 +89,29 @@ export function InlinePrescriptionCell({
               maximum:
                 field === "Reps" && prescription.reps
                   ? { ...literal, value: prescription.reps.maximum }
-                  : literal,
+                  : field === "Sets" && countMax != null
+                    ? { ...literal, value: countMax }
+                    : literal,
             }
           : null,
       }}
       fallbackValue={
         field === "Reps" && !prescription.fieldFormulas?.Reps
           ? formatReps(prescription.reps)
-          : undefined
+          : field === "Sets" &&
+              count != null &&
+              countMax != null &&
+              countMax > count &&
+              !prescription.fieldFormulas?.Sets
+            ? formatReps({ minimum: count, maximum: countMax })
+            : undefined
       }
       onChange={(value) =>
-        onChange(value.loadFormula ?? null, value.load?.minimum ?? null, value.load?.maximum.value)
+        onChange(
+          value.loadFormula ?? null,
+          value.load?.minimum ?? null,
+          value.load?.maximum.value,
+        )
       }
     />
   );

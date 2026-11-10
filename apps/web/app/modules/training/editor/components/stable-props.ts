@@ -13,11 +13,17 @@ export function useStableHandlers() {
   const proxies = useRef(new Map<string, { keys: string; fns: Handlers }>());
   return <T extends Handlers>(id: string, handlers: T): T => {
     latest.current.set(id, handlers);
-    const keys = Object.keys(handlers).filter((key) => typeof handlers[key] === "function").sort().join("|");
+    const keys = Object.keys(handlers)
+      .filter((key) => typeof handlers[key] === "function")
+      .sort()
+      .join("|");
     const cached = proxies.current.get(id);
-    if (cached && cached.keys === keys) return { ...handlers, ...cached.fns } as T;
+    if (cached && cached.keys === keys)
+      return { ...handlers, ...cached.fns } as T;
     const fns: Handlers = {};
-    for (const key of keys ? keys.split("|") : []) fns[key] = (...args: unknown[]) => latest.current.get(id)?.[key]?.(...args);
+    for (const key of keys ? keys.split("|") : [])
+      fns[key] = (...args: unknown[]) =>
+        latest.current.get(id)?.[key]?.(...args);
     proxies.current.set(id, { keys, fns });
     return { ...handlers, ...fns } as T;
   };
@@ -27,7 +33,10 @@ export function useStableHandlers() {
  * Props equality for memoised cards: functions only need to stay present or absent (they are stable proxies), style
  * objects compare by their values, everything else by identity.
  */
-export function sameCardProps(previous: Record<string, unknown>, next: Record<string, unknown>): boolean {
+export function sameCardProps(
+  previous: Record<string, unknown>,
+  next: Record<string, unknown>,
+): boolean {
   const keys = new Set([...Object.keys(previous), ...Object.keys(next)]);
   for (const key of keys) {
     const a = previous[key];
@@ -36,14 +45,30 @@ export function sameCardProps(previous: Record<string, unknown>, next: Record<st
       if (typeof a !== typeof b) return false;
       continue;
     }
-    if (key === "style" && a && b && typeof a === "object" && typeof b === "object") {
+    if (
+      key === "style" &&
+      a &&
+      b &&
+      typeof a === "object" &&
+      typeof b === "object"
+    ) {
       const styleA = a as Record<string, unknown>;
       const styleB = b as Record<string, unknown>;
-      const styleKeys = new Set([...Object.keys(styleA), ...Object.keys(styleB)]);
-      for (const styleKey of styleKeys) if (styleA[styleKey] !== styleB[styleKey]) return false;
+      const styleKeys = new Set([
+        ...Object.keys(styleA),
+        ...Object.keys(styleB),
+      ]);
+      for (const styleKey of styleKeys)
+        if (styleA[styleKey] !== styleB[styleKey]) return false;
       continue;
     }
-    if (key === "size" && a && b && typeof a === "object" && typeof b === "object") {
+    if (
+      key === "size" &&
+      a &&
+      b &&
+      typeof a === "object" &&
+      typeof b === "object"
+    ) {
       const sizeA = a as { cols: number; rows: number };
       const sizeB = b as { cols: number; rows: number };
       if (sizeA.cols !== sizeB.cols || sizeA.rows !== sizeB.rows) return false;

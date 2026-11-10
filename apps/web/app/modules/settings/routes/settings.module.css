@@ -318,8 +318,16 @@
 }
 
 .accountCard[data-active] {
-  border-color: color-mix(in srgb, var(--tf-color-accent) 45%, var(--tf-color-border));
-  background: color-mix(in srgb, var(--tf-color-accent) 5%, var(--tf-color-surface-raised));
+  border-color: color-mix(
+    in srgb,
+    var(--tf-color-accent) 45%,
+    var(--tf-color-border)
+  );
+  background: color-mix(
+    in srgb,
+    var(--tf-color-accent) 5%,
+    var(--tf-color-surface-raised)
+  );
 }
 
 .freeSlot {
@@ -714,7 +722,11 @@
 
 /* Development: delete the signed-in account. */
 .danger {
-  border-color: color-mix(in srgb, var(--tf-color-danger) 35%, var(--tf-color-border));
+  border-color: color-mix(
+    in srgb,
+    var(--tf-color-danger) 35%,
+    var(--tf-color-border)
+  );
 }
 
 .dangerHead {

@@ -14,7 +14,11 @@ export function useErrorToast() {
       toast({
         tone: "danger",
         title: title ?? errorText(m, error),
-        description: title ? errorText(m, error) : trace ? m.common.reference(trace) : undefined,
+        description: title
+          ? errorText(m, error)
+          : trace
+            ? m.common.reference(trace)
+            : undefined,
       });
     },
     [m],

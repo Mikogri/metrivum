@@ -18263,6 +18263,7 @@ export interface components {
             segments?: null | components["schemas"]["SetSegment"][];
             /** Format: uuid */
             sourceSetId?: null | string;
+            optional?: null | boolean;
         };
         TrainingWeekProgress: {
             /** Format: date */

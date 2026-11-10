@@ -9,7 +9,11 @@ public sealed class AnalyticsRulesTests
     [Fact]
     public void Windows_time_zone_is_normalized_before_postgres_aggregation()
     {
-        var window = AnalysisDates.Create(new(2026, 10, 8), new(2026, 10, 8), "Pacific Standard Time");
+        var window = AnalysisDates.Create(
+            new(2026, 10, 8),
+            new(2026, 10, 8),
+            "Pacific Standard Time"
+        );
         Assert.Equal("America/Los_Angeles", window.TimeZone);
         Assert.Equal(TimeSpan.FromHours(24), window.End - window.Start);
     }

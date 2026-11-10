@@ -5,8 +5,12 @@ import { publicEn } from "./messages/public.en";
 import { publicPl } from "./messages/public.pl";
 
 function keys(value: unknown, prefix = ""): string[] {
-  if (Array.isArray(value)) return value.flatMap((item, i) => keys(item, `${prefix}[${i}]`));
-  if (value && typeof value === "object") return Object.entries(value).flatMap(([k, v]) => keys(v, prefix ? `${prefix}.${k}` : k));
+  if (Array.isArray(value))
+    return value.flatMap((item, i) => keys(item, `${prefix}[${i}]`));
+  if (value && typeof value === "object")
+    return Object.entries(value).flatMap(([k, v]) =>
+      keys(v, prefix ? `${prefix}.${k}` : k),
+    );
   return [prefix];
 }
 
@@ -23,6 +27,8 @@ describe("translations", () => {
 it("translated interface messages preserve every numbered interpolation parameter", () => {
   const parameters = (text: string) => (text.match(/\{\d+\}/g) ?? []).sort();
   for (const [key, english] of Object.entries(appEn.ui)) {
-    expect(parameters(appPl.ui[key as keyof typeof appPl.ui]), key).toEqual(parameters(english));
+    expect(parameters(appPl.ui[key as keyof typeof appPl.ui]), key).toEqual(
+      parameters(english),
+    );
   }
 });

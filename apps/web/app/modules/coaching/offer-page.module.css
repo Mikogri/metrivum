@@ -137,7 +137,8 @@
 }
 
 .steps li[data-current] .stepDot {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-color-accent) 25%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--tf-color-accent) 25%, transparent);
 }
 
 .stepDot svg {
@@ -327,7 +328,10 @@
 
 .publishState[data-state="active"] {
   border-color: color-mix(in srgb, var(--tf-color-success) 45%, transparent);
-  background: var(--tf-color-success-soft, color-mix(in srgb, var(--tf-color-success) 12%, transparent));
+  background: var(
+    --tf-color-success-soft,
+    color-mix(in srgb, var(--tf-color-success) 12%, transparent)
+  );
   color: var(--tf-color-success);
 }
 

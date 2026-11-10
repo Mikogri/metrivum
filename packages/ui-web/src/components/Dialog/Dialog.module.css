@@ -40,11 +40,18 @@
   animation: modal-out 200ms cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-
-.sm { max-width: 26rem; }
-.md { max-width: 34rem; }
-.lg { max-width: 46rem; }
-.xl { max-width: 64rem; }
+.sm {
+  max-width: 26rem;
+}
+.md {
+  max-width: 34rem;
+}
+.lg {
+  max-width: 46rem;
+}
+.xl {
+  max-width: 64rem;
+}
 
 .dialog {
   display: flex;
@@ -59,7 +66,8 @@
   align-items: center;
   gap: var(--tf-space-3);
   min-height: 3.5rem;
-  padding: var(--tf-space-3) var(--tf-space-3) var(--tf-space-3) var(--tf-space-5);
+  padding: var(--tf-space-3) var(--tf-space-3) var(--tf-space-3)
+    var(--tf-space-5);
   border-bottom: 1px solid var(--tf-color-border-subtle);
 }
 
@@ -113,7 +121,8 @@
 }
 
 .inlineFooter {
-  margin: var(--tf-space-2) calc(var(--tf-space-5) * -1) calc(var(--tf-space-5) * -1);
+  margin: var(--tf-space-2) calc(var(--tf-space-5) * -1)
+    calc(var(--tf-space-5) * -1);
 }
 
 .footer > * {
@@ -200,7 +209,6 @@
   .modal[data-exiting] {
     animation: none;
   }
-
 }
 
 @keyframes sheet-out {
@@ -325,7 +333,10 @@
     width: 100%;
     max-width: 100%;
     height: auto;
-    max-height: calc(min(100dvh, var(--visual-viewport-height, 100dvh)) - max(1rem, env(safe-area-inset-top)));
+    max-height: calc(
+      min(100dvh, var(--visual-viewport-height, 100dvh)) -
+        max(1rem, env(safe-area-inset-top))
+    );
     border-width: 1px 0 0;
     border-radius: var(--tf-radius-xl) var(--tf-radius-xl) 0 0;
     transform-origin: bottom center;
@@ -345,15 +356,32 @@
   .header,
   .modal[data-placement="right"] .header {
     flex-shrink: 0;
-    padding: var(--tf-space-3) max(var(--tf-space-4), env(safe-area-inset-right)) var(--tf-space-3) max(var(--tf-space-4), env(safe-area-inset-left));
+    padding: var(--tf-space-3)
+      max(var(--tf-space-4), env(safe-area-inset-right)) var(--tf-space-3)
+      max(var(--tf-space-4), env(safe-area-inset-left));
   }
 
-  .header .close { min-width: 44px; min-height: 44px; }
-  .title, .description { overflow-wrap: anywhere; }
-  .body { overscroll-behavior: contain; }
-  .body:last-child { padding-bottom: max(var(--tf-space-5), env(safe-area-inset-bottom)); }
-  .footer { flex-shrink: 0; padding-bottom: max(var(--tf-space-4), env(safe-area-inset-bottom)); }
-  .footer > * { min-height: 44px; }
+  .header .close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .title,
+  .description {
+    overflow-wrap: anywhere;
+  }
+  .body {
+    overscroll-behavior: contain;
+  }
+  .body:last-child {
+    padding-bottom: max(var(--tf-space-5), env(safe-area-inset-bottom));
+  }
+  .footer {
+    flex-shrink: 0;
+    padding-bottom: max(var(--tf-space-4), env(safe-area-inset-bottom));
+  }
+  .footer > * {
+    min-height: 44px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

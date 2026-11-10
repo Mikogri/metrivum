@@ -1,8 +1,13 @@
-import './phases.css';
+import "./phases.css";
 
 /** Phase kinds as the charts colour them; "none" is time outside any reported phase. */
 export type PhaseKind = "eccentric" | "pause" | "concentric" | "none";
-export const PHASE_KINDS: PhaseKind[] = ["eccentric", "pause", "concentric", "none"];
+export const PHASE_KINDS: PhaseKind[] = [
+  "eccentric",
+  "pause",
+  "concentric",
+  "none",
+];
 
 /** Engines name phases differently ("Eccentric", "lowering"…); this maps them to one set. */
 export function normalizePhase(kind: string): PhaseKind {

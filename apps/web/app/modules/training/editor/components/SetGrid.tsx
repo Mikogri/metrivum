@@ -1,9 +1,27 @@
 import { GripVertical, Lock, Plus } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from "react";
-import type { ExerciseListItemDto, Prescription, SetKind, TrainingSet, Workout } from "@metrivum/api-client-web";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ClipboardEvent,
+  type DragEvent,
+  type KeyboardEvent,
+} from "react";
+import type {
+  ExerciseListItemDto,
+  Prescription,
+  SetKind,
+  TrainingSet,
+  Workout,
+} from "@metrivum/api-client-web";
 import { SET_KINDS } from "@metrivum/api-client-web";
 import { Badge, Button, toast } from "@metrivum/ui-web";
-import { ExercisePicker, rememberPickedExercise, type ExerciseLabel } from "~/modules/exercises";
+import {
+  ExercisePicker,
+  rememberPickedExercise,
+  type ExerciseLabel,
+} from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import {
@@ -21,7 +39,18 @@ import {
   updateSegments,
 } from "../model/document";
 import { copySet, readCopiedSet } from "../model/clipboard";
-import { editText, formatDuration, formatEffort, formatLoad, formatReps, parseDuration, parseEffort, parseLoad, parseReps, parseTempo } from "../model/notation";
+import {
+  editText,
+  formatDuration,
+  formatEffort,
+  formatLoad,
+  formatReps,
+  parseDuration,
+  parseEffort,
+  parseLoad,
+  parseReps,
+  parseTempo,
+} from "../model/notation";
 import { moveExerciseTo } from "../model/reorder";
 import type { EditorApi } from "../useEditor";
 import styles from "./SetGrid.module.css";
@@ -29,9 +58,26 @@ import { InlinePrescriptionCell } from "./InlinePrescriptionCell";
 import { InlineLoadCell } from "./InlineLoadCell";
 import { formulaText } from "../model/inline-formula";
 
-const COLUMNS = ["exercise", "set", "kind", "reps", "load", "effort", "rest", "tempo", "notes"] as const;
+const COLUMNS = [
+  "exercise",
+  "set",
+  "kind",
+  "reps",
+  "load",
+  "effort",
+  "rest",
+  "tempo",
+  "notes",
+] as const;
 type Column = (typeof COLUMNS)[number];
-const TEXT_COLUMNS = new Set<Column>(["reps", "load", "effort", "rest", "tempo", "notes"]);
+const TEXT_COLUMNS = new Set<Column>([
+  "reps",
+  "load",
+  "effort",
+  "rest",
+  "tempo",
+  "notes",
+]);
 
 interface Row {
   key: string;
@@ -63,14 +109,27 @@ interface Props {
  * Spreadsheet-style set grid for one workout. Keyboard handling is scoped to the grid:
  * while a cell input is focused, keys belong to the input, never to sheet commands.
  */
-export function SetGrid({ editor, workout, names, advancedAllowed, customFormulas = false, readOnly, onSelectionChange }: Props) {
+export function SetGrid({
+  editor,
+  workout,
+  names,
+  advancedAllowed,
+  customFormulas = false,
+  readOnly,
+  onSelectionChange,
+}: Props) {
   const m = useT();
   const locale = useLocale();
   const gridRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState({ r: 0, c: 3 });
   const [anchor, setAnchor] = useState<{ r: number; c: number } | null>(null);
-  const [editing, setEditing] = useState<{ text: string; invalid: boolean } | null>(null);
-  const [picker, setPicker] = useState<{ mode: "add" } | { mode: "replace"; instanceId: string } | null>(null);
+  const [editing, setEditing] = useState<{
+    text: string;
+    invalid: boolean;
+  } | null>(null);
+  const [picker, setPicker] = useState<
+    { mode: "add" } | { mode: "replace"; instanceId: string } | null
+  >(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   // Set while a keyboard commit/cancel moves focus back to the grid, so the input's blur doesn't commit twice.
@@ -80,7 +139,18 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
     () =>
       workout.exercises.flatMap((instance, exerciseIndex): Row[] => {
         if (!instance.sets.length) {
-          return [{ key: instance.id, instanceId: instance.id, exerciseId: instance.exerciseId, exerciseIndex, set: null, setIndex: -1, first: true, last: true }];
+          return [
+            {
+              key: instance.id,
+              instanceId: instance.id,
+              exerciseId: instance.exerciseId,
+              exerciseIndex,
+              set: null,
+              setIndex: -1,
+              first: true,
+              last: true,
+            },
+          ];
         }
         return instance.sets.map((set, setIndex) => ({
           key: set.id,
@@ -98,22 +168,33 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
 
   // Keep the active cell inside the grid when rows change (undo, delete).
   useEffect(() => {
-    setActive((a) => ({ r: Math.min(a.r, Math.max(0, rows.length - 1)), c: a.c }));
+    setActive((a) => ({
+      r: Math.min(a.r, Math.max(0, rows.length - 1)),
+      c: a.c,
+    }));
   }, [rows.length]);
 
   const activeRow = rows[active.r];
   useEffect(() => {
-    onSelectionChange({ instanceId: activeRow?.instanceId ?? null, setId: activeRow?.set?.id ?? null });
+    onSelectionChange({
+      instanceId: activeRow?.instanceId ?? null,
+      setId: activeRow?.set?.id ?? null,
+    });
   }, [activeRow?.instanceId, activeRow?.set?.id, onSelectionChange]);
 
   // Focus stays on the grid itself (aria-activedescendant), so no keystroke is lost between cells.
   const focusCell = (r: number, c: number) => {
     gridRef.current?.focus({ preventScroll: true });
-    gridRef.current?.querySelector<HTMLElement>(`[data-cell="${r}:${c}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    gridRef.current
+      ?.querySelector<HTMLElement>(`[data-cell="${r}:${c}"]`)
+      ?.scrollIntoView({ block: "nearest", inline: "nearest" });
   };
 
   const move = (r: number, c: number, extend = false) => {
-    const next = { r: Math.max(0, Math.min(rows.length - 1, r)), c: Math.max(0, Math.min(COLUMNS.length - 1, c)) };
+    const next = {
+      r: Math.max(0, Math.min(rows.length - 1, r)),
+      c: Math.max(0, Math.min(COLUMNS.length - 1, c)),
+    };
     if (extend) setAnchor((current) => current ?? active);
     else setAnchor(null);
     setActive(next);
@@ -122,14 +203,21 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
 
   const range = useMemo(() => {
     if (!anchor) return null;
-    return { r1: Math.min(anchor.r, active.r), r2: Math.max(anchor.r, active.r), c1: Math.min(anchor.c, active.c), c2: Math.max(anchor.c, active.c) };
+    return {
+      r1: Math.min(anchor.r, active.r),
+      r2: Math.max(anchor.r, active.r),
+      c1: Math.min(anchor.c, active.c),
+      c2: Math.max(anchor.c, active.c),
+    };
   }, [anchor, active]);
 
-  const isAdvancedLocked = (set: TrainingSet | null) => Boolean(set && setIsAdvanced(set) && !advancedAllowed);
+  const isAdvancedLocked = (set: TrainingSet | null) =>
+    Boolean(set && setIsAdvanced(set) && !advancedAllowed);
 
   function display(row: Row, column: Column): string {
     const set = row.set;
-    if (column === "exercise") return row.first ? (names.get(row.exerciseId)?.name ?? "…") : "";
+    if (column === "exercise")
+      return row.first ? (names.get(row.exerciseId)?.name ?? "…") : "";
     if (!set) return "";
     const p = set.prescription;
     switch (column) {
@@ -140,7 +228,11 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
       case "reps":
         return set.kind === "Amrap" ? "AMRAP" : formatReps(p.reps);
       case "load":
-        return formatLoad(locale, p, (key) => m.training.formulas.builtInNames[key] ?? key);
+        return formatLoad(
+          locale,
+          p,
+          (key) => m.training.formulas.builtInNames[key] ?? key,
+        );
       case "effort":
         return formatEffort(locale, p);
       case "rest":
@@ -159,12 +251,16 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
     const p: Prescription = { ...set.prescription };
     switch (column) {
       case "reps": {
-        if (text.trim().toUpperCase() === "AMRAP") { editor.apply(doc => changeSetKind(doc, set.id, "Amrap")); return true; }
+        if (text.trim().toUpperCase() === "AMRAP") {
+          editor.apply((doc) => changeSetKind(doc, set.id, "Amrap"));
+          return true;
+        }
         const parsed = parseReps(text);
         if (!parsed.ok) return false;
 
         p.reps = parsed.value;
-        p.fieldFormulas = { ...p.fieldFormulas }; delete p.fieldFormulas.Reps;
+        p.fieldFormulas = { ...p.fieldFormulas };
+        delete p.fieldFormulas.Reps;
         break;
       }
       case "load": {
@@ -212,7 +308,15 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
         p.comment = text.trim() || null;
         break;
     }
-    editor.apply((doc) => setPrescription(column === "reps" && set.kind === "Amrap" ? changeSetKind(doc, set.id, "Standard") : doc, set.id, p));
+    editor.apply((doc) =>
+      setPrescription(
+        column === "reps" && set.kind === "Amrap"
+          ? changeSetKind(doc, set.id, "Standard")
+          : doc,
+        set.id,
+        p,
+      ),
+    );
     return true;
   }
 
@@ -229,7 +333,15 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
       return;
     }
     if (!TEXT_COLUMNS.has(column)) return;
-    setEditing({ text: initial ?? (column === "load" ? formulaText(activeRow.set.prescription.loadFormula) || editText(locale, column, activeRow.set.prescription) : editText(locale, column, activeRow.set.prescription)), invalid: false });
+    setEditing({
+      text:
+        initial ??
+        (column === "load"
+          ? formulaText(activeRow.set.prescription.loadFormula) ||
+            editText(locale, column, activeRow.set.prescription)
+          : editText(locale, column, activeRow.set.prescription)),
+      invalid: false,
+    });
   }
 
   function commitEditing(nextRow: number, nextCol: number) {
@@ -237,11 +349,22 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
     skipBlur.current = true;
     const column = COLUMNS[active.c]!;
     if (column !== "kind") {
-      const initial = activeRow.set ? editText(locale, column, activeRow.set.prescription) : "";
-      if (editing.text !== initial && !applyText(activeRow, column, editing.text)) {
+      const initial = activeRow.set
+        ? editText(locale, column, activeRow.set.prescription)
+        : "";
+      if (
+        editing.text !== initial &&
+        !applyText(activeRow, column, editing.text)
+      ) {
         skipBlur.current = false;
         setEditing({ ...editing, invalid: true });
-        setMessage(column === "reps" && activeRow.set?.kind === "Amrap" ? m.editor.panel.amrapNote : column === "tempo" ? m.editor.panel.tempoInvalid : m.errors.byCode.VALIDATION_FAILED!);
+        setMessage(
+          column === "reps" && activeRow.set?.kind === "Amrap"
+            ? m.editor.panel.amrapNote
+            : column === "tempo"
+              ? m.editor.panel.tempoInvalid
+              : m.errors.byCode.VALIDATION_FAILED!,
+        );
         return;
       }
     }
@@ -251,26 +374,43 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
   }
 
   function clearRange() {
-    const cells = range ?? { r1: active.r, r2: active.r, c1: active.c, c2: active.c };
-    for (let r = cells.r1; r <= cells.r2; r++) for (let c = cells.c1; c <= cells.c2; c++) {
-      const column = COLUMNS[c]!;
-      const row = rows[r];
-      if (row && TEXT_COLUMNS.has(column)) applyText(row, column, "");
-    }
+    const cells = range ?? {
+      r1: active.r,
+      r2: active.r,
+      c1: active.c,
+      c2: active.c,
+    };
+    for (let r = cells.r1; r <= cells.r2; r++)
+      for (let c = cells.c1; c <= cells.c2; c++) {
+        const column = COLUMNS[c]!;
+        const row = rows[r];
+        if (row && TEXT_COLUMNS.has(column)) applyText(row, column, "");
+      }
   }
 
   function copyRange() {
-    const cells = range ?? { r1: active.r, r2: active.r, c1: active.c, c2: active.c };
+    const cells = range ?? {
+      r1: active.r,
+      r2: active.r,
+      c1: active.c,
+      c2: active.c,
+    };
     const lines: string[] = [];
     for (let r = cells.r1; r <= cells.r2; r++) {
       const values: string[] = [];
-      for (let c = cells.c1; c <= cells.c2; c++) values.push(display(rows[r]!, COLUMNS[c]!));
+      for (let c = cells.c1; c <= cells.c2; c++)
+        values.push(display(rows[r]!, COLUMNS[c]!));
       lines.push(values.join("\t"));
     }
     const single = !range && activeRow?.set;
     if (single && activeRow.set) {
       // A single cell copies the whole set prescription so it can be pasted onto another set.
-      copySet({ type: "trainflow/set", kind: activeRow.set.kind, prescription: activeRow.set.prescription, segments: activeRow.set.segments });
+      copySet({
+        type: "trainflow/set",
+        kind: activeRow.set.kind,
+        prescription: activeRow.set.prescription,
+        segments: activeRow.set.segments,
+      });
     } else {
       void navigator.clipboard?.writeText(lines.join("\n")).catch(() => {});
     }
@@ -291,24 +431,40 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
       }
       editor.apply((doc) => {
         let next = setPrescription(doc, set.id, copied.prescription);
-        if (copied.kind !== set.kind) next = changeSetKind(next, set.id, copied.kind);
-        if (SEGMENTED.has(copied.kind) && copied.segments) next = updateSegments(next, set.id, copied.segments.map((s) => ({ ...s, id: crypto.randomUUID() })));
+        if (copied.kind !== set.kind)
+          next = changeSetKind(next, set.id, copied.kind);
+        if (SEGMENTED.has(copied.kind) && copied.segments)
+          next = updateSegments(
+            next,
+            set.id,
+            copied.segments.map((s) => ({ ...s, id: crypto.randomUUID() })),
+          );
         return next;
       });
       toast({ tone: "neutral", title: m.editor.pasted, duration: 1500 });
       return;
     }
     // Tab/newline separated text fills cells from the active one; decimals follow the UI locale.
-    const lines = text.replace(/\r/g, "").split("\n").filter((line, index, all) => line !== "" || index < all.length - 1);
+    const lines = text
+      .replace(/\r/g, "")
+      .split("\n")
+      .filter((line, index, all) => line !== "" || index < all.length - 1);
     let failed = false;
     lines.forEach((line, dr) => {
       line.split("\t").forEach((value, dc) => {
         const row = rows[active.r + dr];
         const column = COLUMNS[active.c + dc];
-        if (row && column && TEXT_COLUMNS.has(column) && !applyText(row, column, value)) failed = true;
+        if (
+          row &&
+          column &&
+          TEXT_COLUMNS.has(column) &&
+          !applyText(row, column, value)
+        )
+          failed = true;
       });
     });
-    if (failed) toast({ tone: "danger", title: m.editor.pasteInvalid, duration: 6000 });
+    if (failed)
+      toast({ tone: "danger", title: m.editor.pasteInvalid, duration: 6000 });
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -322,19 +478,28 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
         if (event.altKey && row && !readOnly) {
           event.preventDefault();
           const delta = event.key === "ArrowDown" ? 1 : -1;
-          if (column === "exercise" || !row.set) editor.apply((doc) => moveNode(doc, row.instanceId, delta));
+          if (column === "exercise" || !row.set)
+            editor.apply((doc) => moveNode(doc, row.instanceId, delta));
           else editor.apply((doc) => moveNode(doc, row.set!.id, delta));
           move(active.r + delta, active.c);
           return;
         }
         event.preventDefault();
-        move(active.r + (event.key === "ArrowDown" ? 1 : -1), active.c, event.shiftKey);
+        move(
+          active.r + (event.key === "ArrowDown" ? 1 : -1),
+          active.c,
+          event.shiftKey,
+        );
         return;
       }
       case "ArrowLeft":
       case "ArrowRight":
         event.preventDefault();
-        move(active.r, active.c + (event.key === "ArrowRight" ? 1 : -1), event.shiftKey);
+        move(
+          active.r,
+          active.c + (event.key === "ArrowRight" ? 1 : -1),
+          event.shiftKey,
+        );
         return;
       case "Home":
         event.preventDefault();
@@ -381,13 +546,20 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
     }
     if (mod && event.key.toLowerCase() === "d" && row && !readOnly) {
       event.preventDefault();
-      const target = column === "exercise" || !row.set ? row.instanceId : row.set.id;
+      const target =
+        column === "exercise" || !row.set ? row.instanceId : row.set.id;
       const result = duplicateNode(editor.doc, target);
       if (result.id) editor.apply(() => result.doc);
       return;
     }
     // Typing a character starts editing that cell with the character, like a spreadsheet.
-    if (!mod && !event.altKey && event.key.length === 1 && TEXT_COLUMNS.has(column) && !readOnly) {
+    if (
+      !mod &&
+      !event.altKey &&
+      event.key.length === 1 &&
+      TEXT_COLUMNS.has(column) &&
+      !readOnly
+    ) {
       event.preventDefault();
       startEditing(event.key);
     }
@@ -399,12 +571,20 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
     event.dataTransfer.effectAllowed = "move";
   }
   function onDrop(event: DragEvent) {
-    const instanceId = event.dataTransfer.getData("application/x-trainflow-exercise");
-    if (instanceId && dropIndex !== null) editor.apply((doc) => moveExerciseTo(doc, workout.id, instanceId, dropIndex));
+    const instanceId = event.dataTransfer.getData(
+      "application/x-trainflow-exercise",
+    );
+    if (instanceId && dropIndex !== null)
+      editor.apply((doc) =>
+        moveExerciseTo(doc, workout.id, instanceId, dropIndex),
+      );
     setDropIndex(null);
   }
 
-  const kindOptions = SET_KINDS.filter((kind) => ["Standard", "Warmup", "BackOff"].includes(kind) || advancedAllowed);
+  const kindOptions = SET_KINDS.filter(
+    (kind) =>
+      ["Standard", "Warmup", "BackOff"].includes(kind) || advancedAllowed,
+  );
 
   return (
     <div className={styles.wrap}>
@@ -412,7 +592,9 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
         ref={gridRef}
         role="grid"
         tabIndex={0}
-        aria-activedescendant={rows.length ? `${workout.id}-cell-${active.r}-${active.c}` : undefined}
+        aria-activedescendant={
+          rows.length ? `${workout.id}-cell-${active.r}-${active.c}` : undefined
+        }
         aria-label={`${m.editor.grid}: ${workout.name}`}
         aria-rowcount={rows.length + 1}
         aria-colcount={COLUMNS.length}
@@ -425,7 +607,12 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
       >
         <div role="row" className={styles.headRow} aria-rowindex={1}>
           {COLUMNS.map((column) => (
-            <div key={column} role="columnheader" className={styles.head} data-col={column}>
+            <div
+              key={column}
+              role="columnheader"
+              className={styles.head}
+              data-col={column}
+            >
               {m.editor.columns[column]}
             </div>
           ))}
@@ -449,7 +636,9 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
               className={styles.row}
               data-first={row.first || undefined}
               data-group={group?.kind}
-              data-drop={dropIndex === row.exerciseIndex && row.first ? true : undefined}
+              data-drop={
+                dropIndex === row.exerciseIndex && row.first ? true : undefined
+              }
               onDragOver={(event) => {
                 if (!row.first) return;
                 event.preventDefault();
@@ -458,7 +647,12 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
             >
               {COLUMNS.map((column, c) => {
                 const isActive = active.r === r && active.c === c;
-                const inRange = range && r >= range.r1 && r <= range.r2 && c >= range.c1 && c <= range.c2;
+                const inRange =
+                  range &&
+                  r >= range.r1 &&
+                  r <= range.r2 &&
+                  c >= range.c1 &&
+                  c <= range.c2;
                 const editingHere = isActive && editing;
                 return (
                   <div
@@ -469,9 +663,13 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
                     data-col={column}
                     data-active={isActive || undefined}
                     data-range={inRange || undefined}
-                    data-invalid={editingHere && editing.invalid ? true : undefined}
+                    data-invalid={
+                      editingHere && editing.invalid ? true : undefined
+                    }
                     aria-selected={isActive || Boolean(inRange)}
-                    aria-readonly={readOnly || locked || column === "set" || undefined}
+                    aria-readonly={
+                      readOnly || locked || column === "set" || undefined
+                    }
                     className={styles.cell}
                     onMouseDown={(event) => {
                       if (editingHere) return;
@@ -481,15 +679,83 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
                     onDoubleClick={() => startEditing()}
                   >
                     {column === "load" && row.set && advancedAllowed ? (
-                      <InlineLoadCell exerciseId={row.exerciseId} customAllowed={customFormulas} prescription={row.set.prescription} readOnly={readOnly || locked} label={m.editor.columns.load} initialText={editingHere ? editing.text : undefined} onDone={() => setEditing(null)} onChange={(p) => editor.apply((doc) => setPrescription(doc, row.set!.id, p))} />
-                    ) : (column === "reps" || column === "rest") && row.set && advancedAllowed ? (
-                      <InlinePrescriptionCell field={column === "reps" ? "Reps" : "Rest"} prescription={row.set.prescription} maximum={column === "reps" && row.set.kind === "Amrap"}
-                        onMaximumChange={column === "reps" ? () => editor.apply(doc => changeSetKind(doc, row.set!.id, "Amrap")) : undefined}
-                        exerciseId={row.exerciseId} customAllowed={customFormulas} readOnly={readOnly || locked} label={m.editor.columns[column]} initialText={editingHere ? editing.text : undefined} onDone={() => setEditing(null)}
-                        onChange={(formula, value, maximum) => editor.apply(doc => setPrescription(column === "reps" && row.set!.kind === "Amrap" ? changeSetKind(doc, row.set!.id, "Standard") : doc, row.set!.id, { ...row.set!.prescription,
-                          fieldFormulas: Object.fromEntries([...Object.entries(row.set!.prescription.fieldFormulas ?? {}).filter(([key]) => key !== (column === "reps" ? "Reps" : "Rest")), ...(formula ? [[column === "reps" ? "Reps" : "Rest", formula] as const] : [])]),
-                          ...(column === "reps" ? { reps: formula || !value ? null : { minimum: value.value, maximum: maximum ?? value.value } } : { rest: formula ? null : value })
-                        }))} />
+                      <InlineLoadCell
+                        exerciseId={row.exerciseId}
+                        customAllowed={customFormulas}
+                        prescription={row.set.prescription}
+                        readOnly={readOnly || locked}
+                        label={m.editor.columns.load}
+                        initialText={editingHere ? editing.text : undefined}
+                        onDone={() => setEditing(null)}
+                        onChange={(p) =>
+                          editor.apply((doc) =>
+                            setPrescription(doc, row.set!.id, p),
+                          )
+                        }
+                      />
+                    ) : (column === "reps" || column === "rest") &&
+                      row.set &&
+                      advancedAllowed ? (
+                      <InlinePrescriptionCell
+                        field={column === "reps" ? "Reps" : "Rest"}
+                        prescription={row.set.prescription}
+                        maximum={column === "reps" && row.set.kind === "Amrap"}
+                        onMaximumChange={
+                          column === "reps"
+                            ? () =>
+                                editor.apply((doc) =>
+                                  changeSetKind(doc, row.set!.id, "Amrap"),
+                                )
+                            : undefined
+                        }
+                        exerciseId={row.exerciseId}
+                        customAllowed={customFormulas}
+                        readOnly={readOnly || locked}
+                        label={m.editor.columns[column]}
+                        initialText={editingHere ? editing.text : undefined}
+                        onDone={() => setEditing(null)}
+                        onChange={(formula, value, maximum) =>
+                          editor.apply((doc) =>
+                            setPrescription(
+                              column === "reps" && row.set!.kind === "Amrap"
+                                ? changeSetKind(doc, row.set!.id, "Standard")
+                                : doc,
+                              row.set!.id,
+                              {
+                                ...row.set!.prescription,
+                                fieldFormulas: Object.fromEntries([
+                                  ...Object.entries(
+                                    row.set!.prescription.fieldFormulas ?? {},
+                                  ).filter(
+                                    ([key]) =>
+                                      key !==
+                                      (column === "reps" ? "Reps" : "Rest"),
+                                  ),
+                                  ...(formula
+                                    ? [
+                                        [
+                                          column === "reps" ? "Reps" : "Rest",
+                                          formula,
+                                        ] as const,
+                                      ]
+                                    : []),
+                                ]),
+                                ...(column === "reps"
+                                  ? {
+                                      reps:
+                                        formula || !value
+                                          ? null
+                                          : {
+                                              minimum: value.value,
+                                              maximum: maximum ?? value.value,
+                                            },
+                                    }
+                                  : { rest: formula ? null : value }),
+                              },
+                            ),
+                          )
+                        }
+                      />
                     ) : editingHere && column === "kind" && row.set ? (
                       <select
                         autoFocus
@@ -499,7 +765,9 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
                         onChange={(event) => {
                           const kind = event.target.value as SetKind;
                           const set = row.set!;
-                          editor.apply((doc) => changeSetKind(doc, set.id, kind));
+                          editor.apply((doc) =>
+                            changeSetKind(doc, set.id, kind),
+                          );
                           setEditing(null);
                           focusCell(r, c);
                         }}
@@ -512,11 +780,21 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
                         }}
                         onBlur={() => setEditing(null)}
                       >
-                        {[...new Set([row.set.kind, ...kindOptions])].map((kind) => (
-                          <option key={kind} value={kind} disabled={kind !== "Standard" && !advancedAllowed && kind !== row.set!.kind}>
-                            {m.editor.setKinds[kind]}
-                          </option>
-                        ))}
+                        {[...new Set([row.set.kind, ...kindOptions])].map(
+                          (kind) => (
+                            <option
+                              key={kind}
+                              value={kind}
+                              disabled={
+                                kind !== "Standard" &&
+                                !advancedAllowed &&
+                                kind !== row.set!.kind
+                              }
+                            >
+                              {m.editor.setKinds[kind]}
+                            </option>
+                          ),
+                        )}
                       </select>
                     ) : editingHere ? (
                       <input
@@ -525,7 +803,12 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
                         aria-label={`${m.editor.columns[column]} — ${label?.name ?? ""} ${m.editor.panel.set(row.setIndex + 1)}`}
                         aria-invalid={editing.invalid || undefined}
                         value={editing.text}
-                        onChange={(event) => setEditing({ text: event.target.value, invalid: false })}
+                        onChange={(event) =>
+                          setEditing({
+                            text: event.target.value,
+                            invalid: false,
+                          })
+                        }
                         onKeyDown={(event) => {
                           event.stopPropagation();
                           if (event.key === "Enter") {
@@ -549,8 +832,14 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
                           }
                           // Clicking elsewhere commits a valid edit and leaves the grid where the user clicked.
                           if (editing && !editing.invalid) {
-                            const initial = row.set ? editText(locale, column, row.set.prescription) : "";
-                            if (editing.text === initial || applyText(row, column, editing.text)) setEditing(null);
+                            const initial = row.set
+                              ? editText(locale, column, row.set.prescription)
+                              : "";
+                            if (
+                              editing.text === initial ||
+                              applyText(row, column, editing.text)
+                            )
+                              setEditing(null);
                           }
                         }}
                       />
@@ -561,18 +850,32 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
                             <span
                               className={styles.handle}
                               draggable
-                              onDragStart={(event) => onDragStart(event, row.instanceId)}
+                              onDragStart={(event) =>
+                                onDragStart(event, row.instanceId)
+                              }
                               aria-hidden="true"
                             >
                               <GripVertical />
                             </span>
                           )}
-                          <span className={styles.exerciseName} data-missing={label?.missing || undefined}>
+                          <span
+                            className={styles.exerciseName}
+                            data-missing={label?.missing || undefined}
+                          >
                             {label?.name ?? (label?.missing ? "—" : "…")}
                           </span>
-                          {label?.isArchived ? <Badge size="sm" tone="warning">{m.exercises.detail.archivedBadge}</Badge> : null}
+                          {label?.isArchived ? (
+                            <Badge size="sm" tone="warning">
+                              {m.exercises.detail.archivedBadge}
+                            </Badge>
+                          ) : null}
                           {group ? (
-                            <Badge size="sm" tone={group.kind === "Superset" ? "violet" : "info"}>
+                            <Badge
+                              size="sm"
+                              tone={
+                                group.kind === "Superset" ? "violet" : "info"
+                              }
+                            >
                               {m.editor.panel.groupKind[group.kind]}
                             </Badge>
                           ) : null}
@@ -580,12 +883,20 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
                       ) : null
                     ) : column === "kind" && row.set ? (
                       <span className={styles.kind} data-kind={row.set.kind}>
-                        {locked ? <Lock aria-hidden="true" className={styles.lock} /> : null}
+                        {locked ? (
+                          <Lock aria-hidden="true" className={styles.lock} />
+                        ) : null}
                         {display(row, column)}
-                        {row.set.segments?.length ? <span className={styles.segments}>×{row.set.segments.length}</span> : null}
+                        {row.set.segments?.length ? (
+                          <span className={styles.segments}>
+                            ×{row.set.segments.length}
+                          </span>
+                        ) : null}
                       </span>
                     ) : (
-                      <span className={styles.value}>{display(row, column)}</span>
+                      <span className={styles.value}>
+                        {display(row, column)}
+                      </span>
                     )}
                   </div>
                 );
@@ -599,7 +910,11 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
       </p>
       {readOnly ? null : (
         <div className={styles.actions}>
-          <Button size="sm" iconStart={<Plus />} onPress={() => setPicker({ mode: "add" })}>
+          <Button
+            size="sm"
+            iconStart={<Plus />}
+            onPress={() => setPicker({ mode: "add" })}
+          >
             {m.editor.addExercise}
           </Button>
           {activeRow ? (
@@ -608,7 +923,11 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
               variant="ghost"
               iconStart={<Plus />}
               onPress={() => {
-                const result = addSet(editor.doc, activeRow.instanceId, activeRow.set?.id);
+                const result = addSet(
+                  editor.doc,
+                  activeRow.instanceId,
+                  activeRow.set?.id,
+                );
                 if (result.id) editor.apply(() => result.doc);
               }}
             >
@@ -616,7 +935,13 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
             </Button>
           ) : null}
           {activeRow?.set ? (
-            <Button size="sm" variant="ghost" onPress={() => editor.apply((doc) => removeNode(doc, activeRow.set!.id))}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onPress={() =>
+                editor.apply((doc) => removeNode(doc, activeRow.set!.id))
+              }
+            >
               {m.editor.remove}
             </Button>
           ) : null}
@@ -625,7 +950,12 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
       <ExercisePicker
         isOpen={picker !== null}
         onOpenChange={(open) => !open && setPicker(null)}
-        selectedId={picker?.mode === "replace" ? workout.exercises.find((e) => e.id === picker.instanceId)?.exerciseId : undefined}
+        selectedId={
+          picker?.mode === "replace"
+            ? workout.exercises.find((e) => e.id === picker.instanceId)
+                ?.exerciseId
+            : undefined
+        }
         onPick={(exercise: ExerciseListItemDto) => {
           if (!picker) return;
           rememberPickedExercise(exercise);
@@ -635,7 +965,9 @@ export function SetGrid({ editor, workout, names, advancedAllowed, customFormula
             setTimeout(() => move(rows.length, 3), 0);
           } else {
             const target = picker.instanceId;
-            editor.apply((doc) => updateNode(doc, target, { exerciseId: exercise.id }));
+            editor.apply((doc) =>
+              updateNode(doc, target, { exerciseId: exercise.id }),
+            );
             focusCell(active.r, active.c);
           }
         }}

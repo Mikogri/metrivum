@@ -14,7 +14,11 @@ export function slotStorageKey(slot: SlotId): string {
 
 export const ACTIVE_SLOT_STORAGE_KEY = "tf.auth.active-slot";
 
-export type StoredAccountHint = { slot: SlotId; email: string; active: boolean };
+export type StoredAccountHint = {
+  slot: SlotId;
+  email: string;
+  active: boolean;
+};
 
 /**
  * The accounts with a stored session, for display on public pages (email only, read from the stored session).
@@ -23,22 +27,40 @@ export type StoredAccountHint = { slot: SlotId; email: string; active: boolean }
 export function storedAccountsHint(): StoredAccountHint[] {
   if (typeof window === "undefined") return [];
   try {
-    const preferred = Number(window.sessionStorage.getItem(ACTIVE_SLOT_STORAGE_KEY) ?? window.localStorage.getItem(ACTIVE_SLOT_STORAGE_KEY));
+    const preferred = Number(
+      window.sessionStorage.getItem(ACTIVE_SLOT_STORAGE_KEY) ??
+        window.localStorage.getItem(ACTIVE_SLOT_STORAGE_KEY),
+    );
     const accounts = SLOT_IDS.flatMap((slot) => {
       const raw = window.localStorage.getItem(slotStorageKey(slot));
       if (!raw || !raw.includes("refresh_token")) return [];
       try {
-        const email = (JSON.parse(raw) as { user?: { email?: unknown } }).user?.email;
-        return [{ slot, email: typeof email === "string" ? email : "", active: false }];
+        const email = (JSON.parse(raw) as { user?: { email?: unknown } }).user
+          ?.email;
+        return [
+          {
+            slot,
+            email: typeof email === "string" ? email : "",
+            active: false,
+          },
+        ];
       } catch {
         return [];
       }
     });
     // Public hints never authorize or merge identities; suppress duplicate saved email labels only.
-    const unique = accounts.filter(account => !accounts.some(other =>
-      account.email && other.slot !== account.slot
-      && other.email.trim().toLowerCase() === account.email.trim().toLowerCase()
-      && (other.slot === preferred || (account.slot !== preferred && other.slot < account.slot))));
+    const unique = accounts.filter(
+      (account) =>
+        !accounts.some(
+          (other) =>
+            account.email &&
+            other.slot !== account.slot &&
+            other.email.trim().toLowerCase() ===
+              account.email.trim().toLowerCase() &&
+            (other.slot === preferred ||
+              (account.slot !== preferred && other.slot < account.slot)),
+        ),
+    );
     const active = unique.find((a) => a.slot === preferred) ?? unique[0];
     if (active) active.active = true;
     return unique;
@@ -52,8 +74,15 @@ export function forgetSlot(slot: SlotId) {
   try {
     window.localStorage.removeItem(slotStorageKey(slot));
     for (const storage of [window.sessionStorage, window.localStorage]) {
-      if (Number(storage.getItem(ACTIVE_SLOT_STORAGE_KEY)) === slot && storage.getItem(ACTIVE_SLOT_STORAGE_KEY) !== null) {
-        const next = SLOT_IDS.find((other) => other !== slot && window.localStorage.getItem(slotStorageKey(other)) !== null);
+      if (
+        Number(storage.getItem(ACTIVE_SLOT_STORAGE_KEY)) === slot &&
+        storage.getItem(ACTIVE_SLOT_STORAGE_KEY) !== null
+      ) {
+        const next = SLOT_IDS.find(
+          (other) =>
+            other !== slot &&
+            window.localStorage.getItem(slotStorageKey(other)) !== null,
+        );
         if (next === undefined) storage.removeItem(ACTIVE_SLOT_STORAGE_KEY);
         else storage.setItem(ACTIVE_SLOT_STORAGE_KEY, String(next));
       }

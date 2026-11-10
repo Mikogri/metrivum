@@ -16,7 +16,19 @@ import { useFormatRefusal } from "./FormatBanner";
  * failure resends the same key so the server returns the original revision instead of a second one.
  */
 /** `issues` are the plan's known format problems (see useDocumentIssues), listed in red before and after a refused apply. */
-export function PublishDialog({ planId, version, isOpen, onOpenChange, issues = [] }: { planId: string; version: number; isOpen: boolean; onOpenChange: (open: boolean) => void; issues?: string[] }) {
+export function PublishDialog({
+  planId,
+  version,
+  isOpen,
+  onOpenChange,
+  issues = [],
+}: {
+  planId: string;
+  version: number;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  issues?: string[];
+}) {
   const m = useT();
   const t = m.training.detail;
   const api = useApi();
@@ -30,7 +42,13 @@ export function PublishDialog({ planId, version, isOpen, onOpenChange, issues = 
   }, [isOpen, version]);
 
   const mutation = useMutation({
-    mutationFn: () => publishRevision(api, planId, version, key.current ?? (key.current = newIdempotencyKey())),
+    mutationFn: () =>
+      publishRevision(
+        api,
+        planId,
+        version,
+        key.current ?? (key.current = newIdempotencyKey()),
+      ),
     onSuccess: (revision) => {
       key.current = null;
       setRefusal(null);
@@ -40,12 +58,16 @@ export function PublishDialog({ planId, version, isOpen, onOpenChange, issues = 
       onOpenChange(false);
     },
     onError: (error) => {
-      if (error instanceof ApiError && error.status === 400) setRefusal(error.problem?.detail ?? m.editor.issues.applyRefused);
+      if (error instanceof ApiError && error.status === 400)
+        setRefusal(error.problem?.detail ?? m.editor.issues.applyRefused);
     },
   });
 
-  const refused = mutation.error instanceof ApiError && mutation.error.status === 400;
-  const serverDetail = refused ? (mutation.error as ApiError).problem?.detail ?? null : null;
+  const refused =
+    mutation.error instanceof ApiError && mutation.error.status === 400;
+  const serverDetail = refused
+    ? ((mutation.error as ApiError).problem?.detail ?? null)
+    : null;
   const invalid = refused || issues.length > 0;
 
   return (
@@ -65,10 +87,27 @@ export function PublishDialog({ planId, version, isOpen, onOpenChange, issues = 
     >
       <p>{t.publishBody}</p>
       {invalid ? (
-        <Alert tone="danger" live="assertive" title={refused ? m.editor.issues.applyRefused : m.editor.issues.title}>
-          {issues.length ? <><p>{m.editor.issues.intro}</p><IssueList issues={issues} /></> : serverDetail ? <p>{serverDetail}</p> : null}
+        <Alert
+          tone="danger"
+          live="assertive"
+          title={refused ? m.editor.issues.applyRefused : m.editor.issues.title}
+        >
+          {issues.length ? (
+            <>
+              <p>{m.editor.issues.intro}</p>
+              <IssueList issues={issues} />
+            </>
+          ) : serverDetail ? (
+            <p>{serverDetail}</p>
+          ) : null}
         </Alert>
-      ) : mutation.error ? <Alert tone="danger" live="assertive" title={errorText(m, mutation.error)} /> : null}
+      ) : mutation.error ? (
+        <Alert
+          tone="danger"
+          live="assertive"
+          title={errorText(m, mutation.error)}
+        />
+      ) : null}
     </AlertDialog>
   );
 }

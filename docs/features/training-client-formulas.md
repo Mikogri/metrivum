@@ -113,3 +113,5 @@ Type `AMRAP` directly in Reps to use the existing Amrap set kind (no fixed reps 
 In the exercise comment popover, Enter finishes and closes; Ctrl+Enter (Cmd+Enter on macOS) inserts a newline. IME composition Enter does not finish editing.
 
 Repetition prescriptions and Reps formula outputs accept whole numbers from 1 to 999, with the upper bound at least the lower bound. Actual logs accept 0–999 or no result; AMRAP remains open-ended. Invalid drafts can still be saved, but applying them is blocked with the field location and permitted bounds. Existing revision/history reads are unchanged.
+
+Manual load and effort fields accept a decimal point or comma with up to two fractional digits, independently of the UI language. Formula expressions retain their own syntax and calculation precision.

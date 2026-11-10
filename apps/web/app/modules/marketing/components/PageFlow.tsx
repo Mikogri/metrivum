@@ -16,15 +16,17 @@ const FIBRES = Array.from({ length: 9 }, (_, i) => {
 function wisps(root: HTMLElement): Wisp[] {
   const width = root.clientWidth;
   const top = root.getBoundingClientRect().top;
-  return [...root.querySelectorAll<HTMLElement>("[data-flow]")].map((mark, i) => {
-    const rect = mark.getBoundingClientRect();
-    return {
-      x: width * Number(mark.dataset.flowX ?? 0.5),
-      y: rect.top - top + rect.height * Number(mark.dataset.flowAt ?? 0.5),
-      tilt: i % 2 ? 22 : -18,
-      flip: i % 2 === 1,
-    };
-  });
+  return [...root.querySelectorAll<HTMLElement>("[data-flow]")].map(
+    (mark, i) => {
+      const rect = mark.getBoundingClientRect();
+      return {
+        x: width * Number(mark.dataset.flowX ?? 0.5),
+        y: rect.top - top + rect.height * Number(mark.dataset.flowAt ?? 0.5),
+        tilt: i % 2 ? 22 : -18,
+        flip: i % 2 === 1,
+      };
+    },
+  );
 }
 
 /**
@@ -32,7 +34,13 @@ function wisps(root: HTMLElement): Wisp[] {
  * the quiet echo of the hero's bundle. Everything here is static and filter-free, so the glass
  * panels above it never have to re-blur while the page scrolls.
  */
-export function PageFlow({ children, className }: { children: ReactNode; className?: string }) {
+export function PageFlow({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState<Wisp[]>([]);
 
@@ -54,13 +62,30 @@ export function PageFlow({ children, className }: { children: ReactNode; classNa
   }, []);
 
   return (
-    <div ref={ref} className={[styles.page, className].filter(Boolean).join(" ")}>
+    <div
+      ref={ref}
+      className={[styles.page, className].filter(Boolean).join(" ")}
+    >
       <div className={styles.layer} aria-hidden="true">
         {items.map((w, i) => (
-          <div key={i} className={styles.wisp} data-flip={w.flip || undefined} style={{ left: w.x, top: w.y, rotate: `${w.tilt}deg` }}>
-            <svg viewBox="0 0 1000 600" preserveAspectRatio="none" className={styles.fibres}>
+          <div
+            key={i}
+            className={styles.wisp}
+            data-flip={w.flip || undefined}
+            style={{ left: w.x, top: w.y, rotate: `${w.tilt}deg` }}
+          >
+            <svg
+              viewBox="0 0 1000 600"
+              preserveAspectRatio="none"
+              className={styles.fibres}
+            >
               {FIBRES.map((d, k) => (
-                <path key={k} d={d} strokeWidth={k % 3 === 0 ? 1 : 0.6} strokeOpacity={0.35 + (k % 4) * 0.15} />
+                <path
+                  key={k}
+                  d={d}
+                  strokeWidth={k % 3 === 0 ? 1 : 0.6}
+                  strokeOpacity={0.35 + (k % 4) * 0.15}
+                />
               ))}
             </svg>
           </div>

@@ -1,9 +1,23 @@
 import { useEffect, useState } from "react";
 import type { TrainingDocument } from "@metrivum/api-client-web";
-import { Alert, Button, Dialog, NumberInput, Option, Segment, SegmentedControl, Select, toast } from "@metrivum/ui-web";
+import {
+  Alert,
+  Button,
+  Dialog,
+  NumberInput,
+  Option,
+  Segment,
+  SegmentedControl,
+  Select,
+  toast,
+} from "@metrivum/ui-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useT } from "~/shared/i18n/AppLocale";
-import { applyProgression, blockExerciseIds, type ProgressionRule } from "../model/cells";
+import {
+  applyProgression,
+  blockExerciseIds,
+  type ProgressionRule,
+} from "../model/cells";
 
 /**
  * Generates a block's numbers from its first cycle: pick an exercise, what to increase and the step
@@ -57,7 +71,10 @@ export function ProgressionDialog({
             isDisabled={!exerciseId || Number.isNaN(step)}
             onPress={() => {
               if (!blockId || !exerciseId) return;
-              const result = applyProgression(doc, blockId, exerciseId, { kind, step });
+              const result = applyProgression(doc, blockId, exerciseId, {
+                kind,
+                step,
+              });
               if (result.changed === 0) {
                 setNothing(true);
                 return;
@@ -76,7 +93,14 @@ export function ProgressionDialog({
         <Alert tone="info" title={t.empty} />
       ) : (
         <div style={{ display: "grid", gap: "var(--tf-space-4)" }}>
-          <Select label={t.exercise} selectedKey={exerciseId} onSelectionChange={(key) => (setExerciseId(String(key)), setNothing(false))}>
+          <Select
+            label={t.exercise}
+            selectedKey={exerciseId}
+            onSelectionChange={(key) => (
+              setExerciseId(String(key)),
+              setNothing(false)
+            )}
+          >
             {ids.map((id) => (
               <Option key={id} id={id}>
                 {names.get(id)?.name ?? "—"}
@@ -84,13 +108,21 @@ export function ProgressionDialog({
             ))}
           </Select>
           <div style={{ display: "grid", gap: "var(--tf-space-1-5)" }}>
-            <span style={{ color: "var(--tf-color-text-secondary)", fontSize: "var(--tf-text-sm)" }}>{t.kind}</span>
+            <span
+              style={{
+                color: "var(--tf-color-text-secondary)",
+                fontSize: "var(--tf-text-sm)",
+              }}
+            >
+              {t.kind}
+            </span>
             <SegmentedControl
               aria-label={t.kind}
               size="sm"
               selectedKeys={[kind]}
               onSelectionChange={(keys) => {
-                const next = [...keys][0] as ProgressionRule["kind"] | undefined;
+                const next = [...keys][0] as
+                  ProgressionRule["kind"] | undefined;
                 if (!next) return;
                 setKind(next);
                 setStep(next === "reps" ? 1 : next === "percent" ? 2.5 : 2.5);
@@ -104,7 +136,13 @@ export function ProgressionDialog({
               ))}
             </SegmentedControl>
           </div>
-          <NumberInput label={t.step} placeholder={m.common.ph.number} value={step} step={kind === "reps" ? 1 : 0.5} onChange={setStep} />
+          <NumberInput
+            label={t.step}
+            placeholder={m.common.ph.number}
+            value={step}
+            step={kind === "reps" ? 1 : 0.5}
+            onChange={setStep}
+          />
           {nothing ? <Alert tone="warning" title={t.nothing} /> : null}
         </div>
       )}

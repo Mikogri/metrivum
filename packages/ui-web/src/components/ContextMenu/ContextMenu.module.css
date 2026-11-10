@@ -45,9 +45,17 @@
   color: var(--tf-color-text-disabled);
 }
 
-.phoneActions { display: grid; gap: var(--tf-space-1); }
-.phoneActions .item { min-height: 48px; }
-.phoneActions .text { white-space: normal; overflow-wrap: anywhere; }
+.phoneActions {
+  display: grid;
+  gap: var(--tf-space-1);
+}
+.phoneActions .item {
+  min-height: 48px;
+}
+.phoneActions .text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 
 .item[data-tone="danger"] {
   color: var(--tf-color-danger);

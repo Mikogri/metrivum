@@ -29,7 +29,11 @@ function ChoosePlan() {
           <Offers embedded />
         </WorkspaceScope>
       </div>
-      <Button variant="secondary" block onPress={() => navigate(next, { replace: true })}>
+      <Button
+        variant="secondary"
+        block
+        onPress={() => navigate(next, { replace: true })}
+      >
         {t.later}
       </Button>
     </>

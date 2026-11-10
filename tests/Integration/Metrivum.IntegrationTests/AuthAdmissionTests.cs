@@ -1,7 +1,7 @@
 using System.Net;
+using Metrivum.Api.Security;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Metrivum.Api.Security;
 
 namespace Metrivum.IntegrationTests;
 
@@ -11,9 +11,14 @@ public sealed class AuthAdmissionTests
     public async Task Anonymous_readiness_cannot_bypass_database_probe_budget()
     {
         using var source = new ApiFactory();
-        using var factory = source.WithWebHostBuilder(builder => builder.UseSetting("Security:ReadinessRequestsPerMinute", "1"));
+        using var factory = source.WithWebHostBuilder(builder =>
+            builder.UseSetting("Security:ReadinessRequestsPerMinute", "1")
+        );
         using var client = factory.CreateClient();
-        Assert.Equal(HttpStatusCode.ServiceUnavailable, (await client.GetAsync("/health/ready")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.ServiceUnavailable,
+            (await client.GetAsync("/health/ready")).StatusCode
+        );
         var refused = await client.GetAsync("/health/ready");
         Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
         Assert.NotNull(refused.Headers.RetryAfter);
@@ -28,7 +33,9 @@ public sealed class AuthAdmissionTests
         using var factory = source.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("AbuseProtection:Policies:global:Permits", "2");
-            builder.ConfigureServices(services => services.AddSingleton<IAuthSessionValidator>(sessions));
+            builder.ConfigureServices(services =>
+                services.AddSingleton<IAuthSessionValidator>(sessions)
+            );
         });
         using var client = factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new("Bearer", source.Token(Guid.NewGuid()));
@@ -44,11 +51,17 @@ public sealed class AuthAdmissionTests
     {
         private int reads;
         public int Reads => Volatile.Read(ref reads);
+
         public Task<bool> IsActiveAsync(Guid userId, Guid sessionId, CancellationToken ct)
         {
             Interlocked.Increment(ref reads);
             return Task.FromResult(false);
         }
-        public Task<bool> MeetsSecondFactorAsync(Guid userId, Guid sessionId, CancellationToken ct) => throw new InvalidOperationException();
+
+        public Task<bool> MeetsSecondFactorAsync(
+            Guid userId,
+            Guid sessionId,
+            CancellationToken ct
+        ) => throw new InvalidOperationException();
     }
 }

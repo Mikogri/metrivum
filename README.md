@@ -83,7 +83,8 @@ and [hosting](docs/frontend/hosting.md).
 $env:TRAINFLOW_TEST_DATABASE = '<disposable PostgreSQL administrator connection>'
 dotnet build
 dotnet test --logger trx --results-directory TestResults
-dotnet format whitespace --verify-no-changes
+npm run format:api:check
+npm run format:frontend:check
 npm.cmd ci --ignore-scripts # On macOS/Linux, use npm.
 ./infra/export-contracts.ps1
 ```

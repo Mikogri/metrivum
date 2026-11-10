@@ -41,7 +41,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-
 /* Terms acceptance on sign-up: the checkbox with its links, and the error right under it. */
 .terms {
   display: grid;

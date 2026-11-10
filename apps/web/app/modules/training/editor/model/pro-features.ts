@@ -19,7 +19,8 @@ export function usesProFeatures(doc: TrainingDocument): boolean {
           for (const exercise of workout.exercises)
             for (const set of exercise.sets) {
               if (setIsAdvanced(set)) return true;
-              if (Object.keys(set.prescription.fieldFormulas ?? {}).length) return true;
+              if (Object.keys(set.prescription.fieldFormulas ?? {}).length)
+                return true;
             }
         }
   return false;

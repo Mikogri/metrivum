@@ -85,7 +85,10 @@
 
 @media (max-width: 767px) {
   .actionSheet {
-    padding: var(--tf-space-2) max(var(--tf-space-2), env(safe-area-inset-right)) max(var(--tf-space-2), env(safe-area-inset-bottom)) max(var(--tf-space-2), env(safe-area-inset-left));
+    padding: var(--tf-space-2)
+      max(var(--tf-space-2), env(safe-area-inset-right))
+      max(var(--tf-space-2), env(safe-area-inset-bottom))
+      max(var(--tf-space-2), env(safe-area-inset-left));
   }
 
   .menu {
@@ -94,6 +97,11 @@
     overscroll-behavior: contain;
   }
 
-  .item { min-height: 48px; padding: var(--tf-space-3); }
-  .text { overflow-wrap: anywhere; }
+  .item {
+    min-height: 48px;
+    padding: var(--tf-space-3);
+  }
+  .text {
+    overflow-wrap: anywhere;
+  }
 }

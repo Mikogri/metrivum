@@ -12,9 +12,16 @@ public sealed class CoverStyleRulesTests
     public void Accepts_a_background_with_plain_settings_and_null_resets()
     {
         Assert.Null(CoverStyleRules.Validate(null));
-        var stored = CoverStyleRules.Validate(Json("""{"background":"Silk","props":{"speed":2.5,"color":"#55534f","mouseInteraction":false,"colors":["#111111","#ffffff"],"mode":"soft"},"backdrop":"#151514"}"""));
+        var stored = CoverStyleRules.Validate(
+            Json(
+                """{"background":"Silk","props":{"speed":2.5,"color":"#55534f","mouseInteraction":false,"colors":["#111111","#ffffff"],"mode":"soft"},"backdrop":"#151514"}"""
+            )
+        );
         Assert.Contains("Silk", stored);
-        Assert.Equal("Silk", CoverStyleRules.Parse(stored)!.Value.GetProperty("background").GetString());
+        Assert.Equal(
+            "Silk",
+            CoverStyleRules.Parse(stored)!.Value.GetProperty("background").GetString()
+        );
     }
 
     [Theory]
@@ -22,7 +29,9 @@ public sealed class CoverStyleRulesTests
     [InlineData("""{"background":"<script>"}""")]
     [InlineData("""{"background":"Silk","extra":1}""")]
     [InlineData("""{"background":"Silk","backdrop":"red"}""")]
-    [InlineData("""{"background":"Silk","props":{"imageSrc":"https://tracker.example/pixel.png"}}""")]
+    [InlineData(
+        """{"background":"Silk","props":{"imageSrc":"https://tracker.example/pixel.png"}}"""
+    )]
     [InlineData("""{"background":"Silk","props":{"nested":{"a":1}}}""")]
     [InlineData("""{"background":"Silk","props":{"count":10000000}}""")]
     [InlineData("""{"background":"Silk","props":{"list":[1,2,3,4,5,6,7,8,9]}}""")]

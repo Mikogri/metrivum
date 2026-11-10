@@ -16,13 +16,23 @@
 
 .accent {
   border-color: var(--tf-color-accent-border);
-  background: linear-gradient(180deg, rgb(62 224 154 / 0.08), transparent 60%), var(--tf-color-surface);
+  background:
+    linear-gradient(180deg, rgb(62 224 154 / 0.08), transparent 60%),
+    var(--tf-color-surface);
 }
 
-.pad-none { padding: 0; }
-.pad-sm { padding: var(--tf-space-3); }
-.pad-md { padding: var(--tf-space-4); }
-.pad-lg { padding: var(--tf-space-6); }
+.pad-none {
+  padding: 0;
+}
+.pad-sm {
+  padding: var(--tf-space-3);
+}
+.pad-md {
+  padding: var(--tf-space-4);
+}
+.pad-lg {
+  padding: var(--tf-space-6);
+}
 
 .interactive {
   transition:

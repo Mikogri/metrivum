@@ -23,10 +23,22 @@ function DurationInput({
 }) {
   const m = useT();
   const t = m.editor.sheet;
-  const max: Record<Part, number> = { h: 23, m: parts.includes("h") ? 59 : 99, s: 59 };
+  const max: Record<Part, number> = {
+    h: 23,
+    m: parts.includes("h") ? 59 : 99,
+    s: 59,
+  };
   const split = (total: number): Record<Part, number> =>
-    parts.includes("h") ? { h: Math.floor(total / 3600), m: Math.floor((total % 3600) / 60), s: total % 60 } : { h: 0, m: Math.min(99, Math.floor(total / 60)), s: total % 60 };
-  const [values, setValues] = useState<Record<Part, number>>(() => split(Math.round(initial ?? 0)));
+    parts.includes("h")
+      ? {
+          h: Math.floor(total / 3600),
+          m: Math.floor((total % 3600) / 60),
+          s: total % 60,
+        }
+      : { h: 0, m: Math.min(99, Math.floor(total / 60)), s: total % 60 };
+  const [values, setValues] = useState<Record<Part, number>>(() =>
+    split(Math.round(initial ?? 0)),
+  );
   const latest = useRef(values);
   const [active, setActive] = useState(parts.indexOf("m"));
   const typed = useRef("");
@@ -53,7 +65,11 @@ function DurationInput({
     const v = latest.current;
     onDone(save, v.h * 3600 + v.m * 60 + v.s);
   };
-  const names: Record<Part, string> = { h: t.hours, m: t.minutes, s: t.seconds };
+  const names: Record<Part, string> = {
+    h: t.hours,
+    m: t.minutes,
+    s: t.seconds,
+  };
 
   return (
     <div
@@ -105,7 +121,12 @@ function DurationInput({
                 }
               } else if (key === "Backspace" || key === "Delete") {
                 event.preventDefault();
-                if (values[part] === 0 && typed.current === "" && key === "Backspace") go(index - 1);
+                if (
+                  values[part] === 0 &&
+                  typed.current === "" &&
+                  key === "Backspace"
+                )
+                  go(index - 1);
                 else {
                   set(part, 0);
                   typed.current = "";
@@ -113,15 +134,27 @@ function DurationInput({
               } else if (key === "ArrowLeft") {
                 event.preventDefault();
                 go(index - 1);
-              } else if (key === "ArrowRight" || key === ":" || key === "." || key === " ") {
+              } else if (
+                key === "ArrowRight" ||
+                key === ":" ||
+                key === "." ||
+                key === " "
+              ) {
                 event.preventDefault();
                 go(index + 1);
               } else if (key === "ArrowUp" || key === "ArrowDown") {
                 event.preventDefault();
                 const step = key === "ArrowUp" ? 1 : -1;
-                set(part, (values[part] + step + max[part] + 1) % (max[part] + 1));
+                set(
+                  part,
+                  (values[part] + step + max[part] + 1) % (max[part] + 1),
+                );
                 typed.current = "";
-              } else if (key === "Tab" && !event.shiftKey && index < parts.length - 1) {
+              } else if (
+                key === "Tab" &&
+                !event.shiftKey &&
+                index < parts.length - 1
+              ) {
                 event.preventDefault();
                 go(index + 1);
               } else if (key === "Tab" && event.shiftKey && index > 0) {
@@ -173,7 +206,12 @@ export function DurationCell({
 
   if (editing) {
     return (
-      <div className={`${styles.cell} ${styles.cellInput} ${styles.clockEdit}`} style={style} data-no-drag onKeyDown={(event) => event.stopPropagation()}>
+      <div
+        className={`${styles.cell} ${styles.cellInput} ${styles.clockEdit}`}
+        style={style}
+        data-no-drag
+        onKeyDown={(event) => event.stopPropagation()}
+      >
         <DurationInput
           parts={[...parts] as Part[]}
           initial={seconds(stored)}
@@ -183,11 +221,18 @@ export function DurationCell({
               const pad = (n: number) => String(n).padStart(2, "0");
               const h = Math.floor(total / 3600);
               const mm = Math.floor((total % 3600) / 60);
-              const text = total === 0 ? "" : h ? `${h}:${pad(mm)}:${pad(total % 60)}` : `${Math.floor(total / 60)}:${pad(total % 60)}`;
+              const text =
+                total === 0
+                  ? ""
+                  : h
+                    ? `${h}:${pad(mm)}:${pad(total % 60)}`
+                    : `${Math.floor(total / 60)}:${pad(total % 60)}`;
               if (text !== value) onCommit(text);
             }
             setEditing(false);
-            requestAnimationFrame(() => cell.current?.focus({ preventScroll: true }));
+            requestAnimationFrame(() =>
+              cell.current?.focus({ preventScroll: true }),
+            );
           }}
         />
       </div>
@@ -218,4 +263,3 @@ export function DurationCell({
     </div>
   );
 }
-

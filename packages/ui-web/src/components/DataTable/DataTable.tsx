@@ -24,7 +24,9 @@ export interface DataTableProps<T> {
   /** Dimmed while placeholder data from the previous page is shown. */
   stale?: boolean;
   /** Extra attributes per row (e.g. drag and drop handlers). */
-  rowProps?: (row: T) => HTMLAttributes<HTMLTableRowElement> & Record<`data-${string}`, unknown>;
+  rowProps?: (
+    row: T,
+  ) => HTMLAttributes<HTMLTableRowElement> & Record<`data-${string}`, unknown>;
   className?: string;
 }
 
@@ -32,19 +34,36 @@ export interface DataTableProps<T> {
  * Plain semantic table for collections. A link marked `data-row-link` inside a cell stretches over
  * the whole row, so rows are clickable while buttons in other cells stay independent.
  */
-export function DataTable<T>({ label, columns, rows, rowKey, stale, rowProps, className }: DataTableProps<T>) {
+export function DataTable<T>({
+  label,
+  columns,
+  rows,
+  rowKey,
+  stale,
+  rowProps,
+  className,
+}: DataTableProps<T>) {
   return (
     <div className={cx(styles.wrap, stale && styles.stale, className)}>
       <table className={styles.table} aria-label={label}>
         <colgroup>
           {columns.map((column) => (
-            <col key={column.id} style={column.width ? { width: column.width } : undefined} data-mobile-hidden={column.hideOnMobile || undefined} />
+            <col
+              key={column.id}
+              style={column.width ? { width: column.width } : undefined}
+              data-mobile-hidden={column.hideOnMobile || undefined}
+            />
           ))}
         </colgroup>
         <thead>
           <tr>
             {columns.map((column) => (
-              <th key={column.id} scope="col" data-align={column.align} data-mobile-hidden={column.hideOnMobile || undefined}>
+              <th
+                key={column.id}
+                scope="col"
+                data-align={column.align}
+                data-mobile-hidden={column.hideOnMobile || undefined}
+              >
                 {column.header}
               </th>
             ))}
@@ -52,7 +71,11 @@ export function DataTable<T>({ label, columns, rows, rowKey, stale, rowProps, cl
         </thead>
         <tbody>
           {rows.map((row, index) => (
-            <tr key={rowKey(row)} {...rowProps?.(row)} style={{ "--i": index } as React.CSSProperties}>
+            <tr
+              key={rowKey(row)}
+              {...rowProps?.(row)}
+              style={{ "--i": index } as React.CSSProperties}
+            >
               {columns.map((column) => (
                 <td
                   key={column.id}

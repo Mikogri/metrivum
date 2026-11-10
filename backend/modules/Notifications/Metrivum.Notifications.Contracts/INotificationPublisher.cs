@@ -9,7 +9,9 @@ public sealed record NotificationEvent(
     Guid SourceId,
     string? DeepLink = null,
     DateTimeOffset? AvailableAt = null,
-    bool Required = false);
+    bool Required = false
+);
+
 public interface INotificationPublisher
 {
     Task PublishAsync(NotificationEvent notification, CancellationToken ct);
@@ -18,9 +20,6 @@ public interface INotificationPublisher
 
 public interface INotificationDeliveryPolicy
 {
-    string SourceModule
-    {
-        get;
-    }
+    string SourceModule { get; }
     Task<bool> CanDeliverAsync(NotificationEvent notification, CancellationToken ct);
 }

@@ -15,7 +15,12 @@
   height: 34rem;
   translate: -50% -50%;
   rotate: -24deg;
-  background: radial-gradient(closest-side, rgb(214 243 107 / 0.1), rgb(116 196 207 / 0.03) 60%, transparent);
+  background: radial-gradient(
+    closest-side,
+    rgb(214 243 107 / 0.1),
+    rgb(116 196 207 / 0.03) 60%,
+    transparent
+  );
 }
 
 .svg {

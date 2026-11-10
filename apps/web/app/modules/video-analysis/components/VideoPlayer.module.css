@@ -118,7 +118,10 @@
   height: var(--tf-space-1);
   overflow: hidden;
   border-radius: var(--tf-radius-full);
-  background: var(--bar-track, color-mix(in srgb, var(--tf-color-text) 22%, transparent));
+  background: var(
+    --bar-track,
+    color-mix(in srgb, var(--tf-color-text) 22%, transparent)
+  );
   transition: height var(--tf-duration-fast) var(--tf-ease-out);
 }
 
@@ -137,7 +140,10 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  background: var(--bar-marker, color-mix(in srgb, var(--tf-color-text) 40%, transparent));
+  background: var(
+    --bar-marker,
+    color-mix(in srgb, var(--tf-color-text) 40%, transparent)
+  );
 }
 
 .played {
@@ -196,7 +202,9 @@
   color: inherit;
   cursor: pointer;
   outline: none;
-  transition: background-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease;
+  transition:
+    background-color var(--tf-duration-fast) ease,
+    color var(--tf-duration-fast) ease;
 }
 
 .control {
@@ -257,11 +265,16 @@
 
 /* Narrow players keep play, time, speed and the tools; the total time and frame steps join when there is room. */
 @container (min-width: 17rem) {
-  .total { display: inline; }
+  .total {
+    display: inline;
+  }
 }
 
 @container (min-width: 21rem) {
-  .steps { display: inline-flex; gap: 1px; }
+  .steps {
+    display: inline-flex;
+    gap: 1px;
+  }
 }
 
 /* ---- Full screen ----
@@ -298,7 +311,9 @@
   right: 0;
   bottom: 0;
   left: 0;
-  padding: var(--tf-space-12) max(var(--tf-space-6), calc((100vw - var(--tf-content-max)) / 2)) var(--tf-space-4);
+  padding: var(--tf-space-12)
+    max(var(--tf-space-6), calc((100vw - var(--tf-content-max)) / 2))
+    var(--tf-space-4);
   border: 0;
   background: linear-gradient(to bottom, transparent, var(--on-video-shade));
   transition: opacity var(--tf-duration-base) ease;

@@ -1,8 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight } from "lucide-react";
 import type { Schema } from "@metrivum/api-client-web";
-import { Alert, Badge, LinkButton, PageHeader, Skeleton } from "@metrivum/ui-web";
-import { QuotaContextField, isCap, useUsage, type UsageItem } from "~/shared/access";
+import {
+  Alert,
+  Badge,
+  LinkButton,
+  PageHeader,
+  Skeleton,
+} from "@metrivum/ui-web";
+import {
+  QuotaContextField,
+  isCap,
+  useUsage,
+  type UsageItem,
+} from "~/shared/access";
 import { limitIcon, usageState } from "~/shared/access/UsageRing";
 import { formatBytes } from "~/shared/i18n/format";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
@@ -17,7 +28,10 @@ type Subscription = Schema<"PlatformSubscriptionDto">;
 
 function useValue() {
   const { locale } = useAppLocale();
-  return (item: UsageItem, n: number) => (/bytes/i.test(item.key) ? formatBytes(locale, n) : new Intl.NumberFormat(locale).format(n));
+  return (item: UsageItem, n: number) =>
+    /bytes/i.test(item.key)
+      ? formatBytes(locale, n)
+      : new Intl.NumberFormat(locale).format(n);
 }
 
 /**
@@ -33,9 +47,18 @@ export default function UsageRoute() {
   const usage = useUsage();
   const plan = useQuery({
     queryKey: [account, "coaching", "/api/v1/me/platform-subscription"],
-    queryFn: async ({ signal }) => (await api<Subscription>({ path: "/api/v1/me/platform-subscription", signal })).data,
+    queryFn: async ({ signal }) =>
+      (
+        await api<Subscription>({
+          path: "/api/v1/me/platform-subscription",
+          signal,
+        })
+      ).data,
   });
-  const date = (iso: string) => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(new Date(iso));
+  const date = (iso: string) =>
+    new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(
+      new Date(iso),
+    );
   const counted = usage.items.filter((item) => !isCap(item.key));
   const caps = usage.items.filter((item) => isCap(item.key));
 
@@ -43,8 +66,14 @@ export default function UsageRoute() {
     <div className={styles.page}>
       <PageHeader title={t.title} description={t.description} />
       <QuotaContextField context={usage.context} />
-      {usage.near.length ? <Alert tone="warning" title={t.nearTitle(usage.near.length)}>{t.nearBody}</Alert> : null}
-      {usage.error ? <Alert tone="danger" title={errorText(m, usage.error)} /> : null}
+      {usage.near.length ? (
+        <Alert tone="warning" title={t.nearTitle(usage.near.length)}>
+          {t.nearBody}
+        </Alert>
+      ) : null}
+      {usage.error ? (
+        <Alert tone="danger" title={errorText(m, usage.error)} />
+      ) : null}
 
       <section className={styles.card} aria-labelledby="usage-limits">
         <div className={styles.cardHead}>
@@ -70,9 +99,15 @@ export default function UsageRoute() {
         <div className={styles.foot}>
           <span className={styles.footMain}>
             {t.planName(plan.data?.planId ?? "—")}
-            {usage.period ? <small>{t.resetsOn(date(usage.period.end))}</small> : null}
+            {usage.period ? (
+              <small>{t.resetsOn(date(usage.period.end))}</small>
+            ) : null}
           </span>
-          <LinkButton href="/app/subscription" size="sm" iconEnd={<ArrowUpRight />}>
+          <LinkButton
+            href="/app/subscription"
+            size="sm"
+            iconEnd={<ArrowUpRight />}
+          >
             {t.managePlan}
           </LinkButton>
         </div>
@@ -104,7 +139,8 @@ export default function UsageRoute() {
 function toneOf(key: string) {
   if (/client|seat/i.test(key)) return "green";
   if (/analys|gpu|video|duration/i.test(key)) return "violet";
-  if (/formula|generator|generation|upload|bytes|size|pending/i.test(key)) return "blue";
+  if (/formula|generator|generation|upload|bytes|size|pending/i.test(key))
+    return "blue";
   return "green";
 }
 
@@ -117,23 +153,45 @@ function Row({ item }: { item: UsageItem }) {
   const Icon = limitIcon(item.key);
   const metered = state === "ok" || state === "near" || state === "full";
   return (
-    <div className={styles.row} role="row" data-state={state} data-tone={toneOf(item.key)}>
+    <div
+      className={styles.row}
+      role="row"
+      data-state={state}
+      data-tone={toneOf(item.key)}
+    >
       <span role="cell" className={styles.name}>
         <span className={styles.icon} aria-hidden="true">
           <Icon />
         </span>
         <span className={styles.labelBox}>
           <span className={styles.label}>{label}</span>
-          {item.period ? <span className={styles.periodTag}>{t.perPeriod}</span> : null}
+          {item.period ? (
+            <span className={styles.periodTag}>{t.perPeriod}</span>
+          ) : null}
         </span>
       </span>
       <span role="cell" className={styles.usage}>
         <span className={styles.amount}>
-          {state === "cap" ? t.upTo(value(item, item.maximum ?? 0)) : state === "unlimited" ? `${value(item, item.used)} / ${t.unlimited}` : `${value(item, item.used)} / ${value(item, item.maximum ?? 0)}`}
+          {state === "cap"
+            ? t.upTo(value(item, item.maximum ?? 0))
+            : state === "unlimited"
+              ? `${value(item, item.used)} / ${t.unlimited}`
+              : `${value(item, item.used)} / ${value(item, item.maximum ?? 0)}`}
         </span>
         {metered ? (
-          <span className={styles.bar} role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={item.maximum ?? 0} aria-valuenow={Math.min(item.used, item.maximum ?? 0)}>
-            <span style={{ transform: `scaleX(${Math.max(item.ratio, item.used > 0 ? 0.015 : 0)})` }} />
+          <span
+            className={styles.bar}
+            role="meter"
+            aria-label={label}
+            aria-valuemin={0}
+            aria-valuemax={item.maximum ?? 0}
+            aria-valuenow={Math.min(item.used, item.maximum ?? 0)}
+          >
+            <span
+              style={{
+                transform: `scaleX(${Math.max(item.ratio, item.used > 0 ? 0.015 : 0)})`,
+              }}
+            />
           </span>
         ) : null}
       </span>
@@ -147,7 +205,9 @@ function Row({ item }: { item: UsageItem }) {
             {t.near}
           </Badge>
         ) : state === "ok" ? (
-          <span className={styles.percent}>{Math.round(item.ratio * 100)}%</span>
+          <span className={styles.percent}>
+            {Math.round(item.ratio * 100)}%
+          </span>
         ) : null}
       </span>
     </div>

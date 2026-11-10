@@ -1,6 +1,21 @@
-import type { Cycle, ExerciseInstance, FormulaUse, Prescription, TrainingDay, TrainingDocument, TrainingSet, Workout } from "@metrivum/api-client-web";
+import type {
+  Cycle,
+  ExerciseInstance,
+  FormulaUse,
+  Prescription,
+  TrainingDay,
+  TrainingDocument,
+  TrainingSet,
+  Workout,
+} from "@metrivum/api-client-web";
 import type { Locale } from "~/shared/i18n/locale";
-import { copyPrescription, findExercise, locate, newSet, updateNode } from "./document";
+import {
+  copyPrescription,
+  findExercise,
+  locate,
+  newSet,
+  updateNode,
+} from "./document";
 import { formatLoad, formatReps, parseLoad, parseReps } from "./notation";
 
 // ---------------------------------------------------------------------------------------------
@@ -15,12 +30,21 @@ export interface ExerciseCells {
 }
 
 function sameValues(a: Prescription, b: Prescription) {
-  return JSON.stringify([a.reps, a.load, a.loadPercent, a.loadFormula]) === JSON.stringify([b.reps, b.load, b.loadPercent, b.loadFormula]);
+  return (
+    JSON.stringify([a.reps, a.load, a.loadPercent, a.loadFormula]) ===
+    JSON.stringify([b.reps, b.load, b.loadPercent, b.loadFormula])
+  );
 }
 
-export function exerciseCells(locale: Locale, instance: ExerciseInstance, formulaLabel?: (key: string) => string): ExerciseCells {
+export function exerciseCells(
+  locale: Locale,
+  instance: ExerciseInstance,
+  formulaLabel?: (key: string) => string,
+): ExerciseCells {
   const first = instance.sets[0]?.prescription ?? {};
-  const mixed = instance.sets.some((set) => set.kind !== "Standard" || !sameValues(set.prescription, first));
+  const mixed = instance.sets.some(
+    (set) => set.kind !== "Standard" || !sameValues(set.prescription, first),
+  );
   const reps = formatReps(first.reps);
   return {
     setsReps: `${instance.sets.length}${reps ? ` × ${reps}` : ""}`,
@@ -29,14 +53,22 @@ export function exerciseCells(locale: Locale, instance: ExerciseInstance, formul
   };
 }
 
-function writeSets(doc: TrainingDocument, instanceId: string, fn: (sets: TrainingSet[]) => TrainingSet[]): TrainingDocument {
+function writeSets(
+  doc: TrainingDocument,
+  instanceId: string,
+  fn: (sets: TrainingSet[]) => TrainingSet[],
+): TrainingDocument {
   const found = findExercise(doc, instanceId);
   if (!found) return doc;
   return updateNode(doc, instanceId, { sets: fn(found.exercise.sets) });
 }
 
 /** "4×8", "4 x 8-10", "4×" (count only) or "8-10" (reps only). Returns null when the text is not valid. */
-export function applySetsReps(doc: TrainingDocument, instanceId: string, text: string): TrainingDocument | null {
+export function applySetsReps(
+  doc: TrainingDocument,
+  instanceId: string,
+  text: string,
+): TrainingDocument | null {
   const value = text.trim();
   const match = /^(\d{1,2})\s*[x×*]\s*(.*)$/i.exec(value);
   const count = match ? Number(match[1]) : null;
@@ -48,7 +80,9 @@ export function applySetsReps(doc: TrainingDocument, instanceId: string, text: s
     const total = count ?? sets.length;
     return Array.from({ length: total }, (_, i) => {
       const base = sets[i] ?? newSet("Standard", copyPrescription(template));
-      const prescription = { ...copyPrescription(i < sets.length ? base.prescription : template) };
+      const prescription = {
+        ...copyPrescription(i < sets.length ? base.prescription : template),
+      };
       if (repsText.trim() || !match) prescription.reps = reps.value;
       return { ...base, kind: "Standard", prescription } as TrainingSet;
     });
@@ -56,7 +90,12 @@ export function applySetsReps(doc: TrainingDocument, instanceId: string, text: s
 }
 
 /** "80 kg", "80-85 kg", "75%" or empty (clears the load). */
-export function applyLoad(locale: Locale, doc: TrainingDocument, instanceId: string, text: string): TrainingDocument | null {
+export function applyLoad(
+  locale: Locale,
+  doc: TrainingDocument,
+  instanceId: string,
+  text: string,
+): TrainingDocument | null {
   const found = findExercise(doc, instanceId);
   if (!found) return null;
   const unit = found.exercise.sets[0]?.prescription.load?.minimum.unit ?? "Kg";
@@ -85,7 +124,11 @@ export function applyLoad(locale: Locale, doc: TrainingDocument, instanceId: str
 }
 
 /** Binds (or clears) a load formula on every set of an exercise. */
-export function setExerciseFormula(doc: TrainingDocument, instanceId: string, formula: FormulaUse | null): TrainingDocument {
+export function setExerciseFormula(
+  doc: TrainingDocument,
+  instanceId: string,
+  formula: FormulaUse | null,
+): TrainingDocument {
   return writeSets(doc, instanceId, (sets) =>
     sets.map((set) => {
       const p: Prescription = { ...set.prescription };
@@ -108,7 +151,12 @@ export const DAY_COLS = 4; // exercise (2) + sets×reps (1) + load (1)
 
 export type CycleRow =
   | { type: "workout"; workout: Workout }
-  | { type: "exercise"; workout: Workout; instance: ExerciseInstance; index: number }
+  | {
+      type: "exercise";
+      workout: Workout;
+      instance: ExerciseInstance;
+      index: number;
+    }
   | { type: "add-exercise"; workout: Workout }
   | { type: "add-workout"; day: TrainingDay };
 
@@ -125,14 +173,20 @@ export function cycleGrid(cycle: Cycle, editable: boolean): CycleGrid {
     const rows: CycleRow[] = [];
     for (const workout of day.workouts) {
       rows.push({ type: "workout", workout });
-      workout.exercises.forEach((instance, i) => rows.push({ type: "exercise", workout, instance, index: i }));
+      workout.exercises.forEach((instance, i) =>
+        rows.push({ type: "exercise", workout, instance, index: i }),
+      );
       if (editable) rows.push({ type: "add-exercise", workout });
     }
     if (editable) rows.push({ type: "add-workout", day });
     return { day, col: index * DAY_COLS, rows };
   });
   const bodyRows = Math.max(1, ...days.map((d) => d.rows.length));
-  return { cols: Math.max(DAY_COLS, days.length * DAY_COLS), rows: EXPANDED_HEAD_ROWS + bodyRows + (editable ? 1 : 0), days };
+  return {
+    cols: Math.max(DAY_COLS, days.length * DAY_COLS),
+    rows: EXPANDED_HEAD_ROWS + bodyRows + (editable ? 1 : 0),
+    days,
+  };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -144,26 +198,46 @@ export type ProgressionRule =
   | { kind: "percent"; step: number } // + step percentage points per cycle
   | { kind: "reps"; step: number }; // + step reps per cycle
 
-function progressed(base: Prescription, rule: ProgressionRule, k: number): Prescription {
+function progressed(
+  base: Prescription,
+  rule: ProgressionRule,
+  k: number,
+): Prescription {
   const p = copyPrescription(base);
   if (rule.kind === "load" && p.load) {
-    const add = (q: { value: number | string; unit: typeof p.load.minimum.unit }) => ({ ...q, value: Math.round((Number(q.value) + rule.step * k) * 100) / 100 });
+    const add = (q: {
+      value: number | string;
+      unit: typeof p.load.minimum.unit;
+    }) => ({
+      ...q,
+      value: Math.round((Number(q.value) + rule.step * k) * 100) / 100,
+    });
     p.load = { minimum: add(p.load.minimum), maximum: add(p.load.maximum) };
   } else if (rule.kind === "percent" && p.loadPercent != null) {
-    p.loadPercent = Math.round((Number(p.loadPercent) + rule.step * k) * 100) / 100;
+    p.loadPercent =
+      Math.round((Number(p.loadPercent) + rule.step * k) * 100) / 100;
   } else if (rule.kind === "reps" && p.reps) {
     const min = Math.max(1, Number(p.reps.minimum) + rule.step * k);
-    p.reps = { minimum: min, maximum: Math.max(min, Number(p.reps.maximum) + rule.step * k) };
+    p.reps = {
+      minimum: min,
+      maximum: Math.max(min, Number(p.reps.maximum) + rule.step * k),
+    };
   }
   return p;
 }
 
 /** Exercises (by exercise id) used anywhere in a block. */
-export function blockExerciseIds(doc: TrainingDocument, blockId: string): string[] {
+export function blockExerciseIds(
+  doc: TrainingDocument,
+  blockId: string,
+): string[] {
   const block = doc.blocks.find((b) => b.id === blockId);
   if (!block) return [];
   const ids = new Set<string>();
-  for (const cycle of block.cycles) for (const day of cycle.days) for (const w of day.workouts) for (const e of w.exercises) ids.add(e.exerciseId);
+  for (const cycle of block.cycles)
+    for (const day of cycle.days)
+      for (const w of day.workouts)
+        for (const e of w.exercises) ids.add(e.exerciseId);
   return [...ids];
 }
 
@@ -172,12 +246,23 @@ export function blockExerciseIds(doc: TrainingDocument, blockId: string): string
  * that has it (same day number when possible), adding `step × n` for the n-th following cycle.
  * Returns the new document and how many exercise entries changed.
  */
-export function applyProgression(doc: TrainingDocument, blockId: string, exerciseId: string, rule: ProgressionRule): { doc: TrainingDocument; changed: number } {
+export function applyProgression(
+  doc: TrainingDocument,
+  blockId: string,
+  exerciseId: string,
+  rule: ProgressionRule,
+): { doc: TrainingDocument; changed: number } {
   const at = locate(doc, blockId);
   if (!at || at.kind !== "block") return { doc, changed: 0 };
   const block = doc.blocks[at.blockIndex]!;
   const occurrences = (cycle: Cycle) =>
-    cycle.days.flatMap((day) => day.workouts.flatMap((w) => w.exercises.filter((e) => e.exerciseId === exerciseId).map((e) => ({ day, instance: e }))));
+    cycle.days.flatMap((day) =>
+      day.workouts.flatMap((w) =>
+        w.exercises
+          .filter((e) => e.exerciseId === exerciseId)
+          .map((e) => ({ day, instance: e })),
+      ),
+    );
   const baseIndex = block.cycles.findIndex((c) => occurrences(c).length > 0);
   if (baseIndex < 0) return { doc, changed: 0 };
   const base = occurrences(block.cycles[baseIndex]!);
@@ -186,7 +271,9 @@ export function applyProgression(doc: TrainingDocument, blockId: string, exercis
   block.cycles.slice(baseIndex + 1).forEach((cycle, offset) => {
     const k = offset + 1;
     for (const { day, instance } of occurrences(cycle)) {
-      const source = base.find((b) => Number(b.day.dayNumber) === Number(day.dayNumber)) ?? base[0]!;
+      const source =
+        base.find((b) => Number(b.day.dayNumber) === Number(day.dayNumber)) ??
+        base[0]!;
       const sets = source.instance.sets.map((set, i) => ({
         ...(instance.sets[i] ?? newSet()),
         kind: set.kind,

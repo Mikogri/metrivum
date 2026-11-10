@@ -7,11 +7,24 @@ import { useFolderLookup } from "./folderLookup";
 import styles from "./FolderField.module.css";
 
 /** Shows the chosen folder and opens a tree picker to change it. */
-export function FolderField({ label, value, onChange, excludeId }: { label: string; value: string | null; onChange: (id: string | null) => void; excludeId?: string }) {
+export function FolderField({
+  label,
+  value,
+  onChange,
+  excludeId,
+}: {
+  label: string;
+  value: string | null;
+  onChange: (id: string | null) => void;
+  excludeId?: string;
+}) {
   const m = useT();
   const [open, setOpen] = useState(false);
   const lookup = useFolderLookup();
-  const name = value === null ? m.training.library.folder.rootOption : (lookup.get(value)?.name ?? "…");
+  const name =
+    value === null
+      ? m.training.library.folder.rootOption
+      : (lookup.get(value)?.name ?? "…");
   return (
     <div className={styles.field}>
       <span className={styles.label} id="folder-field-label">
@@ -24,7 +37,13 @@ export function FolderField({ label, value, onChange, excludeId }: { label: stri
           {m.common.edit}
         </Button>
       </div>
-      <Dialog isOpen={open} onOpenChange={setOpen} title={label} size="sm" closeLabel={m.common.close}>
+      <Dialog
+        isOpen={open}
+        onOpenChange={setOpen}
+        title={label}
+        size="sm"
+        closeLabel={m.common.close}
+      >
         <FolderTree
           label={label}
           currentId={value}

@@ -1,4 +1,4 @@
-import { requireOptionalNativeModule } from 'expo';
+import { requireOptionalNativeModule } from "expo";
 
 export interface VoiceStatus {
   id: string;
@@ -16,4 +16,5 @@ export interface VoiceModule {
   cancelAsync(id: string): Promise<void>;
 }
 
-export const TrainflowVoice = requireOptionalNativeModule<VoiceModule>('TrainflowVoice');
+export const TrainflowVoice =
+  requireOptionalNativeModule<VoiceModule>("TrainflowVoice");

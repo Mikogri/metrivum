@@ -12,16 +12,28 @@ const looks: Record<string, { tone: Tone; color: string }> = {
 };
 
 /** "general-fitness" reads as "General fitness". */
-export const categoryName = (key: string) => key.split("-").map((part, i) => (i === 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part)).join(" ");
+export const categoryName = (key: string) =>
+  key
+    .split("-")
+    .map((part, i) =>
+      i === 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part,
+    )
+    .join(" ");
 
-export const categoryTone = (key?: string | null): Tone => (key && looks[key]?.tone) || "neutral";
+export const categoryTone = (key?: string | null): Tone =>
+  (key && looks[key]?.tone) || "neutral";
 
 /** The offer type as a colour dot with its name. */
 export function CategoryTag({ category }: { category?: string | null }) {
   if (!category) return null;
   return (
     <span className={styles.categoryTag}>
-      <i style={{ background: looks[category]?.color ?? "var(--tf-color-text-tertiary)" }} aria-hidden="true" />
+      <i
+        style={{
+          background: looks[category]?.color ?? "var(--tf-color-text-tertiary)",
+        }}
+        aria-hidden="true"
+      />
       {categoryName(category)}
     </span>
   );

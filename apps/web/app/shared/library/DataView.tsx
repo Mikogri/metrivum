@@ -43,15 +43,41 @@ export interface CardSpec {
  * two lines, then the footer: details on one line, any actions, and the open arrow in the corner.
  * With `href`, the title link is stretched over the whole card.
  */
-export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge, marks, description, facts, meta, actions, menu, status, details, onOpen, openLabel }: CardSpec) {
+export function ListCard({
+  href,
+  title,
+  subtitle,
+  icon,
+  tone = "neutral",
+  badge,
+  marks,
+  description,
+  facts,
+  meta,
+  actions,
+  menu,
+  status,
+  details,
+  onOpen,
+  openLabel,
+}: CardSpec) {
   const linked = Boolean(href || onOpen);
   const items = meta?.filter(Boolean) ?? [];
   const markNames = marks?.map((mark) => mark.label).join(", ");
   return (
     <li className={styles.item}>
-      <article className={styles.card} data-link={linked ? "" : undefined} data-details={details?.length ? "" : undefined}>
+      <article
+        className={styles.card}
+        data-link={linked ? "" : undefined}
+        data-details={details?.length ? "" : undefined}
+      >
         {marks?.length ? (
-          <span className={styles.marks} role="img" aria-label={markNames} title={markNames}>
+          <span
+            className={styles.marks}
+            role="img"
+            aria-label={markNames}
+            title={markNames}
+          >
             {marks.map((mark, i) => (
               <i key={i} style={{ background: mark.color }} />
             ))}
@@ -70,7 +96,12 @@ export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge,
                   {title}
                 </RouterLink>
               ) : onOpen ? (
-                <button type="button" className={styles.link} aria-label={openLabel} onClick={onOpen}>
+                <button
+                  type="button"
+                  className={styles.link}
+                  aria-label={openLabel}
+                  onClick={onOpen}
+                >
                   {title}
                 </button>
               ) : (
@@ -83,8 +114,17 @@ export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge,
           {menu ? <span className={styles.menu}>{menu}</span> : null}
         </div>
         {details?.length ? (
-          <dl className={styles.details}>{details.map((detail, i) => <div key={i}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>
-        ) : description ? <p className={styles.description}>{description}</p> : null}
+          <dl className={styles.details}>
+            {details.map((detail, i) => (
+              <div key={i}>
+                <dt>{detail.label}</dt>
+                <dd>{detail.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : description ? (
+          <p className={styles.description}>{description}</p>
+        ) : null}
         <div className={styles.foot}>
           {status ? <span className={styles.status}>{status}</span> : null}
           {facts?.length || items.length ? (
@@ -103,7 +143,9 @@ export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge,
             </dl>
           ) : null}
           {actions ? <div className={styles.actions}>{actions}</div> : null}
-          {linked ? <ArrowUpRight className={styles.arrow} aria-hidden="true" /> : null}
+          {linked ? (
+            <ArrowUpRight className={styles.arrow} aria-hidden="true" />
+          ) : null}
         </div>
       </article>
     </li>
@@ -111,7 +153,13 @@ export function ListCard({ href, title, subtitle, icon, tone = "neutral", badge,
 }
 
 /** A quiet text link for a card's actions: no padding, only the text lightens on hover. */
-export function CardAction({ href, children }: { href: string; children: ReactNode }) {
+export function CardAction({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
   return (
     <RouterLink to={href} className={styles.action}>
       {children}
@@ -120,11 +168,19 @@ export function CardAction({ href, children }: { href: string; children: ReactNo
 }
 
 /** The same rows as a table or as cards; `view` comes from the page's list toggle. */
-export function DataView<T>({ view, card, ...table }: DataTableProps<T> & { view: LibraryView; card: (row: T) => CardSpec }) {
+export function DataView<T>({
+  view,
+  card,
+  ...table
+}: DataTableProps<T> & { view: LibraryView; card: (row: T) => CardSpec }) {
   const presentation = useLibraryView(view);
   if (presentation === "list") return <DataTable {...table} />;
   return (
-    <ul className={styles.grid} aria-label={table.label} data-stale={table.stale || undefined}>
+    <ul
+      className={styles.grid}
+      aria-label={table.label}
+      data-stale={table.stale || undefined}
+    >
       {table.rows.map((row) => (
         <ListCard key={table.rowKey(row)} {...card(row)} />
       ))}
@@ -133,9 +189,21 @@ export function DataView<T>({ view, card, ...table }: DataTableProps<T> & { view
 }
 
 /** The card grid on its own, for pages that build their cards by hand. */
-export function CardGrid({ label, stale, children }: { label: string; stale?: boolean; children: ReactNode }) {
+export function CardGrid({
+  label,
+  stale,
+  children,
+}: {
+  label: string;
+  stale?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <ul className={styles.grid} aria-label={label} data-stale={stale || undefined}>
+    <ul
+      className={styles.grid}
+      aria-label={label}
+      data-stale={stale || undefined}
+    >
       {children}
     </ul>
   );

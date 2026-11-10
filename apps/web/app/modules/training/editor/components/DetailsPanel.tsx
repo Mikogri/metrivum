@@ -47,7 +47,9 @@ const MASS: Unit[] = ["Kg", "Lb"];
 const TIME: Unit[] = ["Seconds", "Minutes"];
 const DISTANCE: Unit[] = ["Meters", "Kilometers"];
 
-function loadMode(p: Prescription): "none" | "absolute" | "percent" | "formula" {
+function loadMode(
+  p: Prescription,
+): "none" | "absolute" | "percent" | "formula" {
   if (p.load) return "absolute";
   if (p.loadPercent !== null && p.loadPercent !== undefined) return "percent";
   if (p.loadFormula) return "formula";
@@ -133,7 +135,10 @@ function PrescriptionFields({
               set({
                 reps: Number.isNaN(value)
                   ? null
-                  : { minimum: value, maximum: Math.max(value, p.reps?.maximum ?? value) },
+                  : {
+                      minimum: value,
+                      maximum: Math.max(value, p.reps?.maximum ?? value),
+                    },
               })
             }
           />
@@ -179,14 +184,26 @@ function PrescriptionFields({
             if (next === "absolute")
               onChange({
                 ...cleared,
-                load: { minimum: { value: 0, unit: "Kg" }, maximum: { value: 0, unit: "Kg" } },
+                load: {
+                  minimum: { value: 0, unit: "Kg" },
+                  maximum: { value: 0, unit: "Kg" },
+                },
               });
             else if (next === "percent")
-              onChange({ ...cleared, loadPercent: 75, baseValue: { value: 100, unit: "Kg" } });
+              onChange({
+                ...cleared,
+                loadPercent: 75,
+                baseValue: { value: 100, unit: "Kg" },
+              });
             else if (next === "formula")
               onChange({
                 ...cleared,
-                loadFormula: { formulaId: null, builtIn: "percentage-1rm", version: 1, inputs: {} },
+                loadFormula: {
+                  formulaId: null,
+                  builtIn: "percentage-1rm",
+                  version: 1,
+                  inputs: {},
+                },
               });
             else onChange(cleared);
           }}
@@ -206,6 +223,7 @@ function PrescriptionFields({
             <NumberInput
               placeholder={m.common.ph.number}
               label={t.loadMin}
+              decimalScale={2}
               size="sm"
               minValue={0}
               value={p.load.minimum.value}
@@ -225,6 +243,7 @@ function PrescriptionFields({
             <NumberInput
               placeholder={m.common.ph.number}
               label={t.loadMax}
+              decimalScale={2}
               size="sm"
               minValue={p.load.minimum.value}
               value={p.load.maximum.value}
@@ -235,7 +254,9 @@ function PrescriptionFields({
                     minimum: p.load!.minimum,
                     maximum: {
                       ...p.load!.maximum,
-                      value: Number.isNaN(value) ? p.load!.minimum.value : value,
+                      value: Number.isNaN(value)
+                        ? p.load!.minimum.value
+                        : value,
                     },
                   },
                 })
@@ -262,17 +283,21 @@ function PrescriptionFields({
             <NumberInput
               placeholder={m.common.ph.number}
               label={t.percent}
+              decimalScale={2}
               size="sm"
               unit="%"
               minValue={0.1}
               maxValue={1000}
               value={p.loadPercent ?? NaN}
               isDisabled={disabled}
-              onChange={(value) => set({ loadPercent: Number.isNaN(value) ? null : value })}
+              onChange={(value) =>
+                set({ loadPercent: Number.isNaN(value) ? null : value })
+              }
             />
             <NumberInput
               placeholder={m.common.ph.number}
               label={t.baseValue}
+              decimalScale={2}
               size="sm"
               minValue={0}
               value={p.baseValue?.value ?? NaN}
@@ -290,7 +315,9 @@ function PrescriptionFields({
               units={MASS}
               value={p.baseValue?.unit ?? "Kg"}
               isDisabled={disabled}
-              onChange={(unit) => set({ baseValue: { value: p.baseValue?.value ?? 0, unit } })}
+              onChange={(unit) =>
+                set({ baseValue: { value: p.baseValue?.value ?? 0, unit } })
+              }
             />
           </div>
         ) : null}
@@ -329,26 +356,30 @@ function PrescriptionFields({
           <NumberInput
             placeholder={m.common.ph.number}
             label={t.rpe}
+            decimalScale={2}
             size="sm"
             minValue={0}
             maxValue={10}
-            step={0.5}
             value={p.rpe ?? NaN}
             isDisabled={disabled}
-            onChange={(value) => set({ rpe: Number.isNaN(value) ? null : value })}
+            onChange={(value) =>
+              set({ rpe: Number.isNaN(value) ? null : value })
+            }
           />
         ) : null}
         {effort === "rir" ? (
           <NumberInput
             placeholder={m.common.ph.number}
             label={t.rir}
+            decimalScale={2}
             size="sm"
             minValue={0}
             maxValue={100}
-            step={0.5}
             value={p.rir ?? NaN}
             isDisabled={disabled}
-            onChange={(value) => set({ rir: Number.isNaN(value) ? null : value })}
+            onChange={(value) =>
+              set({ rir: Number.isNaN(value) ? null : value })
+            }
           />
         ) : null}
       </div>
@@ -380,7 +411,11 @@ function PrescriptionFields({
 
                   if (formula) fieldFormulas.WorkTime = formula;
                   else delete fieldFormulas.WorkTime;
-                  set({ workTimeMax: null, workTime: formula ? null : value, fieldFormulas });
+                  set({
+                    workTimeMax: null,
+                    workTime: formula ? null : value,
+                    fieldFormulas,
+                  });
                 }}
               />
             </div>
@@ -398,7 +433,9 @@ function PrescriptionFields({
               isDisabled={disabled}
               onChange={(value) =>
                 set({
-                  [key]: Number.isNaN(value) ? null : { value, unit: quantity?.unit ?? units[0]! },
+                  [key]: Number.isNaN(value)
+                    ? null
+                    : { value, unit: quantity?.unit ?? units[0]! },
                 } as Partial<Prescription>)
               }
             />
@@ -408,7 +445,9 @@ function PrescriptionFields({
               value={quantity?.unit ?? units[0]!}
               isDisabled={disabled}
               onChange={(unit) =>
-                set({ [key]: { value: quantity?.value ?? 0, unit } } as Partial<Prescription>)
+                set({
+                  [key]: { value: quantity?.value ?? 0, unit },
+                } as Partial<Prescription>)
               }
             />
           </div>
@@ -424,7 +463,9 @@ function PrescriptionFields({
         description={t.tempoHint}
         isInvalid={tempoInvalid}
         errorMessage={t.tempoInvalid}
-        onChange={(value) => set({ tempo: value.toUpperCase().replace(/\s/g, "") || null })}
+        onChange={(value) =>
+          set({ tempo: value.toUpperCase().replace(/\s/g, "") || null })
+        }
       />
       <TextArea
         placeholder={m.common.ph.athleteNotes}
@@ -468,9 +509,13 @@ export function DetailsPanel({
   const locked = Boolean(set && set.kind !== "Standard" && !advancedAllowed);
   const disabled = readOnly || locked;
   const group = groupOf(workout, instance.id);
-  const instanceIndex = workout.exercises.findIndex((e) => e.id === instance.id);
+  const instanceIndex = workout.exercises.findIndex(
+    (e) => e.id === instance.id,
+  );
   const next = workout.exercises[instanceIndex + 1];
-  const topSets = set ? instance.sets.slice(0, setIndex).filter((s) => s.kind === "TopSet") : [];
+  const topSets = set
+    ? instance.sets.slice(0, setIndex).filter((s) => s.kind === "TopSet")
+    : [];
 
   return (
     <div className={styles.panel}>
@@ -486,7 +531,9 @@ export function DetailsPanel({
           isDisabled={readOnly}
           maxLength={2000}
           onChange={(value) =>
-            editor.apply((doc) => updateNode(doc, instance.id, { comment: value }))
+            editor.apply((doc) =>
+              updateNode(doc, instance.id, { comment: value }),
+            )
           }
         />
         <div className={styles.groupBox}>
@@ -496,17 +543,28 @@ export function DetailsPanel({
               group={group}
               workoutId={workout.id}
               editor={editor}
-              disabled={readOnly || (group.kind !== "Superset" && !advancedAllowed)}
+              disabled={
+                readOnly || (group.kind !== "Superset" && !advancedAllowed)
+              }
             />
           ) : (
             <div className={styles.inline}>
               <Button
                 size="sm"
-                isDisabled={readOnly || !next || Boolean(next && groupOf(workout, next.id))}
+                isDisabled={
+                  readOnly ||
+                  !next ||
+                  Boolean(next && groupOf(workout, next.id))
+                }
                 onPress={() =>
                   next &&
                   editor.apply((doc) =>
-                    makeGroup(doc, workout.id, [instance.id, next.id], "Superset"),
+                    makeGroup(
+                      doc,
+                      workout.id,
+                      [instance.id, next.id],
+                      "Superset",
+                    ),
                   )
                 }
               >
@@ -524,7 +582,12 @@ export function DetailsPanel({
                 onPress={() =>
                   next &&
                   editor.apply((doc) =>
-                    makeGroup(doc, workout.id, [instance.id, next.id], "Circuit"),
+                    makeGroup(
+                      doc,
+                      workout.id,
+                      [instance.id, next.id],
+                      "Circuit",
+                    ),
                   )
                 }
               >
@@ -552,7 +615,10 @@ export function DetailsPanel({
             disabledKeys={
               advancedAllowed
                 ? []
-                : SET_KINDS.filter((kind) => setIsAdvanced({ ...set, kind }) && kind !== set.kind)
+                : SET_KINDS.filter(
+                    (kind) =>
+                      setIsAdvanced({ ...set, kind }) && kind !== set.kind,
+                  )
             }
           >
             {SET_KINDS.map((kind) => (
@@ -570,7 +636,9 @@ export function DetailsPanel({
               isDisabled={disabled}
               description={topSets.length ? undefined : t.sourceRule}
               onSelectionChange={(key) =>
-                editor.apply((doc) => updateNode(doc, set.id, { sourceSetId: String(key) }))
+                editor.apply((doc) =>
+                  updateNode(doc, set.id, { sourceSetId: String(key) }),
+                )
               }
             >
               {topSets.map((top) => (
@@ -586,7 +654,9 @@ export function DetailsPanel({
             isAmrap={set.kind === "Amrap"}
             customFormulas={customFormulas}
             simple={simple}
-            onChange={(p) => editor.apply((doc) => setPrescription(doc, set.id, p))}
+            onChange={(p) =>
+              editor.apply((doc) => setPrescription(doc, set.id, p))
+            }
           />
           {SEGMENTED.has(set.kind) ? (
             <div className={styles.segments}>
@@ -601,7 +671,10 @@ export function DetailsPanel({
                     editor.apply((doc) =>
                       updateSegments(doc, set.id, [
                         ...(set.segments ?? []),
-                        newSegment(set.segments?.at(-1)?.prescription ?? set.prescription),
+                        newSegment(
+                          set.segments?.at(-1)?.prescription ??
+                            set.prescription,
+                        ),
                       ]),
                     )
                   }
@@ -611,7 +684,11 @@ export function DetailsPanel({
               </div>
               <p className={styles.note}>{t.segmentsRule}</p>
               {(set.segments ?? []).map((segment, index) => (
-                <details key={segment.id} className={styles.segment} open={index === 0}>
+                <details
+                  key={segment.id}
+                  className={styles.segment}
+                  open={index === 0}
+                >
                   <summary>
                     <span>{t.segment(index + 1)}</span>
                     <IconButton
@@ -624,7 +701,9 @@ export function DetailsPanel({
                           updateSegments(
                             doc,
                             set.id,
-                            (set.segments ?? []).filter((s) => s.id !== segment.id),
+                            (set.segments ?? []).filter(
+                              (s) => s.id !== segment.id,
+                            ),
                           ),
                         )
                       }
@@ -686,7 +765,9 @@ function GroupEditor({
           isDisabled={disabled}
           onChange={(value) =>
             editor.apply((doc) =>
-              updateGroup(doc, workoutId, group.id, { rounds: Number.isNaN(value) ? 1 : value }),
+              updateGroup(doc, workoutId, group.id, {
+                rounds: Number.isNaN(value) ? 1 : value,
+              }),
             )
           }
         />
@@ -711,7 +792,9 @@ function GroupEditor({
       <Button
         size="sm"
         variant="ghost"
-        onPress={() => editor.apply((doc) => removeGroup(doc, workoutId, group.id))}
+        onPress={() =>
+          editor.apply((doc) => removeGroup(doc, workoutId, group.id))
+        }
       >
         {t.ungroup}
       </Button>

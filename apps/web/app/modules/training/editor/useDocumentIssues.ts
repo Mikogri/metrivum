@@ -5,7 +5,10 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { documentIssues } from "./model/issues";
 
 /** Format problems of a plan as readable lines: "Block › Cycle › Day 2 › Workout A › Squat › Set 3: reason". */
-export function useDocumentIssues(doc: TrainingDocument | undefined, names: Map<string, ExerciseLabel>): string[] {
+export function useDocumentIssues(
+  doc: TrainingDocument | undefined,
+  names: Map<string, ExerciseLabel>,
+): string[] {
   const m = useT();
   const t = m.editor.issues;
   return useMemo(() => {

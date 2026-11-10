@@ -1,6 +1,12 @@
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
-import { createContext, useContext, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { flushSync } from "react-dom";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,9 +14,19 @@ import { Alert, Button } from "@metrivum/ui-web";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useAccountContext, useAccountKey, useApi } from "./AccountScope";
 import { hasUnsavedWork } from "./dirty-guard";
-import { initialWorkspace, routeWorkspace, twinRoute, type WorkspaceMode } from "./workspace-model";
+import {
+  initialWorkspace,
+  routeWorkspace,
+  twinRoute,
+  type WorkspaceMode,
+} from "./workspace-model";
 
-type Workspace = { canCoach: boolean; mode: WorkspaceMode; switching: boolean; switchMode: (mode: WorkspaceMode, destination?: string) => Promise<boolean> };
+type Workspace = {
+  canCoach: boolean;
+  mode: WorkspaceMode;
+  switching: boolean;
+  switchMode: (mode: WorkspaceMode, destination?: string) => Promise<boolean>;
+};
 const Context = createContext<Workspace | null>(null);
 export function useWorkspace() {
   const value = useContext(Context);
@@ -18,7 +34,13 @@ export function useWorkspace() {
   return value;
 }
 
-export function WorkspaceScope({ children, roles }: { children: ReactNode; roles: readonly string[] }) {
+export function WorkspaceScope({
+  children,
+  roles,
+}: {
+  children: ReactNode;
+  roles: readonly string[];
+}) {
   const account = useAccountKey();
   const { lifecycle } = useAccountContext();
   const api = useApi();
@@ -27,17 +49,25 @@ export function WorkspaceScope({ children, roles }: { children: ReactNode; roles
   const { confirm, dialog } = useDiscardConfirm();
   const key = `tf.workspace.${account}`;
   const [mode, setMode] = useState<WorkspaceMode>(() => {
-    try { return initialWorkspace(roles, localStorage.getItem(key)); }
-    catch { return initialWorkspace(roles, null); }
+    try {
+      return initialWorkspace(roles, localStorage.getItem(key));
+    } catch {
+      return initialWorkspace(roles, null);
+    }
   });
   const [switching, setSwitching] = useState(false);
   const busy = useRef(false);
   const [error, setError] = useState("");
   const switchMode: Workspace["switchMode"] = async (next, destination) => {
-    if (!lifecycle.isCurrent() || busy.current || (next === "coach" && !roles.includes("Coach"))) return false;
+    if (
+      !lifecycle.isCurrent() ||
+      busy.current ||
+      (next === "coach" && !roles.includes("Coach"))
+    )
+      return false;
     busy.current = true;
     try {
-      if (hasUnsavedWork() && !await confirm()) return false;
+      if (hasUnsavedWork() && !(await confirm())) return false;
       if (!lifecycle.isCurrent()) return false;
       setSwitching(true);
       setError("");
@@ -48,21 +78,50 @@ export function WorkspaceScope({ children, roles }: { children: ReactNode; roles
       }
       await cache.cancelQueries({ queryKey: [account, "coaching"] });
       if (!lifecycle.isCurrent()) return false;
-      try { localStorage.setItem(key, next); } catch { /* Session-only mode when storage is unavailable. */ }
+      try {
+        localStorage.setItem(key, next);
+      } catch {
+        /* Session-only mode when storage is unavailable. */
+      }
       // Unmount dirty editors before navigating, avoiding a second route-blocker confirmation.
       flushSync(() => setMode(next));
-      navigate(destination?.startsWith("/app/") ? destination : next === "coach" ? "/app/dashboard" : "/app/my-coaches", { replace: true });
+      navigate(
+        destination?.startsWith("/app/")
+          ? destination
+          : next === "coach"
+            ? "/app/dashboard"
+            : "/app/my-coaches",
+        { replace: true },
+      );
       return true;
     } catch {
-      if (lifecycle.isCurrent()) setError("Could not switch workspace. Please try again.");
+      if (lifecycle.isCurrent())
+        setError("Could not switch workspace. Please try again.");
       return false;
-    } finally { busy.current = false; setSwitching(false); }
+    } finally {
+      busy.current = false;
+      setSwitching(false);
+    }
   };
-  return <Context.Provider value={{ mode, switching, switchMode, canCoach: roles.includes("Coach") }}>{error && <Alert tone="danger" title={error} />}{dialog}<div key={mode}>{children}</div></Context.Provider>;
+  return (
+    <Context.Provider
+      value={{ mode, switching, switchMode, canCoach: roles.includes("Coach") }}
+    >
+      {error && <Alert tone="danger" title={error} />}
+      {dialog}
+      <div key={mode}>{children}</div>
+    </Context.Provider>
+  );
 }
 
-export function WorkspaceRouteGuard({ children, required: explicit }: { children: ReactNode; required?: WorkspaceMode }) {
- const uiCopy = useUiCopy();
+export function WorkspaceRouteGuard({
+  children,
+  required: explicit,
+}: {
+  children: ReactNode;
+  required?: WorkspaceMode;
+}) {
+  const uiCopy = useUiCopy();
 
   const location = useLocation();
   const { mode, switchMode, switching, canCoach } = useWorkspace();
@@ -70,7 +129,31 @@ export function WorkspaceRouteGuard({ children, required: explicit }: { children
   if (!required || required === mode) return children;
   // A page both workspaces have (e.g. a client's workout): open it here rather than asking to switch.
   const twin = twinRoute(location.pathname, mode);
-  if (twin && twin !== location.pathname) return <Navigate to={twin + location.search} replace />;
-  if (required === "coach" && !canCoach) return <Alert title={uiCopy["ui"]["Coach workspace required"]}>{uiCopy["ui"]["This page is available to coach accounts."]}</Alert>;
-  return <Alert title={formatInterfaceText(uiCopy["ui"]["Open in {0} workspace"], [required === "coach" ? "Coach" : uiCopy["profile"]["roles"]["Client"]])} actions={<Button loading={switching} onPress={() => void switchMode(required, location.pathname + location.search)}>{uiCopy["ui"]["Switch workspace"]}</Button>}>{uiCopy["ui"]["This page belongs to your other workspace."]}</Alert>;
+  if (twin && twin !== location.pathname)
+    return <Navigate to={twin + location.search} replace />;
+  if (required === "coach" && !canCoach)
+    return (
+      <Alert title={uiCopy["ui"]["Coach workspace required"]}>
+        {uiCopy["ui"]["This page is available to coach accounts."]}
+      </Alert>
+    );
+  return (
+    <Alert
+      title={formatInterfaceText(uiCopy["ui"]["Open in {0} workspace"], [
+        required === "coach" ? "Coach" : uiCopy["profile"]["roles"]["Client"],
+      ])}
+      actions={
+        <Button
+          loading={switching}
+          onPress={() =>
+            void switchMode(required, location.pathname + location.search)
+          }
+        >
+          {uiCopy["ui"]["Switch workspace"]}
+        </Button>
+      }
+    >
+      {uiCopy["ui"]["This page belongs to your other workspace."]}
+    </Alert>
+  );
 }

@@ -67,11 +67,37 @@
   }
 }
 
-.status[data-invalid] { color: var(--tf-color-danger); min-width: 12rem; }
-.status[data-invalid] .icon { color: inherit; }
+.status[data-invalid] {
+  color: var(--tf-color-danger);
+  min-width: 12rem;
+}
+.status[data-invalid] .icon {
+  color: inherit;
+}
 
-.tooltip { max-width: 28rem; padding: var(--tf-space-3); }
-.issues { text-align: left; display: grid; gap: var(--tf-space-2); white-space: normal; overflow-wrap: anywhere; }
+.tooltip {
+  max-width: 28rem;
+  padding: var(--tf-space-3);
+}
+.issues {
+  text-align: left;
+  display: grid;
+  gap: var(--tf-space-2);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 
-.trigger { display: inline-flex; border: 0; padding: 0; background: transparent; color: inherit; font: inherit; cursor: default; }
-.trigger[data-focus-visible] { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 2px; border-radius: var(--tf-radius-sm); }
+.trigger {
+  display: inline-flex;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: default;
+}
+.trigger[data-focus-visible] {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--tf-radius-sm);
+}

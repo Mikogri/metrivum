@@ -5,7 +5,10 @@ import { Toaster, toast } from "@metrivum/ui-web";
 import { AppLocaleProvider, useT } from "~/shared/i18n/AppLocale";
 import { noIndexMeta } from "~/shared/i18n/site";
 import { createQueryClient } from "~/shared/lib/queryClient";
-import { SessionProvider, useSessionState } from "~/shared/session/SessionProvider";
+import {
+  SessionProvider,
+  useSessionState,
+} from "~/shared/session/SessionProvider";
 import { userInitiatedSignOuts } from "~/shared/session/signout-tracker";
 
 // Account and app screens are not for search engines. This is a hint, not access control.
@@ -20,7 +23,8 @@ function SessionWatcher() {
     const current = new Set(state.accounts.map((a) => a.userId));
     if (previous.current) {
       for (const id of previous.current) {
-        if (!current.has(id) && !userInitiatedSignOuts.delete(id)) toast({ tone: "warning", title: m.accounts.expiredToast });
+        if (!current.has(id) && !userInitiatedSignOuts.delete(id))
+          toast({ tone: "warning", title: m.accounts.expiredToast });
       }
     }
     previous.current = current;
@@ -30,7 +34,9 @@ function SessionWatcher() {
 
 function ToasterHost() {
   const m = useT();
-  return <Toaster label={m.common.notifications} dismissLabel={m.common.dismiss} />;
+  return (
+    <Toaster label={m.common.notifications} dismissLabel={m.common.dismiss} />
+  );
 }
 
 export default function PrivateRoot() {
@@ -38,7 +44,9 @@ export default function PrivateRoot() {
   const [queryClient] = useState(() => {
     const client = createQueryClient(() => {
       // A 403 FEATURE_UNAVAILABLE means our cached decision is stale: refetch it.
-      void clientRef.current?.invalidateQueries({ predicate: (query) => query.queryKey[1] === "access" });
+      void clientRef.current?.invalidateQueries({
+        predicate: (query) => query.queryKey[1] === "access",
+      });
     });
     clientRef.current = client;
     return client;

@@ -35,7 +35,11 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
   },
   {
-    files: ["apps/mobile/metro.config.cjs", "apps/mobile/plugins/*.cjs", "infra/security-dependencies/*.cjs"],
+    files: [
+      "apps/mobile/metro.config.cjs",
+      "apps/mobile/plugins/*.cjs",
+      "infra/security-dependencies/*.cjs",
+    ],
     languageOptions: { sourceType: "commonjs", globals: { ...globals.node } },
     rules: { "@typescript-eslint/no-require-imports": "off" },
   },
@@ -46,13 +50,21 @@ export default tseslint.config(
     rules: {
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
-      "@typescript-eslint/consistent-type-imports": ["error", { fixStyle: "inline-type-imports" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { fixStyle: "inline-type-imports" },
+      ],
       "no-restricted-syntax": [
         "error",
         {
-          selector: "CallExpression[callee.property.name='from'][callee.object.property.name='supabase']",
-          message: "Business data comes from the Metrivum API, never supabase.from().",
+          selector:
+            "CallExpression[callee.property.name='from'][callee.object.property.name='supabase']",
+          message:
+            "Business data comes from the Metrivum API, never supabase.from().",
         },
       ],
     },
@@ -67,7 +79,8 @@ export default tseslint.config(
           patterns: [
             {
               regex: "^~/modules/[^/]+/.+",
-              message: "Import another module through its index (~/modules/<name>), not its internals.",
+              message:
+                "Import another module through its index (~/modules/<name>), not its internals.",
             },
           ],
         },
@@ -78,7 +91,17 @@ export default tseslint.config(
     // A module may use its own internals via relative paths; the rule above targets the ~ alias.
     files: ["apps/web/app/shared/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: [{ regex: "^~/modules/", message: "shared/ must not depend on feature modules." }] }],
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: "^~/modules/",
+              message: "shared/ must not depend on feature modules.",
+            },
+          ],
+        },
+      ],
     },
   },
   {
@@ -89,9 +112,18 @@ export default tseslint.config(
         {
           patterns: [
             { regex: "^~/", message: "ui-web cannot import from the app." },
-            { regex: "^@supabase/", message: "ui-web knows nothing about Supabase." },
-            { regex: "^@tanstack/react-query", message: "ui-web knows nothing about server state." },
-            { regex: "^@metrivum/api-client-web", message: "ui-web knows nothing about the API." },
+            {
+              regex: "^@supabase/",
+              message: "ui-web knows nothing about Supabase.",
+            },
+            {
+              regex: "^@tanstack/react-query",
+              message: "ui-web knows nothing about server state.",
+            },
+            {
+              regex: "^@metrivum/api-client-web",
+              message: "ui-web knows nothing about the API.",
+            },
           ],
         },
       ],

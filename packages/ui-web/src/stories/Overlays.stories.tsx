@@ -29,13 +29,27 @@ export const Modal: Story = {
       <div style={{ display: "flex", gap: 12 }}>
         <DialogTrigger>
           <Button>{t.dialogTitle}</Button>
-          <Dialog title={t.dialogTitle} description={t.dialogBody} footer={(close) => <Button variant="primary" onPress={close}>{t.save}</Button>}>
+          <Dialog
+            title={t.dialogTitle}
+            description={t.dialogBody}
+            footer={(close) => (
+              <Button variant="primary" onPress={close}>
+                {t.save}
+              </Button>
+            )}
+          >
             <TextField label={t.name} autoFocus />
           </Dialog>
         </DialogTrigger>
         <DialogTrigger>
           <Button variant="danger">{t.delete}</Button>
-          <AlertDialog title={t.alertTitle} tone="danger" confirmLabel={t.delete} cancelLabel={t.cancel} onConfirm={() => {}}>
+          <AlertDialog
+            title={t.alertTitle}
+            tone="danger"
+            confirmLabel={t.delete}
+            cancelLabel={t.cancel}
+            onConfirm={() => {}}
+          >
             <p>{t.alertBody}</p>
           </AlertDialog>
         </DialogTrigger>
@@ -47,12 +61,20 @@ export const Modal: Story = {
 export const Menu: Story = {
   render: () => (
     <DropdownMenuTrigger>
-      <IconButton label="More actions" icon={<MoreHorizontal />} variant="secondary" />
+      <IconButton
+        label="More actions"
+        icon={<MoreHorizontal />}
+        variant="secondary"
+      />
       <DropdownMenu placement="bottom start">
         <DropdownMenuItem id="edit" icon={<Pencil />} shortcut="E">
           Edit draft
         </DropdownMenuItem>
-        <DropdownMenuItem id="copy" icon={<Copy />} description="Independent copy">
+        <DropdownMenuItem
+          id="copy"
+          icon={<Copy />}
+          description="Independent copy"
+        >
           Make a copy
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -70,7 +92,9 @@ export const PopoverAndTooltip: Story = {
       <DialogTrigger>
         <Button>Open popover</Button>
         <Popover aria-label="Details" width="sm">
-          <div style={{ padding: 16, fontSize: 13 }}>Popovers scale from their trigger.</div>
+          <div style={{ padding: 16, fontSize: 13 }}>
+            Popovers scale from their trigger.
+          </div>
         </Popover>
       </DialogTrigger>
       <TooltipTrigger>
@@ -86,9 +110,30 @@ export const Toasts: Story = {
     const t = pick(globals.locale);
     return (
       <div style={{ display: "flex", gap: 12 }}>
-        <Button onPress={() => toast({ tone: "success", title: t.toastSaved })}>Success</Button>
-        <Button onPress={() => toast({ tone: "danger", title: t.toastFailed, description: "Reference: 0HN7…" })}>Error</Button>
-        <Button onPress={() => toast({ title: "Copied", action: { label: "Undo", onAction: () => {} } })}>With action</Button>
+        <Button onPress={() => toast({ tone: "success", title: t.toastSaved })}>
+          Success
+        </Button>
+        <Button
+          onPress={() =>
+            toast({
+              tone: "danger",
+              title: t.toastFailed,
+              description: "Reference: 0HN7…",
+            })
+          }
+        >
+          Error
+        </Button>
+        <Button
+          onPress={() =>
+            toast({
+              title: "Copied",
+              action: { label: "Undo", onAction: () => {} },
+            })
+          }
+        >
+          With action
+        </Button>
       </div>
     );
   },

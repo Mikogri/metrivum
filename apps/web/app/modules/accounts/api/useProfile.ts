@@ -9,7 +9,11 @@ export const profileKey = (accountKey: string) => [accountKey, "me"] as const;
 export function useProfileQuery() {
   const api = useApi();
   const accountKey = useAccountKey();
-  return useQuery({ queryKey: profileKey(accountKey), queryFn: ({ signal }) => getMe(api, signal), staleTime: 5 * 60_000 });
+  return useQuery({
+    queryKey: profileKey(accountKey),
+    queryFn: ({ signal }) => getMe(api, signal),
+    staleTime: 5 * 60_000,
+  });
 }
 
 export const ProfileContext = createContext<ProfileResponse | null>(null);
@@ -17,6 +21,7 @@ export const ProfileContext = createContext<ProfileResponse | null>(null);
 /** The onboarded profile of the active account. Available inside the app shell. */
 export function useProfile(): ProfileResponse {
   const profile = useContext(ProfileContext);
-  if (!profile) throw new Error("useProfile must be used inside <AccountGate>.");
+  if (!profile)
+    throw new Error("useProfile must be used inside <AccountGate>.");
   return profile;
 }

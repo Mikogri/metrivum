@@ -142,7 +142,8 @@
 }
 
 .loading {
-  padding: var(--tf-space-1) var(--tf-space-2) var(--tf-space-1) calc(var(--depth, 0) * 0.875rem + 1.75rem);
+  padding: var(--tf-space-1) var(--tf-space-2) var(--tf-space-1)
+    calc(var(--depth, 0) * 0.875rem + 1.75rem);
 }
 
 @media (hover: none) {

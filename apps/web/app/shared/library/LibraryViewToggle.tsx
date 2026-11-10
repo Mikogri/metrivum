@@ -10,14 +10,30 @@ export function useLibraryView(requested: string): LibraryView {
   return useMobileLayout() || requested === "cards" ? "cards" : "list";
 }
 
-export function LibraryViewToggle({ value, onChange }: { value: LibraryView; onChange: (value: LibraryView) => void }) {
+export function LibraryViewToggle({
+  value,
+  onChange,
+}: {
+  value: LibraryView;
+  onChange: (value: LibraryView) => void;
+}) {
   const labels = useT().training.library.view;
   return (
-    <SegmentedControl aria-label={labels.label} selectedKeys={[value]}
-      onSelectionChange={(keys) => { const selected = [...keys][0]; if (selected === "list" || selected === "cards") onChange(selected); }}
-      className={styles.toggle}>
-      <Segment id="cards" aria-label={labels.cards}><LayoutGrid aria-hidden="true" /></Segment>
-      <Segment id="list" aria-label={labels.table}><Table2 aria-hidden="true" /></Segment>
+    <SegmentedControl
+      aria-label={labels.label}
+      selectedKeys={[value]}
+      onSelectionChange={(keys) => {
+        const selected = [...keys][0];
+        if (selected === "list" || selected === "cards") onChange(selected);
+      }}
+      className={styles.toggle}
+    >
+      <Segment id="cards" aria-label={labels.cards}>
+        <LayoutGrid aria-hidden="true" />
+      </Segment>
+      <Segment id="list" aria-label={labels.table}>
+        <Table2 aria-hidden="true" />
+      </Segment>
     </SegmentedControl>
   );
 }

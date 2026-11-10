@@ -12,7 +12,16 @@ export const appPl: AppMessages = {
   specializations: specializationsPl,
   common: {
     noResults: "Brak wyników",
-    col: { name: "Nazwa", description: "Opis", created: "Utworzono", status: "Status", tags: "Tagi", size: "Rozmiar", type: "Typ", version: "Wersja" },
+    col: {
+      name: "Nazwa",
+      description: "Opis",
+      created: "Utworzono",
+      status: "Status",
+      tags: "Tagi",
+      size: "Rozmiar",
+      type: "Typ",
+      version: "Wersja",
+    },
     ph: {
       email: "nazwa@przyklad.pl",
       password: "Twoje hasło",
@@ -68,7 +77,8 @@ export const appPl: AppMessages = {
     previous: "Poprzednia",
     next: "Następna",
     perPage: (n: number) => `${n} wierszy na stronę`,
-    pageStatus: (page: number, pages: number | null) => (pages ? `Strona ${page} z ${pages}` : `Strona ${page}`),
+    pageStatus: (page: number, pages: number | null) =>
+      pages ? `Strona ${page} z ${pages}` : `Strona ${page}`,
     pagination: "Stronicowanie",
     actions: "Akcje",
     moreActions: (name: string) => `Więcej akcji: ${name}`,
@@ -86,7 +96,8 @@ export const appPl: AppMessages = {
     created: (when: string) => `Utworzono ${when}`,
     version: (n: number) => `Wersja ${n}`,
     unsavedTitle: "Odrzucić niezapisane zmiany?",
-    unsavedBody: "Masz zmiany, które nie zostały zapisane. Jeśli przejdziesz dalej, zostaną utracone.",
+    unsavedBody:
+      "Masz zmiany, które nie zostały zapisane. Jeśli przejdziesz dalej, zostaną utracone.",
     discard: "Odrzuć zmiany",
     keepEditing: "Wróć do edycji",
     skipToContent: "Przejdź do treści",
@@ -97,38 +108,58 @@ export const appPl: AppMessages = {
     network: "Brak połączenia z Metrivum. Sprawdź internet i spróbuj ponownie.",
     timeout: "Serwer odpowiada zbyt długo. Spróbuj ponownie.",
     rateLimited: (seconds: number | null) =>
-      seconds ? `Zbyt wiele żądań. Spróbuj ponownie za ${seconds} s.` : "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
+      seconds
+        ? `Zbyt wiele żądań. Spróbuj ponownie za ${seconds} s.`
+        : "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
     byCode: {
-      VALIDATION_FAILED: "Niektóre wartości są niepoprawne. Sprawdź oznaczone pola.",
-      USERNAME_INVALID: "Użyj 3-32 liter, cyfr i pojedynczych podkreśleń, zaczynając od litery.",
+      VALIDATION_FAILED:
+        "Niektóre wartości są niepoprawne. Sprawdź oznaczone pola.",
+      USERNAME_INVALID:
+        "Użyj 3-32 liter, cyfr i pojedynczych podkreśleń, zaczynając od litery.",
       USERNAME_RESERVED: "Ta nazwa jest zarezerwowana. Wybierz inną.",
       USERNAME_TAKEN: "Ta nazwa użytkownika jest już zajęta.",
-      DISPLAY_NAME_INVALID: "Użyj 1-100 znaków bez łamania wierszy i ukrytych znaków.",
-      OFFER_PUBLISHED: "Opublikowana oferta zachowuje swoje warunki. Zamiast usuwać, zarchiwizuj ją.",
+      DISPLAY_NAME_INVALID:
+        "Użyj 1-100 znaków bez łamania wierszy i ukrytych znaków.",
+      OFFER_PUBLISHED:
+        "Opublikowana oferta zachowuje swoje warunki. Zamiast usuwać, zarchiwizuj ją.",
       UNAUTHENTICATED: "Sesja wygasła. Zaloguj się ponownie.",
       ONBOARDING_REQUIRED: "Najpierw dokończ konfigurację konta.",
       ACCOUNT_DISABLED: "To konto jest wyłączone.",
       FEATURE_UNAVAILABLE: "Ta funkcja nie jest dostępna na Twoim koncie.",
       ADMIN_PERMISSION_REQUIRED: "Wymaga to uprawnień administratora.",
       RESOURCE_NOT_FOUND: "Nie znaleziono tego elementu.",
-      CONFLICT: "Ta zmiana koliduje z bieżącym stanem. Odśwież i spróbuj ponownie.",
-      VERSION_CONFLICT: "Ten element został zmieniony gdzie indziej. Odśwież, aby zobaczyć najnowszą wersję.",
-      IDEMPOTENCY_CONFLICT: "To żądanie zostało już użyte z inną treścią. Rozpocznij akcję od nowa.",
+      CONFLICT:
+        "Ta zmiana koliduje z bieżącym stanem. Odśwież i spróbuj ponownie.",
+      VERSION_CONFLICT:
+        "Ten element został zmieniony gdzie indziej. Odśwież, aby zobaczyć najnowszą wersję.",
+      IDEMPOTENCY_CONFLICT:
+        "To żądanie zostało już użyte z inną treścią. Rozpocznij akcję od nowa.",
       LIMIT_EXCEEDED: "Osiągnięto limit dla Twojego konta.",
-      VERSION_REQUIRED: "Aplikacja wysłała zmianę bez wersji. Odśwież i spróbuj ponownie.",
-      PRECONDITION_REQUIRED: "Aplikacja wysłała zmianę bez wersji. Odśwież i spróbuj ponownie.",
-      IF_MATCH_REQUIRED: "Aplikacja wysłała zmianę bez wersji. Odśwież i spróbuj ponownie.",
-      RATE_LIMIT_EXCEEDED: "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
+      VERSION_REQUIRED:
+        "Aplikacja wysłała zmianę bez wersji. Odśwież i spróbuj ponownie.",
+      PRECONDITION_REQUIRED:
+        "Aplikacja wysłała zmianę bez wersji. Odśwież i spróbuj ponownie.",
+      IF_MATCH_REQUIRED:
+        "Aplikacja wysłała zmianę bez wersji. Odśwież i spróbuj ponownie.",
+      RATE_LIMIT_EXCEEDED:
+        "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
       UNSUPPORTED_MEDIA_TYPE: "Ten typ pliku nie jest obsługiwany.",
-      DATABASE_UNAVAILABLE: "Baza danych Metrivum jest niedostępna. Spróbuj za chwilę.",
-      INTEGRATION_UNAVAILABLE: "Połączona usługa jest niedostępna. Spróbuj za chwilę.",
-      INTERNAL_ERROR: "Coś poszło nie tak po naszej stronie. Spróbuj ponownie, a jeśli to się powtarza, skontaktuj się z pomocą.",
-      ANALYZER_NOT_CONFIGURED: "Do tego wdrożenia Metrivum nie podłączono analizatora wideo, więc analiza nie może się uruchomić.",
-      EXERCISE_NAME_EXISTS: "Ćwiczenie o tej nazwie już istnieje (także wśród zarchiwizowanych).",
-      EXERCISE_ARCHIVED: "To ćwiczenie jest zarchiwizowane i nie można go edytować.",
+      DATABASE_UNAVAILABLE:
+        "Baza danych Metrivum jest niedostępna. Spróbuj za chwilę.",
+      INTEGRATION_UNAVAILABLE:
+        "Połączona usługa jest niedostępna. Spróbuj za chwilę.",
+      INTERNAL_ERROR:
+        "Coś poszło nie tak po naszej stronie. Spróbuj ponownie, a jeśli to się powtarza, skontaktuj się z pomocą.",
+      ANALYZER_NOT_CONFIGURED:
+        "Do tego wdrożenia Metrivum nie podłączono analizatora wideo, więc analiza nie może się uruchomić.",
+      EXERCISE_NAME_EXISTS:
+        "Ćwiczenie o tej nazwie już istnieje (także wśród zarchiwizowanych).",
+      EXERCISE_ARCHIVED:
+        "To ćwiczenie jest zarchiwizowane i nie można go edytować.",
       TAG_NAME_EXISTS: "Tag o tej nazwie już istnieje.",
       TAG_MERGED: "Ten tag został scalony z innym.",
-      MEDIA_IN_USE: "To nagranie jest używane przez analizę i nie może zostać usunięte.",
+      MEDIA_IN_USE:
+        "To nagranie jest używane przez analizę i nie może zostać usunięte.",
       MEDIA_NOT_READY: "To nagranie nie jest jeszcze gotowe.",
       ANALYSIS_NOT_COMPLETED: "Ta analiza jeszcze się nie zakończyła.",
     },
@@ -145,16 +176,19 @@ export const appPl: AppMessages = {
       limit_reached: "Osiągnięto limit tej funkcji.",
       unknown: "Nie udało się potwierdzić dostępu.",
     },
-    limitHelp: "Poczekaj, aż trwające zadanie się skończy, albo przejdź na plan z wyższym limitem.",
+    limitHelp:
+      "Poczekaj, aż trwające zadanie się skończy, albo przejdź na plan z wyższym limitem.",
     seePlans: "Zobacz plany",
     upgradeToPro: "Przejdź na Pro",
     proTitle: (feature: string) => `${feature} jest w planie Pro`,
-    proBody: "Przejdź na Pro, żeby to odblokować. Wszystko, co już masz, działa dalej.",
+    proBody:
+      "Przejdź na Pro, żeby to odblokować. Wszystko, co już masz, działa dalej.",
     quotaContext: "Użyj limitu z",
     personalQuota: "Plan osobisty",
     workspaceQuota: "Plan workspace",
     teamQuotaUnavailable: "Nie udało się odczytać członkostwa workspace.",
-    quotaUnavailable: "Nie udało się odczytać wykorzystania. Serwer sprawdza limit przed rozpoczęciem.",
+    quotaUnavailable:
+      "Nie udało się odczytać wykorzystania. Serwer sprawdza limit przed rozpoczęciem.",
     features: {
       "exercises.browse": "Przeglądanie ćwiczeń",
       "exercises.create": "Dodawanie ćwiczeń",
@@ -194,7 +228,8 @@ export const appPl: AppMessages = {
       "billing.pay-own": "Opłacanie usług",
       "calendar.events.manage": "Spotkania i wydarzenia",
       "calendar.events.read-own": "Twój kalendarz",
-      "calendar.invitations.respond-own": "Odpowiedzi na zaproszenia na spotkania",
+      "calendar.invitations.respond-own":
+        "Odpowiedzi na zaproszenia na spotkania",
       "messaging.direct": "Wiadomości prywatne",
       "messaging.groups": "Rozmowy grupowe",
       "messaging.group.manage": "Zarządzanie rozmowami grupowymi",
@@ -228,7 +263,8 @@ export const appPl: AppMessages = {
       "integrations.mcp.read-clients": "AI: odczyt klientów",
       "integrations.mcp.read-messages": "AI: odczyt wiadomości",
       "integrations.mcp.read-training": "AI: odczyt programów",
-      "integrations.mcp.send-approved-message": "AI: wysyłanie zatwierdzonych wiadomości",
+      "integrations.mcp.send-approved-message":
+        "AI: wysyłanie zatwierdzonych wiadomości",
       "integrations.mcp.write-training-drafts": "AI: szkice programów",
       "organization.workspace.manage": "Zarządzanie przestrzenią zespołu",
     },
@@ -261,8 +297,23 @@ export const appPl: AppMessages = {
     subscription: "Subskrypcja",
     crumbsLabel: "Bieżąca lokalizacja",
     searchShort: "Szukaj…",
-    groups: { general: "Ogólne", overview: "Przegląd", training: "Trening", coaching: "Coaching", library: "Biblioteka", others: "Inne" },
-    crumbs: { editor: "Edytor", home: "Metrivum", details: "Szczegóły", newAnalysis: "Nowa analiza", create: "Nowy", compare: "Porównanie", generate: "Generator" },
+    groups: {
+      general: "Ogólne",
+      overview: "Przegląd",
+      training: "Trening",
+      coaching: "Coaching",
+      library: "Biblioteka",
+      others: "Inne",
+    },
+    crumbs: {
+      editor: "Edytor",
+      home: "Metrivum",
+      details: "Szczegóły",
+      newAnalysis: "Nowa analiza",
+      create: "Nowy",
+      compare: "Porównanie",
+      generate: "Generator",
+    },
     collapse: "Zwiń panel boczny",
     expand: "Rozwiń panel boczny",
     main: "Główna nawigacja",
@@ -280,7 +331,13 @@ export const appPl: AppMessages = {
     commandPalette: "Szukaj lub przejdź do…",
     commandHint: "Przejdź do strony",
     commandEmpty: "Brak wyników",
-    commandSections: { pages: "Strony", actions: "Akcje", people: "Osoby", teams: "Twoje zespoły", clients: "Klienci" },
+    commandSections: {
+      pages: "Strony",
+      actions: "Akcje",
+      people: "Osoby",
+      teams: "Twoje zespoły",
+      clients: "Klienci",
+    },
     commandSearching: "Szukam…",
     commandTip: "Strony, akcje, osoby (@nazwa), Twoje zespoły i klienci",
     commandSearchFailed: "Nie udało się wyszukać osób. Spróbuj ponownie.",
@@ -293,18 +350,21 @@ export const appPl: AppMessages = {
     switchTo: (name: string) => `Przełącz na ${name}`,
     current: "Bieżące konto",
     add: "Dodaj kolejne konto",
-    maxReached: "Możesz być zalogowany na maksymalnie trzech kontach jednocześnie.",
+    maxReached:
+      "Możesz być zalogowany na maksymalnie trzech kontach jednocześnie.",
     signOut: "Wyloguj",
     signOutOf: (name: string) => `Wyloguj z ${name}`,
     switching: "Przełączanie konta…",
     signedOutToast: (email: string) => `Wylogowano z ${email}`,
-    expiredToast: "Jedno z kont zostało wylogowane, ponieważ jego sesja wygasła.",
+    expiredToast:
+      "Jedno z kont zostało wylogowane, ponieważ jego sesja wygasła.",
     addChoiceTitle: "Dodaj konto",
     signInExisting: "Zaloguj się na istniejące konto",
     createNew: "Utwórz nowe konto",
     signOutTitle: "Wyloguj",
     signOutChoose: "Wybierz konto, z którego chcesz się wylogować.",
-    signOutBody: "Pozostałe konta zostaną zalogowane. Jeśli wylogujesz się z konta, którego używasz, Metrivum od razu przełączy Cię na następne.",
+    signOutBody:
+      "Pozostałe konta zostaną zalogowane. Jeśli wylogujesz się z konta, którego używasz, Metrivum od razu przełączy Cię na następne.",
     signOutAll: "Wyloguj ze wszystkich kont",
     switchedTo: (email: string) => `Używasz teraz ${email}`,
     viewProfile: "Zobacz profil",
@@ -318,17 +378,20 @@ export const appPl: AppMessages = {
     restrictedBody:
       "Nie możesz korzystać z Metrivum na tym koncie. Jeśli to pomyłka, skontaktuj się z osobą zarządzającą dostępem do Metrivum.",
     commErrorTitle: "Nie udało się wczytać konta",
-    commErrorBody: "Metrivum nie odpowiedział. Twoje dane są bezpieczne — spróbuj ponownie za chwilę.",
+    commErrorBody:
+      "Metrivum nie odpowiedział. Twoje dane są bezpieczne — spróbuj ponownie za chwilę.",
     sessionExpiredTitle: "Sesja wygasła",
     sessionExpiredBody: "Zaloguj się ponownie, aby kontynuować.",
     signInAgain: "Zaloguj się ponownie",
     notConfiguredTitle: "Logowanie nie jest skonfigurowane",
-    notConfiguredBody: "Ta wersja nie ma ustawień Supabase Auth. Ustaw VITE_SUPABASE_URL i VITE_SUPABASE_PUBLISHABLE_KEY.",
+    notConfiguredBody:
+      "Ta wersja nie ma ustawień Supabase Auth. Ustaw VITE_SUPABASE_URL i VITE_SUPABASE_PUBLISHABLE_KEY.",
     smallScreenEditor:
       "Edytor programów jest projektowany na większe ekrany. Na telefonie możesz przejrzeć program; edycja działa najlepiej na tablecie lub komputerze.",
   },
   auth: {
-    brandLine: "Przestrzeń robocza dla trenerów, którzy piszą programy treningowe.",
+    brandLine:
+      "Przestrzeń robocza dla trenerów, którzy piszą programy treningowe.",
     backToSite: "Wróć na stronę",
     email: "E-mail",
     password: "Hasło",
@@ -337,7 +400,8 @@ export const appPl: AppMessages = {
       title: "Zaloguj się do Metrivum",
       subtitle: "Użyj e-maila i hasła swojego konta trenera.",
       addingTitle: "Dodaj kolejne konto",
-      addingSubtitle: "Zaloguj się na inne konto. Pozostałe konta pozostaną zalogowane.",
+      addingSubtitle:
+        "Zaloguj się na inne konto. Pozostałe konta pozostaną zalogowane.",
       signInTab: "Zaloguj się",
       createTab: "Utwórz konto",
       submit: "Zaloguj się",
@@ -353,7 +417,8 @@ export const appPl: AppMessages = {
     register: {
       metaTitle: "Rejestracja — Metrivum",
       title: "Załóż konto",
-      subtitle: "Wybierz, jak chcesz korzystać z Metrivum. Profil uzupełnisz po potwierdzeniu e-maila.",
+      subtitle:
+        "Wybierz, jak chcesz korzystać z Metrivum. Profil uzupełnisz po potwierdzeniu e-maila.",
       accountType: "Typ konta",
       coach: "Coach — prowadź klientów i treningi",
       client: "Client — trenuj ze swoim trenerem",
@@ -362,23 +427,29 @@ export const appPl: AppMessages = {
       haveAccount: "Masz już konto?",
       signInInstead: "Zaloguj się na to konto",
       signIn: "Zaloguj się",
-      termsPending: "Publiczna rejestracja ruszy po opublikowaniu polityki prywatności i regulaminu.",
+      termsPending:
+        "Publiczna rejestracja ruszy po opublikowaniu polityki prywatności i regulaminu.",
       acceptPrefix: "Akceptuję",
       termsLink: "Regulamin",
       acceptAnd: "oraz",
       privacyLink: "Politykę prywatności",
-      termsRequired: "Zaakceptuj regulamin i politykę prywatności, aby założyć konto.",
+      termsRequired:
+        "Zaakceptuj regulamin i politykę prywatności, aby założyć konto.",
       addingTitle: "Utwórz kolejne konto",
-      addingSubtitle: "Pozostałe konta zostaną zalogowane. Po potwierdzeniu e-maila uzupełnisz nowy profil.",
+      addingSubtitle:
+        "Pozostałe konta zostaną zalogowane. Po potwierdzeniu e-maila uzupełnisz nowy profil.",
     },
     verify: {
       metaTitle: "Potwierdź e-mail — Metrivum",
       title: "Sprawdź skrzynkę",
-      body: (email: string) => `Wysłaliśmy link potwierdzający na ${email}. Otwórz go w tej przeglądarce, aby dokończyć zakładanie konta.`,
-      loginBody: (email: string) => `Wysłaliśmy link logowania na ${email}. Otwórz go w tej przeglądarce, aby się zalogować.`,
+      body: (email: string) =>
+        `Wysłaliśmy link potwierdzający na ${email}. Otwórz go w tej przeglądarce, aby dokończyć zakładanie konta.`,
+      loginBody: (email: string) =>
+        `Wysłaliśmy link logowania na ${email}. Otwórz go w tej przeglądarce, aby się zalogować.`,
       bodyNoEmail: "Otwórz link z wiadomości e-mail w tej przeglądarce.",
       waiting: "Czekamy, aż otworzysz link…",
-      spamHint: "Nic nie przyszło po minucie? Sprawdź folder spam albo wyślij nowy link.",
+      spamHint:
+        "Nic nie przyszło po minucie? Sprawdź folder spam albo wyślij nowy link.",
       haveCode: "W e-mailu jest kod? Wpisz go",
       code: "Kod z e-maila",
       codePlaceholder: "123456",
@@ -410,7 +481,8 @@ export const appPl: AppMessages = {
       noSession: "Ten link wygasł albo został już użyty. Poproś o nowy.",
       requestNew: "Poproś o nowy link",
       invalidTitle: "Ten link nie działa",
-      notFromLink: "Aby ustawić nowe hasło, otwórz w tej przeglądarce link z wiadomości e-mail.",
+      notFromLink:
+        "Aby ustawić nowe hasło, otwórz w tej przeglądarce link z wiadomości e-mail.",
       doneTitle: "Hasło zmienione",
       doneBody: "Nowe hasło działa. Pozostałe urządzenia zostały wylogowane.",
       continue: "Przejdź do Metrivum",
@@ -418,14 +490,19 @@ export const appPl: AppMessages = {
     callback: {
       metaTitle: "Logowanie — Metrivum",
       working: "Kończenie logowania…",
-      steps: ["Sprawdzanie linku", "Zabezpieczanie sesji", "Otwieranie przestrzeni roboczej"],
+      steps: [
+        "Sprawdzanie linku",
+        "Zabezpieczanie sesji",
+        "Otwieranie przestrzeni roboczej",
+      ],
       failedTitle: "Ten link nie zadziałał",
       expired: "Link wygasł albo został już użyty. Poproś o nowy.",
       failed: "Nie udało się dokończyć logowania z tego linku.",
       backToLogin: "Wróć do logowania",
       emailChanged: "Adres e-mail zmieniony",
       emailHalfwayTitle: "Jeszcze jeden link",
-      emailHalfway: "Ten adres jest potwierdzony. Otwórz link wysłany na drugi adres, żeby dokończyć zmianę e-maila.",
+      emailHalfway:
+        "Ten adres jest potwierdzony. Otwórz link wysłany na drugi adres, żeby dokończyć zmianę e-maila.",
       toSettings: "Wróć do ustawień",
     },
     errors: {
@@ -435,14 +512,18 @@ export const appPl: AppMessages = {
       weakPassword: "Wybierz silniejsze hasło.",
       userExists: "Ten e-mail ma już konto.",
       invalidCode: "Ten kod jest nieprawidłowy albo wygasł.",
-      serviceUnavailable: "Usługa logowania nie mogła wykonać tej operacji. Spróbuj ponownie później. Jeśli problem się powtarza, skontaktuj się z pomocą.",
-      emailDelivery: "Nie udało się wysłać e-maila z potwierdzeniem. Spróbuj ponownie za kilka minut. Jeśli problem się powtarza, skontaktuj się z pomocą.",
+      serviceUnavailable:
+        "Usługa logowania nie mogła wykonać tej operacji. Spróbuj ponownie później. Jeśli problem się powtarza, skontaktuj się z pomocą.",
+      emailDelivery:
+        "Nie udało się wysłać e-maila z potwierdzeniem. Spróbuj ponownie za kilka minut. Jeśli problem się powtarza, skontaktuj się z pomocą.",
       network: "Brak połączenia z usługą logowania. Sprawdź internet.",
       generic: "Logowanie nie powiodło się. Spróbuj ponownie.",
       emailInvalid: "Wpisz poprawny adres e-mail.",
       passwordShort: "Użyj co najmniej 8 znaków.",
-      passwordLong: "Użyj najwyżej 72 znaków (mniej, jeśli są emoji lub polskie litery).",
-      passwordWeak: "To hasło łatwo odgadnąć. Unikaj popularnych haseł i nazwy ze swojego e-maila.",
+      passwordLong:
+        "Użyj najwyżej 72 znaków (mniej, jeśli są emoji lub polskie litery).",
+      passwordWeak:
+        "To hasło łatwo odgadnąć. Unikaj popularnych haseł i nazwy ze swojego e-maila.",
       required: "To pole jest wymagane.",
     },
   },
@@ -457,56 +538,85 @@ export const appPl: AppMessages = {
     title: "Uzupełnij profil",
     body: "Kilka informacji na start. Nazwy użytkownika i daty urodzenia nie można później zmienić.",
     username: "Nazwa użytkownika",
-    usernameHint: "3-32 litery, cyfry i pojedyncze podkreślenia, na początku litera. Nie można jej później zmienić.",
+    usernameHint:
+      "3-32 litery, cyfry i pojedyncze podkreślenia, na początku litera. Nie można jej później zmienić.",
     usernameReserved: "Ta nazwa jest zarezerwowana. Wybierz inną.",
-    displayNameInvalid: "Użyj 1-100 znaków bez łamania wierszy i ukrytych znaków.",
+    displayNameInvalid:
+      "Użyj 1-100 znaków bez łamania wierszy i ukrytych znaków.",
     displayName: "Imię i nazwisko",
     firstName: "Imię",
     lastName: "Nazwisko",
-    namePartInvalid: "Użyj od 1 do 50 znaków, bez łamania wierszy i ukrytych znaków.",
+    namePartInvalid:
+      "Użyj od 1 do 50 znaków, bez łamania wierszy i ukrytych znaków.",
     birthDate: "Data urodzenia",
     birthDateHint: "Musisz mieć co najmniej 18 lat, aby korzystać z Metrivum.",
     locale: "Język",
     timeZone: "Strefa czasowa",
     acceptTerms: "Akceptuję regulamin i politykę prywatności Metrivum.",
-    termsPending: "Regulamin i polityka prywatności nie są jeszcze opublikowane, więc nie można ich tu podlinkować.",
+    termsPending:
+      "Regulamin i polityka prywatności nie są jeszcze opublikowane, więc nie można ich tu podlinkować.",
     submit: "Zakończ konfigurację",
     under18: "Musisz mieć co najmniej 18 lat.",
     finishing: "Konfigurowanie konta…",
-    finishingSteps: ["Tworzenie konta", "Zapisywanie danych", "Otwieranie Metrivum"],
+    finishingSteps: [
+      "Tworzenie konta",
+      "Zapisywanie danych",
+      "Otwieranie Metrivum",
+    ],
     usernameTaken: "Ta nazwa użytkownika jest już zajęta.",
-    usernameCheckFailed: "Nie udało się sprawdzić nazwy użytkownika. Spróbuj ponownie.",
+    usernameCheckFailed:
+      "Nie udało się sprawdzić nazwy użytkownika. Spróbuj ponownie.",
     previousStep: "Poprzedni krok",
-    identityMismatch: "To nie zgadza się z nazwą użytkownika i datą urodzenia ustawionymi wcześniej.",
+    identityMismatch:
+      "To nie zgadza się z nazwą użytkownika i datą urodzenia ustawionymi wcześniej.",
     termsRequired: "Aby kontynuować, zaakceptuj regulamin.",
     step: (current: number, total: number) => `Krok ${current} z ${total}`,
     continue: "Dalej",
     back: "Wstecz",
     skip: "Pomiń na razie",
     bodyTitle: "O Tobie",
-    bodyLead: "Trener używa tych danych do doboru obciążeń i śledzenia postępów. Widzą je tylko trenerzy, z którymi współpracujesz.",
-    bodyLeadCoach: "Dla trenerów opcjonalne. Możesz uzupełnić później, jeśli trenujesz też jako klient.",
+    bodyLead:
+      "Trener używa tych danych do doboru obciążeń i śledzenia postępów. Widzą je tylko trenerzy, z którymi współpracujesz.",
+    bodyLeadCoach:
+      "Dla trenerów opcjonalne. Możesz uzupełnić później, jeśli trenujesz też jako klient.",
     sex: "Płeć",
-    sexOptions: { Male: "Mężczyzna", Female: "Kobieta", Other: "Inna" } as Record<string, string>,
+    sexOptions: {
+      Male: "Mężczyzna",
+      Female: "Kobieta",
+      Other: "Inna",
+    } as Record<string, string>,
     choose: "Wybierz",
     height: "Wzrost",
     weight: "Waga",
     heightRange: "Podaj wzrost od 100 do 250 cm.",
     weightRange: "Podaj wagę od 30 do 300 kg.",
     trainingTitle: "Twój trening",
-    trainingLead: "Opcjonalne. Pomaga trenerowi przygotować pierwszy plan; możesz to zmienić w każdej chwili.",
+    trainingLead:
+      "Opcjonalne. Pomaga trenerowi przygotować pierwszy plan; możesz to zmienić w każdej chwili.",
     experience: "Staż treningowy",
-    experienceOptions: ["Początkujący (poniżej roku)", "Średniozaawansowany (1–3 lata)", "Zaawansowany (ponad 3 lata)"],
+    experienceOptions: [
+      "Początkujący (poniżej roku)",
+      "Średniozaawansowany (1–3 lata)",
+      "Zaawansowany (ponad 3 lata)",
+    ],
     activity: "Aktywność poza treningiem",
-    activityOptions: ["Głównie siedząca", "Lekko aktywna", "Aktywna", "Bardzo aktywna"],
+    activityOptions: [
+      "Głównie siedząca",
+      "Lekko aktywna",
+      "Aktywna",
+      "Bardzo aktywna",
+    ],
     sessions: "Treningi w tygodniu",
     injuries: "Kontuzje, ograniczenia lub ból (opcjonalnie)",
     injuriesPlaceholder: "np. lewe kolano po operacji ACL w 2024",
-    detailsFailed: "Konto jest gotowe, ale tych danych nie udało się zapisać. Spróbuj ponownie.",
+    detailsFailed:
+      "Konto jest gotowe, ale tych danych nie udało się zapisać. Spróbuj ponownie.",
     heartTitle: "Tętno i regeneracja",
-    heartLead: "Opcjonalne. Trener używa tych danych do ustalania stref intensywności i planowania regeneracji.",
+    heartLead:
+      "Opcjonalne. Trener używa tych danych do ustalania stref intensywności i planowania regeneracji.",
     hrMax: "Tętno maksymalne",
-    hrMaxHint: "Z testu lub zegarka. Nie wiesz? Użyj szacunku na podstawie wieku.",
+    hrMaxHint:
+      "Z testu lub zegarka. Nie wiesz? Użyj szacunku na podstawie wieku.",
     hrMaxEstimate: (bpm: number) => `Użyj szacunku: ${bpm} ud./min`,
     hrMaxRange: "Podaj wartość od 100 do 230 ud./min.",
     vo2max: "VO₂max",
@@ -530,15 +640,27 @@ export const appPl: AppMessages = {
     days: "Preferowane dni treningowe",
     weekdays: ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"],
     equipment: "Dostępny sprzęt",
-    equipmentOptions: ["Pełna siłownia", "Sztanga i obciążenie", "Hantle", "Kettlebelle", "Drążek", "Gumy oporowe", "Maszyny cardio", "Tylko masa ciała"],
+    equipmentOptions: [
+      "Pełna siłownia",
+      "Sztanga i obciążenie",
+      "Hantle",
+      "Kettlebelle",
+      "Drążek",
+      "Gumy oporowe",
+      "Maszyny cardio",
+      "Tylko masa ciała",
+    ],
     healthTitle: "Zdrowie i cele",
-    healthLead: "Opcjonalne. Wszystko, co pomoże trenerowi bezpiecznie zaplanować trening.",
+    healthLead:
+      "Opcjonalne. Wszystko, co pomoże trenerowi bezpiecznie zaplanować trening.",
     locationTitle: "Skąd jesteś?",
-    locationLead: "Opcjonalne, ale warto: trenerzy i klienci z okolicy znajdą Cię w discovery.",
+    locationLead:
+      "Opcjonalne, ale warto: trenerzy i klienci z okolicy znajdą Cię w discovery.",
     location: {
       why: "Warto uzupełnić: discovery pokazuje najpierw osoby z okolicy, więc trenerzy i klienci w Twoim rejonie łatwiej Cię znajdą. Widoczne są tylko miasto i region, nigdy kod pocztowy.",
       useMine: "Użyj mojej lokalizacji",
-      denied: "Dostęp do lokalizacji jest zablokowany. Zezwól na niego w przeglądarce albo uzupełnij pola ręcznie.",
+      denied:
+        "Dostęp do lokalizacji jest zablokowany. Zezwól na niego w przeglądarce albo uzupełnij pola ręcznie.",
       failed: "Nie udało się ustalić lokalizacji. Uzupełnij pola ręcznie.",
       country: "Kraj",
       countryPlaceholder: "Wybierz kraj",
@@ -550,13 +672,15 @@ export const appPl: AppMessages = {
       postalCodePlaceholder: "np. 00-001",
     },
     notes: "Cele i inne uwagi (opcjonalnie)",
-    notesPlaceholder: "np. pierwsze zawody trójbojowe w czerwcu, wolę treningi rano",
+    notesPlaceholder:
+      "np. pierwsze zawody trójbojowe w czerwcu, wolę treningi rano",
     finish: "Zakończ konfigurację",
   },
   settings: {
     metaTitle: "Ustawienia — Metrivum",
     title: "Ustawienia",
-    description: "Twój profil, dane dla trenera, zalogowane konta i preferencje.",
+    description:
+      "Twój profil, dane dla trenera, zalogowane konta i preferencje.",
     profile: "Profil",
     username: "Nazwa użytkownika",
     birthDate: "Data urodzenia",
@@ -568,26 +692,33 @@ export const appPl: AppMessages = {
     timeZone: "Strefa czasowa",
     saved: "Profil zapisany",
     accounts: "Zalogowane konta",
-    accountsBody: "W tej przeglądarce możesz być zalogowany na maksymalnie trzech kontach. Każde ma własną sesję.",
+    accountsBody:
+      "W tej przeglądarce możesz być zalogowany na maksymalnie trzech kontach. Każde ma własną sesję.",
     accountsCount: (used: number, max: number) => `${used} z ${max}`,
     accountActive: "Aktywne",
     accountSwitch: "Przełącz",
-    freeSlots: (n: number) => (n === 1 ? "1 wolne miejsce" : `${n} wolne miejsca`),
-    freeSlotBody: "Dodaj kolejne konto, żeby przełączać się między nimi jednym kliknięciem.",
+    freeSlots: (n: number) =>
+      n === 1 ? "1 wolne miejsce" : `${n} wolne miejsca`,
+    freeSlotBody:
+      "Dodaj kolejne konto, żeby przełączać się między nimi jednym kliknięciem.",
     signIn: "Zaloguj się",
     createAccount: "Załóż konto",
     security: {
       emailTitle: "Adres e-mail",
-      emailBody: "Logujesz się tym adresem i na niego dostajesz wiadomości o koncie.",
+      emailBody:
+        "Logujesz się tym adresem i na niego dostajesz wiadomości o koncie.",
       current: "Obecny e-mail",
       newEmail: "Nowy e-mail",
       sameEmail: "To już jest Twój e-mail.",
       changeEmail: "Zmień e-mail",
-      emailSent: (email: string) => `Wysłaliśmy link potwierdzający na ${email}. E-mail zmieni się po jego otwarciu. Jeśli link przyjdzie też na obecny adres, otwórz również go.`,
+      emailSent: (email: string) =>
+        `Wysłaliśmy link potwierdzający na ${email}. E-mail zmieni się po jego otwarciu. Jeśli link przyjdzie też na obecny adres, otwórz również go.`,
       emailPending: (email: string) => `Czeka na potwierdzenie: ${email}.`,
       passwordTitle: "Hasło",
-      passwordBody: "Użyj co najmniej 8 znaków, trudnych do odgadnięcia. Inne urządzenia pozostaną zalogowane.",
-      setPasswordBody: "To konto loguje się bez hasła. Ustaw hasło, żeby logować się też e-mailem i hasłem.",
+      passwordBody:
+        "Użyj co najmniej 8 znaków, trudnych do odgadnięcia. Inne urządzenia pozostaną zalogowane.",
+      setPasswordBody:
+        "To konto loguje się bez hasła. Ustaw hasło, żeby logować się też e-mailem i hasłem.",
       currentPassword: "Obecne hasło",
       newPassword: "Nowe hasło",
       repeatPassword: "Powtórz nowe hasło",
@@ -603,8 +734,10 @@ export const appPl: AppMessages = {
       body: "Usuwa zalogowane konto ze wszystkim, co jest z nim powiązane we wszystkich modułach, jego pliki i logowanie. Dostępne tylko podczas developmentu.",
       open: "Usuń konto",
       dialogTitle: "Usunąć to konto na zawsze?",
-      dialogBody: (email: string) => `${email} i wszystko, co jest z nim powiązane, zostanie usunięte: profil, workspace, plany, klienci, płatności, wiadomości, pliki i logowanie. Tego nie da się cofnąć.`,
-      summary: (rows: number, tables: number, files: number) => `Wiersze: ${rows} w tabelach: ${tables}, pliki: ${files} oraz konto logowania.`,
+      dialogBody: (email: string) =>
+        `${email} i wszystko, co jest z nim powiązane, zostanie usunięte: profil, workspace, plany, klienci, płatności, wiadomości, pliki i logowanie. Tego nie da się cofnąć.`,
+      summary: (rows: number, tables: number, files: number) =>
+        `Wiersze: ${rows} w tabelach: ${tables}, pliki: ${files} oraz konto logowania.`,
       typeEmail: (email: string) => `Wpisz ${email}, aby potwierdzić`,
       confirm: "Usuń na zawsze",
       done: (email: string) => `Konto ${email} zostało usunięte.`,
@@ -612,44 +745,90 @@ export const appPl: AppMessages = {
     email: "E-mail",
     access: "Dostęp do funkcji",
     accessBody: "Wyliczany przez Metrivum dla Twojego konta.",
-    aiPreferencesPlaceholder: "np. 3 treningi w tygodniu, najpierw ćwiczenia wielostawowe, RPE zamiast procentów, bez przysiadu ze sztangą dla początkujących.",
+    aiPreferencesPlaceholder:
+      "np. 3 treningi w tygodniu, najpierw ćwiczenia wielostawowe, RPE zamiast procentów, bez przysiadu ze sztangą dla początkujących.",
     usage: "Wykorzystanie",
     usageValue: (used: number, max: number) => `${used} z ${max}`,
-    sections: { profile: "Profil", body: "Ciało i trening", security: "Logowanie i bezpieczeństwo", accounts: "Konta", privacy: "Prywatność", coaching: "Coaching", integrations: "Integracje", access: "Plan i dostęp" } as Record<string, string>,
-    sectionHints: { profile: "Nazwa, opis, język", body: "Dane do planowania treningu", security: "E-mail, hasło, 2FA", accounts: "Konta w tej przeglądarce", privacy: "Kto może do Ciebie pisać", coaching: "Waluta ofert", integrations: "Połączone aplikacje", access: "Funkcje i limity" } as Record<string, string>,
+    sections: {
+      profile: "Profil",
+      body: "Ciało i trening",
+      security: "Logowanie i bezpieczeństwo",
+      accounts: "Konta",
+      privacy: "Prywatność",
+      coaching: "Coaching",
+      integrations: "Integracje",
+      access: "Plan i dostęp",
+    } as Record<string, string>,
+    sectionHints: {
+      profile: "Nazwa, opis, język",
+      body: "Dane do planowania treningu",
+      security: "E-mail, hasło, 2FA",
+      accounts: "Konta w tej przeglądarce",
+      privacy: "Kto może do Ciebie pisać",
+      coaching: "Waluta ofert",
+      integrations: "Połączone aplikacje",
+      access: "Funkcje i limity",
+    } as Record<string, string>,
     coaching: "Preferencje coachingu",
-    coachingBody: "Zmiana waluty dotyczy nowych wersji ofert. Istniejące zgłoszenia i zamówienia zachowują uzgodnioną walutę.",
+    coachingBody:
+      "Zmiana waluty dotyczy nowych wersji ofert. Istniejące zgłoszenia i zamówienia zachowują uzgodnioną walutę.",
     currency: "Waluta konta",
     saveCurrency: "Zapisz walutę",
     currencySaved: "Waluta zapisana",
     programEnding: "Koniec planu klienta",
-    programEndingBody: "Dostaniesz powiadomienie, gdy plan przypisany klientowi dobiega końca. Wybierz jeden lub kilka momentów.",
-    programEndingOff: "Powiadomienia o coachingu są wyłączone, więc te alerty nie przyjdą. Włącz je w panelu powiadomień.",
-    planEditor: "Edytor planu",
-    planEditorBody: "Jak zachowuje się arkusz w edytorze planu. Zapamiętywane w tej przeglądarce.",
-    hideCollapsedChildren: "Ukrywaj cykle i treningi zwiniętego bloku",
-    hideCollapsedChildrenHint: "Włączone: zminimalizowanie bloku ukrywa wszystko pod nim. Wyłączone: zostają na arkuszu, tylko zminimalizowane.",
+    programEndingBody:
+      "Dostaniesz powiadomienie, gdy plan przypisany klientowi dobiega końca. Wybierz jeden lub kilka momentów.",
+    programEndingOff:
+      "Powiadomienia o coachingu są wyłączone, więc te alerty nie przyjdą. Włącz je w panelu powiadomień.",
     programEndingSaved: "Zapisano powiadomienia o końcu planu",
     programEndingOptions: {
       LastBlock: ["Ostatni blok", "Gdy zaczyna się ostatni blok planu."],
-      LastCycle: ["Ostatni cykl", "Gdy zaczyna się ostatni cykl (lub jego ostatnie powtórzenie)."],
-      LastWeek: ["Ostatni tydzień", "Siedem dni przed ostatnim zaplanowanym treningiem."],
-      LastWorkout: ["Ostatni trening", "W dniu ostatniego zaplanowanego treningu."],
+      LastCycle: [
+        "Ostatni cykl",
+        "Gdy zaczyna się ostatni cykl (lub jego ostatnie powtórzenie).",
+      ],
+      LastWeek: [
+        "Ostatni tydzień",
+        "Siedem dni przed ostatnim zaplanowanym treningiem.",
+      ],
+      LastWorkout: [
+        "Ostatni trening",
+        "W dniu ostatniego zaplanowanego treningu.",
+      ],
     },
-    accessSummary: (available: number, total: number) => `Dostępne funkcje: ${available} z ${total}`,
+    accessSummary: (available: number, total: number) =>
+      `Dostępne funkcje: ${available} z ${total}`,
     limits: "Limity",
-    areas: { training: "Programy", exercises: "Ćwiczenia", video: "Analiza wideo", coaching: "Klienci i oferty", calendar: "Kalendarz", messaging: "Wiadomości", insights: "Analityka", discovery: "Wyszukiwarka trenerów", integrations: "Asystenci AI", team: "Zespół", other: "Inne" } as Record<string, string>,
+    areas: {
+      training: "Programy",
+      exercises: "Ćwiczenia",
+      video: "Analiza wideo",
+      coaching: "Klienci i oferty",
+      calendar: "Kalendarz",
+      messaging: "Wiadomości",
+      insights: "Analityka",
+      discovery: "Wyszukiwarka trenerów",
+      integrations: "Asystenci AI",
+      team: "Zespół",
+      other: "Inne",
+    } as Record<string, string>,
     accessPlan: "Twój plan",
     accessPlanBody: "Co obejmuje Twój plan i ile z niego korzystasz.",
     accessPlans: "Porównaj plany",
     accessUsage: "Szczegóły zużycia",
     accessFeatures: "Funkcje",
-    accessFilter: { all: "Wszystkie", available: "Dostępne", missing: "Niedostępne" } as Record<string, string>,
+    accessFilter: {
+      all: "Wszystkie",
+      available: "Dostępne",
+      missing: "Niedostępne",
+    } as Record<string, string>,
     accessNoneMissing: "Twój plan obejmuje wszystko.",
     accessUnlimited: "Bez limitu",
     bio: "O mnie",
-    bioHint: "Widoczne na Twoim profilu dla innych użytkowników Metrivum. Do 500 znaków.",
-    bioPlaceholder: "np. Trener siłowy. Pomagam początkującym zrobić pierwsze podciągnięcie.",
+    bioHint:
+      "Widoczne na Twoim profilu dla innych użytkowników Metrivum. Do 500 znaków.",
+    bioPlaceholder:
+      "np. Trener siłowy. Pomagam początkującym zrobić pierwsze podciągnięcie.",
     phone: "Telefon",
     phoneHint: "Opcjonalnie. Używany tylko, jeśli udostępnisz go trenerom.",
     phoneInvalid: "Użyj 7–32 cyfr, spacji, nawiasów lub myślników.",
@@ -657,11 +836,19 @@ export const appPl: AppMessages = {
     viewProfile: "Zobacz profil",
     identity: "Konto",
     bodyTitle: "Dane o ciele i treningu",
-    bodyBody: "Trenerzy, z którymi współpracujesz, planują na ich podstawie Twój trening. Nikt inny ich nie widzi.",
+    bodyBody:
+      "Trenerzy, z którymi współpracujesz, planują na ich podstawie Twój trening. Nikt inny ich nie widzi.",
     bodySaved: "Dane zapisane",
-    bodyGroups: { location: "Lokalizacja", body: "Ciało", heart: "Tętno i regeneracja", training: "Trening", health: "Zdrowie i cele" } as Record<string, string>,
+    bodyGroups: {
+      location: "Lokalizacja",
+      body: "Ciało",
+      heart: "Tętno i regeneracja",
+      training: "Trening",
+      health: "Zdrowie i cele",
+    } as Record<string, string>,
     privacyTitle: "Prywatność wiadomości",
-    privacyBody: "Domyślnie każdy może do Ciebie napisać. Włącz akceptację, aby przejrzeć nową rozmowę, zanim będzie kontynuowana. Zaakceptowane rozmowy pozostają otwarte.",
+    privacyBody:
+      "Domyślnie każdy może do Ciebie napisać. Włącz akceptację, aby przejrzeć nową rozmowę, zanim będzie kontynuowana. Zaakceptowane rozmowy pozostają otwarte.",
     requireApproval: "Wymagaj akceptacji nowych rozmów",
     privacySaved: "Prywatność wiadomości zapisana",
     privacyFailed: "Nie udało się wczytać prywatności wiadomości",
@@ -672,7 +859,8 @@ export const appPl: AppMessages = {
     description: "Wszystkie limity Twojego planu i ile z nich zużyto.",
     managePlan: "Zarządzaj planem",
     period: "Bieżący okres rozliczeniowy",
-    periodRange: (from: string, to: string) => `${from} – ${to}. Odnawia się na koniec okresu.`,
+    periodRange: (from: string, to: string) =>
+      `${from} – ${to}. Odnawia się na koniec okresu.`,
     periodHint: "Liczniki, które odnawiają się co okres.",
     plan: "Limity planu",
     planHint: "Stałe limity Twojego planu.",
@@ -681,10 +869,18 @@ export const appPl: AppMessages = {
     full: "Wykorzystany",
     unlimited: "Bez limitu",
     upTo: (value: string) => `do ${value}`,
-    nearTitle: (n: number) => (n === 1 ? "Jeden limit jest prawie wykorzystany" : `Prawie wykorzystane limity: ${n}`),
+    nearTitle: (n: number) =>
+      n === 1
+        ? "Jeden limit jest prawie wykorzystany"
+        : `Prawie wykorzystane limity: ${n}`,
     nearBody: "Zmień plan albo poczekaj na kolejny okres, żeby kontynuować.",
     of: (max: string) => `z ${max}`,
-    resetsIn: (days: number) => (days === 0 ? "Odnawia się dziś" : days === 1 ? "Odnawia się jutro" : `Odnawia się za ${days} dni`),
+    resetsIn: (days: number) =>
+      days === 0
+        ? "Odnawia się dziś"
+        : days === 1
+          ? "Odnawia się jutro"
+          : `Odnawia się za ${days} dni`,
     summaryLabel: "Limity według stanu",
     okCount: (n: number) => `W normie: ${n}`,
     nearCount: (n: number) => `Prawie wykorzystane: ${n}`,
@@ -700,7 +896,8 @@ export const appPl: AppMessages = {
     perPeriod: "na okres",
     planName: (plan: string) => `Plan ${plan}`,
     resetsOn: (date: string) => `Liczniki odnawiają się ${date}`,
-    nearLabel: (n: number) => `Wykorzystanie — prawie wykorzystane limity: ${n}`,
+    nearLabel: (n: number) =>
+      `Wykorzystanie — prawie wykorzystane limity: ${n}`,
   },
   profile: {
     photo: {
@@ -711,7 +908,8 @@ export const appPl: AppMessages = {
       invalid: "Wybierz obraz PNG, JPEG lub WebP do 5 MB.",
       failed: "Nie udało się wysłać zdjęcia. Spróbuj ponownie.",
     },
-    specializationsEmptyOwn: "Nic jeszcze nie wybrano. Dodaj je w edycji profilu.",
+    specializationsEmptyOwn:
+      "Nic jeszcze nie wybrano. Dodaj je w edycji profilu.",
     title: "Profil",
     mine: "Mój profil",
     edit: "Edytuj profil",
@@ -722,7 +920,13 @@ export const appPl: AppMessages = {
     you: "Ty",
     details: "Ciało i trening",
     detailsPrivate: "Prywatne: Ty i Twoi trenerzy.",
-    body: { bmi: "BMI", training: "Trening", recovery: "Regeneracja", perWeek: (n: string) => `${n}× w tygodniu`, trainingDay: "dzień treningowy" },
+    body: {
+      bmi: "BMI",
+      training: "Trening",
+      recovery: "Regeneracja",
+      perWeek: (n: string) => `${n}× w tygodniu`,
+      trainingDay: "dzień treningowy",
+    },
     noOffersBody: "Opublikowane oferty pojawią się tutaj.",
     joined: (date: string) => `Dołączenie: ${date}`,
     aboutSub: "Własnymi słowami.",
@@ -738,13 +942,26 @@ export const appPl: AppMessages = {
     searchPeople: "Szukaj osób",
     completeness: "Uzupełnienie profilu",
     completenessHint: "Ułatwia trenerom planowanie.",
-    completeItems: { bio: "Opis", location: "Lokalizacja", body: "Ciało", heart: "Tętno i regeneracja", training: "Trening", health: "Zdrowie i cele", offer: "Pierwsza oferta" } as Record<string, string>,
+    completeItems: {
+      bio: "Opis",
+      location: "Lokalizacja",
+      body: "Ciało",
+      heart: "Tętno i regeneracja",
+      training: "Trening",
+      health: "Zdrowie i cele",
+      offer: "Pierwsza oferta",
+    } as Record<string, string>,
     complete: "Uzupełnij",
     offers: "Oferty",
-    offersCount: (n: number) => `${n} ${n === 1 ? "oferta" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "oferty" : "ofert"}`,
+    offersCount: (n: number) =>
+      `${n} ${n === 1 ? "oferta" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "oferty" : "ofert"}`,
     noOffers: "Brak publicznych ofert.",
     seeAllOffers: "Zobacz wszystkie oferty",
-    modes: { Online: "Online", Offline: "Stacjonarnie", Hybrid: "Hybrydowo" } as Record<string, string>,
+    modes: {
+      Online: "Online",
+      Offline: "Stacjonarnie",
+      Hybrid: "Hybrydowo",
+    } as Record<string, string>,
     from: "od",
     editor: {
       editingTitle: "Edytujesz profil",
@@ -758,7 +975,8 @@ export const appPl: AppMessages = {
       done: "Gotowe",
       settings: "Ustawienia",
       coverTitle: "Okładka",
-      coverHint: "Wybierz animowane tło i dostosuj je — okładka powyżej zmienia się na bieżąco.",
+      coverHint:
+        "Wybierz animowane tło i dostosuj je — okładka powyżej zmienia się na bieżąco.",
       saveCover: "Zapisz okładkę",
       coverSaved: "Okładka zapisana",
       background: "Tło",
@@ -766,12 +984,14 @@ export const appPl: AppMessages = {
       nextBackground: "Następne tło",
       resetBackground: "Przywróć",
       restart: "Uruchom ponownie",
-      changed: (n: number) => (n === 0 ? "ustawienia domyślne" : n === 1 ? "1 zmiana" : `${n} zmian`),
+      changed: (n: number) =>
+        n === 0 ? "ustawienia domyślne" : n === 1 ? "1 zmiana" : `${n} zmian`,
       addColour: "Dodaj kolor",
       backdrop: "Kolor banera",
       removeColour: "Usuń kolor",
       identityTitle: "O Tobie",
-      identityHint: "Imię i opis widoczne dla każdego, kto otworzy Twój profil.",
+      identityHint:
+        "Imię i opis widoczne dla każdego, kto otworzy Twój profil.",
       displayName: "Imię i nazwisko",
       displayNameHint: "Tak widzą Cię klienci i trenerzy.",
       bio: "Opis",
@@ -785,21 +1005,52 @@ export const appPl: AppMessages = {
       all: (n: number) => `Pokaż wszystkie (${n})`,
       count: (done: number, all: number) => `${done} z ${all} zdobytych`,
       items: {
-        profileComplete: { title: "Pełny profil", body: "Opis, lokalizacja i dane, których szukają inni." },
-        located: { title: "Na mapie", body: "Dodana lokalizacja — łatwiej Cię znaleźć w okolicy." },
+        profileComplete: {
+          title: "Pełny profil",
+          body: "Opis, lokalizacja i dane, których szukają inni.",
+        },
+        located: {
+          title: "Na mapie",
+          body: "Dodana lokalizacja — łatwiej Cię znaleźć w okolicy.",
+        },
         month: { title: "Pierwszy miesiąc", body: "30 dni w Metrivum." },
         year: { title: "Rok z nami", body: "Pełny rok w Metrivum." },
-        firstClient: { title: "Pierwszy klient", body: "Pierwszy klient prowadzony w Metrivum." },
-        tenClients: { title: "Dziesięciu klientów", body: "Dziesięciu prowadzonych klientów." },
-        fiftyClients: { title: "Pięćdziesięciu klientów", body: "Pięćdziesięciu prowadzonych klientów." },
-        fullHouse: { title: "Pełny grafik", body: "Dziesięciu klientów jednocześnie." },
-        openForBusiness: { title: "Otwarty na klientów", body: "Co najmniej jedna opublikowana oferta." },
+        firstClient: {
+          title: "Pierwszy klient",
+          body: "Pierwszy klient prowadzony w Metrivum.",
+        },
+        tenClients: {
+          title: "Dziesięciu klientów",
+          body: "Dziesięciu prowadzonych klientów.",
+        },
+        fiftyClients: {
+          title: "Pięćdziesięciu klientów",
+          body: "Pięćdziesięciu prowadzonych klientów.",
+        },
+        fullHouse: {
+          title: "Pełny grafik",
+          body: "Dziesięciu klientów jednocześnie.",
+        },
+        openForBusiness: {
+          title: "Otwarty na klientów",
+          body: "Co najmniej jedna opublikowana oferta.",
+        },
         certified: { title: "Certyfikowany", body: "Certyfikat w portfolio." },
-        provenResults: { title: "Udokumentowane efekty", body: "Trzy efekty klientów w portfolio." },
-        seasoned: { title: "Doświadczony trener", body: "Pięć lub więcej lat pracy trenerskiej." },
+        provenResults: {
+          title: "Udokumentowane efekty",
+          body: "Trzy efekty klientów w portfolio.",
+        },
+        seasoned: {
+          title: "Doświadczony trener",
+          body: "Pięć lub więcej lat pracy trenerskiej.",
+        },
       } as Record<string, { title: string; body: string }>,
     },
-    stats: { days: "Dni w Metrivum", achievements: "Osiągnięcia", place: "Lokalizacja" },
+    stats: {
+      days: "Dni w Metrivum",
+      achievements: "Osiągnięcia",
+      place: "Lokalizacja",
+    },
     showcase: {
       competenciesStat: "Kompetencje",
       offersStat: "Oferty",
@@ -815,7 +1066,12 @@ export const appPl: AppMessages = {
       activeClients: "Aktywni klienci",
       clientsCoached: "Klienci łącznie",
       experience: "Doświadczenie",
-      years: (n: number) => (n === 1 ? "1 rok" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? `${n} lata` : `${n} lat`),
+      years: (n: number) =>
+        n === 1
+          ? "1 rok"
+          : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)
+            ? `${n} lata`
+            : `${n} lat`,
       memberSince: "W Metrivum od",
       competencies: "Kompetencje",
       add: "Dodaj",
@@ -839,12 +1095,18 @@ export const appPl: AppMessages = {
       portfolioHintOwn: "Dowody Twojej pracy, widoczne dla wszystkich.",
       addFile: "Dodaj plik",
       noFiles: "Brak plików",
-      noFilesBody: "Dodaj certyfikaty albo efekty klientów, żeby budować zaufanie.",
+      noFilesBody:
+        "Dodaj certyfikaty albo efekty klientów, żeby budować zaufanie.",
       removeTitle: (title: string) => `Usunąć „${title}”?`,
-      removeBody: "Plik zostanie usunięty z portfolio i nie da się go przywrócić.",
+      removeBody:
+        "Plik zostanie usunięty z portfolio i nie da się go przywrócić.",
       remove: "Usuń",
       openFile: (title: string) => `Otwórz ${title}`,
-      kinds: { Certificate: "Certyfikat", ClientResult: "Efekt klienta", Other: "Inne" } as Record<string, string>,
+      kinds: {
+        Certificate: "Certyfikat",
+        ClientResult: "Efekt klienta",
+        Other: "Inne",
+      } as Record<string, string>,
       addTitle: "Dodaj do portfolio",
       chooseFile: "Wybierz plik",
       fileTypes: "PDF, PNG, JPEG lub WebP, do 20 MB",
@@ -853,22 +1115,64 @@ export const appPl: AppMessages = {
       fileTitle: "Tytuł",
       fileTitlePlaceholder: "np. Certyfikat NSCA CSCS",
       description: "Opis",
-      descriptionPlaceholder: "Opcjonalnie: co przedstawia, kiedy, jakie efekty",
-      consent: "Mam zgodę klienta na publikację i plik nie pokazuje niczego, czym klient nie chciał się dzielić.",
-      publicNote: "Pliki z portfolio widzi każdy zalogowany, kto otworzy Twój profil.",
+      descriptionPlaceholder:
+        "Opcjonalnie: co przedstawia, kiedy, jakie efekty",
+      consent:
+        "Mam zgodę klienta na publikację i plik nie pokazuje niczego, czym klient nie chciał się dzielić.",
+      publicNote:
+        "Pliki z portfolio widzi każdy zalogowany, kto otworzy Twój profil.",
       upload: "Dodaj do portfolio",
-      uploadFailed: "Nie udało się wysłać pliku. Spróbuj ponownie albo wybierz inny.",
+      uploadFailed:
+        "Nie udało się wysłać pliku. Spróbuj ponownie albo wybierz inny.",
     },
-    fields: { Country: "Kraj", Region: "Województwo lub region", City: "Miasto", PostalCode: "Kod pocztowy", Height: "Wzrost", Weight: "Waga", BodyFat: "Tkanka tłuszczowa", HrMax: "Tętno maks.", Vo2Max: "VO₂max", Sex: "Płeć", TrainingExperience: "Staż", ActivityLevel: "Aktywność", SessionsPerWeek: "Treningi w tygodniu", AvailableSessionDuration: "Czas na trening", PreferredTrainingDays: "Dni treningowe", AvailableEquipment: "Sprzęt", Sleep: "Sen", Stress: "Stres", InjuriesLimitationsPainNotes: "Kontuzje i ograniczenia", AdditionalNotes: "Cele i uwagi" } as Record<string, string>,
-    units: { cm: "cm", kg: "kg", ft: "ft", in: "in", lb: "lb", vo2: "ml/kg/min", bpm: "ud./min", percent: "%", hours: "h", minutes: "min" },
+    fields: {
+      Country: "Kraj",
+      Region: "Województwo lub region",
+      City: "Miasto",
+      PostalCode: "Kod pocztowy",
+      Height: "Wzrost",
+      Weight: "Waga",
+      BodyFat: "Tkanka tłuszczowa",
+      HrMax: "Tętno maks.",
+      Vo2Max: "VO₂max",
+      Sex: "Płeć",
+      TrainingExperience: "Staż",
+      ActivityLevel: "Aktywność",
+      SessionsPerWeek: "Treningi w tygodniu",
+      AvailableSessionDuration: "Czas na trening",
+      PreferredTrainingDays: "Dni treningowe",
+      AvailableEquipment: "Sprzęt",
+      Sleep: "Sen",
+      Stress: "Stres",
+      InjuriesLimitationsPainNotes: "Kontuzje i ograniczenia",
+      AdditionalNotes: "Cele i uwagi",
+    } as Record<string, string>,
+    units: {
+      cm: "cm",
+      kg: "kg",
+      ft: "ft",
+      in: "in",
+      lb: "lb",
+      vo2: "ml/kg/min",
+      bpm: "ud./min",
+      percent: "%",
+      hours: "h",
+      minutes: "min",
+    },
   },
   dashboard: {
-    tabs: { label: "Sekcje pulpitu", overview: "Przegląd", discovery: "Discovery" },
+    tabs: {
+      label: "Sekcje pulpitu",
+      overview: "Przegląd",
+      discovery: "Discovery",
+    },
     discovery: {
       readyTitle: "Gotowość do discovery",
-      readySub: "Klienci szukają po miejscu i zwracają uwagę na czytelny opis oraz ofertę, którą mogą kupić.",
+      readySub:
+        "Klienci szukają po miejscu i zwracają uwagę na czytelny opis oraz ofertę, którą mogą kupić.",
       location: "Lokalizacja",
-      locationBody: "Kraj i miasto, żeby klienci z okolicy widzieli Cię najpierw.",
+      locationBody:
+        "Kraj i miasto, żeby klienci z okolicy widzieli Cię najpierw.",
       bio: "Opis",
       bioBody: "Kilka zdań o tym, jak trenujesz i komu pomagasz.",
       offers: "Opublikowana oferta",
@@ -881,9 +1185,11 @@ export const appPl: AppMessages = {
       noBoosts: "Brak boostów",
       noBoostsBody: "Tu pojawią się Twoje boosty z datami i kosztem.",
       presence: "Twoja obecność w Discovery",
-      presenceSub: "Uzupełnij profil, żeby klienci szukający w okolicy mogli Cię znaleźć i napisać.",
+      presenceSub:
+        "Uzupełnij profil, żeby klienci szukający w okolicy mogli Cię znaleźć i napisać.",
       browse: "Przeglądaj Discovery",
-      progress: (done: number, total: number) => `${done} z ${total} kroków gotowe`,
+      progress: (done: number, total: number) =>
+        `${done} z ${total} kroków gotowe`,
     },
     coach: {
       usageSub: "Twój plan jest liczony po aktywnych klientach.",
@@ -891,7 +1197,8 @@ export const appPl: AppMessages = {
       managePlan: "Zarządzaj planem",
       activeClientsLimit: "aktywnych klientów",
       unlimited: "bez limitu",
-      slotsLeft: (n: string) => `Zmieścisz jeszcze ${n} klientów w swoim planie`,
+      slotsLeft: (n: string) =>
+        `Zmieścisz jeszcze ${n} klientów w swoim planie`,
       boost: {
         title: "Wyróżnij profil",
         soon: "Wkrótce",
@@ -913,7 +1220,8 @@ export const appPl: AppMessages = {
       online: "online",
       tasks: "Do zrobienia",
       noTasks: "Wszystko ogarnięte",
-      noTasksBody: "Tu pojawią się nowe leady, check-iny i płatności, które czekają na Ciebie.",
+      noTasksBody:
+        "Tu pojawią się nowe leady, check-iny i płatności, które czekają na Ciebie.",
       task: {
         leads: "Leady do decyzji",
         leadsBody: "Zgłoszenia czekają na Twoją odpowiedź",
@@ -927,29 +1235,41 @@ export const appPl: AppMessages = {
         analysesBody: "Wyniki pojawią się po zakończeniu",
       },
       quickActions: "Szybkie akcje",
-      action: { invite: "Zaproś klienta", checkIn: "Zaplanuj check-in", offer: "Nowa oferta" },
+      action: {
+        invite: "Zaproś klienta",
+        checkIn: "Zaplanuj check-in",
+        offer: "Nowa oferta",
+      },
       title: "Twój coaching",
       range: "Ostatnie 30 dni",
       leads: "Nowe leady",
-      leadsDetail: (pending: number, conversion: number | null) => `${pending} czeka na Ciebie${conversion == null ? "" : ` · ${conversion}% przyjętych`}`,
+      leadsDetail: (pending: number, conversion: number | null) =>
+        `${pending} czeka na Ciebie${conversion == null ? "" : ` · ${conversion}% przyjętych`}`,
       activeClients: "Aktywni klienci",
       revenue: "Przychód netto",
       checkIns: "Check-iny do przejrzenia",
-      checkInsDetail: (overdue: number, rate: number | null) => `${overdue} po terminie${rate == null ? "" : ` · ${rate}% przesłanych`}`,
+      checkInsDetail: (overdue: number, rate: number | null) =>
+        `${overdue} po terminie${rate == null ? "" : ` · ${rate}% przesłanych`}`,
       newLeads: "Najnowsze leady",
       newLeadsSub: "Zgłoszenia czekające na Twoją decyzję.",
       checkInsSubmitted: "Przesłane check-iny",
       submissionRate: (n: number) => `${n}% przesłanych w terminie`,
       noLeads: "Brak oczekujących leadów",
-      noLeadsBody: "Udostępnij link do oferty, aby zacząć otrzymywać zgłoszenia.",
+      noLeadsBody:
+        "Udostępnij link do oferty, aby zacząć otrzymywać zgłoszenia.",
       clients: "Klienci",
       clientsSub: "Stan listy klientów i ostatnio rozpoczęte współprace.",
-      rosterLabel: (active: number, suspended: number, completed: number) => `${active} aktywnych, ${suspended} wstrzymanych, ${completed} zakończonych`,
+      rosterLabel: (active: number, suspended: number, completed: number) =>
+        `${active} aktywnych, ${suspended} wstrzymanych, ${completed} zakończonych`,
       active: "Aktywni",
       newClients: "Doszli",
       departed: "Odeszli",
       retention: "Retencja",
-      status: { Active: "Aktywny", Suspended: "Wstrzymany", Completed: "Zakończony" } as Record<string, string>,
+      status: {
+        Active: "Aktywny",
+        Suspended: "Wstrzymany",
+        Completed: "Zakończony",
+      } as Record<string, string>,
       finance: "Finanse",
       financeSub: "Rozliczone płatności klientów po opłatach.",
       openAnalyze: "Analiza",
@@ -985,7 +1305,8 @@ export const appPl: AppMessages = {
     newProgramBody: "Zacznij od pustego szkicu.",
     importCsv: "Import CSV",
     importCsvBody: "Zamień arkusz w program.",
-    newAnalysis: "Nowa analiza", create: "Nowy",
+    newAnalysis: "Nowa analiza",
+    create: "Nowy",
     newAnalysisBody: "Prześlij nagranie liftu.",
     browseExercises: "Przeglądaj ćwiczenia",
     browseExercisesBody: "Przeszukaj wspólny katalog.",
@@ -1007,13 +1328,19 @@ export const appPl: AppMessages = {
     anyMuscle: "Dowolny mięsień",
     anyPattern: "Dowolny wzorzec",
     favoritesOnly: "Tylko ulubione",
-    sort: { name: "Nazwa A–Z", "-name": "Nazwa Z–A", "-createdAt": "Najnowsze", createdAt: "Najstarsze" },
+    sort: {
+      name: "Nazwa A–Z",
+      "-name": "Nazwa Z–A",
+      "-createdAt": "Najnowsze",
+      createdAt: "Najstarsze",
+    },
     add: "Dodaj ćwiczenie",
     emptyTitle: "Katalog jest pusty",
     emptyBody: "Tutaj pojawią się ćwiczenia dodane przez trenerów.",
     noResultsTitle: "Brak pasujących ćwiczeń",
     noResultsBody: "Spróbuj innej nazwy albo usuń filtr.",
-    results: (n: number) => `${n} ${n === 1 ? "ćwiczenie" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "ćwiczenia" : "ćwiczeń"}`,
+    results: (n: number) =>
+      `${n} ${n === 1 ? "ćwiczenie" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "ćwiczenia" : "ćwiczeń"}`,
     favorite: "Dodaj do ulubionych",
     unfavorite: "Usuń z ulubionych",
     favoriteAdded: "Dodano do ulubionych",
@@ -1054,22 +1381,29 @@ export const appPl: AppMessages = {
       tags: "Tagi",
       history: "Historia zmian",
       historyEmpty: "Brak wcześniejszych wersji.",
-      historyItem: (version: number, when: string) => `Wersja ${version} · ${when}`,
+      historyItem: (version: number, when: string) =>
+        `Wersja ${version} · ${when}`,
       edit: "Edytuj opis",
       editTitle: "Edytuj opis i instrukcję",
       archive: "Archiwizuj ćwiczenie",
       archiveTitle: "Zarchiwizować to ćwiczenie?",
-      archiveBody: "Zniknie z wyszukiwania, ale pozostanie w programach, które go używają. Nie można tego cofnąć w aplikacji.",
+      archiveBody:
+        "Zniknie z wyszukiwania, ale pozostanie w programach, które go używają. Nie można tego cofnąć w aplikacji.",
       archived: "Ćwiczenie zarchiwizowane",
       updated: "Ćwiczenie zaktualizowane",
     },
   },
   training: {
-    programs: { metaTitle: "Programy — Metrivum", title: "Programy", description: "Twoje prywatne programy uporządkowane w folderach." },
+    programs: {
+      metaTitle: "Programy — Metrivum",
+      title: "Programy",
+      description: "Twoje prywatne programy uporządkowane w folderach.",
+    },
     templates: {
       metaTitle: "Szablony — Metrivum",
       title: "Szablony",
-      description: "Prywatne punkty startowe. Użycie szablonu tworzy niezależną kopię.",
+      description:
+        "Prywatne punkty startowe. Użycie szablonu tworzy niezależną kopię.",
     },
     library: {
       archiveConfirm: {
@@ -1088,14 +1422,23 @@ export const appPl: AppMessages = {
         done: (name: string) => `Usunięto ${name}`,
       },
       view: { label: "Widok", cards: "Karty", table: "Tabela" },
-      columns: { name: "Nazwa", description: "Opis", updated: "Zmieniono", status: "Status" },
+      columns: {
+        name: "Nazwa",
+        description: "Opis",
+        updated: "Zmieniono",
+        status: "Status",
+      },
       folderLabel: "Folder",
       openFolder: (name: string) => `Otwórz folder ${name}`,
       root: "Wszystkie foldery",
       folders: "Foldery",
       searchLabel: "Szukaj po nazwie",
       searchPlaceholder: "Szukaj",
-      sort: { updated: "Ostatnio zmienione", created: "Ostatnio utworzone", name: "Nazwa" },
+      sort: {
+        updated: "Ostatnio zmienione",
+        created: "Ostatnio utworzone",
+        name: "Nazwa",
+      },
       showArchived: "Pokaż zarchiwizowane",
       newProgram: "Nowy program",
       newTemplate: "Nowy szablon",
@@ -1104,13 +1447,15 @@ export const appPl: AppMessages = {
       emptyProgramsTitle: "Brak programów",
       emptyProgramsBody: "Utwórz program od zera, z szablonu albo z pliku CSV.",
       emptyTemplatesTitle: "Brak szablonów",
-      emptyTemplatesBody: "Szablony to prywatne punkty startowe, które możesz kopiować do nowych programów.",
+      emptyTemplatesBody:
+        "Szablony to prywatne punkty startowe, które możesz kopiować do nowych programów.",
       emptyFolderTitle: "Ten folder jest pusty",
       emptyFolderBody: "Utwórz tu coś nowego albo przenieś elementy.",
       noResultsTitle: "Nic nie pasuje",
       noResultsBody: "Spróbuj innej nazwy, folderu lub filtra.",
       archivedEmpty: "Brak zarchiwizowanych elementów.",
-      count: (n: number) => `${n} ${n === 1 ? "element" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "elementy" : "elementów"}`,
+      count: (n: number) =>
+        `${n} ${n === 1 ? "element" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "elementy" : "elementów"}`,
       archivedBadge: "Zarchiwizowany",
       templateBadge: "Szablon",
       editDraft: "Edytuj szkic",
@@ -1131,9 +1476,11 @@ export const appPl: AppMessages = {
         renamed: "Zmieniono nazwę folderu",
         moved: "Przeniesiono folder",
         deleteTitle: "Usunąć ten folder?",
-        deleteBody: "Usunąć można tylko pusty folder. Najpierw przenieś programy, szablony i podfoldery.",
+        deleteBody:
+          "Usunąć można tylko pusty folder. Najpierw przenieś programy, szablony i podfoldery.",
         deleted: "Usunięto folder",
-        notEmpty: "Ten folder nie jest pusty. Najpierw przenieś jego zawartość, także zarchiwizowaną.",
+        notEmpty:
+          "Ten folder nie jest pusty. Najpierw przenieś jego zawartość, także zarchiwizowaną.",
         actions: (name: string) => `Akcje folderu ${name}`,
       },
       createDialog: {
@@ -1170,22 +1517,34 @@ export const appPl: AppMessages = {
       },
       moveUp: (name: string) => `Przenieś wyżej: ${name}`,
       dropToParent: (name: string) => `Upuść tutaj, aby przenieść do: ${name}`,
-      moveDialog: { title: "Przenieś do folderu", submit: "Przenieś", moved: "Przeniesiono" },
+      moveDialog: {
+        title: "Przenieś do folderu",
+        submit: "Przenieś",
+        moved: "Przeniesiono",
+      },
     },
     detail: {
       preview: "Podgląd",
-      previewHint: "Tylko do odczytu. Kliknij dzień z treningiem lub strzałkę cyklu, aby zobaczyć komórki; Ctrl + kółko przybliża.",
-      previewHintSimple: "Tylko podgląd. Wybierz dzień, aby zobaczyć treningi i objętość.",
+      previewHint:
+        "Tylko do odczytu. Kliknij dzień z treningiem lub strzałkę cyklu, aby zobaczyć komórki; Ctrl + kółko przybliża.",
+      previewHintSimple:
+        "Tylko podgląd. Wybierz dzień, aby zobaczyć treningi i objętość.",
       notFound: "Nie znaleziono programu",
       draft: "Szkic",
-      draftBody: "Szkic zapisuje się automatycznie. Zastosuj zmiany, aby udostępnić nową wersję przypisanym klientom.",
+      draftBody:
+        "Szkic zapisuje się automatycznie. Zastosuj zmiany, aby udostępnić nową wersję przypisanym klientom.",
       structure: "Struktura",
-      blocks: (n: number) => `${n} ${n === 1 ? "blok" : n >= 2 && n <= 4 ? "bloki" : "bloków"}`,
-      cycles: (n: number) => `${n} ${n === 1 ? "cykl" : n >= 2 && n <= 4 ? "cykle" : "cykli"}`,
-      days: (n: number) => `${n} ${n === 1 ? "dzień treningowy" : n >= 2 && n <= 4 ? "dni treningowe" : "dni treningowych"}`,
-      exercises: (n: number) => `${n} ${n === 1 ? "ćwiczenie" : n >= 2 && n <= 4 ? "ćwiczenia" : "ćwiczeń"}`,
+      blocks: (n: number) =>
+        `${n} ${n === 1 ? "blok" : n >= 2 && n <= 4 ? "bloki" : "bloków"}`,
+      cycles: (n: number) =>
+        `${n} ${n === 1 ? "cykl" : n >= 2 && n <= 4 ? "cykle" : "cykli"}`,
+      days: (n: number) =>
+        `${n} ${n === 1 ? "dzień treningowy" : n >= 2 && n <= 4 ? "dni treningowe" : "dni treningowych"}`,
+      exercises: (n: number) =>
+        `${n} ${n === 1 ? "ćwiczenie" : n >= 2 && n <= 4 ? "ćwiczenia" : "ćwiczeń"}`,
       revisions: "Historia wersji",
-      revisionsBody: "Zastosowane wersje aktualizują przypisanych klientów. Rozpoczęte treningi zostają w swojej wersji.",
+      revisionsBody:
+        "Zastosowane wersje aktualizują przypisanych klientów. Rozpoczęte treningi zostają w swojej wersji.",
       currentRevision: "Aktualna",
       noRevisions: "Nie zastosowano jeszcze zmian",
       noRevisionsBody: "Zastosuj zmiany, aby wyeksportować CSV lub PDF.",
@@ -1194,7 +1553,8 @@ export const appPl: AppMessages = {
       publish: "Apply changes",
       published: (n: number) => `Version ${n} applied`,
       publishTitle: "Apply changes?",
-      publishBody: "This creates a new version and updates assigned clients, including today's unstarted workouts. Purchased copies stay unchanged.",
+      publishBody:
+        "This creates a new version and updates assigned clients, including today's unstarted workouts. Purchased copies stay unchanged.",
       export: "Eksportuj",
       emptyDescription: "Brak opisu.",
       openEditor: "Otwórz edytor",
@@ -1205,28 +1565,41 @@ export const appPl: AppMessages = {
       revision: "Wersja",
       draft: "Bieżący szkic",
       issuesTitle: "Eksportować plan z błędami?",
-      issuesBody: (n: number) => `Szkic ma problemy: ${n}. Plik pokaże plan w obecnym stanie, razem z błędami.`,
+      issuesBody: (n: number) =>
+        `Szkic ma problemy: ${n}. Plik pokaże plan w obecnym stanie, razem z błędami.`,
       issuesConfirm: "Eksportuj mimo to",
       format: "Format",
       scope: "Zakres eksportu",
-      scopes: { program: "Cały program", block: "Jeden blok", cycle: "Jeden cykl", workout: "Jeden trening" },
+      scopes: {
+        program: "Cały program",
+        block: "Jeden blok",
+        cycle: "Jeden cykl",
+        workout: "Jeden trening",
+      },
       item: "Element",
       delimiter: "Separator CSV",
-      delimiters: { comma: "Przecinek (,)", semicolon: "Średnik (;)", tab: "Tabulator" },
+      delimiters: {
+        comma: "Przecinek (,)",
+        semicolon: "Średnik (;)",
+        tab: "Tabulator",
+      },
       submit: "Pobierz",
       preparing: "Przygotowywanie pliku…",
       ready: (name: string) => `Pobrano ${name}`,
-      fileCard: (format: string, revision: number) => `${format.toUpperCase()} · rewizja ${revision}`,
+      fileCard: (format: string, revision: number) =>
+        `${format.toUpperCase()} · rewizja ${revision}`,
     },
     formulas: {
       metaTitle: "Formuły — Metrivum",
       title: "Formuły",
-      description: "Wbudowane i własne formuły do wyliczania obciążeń. Wyniki zawsze liczy serwer.",
+      description:
+        "Wbudowane i własne formuły do wyliczania obciążeń. Wyniki zawsze liczy serwer.",
       builtIn: "Wbudowane",
       custom: "Twoje formuły",
       new: "Nowa formuła",
       emptyTitle: "Brak własnych formuł",
-      emptyBody: "Napisz własną formułę z typowanymi wejściami albo użyj wbudowanych.",
+      emptyBody:
+        "Napisz własną formułę z typowanymi wejściami albo użyj wbudowanych.",
       searchLabel: "Szukaj formuł",
       expression: "Wyrażenie",
       inputs: "Wejścia",
@@ -1238,7 +1611,8 @@ export const appPl: AppMessages = {
       name: "Nazwa",
       createTitle: "Nowa formuła",
       editTitle: "Edytuj formułę",
-      editNote: "Zapis tworzy nową wersję. Zastosowane plany zachowują wersję formuły z chwili zastosowania zmian.",
+      editNote:
+        "Zapis tworzy nową wersję. Zastosowane plany zachowują wersję formuły z chwili zastosowania zmian.",
       created: "Utworzono formułę",
       updated: "Zapisano nową wersję",
       copied: "Skopiowano formułę",
@@ -1252,7 +1626,11 @@ export const appPl: AppMessages = {
       help: {
         suggestions: "Podpowiedzi",
         inputDetail: "Wejście tej formuły",
-        kinds: { function: "Funkcja", input: "Wejście", unit: "Jednostka" } as Record<string, string>,
+        kinds: {
+          function: "Funkcja",
+          input: "Wejście",
+          unit: "Jednostka",
+        } as Record<string, string>,
         signatures: {
           MIN: "MIN(a, b, …)",
           MAX: "MAX(a, b, …)",
@@ -1271,7 +1649,15 @@ export const appPl: AppMessages = {
           ROUND_TO_STEP_UPPER: "Zaokrągla w górę do wielokrotności kroku",
           ROUND_TO_STEP: "Zaokrągla do najbliższego kroku, np. 2,5 kg",
         } as Record<string, string>,
-        units: { kg: "kilogramy", lb: "funty", s: "sekundy", min: "minuty", m: "metry", km: "kilometry", "%": "procent" } as Record<string, string>,
+        units: {
+          kg: "kilogramy",
+          lb: "funty",
+          s: "sekundy",
+          min: "minuty",
+          m: "metry",
+          km: "kilometry",
+          "%": "procent",
+        } as Record<string, string>,
         hint: "Pisz, aby zobaczyć podpowiedzi; Ctrl+Spacja je otwiera.",
       },
       builtInNames: {
@@ -1279,44 +1665,69 @@ export const appPl: AppMessages = {
         "previous-cycle-increment": "Poprzedni cykl + przyrost",
         "top-set-back-off": "Seria szczytowa → back-off",
       },
-      lockedCustom: "Własne formuły nie są dostępne na Twoim koncie. Nadal możesz używać wbudowanych.",
+      lockedCustom:
+        "Własne formuły nie są dostępne na Twoim koncie. Nadal możesz używać wbudowanych.",
       lockedTitle: "Własne formuły są w planie Pro",
-      lockedBody: "Twórz własne formuły obciążenia i progresji i używaj ich w każdym programie.",
-      lockedPoints: ["Własne formuły z dowolnymi danymi", "Wersje, kopie i testowe przeliczenia", "Formuły w każdej komórce programu"],
+      lockedBody:
+        "Twórz własne formuły obciążenia i progresji i używaj ich w każdym programie.",
+      lockedPoints: [
+        "Własne formuły z dowolnymi danymi",
+        "Wersje, kopie i testowe przeliczenia",
+        "Formuły w każdej komórce programu",
+      ],
     },
     import: {
       preview: "Podgląd",
-      rows: (n: number) => `${n} ${n === 1 ? "wiersz" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "wiersze" : "wierszy"}`,
+      rows: (n: number) =>
+        `${n} ${n === 1 ? "wiersz" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "wiersze" : "wierszy"}`,
       metaTitle: "Import CSV — Metrivum",
       title: "Import programu z CSV",
-      steps: { file: "Wybór pliku", map: "Dopasowanie ćwiczeń", validate: "Walidacja", commit: "Utworzenie programu" },
+      steps: {
+        file: "Wybór pliku",
+        map: "Dopasowanie ćwiczeń",
+        validate: "Walidacja",
+        commit: "Utworzenie programu",
+      },
       fileLabel: "Plik CSV",
-      fileHint: "Tekst UTF-8, do 2 MiB. Ćwiczenia są dopasowywane po nazwie; nic nie powstaje przed zatwierdzeniem.",
+      fileHint:
+        "Tekst UTF-8, do 2 MiB. Ćwiczenia są dopasowywane po nazwie; nic nie powstaje przed zatwierdzeniem.",
       chooseFile: "Wybierz plik CSV",
       delimiter: "Separator",
       upload: "Wczytaj plik",
       expires: (when: string) => `Ta sesja importu wygasa ${when}.`,
-      columns: { index: "#", block: "Blok", cycle: "Cykl", day: "Dzień", workout: "Trening", exercise: "Ćwiczenie", match: "Ćwiczenie z katalogu" },
+      columns: {
+        index: "#",
+        block: "Blok",
+        cycle: "Cykl",
+        day: "Dzień",
+        workout: "Trening",
+        exercise: "Ćwiczenie",
+        match: "Ćwiczenie z katalogu",
+      },
       matched: "Dopasowane",
       unmatched: "Niedopasowane",
       chooseExercise: "Wybierz ćwiczenie",
-      unmatchedCount: (n: number) => `${n} ${n === 1 ? "wiersz wymaga" : "wierszy wymaga"} ćwiczenia`,
+      unmatchedCount: (n: number) =>
+        `${n} ${n === 1 ? "wiersz wymaga" : "wierszy wymaga"} ćwiczenia`,
       saveMapping: "Zapisz dopasowania",
       mappingSaved: "Zapisano dopasowania",
       validate: "Waliduj",
       valid: "Import jest poprawny.",
-      validSummary: (blocks: number, workouts: number) => `Bloki: ${blocks}, treningi: ${workouts} — gotowe do utworzenia.`,
+      validSummary: (blocks: number, workouts: number) =>
+        `Bloki: ${blocks}, treningi: ${workouts} — gotowe do utworzenia.`,
       commitName: "Nazwa programu",
       commitKind: "Utwórz jako",
       commitFolder: "Folder",
       commit: "Utwórz program",
       committed: "Utworzono program z CSV",
-      noNewExercises: "Importer nigdy nie tworzy ćwiczeń. Brakujące dodaj najpierw do katalogu.",
+      noNewExercises:
+        "Importer nigdy nie tworzy ćwiczeń. Brakujące dodaj najpierw do katalogu.",
       expired: "Ta sesja importu wygasła. Zacznij od nowa z plikiem.",
       startOver: "Zacznij od nowa",
       tooLarge: "Plik jest za duży do importu.",
       notCsv: "Wybierz plik .csv.",
-      pageNote: "Pokazano pierwsze 100 wierszy podglądu. Pozostałe przejrzysz na kolejnych stronach.",
+      pageNote:
+        "Pokazano pierwsze 100 wierszy podglądu. Pozostałe przejrzysz na kolejnych stronach.",
     },
   },
   editor: {
@@ -1328,22 +1739,63 @@ export const appPl: AppMessages = {
       done: "Rozumiem",
       skip: "Pomiń wskazówki",
       table: [
-        { target: "mode", title: "Dwa widoki, jeden plan", body: "Tabela buduje plan dzień po dniu. Arkusz układa bloki i cykle na płótnie. Możesz przełączać w każdej chwili." },
-        { target: "table-structure", title: "Bloki i cykle", body: "Plan składa się z bloków, a każdy z cykli dni. Wybierz je tutaj albo dodaj nowy cykl lub blok." },
-        { target: "table-days", title: "Wybierz dzień", body: "Kliknij dzień, żeby go zaplanować. Przeciągnij dzień na inny, żeby go przenieść." },
-        { target: "table-workout", title: "Dodaj ćwiczenia", body: "Nazwij trening i dodaj ćwiczenia z seriami, powtórzeniami i ciężarem. Zmiany zapisują się same." },
-        { target: "volume", title: "Objętość na bieżąco", body: "Serie i ciężar na każdą partię mięśni w całym cyklu aktualizują się podczas edycji." },
-        { target: "publish", title: "Udostępnij klientom", body: "Twoje zmiany to szkic. Kliknij Apply changes, żeby opublikować wersję, którą widzą klienci." },
+        {
+          target: "mode",
+          title: "Dwa widoki, jeden plan",
+          body: "Tabela buduje plan dzień po dniu. Arkusz układa bloki i cykle na płótnie. Możesz przełączać w każdej chwili.",
+        },
+        {
+          target: "table-structure",
+          title: "Bloki i cykle",
+          body: "Plan składa się z bloków, a każdy z cykli dni. Wybierz je tutaj albo dodaj nowy cykl lub blok.",
+        },
+        {
+          target: "table-days",
+          title: "Wybierz dzień",
+          body: "Kliknij dzień, żeby go zaplanować. Przeciągnij dzień na inny, żeby go przenieść.",
+        },
+        {
+          target: "table-workout",
+          title: "Dodaj ćwiczenia",
+          body: "Nazwij trening i dodaj ćwiczenia z seriami, powtórzeniami i ciężarem. Zmiany zapisują się same.",
+        },
+        {
+          target: "volume",
+          title: "Objętość na bieżąco",
+          body: "Serie i ciężar na każdą partię mięśni w całym cyklu aktualizują się podczas edycji.",
+        },
+        {
+          target: "publish",
+          title: "Udostępnij klientom",
+          body: "Twoje zmiany to szkic. Kliknij Apply changes, żeby opublikować wersję, którą widzą klienci.",
+        },
       ],
       sheet: [
-        { target: "sheet-add", title: "Dodawaj do arkusza", body: "Tu dodasz bloki, cykle i treningi. Możesz też kliknąć prawym przyciskiem pustą komórkę." },
-        { target: "sheet-canvas", title: "Układaj dowolnie", body: "Przeciągaj karty, żeby je ustawić. Połącz blok z cyklami uchwytem na jego krawędzi." },
-        { target: "sheet-tools", title: "Przesuwanie i zaznaczanie", body: "Przesuwaj przewija arkusz, Zaznaczaj wybiera kilka kart naraz. Powiększaj Ctrl i kółkiem myszy." },
-        { target: "publish", title: "Udostępnij klientom", body: "Twoje zmiany to szkic. Kliknij Apply changes, żeby opublikować wersję, którą widzą klienci." },
+        {
+          target: "sheet-add",
+          title: "Dodawaj do arkusza",
+          body: "Tu dodasz bloki, cykle i treningi. Możesz też kliknąć prawym przyciskiem pustą komórkę.",
+        },
+        {
+          target: "sheet-canvas",
+          title: "Układaj dowolnie",
+          body: "Przeciągaj karty, żeby je ustawić. Połącz blok z cyklami uchwytem na jego krawędzi.",
+        },
+        {
+          target: "sheet-tools",
+          title: "Przesuwanie i zaznaczanie",
+          body: "Przesuwaj przewija arkusz, Zaznaczaj wybiera kilka kart naraz. Powiększaj Ctrl i kółkiem myszy.",
+        },
+        {
+          target: "publish",
+          title: "Udostępnij klientom",
+          body: "Twoje zmiany to szkic. Kliknij Apply changes, żeby opublikować wersję, którą widzą klienci.",
+        },
       ],
     },
     mode: {
-      simpleHint: "Dwa widoki tego samego planu. Tabela edytuje go dzień po dniu, Arkusz pokazuje bloki i cykle obok siebie. Z Pro oba edytują wszystko: cykle, formuły, progresje i maksy.",
+      simpleHint:
+        "Dwa widoki tego samego planu. Tabela edytuje go dzień po dniu, Arkusz pokazuje bloki i cykle obok siebie. Z Pro oba edytują wszystko: cykle, formuły, progresje i maksy.",
       label: "Tryb edytora",
       simple: "Tabela",
       advanced: "Arkusz",
@@ -1355,8 +1807,18 @@ export const appPl: AppMessages = {
       notePlaceholder: "np. 30 min spaceru, mobilność",
       label: "Tydzień",
       rest: "Dzień odpoczynku",
-      exercises: (n: number) => (n === 1 ? "1 ćwiczenie" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? `${n} ćwiczenia` : `${n} ćwiczeń`),
-      workouts: (n: number) => (n === 1 ? "1 trening" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? `${n} treningi` : `${n} treningów`),
+      exercises: (n: number) =>
+        n === 1
+          ? "1 ćwiczenie"
+          : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)
+            ? `${n} ćwiczenia`
+            : `${n} ćwiczeń`,
+      workouts: (n: number) =>
+        n === 1
+          ? "1 trening"
+          : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)
+            ? `${n} treningi`
+            : `${n} treningów`,
       addWorkout: "Dodaj trening",
       startDay: "Zaplanuj ten dzień",
       dragHint: "Przeciągnij na inny dzień, aby je zamienić",
@@ -1367,7 +1829,8 @@ export const appPl: AppMessages = {
       visibleToClient: "Trener i klient",
       noteEmpty: "Brak treści",
       copyDay: (day: string) => `Kopiuj ${day}`,
-      copyHint: (day: string) => `Wybierz dzień, na który skopiować ${day}. Jego treningi zostaną zastąpione.`,
+      copyHint: (day: string) =>
+        `Wybierz dzień, na który skopiować ${day}. Jego treningi zostaną zastąpione.`,
       blockName: "Plan",
       cycleName: "Tydzień",
       emptyDay: "Na ten dzień nic jeszcze nie zaplanowano.",
@@ -1377,13 +1840,18 @@ export const appPl: AppMessages = {
       moveWorkoutTo: "Przenieś na inny dzień…",
       removeWorkout: "Usuń trening",
       removeWorkoutTitle: "Usunąć ten trening?",
-      removeWorkoutBody: (name: string) => `${name} zostanie usunięty razem ze wszystkimi ćwiczeniami i seriami. Możesz to cofnąć, dopóki nie wyjdziesz z edytora.`,
-      copyWorkoutHint: (name: string) => `Wybierz dzień, na który skopiować ${name}. Może to być też ten dzień.`,
-      moveWorkoutHint: (name: string) => `Wybierz dzień, na który przenieść ${name}.`,
-      workoutDragHint: "Przeciągnij na inny trening, aby zmienić kolejność, albo na dzień, aby go tam przenieść",
+      removeWorkoutBody: (name: string) =>
+        `${name} zostanie usunięty razem ze wszystkimi ćwiczeniami i seriami. Możesz to cofnąć, dopóki nie wyjdziesz z edytora.`,
+      copyWorkoutHint: (name: string) =>
+        `Wybierz dzień, na który skopiować ${name}. Może to być też ten dzień.`,
+      moveWorkoutHint: (name: string) =>
+        `Wybierz dzień, na który przenieść ${name}.`,
+      workoutDragHint:
+        "Przeciągnij na inny trening, aby zmienić kolejność, albo na dzień, aby go tam przenieść",
       cycleDays: "Długość cyklu (dni)",
       resizeColumn: (name: string) => `Zmień szerokość kolumny ${name}`,
-      resizeHint: "Przeciągnij, aby zmienić szerokość. Dwuklik przywraca domyślną.",
+      resizeHint:
+        "Przeciągnij, aby zmienić szerokość. Dwuklik przywraca domyślną.",
       repeats: "Powtórzenia",
       repeatOpen: "Bez końca",
       repeatTimes: (n: number) => (n === 1 ? "Raz" : `${n} razy`),
@@ -1394,7 +1862,8 @@ export const appPl: AppMessages = {
       activateBlock: "Aktywuj blok",
       deactivateBlock: "Dezaktywuj blok",
       inactiveShort: "nieaktywny",
-      blockInactiveNote: "Ten blok jest nieaktywny. Zostaje w planie, ale klienci go nie dostaną przy zastosowaniu zmian.",
+      blockInactiveNote:
+        "Ten blok jest nieaktywny. Zostaje w planie, ale klienci go nie dostaną przy zastosowaniu zmian.",
       dragExercise: (name: string) => `Przeciągnij, aby przenieść ${name}`,
       editSets: "Serie i formuły",
       setsTitle: (name: string) => (name ? `Serie · ${name}` : "Serie"),
@@ -1438,7 +1907,15 @@ export const appPl: AppMessages = {
       renameHint: "Kliknij, aby zmienić nazwę",
       clockHint: "m:ss",
       exerciseNotChosen: "Wybierz ćwiczenie z listy",
-      columns: { exercise: "Ćwiczenie", sets: "Serie", reps: "Powt.", load: "Ciężar", time: "Czas", rest: "Przerwa", comment: "Komentarz" },
+      columns: {
+        exercise: "Ćwiczenie",
+        sets: "Serie",
+        reps: "Powt.",
+        load: "Ciężar",
+        time: "Czas",
+        rest: "Przerwa",
+        comment: "Komentarz",
+      },
       workoutName: (letter: string) => `Trening ${letter}`,
       chooseDay: "Dzień cyklu",
       dayShort: (n: number) => `Dzień ${n}`,
@@ -1447,10 +1924,18 @@ export const appPl: AppMessages = {
       repeats: "Powtórzenia",
       repeatOpen: "Bez końca",
       repeatTimes: (n: number) => (n === 1 ? "Raz" : `${n} razy`),
+      hideBlock: "Schowaj blok",
+      revealBlock: "Odkryj blok",
+      hidden: "Schowany",
       minimiseBlock: "Zminimalizuj blok",
       expandBlock: "Rozwiń blok",
       minimised: "Zwinięty",
-      blockCycles: (n: number) => (n === 1 ? "1 cykl" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? `${n} cykle` : `${n} cykli`),
+      blockCycles: (n: number) =>
+        n === 1
+          ? "1 cykl"
+          : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)
+            ? `${n} cykle`
+            : `${n} cykli`,
       minimiseCycle: "Zminimalizuj cykl",
       expandCycle: "Pokaż dni cyklu",
       addWorkoutCard: "Dodaj trening",
@@ -1483,7 +1968,8 @@ export const appPl: AppMessages = {
         patternsLong: "Wzorzec ruchowy",
         cycleTotal: "Suma cyklu",
         total: "Suma",
-        setsReps: (sets: number, reps: number) => `${sets} serii · ${reps} powt.`,
+        setsReps: (sets: number, reps: number) =>
+          `${sets} serii · ${reps} powt.`,
         sets: "Serie",
         reps: "Powt.",
         hard: "Ciężkie",
@@ -1494,7 +1980,8 @@ export const appPl: AppMessages = {
         hardHint: "Serie ciężkie: RPE 7 lub więcej, RIR 3 lub mniej albo AMRAP",
         tonnageHint: "Powtórzenia × ciężar, dla serii z ciężarem w kg lub lbs",
         inolHint: "INOL = powtórzenia / (100 − % 1RM), zsumowane po seriach",
-        inolPartial: (known: number, total: number) => `INOL obejmuje ${known} z ${total} serii; pozostałe nie mają znanej intensywności.`,
+        inolPartial: (known: number, total: number) =>
+          `INOL obejmuje ${known} z ${total} serii; pozostałe nie mają znanej intensywności.`,
         empty: "Brak ćwiczeń.",
         unassigned: "Bez klasyfikacji",
         close: "Zamknij objętość",
@@ -1504,7 +1991,12 @@ export const appPl: AppMessages = {
         metric: "Miara",
         section: "Zakres",
         scope: "Zakres",
-        scopes: { workout: "Trening", cycle: "Cykl", block: "Blok", all: "Cały plan" },
+        scopes: {
+          workout: "Trening",
+          cycle: "Cykl",
+          block: "Blok",
+          all: "Cały plan",
+        },
         pick: (scope: string) => `Wybierz: ${scope.toLowerCase()}`,
         noRange: "Nic tu jeszcze nie ma.",
         heatCaption: (metric: string, range: string) => `${metric} · ${range}`,
@@ -1516,12 +2008,17 @@ export const appPl: AppMessages = {
       removeConnection: "Usuń połączenie",
       notConnected: "Niepodłączony",
       notConnectedHint: {
-        cycle: "Ten cykl nie należy do żadnego bloku. Przeciągnij wtyczkę bloku na ten cykl, aby go podłączyć.",
-        workout: "Ten trening nie jest w żadnym cyklu, więc nie ma dnia. Przeciągnij wtyczkę cyklu na ten trening, aby go podłączyć.",
-        maxes: "Ta tabela maksów nie jest podłączona do bloku, więc formuły z niej nie korzystają. Przeciągnij jej wtyczkę na blok.",
-        block: "Ten blok nie ma jeszcze cykli. Przeciągnij jego wtyczkę na cykl.",
+        cycle:
+          "Ten cykl nie należy do żadnego bloku. Przeciągnij wtyczkę bloku na ten cykl, aby go podłączyć.",
+        workout:
+          "Ten trening nie jest w żadnym cyklu, więc nie ma dnia. Przeciągnij wtyczkę cyklu na ten trening, aby go podłączyć.",
+        maxes:
+          "Ta tabela maksów nie jest podłączona do bloku, więc formuły z niej nie korzystają. Przeciągnij jej wtyczkę na blok.",
+        block:
+          "Ten blok nie ma jeszcze cykli. Przeciągnij jego wtyczkę na cykl.",
       },
-      plugHint: "Przeciągnij wtyczkę na inną kartę albo na pusty arkusz, aby ją odłączyć",
+      plugHint:
+        "Przeciągnij wtyczkę na inną kartę albo na pusty arkusz, aby ją odłączyć",
       connection: "Połączenie",
       zoomIn: "Przybliż",
       zoomOut: "Oddal",
@@ -1543,17 +2040,25 @@ export const appPl: AppMessages = {
       mixed: "Serie się różnią. Wpisanie wartości tutaj ujednolici wszystkie.",
       invalid: "Nieprawidłowa wartość",
       setsRepsHint: "np. 4×8 albo 3×8-10",
-      openCycle: "Przeciągnij od uchwytu cyklu do treningu, aby dodać go do cyklu · kliknij dzień z treningiem, aby znaleźć jego treningi · przeciągnij po pustych komórkach, aby zaznaczyć kilka kart",
+      openCycle:
+        "Przeciągnij od uchwytu cyklu do treningu, aby dodać go do cyklu · kliknij dzień z treningiem, aby znaleźć jego treningi · przeciągnij po pustych komórkach, aby zaznaczyć kilka kart",
       progression: {
         menu: "Progresja…",
         title: "Progresja dla bloku",
         body: "Wartości z pierwszego cyklu, w którym jest ćwiczenie, zostaną skopiowane do każdego kolejnego cyklu w tym bloku, z dodaniem kroku na cykl. Każdą komórkę nadal można potem zmienić.",
         exercise: "Ćwiczenie",
         kind: "Co zwiększać",
-        kinds: { load: "Ciężar (kg/lb)", percent: "Ciężar %", reps: "Powtórzenia" } as Record<string, string>,
+        kinds: {
+          load: "Ciężar (kg/lb)",
+          percent: "Ciężar %",
+          reps: "Powtórzenia",
+        } as Record<string, string>,
         step: "Krok na cykl",
         apply: "Zastosuj progresję",
-        applied: (n: number) => (n === 1 ? "Zaktualizowano 1 ćwiczenie" : `Zaktualizowano ćwiczenia: ${n}`),
+        applied: (n: number) =>
+          n === 1
+            ? "Zaktualizowano 1 ćwiczenie"
+            : `Zaktualizowano ćwiczenia: ${n}`,
         nothing: "Żaden kolejny cykl w tym bloku nie zawiera tego ćwiczenia.",
         empty: "Ten blok nie ma jeszcze ćwiczeń.",
       },
@@ -1563,16 +2068,20 @@ export const appPl: AppMessages = {
       arrange: "Ułóż",
       dragMode: "Co robi przeciąganie pustego arkusza",
       dragPan: "Przesuwaj",
-      dragPanHint: "Przeciągnij, aby przesuwać arkusz. Przytrzymaj Ctrl (⌘), aby zaznaczać.",
+      dragPanHint:
+        "Przeciągnij, aby przesuwać arkusz. Przytrzymaj Ctrl (⌘), aby zaznaczać.",
       dragSelect: "Zaznaczaj",
-      dragSelectHint: "Przeciągnij, aby zaznaczyć karty. Przytrzymaj Ctrl (⌘), aby przesuwać arkusz.",
+      dragSelectHint:
+        "Przeciągnij, aby zaznaczyć karty. Przytrzymaj Ctrl (⌘), aby przesuwać arkusz.",
       resetWidths: "Przywróć szerokości wszystkich kolumn",
-      arrangeHint: "Pozycje na arkuszu nie są zapisywane. Po przeładowaniu arkusz układa się od nowa.",
+      arrangeHint:
+        "Pozycje na arkuszu nie są zapisywane. Po przeładowaniu arkusz układa się od nowa.",
       connectTo: "Połącz z blokiem",
       disconnect: "Odłącz od bloku",
       connectHandle: (name: string) => `Połącz ${name} z cyklem`,
       cycleLength: (n: number) => `Cykl ${n}-dniowy`,
-      empty: "Kliknij dwukrotnie dowolną komórkę, aby dodać blok lub cykl, a potem przeciągnij od uchwytu bloku do cyklu, aby je połączyć.",
+      empty:
+        "Kliknij dwukrotnie dowolną komórkę, aby dodać blok lub cykl, a potem przeciągnij od uchwytu bloku do cyklu, aby je połączyć.",
       addHere: "Dodaj tutaj",
       blockLabel: "Blok",
       cycleLabel: "Cykl",
@@ -1597,35 +2106,51 @@ export const appPl: AppMessages = {
       draft: "Zmiany niezastosowane",
       never: "Nieopublikowany",
       appliedHint: "Klienci widzą dokładnie ten plan.",
-      draftHint: (n: number) => `Klienci nadal widzą wersję ${n}. Zastosuj zmiany, aby ją zaktualizować.`,
-      neverHint: "Klienci nie dostaną tego planu, dopóki nie zastosujesz zmian po raz pierwszy.",
+      draftHint: (n: number) =>
+        `Klienci nadal widzą wersję ${n}. Zastosuj zmiany, aby ją zaktualizować.`,
+      neverHint:
+        "Klienci nie dostaną tego planu, dopóki nie zastosujesz zmian po raz pierwszy.",
     },
     issues: {
-      short: (n: number) => (n === 1 ? "1 problem" : n < 5 ? `${n} problemy` : `${n} problemów`),
-      count: (n: number) => (n === 1 ? "1 problem z formatem" : n < 5 ? `${n} problemy z formatem` : `${n} problemów z formatem`),
+      short: (n: number) =>
+        n === 1 ? "1 problem" : n < 5 ? `${n} problemy` : `${n} problemów`,
+      count: (n: number) =>
+        n === 1
+          ? "1 problem z formatem"
+          : n < 5
+            ? `${n} problemy z formatem`
+            : `${n} problemów z formatem`,
       title: "Niepoprawny format",
       intro: "Popraw przed zastosowaniem zmian:",
       more: (n: number) => `…i jeszcze ${n}`,
       set: (n: number) => `Seria ${n}`,
       unknownExercise: "Nieznane ćwiczenie",
       noWorkouts: "Dodaj co najmniej jeden trening, zanim zastosujesz zmiany.",
-      applyRefused: "Zmiany nie zostały zastosowane: plan ma niepoprawny format.",
+      applyRefused:
+        "Zmiany nie zostały zastosowane: plan ma niepoprawny format.",
       bannerTitle: "Plan ma niepoprawny format",
-      bannerBody: "Zmian nie da się zastosować, dopóki tego nie poprawisz. Najedź na znacznik, aby zobaczyć, gdzie.",
+      bannerBody:
+        "Zmian nie da się zastosować, dopóki tego nie poprawisz. Najedź na znacznik, aby zobaczyć, gdzie.",
       codes: {
         workoutName: "trening musi mieć nazwę",
         exerciseMissing: "wybierz ćwiczenie z katalogu",
-        segments: "ten typ serii wymaga 2–20 kroków (ramp, drop set, rest-pause, cluster); pozostałe nie mają kroków",
+        segments:
+          "ten typ serii wymaga 2–20 kroków (ramp, drop set, rest-pause, cluster); pozostałe nie mają kroków",
         amrapReps: "seria AMRAP nie może mieć stałego zakresu powtórzeń",
-        backOffSource: "seria back-off musi następować po serii top set tego samego ćwiczenia",
+        backOffSource:
+          "seria back-off musi następować po serii top set tego samego ćwiczenia",
         reps: "powtórzenia muszą mieć wartość 1–999, a górna nie może być mniejsza od dolnej",
-        loadRange: "górne obciążenie musi być co najmniej równe dolnemu; obie wartości muszą być nieujemne",
+        loadRange:
+          "górne obciążenie musi być co najmniej równe dolnemu; obie wartości muszą być nieujemne",
         loadExclusive: "użyj tylko jednego: obciążenia, procentu albo formuły",
-        percent: "procent wymaga wartości powyżej 0 i maksymalnie 1000% i podstawy (1RM lub max)",
+        percent:
+          "procent wymaga wartości powyżej 0 i maksymalnie 1000% i podstawy (1RM lub max)",
         rpeRir: "użyj RPE (0–10) albo RIR (0–100), nie obu naraz",
         tempo: "tempo musi mieć cztery części, np. 3-1-X-0",
-        quantity: "ciężar, czas i dystans wymagają zgodnych jednostek i wartości od 0 do 1 000 000 000; czas MAX nie może mieć dodatkowo określonej długości",
-        group: "superseria wymaga dokładnie 2 ćwiczeń, obwód co najmniej 2, bez wspólnych ćwiczeń między grupami",
+        quantity:
+          "ciężar, czas i dystans wymagają zgodnych jednostek i wartości od 0 do 1 000 000 000; czas MAX nie może mieć dodatkowo określonej długości",
+        group:
+          "superseria wymaga dokładnie 2 ćwiczeń, obwód co najmniej 2, bez wspólnych ćwiczeń między grupami",
       },
     },
     toolbar: "Narzędzia edytora",
@@ -1684,7 +2209,11 @@ export const appPl: AppMessages = {
       title: "Odblokuj arkusz",
       body: "Cały sezon na jednym arkuszu: bloki, cykle i połączenia obok siebie. Pro odblokowuje też cykle, formuły i progresje w tabeli.",
       note: "Od 24 € miesięcznie. Programy dalej możesz edytować w tabeli.",
-      points: ["Bloki i cykle dowolnej długości", "Własne formuły i progresje", "Drop sety, AMRAP, rampy i obwody"],
+      points: [
+        "Bloki i cykle dowolnej długości",
+        "Własne formuły i progresje",
+        "Drop sety, AMRAP, rampy i obwody",
+      ],
       upgrade: "Przejdź na Pro",
       simple: "Przejdź do tabeli",
     },
@@ -1720,7 +2249,12 @@ export const appPl: AppMessages = {
       repsMax: "Powtórzenia do",
       amrapNote: "Serie AMRAP nie mają stałego zakresu powtórzeń.",
       loadMode: "Obciążenie",
-      loadModes: { none: "Brak", absolute: "Ciężar", percent: "% bazy", formula: "Formuła" },
+      loadModes: {
+        none: "Brak",
+        absolute: "Ciężar",
+        percent: "% bazy",
+        formula: "Formuła",
+      },
       loadMin: "Od",
       loadMax: "Do",
       unit: "Jednostka",
@@ -1735,15 +2269,18 @@ export const appPl: AppMessages = {
       distance: "Dystans",
       tempo: "Tempo",
       tempoHint: "Cztery części, np. 3-1-X-0.",
-      tempoInvalid: "Użyj czterech części oddzielonych myślnikami: liczby 0–99 lub X.",
+      tempoInvalid:
+        "Użyj czterech części oddzielonych myślnikami: liczby 0–99 lub X.",
       notes: "Uwagi",
       segments: "Segmenty",
       segment: (n: number) => `Segment ${n}`,
       addSegment: "Dodaj segment",
-      segmentsRule: "Rampy, drop sety, rest-pause i klastry wymagają 2–20 segmentów.",
+      segmentsRule:
+        "Rampy, drop sety, rest-pause i klastry wymagają 2–20 segmentów.",
       sourceSet: "Back-off od",
       sourceSetNone: "Wybierz serię szczytową",
-      sourceRule: "Opcjonalnie: połącz back-off z wcześniejszą serią szczytową tego samego ćwiczenia.",
+      sourceRule:
+        "Opcjonalnie: połącz back-off z wcześniejszą serią szczytową tego samego ćwiczenia.",
       formula: "Formuła",
       formulaVersion: (v: number) => `Wersja ${v}`,
       formulaInputs: "Wejścia formuły",
@@ -1764,9 +2301,11 @@ export const appPl: AppMessages = {
       title: "Wybierz ćwiczenie",
       search: "Szukaj po nazwie lub mięśniu",
       empty: "Brak pasujących ćwiczeń.",
-      noMatch: (q: string) => `Brak ćwiczeń pasujących do „${q}”. Spróbuj nazwy mięśnia lub krótszej nazwy albo dodaj ćwiczenie w Ćwiczeniach.`,
+      noMatch: (q: string) =>
+        `Brak ćwiczeń pasujących do „${q}”. Spróbuj nazwy mięśnia lub krótszej nazwy albo dodaj ćwiczenie w Ćwiczeniach.`,
       none: "Katalog jest pusty. Dodaj ćwiczenia w Biblioteka → Ćwiczenia.",
-      failed: "Nie udało się wczytać ćwiczeń. Sprawdź połączenie i spróbuj ponownie.",
+      failed:
+        "Nie udało się wczytać ćwiczeń. Sprawdź połączenie i spróbuj ponownie.",
       archived: "Zarchiwizowane",
     },
     conflict: {
@@ -1777,7 +2316,8 @@ export const appPl: AppMessages = {
       copyName: (name: string) => `${name} (moja wersja)`,
       copied: "Twoja wersja została zapisana jako kopia",
     },
-    validation: "Serwer odrzucił szkic. Popraw problemy poniżej i zapisz ponownie.",
+    validation:
+      "Serwer odrzucił szkic. Popraw problemy poniżej i zapisz ponownie.",
     keyboard: {
       title: "Skróty klawiszowe",
       open: "Skróty klawiszowe",
@@ -1798,13 +2338,15 @@ export const appPl: AppMessages = {
     copied: "Skopiowano",
     pasted: "Wklejono",
     pasteInvalid: "Schowek nie zawiera preskrypcji serii.",
-    readOnly: "Ten dokument jest zarchiwizowany i tylko do odczytu. Przywróć go, aby edytować.",
+    readOnly:
+      "Ten dokument jest zarchiwizowany i tylko do odczytu. Przywróć go, aby edytować.",
   },
   video: {
     share: {
       action: "Udostępnij",
       title: "Udostępnij analizę",
-      intro: "Każdy zalogowany w Metrivum, kto ma link, zobaczy ten wynik i nagranie. Nie może niczego zmienić ani usunąć. Notatki i tagi pozostają prywatne.",
+      intro:
+        "Każdy zalogowany w Metrivum, kto ma link, zobaczy ten wynik i nagranie. Nie może niczego zmienić ani usunąć. Notatki i tagi pozostają prywatne.",
       create: "Utwórz link",
       creating: "Tworzenie linku…",
       link: "Link do analizy",
@@ -1816,20 +2358,24 @@ export const appPl: AppMessages = {
       sent: "Link wysłany na czacie",
       revoke: "Wyłącz udostępnianie",
       revokeTitle: "Wyłączyć udostępnianie tej analizy?",
-      revokeBody: "Link przestanie działać dla wszystkich, którzy go mają, także dla osób, którym wysłano go na czacie. Nowy link możesz utworzyć później.",
+      revokeBody:
+        "Link przestanie działać dla wszystkich, którzy go mają, także dla osób, którym wysłano go na czacie. Nowy link możesz utworzyć później.",
       revoked: "Udostępnianie wyłączone",
       onlyCompleted: "Udostępnić można tylko ukończone analizy.",
       message: (name: string, url: string) => `Analiza liftu: ${name}\n${url}`,
       sharedBadge: "Udostępnione dla Ciebie",
       sharedTitle: "Udostępniona analiza",
-      sharedNote: "Tylko do odczytu. Właściciel może w każdej chwili wyłączyć udostępnianie.",
+      sharedNote:
+        "Tylko do odczytu. Właściciel może w każdej chwili wyłączyć udostępnianie.",
       sharedMissing: "Ten link nie działa",
-      sharedMissingBody: "Właściciel wyłączył udostępnianie albo link jest niepełny. Poproś o ponowne wysłanie.",
+      sharedMissingBody:
+        "Właściciel wyłączył udostępnianie albo link jest niepełny. Poproś o ponowne wysłanie.",
     },
     list: {
       metaTitle: "Analizy wideo — Metrivum",
       title: "Analizy wideo",
-      description: "Nagrania liftów i ich analizy. Nagrania pozostają w prywatnym magazynie.",
+      description:
+        "Nagrania liftów i ich analizy. Nagrania pozostają w prywatnym magazynie.",
       new: "Nowa analiza",
       compare: "Porównaj",
       searchLabel: "Szukaj analiz",
@@ -1849,10 +2395,12 @@ export const appPl: AppMessages = {
       anyState: "Dowolny stan",
       noVideosMatch: "Brak pasujących nagrań",
       noVideosMatchBody: "Spróbuj innej nazwy lub stanu.",
-      videosEmptyBody: "Nagrania są przechowywane tylko razem z analizą. Uruchom nową analizę, aby dodać nagranie.",
+      videosEmptyBody:
+        "Nagrania są przechowywane tylko razem z analizą. Uruchom nową analizę, aby dodać nagranie.",
       deleteVideo: "Usuń nagranie",
       deleteVideoTitle: "Usunąć to nagranie?",
-      deleteVideoBody: "Usunięcie zostanie zaplanowane i nastąpi wkrótce. Nagrań używanych przez analizę nie można usunąć.",
+      deleteVideoBody:
+        "Usunięcie zostanie zaplanowane i nastąpi wkrótce. Nagrań używanych przez analizę nie można usunąć.",
       deleteScheduled: "Zaplanowano usunięcie nagrania",
     },
     statuses: {
@@ -1862,10 +2410,15 @@ export const appPl: AppMessages = {
       Failed: "Niepowodzenie",
       Cancelled: "Anulowana",
     },
-    mediaStates: { Pending: "Przesyłanie", Ready: "Gotowe", Deleting: "Usuwanie" },
+    mediaStates: {
+      Pending: "Przesyłanie",
+      Ready: "Gotowe",
+      Deleting: "Usuwanie",
+    },
     new: {
       limits: {
-        nearTitle: (used: number, max: number) => `Wykorzystano ${used} z ${max} analiz w tym okresie`,
+        nearTitle: (used: number, max: number) =>
+          `Wykorzystano ${used} z ${max} analiz w tym okresie`,
         nearBody: "Zbliżasz się do limitu tego okresu.",
         seeUsage: "Zobacz wykorzystanie",
         label: "Limity analizy",
@@ -1877,12 +2430,16 @@ export const appPl: AppMessages = {
         note: "Każda analiza rezerwuje jedno użycie online przed startem; nieudana je zwraca.",
       },
       localMode: "Analiza lokalna",
-      localQuotaDescription: "Działa na Twoim komputerze. Przed rozpoczęciem wymaga rezerwacji limitu online; nieudane uruchomienia ją zwalniają. Analiza lokalna nie zużywa czasu GPU w chmurze.",
+      localQuotaDescription:
+        "Działa na Twoim komputerze. Przed rozpoczęciem wymaga rezerwacji limitu online; nieudane uruchomienia ją zwalniają. Analiza lokalna nie zużywa czasu GPU w chmurze.",
       localUsage: "Wykorzystane lub zarezerwowane w okresie",
-      maxDuration: (seconds: number) => `Analizuj film lub przycięty fragment do ${seconds} sekund.`,
+      maxDuration: (seconds: number) =>
+        `Analizuj film lub przycięty fragment do ${seconds} sekund.`,
       cloudMode: "Analiza w chmurze",
-      cloudUnavailable: "Pomiar czasu GPU i wykonywanie analiz w chmurze nie są skonfigurowane dla tego wdrożenia. Nie symulujemy wyników ani opłat za chmurę.",
-      started: "Analiza uruchomiona. Wyniki pojawią się tutaj po jej zakończeniu.",
+      cloudUnavailable:
+        "Pomiar czasu GPU i wykonywanie analiz w chmurze nie są skonfigurowane dla tego wdrożenia. Nie symulujemy wyników ani opłat za chmurę.",
+      started:
+        "Analiza uruchomiona. Wyniki pojawią się tutaj po jej zakończeniu.",
       metaTitle: "Nowa analiza — Metrivum",
       title: "Nowa analiza",
       body: "Wybierz nagranie liftu, zaznacz sztangę i uruchom analizę. Możesz opuścić stronę — zadanie działa dalej na serwerze.",
@@ -1895,7 +2452,8 @@ export const appPl: AppMessages = {
       tagsHint: "Oddziel przecinkami.",
       note: "Notatka",
       movement: "Ruch",
-      movementHint: "Opcjonalnie. Podpowiada analizatorowi, jakiego boju się spodziewać.",
+      movementHint:
+        "Opcjonalnie. Podpowiada analizatorowi, jakiego boju się spodziewać.",
       movementPlaceholder: "Wybierz bój",
       movements: {
         squat: "Przysiad tylny",
@@ -1910,26 +2468,36 @@ export const appPl: AppMessages = {
         snatch: "Rwanie",
       },
       calibration: "Kalibracja (metry na piksel)",
-      calibrationHint: "Opcjonalnie. Bez kalibracji pozycje pozostają w pikselach i nie jest wyliczana prędkość w m/s.",
+      calibrationHint:
+        "Opcjonalnie. Bez kalibracji pozycje pozostają w pikselach i nie jest wyliczana prędkość w m/s.",
       tracking: {
         title: "Śledzenie dwóch punktów",
         hint: "Zatrzymaj klatkę, na której widać sztangę, i zaznacz na niej dwa różne punkty. Przybliżaj kółkiem albo + / −, przeciągnij, by przesunąć. Klawiatura: strzałki i Enter.",
         canvas: "Zaznacz punkty śledzenia na zatrzymanej klatce",
-        freeze: "Zatrzymaj tę klatkę", changeFrame: "Wybierz inną klatkę",
-        undo: "Cofnij punkt", clear: "Wyczyść punkty",
+        freeze: "Zatrzymaj tę klatkę",
+        changeFrame: "Wybierz inną klatkę",
+        undo: "Cofnij punkt",
+        clear: "Wyczyść punkty",
         selected: (n: number) => `Zaznaczono ${n}/2 punktów`,
         chooseFrame: "Obejrzyj film i zatrzymaj klatkę początkową.",
-        pixels: "Prędkość jest mierzona w px/s. Kalibracja fizyczna nie jest wymagana.",
+        pixels:
+          "Prędkość jest mierzona w px/s. Kalibracja fizyczna nie jest wymagana.",
         loadError: "Nie udało się wczytać podglądu. Wybierz film ponownie.",
         frameTools: "Klatka i punkty",
         zoomTools: "Przybliżenie",
         zoomIn: "Przybliż",
         zoomOut: "Oddal",
         zoomFit: "Dopasuj",
-        missing: (n: number) => (n === 2 ? "Nie zaznaczono jeszcze punktów. Zaznacz dwa punkty na sztandze." : "Brakuje jeszcze jednego punktu na sztandze."),
+        missing: (n: number) =>
+          n === 2
+            ? "Nie zaznaczono jeszcze punktów. Zaznacz dwa punkty na sztandze."
+            : "Brakuje jeszcze jednego punktu na sztandze.",
         markHere: "Zaznacz punkty na tej klatce",
         markHint: "Zatrzymaj tam, gdzie sztanga jest dobrze widoczna",
-        guide: (n: number) => (n === 1 ? "Punkt 1 z 2 — mały znak na końcu sztangi" : "Punkt 2 z 2 — tuż obok punktu 1"),
+        guide: (n: number) =>
+          n === 1
+            ? "Punkt 1 z 2 — mały znak na końcu sztangi"
+            : "Punkt 2 z 2 — tuż obok punktu 1",
         guideDone: "Oba punkty zaznaczone — możesz uruchomić analizę",
       },
       upload: "Prześlij nagranie",
@@ -1943,7 +2511,8 @@ export const appPl: AppMessages = {
       changeVideo: "Zmień nagranie",
       dropTitle: "Upuść tu nagranie liftu",
       needPoints: "Zaznacz dwa punkty na sztandze, aby uruchomić analizę.",
-      keepPolicy: "Nagranie zostaje tylko razem z analizą. Jeśli analiza nie powstanie, nagranie jest usuwane.",
+      keepPolicy:
+        "Nagranie zostaje tylko razem z analizą. Jeśli analiza nie powstanie, nagranie jest usuwane.",
       wrongType: "Wybierz nagranie MP4, WebM lub MOV.",
       tooLarge: (max: string) => `To nagranie jest większe niż ${max}.`,
       analyzerMissingTitle: "Analiza nie może jeszcze ruszyć",
@@ -1954,23 +2523,27 @@ export const appPl: AppMessages = {
     detail: {
       notFound: "Nie znaleziono analizy",
       status: "Status",
-      attempts: (n: number) => `${n} ${n === 1 ? "próba" : n >= 2 && n <= 4 ? "próby" : "prób"}`,
+      attempts: (n: number) =>
+        `${n} ${n === 1 ? "próba" : n >= 2 && n <= 4 ? "próby" : "prób"}`,
       created: "Utworzono",
       completed: "Zakończono",
       failure: "Błąd",
       failureCodes: {
-        ANALYZER_NOT_CONFIGURED: "Do tego wdrożenia Metrivum nie podłączono analizatora.",
+        ANALYZER_NOT_CONFIGURED:
+          "Do tego wdrożenia Metrivum nie podłączono analizatora.",
       },
       unknownFailure: (code: string) => `Analizator zgłosił: ${code}`,
       cancel: "Anuluj analizę",
       cancelTitle: "Anulować tę analizę?",
-      cancelBody: "Praca w kolejce lub w toku zostanie zatrzymana. Nagranie pozostanie w bibliotece.",
+      cancelBody:
+        "Praca w kolejce lub w toku zostanie zatrzymana. Nagranie pozostanie w bibliotece.",
       cancelled: "Analiza anulowana",
       editDetails: "Edytuj szczegóły",
       detailsSaved: "Zapisano szczegóły",
       polling: "Aktualizowane automatycznie",
       pollingPaused: "Aktualizacje wstrzymane, gdy karta jest ukryta",
-      waitingBody: "Analiza czeka na proces analizy lub jest przetwarzana. Możesz wrócić później. Jeśli pozostaje w kolejce, administrator musi sprawdzić proces analizy na serwerze.",
+      waitingBody:
+        "Analiza czeka na proces analizy lub jest przetwarzana. Możesz wrócić później. Jeśli pozostaje w kolejce, administrator musi sprawdzić proces analizy na serwerze.",
       noProgress: "Serwer nie podaje procentów, tylko bieżący etap.",
       result: "Wynik",
       noResultYet: "Wyniki pojawią się tutaj po zakończeniu analizy.",
@@ -1986,11 +2559,20 @@ export const appPl: AppMessages = {
       position: "Pozycja pionowa",
       velocity: "Prędkość",
       noVelocity: "Analizator nie podał prędkości dla tego wyniku.",
-      meanLiftingSpeed: "Średnia prędkość podnoszenia", peakLiftingSpeed: "Maksymalna prędkość podnoszenia",
-      meanSpeed: "Średnia prędkość", peakSpeed: "Maksymalna prędkość",
+      meanLiftingSpeed: "Średnia prędkość podnoszenia",
+      peakLiftingSpeed: "Maksymalna prędkość podnoszenia",
+      meanSpeed: "Średnia prędkość",
+      peakSpeed: "Maksymalna prędkość",
       metricsMissing: "Analizator nie podał metryk prędkości.",
       allPhases: "Wszystkie fazy",
-      phaseNames: { lowering: "Opuszczanie", eccentric: "Opuszczanie", pause: "Pauza", lifting: "Podnoszenie", concentric: "Podnoszenie", none: "Poza powtórzeniami" },
+      phaseNames: {
+        lowering: "Opuszczanie",
+        eccentric: "Opuszczanie",
+        pause: "Pauza",
+        lifting: "Podnoszenie",
+        concentric: "Podnoszenie",
+        none: "Poza powtórzeniami",
+      },
       showPhases: "Pokaż fazy",
       overlay: "Śledzony punkt na wideo",
       overlayHint: "Punkt i ostatnia sekunda jego toru, w kolorach faz",
@@ -1998,9 +2580,11 @@ export const appPl: AppMessages = {
       occluded: "Zasłonięte",
       units: (unit: string) => `Pozycje w jednostkach: ${unit}`,
       calibrated: (mpp: number) => `Skalibrowano: ${mpp} m na piksel`,
-      uncalibrated: "Brak kalibracji — pozycje są w pikselach i nie jest pokazywana prędkość w m/s.",
+      uncalibrated:
+        "Brak kalibracji — pozycje są w pikselach i nie jest pokazywana prędkość w m/s.",
       warnings: "Ostrzeżenia analizatora",
-      engine: (engine: string, model: string) => `Silnik ${engine}, model ${model}`,
+      engine: (engine: string, model: string) =>
+        `Silnik ${engine}, model ${model}`,
       time: "Czas (s)",
       chartLabel: (rep: string) => `Wykres toru sztangi: ${rep}`,
     },
@@ -2013,9 +2597,12 @@ export const appPl: AppMessages = {
       choose: "Wybierz analizę",
       rep: "Powtórzenie",
       submit: "Porównaj",
-      unitMismatch: "Wyniki używają różnych jednostek pozycji, więc są pokazane osobno, a nie na jednej skali.",
-      calibrationMismatch: "Tylko jeden wynik jest skalibrowany. Wartości nie są bezpośrednio porównywalne.",
-      sameAnalysis: "Wybierz dwie różne analizy albo porównaj dwa powtórzenia tej samej.",
+      unitMismatch:
+        "Wyniki używają różnych jednostek pozycji, więc są pokazane osobno, a nie na jednej skali.",
+      calibrationMismatch:
+        "Tylko jeden wynik jest skalibrowany. Wartości nie są bezpośrednio porównywalne.",
+      sameAnalysis:
+        "Wybierz dwie różne analizy albo porównaj dwa powtórzenia tej samej.",
       onlyCompleted: "Porównać można tylko zakończone analizy.",
     },
   },

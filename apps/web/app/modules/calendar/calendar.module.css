@@ -55,9 +55,11 @@
   min-height: 0;
 }
 
-.mobileActions { display: grid; gap: var(--tf-space-3); margin-block: var(--tf-space-4); }
-
-
+.mobileActions {
+  display: grid;
+  gap: var(--tf-space-3);
+  margin-block: var(--tf-space-4);
+}
 
 .toolbar {
   display: flex;
@@ -503,7 +505,9 @@
   font-size: var(--tf-text-2xs);
   font-weight: var(--tf-weight-semibold);
   font-variant-numeric: tabular-nums;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
 .allDayMore:hover {
@@ -519,7 +523,11 @@
 .timeLane {
   position: relative;
   height: calc(24 * 3rem);
-  background: repeating-linear-gradient(to bottom, var(--tf-color-border-subtle) 0 1px, transparent 1px 3rem);
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--tf-color-border-subtle) 0 1px,
+    transparent 1px 3rem
+  );
 }
 
 .timeEntry {
@@ -839,17 +847,45 @@
 }
 
 @media (max-width: 767px) {
-  .layout { grid-template-columns: minmax(0, 1fr); }
-  .toolbar { padding: var(--tf-space-2); }
-  .period { width: 100%; flex-wrap: wrap; }
-  .period h2 { min-width: 0; font-size: var(--tf-text-md); }
-  .period button { min-width: 2.75rem; min-height: 2.75rem; }
-  .filter { min-height: 2.75rem; }
-  .mobileAgenda .agendaItem { grid-template-columns: minmax(0, 1fr); min-height: 5rem; }
-  .mobileAgenda .agendaBody { min-width: 0; overflow-wrap: anywhere; }
-  .mobileAgenda .agendaBody strong { white-space: normal; }
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .toolbar {
+    padding: var(--tf-space-2);
+  }
+  .period {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .period h2 {
+    min-width: 0;
+    font-size: var(--tf-text-md);
+  }
+  .period button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+  .filter {
+    min-height: 2.75rem;
+  }
+  .mobileAgenda .agendaItem {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 5rem;
+  }
+  .mobileAgenda .agendaBody {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .mobileAgenda .agendaBody strong {
+    white-space: normal;
+  }
 }
 
 /* Save problems at the end of the editor; empty when there are none. */
-.editorProblem { display: grid; gap: var(--tf-space-2); }
-.editorProblem:empty { display: none; }
+.editorProblem {
+  display: grid;
+  gap: var(--tf-space-2);
+}
+.editorProblem:empty {
+  display: none;
+}

@@ -105,11 +105,25 @@
   font-size: var(--tf-text-2xs);
 }
 
-.error .title { font-size: var(--tf-text-sm); font-weight: var(--tf-weight-medium); }
+.error .title {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
 @keyframes error-pulse {
-  0%, 100% { opacity: .75; transform: scale(1); filter: drop-shadow(0 0 3px var(--tf-color-danger)); }
-  50% { opacity: 1; transform: scale(1.06); filter: drop-shadow(0 0 7px var(--tf-color-danger)); }
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+    filter: drop-shadow(0 0 3px var(--tf-color-danger));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 7px var(--tf-color-danger));
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .errorIcon { animation: none; }
+  .errorIcon {
+    animation: none;
+  }
 }

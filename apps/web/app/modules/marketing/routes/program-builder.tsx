@@ -14,15 +14,27 @@ import styles from "./program-builder.module.css";
 
 export function meta({ location }: Route.MetaArgs) {
   const locale = localeFromPathname(location.pathname);
-  return publicPageMeta({ ...publicMessages(locale).programBuilder.meta, pathname: location.pathname, locale });
+  return publicPageMeta({
+    ...publicMessages(locale).programBuilder.meta,
+    pathname: location.pathname,
+    locale,
+  });
 }
 
-function StructureLadder({ items }: { items: Array<{ name: string; note: string }> }) {
+function StructureLadder({
+  items,
+}: {
+  items: Array<{ name: string; note: string }>;
+}) {
   const [ref, inView] = useInView<HTMLOListElement>();
   return (
     <ol ref={ref} className={styles.ladder} data-inview={inView || undefined}>
       {items.map((item, i) => (
-        <li key={item.name} style={{ "--i": i } as React.CSSProperties} className={styles.rung}>
+        <li
+          key={item.name}
+          style={{ "--i": i } as React.CSSProperties}
+          className={styles.rung}
+        >
           <span className={styles.rungName}>{item.name}</span>
           <span className={styles.rungNote}>{item.note}</span>
         </li>
@@ -34,9 +46,18 @@ function StructureLadder({ items }: { items: Array<{ name: string; note: string 
 function RevisionStrip({ draftLabel }: { draftLabel: string }) {
   const [ref, inView] = useInView<HTMLDivElement>();
   return (
-    <div ref={ref} className={styles.revisions} data-inview={inView || undefined} aria-hidden="true">
+    <div
+      ref={ref}
+      className={styles.revisions}
+      data-inview={inView || undefined}
+      aria-hidden="true"
+    >
       {["R1", "R2", "R3"].map((label, i) => (
-        <span key={label} className={styles.revision} style={{ "--i": i } as React.CSSProperties}>
+        <span
+          key={label}
+          className={styles.revision}
+          style={{ "--i": i } as React.CSSProperties}
+        >
           <Lock />
           {label}
         </span>
@@ -55,7 +76,11 @@ export default function ProgramBuilder() {
   const locale = useLocale();
   return (
     <>
-      <SubpageHero title={p.title} lead={p.lead} back={{ to: publicPath("features", locale), label: p.eyebrowBack }} />
+      <SubpageHero
+        title={p.title}
+        lead={p.lead}
+        back={{ to: publicPath("features", locale), label: p.eyebrowBack }}
+      />
 
       <section className={prose.section} aria-labelledby="structure">
         <div className={prose.heading}>

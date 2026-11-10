@@ -1,12 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Metrivum.Access.Domain;
 using Metrivum.Access.Infrastructure;
 using Metrivum.Accounts.Domain;
 using Metrivum.Accounts.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Metrivum.IntegrationTests;
 
@@ -18,35 +18,150 @@ public sealed class AccountAccessTests
         using var factory = new ApiFactory(Database);
         using var owner = Client(factory, out var ownerId);
         using var editor = Client(factory, out var editorId);
-        await Onboard(owner, ownerId); await Onboard(editor, editorId);
-        using (var db = Access()) {
+        await Onboard(owner, ownerId);
+        await Onboard(editor, editorId);
+        using (var db = Access())
+        {
             var configuration = "editor-test-" + Guid.NewGuid().ToString("N");
-            db.Configurations.Add(new AccessConfiguration { Id = configuration, GrantedFeatures = ["exercises.browse", "exercises.create"] });
-            db.Assignments.AddRange(new AccessAssignment { UserId = ownerId, ConfigurationId = configuration }, new AccessAssignment { UserId = editorId, ConfigurationId = configuration });
+            db.Configurations.Add(
+                new AccessConfiguration
+                {
+                    Id = configuration,
+                    GrantedFeatures = ["exercises.browse", "exercises.create"],
+                }
+            );
+            db.Assignments.AddRange(
+                new AccessAssignment { UserId = ownerId, ConfigurationId = configuration },
+                new AccessAssignment { UserId = editorId, ConfigurationId = configuration }
+            );
             await db.SaveChangesAsync();
         }
         var id = Guid.NewGuid();
-        using (var db = new Metrivum.ExerciseCatalog.Infrastructure.ExerciseCatalogDbContext(new DbContextOptionsBuilder<Metrivum.ExerciseCatalog.Infrastructure.ExerciseCatalogDbContext>().UseNpgsql(Database).Options)) {
+        using (
+            var db = new Metrivum.ExerciseCatalog.Infrastructure.ExerciseCatalogDbContext(
+                new DbContextOptionsBuilder<Metrivum.ExerciseCatalog.Infrastructure.ExerciseCatalogDbContext>()
+                    .UseNpgsql(Database)
+                    .Options
+            )
+        )
+        {
             var name = "Editor test " + id.ToString("N");
-            db.Exercises.Add(new Metrivum.ExerciseCatalog.Domain.Exercise { Id = id, AuthorId = ownerId, Name = name, NormalizedName = name.ToUpperInvariant(), Description = "Original", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow });
+            db.Exercises.Add(
+                new Metrivum.ExerciseCatalog.Domain.Exercise
+                {
+                    Id = id,
+                    AuthorId = ownerId,
+                    Name = name,
+                    NormalizedName = name.ToUpperInvariant(),
+                    Description = "Original",
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                }
+            );
             await db.SaveChangesAsync();
         }
         var path = $"/api/v1/exercises/{id}";
         Assert.False((await Json(await editor.GetAsync(path))).GetProperty("canEdit").GetBoolean());
-        Assert.Equal(HttpStatusCode.Forbidden, (await editor.PatchAsJsonAsync(path, new { expectedVersion = 1, description = "Denied", instructions = "" })).StatusCode);
-        using (var db = Accounts()) { db.Roles.Add(new UserRole { UserId = editorId, Role = "ExerciseEditor" }); await db.SaveChangesAsync(); }
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (
+                await editor.PatchAsJsonAsync(
+                    path,
+                    new
+                    {
+                        expectedVersion = 1,
+                        description = "Denied",
+                        instructions = "",
+                    }
+                )
+            ).StatusCode
+        );
+        using (var db = Accounts())
+        {
+            db.Roles.Add(new UserRole { UserId = editorId, Role = "ExerciseEditor" });
+            await db.SaveChangesAsync();
+        }
         var visible = await Json(await editor.GetAsync(path));
         Assert.True(visible.GetProperty("canEdit").GetBoolean());
         Assert.False(visible.GetProperty("isAuthor").GetBoolean());
-        Assert.Equal(HttpStatusCode.OK, (await editor.PatchAsJsonAsync(path, new { expectedVersion = 1, description = "Reviewed", instructions = "Updated" })).StatusCode);
-        Assert.Equal(HttpStatusCode.Conflict, (await editor.PatchAsJsonAsync(path, new { expectedVersion = 1, description = "Stale", instructions = "" })).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, (await editor.GetAsync("/api/v1/admin/access")).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, (await editor.PutAsJsonAsync("/api/v1/admin/exercise-dictionaries/muscles/test", new { expectedVersion = 0, labelEn = "Test", labelPl = "Test", isActive = true })).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, (await editor.PostAsJsonAsync(path + "/archive", new { expectedVersion = 2 })).StatusCode);
-        using (var db = Accounts()) { await db.Roles.Where(x => x.UserId == editorId && x.Role == "ExerciseEditor").ExecuteDeleteAsync(); }
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (
+                await editor.PatchAsJsonAsync(
+                    path,
+                    new
+                    {
+                        expectedVersion = 1,
+                        description = "Reviewed",
+                        instructions = "Updated",
+                    }
+                )
+            ).StatusCode
+        );
+        Assert.Equal(
+            HttpStatusCode.Conflict,
+            (
+                await editor.PatchAsJsonAsync(
+                    path,
+                    new
+                    {
+                        expectedVersion = 1,
+                        description = "Stale",
+                        instructions = "",
+                    }
+                )
+            ).StatusCode
+        );
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (await editor.GetAsync("/api/v1/admin/access")).StatusCode
+        );
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (
+                await editor.PutAsJsonAsync(
+                    "/api/v1/admin/exercise-dictionaries/muscles/test",
+                    new
+                    {
+                        expectedVersion = 0,
+                        labelEn = "Test",
+                        labelPl = "Test",
+                        isActive = true,
+                    }
+                )
+            ).StatusCode
+        );
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (
+                await editor.PostAsJsonAsync(path + "/archive", new { expectedVersion = 2 })
+            ).StatusCode
+        );
+        using (var db = Accounts())
+        {
+            await db
+                .Roles.Where(x => x.UserId == editorId && x.Role == "ExerciseEditor")
+                .ExecuteDeleteAsync();
+        }
         Assert.False((await Json(await editor.GetAsync(path))).GetProperty("canEdit").GetBoolean());
-        Assert.Equal(HttpStatusCode.Forbidden, (await editor.PatchAsJsonAsync(path, new { expectedVersion = 2, description = "Revoked", instructions = "" })).StatusCode);
-        Assert.Equal("Reviewed", (await Json(await owner.GetAsync(path))).GetProperty("description").GetString());
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (
+                await editor.PatchAsJsonAsync(
+                    path,
+                    new
+                    {
+                        expectedVersion = 2,
+                        description = "Revoked",
+                        instructions = "",
+                    }
+                )
+            ).StatusCode
+        );
+        Assert.Equal(
+            "Reviewed",
+            (await Json(await owner.GetAsync(path))).GetProperty("description").GetString()
+        );
     }
 
     [CatalogPostgresFact]
@@ -78,7 +193,10 @@ public sealed class AccountAccessTests
         using var factory = new ApiFactory(Database);
         using var client = Client(factory, out var user);
         var body = Onboarding(user);
-        var results = await Task.WhenAll(client.PutAsJsonAsync("/api/v1/me/onboarding", body), client.PutAsJsonAsync("/api/v1/me/onboarding", body));
+        var results = await Task.WhenAll(
+            client.PutAsJsonAsync("/api/v1/me/onboarding", body),
+            client.PutAsJsonAsync("/api/v1/me/onboarding", body)
+        );
         Assert.All(results, x => Assert.Equal(HttpStatusCode.OK, x.StatusCode));
         using var db = Accounts();
         Assert.Equal(1, await db.Profiles.CountAsync(x => x.Id == user && x.Onboarded));
@@ -92,17 +210,30 @@ public sealed class AccountAccessTests
         using var factory = new ApiFactory(Database);
         var user = Guid.NewGuid();
         using var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(user, metadataAdmin: true));
+        client.DefaultRequestHeaders.Authorization = new(
+            "Bearer",
+            factory.Token(user, metadataAdmin: true)
+        );
         await Onboard(client, user);
         var response = await client.GetAsync("/api/v1/admin/access");
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-        Assert.Equal("ADMIN_PERMISSION_REQUIRED", (await Json(response)).GetProperty("code").GetString());
+        Assert.Equal(
+            "ADMIN_PERMISSION_REQUIRED",
+            (await Json(response)).GetProperty("code").GetString()
+        );
         using var db = Accounts();
-        Assert.Equal(new[] { "Coach" }, await db.Roles.Where(x => x.UserId == user).Select(x => x.Role).ToArrayAsync());
+        Assert.Equal(
+            new[] { "Coach" },
+            await db.Roles.Where(x => x.UserId == user).Select(x => x.Role).ToArrayAsync()
+        );
         using var accessDb = Access();
         var configId = $"test-{Guid.NewGuid():N}";
-        accessDb.Configurations.Add(new AccessConfiguration { Id = configId, GrantedFeatures = [] });
-        accessDb.Assignments.Add(new AccessAssignment { UserId = user, ConfigurationId = configId });
+        accessDb.Configurations.Add(
+            new AccessConfiguration { Id = configId, GrantedFeatures = [] }
+        );
+        accessDb.Assignments.Add(
+            new AccessAssignment { UserId = user, ConfigurationId = configId }
+        );
         await accessDb.SaveChangesAsync();
         var denied = await client.GetAsync("/api/v1/exercises");
         Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
@@ -115,7 +246,17 @@ public sealed class AccountAccessTests
         using var factory = new ApiFactory(Database);
         using var client = Client(factory, out var user);
         var original = JsonSerializer.SerializeToElement(Onboarding(user));
-        foreach (var field in new[] { "ownerId", "workspaceId", "roles", "admin", "capabilities", "configurationId" })
+        foreach (
+            var field in new[]
+            {
+                "ownerId",
+                "workspaceId",
+                "roles",
+                "admin",
+                "capabilities",
+                "configurationId",
+            }
+        )
         {
             var body = original.EnumerateObject().ToDictionary(x => x.Name, x => (object?)x.Value);
             body[field] = field is "roles" or "capabilities" ? new[] { "Admin" } : "forged";
@@ -133,12 +274,25 @@ public sealed class AccountAccessTests
         using var client = Client(factory, out var user);
         await Onboard(client, user);
         using var db = Accounts();
-        await db.Profiles.Where(x => x.Id == user).ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Active, false));
-        foreach (var endpoint in new[] { "/api/v1/me", "/api/v1/me/access", "/api/v1/exercises", "/api/v1/admin/access" })
+        await db
+            .Profiles.Where(x => x.Id == user)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Active, false));
+        foreach (
+            var endpoint in new[]
+            {
+                "/api/v1/me",
+                "/api/v1/me/access",
+                "/api/v1/exercises",
+                "/api/v1/admin/access",
+            }
+        )
         {
             var response = await client.GetAsync(endpoint);
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            Assert.Equal("ACCOUNT_DISABLED", (await Json(response)).GetProperty("code").GetString());
+            Assert.Equal(
+                "ACCOUNT_DISABLED",
+                (await Json(response)).GetProperty("code").GetString()
+            );
         }
     }
 
@@ -152,42 +306,84 @@ public sealed class AccountAccessTests
         await Onboard(admin, adminId);
         await MakeAdmin(adminId);
         var id = $"test-{Guid.NewGuid():N}";
-        Assert.Equal(HttpStatusCode.OK, (await admin.PutAsJsonAsync($"/api/v1/admin/access/configurations/{id}", new
-        {
-            expectedVersion = 0,
-            grantedFeatures = Array.Empty<string>()
-        })).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await admin.PutAsJsonAsync($"/api/v1/admin/access/users/{user}/configuration", new
-        {
-            expectedVersion = 0,
-            configurationId = id
-        })).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (
+                await admin.PutAsJsonAsync(
+                    $"/api/v1/admin/access/configurations/{id}",
+                    new { expectedVersion = 0, grantedFeatures = Array.Empty<string>() }
+                )
+            ).StatusCode
+        );
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (
+                await admin.PutAsJsonAsync(
+                    $"/api/v1/admin/access/users/{user}/configuration",
+                    new { expectedVersion = 0, configurationId = id }
+                )
+            ).StatusCode
+        );
         var before = await Json(await client.GetAsync("/api/v1/me/access"));
-        Assert.Equal("not_granted", Decision(before, "exercises.browse").GetProperty("reason").GetString());
-        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/exercises")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await admin.PutAsJsonAsync($"/api/v1/admin/access/configurations/{id}", new
-        {
-            expectedVersion = 1,
-            grantedFeatures = new[] { "exercises.browse", "exercises.create" }
-        })).StatusCode);
+        Assert.Equal(
+            "not_granted",
+            Decision(before, "exercises.browse").GetProperty("reason").GetString()
+        );
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (await client.GetAsync("/api/v1/exercises")).StatusCode
+        );
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (
+                await admin.PutAsJsonAsync(
+                    $"/api/v1/admin/access/configurations/{id}",
+                    new
+                    {
+                        expectedVersion = 1,
+                        grantedFeatures = new[] { "exercises.browse", "exercises.create" },
+                    }
+                )
+            ).StatusCode
+        );
         var after = await Json(await client.GetAsync("/api/v1/me/access"));
         Assert.True(Decision(after, "exercises.browse").GetProperty("available").GetBoolean());
-        Assert.NotEqual(before.GetProperty("version").GetString(), after.GetProperty("version").GetString());
+        Assert.NotEqual(
+            before.GetProperty("version").GetString(),
+            after.GetProperty("version").GetString()
+        );
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/exercises")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await admin.PutAsJsonAsync($"/api/v1/admin/access/users/{user}/features/exercises.browse", new
-        {
-            expectedVersion = 0,
-            granted = false
-        })).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (
+                await admin.PutAsJsonAsync(
+                    $"/api/v1/admin/access/users/{user}/features/exercises.browse",
+                    new { expectedVersion = 0, granted = false }
+                )
+            ).StatusCode
+        );
         var denied = await Json(await client.GetAsync("/api/v1/me/access"));
-        Assert.Equal("explicit_deny", Decision(denied, "exercises.browse").GetProperty("reason").GetString());
-        Assert.Equal("dependency_unavailable", Decision(denied, "exercises.create").GetProperty("reason").GetString());
-        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/exercises")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await admin.PutAsJsonAsync($"/api/v1/admin/access/users/{user}/features/exercises.browse", new
-        {
-            expectedVersion = 1,
-            granted = true
-        })).StatusCode);
+        Assert.Equal(
+            "explicit_deny",
+            Decision(denied, "exercises.browse").GetProperty("reason").GetString()
+        );
+        Assert.Equal(
+            "dependency_unavailable",
+            Decision(denied, "exercises.create").GetProperty("reason").GetString()
+        );
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (await client.GetAsync("/api/v1/exercises")).StatusCode
+        );
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (
+                await admin.PutAsJsonAsync(
+                    $"/api/v1/admin/access/users/{user}/features/exercises.browse",
+                    new { expectedVersion = 1, granted = true }
+                )
+            ).StatusCode
+        );
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/exercises")).StatusCode);
         using var db = Access();
         Assert.Equal(5, await db.Audit.CountAsync(x => x.ActorId == adminId));
@@ -200,18 +396,28 @@ public sealed class AccountAccessTests
         using var admin = Client(factory, out var user);
         await Onboard(admin, user);
         await MakeAdmin(user);
-        var response = await admin.PutAsJsonAsync($"/api/v1/admin/access/configurations/test-{Guid.NewGuid():N}", new
-        {
-            expectedVersion = 0,
-            grantedFeatures = (string[]?)null
-        });
+        var response = await admin.PutAsJsonAsync(
+            $"/api/v1/admin/access/configurations/test-{Guid.NewGuid():N}",
+            new { expectedVersion = 0, grantedFeatures = (string[]?)null }
+        );
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    private static JsonElement Decision(JsonElement snapshot, string key) => snapshot.GetProperty("features").EnumerateArray().Single(x => x.GetProperty("key").GetString() == key);
-    private static string Database => Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!;
-    private static AccountsDbContext Accounts() => new(new DbContextOptionsBuilder<AccountsDbContext>().UseNpgsql(Database).Options);
-    private static AccessDbContext Access() => new(new DbContextOptionsBuilder<AccessDbContext>().UseNpgsql(Database).Options);
+    private static JsonElement Decision(JsonElement snapshot, string key) =>
+        snapshot
+            .GetProperty("features")
+            .EnumerateArray()
+            .Single(x => x.GetProperty("key").GetString() == key);
+
+    private static string Database =>
+        Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!;
+
+    private static AccountsDbContext Accounts() =>
+        new(new DbContextOptionsBuilder<AccountsDbContext>().UseNpgsql(Database).Options);
+
+    private static AccessDbContext Access() =>
+        new(new DbContextOptionsBuilder<AccessDbContext>().UseNpgsql(Database).Options);
+
     private static HttpClient Client(ApiFactory factory, out Guid user)
     {
         user = Guid.NewGuid();
@@ -219,23 +425,43 @@ public sealed class AccountAccessTests
         client.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(user));
         return client;
     }
-    private static object Onboarding(Guid user) => new { username = $"u{user:N}"[..30], displayName = "Test Coach", birthDate = "1990-01-01", acceptedTerms = true, locale = "pl", timeZone = "Europe/Warsaw" };
+
+    private static object Onboarding(Guid user) =>
+        new
+        {
+            username = $"u{user:N}"[..30],
+            displayName = "Test Coach",
+            birthDate = "1990-01-01",
+            acceptedTerms = true,
+            locale = "pl",
+            timeZone = "Europe/Warsaw",
+        };
+
     private static async Task Onboard(HttpClient client, Guid user)
     {
         var response = await client.PutAsJsonAsync("/api/v1/me/onboarding", Onboarding(user));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+
     private static async Task MakeAdmin(Guid user)
     {
         using var db = Accounts();
         db.Roles.Add(new UserRole { UserId = user, Role = "AccessAdmin" });
         await db.SaveChangesAsync();
     }
+
     private static async Task SeedDefault(ApiFactory factory)
     {
         using var db = Access();
-        var keys = factory.Services.GetRequiredService<FeatureCatalog>().Definitions.Keys.Order().ToArray();
-        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO access.configurations (\"Id\", \"GrantedFeatures\", \"Version\") VALUES ('v1-default', {keys}, 1) ON CONFLICT (\"Id\") DO NOTHING");
+        var keys = factory
+            .Services.GetRequiredService<FeatureCatalog>()
+            .Definitions.Keys.Order()
+            .ToArray();
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"INSERT INTO access.configurations (\"Id\", \"GrantedFeatures\", \"Version\") VALUES ('v1-default', {keys}, 1) ON CONFLICT (\"Id\") DO NOTHING"
+        );
     }
-    private static async Task<JsonElement> Json(HttpResponseMessage response) => await response.Content.ReadFromJsonAsync<JsonElement>();
+
+    private static async Task<JsonElement> Json(HttpResponseMessage response) =>
+        await response.Content.ReadFromJsonAsync<JsonElement>();
 }

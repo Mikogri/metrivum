@@ -6,7 +6,8 @@ export const publicPl: PublicMessages = {
     brand: "Metrivum",
     skipToContent: "Przejdź do treści",
     illustrativePreview: "Podgląd poglądowy",
-    illustrativePreviewNote: "Przykładowe dane narysowane na potrzeby strony, nie prawdziwe konto.",
+    illustrativePreviewNote:
+      "Przykładowe dane narysowane na potrzeby strony, nie prawdziwe konto.",
     languageLabel: "Język",
     languageNames: { en: "English", pl: "Polski" },
     learnMore: "Dowiedz się więcej",
@@ -27,18 +28,21 @@ export const publicPl: PublicMessages = {
     accounts: "Zalogowane konta",
     signOut: "Wyloguj",
     signOutTitle: "Wyloguj",
-    signOutChoose: "Wybierz konto, z którego chcesz się wylogować. Pozostałe konta zostaną zalogowane.",
+    signOutChoose:
+      "Wybierz konto, z którego chcesz się wylogować. Pozostałe konta zostaną zalogowane.",
     signOutOf: (email: string) => `Wyloguj z ${email}`,
     inUse: "W użyciu",
     cancel: "Anuluj",
   },
   footer: {
-    tagline: "Przestrzeń robocza dla trenerów, którzy piszą programy treningowe.",
+    tagline:
+      "Przestrzeń robocza dla trenerów, którzy piszą programy treningowe.",
     product: "Produkt",
     account: "Konto",
     register: "Załóż konto",
     signIn: "Zaloguj się",
-    legalPending: "Polityka prywatności i regulamin zostaną opublikowane tutaj przed otwarciem publicznej rejestracji.",
+    legalPending:
+      "Polityka prywatności i regulamin zostaną opublikowane tutaj przed otwarciem publicznej rejestracji.",
     copyright: (year: number) => `© ${year} Metrivum`,
   },
   home: {
@@ -61,22 +65,73 @@ export const publicPl: PublicMessages = {
       cycle: "Cykl 1 · 10 dni",
       day: "Dzień 3",
       workout: "Dół ciała",
-      columns: { exercise: "Ćwiczenie", set: "Seria", reps: "Powt.", load: "Obciążenie", effort: "Wysiłek", rest: "Przerwa" },
+      columns: {
+        exercise: "Ćwiczenie",
+        set: "Seria",
+        reps: "Powt.",
+        load: "Obciążenie",
+        effort: "Wysiłek",
+        rest: "Przerwa",
+      },
       rows: [
-        { exercise: "Przysiad tylny", set: "Seria szczytowa", reps: "3", load: "85% · 1RM", effort: "RPE 8", rest: "4 min" },
-        { exercise: "Przysiad tylny", set: "Back-off", reps: "5", load: "−10%", effort: "RPE 7", rest: "3 min" },
-        { exercise: "Martwy ciąg rumuński", set: "Rampa", reps: "8–10", load: "60 → 80 kg", effort: "RIR 2", rest: "2 min" },
-        { exercise: "Przysiad wykroczny", set: "Standard", reps: "10", load: "24 kg", effort: "RIR 3", rest: "90 s" },
-        { exercise: "Deska kopenhaska", set: "Klaster", reps: "4×20 s", load: "—", effort: "—", rest: "60 s" },
+        {
+          exercise: "Przysiad tylny",
+          set: "Seria szczytowa",
+          reps: "3",
+          load: "85% · 1RM",
+          effort: "RPE 8",
+          rest: "4 min",
+        },
+        {
+          exercise: "Przysiad tylny",
+          set: "Back-off",
+          reps: "5",
+          load: "−10%",
+          effort: "RPE 7",
+          rest: "3 min",
+        },
+        {
+          exercise: "Martwy ciąg rumuński",
+          set: "Rampa",
+          reps: "8–10",
+          load: "60 → 80 kg",
+          effort: "RIR 2",
+          rest: "2 min",
+        },
+        {
+          exercise: "Przysiad wykroczny",
+          set: "Standard",
+          reps: "10",
+          load: "24 kg",
+          effort: "RIR 3",
+          rest: "90 s",
+        },
+        {
+          exercise: "Deska kopenhaska",
+          set: "Klaster",
+          reps: "4×20 s",
+          load: "—",
+          effort: "—",
+          rest: "60 s",
+        },
       ],
       formula: "base1Rm × percentage",
       formulaResult: "140 kg × 0,85 = 119 kg",
       saved: "Szkic zapisany",
-      tools: { sheet: "Arkusz", formulas: "Formuły", copy: "Kopiuj", history: "Historia" },
+      tools: {
+        sheet: "Arkusz",
+        formulas: "Formuły",
+        copy: "Kopiuj",
+        history: "Historia",
+      },
       recentTitle: "Ostatnie zmiany",
       recent: [
         { what: "przysiad / seria szczytowa", value: "85% 1rm", when: "teraz" },
-        { what: "martwy ciąg rumuński / rampa", value: "60 → 80 kg", when: "2 min" },
+        {
+          what: "martwy ciąg rumuński / rampa",
+          value: "60 → 80 kg",
+          when: "2 min",
+        },
         { what: "cykl 1 / długość", value: "10 dni", when: "6 min" },
       ],
     },
@@ -112,13 +167,18 @@ export const publicPl: PublicMessages = {
         Cluster: "Przerwy między mini-seriami",
       },
       groupsTitle: "Superserie i obwody",
-      groupsBody: "Połącz dwa ćwiczenia w superserię albo kilka w obwód z liczbą rund i przerwą.",
+      groupsBody:
+        "Połącz dwa ćwiczenia w superserię albo kilka w obwód z liczbą rund i przerwą.",
     },
     formulas: {
       title: "Obciążenia, które liczą się same",
       body: "Korzystaj z wbudowanych formuł, takich jak procent 1RM, albo pisz własne z typowanymi jednostkami. Serwer liczy każdą formułę w przypiętej wersji, więc opublikowany program nie zmienia się bez Twojej wiedzy.",
       builtIns: "Wbudowane formuły",
-      builtInNames: ["Procent 1RM", "Poprzedni cykl + przyrost", "Seria szczytowa → back-off"],
+      builtInNames: [
+        "Procent 1RM",
+        "Poprzedni cykl + przyrost",
+        "Seria szczytowa → back-off",
+      ],
       inputs: "Wejścia",
       result: "Wynik",
     },
@@ -129,7 +189,10 @@ export const publicPl: PublicMessages = {
       filters: ["Zawias biodrowy", "Czworogłowe", "Jednostronne", "Ulubione"],
       items: [
         { name: "Martwy ciąg rumuński", meta: "Zawias · Dwugłowe, pośladkowe" },
-        { name: "Przysiad bułgarski", meta: "Przysiad · Czworogłowe, pośladkowe" },
+        {
+          name: "Przysiad bułgarski",
+          meta: "Przysiad · Czworogłowe, pośladkowe",
+        },
         { name: "Hip thrust jednonóż", meta: "Zawias · Pośladkowe" },
         { name: "Nordic curl", meta: "Zginanie kolana · Dwugłowe" },
       ],
@@ -137,7 +200,12 @@ export const publicPl: PublicMessages = {
     folders: {
       title: "Foldery, szablony i niezależne kopie",
       body: "Porządkuj programy i prywatne szablony w zagnieżdżonych folderach. Zacznij program od szablonu i dostań pełną kopię — jej edycja nigdy nie zmienia oryginału.",
-      tree: ["Okres przygotowawczy", "Hipertrofia", "Szablony", "Siła 10-dniowa"],
+      tree: [
+        "Okres przygotowawczy",
+        "Hipertrofia",
+        "Szablony",
+        "Siła 10-dniowa",
+      ],
       copyAction: "Użyj szablonu",
       copied: "Utworzono niezależną kopię",
     },
@@ -149,13 +217,28 @@ export const publicPl: PublicMessages = {
       steps: ["Podgląd", "Dopasowanie ćwiczeń", "Walidacja", "Zatwierdzenie"],
       revisionMeta: "Rewizja 3",
       sourceMeta: "UTF-8 · 3 KB",
-      files: { csvIn: "blok-wiosna.csv", pdfOut: "blok-silowy-a-r3.pdf", csvOut: "blok-silowy-a-r3.csv" },
+      files: {
+        csvIn: "blok-wiosna.csv",
+        pdfOut: "blok-silowy-a-r3.pdf",
+        csvOut: "blok-silowy-a-r3.csv",
+      },
       hub: { rows: "38 wierszy dopasowanych", check: "0 błędów" },
       sheet: {
         columns: ["Ćwiczenie", "Serie", "Powt.", "Obciąż."],
-        rows: [["Przysiad", "4", "5", "80%"], ["RDL", "3", "8", "60 kg"], ["Wykroki", "3", "10", "24 kg"], ["Deska", "3", "45 s", "—"]],
+        rows: [
+          ["Przysiad", "4", "5", "80%"],
+          ["RDL", "3", "8", "60 kg"],
+          ["Wykroki", "3", "10", "24 kg"],
+          ["Deska", "3", "45 s", "—"],
+        ],
       },
-      mapping: { title: "Dopasowane do katalogu", pairs: [["RDL", "Martwy ciąg rumuński"], ["Wykroki", "Przysiad bułgarski"]] },
+      mapping: {
+        title: "Dopasowane do katalogu",
+        pairs: [
+          ["RDL", "Martwy ciąg rumuński"],
+          ["Wykroki", "Przysiad bułgarski"],
+        ],
+      },
       pdfTitle: "Blok siłowy A",
       pdfMeta: "Cykl 1 · Dzień 3",
       outputs: "Pliki z rewizji 3",
@@ -165,7 +248,11 @@ export const publicPl: PublicMessages = {
       body: "Prześlij nagranie do prywatnej biblioteki, uruchom analizę i śledź jej status. Gdy podłączony jest analizator, dostajesz powtórzenia, czasy faz i tor ruchu sztangi, a dwa lifty możesz porównać obok siebie.",
       honesty:
         "Pomiary pochodzą z usługi analizatora podłączonej do Twojego wdrożenia Metrivum. Dopóki nie jest podłączona, nowe analizy kończą się statusem „analizator nieskonfigurowany” — Metrivum nigdy nie pokazuje symulowanych wyników.",
-      statuses: { Queued: "W kolejce", Processing: "Przetwarzanie", Completed: "Zakończona" },
+      statuses: {
+        Queued: "W kolejce",
+        Processing: "Przetwarzanie",
+        Completed: "Zakończona",
+      },
       repLabel: (n: number) => `Powt. ${n}`,
       phases: { eccentric: "Ekscentryczna", concentric: "Koncentryczna" },
       pathLabel: "Tor sztangi",
@@ -173,10 +260,22 @@ export const publicPl: PublicMessages = {
     workflow: {
       title: "Jak przebiega praca w Metrivum",
       steps: [
-        { title: "Przygotuj przestrzeń", body: "Załóż konto, potwierdź e-mail i przejdź krótki onboarding." },
-        { title: "Zbuduj lub zaimportuj", body: "Zacznij od zera, od szablonu albo od pliku CSV, który już masz." },
-        { title: "Opublikuj rewizję", body: "Publikacja zapisuje prywatną, niezmienną wersję szkicu. Nie jest nikomu wysyłana." },
-        { title: "Eksportuj i analizuj", body: "Pobierz CSV lub PDF z rewizji i trzymaj nagrania liftów obok programu." },
+        {
+          title: "Przygotuj przestrzeń",
+          body: "Załóż konto, potwierdź e-mail i przejdź krótki onboarding.",
+        },
+        {
+          title: "Zbuduj lub zaimportuj",
+          body: "Zacznij od zera, od szablonu albo od pliku CSV, który już masz.",
+        },
+        {
+          title: "Opublikuj rewizję",
+          body: "Publikacja zapisuje prywatną, niezmienną wersję szkicu. Nie jest nikomu wysyłana.",
+        },
+        {
+          title: "Eksportuj i analizuj",
+          body: "Pobierz CSV lub PDF z rewizji i trzymaj nagrania liftów obok programu.",
+        },
       ],
     },
     faq: {
@@ -227,9 +326,18 @@ export const publicPl: PublicMessages = {
         rest: "Stworzony dla trenerów, którzy piszą programy, z blokami, cyklami i typowanymi seriami w centrum. Metrivum zachowuje szybkość arkusza i dodaje strukturę, której potrzebuje program.",
       },
       pillars: [
-        { title: "Zbudowany jak plan treningowy", body: "Bloki, cykle o dowolnej długości i numerowane dni: struktura, w której trenerzy i tak myślą." },
-        { title: "Serie zapisane jako dane", body: "Osiem typów serii, zakresy, %1RM, RPE i formuły to pola, a nie tekst wpisany w komórkę." },
-        { title: "Twoja praca wychodzi czysto", body: "Zaimportuj CSV, który już masz, i wyeksportuj dowolną opublikowaną rewizję do CSV lub PDF." },
+        {
+          title: "Zbudowany jak plan treningowy",
+          body: "Bloki, cykle o dowolnej długości i numerowane dni: struktura, w której trenerzy i tak myślą.",
+        },
+        {
+          title: "Serie zapisane jako dane",
+          body: "Osiem typów serii, zakresy, %1RM, RPE i formuły to pola, a nie tekst wpisany w komórkę.",
+        },
+        {
+          title: "Twoja praca wychodzi czysto",
+          body: "Zaimportuj CSV, który już masz, i wyeksportuj dowolną opublikowaną rewizję do CSV lub PDF.",
+        },
       ],
       chapters: {
         structure: {
@@ -326,7 +434,10 @@ export const publicPl: PublicMessages = {
     scopeTitle: "Czym Metrivum nie jest",
     scopeBody:
       "Metrivum to przestrzeń robocza trenera. Nie zarządza podopiecznymi, płatnościami, wiadomościami ani kalendarzem i nie ma aplikacji mobilnej.",
-    detailLinks: { programBuilder: "Kreator programów w szczegółach", videoAnalysis: "Analiza wideo w szczegółach" },
+    detailLinks: {
+      programBuilder: "Kreator programów w szczegółach",
+      videoAnalysis: "Analiza wideo w szczegółach",
+    },
   },
   programBuilder: {
     meta: {
@@ -338,7 +449,8 @@ export const publicPl: PublicMessages = {
     title: "Edytor programów, który rozumie serie",
     lead: "Metrivum przechowuje program jako typowane dane, nie tekst w komórkach. Jednostki, powiązania i identyfikatory przetrwają kopiowanie, import i eksport.",
     structureTitle: "Struktura",
-    structureBody: "Każdy poziom zawiera kolejny. Puste poziomy są poprawne w szkicu, więc możesz najpierw naszkicować, a potem uzupełnić.",
+    structureBody:
+      "Każdy poziom zawiera kolejny. Puste poziomy są poprawne w szkicu, więc możesz najpierw naszkicować, a potem uzupełnić.",
     structure: [
       { name: "Program", note: "Nazwa, opis, folder" },
       { name: "Blok", note: "Faza, np. akumulacja albo szczyt formy" },
@@ -354,16 +466,31 @@ export const publicPl: PublicMessages = {
       { label: "Obciążenie", value: "kg lub lb, dokładnie albo zakres" },
       { label: "Obciążenie względne", value: "% wartości bazowej, np. 1RM" },
       { label: "Wysiłek", value: "RPE 0–10 albo RIR — jedno z dwóch" },
-      { label: "Czas i dystans", value: "Czas pracy, przerwa, metry lub kilometry" },
+      {
+        label: "Czas i dystans",
+        value: "Czas pracy, przerwa, metry lub kilometry",
+      },
       { label: "Tempo", value: "Cztery fazy, np. 3-1-X-0" },
       { label: "Formuła", value: "Wbudowana lub własna, liczona przez serwer" },
     ],
     editorTitle: "Praca w edytorze",
     editor: [
-      { title: "Najpierw klawiatura", body: "Poruszaj się między komórkami strzałkami, edytuj Enterem, wychodź Escape. Pisanie w komórce nigdy nie uruchamia skrótów całego arkusza." },
-      { title: "Kopiuj, wklejaj, porządkuj", body: "Kopiuj preskrypcje między seriami, powielaj ćwiczenia, treningi, cykle i bloki oraz przenoś je przyciskami lub skrótami klawiszowymi, nie tylko przeciąganiem." },
-      { title: "Cofnij to, co zrobiłeś", body: "Cofnij i ponów obejmują Twoje lokalne zmiany. Nie udają historii wersji na serwerze." },
-      { title: "Zapis, któremu można ufać", body: "Każdy zapis zawiera wersję, od której zaczynasz. Jeśli program zmienił się gdzie indziej, zobaczysz konflikt i zachowasz swoją pracę." },
+      {
+        title: "Najpierw klawiatura",
+        body: "Poruszaj się między komórkami strzałkami, edytuj Enterem, wychodź Escape. Pisanie w komórce nigdy nie uruchamia skrótów całego arkusza.",
+      },
+      {
+        title: "Kopiuj, wklejaj, porządkuj",
+        body: "Kopiuj preskrypcje między seriami, powielaj ćwiczenia, treningi, cykle i bloki oraz przenoś je przyciskami lub skrótami klawiszowymi, nie tylko przeciąganiem.",
+      },
+      {
+        title: "Cofnij to, co zrobiłeś",
+        body: "Cofnij i ponów obejmują Twoje lokalne zmiany. Nie udają historii wersji na serwerze.",
+      },
+      {
+        title: "Zapis, któremu można ufać",
+        body: "Każdy zapis zawiera wersję, od której zaczynasz. Jeśli program zmienił się gdzie indziej, zobaczysz konflikt i zachowasz swoją pracę.",
+      },
     ],
     draftLabel: "Szkic",
     revisionsTitle: "Szkice i rewizje",
@@ -384,17 +511,36 @@ export const publicPl: PublicMessages = {
     lead: "Trzymaj nagrania prywatnie, uruchamiaj analizy jako zadania w tle i czytaj wyniki obok programów.",
     flowTitle: "Od przesłania do wyniku",
     flow: [
-      { title: "Prześlij", body: "Wybierz plik MP4, WebM lub MOV. Metrivum rezerwuje przesyłanie, a plik trafia prosto do prywatnego magazynu." },
-      { title: "Weryfikacja", body: "Serwer sprawdza typ i rozmiar zapisanego pliku, zanim nagranie będzie gotowe." },
-      { title: "Analizuj", body: "Uruchom analizę z nazwą, tagami i notatką. Działa w tle i przetrwa odświeżenie strony." },
-      { title: "Przeglądaj", body: "Czytaj powtórzenia, czasy faz i tor ruchu albo porównaj dwie analizy." },
+      {
+        title: "Prześlij",
+        body: "Wybierz plik MP4, WebM lub MOV. Metrivum rezerwuje przesyłanie, a plik trafia prosto do prywatnego magazynu.",
+      },
+      {
+        title: "Weryfikacja",
+        body: "Serwer sprawdza typ i rozmiar zapisanego pliku, zanim nagranie będzie gotowe.",
+      },
+      {
+        title: "Analizuj",
+        body: "Uruchom analizę z nazwą, tagami i notatką. Działa w tle i przetrwa odświeżenie strony.",
+      },
+      {
+        title: "Przeglądaj",
+        body: "Czytaj powtórzenia, czasy faz i tor ruchu albo porównaj dwie analizy.",
+      },
     ],
     resultsTitle: "Co zawiera wynik",
     results: [
       { label: "Powtórzenia", value: "Początek i koniec każdego powtórzenia" },
       { label: "Fazy", value: "Fazy z czasami w każdym powtórzeniu" },
-      { label: "Trajektoria", value: "Pozycja w czasie z jakością i oznaczeniem zasłonięcia" },
-      { label: "Prędkość", value: "Tylko gdy podaje ją analizator; nigdy liczona z pikseli bez kalibracji" },
+      {
+        label: "Trajektoria",
+        value: "Pozycja w czasie z jakością i oznaczeniem zasłonięcia",
+      },
+      {
+        label: "Prędkość",
+        value:
+          "Tylko gdy podaje ją analizator; nigdy liczona z pikseli bez kalibracji",
+      },
     ],
     statusTitle: "Status analizatora",
     statusBody:
@@ -402,10 +548,14 @@ export const publicPl: PublicMessages = {
     privacyTitle: "Domyślnie prywatne",
     privacyBody:
       "Nagrania są przechowywane w prywatnym buckecie. Odtwarzanie korzysta z krótkotrwałych podpisanych linków, które wygasają po kilku minutach i nigdy nie są traktowane jako stałe adresy.",
-    limitsNote: "Domyślne limity: MP4, WebM lub MOV do 256 MiB, pięć przesyłań w toku jednocześnie. Twoje wdrożenie może mieć inne limity.",
+    limitsNote:
+      "Domyślne limity: MP4, WebM lub MOV do 256 MiB, pięć przesyłań w toku jednocześnie. Twoje wdrożenie może mieć inne limity.",
   },
   notFound: {
-    meta: { title: "Nie znaleziono strony — Metrivum", description: "Ta strona nie istnieje." },
+    meta: {
+      title: "Nie znaleziono strony — Metrivum",
+      description: "Ta strona nie istnieje.",
+    },
     title: "Ta strona nie istnieje",
     body: "Sprawdź adres albo wróć na start.",
     home: "Przejdź na stronę główną",

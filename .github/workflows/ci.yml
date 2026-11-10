@@ -42,7 +42,7 @@ jobs:
         run: ./infra/test-secret-scan.ps1
       - shell: pwsh
         run: ./infra/scan-secrets.ps1 -IncludeHistory
-      - run: dotnet format whitespace --no-restore --verify-no-changes
+      - run: dotnet csharpier check apps/api backend workers tools tests infra
       - run: dotnet run --no-build --project apps/api/Metrivum.Api -- --migrate
       - run: dotnet test --no-build --logger trx --results-directory TestResults
       - shell: pwsh

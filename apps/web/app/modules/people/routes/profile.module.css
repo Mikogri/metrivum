@@ -10,7 +10,9 @@
   border: 1px solid var(--tf-color-border-subtle);
   border-radius: var(--tf-radius-xl);
   background: var(--tf-color-surface);
-  transition: border-color 260ms ease, box-shadow 260ms ease;
+  transition:
+    border-color 260ms ease,
+    box-shadow 260ms ease;
 }
 
 .heroBody {
@@ -125,7 +127,8 @@
 /* Edit mode: the header is framed in the warning tone, matching the notice at the top. */
 .page[data-editing] .hero {
   border-color: color-mix(in srgb, var(--tf-color-warning) 60%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-color-warning) 18%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--tf-color-warning) 18%, transparent);
 }
 
 .cardHead {
@@ -224,7 +227,6 @@
     font-size: var(--tf-text-xl);
   }
 }
-
 
 /* Completeness: percentage, a meter and a short checklist with links to what is missing. */
 .percent {
@@ -340,7 +342,10 @@
   background: var(--tf-color-surface);
   color: var(--tf-color-text);
   text-decoration: none;
-  transition: border-color 140ms ease, transform 140ms var(--tf-ease-out, ease-out), box-shadow 140ms ease;
+  transition:
+    border-color 140ms ease,
+    transform 140ms var(--tf-ease-out, ease-out),
+    box-shadow 140ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -449,7 +454,9 @@
   width: 1rem;
   height: 1rem;
   color: var(--tf-color-text-tertiary);
-  transition: color 140ms ease, transform 140ms ease;
+  transition:
+    color 140ms ease,
+    transform 140ms ease;
 }
 
 /* Empty offers: compact, with no extra space under it inside the card. */

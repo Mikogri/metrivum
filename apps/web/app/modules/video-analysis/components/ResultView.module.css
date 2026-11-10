@@ -158,7 +158,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-
 /*
  * Detail page: two fixed frames. A landscape video (as wide as tall or wider) sits in a 16:9 frame above the
  * analysis; a portrait one in a 9:16 frame beside it. The video fits inside with black bars (top and bottom,
@@ -173,7 +172,9 @@
 }
 
 .detail[data-portrait] {
-  grid-template-columns: min(42%, max(15rem, calc(var(--video-height) * 0.85 * 9 / 16))) minmax(0, 1fr);
+  grid-template-columns:
+    min(42%, max(15rem, calc(var(--video-height) * 0.85 * 9 / 16)))
+    minmax(0, 1fr);
 }
 
 .sheet {
@@ -368,10 +369,18 @@
   stroke-linecap: round;
 }
 
-.trail[data-kind="eccentric"] { stroke: var(--phase-eccentric); }
-.trail[data-kind="pause"] { stroke: var(--phase-pause); }
-.trail[data-kind="concentric"] { stroke: var(--phase-concentric); }
-.trail[data-hidden] { display: none; }
+.trail[data-kind="eccentric"] {
+  stroke: var(--phase-eccentric);
+}
+.trail[data-kind="pause"] {
+  stroke: var(--phase-pause);
+}
+.trail[data-kind="concentric"] {
+  stroke: var(--phase-concentric);
+}
+.trail[data-hidden] {
+  display: none;
+}
 
 .point {
   fill: var(--phase-none);
@@ -380,9 +389,15 @@
   vector-effect: non-scaling-stroke;
 }
 
-.point[data-kind="eccentric"] { fill: var(--phase-eccentric); }
-.point[data-kind="pause"] { fill: var(--phase-pause); }
-.point[data-kind="concentric"] { fill: var(--phase-concentric); }
+.point[data-kind="eccentric"] {
+  fill: var(--phase-eccentric);
+}
+.point[data-kind="pause"] {
+  fill: var(--phase-pause);
+}
+.point[data-kind="concentric"] {
+  fill: var(--phase-concentric);
+}
 
 .halo {
   fill: none;
@@ -413,7 +428,10 @@
   font-size: var(--tf-text-xs);
   cursor: pointer;
   outline: none;
-  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease;
 }
 
 .phaseChip[data-selected] {
@@ -439,14 +457,24 @@
   opacity: 0.35;
 }
 
-.phaseChip[data-kind="eccentric"] .phaseSwatch { background: var(--phase-eccentric); }
-.phaseChip[data-kind="pause"] .phaseSwatch { background: var(--phase-pause); }
-.phaseChip[data-kind="concentric"] .phaseSwatch { background: var(--phase-concentric); }
-.phaseChip[data-selected] .phaseSwatch { opacity: 1; }
+.phaseChip[data-kind="eccentric"] .phaseSwatch {
+  background: var(--phase-eccentric);
+}
+.phaseChip[data-kind="pause"] .phaseSwatch {
+  background: var(--phase-pause);
+}
+.phaseChip[data-kind="concentric"] .phaseSwatch {
+  background: var(--phase-concentric);
+}
+.phaseChip[data-selected] .phaseSwatch {
+  opacity: 1;
+}
 
 /* The repetition under the time cursor is highlighted; rows jump the video to their start. */
 .metrics tbody tr {
-  transition: background-color 120ms ease, opacity 120ms ease;
+  transition:
+    background-color 120ms ease,
+    opacity 120ms ease;
 }
 
 .metrics tbody tr:hover {

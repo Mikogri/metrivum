@@ -20,11 +20,24 @@ const icons = {
   danger: XOctagon,
 };
 
-export function Alert({ tone = "info", title, children, actions, live = "off", className }: AlertProps) {
+export function Alert({
+  tone = "info",
+  title,
+  children,
+  actions,
+  live = "off",
+  className,
+}: AlertProps) {
   const Icon = icons[tone];
   return (
     <div
-      role={live === "assertive" ? "alert" : live === "polite" ? "status" : undefined}
+      role={
+        live === "assertive"
+          ? "alert"
+          : live === "polite"
+            ? "status"
+            : undefined
+      }
       className={cx(styles.alert, styles[tone], className)}
     >
       <Icon aria-hidden="true" className={styles.icon} />

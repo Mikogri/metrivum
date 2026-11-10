@@ -11,9 +11,22 @@
   position: relative;
   min-height: 18rem;
   background:
-    linear-gradient(color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px, transparent 1px) 0 0 / 100% 2rem,
-    linear-gradient(90deg, color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px, transparent 1px) 0 0 / 2rem 100%,
-    radial-gradient(ellipse at 50% 30%, var(--tf-color-surface-raised), var(--tf-color-bg-sunken) 70%);
+    linear-gradient(
+        color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 100% 2rem,
+    linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 2rem 100%,
+    radial-gradient(
+      ellipse at 50% 30%,
+      var(--tf-color-surface-raised),
+      var(--tf-color-bg-sunken) 70%
+    );
 }
 
 .floor {
@@ -22,7 +35,12 @@
   right: 0;
   bottom: 14%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--tf-color-border-strong), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--tf-color-border-strong),
+    transparent
+  );
 }
 
 .path {
@@ -64,7 +82,9 @@
   fill: var(--tf-color-text);
   stroke: var(--tf-color-bg);
   stroke-width: 3;
-  offset-path: path("M150 40 C 146 80, 138 130, 140 178 C 142 214, 156 222, 160 210 C 166 180, 160 120, 152 40");
+  offset-path: path(
+    "M150 40 C 146 80, 138 130, 140 178 C 142 214, 156 222, 160 210 C 166 180, 160 120, 152 40"
+  );
   offset-distance: 0%;
   /* Circle centre is already on the path origin; offset-path drives it along the trajectory. */
   transform: translate(-150px, -40px);

@@ -1,4 +1,13 @@
-import { Children, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type SyntheticEvent } from "react";
+import {
+  Children,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type SyntheticEvent,
+} from "react";
 import { createPortal } from "react-dom";
 import { overlayPosition, overlayViewport } from "../../lib/overlay-position";
 import { cx } from "../../lib/cx";
@@ -7,7 +16,15 @@ import { Dialog } from "../Dialog/Dialog";
 import styles from "./ContextMenu.module.css";
 
 export type ContextMenuEntry =
-  | { type?: "item"; id: string; label: ReactNode; icon?: ReactNode; tone?: "danger"; isDisabled?: boolean; shortcut?: string }
+  | {
+      type?: "item";
+      id: string;
+      label: ReactNode;
+      icon?: ReactNode;
+      tone?: "danger";
+      isDisabled?: boolean;
+      shortcut?: string;
+    }
   | { type: "separator"; id: string }
   | { type: "label"; id: string; label: ReactNode };
 
@@ -41,29 +58,88 @@ const pointerBoundary = {
 export function ContextMenu(props: ContextMenuProps) {
   const phone = useMobileLayout();
   if (!phone) return <DesktopContextMenu {...props} />;
-  return <div {...pointerBoundary} onKeyDown={stopPropagation} data-no-drag style={{ display: "contents" }}><Dialog isOpen title={props.label} onOpenChange={open => { if (!open) props.onClose(); }}>
-    <div className={cx(styles.phoneActions, props.className)}>
-      {props.items.map(item => {
-        if (item.type === "separator") return <div key={item.id} role="separator" className={styles.separator} />;
-        if (item.type === "label") return <div key={item.id} className={styles.label}>{item.label}</div>;
-        return <button key={item.id} type="button" className={styles.item} data-tone={item.tone}
-          disabled={item.isDisabled} onClick={() => { props.onAction(item.id); props.onClose(); }}>
-          <span className={styles.icon} aria-hidden="true">{item.icon}</span>
-          <span className={styles.text}>{item.label}</span>
-        </button>;
-      })}
-      {Children.toArray(props.children).length > 0 ? <div className={styles.extra}>{props.children}</div> : null}
+  return (
+    <div
+      {...pointerBoundary}
+      onKeyDown={stopPropagation}
+      data-no-drag
+      style={{ display: "contents" }}
+    >
+      <Dialog
+        isOpen
+        title={props.label}
+        onOpenChange={(open) => {
+          if (!open) props.onClose();
+        }}
+      >
+        <div className={cx(styles.phoneActions, props.className)}>
+          {props.items.map((item) => {
+            if (item.type === "separator")
+              return (
+                <div
+                  key={item.id}
+                  role="separator"
+                  className={styles.separator}
+                />
+              );
+            if (item.type === "label")
+              return (
+                <div key={item.id} className={styles.label}>
+                  {item.label}
+                </div>
+              );
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={styles.item}
+                data-tone={item.tone}
+                disabled={item.isDisabled}
+                onClick={() => {
+                  props.onAction(item.id);
+                  props.onClose();
+                }}
+              >
+                <span className={styles.icon} aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span className={styles.text}>{item.label}</span>
+              </button>
+            );
+          })}
+          {Children.toArray(props.children).length > 0 ? (
+            <div className={styles.extra}>{props.children}</div>
+          ) : null}
+        </div>
+      </Dialog>
     </div>
-  </Dialog></div>;
+  );
 }
 
-function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, className }: ContextMenuProps) {
+function DesktopContextMenu({
+  x,
+  y,
+  items,
+  label,
+  onAction,
+  onClose,
+  children,
+  className,
+}: ContextMenuProps) {
   // `{a ? x : null}{b ? y : null}` passes an array of nulls: only real content gets the extra area.
   const extra = Children.toArray(children).length > 0;
   const ref = useRef<HTMLDivElement>(null);
-  const returnTo = useRef<Element | null>(typeof document !== "undefined" ? document.activeElement : null);
-  const anchor = useRef(typeof document !== 'undefined' ? document.elementFromPoint?.(x, y) : null);
-  const [position, setPosition] = useState<CSSProperties>({ left: 0, top: 0, visibility: 'hidden' });
+  const returnTo = useRef<Element | null>(
+    typeof document !== "undefined" ? document.activeElement : null,
+  );
+  const anchor = useRef(
+    typeof document !== "undefined" ? document.elementFromPoint?.(x, y) : null,
+  );
+  const [position, setPosition] = useState<CSSProperties>({
+    left: 0,
+    top: 0,
+    visibility: "hidden",
+  });
 
   // Keep the menu inside the viewport.
   useLayoutEffect(() => {
@@ -71,20 +147,42 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
     if (!el) return;
     const measure = () => {
       const viewport = overlayViewport(anchor.current);
-      setPosition({ ...overlayPosition({ left: x, right: x, top: y, bottom: y }, { width: el.offsetWidth, height: el.scrollHeight + 2 }, viewport, 0), maxWidth: viewport.width - 16, maxHeight: viewport.height - 16 });
+      setPosition({
+        ...overlayPosition(
+          { left: x, right: x, top: y, bottom: y },
+          { width: el.offsetWidth, height: el.scrollHeight + 2 },
+          viewport,
+          0,
+        ),
+        maxWidth: viewport.width - 16,
+        maxHeight: viewport.height - 16,
+      });
     };
     measure();
-    window.addEventListener('resize', measure);
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    window.addEventListener("resize", measure);
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(measure);
     observer?.observe(el);
-    for (let node = anchor.current; node instanceof HTMLElement; node = node.parentElement) observer?.observe(node);
-    return () => { observer?.disconnect(); window.removeEventListener('resize', measure); };
+    for (
+      let node = anchor.current;
+      node instanceof HTMLElement;
+      node = node.parentElement
+    )
+      observer?.observe(node);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, [x, y]);
 
   useEffect(() => {
     // Focus goes to the menu itself, so no item looks chosen until the pointer or an arrow key picks one.
     const root = ref.current;
-    const field = extra ? root?.querySelector<HTMLElement>("textarea, input, select") : null;
+    const field = extra
+      ? root?.querySelector<HTMLElement>("textarea, input, select")
+      : null;
     (field ?? root)?.focus({ preventScroll: true });
     const back = returnTo.current;
     const onPointer = (event: PointerEvent) => {
@@ -93,7 +191,10 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
       event.preventDefault();
       event.stopPropagation();
       const finish = (tail: Event) => {
-        if (tail.type === "click" && (tail as MouseEvent).detail > 0) { tail.preventDefault(); tail.stopPropagation(); }
+        if (tail.type === "click" && (tail as MouseEvent).detail > 0) {
+          tail.preventDefault();
+          tail.stopPropagation();
+        }
         document.removeEventListener("click", finish, true);
         document.removeEventListener("pointerdown", finish, true);
         document.removeEventListener("pointercancel", finish, true);
@@ -104,25 +205,36 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
       onClose();
     };
     const onScroll = (event: Event) => {
-      if (!(event.target instanceof Node) || !ref.current?.contains(event.target)) onClose();
+      if (
+        !(event.target instanceof Node) ||
+        !ref.current?.contains(event.target)
+      )
+        onClose();
     };
     document.addEventListener("pointerdown", onPointer, true);
     // The opener may have scrolled into view during this gesture; observe only later scrolls.
-    const scrollFrame = requestAnimationFrame(() => window.addEventListener("scroll", onScroll, true));
+    const scrollFrame = requestAnimationFrame(() =>
+      window.addEventListener("scroll", onScroll, true),
+    );
     window.addEventListener("resize", onClose);
     return () => {
       document.removeEventListener("pointerdown", onPointer, true);
       cancelAnimationFrame(scrollFrame);
       window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", onClose);
-      if (back instanceof HTMLElement && document.contains(back)) back.focus({ preventScroll: true });
+      if (back instanceof HTMLElement && document.contains(back))
+        back.focus({ preventScroll: true });
     };
     // Focus handling runs once per opening.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const move = (delta: number) => {
-    const nodes = Array.from(ref.current?.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])') ?? []);
+    const nodes = Array.from(
+      ref.current?.querySelectorAll<HTMLElement>(
+        '[role="menuitem"]:not([aria-disabled="true"])',
+      ) ?? [],
+    );
     if (!nodes.length) return;
     const index = nodes.indexOf(document.activeElement as HTMLElement);
     if (index < 0) nodes[delta > 0 ? 0 : nodes.length - 1]?.focus();
@@ -139,7 +251,10 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
       tabIndex={-1}
       className={cx(styles.menu, className)}
       style={position}
-      onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); }}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      }}
       onKeyDown={(event) => {
         event.stopPropagation();
         if (event.key === "Escape") {
@@ -148,7 +263,8 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
           onClose();
           return;
         }
-        if ((event.target as HTMLElement).closest("textarea, input, select")) return;
+        if ((event.target as HTMLElement).closest("textarea, input, select"))
+          return;
         if (event.key === "ArrowDown") {
           event.preventDefault();
           move(1);
@@ -159,7 +275,10 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
       }}
     >
       {items.map((item) => {
-        if (item.type === "separator") return <div key={item.id} role="separator" className={styles.separator} />;
+        if (item.type === "separator")
+          return (
+            <div key={item.id} role="separator" className={styles.separator} />
+          );
         if (item.type === "label")
           return (
             <div key={item.id} className={styles.label} role="presentation">
@@ -184,7 +303,9 @@ function DesktopContextMenu({ x, y, items, label, onAction, onClose, children, c
               {item.icon}
             </span>
             <span className={styles.text}>{item.label}</span>
-            {item.shortcut ? <kbd className={styles.shortcut}>{item.shortcut}</kbd> : null}
+            {item.shortcut ? (
+              <kbd className={styles.shortcut}>{item.shortcut}</kbd>
+            ) : null}
           </button>
         );
       })}

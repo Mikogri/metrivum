@@ -15,5 +15,7 @@ it("uses phone cards without losing the desktop list preference on resize", () =
 
 it("retains an explicit desktop card preference", () => {
   viewport.phone = false;
-  expect(renderHook(() => useLibraryView("cards")).result.current).toBe("cards");
+  expect(renderHook(() => useLibraryView("cards")).result.current).toBe(
+    "cards",
+  );
 });

@@ -9,7 +9,14 @@ import { cx } from "../../lib/cx";
 import { Spinner } from "../../components/Spinner/Spinner";
 import styles from "./Button.module.css";
 
-export type ButtonVariant = "primary" | "accent" | "secondary" | "ghost" | "danger" | "danger-ghost" | "success";
+export type ButtonVariant =
+  | "primary"
+  | "accent"
+  | "secondary"
+  | "ghost"
+  | "danger"
+  | "danger-ghost"
+  | "success";
 export type ButtonSize = "sm" | "md" | "lg";
 
 interface SharedButtonProps {
@@ -24,18 +31,32 @@ interface SharedButtonProps {
   children?: ReactNode;
 }
 
-export interface ButtonProps extends SharedButtonProps, Omit<AriaButtonProps, "className" | "children"> {
+export interface ButtonProps
+  extends SharedButtonProps, Omit<AriaButtonProps, "className" | "children"> {
   /** Shows a spinner, keeps the width and announces the pending state. */
   loading?: boolean;
 }
 
-function Content({ iconStart, iconEnd, children, loading }: SharedButtonProps & { loading?: boolean }) {
+function Content({
+  iconStart,
+  iconEnd,
+  children,
+  loading,
+}: SharedButtonProps & { loading?: boolean }) {
   return (
     <>
       <span className={styles.content} data-hidden={loading || undefined}>
-        {iconStart ? <span className={styles.icon} aria-hidden="true">{iconStart}</span> : null}
+        {iconStart ? (
+          <span className={styles.icon} aria-hidden="true">
+            {iconStart}
+          </span>
+        ) : null}
         {children ? <span className={styles.label}>{children}</span> : null}
-        {iconEnd ? <span className={styles.icon} aria-hidden="true">{iconEnd}</span> : null}
+        {iconEnd ? (
+          <span className={styles.icon} aria-hidden="true">
+            {iconEnd}
+          </span>
+        ) : null}
       </span>
       {loading ? (
         <span className={styles.spinner}>
@@ -61,16 +82,27 @@ export function Button({
     <AriaButton
       {...props}
       isPending={loading || props.isPending}
-      className={cx(styles.button, styles[variant], styles[size], block && styles.block, className)}
+      className={cx(
+        styles.button,
+        styles[variant],
+        styles[size],
+        block && styles.block,
+        className,
+      )}
     >
-      <Content iconStart={iconStart} iconEnd={iconEnd} loading={loading || props.isPending}>
+      <Content
+        iconStart={iconStart}
+        iconEnd={iconEnd}
+        loading={loading || props.isPending}
+      >
         {children}
       </Content>
     </AriaButton>
   );
 }
 
-export interface LinkButtonProps extends SharedButtonProps, Omit<AriaLinkProps, "className" | "children"> {}
+export interface LinkButtonProps
+  extends SharedButtonProps, Omit<AriaLinkProps, "className" | "children"> {}
 
 /** Navigation styled as a button. Uses the router configured through RouterProvider. */
 export function LinkButton({
@@ -86,7 +118,13 @@ export function LinkButton({
   return (
     <AriaLink
       {...props}
-      className={cx(styles.button, styles[variant], styles[size], block && styles.block, className)}
+      className={cx(
+        styles.button,
+        styles[variant],
+        styles[size],
+        block && styles.block,
+        className,
+      )}
     >
       <Content iconStart={iconStart} iconEnd={iconEnd}>
         {children}

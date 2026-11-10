@@ -10,7 +10,10 @@
   /* Follows the page scroll and always fits the window: the model shrinks, nothing is cut off. */
   position: sticky;
   top: var(--tf-space-4);
-  height: var(--explorer-fit, calc(100dvh - var(--tf-appbar-height, 3.25rem) - 12rem));
+  height: var(
+    --explorer-fit,
+    calc(100dvh - var(--tf-appbar-height, 3.25rem) - 12rem)
+  );
   min-height: 30rem;
   min-width: 0;
   display: flex;
@@ -66,8 +69,20 @@
   border-radius: var(--tf-radius-xl);
   overflow: hidden;
   background:
-    radial-gradient(ellipse 65% 55% at 50% 40%, color-mix(in srgb, var(--tf-color-text) 9%, transparent), transparent 72%),
-    linear-gradient(180deg, color-mix(in srgb, var(--tf-color-surface-raised) 70%, var(--tf-color-bg-sunken)), var(--tf-color-bg-sunken));
+    radial-gradient(
+      ellipse 65% 55% at 50% 40%,
+      color-mix(in srgb, var(--tf-color-text) 9%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(
+        in srgb,
+        var(--tf-color-surface-raised) 70%,
+        var(--tf-color-bg-sunken)
+      ),
+      var(--tf-color-bg-sunken)
+    );
 }
 
 .placeholder {
@@ -116,7 +131,11 @@
   padding: var(--tf-space-1) var(--tf-space-2-5);
   border: 1px solid var(--tf-color-border-subtle);
   border-radius: var(--tf-radius-full);
-  background: color-mix(in srgb, var(--tf-color-surface-overlay) 82%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--tf-color-surface-overlay) 82%,
+    transparent
+  );
   backdrop-filter: blur(12px);
   color: var(--tf-color-text);
   font-size: var(--tf-text-xs);
@@ -151,7 +170,11 @@
   padding: 3px;
   border: 1px solid var(--tf-color-border-subtle);
   border-radius: var(--tf-radius-full);
-  background: color-mix(in srgb, var(--tf-color-surface-overlay) 78%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--tf-color-surface-overlay) 78%,
+    transparent
+  );
   backdrop-filter: blur(12px);
 }
 
@@ -166,7 +189,9 @@
   font-size: var(--tf-text-xs);
   font-weight: var(--tf-weight-medium);
   cursor: pointer;
-  transition: color var(--tf-duration-fast) var(--tf-ease-out), background-color var(--tf-duration-fast) var(--tf-ease-out);
+  transition:
+    color var(--tf-duration-fast) var(--tf-ease-out),
+    background-color var(--tf-duration-fast) var(--tf-ease-out);
 }
 
 .view:hover {
@@ -194,7 +219,11 @@
 }
 
 .tool {
-  background: color-mix(in srgb, var(--tf-color-surface-overlay) 78%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--tf-color-surface-overlay) 78%,
+    transparent
+  );
   backdrop-filter: blur(12px);
 }
 
@@ -316,10 +345,15 @@
   display: flex;
   align-items: center;
   gap: var(--tf-space-2);
-  padding: var(--tf-space-1) var(--tf-space-1) var(--tf-space-1) var(--tf-space-3);
+  padding: var(--tf-space-1) var(--tf-space-1) var(--tf-space-1)
+    var(--tf-space-3);
   border: 1px solid var(--tf-color-border-subtle);
   border-radius: var(--tf-radius-full);
-  background: color-mix(in srgb, var(--tf-color-surface-overlay) 85%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--tf-color-surface-overlay) 85%,
+    transparent
+  );
   backdrop-filter: blur(12px);
   font-size: var(--tf-text-sm);
 }
@@ -454,7 +488,8 @@
   align-items: center;
   gap: var(--tf-space-2);
   min-height: var(--tf-control-md);
-  padding: var(--tf-space-1) var(--tf-space-1) var(--tf-space-1) var(--tf-space-3);
+  padding: var(--tf-space-1) var(--tf-space-1) var(--tf-space-1)
+    var(--tf-space-3);
   border: 1px solid var(--tf-color-border-subtle);
   border-radius: var(--tf-radius-lg);
   background: var(--tf-color-surface);
@@ -552,7 +587,13 @@
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--tf-color-border-strong) transparent;
-  mask-image: linear-gradient(90deg, transparent, #000 var(--tf-space-3), #000 calc(100% - var(--tf-space-6)), transparent);
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 var(--tf-space-3),
+    #000 calc(100% - var(--tf-space-6)),
+    transparent
+  );
 }
 
 .layers::-webkit-scrollbar {
@@ -574,7 +615,10 @@
   font-size: var(--tf-text-xs);
   cursor: pointer;
   outline: none;
-  transition: color var(--tf-duration-fast) var(--tf-ease-out), background-color var(--tf-duration-fast) var(--tf-ease-out), border-color var(--tf-duration-fast) var(--tf-ease-out);
+  transition:
+    color var(--tf-duration-fast) var(--tf-ease-out),
+    background-color var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out);
 }
 
 .layer[data-hovered] {
@@ -610,15 +654,33 @@
 }
 
 /* The viewer's material colours, so a chip says what it shows. */
-.layerSwatch[data-layer="muscles"] { --swatch: #a76c63; }
-.layerSwatch[data-layer="skeleton"] { --swatch: #d3c7ae; }
-.layerSwatch[data-layer="nervous"] { --swatch: #d9ba65; }
-.layerSwatch[data-layer="tendons"] { --swatch: #e2ddd0; }
-.layerSwatch[data-layer="ligaments"] { --swatch: #b7b9a5; }
-.layerSwatch[data-layer="skin"] { --swatch: #bda090; }
-.layerSwatch[data-layer="vascular"] { --swatch: #a45454; }
-.layerSwatch[data-layer="organs"] { --swatch: #927282; }
-.layerSwatch[data-layer="other"] { --swatch: #8b969b; }
+.layerSwatch[data-layer="muscles"] {
+  --swatch: #a76c63;
+}
+.layerSwatch[data-layer="skeleton"] {
+  --swatch: #d3c7ae;
+}
+.layerSwatch[data-layer="nervous"] {
+  --swatch: #d9ba65;
+}
+.layerSwatch[data-layer="tendons"] {
+  --swatch: #e2ddd0;
+}
+.layerSwatch[data-layer="ligaments"] {
+  --swatch: #b7b9a5;
+}
+.layerSwatch[data-layer="skin"] {
+  --swatch: #bda090;
+}
+.layerSwatch[data-layer="vascular"] {
+  --swatch: #a45454;
+}
+.layerSwatch[data-layer="organs"] {
+  --swatch: #927282;
+}
+.layerSwatch[data-layer="other"] {
+  --swatch: #8b969b;
+}
 
 .count {
   color: var(--tf-color-text-tertiary);
@@ -668,11 +730,16 @@
 }
 
 @keyframes rise {
-  from { opacity: 0; translate: 0 4px; }
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .selection { animation: none; }
+  .selection {
+    animation: none;
+  }
 }
 
 /* One column: the model goes above the catalogue and stops following the scroll. */
@@ -694,4 +761,17 @@
   }
 }
 
-.viewerLicense { position: absolute; bottom: 8px; right: 10px; z-index: 2; border: 0; background: var(--tf-color-surface-overlay); color: var(--tf-color-text-secondary); padding: 4px 6px; border-radius: 4px; font: inherit; font-size: 10px; cursor: pointer; }
+.viewerLicense {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  z-index: 2;
+  border: 0;
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-text-secondary);
+  padding: 4px 6px;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}

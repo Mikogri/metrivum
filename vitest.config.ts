@@ -6,7 +6,14 @@ export default defineConfig({
     // Bound JSDOM process pressure on developer machines and CI; assertions keep their normal deadlines.
     maxWorkers: 4,
     projects: [
-      { test: { name: "mobile-core", root: "apps/mobile", environment: "node", include: ["src/**/*.test.ts"] } },
+      {
+        test: {
+          name: "mobile-core",
+          root: "apps/mobile",
+          environment: "node",
+          include: ["src/**/*.test.ts"],
+        },
+      },
       {
         test: {
           name: "ui-web",
@@ -18,7 +25,9 @@ export default defineConfig({
         },
       },
       {
-        resolve: { alias: { "~": path.resolve(import.meta.dirname, "apps/web/app") } },
+        resolve: {
+          alias: { "~": path.resolve(import.meta.dirname, "apps/web/app") },
+        },
         test: {
           name: "web",
           root: "apps/web",

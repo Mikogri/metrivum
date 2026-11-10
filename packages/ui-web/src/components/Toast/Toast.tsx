@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { CircleAlert, CircleCheck, CircleX, Info, X } from "lucide-react";
 import { cx } from "../../lib/cx";
 import styles from "./Toast.module.css";
@@ -37,7 +43,9 @@ export function toast(options: ToastOptions): number {
 }
 
 export function dismissToast(id: number) {
-  records = records.map((record) => (record.id === id ? { ...record, dismissed: true } : record));
+  records = records.map((record) =>
+    record.id === id ? { ...record, dismissed: true } : record,
+  );
   emit();
   // Remove after the exit transition.
   setTimeout(() => {
@@ -61,11 +69,26 @@ const getSnapshot = () => records;
 const emptySnapshot: ToastRecord[] = [];
 const getServerSnapshot = () => emptySnapshot;
 
-const icons = { neutral: Info, success: CircleCheck, warning: CircleAlert, danger: CircleX };
+const icons = {
+  neutral: Info,
+  success: CircleCheck,
+  warning: CircleAlert,
+  danger: CircleX,
+};
 
-function ToastItem({ record, index, dismissLabel }: { record: ToastRecord; index: number; dismissLabel: string }) {
+function ToastItem({
+  record,
+  index,
+  dismissLabel,
+}: {
+  record: ToastRecord;
+  index: number;
+  dismissLabel: string;
+}) {
   const [mounted, setMounted] = useState(false);
-  const remaining = useRef(record.duration ?? (record.tone === "danger" ? 0 : 5000));
+  const remaining = useRef(
+    record.duration ?? (record.tone === "danger" ? 0 : 5000),
+  );
   const started = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -77,9 +100,13 @@ function ToastItem({ record, index, dismissLabel }: { record: ToastRecord; index
     }
   };
   const resume = () => {
-    if (remaining.current <= 0 || record.duration === 0 || timer.current) return;
+    if (remaining.current <= 0 || record.duration === 0 || timer.current)
+      return;
     started.current = Date.now();
-    timer.current = setTimeout(() => dismissToast(record.id), remaining.current);
+    timer.current = setTimeout(
+      () => dismissToast(record.id),
+      remaining.current,
+    );
   };
 
   useEffect(() => {
@@ -108,8 +135,14 @@ function ToastItem({ record, index, dismissLabel }: { record: ToastRecord; index
       paused={paused}
       dismissLabel={dismissLabel}
       onDismiss={() => dismissToast(record.id)}
-      onPause={() => { setPaused(true); pause(); }}
-      onResume={() => { setPaused(false); resume(); }}
+      onPause={() => {
+        setPaused(true);
+        pause();
+      }}
+      onResume={() => {
+        setPaused(false);
+        resume();
+      }}
     />
   );
 }
@@ -128,7 +161,21 @@ export interface ToastViewProps extends Omit<ToastOptions, "duration"> {
 }
 
 /** One toast without the queue: used by the Toaster and for previews. */
-export function ToastView({ title, description, tone = "neutral", action, dismissLabel, duration = 0, index = 0, mounted = true, dismissed, paused, onDismiss, onPause, onResume }: ToastViewProps) {
+export function ToastView({
+  title,
+  description,
+  tone = "neutral",
+  action,
+  dismissLabel,
+  duration = 0,
+  index = 0,
+  mounted = true,
+  dismissed,
+  paused,
+  onDismiss,
+  onPause,
+  onResume,
+}: ToastViewProps) {
   const Icon = icons[tone];
   return (
     <li
@@ -136,7 +183,12 @@ export function ToastView({ title, description, tone = "neutral", action, dismis
       data-mounted={mounted || undefined}
       data-dismissed={dismissed || undefined}
       data-paused={paused || undefined}
-      style={{ "--index": index, "--duration": `${duration}ms` } as React.CSSProperties}
+      style={
+        {
+          "--index": index,
+          "--duration": `${duration}ms`,
+        } as React.CSSProperties
+      }
       role={tone === "danger" ? "alert" : "status"}
       onPointerEnter={onPause}
       onPointerLeave={onResume}
@@ -148,7 +200,9 @@ export function ToastView({ title, description, tone = "neutral", action, dismis
       </span>
       <div className={styles.body}>
         <p className={styles.title}>{title}</p>
-        {description ? <p className={styles.description}>{description}</p> : null}
+        {description ? (
+          <p className={styles.description}>{description}</p>
+        ) : null}
         {action ? (
           <div className={styles.actions}>
             <button
@@ -164,7 +218,12 @@ export function ToastView({ title, description, tone = "neutral", action, dismis
           </div>
         ) : null}
       </div>
-      <button type="button" className={styles.close} aria-label={dismissLabel} onClick={onDismiss}>
+      <button
+        type="button"
+        className={styles.close}
+        aria-label={dismissLabel}
+        onClick={onDismiss}
+      >
         <X aria-hidden="true" />
       </button>
     </li>
@@ -183,7 +242,12 @@ export function Toaster({ label, dismissLabel }: ToasterProps) {
     <section aria-label={label} className={styles.region}>
       <ol className={styles.list}>
         {items.map((record, i) => (
-          <ToastItem key={record.id} record={record} index={items.length - 1 - i} dismissLabel={dismissLabel} />
+          <ToastItem
+            key={record.id}
+            record={record}
+            index={items.length - 1 - i}
+            dismissLabel={dismissLabel}
+          />
         ))}
       </ol>
     </section>

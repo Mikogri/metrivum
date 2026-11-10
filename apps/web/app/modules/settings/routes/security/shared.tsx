@@ -32,35 +32,72 @@ export function useSecurityAccount() {
   });
   async function sync() {
     const { data } = await client.auth.refreshSession();
-    if (data.session && lifecycle.isCurrent()) await manager.completeSignIn(account.slot, data.session);
+    if (data.session && lifecycle.isCurrent())
+      await manager.completeSignIn(account.slot, data.session);
     await cache.invalidateQueries({ queryKey: key });
   }
-  return { account, slot: account.slot, client, user: query.data ?? account.session.user, loaded: query.isSuccess, lifecycle, sync };
+  return {
+    account,
+    slot: account.slot,
+    client,
+    user: query.data ?? account.session.user,
+    loaded: query.isSuccess,
+    lifecycle,
+    sync,
+  };
 }
 
 /** A security page: its own header with the way back to the overview, then the process in a narrow column. */
-export function SecurityPage({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+export function SecurityPage({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
   const m = useT();
   const navigate = useNavigate();
   return (
     <>
-      <PageHeader title={title} description={description} back={{ label: m.accountSecurity.back, onPress: () => navigate(SECURITY_HOME) }} />
+      <PageHeader
+        title={title}
+        description={description}
+        back={{
+          label: m.accountSecurity.back,
+          onPress: () => navigate(SECURITY_HOME),
+        }}
+      />
       <div className={styles.page}>{children}</div>
     </>
   );
 }
 
 /** Where the person is in a process: finished steps are ticked, the current one is highlighted. */
-export function Steps({ steps, current, label }: { steps: readonly string[]; current: number; label: string }) {
-
-
+export function Steps({
+  steps,
+  current,
+  label,
+}: {
+  steps: readonly string[];
+  current: number;
+  label: string;
+}) {
   return (
     <ol className={styles.steps} aria-label={label}>
       {steps.map((step, index) => {
-        const state = index < current ? "done" : index === current ? "current" : "todo";
+        const state =
+          index < current ? "done" : index === current ? "current" : "todo";
         return (
-          <li key={step} data-state={state} aria-current={state === "current" ? "step" : undefined}>
-            <span className={styles.stepMark} aria-hidden="true">{state === "done" ? <Check /> : index + 1}</span>
+          <li
+            key={step}
+            data-state={state}
+            aria-current={state === "current" ? "step" : undefined}
+          >
+            <span className={styles.stepMark} aria-hidden="true">
+              {state === "done" ? <Check /> : index + 1}
+            </span>
             <span>{step}</span>
           </li>
         );

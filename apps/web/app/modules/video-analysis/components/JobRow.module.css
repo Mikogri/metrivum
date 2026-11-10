@@ -18,12 +18,18 @@
   height: 0.95rem;
 }
 
-.row[data-state="saved"] .icon { color: var(--tf-color-success); }
+.row[data-state="saved"] .icon {
+  color: var(--tf-color-success);
+}
 .row[data-state="failed"] .icon,
-.row[data-state="save_failed"] .icon { color: var(--tf-color-warning); }
+.row[data-state="save_failed"] .icon {
+  color: var(--tf-color-warning);
+}
 .row[data-state="analyzing"] .icon,
 .row[data-state="saving"] .icon,
-.row[data-state="done"] .icon { color: var(--tf-color-text); }
+.row[data-state="done"] .icon {
+  color: var(--tf-color-text);
+}
 
 .body {
   display: grid;
@@ -107,7 +113,11 @@
 }
 
 .row[data-state="analyzing"] .bar > span {
-  background: linear-gradient(90deg, var(--tf-color-text-secondary), var(--tf-color-text));
+  background: linear-gradient(
+    90deg,
+    var(--tf-color-text-secondary),
+    var(--tf-color-text)
+  );
 }
 
 .actions {
@@ -121,12 +131,18 @@
 }
 
 @keyframes spin {
-  to { rotate: 360deg; }
+  to {
+    rotate: 360deg;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spin { animation-duration: 3s; }
-  .bar > span { transition: none; }
+  .spin {
+    animation-duration: 3s;
+  }
+  .bar > span {
+    transition: none;
+  }
 }
 
 /* In menus: the state icon on a tinted tile, like notification items. */
@@ -142,6 +158,10 @@
   background: var(--tf-color-surface-raised);
 }
 
-.row[data-tile][data-state="saved"] .icon { background: color-mix(in srgb, var(--tf-color-success) 16%, transparent); }
+.row[data-tile][data-state="saved"] .icon {
+  background: color-mix(in srgb, var(--tf-color-success) 16%, transparent);
+}
 .row[data-tile][data-state="failed"] .icon,
-.row[data-tile][data-state="save_failed"] .icon { background: var(--tf-color-warning-soft); }
+.row[data-tile][data-state="save_failed"] .icon {
+  background: var(--tf-color-warning-soft);
+}

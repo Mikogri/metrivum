@@ -5,7 +5,13 @@ import { ApiError, NetworkError, isAbortError } from "~/shared/http/errors";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { saveDraft } from "../api";
 import { trainingKeys } from "../queries";
-import { commit, createHistory, redo as redoHistory, undo as undoHistory, type History } from "./model/history";
+import {
+  commit,
+  createHistory,
+  redo as redoHistory,
+  undo as undoHistory,
+  type History,
+} from "./model/history";
 
 export interface EditorMeta {
   name: string;
@@ -13,7 +19,8 @@ export interface EditorMeta {
   folderId: string | null;
 }
 
-export type SaveStatus = "clean" | "dirty" | "saving" | "saved" | "error" | "conflict" | "offline";
+export type SaveStatus =
+  "clean" | "dirty" | "saving" | "saved" | "error" | "conflict" | "offline";
 
 const AUTOSAVE_DELAY = 2500;
 
@@ -26,13 +33,23 @@ function serialize(doc: TrainingDocument, meta: EditorMeta) {
  * refetches never overwrite unsaved edits. Saves are single-flight and carry the version
  * they started from; a newer server version produces a conflict instead of an overwrite.
  */
-export function useEditor(plan: PlanDto, initialVersion: number, options: { readOnly: boolean }) {
+export function useEditor(
+  plan: PlanDto,
+  initialVersion: number,
+  options: { readOnly: boolean },
+) {
   const api = useApi();
   const accountKey = useAccountKey();
   const queryClient = useQueryClient();
 
-  const [history, setHistory] = useState<History>(() => createHistory(plan.document));
-  const [meta, setMeta] = useState<EditorMeta>({ name: plan.name, description: plan.description, folderId: plan.folderId });
+  const [history, setHistory] = useState<History>(() =>
+    createHistory(plan.document),
+  );
+  const [meta, setMeta] = useState<EditorMeta>({
+    name: plan.name,
+    description: plan.description,
+    folderId: plan.folderId,
+  });
   const [status, setStatus] = useState<SaveStatus>("clean");
   const [error, setError] = useState<unknown>(null);
   const [version, setVersion] = useState(initialVersion);
@@ -40,7 +57,13 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
   const historyRef = useRef(history);
   const metaRef = useRef(meta);
   const versionRef = useRef(initialVersion);
-  const [savedBody, setSavedBody] = useState(() => serialize(plan.document, { name: plan.name, description: plan.description, folderId: plan.folderId }));
+  const [savedBody, setSavedBody] = useState(() =>
+    serialize(plan.document, {
+      name: plan.name,
+      description: plan.description,
+      folderId: plan.folderId,
+    }),
+  );
   const savedRef = useRef(savedBody);
   const inFlight = useRef<Promise<void> | null>(null);
   const again = useRef(false);
@@ -53,16 +76,32 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
     setStatus(next);
   };
 
-  const body = useMemo(() => serialize(history.present, meta), [history.present, meta]);
+  const body = useMemo(
+    () => serialize(history.present, meta),
+    [history.present, meta],
+  );
   const bodyRef = useRef(body);
   bodyRef.current = body;
   const dirty = body !== savedBody;
-  const isDirty = useCallback(() => bodyRef.current !== savedRef.current || inFlight.current !== null, []);
+  const isDirty = useCallback(
+    () => bodyRef.current !== savedRef.current || inFlight.current !== null,
+    [],
+  );
 
   useEffect(() => {
-    if (statusRef.current === "conflict" || statusRef.current === "saving") return;
-    if (dirty && statusRef.current !== "error" && statusRef.current !== "offline") setStatusBoth("dirty");
-    if (!dirty && (statusRef.current === "dirty" || statusRef.current === "error")) setStatusBoth("clean");
+    if (statusRef.current === "conflict" || statusRef.current === "saving")
+      return;
+    if (
+      dirty &&
+      statusRef.current !== "error" &&
+      statusRef.current !== "offline"
+    )
+      setStatusBoth("dirty");
+    if (
+      !dirty &&
+      (statusRef.current === "dirty" || statusRef.current === "error")
+    )
+      setStatusBoth("clean");
   }, [dirty]);
 
   const save = useCallback(async (): Promise<void> => {
@@ -92,7 +131,12 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
           const result = await saveDraft(
             api,
             plan.id,
-            { name: snapshotMeta.name.trim() || plan.name, description: snapshotMeta.description, folderId: snapshotMeta.folderId, document: doc },
+            {
+              name: snapshotMeta.name.trim() || plan.name,
+              description: snapshotMeta.description,
+              folderId: snapshotMeta.folderId,
+              document: doc,
+            },
             versionRef.current,
           );
           versionRef.current = result.version;
@@ -100,8 +144,14 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
           // The saved snapshot is what we sent; edits made during the request stay dirty.
           savedRef.current = body;
           setSavedBody(body);
-          queryClient.setQueryData(trainingKeys.plan(accountKey, plan.id), result);
-          void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(accountKey), refetchType: "none" });
+          queryClient.setQueryData(
+            trainingKeys.plan(accountKey, plan.id),
+            result,
+          );
+          void queryClient.invalidateQueries({
+            queryKey: trainingKeys.plans(accountKey),
+            refetchType: "none",
+          });
           const stillDirty = bodyRef.current !== savedRef.current;
           setStatusBoth(stillDirty ? "dirty" : "saved");
         } catch (caught) {
@@ -110,7 +160,8 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
             return;
           }
           setError(caught);
-          if (caught instanceof ApiError && caught.status === 412) setStatusBoth("conflict");
+          if (caught instanceof ApiError && caught.status === 412)
+            setStatusBoth("conflict");
           else if (caught instanceof NetworkError) setStatusBoth("offline");
           else setStatusBoth("error");
           return;
@@ -118,14 +169,18 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
       } while (again.current);
     })();
     inFlight.current = run;
-    try { await run; }
-    finally { inFlight.current = null; }
+    try {
+      await run;
+    } finally {
+      inFlight.current = null;
+    }
   }, [api, accountKey, options.readOnly, plan.id, plan.name, queryClient]);
 
   // Debounced autosave: waits for a pause in editing; never overlaps with a running save.
   useEffect(() => {
     if (options.readOnly || !dirty) return;
-    if (status === "conflict" || status === "error" || status === "offline") return;
+    if (status === "conflict" || status === "error" || status === "offline")
+      return;
     const timer = setTimeout(() => void save(), AUTOSAVE_DELAY);
     return () => clearTimeout(timer);
   }, [history.present, meta, dirty, status, save, options.readOnly]);
@@ -164,7 +219,11 @@ export function useEditor(plan: PlanDto, initialVersion: number, options: { read
 
   /** After a conflict: drop local edits and start again from the server's latest draft. */
   const reset = useCallback((next: PlanDto, nextVersion: number) => {
-    const nextMeta = { name: next.name, description: next.description, folderId: next.folderId };
+    const nextMeta = {
+      name: next.name,
+      description: next.description,
+      folderId: next.folderId,
+    };
     savedRef.current = serialize(next.document, nextMeta);
     setSavedBody(savedRef.current);
     versionRef.current = nextVersion;

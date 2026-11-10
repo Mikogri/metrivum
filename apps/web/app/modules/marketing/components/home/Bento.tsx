@@ -13,11 +13,20 @@ export interface BentoTile {
 
 /** Features as a grid of tiles of different widths; each tile settles in as the grid scrolls into view. */
 export function Bento({ tiles }: { tiles: BentoTile[] }) {
-  const [ref, inView] = useInView<HTMLDivElement>({ margin: "0px 0px -10% 0px" });
+  const [ref, inView] = useInView<HTMLDivElement>({
+    margin: "0px 0px -10% 0px",
+  });
   return (
     <div ref={ref} className={styles.grid} data-inview={inView || undefined}>
       {tiles.map((tile, i) => (
-        <article key={tile.id} id={tile.id} className={styles.tile} data-span={tile.span} style={{ "--i": i } as React.CSSProperties} aria-labelledby={`${tile.id}-title`}>
+        <article
+          key={tile.id}
+          id={tile.id}
+          className={styles.tile}
+          data-span={tile.span}
+          style={{ "--i": i } as React.CSSProperties}
+          aria-labelledby={`${tile.id}-title`}
+        >
           <div className={styles.copy}>
             <h3 id={`${tile.id}-title`}>{tile.title}</h3>
             <div className={styles.body}>{tile.body}</div>

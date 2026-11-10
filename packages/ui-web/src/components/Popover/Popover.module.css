@@ -12,10 +12,22 @@
   transform-origin: var(--origin, top center);
 }
 
-.popover[data-placement="top"] { --origin: bottom center; --slide: translateY(4px); }
-.popover[data-placement="bottom"] { --origin: top center; --slide: translateY(-4px); }
-.popover[data-placement="left"] { --origin: center right; --slide: translateX(4px); }
-.popover[data-placement="right"] { --origin: center left; --slide: translateX(-4px); }
+.popover[data-placement="top"] {
+  --origin: bottom center;
+  --slide: translateY(4px);
+}
+.popover[data-placement="bottom"] {
+  --origin: top center;
+  --slide: translateY(-4px);
+}
+.popover[data-placement="left"] {
+  --origin: center right;
+  --slide: translateX(4px);
+}
+.popover[data-placement="right"] {
+  --origin: center left;
+  --slide: translateX(-4px);
+}
 
 .popover[data-entering] {
   animation: popover-in var(--tf-duration-base) var(--tf-ease-out);
@@ -29,10 +41,18 @@
   outline: none;
 }
 
-.width-trigger { width: var(--trigger-width); }
-.width-sm { width: 16rem; }
-.width-md { width: 22rem; }
-.width-lg { width: 28rem; }
+.width-trigger {
+  width: var(--trigger-width);
+}
+.width-sm {
+  width: 16rem;
+}
+.width-md {
+  width: 22rem;
+}
+.width-lg {
+  width: 28rem;
+}
 
 @keyframes popover-in {
   from {

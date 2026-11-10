@@ -16,8 +16,18 @@ export interface PerformancePoint {
  * layout instead of scaling a fixed drawing, and its points glide when the metric or period changes.
  */
 /** `domain`: a fixed scale (e.g. 1-5 answers), so a middling value does not look like the top or bottom. */
-export function PerformanceChart({ points, label, height = 180, domain }: { points: PerformancePoint[]; label: string; height?: number; domain?: [number, number] }) {
- const uiCopy = useUiCopy();
+export function PerformanceChart({
+  points,
+  label,
+  height = 180,
+  domain,
+}: {
+  points: PerformancePoint[];
+  label: string;
+  height?: number;
+  domain?: [number, number];
+}) {
+  const uiCopy = useUiCopy();
 
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(600);
@@ -26,34 +36,60 @@ export function PerformanceChart({ points, label, height = 180, domain }: { poin
     if (!node) return;
     if (node.clientWidth) setWidth(node.clientWidth);
     if (typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(([entry]) => entry && entry.contentRect.width && setWidth(entry.contentRect.width));
+    const observer = new ResizeObserver(
+      ([entry]) =>
+        entry && entry.contentRect.width && setWidth(entry.contentRect.width),
+    );
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
   const drawn = useTween(points.map((point) => point.value));
-  const pad = domain ? { x: 6, top: 6, bottom: 6 } : { x: 12, top: 14, bottom: 22 };
+  const pad = domain
+    ? { x: 6, top: 6, bottom: 6 }
+    : { x: 12, top: 14, bottom: 22 };
   const values = points.map((point) => point.value);
   const low = domain ? domain[0] : Math.min(...values);
   const high = domain ? domain[1] : Math.max(...values);
   const start = Date.parse(points[0]!.date);
   const end = Date.parse(points.at(-1)!.date);
   const floor = height - pad.bottom;
-  const x = (point: PerformancePoint) => pad.x + ((Date.parse(point.date) - start) / Math.max(86400000, end - start)) * (width - pad.x * 2);
-  const y = (value: number) => floor - ((value - low) / Math.max(1, high - low)) * (floor - pad.top);
-  const coords = points.map((point, i) => [x(point), y(drawn[i] ?? point.value)] as const);
+  const x = (point: PerformancePoint) =>
+    pad.x +
+    ((Date.parse(point.date) - start) / Math.max(86400000, end - start)) *
+      (width - pad.x * 2);
+  const y = (value: number) =>
+    floor - ((value - low) / Math.max(1, high - low)) * (floor - pad.top);
+  const coords = points.map(
+    (point, i) => [x(point), y(drawn[i] ?? point.value)] as const,
+  );
   return (
     <div ref={ref} className={styles.perfChart} style={{ height }}>
       <svg width={width} height={height} role="img" aria-label={label}>
-        <line x1={pad.x} x2={width - pad.x} y1={floor} y2={floor} className={styles.axis} />
+        <line
+          x1={pad.x}
+          x2={width - pad.x}
+          y1={floor}
+          y2={floor}
+          className={styles.axis}
+        />
         <polyline points={coords.map(([cx, cy]) => `${cx},${cy}`).join(" ")} />
         {points.map((point, i) => {
           const dot = (
             <circle cx={coords[i]![0]} cy={coords[i]![1]} r="4">
-              <title>{point.date}: {point.value}</title>
+              <title>
+                {point.date}: {point.value}
+              </title>
             </circle>
           );
           return point.href ? (
-            <a key={point.date} href={point.href} aria-label={formatInterfaceText(uiCopy["ui"]["View workout {0}: {1}"], [point.date,point.value])}>
+            <a
+              key={point.date}
+              href={point.href}
+              aria-label={formatInterfaceText(
+                uiCopy["ui"]["View workout {0}: {1}"],
+                [point.date, point.value],
+              )}
+            >
               {dot}
             </a>
           ) : (

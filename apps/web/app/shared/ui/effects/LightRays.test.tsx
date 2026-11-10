@@ -16,6 +16,9 @@ it("retains the page geometry and safely falls back when WebGL2 is unavailable",
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
   const view = render(<LightRays className="page-light" />);
   expect(view.container.firstElementChild).toHaveClass("page-light");
-  expect(view.container.firstElementChild).toHaveAttribute("aria-hidden", "true");
+  expect(view.container.firstElementChild).toHaveAttribute(
+    "aria-hidden",
+    "true",
+  );
   view.unmount();
 });

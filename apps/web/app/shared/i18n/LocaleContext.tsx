@@ -4,7 +4,13 @@ import { DEFAULT_LOCALE, intlLocale, type Locale } from "./locale";
 
 const LocaleContext = createContext<Locale>(DEFAULT_LOCALE);
 
-export function LocaleProvider({ locale, children }: { locale: Locale; children: ReactNode }) {
+export function LocaleProvider({
+  locale,
+  children,
+}: {
+  locale: Locale;
+  children: ReactNode;
+}) {
   return (
     <LocaleContext.Provider value={locale}>
       <I18nProvider locale={intlLocale(locale)}>{children}</I18nProvider>

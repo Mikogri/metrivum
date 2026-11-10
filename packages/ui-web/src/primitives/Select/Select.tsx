@@ -15,7 +15,12 @@ import {
 } from "react-aria-components";
 import { cx } from "../../lib/cx";
 import { Popover } from "../../components/Popover/Popover";
-import { FieldFooter, FieldLabel, fieldStyles, type FieldChromeProps } from "../Field/FieldParts";
+import {
+  FieldFooter,
+  FieldLabel,
+  fieldStyles,
+  type FieldChromeProps,
+} from "../Field/FieldParts";
 import styles from "./Select.module.css";
 
 export interface SelectProps<T extends object>
@@ -39,8 +44,14 @@ export function Select<T extends object>({
 }: SelectProps<T>) {
   return (
     <AriaSelect {...props} className={cx(fieldStyles.field, className)}>
-      <FieldLabel label={label} isRequired={props.isRequired} labelAside={labelAside} />
-      <Button className={cx(fieldStyles.control, fieldStyles[size], styles.trigger)}>
+      <FieldLabel
+        label={label}
+        isRequired={props.isRequired}
+        labelAside={labelAside}
+      />
+      <Button
+        className={cx(fieldStyles.control, fieldStyles[size], styles.trigger)}
+      >
         <SelectValue className={styles.value} />
         <ChevronDown aria-hidden="true" className={styles.chevron} />
       </Button>
@@ -55,7 +66,9 @@ export function Select<T extends object>({
 }
 
 export interface ComboboxProps<T extends object>
-  extends Omit<AriaComboBoxProps<T>, "className" | "children">, FieldChromeProps {
+  extends
+    Omit<AriaComboBoxProps<T>, "className" | "children">,
+    FieldChromeProps {
   placeholder?: string;
   children: ReactNode | ((item: T) => ReactNode);
   size?: "sm" | "md" | "lg";
@@ -82,8 +95,16 @@ export function Combobox<T extends object>({
 }: ComboboxProps<T>) {
   // The list opens as soon as the field is focused (clicked or tabbed into), not only from the arrow button.
   return (
-    <AriaComboBox {...props} menuTrigger={menuTrigger} className={cx(fieldStyles.field, className)}>
-      <FieldLabel label={label} isRequired={props.isRequired} labelAside={labelAside} />
+    <AriaComboBox
+      {...props}
+      menuTrigger={menuTrigger}
+      className={cx(fieldStyles.field, className)}
+    >
+      <FieldLabel
+        label={label}
+        isRequired={props.isRequired}
+        labelAside={labelAside}
+      />
       <Group className={cx(fieldStyles.control, fieldStyles[size])}>
         <Input className={fieldStyles.input} placeholder={placeholder} />
         <Button className={fieldStyles.stepper}>
@@ -92,7 +113,14 @@ export function Combobox<T extends object>({
       </Group>
       <FieldFooter description={description} errorMessage={errorMessage} />
       <Popover width={menuWidth} asDialog={false} placement="bottom start">
-        <ListBox className={styles.listbox} renderEmptyState={emptyState ? () => <div className={styles.empty}>{emptyState}</div> : undefined}>
+        <ListBox
+          className={styles.listbox}
+          renderEmptyState={
+            emptyState
+              ? () => <div className={styles.empty}>{emptyState}</div>
+              : undefined
+          }
+        >
           {children}
         </ListBox>
       </Popover>
@@ -100,22 +128,30 @@ export function Combobox<T extends object>({
   );
 }
 
-export interface OptionProps extends Omit<ListBoxItemProps, "className" | "children"> {
+export interface OptionProps extends Omit<
+  ListBoxItemProps,
+  "className" | "children"
+> {
   children: ReactNode;
   description?: ReactNode;
 }
 
 export function Option({ children, description, ...props }: OptionProps) {
-  const textValue = props.textValue ?? (typeof children === "string" ? children : undefined);
+  const textValue =
+    props.textValue ?? (typeof children === "string" ? children : undefined);
   return (
     <ListBoxItem {...props} textValue={textValue} className={styles.option}>
       {({ isSelected }) => (
         <>
           <span className={styles.optionText}>
             <span>{children}</span>
-            {description ? <span className={styles.optionDescription}>{description}</span> : null}
+            {description ? (
+              <span className={styles.optionDescription}>{description}</span>
+            ) : null}
           </span>
-          {isSelected ? <Check aria-hidden="true" className={styles.check} /> : null}
+          {isSelected ? (
+            <Check aria-hidden="true" className={styles.check} />
+          ) : null}
         </>
       )}
     </ListBoxItem>

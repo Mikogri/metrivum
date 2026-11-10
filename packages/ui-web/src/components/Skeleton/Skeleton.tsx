@@ -10,6 +10,17 @@ export interface SkeletonProps {
 }
 
 /** Decorative placeholder; pair the region with aria-busy on its container. */
-export function Skeleton({ width = "100%", height = "1rem", radius = "sm", className }: SkeletonProps) {
-  return <span aria-hidden="true" className={cx(styles.skeleton, styles[radius], className)} style={{ width, height }} />;
+export function Skeleton({
+  width = "100%",
+  height = "1rem",
+  radius = "sm",
+  className,
+}: SkeletonProps) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cx(styles.skeleton, styles[radius], className)}
+      style={{ width, height }}
+    />
+  );
 }

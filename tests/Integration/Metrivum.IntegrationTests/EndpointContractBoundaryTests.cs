@@ -21,7 +21,10 @@ public sealed class EndpointContractBoundaryTests
         foreach (var type in contexts)
         {
             var context = (DbContext)scope.ServiceProvider.GetRequiredService(type);
-            Assert.False(context.Database.HasPendingModelChanges(), $"{type.Name} differs from its migration snapshot.");
+            Assert.False(
+                context.Database.HasPendingModelChanges(),
+                $"{type.Name} differs from its migration snapshot."
+            );
         }
     }
 
@@ -29,8 +32,20 @@ public sealed class EndpointContractBoundaryTests
     public void Extracted_response_dtos_preserve_existing_json_properties_and_values()
     {
         var now = new DateTimeOffset(2026, 10, 11, 12, 0, 0, TimeSpan.Zero);
-        var category = new Metrivum.Offers.Domain.OfferCategory { Key = "strength", Name = "Strength", Active = true };
-        EqualJson(category, new Metrivum.Offers.Features.OfferCategoryDto(category.Key, category.Name, category.Active));
+        var category = new Metrivum.Offers.Domain.OfferCategory
+        {
+            Key = "strength",
+            Name = "Strength",
+            Active = true,
+        };
+        EqualJson(
+            category,
+            new Metrivum.Offers.Features.OfferCategoryDto(
+                category.Key,
+                category.Name,
+                category.Active
+            )
+        );
         var change = new Metrivum.Billing.Domain.PlanChange
         {
             Id = Guid.NewGuid(),
@@ -39,10 +54,20 @@ public sealed class EndpointContractBoundaryTests
             PlanId = "Pro",
             DueId = null,
             CreatedAt = now,
-            EffectiveAt = now.AddMonths(1)
+            EffectiveAt = now.AddMonths(1),
         };
-        EqualJson(change, new Metrivum.Billing.Features.PlanChangeDto(change.Id, change.SubscriptionId, change.Type,
-            change.PlanId, change.DueId, change.CreatedAt, change.EffectiveAt));
+        EqualJson(
+            change,
+            new Metrivum.Billing.Features.PlanChangeDto(
+                change.Id,
+                change.SubscriptionId,
+                change.Type,
+                change.PlanId,
+                change.DueId,
+                change.CreatedAt,
+                change.EffectiveAt
+            )
+        );
         var request = new Metrivum.Billing.Domain.TeamRequest
         {
             Id = Guid.NewGuid(),
@@ -54,15 +79,33 @@ public sealed class EndpointContractBoundaryTests
             Status = "Pending",
             CreatedAt = now,
             ExpiresAt = now.AddDays(7),
-            DecidedAt = null
+            DecidedAt = null,
         };
-        EqualJson(request, new Metrivum.Billing.Features.TeamRequestResultDto(request.Id, request.TeamId, request.UserId,
-            request.Kind, request.Status, request.CreatedAt, request.InviterId, request.Role, request.ExpiresAt, request.DecidedAt));
+        EqualJson(
+            request,
+            new Metrivum.Billing.Features.TeamRequestResultDto(
+                request.Id,
+                request.TeamId,
+                request.UserId,
+                request.Kind,
+                request.Status,
+                request.CreatedAt,
+                request.InviterId,
+                request.Role,
+                request.ExpiresAt,
+                request.DecidedAt
+            )
+        );
 
         static void EqualJson<TSource, TDto>(TSource source, TDto dto)
         {
             var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-            Assert.True(JsonNode.DeepEquals(JsonSerializer.SerializeToNode(source, options), JsonSerializer.SerializeToNode(dto, options)));
+            Assert.True(
+                JsonNode.DeepEquals(
+                    JsonSerializer.SerializeToNode(source, options),
+                    JsonSerializer.SerializeToNode(dto, options)
+                )
+            );
         }
     }
 
@@ -74,21 +117,34 @@ public sealed class EndpointContractBoundaryTests
         using var scope = factory.Services.CreateScope();
         var contexts = ModuleContexts();
         Assert.NotEmpty(contexts);
-        var entities = contexts.Select(type => (DbContext)scope.ServiceProvider.GetRequiredService(type))
-            .SelectMany(context => context.Model.GetEntityTypes()).Select(x => x.ClrType).ToHashSet();
+        var entities = contexts
+            .Select(type => (DbContext)scope.ServiceProvider.GetRequiredService(type))
+            .SelectMany(context => context.Model.GetEntityTypes())
+            .Select(x => x.ClrType)
+            .ToHashSet();
         var violations = new List<string>();
-        foreach (var endpoint in factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>())
-            foreach (var response in endpoint.Metadata.GetOrderedMetadata<IProducesResponseTypeMetadata>())
-                foreach (var type in ResponseTypes(response.Type, []))
-                    if (entities.Contains(type))
-                        violations.Add($"{endpoint.RoutePattern.RawText} -> {type.FullName}");
+        foreach (
+            var endpoint in factory
+                .Services.GetRequiredService<EndpointDataSource>()
+                .Endpoints.OfType<RouteEndpoint>()
+        )
+        foreach (
+            var response in endpoint.Metadata.GetOrderedMetadata<IProducesResponseTypeMetadata>()
+        )
+        foreach (var type in ResponseTypes(response.Type, []))
+            if (entities.Contains(type))
+                violations.Add($"{endpoint.RoutePattern.RawText} -> {type.FullName}");
         Assert.True(violations.Count == 0, string.Join(Environment.NewLine, violations));
     }
 
-    private static Type[] ModuleContexts() => typeof(Program).Assembly.GetReferencedAssemblies()
-        .Where(x => x.Name?.StartsWith(ModulePrefix, StringComparison.Ordinal) == true)
-        .Select(Assembly.Load).SelectMany(x => x.GetTypes())
-        .Where(x => !x.IsAbstract && typeof(DbContext).IsAssignableFrom(x)).ToArray();
+    private static Type[] ModuleContexts() =>
+        typeof(Program)
+            .Assembly.GetReferencedAssemblies()
+            .Where(x => x.Name?.StartsWith(ModulePrefix, StringComparison.Ordinal) == true)
+            .Select(Assembly.Load)
+            .SelectMany(x => x.GetTypes())
+            .Where(x => !x.IsAbstract && typeof(DbContext).IsAssignableFrom(x))
+            .ToArray();
 
     private static IEnumerable<Type> ResponseTypes(Type? type, HashSet<Type> seen)
     {
@@ -99,13 +155,14 @@ public sealed class EndpointContractBoundaryTests
             foreach (var nested in ResponseTypes(type.GetElementType(), seen))
                 yield return nested;
         foreach (var argument in type.GetGenericArguments())
-            foreach (var nested in ResponseTypes(argument, seen))
-                yield return nested;
+        foreach (var nested in ResponseTypes(argument, seen))
+            yield return nested;
         if (type.Namespace?.StartsWith(ModulePrefix, StringComparison.Ordinal) == true)
             foreach (var property in type.GetProperties())
-                foreach (var nested in ResponseTypes(property.PropertyType, seen))
-                    yield return nested;
+            foreach (var nested in ResponseTypes(property.PropertyType, seen))
+                yield return nested;
     }
 
-    private static readonly string ModulePrefix = typeof(Metrivum.Accounts.Infrastructure.AccountsDbContext).Namespace!.Split('.')[0] + ".";
+    private static readonly string ModulePrefix =
+        typeof(Metrivum.Accounts.Infrastructure.AccountsDbContext).Namespace!.Split('.')[0] + ".";
 }

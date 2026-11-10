@@ -9,7 +9,8 @@ it("notifies zoom controls only for changed snapshots and supports independent s
   state.set(1.2);
   expect(listener).toHaveBeenCalledTimes(1);
   expect(state.getSnapshot()).toBe(1.2);
-  stop(); state.set(0.8);
+  stop();
+  state.set(0.8);
   expect(listener).toHaveBeenCalledTimes(1);
   expect(createZoomState(1).getSnapshot()).toBe(1);
 });

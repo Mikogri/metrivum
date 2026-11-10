@@ -124,11 +124,13 @@
 /* Slides down into place: the row grows from nothing so the page below moves with it instead of jumping. */
 .banner {
   overflow: hidden;
-  animation: notice-in 260ms var(--tf-ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both;
+  animation: notice-in 260ms var(--tf-ease-out, cubic-bezier(0.22, 1, 0.36, 1))
+    both;
 }
 
 .banner > * {
-  animation: notice-content-in 260ms var(--tf-ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 60ms both;
+  animation: notice-content-in 260ms
+    var(--tf-ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 60ms both;
 }
 
 @keyframes notice-in {

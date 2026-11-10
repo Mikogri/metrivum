@@ -4,7 +4,9 @@
   border-radius: var(--tf-radius-lg);
 }
 
-.review { min-width: 10rem; }
+.review {
+  min-width: 10rem;
+}
 
 .table {
   width: 100%;

@@ -2,7 +2,13 @@ import { MoreVertical } from "lucide-react";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./SheetCanvas.module.css";
 
-export function SheetMenuButton({ label, onOpen }: { label: string; onOpen: (x: number, y: number) => void }) {
+export function SheetMenuButton({
+  label,
+  onOpen,
+}: {
+  label: string;
+  onOpen: (x: number, y: number) => void;
+}) {
   const m = useT();
   return (
     <button

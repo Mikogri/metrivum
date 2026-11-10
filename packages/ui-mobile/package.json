@@ -1,6 +1,21 @@
 {
-  "name": "@metrivum/ui-mobile", "version": "0.1.0", "private": true,
-  "main": "src/index.tsx", "types": "src/index.tsx",
-  "exports": { ".": "./src/index.tsx", "./chart": "./src/Chart.tsx" },
-  "peerDependencies": { "react": ">=19.2.0", "react-native": "0.86.x", "react-native-safe-area-context": "5.7.x", "expo-glass-effect": "57.x", "@expo/ui": "57.x", "expo-symbols": "57.x", "expo-haptics": "57.x", "react-native-reanimated": "4.x" }
+  "name": "@metrivum/ui-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.tsx",
+  "types": "src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./chart": "./src/Chart.tsx"
+  },
+  "peerDependencies": {
+    "react": ">=19.2.0",
+    "react-native": "0.86.x",
+    "react-native-safe-area-context": "5.7.x",
+    "expo-glass-effect": "57.x",
+    "@expo/ui": "57.x",
+    "expo-symbols": "57.x",
+    "expo-haptics": "57.x",
+    "react-native-reanimated": "4.x"
+  }
 }

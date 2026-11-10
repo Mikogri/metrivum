@@ -58,7 +58,10 @@
 .canvas {
   padding: var(--tf-space-8) var(--tf-space-5) var(--tf-space-12);
   background-color: var(--tf-color-bg-sunken);
-  background-image: radial-gradient(var(--tf-color-border-strong) 1px, transparent 1px);
+  background-image: radial-gradient(
+    var(--tf-color-border-strong) 1px,
+    transparent 1px
+  );
   background-size: 14px 14px;
 }
 
@@ -479,17 +482,63 @@
 }
 
 @media (max-width: 767px) {
-  .workspace, .screen, .section, .block, .settings { min-width: 0; }
-  .canvas { padding: var(--tf-space-4) var(--tf-space-2) var(--tf-space-8); }
-  .screen, .screen[data-device="phone"] { padding: var(--tf-space-5) var(--tf-space-4); }
-  .frameTitle { min-width: 0; overflow-wrap: anywhere; }
-  .settingsRow { grid-template-columns: minmax(0, 1fr); }
-  .settingsFoot, .blockActions, .tryFoot { flex-wrap: wrap; }
-  .sectionRemove, .optionRemove { opacity: 1; }
-  .inlineInput { min-height: 44px; }
-  .helpInput, .options .inlineInput { font-size: 1rem; }
-  .addType, .addOption, .sectionRemove, .optionRemove, .blockActions > button { min-height: 44px; }
-  .sectionRemove, .optionRemove, .blockActions > button { min-width: 44px; }
-  .addType { max-width: 100%; height: auto; white-space: normal; }
-  .fake { min-height: 44px; height: auto; overflow-wrap: anywhere; }
+  .workspace,
+  .screen,
+  .section,
+  .block,
+  .settings {
+    min-width: 0;
+  }
+  .canvas {
+    padding: var(--tf-space-4) var(--tf-space-2) var(--tf-space-8);
+  }
+  .screen,
+  .screen[data-device="phone"] {
+    padding: var(--tf-space-5) var(--tf-space-4);
+  }
+  .frameTitle {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .settingsRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .settingsFoot,
+  .blockActions,
+  .tryFoot {
+    flex-wrap: wrap;
+  }
+  .sectionRemove,
+  .optionRemove {
+    opacity: 1;
+  }
+  .inlineInput {
+    min-height: 44px;
+  }
+  .helpInput,
+  .options .inlineInput {
+    font-size: 1rem;
+  }
+  .addType,
+  .addOption,
+  .sectionRemove,
+  .optionRemove,
+  .blockActions > button {
+    min-height: 44px;
+  }
+  .sectionRemove,
+  .optionRemove,
+  .blockActions > button {
+    min-width: 44px;
+  }
+  .addType {
+    max-width: 100%;
+    height: auto;
+    white-space: normal;
+  }
+  .fake {
+    min-height: 44px;
+    height: auto;
+    overflow-wrap: anywhere;
+  }
 }

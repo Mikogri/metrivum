@@ -48,7 +48,9 @@
   background: transparent;
   color: var(--tf-color-text-tertiary);
   outline: none;
-  transition: color var(--tf-duration-fast) ease, background-color var(--tf-duration-fast) ease;
+  transition:
+    color var(--tf-duration-fast) ease,
+    background-color var(--tf-duration-fast) ease;
 }
 
 .trigger svg {
@@ -121,7 +123,9 @@
   background: transparent;
   color: var(--tf-color-text-secondary);
   outline: none;
-  transition: background-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease;
+  transition:
+    background-color var(--tf-duration-fast) ease,
+    color var(--tf-duration-fast) ease;
 }
 
 .nav svg {
@@ -170,7 +174,9 @@
   font-variant-numeric: tabular-nums;
   outline: none;
   cursor: pointer;
-  transition: background-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease;
+  transition:
+    background-color var(--tf-duration-fast) ease,
+    color var(--tf-duration-fast) ease;
 }
 
 .cell[data-outside-month] {
@@ -286,7 +292,9 @@
   text-transform: capitalize;
   outline: none;
   cursor: pointer;
-  transition: background-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease;
+  transition:
+    background-color var(--tf-duration-fast) ease,
+    color var(--tf-duration-fast) ease;
 }
 
 .choice:hover:not([data-current]):not(:disabled) {
@@ -310,9 +318,14 @@
 }
 
 @keyframes picker-in {
-  from { opacity: 0; transform: scale(0.97); }
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .picker { animation: none; }
+  .picker {
+    animation: none;
+  }
 }

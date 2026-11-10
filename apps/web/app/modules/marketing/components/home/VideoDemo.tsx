@@ -5,7 +5,8 @@ import { usePublicMessages } from "../../messages";
 import styles from "./VideoDemo.module.css";
 
 // Illustrative bar path of a squat: down-and-slightly-forward, then back up.
-const PATH = "M150 40 C 146 80, 138 130, 140 178 C 142 214, 156 222, 160 210 C 166 180, 160 120, 152 40";
+const PATH =
+  "M150 40 C 146 80, 138 130, 140 178 C 142 214, 156 222, 160 210 C 166 180, 160 120, 152 40";
 type Status = "Queued" | "Processing" | "Completed";
 
 export function VideoDemo() {
@@ -27,7 +28,12 @@ export function VideoDemo() {
 
   const completed = status === "Completed";
   return (
-    <div ref={ref} className={styles.card} data-inview={inView || undefined} data-completed={completed || undefined}>
+    <div
+      ref={ref}
+      className={styles.card}
+      data-inview={inView || undefined}
+      data-completed={completed || undefined}
+    >
       <div className={styles.frame} aria-hidden="true">
         <div className={styles.floor} />
         <svg viewBox="0 0 300 260" className={styles.path}>
@@ -39,16 +45,32 @@ export function VideoDemo() {
       </div>
       <div className={styles.panel}>
         <div className={styles.statusRow}>
-          <Badge tone={completed ? "success" : status === "Processing" ? "info" : "neutral"} dot>
+          <Badge
+            tone={
+              completed
+                ? "success"
+                : status === "Processing"
+                  ? "info"
+                  : "neutral"
+            }
+            dot
+          >
             {v.statuses[status]}
           </Badge>
         </div>
         <div className={styles.timeline} aria-hidden="true">
           {[0, 1, 2].map((rep) => (
-            <div key={rep} className={styles.rep} style={{ "--i": rep } as React.CSSProperties}>
+            <div
+              key={rep}
+              className={styles.rep}
+              style={{ "--i": rep } as React.CSSProperties}
+            >
               <span className={styles.repLabel}>{v.repLabel(rep + 1)}</span>
               <span className={styles.phases}>
-                <span className={styles.ecc} style={{ "--w": 0.56 + rep * 0.03 } as React.CSSProperties} />
+                <span
+                  className={styles.ecc}
+                  style={{ "--w": 0.56 + rep * 0.03 } as React.CSSProperties}
+                />
                 <span className={styles.con} />
               </span>
             </div>

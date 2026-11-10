@@ -9,16 +9,23 @@
   display: flex;
   align-items: center;
   gap: var(--tf-space-2);
-  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2) var(--tf-space-3);
+  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2)
+    var(--tf-space-3);
 }
 
 .panel[data-tone] {
   --dot: var(--tf-color-text-tertiary);
 }
 
-.panel[data-tone="ok"] { --dot: var(--tf-color-success); }
-.panel[data-tone="warning"] { --dot: var(--tf-color-warning); }
-.panel[data-tone="danger"] { --dot: var(--tf-color-danger); }
+.panel[data-tone="ok"] {
+  --dot: var(--tf-color-success);
+}
+.panel[data-tone="warning"] {
+  --dot: var(--tf-color-warning);
+}
+.panel[data-tone="danger"] {
+  --dot: var(--tf-color-danger);
+}
 
 /* A plain status dot in the state's colour. */
 .dot {
@@ -68,8 +75,12 @@
   margin-top: 1px;
 }
 
-.note[data-tone="warning"] svg { color: var(--tf-color-warning); }
-.note[data-tone="danger"] svg { color: var(--tf-color-danger); }
+.note[data-tone="warning"] svg {
+  color: var(--tf-color-warning);
+}
+.note[data-tone="danger"] svg {
+  color: var(--tf-color-danger);
+}
 
 .note code {
   font-size: inherit;
@@ -98,7 +109,8 @@
   display: grid;
   gap: var(--tf-space-1-5);
   margin: 0;
-  padding: 0 var(--tf-space-3) var(--tf-space-3) calc(var(--tf-space-3) + var(--tf-space-4));
+  padding: 0 var(--tf-space-3) var(--tf-space-3)
+    calc(var(--tf-space-3) + var(--tf-space-4));
   color: var(--tf-color-text-tertiary);
   font-size: var(--tf-text-xs);
   line-height: var(--tf-leading-normal);
@@ -108,4 +120,3 @@
   color: var(--tf-color-text-secondary);
   font-weight: var(--tf-weight-semibold);
 }
-

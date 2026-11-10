@@ -1,4 +1,9 @@
-import type { Prescription, Quantity, QuantityRange, Unit } from "@metrivum/api-client-web";
+import type {
+  Prescription,
+  Quantity,
+  QuantityRange,
+  Unit,
+} from "@metrivum/api-client-web";
 import { formatNumber, parseLocaleNumber } from "~/shared/i18n/format";
 import type { Locale } from "~/shared/i18n/locale";
 
@@ -10,6 +15,14 @@ export const MAX_REPS = 999;
  */
 export type ParseResult<T> = { ok: true; value: T } | { ok: false };
 
+/** Manual training values accept either decimal separator, independently of UI language. */
+export function parseTrainingDecimal(input: string): number | null {
+  const text = input.trim();
+  if (!/^\d+(?:[.,]\d{0,2})?$/.test(text)) return null;
+  const value = Number(text.replace(",", "."));
+  return Number.isFinite(value) ? value : null;
+}
+
 const RANGE_SPLIT = /\s*(?:-|–|—|\.\.)\s*/;
 
 export function parseReps(input: string): ParseResult<Prescription["reps"]> {
@@ -18,7 +31,8 @@ export function parseReps(input: string): ParseResult<Prescription["reps"]> {
   if (!text) return { ok: true, value: null };
   const parts = text.split(RANGE_SPLIT);
 
-  if (parts.length > 2 || parts.some((p) => !/^\d{1,5}$/.test(p))) return { ok: false };
+  if (parts.length > 2 || parts.some((p) => !/^\d{1,5}$/.test(p)))
+    return { ok: false };
   const min = Number(parts[0]);
   const max = Number(parts[1] ?? parts[0]);
 
@@ -26,7 +40,12 @@ export function parseReps(input: string): ParseResult<Prescription["reps"]> {
   return { ok: true, value: { minimum: min, maximum: max } };
 }
 
-const MASS_UNITS: Record<string, Unit> = { kg: "Kg", kgs: "Kg", lb: "Lb", lbs: "Lb" };
+const MASS_UNITS: Record<string, Unit> = {
+  kg: "Kg",
+  kgs: "Kg",
+  lb: "Lb",
+  lbs: "Lb",
+};
 
 export type LoadParse =
   | { kind: "none" }
@@ -34,7 +53,7 @@ export type LoadParse =
   | { kind: "percent"; percent: number };
 
 export function parseLoad(
-  locale: Locale,
+  _locale: Locale,
   input: string,
   defaultUnit: Unit = "Kg",
 ): ParseResult<LoadParse> {
@@ -44,7 +63,7 @@ export function parseLoad(
   const percent = /^(.+?)\s*%$/.exec(text);
 
   if (percent) {
-    const value = parseLocaleNumber(locale, percent[1]!);
+    const value = parseTrainingDecimal(percent[1]!);
 
     if (value === null || value <= 0 || value > 1000) return { ok: false };
     return { ok: true, value: { kind: "percent", percent: value } };
@@ -56,9 +75,10 @@ export function parseLoad(
   const parts = body.split(/\s*(?:–|—|\.\.|(?<=\d)\s*-\s*(?=\d))\s*/);
 
   if (parts.length > 2) return { ok: false };
-  const values = parts.map((p) => parseLocaleNumber(locale, p));
+  const values = parts.map((p) => parseTrainingDecimal(p));
 
-  if (values.some((v) => v === null || v < 0 || v > 1_000_000_000)) return { ok: false };
+  if (values.some((v) => v === null || v < 0 || v > 1_000_000_000))
+    return { ok: false };
   const min = values[0]!;
   const max = values[1] ?? min;
 
@@ -74,7 +94,10 @@ export function parseLoad(
 
 export type EffortParse = { rpe: number | null; rir: number | null };
 
-export function parseEffort(locale: Locale, input: string): ParseResult<EffortParse> {
+export function parseEffort(
+  _locale: Locale,
+  input: string,
+): ParseResult<EffortParse> {
   const text = input.trim().toLowerCase().replace(/\s+/g, " ");
 
   if (!text) return { ok: true, value: { rpe: null, rir: null } };
@@ -83,21 +106,27 @@ export function parseEffort(locale: Locale, input: string): ParseResult<EffortPa
   let kind: "rpe" | "rir" = "rpe";
 
   if (!match) {
-    match = /^(?:rir ?|r ?)([\d.,]+)$/.exec(text) ?? /^([\d.,]+) ?rir$/.exec(text);
+    match =
+      /^(?:rir ?|r ?)([\d.,]+)$/.exec(text) ?? /^([\d.,]+) ?rir$/.exec(text);
     kind = "rir";
   }
   if (!match) return { ok: false };
-  const value = parseLocaleNumber(locale, match[1]!);
+  const value = parseTrainingDecimal(match[1]!);
 
   if (value === null) return { ok: false };
   if (kind === "rir")
     return value < 0 || value > 100
       ? { ok: false }
       : { ok: true, value: { rpe: null, rir: value } };
-  return value < 0 || value > 10 ? { ok: false } : { ok: true, value: { rpe: value, rir: null } };
+  return value < 0 || value > 10
+    ? { ok: false }
+    : { ok: true, value: { rpe: value, rir: null } };
 }
 
-export function parseDuration(locale: Locale, input: string): ParseResult<Quantity | null> {
+export function parseDuration(
+  locale: Locale,
+  input: string,
+): ParseResult<Quantity | null> {
   const text = input.trim().toLowerCase();
 
   if (!text) return { ok: true, value: null };
@@ -107,22 +136,30 @@ export function parseDuration(locale: Locale, input: string): ParseResult<Quanti
     return {
       ok: true,
       value: {
-        value: Number(clock[1] ?? 0) * 3600 + Number(clock[2]) * 60 + Number(clock[3]),
+        value:
+          Number(clock[1] ?? 0) * 3600 +
+          Number(clock[2]) * 60 +
+          Number(clock[3]),
         unit: "Seconds",
       },
     };
-  const match = /^([\d.,]+)\s*(s|sec|secs|seconds?|m|min|mins|minutes?|')?$/.exec(text);
+  const match =
+    /^([\d.,]+)\s*(s|sec|secs|seconds?|m|min|mins|minutes?|')?$/.exec(text);
 
   if (!match) return { ok: false };
   const value = parseLocaleNumber(locale, match[1]!);
 
-  if (value === null || value < 0 || value > 1_000_000_000) return { ok: false };
+  if (value === null || value < 0 || value > 1_000_000_000)
+    return { ok: false };
   const minutes = match[2] && /^(m|min|mins|minutes?|')$/.test(match[2]);
 
   return { ok: true, value: { value, unit: minutes ? "Minutes" : "Seconds" } };
 }
 
-export function parseDistance(locale: Locale, input: string): ParseResult<Quantity | null> {
+export function parseDistance(
+  locale: Locale,
+  input: string,
+): ParseResult<Quantity | null> {
   const text = input.trim().toLowerCase();
 
   if (!text) return { ok: true, value: null };
@@ -132,10 +169,14 @@ export function parseDistance(locale: Locale, input: string): ParseResult<Quanti
   const value = parseLocaleNumber(locale, match[1]!);
 
   if (value === null || value < 0) return { ok: false };
-  return { ok: true, value: { value, unit: match[2] === "km" ? "Kilometers" : "Meters" } };
+  return {
+    ok: true,
+    value: { value, unit: match[2] === "km" ? "Kilometers" : "Meters" },
+  };
 }
 
-export const TEMPO_PATTERN = /^(?:\d{1,2}|X)-(?:\d{1,2}|X)-(?:\d{1,2}|X)-(?:\d{1,2}|X)$/;
+export const TEMPO_PATTERN =
+  /^(?:\d{1,2}|X)-(?:\d{1,2}|X)-(?:\d{1,2}|X)-(?:\d{1,2}|X)$/;
 
 export function parseTempo(input: string): ParseResult<string | null> {
   const text = input.trim().toUpperCase().replace(/\s+/g, "");
@@ -167,7 +208,9 @@ export function formatQuantity(locale: Locale, quantity: Quantity): string {
 
 export function formatReps(reps: Prescription["reps"]): string {
   if (!reps) return "";
-  return reps.minimum === reps.maximum ? String(reps.minimum) : `${reps.minimum}–${reps.maximum}`;
+  return reps.minimum === reps.maximum
+    ? String(reps.minimum)
+    : `${reps.minimum}–${reps.maximum}`;
 }
 
 export function formatLoad(
@@ -200,17 +243,26 @@ export function formatLoad(
 }
 
 export function formatEffort(locale: Locale, p: Prescription): string {
-  if (p.rpe !== null && p.rpe !== undefined) return `RPE ${formatNumber(locale, p.rpe, 1)}`;
-  if (p.rir !== null && p.rir !== undefined) return `RIR ${formatNumber(locale, p.rir, 1)}`;
+  if (p.rpe !== null && p.rpe !== undefined)
+    return `RPE ${formatNumber(locale, p.rpe, 2)}`;
+  if (p.rir !== null && p.rir !== undefined)
+    return `RIR ${formatNumber(locale, p.rir, 2)}`;
   return "";
 }
 
-export function formatDuration(locale: Locale, quantity: Quantity | null | undefined): string {
+export function formatDuration(
+  locale: Locale,
+  quantity: Quantity | null | undefined,
+): string {
   return quantity ? formatQuantity(locale, quantity) : "";
 }
 
 /** Editable text for a cell (what the input starts with when editing). */
-export function editText(locale: Locale, column: string, p: Prescription): string {
+export function editText(
+  locale: Locale,
+  column: string,
+  p: Prescription,
+): string {
   switch (column) {
     case "reps":
       return formatReps(p.reps);

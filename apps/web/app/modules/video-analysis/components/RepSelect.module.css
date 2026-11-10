@@ -12,7 +12,9 @@
   font-size: var(--tf-text-sm);
   cursor: pointer;
   outline: none;
-  transition: border-color 120ms ease, background-color 120ms ease;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
 }
 
 .trigger[data-hovered],

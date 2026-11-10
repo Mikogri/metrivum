@@ -1,8 +1,22 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { appEn, type AppMessages } from "./messages/app.en";
 import { appPl } from "./messages/app.pl";
 import { LocaleProvider } from "./LocaleContext";
-import { isLocale, readLocalePreference, writeLocalePreference, DEFAULT_LOCALE, type Locale } from "./locale";
+import {
+  isLocale,
+  readLocalePreference,
+  writeLocalePreference,
+  DEFAULT_LOCALE,
+  type Locale,
+} from "./locale";
 
 const dictionaries: Record<Locale, AppMessages> = { en: appEn, pl: appPl };
 
@@ -13,7 +27,11 @@ interface AppLocaleValue {
   setLocale: (locale: string) => void;
 }
 
-const AppLocaleContext = createContext<AppLocaleValue>({ locale: DEFAULT_LOCALE, m: appEn, setLocale: () => {} });
+const AppLocaleContext = createContext<AppLocaleValue>({
+  locale: DEFAULT_LOCALE,
+  m: appEn,
+  setLocale: () => {},
+});
 
 /** Language for /auth and /app: the profile's locale once known, otherwise the stored preference. */
 export function AppLocaleProvider({ children }: { children: ReactNode }) {
@@ -30,7 +48,10 @@ export function AppLocaleProvider({ children }: { children: ReactNode }) {
     setLocaleState(next);
   }, []);
 
-  const value = useMemo(() => ({ locale, m: dictionaries[locale], setLocale }), [locale, setLocale]);
+  const value = useMemo(
+    () => ({ locale, m: dictionaries[locale], setLocale }),
+    [locale, setLocale],
+  );
   return (
     <AppLocaleContext.Provider value={value}>
       <LocaleProvider locale={locale}>{children}</LocaleProvider>

@@ -8,6 +8,7 @@ public sealed class CoachDiscoveryProfile
     public List<string> Specializations { get; set; } = [];
     public List<string> Languages { get; set; } = [];
     public List<string> Modes { get; set; } = [];
+
     // Entered explicitly for Discovery. Private account location fields are never copied here.
     public string? Location { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

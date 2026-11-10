@@ -1,6 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { addBlock, addCycle, addDay, addExercise, addWorkout, emptyDocument, findExercise } from "./document";
-import { applyLoad, applyProgression, applySetsReps, cycleGrid, exerciseCells } from "./cells";
+import {
+  addBlock,
+  addCycle,
+  addDay,
+  addExercise,
+  addWorkout,
+  emptyDocument,
+  findExercise,
+} from "./document";
+import {
+  applyLoad,
+  applyProgression,
+  applySetsReps,
+  cycleGrid,
+  exerciseCells,
+} from "./cells";
 
 function plan(cycles = 3) {
   let doc = emptyDocument();
@@ -29,9 +43,22 @@ describe("exercise cells", () => {
     const withLoad = applyLoad("pl", withSets, id, "82,5 kg")!;
     const exercise = findExercise(withLoad, id)!.exercise;
     expect(exercise.sets).toHaveLength(4);
-    expect(exercise.sets.every((s) => s.prescription.reps?.minimum === 8 && s.prescription.reps?.maximum === 10)).toBe(true);
-    expect(exercise.sets.every((s) => Number(s.prescription.load?.minimum.value) === 82.5)).toBe(true);
-    expect(exerciseCells("pl", exercise)).toMatchObject({ setsReps: "4 × 8–10", mixed: false });
+    expect(
+      exercise.sets.every(
+        (s) =>
+          s.prescription.reps?.minimum === 8 &&
+          s.prescription.reps?.maximum === 10,
+      ),
+    ).toBe(true);
+    expect(
+      exercise.sets.every(
+        (s) => Number(s.prescription.load?.minimum.value) === 82.5,
+      ),
+    ).toBe(true);
+    expect(exerciseCells("pl", exercise)).toMatchObject({
+      setsReps: "4 × 8–10",
+      mixed: false,
+    });
   });
 
   it("rejects text that isn't a prescription", () => {
@@ -44,7 +71,12 @@ describe("exercise cells", () => {
     const { doc } = plan(1);
     const grid = cycleGrid(doc.blocks[0]!.cycles[0]!, true);
     expect(grid.days).toHaveLength(1);
-    expect(grid.days[0]!.rows.map((r) => r.type)).toEqual(["workout", "exercise", "add-exercise", "add-workout"]);
+    expect(grid.days[0]!.rows.map((r) => r.type)).toEqual([
+      "workout",
+      "exercise",
+      "add-exercise",
+      "add-workout",
+    ]);
   });
 });
 
@@ -53,10 +85,19 @@ describe("block progression", () => {
     const { doc, blockId, instances } = plan(3);
     let next = applySetsReps(doc, instances[0]!, "3×5")!;
     next = applyLoad("en", next, instances[0]!, "100 kg")!;
-    const result = applyProgression(next, blockId, "squat", { kind: "load", step: 2.5 });
+    const result = applyProgression(next, blockId, "squat", {
+      kind: "load",
+      step: 2.5,
+    });
     expect(result.changed).toBe(2);
-    const load = (i: number) => Number(findExercise(result.doc, instances[i]!)!.exercise.sets[0]!.prescription.load?.minimum.value);
+    const load = (i: number) =>
+      Number(
+        findExercise(result.doc, instances[i]!)!.exercise.sets[0]!.prescription
+          .load?.minimum.value,
+      );
     expect([load(0), load(1), load(2)]).toEqual([100, 102.5, 105]);
-    expect(findExercise(result.doc, instances[2]!)!.exercise.sets).toHaveLength(3);
+    expect(findExercise(result.doc, instances[2]!)!.exercise.sets).toHaveLength(
+      3,
+    );
   });
 });

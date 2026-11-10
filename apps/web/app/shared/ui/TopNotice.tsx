@@ -10,7 +10,23 @@ export const TOP_NOTICE_ID = "tf-top-notice";
  * A thin full-width notice at the very top of the app, in the style of the update banner: an icon badge, a one-line
  * message, inline actions and a close button. Renders nothing outside the app shell.
  */
-export function TopNotice({ icon, title, children, label, onClose, closeLabel, tone = "info" }: { icon: ReactNode; title: string; children?: ReactNode; label: string; onClose?: () => void; closeLabel?: string; tone?: "info" | "accent" | "warning" }) {
+export function TopNotice({
+  icon,
+  title,
+  children,
+  label,
+  onClose,
+  closeLabel,
+  tone = "info",
+}: {
+  icon: ReactNode;
+  title: string;
+  children?: ReactNode;
+  label: string;
+  onClose?: () => void;
+  closeLabel?: string;
+  tone?: "info" | "accent" | "warning";
+}) {
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   useEffect(() => setSlot(document.getElementById(TOP_NOTICE_ID)), []);
   if (!slot) return null;
@@ -31,7 +47,12 @@ export function TopNotice({ icon, title, children, label, onClose, closeLabel, t
         ) : null}
       </p>
       {onClose ? (
-        <button type="button" className={styles.close} aria-label={closeLabel} onClick={onClose}>
+        <button
+          type="button"
+          className={styles.close}
+          aria-label={closeLabel}
+          onClick={onClose}
+        >
           <X aria-hidden="true" />
         </button>
       ) : null}
@@ -41,7 +62,13 @@ export function TopNotice({ icon, title, children, label, onClose, closeLabel, t
 }
 
 /** An inline text action inside a TopNotice. */
-export function TopNoticeLink({ children, onPress }: { children: ReactNode; onPress: () => void }) {
+export function TopNoticeLink({
+  children,
+  onPress,
+}: {
+  children: ReactNode;
+  onPress: () => void;
+}) {
   return (
     <button type="button" className={styles.link} onClick={onPress}>
       {children}

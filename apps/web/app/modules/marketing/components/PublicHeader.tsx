@@ -1,6 +1,12 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, DialogTrigger, Heading, Modal, ModalOverlay } from "react-aria-components";
+import {
+  Dialog,
+  DialogTrigger,
+  Heading,
+  Modal,
+  ModalOverlay,
+} from "react-aria-components";
 import { Link as RouterLink, NavLink, useLocation } from "react-router";
 import { Button, IconButton, LinkButton } from "@metrivum/ui-web";
 import { useLocale } from "~/shared/i18n/LocaleContext";
@@ -34,7 +40,13 @@ function LanguageSwitch() {
   );
 }
 
-export function PublicHeader({ hasSession, onSignedOut }: { hasSession: boolean; onSignedOut: () => void }) {
+export function PublicHeader({
+  hasSession,
+  onSignedOut,
+}: {
+  hasSession: boolean;
+  onSignedOut: () => void;
+}) {
   const m = usePublicMessages();
   const locale = useLocale();
   const location = useLocation();
@@ -43,10 +55,23 @@ export function PublicHeader({ hasSession, onSignedOut }: { hasSession: boolean;
 
   const links = [
     { to: publicPath("features", locale), label: m.nav.features, end: true },
-    { to: publicPath("programBuilder", locale), label: m.nav.programBuilder, end: false },
-    { to: publicPath("videoAnalysis", locale), label: m.nav.videoAnalysis, end: false },
+    {
+      to: publicPath("programBuilder", locale),
+      label: m.nav.programBuilder,
+      end: false,
+    },
+    {
+      to: publicPath("videoAnalysis", locale),
+      label: m.nav.videoAnalysis,
+      end: false,
+    },
     // An anchor on the home page, so it never shows as the current page.
-    { to: `${publicPath("home", locale)}#pricing`, label: m.nav.pricing, end: true, anchor: true },
+    {
+      to: `${publicPath("home", locale)}#pricing`,
+      label: m.nav.pricing,
+      end: true,
+      anchor: true,
+    },
   ];
 
   const actions = hasSession ? (
@@ -74,30 +99,51 @@ export function PublicHeader({ hasSession, onSignedOut }: { hasSession: boolean;
       </a>
       <header className={styles.header}>
         <div className={styles.inner}>
-          <RouterLink to={publicPath("home", locale)} className={styles.brand} aria-label={m.nav.home}>
+          <RouterLink
+            to={publicPath("home", locale)}
+            className={styles.brand}
+            aria-label={m.nav.home}
+          >
             <Logo />
           </RouterLink>
           <nav aria-label={m.nav.primary} className={styles.nav}>
-            {links.map((link) => (
+            {links.map((link) =>
               link.anchor ? (
-                <RouterLink key={link.to} to={link.to} className={styles.navLink}>
+                <RouterLink
+                  key={link.to}
+                  to={link.to}
+                  className={styles.navLink}
+                >
                   {link.label}
                 </RouterLink>
               ) : (
-                <NavLink key={link.to} to={link.to} end={link.end} className={styles.navLink}>
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  className={styles.navLink}
+                >
                   {link.label}
                 </NavLink>
-              )
-            ))}
+              ),
+            )}
           </nav>
           <div className={styles.end}>
             <LanguageSwitch />
             <div className={styles.actions}>{actions}</div>
             <DialogTrigger isOpen={menuOpen} onOpenChange={setMenuOpen}>
-              <IconButton className={styles.menuButton} label={m.nav.openMenu} icon={<Menu />} showTooltip={false} />
+              <IconButton
+                className={styles.menuButton}
+                label={m.nav.openMenu}
+                icon={<Menu />}
+                showTooltip={false}
+              />
               <ModalOverlay isDismissable className={styles.sheetOverlay}>
                 <Modal className={styles.sheet}>
-                  <Dialog className={styles.sheetDialog} aria-label={m.nav.primary}>
+                  <Dialog
+                    className={styles.sheetDialog}
+                    aria-label={m.nav.primary}
+                  >
                     {({ close }) => (
                       <>
                         <div className={styles.sheetTop}>
@@ -105,16 +151,36 @@ export function PublicHeader({ hasSession, onSignedOut }: { hasSession: boolean;
                             {m.nav.primary}
                           </Heading>
                           <Logo size="sm" />
-                          <Button variant="ghost" size="sm" onPress={close} iconStart={<X />} aria-label={m.nav.closeMenu} />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onPress={close}
+                            iconStart={<X />}
+                            aria-label={m.nav.closeMenu}
+                          />
                         </div>
-                        <nav aria-label={m.nav.primary} className={styles.sheetNav}>
+                        <nav
+                          aria-label={m.nav.primary}
+                          className={styles.sheetNav}
+                        >
                           {links.map((link, i) =>
                             link.anchor ? (
-                              <RouterLink key={link.to} to={link.to} className={styles.sheetLink} style={{ "--i": i } as React.CSSProperties}>
+                              <RouterLink
+                                key={link.to}
+                                to={link.to}
+                                className={styles.sheetLink}
+                                style={{ "--i": i } as React.CSSProperties}
+                              >
                                 {link.label}
                               </RouterLink>
                             ) : (
-                              <NavLink key={link.to} to={link.to} end={link.end} className={styles.sheetLink} style={{ "--i": i } as React.CSSProperties}>
+                              <NavLink
+                                key={link.to}
+                                to={link.to}
+                                end={link.end}
+                                className={styles.sheetLink}
+                                style={{ "--i": i } as React.CSSProperties}
+                              >
                                 {link.label}
                               </NavLink>
                             ),

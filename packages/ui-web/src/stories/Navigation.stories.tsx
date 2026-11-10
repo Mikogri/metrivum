@@ -1,6 +1,21 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Dumbbell, Heart, Video } from "lucide-react";
-import { Breadcrumbs, Button, Card, Disclosure, List, ListRow, PageHeader, Pagination, SectionHeader, Separator, Tab, TabList, TabPanel, Tabs } from "../index";
+import {
+  Breadcrumbs,
+  Button,
+  Card,
+  Disclosure,
+  List,
+  ListRow,
+  PageHeader,
+  Pagination,
+  SectionHeader,
+  Separator,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+} from "../index";
 import { pick } from "./copy";
 
 const meta = { title: "Navigation & structure" } satisfies Meta;
@@ -49,13 +64,24 @@ export const Headers: Story = {
     return (
       <div style={{ display: "grid", gap: 16 }}>
         <PageHeader
-          context={<Breadcrumbs items={[{ id: "1", label: "Programs", href: "#" }, { id: "2", label: "Off-season", href: "#" }, { id: "3", label: "Strength block A" }]} />}
+          context={
+            <Breadcrumbs
+              items={[
+                { id: "1", label: "Programs", href: "#" },
+                { id: "2", label: "Off-season", href: "#" },
+                { id: "3", label: "Strength block A" },
+              ]}
+            />
+          }
           title="Strength block A"
           description={t.nameHint}
           actions={<Button variant="primary">{t.publish}</Button>}
         />
         <Card padding="lg">
-          <SectionHeader title="Recent programs" description="Updated in the last week" />
+          <SectionHeader
+            title="Recent programs"
+            description="Updated in the last week"
+          />
           <Separator />
         </Card>
       </div>
@@ -69,10 +95,32 @@ export const Lists: Story = {
     return (
       <div style={{ maxWidth: 640 }}>
         <List>
-          <ListRow title={<a href="#a" data-row-link>Romanian deadlift</a>} subtitle="Hinge · Hamstrings" columns={<span>2 days ago</span>} />
-          <ListRow title="Bulgarian split squat" subtitle="Squat · Quadriceps" columns={<span>1 week ago</span>} />
+          <ListRow
+            title={
+              <a href="#a" data-row-link>
+                Romanian deadlift
+              </a>
+            }
+            subtitle="Hinge · Hamstrings"
+            columns={<span>2 days ago</span>}
+          />
+          <ListRow
+            title="Bulgarian split squat"
+            subtitle="Squat · Quadriceps"
+            columns={<span>1 week ago</span>}
+          />
         </List>
-        <Pagination page={2} pageCount={5} onPageChange={() => {}} labels={{ previous: t.previous, next: t.next, status: t.page, navigation: "Pagination" }} />
+        <Pagination
+          page={2}
+          pageCount={5}
+          onPageChange={() => {}}
+          labels={{
+            previous: t.previous,
+            next: t.next,
+            status: t.page,
+            navigation: "Pagination",
+          }}
+        />
       </div>
     );
   },
@@ -82,7 +130,9 @@ export const Disclosures: Story = {
   render: () => (
     <Card padding="none" style={{ maxWidth: 320 }}>
       <Disclosure title="First time on this computer?">
-        <p style={{ margin: 0, padding: "0 12px 12px" }}>Install the analyzer, then start it once.</p>
+        <p style={{ margin: 0, padding: "0 12px 12px" }}>
+          Install the analyzer, then start it once.
+        </p>
       </Disclosure>
     </Card>
   ),

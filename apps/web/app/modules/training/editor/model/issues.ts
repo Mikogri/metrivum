@@ -1,5 +1,9 @@
 import { MAX_REPS } from "./notation";
-import type { Prescription, TrainingDocument, TrainingSet } from "@metrivum/api-client-web";
+import type {
+  Prescription,
+  TrainingDocument,
+  TrainingSet,
+} from "@metrivum/api-client-web";
 
 /**
  * Client-side mirror of the server's training-document rules (TrainingDocument.Validate), so the
@@ -63,18 +67,23 @@ function prescriptionIssues(p: Prescription | null | undefined): IssueCode[] {
       found.push("reps");
   }
   if (p.load) {
-    if (!quantityOk(p.load.minimum) || !quantityOk(p.load.maximum)) found.push("quantity");
+    if (!quantityOk(p.load.minimum) || !quantityOk(p.load.maximum))
+      found.push("quantity");
     else if (
       p.load.minimum.unit === p.load.maximum.unit &&
       Number(p.load.maximum.value) < Number(p.load.minimum.value)
     )
       found.push("loadRange");
   }
-  if ([p.load, p.loadPercent, p.loadFormula].filter((v) => v != null).length > 1)
+  if (
+    [p.load, p.loadPercent, p.loadFormula].filter((v) => v != null).length > 1
+  )
     found.push("loadExclusive");
   if (
     p.loadPercent != null &&
-    (!(Number(p.loadPercent) > 0) || Number(p.loadPercent) > 1000 || !p.baseValue)
+    (!(Number(p.loadPercent) > 0) ||
+      Number(p.loadPercent) > 1000 ||
+      !p.baseValue)
   )
     found.push("percent");
   if (p.baseValue && p.loadPercent == null) found.push("percent");
@@ -87,9 +96,11 @@ function prescriptionIssues(p: Prescription | null | undefined): IssueCode[] {
     (rpe != null && rir != null)
   )
     found.push("rpeRir");
-  if (p.workTimeMax && (p.workTime || p.fieldFormulas?.WorkTime)) found.push("quantity");
+  if (p.workTimeMax && (p.workTime || p.fieldFormulas?.WorkTime))
+    found.push("quantity");
   if (p.tempo != null && !TEMPO.test(p.tempo)) found.push("tempo");
-  if (![p.baseValue, p.workTime, p.rest, p.distance].every(quantityOk)) found.push("quantity");
+  if (![p.baseValue, p.workTime, p.rest, p.distance].every(quantityOk))
+    found.push("quantity");
   return found;
 }
 
@@ -103,9 +114,16 @@ function setIssues(set: TrainingSet, earlierTopSets: Set<string>): IssueCode[] {
       : segments.length !== 0
   )
     found.push("segments");
-  if (set.kind === "Amrap" && (set.prescription?.reps || set.prescription?.fieldFormulas?.Reps))
+  if (
+    set.kind === "Amrap" &&
+    (set.prescription?.reps || set.prescription?.fieldFormulas?.Reps)
+  )
     found.push("amrapReps");
-  if (set.kind === "BackOff" && set.sourceSetId && !earlierTopSets.has(set.sourceSetId))
+  if (
+    set.kind === "BackOff" &&
+    set.sourceSetId &&
+    !earlierTopSets.has(set.sourceSetId)
+  )
     found.push("backOffSource");
   for (const segment of segments)
     for (const code of prescriptionIssues(segment.prescription))
@@ -113,7 +131,10 @@ function setIssues(set: TrainingSet, earlierTopSets: Set<string>): IssueCode[] {
   return found;
 }
 
-export function documentIssues(doc: TrainingDocument, labels: IssueLabels): DocumentIssue[] {
+export function documentIssues(
+  doc: TrainingDocument,
+  labels: IssueLabels,
+): DocumentIssue[] {
   const issues: DocumentIssue[] = [];
 
   for (const block of doc.blocks) {
@@ -124,11 +145,15 @@ export function documentIssues(doc: TrainingDocument, labels: IssueLabels): Docu
             ...(block.implicit ? [] : [block.name || labels.untitled]),
             ...(cycle.implicit
               ? []
-              : [cycle.name || labels.untitled, labels.day(Number(day.dayNumber))]),
+              : [
+                  cycle.name || labels.untitled,
+                  labels.day(Number(day.dayNumber)),
+                ]),
             workout.name || labels.untitled,
           ];
 
-          if (!workout.name?.trim()) issues.push({ code: "workoutName", path: at });
+          if (!workout.name?.trim())
+            issues.push({ code: "workoutName", path: at });
           for (const exercise of workout.exercises) {
             const name = labels.exercise(exercise.exerciseId);
 
@@ -137,7 +162,10 @@ export function documentIssues(doc: TrainingDocument, labels: IssueLabels): Docu
             const topSets = new Set<string>();
             exercise.sets.forEach((set, index) => {
               for (const code of setIssues(set, topSets))
-                issues.push({ code, path: [...at, name, labels.set(index + 1)] });
+                issues.push({
+                  code,
+                  path: [...at, name, labels.set(index + 1)],
+                });
               if (set.kind === "TopSet") topSets.add(set.id);
             });
           }
@@ -146,13 +174,16 @@ export function documentIssues(doc: TrainingDocument, labels: IssueLabels): Docu
 
           for (const group of workout.groups) {
             const rounds = group.rounds == null ? null : Number(group.rounds);
-            const rest = group.restSeconds == null ? null : Number(group.restSeconds);
+            const rest =
+              group.restSeconds == null ? null : Number(group.restSeconds);
             const shape =
               group.exerciseIds.length < 2 ||
               (group.kind === "Superset" && group.exerciseIds.length !== 2) ||
               (rounds != null && (rounds < 1 || rounds > 100)) ||
               (rest != null && (rest < 0 || rest > 86400));
-            const overlap = group.exerciseIds.some((id) => !ids.has(id) || used.has(id));
+            const overlap = group.exerciseIds.some(
+              (id) => !ids.has(id) || used.has(id),
+            );
             group.exerciseIds.forEach((id) => used.add(id));
             if (shape || overlap) issues.push({ code: "group", path: at });
           }

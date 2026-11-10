@@ -13,15 +13,41 @@ export const GROUP_COLORS = [
   { value: "#F2A93B", name: "Amber" },
 ];
 
-export function ColorSwatches({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  const known = GROUP_COLORS.some((c) => c.value.toLowerCase() === value.toLowerCase());
-  const options = known ? GROUP_COLORS : [...GROUP_COLORS, { value, name: "Current colour" }];
+export function ColorSwatches({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const known = GROUP_COLORS.some(
+    (c) => c.value.toLowerCase() === value.toLowerCase(),
+  );
+  const options = known
+    ? GROUP_COLORS
+    : [...GROUP_COLORS, { value, name: "Current colour" }];
   return (
-    <RadioGroup className={styles.group} value={options.find((c) => c.value.toLowerCase() === value.toLowerCase())?.value ?? value} onChange={onChange} orientation="horizontal">
+    <RadioGroup
+      className={styles.group}
+      value={
+        options.find((c) => c.value.toLowerCase() === value.toLowerCase())
+          ?.value ?? value
+      }
+      onChange={onChange}
+      orientation="horizontal"
+    >
       <Label className={styles.label}>{label}</Label>
       <div className={styles.swatches}>
         {options.map((c) => (
-          <Radio key={c.value} value={c.value} aria-label={c.name} className={styles.swatch} style={{ "--swatch": c.value } as React.CSSProperties} />
+          <Radio
+            key={c.value}
+            value={c.value}
+            aria-label={c.name}
+            className={styles.swatch}
+            style={{ "--swatch": c.value } as React.CSSProperties}
+          />
         ))}
       </div>
     </RadioGroup>

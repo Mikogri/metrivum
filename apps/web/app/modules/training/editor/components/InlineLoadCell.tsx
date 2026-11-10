@@ -1,3 +1,4 @@
+import { DecimalInput } from "@metrivum/ui-web";
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import {
   X,
@@ -9,7 +10,13 @@ import {
   CircleAlert,
   CircleCheck,
 } from "lucide-react";
-import { Select, Option, Dialog, overlayPosition, overlayViewport } from "@metrivum/ui-web";
+import {
+  Select,
+  Option,
+  Dialog,
+  overlayPosition,
+  overlayViewport,
+} from "@metrivum/ui-web";
 import { useCellValidation } from "../cell-validation";
 import {
   useEffect,
@@ -136,7 +143,9 @@ function convertQuantity(value: Quantity, unit: Unit): Quantity {
     (unit === "Seconds" || unit === "Minutes")
   )
     return {
-      value: (value.value * (value.unit === "Minutes" ? 60 : 1)) / (unit === "Minutes" ? 60 : 1),
+      value:
+        (value.value * (value.unit === "Minutes" ? 60 : 1)) /
+        (unit === "Minutes" ? 60 : 1),
       unit,
     };
   return value;
@@ -183,7 +192,9 @@ export function InlineLoadCell({
     (exerciseId
       ? (context.exerciseMaxReps?.[exerciseId] ??
         Number(
-          prescription.loadFormula?.variableBindings?.repMax?.match(/^exercise(\d+)Rm_/)?.[1] ?? 1,
+          prescription.loadFormula?.variableBindings?.repMax?.match(
+            /^exercise(\d+)Rm_/,
+          )?.[1] ?? 1,
         ))
       : 1);
   const [text, setText] = useState<string | null>(null);
@@ -208,9 +219,12 @@ export function InlineLoadCell({
   const auxiliary = useRef<HTMLDivElement>(null);
   const suggestions = useRef<HTMLDivElement>(null);
   const listId = useId();
-  const original = prescription.loadFormula as InlineFormulaUse | null | undefined;
+  const original = prescription.loadFormula as
+    InlineFormulaUse | null | undefined;
   const saved =
-    original?.variableBindings?.repMax && exerciseId && context.exerciseMaxReps?.[exerciseId]
+    original?.variableBindings?.repMax &&
+    exerciseId &&
+    context.exerciseMaxReps?.[exerciseId]
       ? {
           ...original,
           variableBindings: {
@@ -220,7 +234,10 @@ export function InlineLoadCell({
         }
       : original;
   const effortMode =
-    effortAsLoad && !prescription.load && !saved && prescription.loadPercent == null
+    effortAsLoad &&
+    !prescription.load &&
+    !saved &&
+    prescription.loadPercent == null
       ? prescription.rpe != null
         ? "RPE"
         : prescription.rir != null
@@ -228,9 +245,14 @@ export function InlineLoadCell({
           : null
       : null;
   const hasUnitSelect =
-    valueKind !== "scalar" && !readOnly && !effortMode && prescription.loadPercent == null;
+    valueKind !== "scalar" &&
+    !readOnly &&
+    !effortMode &&
+    prescription.loadPercent == null;
   const withoutUnit = (value: string) =>
-    hasUnitSelect && !value.startsWith("=") ? value.replace(/\s+(kg|lb|s|min)\b/g, "") : value;
+    hasUnitSelect && !value.startsWith("=")
+      ? value.replace(/\s+(kg|lb|s|min)\b/g, "")
+      : value;
   const raw = maxEffort
     ? valueKind === "time"
       ? "MAX"
@@ -240,7 +262,9 @@ export function InlineLoadCell({
         ? `${effortMode} ${prescription.rpe ?? prescription.rir}`
         : withoutUnit(fallbackValue || editText(locale, "load", prescription)));
   const search =
-    text !== null && !dismissed && (formulaAllowed || onMaxEffort) ? librarySearch(text) : null;
+    text !== null && !dismissed && (formulaAllowed || onMaxEffort)
+      ? librarySearch(text)
+      : null;
   const builtIns = useBuiltInFormulas();
   const functionSearch =
     text !== null && !dismissed && formulaAllowed
@@ -254,7 +278,9 @@ export function InlineLoadCell({
         .filter(
           (name) =>
             !(
-              (CLIENT_VARIABLE_UNITS[name as keyof typeof CLIENT_VARIABLE_UNITS] === "Kg" &&
+              (CLIENT_VARIABLE_UNITS[
+                name as keyof typeof CLIENT_VARIABLE_UNITS
+              ] === "Kg" &&
                 !name.endsWith("_kg")) ||
               ["weight_kg", "weight_lb"].includes(name)
             ),
@@ -263,7 +289,10 @@ export function InlineLoadCell({
           unqualified(name) === "oneRepMax"
             ? Boolean(exerciseId)
             : unqualified(name) === "repMax"
-              ? Boolean(exerciseId && (maxReps || context.exerciseMaxReps?.[exerciseId]))
+              ? Boolean(
+                  exerciseId &&
+                  (maxReps || context.exerciseMaxReps?.[exerciseId]),
+                )
               : true,
         ),
       ...Object.keys(context.variables)
@@ -273,7 +302,8 @@ export function InlineLoadCell({
             !["weight", "bodyweight", "bodyWeight"].includes(name),
         )
         .flatMap((name) =>
-          context.variables[name]?.unit === "Kg" || context.variables[name]?.unit === "Lb"
+          context.variables[name]?.unit === "Kg" ||
+          context.variables[name]?.unit === "Lb"
             ? [`${name}_kg`, `${name}_lb`]
             : [name],
         ),
@@ -287,7 +317,8 @@ export function InlineLoadCell({
           context.variables[name]?.unit,
       ),
   );
-  const maxRepsLabel = locale === "pl" ? "AMRAP · ile się da" : "AMRAP · as many as possible";
+  const maxRepsLabel =
+    locale === "pl" ? "AMRAP · ile się da" : "AMRAP · as many as possible";
   const maximumGroup =
     valueKind === "time"
       ? m.ui["Maximum effort time"]
@@ -296,61 +327,70 @@ export function InlineLoadCell({
         : "Max reps";
   const options: Choice[] = [
     // After "/", a cell that can be done to the limit offers exactly that: MAX for time, AMRAP for reps.
-    ...(onMaxEffort && valueKind === "time" && search !== null && "max".startsWith(prefix)
+    ...(onMaxEffort &&
+    valueKind === "time" &&
+    search !== null &&
+    "max".startsWith(prefix)
       ? [{ key: "maximum", label: "MAX", kind: "maximum" as const }]
       : []),
-    ...(onMaxEffort && valueKind === "scalar" && search !== null && "amrap".startsWith(prefix)
+    ...(onMaxEffort &&
+    valueKind === "scalar" &&
+    search !== null &&
+    "amrap".startsWith(prefix)
       ? [{ key: "maximum", label: maxRepsLabel, kind: "maximum" as const }]
       : []),
     // Reps are a count, not body data: "/" in a reps cell lists AMRAP only, no client variables.
-    ...(search !== null && formulaAllowed && !(onMaxEffort && valueKind === "scalar")
+    ...(search !== null &&
+    formulaAllowed &&
+    !(onMaxEffort && valueKind === "scalar")
       ? variableNames
       : []
     )
       .filter((name) => name.toLowerCase().startsWith(prefix))
       .slice(0, 6)
-      .map(
-        (name): Choice => ({
-          key: `v:${name}`,
-          label: name.replace(/^bodyWeight_/, "Body weight "),
-          kind: "variable",
-        }),
-      ),
+      .map((name): Choice => ({
+        key: `v:${name}`,
+        label: name.replace(/^bodyWeight_/, "Body weight "),
+        kind: "variable",
+      })),
     ...(functionSearch !== null ? FORMULA_FUNCTIONS : [])
       .filter((name) => name.toLowerCase().startsWith(prefix))
-      .map(
-        (name): Choice => ({
-          key: `f:${name}`,
-          label: `${functionLabel(name)}(…)`,
-          kind: "function",
-        }),
-      ),
+      .map((name): Choice => ({
+        key: `f:${name}`,
+        label: `${functionLabel(name)}(…)`,
+        kind: "function",
+      })),
     ...(functionSearch !== null ? (builtIns.data ?? []) : [])
       .filter(
         (f) =>
           valueKind === "mass" ||
-          f.definition.outputUnit === (valueKind === "time" ? "Seconds" : "Scalar"),
+          f.definition.outputUnit ===
+            (valueKind === "time" ? "Seconds" : "Scalar"),
       )
       .filter((f) =>
         (m.training.formulas.builtInNames[f.key ?? ""] ?? f.key ?? "")
           .toLowerCase()
           .includes(prefix),
       )
-      .map(
-        (f): Choice => ({
-          key: `b:${f.key}`,
-          label: m.training.formulas.builtInNames[f.key ?? ""] ?? f.key ?? "",
-          kind: "builtIn",
-          version: f.version,
-          inputs: f.definition.inputs,
-        }),
-      ),
-    ...(customAllowed && functionSearch !== null ? (library.data?.items ?? []) : [])
+      .map((f): Choice => ({
+        key: `b:${f.key}`,
+        label: m.training.formulas.builtInNames[f.key ?? ""] ?? f.key ?? "",
+        kind: "builtIn",
+        version: f.version,
+        inputs: f.definition.inputs,
+      })),
+    ...(customAllowed && functionSearch !== null
+      ? (library.data?.items ?? [])
+      : []
+    )
       .filter((f) => !f.archived && f.name.toLowerCase().includes(prefix))
       .slice(0, 12)
-      .map(
-        (f): Choice => ({ key: `c:${f.id}`, label: f.name, kind: "custom", version: f.version }),
-      ),
+      .map((f): Choice => ({
+        key: `c:${f.id}`,
+        label: f.name,
+        kind: "custom",
+        version: f.version,
+      })),
   ];
   const draft =
     binding ??
@@ -366,13 +406,15 @@ export function InlineLoadCell({
   const resolved = withClientVariables(
     text !== null ? draft : saved,
     context.variables,
-    Boolean(context.relationshipId) || Object.keys(context.variables).length > 0,
+    Boolean(context.relationshipId) ||
+      Object.keys(context.variables).length > 0,
   );
   const missing = Object.keys(resolved?.variableBindings ?? {}).filter(
     (name) => !resolved?.inputs[name],
   );
   const showOptions =
-    !dismissed && (search !== null || (functionSearch !== null && options.length > 0));
+    !dismissed &&
+    (search !== null || (functionSearch !== null && options.length > 0));
   const unit: Unit =
     unitOverride ??
     valueUnit ??
@@ -385,7 +427,11 @@ export function InlineLoadCell({
           ? "Scalar"
           : "Kg");
   const evaluation = useFormulaEvaluation(
-    missing.length || showOptions ? null : resolved ? { ...resolved, outputUnit: unit } : null,
+    missing.length || showOptions
+      ? null
+      : resolved
+        ? { ...resolved, outputUnit: unit }
+        : null,
   );
   const evaluationError =
     evaluation.error instanceof ApiError &&
@@ -419,7 +465,12 @@ export function InlineLoadCell({
   const focusInput = (position?: number) => {
     const generation = request.current;
     requestAnimationFrame(() => {
-      if (completed.current || request.current !== generation || !lifecycle.isCurrent()) return;
+      if (
+        completed.current ||
+        request.current !== generation ||
+        !lifecycle.isCurrent()
+      )
+        return;
       const input = expanded
         ? auxiliary.current?.querySelector("textarea")
         : cell.current?.querySelector("input");
@@ -438,7 +489,9 @@ export function InlineLoadCell({
     setText(initial);
     setManual(
       Object.fromEntries(
-        Object.entries(saved?.inputs ?? {}).filter(([name]) => !saved?.variableBindings?.[name]),
+        Object.entries(saved?.inputs ?? {}).filter(
+          ([name]) => !saved?.variableBindings?.[name],
+        ),
       ),
     );
     setBinding(
@@ -446,7 +499,8 @@ export function InlineLoadCell({
         ? (withClientVariables(
             saved,
             context.variables,
-            Boolean(context.relationshipId) || Object.keys(context.variables).length > 0,
+            Boolean(context.relationshipId) ||
+              Object.keys(context.variables).length > 0,
           ) ?? null)
         : null,
     );
@@ -454,14 +508,20 @@ export function InlineLoadCell({
 
     setParameters(
       saved?.builtIn
-        ? (builtIns.data?.find((item) => item.key === saved.builtIn)?.definition.inputs ?? {})
+        ? (builtIns.data?.find((item) => item.key === saved.builtIn)?.definition
+            .inputs ?? {})
         : Object.fromEntries(
-            Object.entries(saved?.inputs ?? {}).map(([name, q]) => [name, q.unit]),
+            Object.entries(saved?.inputs ?? {}).map(([name, q]) => [
+              name,
+              q.unit,
+            ]),
           ),
     );
     setDismissed(Boolean(initial === raw && saved && !saved.expression));
     if (initial === raw && saved?.builtIn)
-      setText(`=${m.training.formulas.builtInNames[saved.builtIn] ?? saved.builtIn}`);
+      setText(
+        `=${m.training.formulas.builtInNames[saved.builtIn] ?? saved.builtIn}`,
+      );
     if (initial === raw && saved?.formulaId) {
       const generation = request.current;
       void getFormula(api, saved.formulaId, saved.version)
@@ -471,7 +531,8 @@ export function InlineLoadCell({
           setParameters(data.definition.inputs);
         })
         .catch((e: unknown) => {
-          if (lifecycle.isCurrent() && request.current === generation) setError(errorText(m, e));
+          if (lifecycle.isCurrent() && request.current === generation)
+            setError(errorText(m, e));
         });
     }
   };
@@ -505,7 +566,8 @@ export function InlineLoadCell({
   const editing = text !== null;
   useEffect(() => {
     if (!editing) return;
-    const reposition = () => setRect(cell.current?.getBoundingClientRect() ?? null);
+    const reposition = () =>
+      setRect(cell.current?.getBoundingClientRect() ?? null);
     window.addEventListener("scroll", reposition, true);
     window.addEventListener("resize", reposition);
     return () => {
@@ -554,12 +616,19 @@ export function InlineLoadCell({
     }
     if (draft.expression) {
       commitFormula(
-        exerciseBinding(draft.expression, context.variables, exerciseId, {}, exerciseReps),
+        exerciseBinding(
+          draft.expression,
+          context.variables,
+          exerciseId,
+          {},
+          exerciseReps,
+        ),
       );
     } else {
       const inputs = { ...draft.inputs };
 
-      for (const name of Object.keys(draft.variableBindings ?? {})) delete inputs[name];
+      for (const name of Object.keys(draft.variableBindings ?? {}))
+        delete inputs[name];
       commitFormula({ ...draft, inputs });
     }
   };
@@ -577,7 +646,10 @@ export function InlineLoadCell({
       setError(m.editor.panel.advancedLocked);
       return;
     }
-    if (onMaxEffort && text.trim().toUpperCase() === (valueKind === "time" ? "MAX" : "AMRAP")) {
+    if (
+      onMaxEffort &&
+      text.trim().toUpperCase() === (valueKind === "time" ? "MAX" : "AMRAP")
+    ) {
       onMaxEffort(true);
       cancel();
       return;
@@ -597,7 +669,9 @@ export function InlineLoadCell({
         valueKind === "time"
           ? parseDuration(
               locale,
-              /^[\d.,\s]+$/.test(text) && unit === "Minutes" ? `${text} min` : text,
+              /^[\d.,\s]+$/.test(text) && unit === "Minutes"
+                ? `${text} min`
+                : text,
             )
           : null;
       const range = valueKind === "scalar" ? parseReps(text) : null;
@@ -619,10 +693,18 @@ export function InlineLoadCell({
             (number < constraints.min ||
               number > constraints.max ||
               (constraints.integer && !Number.isInteger(number)))) ||
-          (!allowRange && range?.ok && range.value?.minimum !== range.value?.maximum))
+          (!allowRange &&
+            range?.ok &&
+            range.value?.minimum !== range.value?.maximum))
       ) {
         commitFormula(
-          exerciseBinding(`=${text}`, context.variables, exerciseId, manual, exerciseReps),
+          exerciseBinding(
+            `=${text}`,
+            context.variables,
+            exerciseId,
+            manual,
+            exerciseReps,
+          ),
         );
         return;
       }
@@ -631,13 +713,23 @@ export function InlineLoadCell({
         text.trim() && number != null
           ? {
               minimum: { value: number, unit },
-              maximum: { value: range?.ok ? (range.value?.maximum ?? number) : number, unit },
+              maximum: {
+                value: range?.ok ? (range.value?.maximum ?? number) : number,
+                unit,
+              },
             }
           : null;
-    } else if (/^\s*(RPE|RIR)\b/i.test(text) || (effortMode && /^[\d.,\s]*$/.test(text))) {
+    } else if (
+      /^\s*(RPE|RIR)\b/i.test(text) ||
+      (effortMode && /^[\d.,\s]*$/.test(text))
+    ) {
       const parsed = parseEffort(
         locale,
-        /^\s*(RPE|RIR)\b/i.test(text) ? text : text.trim() ? `${effortMode} ${text}` : "",
+        /^\s*(RPE|RIR)\b/i.test(text)
+          ? text
+          : text.trim()
+            ? `${effortMode} ${text}`
+            : "",
       );
 
       if (!parsed.ok) {
@@ -655,7 +747,13 @@ export function InlineLoadCell({
       if (!parsed.ok) {
         // Keep malformed Load text in the draft; Apply remains the semantic validation boundary.
         commitFormula(
-          exerciseBinding(`=${text}`, context.variables, exerciseId, manual, exerciseReps),
+          exerciseBinding(
+            `=${text}`,
+            context.variables,
+            exerciseId,
+            manual,
+            exerciseReps,
+          ),
         );
         return;
       }
@@ -705,7 +803,9 @@ export function InlineLoadCell({
     }
     if (option.kind === "variable" || option.kind === "function") {
       const next =
-        option.kind === "variable" ? `=${option.key.slice(2)}` : `=${option.key.slice(2)}()`;
+        option.kind === "variable"
+          ? `=${option.key.slice(2)}`
+          : `=${option.key.slice(2)}()`;
       setText(next);
       setBinding(null);
       setDismissed(true);
@@ -716,7 +816,8 @@ export function InlineLoadCell({
       const definition =
         option.kind === "builtIn"
           ? { inputs: option.inputs ?? {} }
-          : (await getFormula(api, option.key.slice(2), option.version)).data.definition;
+          : (await getFormula(api, option.key.slice(2), option.version)).data
+              .definition;
 
       if (!lifecycle.isCurrent() || generation !== request.current) return;
       const inputs = Object.fromEntries(
@@ -724,7 +825,9 @@ export function InlineLoadCell({
           .filter((name) => context.variables[name])
           .map((name) => [name, context.variables[name]!]),
       ) as Record<string, Quantity>;
-      const variableBindings = Object.fromEntries(Object.keys(inputs).map((name) => [name, name]));
+      const variableBindings = Object.fromEntries(
+        Object.keys(inputs).map((name) => [name, name]),
+      );
 
       for (const name of Object.keys(definition.inputs)) {
         const alias = clientVariableSource(name, exerciseId, exerciseReps);
@@ -745,7 +848,8 @@ export function InlineLoadCell({
       setDismissed(true);
       focusInput(option.label.length + 1);
     } catch (e) {
-      if (lifecycle.isCurrent() && generation === request.current) setError(errorText(m, e));
+      if (lifecycle.isCurrent() && generation === request.current)
+        setError(errorText(m, e));
     }
   };
   const popupVisible = editing && (showOptions || sourcesOpen) && !expanded;
@@ -769,7 +873,9 @@ export function InlineLoadCell({
     return () => observer.disconnect();
   }, [popupVisible, rect, sourcesOpen, showOptions]);
   const viewport =
-    typeof window === "undefined" ? { width: 1024, height: 768 } : overlayViewport(cell.current);
+    typeof window === "undefined"
+      ? { width: 1024, height: 768 }
+      : overlayViewport(cell.current);
   const viewportWidth = viewport.width;
   const viewportHeight = viewport.height;
   const popupWidth = Math.min(
@@ -802,7 +908,9 @@ export function InlineLoadCell({
       document.body,
     );
   const hasParameters = Boolean(binding && dismissed);
-  const linked = Boolean(Object.keys((editing ? draft : saved)?.variableBindings ?? {}).length);
+  const linked = Boolean(
+    Object.keys((editing ? draft : saved)?.variableBindings ?? {}).length,
+  );
   const manualNames = binding
     ? []
     : [
@@ -812,10 +920,13 @@ export function InlineLoadCell({
         ]),
       ];
   const markedVariable =
-    linked && !(editing ? draft : saved)?.builtIn && !(editing ? draft : saved)?.formulaId;
+    linked &&
+    !(editing ? draft : saved)?.builtIn &&
+    !(editing ? draft : saved)?.formulaId;
   const quantity = evaluation.data?.result ?? prescription.load?.minimum;
   const quantityNumber = quantity
-    ? quantity.value * (valueKind === "time" && quantity.unit === "Minutes" ? 60 : 1)
+    ? quantity.value *
+      (valueKind === "time" && quantity.unit === "Minutes" ? 60 : 1)
     : null;
   const allowedRange = constraints
     ? formatInterfaceText(
@@ -839,16 +950,20 @@ export function InlineLoadCell({
           (constraints.integer && !Number.isInteger(value))),
     );
   const reversedRange =
-    quantityNumber != null && upperNumber != null && upperNumber < quantityNumber;
+    quantityNumber != null &&
+    upperNumber != null &&
+    upperNumber < quantityNumber;
   const constraintError = outsideRange || reversedRange ? allowedRange : null;
   const invalid = Boolean(
     constraintError ||
-      error ||
-      evaluation.error ||
-      (required &&
-        ((!saved && !prescription.load && !text?.trim()) ||
-          prescription.load?.minimum.value === 0 ||
-          Boolean(saved && evaluation.data && evaluation.data.result.value <= 0))),
+    error ||
+    evaluation.error ||
+    (required &&
+      ((!saved && !prescription.load && !text?.trim()) ||
+        prescription.load?.minimum.value === 0 ||
+        Boolean(
+          saved && evaluation.data && evaluation.data.result.value <= 0,
+        ))),
   );
   const validationReason =
     constraintError ||
@@ -960,7 +1075,11 @@ export function InlineLoadCell({
                 >
                   {option.label}
                   {option.kind === "variable" &&
-                  clientVariableSource(option.key.slice(2), exerciseId, exerciseReps) ? (
+                  clientVariableSource(
+                    option.key.slice(2),
+                    exerciseId,
+                    exerciseReps,
+                  ) ? (
                     <small aria-hidden="true">
                       {" "}
                       ·{" "}
@@ -978,19 +1097,23 @@ export function InlineLoadCell({
             ))}
             {!options.length ? (
               <li className={styles.empty}>
-                {locale === "pl" ? "Nic nie pasuje" : m["training"]["library"]["noResultsTitle"]}
+                {locale === "pl"
+                  ? "Nic nie pasuje"
+                  : m["training"]["library"]["noResultsTitle"]}
               </li>
             ) : null}
           </ul>
           <p className={styles.keys} aria-hidden="true">
             <kbd>↑</kbd>
-            <kbd>↓</kbd> {locale === "pl" ? "wybierz" : "choose"} <kbd>Enter</kbd>{" "}
-            {locale === "pl" ? "wstaw" : "insert"} <kbd>Esc</kbd>{" "}
-            {locale === "pl" ? "anuluj" : "cancel"}
+            <kbd>↓</kbd> {locale === "pl" ? "wybierz" : "choose"}{" "}
+            <kbd>Enter</kbd> {locale === "pl" ? "wstaw" : "insert"}{" "}
+            <kbd>Esc</kbd> {locale === "pl" ? "anuluj" : "cancel"}
           </p>
         </>
       ) : null}
-      {!draft ? <p className={styles.sourceNote}>{m.ui["Entered manually"]}</p> : null}
+      {!draft ? (
+        <p className={styles.sourceNote}>{m.ui["Entered manually"]}</p>
+      ) : null}
       {!draft && effortAsLoad ? (
         <div className={styles.loadModes} aria-label={m["ui"]["Load format"]}>
           {["kg", "lb", "%", "RPE", "RIR"].map((mode) => (
@@ -1018,7 +1141,9 @@ export function InlineLoadCell({
       {binding && dismissed ? (
         <p className={styles.heading}>
           {(text ?? "").replace(/^\//, "")}
-          <span>{locale === "pl" ? "Formuła" : m["editor"]["panel"]["formula"]}</span>
+          <span>
+            {locale === "pl" ? "Formuła" : m["editor"]["panel"]["formula"]}
+          </span>
         </p>
       ) : null}
       {binding && dismissed ? (
@@ -1027,7 +1152,8 @@ export function InlineLoadCell({
             <label key={name}>
               <span className={styles.paramName}>
                 {humanName(name)}
-                {binding.builtIn === "percentage-1rm" && name === "percentage" ? (
+                {binding.builtIn === "percentage-1rm" &&
+                name === "percentage" ? (
                   <em>%</em>
                 ) : unitLabel(unit) ? (
                   <em>{unitLabel(unit)}</em>
@@ -1046,7 +1172,8 @@ export function InlineLoadCell({
 
                     if (alias) {
                       variableBindings[name] = alias;
-                      if (context.variables[alias]) inputs[name] = context.variables[alias];
+                      if (context.variables[alias])
+                        inputs[name] = context.variables[alias];
                       else delete inputs[name];
                     } else {
                       delete variableBindings[name];
@@ -1055,14 +1182,17 @@ export function InlineLoadCell({
                     setBinding({ ...binding, inputs, variableBindings });
                   }}
                 >
-                  <Option id="manual">{locale === "pl" ? "Wartość własna" : "Manual value"}</Option>
+                  <Option id="manual">
+                    {locale === "pl" ? "Wartość własna" : "Manual value"}
+                  </Option>
                   {exerciseId && unit === "Kg" ? (
                     <Option id={exerciseMaxAlias(exerciseId)}>oneRepMax</Option>
                   ) : null}
                   {Object.entries(context.variables)
                     .filter(
                       ([alias, quantity]) =>
-                        quantity.unit === unit && !/^exercise(?:Time)?\d+Rm_/.test(alias),
+                        quantity.unit === unit &&
+                        !/^exercise(?:Time)?\d+Rm_/.test(alias),
                     )
                     .map(([alias]) => (
                       <Option key={alias} id={alias}>
@@ -1070,7 +1200,7 @@ export function InlineLoadCell({
                       </Option>
                     ))}
                 </Select>
-                <input
+                <DecimalInput
                   aria-label={formatInterfaceText(m["ui"]["{0} value"], [name])}
                   inputMode="decimal"
                   type="number"
@@ -1080,7 +1210,8 @@ export function InlineLoadCell({
                       ? Number(
                           (
                             binding.inputs[name].value *
-                            (binding.builtIn === "percentage-1rm" && name === "percentage"
+                            (binding.builtIn === "percentage-1rm" &&
+                            name === "percentage"
                               ? 100
                               : 1)
                           ).toPrecision(12),
@@ -1096,7 +1227,10 @@ export function InlineLoadCell({
                       inputs[name] = {
                         value:
                           Number(event.target.value) /
-                          (binding.builtIn === "percentage-1rm" && name === "percentage" ? 100 : 1),
+                          (binding.builtIn === "percentage-1rm" &&
+                          name === "percentage"
+                            ? 100
+                            : 1),
                         unit,
                       };
                     setBinding({ ...binding, inputs });
@@ -1123,8 +1257,15 @@ export function InlineLoadCell({
           }).length;
 
           return (
-            <p className={styles.status} data-state={waiting ? "waiting" : "ready"}>
-              {waiting ? <CircleAlert aria-hidden="true" /> : <CircleCheck aria-hidden="true" />}
+            <p
+              className={styles.status}
+              data-state={waiting ? "waiting" : "ready"}
+            >
+              {waiting ? (
+                <CircleAlert aria-hidden="true" />
+              ) : (
+                <CircleCheck aria-hidden="true" />
+              )}
               {waiting
                 ? locale === "pl"
                   ? `Brakuje ${waiting} ${waiting === 1 ? "wartości" : "wartości"}. Wpisz ją ręcznie albo zostaw zmienną, aż klient poda dane.`
@@ -1152,7 +1293,9 @@ export function InlineLoadCell({
             const available = context.variables[alias];
             const own = Boolean(manual[name]) || manualInputs.includes(name);
             const unit =
-              CLIENT_VARIABLE_UNITS[name as keyof typeof CLIENT_VARIABLE_UNITS] ??
+              CLIENT_VARIABLE_UNITS[
+                name as keyof typeof CLIENT_VARIABLE_UNITS
+              ] ??
               available?.unit ??
               saved?.inputs[name]?.unit ??
               "Kg";
@@ -1183,7 +1326,9 @@ export function InlineLoadCell({
                 <span className={styles.paramRow}>
                   <Select
                     size="sm"
-                    aria-label={formatInterfaceText(m["ui"]["{0} source"], [name])}
+                    aria-label={formatInterfaceText(m["ui"]["{0} source"], [
+                      name,
+                    ])}
                     selectedKey={own ? "manual" : "variable"}
                     onSelectionChange={(key) => {
                       changed.current = true;
@@ -1214,24 +1359,39 @@ export function InlineLoadCell({
                     </Option>
                     <Option id="manual">{m.ui["Entered manually"]}</Option>
                   </Select>
-                  <input
-                    aria-label={formatInterfaceText(m["ui"]["{0} manual value"], [name])}
+                  <DecimalInput
+                    aria-label={formatInterfaceText(
+                      m["ui"]["{0} manual value"],
+                      [name],
+                    )}
                     inputMode="decimal"
                     type="number"
                     min="0"
-                    value={manual[name]?.value ?? (available && !own ? available.value : "")}
+                    value={
+                      manual[name]?.value ??
+                      (available && !own ? available.value : "")
+                    }
                     disabled={Boolean(available) && !own}
                     onChange={(event) => {
                       changed.current = true;
                       const next = { ...manual };
 
                       if (event.target.value !== "")
-                        next[name] = { value: Number(event.target.value), unit };
+                        next[name] = {
+                          value: Number(event.target.value),
+                          unit,
+                        };
                       else delete next[name];
                       setManual(next);
-                      setManualInputs((current) => [...new Set([...current, name])]);
+                      setManualInputs((current) => [
+                        ...new Set([...current, name]),
+                      ]);
                     }}
-                    placeholder={locale === "pl" ? "Wartość" : m["editor"]["sheet"]["loadValue"]}
+                    placeholder={
+                      locale === "pl"
+                        ? "Wartość"
+                        : m["editor"]["sheet"]["loadValue"]
+                    }
                   />
                 </span>
               </label>
@@ -1245,7 +1405,9 @@ export function InlineLoadCell({
           aria-live="polite"
           data-state={evaluationError ? "error" : result ? "ok" : "pending"}
         >
-          <span>{locale === "pl" ? "Wynik" : m["video"]["detail"]["result"]}</span>
+          <span>
+            {locale === "pl" ? "Wynik" : m["video"]["detail"]["result"]}
+          </span>
           <strong>{result ?? (evaluationError ? invalidText : "…")}</strong>
         </p>
       ) : null}
@@ -1318,21 +1480,33 @@ export function InlineLoadCell({
       data-inline-formula
       data-inline-load={valueKind === "mass" || undefined}
       data-validation-id={validationId}
-      data-expression={editing || Boolean(saved) || !display.trim() || undefined}
+      data-expression={
+        editing || Boolean(saved) || !display.trim() || undefined
+      }
       data-unit-select={hasUnitSelect || undefined}
       data-linked={
-        Boolean(saved) || Boolean(editing && text?.startsWith("=")) || markedVariable || undefined
+        Boolean(saved) ||
+        Boolean(editing && text?.startsWith("=")) ||
+        markedVariable ||
+        undefined
       }
       data-invalid={invalid || undefined}
       title={
-        invalid ? `${label}: ${validationReason}` : !editing && saved ? formulaTitle : undefined
+        invalid
+          ? `${label}: ${validationReason}`
+          : !editing && saved
+            ? formulaTitle
+            : undefined
       }
       onMouseDown={(event) => event.stopPropagation()}
       onBlur={(event) => {
         if (expanded || formulaPress.current) return;
         const target = event.relatedTarget as Node | null;
 
-        if (target instanceof Element && target.closest('[role="listbox"], [role="option"]'))
+        if (
+          target instanceof Element &&
+          target.closest('[role="listbox"], [role="option"]')
+        )
           return;
         // Portalled controls belong to this editor even though they are outside its DOM cell.
         if (
@@ -1374,7 +1548,9 @@ export function InlineLoadCell({
         readOnly ? (
           <span
             role="img"
-            aria-label={markedVariable ? m["ui"]["Linked variable"] : formulaLabel}
+            aria-label={
+              markedVariable ? m["ui"]["Linked variable"] : formulaLabel
+            }
             title={formulaTitle}
             className={styles.linked}
             data-waiting={missing.length > 0 || undefined}
@@ -1465,12 +1641,17 @@ export function InlineLoadCell({
         isDisabled={readOnly}
         inputNames={formulaAllowed && editing ? variableNames : []}
         suppressSuggestions={
-          !editing || !formulaAllowed || !text?.startsWith("=") || showOptions || dismissed
+          !editing ||
+          !formulaAllowed ||
+          !text?.startsWith("=") ||
+          showOptions ||
+          dismissed
         }
         externalSuggestions={{
           listId,
           open: showOptions,
-          activeId: showOptions && options[active] ? `${listId}-${active}` : undefined,
+          activeId:
+            showOptions && options[active] ? `${listId}-${active}` : undefined,
         }}
         onFocus={() => {
           if (!editing) begin(raw);
@@ -1493,7 +1674,9 @@ export function InlineLoadCell({
           ) {
             event.preventDefault();
             setActive(
-              (i) => (i + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length,
+              (i) =>
+                (i + (event.key === "ArrowDown" ? 1 : -1) + options.length) %
+                options.length,
             );
           } else if (event.key === "Enter") {
             event.preventDefault();
@@ -1509,7 +1692,9 @@ export function InlineLoadCell({
         expanded ? (
           <Dialog
             isOpen
-            title={locale === "pl" ? `Formuła · ${label}` : `Formula · ${label}`}
+            title={
+              locale === "pl" ? `Formuła · ${label}` : `Formula · ${label}`
+            }
             description={
               locale === "pl"
                 ? "Edytuj formułę i uzupełnij dane, z których korzysta."

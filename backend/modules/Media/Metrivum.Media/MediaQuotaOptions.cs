@@ -16,8 +16,16 @@ public sealed class MediaQuotaOptions
 internal static class MediaQuotaMetrics
 {
     private static readonly Meter Meter = new("Metrivum.Media.Quotas");
-    internal static readonly Counter<long> Rejected = Meter.CreateCounter<long>("trainflow.media.quota.rejected");
-    internal static readonly Counter<long> Reserved = Meter.CreateCounter<long>("trainflow.media.reserved_bytes");
-    internal static readonly Histogram<double> StorageUsage = Meter.CreateHistogram<double>("trainflow.media.storage_budget_ratio");
-    internal static readonly Counter<long> StorageAlerts = Meter.CreateCounter<long>("trainflow.media.storage_budget_alerts");
+    internal static readonly Counter<long> Rejected = Meter.CreateCounter<long>(
+        "trainflow.media.quota.rejected"
+    );
+    internal static readonly Counter<long> Reserved = Meter.CreateCounter<long>(
+        "trainflow.media.reserved_bytes"
+    );
+    internal static readonly Histogram<double> StorageUsage = Meter.CreateHistogram<double>(
+        "trainflow.media.storage_budget_ratio"
+    );
+    internal static readonly Counter<long> StorageAlerts = Meter.CreateCounter<long>(
+        "trainflow.media.storage_budget_alerts"
+    );
 }

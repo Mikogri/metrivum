@@ -67,7 +67,12 @@
   padding: var(--tf-space-5);
   border-radius: var(--tf-radius-lg);
   background:
-    linear-gradient(to top, color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px, transparent 1px) 0 0 / 100% 25%,
+    linear-gradient(
+        to top,
+        color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 100% 25%,
     var(--tf-color-bg-sunken);
 }
 
@@ -90,7 +95,11 @@
   flex: 1;
   height: 100%;
   border-radius: var(--tf-radius-sm) var(--tf-radius-sm) 2px 2px;
-  background: linear-gradient(180deg, var(--tf-color-accent), color-mix(in srgb, var(--tf-color-accent) 35%, transparent));
+  background: linear-gradient(
+    180deg,
+    var(--tf-color-accent),
+    color-mix(in srgb, var(--tf-color-accent) 35%, transparent)
+  );
   transform: scaleY(var(--h));
   transform-origin: bottom;
   transition:
@@ -106,7 +115,11 @@
 }
 
 .bar[data-accent] {
-  background: linear-gradient(180deg, var(--tf-color-violet), color-mix(in srgb, var(--tf-color-violet) 30%, transparent));
+  background: linear-gradient(
+    180deg,
+    var(--tf-color-violet),
+    color-mix(in srgb, var(--tf-color-violet) 30%, transparent)
+  );
 }
 
 .bar[data-gap] {
@@ -114,7 +127,12 @@
 }
 
 .bars[data-open] .bar:first-child {
-  background: linear-gradient(180deg, transparent, var(--tf-color-accent) 40%, color-mix(in srgb, var(--tf-color-accent) 35%, transparent));
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--tf-color-accent) 40%,
+    color-mix(in srgb, var(--tf-color-accent) 35%, transparent)
+  );
 }
 
 /* Back-off sets point back to the top set. */

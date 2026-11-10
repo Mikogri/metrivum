@@ -10,8 +10,10 @@ export const accountSecurityPl: AppMessages["accountSecurity"] = {
     title: "Logowanie i bezpieczeństwo",
     body: "Jak się logujesz i jak odzyskasz dostęp do konta. Każda zmiana otwiera osobną stronę.",
     email: "Adres e-mail",
-    emailBody: "Logujesz się tym adresem. Trafiają na niego linki do hasła i alerty bezpieczeństwa.",
-    emailPending: (email: string) => `Zmiana na ${email} czeka na potwierdzenie`,
+    emailBody:
+      "Logujesz się tym adresem. Trafiają na niego linki do hasła i alerty bezpieczeństwa.",
+    emailPending: (email: string) =>
+      `Zmiana na ${email} czeka na potwierdzenie`,
     changeEmail: "Zmień e-mail",
     password: "Hasło",
     passwordBody: "Zmieniasz je przez link wysłany na Twój adres e-mail.",
@@ -19,68 +21,89 @@ export const accountSecurityPl: AppMessages["accountSecurity"] = {
     changePassword: "Zmień hasło",
     setPassword: "Ustaw hasło",
     twoFactor: "Uwierzytelnianie dwuskładnikowe",
-    twoFactorOn: (count: number) => `${count} ${count === 1 ? "aplikacja" : count < 5 ? "aplikacje" : "aplikacji"} uwierzytelniające. Po haśle logowanie prosi o kod.`,
+    twoFactorOn: (count: number) =>
+      `${count} ${count === 1 ? "aplikacja" : count < 5 ? "aplikacje" : "aplikacji"} uwierzytelniające. Po haśle logowanie prosi o kod.`,
     twoFactorOff: "Dodaje kod z aplikacji uwierzytelniającej po haśle.",
     manage: "Zarządzaj",
     recovery: "Metody odzyskiwania",
-    recoveryBody: (count: number) => `${count} ${count === 1 ? "sposób" : count < 5 ? "sposoby" : "sposobów"} na odzyskanie konta, gdy stracisz hasło, e-mail lub telefon.`,
+    recoveryBody: (count: number) =>
+      `${count} ${count === 1 ? "sposób" : count < 5 ? "sposoby" : "sposobów"} na odzyskanie konta, gdy stracisz hasło, e-mail lub telefon.`,
     view: "Zobacz",
     recommendTitle: "Włącz uwierzytelnianie dwuskładnikowe",
-    recommendCoach: "Zarządzasz kontami klientów i płatnościami. Kod z telefonu chroni je nawet wtedy, gdy hasło wycieknie.",
-    recommendClient: "Kod z telefonu chroni konto nawet wtedy, gdy hasło wycieknie.",
+    recommendCoach:
+      "Zarządzasz kontami klientów i płatnościami. Kod z telefonu chroni je nawet wtedy, gdy hasło wycieknie.",
+    recommendClient:
+      "Kod z telefonu chroni konto nawet wtedy, gdy hasło wycieknie.",
     recommendAction: "Skonfiguruj",
   },
   password: {
     title: "Zmień hasło",
     setTitle: "Ustaw hasło",
-    description: "Nowe hasło zawsze ustawiasz przez link wysłany na Twój adres e-mail, tak samo jak przy zapomnianym haśle.",
-    steps: ["Wyślij link na e-mail", "Otwórz link w tej przeglądarce", "Wybierz nowe hasło"],
+    description:
+      "Nowe hasło zawsze ustawiasz przez link wysłany na Twój adres e-mail, tak samo jak przy zapomnianym haśle.",
+    steps: [
+      "Wyślij link na e-mail",
+      "Otwórz link w tej przeglądarce",
+      "Wybierz nowe hasło",
+    ],
     sendTo: "Link wyślemy na",
-    noPassword: "To konto nie ma jeszcze hasła. Link pozwoli je ustawić; nadal możesz logować się kodami z e-maila.",
+    noPassword:
+      "To konto nie ma jeszcze hasła. Link pozwoli je ustawić; nadal możesz logować się kodami z e-maila.",
     send: "Wyślij link do zmiany hasła",
     sentTitle: "Sprawdź skrzynkę",
-    sent: (email: string) => `Wysłaliśmy link na ${email}. Działa jeden raz i wygasa po godzinie.`,
-    sameBrowser: "Otwórz go w tej przeglądarce. Link otwarty na innym urządzeniu lub w innej przeglądarce nie zadziała.",
+    sent: (email: string) =>
+      `Wysłaliśmy link na ${email}. Działa jeden raz i wygasa po godzinie.`,
+    sameBrowser:
+      "Otwórz go w tej przeglądarce. Link otwarty na innym urządzeniu lub w innej przeglądarce nie zadziała.",
     resend: "Wyślij ponownie",
     resendIn: (seconds: number) => `Wyślij ponownie za ${seconds} s`,
     spam: "Nic nie przyszło po kilku minutach? Sprawdź spam i inne foldery, potem wyślij ponownie.",
-    signedOutNote: "Po zapisaniu nowego hasła pozostałe urządzenia zostaną wylogowane.",
+    signedOutNote:
+      "Po zapisaniu nowego hasła pozostałe urządzenia zostaną wylogowane.",
   },
   email: {
     title: "Zmień e-mail",
-    description: "Adres zmieni się dopiero, gdy potwierdzisz zmianę z obecnego i z nowego adresu.",
+    description:
+      "Adres zmieni się dopiero, gdy potwierdzisz zmianę z obecnego i z nowego adresu.",
     steps: ["Podaj nowy adres", "Potwierdź, że to Ty", "Otwórz oba linki"],
     current: "Obecny e-mail",
     newEmail: "Nowy e-mail",
     sameEmail: "To już jest Twój adres.",
     next: "Dalej",
     verifyTitle: "Potwierdź, że to Ty",
-    verifyBody: (email: string) => `Zanim wyślemy linki dla ${email}, potwierdź, że to Ty.`,
+    verifyBody: (email: string) =>
+      `Zanim wyślemy linki dla ${email}, potwierdź, że to Ty.`,
     password: "Obecne hasło",
     wrongPassword: "Hasło jest nieprawidłowe.",
-    noPasswordNote: "Twoje konto nie ma hasła. Potwierdzenie z obecnego adresu wystarczy, by sprawdzić, że to Ty.",
+    noPasswordNote:
+      "Twoje konto nie ma hasła. Potwierdzenie z obecnego adresu wystarczy, by sprawdzić, że to Ty.",
     submit: "Wyślij linki potwierdzające",
     change: "Zmień adres",
     pendingTitle: "Czeka na potwierdzenie",
-    pendingBody: (current: string, next: string) => `Wysłaliśmy link na ${current} i drugi na ${next}. Otwórz oba. Do tego czasu logujesz się adresem ${current}.`,
+    pendingBody: (current: string, next: string) =>
+      `Wysłaliśmy link na ${current} i drugi na ${next}. Otwórz oba. Do tego czasu logujesz się adresem ${current}.`,
     resend: "Wyślij linki ponownie",
     resent: "Linki wysłane ponownie",
     startOver: "Użyj innego adresu",
-    expiredHint: "Linki po pewnym czasie wygasają. Jeśli nie działają, wyślij je ponownie albo zacznij od nowa z innym adresem.",
+    expiredHint:
+      "Linki po pewnym czasie wygasają. Jeśli nie działają, wyślij je ponownie albo zacznij od nowa z innym adresem.",
     lostAccess: "Nie masz dostępu do obecnej skrzynki?",
     lostAccessLink: "Zobacz metody odzyskiwania",
   },
   twoFactor: {
     title: "Uwierzytelnianie dwuskładnikowe",
-    description: "Po haśle logowanie prosi o 6-cyfrowy kod z aplikacji uwierzytelniającej, np. Google Authenticator, Microsoft Authenticator lub 1Password.",
+    description:
+      "Po haśle logowanie prosi o 6-cyfrowy kod z aplikacji uwierzytelniającej, np. Google Authenticator, Microsoft Authenticator lub 1Password.",
     status: "Status",
     factors: "Aplikacje uwierzytelniające",
-    factorsBody: "Każda z nich może podać kod logowania. Usuń te, których już nie używasz.",
+    factorsBody:
+      "Każda z nich może podać kod logowania. Usuń te, których już nie używasz.",
     added: (date: string) => `Dodano ${date}`,
     remove: "Usuń",
     enable: "Włącz uwierzytelnianie dwuskładnikowe",
     addAnother: "Dodaj kolejną aplikację",
-    backupTip: "Dodaj drugą aplikację, np. na tablecie lub w menedżerze haseł, aby utrata telefonu nie zablokowała konta.",
+    backupTip:
+      "Dodaj drugą aplikację, np. na tablecie lub w menedżerze haseł, aby utrata telefonu nie zablokowała konta.",
     setupTitle: "Konfiguracja aplikacji",
     steps: ["Nazwij ją", "Zeskanuj kod QR", "Wpisz kod"],
     name: "Nazwa",
@@ -93,15 +116,18 @@ export const accountSecurityPl: AppMessages["accountSecurity"] = {
     copy: "Kopiuj klucz",
     copied: "Skopiowano klucz",
     code: "6-cyfrowy kod",
-    codeHint: "Kod, który aplikacja pokazuje dla Metrivum. Zmienia się co 30 sekund.",
+    codeHint:
+      "Kod, który aplikacja pokazuje dla Metrivum. Zmienia się co 30 sekund.",
     turnOn: "Włącz",
     cancel: "Anuluj",
     enabledToast: "Uwierzytelnianie dwuskładnikowe włączone",
     addedToast: "Dodano aplikację",
-    enabledNote: "Pozostałe urządzenia zostały wylogowane. Przy następnym logowaniu poproszą o kod.",
+    enabledNote:
+      "Pozostałe urządzenia zostały wylogowane. Przy następnym logowaniu poproszą o kod.",
     removeTitle: (name: string) => `Usunąć ${name}?`,
     removeBody: "Potwierdź aktualnym kodem z dowolnej aplikacji.",
-    removeLast: "To Twoja jedyna aplikacja: uwierzytelnianie dwuskładnikowe zostanie wyłączone.",
+    removeLast:
+      "To Twoja jedyna aplikacja: uwierzytelnianie dwuskładnikowe zostanie wyłączone.",
     removePassword: "Obecne hasło",
     confirmRemove: "Usuń aplikację",
     removed: "Usunięto aplikację",
@@ -111,7 +137,8 @@ export const accountSecurityPl: AppMessages["accountSecurity"] = {
     title: "Uwierzytelnianie dwuskładnikowe",
     subtitle: "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej.",
     stepUpTitle: "Potwierdź aplikacją uwierzytelniającą",
-    stepUpBody: "Twoje konto używa uwierzytelniania dwuskładnikowego. Wpisz aktualny kod, aby kontynuować.",
+    stepUpBody:
+      "Twoje konto używa uwierzytelniania dwuskładnikowego. Wpisz aktualny kod, aby kontynuować.",
     factor: "Aplikacja",
     code: "Kod",
     verify: "Potwierdź",
@@ -121,34 +148,47 @@ export const accountSecurityPl: AppMessages["accountSecurity"] = {
   },
   recovery: {
     title: "Metody odzyskiwania",
-    description: "Sposoby na powrót do konta, gdy stracisz hasło, e-mail lub telefon.",
+    description:
+      "Sposoby na powrót do konta, gdy stracisz hasło, e-mail lub telefon.",
     methods: "Twoje metody",
     emailMethod: "Zweryfikowany e-mail",
-    emailMethodBody: (email: string) => `Linki do hasła i kody logowania trafiają na ${email}.`,
+    emailMethodBody: (email: string) =>
+      `Linki do hasła i kody logowania trafiają na ${email}.`,
     authenticators: "Aplikacje uwierzytelniające",
-    authenticatorsBody: (count: number) => count ? `Skonfigurowane: ${count}. Każda może podać kod logowania.` : "Brak. Bez nich jedyną drogą powrotu jest e-mail.",
+    authenticatorsBody: (count: number) =>
+      count
+        ? `Skonfigurowane: ${count}. Każda może podać kod logowania.`
+        : "Brak. Bez nich jedyną drogą powrotu jest e-mail.",
     backupCodes: "Kody zapasowe",
-    backupCodesBody: "Jednorazowe kody do wydrukowania lub zapisania. W przygotowaniu.",
+    backupCodesBody:
+      "Jednorazowe kody do wydrukowania lub zapisania. W przygotowaniu.",
     phone: "Numer telefonu",
     phoneBody: "Opcjonalna zapasowa metoda kodów SMS. W przygotowaniu.",
     setUp: "Skonfiguruj",
     scenarios: "Gdy stracisz dostęp",
     forgotTitle: "Nie pamiętasz hasła",
-    forgotBody: "Wybierz „Nie pamiętasz hasła?” na stronie logowania. Link trafi na Twój e-mail.",
+    forgotBody:
+      "Wybierz „Nie pamiętasz hasła?” na stronie logowania. Link trafi na Twój e-mail.",
     phoneTitle: "Zgubiłeś aplikację uwierzytelniającą",
-    phoneBody2: "Zaloguj się inną dodaną aplikacją. Jeśli nie masz żadnej, skontaktuj się z pomocą techniczną.",
+    phoneBody2:
+      "Zaloguj się inną dodaną aplikacją. Jeśli nie masz żadnej, skontaktuj się z pomocą techniczną.",
     emailTitle: "Nie masz dostępu do e-maila",
-    emailBody: "Póki możesz otworzyć starą skrzynkę, zmień e-mail: potwierdzenie trafi na oba adresy. Bez starej skrzynki skontaktuj się z pomocą techniczną. Adres zmienimy wtedy dopiero po ręcznej weryfikacji tożsamości, która trwa i może skończyć się odmową.",
+    emailBody:
+      "Póki możesz otworzyć starą skrzynkę, zmień e-mail: potwierdzenie trafi na oba adresy. Bez starej skrzynki skontaktuj się z pomocą techniczną. Adres zmienimy wtedy dopiero po ręcznej weryfikacji tożsamości, która trwa i może skończyć się odmową.",
     bothTitle: "Straciłeś e-mail i aplikację uwierzytelniającą",
-    bothBody: "Skontaktuj się z pomocą techniczną. Przywracamy konto tylko wtedy, gdy możemy wiarygodnie potwierdzić, że należy do Ciebie; samo hasło, oświadczenie czy dane z profilu nie wystarczą, a w przeciwnym razie musimy odmówić.",
+    bothBody:
+      "Skontaktuj się z pomocą techniczną. Przywracamy konto tylko wtedy, gdy możemy wiarygodnie potwierdzić, że należy do Ciebie; samo hasło, oświadczenie czy dane z profilu nie wystarczą, a w przeciwnym razie musimy odmówić.",
     support: "Kontakt z pomocą techniczną",
-    supportBody: "Napisz z dowolnego adresu. Nigdy nie wysyłaj hasła ani kodów: pomoc techniczna nigdy o nie nie prosi.",
+    supportBody:
+      "Napisz z dowolnego adresu. Nigdy nie wysyłaj hasła ani kodów: pomoc techniczna nigdy o nie nie prosi.",
   },
   errors: {
-    wrongCode: "Ten kod nie zadziałał. Sprawdź, czy czas w telefonie ustawia się automatycznie, i wpisz najnowszy kod.",
+    wrongCode:
+      "Ten kod nie zadziałał. Sprawdź, czy czas w telefonie ustawia się automatycznie, i wpisz najnowszy kod.",
     codeExpired: "Kod wygasł. Wpisz najnowszy z aplikacji.",
     codeFormat: "Wpisz 6 cyfr z aplikacji uwierzytelniającej.",
-    tooManyFactors: "Masz już maksymalną liczbę aplikacji. Najpierw usuń jedną.",
+    tooManyFactors:
+      "Masz już maksymalną liczbę aplikacji. Najpierw usuń jedną.",
     nameTaken: "Masz już aplikację o tej nazwie.",
     needsSecondFactor: "Najpierw potwierdź aplikacją uwierzytelniającą.",
     notEnabled: "Uwierzytelnianie dwuskładnikowe jest teraz niedostępne.",

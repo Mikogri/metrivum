@@ -11,7 +11,7 @@ public static class ReviewedJsonCompression
     {
         "/api/v1/exercise-dictionaries",
         "/api/v1/training/analysis-set-options",
-        "/api/v1/training/assignments"
+        "/api/v1/training/assignments",
     };
 
     public static IServiceCollection AddReviewedJsonCompression(this IServiceCollection services)
@@ -23,13 +23,21 @@ public static class ReviewedJsonCompression
             options.Providers.Add<BrotliCompressionProvider>();
             options.Providers.Add<GzipCompressionProvider>();
         });
-        services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
-        services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+        services.Configure<BrotliCompressionProviderOptions>(options =>
+            options.Level = CompressionLevel.Fastest
+        );
+        services.Configure<GzipCompressionProviderOptions>(options =>
+            options.Level = CompressionLevel.Fastest
+        );
         return services;
     }
 
     public static IApplicationBuilder UseReviewedJsonCompression(this IApplicationBuilder app) =>
-        app.UseWhen(context => HttpMethods.IsGet(context.Request.Method)
-            && context.User.Identity?.IsAuthenticated == true
-            && Paths.Contains(context.Request.Path.Value?.TrimEnd('/') ?? ""), branch => branch.UseResponseCompression());
+        app.UseWhen(
+            context =>
+                HttpMethods.IsGet(context.Request.Method)
+                && context.User.Identity?.IsAuthenticated == true
+                && Paths.Contains(context.Request.Path.Value?.TrimEnd('/') ?? ""),
+            branch => branch.UseResponseCompression()
+        );
 }

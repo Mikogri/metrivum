@@ -4,7 +4,8 @@ export const publicEn = {
     brand: "Metrivum",
     skipToContent: "Skip to content",
     illustrativePreview: "Illustrative preview",
-    illustrativePreviewNote: "Sample data drawn for this page, not a live account.",
+    illustrativePreviewNote:
+      "Sample data drawn for this page, not a live account.",
     languageLabel: "Language",
     languageNames: { en: "English", pl: "Polski" },
     learnMore: "Learn more",
@@ -25,7 +26,8 @@ export const publicEn = {
     accounts: "Signed in",
     signOut: "Sign out",
     signOutTitle: "Sign out",
-    signOutChoose: "Choose the account to sign out of. Your other accounts stay signed in.",
+    signOutChoose:
+      "Choose the account to sign out of. Your other accounts stay signed in.",
     signOutOf: (email: string) => `Sign out of ${email}`,
     inUse: "In use",
     cancel: "Cancel",
@@ -36,7 +38,8 @@ export const publicEn = {
     account: "Account",
     register: "Create account",
     signIn: "Sign in",
-    legalPending: "Privacy policy and terms will be published here before public registration opens.",
+    legalPending:
+      "Privacy policy and terms will be published here before public registration opens.",
     copyright: (year: number) => `© ${year} Metrivum`,
   },
   home: {
@@ -59,22 +62,73 @@ export const publicEn = {
       cycle: "Cycle 1 · 10 days",
       day: "Day 3",
       workout: "Lower body",
-      columns: { exercise: "Exercise", set: "Set", reps: "Reps", load: "Load", effort: "Effort", rest: "Rest" },
+      columns: {
+        exercise: "Exercise",
+        set: "Set",
+        reps: "Reps",
+        load: "Load",
+        effort: "Effort",
+        rest: "Rest",
+      },
       rows: [
-        { exercise: "Back squat", set: "Top set", reps: "3", load: "85% · 1RM", effort: "RPE 8", rest: "4 min" },
-        { exercise: "Back squat", set: "Back-off", reps: "5", load: "−10%", effort: "RPE 7", rest: "3 min" },
-        { exercise: "Romanian deadlift", set: "Ramp", reps: "8–10", load: "60 → 80 kg", effort: "RIR 2", rest: "2 min" },
-        { exercise: "Split squat", set: "Standard", reps: "10", load: "24 kg", effort: "RIR 3", rest: "90 s" },
-        { exercise: "Copenhagen plank", set: "Cluster", reps: "4×20 s", load: "—", effort: "—", rest: "60 s" },
+        {
+          exercise: "Back squat",
+          set: "Top set",
+          reps: "3",
+          load: "85% · 1RM",
+          effort: "RPE 8",
+          rest: "4 min",
+        },
+        {
+          exercise: "Back squat",
+          set: "Back-off",
+          reps: "5",
+          load: "−10%",
+          effort: "RPE 7",
+          rest: "3 min",
+        },
+        {
+          exercise: "Romanian deadlift",
+          set: "Ramp",
+          reps: "8–10",
+          load: "60 → 80 kg",
+          effort: "RIR 2",
+          rest: "2 min",
+        },
+        {
+          exercise: "Split squat",
+          set: "Standard",
+          reps: "10",
+          load: "24 kg",
+          effort: "RIR 3",
+          rest: "90 s",
+        },
+        {
+          exercise: "Copenhagen plank",
+          set: "Cluster",
+          reps: "4×20 s",
+          load: "—",
+          effort: "—",
+          rest: "60 s",
+        },
       ],
       formula: "base1Rm × percentage",
       formulaResult: "140 kg × 0.85 = 119 kg",
       saved: "Draft saved",
-      tools: { sheet: "Sheet", formulas: "Formulas", copy: "Copy", history: "History" },
+      tools: {
+        sheet: "Sheet",
+        formulas: "Formulas",
+        copy: "Copy",
+        history: "History",
+      },
       recentTitle: "Recent edits",
       recent: [
         { what: "back squat / top set", value: "85% 1rm", when: "now" },
-        { what: "romanian deadlift / ramp", value: "60 → 80 kg", when: "2 min" },
+        {
+          what: "romanian deadlift / ramp",
+          value: "60 → 80 kg",
+          when: "2 min",
+        },
         { what: "cycle 1 / length", value: "10 days", when: "6 min" },
       ],
     },
@@ -110,13 +164,18 @@ export const publicEn = {
         Cluster: "Intra-set rest between mini-sets",
       },
       groupsTitle: "Supersets and circuits",
-      groupsBody: "Pair two exercises as a superset or chain several into a circuit with rounds and rest.",
+      groupsBody:
+        "Pair two exercises as a superset or chain several into a circuit with rounds and rest.",
     },
     formulas: {
       title: "Loads that calculate themselves",
       body: "Use built-in formulas such as a percentage of 1RM, or write your own with typed units. The server evaluates each formula at a pinned version, so a published program never shifts under you.",
       builtIns: "Built-in formulas",
-      builtInNames: ["Percentage of 1RM", "Previous cycle + increment", "Top set → back-off"],
+      builtInNames: [
+        "Percentage of 1RM",
+        "Previous cycle + increment",
+        "Top set → back-off",
+      ],
       inputs: "Inputs",
       result: "Result",
     },
@@ -147,13 +206,28 @@ export const publicEn = {
       steps: ["Preview", "Map exercises", "Validate", "Commit"],
       revisionMeta: "Revision 3",
       sourceMeta: "UTF-8 · 3 KB",
-      files: { csvIn: "spring-block.csv", pdfOut: "strength-block-a-r3.pdf", csvOut: "strength-block-a-r3.csv" },
+      files: {
+        csvIn: "spring-block.csv",
+        pdfOut: "strength-block-a-r3.pdf",
+        csvOut: "strength-block-a-r3.csv",
+      },
       hub: { rows: "38 rows matched", check: "0 errors" },
       sheet: {
         columns: ["Exercise", "Sets", "Reps", "Load"],
-        rows: [["Back squat", "4", "5", "80%"], ["RDL", "3", "8", "60 kg"], ["Split sq.", "3", "10", "24 kg"], ["Plank", "3", "45 s", "—"]],
+        rows: [
+          ["Back squat", "4", "5", "80%"],
+          ["RDL", "3", "8", "60 kg"],
+          ["Split sq.", "3", "10", "24 kg"],
+          ["Plank", "3", "45 s", "—"],
+        ],
       },
-      mapping: { title: "Matched to the catalogue", pairs: [["RDL", "Romanian deadlift"], ["Split sq.", "Split squat"]] },
+      mapping: {
+        title: "Matched to the catalogue",
+        pairs: [
+          ["RDL", "Romanian deadlift"],
+          ["Split sq.", "Split squat"],
+        ],
+      },
       pdfTitle: "Strength block A",
       pdfMeta: "Cycle 1 · Day 3",
       outputs: "Files from revision 3",
@@ -163,7 +237,11 @@ export const publicEn = {
       body: "Upload a lift to your private video library, start an analysis and follow its status. With an analyzer connected you get repetitions, phase timings and the bar path, and you can compare two lifts side by side.",
       honesty:
         "Measurements come from an analyzer service connected to your Metrivum deployment. Until one is connected, new analyses stop with an “analyzer not configured” status — Metrivum never shows simulated results.",
-      statuses: { Queued: "Queued", Processing: "Processing", Completed: "Completed" },
+      statuses: {
+        Queued: "Queued",
+        Processing: "Processing",
+        Completed: "Completed",
+      },
       repLabel: (n: number) => `Rep ${n}`,
       phases: { eccentric: "Eccentric", concentric: "Concentric" },
       pathLabel: "Bar path",
@@ -171,10 +249,22 @@ export const publicEn = {
     workflow: {
       title: "How work moves through Metrivum",
       steps: [
-        { title: "Set up your workspace", body: "Create an account, confirm your email and finish a short onboarding." },
-        { title: "Build or import", body: "Start from scratch, from a template or from a CSV file you already have." },
-        { title: "Publish a revision", body: "Publishing saves a private, immutable version of the draft. It is not sent to anyone." },
-        { title: "Export and review", body: "Download CSV or PDF from a revision and keep lift videos next to the program." },
+        {
+          title: "Set up your workspace",
+          body: "Create an account, confirm your email and finish a short onboarding.",
+        },
+        {
+          title: "Build or import",
+          body: "Start from scratch, from a template or from a CSV file you already have.",
+        },
+        {
+          title: "Publish a revision",
+          body: "Publishing saves a private, immutable version of the draft. It is not sent to anyone.",
+        },
+        {
+          title: "Export and review",
+          body: "Download CSV or PDF from a revision and keep lift videos next to the program.",
+        },
       ],
     },
     faq: {
@@ -225,9 +315,18 @@ export const publicEn = {
         rest: "Purpose-built for coaches who write programs, with blocks, cycles and typed sets at its core. Metrivum keeps the speed of a spreadsheet and adds the structure a program needs.",
       },
       pillars: [
-        { title: "Built like a training plan", body: "Blocks, cycles of any length and numbered days: the structure coaches already think in." },
-        { title: "Sets stored as data", body: "Eight set types, ranges, %1RM, RPE and formulas are fields, not text typed into a cell." },
-        { title: "Your work leaves cleanly", body: "Import a CSV you already have and export any published revision to CSV or PDF." },
+        {
+          title: "Built like a training plan",
+          body: "Blocks, cycles of any length and numbered days: the structure coaches already think in.",
+        },
+        {
+          title: "Sets stored as data",
+          body: "Eight set types, ranges, %1RM, RPE and formulas are fields, not text typed into a cell.",
+        },
+        {
+          title: "Your work leaves cleanly",
+          body: "Import a CSV you already have and export any published revision to CSV or PDF.",
+        },
       ],
       chapters: {
         structure: {
@@ -324,7 +423,10 @@ export const publicEn = {
     scopeTitle: "What Metrivum is not",
     scopeBody:
       "Metrivum is a coach's workspace. It does not manage clients, payments, messaging or calendars, and there is no mobile app.",
-    detailLinks: { programBuilder: "Program builder in detail", videoAnalysis: "Video analysis in detail" },
+    detailLinks: {
+      programBuilder: "Program builder in detail",
+      videoAnalysis: "Video analysis in detail",
+    },
   },
   programBuilder: {
     meta: {
@@ -336,7 +438,8 @@ export const publicEn = {
     title: "A program editor that understands sets",
     lead: "Metrivum stores a program as typed data, not as text in cells. Units, references and IDs survive copying, importing and exporting.",
     structureTitle: "Structure",
-    structureBody: "Each level holds the next one. Empty levels are valid in a draft, so you can sketch first and fill in later.",
+    structureBody:
+      "Each level holds the next one. Empty levels are valid in a draft, so you can sketch first and fill in later.",
     structure: [
       { name: "Program", note: "Name, description, folder" },
       { name: "Block", note: "A phase such as accumulation or peaking" },
@@ -352,16 +455,34 @@ export const publicEn = {
       { label: "Load", value: "kg or lb, exact or ranged" },
       { label: "Relative load", value: "% of a base value such as 1RM" },
       { label: "Effort", value: "RPE 0–10 or RIR — one or the other" },
-      { label: "Time and distance", value: "Work time, rest, metres or kilometres" },
+      {
+        label: "Time and distance",
+        value: "Work time, rest, metres or kilometres",
+      },
       { label: "Tempo", value: "Four phases, e.g. 3-1-X-0" },
-      { label: "Formula", value: "Built-in or custom, evaluated by the server" },
+      {
+        label: "Formula",
+        value: "Built-in or custom, evaluated by the server",
+      },
     ],
     editorTitle: "Working in the editor",
     editor: [
-      { title: "Keyboard first", body: "Move between cells with the arrow keys, edit with Enter, leave with Escape. Typing in a cell never triggers sheet-wide shortcuts." },
-      { title: "Copy, paste and reorder", body: "Copy prescriptions between sets, duplicate exercises, workouts, cycles and blocks, and move items with buttons or keyboard shortcuts as well as by dragging." },
-      { title: "Undo what you did", body: "Undo and redo cover your local edits. They do not pretend to be a server-side version history." },
-      { title: "Saving you can trust", body: "Every save carries the version you started from. If the program changed elsewhere, you see a conflict and keep your work." },
+      {
+        title: "Keyboard first",
+        body: "Move between cells with the arrow keys, edit with Enter, leave with Escape. Typing in a cell never triggers sheet-wide shortcuts.",
+      },
+      {
+        title: "Copy, paste and reorder",
+        body: "Copy prescriptions between sets, duplicate exercises, workouts, cycles and blocks, and move items with buttons or keyboard shortcuts as well as by dragging.",
+      },
+      {
+        title: "Undo what you did",
+        body: "Undo and redo cover your local edits. They do not pretend to be a server-side version history.",
+      },
+      {
+        title: "Saving you can trust",
+        body: "Every save carries the version you started from. If the program changed elsewhere, you see a conflict and keep your work.",
+      },
     ],
     draftLabel: "Draft",
     revisionsTitle: "Drafts and revisions",
@@ -382,17 +503,36 @@ export const publicEn = {
     lead: "Keep lift videos private, run analyses as background jobs and read results next to your programs.",
     flowTitle: "From upload to result",
     flow: [
-      { title: "Upload", body: "Choose an MP4, WebM or MOV file. Metrivum reserves the upload and the file goes straight to private storage." },
-      { title: "Verify", body: "The server checks the stored file type and size before the video becomes ready." },
-      { title: "Analyse", body: "Start an analysis with a name, tags and notes. It runs in the background and survives a page refresh." },
-      { title: "Review", body: "Read repetitions, phase timings and the bar path, or compare two analyses." },
+      {
+        title: "Upload",
+        body: "Choose an MP4, WebM or MOV file. Metrivum reserves the upload and the file goes straight to private storage.",
+      },
+      {
+        title: "Verify",
+        body: "The server checks the stored file type and size before the video becomes ready.",
+      },
+      {
+        title: "Analyse",
+        body: "Start an analysis with a name, tags and notes. It runs in the background and survives a page refresh.",
+      },
+      {
+        title: "Review",
+        body: "Read repetitions, phase timings and the bar path, or compare two analyses.",
+      },
     ],
     resultsTitle: "What a result contains",
     results: [
       { label: "Repetitions", value: "Start and end time of each repetition" },
       { label: "Phases", value: "Timed phases inside every repetition" },
-      { label: "Trajectory", value: "Position over time with quality and occlusion flags" },
-      { label: "Velocity", value: "Only when the analyzer reports it; never derived from pixels without calibration" },
+      {
+        label: "Trajectory",
+        value: "Position over time with quality and occlusion flags",
+      },
+      {
+        label: "Velocity",
+        value:
+          "Only when the analyzer reports it; never derived from pixels without calibration",
+      },
     ],
     statusTitle: "Analyzer status",
     statusBody:
@@ -400,10 +540,14 @@ export const publicEn = {
     privacyTitle: "Private by default",
     privacyBody:
       "Videos are stored in a private bucket. Playback uses short-lived signed links that expire after a couple of minutes and are never treated as permanent addresses.",
-    limitsNote: "Default limits: MP4, WebM or MOV up to 256 MiB, five uploads in progress at a time. Your deployment may configure different limits.",
+    limitsNote:
+      "Default limits: MP4, WebM or MOV up to 256 MiB, five uploads in progress at a time. Your deployment may configure different limits.",
   },
   notFound: {
-    meta: { title: "Page not found — Metrivum", description: "This page does not exist." },
+    meta: {
+      title: "Page not found — Metrivum",
+      description: "This page does not exist.",
+    },
     title: "This page does not exist",
     body: "Check the address or go back to the start.",
     home: "Go to the home page",

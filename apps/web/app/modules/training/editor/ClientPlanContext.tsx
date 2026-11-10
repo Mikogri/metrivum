@@ -1,25 +1,75 @@
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
-import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
+import { useAppLocale, useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Dumbbell, Pencil, UserSearch, Users } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Dumbbell,
+  Eye,
+  Pencil,
+  UserSearch,
+  Users,
+} from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, Combobox, Dialog, Hint, IconButton, NumberInput, Option, SearchInput, Select, TextField, toast } from "@metrivum/ui-web";
-import { Failure, ListPagination, useCoachingQuery, type Page, type Relationship } from "~/modules/coaching";
+import {
+  Alert,
+  Avatar,
+  Badge,
+  Button,
+  Combobox,
+  Dialog,
+  EmptyState,
+  Hint,
+  IconButton,
+  NumberInput,
+  Option,
+  SearchInput,
+  Select,
+  Skeleton,
+  TextField,
+  toast,
+  type BadgeTone,
+} from "@metrivum/ui-web";
+import {
+  Failure,
+  ListPagination,
+  useCoachingQuery,
+  type Page,
+  type Relationship,
+} from "~/modules/coaching";
 import { ExercisePicker, useExerciseNames } from "~/modules/exercises";
 import { useDebounced } from "~/shared/lib/useDebounced";
-import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
-import { AssignProgramButton, localDate, type Assignment } from "../delivery/Assignments";
+import {
+  useAccountContext,
+  useAccountKey,
+  useApi,
+} from "~/shared/session/AccountScope";
+import {
+  AssignProgramButton,
+  localDate,
+  type Assignment,
+} from "../delivery/Assignments";
 import type { ClientFormulaContextValue } from "./client-context";
-import { sourcesChanged, validMax, type ClientVariables, type ExerciseMax, type FormulaSnapshot } from "./client-metrics";
+import {
+  sourcesChanged,
+  validMax,
+  type ClientVariables,
+  type ExerciseMax,
+  type FormulaSnapshot,
+} from "./client-metrics";
 import styles from "./ClientPlanContext.module.css";
 
 const base = "/api/v1/training";
-type PlanClient = { id: string; client: { displayName?: string | null; username?: string | null } };
-const nameOf = (client: PlanClient) => client.client.displayName || client.client.username || "Client";
+type PlanClient = {
+  id: string;
+  client: { displayName?: string | null; username?: string | null };
+};
+const nameOf = (client: PlanClient) =>
+  client.client.displayName || client.client.username || "Client";
 
 /** The selector is a preview context. Assignment only happens through the existing explicit flow. */
 export function usePlanClientContext(programId: string, enabled: boolean) {
- const uiCopy = useUiCopy();
+  const uiCopy = useUiCopy();
 
   const account = useAccountKey();
   const [client, setClient] = useState<PlanClient | null>(null);
@@ -28,75 +78,355 @@ export function usePlanClientContext(programId: string, enabled: boolean) {
   const [assignedOpen, setAssignedOpen] = useState(false);
   const [page, setPage] = useState(1);
   const term = useDebounced(search, 200);
-  const clients = useCoachingQuery<Page<Relationship>>("/api/v1/coaching/clients", { search: term || undefined, status: "Active", pageSize: 30 }, enabled);
-  const assignments = useCoachingQuery<Page<Assignment>>(`${base}/assignments`, { programId, page, pageSize: 20, view: "coach" }, enabled);
-  const selectedAssignments = useCoachingQuery<Page<Assignment>>(`${base}/assignments`, { programId, relationshipId: client?.id, pageSize: 100, view: "coach" }, enabled && Boolean(client));
-  const assigned = selectedAssignments.data?.items.find(item => item.status === "Active" || item.status === "Paused");
-  const [value, setValue] = useState<ClientFormulaContextValue>({ variables: {}, sourceVersions: {}, isStale: false });
+  const clients = useCoachingQuery<Page<Relationship>>(
+    "/api/v1/coaching/clients",
+    { search: term || undefined, status: "Active", pageSize: 30 },
+    enabled,
+  );
+  const assignments = useCoachingQuery<Page<Assignment>>(
+    `${base}/assignments`,
+    { programId, page, pageSize: 20, view: "coach" },
+    enabled,
+  );
+  const selectedAssignments = useCoachingQuery<Page<Assignment>>(
+    `${base}/assignments`,
+    { programId, relationshipId: client?.id, pageSize: 100, view: "coach" },
+    enabled && Boolean(client),
+  );
+  const assigned = selectedAssignments.data?.items.find(
+    (item) => item.status === "Active" || item.status === "Paused",
+  );
+  const [value, setValue] = useState<ClientFormulaContextValue>({
+    variables: {},
+    sourceVersions: {},
+    isStale: false,
+  });
   // A newly selected client must never briefly inherit the previous client's measurements.
-  const selectedValue = value.relationshipId === client?.id ? value : { variables: {}, sourceVersions: {}, isStale: false, isLoading: Boolean(client) };
+  const selectedValue =
+    value.relationshipId === client?.id
+      ? value
+      : {
+          variables: {},
+          sourceVersions: {},
+          isStale: false,
+          isLoading: Boolean(client),
+        };
   const selectionMade = useRef(false);
   useEffect(() => {
     if (!enabled || selectionMade.current || !assignments.data) return;
     selectionMade.current = true;
-    const first = assignments.data.items.find(item => item.status === "Active" || item.status === "Paused");
-    if (first) { const next = { id: first.relationshipId, client: { displayName: first.clientDisplayName, username: first.clientUsername } }; setClient(next); setSearch(nameOf(next)); }
+    const first = assignments.data.items.find(
+      (item) => item.status === "Active" || item.status === "Paused",
+    );
+    if (first) {
+      const next = {
+        id: first.relationshipId,
+        client: {
+          displayName: first.clientDisplayName,
+          username: first.clientUsername,
+        },
+      };
+      setClient(next);
+      setSearch(nameOf(next));
+    }
   }, [enabled, assignments.data]);
-  const choose = (next: PlanClient | null) => { selectionMade.current = true; setClient(next); setSearch(next ? nameOf(next) : ""); };
-  const toolbar = enabled ? <div className={styles.context}>
-    <div className={styles.joined}>
-    <Combobox size="sm" aria-label={uiCopy["ui"]["Client perspective"]} placeholder={uiCopy["ui"]["View as…"]} inputValue={search} onInputChange={setSearch}
-      selectedKey={client?.id ?? null} onSelectionChange={key => { const next = clients.data?.items.find(item => item.id === key); if (next) choose(next); }}
-      defaultFilter={() => true} allowsEmptyCollection menuWidth="sm" className={styles.picker}
-      emptyState={<span className={styles.pickerEmpty}>
-        <UserSearch aria-hidden="true" />
-        {clients.isLoading || term !== search ? <strong>{uiCopy["ui"]["Loading clients…"]}</strong>
-          : clients.isError ? <><strong>{uiCopy["ui"]["Couldn't load clients"]}</strong><span>{uiCopy["ui"]["Try again in a moment."]}</span></>
-          : term ? <><strong>{uiCopy["ui"]["No clients match “"]}{term}”</strong><span>{uiCopy["ui"]["Only active clients can be previewed."]}</span></>
-          : <><strong>{uiCopy["ui"]["No active clients yet"]}</strong><span>{uiCopy["ui"]["Once a client joins, you can see the plan as they will."]}</span></>}
-      </span>}>
-      {[...(client && !clients.data?.items.some(item => item.id === client.id) ? [client] : []), ...(clients.data?.items ?? [])].map(item => <Option key={item.id} id={item.id} textValue={nameOf(item)}>{nameOf(item)}{item.client.username ? ` · @${item.client.username}` : ""}</Option>)}
-    </Combobox>
-    <Hint label={uiCopy["ui"]["Assigned clients"]}><Button size="sm" variant="secondary" iconStart={<Users />} aria-label={formatInterfaceText(uiCopy["ui"]["Assigned clients{0}"], [assignments.data ? `: ${assignments.data.total}` : ""])} onPress={() => setAssignedOpen(true)}>{assignments.data ? assignments.data.total : "–"}</Button></Hint>
-    </div>
-    {client ? <Button size="sm" variant="ghost" onPress={() => choose(null)}>{uiCopy["ui"]["Template view"]}</Button> : null}
-
-    {client ? <Button size="sm" onPress={() => setMetricsOpen(true)}>{uiCopy["ui"]["Client data"]}</Button> : null}
-  </div> : null;
-  const banners = enabled && client ? <SelectedClient key={`${account}:${programId}:${client.id}:${assigned?.id ?? "preview"}`} programId={programId} client={client}
-    assignment={assigned} loadingAssignment={selectedAssignments.isPending} onValue={setValue} /> : null;
-  const dialogs = <>
-    <Dialog title={uiCopy["ui"]["Assigned clients"]} isOpen={assignedOpen} onOpenChange={setAssignedOpen} size="md">
-      <div className={styles.stack}>
-        <p>{uiCopy["ui"]["Choose a client to preview their frozen values. Use the search beside the plan name to preview an unassigned client."]}</p>
-        {assignments.isError ? <Failure error={assignments.error} retry={() => void assignments.refetch()} /> : null}
-        {(assignments.data?.items ?? []).map(item => <AssignedClient key={item.id} assignment={item} onChoose={next => { choose(next); setAssignedOpen(false); }} />)}
-        {assignments.data && assignments.data.total === 0 ? <Alert tone="info" title={uiCopy["ui"]["No clients have this program yet"]}>{uiCopy["ui"]["Assign the program from its page (Assign program), then preview each client's values here."]}</Alert> : null}
-        {assignments.data ? <ListPagination data={assignments.data} onChange={setPage} /> : null}
+  const choose = (next: PlanClient | null) => {
+    selectionMade.current = true;
+    setClient(next);
+    setSearch(next ? nameOf(next) : "");
+  };
+  const toolbar = enabled ? (
+    <div className={styles.context}>
+      <div className={styles.joined}>
+        <Combobox
+          size="sm"
+          aria-label={uiCopy["ui"]["Client perspective"]}
+          placeholder={uiCopy["ui"]["View as…"]}
+          inputValue={search}
+          onInputChange={setSearch}
+          selectedKey={client?.id ?? null}
+          onSelectionChange={(key) => {
+            const next = clients.data?.items.find((item) => item.id === key);
+            if (next) choose(next);
+          }}
+          defaultFilter={() => true}
+          allowsEmptyCollection
+          menuWidth="sm"
+          className={styles.picker}
+          emptyState={
+            <span className={styles.pickerEmpty}>
+              <UserSearch aria-hidden="true" />
+              {clients.isLoading || term !== search ? (
+                <strong>{uiCopy["ui"]["Loading clients…"]}</strong>
+              ) : clients.isError ? (
+                <>
+                  <strong>{uiCopy["ui"]["Couldn't load clients"]}</strong>
+                  <span>{uiCopy["ui"]["Try again in a moment."]}</span>
+                </>
+              ) : term ? (
+                <>
+                  <strong>
+                    {uiCopy["ui"]["No clients match “"]}
+                    {term}”
+                  </strong>
+                  <span>
+                    {uiCopy["ui"]["Only active clients can be previewed."]}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <strong>{uiCopy["ui"]["No active clients yet"]}</strong>
+                  <span>
+                    {
+                      uiCopy["ui"][
+                        "Once a client joins, you can see the plan as they will."
+                      ]
+                    }
+                  </span>
+                </>
+              )}
+            </span>
+          }
+        >
+          {[
+            ...(client &&
+            !clients.data?.items.some((item) => item.id === client.id)
+              ? [client]
+              : []),
+            ...(clients.data?.items ?? []),
+          ].map((item) => (
+            <Option key={item.id} id={item.id} textValue={nameOf(item)}>
+              {nameOf(item)}
+              {item.client.username ? ` · @${item.client.username}` : ""}
+            </Option>
+          ))}
+        </Combobox>
+        <Hint label={uiCopy["ui"]["Assigned clients"]}>
+          <Button
+            size="sm"
+            variant="secondary"
+            iconStart={<Users />}
+            aria-label={formatInterfaceText(
+              uiCopy["ui"]["Assigned clients{0}"],
+              [assignments.data ? `: ${assignments.data.total}` : ""],
+            )}
+            onPress={() => setAssignedOpen(true)}
+          >
+            {assignments.data ? assignments.data.total : "–"}
+          </Button>
+        </Hint>
       </div>
-    </Dialog>
-    {client && metricsOpen ? <ClientMetrics key={`${account}:${client.id}`} relationshipId={client.id} title={nameOf(client)} onClose={() => setMetricsOpen(false)} /> : null}
-  </>;
+      {client ? (
+        <Button size="sm" variant="ghost" onPress={() => choose(null)}>
+          {uiCopy["ui"]["Template view"]}
+        </Button>
+      ) : null}
+
+      {client ? (
+        <Button size="sm" onPress={() => setMetricsOpen(true)}>
+          {uiCopy["ui"]["Client data"]}
+        </Button>
+      ) : null}
+    </div>
+  ) : null;
+  const banners =
+    enabled && client ? (
+      <SelectedClient
+        key={`${account}:${programId}:${client.id}:${assigned?.id ?? "preview"}`}
+        programId={programId}
+        client={client}
+        assignment={assigned}
+        loadingAssignment={selectedAssignments.isPending}
+        onValue={setValue}
+      />
+    ) : null;
+  const dialogs = (
+    <>
+      <Dialog
+        title={uiCopy["ui"]["Assigned clients"]}
+        isOpen={assignedOpen}
+        onOpenChange={setAssignedOpen}
+        size="md"
+      >
+        <div className={styles.assigned}>
+          <p className={styles.lead}>
+            {
+              uiCopy["ui"][
+                "Choose a client to preview their frozen values. Use the search beside the plan name to preview an unassigned client."
+              ]
+            }
+          </p>
+          {assignments.isError ? (
+            <Failure
+              error={assignments.error}
+              retry={() => void assignments.refetch()}
+            />
+          ) : assignments.isPending ? (
+            <div className={styles.assignedLoading}>
+              <Skeleton height="3.5rem" />
+              <Skeleton height="3.5rem" />
+            </div>
+          ) : assignments.data.total === 0 ? (
+            <EmptyState
+              size="sm"
+              icon={<Users />}
+              title={uiCopy["ui"]["No clients have this program yet"]}
+              description={
+                uiCopy["ui"][
+                  "Assign the program from its page (Assign program), then preview each client's values here."
+                ]
+              }
+            />
+          ) : (
+            <ul className={styles.assignedList}>
+              {assignments.data.items.map((item) => (
+                <AssignedClient
+                  key={item.id}
+                  assignment={item}
+                  current={client?.id === item.relationshipId}
+                  onChoose={(next) => {
+                    choose(next);
+                    setAssignedOpen(false);
+                  }}
+                />
+              ))}
+            </ul>
+          )}
+          {assignments.data ? (
+            <ListPagination data={assignments.data} onChange={setPage} />
+          ) : null}
+        </div>
+      </Dialog>
+      {client && metricsOpen ? (
+        <ClientMetrics
+          key={`${account}:${client.id}`}
+          relationshipId={client.id}
+          title={nameOf(client)}
+          onClose={() => setMetricsOpen(false)}
+        />
+      ) : null}
+    </>
+  );
   // Sits next to "Apply changes" in the editor's tools: apply, then assign.
-  const assign = enabled ? <AssignProgramButton programId={programId} size="sm" assigned={assignments.data?.total} /> : null;
+  const assign = enabled ? (
+    <AssignProgramButton
+      programId={programId}
+      size="sm"
+      assigned={assignments.data?.total}
+    />
+  ) : null;
   return { value: selectedValue, toolbar, banners, dialogs, assign };
 }
 
-function AssignedClient({ assignment, onChoose }: { assignment: Assignment; onChoose: (client: PlanClient) => void }) {
-  const client = { id: assignment.relationshipId, client: { displayName: assignment.clientDisplayName, username: assignment.clientUsername } };
-  return <Button variant="ghost" onPress={() => onChoose(client)}>{nameOf(client)} · {assignment.status}</Button>;
+const STATUS_TONE: Record<string, BadgeTone> = {
+  Active: "success",
+  Paused: "warning",
+  Completed: "neutral",
+  Cancelled: "neutral",
+};
+
+/** One assigned client: avatar, name and handle, when the plan starts, its status, and a preview button. */
+function AssignedClient({
+  assignment,
+  current,
+  onChoose,
+}: {
+  assignment: Assignment;
+  current: boolean;
+  onChoose: (client: PlanClient) => void;
+}) {
+  const uiCopy = useUiCopy();
+  const { locale } = useAppLocale();
+  const client = {
+    id: assignment.relationshipId,
+    client: {
+      displayName: assignment.clientDisplayName,
+      username: assignment.clientUsername,
+    },
+  };
+  const name = nameOf(client);
+  const starts = new Date(
+    `${assignment.startDate}T00:00:00`,
+  ).toLocaleDateString(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const status =
+    (uiCopy["ui"] as Record<string, string>)[assignment.status] ??
+    assignment.status;
+  return (
+    <li>
+      <button
+        type="button"
+        className={styles.assignedRow}
+        data-current={current || undefined}
+        onClick={() => onChoose(client)}
+      >
+        <Avatar name={name} size="md" decorative />
+        <span className={styles.assignedText}>
+          <strong>{name}</strong>
+          <small>
+            {assignment.clientUsername ? (
+              <span>@{assignment.clientUsername}</span>
+            ) : null}
+            <span>
+              {formatInterfaceText(uiCopy["ui"]["Starts {0}"], [starts])}
+            </span>
+            {assignment.groupAssignmentId ? (
+              <span>{uiCopy["ui"]["Group assignment"]}</span>
+            ) : null}
+          </small>
+        </span>
+        <Badge tone={STATUS_TONE[assignment.status] ?? "neutral"} dot size="sm">
+          {status}
+        </Badge>
+        <span className={styles.assignedAction}>
+          {current ? (
+            <>
+              <Check aria-hidden="true" />
+              {uiCopy["ui"]["Previewing"]}
+            </>
+          ) : (
+            <>
+              <Eye aria-hidden="true" />
+              {uiCopy["ui"]["Preview"]}
+            </>
+          )}
+        </span>
+      </button>
+    </li>
+  );
 }
 
 function useVariables(relationshipId: string) {
   const api = useApi();
   const account = useAccountKey();
-  return useQuery({ queryKey: [account, "training", "client-variables", relationshipId], queryFn: async ({ signal }) => (await api<ClientVariables>({ path: `${base}/clients/${relationshipId}/variables`, signal })).data });
+  return useQuery({
+    queryKey: [account, "training", "client-variables", relationshipId],
+    queryFn: async ({ signal }) =>
+      (
+        await api<ClientVariables>({
+          path: `${base}/clients/${relationshipId}/variables`,
+          signal,
+        })
+      ).data,
+  });
 }
 
-function SelectedClient({ client, assignment, loadingAssignment, onValue }: {
-  programId: string; client: PlanClient; assignment?: Assignment; loadingAssignment: boolean; onValue: (value: ClientFormulaContextValue) => void;
+function SelectedClient({
+  client,
+  assignment,
+  loadingAssignment,
+  onValue,
+}: {
+  programId: string;
+  client: PlanClient;
+  assignment?: Assignment;
+  loadingAssignment: boolean;
+  onValue: (value: ClientFormulaContextValue) => void;
 }) {
- const uiCopy = useUiCopy();
+  const uiCopy = useUiCopy();
 
   const api = useApi();
   const account = useAccountKey();
@@ -105,41 +435,169 @@ function SelectedClient({ client, assignment, loadingAssignment, onValue }: {
   const current = useVariables(client.id);
   const [frozen, setFrozen] = useState<ClientVariables | null>(null);
   const mounted = useRef(true);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-  const snapshot = useQuery({ queryKey: [account, "training", "formula-snapshot", assignment?.id], enabled: Boolean(assignment),
-    queryFn: async ({ signal }) => (await api<FormulaSnapshot>({ path: `${base}/assignments/${assignment!.id}/formula-snapshot`, signal })).data });
-  useEffect(() => { if (current.data) setFrozen(previous => previous ?? current.data); }, [current.data]);
-  const saved = assignment ? snapshot.data : frozen;
-  const stale = Boolean(assignment ? snapshot.data?.stale : frozen && current.data && sourcesChanged(frozen.sourceVersions, current.data.sourceVersions));
   useEffect(() => {
-    onValue({ relationshipId: client.id, variables: saved?.variables ?? {}, sourceVersions: saved?.sourceVersions ?? {}, isStale: stale,
-      isLoading: loadingAssignment || current.isPending || Boolean(assignment && snapshot.isPending) });
-  }, [client.id, saved, stale, onValue, assignment, snapshot.isPending, loadingAssignment, current.isPending]);
-  const refresh = useMutation({ mutationFn: async () => {
-    if (!assignment) return null;
-    const preview = (await api<FormulaSnapshot>({ method: "POST", path: `${base}/assignments/${assignment.id}/formula-snapshot/preview` })).data;
-    return (await api<FormulaSnapshot>({ method: "POST", path: `${base}/assignments/${assignment.id}/formula-snapshot/refresh`, ifMatch: assignment.version,
-      json: { sourceVersions: preview.sourceVersions } })).data;
-  }, onSuccess: result => {
-    if (!mounted.current || !lifecycle.isCurrent()) return;
-    if (result && assignment) cache.setQueryData([account, "training", "formula-snapshot", assignment.id], result);
-    else if (current.data) setFrozen(current.data);
-    void cache.invalidateQueries({ queryKey: [account, "coaching"] });
-    toast({ tone: "success", title: uiCopy["ui"]["Client values updated. Started and completed workouts keep their history."] });
-  }, onError: () => { if (mounted.current && lifecycle.isCurrent()) toast({ tone: "danger", title: uiCopy["ui"]["Could not update client values. Reload and try again."] }); } });
-  return <div className={styles.notice}>
-    <span>{nameOf(client)} · {assignment ? uiCopy["ui"]["Assigned client · saved values"] : uiCopy["ui"]["Preview only · not assigned"]}</span>
-    {!assignment && !loadingAssignment ? <span>{uiCopy["ui"]["Previewing does not assign this plan or change its draft."]}</span> : null}
-    {current.isError || snapshot.isError ? <Alert tone="danger" title={uiCopy["ui"]["Client formula values could not be loaded."]} /> : null}
-    {stale ? <Alert tone="warning" title={uiCopy["ui"]["New client data available. This plan still uses its saved values."]}>
-      <Button size="sm" loading={refresh.isPending} onPress={() => refresh.mutate()} isDisabled={!current.data}>{uiCopy["ui"]["Recalculate with latest data"]}</Button>
-    </Alert> : null}
-    {!stale && current.data && Object.entries(current.data.sourceVersions).some(([name, version]) => saved?.sourceVersions[name] !== version) ?
-      <Button size="sm" loading={refresh.isPending} onPress={() => refresh.mutate()}>{uiCopy["ui"]["Load latest variables"]}</Button> : null}
-  </div>;
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const snapshot = useQuery({
+    queryKey: [account, "training", "formula-snapshot", assignment?.id],
+    enabled: Boolean(assignment),
+    queryFn: async ({ signal }) =>
+      (
+        await api<FormulaSnapshot>({
+          path: `${base}/assignments/${assignment!.id}/formula-snapshot`,
+          signal,
+        })
+      ).data,
+  });
+  useEffect(() => {
+    if (current.data) setFrozen((previous) => previous ?? current.data);
+  }, [current.data]);
+  const saved = assignment ? snapshot.data : frozen;
+  const stale = Boolean(
+    assignment
+      ? snapshot.data?.stale
+      : frozen &&
+          current.data &&
+          sourcesChanged(frozen.sourceVersions, current.data.sourceVersions),
+  );
+  useEffect(() => {
+    onValue({
+      relationshipId: client.id,
+      variables: saved?.variables ?? {},
+      sourceVersions: saved?.sourceVersions ?? {},
+      isStale: stale,
+      isLoading:
+        loadingAssignment ||
+        current.isPending ||
+        Boolean(assignment && snapshot.isPending),
+    });
+  }, [
+    client.id,
+    saved,
+    stale,
+    onValue,
+    assignment,
+    snapshot.isPending,
+    loadingAssignment,
+    current.isPending,
+  ]);
+  const refresh = useMutation({
+    mutationFn: async () => {
+      if (!assignment) return null;
+      const preview = (
+        await api<FormulaSnapshot>({
+          method: "POST",
+          path: `${base}/assignments/${assignment.id}/formula-snapshot/preview`,
+        })
+      ).data;
+      return (
+        await api<FormulaSnapshot>({
+          method: "POST",
+          path: `${base}/assignments/${assignment.id}/formula-snapshot/refresh`,
+          ifMatch: assignment.version,
+          json: { sourceVersions: preview.sourceVersions },
+        })
+      ).data;
+    },
+    onSuccess: (result) => {
+      if (!mounted.current || !lifecycle.isCurrent()) return;
+      if (result && assignment)
+        cache.setQueryData(
+          [account, "training", "formula-snapshot", assignment.id],
+          result,
+        );
+      else if (current.data) setFrozen(current.data);
+      void cache.invalidateQueries({ queryKey: [account, "coaching"] });
+      toast({
+        tone: "success",
+        title:
+          uiCopy["ui"][
+            "Client values updated. Started and completed workouts keep their history."
+          ],
+      });
+    },
+    onError: () => {
+      if (mounted.current && lifecycle.isCurrent())
+        toast({
+          tone: "danger",
+          title:
+            uiCopy["ui"][
+              "Could not update client values. Reload and try again."
+            ],
+        });
+    },
+  });
+  return (
+    <div className={styles.notice}>
+      <span>
+        {nameOf(client)} ·{" "}
+        {assignment
+          ? uiCopy["ui"]["Assigned client · saved values"]
+          : uiCopy["ui"]["Preview only · not assigned"]}
+      </span>
+      {!assignment && !loadingAssignment ? (
+        <span>
+          {
+            uiCopy["ui"][
+              "Previewing does not assign this plan or change its draft."
+            ]
+          }
+        </span>
+      ) : null}
+      {current.isError || snapshot.isError ? (
+        <Alert
+          tone="danger"
+          title={uiCopy["ui"]["Client formula values could not be loaded."]}
+        />
+      ) : null}
+      {stale ? (
+        <Alert
+          tone="warning"
+          title={
+            uiCopy["ui"][
+              "New client data available. This plan still uses its saved values."
+            ]
+          }
+        >
+          <Button
+            size="sm"
+            loading={refresh.isPending}
+            onPress={() => refresh.mutate()}
+            isDisabled={!current.data}
+          >
+            {uiCopy["ui"]["Recalculate with latest data"]}
+          </Button>
+        </Alert>
+      ) : null}
+      {!stale &&
+      current.data &&
+      Object.entries(current.data.sourceVersions).some(
+        ([name, version]) => saved?.sourceVersions[name] !== version,
+      ) ? (
+        <Button
+          size="sm"
+          loading={refresh.isPending}
+          onPress={() => refresh.mutate()}
+        >
+          {uiCopy["ui"]["Load latest variables"]}
+        </Button>
+      ) : null}
+    </div>
+  );
 }
 
-function ClientMetrics({ relationshipId, title, onClose }: { relationshipId: string; title: string; onClose: () => void }) {
+function ClientMetrics({
+  relationshipId,
+  title,
+  onClose,
+}: {
+  relationshipId: string;
+  title: string;
+  onClose: () => void;
+}) {
   const uiCopy = useUiCopy();
 
   const api = useApi();
@@ -148,7 +606,9 @@ function ClientMetrics({ relationshipId, title, onClose }: { relationshipId: str
   const cache = useQueryClient();
   const values = useVariables(relationshipId);
   const [editing, setEditing] = useState<ExerciseMax | null>(null);
-  const [exercise, setExercise] = useState<{ id: string; name: string } | null>(null);
+  const [exercise, setExercise] = useState<{ id: string; name: string } | null>(
+    null,
+  );
   const [picker, setPicker] = useState(false);
   const [reps, setReps] = useState(1);
   const [load, setLoad] = useState(NaN);
@@ -156,82 +616,341 @@ function ClientMetrics({ relationshipId, title, onClose }: { relationshipId: str
   const [alias, setAlias] = useState("");
   const [recordedOn, setRecordedOn] = useState(localDate());
   const [filter, setFilter] = useState("");
-  const names = useExerciseNames((values.data?.exerciseMaxes ?? []).map(item => item.exerciseId));
+  const names = useExerciseNames(
+    (values.data?.exerciseMaxes ?? []).map((item) => item.exerciseId),
+  );
   const mounted = useRef(true);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-  const reset = () => { setEditing(null); setExercise(null); setAlias(""); setLoad(NaN); setReps(1); setRecordedOn(localDate()); };
-  const save = useMutation({ mutationFn: async () => {
-    if (!exercise || !validMax(reps, load, alias) || !recordedOn) throw new Error("Choose an exercise, positive weight, 1–100 reps and a valid variable name.");
-    return api({ path: `${base}/clients/${relationshipId}/exercise-maxes${editing ? `/${editing.id}` : ""}`, method: editing ? "PUT" : "POST", ifMatch: editing?.version,
-      json: { exerciseId: exercise.id, reps, load: { value: load, unit }, recordedOn, alias } });
-  }, onSuccess: () => {
-    if (!mounted.current || !lifecycle.isCurrent()) return;
-    reset();
-    void cache.invalidateQueries({ queryKey: [account, "training", "client-variables", relationshipId] });
-    void cache.invalidateQueries({ queryKey: [account, "training", "formula-snapshot"] });
-    toast({ tone: "success", title: uiCopy["ui"]["Client result saved. Existing plan values were not changed."] });
-  }, onError: error => { if (mounted.current && lifecycle.isCurrent()) toast({ tone: "danger", title: error instanceof Error ? error.message : "Could not save this result." }); } });
-  const body = Object.entries(values.data?.variables ?? {}).filter(([name]) => ["weight", "height", "hrMax"].includes(name));
-  const bodyLabel = (name: string) => (name === "height" ? uiCopy["ui"]["Height"] : name === "hrMax" ? uiCopy["ui"]["Max heart rate"] : uiCopy["ui"]["Body weight"]);
-  const bodyUnit = (name: string) => (name === "height" ? "cm" : name === "hrMax" ? uiCopy["profile"]["units"]["bpm"] : "kg");
-  const results = (values.data?.exerciseMaxes ?? []).filter(item => `${item.alias} ${names.get(item.exerciseId)?.name ?? ""}`.toLowerCase().includes(filter.toLowerCase()));
-  const edit = (item: ExerciseMax) => { setEditing(item); setExercise({ id: item.exerciseId, name: names.get(item.exerciseId)?.name ?? "Exercise" }); setAlias(item.alias); setReps(item.reps); setLoad(Number(item.load.value)); setUnit(item.load.unit === "Lb" ? "Lb" : "Kg"); setRecordedOn(item.recordedOn); };
-  return <Dialog title={formatInterfaceText(uiCopy["ui"]["{0} · Client data"], [title])} size="lg" isOpen onOpenChange={open => { if (!open && !save.isPending) onClose(); }}>
-    <div className={styles.metrics}>
-      <p className={styles.lead}>{uiCopy["ui"]["Enter a measured result for an exercise and repetition count. Variable names can be used directly in formulas. Saving a new result does not recalculate existing plans."]}</p>
-      {values.isError ? <Failure error={values.error} retry={() => void values.refetch()} /> : null}
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const reset = () => {
+    setEditing(null);
+    setExercise(null);
+    setAlias("");
+    setLoad(NaN);
+    setReps(1);
+    setRecordedOn(localDate());
+  };
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!exercise || !validMax(reps, load, alias) || !recordedOn)
+        throw new Error(
+          "Choose an exercise, positive weight, 1–100 reps and a valid variable name.",
+        );
+      return api({
+        path: `${base}/clients/${relationshipId}/exercise-maxes${editing ? `/${editing.id}` : ""}`,
+        method: editing ? "PUT" : "POST",
+        ifMatch: editing?.version,
+        json: {
+          exerciseId: exercise.id,
+          reps,
+          load: { value: load, unit },
+          recordedOn,
+          alias,
+        },
+      });
+    },
+    onSuccess: () => {
+      if (!mounted.current || !lifecycle.isCurrent()) return;
+      reset();
+      void cache.invalidateQueries({
+        queryKey: [account, "training", "client-variables", relationshipId],
+      });
+      void cache.invalidateQueries({
+        queryKey: [account, "training", "formula-snapshot"],
+      });
+      toast({
+        tone: "success",
+        title:
+          uiCopy["ui"][
+            "Client result saved. Existing plan values were not changed."
+          ],
+      });
+    },
+    onError: (error) => {
+      if (mounted.current && lifecycle.isCurrent())
+        toast({
+          tone: "danger",
+          title:
+            error instanceof Error
+              ? error.message
+              : "Could not save this result.",
+        });
+    },
+  });
+  const body = Object.entries(values.data?.variables ?? {}).filter(([name]) =>
+    ["weight", "height", "hrMax"].includes(name),
+  );
+  const bodyLabel = (name: string) =>
+    name === "height"
+      ? uiCopy["ui"]["Height"]
+      : name === "hrMax"
+        ? uiCopy["ui"]["Max heart rate"]
+        : uiCopy["ui"]["Body weight"];
+  const bodyUnit = (name: string) =>
+    name === "height"
+      ? "cm"
+      : name === "hrMax"
+        ? uiCopy["profile"]["units"]["bpm"]
+        : "kg";
+  const results = (values.data?.exerciseMaxes ?? []).filter((item) =>
+    `${item.alias} ${names.get(item.exerciseId)?.name ?? ""}`
+      .toLowerCase()
+      .includes(filter.toLowerCase()),
+  );
+  const edit = (item: ExerciseMax) => {
+    setEditing(item);
+    setExercise({
+      id: item.exerciseId,
+      name: names.get(item.exerciseId)?.name ?? "Exercise",
+    });
+    setAlias(item.alias);
+    setReps(item.reps);
+    setLoad(Number(item.load.value));
+    setUnit(item.load.unit === "Lb" ? "Lb" : "Kg");
+    setRecordedOn(item.recordedOn);
+  };
+  return (
+    <Dialog
+      title={formatInterfaceText(uiCopy["ui"]["{0} · Client data"], [title])}
+      size="lg"
+      isOpen
+      onOpenChange={(open) => {
+        if (!open && !save.isPending) onClose();
+      }}
+    >
+      <div className={styles.metrics}>
+        <p className={styles.lead}>
+          {
+            uiCopy["ui"][
+              "Enter a measured result for an exercise and repetition count. Variable names can be used directly in formulas. Saving a new result does not recalculate existing plans."
+            ]
+          }
+        </p>
+        {values.isError ? (
+          <Failure error={values.error} retry={() => void values.refetch()} />
+        ) : null}
 
-      <section className={styles.section} aria-labelledby="client-measurements">
-        <h3 id="client-measurements" className={styles.sectionTitle}>{uiCopy["ui"]["Measurements"]}</h3>
-        {body.length ? <dl className={styles.tiles}>{body.map(([name, quantity]) => <div key={name} className={styles.tileStat}>
-          <dt>{bodyLabel(name)}</dt>
-          <dd><strong>{quantity.value}</strong> <span>{bodyUnit(name)}</span></dd>
-          <code>{name}</code>
-        </div>)}</dl> : <p className={styles.hint}>{values.isPending ? uiCopy["common"]["loading"] : uiCopy["ui"]["No body measurements yet."]}</p>}
-      </section>
+        <section
+          className={styles.section}
+          aria-labelledby="client-measurements"
+        >
+          <h3 id="client-measurements" className={styles.sectionTitle}>
+            {uiCopy["ui"]["Measurements"]}
+          </h3>
+          {body.length ? (
+            <dl className={styles.tiles}>
+              {body.map(([name, quantity]) => (
+                <div key={name} className={styles.tileStat}>
+                  <dt>{bodyLabel(name)}</dt>
+                  <dd>
+                    <strong>{quantity.value}</strong>{" "}
+                    <span>{bodyUnit(name)}</span>
+                  </dd>
+                  <code>{name}</code>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className={styles.hint}>
+              {values.isPending
+                ? uiCopy["common"]["loading"]
+                : uiCopy["ui"]["No body measurements yet."]}
+            </p>
+          )}
+        </section>
 
-      <section className={styles.section} aria-labelledby="client-results">
-        <div className={styles.sectionHead}>
-          <h3 id="client-results" className={styles.sectionTitle}>{uiCopy["ui"]["Exercise results"]}{values.data?.exerciseMaxes.length ? <span className={styles.sectionCount}>{values.data.exerciseMaxes.length}</span> : null}</h3>
-          {values.data?.exerciseMaxes.length ? <SearchInput aria-label={uiCopy["ui"]["Search exercise results"]} placeholder={uiCopy["ui"]["Search variable or exercise"]} value={filter} onChange={setFilter} className={styles.search} /> : null}
-        </div>
-        {values.isError || values.isPending ? null : !values.data?.exerciseMaxes.length ? <p className={styles.empty}><Dumbbell aria-hidden="true" />{uiCopy["ui"]["No exercise results yet. Add the first one below — formulas that use this client's maxes need it."]}</p>
-          : <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>{uiCopy["editor"]["panel"]["exercise"]}</th><th className={styles.num}>{uiCopy["editor"]["columns"]["reps"]}</th><th className={styles.num}>{uiCopy["video"]["detail"]["result"]}</th><th>{uiCopy["ui"]["Variable"]}</th><th>{uiCopy["ui"]["Date"]}</th><th><span className="tf-visually-hidden">{uiCopy["editor"]["sheet"]["contextLabel"]}</span></th></tr></thead>
-            <tbody>{results.map(item => <tr key={item.id} data-editing={editing?.id === item.id || undefined}>
-              <td className={styles.exerciseName}>{names.get(item.exerciseId)?.name ?? uiCopy["editor"]["panel"]["exercise"]}</td>
-              <td className={styles.num}>{item.reps}</td>
-              <td className={styles.num}><strong>{item.load.value}</strong> {item.load.unit === "Lb" ? "lb" : "kg"}</td>
-              <td><code className={styles.alias}>{item.alias}</code></td>
-              <td className={styles.date}>{item.recordedOn}</td>
-              <td className={styles.rowAction}><IconButton size="sm" variant="ghost" icon={<Pencil />} label={`${uiCopy["profile"]["showcase"]["edit"]}: ${item.alias}`} onPress={() => edit(item)} /></td>
-            </tr>)}</tbody></table></div>}
-      </section>
+        <section className={styles.section} aria-labelledby="client-results">
+          <div className={styles.sectionHead}>
+            <h3 id="client-results" className={styles.sectionTitle}>
+              {uiCopy["ui"]["Exercise results"]}
+              {values.data?.exerciseMaxes.length ? (
+                <span className={styles.sectionCount}>
+                  {values.data.exerciseMaxes.length}
+                </span>
+              ) : null}
+            </h3>
+            {values.data?.exerciseMaxes.length ? (
+              <SearchInput
+                aria-label={uiCopy["ui"]["Search exercise results"]}
+                placeholder={uiCopy["ui"]["Search variable or exercise"]}
+                value={filter}
+                onChange={setFilter}
+                className={styles.search}
+              />
+            ) : null}
+          </div>
+          {values.isError || values.isPending ? null : !values.data
+              ?.exerciseMaxes.length ? (
+            <p className={styles.empty}>
+              <Dumbbell aria-hidden="true" />
+              {
+                uiCopy["ui"][
+                  "No exercise results yet. Add the first one below — formulas that use this client's maxes need it."
+                ]
+              }
+            </p>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>{uiCopy["editor"]["panel"]["exercise"]}</th>
+                    <th className={styles.num}>
+                      {uiCopy["editor"]["columns"]["reps"]}
+                    </th>
+                    <th className={styles.num}>
+                      {uiCopy["video"]["detail"]["result"]}
+                    </th>
+                    <th>{uiCopy["ui"]["Variable"]}</th>
+                    <th>{uiCopy["ui"]["Date"]}</th>
+                    <th>
+                      <span className="tf-visually-hidden">
+                        {uiCopy["editor"]["sheet"]["contextLabel"]}
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map((item) => (
+                    <tr
+                      key={item.id}
+                      data-editing={editing?.id === item.id || undefined}
+                    >
+                      <td className={styles.exerciseName}>
+                        {names.get(item.exerciseId)?.name ??
+                          uiCopy["editor"]["panel"]["exercise"]}
+                      </td>
+                      <td className={styles.num}>{item.reps}</td>
+                      <td className={styles.num}>
+                        <strong>{item.load.value}</strong>{" "}
+                        {item.load.unit === "Lb" ? "lb" : "kg"}
+                      </td>
+                      <td>
+                        <code className={styles.alias}>{item.alias}</code>
+                      </td>
+                      <td className={styles.date}>{item.recordedOn}</td>
+                      <td className={styles.rowAction}>
+                        <IconButton
+                          size="sm"
+                          variant="ghost"
+                          icon={<Pencil />}
+                          label={`${uiCopy["profile"]["showcase"]["edit"]}: ${item.alias}`}
+                          onPress={() => edit(item)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
 
-      <form className={styles.formCard} data-editing={editing ? "" : undefined} onSubmit={event => { event.preventDefault(); if (!save.isPending) save.mutate(); }}>
-        <h3 className={styles.sectionTitle}>{editing ? uiCopy["ui"]["Edit result"] : uiCopy["ui"]["Add result"]}</h3>
-        <button type="button" className={styles.exerciseButton} data-empty={!exercise || undefined} onClick={() => setPicker(true)}>
-          <span className={styles.exerciseIcon} aria-hidden="true"><Dumbbell /></span>
-          <span>{exercise?.name ?? uiCopy["ui"]["Choose an exercise"]}</span>
-          <ChevronDown aria-hidden="true" className={styles.exerciseChevron} />
-        </button>
-        <div className={styles.fieldRow}>
-          <NumberInput label={uiCopy["video"]["detail"]["repetitions"]} value={reps} onChange={setReps} minValue={1} maxValue={100} step={1} />
-          <NumberInput label={uiCopy["editor"]["panel"]["loadModes"]["absolute"]} value={load} onChange={setLoad} minValue={0.01} />
-          <Select label={uiCopy["editor"]["panel"]["unit"]} selectedKey={unit} onSelectionChange={key => setUnit(key === "Lb" ? "Lb" : "Kg")}>
-            <Option id="Kg">kg</Option>
-            <Option id="Lb">lb</Option>
-          </Select>
-        </div>
-        <div className={styles.fieldRow} data-two="">
-          <TextField label={uiCopy["ui"]["Variable name"]} placeholder="maxBench1r" value={alias} onChange={setAlias} maxLength={64} description={uiCopy["ui"]["Letters, numbers and underscores; start with a letter or underscore."]} />
-          <TextField label={uiCopy["ui"]["Measured on"]} type="date" value={recordedOn} onChange={setRecordedOn} />
-        </div>
-        <div className={styles.formActions}>
-          {editing ? <Button variant="ghost" onPress={reset}>{uiCopy["ui"]["Cancel edit"]}</Button> : null}
-          <Button type="submit" variant="primary" loading={save.isPending} isDisabled={!exercise || !validMax(reps, load, alias) || !recordedOn}>{uiCopy["ui"]["Save result"]}</Button>
-        </div>
-      </form>
-      <ExercisePicker isOpen={picker} onOpenChange={setPicker} selectedId={exercise?.id} onPick={item => { setExercise({ id: item.id, name: item.name }); if (!alias) setAlias(`max${item.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 48)}${reps}r`); }} />
-    </div>
-  </Dialog>;
+        <form
+          className={styles.formCard}
+          data-editing={editing ? "" : undefined}
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!save.isPending) save.mutate();
+          }}
+        >
+          <h3 className={styles.sectionTitle}>
+            {editing ? uiCopy["ui"]["Edit result"] : uiCopy["ui"]["Add result"]}
+          </h3>
+          <button
+            type="button"
+            className={styles.exerciseButton}
+            data-empty={!exercise || undefined}
+            onClick={() => setPicker(true)}
+          >
+            <span className={styles.exerciseIcon} aria-hidden="true">
+              <Dumbbell />
+            </span>
+            <span>{exercise?.name ?? uiCopy["ui"]["Choose an exercise"]}</span>
+            <ChevronDown
+              aria-hidden="true"
+              className={styles.exerciseChevron}
+            />
+          </button>
+          <div className={styles.fieldRow}>
+            <NumberInput
+              label={uiCopy["video"]["detail"]["repetitions"]}
+              value={reps}
+              onChange={setReps}
+              minValue={1}
+              maxValue={100}
+              step={1}
+            />
+            <NumberInput
+              label={uiCopy["editor"]["panel"]["loadModes"]["absolute"]}
+              value={load}
+              onChange={setLoad}
+              minValue={0.01}
+            />
+            <Select
+              label={uiCopy["editor"]["panel"]["unit"]}
+              selectedKey={unit}
+              onSelectionChange={(key) => setUnit(key === "Lb" ? "Lb" : "Kg")}
+            >
+              <Option id="Kg">kg</Option>
+              <Option id="Lb">lb</Option>
+            </Select>
+          </div>
+          <div className={styles.fieldRow} data-two="">
+            <TextField
+              label={uiCopy["ui"]["Variable name"]}
+              placeholder="maxBench1r"
+              value={alias}
+              onChange={setAlias}
+              maxLength={64}
+              description={
+                uiCopy["ui"][
+                  "Letters, numbers and underscores; start with a letter or underscore."
+                ]
+              }
+            />
+            <TextField
+              label={uiCopy["ui"]["Measured on"]}
+              type="date"
+              value={recordedOn}
+              onChange={setRecordedOn}
+            />
+          </div>
+          <div className={styles.formActions}>
+            {editing ? (
+              <Button variant="ghost" onPress={reset}>
+                {uiCopy["ui"]["Cancel edit"]}
+              </Button>
+            ) : null}
+            <Button
+              type="submit"
+              variant="primary"
+              loading={save.isPending}
+              isDisabled={
+                !exercise || !validMax(reps, load, alias) || !recordedOn
+              }
+            >
+              {uiCopy["ui"]["Save result"]}
+            </Button>
+          </div>
+        </form>
+        <ExercisePicker
+          isOpen={picker}
+          onOpenChange={setPicker}
+          selectedId={exercise?.id}
+          onPick={(item) => {
+            setExercise({ id: item.id, name: item.name });
+            if (!alias)
+              setAlias(
+                `max${item.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 48)}${reps}r`,
+              );
+          }}
+        />
+      </div>
+    </Dialog>
+  );
 }

@@ -97,7 +97,11 @@
   padding: var(--tf-space-1-5) var(--tf-space-2);
   border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-md);
-  background: color-mix(in srgb, var(--tf-color-surface-raised) 88%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--tf-color-surface-raised) 88%,
+    transparent
+  );
   backdrop-filter: blur(8px);
   box-shadow: var(--tf-shadow-md, 0 6px 20px rgb(0 0 0 / 0.25));
   font-size: var(--tf-text-xs);
@@ -132,9 +136,15 @@
   background: var(--phase-none);
 }
 
-.tipSwatch[data-kind="eccentric"] { background: var(--phase-eccentric); }
-.tipSwatch[data-kind="pause"] { background: var(--phase-pause); }
-.tipSwatch[data-kind="concentric"] { background: var(--phase-concentric); }
+.tipSwatch[data-kind="eccentric"] {
+  background: var(--phase-eccentric);
+}
+.tipSwatch[data-kind="pause"] {
+  background: var(--phase-pause);
+}
+.tipSwatch[data-kind="concentric"] {
+  background: var(--phase-concentric);
+}
 
 .square {
   width: 100%;
@@ -194,20 +204,40 @@
   stroke-width: 2;
 }
 
-.line[data-kind="eccentric"], .path[data-kind="eccentric"] { stroke: var(--phase-eccentric); }
-.line[data-kind="pause"], .path[data-kind="pause"] { stroke: var(--phase-pause); }
-.line[data-kind="concentric"], .path[data-kind="concentric"] { stroke: var(--phase-concentric); }
+.line[data-kind="eccentric"],
+.path[data-kind="eccentric"] {
+  stroke: var(--phase-eccentric);
+}
+.line[data-kind="pause"],
+.path[data-kind="pause"] {
+  stroke: var(--phase-pause);
+}
+.line[data-kind="concentric"],
+.path[data-kind="concentric"] {
+  stroke: var(--phase-concentric);
+}
 
 /* Filtered-out phases stay as a faint trace, so the rest keeps its context. */
-.line[data-hidden], .path[data-hidden] {
+.line[data-hidden],
+.path[data-hidden] {
   opacity: 0.12;
 }
 
-.phaseBand { fill: transparent; }
-.phaseBand[data-kind="eccentric"] { fill: color-mix(in srgb, var(--phase-eccentric) 7%, transparent); }
-.phaseBand[data-kind="pause"] { fill: color-mix(in srgb, var(--phase-pause) 7%, transparent); }
-.phaseBand[data-kind="concentric"] { fill: color-mix(in srgb, var(--phase-concentric) 7%, transparent); }
-.phaseBand[data-hidden] { fill: transparent; }
+.phaseBand {
+  fill: transparent;
+}
+.phaseBand[data-kind="eccentric"] {
+  fill: color-mix(in srgb, var(--phase-eccentric) 7%, transparent);
+}
+.phaseBand[data-kind="pause"] {
+  fill: color-mix(in srgb, var(--phase-pause) 7%, transparent);
+}
+.phaseBand[data-kind="concentric"] {
+  fill: color-mix(in srgb, var(--phase-concentric) 7%, transparent);
+}
+.phaseBand[data-hidden] {
+  fill: transparent;
+}
 
 .cursor {
   stroke: var(--tf-color-text);
@@ -287,9 +317,15 @@
   cursor: default;
 }
 
-.phase[data-kind="eccentric"] { background: var(--phase-eccentric); }
-.phase[data-kind="pause"] { background: var(--phase-pause); }
-.phase[data-kind="concentric"] { background: var(--phase-concentric); }
+.phase[data-kind="eccentric"] {
+  background: var(--phase-eccentric);
+}
+.phase[data-kind="pause"] {
+  background: var(--phase-pause);
+}
+.phase[data-kind="concentric"] {
+  background: var(--phase-concentric);
+}
 
 .phase:hover:not(:disabled) {
   filter: brightness(1.15);
@@ -299,9 +335,15 @@
   position: relative;
 }
 
-.phase:first-of-type { border-radius: 999px 0 0 999px; }
-.phase:last-of-type { border-radius: 0 999px 999px 0; }
-.phase:only-of-type { border-radius: 999px; }
+.phase:first-of-type {
+  border-radius: 999px 0 0 999px;
+}
+.phase:last-of-type {
+  border-radius: 0 999px 999px 0;
+}
+.phase:only-of-type {
+  border-radius: 999px;
+}
 
 .phaseTip {
   position: absolute;
@@ -317,7 +359,9 @@
   white-space: nowrap;
   opacity: 0;
   translate: -50% 2px;
-  transition: opacity 120ms ease, translate 120ms ease;
+  transition:
+    opacity 120ms ease,
+    translate 120ms ease;
   pointer-events: none;
 }
 
@@ -381,10 +425,35 @@
   border-radius: 2px;
 }
 
-.title { display: inline-flex; align-items: center; gap: var(--tf-space-2); }
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
 
-.hoverVertical, .hoverHorizontal, .hoverPoint { position: absolute; pointer-events: none; z-index: 1; }
-.hoverVertical { top: 0; bottom: 0; border-left: 1px dashed var(--tf-color-text-tertiary); }
-.hoverPoint { width: 8px; height: 8px; border: 2px solid; border-radius: 50%; background: var(--tf-color-surface); transform: translate(-50%, -50%); }
+.hoverVertical,
+.hoverHorizontal,
+.hoverPoint {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+.hoverVertical {
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed var(--tf-color-text-tertiary);
+}
+.hoverPoint {
+  width: 8px;
+  height: 8px;
+  border: 2px solid;
+  border-radius: 50%;
+  background: var(--tf-color-surface);
+  transform: translate(-50%, -50%);
+}
 
-.hoverHorizontal { left: 0; right: 0; border-top: 1px dashed var(--tf-color-text-tertiary); }
+.hoverHorizontal {
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--tf-color-text-tertiary);
+}

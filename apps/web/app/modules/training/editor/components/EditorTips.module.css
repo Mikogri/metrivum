@@ -15,7 +15,8 @@
   position: fixed;
   border: 2px solid var(--tf-color-accent);
   border-radius: var(--tf-radius-lg);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tf-color-accent) 18%, transparent);
+  box-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--tf-color-accent) 18%, transparent);
   transition:
     top 320ms var(--tf-ease-out, ease-out),
     left 320ms var(--tf-ease-out, ease-out),
@@ -32,7 +33,9 @@
   border: 1px solid var(--tf-color-border);
   border-radius: var(--tf-radius-lg);
   background: var(--tf-color-surface-raised, var(--tf-color-surface));
-  box-shadow: 0 18px 48px rgb(0 0 0 / 0.35), 0 2px 8px rgb(0 0 0 / 0.2);
+  box-shadow:
+    0 18px 48px rgb(0 0 0 / 0.35),
+    0 2px 8px rgb(0 0 0 / 0.2);
   pointer-events: auto;
   transition:
     top 320ms var(--tf-ease-out, ease-out),
@@ -154,27 +157,43 @@
 }
 
 @keyframes layer-in {
-  from { opacity: 0; }
+  from {
+    opacity: 0;
+  }
 }
 
 @keyframes layer-out {
-  to { opacity: 0; }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes ring-pulse {
-  50% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--tf-color-accent) 6%, transparent); }
+  50% {
+    box-shadow: 0 0 0 9px
+      color-mix(in srgb, var(--tf-color-accent) 6%, transparent);
+  }
 }
 
 @keyframes card-in {
-  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
 }
 
 @keyframes card-in-above {
-  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
 }
 
 @keyframes content-in {
-  from { opacity: 0; transform: translateX(8px); }
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -14,7 +14,11 @@ import styles from "./video-analysis.module.css";
 
 export function meta({ location }: Route.MetaArgs) {
   const locale = localeFromPathname(location.pathname);
-  return publicPageMeta({ ...publicMessages(locale).videoAnalysis.meta, pathname: location.pathname, locale });
+  return publicPageMeta({
+    ...publicMessages(locale).videoAnalysis.meta,
+    pathname: location.pathname,
+    locale,
+  });
 }
 
 function Flow({ steps }: { steps: Array<{ title: string; body: string }> }) {
@@ -22,7 +26,11 @@ function Flow({ steps }: { steps: Array<{ title: string; body: string }> }) {
   return (
     <ol ref={ref} className={styles.flow} data-inview={inView || undefined}>
       {steps.map((step, i) => (
-        <li key={step.title} className={styles.flowStep} style={{ "--i": i } as React.CSSProperties}>
+        <li
+          key={step.title}
+          className={styles.flowStep}
+          style={{ "--i": i } as React.CSSProperties}
+        >
           <span className={styles.flowIndex} aria-hidden="true">
             {i + 1}
           </span>
@@ -40,7 +48,11 @@ export default function VideoAnalysis() {
   const locale = useLocale();
   return (
     <>
-      <SubpageHero title={v.title} lead={v.lead} back={{ to: publicPath("features", locale), label: v.eyebrowBack }} />
+      <SubpageHero
+        title={v.title}
+        lead={v.lead}
+        back={{ to: publicPath("features", locale), label: v.eyebrowBack }}
+      />
 
       <section className={styles.flowSection} aria-labelledby="flow">
         <h2 id="flow" className={prose.title}>

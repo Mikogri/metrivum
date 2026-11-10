@@ -30,28 +30,45 @@ export function WorkoutEditor({
   readOnly: boolean;
   simple?: boolean;
 }) {
-  const [selection, setSelection] = useState<GridSelection>({ instanceId: null, setId: null });
+  const [selection, setSelection] = useState<GridSelection>({
+    instanceId: null,
+    setId: null,
+  });
   // Every entry point (week dialog, sheet panel, table tools) uses the owning workout's sources.
   const block = useMemo(() => {
     const at = locate(editor.doc, workout.id);
-    return effectiveBlock(editor.doc, at ? editor.doc.blocks[at.blockIndex] : undefined);
+    return effectiveBlock(
+      editor.doc,
+      at ? editor.doc.blocks[at.blockIndex] : undefined,
+    );
   }, [editor.doc, workout.id]);
   return (
-    <BlockFormulaScope block={block}><div className={styles.editor}>
-      <div className={styles.grid}>
-        <SetGrid key={workout.id} editor={editor} workout={workout} names={names} advancedAllowed={advancedAllowed && !simple} customFormulas={customFormulas && !simple} readOnly={readOnly} onSelectionChange={setSelection} />
+    <BlockFormulaScope block={block}>
+      <div className={styles.editor}>
+        <div className={styles.grid}>
+          <SetGrid
+            key={workout.id}
+            editor={editor}
+            workout={workout}
+            names={names}
+            advancedAllowed={advancedAllowed && !simple}
+            customFormulas={customFormulas && !simple}
+            readOnly={readOnly}
+            onSelectionChange={setSelection}
+          />
+        </div>
+        <aside className={styles.details}>
+          <DetailsPanel
+            editor={editor}
+            workout={workout}
+            selection={selection}
+            advancedAllowed={advancedAllowed && !simple}
+            customFormulas={customFormulas && !simple}
+            readOnly={readOnly}
+            simple={simple}
+          />
+        </aside>
       </div>
-      <aside className={styles.details}>
-        <DetailsPanel
-          editor={editor}
-          workout={workout}
-          selection={selection}
-          advancedAllowed={advancedAllowed && !simple}
-          customFormulas={customFormulas && !simple}
-          readOnly={readOnly}
-          simple={simple}
-        />
-      </aside>
-    </div></BlockFormulaScope>
+    </BlockFormulaScope>
   );
 }

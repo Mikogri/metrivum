@@ -19,7 +19,11 @@ const strands: Strand[] = Array.from({ length: STRANDS }, (_, i) => {
   const p2: [number, number] = [780 + t * 18, 560 - t * 70];
   const p3: [number, number] = [W + 100, 440 + t * 600 + wobble];
   const d = `M${p0[0].toFixed(1)},${p0[1].toFixed(1)}C${p1[0].toFixed(1)},${p1[1].toFixed(1)},${p2[0].toFixed(1)},${p2[1].toFixed(1)},${p3[0].toFixed(1)},${p3[1].toFixed(1)}`;
-  return { d, width: i % 5 === 0 ? 1.3 : i % 2 ? 0.55 : 0.8, opacity: 0.35 + ((i * 37) % 60) / 100 };
+  return {
+    d,
+    width: i % 5 === 0 ? 1.3 : i % 2 ? 0.55 : 0.8,
+    opacity: 0.35 + ((i * 37) % 60) / 100,
+  };
 });
 
 /** Strands that carry a spark, spread across the bundle. */
@@ -45,9 +49,21 @@ export function HeroBurst() {
   return (
     <div className={styles.burst} aria-hidden="true">
       <span className={styles.bloom} />
-      <svg ref={ref} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" className={styles.svg}>
+      <svg
+        ref={ref}
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="xMidYMid slice"
+        className={styles.svg}
+      >
         <defs>
-          <linearGradient id="burst-fibre" x1="0" x2={W} y1="0" y2="0" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="burst-fibre"
+            x1="0"
+            x2={W}
+            y1="0"
+            y2="0"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop offset="0" stopColor="#d6f36b" stopOpacity="0" />
             <stop offset="0.22" stopColor="#d6f36b" stopOpacity="0.8" />
             <stop offset="0.48" stopColor="#f3ffbf" />
@@ -60,16 +76,43 @@ export function HeroBurst() {
           </filter>
         </defs>
         <g filter="url(#burst-glow)" opacity={0.3}>
-          {strands.map((s, i) => (i % 3 === 0 ? <path key={i} d={s.d} stroke="url(#burst-fibre)" strokeWidth={3} fill="none" /> : null))}
+          {strands.map((s, i) =>
+            i % 3 === 0 ? (
+              <path
+                key={i}
+                d={s.d}
+                stroke="url(#burst-fibre)"
+                strokeWidth={3}
+                fill="none"
+              />
+            ) : null,
+          )}
         </g>
         <g className={styles.fibres}>
           {strands.map((s, i) => (
-            <path key={i} d={s.d} pathLength={1} stroke="url(#burst-fibre)" strokeWidth={s.width} strokeOpacity={s.opacity} fill="none" style={{ "--i": i } as React.CSSProperties} />
+            <path
+              key={i}
+              d={s.d}
+              pathLength={1}
+              stroke="url(#burst-fibre)"
+              strokeWidth={s.width}
+              strokeOpacity={s.opacity}
+              fill="none"
+              style={{ "--i": i } as React.CSSProperties}
+            />
           ))}
         </g>
         <g className={styles.sparks}>
           {sparks.map((s, i) => (
-            <g key={i} style={{ "--d": `${11 + ((i * 2.3) % 7)}s`, "--o": `${-((i * 4.1) % 15)}s` } as React.CSSProperties}>
+            <g
+              key={i}
+              style={
+                {
+                  "--d": `${11 + ((i * 2.3) % 7)}s`,
+                  "--o": `${-((i * 4.1) % 15)}s`,
+                } as React.CSSProperties
+              }
+            >
               <path d={s.d} pathLength={1000} className={styles.halo} />
               <path d={s.d} pathLength={1000} className={styles.core} />
             </g>

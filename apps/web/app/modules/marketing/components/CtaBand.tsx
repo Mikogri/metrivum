@@ -11,7 +11,11 @@ export function CtaBand() {
     <section aria-labelledby="cta-title" className={styles.wrap}>
       <div className={styles.band}>
         <div className={styles.copy}>
-          <RevealHeading id="cta-title" title={m.home.finalCta.title} className={styles.title} />
+          <RevealHeading
+            id="cta-title"
+            title={m.home.finalCta.title}
+            className={styles.title}
+          />
           <p className={styles.body}>{m.home.finalCta.body}</p>
         </div>
         <div className={styles.actions}>

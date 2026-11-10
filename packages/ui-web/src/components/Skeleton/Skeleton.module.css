@@ -6,9 +6,19 @@
   background: linear-gradient(
     100deg,
     var(--tf-color-surface-raised) 30%,
-    color-mix(in srgb, var(--tf-color-surface-hover) 70%, var(--tf-color-surface-raised)) 45%,
+    color-mix(
+        in srgb,
+        var(--tf-color-surface-hover) 70%,
+        var(--tf-color-surface-raised)
+      )
+      45%,
     var(--tf-color-surface-hover) 50%,
-    color-mix(in srgb, var(--tf-color-surface-hover) 70%, var(--tf-color-surface-raised)) 55%,
+    color-mix(
+        in srgb,
+        var(--tf-color-surface-hover) 70%,
+        var(--tf-color-surface-raised)
+      )
+      55%,
     var(--tf-color-surface-raised) 70%
   );
   background-size: 250% 100%;
@@ -18,10 +28,18 @@
     shimmer 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.sm { border-radius: var(--tf-radius-xs); }
-.md { border-radius: var(--tf-radius-md); }
-.lg { border-radius: var(--tf-radius-lg); }
-.full { border-radius: var(--tf-radius-full); }
+.sm {
+  border-radius: var(--tf-radius-xs);
+}
+.md {
+  border-radius: var(--tf-radius-md);
+}
+.lg {
+  border-radius: var(--tf-radius-lg);
+}
+.full {
+  border-radius: var(--tf-radius-full);
+}
 
 @keyframes shimmer {
   from {

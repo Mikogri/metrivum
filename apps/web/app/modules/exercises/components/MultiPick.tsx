@@ -30,13 +30,32 @@ export function MultiPick({
   const [input, setInput] = useState("");
   const available = options.filter((option) => !selected.includes(option.id));
   const typed = input.trim();
-  const canCreate = Boolean(onCreate && typed && !options.some((option) => option.label.toLowerCase() === typed.toLowerCase()));
-  const items = [...available.filter((option) => option.label.toLowerCase().includes(typed.toLowerCase()))];
-  const all = canCreate ? [...items, { id: `__create:${typed}`, label: createLabel ? createLabel(typed) : typed }] : items;
+  const canCreate = Boolean(
+    onCreate &&
+    typed &&
+    !options.some(
+      (option) => option.label.toLowerCase() === typed.toLowerCase(),
+    ),
+  );
+  const items = [
+    ...available.filter((option) =>
+      option.label.toLowerCase().includes(typed.toLowerCase()),
+    ),
+  ];
+  const all = canCreate
+    ? [
+        ...items,
+        {
+          id: `__create:${typed}`,
+          label: createLabel ? createLabel(typed) : typed,
+        },
+      ]
+    : items;
 
   return (
     <div className={styles.wrap}>
-      <Combobox placeholder={m.common.ph.search}
+      <Combobox
+        placeholder={m.common.ph.search}
         label={label}
         items={all}
         inputValue={input}
@@ -71,7 +90,11 @@ export function MultiPick({
             return (
               <li key={id} className={styles.chip}>
                 {name}
-                <AriaButton className={styles.remove} aria-label={`${name} ×`} onPress={() => onChange(selected.filter((s) => s !== id))}>
+                <AriaButton
+                  className={styles.remove}
+                  aria-label={`${name} ×`}
+                  onPress={() => onChange(selected.filter((s) => s !== id))}
+                >
                   <X aria-hidden="true" />
                 </AriaButton>
               </li>

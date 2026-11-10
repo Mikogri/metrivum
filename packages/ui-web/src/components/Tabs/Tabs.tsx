@@ -17,11 +17,24 @@ export interface TabsProps extends Omit<AriaTabsProps, "className"> {
   className?: string;
 }
 
-export function Tabs({ variant = "underline", className, ...props }: TabsProps) {
-  return <AriaTabs {...props} className={cx(styles.tabs, styles[variant], className)} />;
+export function Tabs({
+  variant = "underline",
+  className,
+  ...props
+}: TabsProps) {
+  return (
+    <AriaTabs
+      {...props}
+      className={cx(styles.tabs, styles[variant], className)}
+    />
+  );
 }
 
-export function TabList<T extends object>({ className, children, ...props }: Omit<TabListProps<T>, "className"> & { className?: string }) {
+export function TabList<T extends object>({
+  className,
+  children,
+  ...props
+}: Omit<TabListProps<T>, "className"> & { className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const indicator = useRef<HTMLSpanElement>(null);
 
@@ -31,7 +44,9 @@ export function TabList<T extends object>({ className, children, ...props }: Omi
     const bar = indicator.current;
     if (!list || !bar) return;
     const update = () => {
-      const selected = list.querySelector<HTMLElement>("[role=tab][aria-selected=true]");
+      const selected = list.querySelector<HTMLElement>(
+        "[role=tab][aria-selected=true]",
+      );
       if (!selected) {
         bar.style.opacity = "0";
         return;
@@ -43,7 +58,11 @@ export function TabList<T extends object>({ className, children, ...props }: Omi
     };
     update();
     const observer = new MutationObserver(update);
-    observer.observe(list, { subtree: true, attributes: true, attributeFilter: ["aria-selected"] });
+    observer.observe(list, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["aria-selected"],
+    });
     const resize = new ResizeObserver(update);
     resize.observe(list);
     return () => {
@@ -78,11 +97,16 @@ export function Tab({ children, count, icon, ...props }: TabProps) {
         </span>
       ) : null}
       {children}
-      {count !== undefined ? <span className={styles.count}>{count}</span> : null}
+      {count !== undefined ? (
+        <span className={styles.count}>{count}</span>
+      ) : null}
     </AriaTab>
   );
 }
 
-export function TabPanel({ className, ...props }: Omit<TabPanelProps, "className"> & { className?: string }) {
+export function TabPanel({
+  className,
+  ...props
+}: Omit<TabPanelProps, "className"> & { className?: string }) {
   return <AriaTabPanel {...props} className={cx(styles.panel, className)} />;
 }

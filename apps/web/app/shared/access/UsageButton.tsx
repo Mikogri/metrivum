@@ -24,9 +24,20 @@ export function UsageButton() {
   const [open, setOpen] = useState(false);
   const usage = useUsage();
   const near = usage.near.length > 0;
-  const countable = usage.items.filter((item) => !isCap(item.key) && item.maximum !== null);
-  const quick = [...countable].sort((a, b) => Number(b.period) - Number(a.period) || b.ratio - a.ratio).slice(0, QUICK);
-  const reset = usage.period ? Math.max(0, Math.ceil((new Date(usage.period.end).getTime() - Date.now()) / 86_400_000)) : null;
+  const countable = usage.items.filter(
+    (item) => !isCap(item.key) && item.maximum !== null,
+  );
+  const quick = [...countable]
+    .sort((a, b) => Number(b.period) - Number(a.period) || b.ratio - a.ratio)
+    .slice(0, QUICK);
+  const reset = usage.period
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(usage.period.end).getTime() - Date.now()) / 86_400_000,
+        ),
+      )
+    : null;
   return (
     <DialogTrigger isOpen={open} onOpenChange={setOpen}>
       <IconButton
@@ -43,14 +54,33 @@ export function UsageButton() {
           </>
         }
       />
-      <Popover placement="bottom end" aria-label={t.title} className={styles.panel}>
+      <Popover
+        placement="bottom end"
+        aria-label={t.title}
+        className={styles.panel}
+      >
         <header className={styles.head}>
           <strong>{t.title}</strong>
           {reset !== null ? <span>{t.resetsIn(reset)}</span> : null}
         </header>
-        {near ? <p className={styles.warning}>{t.nearTitle(usage.near.length)}</p> : null}
+        {near ? (
+          <p className={styles.warning}>{t.nearTitle(usage.near.length)}</p>
+        ) : null}
         <ul className={styles.list}>
-          {quick.length ? quick.map((item) => <Row key={item.key} item={item} locale={locale} label={m.access.limits[item.key] ?? item.key} />) : <li className={styles.muted}>{usage.pending ? t.loading : t.nothing}</li>}
+          {quick.length ? (
+            quick.map((item) => (
+              <Row
+                key={item.key}
+                item={item}
+                locale={locale}
+                label={m.access.limits[item.key] ?? item.key}
+              />
+            ))
+          ) : (
+            <li className={styles.muted}>
+              {usage.pending ? t.loading : t.nothing}
+            </li>
+          )}
         </ul>
         <Button
           variant="secondary"
@@ -69,9 +99,20 @@ export function UsageButton() {
   );
 }
 
-function Row({ item, label, locale }: { item: UsageItem; label: string; locale: string }) {
+function Row({
+  item,
+  label,
+  locale,
+}: {
+  item: UsageItem;
+  label: string;
+  locale: string;
+}) {
   const Icon = limitIcon(item.key);
-  const value = (n: number) => (/bytes/i.test(item.key) ? formatBytes(locale as never, n) : new Intl.NumberFormat(locale).format(n));
+  const value = (n: number) =>
+    /bytes/i.test(item.key)
+      ? formatBytes(locale as never, n)
+      : new Intl.NumberFormat(locale).format(n);
   return (
     <li className={styles.row} data-state={usageState(item)}>
       <UsageRing item={item} size="sm">

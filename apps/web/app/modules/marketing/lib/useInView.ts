@@ -4,7 +4,9 @@ import { useEffect, useRef, useState, type RefObject } from "react";
  * Marks an element once it scrolls into view. Marketing reveals key off this so that
  * each section's motion plays when it is actually seen, not all at load.
  */
-export function useInView<T extends Element>(options: { margin?: string; once?: boolean } = {}): [RefObject<T | null>, boolean] {
+export function useInView<T extends Element>(
+  options: { margin?: string; once?: boolean } = {},
+): [RefObject<T | null>, boolean] {
   const { margin = "0px 0px -15% 0px", once = true } = options;
   const ref = useRef<T>(null);
   const [inView, setInView] = useState(false);
@@ -33,5 +35,8 @@ export function useInView<T extends Element>(options: { margin?: string; once?: 
 }
 
 export function prefersReducedMotion(): boolean {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }

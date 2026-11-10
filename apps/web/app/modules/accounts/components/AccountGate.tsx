@@ -7,7 +7,10 @@ import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { AccountScope } from "~/shared/session/AccountScope";
 import { loginPath, sanitizeReturnTo } from "~/shared/session/returnTo";
-import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
+import {
+  useSessionManager,
+  useSessionState,
+} from "~/shared/session/SessionProvider";
 import { supabaseConfigured } from "~/shared/session/supabase";
 import { needsSecondFactor } from "~/modules/auth";
 import { BootScreen } from "./BootScreen";
@@ -20,7 +23,13 @@ type Mode = "app" | "onboarding";
  * Resolves session → account → profile before rendering private screens, so nothing private
  * flashes while the session is unknown. A failing /me is an error state, never an empty account.
  */
-export function AccountGate({ mode, children }: { mode: Mode; children: ReactNode }) {
+export function AccountGate({
+  mode,
+  children,
+}: {
+  mode: Mode;
+  children: ReactNode;
+}) {
   const state = useSessionState();
   const location = useLocation();
   const m = useT();
@@ -28,7 +37,10 @@ export function AccountGate({ mode, children }: { mode: Mode; children: ReactNod
   if (!supabaseConfigured()) {
     return (
       <div className={styles.center}>
-        <ErrorState title={m.shell.notConfiguredTitle} description={m.shell.notConfiguredBody} />
+        <ErrorState
+          title={m.shell.notConfiguredTitle}
+          description={m.shell.notConfiguredBody}
+        />
       </div>
     );
   }
@@ -41,7 +53,12 @@ export function AccountGate({ mode, children }: { mode: Mode; children: ReactNod
   // The account has an authenticator: nothing private loads until this session passed the second step.
   if (needsSecondFactor(account.session)) {
     const returnTo = sanitizeReturnTo(`${location.pathname}${location.search}`);
-    return <Navigate to={`/auth/mfa?slot=${account.slot}&returnTo=${encodeURIComponent(returnTo)}`} replace />;
+    return (
+      <Navigate
+        to={`/auth/mfa?slot=${account.slot}&returnTo=${encodeURIComponent(returnTo)}`}
+        replace
+      />
+    );
   }
   const key = `${account.slot}:${account.userId}:${state.generation}`;
   return (
@@ -69,8 +86,18 @@ function ProfileGate({ mode, children }: { mode: Mode; children: ReactNode }) {
     const error = query.error;
     // The API checks the level against Auth itself; follow it when the stored session says otherwise.
     const active = state.accounts.find((a) => a.slot === state.activeSlot);
-    if (error instanceof ApiError && error.code === "MFA_REQUIRED" && active && needsSecondFactor(active.session))
-      return <Navigate to={`/auth/mfa?slot=${active.slot}&returnTo=${encodeURIComponent(sanitizeReturnTo(`${location.pathname}${location.search}`))}`} replace />;
+    if (
+      error instanceof ApiError &&
+      error.code === "MFA_REQUIRED" &&
+      active &&
+      needsSecondFactor(active.session)
+    )
+      return (
+        <Navigate
+          to={`/auth/mfa?slot=${active.slot}&returnTo=${encodeURIComponent(sanitizeReturnTo(`${location.pathname}${location.search}`))}`}
+          replace
+        />
+      );
     if (error instanceof ApiError && error.status === 401) {
       return (
         <div className={styles.center}>
@@ -78,7 +105,11 @@ function ProfileGate({ mode, children }: { mode: Mode; children: ReactNode }) {
             title={m.shell.sessionExpiredTitle}
             description={m.shell.sessionExpiredBody}
             actions={
-              <LinkButton variant="primary" iconStart={<LogIn />} href={loginPath(undefined, state.activeSlot ?? undefined)}>
+              <LinkButton
+                variant="primary"
+                iconStart={<LogIn />}
+                href={loginPath(undefined, state.activeSlot ?? undefined)}
+              >
                 {m.shell.signInAgain}
               </LinkButton>
             }
@@ -93,7 +124,13 @@ function ProfileGate({ mode, children }: { mode: Mode; children: ReactNode }) {
             title={m.shell.restrictedTitle}
             description={m.shell.restrictedBody}
             actions={
-              <Button variant="secondary" onPress={() => state.activeSlot !== null && void manager.signOut(state.activeSlot)}>
+              <Button
+                variant="secondary"
+                onPress={() =>
+                  state.activeSlot !== null &&
+                  void manager.signOut(state.activeSlot)
+                }
+              >
                 {m.accounts.signOut}
               </Button>
             }
@@ -108,7 +145,12 @@ function ProfileGate({ mode, children }: { mode: Mode; children: ReactNode }) {
           description={`${m.shell.commErrorBody} ${errorText(m, error)}`}
           reference={traceIdOf(error)}
           actions={
-            <Button variant="primary" iconStart={<RefreshCw />} onPress={() => void query.refetch()} loading={query.isFetching}>
+            <Button
+              variant="primary"
+              iconStart={<RefreshCw />}
+              onPress={() => void query.refetch()}
+              loading={query.isFetching}
+            >
               {m.common.retry}
             </Button>
           }
@@ -120,10 +162,19 @@ function ProfileGate({ mode, children }: { mode: Mode; children: ReactNode }) {
   const profile = query.data;
   const params = new URLSearchParams(location.search);
   if (mode === "app" && !profile.onboarded) {
-    return <Navigate to={`/onboarding?returnTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`} replace />;
+    return (
+      <Navigate
+        to={`/onboarding?returnTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`}
+        replace
+      />
+    );
   }
   if (mode === "onboarding" && profile.onboarded) {
     return <Navigate to={sanitizeReturnTo(params.get("returnTo"))} replace />;
   }
-  return <ProfileContext.Provider value={profile}>{children}</ProfileContext.Provider>;
+  return (
+    <ProfileContext.Provider value={profile}>
+      {children}
+    </ProfileContext.Provider>
+  );
 }

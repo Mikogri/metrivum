@@ -27,21 +27,51 @@ export interface PaginationProps {
 }
 
 /** Page controls under the list: rows per page on the left, the pages on the right. */
-export function Pagination({ page, pageCount, hasNextPage, onPageChange, labels, isDisabled, pageSize, className }: PaginationProps) {
+export function Pagination({
+  page,
+  pageCount,
+  hasNextPage,
+  onPageChange,
+  labels,
+  isDisabled,
+  pageSize,
+  className,
+}: PaginationProps) {
   const canNext = pageCount === null ? Boolean(hasNextPage) : page < pageCount;
   const canPrevious = page > 1;
   if (!canNext && !canPrevious) return null;
   return (
-    <nav aria-label={labels.navigation} className={cx(styles.pagination, className)}>
-      {pageSize ? <span className={styles.size}>{labels.pageSize ? labels.pageSize(pageSize) : `${pageSize} rows per page`}</span> : null}
+    <nav
+      aria-label={labels.navigation}
+      className={cx(styles.pagination, className)}
+    >
+      {pageSize ? (
+        <span className={styles.size}>
+          {labels.pageSize
+            ? labels.pageSize(pageSize)
+            : `${pageSize} rows per page`}
+        </span>
+      ) : null}
       <div className={styles.pages}>
-        <Button size="sm" variant="ghost" iconStart={<ChevronLeft />} isDisabled={isDisabled || !canPrevious} onPress={() => onPageChange(page - 1)}>
+        <Button
+          size="sm"
+          variant="ghost"
+          iconStart={<ChevronLeft />}
+          isDisabled={isDisabled || !canPrevious}
+          onPress={() => onPageChange(page - 1)}
+        >
           {labels.previous}
         </Button>
         <span className={styles.status} aria-live="polite">
           {labels.status(page, pageCount)}
         </span>
-        <Button size="sm" variant="ghost" iconEnd={<ChevronRight />} isDisabled={isDisabled || !canNext} onPress={() => onPageChange(page + 1)}>
+        <Button
+          size="sm"
+          variant="ghost"
+          iconEnd={<ChevronRight />}
+          isDisabled={isDisabled || !canNext}
+          onPress={() => onPageChange(page + 1)}
+        >
           {labels.next}
         </Button>
       </div>

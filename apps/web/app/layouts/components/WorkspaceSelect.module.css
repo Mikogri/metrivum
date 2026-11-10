@@ -36,7 +36,9 @@
   text-align: left;
   cursor: pointer;
   outline: none;
-  transition: background-color 120ms ease, border-color 120ms ease;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -93,7 +95,9 @@
   width: 0.875rem;
   height: 0.875rem;
   color: var(--tf-color-text-tertiary);
-  transition: opacity 200ms ease, transform 160ms ease;
+  transition:
+    opacity 200ms ease,
+    transform 160ms ease;
 }
 
 .trigger[aria-expanded="true"] {

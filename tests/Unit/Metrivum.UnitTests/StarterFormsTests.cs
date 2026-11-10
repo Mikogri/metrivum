@@ -11,8 +11,16 @@ public sealed class StarterFormsTests
     {
         var starter = StarterForms.Application();
         Assert.Equal(FormPurpose.Application, starter.Purpose);
-        FormRules.ValidateDefinition(starter.Purpose, starter.Name, starter.Description, starter.Draft);
+        FormRules.ValidateDefinition(
+            starter.Purpose,
+            starter.Name,
+            starter.Description,
+            starter.Draft
+        );
         Assert.InRange(starter.Draft.Sections.Sum(section => section.Questions.Count), 8, 15);
-        Assert.Contains(starter.Draft.Sections.SelectMany(section => section.Questions), question => question.Required);
+        Assert.Contains(
+            starter.Draft.Sections.SelectMany(section => section.Questions),
+            question => question.Required
+        );
     }
 }

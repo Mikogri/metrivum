@@ -1,14 +1,49 @@
-.chart { position: relative; width: 100%; color: var(--tf-color-accent); }
-.chart svg { display: block; overflow: visible; touch-action: pan-y; }
-.empty { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-sm); }
+.chart {
+  position: relative;
+  width: 100%;
+  color: var(--tf-color-accent);
+}
+.chart svg {
+  display: block;
+  overflow: visible;
+  touch-action: pan-y;
+}
+.empty {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
 
-.grid line { stroke: var(--tf-color-border-subtle); stroke-dasharray: 3 4; }
-.grid text, .xLabel { fill: var(--tf-color-text-tertiary); font-size: 11px; font-variant-numeric: tabular-nums; }
+.grid line {
+  stroke: var(--tf-color-border-subtle);
+  stroke-dasharray: 3 4;
+}
+.grid text,
+.xLabel {
+  fill: var(--tf-color-text-tertiary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
 
-.line { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.dot { fill: var(--tf-color-surface); stroke: currentColor; stroke-width: 2; transition: r 120ms var(--tf-ease-out); }
-.dot[data-active] { fill: currentColor; }
-.cursor { stroke: var(--tf-color-border-strong); stroke-dasharray: 2 3; }
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dot {
+  fill: var(--tf-color-surface);
+  stroke: currentColor;
+  stroke-width: 2;
+  transition: r 120ms var(--tf-ease-out);
+}
+.dot[data-active] {
+  fill: currentColor;
+}
+.cursor {
+  stroke: var(--tf-color-border-strong);
+  stroke-dasharray: 2 3;
+}
 
 .tooltip {
   position: absolute;
@@ -26,10 +61,24 @@
   pointer-events: none;
   transform: translate(-50%, calc(-100% - 12px));
 }
-.tooltip strong { font-size: var(--tf-text-sm); font-weight: var(--tf-weight-semibold); font-variant-numeric: tabular-nums; }
-.tooltip span { color: var(--tf-color-text-tertiary); }
+.tooltip strong {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.tooltip span {
+  color: var(--tf-color-text-tertiary);
+}
 
 /* Several lines: the one under the cursor stays, the others step back. */
-.series { transition: opacity 150ms ease; }
-.series[data-dim] { opacity: 0.35; }
-.tooltip em { font-size: var(--tf-text-xs); font-style: normal; font-weight: var(--tf-weight-medium); }
+.series {
+  transition: opacity 150ms ease;
+}
+.series[data-dim] {
+  opacity: 0.35;
+}
+.tooltip em {
+  font-size: var(--tf-text-xs);
+  font-style: normal;
+  font-weight: var(--tf-weight-medium);
+}

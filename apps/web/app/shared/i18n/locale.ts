@@ -3,7 +3,9 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 
 export function isLocale(value: unknown): value is Locale {
-  return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" && (LOCALES as readonly string[]).includes(value)
+  );
 }
 
 /** Public pages: Polish lives under /pl, English at the root. */
@@ -27,7 +29,9 @@ export function readLocalePreference(): Locale {
   } catch {
     // Storage can be unavailable (private mode); fall through to the browser language.
   }
-  return window.navigator.language.toLowerCase().startsWith("pl") ? "pl" : DEFAULT_LOCALE;
+  return window.navigator.language.toLowerCase().startsWith("pl")
+    ? "pl"
+    : DEFAULT_LOCALE;
 }
 
 export function writeLocalePreference(locale: Locale) {

@@ -21,20 +21,35 @@ import styles from "./Menu.module.css";
 
 export { MenuTrigger as DropdownMenuTrigger };
 
-export interface DropdownMenuProps<T> extends Omit<AriaMenuProps<T>, "className"> {
+export interface DropdownMenuProps<T> extends Omit<
+  AriaMenuProps<T>,
+  "className"
+> {
   placement?: "bottom start" | "bottom end" | "top start" | "top end";
   className?: string;
 }
 
 /** Popover menu. Place inside `DropdownMenuTrigger` after the trigger button. */
-export function DropdownMenu<T extends object>({ placement = "bottom end", className, ...props }: DropdownMenuProps<T>) {
+export function DropdownMenu<T extends object>({
+  placement = "bottom end",
+  className,
+  ...props
+}: DropdownMenuProps<T>) {
   const phone = useMobileLayout();
   const menu = <AriaMenu {...props} className={cx(styles.menu, className)} />;
   if (phone) {
     // ModalOverlay consumes MenuTrigger's state, preserving selection, dismissal and focus restoration.
-    return <ModalOverlay isDismissable className={dialogStyles.overlay} data-mobile-sheet="actions">
-      <Modal className={cx(dialogStyles.modal, styles.actionSheet)}>{menu}</Modal>
-    </ModalOverlay>;
+    return (
+      <ModalOverlay
+        isDismissable
+        className={dialogStyles.overlay}
+        data-mobile-sheet="actions"
+      >
+        <Modal className={cx(dialogStyles.modal, styles.actionSheet)}>
+          {menu}
+        </Modal>
+      </ModalOverlay>
+    );
   }
   return (
     <Popover placement={placement} asDialog={false}>
@@ -43,7 +58,10 @@ export function DropdownMenu<T extends object>({ placement = "bottom end", class
   );
 }
 
-export interface DropdownMenuItemProps extends Omit<AriaMenuItemProps, "className" | "children"> {
+export interface DropdownMenuItemProps extends Omit<
+  AriaMenuItemProps,
+  "className" | "children"
+> {
   icon?: ReactNode;
   shortcut?: string;
   description?: string;
@@ -51,10 +69,22 @@ export interface DropdownMenuItemProps extends Omit<AriaMenuItemProps, "classNam
   children: ReactNode;
 }
 
-export function DropdownMenuItem({ icon, shortcut, description, tone = "default", children, ...props }: DropdownMenuItemProps) {
-  const textValue = props.textValue ?? (typeof children === "string" ? children : undefined);
+export function DropdownMenuItem({
+  icon,
+  shortcut,
+  description,
+  tone = "default",
+  children,
+  ...props
+}: DropdownMenuItemProps) {
+  const textValue =
+    props.textValue ?? (typeof children === "string" ? children : undefined);
   return (
-    <AriaMenuItem {...props} textValue={textValue} className={cx(styles.item, tone === "danger" && styles.danger)}>
+    <AriaMenuItem
+      {...props}
+      textValue={textValue}
+      className={cx(styles.item, tone === "danger" && styles.danger)}
+    >
       {icon ? (
         <span className={styles.icon} aria-hidden="true">
           {icon}
@@ -68,12 +98,20 @@ export function DropdownMenuItem({ icon, shortcut, description, tone = "default"
           </Text>
         ) : null}
       </span>
-      {shortcut ? <Keyboard className={styles.shortcut}>{shortcut}</Keyboard> : null}
+      {shortcut ? (
+        <Keyboard className={styles.shortcut}>{shortcut}</Keyboard>
+      ) : null}
     </AriaMenuItem>
   );
 }
 
-export function DropdownMenuSection({ title, children }: { title?: string; children: ReactNode }) {
+export function DropdownMenuSection({
+  title,
+  children,
+}: {
+  title?: string;
+  children: ReactNode;
+}) {
   return (
     <AriaMenuSection className={styles.section}>
       {title ? <Header className={styles.sectionHeader}>{title}</Header> : null}

@@ -1,5 +1,7 @@
 using Metrivum.Training.Infrastructure;
+
 namespace Metrivum.Training.Purchases;
+
 /// <summary>Represents persisted training purchase state in Training; mapped and saved by the owning module's EF services.</summary>
 public sealed class TrainingPurchase
 {
@@ -15,4 +17,12 @@ public sealed class TrainingPurchase
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? DeliveredAt { get; set; }
 }
-public sealed record PurchasedPlanDto(Guid OrderId, Guid ApplicationId, string Name, Guid? PlanId, DateTimeOffset CreatedAt, DateTimeOffset? DeliveredAt);
+
+public sealed record PurchasedPlanDto(
+    Guid OrderId,
+    Guid ApplicationId,
+    string Name,
+    Guid? PlanId,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? DeliveredAt
+);

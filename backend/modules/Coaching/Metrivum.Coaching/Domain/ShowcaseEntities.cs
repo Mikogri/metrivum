@@ -7,6 +7,7 @@ public sealed class CoachShowcase
     public string? Headline { get; set; }
     public int? YearsExperience { get; set; }
     public List<string> Competencies { get; set; } = [];
+
     /// <summary>A custom cover photo (Pro plan only); without one the profile shows the animated default.</summary>
     public Guid? CoverMediaId { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
@@ -17,7 +18,7 @@ public enum PortfolioKind
 {
     Certificate,
     ClientResult,
-    Other
+    Other,
 }
 
 /// <summary>One portfolio file (a certificate, a client's result, …) shown on the coach's profile.</summary>

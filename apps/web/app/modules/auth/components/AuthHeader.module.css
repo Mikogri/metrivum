@@ -31,7 +31,9 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-color: var(--tf-color-border-strong);
-  transition: color 160ms ease, text-decoration-color 160ms ease;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
 }
 
 .footer a:hover {
@@ -55,7 +57,9 @@
   margin-left: calc(var(--tf-space-2) * -1);
   border-radius: var(--tf-radius-sm);
   color: var(--tf-color-text-tertiary);
-  transition: color 160ms ease, transform 200ms var(--tf-ease-out, ease-out);
+  transition:
+    color 160ms ease,
+    transform 200ms var(--tf-ease-out, ease-out);
 }
 
 .back:hover {

@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Metrivum.Analytics.Contracts;
 using Metrivum.Messaging.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Metrivum.Messaging.Infrastructure;
 
@@ -28,7 +28,8 @@ public sealed class MessagingAnalytics(MessagingDbContext db) : IMessagingAnalyt
                 Sent = g.Count(x => x.SenderUserId == scope.CoachId),
                 Received = g.Count(x => x.SenderUserId != scope.CoachId),
                 Conversations = g.Select(x => x.ConversationId).Distinct().Count(),
-            }).SingleOrDefaultAsync(ct);
+            })
+            .SingleOrDefaultAsync(ct);
         return new(totals?.Sent ?? 0, totals?.Received ?? 0, totals?.Conversations ?? 0);
     }
 }

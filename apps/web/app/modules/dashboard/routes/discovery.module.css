@@ -113,10 +113,22 @@
   border-top: 1px solid var(--tf-color-border-subtle);
 }
 
-.checklist li[data-tone="blue"] { --tone: var(--tf-color-info); --tone-soft: var(--tf-color-info-soft); }
-.checklist li[data-tone="violet"] { --tone: var(--tf-color-violet); --tone-soft: var(--tf-color-violet-soft); }
-.checklist li[data-tone="orange"] { --tone: var(--tf-color-warning); --tone-soft: var(--tf-color-warning-soft); }
-.checklist li[data-done] { --tone: var(--tf-color-accent); --tone-soft: var(--tf-color-accent-soft); }
+.checklist li[data-tone="blue"] {
+  --tone: var(--tf-color-info);
+  --tone-soft: var(--tf-color-info-soft);
+}
+.checklist li[data-tone="violet"] {
+  --tone: var(--tf-color-violet);
+  --tone-soft: var(--tf-color-violet-soft);
+}
+.checklist li[data-tone="orange"] {
+  --tone: var(--tf-color-warning);
+  --tone-soft: var(--tf-color-warning-soft);
+}
+.checklist li[data-done] {
+  --tone: var(--tf-color-accent);
+  --tone-soft: var(--tf-color-accent-soft);
+}
 
 .itemIcon {
   display: grid;

@@ -15,16 +15,28 @@ import {
   type ToggleButtonProps,
 } from "react-aria-components";
 import { cx } from "../../lib/cx";
-import { FieldFooter, FieldLabel, type FieldChromeProps } from "../Field/FieldParts";
+import {
+  FieldFooter,
+  FieldLabel,
+  type FieldChromeProps,
+} from "../Field/FieldParts";
 import styles from "./Toggle.module.css";
 
-export interface CheckboxProps extends Omit<AriaCheckboxProps, "className" | "children"> {
+export interface CheckboxProps extends Omit<
+  AriaCheckboxProps,
+  "className" | "children"
+> {
   children?: ReactNode;
   description?: ReactNode;
   className?: string;
 }
 
-export function Checkbox({ children, description, className, ...props }: CheckboxProps) {
+export function Checkbox({
+  children,
+  description,
+  className,
+  ...props
+}: CheckboxProps) {
   return (
     <AriaCheckbox {...props} className={cx(styles.choice, className)}>
       {({ isSelected, isIndeterminate }) => (
@@ -35,7 +47,9 @@ export function Checkbox({ children, description, className, ...props }: Checkbo
           {children || description ? (
             <span className={styles.choiceText}>
               {children ? <span>{children}</span> : null}
-              {description ? <span className={styles.choiceDescription}>{description}</span> : null}
+              {description ? (
+                <span className={styles.choiceDescription}>{description}</span>
+              ) : null}
             </span>
           ) : null}
         </>
@@ -44,12 +58,22 @@ export function Checkbox({ children, description, className, ...props }: Checkbo
   );
 }
 
-export interface RadioGroupProps extends Omit<AriaRadioGroupProps, "className" | "children">, FieldChromeProps {
+export interface RadioGroupProps
+  extends
+    Omit<AriaRadioGroupProps, "className" | "children">,
+    FieldChromeProps {
   children: ReactNode;
   className?: string;
 }
 
-export function RadioGroup({ label, description, errorMessage, children, className, ...props }: RadioGroupProps) {
+export function RadioGroup({
+  label,
+  description,
+  errorMessage,
+  children,
+  className,
+  ...props
+}: RadioGroupProps) {
   return (
     <AriaRadioGroup {...props} className={cx(styles.group, className)}>
       <FieldLabel label={label} isRequired={props.isRequired} />
@@ -59,7 +83,10 @@ export function RadioGroup({ label, description, errorMessage, children, classNa
   );
 }
 
-export interface RadioProps extends Omit<AriaRadioProps, "className" | "children"> {
+export interface RadioProps extends Omit<
+  AriaRadioProps,
+  "className" | "children"
+> {
   children: ReactNode;
   description?: ReactNode;
 }
@@ -70,13 +97,18 @@ export function Radio({ children, description, ...props }: RadioProps) {
       <span className={styles.radio} aria-hidden="true" />
       <span className={styles.choiceText}>
         <span>{children}</span>
-        {description ? <span className={styles.choiceDescription}>{description}</span> : null}
+        {description ? (
+          <span className={styles.choiceDescription}>{description}</span>
+        ) : null}
       </span>
     </AriaRadio>
   );
 }
 
-export interface SwitchProps extends Omit<AriaSwitchProps, "className" | "children"> {
+export interface SwitchProps extends Omit<
+  AriaSwitchProps,
+  "className" | "children"
+> {
   children?: ReactNode;
   className?: string;
 }
@@ -92,7 +124,10 @@ export function Switch({ children, className, ...props }: SwitchProps) {
   );
 }
 
-export interface SegmentedControlProps extends Omit<ToggleButtonGroupProps, "className" | "children" | "selectionMode"> {
+export interface SegmentedControlProps extends Omit<
+  ToggleButtonGroupProps,
+  "className" | "children" | "selectionMode"
+> {
   children: ReactNode;
   size?: "sm" | "md";
   className?: string;
@@ -100,7 +135,12 @@ export interface SegmentedControlProps extends Omit<ToggleButtonGroupProps, "cla
 }
 
 /** Single-choice toggle row (view modes, rating scales, filters). */
-export function SegmentedControl({ children, size = "md", className, ...props }: SegmentedControlProps) {
+export function SegmentedControl({
+  children,
+  size = "md",
+  className,
+  ...props
+}: SegmentedControlProps) {
   return (
     <ToggleButtonGroup
       {...props}
@@ -113,7 +153,10 @@ export function SegmentedControl({ children, size = "md", className, ...props }:
   );
 }
 
-export interface SegmentProps extends Omit<ToggleButtonProps, "className" | "children"> {
+export interface SegmentProps extends Omit<
+  ToggleButtonProps,
+  "className" | "children"
+> {
   children: ReactNode;
 }
 
@@ -125,7 +168,10 @@ export function Segment({ children, ...props }: SegmentProps) {
   );
 }
 
-export interface ChipGroupProps extends Omit<ToggleButtonGroupProps, "className" | "children" | "selectionMode"> {
+export interface ChipGroupProps extends Omit<
+  ToggleButtonGroupProps,
+  "className" | "children" | "selectionMode"
+> {
   children: ReactNode;
   className?: string;
   "aria-label"?: string;
@@ -137,15 +183,27 @@ export interface ChipGroupProps extends Omit<ToggleButtonGroupProps, "className"
  * A wrapping row of pill toggles (quick picks, filters). With one choice, unlike SegmentedControl, choosing the
  * selected chip again clears it, unless `disallowEmptySelection` is set.
  */
-export function ChipGroup({ children, className, selectionMode = "single", ...props }: ChipGroupProps) {
+export function ChipGroup({
+  children,
+  className,
+  selectionMode = "single",
+  ...props
+}: ChipGroupProps) {
   return (
-    <ToggleButtonGroup {...props} selectionMode={selectionMode} className={cx(styles.chips, className)}>
+    <ToggleButtonGroup
+      {...props}
+      selectionMode={selectionMode}
+      className={cx(styles.chips, className)}
+    >
       {children}
     </ToggleButtonGroup>
   );
 }
 
-export interface ChipProps extends Omit<ToggleButtonProps, "className" | "children"> {
+export interface ChipProps extends Omit<
+  ToggleButtonProps,
+  "className" | "children"
+> {
   children: ReactNode;
 }
 

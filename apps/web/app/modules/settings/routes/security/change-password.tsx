@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Alert, Button, Card } from "@metrivum/ui-web";
-import { EMAIL_RESEND_SECONDS, authErrorText, callbackUrl, hasPassword, useCooldown, useTurnstile } from "~/modules/auth";
+import {
+  EMAIL_RESEND_SECONDS,
+  authErrorText,
+  callbackUrl,
+  hasPassword,
+  useCooldown,
+  useTurnstile,
+} from "~/modules/auth";
 import { useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 import { SecurityPage, Steps, useSecurityAccount } from "./shared";
@@ -31,7 +38,13 @@ export default function ChangePassword() {
     setPending(true);
     setError(null);
     try {
-      const { error: sendError } = await client.auth.resetPasswordForEmail(email, { ...captchaOptions, redirectTo: callbackUrl(slot, "/auth/reset-password", email) });
+      const { error: sendError } = await client.auth.resetPasswordForEmail(
+        email,
+        {
+          ...captchaOptions,
+          redirectTo: callbackUrl(slot, "/auth/reset-password", email),
+        },
+      );
       if (sendError) throw sendError;
       if (!lifecycle.isCurrent()) return;
       setSent(true);
@@ -44,8 +57,16 @@ export default function ChangePassword() {
   }
 
   return (
-    <SecurityPage title={set ? t.setTitle : t.title} description={t.description}>
-      <Card as="section" padding="lg" className={styles.section} aria-label={set ? t.setTitle : t.title}>
+    <SecurityPage
+      title={set ? t.setTitle : t.title}
+      description={t.description}
+    >
+      <Card
+        as="section"
+        padding="lg"
+        className={styles.section}
+        aria-label={set ? t.setTitle : t.title}
+      >
         <Steps steps={t.steps} current={sent ? 1 : 0} label={t.title} />
         <div className={styles.target}>
           <small>{t.sendTo}</small>
@@ -60,7 +81,12 @@ export default function ChangePassword() {
         ) : null}
         {captcha.widget}
         <div className={styles.actions}>
-          <Button variant={sent ? "secondary" : "primary"} loading={pending} isDisabled={!email || wait > 0 || !captcha.ready} onPress={() => void send()}>
+          <Button
+            variant={sent ? "secondary" : "primary"}
+            loading={pending}
+            isDisabled={!email || wait > 0 || !captcha.ready}
+            onPress={() => void send()}
+          >
             {wait > 0 ? t.resendIn(wait) : sent ? t.resend : t.send}
           </Button>
         </div>

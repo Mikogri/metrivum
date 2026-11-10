@@ -1,10 +1,6 @@
-using System.Net;
 using System.Data.Common;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Metrivum.Access.Contracts;
 using Metrivum.Analytics;
 using Metrivum.Analytics.Contracts;
@@ -21,6 +17,10 @@ using Metrivum.Forms.Domain;
 using Metrivum.Forms.Infrastructure;
 using Metrivum.Messaging.Domain;
 using Metrivum.Messaging.Infrastructure;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Metrivum.IntegrationTests;
 
@@ -33,36 +33,52 @@ public sealed class AnalyticsTests
     public async Task Analytics_messaging_counts_only_visible_membership_and_window_in_one_query()
     {
         var commands = new AnalyticsCommands();
-        await using var db = new MessagingDbContext(new DbContextOptionsBuilder<MessagingDbContext>()
-            .UseNpgsql(Database).AddInterceptors(commands).Options);
+        await using var db = new MessagingDbContext(
+            new DbContextOptionsBuilder<MessagingDbContext>()
+                .UseNpgsql(Database)
+                .AddInterceptors(commands)
+                .Options
+        );
         var coach = Guid.NewGuid();
         var peer = Guid.NewGuid();
         var at = new DateTimeOffset(2026, 10, 5, 12, 0, 0, TimeSpan.Zero);
         foreach (var kind in new[] { "visible", "second", "excluded", "removed", "foreign" })
         {
-            var conversation = new Conversation { Type = ConversationType.Group, CreatedAt = at, UpdatedAt = at };
+            var conversation = new Conversation
+            {
+                Type = ConversationType.Group,
+                CreatedAt = at,
+                UpdatedAt = at,
+            };
             db.Conversations.Add(conversation);
-            db.Members.Add(new ConversationMember
-            {
-                ConversationId = conversation.Id,
-                UserId = kind == "foreign" ? peer : coach,
-                JoinedAt = at,
-                Excluded = kind == "excluded",
-                State = kind is "removed" or "excluded" ? MemberState.Removed : MemberState.Active,
-                CutoffSequence = kind is "removed" or "excluded" ? 1 : null,
-                RemovedAt = kind is "removed" or "excluded" ? at.AddDays(1) : null
-            });
-            void Add(Guid sender, DateTimeOffset time, MessageType type = MessageType.Text) => db.Messages.Add(new Message
-            {
-                ConversationId = conversation.Id,
-                SenderUserId = sender,
-                Type = type,
-                Body = "fixture",
-                CreatedAt = time,
-                Sequence = ++conversation.Sequence,
-                IdempotencyKey = Guid.NewGuid().ToString(),
-                RequestHash = "fixture",
-            });
+            db.Members.Add(
+                new ConversationMember
+                {
+                    ConversationId = conversation.Id,
+                    UserId = kind == "foreign" ? peer : coach,
+                    JoinedAt = at,
+                    Excluded = kind == "excluded",
+                    State = kind is "removed" or "excluded"
+                        ? MemberState.Removed
+                        : MemberState.Active,
+                    CutoffSequence = kind is "removed" or "excluded" ? 1 : null,
+                    RemovedAt = kind is "removed" or "excluded" ? at.AddDays(1) : null,
+                }
+            );
+            void Add(Guid sender, DateTimeOffset time, MessageType type = MessageType.Text) =>
+                db.Messages.Add(
+                    new Message
+                    {
+                        ConversationId = conversation.Id,
+                        SenderUserId = sender,
+                        Type = type,
+                        Body = "fixture",
+                        CreatedAt = time,
+                        Sequence = ++conversation.Sequence,
+                        IdempotencyKey = Guid.NewGuid().ToString(),
+                        RequestHash = "fixture",
+                    }
+                );
             Add(peer, at);
             if (kind == "visible")
             {
@@ -74,17 +90,26 @@ public sealed class AnalyticsTests
         }
         await db.SaveChangesAsync();
         commands.Count = 0;
-        var scope = new AnalysisScope(coach, Guid.NewGuid(),
-            AnalysisDates.Create(new(2026, 10, 5), new(2026, 10, 8), "UTC"), null, null);
-        Assert.Equal(new MessagingAnalysis(1, 2, 2), await new MessagingAnalytics(db).QueryAsync(scope, default));
+        var scope = new AnalysisScope(
+            coach,
+            Guid.NewGuid(),
+            AnalysisDates.Create(new(2026, 10, 5), new(2026, 10, 8), "UTC"),
+            null,
+            null
+        );
+        Assert.Equal(
+            new MessagingAnalysis(1, 2, 2),
+            await new MessagingAnalytics(db).QueryAsync(scope, default)
+        );
         Assert.Equal(1, commands.Count);
     }
 
     [CatalogPostgresFact]
     public async Task Analytics_client_daily_status_uses_version_precedence_and_local_midnight()
     {
-        await using var db = new CoachingDbContext(new DbContextOptionsBuilder<CoachingDbContext>()
-            .UseNpgsql(Database).Options);
+        await using var db = new CoachingDbContext(
+            new DbContextOptionsBuilder<CoachingDbContext>().UseNpgsql(Database).Options
+        );
         var coach = Guid.NewGuid();
         var workspace = Guid.NewGuid();
         var start = new DateTimeOffset(2026, 3, 27, 23, 0, 0, TimeSpan.Zero);
@@ -100,24 +125,54 @@ public sealed class AnalyticsTests
         };
         db.Relationships.Add(relationship);
         // Version 3 predates version 2: chronology must not override version precedence.
-        foreach (var change in new[] {
-            (2L, new DateTimeOffset(2026, 3, 29, 22, 0, 0, TimeSpan.Zero), RelationshipStatus.Active, RelationshipStatus.Completed),
-            (3L, new DateTimeOffset(2026, 3, 28, 23, 0, 0, TimeSpan.Zero), RelationshipStatus.Completed, RelationshipStatus.Active),
-            (4L, new DateTimeOffset(2026, 3, 30, 22, 0, 0, TimeSpan.Zero), RelationshipStatus.Active, RelationshipStatus.Suspended),
-            (5L, new DateTimeOffset(2026, 3, 30, 22, 0, 0, TimeSpan.Zero), RelationshipStatus.Suspended, RelationshipStatus.Completed),
-        })
-            db.StatusChanges.Add(new RelationshipStatusChanged
+        foreach (
+            var change in new[]
             {
-                RelationshipId = relationship.Id,
-                ActorId = coach,
-                Version = change.Item1,
-                OccurredAt = change.Item2,
-                PreviousStatus = change.Item3,
-                NewStatus = change.Item4,
-            });
+                (
+                    2L,
+                    new DateTimeOffset(2026, 3, 29, 22, 0, 0, TimeSpan.Zero),
+                    RelationshipStatus.Active,
+                    RelationshipStatus.Completed
+                ),
+                (
+                    3L,
+                    new DateTimeOffset(2026, 3, 28, 23, 0, 0, TimeSpan.Zero),
+                    RelationshipStatus.Completed,
+                    RelationshipStatus.Active
+                ),
+                (
+                    4L,
+                    new DateTimeOffset(2026, 3, 30, 22, 0, 0, TimeSpan.Zero),
+                    RelationshipStatus.Active,
+                    RelationshipStatus.Suspended
+                ),
+                (
+                    5L,
+                    new DateTimeOffset(2026, 3, 30, 22, 0, 0, TimeSpan.Zero),
+                    RelationshipStatus.Suspended,
+                    RelationshipStatus.Completed
+                ),
+            }
+        )
+            db.StatusChanges.Add(
+                new RelationshipStatusChanged
+                {
+                    RelationshipId = relationship.Id,
+                    ActorId = coach,
+                    Version = change.Item1,
+                    OccurredAt = change.Item2,
+                    PreviousStatus = change.Item3,
+                    NewStatus = change.Item4,
+                }
+            );
         await db.SaveChangesAsync();
-        var scope = new AnalysisScope(coach, workspace,
-            AnalysisDates.Create(new(2026, 3, 28), new(2026, 3, 31), "Europe/Warsaw"), null, null);
+        var scope = new AnalysisScope(
+            coach,
+            workspace,
+            AnalysisDates.Create(new(2026, 3, 28), new(2026, 3, 31), "Europe/Warsaw"),
+            null,
+            null
+        );
         var result = await new CoachingAnalytics(db).ClientsAsync(scope, default);
         Assert.Equal(new[] { 1, 1, 1, 0 }, result.Series.Select(x => x.Active));
         Assert.Equal(new[] { 1, 0, 0, 0 }, result.Series.Select(x => x.NewClients));
@@ -130,18 +185,32 @@ public sealed class AnalyticsTests
     public async Task Analytics_empty_acquisition_and_messaging_use_bounded_aggregate_queries()
     {
         var commands = new AnalyticsCommands();
-        var scope = new AnalysisScope(Guid.NewGuid(), Guid.NewGuid(),
-            AnalysisDates.Create(new(2026, 10, 1), new(2026, 10, 8), "UTC"), null, null);
-        await using var coaching = new CoachingDbContext(new DbContextOptionsBuilder<CoachingDbContext>()
-            .UseNpgsql(Database).AddInterceptors(commands).Options);
+        var scope = new AnalysisScope(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            AnalysisDates.Create(new(2026, 10, 1), new(2026, 10, 8), "UTC"),
+            null,
+            null
+        );
+        await using var coaching = new CoachingDbContext(
+            new DbContextOptionsBuilder<CoachingDbContext>()
+                .UseNpgsql(Database)
+                .AddInterceptors(commands)
+                .Options
+        );
         var acquisition = await new CoachingAnalytics(coaching).AcquisitionAsync(scope, default);
         Assert.Equal(0, acquisition.Submitted);
         Assert.Equal(2, commands.Count);
         commands.Count = 0;
         await using var messaging = new Metrivum.Messaging.Infrastructure.MessagingDbContext(
             new DbContextOptionsBuilder<Metrivum.Messaging.Infrastructure.MessagingDbContext>()
-                .UseNpgsql(Database).AddInterceptors(commands).Options);
-        var result = await new Metrivum.Messaging.Infrastructure.MessagingAnalytics(messaging).QueryAsync(scope, default);
+                .UseNpgsql(Database)
+                .AddInterceptors(commands)
+                .Options
+        );
+        var result = await new Metrivum.Messaging.Infrastructure.MessagingAnalytics(
+            messaging
+        ).QueryAsync(scope, default);
         Assert.Equal(new MessagingAnalysis(0, 0, 0), result);
         Assert.Equal(1, commands.Count);
     }
@@ -151,7 +220,10 @@ public sealed class AnalyticsTests
     {
         var commands = new AnalyticsCommands();
         await using var db = new BillingDbContext(
-            new DbContextOptionsBuilder<BillingDbContext>().UseNpgsql(Database).AddInterceptors(commands).Options
+            new DbContextOptionsBuilder<BillingDbContext>()
+                .UseNpgsql(Database)
+                .AddInterceptors(commands)
+                .Options
         );
         var coach = Guid.NewGuid();
         var client = Guid.NewGuid();
@@ -269,10 +341,13 @@ public sealed class AnalyticsTests
         at = at.AddDays(-1);
         Add(40, "EUR", BillingContext.CoachingService, coach);
         await db.SaveChangesAsync();
-        var twoDays = await new BillingAnalytics(db).QueryAsync(scope with
-        {
-            Window = AnalysisDates.Create(new(2026, 10, 7), new(2026, 10, 8), "Europe/Warsaw"),
-        }, default);
+        var twoDays = await new BillingAnalytics(db).QueryAsync(
+            scope with
+            {
+                Window = AnalysisDates.Create(new(2026, 10, 7), new(2026, 10, 8), "Europe/Warsaw"),
+            },
+            default
+        );
         Assert.Equal(390, twoDays.Totals.Single(x => x.Currency == "EUR").Gross);
         Assert.Equal(1, twoDays.Totals.Single(x => x.Currency == "EUR").PayingClients);
         Assert.Equal(2, twoDays.Series.Count(x => x.Currency == "EUR"));
@@ -556,15 +631,29 @@ public sealed class AnalyticsTests
         var commands = new AnalyticsCommands();
         using var original = new ApiFactory(Database);
         using var factory = original.WithWebHostBuilder(b =>
-            b.UseSetting("AbuseProtection:Policies:analytics-query:Permits", "200").ConfigureServices(s => {
-                s.AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures());
-                s.ConfigureDbContext<Metrivum.Accounts.Infrastructure.AccountsDbContext>(options => options.AddInterceptors(commands));
-                s.ConfigureDbContext<CoachingDbContext>(options => options.AddInterceptors(commands));
-                s.ConfigureDbContext<BillingDbContext>(options => options.AddInterceptors(commands));
-                s.ConfigureDbContext<CheckInsDbContext>(options => options.AddInterceptors(commands));
-                s.ConfigureDbContext<MessagingDbContext>(options => options.AddInterceptors(commands));
-                s.ConfigureDbContext<Metrivum.Training.Infrastructure.TrainingDbContext>(options => options.AddInterceptors(commands));
-            })
+            b.UseSetting("AbuseProtection:Policies:analytics-query:Permits", "200")
+                .ConfigureServices(s =>
+                {
+                    s.AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures());
+                    s.ConfigureDbContext<Metrivum.Accounts.Infrastructure.AccountsDbContext>(
+                        options => options.AddInterceptors(commands)
+                    );
+                    s.ConfigureDbContext<CoachingDbContext>(options =>
+                        options.AddInterceptors(commands)
+                    );
+                    s.ConfigureDbContext<BillingDbContext>(options =>
+                        options.AddInterceptors(commands)
+                    );
+                    s.ConfigureDbContext<CheckInsDbContext>(options =>
+                        options.AddInterceptors(commands)
+                    );
+                    s.ConfigureDbContext<MessagingDbContext>(options =>
+                        options.AddInterceptors(commands)
+                    );
+                    s.ConfigureDbContext<Metrivum.Training.Infrastructure.TrainingDbContext>(
+                        options => options.AddInterceptors(commands)
+                    );
+                })
         );
         async Task<HttpClient> User(string role)
         {
@@ -631,65 +720,169 @@ public sealed class AnalyticsTests
         const string current = "?from=2026-10-01&to=2026-10-08&grouping=week";
         const string previous = "?from=2026-09-23&to=2026-09-30&grouping=week";
         commands.Count = 0;
-        Assert.Equal(HttpStatusCode.OK, (await coach.GetAsync("/api/v1/analyze/overview" + current)).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (await coach.GetAsync("/api/v1/analyze/overview" + current)).StatusCode
+        );
         var overviewReads = commands.Count;
-        Console.WriteLine($"Analytics cold overview: 1 HTTP request, {overviewReads} SQL reader commands.");
-        foreach (var sections in new[] {
-            new[] { "context" + current, "financial" + current, "financial" + previous },
-            new[] { "context" + current, "clients" + current, "clients" + previous, "acquisition" + current },
-            new[] { "context" + current, "check-ins" + current, "check-ins" + previous, "messaging" + current },
-            new[] { "context" + current, "training" + current },
-        })
+        Console.WriteLine(
+            $"Analytics cold overview: 1 HTTP request, {overviewReads} SQL reader commands."
+        );
+        foreach (
+            var sections in new[]
+            {
+                new[] { "context" + current, "financial" + current, "financial" + previous },
+                new[]
+                {
+                    "context" + current,
+                    "clients" + current,
+                    "clients" + previous,
+                    "acquisition" + current,
+                },
+                new[]
+                {
+                    "context" + current,
+                    "check-ins" + current,
+                    "check-ins" + previous,
+                    "messaging" + current,
+                },
+                new[] { "context" + current, "training" + current },
+            }
+        )
         {
             commands.Count = 0;
             foreach (var section in sections)
-                Assert.Equal(HttpStatusCode.OK, (await coach.GetAsync("/api/v1/analyze/" + section)).StatusCode);
-            Console.WriteLine($"Analytics cold {sections[1].Split('?')[0]}: {sections.Length} HTTP requests, {commands.Count} SQL reader commands.");
-            Assert.True(commands.Count < overviewReads, $"Selected tab {sections[1]} used {commands.Count} SQL commands; overview used {overviewReads}.");
+                Assert.Equal(
+                    HttpStatusCode.OK,
+                    (await coach.GetAsync("/api/v1/analyze/" + section)).StatusCode
+                );
+            Console.WriteLine(
+                $"Analytics cold {sections[1].Split('?')[0]}: {sections.Length} HTTP requests, {commands.Count} SQL reader commands."
+            );
+            Assert.True(
+                commands.Count < overviewReads,
+                $"Selected tab {sections[1]} used {commands.Count} SQL commands; overview used {overviewReads}."
+            );
         }
-        using (var isolated = original.WithWebHostBuilder(b => b.ConfigureServices(services =>
-            services.AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures())
-                .AddScoped<IMessagingAnalytics>(_ => new UnexpectedMessaging()))))
+        using (
+            var isolated = original.WithWebHostBuilder(b =>
+                b.ConfigureServices(services =>
+                    services
+                        .AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures())
+                        .AddScoped<IMessagingAnalytics>(_ => new UnexpectedMessaging())
+                )
+            )
+        )
         using (var training = isolated.CreateClient())
         {
-            training.DefaultRequestHeaders.Authorization = coach.DefaultRequestHeaders.Authorization;
-            foreach (var section in new[] { "context", "financial", "clients", "acquisition", "check-ins", "training" })
-                Assert.Equal(HttpStatusCode.OK, (await training.GetAsync($"/api/v1/analyze/{section}")).StatusCode);
+            training.DefaultRequestHeaders.Authorization = coach
+                .DefaultRequestHeaders
+                .Authorization;
+            foreach (
+                var section in new[]
+                {
+                    "context",
+                    "financial",
+                    "clients",
+                    "acquisition",
+                    "check-ins",
+                    "training",
+                }
+            )
+                Assert.Equal(
+                    HttpStatusCode.OK,
+                    (await training.GetAsync($"/api/v1/analyze/{section}")).StatusCode
+                );
         }
-        using (var isolated = original.WithWebHostBuilder(b => b.ConfigureServices(services =>
-            services.AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures())
-                .AddScoped<IFinanceAnalytics>(_ => new UnexpectedFinance())
-                .AddScoped<ICheckInsAnalytics>(_ => new UnexpectedCheckIns())
-                .AddScoped<Metrivum.Training.Contracts.ITrainingProgressReader>(_ => new UnexpectedTraining()))))
+        using (
+            var isolated = original.WithWebHostBuilder(b =>
+                b.ConfigureServices(services =>
+                    services
+                        .AddScoped<IFeatureAccessService>(_ => new AnalyticsFeatures())
+                        .AddScoped<IFinanceAnalytics>(_ => new UnexpectedFinance())
+                        .AddScoped<ICheckInsAnalytics>(_ => new UnexpectedCheckIns())
+                        .AddScoped<Metrivum.Training.Contracts.ITrainingProgressReader>(
+                            _ => new UnexpectedTraining()
+                        )
+                )
+            )
+        )
         using (var light = isolated.CreateClient())
         {
             light.DefaultRequestHeaders.Authorization = coach.DefaultRequestHeaders.Authorization;
             foreach (var section in new[] { "context", "clients", "acquisition", "messaging" })
-                Assert.Equal(HttpStatusCode.OK, (await light.GetAsync($"/api/v1/analyze/{section}")).StatusCode);
+                Assert.Equal(
+                    HttpStatusCode.OK,
+                    (await light.GetAsync($"/api/v1/analyze/{section}")).StatusCode
+                );
         }
-        var metadata = await coach.GetAsync("/api/v1/analyze/context?from=2026-10-01&to=2026-10-08");
+        var metadata = await coach.GetAsync(
+            "/api/v1/analyze/context?from=2026-10-01&to=2026-10-08"
+        );
         Assert.Equal(HttpStatusCode.OK, metadata.StatusCode);
-        using (var json = System.Text.Json.JsonDocument.Parse(await metadata.Content.ReadAsStringAsync()))
+        using (
+            var json = System.Text.Json.JsonDocument.Parse(
+                await metadata.Content.ReadAsStringAsync()
+            )
+        )
         {
-            Assert.Equal("2026-10-01", json.RootElement.GetProperty("period").GetProperty("from").GetString());
-            Assert.Equal("2026-09-23", json.RootElement.GetProperty("comparisonPeriod").GetProperty("from").GetString());
+            Assert.Equal(
+                "2026-10-01",
+                json.RootElement.GetProperty("period").GetProperty("from").GetString()
+            );
+            Assert.Equal(
+                "2026-09-23",
+                json.RootElement.GetProperty("comparisonPeriod").GetProperty("from").GetString()
+            );
             Assert.True(json.RootElement.TryGetProperty("filters", out _));
             Assert.False(json.RootElement.TryGetProperty("finance", out _));
             Assert.False(json.RootElement.TryGetProperty("messaging", out _));
         }
-        Assert.Equal(new MessagingAnalysis(0, 0, 0), await coach.GetFromJsonAsync<MessagingAnalysis>("/api/v1/analyze/messaging"));
-        foreach (var section in new[] { "context", "messaging", "financial", "clients", "acquisition", "check-ins", "training" })
+        Assert.Equal(
+            new MessagingAnalysis(0, 0, 0),
+            await coach.GetFromJsonAsync<MessagingAnalysis>("/api/v1/analyze/messaging")
+        );
+        foreach (
+            var section in new[]
+            {
+                "context",
+                "messaging",
+                "financial",
+                "clients",
+                "acquisition",
+                "check-ins",
+                "training",
+            }
+        )
         {
-            Assert.Equal(HttpStatusCode.OK, (await coach.GetAsync(
-                $"/api/v1/analyze/{section}?from=2026-10-01&to=2026-10-08&grouping=week")).StatusCode);
-            Assert.Equal(HttpStatusCode.BadRequest, (await coach.GetAsync(
-                $"/api/v1/analyze/{section}?grouping=invalid")).StatusCode);
-            Assert.Equal(HttpStatusCode.BadRequest, (await coach.GetAsync(
-                $"/api/v1/analyze/{section}?from=1901-01-01&to=1901-01-01")).StatusCode);
-            Assert.Equal(HttpStatusCode.NotFound, (await coach.GetAsync(
-                $"/api/v1/analyze/{section}?groupId={Guid.NewGuid()}")).StatusCode);
-            Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync(
-                $"/api/v1/analyze/{section}")).StatusCode);
+            Assert.Equal(
+                HttpStatusCode.OK,
+                (
+                    await coach.GetAsync(
+                        $"/api/v1/analyze/{section}?from=2026-10-01&to=2026-10-08&grouping=week"
+                    )
+                ).StatusCode
+            );
+            Assert.Equal(
+                HttpStatusCode.BadRequest,
+                (await coach.GetAsync($"/api/v1/analyze/{section}?grouping=invalid")).StatusCode
+            );
+            Assert.Equal(
+                HttpStatusCode.BadRequest,
+                (
+                    await coach.GetAsync($"/api/v1/analyze/{section}?from=1901-01-01&to=1901-01-01")
+                ).StatusCode
+            );
+            Assert.Equal(
+                HttpStatusCode.NotFound,
+                (
+                    await coach.GetAsync($"/api/v1/analyze/{section}?groupId={Guid.NewGuid()}")
+                ).StatusCode
+            );
+            Assert.Equal(
+                HttpStatusCode.Forbidden,
+                (await client.GetAsync($"/api/v1/analyze/{section}")).StatusCode
+            );
         }
         var windowsZone = await coach.GetFromJsonAsync<AnalysisOverview>(
             "/api/v1/analyze/overview?from=2026-10-01&to=2026-10-08&timeZone=Pacific%20Standard%20Time"
@@ -700,7 +893,9 @@ public sealed class AnalyticsTests
     private sealed class UnexpectedMessaging : IMessagingAnalytics
     {
         public Task<MessagingAnalysis> QueryAsync(AnalysisScope scope, CancellationToken ct) =>
-            throw new InvalidOperationException("Section routes must not query overview messaging.");
+            throw new InvalidOperationException(
+                "Section routes must not query overview messaging."
+            );
     }
 
     private sealed class UnexpectedFinance : IFinanceAnalytics
@@ -717,19 +912,22 @@ public sealed class AnalyticsTests
 
     private sealed class UnexpectedTraining : Metrivum.Training.Contracts.ITrainingProgressReader
     {
-        public Task<Metrivum.Training.Contracts.TrainingProgressDto> ReadAsync(Metrivum.Training.Contracts.TrainingProgressQuery query, CancellationToken ct) =>
-            throw new InvalidOperationException("Unrelated sections must not query training.");
+        public Task<Metrivum.Training.Contracts.TrainingProgressDto> ReadAsync(
+            Metrivum.Training.Contracts.TrainingProgressQuery query,
+            CancellationToken ct
+        ) => throw new InvalidOperationException("Unrelated sections must not query training.");
     }
 
     private sealed class AnalyticsCommands : DbCommandInterceptor
     {
-        public int Count
-        {
-            get; set;
-        }
+        public int Count { get; set; }
+
         public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
-            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result,
-            CancellationToken cancellationToken = default)
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default
+        )
         {
             Count++;
             return ValueTask.FromResult(result);

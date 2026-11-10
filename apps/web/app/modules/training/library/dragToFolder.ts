@@ -9,9 +9,12 @@ import { getPlan, saveDraft, updateFolder } from "../api";
 import { trainingKeys } from "../queries";
 
 /** What is being dragged in the library: a plan (by id) or a folder (with what a move needs). */
-export type DragItem = { kind: "plan"; id: string; name: string } | { kind: "folder"; folder: FolderDto };
+export type DragItem =
+  | { kind: "plan"; id: string; name: string }
+  | { kind: "folder"; folder: FolderDto };
 
-const itemId = (item: DragItem) => (item.kind === "plan" ? item.id : item.folder.id);
+const itemId = (item: DragItem) =>
+  item.kind === "plan" ? item.id : item.folder.id;
 
 /**
  * Drag and drop in the library: plans and folders can be dropped onto a folder (or onto the
@@ -27,17 +30,49 @@ export function useDragToFolder(enabled: boolean) {
   const [over, setOver] = useState<string | null>(null);
 
   const move = useMutation({
-    mutationFn: async ({ item, folderId }: { item: DragItem; folderId: string | null }) => {
+    mutationFn: async ({
+      item,
+      folderId,
+    }: {
+      item: DragItem;
+      folderId: string | null;
+    }) => {
       if (item.kind === "folder") {
         const f = item.folder;
-        return updateFolder(api, f.id, { name: f.name, parentId: folderId, position: f.position }, f.version);
+        return updateFolder(
+          api,
+          f.id,
+          { name: f.name, parentId: folderId, position: f.position },
+          f.version,
+        );
       }
       const current = await getPlan(api, item.id);
-      return saveDraft(api, item.id, { name: current.data.name, description: current.data.description, folderId, document: current.data.document }, current.version);
+      return saveDraft(
+        api,
+        item.id,
+        {
+          name: current.data.name,
+          description: current.data.description,
+          folderId,
+          document: current.data.document,
+        },
+        current.version,
+      );
     },
     onSuccess: (_, { item }) => {
-      void queryClient.invalidateQueries({ queryKey: item.kind === "folder" ? trainingKeys.folders(a) : trainingKeys.plans(a) });
-      toast({ tone: "success", title: item.kind === "folder" ? m.training.library.folder.moved : m.training.library.moveDialog.moved });
+      void queryClient.invalidateQueries({
+        queryKey:
+          item.kind === "folder"
+            ? trainingKeys.folders(a)
+            : trainingKeys.plans(a),
+      });
+      toast({
+        tone: "success",
+        title:
+          item.kind === "folder"
+            ? m.training.library.folder.moved
+            : m.training.library.moveDialog.moved,
+      });
     },
     onError: (error) => showError(error),
   });
@@ -45,7 +80,11 @@ export function useDragToFolder(enabled: boolean) {
   /** Whether the dragged item may go into this folder (never into itself or where it already is). */
   const accepts = (folderId: string | null, currentParent?: string | null) => {
     if (!dragging) return false;
-    if (dragging.kind === "folder" && (dragging.folder.id === folderId || dragging.folder.parentId === folderId)) return false;
+    if (
+      dragging.kind === "folder" &&
+      (dragging.folder.id === folderId || dragging.folder.parentId === folderId)
+    )
+      return false;
     return currentParent === undefined || currentParent !== folderId;
   };
 
@@ -55,10 +94,14 @@ export function useDragToFolder(enabled: boolean) {
       ? {
           draggable: true,
           "data-drag-source": true,
-          "data-dragging": (dragging && itemId(dragging) === itemId(item)) || undefined,
+          "data-dragging":
+            (dragging && itemId(dragging) === itemId(item)) || undefined,
           onDragStart: (event: React.DragEvent) => {
             event.dataTransfer.effectAllowed = "move";
-            event.dataTransfer.setData("text/plain", item.kind === "plan" ? item.name : item.folder.name);
+            event.dataTransfer.setData(
+              "text/plain",
+              item.kind === "plan" ? item.name : item.folder.name,
+            );
             setDragging(item);
           },
           onDragEnd: () => {
@@ -69,7 +112,11 @@ export function useDragToFolder(enabled: boolean) {
       : {};
 
   /** Props for a folder (or the parent strip, `key` "parent") that takes drops. */
-  const target = (folderId: string | null, key: string, currentParent?: string | null) => ({
+  const target = (
+    folderId: string | null,
+    key: string,
+    currentParent?: string | null,
+  ) => ({
     "data-drop-over": over === key || undefined,
     onDragOver: (event: React.DragEvent) => {
       if (!accepts(folderId, currentParent)) return;
@@ -78,7 +125,8 @@ export function useDragToFolder(enabled: boolean) {
       if (over !== key) setOver(key);
     },
     onDragLeave: (event: React.DragEvent) => {
-      if (!event.currentTarget.contains(event.relatedTarget as Node)) setOver((o) => (o === key ? null : o));
+      if (!event.currentTarget.contains(event.relatedTarget as Node))
+        setOver((o) => (o === key ? null : o));
     },
     onDrop: (event: React.DragEvent) => {
       if (!dragging || !accepts(folderId, currentParent)) return;
@@ -90,7 +138,8 @@ export function useDragToFolder(enabled: boolean) {
   });
 
   /** Moves an item without dragging (e.g. "Move up" in a menu). */
-  const moveTo = (item: DragItem, folderId: string | null) => move.mutate({ item, folderId });
+  const moveTo = (item: DragItem, folderId: string | null) =>
+    move.mutate({ item, folderId });
 
   return { dragging, source, target, moveTo, moving: move.isPending };
 }

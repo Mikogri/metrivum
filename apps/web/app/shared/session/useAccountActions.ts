@@ -18,7 +18,10 @@ export function useAccountActions(confirmDiscard: () => Promise<boolean>) {
   const navigate = useNavigate();
   const m = useT();
 
-  const guard = useCallback(async () => (hasUnsavedWork() ? confirmDiscard() : true), [confirmDiscard]);
+  const guard = useCallback(
+    async () => (hasUnsavedWork() ? confirmDiscard() : true),
+    [confirmDiscard],
+  );
 
   const switchTo = useCallback(
     async (slot: SlotId) => {
@@ -43,12 +46,17 @@ export function useAccountActions(confirmDiscard: () => Promise<boolean>) {
       const account = state.accounts.find((a) => a.slot === slot);
       if (account) userInitiatedSignOuts.add(account.userId);
       await manager.signOut(slot);
-      if (account?.email) toast({ tone: "neutral", title: m.accounts.signedOutToast(account.email) });
+      if (account?.email)
+        toast({
+          tone: "neutral",
+          title: m.accounts.signedOutToast(account.email),
+        });
       if (!isActive) return;
       // The manager has already made the next account active: continue there straight away.
       const next = manager.getState();
       const now = next.accounts.find((a) => a.slot === next.activeSlot);
-      if (now?.email) toast({ tone: "neutral", title: m.accounts.switchedTo(now.email) });
+      if (now?.email)
+        toast({ tone: "neutral", title: m.accounts.switchedTo(now.email) });
       navigate(now ? "/app" : "/auth/login", { replace: true });
     },
     [guard, manager, navigate, state.accounts, state.activeSlot, m],
@@ -63,5 +71,11 @@ export function useAccountActions(confirmDiscard: () => Promise<boolean>) {
     navigate("/auth/login", { replace: true });
   }, [guard, manager, navigate, state.accounts]);
 
-  return { switchTo, addAccount, signOut, signOutAll, canAdd: manager.slotForNewSignIn() !== null };
+  return {
+    switchTo,
+    addAccount,
+    signOut,
+    signOutAll,
+    canAdd: manager.slotForNewSignIn() !== null,
+  };
 }

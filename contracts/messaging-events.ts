@@ -1,14 +1,20 @@
-import type { components } from './generated/api';
+import type { components } from "./generated/api";
 
 // SignalR JSON payloads. REST remains authoritative after reconnect or missed events.
 export interface MessagingServerEvents {
-  MessageDeleted: (message: components['schemas']['MessageDto']) => void;
-  MessageCreated: (message: components['schemas']['MessageDto']) => void;
+  MessageDeleted: (message: components["schemas"]["MessageDto"]) => void;
+  MessageCreated: (message: components["schemas"]["MessageDto"]) => void;
   ConversationUpdated: (event: { conversationId: string }) => void;
-  MembershipChanged: (event: { conversationId: string; userId?: string }) => void;
-  ReadMarkerChanged: (event: { conversationId: string; userId: string }) => void;
-  MessageRequestCreated: (request: components['schemas']['RequestDto']) => void;
-  MessageRequestUpdated: (request: components['schemas']['RequestDto']) => void;
+  MembershipChanged: (event: {
+    conversationId: string;
+    userId?: string;
+  }) => void;
+  ReadMarkerChanged: (event: {
+    conversationId: string;
+    userId: string;
+  }) => void;
+  MessageRequestCreated: (request: components["schemas"]["RequestDto"]) => void;
+  MessageRequestUpdated: (request: components["schemas"]["RequestDto"]) => void;
   TypingChanged: (event: {
     conversationId: string;
     userId: string;

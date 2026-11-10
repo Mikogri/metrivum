@@ -20,10 +20,18 @@ export function PublicFooter() {
         </div>
         <nav aria-label={m.footer.product} className={styles.column}>
           <p className={styles.heading}>{m.footer.product}</p>
-          <RouterLink to={publicPath("features", locale)}>{m.nav.features}</RouterLink>
-          <RouterLink to={publicPath("programBuilder", locale)}>{m.nav.programBuilder}</RouterLink>
-          <RouterLink to={publicPath("videoAnalysis", locale)}>{m.nav.videoAnalysis}</RouterLink>
-          <RouterLink to={`${publicPath("home", locale)}#pricing`}>{m.nav.pricing}</RouterLink>
+          <RouterLink to={publicPath("features", locale)}>
+            {m.nav.features}
+          </RouterLink>
+          <RouterLink to={publicPath("programBuilder", locale)}>
+            {m.nav.programBuilder}
+          </RouterLink>
+          <RouterLink to={publicPath("videoAnalysis", locale)}>
+            {m.nav.videoAnalysis}
+          </RouterLink>
+          <RouterLink to={`${publicPath("home", locale)}#pricing`}>
+            {m.nav.pricing}
+          </RouterLink>
         </nav>
         <nav aria-label={m.footer.account} className={styles.column}>
           <p className={styles.heading}>{m.footer.account}</p>

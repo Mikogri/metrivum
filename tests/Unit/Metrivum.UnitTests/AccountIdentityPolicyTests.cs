@@ -13,7 +13,8 @@ public sealed class AccountIdentityPolicyTests
     [InlineData("coach")]
     [InlineData("client")]
     [InlineData("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef")]
-    public void Accepts_public_ascii_usernames(string username) => AccountIdentityPolicy.ValidateUsername(username);
+    public void Accepts_public_ascii_usernames(string username) =>
+        AccountIdentityPolicy.ValidateUsername(username);
 
     [Theory]
     [InlineData("", "USERNAME_INVALID")]
@@ -42,7 +43,9 @@ public sealed class AccountIdentityPolicyTests
     [InlineData("trainflowcoach", "USERNAME_RESERVED")]
     public void Rejects_unsafe_or_reserved_usernames(string username, string code)
     {
-        var error = Assert.Throws<ApiException>(() => AccountIdentityPolicy.ValidateUsername(username));
+        var error = Assert.Throws<ApiException>(() =>
+            AccountIdentityPolicy.ValidateUsername(username)
+        );
         Assert.Equal(400, error.Status);
         Assert.Equal(code, error.Code);
         Assert.True(error.Errors!.ContainsKey("username"));
@@ -50,7 +53,10 @@ public sealed class AccountIdentityPolicyTests
 
     [Fact]
     public void Username_message_is_plain_text() =>
-        Assert.DoesNotContain("â", Assert.Throws<ApiException>(() => AccountIdentityPolicy.ValidateUsername("x")).Message);
+        Assert.DoesNotContain(
+            "â",
+            Assert.Throws<ApiException>(() => AccountIdentityPolicy.ValidateUsername("x")).Message
+        );
 
     [Theory]
     [InlineData("Anna Kowalska", "Anna Kowalska")]
@@ -86,7 +92,9 @@ public sealed class AccountIdentityPolicyTests
     [InlineData("​​​")]
     public void Rejects_invisible_control_and_direction_characters(string input)
     {
-        var error = Assert.Throws<ApiException>(() => AccountIdentityPolicy.NormalizeDisplayName(input));
+        var error = Assert.Throws<ApiException>(() =>
+            AccountIdentityPolicy.NormalizeDisplayName(input)
+        );
         Assert.Equal("DISPLAY_NAME_INVALID", error.Code);
         Assert.True(error.Errors!.ContainsKey("displayName"));
     }
@@ -95,16 +103,25 @@ public sealed class AccountIdentityPolicyTests
     [InlineData(0x2028)] // Line separator (C# cannot hold it inside a literal).
     [InlineData(0x2029)] // Paragraph separator.
     public void Rejects_unicode_line_breaks(int codePoint) =>
-        Assert.Throws<ApiException>(() => AccountIdentityPolicy.NormalizeDisplayName("Anna" + (char)codePoint + "Kowalska"));
+        Assert.Throws<ApiException>(() =>
+            AccountIdentityPolicy.NormalizeDisplayName("Anna" + (char)codePoint + "Kowalska")
+        );
 
     [Fact]
     public void Rejects_unpaired_surrogates() =>
-        Assert.Throws<ApiException>(() => AccountIdentityPolicy.NormalizeDisplayName("Anna" + (char)0xD800));
+        Assert.Throws<ApiException>(() =>
+            AccountIdentityPolicy.NormalizeDisplayName("Anna" + (char)0xD800)
+        );
 
     [Fact]
     public void Length_is_checked_after_normalisation()
     {
-        Assert.Equal(new string('a', 100), AccountIdentityPolicy.NormalizeDisplayName("  " + new string('a', 100) + "  "));
-        Assert.Throws<ApiException>(() => AccountIdentityPolicy.NormalizeDisplayName(new string('a', 101)));
+        Assert.Equal(
+            new string('a', 100),
+            AccountIdentityPolicy.NormalizeDisplayName("  " + new string('a', 100) + "  ")
+        );
+        Assert.Throws<ApiException>(() =>
+            AccountIdentityPolicy.NormalizeDisplayName(new string('a', 101))
+        );
     }
 }

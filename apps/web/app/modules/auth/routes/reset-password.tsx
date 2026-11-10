@@ -1,14 +1,29 @@
 import { useState, type FormEvent } from "react";
 import { CircleCheck } from "lucide-react";
-import { Alert, Button, EmptyState, ErrorState, LinkButton, TextField } from "@metrivum/ui-web";
+import {
+  Alert,
+  Button,
+  EmptyState,
+  ErrorState,
+  LinkButton,
+  TextField,
+} from "@metrivum/ui-web";
 import { BootScreen } from "~/modules/accounts";
 import { useT } from "~/shared/i18n/AppLocale";
-import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
+import {
+  useSessionManager,
+  useSessionState,
+} from "~/shared/session/SessionProvider";
 import { AuthHeader } from "../components/AuthHeader";
 import { SecondFactorForm } from "../components/SecondFactorForm";
 import form from "../components/form.module.css";
 import { securityErrorCode } from "../lib/accountSecurity";
-import { clearPasswordRecovery, hasPasswordRecovery, needsSecondFactor, verifiedTotp } from "../lib/assurance";
+import {
+  clearPasswordRecovery,
+  hasPasswordRecovery,
+  needsSecondFactor,
+  verifiedTotp,
+} from "../lib/assurance";
 import { authErrorText, passwordProblem } from "../lib/authErrors";
 import { privateMeta } from "~/shared/i18n/site";
 
@@ -33,7 +48,18 @@ export default function ResetPassword() {
   if (state.phase === "loading") return <BootScreen />;
   const account = state.accounts.find((a) => a.slot === state.activeSlot);
   if (done) {
-    return <EmptyState icon={<CircleCheck />} title={t.doneTitle} description={t.doneBody} actions={<LinkButton href="/app/dashboard" variant="primary">{t.continue}</LinkButton>} />;
+    return (
+      <EmptyState
+        icon={<CircleCheck />}
+        title={t.doneTitle}
+        description={t.doneBody}
+        actions={
+          <LinkButton href="/app/dashboard" variant="primary">
+            {t.continue}
+          </LinkButton>
+        }
+      />
+    );
   }
   // The recovery link signs the user in through /auth/callback; without that the link was invalid, expired or opened elsewhere.
   if (!account || !hasPasswordRecovery(account.slot, account.userId)) {
@@ -41,9 +67,20 @@ export default function ResetPassword() {
       <ErrorState
         title={t.invalidTitle}
         description={account ? t.notFromLink : t.noSession}
-        actions={account
-          ? <LinkButton href="/app/settings/security/change-password" variant="primary">{m.accountSecurity.password.send}</LinkButton>
-          : <LinkButton href="/auth/forgot-password" variant="primary">{t.requestNew}</LinkButton>}
+        actions={
+          account ? (
+            <LinkButton
+              href="/app/settings/security/change-password"
+              variant="primary"
+            >
+              {m.accountSecurity.password.send}
+            </LinkButton>
+          ) : (
+            <LinkButton href="/auth/forgot-password" variant="primary">
+              {t.requestNew}
+            </LinkButton>
+          )
+        }
       />
     );
   }
@@ -52,8 +89,17 @@ export default function ResetPassword() {
   if (needsSecondFactor(account.session)) {
     return (
       <>
-        <AuthHeader title={m.accountSecurity.challenge.stepUpTitle} subtitle={m.accountSecurity.challenge.stepUpBody} />
-        <SecondFactorForm slot={slot} factors={verifiedTotp(account.session.user)} onVerified={async (session) => { await manager.completeSignIn(slot, session); }} />
+        <AuthHeader
+          title={m.accountSecurity.challenge.stepUpTitle}
+          subtitle={m.accountSecurity.challenge.stepUpBody}
+        />
+        <SecondFactorForm
+          slot={slot}
+          factors={verifiedTotp(account.session.user)}
+          onVerified={async (session) => {
+            await manager.completeSignIn(slot, session);
+          }}
+        />
         <p className={form.note}>{m.accountSecurity.challenge.lost}</p>
       </>
     );
@@ -75,7 +121,11 @@ export default function ResetPassword() {
       await client.auth.signOut({ scope: "others" }).catch(() => undefined);
       setDone(true);
     } catch (caught) {
-      setError(securityErrorCode(caught) === "same_password" ? m.settings.security.samePassword : authErrorText(m, caught));
+      setError(
+        securityErrorCode(caught) === "same_password"
+          ? m.settings.security.samePassword
+          : authErrorText(m, caught),
+      );
     } finally {
       setPending(false);
     }
@@ -87,8 +137,16 @@ export default function ResetPassword() {
       {error ? <Alert tone="danger" title={error} live="assertive" /> : null}
       <form className={form.form} onSubmit={onSubmit} noValidate>
         {/* The account's email for password managers, which pair the new password with it. */}
-        <input type="email" name="username" autoComplete="username" value={account.email ?? ""} readOnly hidden />
-        <TextField placeholder={m.common.ph.newPassword}
+        <input
+          type="email"
+          name="username"
+          autoComplete="username"
+          value={account.email ?? ""}
+          readOnly
+          hidden
+        />
+        <TextField
+          placeholder={m.common.ph.newPassword}
           label={t.newPassword}
           type="password"
           autoComplete="new-password"
@@ -100,7 +158,8 @@ export default function ResetPassword() {
           isInvalid={submitted && Boolean(weak)}
           errorMessage={weak ?? undefined}
         />
-        <TextField placeholder={m.common.ph.confirmPassword}
+        <TextField
+          placeholder={m.common.ph.confirmPassword}
           label={t.confirm}
           type="password"
           autoComplete="new-password"

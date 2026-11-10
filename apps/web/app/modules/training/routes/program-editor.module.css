@@ -25,6 +25,11 @@
 }
 
 @media (max-width: 767px) {
-  .loadingColumns { grid-template-columns: minmax(0, 1fr); }
-  .center { min-width: 0; padding: var(--tf-space-4); }
+  .loadingColumns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .center {
+    min-width: 0;
+    padding: var(--tf-space-4);
+  }
 }

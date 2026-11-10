@@ -7,7 +7,8 @@
   gap: var(--tf-space-8);
   max-width: var(--tf-content-max);
   margin: 0 auto;
-  padding: clamp(var(--tf-space-16), 10vw, 8rem) var(--tf-space-5) clamp(var(--tf-space-12), 8vw, var(--tf-space-24));
+  padding: clamp(var(--tf-space-16), 10vw, 8rem) var(--tf-space-5)
+    clamp(var(--tf-space-12), 8vw, var(--tf-space-24));
 }
 
 .ladder {

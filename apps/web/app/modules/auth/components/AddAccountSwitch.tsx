@@ -5,7 +5,13 @@ import type { SlotId } from "~/shared/session/storage-keys";
 import styles from "./AddAccountSwitch.module.css";
 
 /** When adding an account: sign in to an existing one or create a new one, in the same free slot. */
-export function AddAccountSwitch({ current, slot }: { current: "login" | "register"; slot: SlotId }) {
+export function AddAccountSwitch({
+  current,
+  slot,
+}: {
+  current: "login" | "register";
+  slot: SlotId;
+}) {
   const m = useT();
   const navigate = useNavigate();
   return (
@@ -15,7 +21,11 @@ export function AddAccountSwitch({ current, slot }: { current: "login" | "regist
       selectedKeys={[current]}
       onSelectionChange={(keys) => {
         const key = [...keys][0];
-        if (key && key !== current) navigate(`/auth/${key === "login" ? "login" : "register"}?slot=${slot}&add=1`, { replace: true });
+        if (key && key !== current)
+          navigate(
+            `/auth/${key === "login" ? "login" : "register"}?slot=${slot}&add=1`,
+            { replace: true },
+          );
       }}
     >
       <Segment id="login">{m.auth.login.signInTab}</Segment>

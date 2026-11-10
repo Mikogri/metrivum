@@ -28,9 +28,17 @@ function workoutDoc() {
   doc = day.doc;
   const workout = addWorkout(doc, day.id!, "Lower");
   doc = workout.doc;
-  const squat = addExercise(doc, workout.id!, "11111111-1111-1111-1111-111111111111");
+  const squat = addExercise(
+    doc,
+    workout.id!,
+    "11111111-1111-1111-1111-111111111111",
+  );
   doc = squat.doc;
-  const rdl = addExercise(doc, workout.id!, "22222222-2222-2222-2222-222222222222");
+  const rdl = addExercise(
+    doc,
+    workout.id!,
+    "22222222-2222-2222-2222-222222222222",
+  );
   doc = rdl.doc;
   return { doc, cycleId: cycle.id!, workoutId: workout.id!, squat, rdl };
 }
@@ -53,7 +61,9 @@ describe("document model", () => {
     const second = addSet(doc, squat.id!, squat.setId!);
     doc = changeSetKind(second.doc, squat.setId!, "TopSet");
     doc = changeSetKind(doc, second.id!, "BackOff");
-    const sets = () => findWorkout(doc, doc.blocks[0]!.cycles[0]!.days[0]!.workouts[0]!.id)!.exercises[0]!.sets;
+    const sets = () =>
+      findWorkout(doc, doc.blocks[0]!.cycles[0]!.days[0]!.workouts[0]!.id)!
+        .exercises[0]!.sets;
     expect(sets()[1]!.sourceSetId).toBe(squat.setId);
     doc = removeNode(doc, squat.setId!);
     expect(sets()[0]!.kind).toBe("BackOff");
@@ -62,8 +72,12 @@ describe("document model", () => {
 
   it("does not create groups with duplicate or foreign exercise instances", () => {
     const { doc, workoutId, squat } = workoutDoc();
-    expect(makeGroup(doc, workoutId, [squat.id!, squat.id!], "Superset")).toBe(doc);
-    expect(makeGroup(doc, workoutId, [squat.id!, "foreign"], "Superset")).toBe(doc);
+    expect(makeGroup(doc, workoutId, [squat.id!, squat.id!], "Superset")).toBe(
+      doc,
+    );
+    expect(makeGroup(doc, workoutId, [squat.id!, "foreign"], "Superset")).toBe(
+      doc,
+    );
   });
 
   it("creates 2 segments for segmented kinds and drops them when switching back", () => {
@@ -71,7 +85,8 @@ describe("document model", () => {
     const squat = base.squat;
     let doc = base.doc;
     doc = changeSetKind(doc, squat.setId!, "Ramp");
-    const set = () => doc.blocks[0]!.cycles[0]!.days[0]!.workouts[0]!.exercises[0]!.sets[0]!;
+    const set = () =>
+      doc.blocks[0]!.cycles[0]!.days[0]!.workouts[0]!.exercises[0]!.sets[0]!;
     expect(set().segments).toHaveLength(2);
     doc = changeSetKind(doc, squat.setId!, "Standard");
     expect(set().segments).toBeUndefined();
@@ -87,8 +102,12 @@ describe("document model", () => {
     const workout = findWorkout(doc, workoutId)!;
     const copy = cloneWithNewIds(workout);
     expect(copy.id).not.toBe(workout.id);
-    expect(copy.exercises.map((e) => e.exerciseId)).toEqual(workout.exercises.map((e) => e.exerciseId));
-    expect(copy.groups[0]!.exerciseIds).toEqual(copy.exercises.map((e) => e.id));
+    expect(copy.exercises.map((e) => e.exerciseId)).toEqual(
+      workout.exercises.map((e) => e.exerciseId),
+    );
+    expect(copy.groups[0]!.exerciseIds).toEqual(
+      copy.exercises.map((e) => e.id),
+    );
     const result = duplicateNode(doc, workoutId);
     expect(result.id).not.toBeNull();
     const ids = new Set<string>();
@@ -113,7 +132,10 @@ describe("document model", () => {
   it("reorders exercises by drag target index", () => {
     const { doc, workoutId, squat, rdl } = workoutDoc();
     const moved = moveExerciseTo(doc, workoutId, rdl.id!, 0);
-    expect(findWorkout(moved, workoutId)!.exercises.map((e) => e.id)).toEqual([rdl.id, squat.id]);
+    expect(findWorkout(moved, workoutId)!.exercises.map((e) => e.id)).toEqual([
+      rdl.id,
+      squat.id,
+    ]);
   });
 
   it("undo/redo restores documents", () => {

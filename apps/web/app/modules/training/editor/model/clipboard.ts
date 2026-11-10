@@ -1,4 +1,8 @@
-import type { Prescription, SetKind, SetSegment } from "@metrivum/api-client-web";
+import type {
+  Prescription,
+  SetKind,
+  SetSegment,
+} from "@metrivum/api-client-web";
 
 /** Structured clipboard for set prescriptions; mirrored to the system clipboard as JSON. */
 export interface CopiedSet {
@@ -23,7 +27,13 @@ export function readCopiedSet(text?: string | null): CopiedSet | null {
   if (text) {
     try {
       const parsed = JSON.parse(text) as Partial<CopiedSet>;
-      if (parsed && parsed.type === "trainflow/set" && parsed.prescription && parsed.kind) return parsed as CopiedSet;
+      if (
+        parsed &&
+        parsed.type === "trainflow/set" &&
+        parsed.prescription &&
+        parsed.kind
+      )
+        return parsed as CopiedSet;
     } catch {
       return null;
     }

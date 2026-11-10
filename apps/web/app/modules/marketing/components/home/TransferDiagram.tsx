@@ -1,4 +1,10 @@
-import { ArrowRight, Check, Download, FileSpreadsheet, Upload } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Download,
+  FileSpreadsheet,
+  Upload,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { prefersReducedMotion, useInView } from "../../lib/useInView";
 import { usePublicMessages } from "../../messages";
@@ -33,17 +39,35 @@ export function TransferDiagram() {
       {/* 1 — the spreadsheet as it comes in */}
       <section className={styles.panel} aria-label={t.importLabel}>
         <header className={styles.panelHead}>
-          <span className={styles.panelKind}><Upload aria-hidden="true" />{t.importLabel}</span>
-          <span className={styles.fileName}><FileSpreadsheet aria-hidden="true" />{t.files.csvIn}</span>
+          <span className={styles.panelKind}>
+            <Upload aria-hidden="true" />
+            {t.importLabel}
+          </span>
+          <span className={styles.fileName}>
+            <FileSpreadsheet aria-hidden="true" />
+            {t.files.csvIn}
+          </span>
         </header>
         <table className={styles.sheet}>
           <thead>
-            <tr>{t.sheet.columns.map((c) => <th key={c} scope="col">{c}</th>)}</tr>
+            <tr>
+              {t.sheet.columns.map((c) => (
+                <th key={c} scope="col">
+                  {c}
+                </th>
+              ))}
+            </tr>
           </thead>
           <tbody>
             {t.sheet.rows.map((row, i) => (
-              <tr key={row[0]} data-read={step > 0 || undefined} style={{ "--i": i } as React.CSSProperties}>
-                {row.map((cell, j) => <td key={j}>{cell}</td>)}
+              <tr
+                key={row[0]}
+                data-read={step > 0 || undefined}
+                style={{ "--i": i } as React.CSSProperties}
+              >
+                {row.map((cell, j) => (
+                  <td key={j}>{cell}</td>
+                ))}
               </tr>
             ))}
           </tbody>
@@ -51,14 +75,21 @@ export function TransferDiagram() {
         <p className={styles.panelFoot}>{t.sourceMeta}</p>
       </section>
 
-      <span className={styles.joint} aria-hidden="true"><ArrowRight /></span>
+      <span className={styles.joint} aria-hidden="true">
+        <ArrowRight />
+      </span>
 
       {/* 2 — what happens to it */}
       <section className={styles.panel} aria-label={t.steps.join(", ")}>
         <ol className={styles.steps}>
           {t.steps.map((label, i) => (
-            <li key={label} data-state={i < step ? "done" : i === step ? "active" : "pending"}>
-              <span className={styles.stepMark} aria-hidden="true">{i < step ? <Check /> : i + 1}</span>
+            <li
+              key={label}
+              data-state={i < step ? "done" : i === step ? "active" : "pending"}
+            >
+              <span className={styles.stepMark} aria-hidden="true">
+                {i < step ? <Check /> : i + 1}
+              </span>
               {label}
             </li>
           ))}
@@ -66,7 +97,11 @@ export function TransferDiagram() {
         <div className={styles.mapping}>
           <p className={styles.mappingTitle}>{t.mapping.title}</p>
           {t.mapping.pairs.map(([from, to]) => (
-            <p key={from} className={styles.pair} data-on={step > 1 || undefined}>
+            <p
+              key={from}
+              className={styles.pair}
+              data-on={step > 1 || undefined}
+            >
               <code>{from}</code>
               <ArrowRight aria-hidden="true" />
               <span>{to}</span>
@@ -75,16 +110,24 @@ export function TransferDiagram() {
         </div>
         <p className={styles.check} data-ok={done || undefined}>
           <span>{t.hub.rows}</span>
-          <span className={styles.checkOk}><Check aria-hidden="true" />{t.hub.check}</span>
+          <span className={styles.checkOk}>
+            <Check aria-hidden="true" />
+            {t.hub.check}
+          </span>
         </p>
       </section>
 
-      <span className={styles.joint} aria-hidden="true"><ArrowRight /></span>
+      <span className={styles.joint} aria-hidden="true">
+        <ArrowRight />
+      </span>
 
       {/* 3 — the files a revision gives back */}
       <section className={styles.panel} aria-label={t.exportLabel}>
         <header className={styles.panelHead}>
-          <span className={styles.panelKind}><Download aria-hidden="true" />{t.exportLabel}</span>
+          <span className={styles.panelKind}>
+            <Download aria-hidden="true" />
+            {t.exportLabel}
+          </span>
           <span className={styles.fileName}>{t.outputs}</span>
         </header>
         <div className={styles.outputs}>
@@ -92,11 +135,23 @@ export function TransferDiagram() {
             <span className={styles.pageBadge}>PDF</span>
             <span className={styles.pageTitle}>{t.pdfTitle}</span>
             <span className={styles.pageMeta}>{t.pdfMeta}</span>
-            {[0, 1, 2, 3, 4].map((i) => <span key={i} className={styles.pageRow} style={{ "--w": `${92 - i * 9}%` } as React.CSSProperties} />)}
+            {[0, 1, 2, 3, 4].map((i) => (
+              <span
+                key={i}
+                className={styles.pageRow}
+                style={{ "--w": `${92 - i * 9}%` } as React.CSSProperties}
+              />
+            ))}
           </div>
           <div className={styles.files}>
-            <p className={styles.file}><span className={styles.fileKind}>PDF</span><span>{t.files.pdfOut}</span></p>
-            <p className={styles.file}><span className={styles.fileKind}>CSV</span><span>{t.files.csvOut}</span></p>
+            <p className={styles.file}>
+              <span className={styles.fileKind}>PDF</span>
+              <span>{t.files.pdfOut}</span>
+            </p>
+            <p className={styles.file}>
+              <span className={styles.fileKind}>CSV</span>
+              <span>{t.files.csvOut}</span>
+            </p>
             <p className={styles.fileMeta}>{t.revisionMeta}</p>
           </div>
         </div>

@@ -1,16 +1,61 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Data.Common;
 using Metrivum.Access.Contracts;
 using Metrivum.Accounts.Contracts;
 using Metrivum.BuildingBlocks;
 using Metrivum.ExerciseCatalog.Features;
 using Metrivum.ExerciseCatalog.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Metrivum.IntegrationTests;
 
 public sealed class CatalogPostgresTests
 {
+    [CatalogPostgresFact]
+    public async Task Keyword_search_ignores_word_order_and_requires_every_keyword_before_pagination()
+    {
+        using var db = Context();
+        var service = Service(db);
+        var tag = await service.CreateTagAsync($"Keyword search {Guid.NewGuid():N}", default);
+        foreach (
+            var name in new[]
+            {
+                "Cable Reverse Fly",
+                "Dumbbell Bench Press",
+                "Barbell Romanian Deadlift",
+                "Cable Chest Fly",
+            }
+        )
+            await service.CreateAsync(new(name, TagIds: [tag.Id]), default);
+        foreach (
+            var (search, expected) in new[]
+            {
+                ("Reverse Cable Fly", "Cable Reverse Fly"),
+                ("press dumbbell bench", "Dumbbell Bench Press"),
+                ("Romanian Barbell", "Barbell Romanian Deadlift"),
+                ("fly chest cable", "Cable Chest Fly"),
+                ("reverse reverse CABLE", "Cable Reverse Fly"),
+            }
+        )
+        {
+            var page = await service.ListAsync(
+                new(Search: search, TagId: tag.Id, PageSize: 1),
+                default
+            );
+            Assert.Equal(expected, Assert.Single(page.Items).Name);
+            Assert.Equal(1, page.Total);
+        }
+        Assert.Empty(
+            (await service.ListAsync(new(Search: "Cable Bench", TagId: tag.Id), default)).Items
+        );
+        var flies = await service.ListAsync(
+            new(Search: "fly cable", TagId: tag.Id, PageSize: 1),
+            default
+        );
+        Assert.Equal(2, flies.Total);
+        Assert.Single(flies.Items);
+    }
+
     [CatalogPostgresFact]
     public async Task Mcp_equipment_filter_uses_reviewed_metadata_without_hiding_custom_exercises_in_normal_search()
     {
@@ -18,18 +63,51 @@ public sealed class CatalogPostgresTests
         var service = Service(db);
         var name = $"MCP equipment {Guid.NewGuid():N}";
         var tag = await service.CreateTagAsync($"MCP tag {Guid.NewGuid():N}", default);
-        var created = await service.CreateAsync(new(name, "Custom catalogue entry", "Coach instructions", TagIds: [tag.Id]), default);
+        var created = await service.CreateAsync(
+            new(name, "Custom catalogue entry", "Coach instructions", TagIds: [tag.Id]),
+            default
+        );
         var adapter = new McpExerciseOperations(service);
         var ordinary = await adapter.SearchAsync(name, null, null, false, 1, 1, default, tag.Id);
         Assert.Equal(1, ordinary.Total);
         Assert.Equal(created.Id, Assert.Single(ordinary.Items).Id);
         Assert.Null((await adapter.GetAsync(created.Id, default)).GeneratorMetadata);
-        var equipment = await adapter.SearchAsync(name, null, null, false, 1, 1, default, tag.Id, []);
+        var equipment = await adapter.SearchAsync(
+            name,
+            null,
+            null,
+            false,
+            1,
+            1,
+            default,
+            tag.Id,
+            []
+        );
         Assert.Empty(equipment.Items);
         Assert.Equal(0, equipment.Total);
-        Assert.Equal("VALIDATION_FAILED", (await Assert.ThrowsAsync<ApiException>(() => adapter.SearchAsync(name,
-            null, null, false, 1, 1, default, availableEquipment: ["Unsafe equipment key!"]))).Code);
-        Assert.Equal(created.Id, Assert.Single((await service.ListAsync(new(Search: name, PageSize: 1), default)).Items).Id);
+        Assert.Equal(
+            "VALIDATION_FAILED",
+            (
+                await Assert.ThrowsAsync<ApiException>(() =>
+                    adapter.SearchAsync(
+                        name,
+                        null,
+                        null,
+                        false,
+                        1,
+                        1,
+                        default,
+                        availableEquipment: ["Unsafe equipment key!"]
+                    )
+                )
+            ).Code
+        );
+        Assert.Equal(
+            created.Id,
+            Assert
+                .Single((await service.ListAsync(new(Search: name, PageSize: 1), default)).Items)
+                .Id
+        );
     }
 
     [CatalogPostgresFact]
@@ -40,13 +118,26 @@ public sealed class CatalogPostgresTests
         var service = Service(setup, user);
         var firstTag = await service.CreateTagAsync($"Detail A {Guid.NewGuid():N}", default);
         var secondTag = await service.CreateTagAsync($"Detail B {Guid.NewGuid():N}", default);
-        var created = await service.CreateAsync(new($"Detail {Guid.NewGuid():N}", "Description", "Instructions",
-            TagIds: [firstTag.Id, secondTag.Id], PrimaryMuscleKeys: ["glutes", "quadriceps"],
-            SecondaryMuscleKeys: ["hamstrings"], MovementPatternKeys: ["squat", "hinge"]), default);
+        var created = await service.CreateAsync(
+            new(
+                $"Detail {Guid.NewGuid():N}",
+                "Description",
+                "Instructions",
+                TagIds: [firstTag.Id, secondTag.Id],
+                PrimaryMuscleKeys: ["glutes", "quadriceps"],
+                SecondaryMuscleKeys: ["hamstrings"],
+                MovementPatternKeys: ["squat", "hinge"]
+            ),
+            default
+        );
         await service.SetFavoriteAsync(created.Id, true, default);
         var commands = new CatalogQueryLog();
-        using var db = new ExerciseCatalogDbContext(new DbContextOptionsBuilder<ExerciseCatalogDbContext>()
-            .UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")).AddInterceptors(commands).Options);
+        using var db = new ExerciseCatalogDbContext(
+            new DbContextOptionsBuilder<ExerciseCatalogDbContext>()
+                .UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"))
+                .AddInterceptors(commands)
+                .Options
+        );
         var detail = await Service(db, user).GetAsync(created.Id, default);
         Assert.True(detail.IsFavorite);
         Assert.Equal(2, detail.Tags.Count);
@@ -59,12 +150,14 @@ public sealed class CatalogPostgresTests
 
     private sealed class CatalogQueryLog : DbCommandInterceptor
     {
-        public int Count
-        {
-            get; private set;
-        }
-        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData,
-            InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        public int Count { get; private set; }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default
+        )
         {
             Count++;
             return ValueTask.FromResult(result);
@@ -77,7 +170,10 @@ public sealed class CatalogPostgresTests
         var name = $"Concurrent {Guid.NewGuid():N}";
         using var first = Context();
         using var second = Context();
-        var attempts = await Task.WhenAll(TryCreate(Service(first), name), TryCreate(Service(second), $" {name.ToUpperInvariant()}  "));
+        var attempts = await Task.WhenAll(
+            TryCreate(Service(first), name),
+            TryCreate(Service(second), $" {name.ToUpperInvariant()}  ")
+        );
         Assert.Single(attempts, x => x is null);
         Assert.Equal("EXERCISE_NAME_EXISTS", Assert.Single(attempts, x => x is not null)!.Code);
     }
@@ -88,14 +184,25 @@ public sealed class CatalogPostgresTests
         using var db = Context();
         var owner = Guid.NewGuid();
         var service = Service(db, owner);
-        var created = await service.CreateAsync(new($"History {Guid.NewGuid():N}", "Before", "Original"), default);
+        var created = await service.CreateAsync(
+            new($"History {Guid.NewGuid():N}", "Before", "Original"),
+            default
+        );
         using var strangerDb = Context();
-        var forbidden = await Assert.ThrowsAsync<ApiException>(() => new CatalogService(strangerDb, new Account(Guid.NewGuid(), false), new Features(true)).UpdateAsync(created.Id, new(1, "Stolen", ""), default));
+        var forbidden = await Assert.ThrowsAsync<ApiException>(() =>
+            new CatalogService(
+                strangerDb,
+                new Account(Guid.NewGuid(), false),
+                new Features(true)
+            ).UpdateAsync(created.Id, new(1, "Stolen", ""), default)
+        );
         Assert.Equal(404, forbidden.Status);
         var edited = await service.UpdateAsync(created.Id, new(1, "After", "Updated"), default);
         Assert.Equal(2, edited.Version);
         Assert.Equal(created.Name, edited.Name);
-        var stale = await Assert.ThrowsAsync<ApiException>(() => service.UpdateAsync(created.Id, new(1, "Lost update", ""), default));
+        var stale = await Assert.ThrowsAsync<ApiException>(() =>
+            service.UpdateAsync(created.Id, new(1, "Lost update", ""), default)
+        );
         Assert.Equal("VERSION_CONFLICT", stale.Code);
         var history = await service.HistoryAsync(created.Id, default);
         Assert.Equal(new[] { "After", "Before" }, history.Select(x => x.Description));
@@ -107,14 +214,16 @@ public sealed class CatalogPostgresTests
         using var db = Context();
         var service = Service(db);
         var name = $"Archive {Guid.NewGuid():N}";
-        var created = await service.CreateAsync(new(name, "Snapshot description", "Instructions"), default);
+        var created = await service.CreateAsync(
+            new(name, "Snapshot description", "Instructions"),
+            default
+        );
         await service.ArchiveAsync(created.Id, 1, default);
-        Assert.Empty((await service.ListAsync(new()
-        {
-            Search = name
-        }, default)).Items);
+        Assert.Empty((await service.ListAsync(new() { Search = name }, default)).Items);
         Assert.Empty(await service.MatchNamesAsync(new[] { name }, default));
-        var snapshot = Assert.Single(await service.SnapshotAsync(new[] { created.Id, Guid.NewGuid() }, default)).Value;
+        var snapshot = Assert
+            .Single(await service.SnapshotAsync(new[] { created.Id, Guid.NewGuid() }, default))
+            .Value;
         Assert.Equal("Snapshot description", snapshot.Description);
     }
 
@@ -130,11 +239,12 @@ public sealed class CatalogPostgresTests
         Assert.True((await service.GetAsync(created.Id, default)).IsFavorite);
         using var otherDb = Context();
         Assert.False((await Service(otherDb).GetAsync(created.Id, default)).IsFavorite);
-        Assert.Empty((await Service(otherDb).ListAsync(new()
-        {
-            Search = name,
-            FavoritesOnly = true
-        }, default)).Items);
+        Assert.Empty(
+            (
+                await Service(otherDb)
+                    .ListAsync(new() { Search = name, FavoritesOnly = true }, default)
+            ).Items
+        );
         await service.SetFavoriteAsync(created.Id, false, default);
         Assert.False((await service.GetAsync(created.Id, default)).IsFavorite);
     }
@@ -146,11 +256,20 @@ public sealed class CatalogPostgresTests
         var service = Service(db);
         var source = await service.CreateTagAsync($"Source {Guid.NewGuid():N}", default);
         var target = await service.CreateTagAsync($"Target {Guid.NewGuid():N}", default);
-        var first = await service.CreateAsync(new($"Merge one {Guid.NewGuid():N}", TagIds: [source.Id]), default);
-        var second = await service.CreateAsync(new($"Merge both {Guid.NewGuid():N}", TagIds: [source.Id, target.Id]), default);
+        var first = await service.CreateAsync(
+            new($"Merge one {Guid.NewGuid():N}", TagIds: [source.Id]),
+            default
+        );
+        var second = await service.CreateAsync(
+            new($"Merge both {Guid.NewGuid():N}", TagIds: [source.Id, target.Id]),
+            default
+        );
         await service.MergeTagAsync(source.Id, target.Id, default);
         Assert.Equal(target.Id, Assert.Single((await service.GetAsync(first.Id, default)).Tags).Id);
-        Assert.Equal(target.Id, Assert.Single((await service.GetAsync(second.Id, default)).Tags).Id);
+        Assert.Equal(
+            target.Id,
+            Assert.Single((await service.GetAsync(second.Id, default)).Tags).Id
+        );
         Assert.DoesNotContain(await service.ListTagsAsync(null, default), x => x.Id == source.Id);
     }
 
@@ -160,7 +279,9 @@ public sealed class CatalogPostgresTests
         using var db = Context();
         var name = $"Blocked {Guid.NewGuid():N}";
         var service = new CatalogService(db, new Account(Guid.NewGuid()), new Features(false));
-        var denied = await Assert.ThrowsAsync<ApiException>(() => service.CreateAsync(new(name), default));
+        var denied = await Assert.ThrowsAsync<ApiException>(() =>
+            service.CreateAsync(new(name), default)
+        );
         Assert.Equal("FEATURE_UNAVAILABLE", denied.Code);
         Assert.False(await db.Exercises.AnyAsync(x => x.Name == name));
     }
@@ -170,7 +291,8 @@ public sealed class CatalogPostgresTests
     {
         var user = Guid.NewGuid();
         using var setup = Context();
-        var created = await Service(setup, user).CreateAsync(new($"Race edit {Guid.NewGuid():N}", "Original"), default);
+        var created = await Service(setup, user)
+            .CreateAsync(new($"Race edit {Guid.NewGuid():N}", "Original"), default);
         using var first = Context();
         using var second = Context();
         await first.Exercises.SingleAsync(x => x.Id == created.Id);
@@ -182,9 +304,15 @@ public sealed class CatalogPostgresTests
                 await service.UpdateAsync(created.Id, new(1, description, ""), default);
                 return null;
             }
-            catch (ApiException error) { return error; }
+            catch (ApiException error)
+            {
+                return error;
+            }
         }
-        var results = await Task.WhenAll(Edit(Service(first, user), "First"), Edit(Service(second, user), "Second"));
+        var results = await Task.WhenAll(
+            Edit(Service(first, user), "First"),
+            Edit(Service(second, user), "Second")
+        );
         Assert.Single(results, x => x is null);
         Assert.Equal("VERSION_CONFLICT", Assert.Single(results, x => x is not null)!.Code);
         Assert.Equal(2, await setup.Revisions.CountAsync(x => x.ExerciseId == created.Id));
@@ -197,28 +325,50 @@ public sealed class CatalogPostgresTests
         var service = Service(db);
         var prefix = $"Browse {Guid.NewGuid():N}";
         var tag = await service.CreateTagAsync($"Filter {Guid.NewGuid():N}", default);
-        var first = await service.CreateAsync(new($"{prefix} A", TagIds: [tag.Id], PrimaryMuscleKeys: ["glutes"], MovementPatternKeys: ["squat"]), default);
+        var first = await service.CreateAsync(
+            new(
+                $"{prefix} A",
+                TagIds: [tag.Id],
+                PrimaryMuscleKeys: ["glutes"],
+                MovementPatternKeys: ["squat"]
+            ),
+            default
+        );
         await service.CreateAsync(new($"{prefix} C"), default);
-        var second = await service.CreateAsync(new($"{prefix} B", TagIds: [tag.Id], SecondaryMuscleKeys: ["glutes"], MovementPatternKeys: ["squat"]), default);
-        var result = await service.ListAsync(new()
-        {
-            Search = prefix,
-            TagId = tag.Id,
-            MuscleKey = "glutes",
-            MovementPatternKey = "squat",
-            Page = 2,
-            PageSize = 1
-        }, default);
+        var second = await service.CreateAsync(
+            new(
+                $"{prefix} B",
+                TagIds: [tag.Id],
+                SecondaryMuscleKeys: ["glutes"],
+                MovementPatternKeys: ["squat"]
+            ),
+            default
+        );
+        var result = await service.ListAsync(
+            new()
+            {
+                Search = prefix,
+                TagId = tag.Id,
+                MuscleKey = "glutes",
+                MovementPatternKey = "squat",
+                Page = 2,
+                PageSize = 1,
+            },
+            default
+        );
         Assert.Equal(2, result.Total);
         Assert.Equal(second.Id, Assert.Single(result.Items).Id);
-        var descending = await service.ListAsync(new()
-        {
-            Search = prefix,
-            TagId = tag.Id,
-            Sort = "-name",
-            Page = 2,
-            PageSize = 1
-        }, default);
+        var descending = await service.ListAsync(
+            new()
+            {
+                Search = prefix,
+                TagId = tag.Id,
+                Sort = "-name",
+                Page = 2,
+                PageSize = 1,
+            },
+            default
+        );
         Assert.Equal(first.Id, Assert.Single(descending.Items).Id);
     }
 
@@ -229,19 +379,32 @@ public sealed class CatalogPostgresTests
         var service = Service(db);
         var tag = await service.CreateTagAsync($"Muscle search {Guid.NewGuid():N}", default);
         var glutes = await db.Muscles.AsNoTracking().SingleAsync(x => x.Key == "glutes");
-        var worked = await service.CreateAsync(new($"Hip thrust {Guid.NewGuid():N}", TagIds: [tag.Id], PrimaryMuscleKeys: ["glutes"]), default);
+        var worked = await service.CreateAsync(
+            new($"Hip thrust {Guid.NewGuid():N}", TagIds: [tag.Id], PrimaryMuscleKeys: ["glutes"]),
+            default
+        );
         await service.CreateAsync(new($"Curl {Guid.NewGuid():N}", TagIds: [tag.Id]), default);
         // PostgreSQL's C locale uppercases ASCII only; label matching must use the same Unicode normalization as input.
-        foreach (var search in new[] { glutes.LabelEn.ToLowerInvariant(), glutes.LabelPl,
-            glutes.LabelPl.ToUpperInvariant(), glutes.LabelPl.ToLowerInvariant(),
-            glutes.LabelPl.Normalize(System.Text.NormalizationForm.FormD), "glut" })
-        {
-            var result = await service.ListAsync(new()
+        foreach (
+            var search in new[]
             {
-                Search = search,
-                TagId = tag.Id
-            }, default);
-            Assert.True(result.Items.Count == 1, $"Expected one muscle match for '{search}', got {result.Items.Count}.");
+                glutes.LabelEn.ToLowerInvariant(),
+                glutes.LabelPl,
+                glutes.LabelPl.ToUpperInvariant(),
+                glutes.LabelPl.ToLowerInvariant(),
+                glutes.LabelPl.Normalize(System.Text.NormalizationForm.FormD),
+                "glut",
+            }
+        )
+        {
+            var result = await service.ListAsync(
+                new() { Search = search, TagId = tag.Id },
+                default
+            );
+            Assert.True(
+                result.Items.Count == 1,
+                $"Expected one muscle match for '{search}', got {result.Items.Count}."
+            );
             var item = Assert.Single(result.Items);
             Assert.Equal(worked.Id, item.Id);
             Assert.Equal(["glutes"], item.PrimaryMuscleKeys);
@@ -254,11 +417,29 @@ public sealed class CatalogPostgresTests
         using var db = Context();
         var service = Service(db);
         var key = $"test-{Guid.NewGuid():N}";
-        var entry = await service.SaveDictionaryAsync("muscles", key, new(0, "Test muscle", "Mięsień testowy"), default);
-        var exercise = await service.CreateAsync(new($"Dictionary {Guid.NewGuid():N}", PrimaryMuscleKeys: [key]), default);
-        await service.SaveDictionaryAsync("muscles", key, new(entry.Version, "Updated", "Zmieniony", false), default);
+        var entry = await service.SaveDictionaryAsync(
+            "muscles",
+            key,
+            new(0, "Test muscle", "Mięsień testowy"),
+            default
+        );
+        var exercise = await service.CreateAsync(
+            new($"Dictionary {Guid.NewGuid():N}", PrimaryMuscleKeys: [key]),
+            default
+        );
+        await service.SaveDictionaryAsync(
+            "muscles",
+            key,
+            new(entry.Version, "Updated", "Zmieniony", false),
+            default
+        );
         Assert.Contains(key, (await service.GetAsync(exercise.Id, default)).PrimaryMuscleKeys);
-        var error = await Assert.ThrowsAsync<ApiException>(() => service.CreateAsync(new($"Inactive {Guid.NewGuid():N}", PrimaryMuscleKeys: [key]), default));
+        var error = await Assert.ThrowsAsync<ApiException>(() =>
+            service.CreateAsync(
+                new($"Inactive {Guid.NewGuid():N}", PrimaryMuscleKeys: [key]),
+                default
+            )
+        );
         Assert.Equal(400, error.Status);
     }
 
@@ -266,16 +447,29 @@ public sealed class CatalogPostgresTests
     public async Task Catalog_admin_permission_is_required_before_dictionary_write()
     {
         using var db = Context();
-        var service = new CatalogService(db, new Account(Guid.NewGuid(), false), new Features(true));
+        var service = new CatalogService(
+            db,
+            new Account(Guid.NewGuid(), false),
+            new Features(true)
+        );
         var key = $"forbidden-{Guid.NewGuid():N}";
-        var error = await Assert.ThrowsAsync<ApiException>(() => service.SaveDictionaryAsync("muscles", key, new(0, "No", "Nie"), default));
+        var error = await Assert.ThrowsAsync<ApiException>(() =>
+            service.SaveDictionaryAsync("muscles", key, new(0, "No", "Nie"), default)
+        );
         Assert.Equal(403, error.Status);
         Assert.False(await db.Muscles.AnyAsync(x => x.Key == key));
     }
 
-    private static ExerciseCatalogDbContext Context() => new(new DbContextOptionsBuilder<ExerciseCatalogDbContext>()
-        .UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")).Options);
-    private static CatalogService Service(ExerciseCatalogDbContext db, Guid? user = null) => new(db, new Account(user ?? Guid.NewGuid()), new Features(true));
+    private static ExerciseCatalogDbContext Context() =>
+        new(
+            new DbContextOptionsBuilder<ExerciseCatalogDbContext>()
+                .UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"))
+                .Options
+        );
+
+    private static CatalogService Service(ExerciseCatalogDbContext db, Guid? user = null) =>
+        new(db, new Account(user ?? Guid.NewGuid()), new Features(true));
+
     private static async Task<ApiException?> TryCreate(CatalogService service, string name)
     {
         try
@@ -283,22 +477,51 @@ public sealed class CatalogPostgresTests
             await service.CreateAsync(new(name), default);
             return null;
         }
-        catch (ApiException exception) { return exception; }
+        catch (ApiException exception)
+        {
+            return exception;
+        }
     }
 
     private sealed class Account(Guid user, bool admin = true) : IAccountContext
     {
         public Guid UserId => user;
-        public Task<AccountIdentity> RequireClientAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<IReadOnlyList<AccountRole>> GetRolesAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AccountRole>>([AccountRole.Coach]);
-        public Task<AccountIdentity> RequireCoachAsync(CancellationToken cancellationToken) => Task.FromResult(new AccountIdentity(user, user));
-        public Task RequireAdminAsync(string permission, CancellationToken cancellationToken) => admin && permission is "catalog.manage" or "catalog.exercises.edit"
-            ? Task.CompletedTask : Task.FromException(new ApiException(403, "ADMIN_PERMISSION_REQUIRED", "Catalog permission required."));
+
+        public Task<AccountIdentity> RequireClientAsync(CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
+        public Task<IReadOnlyList<AccountRole>> GetRolesAsync(
+            CancellationToken cancellationToken
+        ) => Task.FromResult<IReadOnlyList<AccountRole>>([AccountRole.Coach]);
+
+        public Task<AccountIdentity> RequireCoachAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(new AccountIdentity(user, user));
+
+        public Task RequireAdminAsync(string permission, CancellationToken cancellationToken) =>
+            admin && permission is "catalog.manage" or "catalog.exercises.edit"
+                ? Task.CompletedTask
+                : Task.FromException(
+                    new ApiException(
+                        403,
+                        "ADMIN_PERMISSION_REQUIRED",
+                        "Catalog permission required."
+                    )
+                );
     }
+
     private sealed class Features(bool available) : IFeatureAccessService
     {
-        public Task RequireAsync(string key, CancellationToken cancellationToken) => available ? Task.CompletedTask : Task.FromException(new ApiException(403, "FEATURE_UNAVAILABLE", "Feature revoked."));
-        public Task<AccessSnapshot> GetAsync(CancellationToken cancellationToken) => Task.FromResult(new AccessSnapshot("test", [new("exercises.create", available, "test")], []));
+        public Task RequireAsync(string key, CancellationToken cancellationToken) =>
+            available
+                ? Task.CompletedTask
+                : Task.FromException(
+                    new ApiException(403, "FEATURE_UNAVAILABLE", "Feature revoked.")
+                );
+
+        public Task<AccessSnapshot> GetAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(
+                new AccessSnapshot("test", [new("exercises.create", available, "test")], [])
+            );
     }
 }
 
@@ -306,7 +529,9 @@ public sealed class CatalogPostgresFactAttribute : FactAttribute
 {
     public CatalogPostgresFactAttribute()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")))
+        if (
+            string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE"))
+        )
             Skip = "Set TRAINFLOW_TEST_DATABASE to a migrated, disposable PostgreSQL database.";
     }
 }

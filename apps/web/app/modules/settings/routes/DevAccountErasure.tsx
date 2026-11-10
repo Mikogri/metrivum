@@ -2,15 +2,32 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Alert, Button, Card, Dialog, Skeleton, TextField, toast } from "@metrivum/ui-web";
+import {
+  Alert,
+  Button,
+  Card,
+  Dialog,
+  Skeleton,
+  TextField,
+  toast,
+} from "@metrivum/ui-web";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
-import { useAccountContext, useAccountKey, useApi } from "~/shared/session/AccountScope";
+import {
+  useAccountContext,
+  useAccountKey,
+  useApi,
+} from "~/shared/session/AccountScope";
 import { useSessionManager } from "~/shared/session/SessionProvider";
 import styles from "./settings.module.css";
 
-type ErasurePreview = { userId: string; tables: { table: string; rows: number }[]; rows: number; files: number };
+type ErasurePreview = {
+  userId: string;
+  tables: { table: string; rows: number }[];
+  rows: number;
+  files: number;
+};
 
 const PATH = "/api/v1/dev/account-erasure";
 
@@ -31,18 +48,28 @@ export function DevAccountErasure() {
 
   const preview = useQuery({
     queryKey: [accountKey, "dev-account-erasure"],
-    queryFn: async ({ signal }) => (await api<ErasurePreview>({ path: PATH, signal })).data,
+    queryFn: async ({ signal }) =>
+      (await api<ErasurePreview>({ path: PATH, signal })).data,
     retry: false,
     staleTime: 0,
   });
   const erase = useMutation({
-    mutationFn: async () => (await api<ErasurePreview>({ method: "POST", path: PATH, json: { email: typed.trim() } })).data,
+    mutationFn: async () =>
+      (
+        await api<ErasurePreview>({
+          method: "POST",
+          path: PATH,
+          json: { email: typed.trim() },
+        })
+      ).data,
     onSuccess: async () => {
       setOpen(false);
       toast({ tone: "neutral", title: t.done(account.email ?? "") });
       await manager.signOut(account.slot).catch(() => undefined);
       const next = manager.getState();
-      navigate(next.activeSlot !== null ? "/app" : "/auth/login", { replace: true });
+      navigate(next.activeSlot !== null ? "/app" : "/auth/login", {
+        replace: true,
+      });
     },
   });
 
@@ -50,29 +77,62 @@ export function DevAccountErasure() {
   if (!preview.data && !open) return null;
 
   const email = account.email ?? "";
-  const matches = typed.trim().toLowerCase() === email.trim().toLowerCase() && email.length > 0;
+  const matches =
+    typed.trim().toLowerCase() === email.trim().toLowerCase() &&
+    email.length > 0;
   const data = preview.data;
 
   return (
-    <Card as="section" padding="lg" aria-labelledby="dev-erase-title" className={styles.danger}>
+    <Card
+      as="section"
+      padding="lg"
+      aria-labelledby="dev-erase-title"
+      className={styles.danger}
+    >
       <div className={styles.dangerHead}>
         <div>
-          <h2 id="dev-erase-title" className={styles.title}>{t.title}</h2>
+          <h2 id="dev-erase-title" className={styles.title}>
+            {t.title}
+          </h2>
           <p className={styles.hint}>{t.body}</p>
         </div>
-        <Button variant="danger" iconStart={<Trash2 />} onPress={() => { setTyped(""); erase.reset(); void preview.refetch(); setOpen(true); }}>
+        <Button
+          variant="danger"
+          iconStart={<Trash2 />}
+          onPress={() => {
+            setTyped("");
+            erase.reset();
+            void preview.refetch();
+            setOpen(true);
+          }}
+        >
           {t.open}
         </Button>
       </div>
       <Dialog
         isOpen={open}
-        onOpenChange={(next) => { if (!erase.isPending) setOpen(next); }}
+        onOpenChange={(next) => {
+          if (!erase.isPending) setOpen(next);
+        }}
         title={t.dialogTitle}
         size="md"
         footer={(close) => (
           <>
-            <Button variant="secondary" onPress={close} isDisabled={erase.isPending} autoFocus>{m.common.cancel}</Button>
-            <Button variant="danger" iconStart={<Trash2 />} loading={erase.isPending} isDisabled={!matches || !data} onPress={() => erase.mutate()}>
+            <Button
+              variant="secondary"
+              onPress={close}
+              isDisabled={erase.isPending}
+              autoFocus
+            >
+              {m.common.cancel}
+            </Button>
+            <Button
+              variant="danger"
+              iconStart={<Trash2 />}
+              loading={erase.isPending}
+              isDisabled={!matches || !data}
+              onPress={() => erase.mutate()}
+            >
               {t.confirm}
             </Button>
           </>
@@ -84,16 +144,41 @@ export function DevAccountErasure() {
             <Skeleton height="6rem" />
           ) : data ? (
             <div className={styles.eraseSummary}>
-              <p><strong>{t.summary(data.rows, data.tables.length, data.files)}</strong></p>
+              <p>
+                <strong>
+                  {t.summary(data.rows, data.tables.length, data.files)}
+                </strong>
+              </p>
               {data.tables.length ? (
                 <ul className={styles.eraseTables}>
-                  {data.tables.map((row) => <li key={row.table}><code>{row.table}</code><span>{row.rows}</span></li>)}
+                  {data.tables.map((row) => (
+                    <li key={row.table}>
+                      <code>{row.table}</code>
+                      <span>{row.rows}</span>
+                    </li>
+                  ))}
                 </ul>
               ) : null}
             </div>
           ) : null}
-          {erase.error ? <Alert tone="danger" title={erase.error instanceof ApiError && erase.error.problem?.detail ? erase.error.problem.detail : errorText(m, erase.error)} /> : null}
-          <TextField label={t.typeEmail(email)} value={typed} onChange={setTyped} autoComplete="off" placeholder={email} isDisabled={erase.isPending} />
+          {erase.error ? (
+            <Alert
+              tone="danger"
+              title={
+                erase.error instanceof ApiError && erase.error.problem?.detail
+                  ? erase.error.problem.detail
+                  : errorText(m, erase.error)
+              }
+            />
+          ) : null}
+          <TextField
+            label={t.typeEmail(email)}
+            value={typed}
+            onChange={setTyped}
+            autoComplete="off"
+            placeholder={email}
+            isDisabled={erase.isPending}
+          />
         </div>
       </Dialog>
     </Card>

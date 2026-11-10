@@ -1,10 +1,10 @@
 import { nativeIntentPath } from "../infrastructure/networking/native-intent";
 
 export function redirectSystemPath({
-    path,
+  path,
 }: {
-    path: string;
-    initial: boolean;
+  path: string;
+  initial: boolean;
 }) {
-    return nativeIntentPath(path);
+  return nativeIntentPath(path);
 }

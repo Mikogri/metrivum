@@ -2,7 +2,9 @@ import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = ({ location }: { location: { pathname: string } }) =>
-  privateMeta(`${location.pathname.endsWith("/edit") ? "Edit training plan" : "Training plan"} — Metrivum`);
+  privateMeta(
+    `${location.pathname.endsWith("/edit") ? "Edit training plan" : "Training plan"} — Metrivum`,
+  );
 
 import { useLocation, useParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
@@ -14,15 +16,60 @@ import { WeekView } from "../editor/components/WeekView";
 import styles from "../delivery/delivery.module.css";
 
 export default function PurchasedPlan() {
- const uiCopy = useUiCopy();
+  const uiCopy = useUiCopy();
 
   const { programId = "" } = useParams();
   const location = useLocation();
   const plan = usePlan(programId);
-  const snapshot = useCoachingQuery<Schema<"RevisionDto">>(`/api/v1/training/programs/${programId}/revisions/1`);
+  const snapshot = useCoachingQuery<Schema<"RevisionDto">>(
+    `/api/v1/training/programs/${programId}/revisions/1`,
+  );
   if (plan.isPending || snapshot.isPending) return <Loading />;
-  if (plan.isError || snapshot.isError) return <Failure error={plan.error ?? snapshot.error} />;
-  if (location.pathname.endsWith("/edit")) return <EditorWorkspace key={programId} plan={plan.data.data} version={plan.data.version} />;
-  const names = new Map(Object.entries(snapshot.data.snapshot.exercises).map(([id, exercise]) => [id, { name: exercise.name, isArchived: false, loading: false, missing: false, movementPatternKeys: [], primaryMuscleKeys: [], secondaryMuscleKeys: [] }]));
-  return <><PageHeader title={plan.data.data.name} description={uiCopy["ui"]["Your independent copy. Changes by the seller do not affect this plan."]} actions={<LinkButton href={`/app/training-plans/${programId}/edit`}>{uiCopy["ui"]["Edit my copy"]}</LinkButton>} /><div className={styles.stack}><LinkButton href="/app/training-plans">{uiCopy["ui"]["All training plans"]}</LinkButton><WeekView doc={plan.data.data.document} names={names} /></div></>;
+  if (plan.isError || snapshot.isError)
+    return <Failure error={plan.error ?? snapshot.error} />;
+  if (location.pathname.endsWith("/edit"))
+    return (
+      <EditorWorkspace
+        key={programId}
+        plan={plan.data.data}
+        version={plan.data.version}
+      />
+    );
+  const names = new Map(
+    Object.entries(snapshot.data.snapshot.exercises).map(([id, exercise]) => [
+      id,
+      {
+        name: exercise.name,
+        isArchived: false,
+        loading: false,
+        missing: false,
+        movementPatternKeys: [],
+        primaryMuscleKeys: [],
+        secondaryMuscleKeys: [],
+      },
+    ]),
+  );
+  return (
+    <>
+      <PageHeader
+        title={plan.data.data.name}
+        description={
+          uiCopy["ui"][
+            "Your independent copy. Changes by the seller do not affect this plan."
+          ]
+        }
+        actions={
+          <LinkButton href={`/app/training-plans/${programId}/edit`}>
+            {uiCopy["ui"]["Edit my copy"]}
+          </LinkButton>
+        }
+      />
+      <div className={styles.stack}>
+        <LinkButton href="/app/training-plans">
+          {uiCopy["ui"]["All training plans"]}
+        </LinkButton>
+        <WeekView doc={plan.data.data.document} names={names} />
+      </div>
+    </>
+  );
 }

@@ -16,7 +16,15 @@ export interface FileCardProps {
 }
 
 /** File row in the style of the inspiration's attachment cards. */
-export function FileCard({ name, kind, meta, action, status, thumbnail, className }: FileCardProps) {
+export function FileCard({
+  name,
+  kind,
+  meta,
+  action,
+  status,
+  thumbnail,
+  className,
+}: FileCardProps) {
   return (
     <div className={cx(styles.card, className)}>
       {thumbnail ? (

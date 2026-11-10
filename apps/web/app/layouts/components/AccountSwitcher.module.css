@@ -87,7 +87,8 @@
 }
 
 .profileSection {
-  margin: calc(var(--tf-space-1) * -1) calc(var(--tf-space-1) * -1) var(--tf-space-1);
+  margin: calc(var(--tf-space-1) * -1) calc(var(--tf-space-1) * -1)
+    var(--tf-space-1);
 }
 
 .profile {

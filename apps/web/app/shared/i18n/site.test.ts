@@ -14,12 +14,24 @@ describe("page metadata", () => {
   it("gives every registered page its own metadata", () => {
     const app = resolve(import.meta.dirname, "../..");
     const routes = readFileSync(resolve(app, "routes.ts"), "utf8");
-    const pages = [...new Set([...routes.matchAll(/(?:index|route)\([^\n]*?"(modules\/[^"\n]+\.tsx)"/g)].map(match => match[1]!))];
+    const pages = [
+      ...new Set(
+        [
+          ...routes.matchAll(
+            /(?:index|route)\(\s*(?:"[^"]*"\s*,\s*)?"(modules\/[^"]+\.tsx)"/g,
+          ),
+        ].map((match) => match[1]!),
+      ),
+    ];
     expect(pages.length).toBeGreaterThan(60);
     for (const page of pages) {
       const source = readFileSync(resolve(app, page), "utf8");
-      expect(source, `${page} needs browser-tab metadata`).toMatch(/export (?:const|function) meta\b/);
-      expect(source, `${page} needs a title`).toMatch(/privateMeta\(|publicPageMeta\(|\{ title:/);
+      expect(source, `${page} needs browser-tab metadata`).toMatch(
+        /export (?:const|function) meta\b/,
+      );
+      expect(source, `${page} needs a title`).toMatch(
+        /privateMeta\(|publicPageMeta\(|\{\s*title:/,
+      );
     }
   });
 });

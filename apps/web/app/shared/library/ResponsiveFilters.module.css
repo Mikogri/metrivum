@@ -1,2 +1,10 @@
-.fields { display: flex; flex-direction: column; gap: var(--tf-space-4); min-width: 0; }
-.fields > * { width: 100%; min-width: 0; }
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-4);
+  min-width: 0;
+}
+.fields > * {
+  width: 100%;
+  min-width: 0;
+}

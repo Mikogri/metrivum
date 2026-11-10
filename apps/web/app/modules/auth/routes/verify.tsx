@@ -5,13 +5,21 @@ import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
 import { Alert, Button, Spinner, toast } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
-import { useSessionManager, useSessionState } from "~/shared/session/SessionProvider";
+import {
+  useSessionManager,
+  useSessionState,
+} from "~/shared/session/SessionProvider";
 import { useTurnstile } from "../components/Turnstile";
 import { AuthHeader } from "../components/AuthHeader";
 import form from "../components/form.module.css";
 import styles from "./verify.module.css";
 import { authErrorText } from "../lib/authErrors";
-import { callbackUrl, onboardingUrl, registrationRole, slotParam } from "../lib/urls";
+import {
+  callbackUrl,
+  onboardingUrl,
+  registrationRole,
+  slotParam,
+} from "../lib/urls";
 import { privateMeta } from "~/shared/i18n/site";
 
 export const meta = () => privateMeta("Confirm email — Metrivum");
@@ -34,20 +42,33 @@ export default function Verify() {
   const email = params.get("email") ?? "";
   const type = params.get("type") === "email" ? "email" : "signup";
   const slot = manager.slotForNewSignIn(slotParam(params.get("slot")));
-  const returnTo = type === "signup" ? onboardingUrl(params.get("role")) : sanitizeReturnTo(params.get("returnTo"));
+  const returnTo =
+    type === "signup"
+      ? onboardingUrl(params.get("role"))
+      : sanitizeReturnTo(params.get("returnTo"));
   const [code, setCode] = useState("");
   const [showCode, setShowCode] = useState(false);
   const [pending, setPending] = useState(false);
   const [resending, setResending] = useState(false);
-  const [resendAt, setResendAt] = useState(() => Date.now() + RESEND_WAIT * 1000);
+  const [resendAt, setResendAt] = useState(
+    () => Date.now() + RESEND_WAIT * 1000,
+  );
   const [now, setNow] = useState(() => Date.now());
   const wait = Math.max(0, Math.ceil((resendAt - now) / 1000));
   const [error, setError] = useState<string | null>(null);
 
-  const captcha = useTurnstile(`resend:${params.toString()}:${state.generation}`);
+  const captcha = useTurnstile(
+    `resend:${params.toString()}:${state.generation}`,
+  );
 
   // The link was opened in another tab: that tab signed this slot in, so continue here too.
-  const confirmed = slot !== null && state.accounts.some((account) => account.slot === slot && (!email || account.email?.toLowerCase() === email.toLowerCase()));
+  const confirmed =
+    slot !== null &&
+    state.accounts.some(
+      (account) =>
+        account.slot === slot &&
+        (!email || account.email?.toLowerCase() === email.toLowerCase()),
+    );
   useEffect(() => {
     if (!confirmed || slot === null) return;
     manager.activate(slot);
@@ -74,7 +95,11 @@ export default function Verify() {
     setError(null);
     const client = manager.client(slot, captcha.isCurrent, { email });
     try {
-      const { data, error: verifyError } = await client.auth.verifyOtp({ email, token, type });
+      const { data, error: verifyError } = await client.auth.verifyOtp({
+        email,
+        token,
+        type,
+      });
       if (!captcha.isCurrent()) return;
       if (verifyError) throw verifyError;
       if (!data.session) throw new Error("No session");
@@ -99,8 +124,22 @@ export default function Verify() {
       const client = manager.client(slot);
       const { error: resendError } =
         type === "signup"
-          ? await client.auth.resend({ type: "signup", email, options: { ...captchaOptions, emailRedirectTo: callbackUrl(slot, returnTo, email) } })
-          : await client.auth.signInWithOtp({ email, options: { ...captchaOptions, shouldCreateUser: false, emailRedirectTo: callbackUrl(slot, returnTo, email) } });
+          ? await client.auth.resend({
+              type: "signup",
+              email,
+              options: {
+                ...captchaOptions,
+                emailRedirectTo: callbackUrl(slot, returnTo, email),
+              },
+            })
+          : await client.auth.signInWithOtp({
+              email,
+              options: {
+                ...captchaOptions,
+                shouldCreateUser: false,
+                emailRedirectTo: callbackUrl(slot, returnTo, email),
+              },
+            });
       if (!captcha.isCurrent()) return;
       if (resendError) throw resendError;
       toast({ tone: "success", title: t.resent });
@@ -119,7 +158,16 @@ export default function Verify() {
       <span className={styles.icon} aria-hidden="true">
         <MailCheck />
       </span>
-      <AuthHeader title={t.title} subtitle={email ? (type === "email" ? t.loginBody(email) : t.body(email)) : t.bodyNoEmail} />
+      <AuthHeader
+        title={t.title}
+        subtitle={
+          email
+            ? type === "email"
+              ? t.loginBody(email)
+              : t.body(email)
+            : t.bodyNoEmail
+        }
+      />
       {error ? <Alert tone="danger" title={error} live="assertive" /> : null}
       <p className={styles.waiting} role="status">
         <Spinner size="sm" />
@@ -128,22 +176,43 @@ export default function Verify() {
       <p className={styles.hint}>{t.spamHint}</p>
       {captcha.widget}
       <div className={form.row}>
-        <Button variant="ghost" size="sm" onPress={resend} loading={resending} isDisabled={!email || wait > 0 || !captcha.ready}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onPress={resend}
+          loading={resending}
+          isDisabled={!email || wait > 0 || !captcha.ready}
+        >
           {wait > 0 ? t.resendIn(wait) : t.resend}
         </Button>
-        <RouterLink className={form.link} to={type === "signup" ? `/auth/register?role=${registrationRole(params.get("role"))}` : "/auth/login"}>
+        <RouterLink
+          className={form.link}
+          to={
+            type === "signup"
+              ? `/auth/register?role=${registrationRole(params.get("role"))}`
+              : "/auth/login"
+          }
+        >
           {t.wrongEmail}
         </RouterLink>
       </div>
       {showCode ? (
-        <form className={`${form.form} ${styles.codeForm}`} onSubmit={onSubmit} noValidate>
+        <form
+          className={`${form.form} ${styles.codeForm}`}
+          onSubmit={onSubmit}
+          noValidate
+        >
           <CodeInput label={t.code} autoFocus value={code} onChange={setCode} />
           <Button type="submit" variant="primary" block loading={pending}>
             {t.submit}
           </Button>
         </form>
       ) : (
-        <button type="button" className={form.textButton} onClick={() => setShowCode(true)}>
+        <button
+          type="button"
+          className={form.textButton}
+          onClick={() => setShowCode(true)}
+        >
           {t.haveCode}
         </button>
       )}

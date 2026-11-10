@@ -1,8 +1,25 @@
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMutation } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Maximize, Minimize, Pause, Play, StepBack, StepForward } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Maximize,
+  Minimize,
+  Pause,
+  Play,
+  StepBack,
+  StepForward,
+} from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { Button as AriaButton } from "react-aria-components";
 import { Button, Tooltip, TooltipTrigger } from "@metrivum/ui-web";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -28,20 +45,40 @@ export function clock(seconds: number) {
 /** Length of the video; some files report Infinity until read, so fall back to what is seekable. */
 function lengthOf(video: HTMLVideoElement) {
   if (Number.isFinite(video.duration)) return video.duration;
-  return video.seekable.length ? video.seekable.end(video.seekable.length - 1) : 0;
+  return video.seekable.length
+    ? video.seekable.end(video.seekable.length - 1)
+    : 0;
 }
 
 /** A time span drawn on the scrub bar, e.g. one repetition. */
-export interface PlayerMarker { start: number; end: number; label: string }
+export interface PlayerMarker {
+  start: number;
+  end: number;
+  label: string;
+}
 
 /** The scrub bar: played part, marked spans and a handle. Arrow keys step one frame, Shift+arrow one second. */
-export function Scrubber({ time, duration, markers = [], onSeek, disabled = false }: { time: number; duration: number; markers?: PlayerMarker[]; onSeek: (seconds: number) => void; disabled?: boolean }) {
- const uiCopy = useUiCopy();
+export function Scrubber({
+  time,
+  duration,
+  markers = [],
+  onSeek,
+  disabled = false,
+}: {
+  time: number;
+  duration: number;
+  markers?: PlayerMarker[];
+  onSeek: (seconds: number) => void;
+  disabled?: boolean;
+}) {
+  const uiCopy = useUiCopy();
 
   const track = useRef<HTMLDivElement>(null);
   const at = (clientX: number) => {
     const box = track.current!.getBoundingClientRect();
-    return Math.min(1, Math.max(0, (clientX - box.left) / box.width)) * duration;
+    return (
+      Math.min(1, Math.max(0, (clientX - box.left) / box.width)) * duration
+    );
   };
   const ratio = duration > 0 ? Math.min(1, time / duration) : 0;
   return (
@@ -57,23 +94,47 @@ export function Scrubber({ time, duration, markers = [], onSeek, disabled = fals
       aria-valuemax={Math.round(duration * 100) / 100}
       aria-valuenow={Math.round(time * 100) / 100}
       aria-valuetext={`${clock(time)} of ${clock(duration)}`}
-      onPointerDown={(event) => { if (!duration || disabled) return; event.currentTarget.setPointerCapture(event.pointerId); onSeek(at(event.clientX)); }}
-      onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) onSeek(at(event.clientX)); }}
+      onPointerDown={(event) => {
+        if (!duration || disabled) return;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        onSeek(at(event.clientX));
+      }}
+      onPointerMove={(event) => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId))
+          onSeek(at(event.clientX));
+      }}
       onKeyDown={(event) => {
         if (disabled) return;
         const step = event.shiftKey ? 1 : FRAME;
-        const next = { ArrowRight: time + step, ArrowLeft: time - step, Home: 0, End: duration }[event.key];
+        const next = {
+          ArrowRight: time + step,
+          ArrowLeft: time - step,
+          Home: 0,
+          End: duration,
+        }[event.key];
         if (next === undefined) return;
         event.preventDefault();
         onSeek(Math.min(duration, Math.max(0, next)));
       }}
     >
       <span className={styles.track}>
-        {duration > 0 ? markers.map((marker) => (
-          <span key={`${marker.start}-${marker.end}`} className={styles.marker} title={marker.label}
-            style={{ left: `${(marker.start / duration) * 100}%`, width: `${(Math.max(0, marker.end - marker.start) / duration) * 100}%` }} />
-        )) : null}
-        <span className={styles.played} style={{ transform: `scaleX(${ratio})` }} />
+        {duration > 0
+          ? markers.map((marker) => (
+              <span
+                key={`${marker.start}-${marker.end}`}
+                className={styles.marker}
+                title={marker.label}
+                style={{
+                  left: `${(marker.start / duration) * 100}%`,
+                  width: `${(Math.max(0, marker.end - marker.start) / duration) * 100}%`,
+                }}
+              />
+            ))
+          : null}
+        <span
+          className={styles.played}
+          style={{ transform: `scaleX(${ratio})` }}
+        />
       </span>
       <span className={styles.handle} style={{ left: `${ratio * 100}%` }} />
     </div>
@@ -81,10 +142,27 @@ export function Scrubber({ time, duration, markers = [], onSeek, disabled = fals
 }
 
 /** An icon button of the player bar, with its name as a tooltip. `pressed` makes it a toggle. */
-export function PlayerButton({ label, onPress, pressed, children }: { label: string; onPress: () => void; pressed?: boolean; children: ReactNode }) {
+export function PlayerButton({
+  label,
+  onPress,
+  pressed,
+  children,
+}: {
+  label: string;
+  onPress: () => void;
+  pressed?: boolean;
+  children: ReactNode;
+}) {
   return (
     <TooltipTrigger delay={400}>
-      <AriaButton className={styles.control} aria-label={label} aria-pressed={pressed} onPress={onPress}>{children}</AriaButton>
+      <AriaButton
+        className={styles.control}
+        aria-label={label}
+        aria-pressed={pressed}
+        onPress={onPress}
+      >
+        {children}
+      </AriaButton>
       <Tooltip>{label}</Tooltip>
     </TooltipTrigger>
   );
@@ -135,14 +213,15 @@ export function VideoPlayer({
   /** Inside a card that already draws the frame: no border or radius of its own. */
   inset?: boolean;
 }) {
-
-
   const m = useT();
   const api = useApi();
   const own = useRef<HTMLVideoElement>(null);
   const ref = videoRef ?? own;
   const root = useRef<HTMLDivElement>(null);
-  const [ticket, setTicket] = useState<{ url: string; expiresAt: string } | null>(null);
+  const [ticket, setTicket] = useState<{
+    url: string;
+    expiresAt: string;
+  } | null>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -151,10 +230,15 @@ export function VideoPlayer({
   const [full, setFull] = useState(false);
   const [idle, setIdle] = useState(false);
   const idleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const load = useMutation({ mutationFn: () => (source ? source() : readUrl(api, mediaId)), onSuccess: setTicket });
+  const load = useMutation({
+    mutationFn: () => (source ? source() : readUrl(api, mediaId)),
+    onSuccess: setTicket,
+  });
   const loadRef = useRef(load.mutate);
   loadRef.current = load.mutate;
-  useEffect(() => { if (autoLoad) loadRef.current(); }, [autoLoad, mediaId]);
+  useEffect(() => {
+    if (autoLoad) loadRef.current();
+  }, [autoLoad, mediaId]);
 
   const wake = () => {
     setIdle(false);
@@ -167,7 +251,10 @@ export function VideoPlayer({
       const on = document.fullscreenElement === root.current;
       setFull(on);
       // Keyboard control works right away in full screen.
-      if (on) { root.current?.focus(); wake(); }
+      if (on) {
+        root.current?.focus();
+        wake();
+      }
     };
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
@@ -178,16 +265,26 @@ export function VideoPlayer({
   useEffect(() => {
     const video = ref.current;
     if (!video || !ticket) return;
-    const frames = (collapsed ? {} : video) as { requestVideoFrameCallback?: (cb: () => void) => number; cancelVideoFrameCallback?: (id: number) => void };
+    const frames = (collapsed ? {} : video) as {
+      requestVideoFrameCallback?: (cb: () => void) => number;
+      cancelVideoFrameCallback?: (id: number) => void;
+    };
     let handle = 0;
-    const next = (tick: () => void) => (frames.requestVideoFrameCallback ? frames.requestVideoFrameCallback.call(video, tick) : requestAnimationFrame(tick));
+    const next = (tick: () => void) =>
+      frames.requestVideoFrameCallback
+        ? frames.requestVideoFrameCallback.call(video, tick)
+        : requestAnimationFrame(tick);
     const tick = () => {
       setTime(video.currentTime);
       onTime?.(video.currentTime);
       handle = next(tick);
     };
     handle = next(tick);
-    return () => { if (frames.cancelVideoFrameCallback) frames.cancelVideoFrameCallback.call(video, handle); else cancelAnimationFrame(handle); };
+    return () => {
+      if (frames.cancelVideoFrameCallback)
+        frames.cancelVideoFrameCallback.call(video, handle);
+      else cancelAnimationFrame(handle);
+    };
   }, [ticket, ref, onTime, collapsed]);
 
   const seek = (seconds: number) => {
@@ -197,41 +294,103 @@ export function VideoPlayer({
     setTime(seconds);
     onTime?.(seconds);
   };
-  const toggle = () => { const video = ref.current; if (!video) return; if (video.paused) void video.play(); else video.pause(); };
-  const step = (delta: number) => { const video = ref.current; if (!video) return; video.pause(); seek(Math.min(duration, Math.max(0, video.currentTime + delta))); };
+  const toggle = () => {
+    const video = ref.current;
+    if (!video) return;
+    if (video.paused) void video.play();
+    else video.pause();
+  };
+  const step = (delta: number) => {
+    const video = ref.current;
+    if (!video) return;
+    video.pause();
+    seek(Math.min(duration, Math.max(0, video.currentTime + delta)));
+  };
   const nextSpeed = () => {
-    const next = SPEEDS[(SPEEDS.indexOf(rate as (typeof SPEEDS)[number]) + 1) % SPEEDS.length]!;
+    const next =
+      SPEEDS[
+        (SPEEDS.indexOf(rate as (typeof SPEEDS)[number]) + 1) % SPEEDS.length
+      ]!;
     if (ref.current) ref.current.playbackRate = next;
     setRate(next);
   };
-  const fullscreen = () => { if (document.fullscreenElement) void document.exitFullscreen(); else void root.current?.requestFullscreen?.(); };
+  const fullscreen = () => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void root.current?.requestFullscreen?.();
+  };
   // Space or K plays and pauses, arrows step one frame (Shift: one second), F toggles full screen.
   const onKey = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey
+    )
+      return;
     const target = event.target as HTMLElement;
-    if (target !== event.currentTarget && target.matches("button") && (event.key === " " || event.key === "Enter")) return;
+    if (
+      target !== event.currentTarget &&
+      target.matches("button") &&
+      (event.key === " " || event.key === "Enter")
+    )
+      return;
     const key = event.key.toLowerCase();
-    if (key === " " || key === "k") { event.preventDefault(); toggle(); }
-    else if (key === "arrowleft") { event.preventDefault(); step(event.shiftKey ? -1 : -FRAME); }
-    else if (key === "arrowright") { event.preventDefault(); step(event.shiftKey ? 1 : FRAME); }
-    else if (key === "f") { event.preventDefault(); fullscreen(); }
+    if (key === " " || key === "k") {
+      event.preventDefault();
+      toggle();
+    } else if (key === "arrowleft") {
+      event.preventDefault();
+      step(event.shiftKey ? -1 : -FRAME);
+    } else if (key === "arrowright") {
+      event.preventDefault();
+      step(event.shiftKey ? 1 : FRAME);
+    } else if (key === "f") {
+      event.preventDefault();
+      fullscreen();
+    }
   };
-  const syncLength = (video: HTMLVideoElement) => { const length = lengthOf(video); setDuration((current) => Math.max(current, length)); };
+  const syncLength = (video: HTMLVideoElement) => {
+    const length = lengthOf(video);
+    setDuration((current) => Math.max(current, length));
+  };
 
   if (!ticket) {
     return (
-      <div className={styles.placeholder} style={frame ? ({ "--frame": frame } as CSSProperties) : undefined} data-framed={frame ? "" : undefined} data-inset={inset || undefined}>
-        {load.error ? <p className={styles.error}>{errorText(m, load.error)}</p> : null}
-        <Button iconStart={<Play />} loading={load.isPending} onPress={() => load.mutate()}>{m.video.detail.loadVideo}</Button>
+      <div
+        className={styles.placeholder}
+        style={frame ? ({ "--frame": frame } as CSSProperties) : undefined}
+        data-framed={frame ? "" : undefined}
+        data-inset={inset || undefined}
+      >
+        {load.error ? (
+          <p className={styles.error}>{errorText(m, load.error)}</p>
+        ) : null}
+        <Button
+          iconStart={<Play />}
+          loading={load.isPending}
+          onPress={() => load.mutate()}
+        >
+          {m.video.detail.loadVideo}
+        </Button>
       </div>
     );
   }
 
   return (
-    <div ref={root} className={styles.player} tabIndex={-1} onKeyDown={onKey}
+    <div
+      ref={root}
+      className={styles.player}
+      tabIndex={-1}
+      onKeyDown={onKey}
       style={frame ? ({ "--frame": frame } as CSSProperties) : undefined}
-      data-framed={frame ? "" : undefined} data-inset={inset || undefined} data-full={full || undefined} data-collapsed={(collapsed && !full) || undefined}
-      data-idle={(full && idle && !paused) || undefined} onPointerMove={full ? wake : undefined} onPointerDown={full ? wake : undefined}>
+      data-framed={frame ? "" : undefined}
+      data-inset={inset || undefined}
+      data-full={full || undefined}
+      data-collapsed={(collapsed && !full) || undefined}
+      data-idle={(full && idle && !paused) || undefined}
+      onPointerMove={full ? wake : undefined}
+      onPointerDown={full ? wake : undefined}
+    >
       <div className={styles.screen}>
         <video
           ref={ref}
@@ -253,28 +412,78 @@ export function VideoPlayer({
             onSize?.(video.videoWidth, video.videoHeight);
             if (cursor !== null) video.currentTime = cursor;
           }}
-          onSeeked={(event) => { setTime(event.currentTarget.currentTime); onTime?.(event.currentTarget.currentTime); }}
+          onSeeked={(event) => {
+            setTime(event.currentTarget.currentTime);
+            onTime?.(event.currentTarget.currentTime);
+          }}
           onError={() => setTicket(null)}
         />
         {overlay && size ? overlay(time, size.w, size.h) : null}
       </div>
       <div className={styles.bar}>
-        <Scrubber time={time} duration={duration} markers={markers} onSeek={seek} />
+        <Scrubber
+          time={time}
+          duration={duration}
+          markers={markers}
+          onSeek={seek}
+        />
         <div className={styles.row}>
-          <span className={styles.steps} role="group" aria-label={m["ui"]["Playback"]}>
-            <PlayerButton label={m["ui"]["Previous frame"]} onPress={() => step(-FRAME)}><StepBack /></PlayerButton>
-            <PlayerButton label={paused ? m["ui"]["Play"] : m["ui"]["Pause"]} onPress={toggle}>{paused ? <Play /> : <Pause />}</PlayerButton>
-            <PlayerButton label={m["ui"]["Next frame"]} onPress={() => step(FRAME)}><StepForward /></PlayerButton>
+          <span
+            className={styles.steps}
+            role="group"
+            aria-label={m["ui"]["Playback"]}
+          >
+            <PlayerButton
+              label={m["ui"]["Previous frame"]}
+              onPress={() => step(-FRAME)}
+            >
+              <StepBack />
+            </PlayerButton>
+            <PlayerButton
+              label={paused ? m["ui"]["Play"] : m["ui"]["Pause"]}
+              onPress={toggle}
+            >
+              {paused ? <Play /> : <Pause />}
+            </PlayerButton>
+            <PlayerButton
+              label={m["ui"]["Next frame"]}
+              onPress={() => step(FRAME)}
+            >
+              <StepForward />
+            </PlayerButton>
           </span>
-          <span className={styles.clock}>{clock(time)}<span className={styles.total}> / {clock(duration)}</span></span>
+          <span className={styles.clock}>
+            {clock(time)}
+            <span className={styles.total}> / {clock(duration)}</span>
+          </span>
           <span className={styles.spacer} />
           <TooltipTrigger delay={400}>
-            <AriaButton className={styles.speed} aria-label={formatInterfaceText(m["ui"]["Playback speed {0}×"], [rate])} onPress={nextSpeed}>{rate}×</AriaButton>
+            <AriaButton
+              className={styles.speed}
+              aria-label={formatInterfaceText(m["ui"]["Playback speed {0}×"], [
+                rate,
+              ])}
+              onPress={nextSpeed}
+            >
+              {rate}×
+            </AriaButton>
             <Tooltip>{m["ui"]["Playback speed"]}</Tooltip>
           </TooltipTrigger>
           {tools}
-          {onCollapse && !full ? <PlayerButton label={collapsed ? m["ui"]["Show video"] : m["ui"]["Hide video"]} onPress={() => onCollapse(!collapsed)}>{collapsed ? <ChevronDown /> : <ChevronUp />}</PlayerButton> : null}
-          <PlayerButton label={full ? m["ui"]["Exit full screen"] : m["ui"]["Full screen"]} onPress={fullscreen}>{full ? <Minimize /> : <Maximize />}</PlayerButton>
+          {onCollapse && !full ? (
+            <PlayerButton
+              label={collapsed ? m["ui"]["Show video"] : m["ui"]["Hide video"]}
+              onPress={() => onCollapse(!collapsed)}
+            >
+              {collapsed ? <ChevronDown /> : <ChevronUp />}
+            </PlayerButton>
+          ) : null}
+          <PlayerButton
+            label={full ? m["ui"]["Exit full screen"] : m["ui"]["Full screen"]}
+            onPress={fullscreen}
+          >
+            {full ? <Minimize /> : <Maximize />}
+          </PlayerButton>
         </div>
       </div>
     </div>

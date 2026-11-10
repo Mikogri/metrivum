@@ -250,7 +250,11 @@ details[open] .chevron {
 
 .card[data-featured] {
   border-color: color-mix(in srgb, var(--tf-color-violet) 45%, transparent);
-  background: color-mix(in srgb, var(--tf-color-violet) 5%, var(--tf-color-surface));
+  background: color-mix(
+    in srgb,
+    var(--tf-color-violet) 5%,
+    var(--tf-color-surface)
+  );
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -385,5 +389,11 @@ details[open] .chevron {
   }
 }
 
-.specializationFilter { padding: var(--tf-space-4); }
-.specializationFilter summary { cursor: pointer; font-weight: var(--tf-weight-semibold); margin-bottom: var(--tf-space-3); }
+.specializationFilter {
+  padding: var(--tf-space-4);
+}
+.specializationFilter summary {
+  cursor: pointer;
+  font-weight: var(--tf-weight-semibold);
+  margin-bottom: var(--tf-space-3);
+}

@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { ACTIVE_SLOT_STORAGE_KEY, forgetSlot, slotStorageKey, storedAccountsHint } from "./storage-keys";
+import {
+  ACTIVE_SLOT_STORAGE_KEY,
+  forgetSlot,
+  slotStorageKey,
+  storedAccountsHint,
+} from "./storage-keys";
 
-const session = (email: string) => JSON.stringify({ access_token: "a", refresh_token: "r", user: { email } });
+const session = (email: string) =>
+  JSON.stringify({ access_token: "a", refresh_token: "r", user: { email } });
 
 afterEach(() => {
   localStorage.clear();
@@ -13,7 +19,9 @@ describe("stored account hints for public pages", () => {
     localStorage.setItem(slotStorageKey(0), session("a@example.test"));
     localStorage.setItem(slotStorageKey(1), session(" A@example.test "));
     localStorage.setItem(ACTIVE_SLOT_STORAGE_KEY, "1");
-    expect(storedAccountsHint()).toEqual([{ slot: 1, email: " A@example.test ", active: true }]);
+    expect(storedAccountsHint()).toEqual([
+      { slot: 1, email: " A@example.test ", active: true },
+    ]);
     expect(localStorage.getItem(slotStorageKey(0))).not.toBeNull();
     expect(localStorage.getItem(slotStorageKey(1))).not.toBeNull();
   });

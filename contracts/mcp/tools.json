@@ -11,9 +11,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "conversationId"
-      ]
+      "required": ["conversationId"]
     },
     "outputSchema": {
       "type": "object",
@@ -47,10 +45,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "userId",
-              "displayName"
-            ],
+            "required": ["userId", "displayName"],
             "additionalProperties": false
           }
         }
@@ -83,10 +78,7 @@
       "type": "object",
       "properties": {
         "search": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "page": {
@@ -132,17 +124,11 @@
                 "format": "date-time"
               },
               "submittedAt": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "date-time"
               },
               "relationshipId": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "uuid"
               }
             },
@@ -170,12 +156,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -208,11 +189,7 @@
           "format": "date"
         }
       },
-      "required": [
-        "relationshipId",
-        "from",
-        "to"
-      ]
+      "required": ["relationshipId", "from", "to"]
     },
     "outputSchema": {
       "type": "object",
@@ -244,10 +221,7 @@
           "type": "integer"
         },
         "completionPercentage": {
-          "type": [
-            "number",
-            "null"
-          ]
+          "type": ["number", "null"]
         },
         "loggedLate": {
           "type": "integer"
@@ -262,10 +236,7 @@
           "type": "integer"
         },
         "volumeKg": {
-          "type": [
-            "number",
-            "null"
-          ]
+          "type": ["number", "null"]
         },
         "programs": {
           "type": "array",
@@ -283,11 +254,7 @@
                 "type": "integer"
               }
             },
-            "required": [
-              "programId",
-              "programName",
-              "completed"
-            ],
+            "required": ["programId", "programName", "completed"],
             "additionalProperties": false
           }
         },
@@ -310,10 +277,7 @@
                 "type": "integer"
               },
               "latestCompletedAt": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "date-time"
               }
             },
@@ -353,37 +317,22 @@
                 "type": "integer"
               },
               "volumeKg": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "bestLoadKg": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "averageRpe": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "averageRir": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "substitutionSets": {
                 "type": "integer"
               },
               "occurrenceId": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "uuid",
                 "default": null
               }
@@ -408,31 +357,19 @@
           "type": "string"
         },
         "totalTrainingSeconds": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "default": null
         },
         "averageSessionSeconds": {
-          "type": [
-            "number",
-            "null"
-          ],
+          "type": ["number", "null"],
           "default": null
         },
         "sessionsPerWeek": {
-          "type": [
-            "number",
-            "null"
-          ],
+          "type": ["number", "null"],
           "default": null
         },
         "weeks": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
             "type": "object",
             "properties": {
@@ -453,10 +390,7 @@
                 "type": "integer"
               },
               "completionPercentage": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               }
             },
             "required": [
@@ -480,10 +414,7 @@
           "default": false
         },
         "feedback": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
             "type": "object",
             "properties": {
@@ -628,10 +559,7 @@
       "type": "object",
       "properties": {
         "search": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "page": {
@@ -666,10 +594,7 @@
                 "type": "integer"
               },
               "publishedVersionId": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "uuid"
               }
             },
@@ -693,12 +618,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -719,10 +639,7 @@
       "type": "object",
       "properties": {
         "search": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "limit": {
@@ -768,10 +685,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "userId",
-                    "displayName"
-                  ],
+                  "required": ["userId", "displayName"],
                   "additionalProperties": false
                 }
               }
@@ -788,9 +702,7 @@
           }
         }
       },
-      "required": [
-        "result"
-      ]
+      "required": ["result"]
     },
     "annotations": {
       "title": null,
@@ -814,9 +726,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "requestId"
-      ]
+      "required": ["requestId"]
     },
     "outputSchema": {
       "type": "object",
@@ -847,17 +757,11 @@
               "type": "string"
             },
             "submittedAt": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": ["string", "null"],
               "format": "date-time"
             },
             "reviewedAt": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": ["string", "null"],
               "format": "date-time"
             },
             "wasLate": {
@@ -928,73 +832,43 @@
                           "default": 0
                         },
                         "helpText": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "min": {
-                          "type": [
-                            "number",
-                            "null"
-                          ],
+                          "type": ["number", "null"],
                           "default": null
                         },
                         "max": {
-                          "type": [
-                            "number",
-                            "null"
-                          ],
+                          "type": ["number", "null"],
                           "default": null
                         },
                         "unit": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "maxLength": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
+                          "type": ["integer", "null"],
                           "default": null
                         },
                         "minSelections": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
+                          "type": ["integer", "null"],
                           "default": null
                         },
                         "maxSelections": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
+                          "type": ["integer", "null"],
                           "default": null
                         },
                         "minLabel": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "maxLabel": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "choices": {
-                          "type": [
-                            "array",
-                            "null"
-                          ],
+                          "type": ["array", "null"],
                           "items": {
                             "type": "object",
                             "properties": {
@@ -1005,19 +879,13 @@
                                 "type": "string"
                               }
                             },
-                            "required": [
-                              "key",
-                              "label"
-                            ],
+                            "required": ["key", "label"],
                             "additionalProperties": false
                           },
                           "default": null
                         },
                         "systemField": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "enum": [
                             "Height",
                             "Weight",
@@ -1044,61 +912,35 @@
                           "default": null
                         }
                       },
-                      "required": [
-                        "key",
-                        "label",
-                        "type"
-                      ],
+                      "required": ["key", "label", "type"],
                       "additionalProperties": false
                     }
                   },
                   "description": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "default": null
                   }
                 },
-                "required": [
-                  "key",
-                  "title",
-                  "order",
-                  "questions"
-                ],
+                "required": ["key", "title", "order", "questions"],
                 "additionalProperties": false
               }
             }
           },
-          "required": [
-            "sections"
-          ],
+          "required": ["sections"],
           "additionalProperties": false
         },
         "answers": {
-          "type": [
-            "object",
-            "null"
-          ]
+          "type": ["object", "null"]
         },
         "measuredAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "provenance": {
           "type": "string"
         }
       },
-      "required": [
-        "request",
-        "form",
-        "answers",
-        "measuredAt",
-        "provenance"
-      ],
+      "required": ["request", "form", "answers", "measuredAt", "provenance"],
       "additionalProperties": false
     },
     "annotations": {
@@ -1132,11 +974,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "note",
-        "shareWithIntegrations",
-        "version"
-      ],
+      "required": ["note", "shareWithIntegrations", "version"],
       "additionalProperties": false
     },
     "annotations": {
@@ -1605,10 +1443,7 @@
                                                   "additionalProperties": false
                                                 },
                                                 "segments": {
-                                                  "type": [
-                                                    "array",
-                                                    "null"
-                                                  ],
+                                                  "type": ["array", "null"],
                                                   "items": {
                                                     "type": "object",
                                                     "properties": {
@@ -1713,10 +1548,7 @@
                                                   "default": null
                                                 },
                                                 "sourceSetId": {
-                                                  "type": [
-                                                    "string",
-                                                    "null"
-                                                  ],
+                                                  "type": ["string", "null"],
                                                   "format": "uuid",
                                                   "default": null
                                                 }
@@ -1750,10 +1582,7 @@
                                           },
                                           "kind": {
                                             "type": "string",
-                                            "enum": [
-                                              "Superset",
-                                              "Circuit"
-                                            ]
+                                            "enum": ["Superset", "Circuit"]
                                           },
                                           "exerciseIds": {
                                             "type": "array",
@@ -1791,18 +1620,11 @@
                                 }
                               },
                               "note": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
+                                "type": ["string", "null"],
                                 "default": null
                               }
                             },
-                            "required": [
-                              "id",
-                              "dayNumber",
-                              "workouts"
-                            ],
+                            "required": ["id", "dayNumber", "workouts"],
                             "additionalProperties": false
                           }
                         }
@@ -1818,28 +1640,19 @@
                     }
                   },
                   "exerciseMaxes": {
-                    "type": [
-                      "array",
-                      "null"
-                    ],
+                    "type": ["array", "null"],
                     "items": {
                       "type": "object",
                       "properties": {
                         "exerciseId": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "format": "uuid"
                         },
                         "reps": {
                           "type": "integer"
                         },
                         "load": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "value": {
                               "type": "number"
@@ -1858,43 +1671,28 @@
                               ]
                             }
                           },
-                          "required": [
-                            "value",
-                            "unit"
-                          ],
+                          "required": ["value", "unit"],
                           "additionalProperties": false,
                           "default": null
                         },
                         "loadFormula": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "formulaId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "format": "uuid"
                             },
                             "version": {
                               "type": "integer"
                             },
                             "builtIn": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
+                              "type": ["string", "null"]
                             },
                             "inputs": {
                               "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
                             },
                             "expression": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "default": null
                             },
                             "variableBindings": {
@@ -1912,10 +1710,7 @@
                           "default": null
                         },
                         "loadUnit": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "enum": [
                             "Scalar",
                             "Kg",
@@ -1930,29 +1725,18 @@
                           "default": null
                         }
                       },
-                      "required": [
-                        "exerciseId",
-                        "reps"
-                      ],
+                      "required": ["exerciseId", "reps"],
                       "additionalProperties": false
                     },
                     "default": null
                   }
                 },
-                "required": [
-                  "id",
-                  "name",
-                  "description",
-                  "cycles"
-                ],
+                "required": ["id", "name", "description", "cycles"],
                 "additionalProperties": false
               }
             },
             "maxesTables": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -1961,10 +1745,7 @@
                     "format": "uuid"
                   },
                   "blockId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid"
                   },
                   "rows": {
@@ -1974,20 +1755,13 @@
                     }
                   }
                 },
-                "required": [
-                  "id",
-                  "blockId",
-                  "rows"
-                ],
+                "required": ["id", "blockId", "rows"],
                 "additionalProperties": false
               },
               "default": null
             },
             "annotations": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -2005,10 +1779,7 @@
                     "type": "string"
                   },
                   "targetId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid",
                     "default": null
                   },
@@ -2017,35 +1788,22 @@
                     "default": "Coach"
                   }
                 },
-                "required": [
-                  "id",
-                  "kind",
-                  "title",
-                  "content"
-                ],
+                "required": ["id", "kind", "title", "content"],
                 "additionalProperties": false
               },
               "default": null
             }
           },
-          "required": [
-            "schemaVersion",
-            "blocks"
-          ],
+          "required": ["schemaVersion", "blocks"],
           "additionalProperties": false
         },
         "programId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid",
           "default": null
         }
       },
-      "required": [
-        "document"
-      ]
+      "required": ["document"]
     },
     "outputSchema": {
       "type": "object",
@@ -2068,11 +1826,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "path",
-              "code",
-              "message"
-            ],
+            "required": ["path", "code", "message"],
             "additionalProperties": false
           }
         },
@@ -2083,11 +1837,7 @@
           }
         }
       },
-      "required": [
-        "valid",
-        "errors",
-        "warnings"
-      ],
+      "required": ["valid", "errors", "warnings"],
       "additionalProperties": false
     },
     "annotations": {
@@ -2108,24 +1858,15 @@
       "type": "object",
       "properties": {
         "search": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "muscleKey": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "movementPatternKey": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "favoritesOnly": {
@@ -2141,23 +1882,14 @@
           "default": 25
         },
         "tagId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid",
           "default": null
         },
         "availableEquipment": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "default": null
         }
@@ -2211,12 +1943,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -2237,10 +1964,7 @@
       "type": "object",
       "properties": {
         "search": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "page": {
@@ -2302,12 +2026,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -2337,10 +2056,7 @@
               "type": "string"
             },
             "folderId": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": ["string", "null"],
               "format": "uuid"
             },
             "document": {
@@ -2792,10 +2508,7 @@
                                                       "additionalProperties": false
                                                     },
                                                     "segments": {
-                                                      "type": [
-                                                        "array",
-                                                        "null"
-                                                      ],
+                                                      "type": ["array", "null"],
                                                       "items": {
                                                         "type": "object",
                                                         "properties": {
@@ -2937,10 +2650,7 @@
                                               },
                                               "kind": {
                                                 "type": "string",
-                                                "enum": [
-                                                  "Superset",
-                                                  "Circuit"
-                                                ]
+                                                "enum": ["Superset", "Circuit"]
                                               },
                                               "exerciseIds": {
                                                 "type": "array",
@@ -2978,18 +2688,11 @@
                                     }
                                   },
                                   "note": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
+                                    "type": ["string", "null"],
                                     "default": null
                                   }
                                 },
-                                "required": [
-                                  "id",
-                                  "dayNumber",
-                                  "workouts"
-                                ],
+                                "required": ["id", "dayNumber", "workouts"],
                                 "additionalProperties": false
                               }
                             }
@@ -3005,28 +2708,19 @@
                         }
                       },
                       "exerciseMaxes": {
-                        "type": [
-                          "array",
-                          "null"
-                        ],
+                        "type": ["array", "null"],
                         "items": {
                           "type": "object",
                           "properties": {
                             "exerciseId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "format": "uuid"
                             },
                             "reps": {
                               "type": "integer"
                             },
                             "load": {
-                              "type": [
-                                "object",
-                                "null"
-                              ],
+                              "type": ["object", "null"],
                               "properties": {
                                 "value": {
                                   "type": "number"
@@ -3045,43 +2739,28 @@
                                   ]
                                 }
                               },
-                              "required": [
-                                "value",
-                                "unit"
-                              ],
+                              "required": ["value", "unit"],
                               "additionalProperties": false,
                               "default": null
                             },
                             "loadFormula": {
-                              "type": [
-                                "object",
-                                "null"
-                              ],
+                              "type": ["object", "null"],
                               "properties": {
                                 "formulaId": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
+                                  "type": ["string", "null"],
                                   "format": "uuid"
                                 },
                                 "version": {
                                   "type": "integer"
                                 },
                                 "builtIn": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
+                                  "type": ["string", "null"]
                                 },
                                 "inputs": {
                                   "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
                                 },
                                 "expression": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
+                                  "type": ["string", "null"],
                                   "default": null
                                 },
                                 "variableBindings": {
@@ -3099,10 +2778,7 @@
                               "default": null
                             },
                             "loadUnit": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "enum": [
                                 "Scalar",
                                 "Kg",
@@ -3117,29 +2793,18 @@
                               "default": null
                             }
                           },
-                          "required": [
-                            "exerciseId",
-                            "reps"
-                          ],
+                          "required": ["exerciseId", "reps"],
                           "additionalProperties": false
                         },
                         "default": null
                       }
                     },
-                    "required": [
-                      "id",
-                      "name",
-                      "description",
-                      "cycles"
-                    ],
+                    "required": ["id", "name", "description", "cycles"],
                     "additionalProperties": false
                   }
                 },
                 "maxesTables": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "object",
                     "properties": {
@@ -3148,10 +2813,7 @@
                         "format": "uuid"
                       },
                       "blockId": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "uuid"
                       },
                       "rows": {
@@ -3161,20 +2823,13 @@
                         }
                       }
                     },
-                    "required": [
-                      "id",
-                      "blockId",
-                      "rows"
-                    ],
+                    "required": ["id", "blockId", "rows"],
                     "additionalProperties": false
                   },
                   "default": null
                 },
                 "annotations": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "object",
                     "properties": {
@@ -3192,10 +2847,7 @@
                         "type": "string"
                       },
                       "targetId": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "uuid",
                         "default": null
                       },
@@ -3204,30 +2856,17 @@
                         "default": "Coach"
                       }
                     },
-                    "required": [
-                      "id",
-                      "kind",
-                      "title",
-                      "content"
-                    ],
+                    "required": ["id", "kind", "title", "content"],
                     "additionalProperties": false
                   },
                   "default": null
                 }
               },
-              "required": [
-                "schemaVersion",
-                "blocks"
-              ],
+              "required": ["schemaVersion", "blocks"],
               "additionalProperties": false
             }
           },
-          "required": [
-            "name",
-            "description",
-            "folderId",
-            "document"
-          ],
+          "required": ["name", "description", "folderId", "document"],
           "additionalProperties": false
         },
         "idempotencyKey": {
@@ -3235,10 +2874,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "draft",
-        "idempotencyKey"
-      ]
+      "required": ["draft", "idempotencyKey"]
     },
     "outputSchema": {
       "type": "object",
@@ -3254,10 +2890,7 @@
           "type": "string"
         },
         "folderId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid"
         },
         "revision": {
@@ -3716,10 +3349,7 @@
                                                   "additionalProperties": false
                                                 },
                                                 "segments": {
-                                                  "type": [
-                                                    "array",
-                                                    "null"
-                                                  ],
+                                                  "type": ["array", "null"],
                                                   "items": {
                                                     "type": "object",
                                                     "properties": {
@@ -3824,10 +3454,7 @@
                                                   "default": null
                                                 },
                                                 "sourceSetId": {
-                                                  "type": [
-                                                    "string",
-                                                    "null"
-                                                  ],
+                                                  "type": ["string", "null"],
                                                   "format": "uuid",
                                                   "default": null
                                                 }
@@ -3861,10 +3488,7 @@
                                           },
                                           "kind": {
                                             "type": "string",
-                                            "enum": [
-                                              "Superset",
-                                              "Circuit"
-                                            ]
+                                            "enum": ["Superset", "Circuit"]
                                           },
                                           "exerciseIds": {
                                             "type": "array",
@@ -3902,18 +3526,11 @@
                                 }
                               },
                               "note": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
+                                "type": ["string", "null"],
                                 "default": null
                               }
                             },
-                            "required": [
-                              "id",
-                              "dayNumber",
-                              "workouts"
-                            ],
+                            "required": ["id", "dayNumber", "workouts"],
                             "additionalProperties": false
                           }
                         }
@@ -3929,28 +3546,19 @@
                     }
                   },
                   "exerciseMaxes": {
-                    "type": [
-                      "array",
-                      "null"
-                    ],
+                    "type": ["array", "null"],
                     "items": {
                       "type": "object",
                       "properties": {
                         "exerciseId": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "format": "uuid"
                         },
                         "reps": {
                           "type": "integer"
                         },
                         "load": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "value": {
                               "type": "number"
@@ -3969,43 +3577,28 @@
                               ]
                             }
                           },
-                          "required": [
-                            "value",
-                            "unit"
-                          ],
+                          "required": ["value", "unit"],
                           "additionalProperties": false,
                           "default": null
                         },
                         "loadFormula": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "formulaId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "format": "uuid"
                             },
                             "version": {
                               "type": "integer"
                             },
                             "builtIn": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
+                              "type": ["string", "null"]
                             },
                             "inputs": {
                               "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
                             },
                             "expression": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "default": null
                             },
                             "variableBindings": {
@@ -4023,10 +3616,7 @@
                           "default": null
                         },
                         "loadUnit": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "enum": [
                             "Scalar",
                             "Kg",
@@ -4041,29 +3631,18 @@
                           "default": null
                         }
                       },
-                      "required": [
-                        "exerciseId",
-                        "reps"
-                      ],
+                      "required": ["exerciseId", "reps"],
                       "additionalProperties": false
                     },
                     "default": null
                   }
                 },
-                "required": [
-                  "id",
-                  "name",
-                  "description",
-                  "cycles"
-                ],
+                "required": ["id", "name", "description", "cycles"],
                 "additionalProperties": false
               }
             },
             "maxesTables": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -4072,10 +3651,7 @@
                     "format": "uuid"
                   },
                   "blockId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid"
                   },
                   "rows": {
@@ -4085,20 +3661,13 @@
                     }
                   }
                 },
-                "required": [
-                  "id",
-                  "blockId",
-                  "rows"
-                ],
+                "required": ["id", "blockId", "rows"],
                 "additionalProperties": false
               },
               "default": null
             },
             "annotations": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -4116,10 +3685,7 @@
                     "type": "string"
                   },
                   "targetId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid",
                     "default": null
                   },
@@ -4128,31 +3694,20 @@
                     "default": "Coach"
                   }
                 },
-                "required": [
-                  "id",
-                  "kind",
-                  "title",
-                  "content"
-                ],
+                "required": ["id", "kind", "title", "content"],
                 "additionalProperties": false
               },
               "default": null
             }
           },
-          "required": [
-            "schemaVersion",
-            "blocks"
-          ],
+          "required": ["schemaVersion", "blocks"],
           "additionalProperties": false
         },
         "editorPath": {
           "type": "string"
         },
         "validation": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "properties": {
             "valid": {
               "type": "boolean"
@@ -4172,11 +3727,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "path",
-                  "code",
-                  "message"
-                ],
+                "required": ["path", "code", "message"],
                 "additionalProperties": false
               }
             },
@@ -4187,19 +3738,12 @@
               }
             }
           },
-          "required": [
-            "valid",
-            "errors",
-            "warnings"
-          ],
+          "required": ["valid", "errors", "warnings"],
           "additionalProperties": false,
           "default": null
         },
         "changedPaths": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
             "type": "string"
           },
@@ -4276,47 +3820,30 @@
                   "format": "time"
                 },
                 "weekDays": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "integer"
                   },
                   "default": null
                 },
                 "dayOfMonth": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ],
+                  "type": ["integer", "null"],
                   "default": null
                 },
                 "assignmentId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
+                  "type": ["string", "null"],
                   "format": "uuid",
                   "default": null
                 },
                 "cycleDays": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "integer"
                   },
                   "default": null
                 }
               },
-              "required": [
-                "kind",
-                "interval",
-                "startDate",
-                "releaseTime"
-              ],
+              "required": ["kind", "interval", "startDate", "releaseTime"],
               "additionalProperties": false
             },
             "responseWindowHours": {
@@ -4350,9 +3877,7 @@
           "additionalProperties": false
         }
       },
-      "required": [
-        "assignment"
-      ]
+      "required": ["assignment"]
     },
     "outputSchema": {
       "type": "object",
@@ -4376,10 +3901,7 @@
           "type": "string"
         },
         "nextAvailableAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "responseWindowHours": {
@@ -4426,9 +3948,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "actionId"
-      ]
+      "required": ["actionId"]
     },
     "outputSchema": {
       "type": "object",
@@ -4449,12 +3969,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "actionId",
-        "messageId",
-        "conversationId",
-        "status"
-      ],
+      "required": ["actionId", "messageId", "conversationId", "status"],
       "additionalProperties": false
     },
     "annotations": {
@@ -4479,9 +3994,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "templateId"
-      ]
+      "required": ["templateId"]
     },
     "outputSchema": {
       "type": "object",
@@ -4550,73 +4063,43 @@
                           "default": 0
                         },
                         "helpText": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "min": {
-                          "type": [
-                            "number",
-                            "null"
-                          ],
+                          "type": ["number", "null"],
                           "default": null
                         },
                         "max": {
-                          "type": [
-                            "number",
-                            "null"
-                          ],
+                          "type": ["number", "null"],
                           "default": null
                         },
                         "unit": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "maxLength": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
+                          "type": ["integer", "null"],
                           "default": null
                         },
                         "minSelections": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
+                          "type": ["integer", "null"],
                           "default": null
                         },
                         "maxSelections": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
+                          "type": ["integer", "null"],
                           "default": null
                         },
                         "minLabel": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "maxLabel": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "choices": {
-                          "type": [
-                            "array",
-                            "null"
-                          ],
+                          "type": ["array", "null"],
                           "items": {
                             "type": "object",
                             "properties": {
@@ -4627,19 +4110,13 @@
                                 "type": "string"
                               }
                             },
-                            "required": [
-                              "key",
-                              "label"
-                            ],
+                            "required": ["key", "label"],
                             "additionalProperties": false
                           },
                           "default": null
                         },
                         "systemField": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "enum": [
                             "Height",
                             "Weight",
@@ -4666,35 +4143,21 @@
                           "default": null
                         }
                       },
-                      "required": [
-                        "key",
-                        "label",
-                        "type"
-                      ],
+                      "required": ["key", "label", "type"],
                       "additionalProperties": false
                     }
                   },
                   "description": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "default": null
                   }
                 },
-                "required": [
-                  "key",
-                  "title",
-                  "order",
-                  "questions"
-                ],
+                "required": ["key", "title", "order", "questions"],
                 "additionalProperties": false
               }
             }
           },
-          "required": [
-            "sections"
-          ],
+          "required": ["sections"],
           "additionalProperties": false
         },
         "editorPath": {
@@ -4745,9 +4208,7 @@
           "default": 25
         }
       },
-      "required": [
-        "relationshipId"
-      ]
+      "required": ["relationshipId"]
     },
     "outputSchema": {
       "type": "object",
@@ -4809,12 +4270,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -4839,9 +4295,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "actionId"
-      ]
+      "required": ["actionId"]
     },
     "outputSchema": {
       "type": "object",
@@ -4862,12 +4316,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "actionId",
-        "assignmentId",
-        "relationshipId",
-        "status"
-      ],
+      "required": ["actionId", "assignmentId", "relationshipId", "status"],
       "additionalProperties": false
     },
     "annotations": {
@@ -4888,10 +4337,7 @@
       "type": "object",
       "properties": {
         "search": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "page": {
@@ -4930,13 +4376,7 @@
                 "format": "date-time"
               }
             },
-            "required": [
-              "id",
-              "name",
-              "description",
-              "revision",
-              "updatedAt"
-            ],
+            "required": ["id", "name", "description", "revision", "updatedAt"],
             "additionalProperties": false
           }
         },
@@ -4950,12 +4390,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -4980,9 +4415,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "exerciseId"
-      ]
+      "required": ["exerciseId"]
     },
     "outputSchema": {
       "type": "object",
@@ -5022,10 +4455,7 @@
           }
         },
         "generatorMetadata": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "properties": {
             "id": {
               "type": "string",
@@ -5061,9 +4491,7 @@
                     }
                   }
                 },
-                "required": [
-                  "allOf"
-                ],
+                "required": ["allOf"],
                 "additionalProperties": false
               }
             },
@@ -5158,10 +4586,7 @@
               "type": "string"
             },
             "folderId": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": ["string", "null"],
               "format": "uuid"
             },
             "document": {
@@ -5613,10 +5038,7 @@
                                                       "additionalProperties": false
                                                     },
                                                     "segments": {
-                                                      "type": [
-                                                        "array",
-                                                        "null"
-                                                      ],
+                                                      "type": ["array", "null"],
                                                       "items": {
                                                         "type": "object",
                                                         "properties": {
@@ -5758,10 +5180,7 @@
                                               },
                                               "kind": {
                                                 "type": "string",
-                                                "enum": [
-                                                  "Superset",
-                                                  "Circuit"
-                                                ]
+                                                "enum": ["Superset", "Circuit"]
                                               },
                                               "exerciseIds": {
                                                 "type": "array",
@@ -5799,18 +5218,11 @@
                                     }
                                   },
                                   "note": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
+                                    "type": ["string", "null"],
                                     "default": null
                                   }
                                 },
-                                "required": [
-                                  "id",
-                                  "dayNumber",
-                                  "workouts"
-                                ],
+                                "required": ["id", "dayNumber", "workouts"],
                                 "additionalProperties": false
                               }
                             }
@@ -5826,28 +5238,19 @@
                         }
                       },
                       "exerciseMaxes": {
-                        "type": [
-                          "array",
-                          "null"
-                        ],
+                        "type": ["array", "null"],
                         "items": {
                           "type": "object",
                           "properties": {
                             "exerciseId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "format": "uuid"
                             },
                             "reps": {
                               "type": "integer"
                             },
                             "load": {
-                              "type": [
-                                "object",
-                                "null"
-                              ],
+                              "type": ["object", "null"],
                               "properties": {
                                 "value": {
                                   "type": "number"
@@ -5866,43 +5269,28 @@
                                   ]
                                 }
                               },
-                              "required": [
-                                "value",
-                                "unit"
-                              ],
+                              "required": ["value", "unit"],
                               "additionalProperties": false,
                               "default": null
                             },
                             "loadFormula": {
-                              "type": [
-                                "object",
-                                "null"
-                              ],
+                              "type": ["object", "null"],
                               "properties": {
                                 "formulaId": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
+                                  "type": ["string", "null"],
                                   "format": "uuid"
                                 },
                                 "version": {
                                   "type": "integer"
                                 },
                                 "builtIn": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
+                                  "type": ["string", "null"]
                                 },
                                 "inputs": {
                                   "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
                                 },
                                 "expression": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
+                                  "type": ["string", "null"],
                                   "default": null
                                 },
                                 "variableBindings": {
@@ -5920,10 +5308,7 @@
                               "default": null
                             },
                             "loadUnit": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "enum": [
                                 "Scalar",
                                 "Kg",
@@ -5938,29 +5323,18 @@
                               "default": null
                             }
                           },
-                          "required": [
-                            "exerciseId",
-                            "reps"
-                          ],
+                          "required": ["exerciseId", "reps"],
                           "additionalProperties": false
                         },
                         "default": null
                       }
                     },
-                    "required": [
-                      "id",
-                      "name",
-                      "description",
-                      "cycles"
-                    ],
+                    "required": ["id", "name", "description", "cycles"],
                     "additionalProperties": false
                   }
                 },
                 "maxesTables": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "object",
                     "properties": {
@@ -5969,10 +5343,7 @@
                         "format": "uuid"
                       },
                       "blockId": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "uuid"
                       },
                       "rows": {
@@ -5982,20 +5353,13 @@
                         }
                       }
                     },
-                    "required": [
-                      "id",
-                      "blockId",
-                      "rows"
-                    ],
+                    "required": ["id", "blockId", "rows"],
                     "additionalProperties": false
                   },
                   "default": null
                 },
                 "annotations": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "object",
                     "properties": {
@@ -6013,10 +5377,7 @@
                         "type": "string"
                       },
                       "targetId": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "uuid",
                         "default": null
                       },
@@ -6025,30 +5386,17 @@
                         "default": "Coach"
                       }
                     },
-                    "required": [
-                      "id",
-                      "kind",
-                      "title",
-                      "content"
-                    ],
+                    "required": ["id", "kind", "title", "content"],
                     "additionalProperties": false
                   },
                   "default": null
                 }
               },
-              "required": [
-                "schemaVersion",
-                "blocks"
-              ],
+              "required": ["schemaVersion", "blocks"],
               "additionalProperties": false
             }
           },
-          "required": [
-            "name",
-            "description",
-            "folderId",
-            "document"
-          ],
+          "required": ["name", "description", "folderId", "document"],
           "additionalProperties": false
         },
         "idempotencyKey": {
@@ -6056,12 +5404,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "programId",
-        "expectedRevision",
-        "draft",
-        "idempotencyKey"
-      ]
+      "required": ["programId", "expectedRevision", "draft", "idempotencyKey"]
     },
     "outputSchema": {
       "type": "object",
@@ -6077,10 +5420,7 @@
           "type": "string"
         },
         "folderId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid"
         },
         "revision": {
@@ -6539,10 +5879,7 @@
                                                   "additionalProperties": false
                                                 },
                                                 "segments": {
-                                                  "type": [
-                                                    "array",
-                                                    "null"
-                                                  ],
+                                                  "type": ["array", "null"],
                                                   "items": {
                                                     "type": "object",
                                                     "properties": {
@@ -6647,10 +5984,7 @@
                                                   "default": null
                                                 },
                                                 "sourceSetId": {
-                                                  "type": [
-                                                    "string",
-                                                    "null"
-                                                  ],
+                                                  "type": ["string", "null"],
                                                   "format": "uuid",
                                                   "default": null
                                                 }
@@ -6684,10 +6018,7 @@
                                           },
                                           "kind": {
                                             "type": "string",
-                                            "enum": [
-                                              "Superset",
-                                              "Circuit"
-                                            ]
+                                            "enum": ["Superset", "Circuit"]
                                           },
                                           "exerciseIds": {
                                             "type": "array",
@@ -6725,18 +6056,11 @@
                                 }
                               },
                               "note": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
+                                "type": ["string", "null"],
                                 "default": null
                               }
                             },
-                            "required": [
-                              "id",
-                              "dayNumber",
-                              "workouts"
-                            ],
+                            "required": ["id", "dayNumber", "workouts"],
                             "additionalProperties": false
                           }
                         }
@@ -6752,28 +6076,19 @@
                     }
                   },
                   "exerciseMaxes": {
-                    "type": [
-                      "array",
-                      "null"
-                    ],
+                    "type": ["array", "null"],
                     "items": {
                       "type": "object",
                       "properties": {
                         "exerciseId": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "format": "uuid"
                         },
                         "reps": {
                           "type": "integer"
                         },
                         "load": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "value": {
                               "type": "number"
@@ -6792,43 +6107,28 @@
                               ]
                             }
                           },
-                          "required": [
-                            "value",
-                            "unit"
-                          ],
+                          "required": ["value", "unit"],
                           "additionalProperties": false,
                           "default": null
                         },
                         "loadFormula": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "formulaId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "format": "uuid"
                             },
                             "version": {
                               "type": "integer"
                             },
                             "builtIn": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
+                              "type": ["string", "null"]
                             },
                             "inputs": {
                               "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
                             },
                             "expression": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "default": null
                             },
                             "variableBindings": {
@@ -6846,10 +6146,7 @@
                           "default": null
                         },
                         "loadUnit": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "enum": [
                             "Scalar",
                             "Kg",
@@ -6864,29 +6161,18 @@
                           "default": null
                         }
                       },
-                      "required": [
-                        "exerciseId",
-                        "reps"
-                      ],
+                      "required": ["exerciseId", "reps"],
                       "additionalProperties": false
                     },
                     "default": null
                   }
                 },
-                "required": [
-                  "id",
-                  "name",
-                  "description",
-                  "cycles"
-                ],
+                "required": ["id", "name", "description", "cycles"],
                 "additionalProperties": false
               }
             },
             "maxesTables": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -6895,10 +6181,7 @@
                     "format": "uuid"
                   },
                   "blockId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid"
                   },
                   "rows": {
@@ -6908,20 +6191,13 @@
                     }
                   }
                 },
-                "required": [
-                  "id",
-                  "blockId",
-                  "rows"
-                ],
+                "required": ["id", "blockId", "rows"],
                 "additionalProperties": false
               },
               "default": null
             },
             "annotations": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -6939,10 +6215,7 @@
                     "type": "string"
                   },
                   "targetId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid",
                     "default": null
                   },
@@ -6951,31 +6224,20 @@
                     "default": "Coach"
                   }
                 },
-                "required": [
-                  "id",
-                  "kind",
-                  "title",
-                  "content"
-                ],
+                "required": ["id", "kind", "title", "content"],
                 "additionalProperties": false
               },
               "default": null
             }
           },
-          "required": [
-            "schemaVersion",
-            "blocks"
-          ],
+          "required": ["schemaVersion", "blocks"],
           "additionalProperties": false
         },
         "editorPath": {
           "type": "string"
         },
         "validation": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "properties": {
             "valid": {
               "type": "boolean"
@@ -6995,11 +6257,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "path",
-                  "code",
-                  "message"
-                ],
+                "required": ["path", "code", "message"],
                 "additionalProperties": false
               }
             },
@@ -7010,19 +6268,12 @@
               }
             }
           },
-          "required": [
-            "valid",
-            "errors",
-            "warnings"
-          ],
+          "required": ["valid", "errors", "warnings"],
           "additionalProperties": false,
           "default": null
         },
         "changedPaths": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
             "type": "string"
           },
@@ -7070,11 +6321,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "conversationId",
-        "body",
-        "idempotencyKey"
-      ]
+      "required": ["conversationId", "body", "idempotencyKey"]
     },
     "outputSchema": {
       "type": "object",
@@ -7116,10 +6363,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "userId",
-              "displayName"
-            ],
+            "required": ["userId", "displayName"],
             "additionalProperties": false
           }
         },
@@ -7138,24 +6382,15 @@
           "format": "date-time"
         },
         "approvedAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "executedAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "messageId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid"
         },
         "version": {
@@ -7165,10 +6400,7 @@
           "type": "string"
         },
         "assignment": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "properties": {
             "request": {
               "type": "object",
@@ -7269,10 +6501,7 @@
           "default": null
         },
         "assignmentId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid",
           "default": null
         }
@@ -7320,9 +6549,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "relationshipId"
-      ]
+      "required": ["relationshipId"]
     },
     "outputSchema": {
       "type": "object",
@@ -7345,10 +6572,7 @@
                   "type": "string"
                 },
                 "username": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": ["string", "null"]
                 },
                 "status": {
                   "type": "integer"
@@ -7381,10 +6605,7 @@
               "type": "object"
             },
             "profileMeasuredAt": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": ["string", "null"],
               "format": "date-time"
             }
           },
@@ -7403,11 +6624,7 @@
           "format": "date-time"
         }
       },
-      "required": [
-        "coaching",
-        "provenance",
-        "observedAt"
-      ],
+      "required": ["coaching", "provenance", "observedAt"],
       "additionalProperties": false
     },
     "annotations": {
@@ -7432,9 +6649,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "programId"
-      ]
+      "required": ["programId"]
     },
     "outputSchema": {
       "type": "object",
@@ -7450,10 +6665,7 @@
           "type": "string"
         },
         "folderId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid"
         },
         "revision": {
@@ -7912,10 +7124,7 @@
                                                   "additionalProperties": false
                                                 },
                                                 "segments": {
-                                                  "type": [
-                                                    "array",
-                                                    "null"
-                                                  ],
+                                                  "type": ["array", "null"],
                                                   "items": {
                                                     "type": "object",
                                                     "properties": {
@@ -8020,10 +7229,7 @@
                                                   "default": null
                                                 },
                                                 "sourceSetId": {
-                                                  "type": [
-                                                    "string",
-                                                    "null"
-                                                  ],
+                                                  "type": ["string", "null"],
                                                   "format": "uuid",
                                                   "default": null
                                                 }
@@ -8057,10 +7263,7 @@
                                           },
                                           "kind": {
                                             "type": "string",
-                                            "enum": [
-                                              "Superset",
-                                              "Circuit"
-                                            ]
+                                            "enum": ["Superset", "Circuit"]
                                           },
                                           "exerciseIds": {
                                             "type": "array",
@@ -8098,18 +7301,11 @@
                                 }
                               },
                               "note": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
+                                "type": ["string", "null"],
                                 "default": null
                               }
                             },
-                            "required": [
-                              "id",
-                              "dayNumber",
-                              "workouts"
-                            ],
+                            "required": ["id", "dayNumber", "workouts"],
                             "additionalProperties": false
                           }
                         }
@@ -8125,28 +7321,19 @@
                     }
                   },
                   "exerciseMaxes": {
-                    "type": [
-                      "array",
-                      "null"
-                    ],
+                    "type": ["array", "null"],
                     "items": {
                       "type": "object",
                       "properties": {
                         "exerciseId": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "format": "uuid"
                         },
                         "reps": {
                           "type": "integer"
                         },
                         "load": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "value": {
                               "type": "number"
@@ -8165,43 +7352,28 @@
                               ]
                             }
                           },
-                          "required": [
-                            "value",
-                            "unit"
-                          ],
+                          "required": ["value", "unit"],
                           "additionalProperties": false,
                           "default": null
                         },
                         "loadFormula": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "formulaId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "format": "uuid"
                             },
                             "version": {
                               "type": "integer"
                             },
                             "builtIn": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
+                              "type": ["string", "null"]
                             },
                             "inputs": {
                               "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
                             },
                             "expression": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "default": null
                             },
                             "variableBindings": {
@@ -8219,10 +7391,7 @@
                           "default": null
                         },
                         "loadUnit": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "enum": [
                             "Scalar",
                             "Kg",
@@ -8237,29 +7406,18 @@
                           "default": null
                         }
                       },
-                      "required": [
-                        "exerciseId",
-                        "reps"
-                      ],
+                      "required": ["exerciseId", "reps"],
                       "additionalProperties": false
                     },
                     "default": null
                   }
                 },
-                "required": [
-                  "id",
-                  "name",
-                  "description",
-                  "cycles"
-                ],
+                "required": ["id", "name", "description", "cycles"],
                 "additionalProperties": false
               }
             },
             "maxesTables": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -8268,10 +7426,7 @@
                     "format": "uuid"
                   },
                   "blockId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid"
                   },
                   "rows": {
@@ -8281,20 +7436,13 @@
                     }
                   }
                 },
-                "required": [
-                  "id",
-                  "blockId",
-                  "rows"
-                ],
+                "required": ["id", "blockId", "rows"],
                 "additionalProperties": false
               },
               "default": null
             },
             "annotations": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -8312,10 +7460,7 @@
                     "type": "string"
                   },
                   "targetId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid",
                     "default": null
                   },
@@ -8324,31 +7469,20 @@
                     "default": "Coach"
                   }
                 },
-                "required": [
-                  "id",
-                  "kind",
-                  "title",
-                  "content"
-                ],
+                "required": ["id", "kind", "title", "content"],
                 "additionalProperties": false
               },
               "default": null
             }
           },
-          "required": [
-            "schemaVersion",
-            "blocks"
-          ],
+          "required": ["schemaVersion", "blocks"],
           "additionalProperties": false
         },
         "editorPath": {
           "type": "string"
         },
         "validation": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "properties": {
             "valid": {
               "type": "boolean"
@@ -8368,11 +7502,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "path",
-                  "code",
-                  "message"
-                ],
+                "required": ["path", "code", "message"],
                 "additionalProperties": false
               }
             },
@@ -8383,19 +7513,12 @@
               }
             }
           },
-          "required": [
-            "valid",
-            "errors",
-            "warnings"
-          ],
+          "required": ["valid", "errors", "warnings"],
           "additionalProperties": false,
           "default": null
         },
         "changedPaths": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
             "type": "string"
           },
@@ -8491,73 +7614,43 @@
                               "default": 0
                             },
                             "helpText": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "default": null
                             },
                             "min": {
-                              "type": [
-                                "number",
-                                "null"
-                              ],
+                              "type": ["number", "null"],
                               "default": null
                             },
                             "max": {
-                              "type": [
-                                "number",
-                                "null"
-                              ],
+                              "type": ["number", "null"],
                               "default": null
                             },
                             "unit": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "default": null
                             },
                             "maxLength": {
-                              "type": [
-                                "integer",
-                                "null"
-                              ],
+                              "type": ["integer", "null"],
                               "default": null
                             },
                             "minSelections": {
-                              "type": [
-                                "integer",
-                                "null"
-                              ],
+                              "type": ["integer", "null"],
                               "default": null
                             },
                             "maxSelections": {
-                              "type": [
-                                "integer",
-                                "null"
-                              ],
+                              "type": ["integer", "null"],
                               "default": null
                             },
                             "minLabel": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "default": null
                             },
                             "maxLabel": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "default": null
                             },
                             "choices": {
-                              "type": [
-                                "array",
-                                "null"
-                              ],
+                              "type": ["array", "null"],
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -8568,19 +7661,13 @@
                                     "type": "string"
                                   }
                                 },
-                                "required": [
-                                  "key",
-                                  "label"
-                                ],
+                                "required": ["key", "label"],
                                 "additionalProperties": false
                               },
                               "default": null
                             },
                             "systemField": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "enum": [
                                 "Height",
                                 "Weight",
@@ -8607,43 +7694,25 @@
                               "default": null
                             }
                           },
-                          "required": [
-                            "key",
-                            "label",
-                            "type"
-                          ],
+                          "required": ["key", "label", "type"],
                           "additionalProperties": false
                         }
                       },
                       "description": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
+                        "type": ["string", "null"],
                         "default": null
                       }
                     },
-                    "required": [
-                      "key",
-                      "title",
-                      "order",
-                      "questions"
-                    ],
+                    "required": ["key", "title", "order", "questions"],
                     "additionalProperties": false
                   }
                 }
               },
-              "required": [
-                "sections"
-              ],
+              "required": ["sections"],
               "additionalProperties": false
             }
           },
-          "required": [
-            "name",
-            "description",
-            "definition"
-          ],
+          "required": ["name", "description", "definition"],
           "additionalProperties": false
         },
         "idempotencyKey": {
@@ -8651,10 +7720,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "draft",
-        "idempotencyKey"
-      ]
+      "required": ["draft", "idempotencyKey"]
     },
     "outputSchema": {
       "type": "object",
@@ -8723,73 +7789,43 @@
                           "default": 0
                         },
                         "helpText": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "min": {
-                          "type": [
-                            "number",
-                            "null"
-                          ],
+                          "type": ["number", "null"],
                           "default": null
                         },
                         "max": {
-                          "type": [
-                            "number",
-                            "null"
-                          ],
+                          "type": ["number", "null"],
                           "default": null
                         },
                         "unit": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "maxLength": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
+                          "type": ["integer", "null"],
                           "default": null
                         },
                         "minSelections": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
+                          "type": ["integer", "null"],
                           "default": null
                         },
                         "maxSelections": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
+                          "type": ["integer", "null"],
                           "default": null
                         },
                         "minLabel": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "maxLabel": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "default": null
                         },
                         "choices": {
-                          "type": [
-                            "array",
-                            "null"
-                          ],
+                          "type": ["array", "null"],
                           "items": {
                             "type": "object",
                             "properties": {
@@ -8800,19 +7836,13 @@
                                 "type": "string"
                               }
                             },
-                            "required": [
-                              "key",
-                              "label"
-                            ],
+                            "required": ["key", "label"],
                             "additionalProperties": false
                           },
                           "default": null
                         },
                         "systemField": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "enum": [
                             "Height",
                             "Weight",
@@ -8839,35 +7869,21 @@
                           "default": null
                         }
                       },
-                      "required": [
-                        "key",
-                        "label",
-                        "type"
-                      ],
+                      "required": ["key", "label", "type"],
                       "additionalProperties": false
                     }
                   },
                   "description": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "default": null
                   }
                 },
-                "required": [
-                  "key",
-                  "title",
-                  "order",
-                  "questions"
-                ],
+                "required": ["key", "title", "order", "questions"],
                 "additionalProperties": false
               }
             }
           },
-          "required": [
-            "sections"
-          ],
+          "required": ["sections"],
           "additionalProperties": false
         },
         "editorPath": {
@@ -8938,9 +7954,7 @@
           "additionalProperties": false
         }
       },
-      "required": [
-        "assignment"
-      ]
+      "required": ["assignment"]
     },
     "outputSchema": {
       "type": "object",
@@ -9067,10 +8081,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "programId",
-        "revisionNumber"
-      ]
+      "required": ["programId", "revisionNumber"]
     },
     "outputSchema": {
       "type": "object",
@@ -9544,10 +8555,7 @@
                                                   "additionalProperties": false
                                                 },
                                                 "segments": {
-                                                  "type": [
-                                                    "array",
-                                                    "null"
-                                                  ],
+                                                  "type": ["array", "null"],
                                                   "items": {
                                                     "type": "object",
                                                     "properties": {
@@ -9652,10 +8660,7 @@
                                                   "default": null
                                                 },
                                                 "sourceSetId": {
-                                                  "type": [
-                                                    "string",
-                                                    "null"
-                                                  ],
+                                                  "type": ["string", "null"],
                                                   "format": "uuid",
                                                   "default": null
                                                 }
@@ -9689,10 +8694,7 @@
                                           },
                                           "kind": {
                                             "type": "string",
-                                            "enum": [
-                                              "Superset",
-                                              "Circuit"
-                                            ]
+                                            "enum": ["Superset", "Circuit"]
                                           },
                                           "exerciseIds": {
                                             "type": "array",
@@ -9730,18 +8732,11 @@
                                 }
                               },
                               "note": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
+                                "type": ["string", "null"],
                                 "default": null
                               }
                             },
-                            "required": [
-                              "id",
-                              "dayNumber",
-                              "workouts"
-                            ],
+                            "required": ["id", "dayNumber", "workouts"],
                             "additionalProperties": false
                           }
                         }
@@ -9757,28 +8752,19 @@
                     }
                   },
                   "exerciseMaxes": {
-                    "type": [
-                      "array",
-                      "null"
-                    ],
+                    "type": ["array", "null"],
                     "items": {
                       "type": "object",
                       "properties": {
                         "exerciseId": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "format": "uuid"
                         },
                         "reps": {
                           "type": "integer"
                         },
                         "load": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "value": {
                               "type": "number"
@@ -9797,43 +8783,28 @@
                               ]
                             }
                           },
-                          "required": [
-                            "value",
-                            "unit"
-                          ],
+                          "required": ["value", "unit"],
                           "additionalProperties": false,
                           "default": null
                         },
                         "loadFormula": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "properties": {
                             "formulaId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "format": "uuid"
                             },
                             "version": {
                               "type": "integer"
                             },
                             "builtIn": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
+                              "type": ["string", "null"]
                             },
                             "inputs": {
                               "$ref": "#/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
                             },
                             "expression": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "default": null
                             },
                             "variableBindings": {
@@ -9851,10 +8822,7 @@
                           "default": null
                         },
                         "loadUnit": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
+                          "type": ["string", "null"],
                           "enum": [
                             "Scalar",
                             "Kg",
@@ -9869,29 +8837,18 @@
                           "default": null
                         }
                       },
-                      "required": [
-                        "exerciseId",
-                        "reps"
-                      ],
+                      "required": ["exerciseId", "reps"],
                       "additionalProperties": false
                     },
                     "default": null
                   }
                 },
-                "required": [
-                  "id",
-                  "name",
-                  "description",
-                  "cycles"
-                ],
+                "required": ["id", "name", "description", "cycles"],
                 "additionalProperties": false
               }
             },
             "maxesTables": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -9900,10 +8857,7 @@
                     "format": "uuid"
                   },
                   "blockId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid"
                   },
                   "rows": {
@@ -9913,20 +8867,13 @@
                     }
                   }
                 },
-                "required": [
-                  "id",
-                  "blockId",
-                  "rows"
-                ],
+                "required": ["id", "blockId", "rows"],
                 "additionalProperties": false
               },
               "default": null
             },
             "annotations": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
                 "properties": {
@@ -9944,10 +8891,7 @@
                     "type": "string"
                   },
                   "targetId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "uuid",
                     "default": null
                   },
@@ -9956,21 +8900,13 @@
                     "default": "Coach"
                   }
                 },
-                "required": [
-                  "id",
-                  "kind",
-                  "title",
-                  "content"
-                ],
+                "required": ["id", "kind", "title", "content"],
                 "additionalProperties": false
               },
               "default": null
             }
           },
-          "required": [
-            "schemaVersion",
-            "blocks"
-          ],
+          "required": ["schemaVersion", "blocks"],
           "additionalProperties": false
         }
       },
@@ -10015,10 +8951,7 @@
           "default": "UTC"
         }
       },
-      "required": [
-        "from",
-        "to"
-      ]
+      "required": ["from", "to"]
     },
     "outputSchema": {
       "type": "object",
@@ -10053,28 +8986,16 @@
                 "type": "number"
               },
               "revenuePerPayingClient": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "mrr": {
-                "type": [
-                  "number",
-                  "null"
-                ]
+                "type": ["number", "null"]
               },
               "recurringSubscriptions": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
+                "type": ["integer", "null"]
               },
               "renewals": {
-                "type": [
-                  "integer",
-                  "null"
-                ]
+                "type": ["integer", "null"]
               },
               "simulatedGross": {
                 "type": "number"
@@ -10127,22 +9048,12 @@
                 "type": "integer"
               }
             },
-            "required": [
-              "date",
-              "currency",
-              "gross",
-              "fee",
-              "net",
-              "payments"
-            ],
+            "required": ["date", "currency", "gross", "fee", "net", "payments"],
             "additionalProperties": false
           }
         },
         "offers": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
             "type": "object",
             "properties": {
@@ -10223,10 +9134,7 @@
       "type": "object",
       "properties": {
         "search": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "page": {
@@ -10259,10 +9167,7 @@
                 "type": "string"
               },
               "username": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "status": {
                 "type": "integer"
@@ -10302,12 +9207,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -10348,11 +9248,7 @@
           "default": 10
         }
       },
-      "required": [
-        "relationshipId",
-        "from",
-        "to"
-      ]
+      "required": ["relationshipId", "from", "to"]
     },
     "outputSchema": {
       "type": "object",
@@ -10381,24 +9277,15 @@
                 "type": "string"
               },
               "performedDate": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "date"
               },
               "completedAt": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "date-time"
               },
               "comment": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "exercises": {
                 "type": "array",
@@ -10421,84 +9308,48 @@
                         "type": "object",
                         "properties": {
                           "prescribedSetId": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
+                            "type": ["string", "null"],
                             "format": "uuid"
                           },
                           "prescribedSegmentId": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
+                            "type": ["string", "null"],
                             "format": "uuid"
                           },
                           "skipped": {
                             "type": "boolean"
                           },
                           "reps": {
-                            "type": [
-                              "integer",
-                              "null"
-                            ]
+                            "type": ["integer", "null"]
                           },
                           "load": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
+                            "type": ["number", "null"]
                           },
                           "loadUnit": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
+                            "type": ["string", "null"]
                           },
                           "loadMeaning": {
                             "type": "string"
                           },
                           "rpe": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
+                            "type": ["number", "null"]
                           },
                           "rir": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
+                            "type": ["number", "null"]
                           },
                           "durationSeconds": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
+                            "type": ["number", "null"]
                           },
                           "restSeconds": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
+                            "type": ["number", "null"]
                           },
                           "distanceMeters": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
+                            "type": ["number", "null"]
                           },
                           "tempo": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
+                            "type": ["string", "null"]
                           },
                           "comment": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
+                            "type": ["string", "null"]
                           }
                         },
                         "required": [
@@ -10521,12 +9372,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "exerciseId",
-                    "name",
-                    "comment",
-                    "sets"
-                  ],
+                  "required": ["exerciseId", "name", "comment", "sets"],
                   "additionalProperties": false
                 }
               }
@@ -10555,12 +9401,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -10617,10 +9458,7 @@
           "format": "uuid"
         }
       },
-      "required": [
-        "assignment",
-        "idempotencyKey"
-      ]
+      "required": ["assignment", "idempotencyKey"]
     },
     "outputSchema": {
       "type": "object",
@@ -10662,10 +9500,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "userId",
-              "displayName"
-            ],
+            "required": ["userId", "displayName"],
             "additionalProperties": false
           }
         },
@@ -10684,24 +9519,15 @@
           "format": "date-time"
         },
         "approvedAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "executedAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "messageId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid"
         },
         "version": {
@@ -10711,10 +9537,7 @@
           "type": "string"
         },
         "assignment": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "properties": {
             "request": {
               "type": "object",
@@ -10815,10 +9638,7 @@
           "default": null
         },
         "assignmentId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid",
           "default": null
         }
@@ -10882,10 +9702,7 @@
           "default": 25
         }
       },
-      "required": [
-        "from",
-        "to"
-      ]
+      "required": ["from", "to"]
     },
     "outputSchema": {
       "type": "object",
@@ -10923,10 +9740,7 @@
                 "type": "boolean"
               },
               "location": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               }
             },
             "required": [
@@ -10953,12 +9767,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -10987,18 +9796,12 @@
           "format": "date-time"
         },
         "relationshipId": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "uuid",
           "default": null
         },
         "status": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "page": {
@@ -11010,10 +9813,7 @@
           "default": 25
         }
       },
-      "required": [
-        "from",
-        "to"
-      ]
+      "required": ["from", "to"]
     },
     "outputSchema": {
       "type": "object",
@@ -11046,17 +9846,11 @@
                 "type": "string"
               },
               "submittedAt": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "date-time"
               },
               "reviewedAt": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "date-time"
               },
               "wasLate": {
@@ -11087,12 +9881,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "total"
-      ],
+      "required": ["items", "page", "pageSize", "total"],
       "additionalProperties": false
     },
     "annotations": {
@@ -11129,10 +9918,7 @@
           "default": 25
         }
       },
-      "required": [
-        "from",
-        "to"
-      ]
+      "required": ["from", "to"]
     },
     "outputSchema": {
       "type": "object",
@@ -11158,11 +9944,7 @@
                 "format": "date-time"
               }
             },
-            "required": [
-              "relationshipId",
-              "overdueRequestIds",
-              "oldestDueAt"
-            ],
+            "required": ["relationshipId", "overdueRequestIds", "oldestDueAt"],
             "additionalProperties": false
           }
         },
@@ -11176,12 +9958,7 @@
           "type": "integer"
         }
       },
-      "required": [
-        "items",
-        "page",
-        "pageSize",
-        "totalOverdueRequests"
-      ],
+      "required": ["items", "page", "pageSize", "totalOverdueRequests"],
       "additionalProperties": false
     },
     "annotations": {
@@ -11218,24 +9995,15 @@
                 "format": "uuid"
               },
               "name": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "default": null
               },
               "description": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "default": null
               },
               "exerciseChanges": {
-                "type": [
-                  "array",
-                  "null"
-                ],
+                "type": ["array", "null"],
                 "items": {
                   "type": "object",
                   "properties": {
@@ -11244,25 +10012,16 @@
                       "format": "uuid"
                     },
                     "exerciseId": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
+                      "type": ["string", "null"],
                       "format": "uuid",
                       "default": null
                     },
                     "comment": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
+                      "type": ["string", "null"],
                       "default": null
                     },
                     "setChanges": {
-                      "type": [
-                        "array",
-                        "null"
-                      ],
+                      "type": ["array", "null"],
                       "items": {
                         "type": "object",
                         "properties": {
@@ -11295,10 +10054,7 @@
                                 "type": "object",
                                 "properties": {
                                   "reps": {
-                                    "type": [
-                                      "object",
-                                      "null"
-                                    ],
+                                    "type": ["object", "null"],
                                     "properties": {
                                       "minimum": {
                                         "type": "integer"
@@ -11307,18 +10063,12 @@
                                         "type": "integer"
                                       }
                                     },
-                                    "required": [
-                                      "minimum",
-                                      "maximum"
-                                    ],
+                                    "required": ["minimum", "maximum"],
                                     "additionalProperties": false,
                                     "default": null
                                   },
                                   "load": {
-                                    "type": [
-                                      "object",
-                                      "null"
-                                    ],
+                                    "type": ["object", "null"],
                                     "properties": {
                                       "minimum": {
                                         "type": "object",
@@ -11340,10 +10090,7 @@
                                             ]
                                           }
                                         },
-                                        "required": [
-                                          "value",
-                                          "unit"
-                                        ],
+                                        "required": ["value", "unit"],
                                         "additionalProperties": false
                                       },
                                       "maximum": {
@@ -11366,32 +10113,20 @@
                                             ]
                                           }
                                         },
-                                        "required": [
-                                          "value",
-                                          "unit"
-                                        ],
+                                        "required": ["value", "unit"],
                                         "additionalProperties": false
                                       }
                                     },
-                                    "required": [
-                                      "minimum",
-                                      "maximum"
-                                    ],
+                                    "required": ["minimum", "maximum"],
                                     "additionalProperties": false,
                                     "default": null
                                   },
                                   "loadPercent": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
+                                    "type": ["number", "null"],
                                     "default": null
                                   },
                                   "baseValue": {
-                                    "type": [
-                                      "object",
-                                      "null"
-                                    ],
+                                    "type": ["object", "null"],
                                     "properties": {
                                       "value": {
                                         "type": "number"
@@ -11410,32 +10145,20 @@
                                         ]
                                       }
                                     },
-                                    "required": [
-                                      "value",
-                                      "unit"
-                                    ],
+                                    "required": ["value", "unit"],
                                     "additionalProperties": false,
                                     "default": null
                                   },
                                   "rpe": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
+                                    "type": ["number", "null"],
                                     "default": null
                                   },
                                   "rir": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
+                                    "type": ["number", "null"],
                                     "default": null
                                   },
                                   "workTime": {
-                                    "type": [
-                                      "object",
-                                      "null"
-                                    ],
+                                    "type": ["object", "null"],
                                     "properties": {
                                       "value": {
                                         "type": "number"
@@ -11454,18 +10177,12 @@
                                         ]
                                       }
                                     },
-                                    "required": [
-                                      "value",
-                                      "unit"
-                                    ],
+                                    "required": ["value", "unit"],
                                     "additionalProperties": false,
                                     "default": null
                                   },
                                   "rest": {
-                                    "type": [
-                                      "object",
-                                      "null"
-                                    ],
+                                    "type": ["object", "null"],
                                     "properties": {
                                       "value": {
                                         "type": "number"
@@ -11484,25 +10201,16 @@
                                         ]
                                       }
                                     },
-                                    "required": [
-                                      "value",
-                                      "unit"
-                                    ],
+                                    "required": ["value", "unit"],
                                     "additionalProperties": false,
                                     "default": null
                                   },
                                   "tempo": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
+                                    "type": ["string", "null"],
                                     "default": null
                                   },
                                   "distance": {
-                                    "type": [
-                                      "object",
-                                      "null"
-                                    ],
+                                    "type": ["object", "null"],
                                     "properties": {
                                       "value": {
                                         "type": "number"
@@ -11521,41 +10229,26 @@
                                         ]
                                       }
                                     },
-                                    "required": [
-                                      "value",
-                                      "unit"
-                                    ],
+                                    "required": ["value", "unit"],
                                     "additionalProperties": false,
                                     "default": null
                                   },
                                   "comment": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
+                                    "type": ["string", "null"],
                                     "default": null
                                   },
                                   "loadFormula": {
-                                    "type": [
-                                      "object",
-                                      "null"
-                                    ],
+                                    "type": ["object", "null"],
                                     "properties": {
                                       "formulaId": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ],
+                                        "type": ["string", "null"],
                                         "format": "uuid"
                                       },
                                       "version": {
                                         "type": "integer"
                                       },
                                       "builtIn": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
+                                        "type": ["string", "null"]
                                       },
                                       "inputs": {
                                         "type": "object",
@@ -11579,25 +10272,16 @@
                                               ]
                                             }
                                           },
-                                          "required": [
-                                            "value",
-                                            "unit"
-                                          ],
+                                          "required": ["value", "unit"],
                                           "additionalProperties": false
                                         }
                                       },
                                       "expression": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ],
+                                        "type": ["string", "null"],
                                         "default": null
                                       },
                                       "variableBindings": {
-                                        "type": [
-                                          "object",
-                                          "null"
-                                        ],
+                                        "type": ["object", "null"],
                                         "additionalProperties": {
                                           "type": "string"
                                         },
@@ -11614,10 +10298,7 @@
                                     "default": null
                                   },
                                   "loadUnit": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
+                                    "type": ["string", "null"],
                                     "enum": [
                                       "Scalar",
                                       "Kg",
@@ -11635,10 +10316,7 @@
                                 "additionalProperties": false
                               },
                               "segments": {
-                                "type": [
-                                  "array",
-                                  "null"
-                                ],
+                                "type": ["array", "null"],
                                 "items": {
                                   "type": "object",
                                   "properties": {
@@ -11658,10 +10336,7 @@
                                           "default": null
                                         },
                                         "loadPercent": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ],
+                                          "type": ["number", "null"],
                                           "default": null
                                         },
                                         "baseValue": {
@@ -11669,17 +10344,11 @@
                                           "default": null
                                         },
                                         "rpe": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ],
+                                          "type": ["number", "null"],
                                           "default": null
                                         },
                                         "rir": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ],
+                                          "type": ["number", "null"],
                                           "default": null
                                         },
                                         "workTime": {
@@ -11691,10 +10360,7 @@
                                           "default": null
                                         },
                                         "tempo": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ],
+                                          "type": ["string", "null"],
                                           "default": null
                                         },
                                         "distance": {
@@ -11702,10 +10368,7 @@
                                           "default": null
                                         },
                                         "comment": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ],
+                                          "type": ["string", "null"],
                                           "default": null
                                         },
                                         "loadFormula": {
@@ -11713,10 +10376,7 @@
                                           "default": null
                                         },
                                         "loadUnit": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ],
+                                          "type": ["string", "null"],
                                           "enum": [
                                             "Scalar",
                                             "Kg",
@@ -11734,44 +10394,28 @@
                                       "additionalProperties": false
                                     }
                                   },
-                                  "required": [
-                                    "id",
-                                    "prescription"
-                                  ],
+                                  "required": ["id", "prescription"],
                                   "additionalProperties": false
                                 },
                                 "default": null
                               },
                               "sourceSetId": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
+                                "type": ["string", "null"],
                                 "format": "uuid",
                                 "default": null
                               }
                             },
-                            "required": [
-                              "id",
-                              "kind",
-                              "prescription"
-                            ],
+                            "required": ["id", "kind", "prescription"],
                             "additionalProperties": false
                           }
                         },
-                        "required": [
-                          "setId",
-                          "replacement"
-                        ],
+                        "required": ["setId", "replacement"],
                         "additionalProperties": false
                       },
                       "default": null
                     },
                     "setOrder": {
-                      "type": [
-                        "array",
-                        "null"
-                      ],
+                      "type": ["array", "null"],
                       "items": {
                         "type": "string",
                         "format": "uuid"
@@ -11779,18 +10423,13 @@
                       "default": null
                     }
                   },
-                  "required": [
-                    "exerciseInstanceId"
-                  ],
+                  "required": ["exerciseInstanceId"],
                   "additionalProperties": false
                 },
                 "default": null
               },
               "exerciseOrder": {
-                "type": [
-                  "array",
-                  "null"
-                ],
+                "type": ["array", "null"],
                 "items": {
                   "type": "string",
                   "format": "uuid"
@@ -11798,18 +10437,12 @@
                 "default": null
               }
             },
-            "required": [
-              "workoutId"
-            ],
+            "required": ["workoutId"],
             "additionalProperties": false
           }
         }
       },
-      "required": [
-        "programId",
-        "expectedRevision",
-        "changes"
-      ]
+      "required": ["programId", "expectedRevision", "changes"]
     },
     "outputSchema": {
       "type": "object",
@@ -11831,10 +10464,7 @@
               "type": "string"
             },
             "folderId": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": ["string", "null"],
               "format": "uuid"
             },
             "document": {
@@ -12286,10 +10916,7 @@
                                                       "additionalProperties": false
                                                     },
                                                     "segments": {
-                                                      "type": [
-                                                        "array",
-                                                        "null"
-                                                      ],
+                                                      "type": ["array", "null"],
                                                       "items": {
                                                         "type": "object",
                                                         "properties": {
@@ -12431,10 +11058,7 @@
                                               },
                                               "kind": {
                                                 "type": "string",
-                                                "enum": [
-                                                  "Superset",
-                                                  "Circuit"
-                                                ]
+                                                "enum": ["Superset", "Circuit"]
                                               },
                                               "exerciseIds": {
                                                 "type": "array",
@@ -12472,18 +11096,11 @@
                                     }
                                   },
                                   "note": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
+                                    "type": ["string", "null"],
                                     "default": null
                                   }
                                 },
-                                "required": [
-                                  "id",
-                                  "dayNumber",
-                                  "workouts"
-                                ],
+                                "required": ["id", "dayNumber", "workouts"],
                                 "additionalProperties": false
                               }
                             }
@@ -12499,28 +11116,19 @@
                         }
                       },
                       "exerciseMaxes": {
-                        "type": [
-                          "array",
-                          "null"
-                        ],
+                        "type": ["array", "null"],
                         "items": {
                           "type": "object",
                           "properties": {
                             "exerciseId": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "format": "uuid"
                             },
                             "reps": {
                               "type": "integer"
                             },
                             "load": {
-                              "type": [
-                                "object",
-                                "null"
-                              ],
+                              "type": ["object", "null"],
                               "properties": {
                                 "value": {
                                   "type": "number"
@@ -12539,43 +11147,28 @@
                                   ]
                                 }
                               },
-                              "required": [
-                                "value",
-                                "unit"
-                              ],
+                              "required": ["value", "unit"],
                               "additionalProperties": false,
                               "default": null
                             },
                             "loadFormula": {
-                              "type": [
-                                "object",
-                                "null"
-                              ],
+                              "type": ["object", "null"],
                               "properties": {
                                 "formulaId": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
+                                  "type": ["string", "null"],
                                   "format": "uuid"
                                 },
                                 "version": {
                                   "type": "integer"
                                 },
                                 "builtIn": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
+                                  "type": ["string", "null"]
                                 },
                                 "inputs": {
                                   "$ref": "#/properties/draft/properties/document/properties/blocks/items/properties/cycles/items/properties/days/items/properties/workouts/items/properties/exercises/items/properties/sets/items/properties/prescription/properties/loadFormula/properties/inputs"
                                 },
                                 "expression": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
+                                  "type": ["string", "null"],
                                   "default": null
                                 },
                                 "variableBindings": {
@@ -12593,10 +11186,7 @@
                               "default": null
                             },
                             "loadUnit": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
+                              "type": ["string", "null"],
                               "enum": [
                                 "Scalar",
                                 "Kg",
@@ -12611,29 +11201,18 @@
                               "default": null
                             }
                           },
-                          "required": [
-                            "exerciseId",
-                            "reps"
-                          ],
+                          "required": ["exerciseId", "reps"],
                           "additionalProperties": false
                         },
                         "default": null
                       }
                     },
-                    "required": [
-                      "id",
-                      "name",
-                      "description",
-                      "cycles"
-                    ],
+                    "required": ["id", "name", "description", "cycles"],
                     "additionalProperties": false
                   }
                 },
                 "maxesTables": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "object",
                     "properties": {
@@ -12642,10 +11221,7 @@
                         "format": "uuid"
                       },
                       "blockId": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "uuid"
                       },
                       "rows": {
@@ -12655,20 +11231,13 @@
                         }
                       }
                     },
-                    "required": [
-                      "id",
-                      "blockId",
-                      "rows"
-                    ],
+                    "required": ["id", "blockId", "rows"],
                     "additionalProperties": false
                   },
                   "default": null
                 },
                 "annotations": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
                     "type": "object",
                     "properties": {
@@ -12686,10 +11255,7 @@
                         "type": "string"
                       },
                       "targetId": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "uuid",
                         "default": null
                       },
@@ -12698,30 +11264,17 @@
                         "default": "Coach"
                       }
                     },
-                    "required": [
-                      "id",
-                      "kind",
-                      "title",
-                      "content"
-                    ],
+                    "required": ["id", "kind", "title", "content"],
                     "additionalProperties": false
                   },
                   "default": null
                 }
               },
-              "required": [
-                "schemaVersion",
-                "blocks"
-              ],
+              "required": ["schemaVersion", "blocks"],
               "additionalProperties": false
             }
           },
-          "required": [
-            "name",
-            "description",
-            "folderId",
-            "document"
-          ],
+          "required": ["name", "description", "folderId", "document"],
           "additionalProperties": false
         },
         "changedPaths": {
@@ -12751,11 +11304,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "path",
-                  "code",
-                  "message"
-                ],
+                "required": ["path", "code", "message"],
                 "additionalProperties": false
               }
             },
@@ -12766,11 +11315,7 @@
               }
             }
           },
-          "required": [
-            "valid",
-            "errors",
-            "warnings"
-          ],
+          "required": ["valid", "errors", "warnings"],
           "additionalProperties": false
         }
       },
@@ -12805,10 +11350,7 @@
           "format": "uuid"
         },
         "before": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null
         },
         "limit": {
@@ -12816,9 +11358,7 @@
           "default": 25
         }
       },
-      "required": [
-        "conversationId"
-      ]
+      "required": ["conversationId"]
     },
     "outputSchema": {
       "type": "object",
@@ -12844,30 +11384,21 @@
                 "type": "string"
               },
               "body": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
               },
               "replyToMessageId": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "uuid"
               },
               "cursor": {
                 "type": "string"
               },
               "deletedAt": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "format": "date-time"
               }
             },
@@ -12886,23 +11417,13 @@
           }
         },
         "olderCursor": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "newerCursor": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       },
-      "required": [
-        "items",
-        "olderCursor",
-        "newerCursor"
-      ],
+      "required": ["items", "olderCursor", "newerCursor"],
       "additionalProperties": false
     },
     "annotations": {

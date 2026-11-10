@@ -1,7 +1,14 @@
 import { PlanDescription } from "./PlanDescription";
 import { isUnavailableResource } from "~/shared/lib/ResourceError";
 import { AssignProgramButton, AssignmentList } from "../delivery/Assignments";
-import { Archive, ArchiveRestore, Copy, Download, Pencil, Rocket } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  Copy,
+  Download,
+  Pencil,
+  Rocket,
+} from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { PrefetchPageLinks, useParams } from "react-router";
@@ -34,10 +41,17 @@ import { FormatIssues } from "../components/FormatIssues";
 import { DraftState } from "../components/DraftState";
 import { useDocumentIssues } from "../editor/useDocumentIssues";
 import { useExerciseNames } from "~/modules/exercises";
-import { SheetCanvas, usePersistentSheet } from "../editor/components/SheetCanvas";
+import {
+  SheetCanvas,
+  usePersistentSheet,
+} from "../editor/components/SheetCanvas";
 import { WeekView } from "../editor/components/WeekView";
 import { isSimpleShape } from "../editor/model/structure";
-import { storedMode, storeMode, type EditorMode } from "../editor/mode-preference";
+import {
+  storedMode,
+  storeMode,
+  type EditorMode,
+} from "../editor/mode-preference";
 import { documentStats, uniqueExerciseIds } from "../editor/model/document";
 import { ExportDialog } from "../import-export/ExportDialog";
 import { CopyPlanDialog } from "../library/dialogs";
@@ -58,26 +72,42 @@ function ProgramDetail() {
   const showError = useErrorToast();
   const query = usePlan(programId);
   const revisions = useRevisions(programId);
-  const access = useFeatures(["training.programs.manage", "training.programs.create", "training.templates.manage", "training.export.csv", "training.export.pdf"] as const);
+  const access = useFeatures([
+    "training.programs.manage",
+    "training.programs.create",
+    "training.templates.manage",
+    "training.export.csv",
+    "training.export.pdf",
+  ] as const);
   const [publishOpen, setPublishOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
   const [sheet, setSheet] = usePersistentSheet(programId);
-  const [previewMode, setPreviewModeState] = useState<EditorMode | null>(storedMode);
+  const [previewMode, setPreviewModeState] = useState<EditorMode | null>(
+    storedMode,
+  );
   const setPreviewMode = (next: EditorMode) => {
     setPreviewModeState(next);
     storeMode(next);
   };
-  const names = useExerciseNames(query.data ? uniqueExerciseIds(query.data.data.document) : []);
+  const names = useExerciseNames(
+    query.data ? uniqueExerciseIds(query.data.data.document) : [],
+  );
   const issues = useDocumentIssues(query.data?.data.document, names);
   const [refusal] = useFormatRefusal(programId);
 
   const archive = useMutation({
-    mutationFn: (archived: boolean) => setArchived(api, programId, archived, query.data!.version),
+    mutationFn: (archived: boolean) =>
+      setArchived(api, programId, archived, query.data!.version),
     onSuccess: (result) => {
       queryClient.setQueryData(trainingKeys.plan(a, programId), result);
       void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(a) });
-      toast({ tone: "success", title: result.data.archived ? m.training.library.archived : m.training.library.restored });
+      toast({
+        tone: "success",
+        title: result.data.archived
+          ? m.training.library.archived
+          : m.training.library.restored,
+      });
     },
     onError: (error) => showError(error),
   });
@@ -85,7 +115,15 @@ function ProgramDetail() {
   const { ask, dialog: archiveDialog } = useDangerConfirm();
   const confirmArchive = async (name: string) => {
     const c = m.training.library.archiveConfirm;
-    if (await ask({ title: c.title(name), body: c.body, confirmLabel: c.confirm, cancelLabel: c.cancel })) archive.mutate(true);
+    if (
+      await ask({
+        title: c.title(name),
+        body: c.body,
+        confirmLabel: c.confirm,
+        cancelLabel: c.cancel,
+      })
+    )
+      archive.mutate(true);
   };
 
   if (query.isPending) {
@@ -102,18 +140,31 @@ function ProgramDetail() {
       <ErrorState
         title={notFound ? t.notFound : errorText(m, query.error)}
         reference={traceIdOf(query.error)}
-        actions={notFound ? undefined : <Button onPress={() => void query.refetch()}>{m.common.retry}</Button>}
+        actions={
+          notFound ? undefined : (
+            <Button onPress={() => void query.refetch()}>
+              {m.common.retry}
+            </Button>
+          )
+        }
       />
     );
   }
 
   const { data: plan, version } = query.data;
   const isTemplate = plan.kind === "Template";
-  const canManage = access["training.programs.manage"].allowed && (!isTemplate || access["training.templates.manage"].allowed);
+  const canManage =
+    access["training.programs.manage"].allowed &&
+    (!isTemplate || access["training.templates.manage"].allowed);
   const stats = documentStats(plan.document);
-  const mode = previewMode ?? (isSimpleShape(plan.document) ? "simple" : "advanced");
-  const editPath = isTemplate ? `/app/templates/${plan.id}/edit` : `/app/programs/${plan.id}/edit`;
-  const canExport = access["training.export.csv"].allowed || access["training.export.pdf"].allowed;
+  const mode =
+    previewMode ?? (isSimpleShape(plan.document) ? "simple" : "advanced");
+  const editPath = isTemplate
+    ? `/app/templates/${plan.id}/edit`
+    : `/app/programs/${plan.id}/edit`;
+  const canExport =
+    access["training.export.csv"].allowed ||
+    access["training.export.pdf"].allowed;
 
   return (
     <>
@@ -121,38 +172,79 @@ function ProgramDetail() {
         context={
           <Breadcrumbs
             items={[
-              { id: "list", label: isTemplate ? m.training.templates.title : m.training.programs.title, href: isTemplate ? "/app/templates" : "/app/programs" },
+              {
+                id: "list",
+                label: isTemplate
+                  ? m.training.templates.title
+                  : m.training.programs.title,
+                href: isTemplate ? "/app/templates" : "/app/programs",
+              },
               { id: "current", label: plan.name },
             ]}
           />
         }
         title={plan.name}
-        description={<PlanDescription text={plan.description || t.emptyDescription} title={plan.name} />}
+        description={
+          <PlanDescription
+            text={plan.description || t.emptyDescription}
+            title={plan.name}
+          />
+        }
         meta={
           <>
-            {isTemplate ? <Badge tone="violet">{m.training.library.templateBadge}</Badge> : null}
-            {plan.archived ? <Badge tone="warning">{m.training.library.archivedBadge}</Badge> : null}
-            <Badge>{m.common.updated(formatRelative(locale, plan.updatedAt))}</Badge>
+            {isTemplate ? (
+              <Badge tone="violet">{m.training.library.templateBadge}</Badge>
+            ) : null}
+            {plan.archived ? (
+              <Badge tone="warning">{m.training.library.archivedBadge}</Badge>
+            ) : null}
+            <Badge>
+              {m.common.updated(formatRelative(locale, plan.updatedAt))}
+            </Badge>
           </>
         }
         actions={
           <>
-            {!isTemplate && !plan.archived && <AssignProgramButton programId={plan.id} />}
+            {!isTemplate && !plan.archived && (
+              <AssignProgramButton programId={plan.id} />
+            )}
             {plan.archived ? (
-              <Button iconStart={<ArchiveRestore />} isDisabled={!canManage} loading={archive.isPending} onPress={() => archive.mutate(false)}>
+              <Button
+                iconStart={<ArchiveRestore />}
+                isDisabled={!canManage}
+                loading={archive.isPending}
+                onPress={() => archive.mutate(false)}
+              >
                 {m.common.restore}
               </Button>
             ) : (
-              <Button variant="ghost" iconStart={<Archive />} isDisabled={!canManage} loading={archive.isPending} onPress={() => void confirmArchive(plan.name)}>
+              <Button
+                variant="ghost"
+                iconStart={<Archive />}
+                isDisabled={!canManage}
+                loading={archive.isPending}
+                onPress={() => void confirmArchive(plan.name)}
+              >
                 {m.common.archive}
               </Button>
             )}
             <LockedReason access={access["training.programs.create"]}>
-              <Button iconStart={<Copy />} isDisabled={!access["training.programs.create"].allowed} onPress={() => setCopyOpen(true)}>
-                {isTemplate ? m.training.library.useTemplate : m.training.library.copy}
+              <Button
+                iconStart={<Copy />}
+                isDisabled={!access["training.programs.create"].allowed}
+                onPress={() => setCopyOpen(true)}
+              >
+                {isTemplate
+                  ? m.training.library.useTemplate
+                  : m.training.library.copy}
               </Button>
             </LockedReason>
-            <LinkButton href={editPath} variant="primary" iconStart={<Pencil />} isDisabled={!canManage || plan.archived}>
+            <LinkButton
+              href={editPath}
+              variant="primary"
+              iconStart={<Pencil />}
+              isDisabled={!canManage || plan.archived}
+            >
               {t.openEditor}
             </LinkButton>
           </>
@@ -167,29 +259,45 @@ function ProgramDetail() {
           </h2>
           <Badge size="sm">{m.common.version(version)}</Badge>
           <DraftState planId={plan.id} draftVersion={version} />
-          <FormatIssues compact issues={[...issues, ...(refusal && !issues.length ? [refusal] : [])]} />
+          <FormatIssues
+            compact
+            issues={[
+              ...issues,
+              ...(refusal && !issues.length ? [refusal] : []),
+            ]}
+          />
         </div>
         <dl className={styles.stats}>
-          {[stats.blocks, stats.cycles, stats.days, stats.exercises].map((n, i) => {
-            // Plural form as a column label ("Blocks", "Training days"), the count above it.
-            const word = [t.blocks, t.cycles, t.days, t.exercises][i]!(2).replace(/^\s*\d+\s*/, "");
-            const text = word.charAt(0).toUpperCase() + word.slice(1);
-            return (
-              <div key={i}>
-                <dd>{n}</dd>
-                <dt>{text}</dt>
-              </div>
-            );
-          })}
+          {[stats.blocks, stats.cycles, stats.days, stats.exercises].map(
+            (n, i) => {
+              // Plural form as a column label ("Blocks", "Training days"), the count above it.
+              const word = [t.blocks, t.cycles, t.days, t.exercises][i]!(
+                2,
+              ).replace(/^\s*\d+\s*/, "");
+              const text = word.charAt(0).toUpperCase() + word.slice(1);
+              return (
+                <div key={i}>
+                  <dd>{n}</dd>
+                  <dt>{text}</dt>
+                </div>
+              );
+            },
+          )}
         </dl>
-        <Button iconStart={<Rocket />} isDisabled={!canManage || plan.archived} onPress={() => setPublishOpen(true)}>
+        <Button
+          iconStart={<Rocket />}
+          isDisabled={!canManage || plan.archived}
+          onPress={() => setPublishOpen(true)}
+        >
           {t.publish}
         </Button>
       </section>
 
       {archiveDialog}
       {/* The editor's code loads in the background, so "Open editor" opens it at once. */}
-      {canManage && !plan.archived ? <PrefetchPageLinks page={editPath} /> : null}
+      {canManage && !plan.archived ? (
+        <PrefetchPageLinks page={editPath} />
+      ) : null}
       <div className={styles.panels}>
         <Panel
           id="preview"
@@ -202,7 +310,9 @@ function ProgramDetail() {
               aria-label={m.editor.mode.label}
               size="sm"
               selectedKeys={[mode]}
-              onSelectionChange={(keys) => setPreviewMode(([...keys][0] as "simple" | "advanced") ?? mode)}
+              onSelectionChange={(keys) =>
+                setPreviewMode(([...keys][0] as "simple" | "advanced") ?? mode)
+              }
             >
               <Segment id="simple">{m.editor.mode.simple}</Segment>
               <Segment id="advanced">{m.editor.mode.advanced}</Segment>
@@ -214,7 +324,14 @@ function ProgramDetail() {
               <WeekView doc={plan.document} names={names} />
             </div>
           ) : (
-            <SheetCanvas doc={plan.document} sheet={sheet} onSheetChange={setSheet} names={names} initialZoom={0.7} className={styles.previewSheet} />
+            <SheetCanvas
+              doc={plan.document}
+              sheet={sheet}
+              onSheetChange={setSheet}
+              names={names}
+              initialZoom={0.7}
+              className={styles.previewSheet}
+            />
           )}
         </Panel>
 
@@ -224,8 +341,19 @@ function ProgramDetail() {
           description={t.revisionsBody}
           flush
           actions={
-            <LockedReason access={canExport ? access["training.export.pdf"] : access["training.export.csv"]}>
-              <Button size="sm" iconStart={<Download />} isDisabled={!canExport} onPress={() => setExportOpen(true)}>
+            <LockedReason
+              access={
+                canExport
+                  ? access["training.export.pdf"]
+                  : access["training.export.csv"]
+              }
+            >
+              <Button
+                size="sm"
+                iconStart={<Download />}
+                isDisabled={!canExport}
+                onPress={() => setExportOpen(true)}
+              >
                 {t.export}
               </Button>
             </LockedReason>
@@ -239,17 +367,28 @@ function ProgramDetail() {
           ) : revisions.isError ? (
             <p className={styles.panelNote}>{errorText(m, revisions.error)}</p>
           ) : revisions.data.items.length === 0 ? (
-            <EmptyState size="sm" icon={<Rocket />} title={t.noRevisions} description={t.noRevisionsBody} />
+            <EmptyState
+              size="sm"
+              icon={<Rocket />}
+              title={t.noRevisions}
+              description={t.noRevisionsBody}
+            />
           ) : (
             <ul className={styles.revisions}>
               {revisions.data.items.map((revision, i) => (
                 <li key={revision.id} className={styles.revision}>
-                  <span className={styles.revisionMark} aria-hidden="true">R{revision.number}</span>
+                  <span className={styles.revisionMark} aria-hidden="true">
+                    R{revision.number}
+                  </span>
                   <span className={styles.revisionText}>
                     <strong>{t.revision(revision.number)}</strong>
                     <span>{`${formatDateTime(locale, revision.publishedAt)} · ${t.fromDraft(revision.draftVersion)}`}</span>
                   </span>
-                  {i === 0 ? <Badge size="sm" tone="success">{t.currentRevision}</Badge> : null}
+                  {i === 0 ? (
+                    <Badge size="sm" tone="success">
+                      {t.currentRevision}
+                    </Badge>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -258,10 +397,36 @@ function ProgramDetail() {
 
         {!isTemplate && <AssignmentList programId={plan.id} />}
       </div>
-      <PublishDialog planId={plan.id} version={version} isOpen={publishOpen} onOpenChange={setPublishOpen} issues={issues} />
-      <ExportDialog planId={plan.id} planName={plan.name} draft={plan.document} isOpen={exportOpen} onOpenChange={setExportOpen} />
+      <PublishDialog
+        planId={plan.id}
+        version={version}
+        isOpen={publishOpen}
+        onOpenChange={setPublishOpen}
+        issues={issues}
+      />
+      <ExportDialog
+        planId={plan.id}
+        planName={plan.name}
+        draft={plan.document}
+        isOpen={exportOpen}
+        onOpenChange={setExportOpen}
+      />
       <CopyPlanDialog
-        plan={copyOpen ? { id: plan.id, name: plan.name, description: plan.description, kind: plan.kind, folderId: plan.folderId, archived: plan.archived, version, updatedAt: plan.updatedAt, canDelete: false } : null}
+        plan={
+          copyOpen
+            ? {
+                id: plan.id,
+                name: plan.name,
+                description: plan.description,
+                kind: plan.kind,
+                folderId: plan.folderId,
+                archived: plan.archived,
+                version,
+                updatedAt: plan.updatedAt,
+                canDelete: false,
+              }
+            : null
+        }
         fromTemplate={isTemplate}
         onClose={() => setCopyOpen(false)}
       />

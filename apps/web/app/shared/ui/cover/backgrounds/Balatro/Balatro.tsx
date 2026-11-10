@@ -2,8 +2,8 @@
 /* eslint-disable */
 // Profile cover: React Bits "Balatro" background, copied unchanged from
 // https://github.com/DavidHDev/react-bits (MIT + Commons Clause). Loaded on demand by ../catalog.ts.
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import './Balatro.css';
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import "./Balatro.css";
 
 export interface BalatroProps {
   color1?: string;
@@ -213,17 +213,26 @@ void main() {
   fragColor = vec4(min(color, vec3(texel.a)), texel.a);
 }`;
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 const parseColor = (value: string): number[] | null => {
-  const text = String(value || '').trim();
+  const text = String(value || "").trim();
   const hex = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(text);
   if (hex) {
-    const full = hex[1].length === 3 ? hex[1].replace(/./g, digit => digit + digit) : hex[1];
-    return [0, 2, 4].map(index => parseInt(full.slice(index, index + 2), 16) / 255);
+    const full =
+      hex[1].length === 3
+        ? hex[1].replace(/./g, (digit) => digit + digit)
+        : hex[1];
+    return [0, 2, 4].map(
+      (index) => parseInt(full.slice(index, index + 2), 16) / 255,
+    );
   }
   const rgb = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i.exec(text);
-  if (rgb) return [rgb[1], rgb[2], rgb[3]].map(channel => clamp(parseFloat(channel) / 255, 0, 1));
+  if (rgb)
+    return [rgb[1], rgb[2], rgb[3]].map((channel) =>
+      clamp(parseFloat(channel) / 255, 0, 1),
+    );
   return null;
 };
 
@@ -259,11 +268,15 @@ const link = (gl: WebGL2RenderingContext, source: string): Program | null => {
     gl.deleteProgram(program);
     return null;
   }
-  const uniforms: Program['uniforms'] = {};
+  const uniforms: Program["uniforms"] = {};
   const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
   for (let index = 0; index < count; index++) {
     const info = gl.getActiveUniform(program, index);
-    if (info) uniforms[info.name.replace(/\[0\]$/, '')] = gl.getUniformLocation(program, info.name);
+    if (info)
+      uniforms[info.name.replace(/\[0\]$/, "")] = gl.getUniformLocation(
+        program,
+        info.name,
+      );
   }
   return { program, uniforms };
 };
@@ -274,9 +287,9 @@ const smoother = (t: number) => {
 };
 
 const Balatro = ({
-  color1 = '#DE443B',
-  color2 = '#006BB4',
-  color3 = '#162325',
+  color1 = "#DE443B",
+  color2 = "#006BB4",
+  color3 = "#162325",
   contrast = 3.5,
   lighting = 0.4,
   swirl = 0.25,
@@ -294,8 +307,8 @@ const Balatro = ({
   lightMode = false,
   opacity = 1,
   maxDevicePixelRatio = 2,
-  className = '',
-  style
+  className = "",
+  style,
 }: BalatroProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -313,7 +326,9 @@ const Balatro = ({
     rotation: clamp(rotationSpeed, -10, 10),
     scale: clamp(scale, 0.2, 5),
     detail: clamp(Math.round(detail), 1, 8),
-    offset: Array.isArray(offset) ? [Number(offset[0]) || 0, Number(offset[1]) || 0] : [0, 0],
+    offset: Array.isArray(offset)
+      ? [Number(offset[0]) || 0, Number(offset[1]) || 0]
+      : [0, 0],
     pixelSize: clamp(pixelSize, 0, 24),
     crt: clamp(crt, 0, 1),
     mouse: mouseInteraction,
@@ -322,7 +337,7 @@ const Balatro = ({
     intro,
     light: lightMode,
     opacity: clamp(opacity, 0, 1),
-    maxRatio: clamp(maxDevicePixelRatio, 0.5, 3)
+    maxRatio: clamp(maxDevicePixelRatio, 0.5, 3),
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -336,61 +351,102 @@ const Balatro = ({
     const canvas = canvasRef.current;
     if (!container || !canvas) return;
 
-    const gl = canvas.getContext('webgl2', {
+    const gl = canvas.getContext("webgl2", {
       alpha: true,
       premultipliedAlpha: true,
       antialias: false,
       depth: false,
       stencil: false,
-      powerPreference: 'high-performance'
+      powerPreference: "high-performance",
     });
     const paintProgram = gl ? link(gl, PAINT) : null;
     const screenProgram = gl ? link(gl, SCREEN) : null;
     if (!gl || !paintProgram || !screenProgram) return;
     const floatTargets = !!(
-      gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float')
+      gl.getExtension("EXT_color_buffer_float") ||
+      gl.getExtension("EXT_color_buffer_half_float")
     );
     const fieldProgram = floatTargets ? link(gl, FIELD) : null;
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const vao = gl.createVertexArray();
-    const view = { cssWidth: 1, cssHeight: 1, block: 1, device: 1, width: 1, height: 1, crt: false };
+    const view = {
+      cssWidth: 1,
+      cssHeight: 1,
+      block: 1,
+      device: 1,
+      width: 1,
+      height: 1,
+      crt: false,
+    };
     const paintTarget = {
       texture: gl.createTexture() as WebGLTexture,
       framebuffer: gl.createFramebuffer() as WebGLFramebuffer,
       width: 0,
-      height: 0
+      height: 0,
     };
-    const field: { width: number; height: number; targets: Target[]; energy: number } = {
+    const field: {
+      width: number;
+      height: number;
+      targets: Target[];
+      energy: number;
+    } = {
       width: 0,
       height: 0,
       targets: [],
-      energy: 0
+      energy: 0,
     };
-    const pointer = { x: 0, y: 0, lastX: 0, lastY: 0, vx: 0, inside: false, ready: false };
+    const pointer = {
+      x: 0,
+      y: 0,
+      lastX: 0,
+      lastY: 0,
+      vx: 0,
+      inside: false,
+      ready: false,
+    };
     const steer = { value: 0 };
     const twirls: Twirl[] = [];
     const twirlData = new Float32Array(MAX_TWIRLS * 4);
     let flow = 14;
     let spin = 0;
-    let opening = settingsRef.current.intro && !reduced && generation === 0 ? 0 : 1;
+    let opening =
+      settingsRef.current.intro && !reduced && generation === 0 ? 0 : 1;
     let raf = 0;
     let last = 0;
     let visible = true;
-    let pageVisible = document.visibilityState !== 'hidden';
+    let pageVisible = document.visibilityState !== "hidden";
     let lost = false;
 
     const makeTarget = (width: number, height: number): Target => {
       const texture = gl.createTexture() as WebGLTexture;
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG16F, width, height, 0, gl.RG, gl.HALF_FLOAT, null);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RG16F,
+        width,
+        height,
+        0,
+        gl.RG,
+        gl.HALF_FLOAT,
+        null,
+      );
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       const framebuffer = gl.createFramebuffer() as WebGLFramebuffer;
       gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+      gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        texture,
+        0,
+      );
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -398,7 +454,7 @@ const Balatro = ({
     };
 
     const dropField = () => {
-      field.targets.forEach(target => {
+      field.targets.forEach((target) => {
         gl.deleteTexture(target.texture);
         gl.deleteFramebuffer(target.framebuffer);
       });
@@ -414,8 +470,14 @@ const Balatro = ({
       const cssWidth = Math.max(1, rect.width);
       const cssHeight = Math.max(1, rect.height);
       const dpr = Math.min(window.devicePixelRatio || 1, s.maxRatio);
-      const budget = Math.ceil(Math.sqrt((cssWidth * cssHeight * dpr * dpr) / PIXEL_BUDGET) - 0.05);
-      const device = Math.max(s.pixelSize > 0 ? Math.round(s.pixelSize * dpr) : 1, budget, 1);
+      const budget = Math.ceil(
+        Math.sqrt((cssWidth * cssHeight * dpr * dpr) / PIXEL_BUDGET) - 0.05,
+      );
+      const device = Math.max(
+        s.pixelSize > 0 ? Math.round(s.pixelSize * dpr) : 1,
+        budget,
+        1,
+      );
       const width = Math.max(1, Math.ceil((cssWidth * dpr) / device));
       const height = Math.max(1, Math.ceil((cssHeight * dpr) / device));
       const crt = s.crt > 0;
@@ -427,16 +489,36 @@ const Balatro = ({
       }
       canvas.style.width = `${(width * device) / dpr}px`;
       canvas.style.height = `${(height * device) / dpr}px`;
-      canvas.style.imageRendering = !crt && s.pixelSize > 0 && device >= 2 ? 'pixelated' : 'auto';
-      if (crt && (paintTarget.width !== width || paintTarget.height !== height)) {
+      canvas.style.imageRendering =
+        !crt && s.pixelSize > 0 && device >= 2 ? "pixelated" : "auto";
+      if (
+        crt &&
+        (paintTarget.width !== width || paintTarget.height !== height)
+      ) {
         gl.bindTexture(gl.TEXTURE_2D, paintTarget.texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA8,
+          width,
+          height,
+          0,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          null,
+        );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.bindFramebuffer(gl.FRAMEBUFFER, paintTarget.framebuffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, paintTarget.texture, 0);
+        gl.framebufferTexture2D(
+          gl.FRAMEBUFFER,
+          gl.COLOR_ATTACHMENT0,
+          gl.TEXTURE_2D,
+          paintTarget.texture,
+          0,
+        );
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         paintTarget.width = width;
         paintTarget.height = height;
@@ -455,7 +537,10 @@ const Balatro = ({
       dropField();
       field.width = fieldWidth;
       field.height = fieldHeight;
-      field.targets = [makeTarget(fieldWidth, fieldHeight), makeTarget(fieldWidth, fieldHeight)];
+      field.targets = [
+        makeTarget(fieldWidth, fieldHeight),
+        makeTarget(fieldWidth, fieldHeight),
+      ];
     };
 
     const stir = (
@@ -465,7 +550,7 @@ const Balatro = ({
       toY: number,
       pushX: number,
       pushY: number,
-      decay: number
+      decay: number,
     ) => {
       if (!fieldProgram) return;
       const [read, write] = field.targets;
@@ -499,7 +584,9 @@ const Balatro = ({
       if (opening < 1) opening = Math.min(1, opening + dt / 2.2);
 
       const tracking = s.mouse && pointer.inside;
-      const steerTarget = tracking ? (pointer.x / view.cssWidth - 0.5) * 0.35 * s.strength : 0;
+      const steerTarget = tracking
+        ? (pointer.x / view.cssWidth - 0.5) * 0.35 * s.strength
+        : 0;
       steer.value += (steerTarget - steer.value) * (1 - Math.exp(-dt / 0.8));
 
       gl.bindVertexArray(vao);
@@ -522,12 +609,12 @@ const Balatro = ({
               pointer.lastY + dy * b,
               moved ? dx * (b - a) * amount : 0,
               moved ? dy * (b - a) * amount : 0,
-              step === steps - 1 ? decay : 1
+              step === steps - 1 ? decay : 1,
             );
           }
           field.energy = field.energy * decay + travel;
           if (field.energy <= 0.05) {
-            field.targets.forEach(target => {
+            field.targets.forEach((target) => {
               gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
               gl.clearColor(0, 0, 0, 0);
               gl.clear(gl.COLOR_BUFFER_BIT);
@@ -555,14 +642,23 @@ const Balatro = ({
 
       const eased = 1 - Math.pow(1 - opening, 3);
       const unwind = 1 - eased;
-      gl.bindFramebuffer(gl.FRAMEBUFFER, view.crt ? paintTarget.framebuffer : null);
+      gl.bindFramebuffer(
+        gl.FRAMEBUFFER,
+        view.crt ? paintTarget.framebuffer : null,
+      );
       gl.viewport(0, 0, view.width, view.height);
       gl.useProgram(paintProgram.program);
       const u = paintProgram.uniforms;
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, field.targets.length ? field.targets[0].texture : null);
+      gl.bindTexture(
+        gl.TEXTURE_2D,
+        field.targets.length ? field.targets[0].texture : null,
+      );
       gl.uniform1i(u.uField, 0);
-      gl.uniform1f(u.uFieldOn, field.targets.length && field.energy > 0.05 ? 1 : 0);
+      gl.uniform1f(
+        u.uFieldOn,
+        field.targets.length && field.energy > 0.05 ? 1 : 0,
+      );
       gl.uniform2f(u.uCss, view.cssWidth, view.cssHeight);
       gl.uniform2f(u.uCanvas, view.width, view.height);
       gl.uniform1f(u.uBlock, view.block);
@@ -598,7 +694,10 @@ const Balatro = ({
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       }
 
-      const settling = Math.abs(steerTarget - steer.value) > 0.0005 || field.energy > 0.05 || twirls.length > 0;
+      const settling =
+        Math.abs(steerTarget - steer.value) > 0.0005 ||
+        field.energy > 0.05 ||
+        twirls.length > 0;
       const busy = s.speed > 0 || s.rotation !== 0 || opening < 1 || settling;
       if (busy && visible && pageVisible) raf = requestAnimationFrame(frame);
     };
@@ -622,7 +721,7 @@ const Balatro = ({
           event.clientX >= rect.left &&
           event.clientX <= rect.right &&
           event.clientY >= rect.top &&
-          event.clientY <= rect.bottom
+          event.clientY <= rect.bottom,
       };
     };
 
@@ -643,7 +742,12 @@ const Balatro = ({
       const s = settingsRef.current;
       const spot = locate(event);
       if (!spot.inside || !s.clickSwirl || reduced) return;
-      twirls.push({ x: spot.x, y: spot.y, age: 0, direction: pointer.vx < 0 ? 1 : -1 });
+      twirls.push({
+        x: spot.x,
+        y: spot.y,
+        age: 0,
+        direction: pointer.vx < 0 ? 1 : -1,
+      });
       if (twirls.length > MAX_TWIRLS) twirls.shift();
       wake();
     };
@@ -652,13 +756,13 @@ const Balatro = ({
       wake();
     };
     const onPointerUp = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') onLeave();
+      if (event.pointerType !== "mouse") onLeave();
     };
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('pointerdown', onPointerDown, { passive: true });
-    window.addEventListener('pointerup', onPointerUp, { passive: true });
-    window.addEventListener('pointercancel', onPointerUp, { passive: true });
-    document.documentElement.addEventListener('pointerleave', onLeave);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
+    window.addEventListener("pointercancel", onPointerUp, { passive: true });
+    document.documentElement.addEventListener("pointerleave", onLeave);
 
     const onLost = (event: Event) => {
       event.preventDefault();
@@ -666,9 +770,9 @@ const Balatro = ({
       cancelAnimationFrame(raf);
       raf = 0;
     };
-    const onRestored = () => setGeneration(value => value + 1);
-    canvas.addEventListener('webglcontextlost', onLost);
-    canvas.addEventListener('webglcontextrestored', onRestored);
+    const onRestored = () => setGeneration((value) => value + 1);
+    canvas.addEventListener("webglcontextlost", onLost);
+    canvas.addEventListener("webglcontextrestored", onRestored);
 
     const resizeObserver = new ResizeObserver(() => {
       resize();
@@ -676,17 +780,17 @@ const Balatro = ({
     });
     resizeObserver.observe(container);
 
-    const intersection = new IntersectionObserver(entries => {
-      visible = entries.some(entry => entry.isIntersecting);
+    const intersection = new IntersectionObserver((entries) => {
+      visible = entries.some((entry) => entry.isIntersecting);
       wake();
     });
     intersection.observe(container);
 
     const onVisibility = () => {
-      pageVisible = document.visibilityState !== 'hidden';
+      pageVisible = document.visibilityState !== "hidden";
       wake();
     };
-    document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener("visibilitychange", onVisibility);
 
     resize();
     wake();
@@ -696,14 +800,14 @@ const Balatro = ({
       wakeRef.current = null;
       resizeObserver.disconnect();
       intersection.disconnect();
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('pointerup', onPointerUp);
-      window.removeEventListener('pointercancel', onPointerUp);
-      document.documentElement.removeEventListener('pointerleave', onLeave);
-      document.removeEventListener('visibilitychange', onVisibility);
-      canvas.removeEventListener('webglcontextlost', onLost);
-      canvas.removeEventListener('webglcontextrestored', onRestored);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      document.documentElement.removeEventListener("pointerleave", onLeave);
+      document.removeEventListener("visibilitychange", onVisibility);
+      canvas.removeEventListener("webglcontextlost", onLost);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
       if (!gl.isContextLost()) {
         dropField();
         gl.deleteTexture(paintTarget.texture);
@@ -717,7 +821,11 @@ const Balatro = ({
   }, [generation]);
 
   return (
-    <div ref={containerRef} className={`balatro${className ? ` ${className}` : ''}`} style={style}>
+    <div
+      ref={containerRef}
+      className={`balatro${className ? ` ${className}` : ""}`}
+      style={style}
+    >
       <canvas ref={canvasRef} className="balatro__canvas" aria-hidden="true" />
     </div>
   );

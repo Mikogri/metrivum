@@ -1,12 +1,63 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, AtSign, CalendarDays, Check, Clock, Eye, Gauge, HeartPulse, ListChecks, MapPin, MessageSquare, Monitor, Pencil, Settings, Shuffle, Store, Target, Trophy, UserPlus, UserRound, UserRoundX } from "lucide-react";
+import {
+  ArrowRight,
+  AtSign,
+  CalendarDays,
+  Check,
+  Clock,
+  Eye,
+  Gauge,
+  HeartPulse,
+  ListChecks,
+  MapPin,
+  MessageSquare,
+  Monitor,
+  Pencil,
+  Settings,
+  Shuffle,
+  Store,
+  Target,
+  Trophy,
+  UserPlus,
+  UserRound,
+  UserRoundX,
+} from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Link as RouterLink, Navigate, useParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
-import { Avatar, Badge, Button, Card, EmptyState, ErrorState, LinkButton, LoadingState, Skeleton, toast } from "@metrivum/ui-web";
-import { BodySummary, DETAIL_GROUPS, detailsFromValues, getPerson, personKey, profileFieldsKey, useAvatarUrl, useProfile, useProfileCompleteness, type DetailKey, type Details } from "~/modules/accounts";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  LinkButton,
+  LoadingState,
+  Skeleton,
+  toast,
+} from "@metrivum/ui-web";
+import {
+  BodySummary,
+  DETAIL_GROUPS,
+  detailsFromValues,
+  getPerson,
+  personKey,
+  profileFieldsKey,
+  useAvatarUrl,
+  useProfile,
+  useProfileCompleteness,
+  type DetailKey,
+  type Details,
+} from "~/modules/accounts";
 import { AvatarControls } from "../components/AvatarControls";
-import { InvitationEditor, SpecializationBadges, money, useCoachingQuery, type Page } from "~/modules/coaching";
+import {
+  InvitationEditor,
+  SpecializationBadges,
+  money,
+  useCoachingQuery,
+  type Page,
+} from "~/modules/coaching";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
@@ -14,40 +65,87 @@ import type { AppMessages } from "~/shared/i18n/messages/app.en";
 import { privateMeta } from "~/shared/i18n/site";
 import { errorText } from "~/shared/lib/errorText";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
-import { CoverControls, Portfolio, ShowcaseAbout, ShowcaseFailed, ShowcaseStats, StatsStrip, joined, useCoverUrl, useShowcase, type StatItem } from "../components/CoachShowcase";
-import { ProfileAchievements, achievementsFor, type AchievementFacts } from "../components/ProfileAchievements";
+import {
+  CoverControls,
+  Portfolio,
+  ShowcaseAbout,
+  ShowcaseFailed,
+  ShowcaseStats,
+  StatsStrip,
+  joined,
+  useCoverUrl,
+  useShowcase,
+  type StatItem,
+} from "../components/CoachShowcase";
+import {
+  ProfileAchievements,
+  achievementsFor,
+  type AchievementFacts,
+} from "../components/ProfileAchievements";
 import { SectionTitle } from "../components/SectionTitle";
 import { ProfileCover } from "~/shared/ui/cover/ProfileCover";
-import { CoverEditorCard, IdentityEditorCard, SpecializationsEditorCard, coverDraftOf, type EditorHandle } from "../components/ProfileEditor";
+import {
+  CoverEditorCard,
+  IdentityEditorCard,
+  SpecializationsEditorCard,
+  coverDraftOf,
+  type EditorHandle,
+} from "../components/ProfileEditor";
 import { TopNotice, TopNoticeLink } from "~/shared/ui/TopNotice";
 import styles from "./profile.module.css";
 
 export const meta = () => privateMeta("Profile — Metrivum");
 
-type PersonView = { userId: string; username: string; displayName: string; bio?: string | null; roles: string[]; isSelf: boolean };
+type PersonView = {
+  userId: string;
+  username: string;
+  displayName: string;
+  bio?: string | null;
+  roles: string[];
+  isSelf: boolean;
+};
 
 /** One value for display, or null when the field is empty. */
-function formatDetail(m: AppMessages, locale: string, key: DetailKey, details: Details): string | null {
+function formatDetail(
+  m: AppMessages,
+  locale: string,
+  key: DetailKey,
+  details: Details,
+): string | null {
   const value = details[key];
   const u = m.profile.units;
-  const number = (n: number, digits = 1) => new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(n);
+  const number = (n: number, digits = 1) =>
+    new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(n);
   if (typeof value === "number") {
     if (Number.isNaN(value)) return null;
     switch (key) {
-      case "Height": return `${number(value, 0)} ${u.cm}`;
-      case "Weight": return `${number(value)} ${u.kg}`;
-      case "BodyFat": return `${number(value)} ${u.percent}`;
-      case "HrMax": return `${number(value, 0)} ${u.bpm}`;
-      case "Vo2Max": return `${number(value)} ${u.vo2}`;
-      case "Sleep": return `${number(value)} ${u.hours}`;
-      case "Stress": return `${number(value, 0)}/10`;
-      case "AvailableSessionDuration": return `${number(value, 0)} ${u.minutes}`;
-      default: return number(value, 0);
+      case "Height":
+        return `${number(value, 0)} ${u.cm}`;
+      case "Weight":
+        return `${number(value)} ${u.kg}`;
+      case "BodyFat":
+        return `${number(value)} ${u.percent}`;
+      case "HrMax":
+        return `${number(value, 0)} ${u.bpm}`;
+      case "Vo2Max":
+        return `${number(value)} ${u.vo2}`;
+      case "Sleep":
+        return `${number(value)} ${u.hours}`;
+      case "Stress":
+        return `${number(value, 0)}/10`;
+      case "AvailableSessionDuration":
+        return `${number(value, 0)} ${u.minutes}`;
+      default:
+        return number(value, 0);
     }
   }
   if (Array.isArray(value)) {
     if (!value.length) return null;
-    return key === "PreferredTrainingDays" ? (value as number[]).map((day) => m.onboarding.weekdays[day - 1] ?? String(day)).join(", ") : value.join(", ");
+    return key === "PreferredTrainingDays"
+      ? (value as number[])
+          .map((day) => m.onboarding.weekdays[day - 1] ?? String(day))
+          .join(", ")
+      : value.join(", ");
   }
   if (!value.trim()) return null;
   if (key === "Country") return countryName(locale, value);
@@ -64,7 +162,11 @@ function countryName(locale: string, code: string): string {
 
 /** "City, Region, Country" from whatever is filled in, or null. */
 function placeOf(locale: string, details: Details): string | null {
-  const parts = [details.City.trim(), details.Region.trim(), details.Country ? countryName(locale, details.Country) : ""].filter(Boolean);
+  const parts = [
+    details.City.trim(),
+    details.Region.trim(),
+    details.Country ? countryName(locale, details.Country) : "",
+  ].filter(Boolean);
   return parts.length ? parts.join(", ") : null;
 }
 
@@ -72,30 +174,71 @@ function placeOf(locale: string, details: Details): string | null {
  * The profile header: a cover (photo on Pro, otherwise the animated default), the avatar overlapping its lower
  * edge with the actions on the right, then name, roles, headline, handle and place.
  */
-function Header({ person, place, sex, memberSince, headline, actions, coverUrl, coverStyle, coverRestart, coverControls, avatarUrl, avatarControls }: { person: PersonView; place?: string | null; sex?: string | null; memberSince?: string | null; headline?: React.ReactNode; actions: React.ReactNode; coverUrl?: string | null; coverStyle?: unknown; coverRestart?: number; coverControls?: React.ReactNode; avatarUrl?: string | null; avatarControls?: React.ReactNode }) {
+function Header({
+  person,
+  place,
+  sex,
+  memberSince,
+  headline,
+  actions,
+  coverUrl,
+  coverStyle,
+  coverRestart,
+  coverControls,
+  avatarUrl,
+  avatarControls,
+}: {
+  person: PersonView;
+  place?: string | null;
+  sex?: string | null;
+  memberSince?: string | null;
+  headline?: React.ReactNode;
+  actions: React.ReactNode;
+  coverUrl?: string | null;
+  coverStyle?: unknown;
+  coverRestart?: number;
+  coverControls?: React.ReactNode;
+  avatarUrl?: string | null;
+  avatarControls?: React.ReactNode;
+}) {
   const m = useT();
   const { locale } = useAppLocale();
   const since = joined(locale, memberSince);
   return (
     <header className={styles.hero}>
-      <ProfileCover imageUrl={coverUrl} style={coverStyle} restart={coverRestart}>{coverControls}</ProfileCover>
+      <ProfileCover
+        imageUrl={coverUrl}
+        style={coverStyle}
+        restart={coverRestart}
+      >
+        {coverControls}
+      </ProfileCover>
       <div className={styles.heroBody}>
         <div className={styles.heroTop}>
           <span className={styles.avatarRing}>
-            <Avatar name={person.displayName || person.username} size="xxl" decorative src={avatarUrl} />
+            <Avatar
+              name={person.displayName || person.username}
+              size="xxl"
+              decorative
+              src={avatarUrl}
+            />
             {avatarControls}
           </span>
           <div className={styles.actions}>{actions}</div>
         </div>
         <div className={styles.identity}>
           <div className={styles.nameRow}>
-            <h1 className={styles.name}>{person.displayName || person.username}</h1>
+            <h1 className={styles.name}>
+              {person.displayName || person.username}
+            </h1>
             {person.roles.map((role) => (
               <Badge key={role} tone={role === "Coach" ? "violet" : "neutral"}>
                 {m.profile.roles[role] ?? role}
               </Badge>
             ))}
-            {person.isSelf ? <Badge tone="neutral">{m.profile.you}</Badge> : null}
+            {person.isSelf ? (
+              <Badge tone="neutral">{m.profile.you}</Badge>
+            ) : null}
           </div>
           {headline ? <p className={styles.headline}>{headline}</p> : null}
           <ul className={styles.meta}>
@@ -132,8 +275,20 @@ function About({ person }: { person: PersonView }) {
   const m = useT();
   return (
     <Card as="section" padding="md" aria-labelledby="profile-about">
-      <SectionTitle id="profile-about" icon={<UserRound />} tone="violet" title={m.profile.about} sub={person.isSelf ? m.profile.aboutSub : m.profile.aboutSubOther} />
-      {person.bio ? <p className={styles.bio}>{person.bio}</p> : <p className={styles.muted}>{person.isSelf ? m.profile.noBioOwn : m.profile.noBio}</p>}
+      <SectionTitle
+        id="profile-about"
+        icon={<UserRound />}
+        tone="violet"
+        title={m.profile.about}
+        sub={person.isSelf ? m.profile.aboutSub : m.profile.aboutSubOther}
+      />
+      {person.bio ? (
+        <p className={styles.bio}>{person.bio}</p>
+      ) : (
+        <p className={styles.muted}>
+          {person.isSelf ? m.profile.noBioOwn : m.profile.noBio}
+        </p>
+      )}
     </Card>
   );
 }
@@ -146,11 +301,24 @@ function OwnDetails() {
   const account = useAccountKey();
   const fields = useQuery({
     queryKey: profileFieldsKey(account),
-    queryFn: async ({ signal }) => (await api<Schema<"AccountProfileFields">>({ path: "/api/v1/me/profile-fields", signal })).data,
+    queryFn: async ({ signal }) =>
+      (
+        await api<Schema<"AccountProfileFields">>({
+          path: "/api/v1/me/profile-fields",
+          signal,
+        })
+      ).data,
   });
-  const details = detailsFromValues(fields.data?.values as Record<string, unknown> | undefined);
+  const details = detailsFromValues(
+    fields.data?.values as Record<string, unknown> | undefined,
+  );
   const groups = (Object.keys(DETAIL_GROUPS) as (keyof typeof DETAIL_GROUPS)[])
-    .map((group) => ({ group, rows: DETAIL_GROUPS[group].map((key) => ({ key, value: formatDetail(m, locale, key, details) })).filter((row) => row.value !== null) }))
+    .map((group) => ({
+      group,
+      rows: DETAIL_GROUPS[group]
+        .map((key) => ({ key, value: formatDetail(m, locale, key, details) }))
+        .filter((row) => row.value !== null),
+    }))
     .filter((group) => group.rows.length);
   return (
     <Card as="section" padding="md" aria-labelledby="profile-details">
@@ -161,12 +329,20 @@ function OwnDetails() {
         title={m.profile.details}
         sub={m.profile.detailsPrivate}
         actions={
-          <LinkButton href="/app/settings?section=body" size="sm" iconStart={<Pencil />}>
+          <LinkButton
+            href="/app/settings?section=body"
+            size="sm"
+            iconStart={<Pencil />}
+          >
             {groups.length ? m.profile.editDetails : m.profile.addDetails}
           </LinkButton>
         }
       />
-      {fields.isPending ? <Skeleton height="6rem" /> : fields.isError ? <p className={styles.muted}>{errorText(m, fields.error)}</p> : !groups.length ? (
+      {fields.isPending ? (
+        <Skeleton height="6rem" />
+      ) : fields.isError ? (
+        <p className={styles.muted}>{errorText(m, fields.error)}</p>
+      ) : !groups.length ? (
         <p className={styles.muted}>{m.profile.noDetails}</p>
       ) : (
         <BodySummary details={details} showSex={false} />
@@ -182,16 +358,39 @@ function Completeness() {
   if (pending) return null;
   return (
     <Card as="section" padding="md" aria-labelledby="profile-completeness">
-      <SectionTitle id="profile-completeness" icon={<ListChecks />} tone="orange" title={m.profile.completeness} sub={m.profile.completenessHint} actions={<span className={styles.percent}>{percent}%</span>} />
-      <div className={styles.meter} role="meter" aria-label={m.profile.completeness} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
+      <SectionTitle
+        id="profile-completeness"
+        icon={<ListChecks />}
+        tone="orange"
+        title={m.profile.completeness}
+        sub={m.profile.completenessHint}
+        actions={<span className={styles.percent}>{percent}%</span>}
+      />
+      <div
+        className={styles.meter}
+        role="meter"
+        aria-label={m.profile.completeness}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+      >
         <span style={{ transform: `scaleX(${percent / 100})` }} />
       </div>
       <ul className={styles.checklist}>
         {items.map((item) => (
           <li key={item.id} data-done={item.done || undefined}>
-            <span className={styles.checkMark} aria-hidden="true">{item.done ? <Check /> : null}</span>
-            <span className={styles.checkLabel}>{m.profile.completeItems[item.id]}</span>
-            {item.done ? null : <RouterLink to={item.href} className={styles.checkLink}>{m.profile.complete}<ArrowRight aria-hidden="true" /></RouterLink>}
+            <span className={styles.checkMark} aria-hidden="true">
+              {item.done ? <Check /> : null}
+            </span>
+            <span className={styles.checkLabel}>
+              {m.profile.completeItems[item.id]}
+            </span>
+            {item.done ? null : (
+              <RouterLink to={item.href} className={styles.checkLink}>
+                {m.profile.complete}
+                <ArrowRight aria-hidden="true" />
+              </RouterLink>
+            )}
           </li>
         ))}
       </ul>
@@ -200,58 +399,144 @@ function Completeness() {
 }
 
 /** Coaching specializations, read-only here: the owner changes them in edit mode. */
-function SpecializationsSection({ selections, own = false }: { selections: Schema<"PublicSpecializationDto">[] | null | undefined; own?: boolean }) {
+function SpecializationsSection({
+  selections,
+  own = false,
+}: {
+  selections: Schema<"PublicSpecializationDto">[] | null | undefined;
+  own?: boolean;
+}) {
   const m = useT();
   const t = m.specializations;
   if (!own && !selections?.length) return null;
   return (
-    <Card as="section" padding="md" aria-labelledby="profile-specializations" className={styles.fillCard}>
-      <SectionTitle id="profile-specializations" icon={<Target />} tone="violet" title={t.title} sub={t.description} />
-      {selections?.length ? <SpecializationBadges selections={selections} /> : <p className={styles.muted}>{m.profile.specializationsEmptyOwn}</p>}
+    <Card
+      as="section"
+      padding="md"
+      aria-labelledby="profile-specializations"
+      className={styles.fillCard}
+    >
+      <SectionTitle
+        id="profile-specializations"
+        icon={<Target />}
+        tone="violet"
+        title={t.title}
+        sub={t.description}
+      />
+      {selections?.length ? (
+        <SpecializationBadges selections={selections} />
+      ) : (
+        <p className={styles.muted}>{m.profile.specializationsEmptyOwn}</p>
+      )}
     </Card>
   );
 }
 
 /** Each coaching mode gets its own small icon on the offer card. */
-const MODE_ICON: Record<string, typeof Monitor> = { Online: Monitor, Offline: MapPin, Hybrid: Shuffle };
+const MODE_ICON: Record<string, typeof Monitor> = {
+  Online: Monitor,
+  Offline: MapPin,
+  Hybrid: Shuffle,
+};
 
 /** A coach's public offers: up to three, linking to the offer pages. */
 function CoachOffers({ coachId }: { coachId: string }) {
   const m = useT();
-  const offers = useCoachingQuery<Page<Schema<"OfferRevisionDto">>>(`/api/v1/coaches/${coachId}/offers`, { page: 1, pageSize: 4 });
+  const offers = useCoachingQuery<Page<Schema<"OfferRevisionDto">>>(
+    `/api/v1/coaches/${coachId}/offers`,
+    { page: 1, pageSize: 4 },
+  );
   return (
-    <Card as="section" padding="md" aria-labelledby="profile-offers" className={styles.fillCard}>
+    <Card
+      as="section"
+      padding="md"
+      aria-labelledby="profile-offers"
+      className={styles.fillCard}
+    >
       <SectionTitle
         id="profile-offers"
         icon={<Store />}
         tone="green"
         title={m.profile.offers}
-        sub={offers.data ? m.profile.offersCount(Number(offers.data.total)) : undefined}
-        actions={offers.data && Number(offers.data.total) > 0 ? <LinkButton href={`/app/coaches/${coachId}/offers`} size="sm" variant="ghost">{m.profile.seeAllOffers}</LinkButton> : undefined}
+        sub={
+          offers.data
+            ? m.profile.offersCount(Number(offers.data.total))
+            : undefined
+        }
+        actions={
+          offers.data && Number(offers.data.total) > 0 ? (
+            <LinkButton
+              href={`/app/coaches/${coachId}/offers`}
+              size="sm"
+              variant="ghost"
+            >
+              {m.profile.seeAllOffers}
+            </LinkButton>
+          ) : undefined
+        }
       />
-      {offers.isPending ? <Skeleton height="5rem" /> : offers.isError ? <p className={styles.muted}>{errorText(m, offers.error)}</p> : !offers.data.items.length ? (
-        <EmptyState size="sm" className={styles.offersEmpty} icon={<Store />} title={m.profile.noOffers} description={m.profile.noOffersBody} />
+      {offers.isPending ? (
+        <Skeleton height="5rem" />
+      ) : offers.isError ? (
+        <p className={styles.muted}>{errorText(m, offers.error)}</p>
+      ) : !offers.data.items.length ? (
+        <EmptyState
+          size="sm"
+          className={styles.offersEmpty}
+          icon={<Store />}
+          title={m.profile.noOffers}
+          description={m.profile.noOffersBody}
+        />
       ) : (
         <ul className={styles.offers}>
           {offers.data.items.map((offer) => {
-            const from = offer.billingOptions.length ? Math.min(...offer.billingOptions.map((option) => Number(option.price))) : null;
+            const from = offer.billingOptions.length
+              ? Math.min(
+                  ...offer.billingOptions.map((option) => Number(option.price)),
+                )
+              : null;
             return (
               <li key={offer.offerId}>
-                <RouterLink to={`/app/coaches/${coachId}/offers/${offer.offerId}`} className={styles.offer}>
-                  <span className={styles.offerMode} data-mode={offer.coachingMode}>
-                    {(() => { const ModeIcon = MODE_ICON[offer.coachingMode] ?? Shuffle; return <ModeIcon aria-hidden="true" />; })()}
+                <RouterLink
+                  to={`/app/coaches/${coachId}/offers/${offer.offerId}`}
+                  className={styles.offer}
+                >
+                  <span
+                    className={styles.offerMode}
+                    data-mode={offer.coachingMode}
+                  >
+                    {(() => {
+                      const ModeIcon = MODE_ICON[offer.coachingMode] ?? Shuffle;
+                      return <ModeIcon aria-hidden="true" />;
+                    })()}
                     {m.profile.modes[offer.coachingMode] ?? offer.coachingMode}
                   </span>
                   <strong className={styles.offerName}>{offer.name}</strong>
-                  {offer.description ? <span className={styles.offerDescription}>{offer.description}</span> : null}
+                  {offer.description ? (
+                    <span className={styles.offerDescription}>
+                      {offer.description}
+                    </span>
+                  ) : null}
                   {offer.tags.length ? (
                     <span className={styles.offerTags}>
-                      {offer.tags.slice(0, 3).map((tag) => <span key={tag}>{tag}</span>)}
+                      {offer.tags.slice(0, 3).map((tag) => (
+                        <span key={tag}>{tag}</span>
+                      ))}
                     </span>
                   ) : null}
                   <span className={styles.offerFoot}>
-                    {from !== null ? <span className={styles.offerPrice}><small>{m.profile.from}</small>{money(from, offer.currency)}</span> : <span />}
-                    <ArrowRight aria-hidden="true" className={styles.offerArrow} />
+                    {from !== null ? (
+                      <span className={styles.offerPrice}>
+                        <small>{m.profile.from}</small>
+                        {money(from, offer.currency)}
+                      </span>
+                    ) : (
+                      <span />
+                    )}
+                    <ArrowRight
+                      aria-hidden="true"
+                      className={styles.offerArrow}
+                    />
                   </span>
                 </RouterLink>
               </li>
@@ -271,25 +556,53 @@ function OwnProfile() {
   const account = useAccountKey();
   const fields = useQuery({
     queryKey: profileFieldsKey(account),
-    queryFn: async ({ signal }) => (await api<Schema<"AccountProfileFields">>({ path: "/api/v1/me/profile-fields", signal })).data,
+    queryFn: async ({ signal }) =>
+      (
+        await api<Schema<"AccountProfileFields">>({
+          path: "/api/v1/me/profile-fields",
+          signal,
+        })
+      ).data,
   });
-  const place = fields.data ? placeOf(locale, detailsFromValues(fields.data.values as Record<string, unknown> | undefined)) : null;
-  const person: PersonView = { userId: profile.id, username: profile.username ?? "", displayName: profile.displayName, bio: profile.bio, roles: [...profile.roles], isSelf: true };
+  const place = fields.data
+    ? placeOf(
+        locale,
+        detailsFromValues(
+          fields.data.values as Record<string, unknown> | undefined,
+        ),
+      )
+    : null;
+  const person: PersonView = {
+    userId: profile.id,
+    username: profile.username ?? "",
+    displayName: profile.displayName,
+    bio: profile.bio,
+    roles: [...profile.roles],
+    isSelf: true,
+  };
   const isCoach = profile.roles.includes("Coach");
   const t = m.profile.editor;
   // View: the own profile with its private parts. Edit: every part editable in place. Preview: exactly what others see.
   const [mode, setMode] = useState<"view" | "edit" | "preview">("view");
   // Leaving the preview returns to where it was opened from (viewing or editing).
   const [previewFrom, setPreviewFrom] = useState<"view" | "edit">("view");
-  const [coverDraft, setCoverDraft] = useState(() => coverDraftOf(profile.coverStyle));
+  const [coverDraft, setCoverDraft] = useState(() =>
+    coverDraftOf(profile.coverStyle),
+  );
   const [restart, setRestart] = useState(0);
   // Every editor card reports here; one "Save changes" saves whatever changed, "Cancel" drops it all.
   const editors = useRef(new Map<string, EditorHandle>());
-  const [editorFlags, setEditorFlags] = useState<Record<string, { dirty: boolean; valid: boolean }>>({});
+  const [editorFlags, setEditorFlags] = useState<
+    Record<string, { dirty: boolean; valid: boolean }>
+  >({});
   const [saving, setSaving] = useState(false);
   const register = useCallback((key: string, handle: EditorHandle) => {
     editors.current.set(key, handle);
-    setEditorFlags((prev) => (prev[key]?.dirty === handle.dirty && prev[key]?.valid === handle.valid ? prev : { ...prev, [key]: { dirty: handle.dirty, valid: handle.valid } }));
+    setEditorFlags((prev) =>
+      prev[key]?.dirty === handle.dirty && prev[key]?.valid === handle.valid
+        ? prev
+        : { ...prev, [key]: { dirty: handle.dirty, valid: handle.valid } },
+    );
   }, []);
   const anyDirty = Object.values(editorFlags).some((flag) => flag.dirty);
   const allValid = Object.values(editorFlags).every((flag) => flag.valid);
@@ -301,7 +614,8 @@ function OwnProfile() {
   const saveAll = async () => {
     setSaving(true);
     try {
-      for (const handle of editors.current.values()) if (handle.dirty) await handle.save();
+      for (const handle of editors.current.values())
+        if (handle.dirty) await handle.save();
       toast({ tone: "success", title: t.saved });
       leaveEdit();
     } catch (error) {
@@ -311,7 +625,11 @@ function OwnProfile() {
     }
   };
   // The joined date lives on the public profile only.
-  const self = useQuery({ queryKey: personKey(account, profile.username ?? ""), queryFn: ({ signal }) => getPerson(api, profile.username!, signal), enabled: Boolean(profile.username) });
+  const self = useQuery({
+    queryKey: personKey(account, profile.username ?? ""),
+    queryFn: ({ signal }) => getPerson(api, profile.username!, signal),
+    enabled: Boolean(profile.username),
+  });
   const showcase = useShowcase(profile.id, isCoach);
   const cover = useCoverUrl(profile.id, isCoach && showcase.data?.hasCover);
   const offersTotal = useOffersTotal(profile.id, isCoach);
@@ -324,22 +642,57 @@ function OwnProfile() {
   };
   const actions = previewing ? (
     <>
-      {isCoach ? <Button iconStart={<Store />} isDisabled>{m.profile.viewOffers}</Button> : null}
-      <Button iconStart={<MessageSquare />} isDisabled>{m.profile.message}</Button>
+      {isCoach ? (
+        <Button iconStart={<Store />} isDisabled>
+          {m.profile.viewOffers}
+        </Button>
+      ) : null}
+      <Button iconStart={<MessageSquare />} isDisabled>
+        {m.profile.message}
+      </Button>
     </>
   ) : (
     <>
-      <Button variant="ghost" iconStart={<Eye />} onPress={() => { setPreviewFrom(mode === "edit" ? "edit" : "view"); setMode("preview"); }}>{t.preview}</Button>
+      <Button
+        variant="ghost"
+        iconStart={<Eye />}
+        onPress={() => {
+          setPreviewFrom(mode === "edit" ? "edit" : "view");
+          setMode("preview");
+        }}
+      >
+        {t.preview}
+      </Button>
       {editing ? (
         <>
-          <Button variant="ghost" onPress={leaveEdit} isDisabled={saving}>{m.common.cancel}</Button>
-          <Button variant="primary" iconStart={<Check />} onPress={() => void saveAll()} loading={saving} isDisabled={!anyDirty || !allValid}>{m.common.saveChanges}</Button>
+          <Button variant="ghost" onPress={leaveEdit} isDisabled={saving}>
+            {m.common.cancel}
+          </Button>
+          <Button
+            variant="primary"
+            iconStart={<Check />}
+            onPress={() => void saveAll()}
+            loading={saving}
+            isDisabled={!anyDirty || !allValid}
+          >
+            {m.common.saveChanges}
+          </Button>
         </>
       ) : (
         <>
-          <LinkButton href="/app/usage" variant="ghost" iconStart={<Gauge />}>{m.usage.title}</LinkButton>
-          <LinkButton href="/app/settings" variant="ghost" iconStart={<Settings />}>{t.settings}</LinkButton>
-          <Button variant="primary" iconStart={<Pencil />} onPress={openEdit}>{m.profile.edit}</Button>
+          <LinkButton href="/app/usage" variant="ghost" iconStart={<Gauge />}>
+            {m.usage.title}
+          </LinkButton>
+          <LinkButton
+            href="/app/settings"
+            variant="ghost"
+            iconStart={<Settings />}
+          >
+            {t.settings}
+          </LinkButton>
+          <Button variant="primary" iconStart={<Pencil />} onPress={openEdit}>
+            {m.profile.edit}
+          </Button>
         </>
       )}
     </>
@@ -348,32 +701,69 @@ function OwnProfile() {
     <Header
       person={{ ...person, isSelf: !previewing }}
       place={previewing ? null : place}
-      sex={previewing ? null : (fields.data?.values as Record<string, unknown> | undefined)?.Sex as string | undefined}
+      sex={
+        previewing
+          ? null
+          : ((fields.data?.values as Record<string, unknown> | undefined)
+              ?.Sex as string | undefined)
+      }
       memberSince={self.data?.memberSince}
       headline={isCoach ? showcase.data?.headline : null}
       coverUrl={cover.data}
       coverStyle={editing ? coverDraft : profile.coverStyle}
       coverRestart={restart}
-      coverControls={editing && isCoach ? <CoverControls coachId={profile.id} showcase={showcase.data} /> : null}
+      coverControls={
+        editing && isCoach ? (
+          <CoverControls coachId={profile.id} showcase={showcase.data} />
+        ) : null
+      }
       avatarUrl={avatar}
-      avatarControls={editing ? <AvatarControls hasAvatar={Boolean(profile.hasAvatar)} /> : null}
+      avatarControls={
+        editing ? (
+          <AvatarControls hasAvatar={Boolean(profile.hasAvatar)} />
+        ) : null
+      }
       actions={actions}
     />
   );
-  const facts = factsOf({ coach: isCoach, bio: Boolean(profile.bio), location: Boolean(place), memberSince: self.data?.memberSince, showcase: showcase.data, offers: offersTotal.data });
+  const facts = factsOf({
+    coach: isCoach,
+    bio: Boolean(profile.bio),
+    location: Boolean(place),
+    memberSince: self.data?.memberSince,
+    showcase: showcase.data,
+    offers: offersTotal.data,
+  });
   if (previewing) {
     const visitor = { ...person, isSelf: false };
     return (
       <div className={styles.page}>
-        <TopNotice tone="accent" icon={<Eye />} title={t.previewTitle} label={t.previewTitle} onClose={() => setMode(previewFrom)} closeLabel={t.closePreview}>
+        <TopNotice
+          tone="accent"
+          icon={<Eye />}
+          title={t.previewTitle}
+          label={t.previewTitle}
+          onClose={() => setMode(previewFrom)}
+          closeLabel={t.closePreview}
+        >
           {t.previewBody}{" "}
-          <TopNoticeLink onPress={() => setMode(previewFrom)}>{previewFrom === "edit" ? t.exitPreview : t.closePreview}</TopNoticeLink>
+          <TopNoticeLink onPress={() => setMode(previewFrom)}>
+            {previewFrom === "edit" ? t.exitPreview : t.closePreview}
+          </TopNoticeLink>
         </TopNotice>
         {header}
         {isCoach ? (
-          <CoachSections coachId={profile.id} about={<About person={visitor} />} facts={{ ...facts, location: false }} />
+          <CoachSections
+            coachId={profile.id}
+            about={<About person={visitor} />}
+            facts={{ ...facts, location: false }}
+          />
         ) : (
-          <PersonSections memberSince={self.data?.memberSince} about={<About person={visitor} />} facts={{ ...facts, location: false }} />
+          <PersonSections
+            memberSince={self.data?.memberSince}
+            about={<About person={visitor} />}
+            facts={{ ...facts, location: false }}
+          />
         )}
       </div>
     );
@@ -381,19 +771,46 @@ function OwnProfile() {
   return (
     <div className={styles.page} data-editing={editing || undefined}>
       {editing ? (
-        <TopNotice tone="warning" icon={<Pencil />} title={t.editingTitle} label={t.editingTitle} onClose={leaveEdit} closeLabel={m.common.cancel}>
+        <TopNotice
+          tone="warning"
+          icon={<Pencil />}
+          title={t.editingTitle}
+          label={t.editingTitle}
+          onClose={leaveEdit}
+          closeLabel={m.common.cancel}
+        >
           {t.editingBody}{" "}
-          <TopNoticeLink onPress={() => { setPreviewFrom("edit"); setMode("preview"); }}>{t.preview}</TopNoticeLink>
+          <TopNoticeLink
+            onPress={() => {
+              setPreviewFrom("edit");
+              setMode("preview");
+            }}
+          >
+            {t.preview}
+          </TopNoticeLink>
         </TopNotice>
       ) : null}
       {header}
       {editing ? (
         <div className={styles.grid}>
           <div className={styles.wide}>
-            <CoverEditorCard saved={profile.coverStyle} draft={coverDraft} onDraft={setCoverDraft} onRestart={() => setRestart((n) => n + 1)} register={register} />
+            <CoverEditorCard
+              saved={profile.coverStyle}
+              draft={coverDraft}
+              onDraft={setCoverDraft}
+              onRestart={() => setRestart((n) => n + 1)}
+              register={register}
+            />
           </div>
           <div className={styles.wide}>
-            {!isCoach || showcase.data ? <IdentityEditorCard key={`${profile.version}-${showcase.data?.version ?? 0}`} profile={profile} showcase={showcase.data} register={register} /> : null}
+            {!isCoach || showcase.data ? (
+              <IdentityEditorCard
+                key={`${profile.version}-${showcase.data?.version ?? 0}`}
+                profile={profile}
+                showcase={showcase.data}
+                register={register}
+              />
+            ) : null}
           </div>
           {isCoach ? (
             <div className={styles.wide}>
@@ -403,26 +820,56 @@ function OwnProfile() {
         </div>
       ) : null}
       {isCoach ? (
-        <ShowcaseStats showcase={showcase.data} offers={offersTotal.data} failed={showcase.isError} />
+        <ShowcaseStats
+          showcase={showcase.data}
+          offers={offersTotal.data}
+          failed={showcase.isError}
+        />
       ) : (
-        <PersonStats memberSince={self.data?.memberSince} place={place} facts={facts} />
+        <PersonStats
+          memberSince={self.data?.memberSince}
+          place={place}
+          facts={facts}
+        />
       )}
-      {isCoach && showcase.isError ? <ShowcaseFailed error={showcase.error} retry={() => void showcase.refetch()} /> : null}
+      {isCoach && showcase.isError ? (
+        <ShowcaseFailed
+          error={showcase.error}
+          retry={() => void showcase.refetch()}
+        />
+      ) : null}
       <div className={styles.grid}>
         <About person={person} />
-        {isCoach && <SpecializationsSection selections={showcase.data?.specializationSelections} own />}
-        {isCoach && !showcase.isError ? <ShowcaseAbout showcase={showcase.data} own /> : <Completeness />}
+        {isCoach && (
+          <SpecializationsSection
+            selections={showcase.data?.specializationSelections}
+            own
+          />
+        )}
+        {isCoach && !showcase.isError ? (
+          <ShowcaseAbout showcase={showcase.data} own />
+        ) : (
+          <Completeness />
+        )}
         {isCoach && !showcase.isError ? <Completeness /> : null}
         <div className={styles.wide}>
           <OwnDetails />
         </div>
-        {isCoach ? <div className={styles.wide}><CoachOffers coachId={profile.id} /></div> : null}
+        {isCoach ? (
+          <div className={styles.wide}>
+            <CoachOffers coachId={profile.id} />
+          </div>
+        ) : null}
         <div className={styles.wide}>
           <ProfileAchievements facts={facts} own />
         </div>
         {isCoach && !showcase.isError ? (
           <div className={styles.wide}>
-            <Portfolio coachId={profile.id} showcase={showcase.data} editable={editing} />
+            <Portfolio
+              coachId={profile.id}
+              showcase={showcase.data}
+              editable={editing}
+            />
           </div>
         ) : null}
       </div>
@@ -431,7 +878,21 @@ function OwnProfile() {
 }
 
 /** Achievement inputs from what the page already loads. */
-function factsOf({ coach, bio, location, memberSince, showcase, offers }: { coach: boolean; bio: boolean; location: boolean; memberSince?: string | null; showcase?: Schema<"CoachShowcaseDto">; offers?: number }): AchievementFacts {
+function factsOf({
+  coach,
+  bio,
+  location,
+  memberSince,
+  showcase,
+  offers,
+}: {
+  coach: boolean;
+  bio: boolean;
+  location: boolean;
+  memberSince?: string | null;
+  showcase?: Schema<"CoachShowcaseDto">;
+  offers?: number;
+}): AchievementFacts {
   return {
     coach,
     bio,
@@ -439,10 +900,16 @@ function factsOf({ coach, bio, location, memberSince, showcase, offers }: { coac
     memberSince,
     clientsCoached: showcase ? Number(showcase.clientsCoached) : undefined,
     activeClients: showcase ? Number(showcase.activeClients) : undefined,
-    yearsExperience: showcase?.yearsExperience != null ? Number(showcase.yearsExperience) : null,
+    yearsExperience:
+      showcase?.yearsExperience != null
+        ? Number(showcase.yearsExperience)
+        : null,
     competencies: showcase?.competencies.length,
-    certificates: showcase?.portfolio.filter((item) => item.kind === "Certificate").length,
-    results: showcase?.portfolio.filter((item) => item.kind === "ClientResult").length,
+    certificates: showcase?.portfolio.filter(
+      (item) => item.kind === "Certificate",
+    ).length,
+    results: showcase?.portfolio.filter((item) => item.kind === "ClientResult")
+      .length,
     offers,
     headline: Boolean(showcase?.headline),
   };
@@ -450,25 +917,69 @@ function factsOf({ coach, bio, location, memberSince, showcase, offers }: { coac
 
 /** A coach's published offers count, sharing the request with the offers card. */
 function useOffersTotal(coachId: string, enabled: boolean) {
-  const offers = useCoachingQuery<Page<Schema<"OfferRevisionDto">>>(`/api/v1/coaches/${coachId}/offers`, { page: 1, pageSize: 4 }, enabled && Boolean(coachId));
+  const offers = useCoachingQuery<Page<Schema<"OfferRevisionDto">>>(
+    `/api/v1/coaches/${coachId}/offers`,
+    { page: 1, pageSize: 4 },
+    enabled && Boolean(coachId),
+  );
   return { data: offers.data ? Number(offers.data.total) : undefined };
 }
 
 /** Numbers for someone who is not a coach: time on Metrivum, achievements and place. */
-function PersonStats({ memberSince, place, facts }: { memberSince?: string | null; place?: string | null; facts: AchievementFacts }) {
+function PersonStats({
+  memberSince,
+  place,
+  facts,
+}: {
+  memberSince?: string | null;
+  place?: string | null;
+  facts: AchievementFacts;
+}) {
   const m = useT();
   const all = achievementsFor(facts);
-  const days = memberSince ? Math.max(0, Math.floor((Date.now() - new Date(memberSince).getTime()) / 86_400_000)) : null;
+  const days = memberSince
+    ? Math.max(
+        0,
+        Math.floor((Date.now() - new Date(memberSince).getTime()) / 86_400_000),
+      )
+    : null;
   const items: StatItem[] = [
-    { icon: Clock, tone: "blue", label: m.profile.stats.days, value: days === null ? "—" : String(days) },
-    { icon: Trophy, tone: "orange", label: m.profile.stats.achievements, value: `${all.filter((a) => a.current >= a.goal).length}/${all.length}` },
-    ...(place !== undefined ? [{ icon: MapPin, tone: "violet" as const, label: m.profile.stats.place, value: place ?? "—" }] : []),
+    {
+      icon: Clock,
+      tone: "blue",
+      label: m.profile.stats.days,
+      value: days === null ? "—" : String(days),
+    },
+    {
+      icon: Trophy,
+      tone: "orange",
+      label: m.profile.stats.achievements,
+      value: `${all.filter((a) => a.current >= a.goal).length}/${all.length}`,
+    },
+    ...(place !== undefined
+      ? [
+          {
+            icon: MapPin,
+            tone: "violet" as const,
+            label: m.profile.stats.place,
+            value: place ?? "—",
+          },
+        ]
+      : []),
   ];
   return <StatsStrip items={items} label={m.profile.showcase.statsLabel} />;
 }
 
 /** What a visitor sees on someone who is not a coach. */
-function PersonSections({ memberSince, about, facts }: { memberSince?: string | null; about: React.ReactNode; facts: AchievementFacts }) {
+function PersonSections({
+  memberSince,
+  about,
+  facts,
+}: {
+  memberSince?: string | null;
+  about: React.ReactNode;
+  facts: AchievementFacts;
+}) {
   return (
     <>
       <PersonStats memberSince={memberSince} facts={facts} />
@@ -489,16 +1000,40 @@ function OtherProfile({ username }: { username: string }) {
   const viewer = useProfile();
   const canInvite = useFeatureAccess("coaching.invitations.send");
   const [inviting, setInviting] = useState(false);
-  const person = useQuery({ queryKey: personKey(account, username), queryFn: ({ signal }) => getPerson(api, username, signal), retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 2 });
+  const person = useQuery({
+    queryKey: personKey(account, username),
+    queryFn: ({ signal }) => getPerson(api, username, signal),
+    retry: (count, error) =>
+      !(error instanceof ApiError && error.status === 404) && count < 2,
+  });
   const isCoach = Boolean(person.data?.roles.includes("Coach"));
   const showcase = useShowcase(person.data?.userId ?? "", isCoach);
-  const coverUrl = useCoverUrl(person.data?.userId ?? "", isCoach && showcase.data?.hasCover).data;
+  const coverUrl = useCoverUrl(
+    person.data?.userId ?? "",
+    isCoach && showcase.data?.hasCover,
+  ).data;
   const avatarUrl = useAvatarUrl(person.data?.userId, person.data?.hasAvatar);
   if (person.isPending) return <LoadingState label={m.common.loading} />;
   if (person.isError) {
     if (person.error instanceof ApiError && person.error.status === 404)
-      return <EmptyState icon={<UserRoundX />} title={m.profile.notFound} description={m.profile.notFoundBody} actions={<LinkButton href="/app">{m.common.back}</LinkButton>} />;
-    return <ErrorState title={errorText(m, person.error)} actions={<Button onPress={() => void person.refetch()}>{m.common.retry}</Button>} />;
+      return (
+        <EmptyState
+          icon={<UserRoundX />}
+          title={m.profile.notFound}
+          description={m.profile.notFoundBody}
+          actions={<LinkButton href="/app">{m.common.back}</LinkButton>}
+        />
+      );
+    return (
+      <ErrorState
+        title={errorText(m, person.error)}
+        actions={
+          <Button onPress={() => void person.refetch()}>
+            {m.common.retry}
+          </Button>
+        }
+      />
+    );
   }
   const data = person.data;
   if (data.isSelf) return <Navigate to="/app/profile" replace />;
@@ -516,18 +1051,58 @@ function OtherProfile({ username }: { username: string }) {
         avatarUrl={avatarUrl}
         actions={
           <>
-            {data.roles.includes("Coach") ? <LinkButton href={`/app/coaches/${data.userId}/offers`} iconStart={<Store />}>{m.profile.viewOffers}</LinkButton> : null}
-            <LinkButton href={message} iconStart={<MessageSquare />}>{m.profile.message}</LinkButton>
-            {coach && canInvite.allowed ? <Button iconStart={<UserPlus />} onPress={() => setInviting(true)}>{m.profile.invite}</Button> : null}
+            {data.roles.includes("Coach") ? (
+              <LinkButton
+                href={`/app/coaches/${data.userId}/offers`}
+                iconStart={<Store />}
+              >
+                {m.profile.viewOffers}
+              </LinkButton>
+            ) : null}
+            <LinkButton href={message} iconStart={<MessageSquare />}>
+              {m.profile.message}
+            </LinkButton>
+            {coach && canInvite.allowed ? (
+              <Button
+                iconStart={<UserPlus />}
+                onPress={() => setInviting(true)}
+              >
+                {m.profile.invite}
+              </Button>
+            ) : null}
           </>
         }
       />
       {isCoach ? (
-        <CoachSections coachId={data.userId} about={<About person={view} />} facts={factsOf({ coach: true, bio: Boolean(data.bio), location: false, memberSince: data.memberSince, showcase: showcase.data })} />
+        <CoachSections
+          coachId={data.userId}
+          about={<About person={view} />}
+          facts={factsOf({
+            coach: true,
+            bio: Boolean(data.bio),
+            location: false,
+            memberSince: data.memberSince,
+            showcase: showcase.data,
+          })}
+        />
       ) : (
-        <PersonSections memberSince={data.memberSince} about={<About person={view} />} facts={factsOf({ coach: false, bio: Boolean(data.bio), location: false, memberSince: data.memberSince })} />
+        <PersonSections
+          memberSince={data.memberSince}
+          about={<About person={view} />}
+          facts={factsOf({
+            coach: false,
+            bio: Boolean(data.bio),
+            location: false,
+            memberSince: data.memberSince,
+          })}
+        />
       )}
-      {inviting ? <InvitationEditor username={data.username} close={() => setInviting(false)} /> : null}
+      {inviting ? (
+        <InvitationEditor
+          username={data.username}
+          close={() => setInviting(false)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -538,27 +1113,58 @@ function CoachHeadline({ coachId }: { coachId: string }) {
 }
 
 /** What a visitor sees on a coach's profile: numbers, introduction, competencies, offers and portfolio. */
-function CoachSections({ coachId, about, facts }: { coachId: string; about: React.ReactNode; facts: AchievementFacts }) {
+function CoachSections({
+  coachId,
+  about,
+  facts,
+}: {
+  coachId: string;
+  about: React.ReactNode;
+  facts: AchievementFacts;
+}) {
   const showcase = useShowcase(coachId);
   const offers = useOffersTotal(coachId, true);
-  const competencies = !showcase.isError && Boolean(showcase.data?.competencies.length);
+  const competencies =
+    !showcase.isError && Boolean(showcase.data?.competencies.length);
   return (
     <>
-      <ShowcaseStats showcase={showcase.data} offers={offers.data} failed={showcase.isError} />
-      {showcase.isError ? <ShowcaseFailed error={showcase.error} retry={() => void showcase.refetch()} /> : null}
+      <ShowcaseStats
+        showcase={showcase.data}
+        offers={offers.data}
+        failed={showcase.isError}
+      />
+      {showcase.isError ? (
+        <ShowcaseFailed
+          error={showcase.error}
+          retry={() => void showcase.refetch()}
+        />
+      ) : null}
       <div className={styles.grid}>
         <div className={competencies ? undefined : styles.wide}>{about}</div>
         {competencies ? <ShowcaseAbout showcase={showcase.data} /> : null}
-        {showcase.data?.specializationSelections?.length ? <div className={styles.wide}><SpecializationsSection selections={showcase.data.specializationSelections} /></div> : null}
+        {showcase.data?.specializationSelections?.length ? (
+          <div className={styles.wide}>
+            <SpecializationsSection
+              selections={showcase.data.specializationSelections}
+            />
+          </div>
+        ) : null}
         <div className={styles.wide}>
           <CoachOffers coachId={coachId} />
         </div>
         <div className={styles.wide}>
-          <ProfileAchievements facts={{ ...facts, offers: offers.data }} own={false} />
+          <ProfileAchievements
+            facts={{ ...facts, offers: offers.data }}
+            own={false}
+          />
         </div>
         {showcase.data?.portfolio.length ? (
           <div className={styles.wide}>
-            <Portfolio coachId={coachId} showcase={showcase.data} editable={false} />
+            <Portfolio
+              coachId={coachId}
+              showcase={showcase.data}
+              editable={false}
+            />
           </div>
         ) : null}
       </div>
@@ -568,5 +1174,9 @@ function CoachSections({ coachId, about, facts }: { coachId: string; about: Reac
 
 export default function ProfileRoute() {
   const { username } = useParams();
-  return username ? <OtherProfile key={username} username={username} /> : <OwnProfile />;
+  return username ? (
+    <OtherProfile key={username} username={username} />
+  ) : (
+    <OwnProfile />
+  );
 }

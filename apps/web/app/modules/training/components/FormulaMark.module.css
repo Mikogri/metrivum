@@ -15,7 +15,25 @@
   line-height: 1;
 }
 
-.mark[data-size="sm"] { width: 0.9375rem; height: 0.9375rem; font-size: 0.625rem; border-radius: var(--tf-radius-xs); }
-.mark[data-size="lg"] { width: 1.75rem; height: 1.75rem; font-size: 1rem; border-radius: var(--tf-radius-md); }
-.mark[data-tone="accent"] { border-color: var(--tf-color-accent-border); background: var(--tf-color-accent-soft); color: var(--tf-color-accent); }
-.mark[data-tone="waiting"] { border-color: rgb(242 169 59 / 0.55); background: var(--tf-color-warning-soft); color: var(--tf-color-warning); }
+.mark[data-size="sm"] {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  font-size: 0.625rem;
+  border-radius: var(--tf-radius-xs);
+}
+.mark[data-size="lg"] {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 1rem;
+  border-radius: var(--tf-radius-md);
+}
+.mark[data-tone="accent"] {
+  border-color: var(--tf-color-accent-border);
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
+.mark[data-tone="waiting"] {
+  border-color: rgb(242 169 59 / 0.55);
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+}

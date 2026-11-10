@@ -1,3 +1,13 @@
-.toggle { margin-left: auto; flex-shrink: 0; }
-.toggle svg { width: 0.9375rem; height: 0.9375rem; }
-@media (max-width: 767px) { .toggle { display: none; } }
+.toggle {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.toggle svg {
+  width: 0.9375rem;
+  height: 0.9375rem;
+}
+@media (max-width: 767px) {
+  .toggle {
+    display: none;
+  }
+}

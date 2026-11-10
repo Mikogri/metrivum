@@ -12,9 +12,17 @@ export interface LoadingStateProps {
 /**
  * Loading for lists, tables and cards (dynamic content): a spinner with its label, shown immediately. Skeletons are kept for fixed layouts such as settings.
  */
-export function LoadingState({ label = "Loading…", size = "md", className }: LoadingStateProps) {
+export function LoadingState({
+  label = "Loading…",
+  size = "md",
+  className,
+}: LoadingStateProps) {
   return (
-    <div className={cx(styles.loading, styles[size], className)} role="status" aria-live="polite">
+    <div
+      className={cx(styles.loading, styles[size], className)}
+      role="status"
+      aria-live="polite"
+    >
       <Spinner size={size === "sm" ? "sm" : "md"} className={styles.spinner} />
       <span className={styles.label}>{label}</span>
     </div>

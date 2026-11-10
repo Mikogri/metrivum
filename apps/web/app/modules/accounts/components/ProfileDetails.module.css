@@ -62,7 +62,6 @@
   }
 }
 
-
 /* Imperial height: feet and inches side by side under one label. */
 .feetInches {
   display: grid;
@@ -94,7 +93,10 @@
   font: inherit;
   font-size: var(--tf-text-xs);
   cursor: pointer;
-  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
 }
 
 .unitSwitch svg {

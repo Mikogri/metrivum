@@ -11,21 +11,44 @@ export interface CardProps extends HTMLAttributes<HTMLElement> {
   children?: ReactNode;
 }
 
-export function Card({ as: Component = "div", padding = "md", tone = "default", interactive, className, ...props }: CardProps) {
+export function Card({
+  as: Component = "div",
+  padding = "md",
+  tone = "default",
+  interactive,
+  className,
+  ...props
+}: CardProps) {
   return (
     <Component
       {...props}
-      className={cx(styles.card, styles[`pad-${padding}`], styles[tone], interactive && styles.interactive, className)}
+      className={cx(
+        styles.card,
+        styles[`pad-${padding}`],
+        styles[tone],
+        interactive && styles.interactive,
+        className,
+      )}
     />
   );
 }
 
-export function Separator({ orientation = "horizontal", className }: { orientation?: "horizontal" | "vertical"; className?: string }) {
+export function Separator({
+  orientation = "horizontal",
+  className,
+}: {
+  orientation?: "horizontal" | "vertical";
+  className?: string;
+}) {
   return (
     <div
       role="separator"
       aria-orientation={orientation}
-      className={cx(styles.separator, orientation === "vertical" && styles.vertical, className)}
+      className={cx(
+        styles.separator,
+        orientation === "vertical" && styles.vertical,
+        className,
+      )}
     />
   );
 }

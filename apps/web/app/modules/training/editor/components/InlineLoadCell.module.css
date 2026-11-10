@@ -1,4 +1,12 @@
-.cell { box-sizing: border-box; min-width: 0; width: 100%; height: 100%; min-height: 0; position: relative; padding: 0; }
+.cell {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  position: relative;
+  padding: 0;
+}
 
 /* The formula popups follow the app's menus: a raised panel with a hairline, rounded, tight shadow. */
 .auxiliary,
@@ -25,7 +33,13 @@
   }
 }
 
-.suggestions > ul { position: static; min-width: 0; max-width: 100%; border: 0; box-shadow: none; }
+.suggestions > ul {
+  position: static;
+  min-width: 0;
+  max-width: 100%;
+  border: 0;
+  box-shadow: none;
+}
 
 .options {
   max-height: 16rem;
@@ -48,7 +62,9 @@
   text-transform: uppercase;
 }
 
-.options li:first-child .group { padding-top: var(--tf-space-1); }
+.options li:first-child .group {
+  padding-top: var(--tf-space-1);
+}
 
 .options button {
   display: flex;
@@ -65,10 +81,19 @@
   cursor: default;
 }
 
-.options button[data-kind="function"] { font-family: var(--tf-font-mono); font-size: var(--tf-text-xs); }
-.options button[aria-selected="true"] { background: var(--tf-color-surface-hover); color: var(--tf-color-text); }
+.options button[data-kind="function"] {
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-text-xs);
+}
+.options button[aria-selected="true"] {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
 
-.empty { padding: var(--tf-space-2); color: var(--tf-color-text-tertiary); }
+.empty {
+  padding: var(--tf-space-2);
+  color: var(--tf-color-text-tertiary);
+}
 
 /* Keyboard hints at the foot of a popup. */
 .keys {
@@ -96,7 +121,9 @@
   text-align: center;
 }
 
-.keys kbd + kbd { margin-left: -2px; }
+.keys kbd + kbd {
+  margin-left: -2px;
+}
 
 /* The chosen formula's name over its inputs. */
 .heading {
@@ -109,10 +136,21 @@
   font-weight: var(--tf-weight-semibold);
 }
 
-.heading span { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-2xs); font-weight: var(--tf-weight-regular); }
+.heading span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-2xs);
+  font-weight: var(--tf-weight-regular);
+}
 
-.parameters { display: grid; gap: var(--tf-space-2-5); padding: 0 var(--tf-space-1-5); }
-.parameters label { display: grid; gap: var(--tf-space-1); }
+.parameters {
+  display: grid;
+  gap: var(--tf-space-2-5);
+  padding: 0 var(--tf-space-1-5);
+}
+.parameters label {
+  display: grid;
+  gap: var(--tf-space-1);
+}
 
 .paramName {
   display: flex;
@@ -134,7 +172,11 @@
 }
 
 /* Source and value side by side, styled like the app's fields. */
-.paramRow { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--tf-space-1-5); }
+.paramRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: var(--tf-space-1-5);
+}
 
 .parameters input,
 .parameters select {
@@ -153,11 +195,28 @@
   transition: border-color var(--tf-duration-fast) ease;
 }
 
-.parameters select { appearance: none; padding-right: var(--tf-space-6); background-image: linear-gradient(45deg, transparent 50%, var(--tf-color-text-tertiary) 50%), linear-gradient(135deg, var(--tf-color-text-tertiary) 50%, transparent 50%); background-position: calc(100% - 12px) 50%, calc(100% - 8px) 50%; background-size: 4px 4px; background-repeat: no-repeat; }
-.parameters select option { background: var(--tf-color-surface-overlay); }
+.parameters select {
+  appearance: none;
+  padding-right: var(--tf-space-6);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--tf-color-text-tertiary) 50%),
+    linear-gradient(135deg, var(--tf-color-text-tertiary) 50%, transparent 50%);
+  background-position:
+    calc(100% - 12px) 50%,
+    calc(100% - 8px) 50%;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+}
+.parameters select option {
+  background: var(--tf-color-surface-overlay);
+}
 .parameters input:focus-visible,
-.parameters select:focus-visible { border-color: var(--tf-color-focus-ring); }
-.parameters input:disabled { color: var(--tf-color-text-tertiary); }
+.parameters select:focus-visible {
+  border-color: var(--tf-color-focus-ring);
+}
+.parameters input:disabled {
+  color: var(--tf-color-text-tertiary);
+}
 
 /* The live result: a labelled value, accent when it is good, red when it fails. */
 .result {
@@ -171,13 +230,34 @@
   background: var(--tf-color-bg-sunken);
 }
 
-.result span { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); }
-.result strong { overflow-wrap: anywhere; font-weight: var(--tf-weight-semibold); font-variant-numeric: tabular-nums; text-align: left; }
-.result[data-state="ok"] strong { color: var(--tf-color-accent); }
-.result[data-state="error"] strong { color: var(--tf-color-danger); font-size: var(--tf-text-xs); font-weight: var(--tf-weight-medium); }
-.result[data-state="pending"] strong { color: var(--tf-color-text-tertiary); }
+.result span {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+}
+.result strong {
+  overflow-wrap: anywhere;
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+.result[data-state="ok"] strong {
+  color: var(--tf-color-accent);
+}
+.result[data-state="error"] strong {
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-medium);
+}
+.result[data-state="pending"] strong {
+  color: var(--tf-color-text-tertiary);
+}
 
-.problem { margin: 0; padding: 0 var(--tf-space-1-5); color: var(--tf-color-danger); font-size: var(--tf-text-xs); }
+.problem {
+  margin: 0;
+  padding: 0 var(--tf-space-1-5);
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-xs);
+}
 
 .actions {
   display: flex;
@@ -187,7 +267,9 @@
   border-top: 1px solid var(--tf-color-border-subtle);
 }
 
-.spacer { flex: 1; }
+.spacer {
+  flex: 1;
+}
 
 .actions button {
   height: var(--tf-control-sm);
@@ -198,21 +280,52 @@
   font-size: var(--tf-text-xs);
   font-weight: var(--tf-weight-medium);
   cursor: pointer;
-  transition: background-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease, transform var(--tf-duration-press) var(--tf-ease-out);
+  transition:
+    background-color var(--tf-duration-fast) ease,
+    color var(--tf-duration-fast) ease,
+    transform var(--tf-duration-press) var(--tf-ease-out);
 }
 
-.actions button:active { transform: scale(0.97); }
-.actions button:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 2px; }
-.ghost { background: transparent; color: var(--tf-color-text-secondary); }
-.primary { border-color: var(--tf-color-primary-border) !important; background: var(--tf-color-primary); color: var(--tf-color-on-primary); }
+.actions button:active {
+  transform: scale(0.97);
+}
+.actions button:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+.ghost {
+  background: transparent;
+  color: var(--tf-color-text-secondary);
+}
+.primary {
+  border-color: var(--tf-color-primary-border) !important;
+  background: var(--tf-color-primary);
+  color: var(--tf-color-on-primary);
+}
 
 @media (hover: hover) and (pointer: fine) {
-  .ghost:hover { background: var(--tf-color-surface-hover); color: var(--tf-color-text); }
-  .primary:hover { background: var(--tf-color-primary-hover); }
+  .ghost:hover {
+    background: var(--tf-color-surface-hover);
+    color: var(--tf-color-text);
+  }
+  .primary:hover {
+    background: var(--tf-color-primary-hover);
+  }
 }
 
 /* A failed formula under a cell that is not being edited. */
-.error { position: absolute; top: 100%; left: 0; z-index: 1; max-width: 16rem; overflow: hidden; color: var(--tf-color-danger); font-size: var(--tf-text-2xs); text-overflow: ellipsis; white-space: nowrap; }
+.error {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1;
+  max-width: 16rem;
+  overflow: hidden;
+  color: var(--tf-color-danger);
+  font-size: var(--tf-text-2xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* While editing a formula: a labelled "Data" button at the cell's end, amber when values are missing. */
 .more {
@@ -237,12 +350,24 @@
   cursor: pointer;
 }
 
-.more svg { width: 0.6875rem; height: 0.6875rem; }
-.more[data-waiting] { border-color: rgb(242 169 59 / 0.4); background: var(--tf-color-warning-soft); color: var(--tf-color-warning); }
+.more svg {
+  width: 0.6875rem;
+  height: 0.6875rem;
+}
+.more[data-waiting] {
+  border-color: rgb(242 169 59 / 0.4);
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+}
 
 @media (hover: hover) and (pointer: fine) {
-  .more:hover { border-color: var(--tf-color-border-strong); color: var(--tf-color-text); }
-  .more[data-waiting]:hover { color: #ffc56b; }
+  .more:hover {
+    border-color: var(--tf-color-border-strong);
+    color: var(--tf-color-text);
+  }
+  .more[data-waiting]:hover {
+    color: #ffc56b;
+  }
 }
 
 /* On a saved cell: an amber pill with the number of missing values. It invites a click. */
@@ -258,7 +383,11 @@
   padding: 0 5px 0 3px;
   border: 1px solid rgb(242 169 59 / 0.45);
   border-radius: var(--tf-radius-full);
-  background: color-mix(in srgb, var(--tf-color-warning) 16%, var(--tf-color-surface));
+  background: color-mix(
+    in srgb,
+    var(--tf-color-warning) 16%,
+    var(--tf-color-surface)
+  );
   color: var(--tf-color-warning);
   font: inherit;
   font-size: var(--tf-text-2xs);
@@ -269,19 +398,35 @@
   animation: needs-pulse 2.4s var(--tf-ease-in-out) 2;
 }
 
-.needsData svg { width: 0.75rem; height: 0.75rem; }
-.cell:not([data-unit-select]) .needsData { right: 3px; }
+.needsData svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+.cell:not([data-unit-select]) .needsData {
+  right: 3px;
+}
 
 @keyframes needs-pulse {
-  50% { box-shadow: 0 0 0 3px rgb(242 169 59 / 0.18); }
+  50% {
+    box-shadow: 0 0 0 3px rgb(242 169 59 / 0.18);
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .needsData:hover { background: color-mix(in srgb, var(--tf-color-warning) 26%, var(--tf-color-surface)); }
+  .needsData:hover {
+    background: color-mix(
+      in srgb,
+      var(--tf-color-warning) 26%,
+      var(--tf-color-surface)
+    );
+  }
 }
 
 .needsData:focus-visible,
-.more:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 1px; }
+.more:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
 
 /* The popup header: the panel's name with an icon, expand and close on the right. */
 .popupTitle {
@@ -295,7 +440,11 @@
   font-weight: var(--tf-weight-semibold);
 }
 
-.popupTitle svg { width: 0.875rem; height: 0.875rem; color: var(--tf-color-text-tertiary); }
+.popupTitle svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--tf-color-text-tertiary);
+}
 
 /* The formula being edited, as code under the header. */
 .expression {
@@ -324,9 +473,20 @@
   line-height: var(--tf-leading-snug);
 }
 
-.status svg { flex-shrink: 0; width: 0.875rem; height: 0.875rem; margin-top: 1px; }
-.status[data-state="waiting"] { background: var(--tf-color-warning-soft); color: var(--tf-color-warning); }
-.status[data-state="ready"] { background: var(--tf-color-accent-soft); color: var(--tf-color-accent); }
+.status svg {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: 1px;
+}
+.status[data-state="waiting"] {
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+}
+.status[data-state="ready"] {
+  background: var(--tf-color-accent-soft);
+  color: var(--tf-color-accent);
+}
 
 /* Each input of the formula: name, unit and state on top; source and value side by side below. */
 .source {
@@ -336,7 +496,9 @@
   background: var(--tf-color-surface);
 }
 
-.source[data-state="waiting"] { border-color: rgb(242 169 59 / 0.3); }
+.source[data-state="waiting"] {
+  border-color: rgb(242 169 59 / 0.3);
+}
 
 .sourceState {
   margin-left: auto;
@@ -346,8 +508,12 @@
   font-weight: var(--tf-weight-regular);
 }
 
-.source[data-state="waiting"] .sourceState { color: var(--tf-color-warning); }
-.source[data-state="ready"] .sourceState { color: var(--tf-color-accent); }
+.source[data-state="waiting"] .sourceState {
+  color: var(--tf-color-warning);
+}
+.source[data-state="ready"] .sourceState {
+  color: var(--tf-color-accent);
+}
 
 /* In the side panel the inspector is the page itself: no popup frame, roomier spacing. */
 .auxiliary[data-expanded] {
@@ -360,13 +526,28 @@
   animation: none;
 }
 
-.auxiliary[data-expanded] .popupHeader { padding-top: var(--tf-space-1); border-top: 1px solid var(--tf-color-border-subtle); }
-.auxiliary[data-expanded] .popupHeader .closeOptions { display: none; }
+.auxiliary[data-expanded] .popupHeader {
+  padding-top: var(--tf-space-1);
+  border-top: 1px solid var(--tf-color-border-subtle);
+}
+.auxiliary[data-expanded] .popupHeader .closeOptions {
+  display: none;
+}
 .auxiliary[data-expanded] .parameters,
-.auxiliary[data-expanded] .status { margin: 0; padding-left: 0; padding-right: 0; }
-.auxiliary[data-expanded] .status { padding: var(--tf-space-2-5) var(--tf-space-3); }
-.auxiliary[data-expanded] .source { padding: var(--tf-space-3); }
-.auxiliary[data-expanded] .paramRow { grid-template-columns: minmax(0, 1fr) 9rem; }
+.auxiliary[data-expanded] .status {
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.auxiliary[data-expanded] .status {
+  padding: var(--tf-space-2-5) var(--tf-space-3);
+}
+.auxiliary[data-expanded] .source {
+  padding: var(--tf-space-3);
+}
+.auxiliary[data-expanded] .paramRow {
+  grid-template-columns: minmax(0, 1fr) 9rem;
+}
 .auxiliary[data-expanded] .actions {
   position: sticky;
   bottom: calc(var(--tf-space-5) * -1);
@@ -376,56 +557,192 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .auxiliary, .suggestions { animation: none; }
+  .auxiliary,
+  .suggestions {
+    animation: none;
+  }
 }
 
-.cell[data-linked] input { padding-left: 1.2rem; font-weight: 550; }
-.linked { position: absolute; left: .35rem; top: 50%; transform: translateY(-50%); color: var(--tf-color-text-secondary); font-size: .75rem; pointer-events: none; z-index: 1; }
-.popupHeader { display: flex; align-items: center; justify-content: space-between; gap: var(--tf-space-2); }
-.popupHeader .group { padding: 0 var(--tf-space-2); }
-.closeOptions { display: grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; padding: 0; border: 0; border-radius: var(--tf-radius-sm); background: transparent; color: var(--tf-color-text-tertiary); cursor: pointer; }
-.closeOptions svg { width: 1rem; height: 1rem; }
-.closeOptions:hover { background: var(--tf-color-surface-hover); color: var(--tf-color-text); }
-.closeOptions:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 1px; }
+.cell[data-linked] input {
+  padding-left: 1.2rem;
+  font-weight: 550;
+}
+.linked {
+  position: absolute;
+  left: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--tf-color-text-secondary);
+  font-size: 0.75rem;
+  pointer-events: none;
+  z-index: 1;
+}
+.popupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+.popupHeader .group {
+  padding: 0 var(--tf-space-2);
+}
+.closeOptions {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  cursor: pointer;
+}
+.closeOptions svg {
+  width: 1rem;
+  height: 1rem;
+}
+.closeOptions:hover {
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+}
+.closeOptions:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
 
-.cell[data-invalid] { background: color-mix(in srgb, var(--tf-color-danger) 8%, transparent); box-shadow: none; }
-.sourceNote { color: var(--tf-color-text-tertiary); font-size: var(--tf-text-xs); margin: 0; }
+.cell[data-invalid] {
+  background: color-mix(in srgb, var(--tf-color-danger) 8%, transparent);
+  box-shadow: none;
+}
+.sourceNote {
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  margin: 0;
+}
 
 /* Keep the value and unit adjacent; options never overlap the editable area. */
-.cell { display: flex; align-items: center; gap: 2px; }
-.cell > [data-compact] { flex: 1 1 0%; width: 0; min-width: 0; }
-.cell[data-unit-select] input { padding-right: 0; text-align: left; }
-.unitSelect { flex: none; width: 2.5rem; height: 100%; gap: 0; }
-.unitSelect > button { min-height: 0; height: 100%; padding: 0 2px; gap: 2px; border: 0; border-radius: 0; background: transparent; color: var(--tf-color-text-tertiary); font: inherit; box-shadow: none; }
-.unitSelect > button svg { width: 10px; height: 10px; }
-.cell[data-unit-select] .more { position: absolute; right: 2.6rem; top: 50%; transform: translateY(-50%); }
-.cell:has(> .more) input { padding-right: 1.4rem; }
-.cell[data-unit-select] .linked { position: absolute; left: .3rem; width: .65rem; font-size: .65rem; }
-.cell[data-unit-select] input { padding-left: .3rem; }
-.cell[data-linked] input { padding-left: 1.2rem; }
+.cell {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.cell > [data-compact] {
+  flex: 1 1 0%;
+  width: 0;
+  min-width: 0;
+}
+.cell[data-unit-select] input {
+  padding-right: 0;
+  text-align: left;
+}
+.unitSelect {
+  flex: none;
+  width: 2.5rem;
+  height: 100%;
+  gap: 0;
+}
+.unitSelect > button {
+  min-height: 0;
+  height: 100%;
+  padding: 0 2px;
+  gap: 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--tf-color-text-tertiary);
+  font: inherit;
+  box-shadow: none;
+}
+.unitSelect > button svg {
+  width: 10px;
+  height: 10px;
+}
+.cell[data-unit-select] .more {
+  position: absolute;
+  right: 2.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.cell:has(> .more) input {
+  padding-right: 1.4rem;
+}
+.cell[data-unit-select] .linked {
+  position: absolute;
+  left: 0.3rem;
+  width: 0.65rem;
+  font-size: 0.65rem;
+}
+.cell[data-unit-select] input {
+  padding-left: 0.3rem;
+}
+.cell[data-linked] input {
+  padding-left: 1.2rem;
+}
 
-.cell input { text-align: left; }
+.cell input {
+  text-align: left;
+}
 
-.loadModes { display: flex; gap: var(--tf-space-1); }
-.loadModes button { border: 0; border-radius: var(--tf-radius-sm); padding: 4px 8px; background: var(--tf-color-surface-hover); color: var(--tf-color-text); font: inherit; cursor: pointer; }
+.loadModes {
+  display: flex;
+  gap: var(--tf-space-1);
+}
+.loadModes button {
+  border: 0;
+  border-radius: var(--tf-radius-sm);
+  padding: 4px 8px;
+  background: var(--tf-color-surface-hover);
+  color: var(--tf-color-text);
+  font: inherit;
+  cursor: pointer;
+}
 
-.cell[data-inline-formula] { padding: 0; }
+.cell[data-inline-formula] {
+  padding: 0;
+}
 
-.actions button { white-space: nowrap; flex-shrink: 0; }
+.actions button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
-.actions button { display: inline-flex; align-items: center; gap: var(--tf-space-1); }
-.actions button svg { width: .875rem; height: .875rem; flex: none; }
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+.actions button svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+}
 
-.parameters [data-rac] { min-width: 0; }
-.paramRow > * { min-width: 0; }
-.popupHeader > .group { margin-right: auto; }
+.parameters [data-rac] {
+  min-width: 0;
+}
+.paramRow > * {
+  min-width: 0;
+}
+.popupHeader > .group {
+  margin-right: auto;
+}
 
 /* Room for the pill, so it never covers the value. */
-.cell:has(> .needsData) input { padding-right: 1.9rem; }
-.cell[data-unit-select]:has(> .needsData) .needsData { right: 2.65rem; }
+.cell:has(> .needsData) input {
+  padding-right: 1.9rem;
+}
+.cell[data-unit-select]:has(> .needsData) .needsData {
+  right: 2.65rem;
+}
 /* While waiting, the amber pill says it all: the ƒ marker steps aside and the value gets its room. */
-.linked[data-waiting] { display: none; }
-.cell[data-linked]:has(> .linked[data-waiting]) input { padding-left: .3rem; }
+.linked[data-waiting] {
+  display: none;
+}
+.cell[data-linked]:has(> .linked[data-waiting]) input {
+  padding-left: 0.3rem;
+}
 
 /* The ƒ marker stays a small square with a fill and a border, in the editing button and on a waiting cell. */
 .more,
@@ -445,12 +762,25 @@
   font-weight: var(--tf-weight-semibold);
 }
 .more[data-waiting],
-.needsData { border-color: rgb(242 169 59 / 0.55); background: var(--tf-color-warning-soft); color: var(--tf-color-warning); }
-.cell:has(> .needsData) input { padding-right: 1.5rem; }
+.needsData {
+  border-color: rgb(242 169 59 / 0.55);
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+}
+.cell:has(> .needsData) input {
+  padding-right: 1.5rem;
+}
 
 /* The linked-variable marker is the shared formula square. */
-.linked { display: inline-grid; place-items: center; left: .25rem; font-size: 0; }
-.cell[data-linked] input { padding-left: 1.45rem; }
+.linked {
+  display: inline-grid;
+  place-items: center;
+  left: 0.25rem;
+  font-size: 0;
+}
+.cell[data-linked] input {
+  padding-left: 1.45rem;
+}
 
 /* The formula mark in front of a result: a small button that opens the formula's details and editing. */
 .formulaButton {
@@ -465,17 +795,36 @@
   color: var(--tf-color-accent);
   pointer-events: auto;
   cursor: pointer;
-  transition: background-color 140ms ease, color 140ms ease;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
-.formulaButton[data-waiting] { color: var(--tf-color-warning); }
-.formulaButton:focus-visible { outline: 2px solid var(--tf-color-focus-ring); outline-offset: 1px; }
+.formulaButton[data-waiting] {
+  color: var(--tf-color-warning);
+}
+.formulaButton:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 1px;
+}
 @media (hover: hover) and (pointer: fine) {
-  .formulaButton:hover { background: var(--tf-color-accent-soft); }
-  .formulaButton[data-waiting]:hover { background: var(--tf-color-warning-soft); }
+  .formulaButton:hover {
+    background: var(--tf-color-accent-soft);
+  }
+  .formulaButton[data-waiting]:hover {
+    background: var(--tf-color-warning-soft);
+  }
 }
 
 /* A formula cell keeps room for its mark, also beside a unit picker, so the result is never under it. */
 .cell[data-linked] > [data-compact] input,
-.cell[data-linked][data-unit-select] > [data-compact] input { padding-left: 1.35rem; }
-.cell[data-linked][data-unit-select] .formulaButton { left: .2rem; width: 1rem; font-size: .75rem; }
-.formulaButton[data-open] { background: var(--tf-color-accent-soft); }
+.cell[data-linked][data-unit-select] > [data-compact] input {
+  padding-left: 1.35rem;
+}
+.cell[data-linked][data-unit-select] .formulaButton {
+  left: 0.2rem;
+  width: 1rem;
+  font-size: 0.75rem;
+}
+.formulaButton[data-open] {
+  background: var(--tf-color-accent-soft);
+}

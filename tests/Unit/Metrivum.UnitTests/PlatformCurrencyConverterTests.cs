@@ -1,7 +1,7 @@
 using System.Net;
-using Microsoft.Extensions.Caching.Memory;
 using Metrivum.Billing.Infrastructure;
 using Metrivum.BuildingBlocks;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Metrivum.UnitTests;
 
@@ -11,21 +11,23 @@ public sealed class PlatformCurrencyConverterTests
     {
         public override DateTimeOffset GetUtcNow() => new(2026, 10, 8, 12, 0, 0, TimeSpan.Zero);
     }
-    private sealed class Handler(string body, HttpStatusCode status = HttpStatusCode.OK) : HttpMessageHandler
+
+    private sealed class Handler(string body, HttpStatusCode status = HttpStatusCode.OK)
+        : HttpMessageHandler
     {
-        public int Calls
-        {
-            get; private set;
-        }
-        public Uri? Uri
-        {
-            get; private set;
-        }
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        public int Calls { get; private set; }
+        public Uri? Uri { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken ct
+        )
         {
             Calls++;
             Uri = request.RequestUri;
-            return Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent(body) });
+            return Task.FromResult(
+                new HttpResponseMessage(status) { Content = new StringContent(body) }
+            );
         }
     }
 
@@ -33,7 +35,10 @@ public sealed class PlatformCurrencyConverterTests
     public async Task Same_currency_needs_no_network_or_new_price_version()
     {
         using var handler = new Handler("unavailable", HttpStatusCode.ServiceUnavailable);
-        using var http = new HttpClient(handler) { BaseAddress = new("https://api.frankfurter.dev/") };
+        using var http = new HttpClient(handler)
+        {
+            BaseAddress = new("https://api.frankfurter.dev/"),
+        };
         using var cache = new MemoryCache(new MemoryCacheOptions());
         var converter = new PlatformCurrencyConverter(http, cache, new Clock());
         var quote = await converter.ConvertAsync(25m, "USD", "USD", default);
@@ -45,8 +50,13 @@ public sealed class PlatformCurrencyConverterTests
     [Fact]
     public async Task Converts_using_server_rate_and_caches_rate_not_amount()
     {
-        using var handler = new Handler("""{"date":"2026-10-08","base":"USD","quote":"PLN","rate":3.9114}""");
-        using var http = new HttpClient(handler) { BaseAddress = new("https://api.frankfurter.dev/") };
+        using var handler = new Handler(
+            """{"date":"2026-10-08","base":"USD","quote":"PLN","rate":3.9114}"""
+        );
+        using var http = new HttpClient(handler)
+        {
+            BaseAddress = new("https://api.frankfurter.dev/"),
+        };
         using var cache = new MemoryCache(new MemoryCacheOptions());
         var converter = new PlatformCurrencyConverter(http, cache, new Clock());
         var pro = await converter.ConvertAsync(25m, "USD", "PLN", default);
@@ -70,9 +80,19 @@ public sealed class PlatformCurrencyConverterTests
     public async Task Invalid_or_stale_rates_never_produce_a_payable_quote(string body)
     {
         using var handler = new Handler(body);
-        using var http = new HttpClient(handler) { BaseAddress = new("https://api.frankfurter.dev/") };
+        using var http = new HttpClient(handler)
+        {
+            BaseAddress = new("https://api.frankfurter.dev/"),
+        };
         using var cache = new MemoryCache(new MemoryCacheOptions());
-        var error = await Assert.ThrowsAsync<ApiException>(() => new PlatformCurrencyConverter(http, cache, new Clock()).ConvertAsync(25m, "USD", "PLN", default));
+        var error = await Assert.ThrowsAsync<ApiException>(() =>
+            new PlatformCurrencyConverter(http, cache, new Clock()).ConvertAsync(
+                25m,
+                "USD",
+                "PLN",
+                default
+            )
+        );
         Assert.Equal("EXCHANGE_RATE_UNAVAILABLE", error.Code);
     }
 }

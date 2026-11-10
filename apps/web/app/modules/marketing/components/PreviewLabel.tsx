@@ -6,10 +6,15 @@ import styles from "./PreviewLabel.module.css";
 export function PreviewLabel({ className }: { className?: string }) {
   const m = usePublicMessages();
   return (
-    <p className={[styles.label, className].filter(Boolean).join(" ")} title={m.common.illustrativePreviewNote}>
+    <p
+      className={[styles.label, className].filter(Boolean).join(" ")}
+      title={m.common.illustrativePreviewNote}
+    >
       <Eye aria-hidden="true" />
       <span>{m.common.illustrativePreview}</span>
-      <span className="tf-visually-hidden">. {m.common.illustrativePreviewNote}</span>
+      <span className="tf-visually-hidden">
+        . {m.common.illustrativePreviewNote}
+      </span>
     </p>
   );
 }

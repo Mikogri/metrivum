@@ -1,11 +1,11 @@
+using Metrivum.Access.Infrastructure;
+using Metrivum.Accounts.Infrastructure;
+using Metrivum.Coaching.Infrastructure;
+using Metrivum.Training.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
-using Metrivum.Accounts.Infrastructure;
-using Metrivum.Access.Infrastructure;
-using Metrivum.Coaching.Infrastructure;
-using Metrivum.Training.Infrastructure;
 
 namespace Metrivum.IntegrationTests;
 
@@ -26,20 +26,35 @@ public sealed class CoachingMigrationTests
             var root = new DirectoryInfo(AppContext.BaseDirectory);
             while (root != null && !File.Exists(Path.Combine(root.FullName, "Metrivum.slnx")))
                 root = root.Parent;
-            await using (var bootstrap = dbAdmin.CreateCommand(await File.ReadAllTextAsync(Path.Combine(root!.FullName, "infra/bootstrap-roles.sql"))))
+            await using (
+                var bootstrap = dbAdmin.CreateCommand(
+                    await File.ReadAllTextAsync(
+                        Path.Combine(root!.FullName, "infra/bootstrap-roles.sql")
+                    )
+                )
+            )
                 await bootstrap.ExecuteNonQueryAsync();
             connection.Options = "-c role=trainflow_migrator";
             await using var migration = NpgsqlDataSource.Create(connection.ConnectionString);
-            await using var accounts = new AccountsDbContext(Options<AccountsDbContext>(migration, "accounts"));
-            await using var access = new AccessDbContext(Options<AccessDbContext>(migration, "access"));
-            await using var training = new TrainingDbContext(Options<TrainingDbContext>(migration, "training"));
-            await accounts.GetService<IMigrator>().MigrateAsync("20261005125329_GuardRuntimeRoleAssignment");
+            await using var accounts = new AccountsDbContext(
+                Options<AccountsDbContext>(migration, "accounts")
+            );
+            await using var access = new AccessDbContext(
+                Options<AccessDbContext>(migration, "access")
+            );
+            await using var training = new TrainingDbContext(
+                Options<TrainingDbContext>(migration, "training")
+            );
+            await accounts
+                .GetService<IMigrator>()
+                .MigrateAsync("20261005125329_GuardRuntimeRoleAssignment");
             await access.GetService<IMigrator>().MigrateAsync("20261005125044_InitialAccess");
             await training.Database.MigrateAsync();
             var user = Guid.NewGuid();
             var workspace = Guid.NewGuid();
             var plan = Guid.NewGuid();
-            await accounts.Database.ExecuteSqlInterpolatedAsync($"""
+            await accounts.Database.ExecuteSqlInterpolatedAsync(
+                $"""
                 INSERT INTO accounts.profiles ("Id","DisplayName","Locale","TimeZone","Onboarded","Active","Version")
                 VALUES ({user},'Legacy Coach','en','UTC',true,true,7);
                 INSERT INTO accounts.workspaces ("Id","OwnerId") VALUES ({workspace},{user});
@@ -48,17 +63,23 @@ public sealed class CoachingMigrationTests
                 VALUES ({plan},{user},{workspace},'Legacy Plan','','Program',false,3,now(),now(),jsonb_build_object('schemaVersion',1,'blocks',jsonb_build_array()));
                 INSERT INTO access.configurations ("Id","Version","GrantedFeatures") VALUES ('v1-default',5,ARRAY['training.programs.read']);
                 GRANT SELECT, INSERT, UPDATE ON accounts.profiles TO trainflow_api;
-                """);
+                """
+            );
             await accounts.Database.MigrateAsync();
             await access.Database.MigrateAsync();
-            await using var coaching = new CoachingDbContext(Options<CoachingDbContext>(migration, "coaching"));
+            await using var coaching = new CoachingDbContext(
+                Options<CoachingDbContext>(migration, "coaching")
+            );
             await coaching.Database.MigrateAsync();
             var profile = await accounts.Profiles.SingleAsync(x => x.Id == user);
             Assert.Equal("Legacy Coach", profile.DisplayName);
             Assert.Equal(7, profile.Version);
             Assert.Null(profile.Phone);
             Assert.False(profile.PhoneVisibleToCoach);
-            Assert.Equal(workspace, (await accounts.Workspaces.SingleAsync(x => x.OwnerId == user)).Id);
+            Assert.Equal(
+                workspace,
+                (await accounts.Workspaces.SingleAsync(x => x.OwnerId == user)).Id
+            );
             Assert.Equal("Coach", (await accounts.Roles.SingleAsync(x => x.UserId == user)).Role);
             Assert.Equal("Legacy Plan", (await training.Plans.SingleAsync(x => x.Id == plan)).Name);
             var config = await access.Configurations.SingleAsync(x => x.Id == "v1-default");
@@ -84,9 +105,17 @@ public sealed class CoachingMigrationTests
             Assert.Contains("training.progress.view-clients", config.GrantedFeatures);
             Assert.Contains("coaching.documentation.manage", config.GrantedFeatures);
             Assert.Contains("coaching.documentation.view-shared", config.GrantedFeatures);
-            Assert.Contains("20261005125329_GuardRuntimeRoleAssignment", await accounts.Database.GetAppliedMigrationsAsync());
-            Assert.Contains("20261006210202_ClientAccounts", await accounts.Database.GetAppliedMigrationsAsync());
-            await using var grant = dbAdmin.CreateCommand("SELECT has_table_privilege('trainflow_api','accounts.profiles','SELECT,INSERT,UPDATE')");
+            Assert.Contains(
+                "20261005125329_GuardRuntimeRoleAssignment",
+                await accounts.Database.GetAppliedMigrationsAsync()
+            );
+            Assert.Contains(
+                "20261006210202_ClientAccounts",
+                await accounts.Database.GetAppliedMigrationsAsync()
+            );
+            await using var grant = dbAdmin.CreateCommand(
+                "SELECT has_table_privilege('trainflow_api','accounts.profiles','SELECT,INSERT,UPDATE')"
+            );
             Assert.Equal(true, await grant.ExecuteScalarAsync());
             Assert.Empty(await coaching.Relationships.ToArrayAsync());
         }
@@ -96,6 +125,10 @@ public sealed class CoachingMigrationTests
             await drop.ExecuteNonQueryAsync();
         }
     }
-    private static DbContextOptions<T> Options<T>(NpgsqlDataSource source, string schema) where T : DbContext =>
-        new DbContextOptionsBuilder<T>().UseNpgsql(source, x => x.MigrationsHistoryTable("__EFMigrationsHistory", schema)).Options;
+
+    private static DbContextOptions<T> Options<T>(NpgsqlDataSource source, string schema)
+        where T : DbContext =>
+        new DbContextOptionsBuilder<T>()
+            .UseNpgsql(source, x => x.MigrationsHistoryTable("__EFMigrationsHistory", schema))
+            .Options;
 }

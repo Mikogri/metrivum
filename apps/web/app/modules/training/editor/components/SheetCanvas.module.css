@@ -113,7 +113,11 @@
   left: var(--gutter);
   right: 0;
   bottom: 0;
-  background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-image: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.045) 1px,
+    transparent 1px
+  );
   background-size: var(--cell-w) var(--cell-h);
 }
 
@@ -1120,7 +1124,9 @@ button.cell:disabled {
   font-size: var(--tf-text-2xs);
   font-weight: var(--tf-weight-medium);
   cursor: pointer;
-  transition: background-color 120ms ease, border-color 120ms ease;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
 }
 
 .dayChip svg {
@@ -1373,8 +1379,16 @@ span[data-rename]:hover {
   border: 1.5px solid rgb(255 255 255 / 0.3);
   border-radius: 3px;
   background:
-    radial-gradient(circle at 50% 32%, rgb(255 255 255 / 0.45) 1px, transparent 1.5px),
-    radial-gradient(circle at 50% 68%, rgb(255 255 255 / 0.45) 1px, transparent 1.5px),
+    radial-gradient(
+      circle at 50% 32%,
+      rgb(255 255 255 / 0.45) 1px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 50% 68%,
+      rgb(255 255 255 / 0.45) 1px,
+      transparent 1.5px
+    ),
     var(--tf-color-bg-sunken);
   transition:
     border-color 160ms ease,
@@ -1699,11 +1713,16 @@ button.tile[data-kind="rest"]:hover {
 }
 
 @keyframes volume-in {
-  from { opacity: 0; transform: translateY(4px); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .volumeCycle { animation: none; }
+  .volumeCycle {
+    animation: none;
+  }
 }
 
 /* v6: aligned headings, plain day labels, area selection, top glass toolbar ----------------------- */
@@ -1762,7 +1781,9 @@ button.tile[data-kind="rest"]:hover {
 
 .card[data-expanded] .cardHead {
   display: grid;
-  grid-template-columns: calc(var(--cell-w) * 2 - var(--tf-space-2)) var(--cell-w) minmax(0, 1fr) auto;
+  grid-template-columns:
+    calc(var(--cell-w) * 2 - var(--tf-space-2)) var(--cell-w)
+    minmax(0, 1fr) auto;
   gap: 0;
   padding: 0 var(--tf-space-1) 0 var(--tf-space-2);
 }
@@ -1887,7 +1908,20 @@ button.tile[data-kind="workout"]:hover {
 }
 
 /* Hover and state changes fade instead of snapping. */
-.sheet :is(button, .cell, .tile, .popOption, .unit, .dayButton, .toggle, .menu, .handle, span[data-rename], .workoutRow) {
+.sheet
+  :is(
+    button,
+    .cell,
+    .tile,
+    .popOption,
+    .unit,
+    .dayButton,
+    .toggle,
+    .menu,
+    .handle,
+    span[data-rename],
+    .workoutRow
+  ) {
   transition:
     background-color 140ms ease,
     border-color 140ms ease,
@@ -1933,16 +1967,43 @@ button.tile[data-kind="workout"]:hover {
 }
 
 @media (max-width: 767px) {
-  .sheet, .scroller { min-width: 0; }
-  .scroller { overscroll-behavior: contain; }
-  .tools { flex-wrap: wrap; height: auto; min-height: 44px; padding-block: var(--tf-space-2); }
-  .tools > button { min-width: 44px; min-height: 44px; }
-  .hint { flex-basis: 100%; margin-left: 0; white-space: normal; }
-  .panel, .volume { top: 0; width: 100%; }
-  .panelHead { flex-wrap: wrap; height: auto; min-height: 44px; }
-  .panelTitle { min-width: 0; max-width: 100%; }
+  .sheet,
+  .scroller {
+    min-width: 0;
+  }
+  .scroller {
+    overscroll-behavior: contain;
+  }
+  .tools {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 44px;
+    padding-block: var(--tf-space-2);
+  }
+  .tools > button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .hint {
+    flex-basis: 100%;
+    margin-left: 0;
+    white-space: normal;
+  }
+  .panel,
+  .volume {
+    top: 0;
+    width: 100%;
+  }
+  .panelHead {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 44px;
+  }
+  .panelTitle {
+    min-width: 0;
+    max-width: 100%;
+  }
 }
-
 
 .sheet .columnResize {
   position: absolute;
@@ -1978,21 +2039,46 @@ button.tile[data-kind="workout"]:hover {
 }
 
 :global(body[data-training-column-resize]) *,
-:global(body[data-training-column-resize]) { cursor: ew-resize !important; }
+:global(body[data-training-column-resize]) {
+  cursor: ew-resize !important;
+}
 
-.card[data-link-target] { border-color: var(--tf-color-accent); box-shadow: 0 0 0 2px var(--tf-color-accent-border); }
+.card[data-link-target] {
+  border-color: var(--tf-color-accent);
+  box-shadow: 0 0 0 2px var(--tf-color-accent-border);
+}
 
-.sheet .cellInput { background: transparent; box-shadow: none; }
-.sheet .cellInput[aria-invalid], .sheet .exerciseEdit .cellInput[aria-invalid] { background: color-mix(in srgb, var(--tf-color-danger) 9%, transparent); box-shadow: none; color: inherit; }
+.sheet .cellInput {
+  background: transparent;
+  box-shadow: none;
+}
+.sheet .cellInput[aria-invalid],
+.sheet .exerciseEdit .cellInput[aria-invalid] {
+  background: color-mix(in srgb, var(--tf-color-danger) 9%, transparent);
+  box-shadow: none;
+  color: inherit;
+}
 
-.colHead { overflow: visible; }
+.colHead {
+  overflow: visible;
+}
 
-.sheet[data-width-animating] .card { transition-property: top, min-height, box-shadow, border-color, background-color; }
-.sheet button[aria-invalid="true"] { background: color-mix(in srgb, var(--tf-color-danger) 9%, transparent); }
+.sheet[data-width-animating] .card {
+  transition-property:
+    top, min-height, box-shadow, border-color, background-color;
+}
+.sheet button[aria-invalid="true"] {
+  background: color-mix(in srgb, var(--tf-color-danger) 9%, transparent);
+}
 
-.colHead { box-sizing: border-box; margin: 0; }
+.colHead {
+  box-sizing: border-box;
+  margin: 0;
+}
 
-.help { cursor: default; }
+.help {
+  cursor: default;
+}
 
 /* Plugs can be picked up: a larger invisible grab area around each one. */
 .plugGroup[data-plug-grab] {
@@ -2018,10 +2104,18 @@ button.tile[data-kind="workout"]:hover {
 }
 
 /* Empty sheet: drag to move the view, hold Ctrl / ⌘ and drag to select. */
-.board { cursor: grab; }
-.board[data-panning] { cursor: grabbing; }
-.board[data-select-key] { cursor: crosshair; }
-.board[data-panning] * { cursor: grabbing; }
+.board {
+  cursor: grab;
+}
+.board[data-panning] {
+  cursor: grabbing;
+}
+.board[data-select-key] {
+  cursor: crosshair;
+}
+.board[data-panning] * {
+  cursor: grabbing;
+}
 
 /* Toolbar: adding and views on the left (scrolls when narrow), drag mode and column reset at the right edge. */
 .toolsMain {
@@ -2034,7 +2128,9 @@ button.tile[data-kind="workout"]:hover {
   scrollbar-width: none;
 }
 
-.toolsMain::-webkit-scrollbar { display: none; }
+.toolsMain::-webkit-scrollbar {
+  display: none;
+}
 
 .toolsEnd {
   display: flex;
@@ -2187,7 +2283,8 @@ button.tile[data-kind="workout"]:hover {
   top: calc(-1 * var(--tf-space-1));
   z-index: 1;
   height: 2px;
-  margin: calc(-1 * var(--tf-space-1)) calc(-1 * var(--tf-space-1)) var(--tf-space-1);
+  margin: calc(-1 * var(--tf-space-1)) calc(-1 * var(--tf-space-1))
+    var(--tf-space-1);
   overflow: hidden;
   background: var(--tf-color-accent-soft);
 }
@@ -2336,18 +2433,49 @@ button.tile[data-kind="workout"]:hover {
     transition: none;
   }
 }
-.cycleMeta > .blockFolded::before { content: none; }
+.cycleMeta > .blockFolded::before {
+  content: none;
+}
 
 /* Tables written into the sheet (workouts, maxes) get the sheet's own background and lines, but opaque, so
    cables running underneath don't show through them. */
 .sheet .card[data-expanded],
 .sheet .card[data-kind="maxes"]:not([data-collapsed]) {
   background-color: var(--tf-color-bg-sunken);
-  background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-image: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.045) 1px,
+    transparent 1px
+  );
   background-size: 100% var(--cell-h);
 }
 
 .sheet .card[data-expanded] .cell,
 .sheet .card[data-kind="maxes"] .cell {
   border-right-color: rgb(255 255 255 / 0.045);
+}
+
+/* A block put away: a compact card with its name in the header and a button that shows everything again. */
+.card[data-kind="block"][data-put-away] {
+  border-style: dashed;
+}
+
+.putAwayName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reveal {
+  color: var(--tf-color-accent);
+}
+
+.reveal svg {
+  width: 0.875rem;
+  height: 0.875rem;
 }

@@ -15,7 +15,10 @@ export interface AvatarProps {
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   const first = parts[0]?.[0] ?? "?";
-  const second = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : (parts[0]?.[1] ?? "");
+  const second =
+    parts.length > 1
+      ? (parts[parts.length - 1]?.[0] ?? "")
+      : (parts[0]?.[1] ?? "");
   return (first + second).toUpperCase();
 }
 
@@ -26,7 +29,13 @@ function hue(name: string): number {
   return hash;
 }
 
-export function Avatar({ name, size = "md", decorative, className, src }: AvatarProps) {
+export function Avatar({
+  name,
+  size = "md",
+  decorative,
+  className,
+  src,
+}: AvatarProps) {
   // Remembers which photo loaded, so a new link starts from the initials again.
   const [loaded, setLoaded] = useState<string | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
@@ -41,7 +50,16 @@ export function Avatar({ name, size = "md", decorative, className, src }: Avatar
       data-photo={photo && loaded === photo ? "" : undefined}
     >
       {initials(name)}
-      {photo ? <img className={styles.photo} src={photo} alt="" draggable={false} onLoad={() => setLoaded(photo)} onError={() => setFailed(photo)} /> : null}
+      {photo ? (
+        <img
+          className={styles.photo}
+          src={photo}
+          alt=""
+          draggable={false}
+          onLoad={() => setLoaded(photo)}
+          onError={() => setFailed(photo)}
+        />
+      ) : null}
     </span>
   );
 }
