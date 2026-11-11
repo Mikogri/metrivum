@@ -14639,6 +14639,10 @@ export interface components {
             exercises: {
                 [key: string]: components["schemas"]["ExerciseSnapshot"];
             };
+            description?: null | string;
+            status?: null | components["schemas"]["AssignmentStatus"];
+            coachDisplayName?: null | string;
+            coachUsername?: null | string;
         };
         AssignedProgramCycle: {
             /** Format: uuid */

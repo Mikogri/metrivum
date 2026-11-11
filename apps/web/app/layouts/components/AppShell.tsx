@@ -253,16 +253,18 @@ function useBack(
     };
   }
   const parent = `/${parts.slice(0, -1).join("/")}`;
-  // A workout's page has no "workouts" list above it: back returns to where it was opened from (the training
-  // list, a client, the calendar), or to the training page when it was opened directly.
+  // These detail routes have no parent list at their immediate URL level.
   if (
+    parent === "/app/my-training/plans" ||
     parent === "/app/my-training/workouts" ||
     parent === "/app/training/workouts"
   ) {
     const fallback =
-      parent === "/app/my-training/workouts"
-        ? "/app/my-training"
-        : "/app/clients";
+      parent === "/app/my-training/plans"
+        ? "/app/my-training?tab=plans"
+        : parent === "/app/my-training/workouts"
+          ? "/app/my-training"
+          : "/app/clients";
     return {
       label,
       onPress: () => {

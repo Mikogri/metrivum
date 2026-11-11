@@ -29,6 +29,8 @@ public sealed class TrainingDeliveryPostgresTests
         await using var client = f.Scope(f.Client);
         var view = await client.Service.AssignedPlanAsync(assignment.Id, default);
         Assert.NotEmpty(view.Document.Blocks);
+        Assert.Equal(AssignmentStatus.Active, view.Status);
+        Assert.NotNull(view.Description);
         await using var stranger = f.Scope(Guid.NewGuid());
         Assert.Equal(
             404,

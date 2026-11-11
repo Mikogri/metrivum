@@ -19079,6 +19079,34 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/ExerciseSnapshot"
             }
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssignmentStatus"
+              }
+            ]
+          },
+          "coachDisplayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "coachUsername": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         },
         "additionalProperties": false

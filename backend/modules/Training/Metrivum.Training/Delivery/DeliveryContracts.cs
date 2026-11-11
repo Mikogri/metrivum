@@ -141,5 +141,9 @@ public sealed record WorkoutDetailDto(
 public sealed record AssignedPlanDto(
     string Name,
     TrainingDocument Document,
-    Dictionary<Guid, ExerciseSnapshot> Exercises
+    Dictionary<Guid, ExerciseSnapshot> Exercises,
+    string? Description = null,
+    AssignmentStatus? Status = null,
+    string? CoachDisplayName = null,
+    string? CoachUsername = null
 );

@@ -1733,6 +1733,7 @@ export const interfacePl: Record<keyof typeof interfaceEn, string> = {
   Preview: "Podgląd",
   Previewing: "Podgląd aktywny",
   "Group assignment": "Przypisanie grupowe",
+  "Assigned by": "Przypisany przez",
   Active: "Aktywny",
   Completed: "Zakończony",
   "Starts {0}": "Start {0}",

@@ -1715,6 +1715,7 @@ export const interfaceEn = {
   Preview: "Preview",
   Previewing: "Previewing",
   "Group assignment": "Group assignment",
+  "Assigned by": "Assigned by",
   Active: "Active",
   Completed: "Completed",
   "Starts {0}": "Starts {0}",

@@ -363,7 +363,17 @@ public sealed partial class TrainingDeliveryService(
             .Where(r => r.Id == assignment.EffectiveRevisionId && r.PlanId == assignment.ProgramId)
             .Select(r => r.Snapshot)
             .SingleAsync(ct);
-        return new(snapshot.Name, DocumentRules.ForClient(snapshot.Document), snapshot.Exercises);
+        var coaches = await directory.GetAccountsAsync([assignment.CoachId], ct);
+        var coach = coaches.GetValueOrDefault(assignment.CoachId);
+        return new(
+            snapshot.Name,
+            DocumentRules.ForClient(snapshot.Document),
+            snapshot.Exercises,
+            snapshot.Description,
+            assignment.Status,
+            coach?.DisplayName,
+            coach?.Username
+        );
     }
 
     public Task<AssignmentDto> SetStatusAsync(
