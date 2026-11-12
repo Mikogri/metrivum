@@ -15,7 +15,7 @@ export function routeWorkspace(path: string): WorkspaceMode | null {
   )
     return "client";
   if (
-    /^\/app\/(dashboard|clients|groups|leads|forms|offers|earnings|analyze|coaching-preferences|check-in-schedules|training|programs|templates|formulas|exercises|video-analyses)(\/|$)/.test(
+    /^\/app\/(dashboard|clients|groups|leads|forms|offers|earnings|analyze|coaching-preferences|check-in-schedules|training|programs|templates|formulas|video-analyses)(\/|$)/.test(
       path,
     )
   )

@@ -399,8 +399,8 @@ textarea.multiline {
 /* Cards glide to their cells when arranged, pushed aside or reflowed; never while dragged. */
 .card {
   transition:
-    left 320ms var(--tf-ease-in-out),
-    top 320ms var(--tf-ease-in-out),
+    left var(--sheet-motion) var(--sheet-ease),
+    top var(--sheet-motion) var(--sheet-ease),
     box-shadow 160ms ease,
     border-color 120ms ease;
 }
@@ -1865,15 +1865,22 @@ button.tile[data-kind="workout"]:hover {
   top: 2.75rem;
 }
 
+/* One motion for every move on the sheet, so a card that moves and resizes does it in x and y together.
+   Keep in step with SHEET_MOTION_MS and SHEET_MOTION_EASING in useSmoothCardHeights.ts. */
+.sheet {
+  --sheet-motion: 360ms;
+  --sheet-ease: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
 /* v7: everything that changes on the sheet changes smoothly ------------------------------------- */
 
 /* Expanding and folding: the card grows/shrinks to its new size while neighbours glide away. */
 .card {
   transition:
-    left 320ms var(--tf-ease-in-out),
-    top 320ms var(--tf-ease-in-out),
-    width 280ms var(--tf-ease-in-out),
-    min-height 280ms var(--tf-ease-in-out),
+    left var(--sheet-motion) var(--sheet-ease),
+    top var(--sheet-motion) var(--sheet-ease),
+    width var(--sheet-motion) var(--sheet-ease),
+    min-height var(--sheet-motion) var(--sheet-ease),
     box-shadow 160ms ease,
     border-color 160ms ease,
     background-color 160ms ease;
@@ -2373,10 +2380,10 @@ button.tile[data-kind="workout"]:hover {
 .card {
   transform-origin: top left;
   transition:
-    left 320ms var(--tf-ease-in-out),
-    top 320ms var(--tf-ease-in-out),
-    width 280ms var(--tf-ease-in-out),
-    min-height 280ms var(--tf-ease-in-out),
+    left var(--sheet-motion) var(--sheet-ease),
+    top var(--sheet-motion) var(--sheet-ease),
+    width var(--sheet-motion) var(--sheet-ease),
+    min-height var(--sheet-motion) var(--sheet-ease),
     box-shadow 160ms ease,
     border-color 160ms ease,
     background-color 160ms ease,
@@ -2391,8 +2398,8 @@ button.tile[data-kind="workout"]:hover {
   visibility: hidden;
   pointer-events: none;
   transition:
-    left 320ms var(--tf-ease-in-out),
-    top 320ms var(--tf-ease-in-out),
+    left var(--sheet-motion) var(--sheet-ease),
+    top var(--sheet-motion) var(--sheet-ease),
     transform 640ms cubic-bezier(0.65, 0, 0.35, 1) var(--fold-delay, 0ms),
     opacity 380ms ease calc(var(--fold-delay, 0ms) + 260ms),
     visibility 0s linear calc(var(--fold-delay, 0ms) + 640ms);

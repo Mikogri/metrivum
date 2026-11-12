@@ -32,7 +32,7 @@ it("interpolates one shared width map, retargets from the current frame and canc
   rerender({ width: 80, immediate: false });
   step(300);
   expect(result.current[1]).toBe(midway);
-  step(520);
+  step(660);
   expect(result.current[1]).toBe(80);
   rerender({ width: 240, immediate: true });
   expect(result.current[1]).toBe(240);

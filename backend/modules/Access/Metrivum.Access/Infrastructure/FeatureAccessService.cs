@@ -90,6 +90,7 @@ public sealed class FeatureAccessService : IFeatureAccessService
             or "training.export.csv"
             or "training.export.pdf"
             or "exercises.browse"
+            or "exercises.favorites"
             or "messaging.direct"
             or "messaging.groups"
             or "messaging.attachments"

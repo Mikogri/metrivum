@@ -68,3 +68,5 @@ The app shell acknowledges available notifications when their destination is vis
 Invitation creation and active-offer form sharing produce a typed `coachingEntry` message through the server transaction. The UI sends one business command with a stable idempotency key, then refreshes its conversation; it never sends an additional text message to represent the action. Existing text cards remain readable. The native app opens invitation details or a form sheet and uses the same endpoints. Form sharing does not create coaching consent or a relationship.
 
 Modern attachment uploads include `conversationId`, enabling the API to reject pending-chat uploads before storage transfer. Older clients can still stage private unattached files; sending or exposing them remains blocked by the authoritative conversation policy.
+
+Chat coaching invitation/form actions require both coach workspace and the API-provided invitation feature permission. Switching to client workspace hides the action menu and any open share dialog.

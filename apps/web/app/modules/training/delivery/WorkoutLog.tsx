@@ -176,8 +176,8 @@ const emptyLog = (detail: Detail): ActualExercise[] =>
     ),
   }));
 
-/** The plan's exercises logged exactly as planned: the lower end of each range, the planned load and effort. */
-const asPlanned = (detail: Detail): ActualExercise[] =>
+/** Log planned exercises with the upper repetition target and the planned load and effort. */
+export const asPlanned = (detail: Detail): ActualExercise[] =>
   detail.prescription.workout.exercises.map((exercise) => ({
     prescribedInstanceId: exercise.id,
     exerciseId: exercise.exerciseId,
@@ -206,9 +206,9 @@ const asPlanned = (detail: Detail): ActualExercise[] =>
           p.load && (unit === "kg" || unit === "lb") ? p.load.minimum : null;
         return {
           ...blankSet(item.setId, item.segmentId),
-          // As planned means the minimum: a set past the minimum of a range starts skipped.
+          // Optional sets remain skipped until the athlete chooses to perform them.
           skipped: set.optional === true,
-          reps: p.reps ? p.reps.minimum : null,
+          reps: p.reps ? p.reps.maximum : null,
           load: kg ? kg.value : null,
           loadUnit: kg ? unit : "kg",
           rpe: p.rpe ?? null,

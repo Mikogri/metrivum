@@ -1,6 +1,7 @@
 import { commentKeyDown } from "./comment-keydown";
 import { createZoomState, zoomAt } from "../zoom-state";
 import { useColumnWidths } from "../useColumnWidths";
+import { useSmoothCardHeights } from "../useSmoothCardHeights";
 import {
   columnGeometry,
   elementColumnWidths,
@@ -1485,6 +1486,9 @@ export function SheetCanvas({
       ).join(" "),
     } as React.CSSProperties & { left: number; top: number; width: number };
   };
+
+  // Cards grow and shrink to their content smoothly, not in a jump.
+  useSmoothCardHeights(boardRef, sizes, Boolean(drag?.moved));
 
   useLayoutEffect(() => {
     const nodes = [

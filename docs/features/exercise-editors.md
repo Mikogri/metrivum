@@ -9,3 +9,5 @@ Apply the additive Accounts `ExerciseEditorRole` migration before assigning this
 HTTP/PostgreSQL coverage checks foreign edits, ownership flags, stale versions, restricted administration and immediate revocation.
 
 Catalogue search matches every normalized keyword against exercise names or worked-muscle labels, regardless of word order. Filtering runs in PostgreSQL before pagination and also applies to MCP searches.
+
+Exercises and exercise details are shared routes that preserve the current coach/client workspace. Both roles may keep private favorites; authoring and cross-author editing remain separately authorized.

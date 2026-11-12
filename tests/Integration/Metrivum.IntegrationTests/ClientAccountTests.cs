@@ -30,6 +30,7 @@ public sealed class ClientAccountTests
                 GrantedFeatures =
                 [
                     "exercises.browse",
+                    "exercises.favorites",
                     "exercises.create",
                     "coaching.relationships.read-own",
                     "coaching.groups.manage",
@@ -59,6 +60,13 @@ public sealed class ClientAccountTests
                 .GetBoolean()
         );
         Assert.True(Decision(snapshot, "exercises.browse").GetProperty("available").GetBoolean());
+        Assert.True(
+            Decision(snapshot, "exercises.favorites").GetProperty("available").GetBoolean()
+        );
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            (await client.PutAsync($"/api/v1/exercises/{Guid.NewGuid()}/favorite", null)).StatusCode
+        );
         Assert.Empty(snapshot.GetProperty("limits").EnumerateArray());
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/exercises")).StatusCode);
         Assert.Equal(

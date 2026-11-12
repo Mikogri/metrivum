@@ -23,6 +23,7 @@ import {
   Select,
   toast,
 } from "@metrivum/ui-web";
+import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useAccountContext } from "~/shared/session";
 import { useFeatureAccess } from "~/shared/access";
 import {
@@ -163,9 +164,10 @@ export function CoachingActions({
 }) {
   const uiCopy = useUiCopy();
 
+  const coachView = useWorkspace().mode === "coach";
   const allowed = useFeatureAccess("coaching.invitations.send").allowed;
   const [kind, setKind] = useState<"form" | "invitation" | null>(null);
-  if (!allowed) return null;
+  if (!coachView || !allowed) return null;
   return (
     <>
       <DropdownMenuTrigger>

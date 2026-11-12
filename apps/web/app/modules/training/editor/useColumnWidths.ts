@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { columnWidth, type ColumnWidths } from "./model/layout";
+import { SHEET_MOTION_MS } from "./useSmoothCardHeights";
 
 /** One interpolated geometry keeps headers, cards, grid lines and cables aligned. */
 export function useColumnWidths(target: ColumnWidths, immediate: boolean) {
@@ -12,7 +13,7 @@ export function useColumnWidths(target: ColumnWidths, immediate: boolean) {
     const columns = [
       ...new Set([...Object.keys(from), ...Object.keys(destination)]),
     ];
-    // Opening cards must not animate an unchanged geometry for another 220 ms.
+    // Opening cards must not animate an unchanged geometry for another animation.
     if (
       columns.every(
         (col) =>
@@ -29,7 +30,7 @@ export function useColumnWidths(target: ColumnWidths, immediate: boolean) {
     const tick = (now: number) => {
       start ??= now;
       const progress =
-        immediate || reduced ? 1 : Math.min(1, (now - start) / 220);
+        immediate || reduced ? 1 : Math.min(1, (now - start) / SHEET_MOTION_MS);
       const ease = 1 - (1 - progress) ** 3;
       const value =
         progress === 1

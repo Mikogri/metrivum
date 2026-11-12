@@ -13,3 +13,5 @@ Client workout headers link to `/app/my-training/plans/:assignmentId`. The read-
 Assigned-plan Back returns through browser history. Direct entry falls back to the Training plans tab, because /app/my-training/plans is not a list route.
 
 The client assigned-plan header shows the effective revision description through the shared two-line preview, the live assignment status and the assigning coach’s display name/username. Active is green, paused amber and historical statuses neutral.
+
+Workout entry defaults use the upper repetition bound (10–12 becomes 12), including segmented sets. Saved actual results remain unchanged and maximum-effort prescriptions without a numeric target stay blank.
