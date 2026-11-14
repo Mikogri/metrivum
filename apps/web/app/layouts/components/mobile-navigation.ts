@@ -2,8 +2,10 @@ import type { WorkspaceMode } from "~/shared/session/workspace-model";
 
 export type MobileDestination = { id: string; label: string; to: string };
 export function mobileDestinations(mode: WorkspaceMode): MobileDestination[] {
+  // Both views always show five destinations.
   if (mode === "client")
     return [
+      { id: "today", label: "Today", to: "/app/today" },
       { id: "training", label: "Training", to: "/app/my-training" },
       { id: "calendar", label: "Calendar", to: "/app/calendar" },
       { id: "messages", label: "Messages", to: "/app/messages" },
@@ -28,8 +30,9 @@ export function mobileSelection(
   if (within(path, "/app/messages")) return "messages";
   if (within(path, "/app/calendar")) return "calendar";
   if (mode === "client") {
+    if (path === "/app/today") return "today";
     if (
-      ["/app/today", "/app/dashboard", "/app"].includes(path) ||
+      ["/app/dashboard", "/app"].includes(path) ||
       within(path, "/app/my-training") ||
       within(path, "/app/training-plans")
     )

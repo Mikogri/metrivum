@@ -9,6 +9,7 @@ import {
 describe("native-aligned web navigation", () => {
   it("keeps exactly the implemented native destinations for each role", () => {
     expect(mobileDestinations("client").map((x) => x.label)).toEqual([
+      "Today",
       "Training",
       "Calendar",
       "Messages",
@@ -33,6 +34,7 @@ describe("native-aligned web navigation", () => {
       "training",
     );
     expect(mobileSelection("client", "/app/calendar", "")).toBe("calendar");
+    expect(mobileSelection("client", "/app/today", "")).toBe("today");
     expect(mobileSelection("coach", "/app/clients/one", "")).toBe("clients");
     expect(mobileSelection("coach", "/app/clients-other", "")).toBe("more");
     expect(mobileSelection("client", "/app/settings", "")).toBe("more");

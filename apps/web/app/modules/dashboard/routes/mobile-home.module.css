@@ -128,3 +128,61 @@
   background: var(--tf-color-surface);
   border-radius: var(--tf-radius-lg);
 }
+
+/* More on a desktop: a wider page, the shortcuts in a grid and the account options beside each other. */
+.tile {
+  text-decoration: none;
+  transition:
+    background-color var(--tf-duration-fast) ease,
+    border-color var(--tf-duration-fast) ease;
+}
+.account .row {
+  border-radius: var(--tf-radius-md);
+  transition: background-color var(--tf-duration-fast) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tile:hover,
+  .tiles > div > button:hover {
+    border-color: var(--tf-color-border);
+    background: var(--tf-color-surface-hover);
+  }
+  .account .row:hover {
+    background: var(--tf-color-surface-hover);
+  }
+}
+@media (min-width: 64rem) {
+  .home {
+    max-width: var(--tf-content-max);
+    width: 100%;
+  }
+  .tiles {
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  }
+  .tile,
+  .tiles > div > button {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--tf-space-3);
+    min-height: 4rem;
+    padding: var(--tf-space-4);
+  }
+  .tiles > div > button {
+    min-height: 4rem;
+  }
+  .tile svg {
+    width: 20px;
+    height: 20px;
+  }
+  .account {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tf-space-3);
+  }
+  .account .row {
+    flex: 1 1 16rem;
+    min-height: 3rem;
+    padding: var(--tf-space-2) var(--tf-space-3);
+    border: 1px solid var(--tf-color-border-subtle);
+  }
+}

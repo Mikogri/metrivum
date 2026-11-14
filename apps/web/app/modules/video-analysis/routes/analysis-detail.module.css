@@ -198,3 +198,33 @@
 .compareBar > span {
   margin-right: auto;
 }
+
+/* Edit: which detected reps were really done, one line per rep. */
+.reviews {
+  display: grid;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.reviews legend {
+  margin-bottom: var(--tf-space-1);
+  padding: 0;
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+}
+
+.reviews > p {
+  margin: 0;
+}
+
+.reviewRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 11rem;
+  align-items: center;
+  gap: var(--tf-space-3);
+  font-size: var(--tf-text-sm);
+}

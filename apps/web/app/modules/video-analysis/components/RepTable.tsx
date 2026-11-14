@@ -2,7 +2,7 @@ import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMemo, useState, type ReactNode } from "react";
 import type { AnalysisRepetition } from "@metrivum/api-client-web";
-import { Checkbox, Option, Select, Spinner } from "@metrivum/ui-web";
+import { Checkbox } from "@metrivum/ui-web";
 import { formatNumber } from "~/shared/i18n/format";
 import type { Locale } from "~/shared/i18n/locale";
 import { normalizePhase } from "./charts";
@@ -20,8 +20,6 @@ export interface RepRowData {
   source?: { index: number; name: string; color: string };
   current?: boolean;
   onJump?: () => void;
-  onReview?: (performed: boolean | null) => void;
-  reviewPending?: boolean;
 }
 
 type Key =
@@ -217,9 +215,6 @@ export function RepTable({
               </span>
             </th>
             {header("order", showSource ? "Video · rep" : "Rep", false)}
-            <th scope="col">
-              {locale === "pl" ? "Wykonanie" : uiCopy["ui"]["Completion"]}
-            </th>
             {header("duration", "Time")}
             {phases.includes("eccentric")
               ? header("eccentric", "Lowering")
@@ -295,51 +290,6 @@ export function RepTable({
                   )}
                 </span>
               </th>
-              <td className={styles.review}>
-                {row.onReview ? (
-                  <Select
-                    aria-label={`${locale === "pl" ? "Wykonanie powtórzenia" : "Completion of rep"} ${row.rep.number}`}
-                    selectedKey={
-                      row.rep.performed == null
-                        ? "unreviewed"
-                        : row.rep.performed
-                          ? "performed"
-                          : "not-performed"
-                    }
-                    isDisabled={row.reviewPending}
-                    onSelectionChange={(key) =>
-                      row.onReview!(
-                        key === "unreviewed" ? null : key === "performed",
-                      )
-                    }
-                  >
-                    <Option id="unreviewed">
-                      {locale === "pl" ? "Nieocenione" : "Not reviewed"}
-                    </Option>
-                    <Option id="performed">
-                      {locale === "pl" ? "Wykonane" : "Performed"}
-                    </Option>
-                    <Option id="not-performed">
-                      {locale === "pl" ? "Niewykonane" : "Not performed"}
-                    </Option>
-                  </Select>
-                ) : (
-                  <span>
-                    {row.rep.performed == null
-                      ? locale === "pl"
-                        ? "Nieocenione"
-                        : "Not reviewed"
-                      : row.rep.performed
-                        ? locale === "pl"
-                          ? "Wykonane"
-                          : "Performed"
-                        : locale === "pl"
-                          ? "Niewykonane"
-                          : "Not performed"}
-                  </span>
-                )}
-                {row.reviewPending ? <Spinner size="sm" /> : null}
-              </td>
               {cell(row, "duration", time(value(row, "duration")))}
               {phases.includes("eccentric")
                 ? cell(row, "eccentric", time(value(row, "eccentric")))

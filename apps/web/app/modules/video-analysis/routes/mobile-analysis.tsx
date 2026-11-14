@@ -5,13 +5,16 @@ export const meta = () => privateMeta("Video analysis — Metrivum");
 
 import { useState } from "react";
 import type { AnalysisDto } from "@metrivum/api-client-web";
+import { Navigate } from "react-router";
 import {
   Alert,
   Button,
   Dialog,
   EmptyState,
   PageHeader,
+  useMobileLayout,
 } from "@metrivum/ui-web";
+import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { Failure, Loading } from "~/modules/coaching";
 import { useAnalysisList, useAnalysisResult } from "../queries";
 import { StatusBadge } from "../components/StatusBadge";
@@ -67,13 +70,23 @@ function SavedResult({ analysis }: { analysis: AnalysisDto }) {
   );
 }
 
-/** Uses the same saved-result queries as the desktop library and the native analysis screen. */
+/** The phone list of saved analyses; on a desktop it opens the full library. Uses the same saved-result queries as the desktop library and the native analysis screen. */
 export default function MobileAnalysis() {
   const uiCopy = useUiCopy();
 
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<AnalysisDto>();
   const list = useAnalysisList({ page, pageSize: 20, sort: "created" });
+  const mobile = useMobileLayout();
+  const { mode } = useWorkspace();
+  // A desktop has the full analysis library (charts, video, comparison): open that instead of the phone list.
+  if (!mobile)
+    return (
+      <Navigate
+        to={mode === "coach" ? "/app/video-analyses" : "/app/my-analyses"}
+        replace
+      />
+    );
   return (
     <>
       <PageHeader

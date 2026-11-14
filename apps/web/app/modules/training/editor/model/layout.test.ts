@@ -117,8 +117,8 @@ it("cached geometry matches the original across sparse widths and repeated looku
 it("compact auto arrange ignores open cycle/workout sizes and keeps folded cards one cell apart", async () => {
   const { addBlock, addCycle, emptyDocument } = await import("./document");
   const { addCycleWorkout } = await import("./workouts");
-  const { compactAutoLayout, CYCLE_COLS, resolveLayout } =
-    await import("./layout");
+  const { compactAutoLayout, resolveLayout } = await import("./layout");
+  const { WORKOUT_COLS } = await import("./workouts");
   const b = addBlock(emptyDocument(), "Block");
   const c = addCycle(b.doc, b.id, "Cycle");
   const next = addCycle(c.doc, b.id, "Next");
@@ -133,7 +133,8 @@ it("compact auto arrange ignores open cycle/workout sizes and keeps folded cards
   expect(layout).toEqual(compactAutoLayout(z.doc));
   expect(layout[a.id!]!.row - layout[c.id!]!.row).toBe(3);
   expect(layout[z.id!]!.row - layout[a.id!]!.row).toBe(2);
-  expect(layout[next.id!]!.col - layout[c.id!]!.col).toBe(CYCLE_COLS + 1);
+  // The cycle's column is as wide as its workouts open, so opening them never reaches the next cycle.
+  expect(layout[next.id!]!.col - layout[c.id!]!.col).toBe(WORKOUT_COLS + 1);
   const folded = {
     [b.id]: { cols: 2, rows: 3 },
     [c.id!]: { cols: 2, rows: 2 },
@@ -143,4 +144,47 @@ it("compact auto arrange ignores open cycle/workout sizes and keeps folded cards
   };
   expect(resolveLayout(layout, folded)).toEqual(layout);
   expect(z.doc.blocks[0]!.cycles).toHaveLength(2);
+});
+
+it("auto arrange keeps each cycle's workouts in its own column, one under another, with workouts open", async () => {
+  const { addBlock, addCycle, emptyDocument } = await import("./document");
+  const { addCycleWorkout, WORKOUT_COLS } = await import("./workouts");
+  const { compactAutoLayout, resolveLayout } = await import("./layout");
+  const b = addBlock(emptyDocument(), "Block");
+  let doc = b.doc;
+  const cycles: string[] = [];
+  const workouts: string[][] = [];
+  for (const name of ["One", "Two", "Three"]) {
+    const c = addCycle(doc, b.id, name);
+    doc = c.doc;
+    cycles.push(c.id!);
+    const ids: string[] = [];
+    for (const w of ["A", "B", "C"]) {
+      const added = addCycleWorkout(doc, c.id!, `${name} ${w}`);
+      doc = added.doc;
+      ids.push(added.id!);
+    }
+    workouts.push(ids);
+  }
+  const layout = compactAutoLayout(doc);
+  // Everything open: cycles at their open size, workouts at full width and tall.
+  const open: Record<string, { cols: number; rows: number }> = {
+    [b.id]: { cols: 2, rows: 3 },
+  };
+  for (const id of cycles) open[id] = { cols: 3, rows: 6 };
+  for (const ids of workouts)
+    for (const id of ids) open[id] = { cols: WORKOUT_COLS, rows: 8 };
+  const drawn = resolveLayout(layout, open);
+  cycles.forEach((cycle, i) => {
+    const column = drawn[cycle]!.col;
+    let below = drawn[cycle]!.row + open[cycle]!.rows;
+    for (const id of workouts[i]!) {
+      // Under its own cycle, in the same column, after the previous workout of that cycle.
+      expect(drawn[id]!.col).toBe(column);
+      expect(drawn[id]!.row).toBeGreaterThan(below - 1);
+      below = drawn[id]!.row + open[id]!.rows;
+    }
+  });
+  // Neighbouring cycles start at the same height: nothing got pushed into a staircase.
+  expect(new Set(workouts.map((ids) => drawn[ids[0]!]!.row)).size).toBe(1);
 });

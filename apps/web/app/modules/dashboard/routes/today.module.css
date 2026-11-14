@@ -1,0 +1,333 @@
+/* Today: a phone shows one column; a desktop puts the day's training on the left and what else is due beside it. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-4);
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.board,
+.main,
+.side {
+  display: grid;
+  gap: var(--tf-space-4);
+  align-content: start;
+  min-width: 0;
+}
+
+@media (min-width: 64rem) {
+  .page {
+    max-width: var(--tf-content-max);
+  }
+
+  .board {
+    grid-template-columns: minmax(0, 1fr) minmax(19rem, 24rem);
+    align-items: start;
+  }
+
+  .side {
+    position: sticky;
+    top: var(--tf-space-4);
+  }
+}
+
+/* ---- Headline figures ---- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tf-space-3);
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-width: 0;
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  color: var(--tf-color-text-secondary);
+  text-decoration: none;
+  transition:
+    background-color var(--tf-duration-fast) ease,
+    border-color var(--tf-duration-fast) ease;
+}
+
+.statText {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--tf-text-xs);
+}
+
+.statText strong {
+  color: var(--tf-color-text);
+  font-size: var(--tf-text-2xl);
+  font-weight: var(--tf-weight-medium);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+/* ---- Panels ---- */
+
+.panel {
+  min-width: 0;
+  border: 1px solid var(--tf-color-border-subtle);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-color-surface);
+  animation: rise 320ms var(--tf-ease-out) both;
+}
+
+/* A workout under way: the one thing to come back to, so it carries the in-progress colour. */
+.panel[data-highlight] {
+  border-color: color-mix(
+    in srgb,
+    var(--tf-color-warning) 40%,
+    var(--tf-color-border-subtle)
+  );
+  background: linear-gradient(
+    160deg,
+    var(--tf-color-warning-soft),
+    var(--tf-color-surface) 60%
+  );
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2-5);
+  min-height: 3rem;
+  padding: var(--tf-space-2-5) var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-color-border-subtle);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.count {
+  min-width: 1.25rem;
+  padding: 0 6px;
+  border-radius: var(--tf-radius-full);
+  background: var(--tf-color-surface-overlay);
+  color: var(--tf-color-text-secondary);
+  font-size: var(--tf-text-xs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+.viewAll {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  margin-left: auto;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--tf-duration-fast) ease;
+}
+
+.viewAll svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+}
+
+.panelBody {
+  padding: var(--tf-space-1-5);
+}
+
+.chip {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--tf-radius-md);
+}
+
+.stat .chip {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.chip svg {
+  width: 0.9375rem;
+  height: 0.9375rem;
+}
+
+.chip[data-tone="green"] {
+  background: var(--tf-color-accent-deep);
+  color: var(--tf-color-accent);
+}
+.chip[data-tone="orange"] {
+  background: var(--tf-color-warning-soft);
+  color: var(--tf-color-warning);
+}
+.chip[data-tone="blue"] {
+  background: var(--tf-color-info-soft);
+  color: var(--tf-color-info);
+}
+.chip[data-tone="violet"] {
+  background: var(--tf-color-violet-soft);
+  color: var(--tf-color-violet);
+}
+.chip[data-tone="rose"] {
+  background: var(--tf-color-danger-soft);
+  color: var(--tf-color-danger);
+}
+
+/* ---- Rows ---- */
+
+.rows {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-height: 3.25rem;
+  padding: var(--tf-space-2) var(--tf-space-2-5);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-color-text);
+  text-decoration: none;
+  transition: background-color var(--tf-duration-fast) ease;
+}
+
+.row[data-cancelled] .rowText strong {
+  color: var(--tf-color-text-tertiary);
+  text-decoration: line-through;
+}
+
+.rowText {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowText strong {
+  overflow: hidden;
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowText small {
+  overflow: hidden;
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowAction {
+  flex-shrink: 0;
+  color: var(--tf-color-warning);
+  font-size: var(--tf-text-xs);
+  font-weight: var(--tf-weight-semibold);
+}
+
+.chevron {
+  flex-shrink: 0;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  color: var(--tf-color-text-tertiary);
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+}
+
+.date {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  align-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--tf-color-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-color-surface-raised);
+  line-height: 1.05;
+}
+
+.date b {
+  font-size: var(--tf-text-sm);
+  font-weight: var(--tf-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.date small {
+  color: var(--tf-color-text-tertiary);
+  font-size: 0.625rem;
+  text-transform: lowercase;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--tf-space-3) var(--tf-space-2-5);
+  color: var(--tf-color-text-tertiary);
+  font-size: var(--tf-text-sm);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover,
+  .stat:hover {
+    background: var(--tf-color-surface-hover);
+  }
+
+  .stat:hover {
+    border-color: var(--tf-color-border);
+  }
+
+  .row:hover .chevron,
+  .stat:hover .chevron,
+  .viewAll:hover svg {
+    transform: translateX(2px);
+  }
+
+  .viewAll:hover {
+    color: var(--tf-color-text);
+  }
+}
+
+.row:focus-visible,
+.stat:focus-visible,
+.viewAll:focus-visible {
+  outline: 2px solid var(--tf-color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* On a phone rows are tall enough to tap. */
+@media (max-width: 47.99rem) {
+  .row {
+    min-height: 3.5rem;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}

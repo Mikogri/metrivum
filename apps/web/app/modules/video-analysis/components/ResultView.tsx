@@ -124,8 +124,6 @@ export function ResultView({
   aside,
   videoSource,
   aspect = 9 / 16,
-  onReview,
-  reviewPending,
 }: {
   result: AnalysisResult;
   mediaId?: string;
@@ -133,8 +131,6 @@ export function ResultView({
   aside?: ReactNode;
   videoSource?: () => Promise<{ url: string; expiresAt: string }>;
   /** Width / height of the video, known before it loads. */ aspect?: number;
-  onReview?: (number: number, performed: boolean | null) => void;
-  reviewPending?: boolean;
 }) {
   const m = useT();
   const t = m.video.detail;
@@ -391,10 +387,6 @@ export function ResultView({
               rep: r,
               speedUnit: velocityUnit,
               checked: on,
-              onReview: onReview
-                ? (performed: boolean | null) => onReview(r.number, performed)
-                : undefined,
-              reviewPending,
               onCheck: (next: boolean) => toggleRep(r.number, next),
               lockCheck:
                 on &&

@@ -10,6 +10,8 @@ import {
   Button,
   Dialog,
   EmptyState,
+  Option,
+  Select,
   ErrorState,
   PageHeader,
   Skeleton,
@@ -24,11 +26,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { useFeatureAccess } from "~/shared/access";
-import {
-  useAccountContext,
-  useAccountKey,
-  useApi,
-} from "~/shared/session/AccountScope";
+import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { cancelAnalysis, updateAnalysis } from "../api";
 import { AnalysisStage, ResultView } from "../components/ResultView";
 import { StatusBadge } from "../components/StatusBadge";
@@ -53,7 +51,6 @@ export default function AnalysisDetail() {
   const api = useApi();
   const a = useAccountKey();
   const queryClient = useQueryClient();
-  const { lifecycle } = useAccountContext();
   const showError = useErrorToast();
   const manage = useFeatureAccess("video.library.manage");
   const { mode } = useWorkspace();
@@ -75,6 +72,8 @@ export default function AnalysisDetail() {
   const [tags, setTags] = useState("");
   const [exercise, setExercise] = useState<string | null>(null);
   const [initialExercise, setInitialExercise] = useState<string | null>(null);
+  // Whether each detected rep was really done, decided by the owner in Edit and saved with the rest.
+  const [reviews, setReviews] = useState<Record<number, boolean | null>>({});
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
     const onVisibility = () => setHidden(document.hidden);
@@ -94,6 +93,17 @@ export default function AnalysisDetail() {
       showError(error);
     },
   });
+  const pl = locale === "pl";
+  const changedReviews = (result.data?.repetitions ?? [])
+    .filter(
+      (rep) =>
+        rep.number in reviews &&
+        (rep.performed ?? null) !== reviews[rep.number],
+    )
+    .map((rep) => ({
+      number: rep.number,
+      performed: reviews[rep.number] ?? null,
+    }));
   const save = useMutation({
     mutationFn: () =>
       updateAnalysis(
@@ -110,6 +120,9 @@ export default function AnalysisDetail() {
           ...(exercise && exercise !== initialExercise
             ? { movement: engineMovement(exercise), exercise }
             : {}),
+          ...(changedReviews.length
+            ? { repetitionReviews: changedReviews }
+            : {}),
         },
         query.data!.version,
       ),
@@ -117,33 +130,6 @@ export default function AnalysisDetail() {
       void queryClient.invalidateQueries({ queryKey: videoKeys.all(a) });
       setEditOpen(false);
       toast({ tone: "success", title: t.detailsSaved });
-    },
-  });
-  const review = useMutation({
-    mutationFn: ({
-      number,
-      performed,
-    }: {
-      number: number;
-      performed: boolean | null;
-    }) =>
-      updateAnalysis(
-        api,
-        analysisId,
-        {
-          name: analysis!.name,
-          note: analysis!.note,
-          tags: analysis!.tags,
-          repetitionReviews: [{ number, performed }],
-        },
-        query.data!.version,
-      ),
-    onSuccess: async () => {
-      if (!lifecycle.isCurrent()) return;
-      await queryClient.invalidateQueries({ queryKey: videoKeys.all(a) });
-    },
-    onError: (error) => {
-      if (lifecycle.isCurrent()) showError(error);
     },
   });
 
@@ -202,6 +188,14 @@ export default function AnalysisDetail() {
     setName(analysis.name);
     setNote(analysis.note ?? "");
     setTags(analysis.tags.join(", "));
+    setReviews(
+      Object.fromEntries(
+        (result.data?.repetitions ?? []).map((rep) => [
+          rep.number,
+          rep.performed ?? null,
+        ]),
+      ),
+    );
     save.reset();
     setEditOpen(true);
   };
@@ -418,14 +412,6 @@ export default function AnalysisDetail() {
             mediaId={analysis.mediaId ?? undefined}
             aside={aside}
             aspect={aspect}
-            onReview={
-              manage.allowed
-                ? (number, performed) => {
-                    if (!review.isPending) review.mutate({ number, performed });
-                  }
-                : undefined
-            }
-            reviewPending={review.isPending}
           />
         ) : (
           <AnalysisStage
@@ -526,6 +512,50 @@ export default function AnalysisDetail() {
             onChange={setNote}
             rows={4}
           />
+          {result.data?.repetitions.length ? (
+            <fieldset className={styles.reviews}>
+              <legend>{pl ? "Wykonanie powtórzeń" : "Rep completion"}</legend>
+              <p className={styles.muted}>
+                {pl
+                  ? "Zaznacz, które wykryte powtórzenia były naprawdę wykonane."
+                  : "Mark which detected reps were really performed."}
+              </p>
+              {result.data.repetitions.map((rep) => (
+                <div key={rep.number} className={styles.reviewRow}>
+                  <span>
+                    {m["ui"]["Rep"]} {rep.number}
+                  </span>
+                  <Select
+                    aria-label={`${pl ? "Wykonanie powtórzenia" : "Completion of rep"} ${rep.number}`}
+                    selectedKey={
+                      reviews[rep.number] == null
+                        ? "unreviewed"
+                        : reviews[rep.number]
+                          ? "performed"
+                          : "not-performed"
+                    }
+                    onSelectionChange={(key) =>
+                      setReviews((current) => ({
+                        ...current,
+                        [rep.number]:
+                          key === "unreviewed" ? null : key === "performed",
+                      }))
+                    }
+                  >
+                    <Option id="unreviewed">
+                      {pl ? "Nieocenione" : "Not reviewed"}
+                    </Option>
+                    <Option id="performed">
+                      {pl ? "Wykonane" : "Performed"}
+                    </Option>
+                    <Option id="not-performed">
+                      {pl ? "Niewykonane" : "Not performed"}
+                    </Option>
+                  </Select>
+                </div>
+              ))}
+            </fieldset>
+          ) : null}
           {mode === "coach" ? (
             <WorkoutLink
               analysisId={analysis.id}

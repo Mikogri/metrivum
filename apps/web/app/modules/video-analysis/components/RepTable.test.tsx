@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { expect, it, vi } from "vitest";
+import { expect, it } from "vitest";
 import { RepTable, type RepRowData } from "./RepTable";
 
 const row: RepRowData = {
@@ -10,10 +9,10 @@ const row: RepRowData = {
   speedUnit: "px/s",
 };
 
-it("keeps old results unreviewed and shows persisted status without editing shared results", () => {
+it("does not show or edit rep completion in the table: that is changed in Edit", () => {
   render(
     <RepTable
-      label="Shared result"
+      label="Result"
       locale="en"
       rows={[
         row,
@@ -25,24 +24,12 @@ it("keeps old results unreviewed and shows persisted status without editing shar
       ]}
     />,
   );
-  expect(screen.getByText("Not reviewed")).toBeInTheDocument();
-  expect(screen.getByText("Not performed")).toBeInTheDocument();
+  expect(screen.queryByText("Not reviewed")).not.toBeInTheDocument();
+  expect(screen.queryByText("Not performed")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("columnheader", { name: "Completion" }),
+  ).not.toBeInTheDocument();
   expect(
     screen.queryByRole("button", { name: /Completion of rep/ }),
   ).not.toBeInTheDocument();
-});
-
-it("lets the owner explicitly review a detected repetition", async () => {
-  const review = vi.fn(),
-    user = userEvent.setup();
-  render(
-    <RepTable
-      label="Owned result"
-      locale="en"
-      rows={[{ ...row, onReview: review }]}
-    />,
-  );
-  await user.click(screen.getByRole("button", { name: /Completion of rep 3/ }));
-  await user.click(screen.getByRole("option", { name: "Not performed" }));
-  expect(review).toHaveBeenCalledWith(false);
 });
