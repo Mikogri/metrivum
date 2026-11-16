@@ -4,12 +4,12 @@
   place-items: center;
   width: 1.375rem;
   height: 1.375rem;
-  margin-right: var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
+  margin-right: var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
   border-radius: 50%;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
   vertical-align: 1px;
 }
@@ -17,11 +17,11 @@
 .explain {
   display: flex;
   align-items: flex-start;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   max-width: 40rem;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
 }
 
 .explain svg {
@@ -29,35 +29,35 @@
   width: 0.9375rem;
   height: 0.9375rem;
   margin-top: 0.1875rem;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .note {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 .quick {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 /* The preview: what is set up, in words, and the next release dates as small date chips. */
 .preview {
   display: grid;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-4) var(--tf-space-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface-raised);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-4) var(--ui-space-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface-raised);
 }
 
 .previewMain {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .previewIcon {
@@ -66,9 +66,9 @@
   place-items: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text-secondary);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-secondary);
 }
 
 .previewIcon svg {
@@ -84,21 +84,21 @@
 }
 
 .previewText strong {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .previewText span {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .previewWho {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
 }
 
 .previewWho svg {
@@ -109,30 +109,30 @@
 .upcoming {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .upcoming li {
-  padding: 2px var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-full);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  padding: 2px var(--ui-space-2);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-full);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
 .upcoming li:first-child {
-  border-color: var(--tf-color-border-strong);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-border-strong);
+  color: var(--ui-color-text);
 }
 
 /* A field with its explanation underneath the input. */
 .field {
   display: grid;
   align-content: start;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   min-width: 0;
 }

@@ -41,6 +41,7 @@ export function DropdownMenu<T extends object>({
     // ModalOverlay consumes MenuTrigger's state, preserving selection, dismissal and focus restoration.
     return (
       <ModalOverlay
+        data-ui-phone={phone || undefined}
         isDismissable
         className={dialogStyles.overlay}
         data-mobile-sheet="actions"

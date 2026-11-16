@@ -1,6 +1,6 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import type { ReactNode } from "react";
-import { Skeleton } from "@metrivum/ui-web";
+import { Skeleton } from "@portable-ui/react";
 import styles from "./Panel.module.css";
 
 /**

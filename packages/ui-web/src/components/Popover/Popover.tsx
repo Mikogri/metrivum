@@ -1,3 +1,4 @@
+import { useMobileLayout } from "../../lib/useMobileLayout";
 import {
   Dialog,
   Popover as AriaPopover,
@@ -27,9 +28,11 @@ export function Popover({
   offset = 6,
   ...props
 }: PopoverProps) {
+  const phone = useMobileLayout();
   return (
     <AriaPopover
       {...props}
+      data-ui-phone={phone || undefined}
       offset={offset}
       className={cx(styles.popover, styles[`width-${width}`], className)}
     >

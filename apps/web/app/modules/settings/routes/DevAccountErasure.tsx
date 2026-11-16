@@ -10,7 +10,7 @@ import {
   Skeleton,
   TextField,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";

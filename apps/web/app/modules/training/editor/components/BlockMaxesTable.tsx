@@ -15,7 +15,7 @@ import type {
   BlockExerciseMax,
   TrainingDocument,
 } from "@metrivum/api-client-web";
-import { ContextMenu } from "@metrivum/ui-web";
+import { ContextMenu } from "@portable-ui/react";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { InlineDurationCell } from "./InlineDurationCell";

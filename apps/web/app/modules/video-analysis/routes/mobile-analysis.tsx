@@ -13,7 +13,7 @@ import {
   EmptyState,
   PageHeader,
   useMobileLayout,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { Failure, Loading } from "~/modules/coaching";
 import { useAnalysisList, useAnalysisResult } from "../queries";

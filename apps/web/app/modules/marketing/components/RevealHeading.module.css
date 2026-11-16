@@ -1,10 +1,10 @@
 .heading {
   display: grid;
   max-width: 44rem;
-  font-family: var(--tf-font-display);
+  font-family: var(--ui-font-display);
   font-size: clamp(1.875rem, 1.2rem + 2.2vw, 3rem);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-display);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-display);
   line-height: 1.04;
   text-wrap: balance;
 }
@@ -24,16 +24,16 @@
 
 .line {
   display: block;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   transition:
-    transform 700ms var(--tf-ease-out),
+    transform 700ms var(--ui-ease-out),
     opacity 600ms ease,
-    filter 700ms var(--tf-ease-out);
+    filter 700ms var(--ui-ease-out);
 }
 
 /* The second line answers the first in the same face, a tone quieter. */
 .line[data-tone="quiet"] {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   transition-delay: 90ms;
 }
 
@@ -46,6 +46,6 @@
 
 @media (max-width: 40rem) {
   .heading {
-    font-size: var(--tf-text-4xl);
+    font-size: var(--ui-text-4xl);
   }
 }

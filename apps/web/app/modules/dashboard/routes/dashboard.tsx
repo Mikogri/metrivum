@@ -22,7 +22,7 @@ import {
   TabList,
   TabPanel,
   Tabs,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useProfile } from "~/modules/accounts";
 import { useExerciseList } from "~/modules/exercises";
 import { usePlanList } from "~/modules/training";

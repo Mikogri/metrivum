@@ -2,15 +2,15 @@
   display: grid;
   grid-template-columns: 1rem minmax(0, 1fr) auto;
   align-items: start;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-2) 0;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) 0;
 }
 
 .icon {
   display: grid;
   place-items: center;
   height: 1.25rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .icon svg {
@@ -19,16 +19,16 @@
 }
 
 .row[data-state="saved"] .icon {
-  color: var(--tf-color-success);
+  color: var(--ui-color-success);
 }
 .row[data-state="failed"] .icon,
 .row[data-state="save_failed"] .icon {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 .row[data-state="analyzing"] .icon,
 .row[data-state="saving"] .icon,
 .row[data-state="done"] .icon {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .body {
@@ -40,7 +40,7 @@
 .top {
   display: flex;
   align-items: baseline;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
 }
 
@@ -48,8 +48,8 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   line-height: 1.25rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -57,15 +57,15 @@
 
 .percent {
   flex: none;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .status {
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -76,10 +76,10 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
   font: inherit;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
   text-decoration: underline dotted;
   text-underline-offset: 3px;
   cursor: default;
@@ -87,7 +87,7 @@
 }
 
 .failed[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -99,24 +99,24 @@
 .bar {
   height: 4px;
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
 }
 
 .bar > span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--tf-color-text-secondary);
+  background: var(--ui-color-text-secondary);
   transform-origin: left;
-  transition: transform 600ms var(--tf-ease-out);
+  transition: transform 600ms var(--ui-ease-out);
 }
 
 .row[data-state="analyzing"] .bar > span {
   background: linear-gradient(
     90deg,
-    var(--tf-color-text-secondary),
-    var(--tf-color-text)
+    var(--ui-color-text-secondary),
+    var(--ui-color-text)
   );
 }
 
@@ -154,14 +154,14 @@
 .row[data-tile] .icon {
   width: 2rem;
   height: 2rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
 }
 
 .row[data-tile][data-state="saved"] .icon {
-  background: color-mix(in srgb, var(--tf-color-success) 16%, transparent);
+  background: color-mix(in srgb, var(--ui-color-success) 16%, transparent);
 }
 .row[data-tile][data-state="failed"] .icon,
 .row[data-tile][data-state="save_failed"] .icon {
-  background: var(--tf-color-warning-soft);
+  background: var(--ui-color-warning-soft);
 }

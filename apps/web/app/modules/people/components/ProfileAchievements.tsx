@@ -14,7 +14,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { useState } from "react";
-import { Button, Card } from "@metrivum/ui-web";
+import { Button, Card } from "@portable-ui/react";
 import { SectionTitle, ToneIcon, type Tone } from "./SectionTitle";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./ProfileAchievements.module.css";

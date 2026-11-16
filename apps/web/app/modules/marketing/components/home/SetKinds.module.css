@@ -1,11 +1,11 @@
 .wrap {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-  gap: var(--tf-space-4);
-  padding: var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-xl);
-  background: var(--tf-color-surface);
+  gap: var(--ui-space-4);
+  padding: var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-xl);
+  background: var(--ui-color-surface);
 }
 
 .list {
@@ -17,15 +17,15 @@
 .kind {
   display: grid;
   gap: 2px;
-  padding: var(--tf-space-2) var(--tf-space-3);
+  padding: var(--ui-space-2) var(--ui-space-3);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: transparent;
   text-align: left;
   transition:
-    background-color var(--tf-duration-fast) ease,
-    border-color var(--tf-duration-fast) ease,
-    transform var(--tf-duration-press) var(--tf-ease-out);
+    background-color var(--ui-duration-fast) ease,
+    border-color var(--ui-duration-fast) ease,
+    transform var(--ui-duration-press) var(--ui-ease-out);
 }
 
 .kind:active {
@@ -33,30 +33,30 @@
 }
 
 .kind[aria-pressed="true"] {
-  border-color: var(--tf-color-border-strong);
-  background: var(--tf-color-surface-raised);
+  border-color: var(--ui-color-border-strong);
+  background: var(--ui-color-surface-raised);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .kind:hover:not([aria-pressed="true"]) {
-    background: var(--tf-color-surface-hover);
+    background: var(--ui-color-surface-hover);
   }
 }
 
 .kindName {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
-  transition: color var(--tf-duration-fast) ease;
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
+  transition: color var(--ui-duration-fast) ease;
 }
 
 .kind[aria-pressed="true"] .kindName {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .kindNote {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .visual {
@@ -64,29 +64,29 @@
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: 18rem;
-  padding: var(--tf-space-5);
-  border-radius: var(--tf-radius-lg);
+  padding: var(--ui-space-5);
+  border-radius: var(--ui-radius-lg);
   background:
     linear-gradient(
         to top,
-        color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px,
+        color-mix(in srgb, var(--ui-color-text) 3%, transparent) 1px,
         transparent 1px
       )
       0 0 / 100% 25%,
-    var(--tf-color-bg-sunken);
+    var(--ui-color-bg-sunken);
 }
 
 .visualLabel {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .bars {
   position: relative;
   display: flex;
   align-items: flex-end;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   height: 100%;
   min-height: 12rem;
 }
@@ -94,18 +94,18 @@
 .bar {
   flex: 1;
   height: 100%;
-  border-radius: var(--tf-radius-sm) var(--tf-radius-sm) 2px 2px;
+  border-radius: var(--ui-radius-sm) var(--ui-radius-sm) 2px 2px;
   background: linear-gradient(
     180deg,
-    var(--tf-color-accent),
-    color-mix(in srgb, var(--tf-color-accent) 35%, transparent)
+    var(--ui-color-accent),
+    color-mix(in srgb, var(--ui-color-accent) 35%, transparent)
   );
   transform: scaleY(var(--h));
   transform-origin: bottom;
   transition:
-    transform 560ms var(--tf-ease-out),
+    transform 560ms var(--ui-ease-out),
     opacity 300ms ease,
-    margin 400ms var(--tf-ease-out),
+    margin 400ms var(--ui-ease-out),
     background 300ms ease;
   transition-delay: calc(var(--i) * 40ms);
 }
@@ -117,21 +117,21 @@
 .bar[data-accent] {
   background: linear-gradient(
     180deg,
-    var(--tf-color-violet),
-    color-mix(in srgb, var(--tf-color-violet) 30%, transparent)
+    var(--ui-color-violet),
+    color-mix(in srgb, var(--ui-color-violet) 30%, transparent)
   );
 }
 
 .bar[data-gap] {
-  margin-left: var(--tf-space-4);
+  margin-left: var(--ui-space-4);
 }
 
 .bars[data-open] .bar:first-child {
   background: linear-gradient(
     180deg,
     transparent,
-    var(--tf-color-accent) 40%,
-    color-mix(in srgb, var(--tf-color-accent) 35%, transparent)
+    var(--ui-color-accent) 40%,
+    color-mix(in srgb, var(--ui-color-accent) 35%, transparent)
   );
 }
 
@@ -142,10 +142,10 @@
   right: 30%;
   top: 22%;
   height: 1.5rem;
-  border: 1.5px dashed var(--tf-color-info);
+  border: 1.5px dashed var(--ui-color-info);
   border-bottom: 0;
   border-radius: 10px 10px 0 0;
-  animation: reference-in 600ms var(--tf-ease-out) 200ms both;
+  animation: reference-in 600ms var(--ui-ease-out) 200ms both;
 }
 
 @keyframes reference-in {

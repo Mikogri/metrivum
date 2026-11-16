@@ -1,3 +1,4 @@
+import { useUI } from "../../UIProvider";
 import { useContext, useState } from "react";
 import type { DateValue } from "@internationalized/date";
 import {
@@ -56,6 +57,7 @@ export function DateField<T extends DateValue>({
   onOpenChange,
   ...props
 }: DateFieldProps<T>) {
+  const { messages } = useUI();
   const [ownOpen, setOwnOpen] = useState(false);
   const open = isOpen ?? ownOpen;
   const setOpen = (next: boolean) => {
@@ -89,14 +91,14 @@ export function DateField<T extends DateValue>({
               <DateSegment segment={segment} className={local.segment} />
             )}
           </DateInput>
-          <Button className={local.trigger} aria-label="Open calendar">
+          <Button className={local.trigger} aria-label={messages.openCalendar}>
             <CalendarDays aria-hidden="true" />
           </Button>
         </Group>
       </div>
       <FieldFooter description={description} errorMessage={errorMessage} />
       <Popover className={local.popover} placement="bottom end" offset={6}>
-        <Dialog className={local.dialog} aria-label="Calendar">
+        <Dialog className={local.dialog} aria-label={messages.calendar}>
           <Calendar className={local.calendar}>
             <CalendarViews />
           </Calendar>
@@ -113,6 +115,7 @@ const YEARS_PER_PAGE = 12;
  * a month goes back to its days, so a date decades away (a birth date) is two clicks instead of hundreds of pages.
  */
 function CalendarViews() {
+  const { messages } = useUI();
   const state = useContext(CalendarStateContext)!;
   const { locale } = useLocale();
   const [view, setView] = useState<"days" | "months" | "years">("days");
@@ -153,7 +156,7 @@ function CalendarViews() {
           <Button
             slot="previous"
             className={local.nav}
-            aria-label="Previous month"
+            aria-label={messages.previousMonth}
           >
             <ChevronLeft aria-hidden="true" />
           </Button>
@@ -161,12 +164,16 @@ function CalendarViews() {
             type="button"
             className={local.headingButton}
             onClick={() => setView("years")}
-            aria-label="Choose year and month"
+            aria-label={messages.chooseYearMonth}
           >
             {title.format(asDate(focused.year, focused.month))}
             <ChevronDown aria-hidden="true" />
           </button>
-          <Button slot="next" className={local.nav} aria-label="Next month">
+          <Button
+            slot="next"
+            className={local.nav}
+            aria-label={messages.nextMonth}
+          >
             <ChevronRight aria-hidden="true" />
           </Button>
         </header>
@@ -192,7 +199,7 @@ function CalendarViews() {
           <button
             type="button"
             className={local.nav}
-            aria-label="Previous year"
+            aria-label={messages.previousYear}
             disabled={!!yearOutside(focused.year - 1)}
             onClick={() => go(focused.year - 1)}
           >
@@ -202,7 +209,7 @@ function CalendarViews() {
             type="button"
             className={local.headingButton}
             onClick={() => setView("years")}
-            aria-label="Choose year"
+            aria-label={messages.chooseYear}
           >
             {focused.year}
             <ChevronDown aria-hidden="true" />
@@ -210,14 +217,18 @@ function CalendarViews() {
           <button
             type="button"
             className={local.nav}
-            aria-label="Next year"
+            aria-label={messages.nextYear}
             disabled={!!yearOutside(focused.year + 1)}
             onClick={() => go(focused.year + 1)}
           >
             <ChevronRight aria-hidden="true" />
           </button>
         </header>
-        <div className={local.choices} role="group" aria-label="Months">
+        <div
+          className={local.choices}
+          role="group"
+          aria-label={messages.months}
+        >
           {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
             <button
               type="button"
@@ -245,7 +256,7 @@ function CalendarViews() {
         <button
           type="button"
           className={local.nav}
-          aria-label="Earlier years"
+          aria-label={messages.earlierYears}
           disabled={!!yearOutside(first - 1)}
           onClick={() =>
             go(
@@ -264,7 +275,7 @@ function CalendarViews() {
         <button
           type="button"
           className={local.nav}
-          aria-label="Later years"
+          aria-label={messages.laterYears}
           disabled={!!yearOutside(first + YEARS_PER_PAGE)}
           onClick={() =>
             go(
@@ -278,7 +289,7 @@ function CalendarViews() {
           <ChevronRight aria-hidden="true" />
         </button>
       </header>
-      <div className={local.choices} role="group" aria-label="Years">
+      <div className={local.choices} role="group" aria-label={messages.years}>
         {years.map((year) => (
           <button
             type="button"

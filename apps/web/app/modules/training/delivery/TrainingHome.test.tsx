@@ -15,7 +15,7 @@ beforeEach(() => {
   state.mobile = true;
   state.filters = {};
 });
-vi.mock("@metrivum/ui-web", async (original) => ({
+vi.mock("@portable-ui/react", async (original) => ({
   ...(await original<object>()),
   useMobileLayout: () => state.mobile,
 }));

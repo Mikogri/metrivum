@@ -26,7 +26,7 @@ import {
   TextField,
   toast,
   useMobileLayout,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Panel } from "~/shared/ui/Panel";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import {
@@ -378,7 +378,7 @@ function AssignForm({
                         className={styles.pickSwatch}
                         style={{
                           background:
-                            group.color ?? "var(--tf-color-border-strong)",
+                            group.color ?? "var(--ui-color-border-strong)",
                         }}
                         aria-hidden="true"
                       />

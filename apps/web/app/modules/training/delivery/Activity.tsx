@@ -7,7 +7,7 @@ import {
   Select,
   Toolbar,
   useMobileLayout,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { PeriodFilter } from "~/shared/ui/PeriodFilter";
 import { StatStrip, StatStripSkeleton } from "~/shared/ui/Panel";

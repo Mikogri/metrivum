@@ -29,7 +29,7 @@ import {
   TextField,
   toast,
   type BadgeTone,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   Failure,
   ListPagination,

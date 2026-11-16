@@ -3,7 +3,7 @@ import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { X } from "lucide-react";
-import { Combobox, Option, Select } from "@metrivum/ui-web";
+import { Combobox, Option, Select } from "@portable-ui/react";
 import { MeasurementChart } from "~/modules/client-documentation";
 import { Panel } from "~/shared/ui/Panel";
 import styles from "./delivery.module.css";
@@ -26,11 +26,11 @@ export interface ExercisePerformance {
 /** At most this many exercises share the chart, each in its own colour. */
 export const MAX_EXERCISES = 5;
 const COLORS = [
-  "var(--tf-color-accent)",
-  "var(--tf-color-info)",
-  "var(--tf-color-violet)",
-  "var(--tf-color-warning)",
-  "var(--tf-color-danger)",
+  "var(--ui-color-accent)",
+  "var(--ui-color-info)",
+  "var(--ui-color-violet)",
+  "var(--ui-color-warning)",
+  "var(--ui-color-danger)",
 ];
 
 const fmt = (n: number) => Number(n.toFixed(2)).toLocaleString();

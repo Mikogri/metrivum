@@ -18,7 +18,7 @@ import {
   Button,
   Popover,
   Skeleton,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { AuthHeader } from "~/modules/auth";
 import { BrandMark } from "~/shared/ui/BrandMark";
 import { useAccountContext } from "~/shared/session/AccountScope";

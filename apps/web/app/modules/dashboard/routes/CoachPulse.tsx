@@ -28,7 +28,7 @@ import {
   Segment,
   SegmentedControl,
   Skeleton,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { AreaChart, Delta, Sparkline, type Overview } from "~/modules/analyze";
 import { useCalendarRange, type CalendarEvent } from "~/modules/calendar";
 import {

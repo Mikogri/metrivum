@@ -1,4 +1,4 @@
-import { Badge, type BadgeTone } from "@metrivum/ui-web";
+import { Badge, type BadgeTone } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 
 const tones: Record<string, BadgeTone> = {

@@ -1,7 +1,7 @@
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
-import { Option, Select, TextField } from "@metrivum/ui-web";
+import { Option, Select, TextField } from "@portable-ui/react";
 import styles from "./PeriodFilter.module.css";
 
 const localDate = (date = new Date()) =>

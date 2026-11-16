@@ -11,17 +11,17 @@
 .tools {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   height: 2.75rem;
-  padding: 0 var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: 0 var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .hint {
-  margin-left: var(--tf-space-2);
+  margin-left: var(--ui-space-2);
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -33,7 +33,7 @@
   /* Viewport measurements drive grid size; grid contents must not size the viewport back. */
   contain: size;
   overflow: auto;
-  background: var(--tf-color-bg-sunken);
+  background: var(--ui-color-bg-sunken);
 }
 
 /* The sheet keeps slim scrollbars that sit on the grid instead of the browser's default bars. */
@@ -45,7 +45,7 @@
 .scroller::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;
-  background: var(--tf-color-border-strong);
+  background: var(--ui-color-border-strong);
   background-clip: content-box;
 }
 
@@ -65,9 +65,9 @@
   position: absolute;
   z-index: 3;
   display: flex;
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-tertiary);
-  font-family: var(--tf-font-label);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-tertiary);
+  font-family: var(--ui-font-label);
   font-size: 0.625rem;
 }
 
@@ -77,7 +77,7 @@
   right: 0;
   height: var(--gutter);
   padding-left: var(--gutter);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .colHeads > span {
@@ -87,7 +87,7 @@
   place-items: center;
   flex: none;
   width: var(--cell-w);
-  border-left: 1px solid var(--tf-color-border-subtle);
+  border-left: 1px solid var(--ui-color-border-subtle);
 }
 
 .rowHeads {
@@ -96,7 +96,7 @@
   left: 0;
   flex-direction: column;
   width: var(--gutter);
-  border-right: 1px solid var(--tf-color-border-subtle);
+  border-right: 1px solid var(--ui-color-border-subtle);
 }
 
 .rowHeads span {
@@ -104,7 +104,7 @@
   place-items: center;
   flex: none;
   height: var(--cell-h);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .cells {
@@ -149,11 +149,11 @@
   flex-direction: column;
   gap: 2px;
   margin: 4px;
-  padding: var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  box-shadow: var(--tf-shadow-sm);
+  padding: var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-shadow-sm);
   cursor: grab;
   outline: none;
   transition:
@@ -163,18 +163,18 @@
 
 .card:focus-visible,
 .card:focus-within {
-  border-color: var(--tf-color-border-strong);
+  border-color: var(--ui-color-border-strong);
 }
 
 .card:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 
 .card[data-dragging] {
   z-index: 4;
   cursor: grabbing;
-  box-shadow: var(--tf-shadow-lg);
+  box-shadow: var(--ui-shadow-lg);
 }
 
 .card[data-link-target][data-kind="cycle"] {
@@ -184,7 +184,7 @@
 .cardHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   height: 1.5rem;
 }
 
@@ -193,7 +193,7 @@
   place-items: center;
   width: 1.25rem;
   height: 1.25rem;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
 }
 
 .chip svg {
@@ -202,18 +202,18 @@
 }
 
 .chip[data-kind="block"] {
-  background: var(--tf-color-accent-deep);
-  color: var(--tf-color-accent);
+  background: var(--ui-color-accent-deep);
+  color: var(--ui-color-accent);
 }
 
 .chip[data-kind="cycle"] {
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 
 .chip[data-kind="workout"] {
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-violet);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-violet);
 }
 
 .card[data-link-target][data-kind="workout"] {
@@ -223,8 +223,8 @@
 .kind {
   flex: 1;
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -236,20 +236,20 @@
   height: 1.5rem;
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   outline: none;
 }
 
 .menu[data-hovered],
 .menu[aria-expanded="true"] {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .menu[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
 }
 
 .menu svg {
@@ -263,23 +263,23 @@
 .panelTitle {
   width: 100%;
   min-width: 0;
-  padding: 2px var(--tf-space-1);
+  padding: 2px var(--ui-space-1);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
   background: transparent;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   outline: none;
   cursor: text;
 }
 
 .name {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .description {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
 }
 
 /* Descriptions keep their line breaks; the editor grows with the text. */
@@ -287,13 +287,13 @@
   display: block;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  line-height: var(--tf-leading-normal);
+  line-height: var(--ui-leading-normal);
 }
 
 textarea.multiline {
   resize: none;
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   field-sizing: content;
   max-height: 16rem;
 }
@@ -301,14 +301,14 @@ textarea.multiline {
 .name:hover:not(:read-only),
 .description:hover:not(:read-only),
 .panelTitle:hover:not(:read-only) {
-  border-color: var(--tf-color-border);
+  border-color: var(--ui-color-border);
 }
 
 .name:focus,
 .description:focus,
 .panelTitle:focus {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-field);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-field);
 }
 
 .handle {
@@ -317,9 +317,9 @@ textarea.multiline {
   right: -7px;
   width: 12px;
   height: 12px;
-  border: 2px solid var(--tf-color-accent);
+  border: 2px solid var(--ui-color-accent);
   border-radius: 50%;
-  background: var(--tf-color-bg-sunken);
+  background: var(--ui-color-bg-sunken);
   cursor: crosshair;
   touch-action: none;
   transition: transform 120ms ease;
@@ -330,10 +330,10 @@ textarea.multiline {
 }
 
 .loose {
-  padding: 0 var(--tf-space-1);
-  color: var(--tf-color-warning);
-  font-size: var(--tf-text-2xs);
-  line-height: var(--tf-leading-snug);
+  padding: 0 var(--ui-space-1);
+  color: var(--ui-color-warning);
+  font-size: var(--ui-text-2xs);
+  line-height: var(--ui-leading-snug);
 }
 
 /* Workout side panel ------------------------------------------------------------------------ */
@@ -347,26 +347,26 @@ textarea.multiline {
   display: flex;
   flex-direction: column;
   width: min(68rem, 78%);
-  border-left: 1px solid var(--tf-color-border);
-  background: var(--tf-color-bg);
+  border-left: 1px solid var(--ui-color-border);
+  background: var(--ui-color-bg);
   box-shadow: -24px 0 48px -24px rgb(0 0 0 / 0.6);
   outline: none;
-  animation: panel-in 300ms var(--tf-ease-drawer);
+  animation: panel-in 300ms var(--ui-ease-drawer);
 }
 
 .panelHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   height: 3rem;
-  padding: 0 var(--tf-space-2) 0 var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: 0 var(--ui-space-2) 0 var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .panelTitle {
   max-width: 24rem;
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-medium);
 }
 
 .panelHead > :last-child {
@@ -425,7 +425,7 @@ textarea.multiline {
 }
 
 .edgeGroup[data-hover] {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .edgeGroup[data-hover] .edge {
@@ -440,14 +440,14 @@ textarea.multiline {
   padding: 0;
   overflow: hidden;
   cursor: default;
-  background: var(--tf-color-bg);
+  background: var(--ui-color-bg);
 }
 
 .card[data-expanded] .cardHead {
   height: var(--cell-h);
-  padding: 0 var(--tf-space-2);
-  border-bottom: 1px solid var(--tf-color-border);
-  background: var(--tf-color-surface-raised);
+  padding: 0 var(--ui-space-2);
+  border-bottom: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface-raised);
   cursor: grab;
 }
 
@@ -458,15 +458,15 @@ textarea.multiline {
   height: 1.25rem;
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   cursor: pointer;
 }
 
 .toggle:hover {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .toggle svg {
@@ -477,19 +477,19 @@ textarea.multiline {
 .headName {
   flex: 0 1 14rem;
   min-width: 0;
-  padding: 2px var(--tf-space-1);
+  padding: 2px var(--ui-space-1);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   outline: none;
 }
 
 .headName:focus {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-field);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-field);
 }
 
 .cells2 {
@@ -497,7 +497,7 @@ textarea.multiline {
   grid-template-columns: repeat(auto-fill, var(--cell-w));
   grid-auto-rows: var(--cell-h);
   cursor: default;
-  animation: cells-in 260ms var(--tf-ease-out);
+  animation: cells-in 260ms var(--ui-ease-out);
 }
 
 @keyframes cells-in {
@@ -513,15 +513,15 @@ textarea.multiline {
   gap: 4px;
   min-width: 0;
   height: var(--cell-h);
-  padding: 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-2);
   overflow: hidden;
   border: 0;
-  border-right: 1px solid var(--tf-color-border-subtle);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  border-right: 1px solid var(--ui-color-border-subtle);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
   background: transparent;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -531,7 +531,7 @@ textarea.multiline {
 .cell:focus-visible,
 .cell:focus {
   z-index: 1;
-  box-shadow: inset 0 0 0 2px var(--tf-color-accent);
+  box-shadow: inset 0 0 0 2px var(--ui-color-accent);
 }
 
 .editable {
@@ -539,20 +539,20 @@ textarea.multiline {
 }
 
 .editable:hover {
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 .cellInput {
-  background: var(--tf-color-field);
-  box-shadow: inset 0 0 0 2px var(--tf-color-accent);
+  background: var(--ui-color-field);
+  box-shadow: inset 0 0 0 2px var(--ui-color-accent);
 }
 
 .cellInput[aria-invalid] {
-  box-shadow: inset 0 0 0 2px var(--tf-color-danger);
+  box-shadow: inset 0 0 0 2px var(--ui-color-danger);
 }
 
 .cellPlaceholder {
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
 }
 
 .exerciseCell {
@@ -560,11 +560,11 @@ textarea.multiline {
 }
 
 .exerciseCell:hover:not(:disabled) {
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 .exerciseCell:disabled {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   cursor: default;
 }
 
@@ -574,12 +574,12 @@ textarea.multiline {
   position: absolute;
   top: 0;
   right: 0;
-  border-top: 7px solid var(--tf-color-warning);
+  border-top: 7px solid var(--ui-color-warning);
   border-left: 7px solid transparent;
 }
 
 .mixedCell {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   font-style: italic;
 }
 
@@ -587,23 +587,23 @@ textarea.multiline {
 
 .minimap {
   position: absolute;
-  right: var(--tf-space-3);
-  bottom: var(--tf-space-3);
+  right: var(--ui-space-3);
+  bottom: var(--ui-space-3);
   z-index: 5;
   display: grid;
-  gap: var(--tf-space-1);
-  padding: var(--tf-space-1-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-1-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
   background: rgb(20 20 20 / 0.9);
-  box-shadow: var(--tf-shadow-md);
+  box-shadow: var(--ui-shadow-md);
   backdrop-filter: blur(8px);
 }
 
 .minimapSvg {
   display: block;
-  border-radius: var(--tf-radius-xs);
-  background: var(--tf-color-bg-sunken);
+  border-radius: var(--ui-radius-xs);
+  background: var(--ui-color-bg-sunken);
   cursor: pointer;
   touch-action: none;
 }
@@ -617,7 +617,7 @@ textarea.multiline {
 }
 
 .minimapSvg rect[data-kind="workout"] {
-  fill: color-mix(in srgb, var(--tf-color-violet) 50%, transparent);
+  fill: color-mix(in srgb, var(--ui-color-violet) 50%, transparent);
 }
 
 .minimapSvg .minimapView {
@@ -637,19 +637,19 @@ textarea.multiline {
   place-items: center;
   min-width: 1.5rem;
   height: 1.5rem;
-  padding: 0 var(--tf-space-1);
+  padding: 0 var(--ui-space-1);
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-2xs);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
 
 .zoom button:hover {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .zoom svg {
@@ -661,23 +661,23 @@ textarea.multiline {
 
 .menuForm {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   width: 18rem;
-  padding-top: var(--tf-space-1);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  padding-top: var(--ui-space-1);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .menuLabel {
   display: grid;
-  gap: var(--tf-space-1);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-1);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
 }
 
 .menuLabel > span {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .menuLabel svg {
@@ -688,31 +688,31 @@ textarea.multiline {
 .menuTextarea,
 .menuSelect {
   width: 100%;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-field);
-  color: var(--tf-color-text);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-field);
+  color: var(--ui-color-text);
   font: inherit;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   outline: none;
 }
 
 .menuTextarea {
   min-width: 18rem;
   min-height: 6rem;
-  padding: var(--tf-space-2) var(--tf-space-3);
-  line-height: var(--tf-leading-normal);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  line-height: var(--ui-leading-normal);
   resize: vertical;
 }
 
 .menuSelect {
-  height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-2);
+  height: var(--ui-control-sm);
+  padding: 0 var(--ui-space-2);
 }
 
 .menuTextarea:focus,
 .menuSelect:focus {
-  border-color: var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent-border);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -752,44 +752,44 @@ textarea.multiline {
   top: 0;
   z-index: 2;
   background: rgb(20 20 20 / 0.95);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-medium);
-  box-shadow: inset 0 -1px 0 var(--tf-color-border);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-medium);
+  box-shadow: inset 0 -1px 0 var(--ui-color-border);
 }
 
 .workoutName {
   flex: 0 1 16rem;
   min-width: 0;
   height: 1.5rem;
-  padding: 0 var(--tf-space-1);
+  padding: 0 var(--ui-space-1);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   outline: none;
 }
 
 .workoutName:focus {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-field);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-field);
 }
 
 /* Comments: a little more room at the right, so the text never runs into the column edge or the row menu. */
 .commentCell {
-  padding-right: var(--tf-space-4);
-  color: var(--tf-color-text-secondary);
+  padding-right: var(--ui-space-4);
+  color: var(--ui-color-text-secondary);
 }
 
 .commentCell .cellText {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .commentHead {
-  padding-right: var(--tf-space-4);
-  padding-left: var(--tf-space-2);
+  padding-right: var(--ui-space-4);
+  padding-left: var(--ui-space-2);
 }
 
 /* Long values (comments, loads) stay inside their cell and end in an ellipsis. */
@@ -802,13 +802,13 @@ textarea.multiline {
 }
 
 button.cell:disabled {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   cursor: default;
 }
 
 /* Connection entry point: a dot on the card where the arrow lands. */
 .edgePort {
-  fill: var(--tf-color-bg-sunken);
+  fill: var(--ui-color-bg-sunken);
   stroke: currentColor;
   stroke-width: 1.5;
 }
@@ -821,29 +821,29 @@ button.cell:disabled {
 
 .popForm {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   width: 16rem;
 }
 
 .popInput {
   width: 100%;
-  height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-field);
-  color: var(--tf-color-text);
+  height: var(--ui-control-sm);
+  padding: 0 var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-field);
+  color: var(--ui-color-text);
   font: inherit;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   outline: none;
 }
 
 .popInput:focus {
-  border-color: var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent-border);
 }
 
 .popInput[aria-invalid] {
-  border-color: var(--tf-color-danger);
+  border-color: var(--ui-color-danger);
 }
 
 .popList {
@@ -856,21 +856,21 @@ button.cell:disabled {
 }
 
 .popOption {
-  padding: var(--tf-space-1-5) var(--tf-space-2);
-  border-radius: var(--tf-radius-sm);
-  font-size: var(--tf-text-sm);
+  padding: var(--ui-space-1-5) var(--ui-space-2);
+  border-radius: var(--ui-radius-sm);
+  font-size: var(--ui-text-sm);
   cursor: default;
 }
 
 .popOption[aria-selected="true"] {
-  background: var(--tf-color-surface-selected);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-selected);
+  color: var(--ui-color-text);
 }
 
 .popEmpty {
-  padding: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .unitRow {
@@ -878,54 +878,54 @@ button.cell:disabled {
   grid-template-columns: repeat(4, 1fr);
   gap: 2px;
   padding: 2px;
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-field);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-field);
 }
 
 .unit {
   height: 1.625rem;
   border: 0;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
   background: transparent;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   cursor: pointer;
 }
 
 .unit:hover {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 /* The chosen unit reads at a glance: accent fill and text, like a selected segment. */
 .unit[aria-checked="true"] {
-  background: var(--tf-color-accent-soft);
-  box-shadow: inset 0 0 0 1px var(--tf-color-accent-border);
-  color: var(--tf-color-accent);
-  font-weight: var(--tf-weight-semibold);
+  background: var(--ui-color-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--ui-color-accent-border);
+  color: var(--ui-color-accent);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .popActions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .popGhost,
 .popPrimary {
-  height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-sm);
+  height: var(--ui-control-sm);
+  padding: 0 var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xs);
   cursor: pointer;
 }
 
 .popPrimary {
-  border-color: var(--tf-color-primary-border);
-  background: var(--tf-color-primary);
-  color: var(--tf-color-on-primary);
+  border-color: var(--ui-color-primary-border);
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
 }
 
 .dayGrid {
@@ -948,22 +948,22 @@ button.cell:disabled {
 .dayButton {
   height: 2rem;
   border: 0;
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
 
 .dayButton:hover {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .dayButton[aria-selected="true"] {
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 
 /* Volume panel ------------------------------------------------------------------------------------- */
@@ -977,73 +977,73 @@ button.cell:disabled {
   display: flex;
   flex-direction: column;
   width: min(30rem, 92%);
-  border-left: 1px solid var(--tf-color-border);
-  background: var(--tf-color-bg);
+  border-left: 1px solid var(--ui-color-border);
+  background: var(--ui-color-bg);
   box-shadow: -24px 0 48px -24px rgb(0 0 0 / 0.6);
-  animation: panel-in 300ms var(--tf-ease-drawer);
+  animation: panel-in 300ms var(--ui-ease-drawer);
 }
 
 .volumeHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   height: 3rem;
-  padding: 0 var(--tf-space-2) 0 var(--tf-space-4);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: 0 var(--ui-space-2) 0 var(--ui-space-4);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .volumeTitle {
   flex: 1;
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .volumeBody {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-6);
+  padding: var(--ui-space-3) var(--ui-space-4) var(--ui-space-6);
 }
 
 .volumeCycle + .volumeCycle {
-  margin-top: var(--tf-space-5);
+  margin-top: var(--ui-space-5);
 }
 
 .volumeCycleTitle {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-2);
-  margin-bottom: var(--tf-space-2);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  gap: var(--ui-space-2);
+  margin-bottom: var(--ui-space-2);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .volumeTotal {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-regular);
   white-space: nowrap;
 }
 
 .volumeTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
 .volumeTable th,
 .volumeTable td {
-  padding: var(--tf-space-1-5) var(--tf-space-2);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: var(--ui-space-1-5) var(--ui-space-2);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
   text-align: right;
   white-space: nowrap;
 }
 
 .volumeTable thead th {
-  color: var(--tf-color-text-tertiary);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-tertiary);
+  font-weight: var(--ui-weight-regular);
 }
 
 .volumeTable th[scope="row"],
@@ -1052,7 +1052,7 @@ button.cell:disabled {
   overflow: hidden;
   text-align: left;
   text-overflow: ellipsis;
-  font-weight: var(--tf-weight-regular);
+  font-weight: var(--ui-weight-regular);
 }
 
 .volumeTable tbody tr:last-child > * {
@@ -1061,18 +1061,18 @@ button.cell:disabled {
 
 .volumeEmpty,
 .volumeNote {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .volumeNote {
-  line-height: var(--tf-leading-normal);
+  line-height: var(--ui-leading-normal);
 }
 
 .volumeHeadEnd {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1092,11 +1092,11 @@ button.cell:disabled {
 .workoutRow {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   height: var(--cell-h);
-  padding: 0 var(--tf-space-1) 0 var(--tf-space-1);
+  padding: 0 var(--ui-space-1) 0 var(--ui-space-1);
   background: rgb(121 168 255 / 0.07);
-  box-shadow: inset 2px 0 0 var(--tf-color-info);
+  box-shadow: inset 2px 0 0 var(--ui-color-info);
   transition: background-color 120ms ease;
 }
 
@@ -1108,7 +1108,7 @@ button.cell:disabled {
 
 .workoutRow .toggle:hover {
   background: rgb(121 168 255 / 0.18);
-  color: var(--tf-color-info);
+  color: var(--ui-color-info);
 }
 
 .dayChip {
@@ -1116,13 +1116,13 @@ button.cell:disabled {
   align-items: center;
   gap: 5px;
   height: 1.375rem;
-  padding: 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-2);
   border: 1px solid rgb(121 168 255 / 0.3);
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: transparent;
-  color: var(--tf-color-info);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-info);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-medium);
   cursor: pointer;
   transition:
     background-color 120ms ease,
@@ -1145,29 +1145,29 @@ button.cell:disabled {
 
 .workoutRow .menu:hover {
   background: rgb(121 168 255 / 0.18);
-  color: var(--tf-color-info);
+  color: var(--ui-color-info);
 }
 
 /* The workout a menu acts on gets a light frame around its heading and rows. */
 .workoutFrame {
   z-index: 3;
   border: 1px solid rgb(121 168 255 / 0.65);
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   box-shadow: 0 0 0 3px rgb(121 168 255 / 0.12);
   pointer-events: none;
 }
 
 /* "+ Exercise" lives inside a workout: one cell, quiet, indented. */
 .addExercise {
-  padding-left: var(--tf-space-4);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  padding-left: var(--ui-space-4);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
   cursor: pointer;
 }
 
 .addExercise:hover {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .addExercise svg,
@@ -1181,9 +1181,9 @@ button.cell:disabled {
   margin: 3px;
   height: calc(var(--cell-h) - 6px);
   border: 1px dashed rgb(121 168 255 / 0.45);
-  border-radius: var(--tf-radius-sm);
-  color: var(--tf-color-info);
-  font-weight: var(--tf-weight-medium);
+  border-radius: var(--ui-radius-sm);
+  color: var(--ui-color-info);
+  font-weight: var(--ui-weight-medium);
   cursor: pointer;
 }
 
@@ -1203,8 +1203,8 @@ button.cell:disabled {
 }
 
 .exerciseEdit .cellInput[aria-invalid] {
-  background: var(--tf-color-danger-soft);
-  color: var(--tf-color-danger);
+  background: var(--ui-color-danger-soft);
+  color: var(--ui-color-danger);
 }
 
 .suggest {
@@ -1217,14 +1217,14 @@ button.cell:disabled {
   max-width: 22rem;
   max-height: 14rem;
   margin: 0;
-  padding: var(--tf-space-1);
+  padding: var(--ui-space-1);
   overflow-y: auto;
   list-style: none;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  box-shadow: var(--tf-shadow-md);
-  animation: menu-in 120ms var(--tf-ease-out);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  box-shadow: var(--ui-shadow-md);
+  animation: menu-in 120ms var(--ui-ease-out);
 }
 
 /* Names read as text you can grab; double-click turns them into an input. */
@@ -1243,17 +1243,17 @@ span.headName {
 }
 
 .nameEditing {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-field);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-field);
   cursor: text;
 }
 
 /* Volume: one small table per workout, then the cycle total; no sideways scrolling. */
 .volumeGroup {
-  margin-top: var(--tf-space-2);
-  padding: var(--tf-space-2) var(--tf-space-3) var(--tf-space-1);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
+  margin-top: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-1);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
 }
 
 .volumeGroupTotal {
@@ -1263,14 +1263,14 @@ span.headName {
 .volumeGroupTitle {
   display: flex;
   justify-content: space-between;
-  margin-bottom: var(--tf-space-1);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  margin-bottom: var(--ui-space-1);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .volumeGroupTitle span {
-  color: var(--tf-color-info);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-info);
+  font-weight: var(--ui-weight-regular);
 }
 
 .volumeTable {
@@ -1292,7 +1292,7 @@ span.headName {
 }
 
 span[data-rename] {
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
   cursor: text;
   transition: background-color 120ms ease;
 }
@@ -1330,7 +1330,7 @@ span[data-rename]:hover {
 
 .edgeCurrent {
   fill: none;
-  stroke: var(--tf-color-accent);
+  stroke: var(--ui-color-accent);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-dasharray: 2 14;
@@ -1359,11 +1359,11 @@ span[data-rename]:hover {
 }
 
 .edgeGroup[data-live] .plug {
-  fill: var(--tf-color-accent);
+  fill: var(--ui-color-accent);
 }
 
 .edgeDraft {
-  stroke: var(--tf-color-accent);
+  stroke: var(--ui-color-accent);
   stroke-width: 1.5;
   stroke-dasharray: 2 6;
   stroke-linecap: round;
@@ -1389,7 +1389,7 @@ span[data-rename]:hover {
       rgb(255 255 255 / 0.45) 1px,
       transparent 1.5px
     ),
-    var(--tf-color-bg-sunken);
+    var(--ui-color-bg-sunken);
   transition:
     border-color 160ms ease,
     transform 120ms ease;
@@ -1397,7 +1397,7 @@ span[data-rename]:hover {
 
 .handle:hover:not([data-readonly]),
 .card:hover > .handle {
-  border-color: var(--tf-color-accent);
+  border-color: var(--ui-color-accent);
 }
 
 .handle:hover:not([data-readonly]) {
@@ -1420,7 +1420,7 @@ span[data-rename]:hover {
 
 /* Time and rest while editing: fixed hh:mm:ss parts that jump forward as you type. */
 .clockEdit {
-  padding: 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-2);
 }
 
 /* Exercise suggestions: the name and the muscles it works (the search matches both). */
@@ -1437,8 +1437,8 @@ span[data-rename]:hover {
 
 .suggestMeta {
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1452,8 +1452,8 @@ span[data-rename]:hover {
 }
 
 .menu:hover {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 /* Expanded cycle: a full bluish frame; the border sits just outside the cells so nothing covers it. */
@@ -1487,14 +1487,14 @@ span[data-rename]:hover {
 /* Floating toolbar over the sheet: dark glass. */
 .tools {
   position: absolute;
-  bottom: var(--tf-space-3);
-  left: calc(var(--tf-space-3) + 24px);
+  bottom: var(--ui-space-3);
+  left: calc(var(--ui-space-3) + 24px);
   z-index: 5;
   height: 2.5rem;
   max-width: calc(100% - 15rem);
-  padding: 0 var(--tf-space-1-5);
+  padding: 0 var(--ui-space-1-5);
   border: 1px solid rgb(255 255 255 / 0.09);
-  border-radius: var(--tf-radius-lg);
+  border-radius: var(--ui-radius-lg);
   border-bottom-width: 1px;
   background: rgb(12 12 12 / 0.72);
   box-shadow: 0 8px 24px -12px rgb(0 0 0 / 0.7);
@@ -1517,7 +1517,7 @@ span[data-rename]:hover {
 .tiles {
   display: grid;
   gap: 3px;
-  margin-top: var(--tf-space-1);
+  margin-top: var(--ui-space-1);
 }
 
 .tile {
@@ -1527,25 +1527,25 @@ span[data-rename]:hover {
   height: 24px;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   font: inherit;
 }
 
 .tile[data-kind="workout"] {
   border-color: rgb(121 168 255 / 0.32);
   background: rgb(121 168 255 / 0.14);
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .tile[data-kind="rest"] {
-  border-color: var(--tf-color-border-subtle);
+  border-color: var(--ui-color-border-subtle);
   background: rgb(255 255 255 / 0.02);
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
 }
 
 button.tile[data-kind="rest"]:hover {
-  border-color: var(--tf-color-border-strong);
-  color: var(--tf-color-text-secondary);
+  border-color: var(--ui-color-border-strong);
+  color: var(--ui-color-text-secondary);
 }
 
 .tile svg {
@@ -1560,7 +1560,7 @@ button.tile[data-kind="rest"]:hover {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--tf-color-warning);
+  background: var(--ui-color-warning);
 }
 
 .legend {
@@ -1574,24 +1574,24 @@ button.tile[data-kind="rest"]:hover {
 .legend li {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   height: 18px;
   min-width: 0;
-  font-size: var(--tf-text-2xs);
+  font-size: var(--ui-text-2xs);
 }
 
 .legendName {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .legendDay {
   flex: none;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 /* Duration input: fixed hh:mm:ss / mm:ss parts. */
@@ -1609,13 +1609,13 @@ button.tile[data-kind="rest"]:hover {
 
 .durationSep {
   padding: 0 1px;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .durationSegment {
   padding: 1px 2px;
   border-radius: 3px;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   outline: none;
   cursor: default;
 }
@@ -1627,7 +1627,7 @@ button.tile[data-kind="rest"]:hover {
 /* Volume: variant switch and five narrow numeric columns. */
 .volumeContent {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .volumeBy {
@@ -1639,15 +1639,15 @@ button.tile[data-kind="rest"]:hover {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-2) var(--tf-space-3);
-  margin-bottom: var(--tf-space-1);
+  gap: var(--ui-space-2) var(--ui-space-3);
+  margin-bottom: var(--ui-space-1);
 }
 
 .heatControls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .heatSection {
@@ -1658,26 +1658,26 @@ button.tile[data-kind="rest"]:hover {
 .volumeTable th:not(:first-child),
 .volumeTable td {
   width: 3.25rem;
-  padding-left: var(--tf-space-1);
-  padding-right: var(--tf-space-1);
+  padding-left: var(--ui-space-1);
+  padding-right: var(--ui-space-1);
 }
 
 .volumeHard {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 
 .volumeKg {
-  color: var(--tf-color-info);
+  color: var(--ui-color-info);
 }
 
 .volumeInol {
-  color: var(--tf-color-violet, #a78bfa);
+  color: var(--ui-color-violet, #a78bfa);
 }
 
 /* Range switch: kind of range, then which one with arrows either side. */
 .volumeRange {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .volumeScopes {
@@ -1691,7 +1691,7 @@ button.tile[data-kind="rest"]:hover {
 .volumePicker {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   min-width: 0;
 }
 
@@ -1702,14 +1702,14 @@ button.tile[data-kind="rest"]:hover {
 
 .volumeTable tfoot th,
 .volumeTable tfoot td {
-  border-top: 1px solid var(--tf-color-border);
+  border-top: 1px solid var(--ui-color-border);
   border-bottom: 0;
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .volumeCycle {
-  animation: volume-in 220ms var(--tf-ease-out, ease-out);
+  animation: volume-in 220ms var(--ui-ease-out, ease-out);
 }
 
 @keyframes volume-in {
@@ -1740,9 +1740,9 @@ button.tile[data-kind="rest"]:hover {
   grid-column: 1 / span 2;
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   min-width: 0;
-  padding-left: var(--tf-space-1);
+  padding-left: var(--ui-space-1);
 }
 
 .workoutMain .workoutName {
@@ -1755,7 +1755,7 @@ button.tile[data-kind="rest"]:hover {
   justify-self: start;
   justify-content: flex-start;
   height: 100%;
-  padding: 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-2);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1768,28 +1768,28 @@ button.tile[data-kind="rest"]:hover {
 .workoutRow > .menu {
   grid-column: -2;
   justify-self: end;
-  margin-right: var(--tf-space-1);
+  margin-right: var(--ui-space-1);
 }
 
 /* Cycle heading: name group, then the length; on an expanded cycle they sit on cell boundaries. */
 .headMain {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   min-width: 0;
 }
 
 .card[data-expanded] .cardHead {
   display: grid;
   grid-template-columns:
-    calc(var(--cell-w) * 2 - var(--tf-space-2)) var(--cell-w)
+    calc(var(--cell-w) * 2 - var(--ui-space-2)) var(--cell-w)
     minmax(0, 1fr) auto;
   gap: 0;
-  padding: 0 var(--tf-space-1) 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-1) 0 var(--ui-space-2);
 }
 
 .card[data-expanded] .cardHead .kind {
-  padding-left: var(--tf-space-2);
+  padding-left: var(--ui-space-2);
 }
 
 .card[data-expanded] .cardHead > :last-child {
@@ -1798,12 +1798,12 @@ button.tile[data-kind="rest"]:hover {
 
 /* Folded cycle tiles: just the day number; training days are blue and open the cycle. */
 .tile {
-  font-size: var(--tf-text-2xs);
+  font-size: var(--ui-text-2xs);
   font-variant-numeric: tabular-nums;
 }
 
 .tile[data-kind="workout"] {
-  font-weight: var(--tf-weight-medium);
+  font-weight: var(--ui-weight-medium);
 }
 
 button.tile[data-kind="workout"]:hover {
@@ -1812,7 +1812,7 @@ button.tile[data-kind="workout"]:hover {
 }
 
 .tile[data-kind="rest"] {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .legendDot {
@@ -1821,7 +1821,7 @@ button.tile[data-kind="workout"]:hover {
   height: 7px;
   margin: 0 3px;
   border-radius: 2px;
-  background: var(--tf-color-info);
+  background: var(--ui-color-info);
 }
 
 /* Area selection */
@@ -1835,10 +1835,10 @@ button.tile[data-kind="workout"]:hover {
 }
 
 .card[data-selected] {
-  border-color: var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent-border);
   box-shadow:
     0 0 0 2px rgb(62 224 154 / 0.22),
-    var(--tf-shadow-sm);
+    var(--ui-shadow-sm);
 }
 
 /* Toolbar: a full-width dark glass bar on top; the sheet scrolls underneath it. */
@@ -1849,9 +1849,9 @@ button.tile[data-kind="workout"]:hover {
   left: 0;
   height: 2.75rem;
   max-width: none;
-  padding: 0 var(--tf-space-3);
+  padding: 0 var(--ui-space-3);
   border: 0;
-  border-bottom: 1px solid var(--tf-color-border);
+  border-bottom: 1px solid var(--ui-color-border);
   border-radius: 0;
   background: rgb(20 20 20 / 0.82);
   box-shadow: 0 6px 18px -12px rgb(0 0 0 / 0.8);
@@ -1895,7 +1895,7 @@ button.tile[data-kind="workout"]:hover {
 /* New content settles in: the folded calendar, the expanded cells, rows of a reopened workout. */
 .tiles,
 .legend {
-  animation: settle-in 240ms var(--tf-ease-out) both;
+  animation: settle-in 240ms var(--ui-ease-out) both;
 }
 
 .legend {
@@ -1904,7 +1904,7 @@ button.tile[data-kind="workout"]:hover {
 
 .cells2 [data-enter] > *,
 .cells2 > [data-enter] {
-  animation: settle-in 220ms var(--tf-ease-out) both;
+  animation: settle-in 220ms var(--ui-ease-out) both;
 }
 
 @keyframes settle-in {
@@ -1966,7 +1966,7 @@ button.tile[data-kind="workout"]:hover {
 
 .toggle svg {
   flex: none;
-  transition: transform 200ms var(--tf-ease-out);
+  transition: transform 200ms var(--ui-ease-out);
 }
 
 .toggle svg[data-open] {
@@ -1985,7 +1985,7 @@ button.tile[data-kind="workout"]:hover {
     flex-wrap: wrap;
     height: auto;
     min-height: 44px;
-    padding-block: var(--tf-space-2);
+    padding-block: var(--ui-space-2);
   }
   .tools > button {
     min-width: 44px;
@@ -2028,8 +2028,8 @@ button.tile[data-kind="workout"]:hover {
 
 .columnResize:hover,
 .columnResize:focus-visible {
-  background: var(--tf-color-border-strong);
-  outline: 1px solid var(--tf-color-text-primary);
+  background: var(--ui-color-border-strong);
+  outline: 1px solid var(--ui-color-text-primary);
 }
 
 .columnLines {
@@ -2051,8 +2051,8 @@ button.tile[data-kind="workout"]:hover {
 }
 
 .card[data-link-target] {
-  border-color: var(--tf-color-accent);
-  box-shadow: 0 0 0 2px var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent);
+  box-shadow: 0 0 0 2px var(--ui-color-accent-border);
 }
 
 .sheet .cellInput {
@@ -2061,7 +2061,7 @@ button.tile[data-kind="workout"]:hover {
 }
 .sheet .cellInput[aria-invalid],
 .sheet .exerciseEdit .cellInput[aria-invalid] {
-  background: color-mix(in srgb, var(--tf-color-danger) 9%, transparent);
+  background: color-mix(in srgb, var(--ui-color-danger) 9%, transparent);
   box-shadow: none;
   color: inherit;
 }
@@ -2075,7 +2075,7 @@ button.tile[data-kind="workout"]:hover {
     top, min-height, box-shadow, border-color, background-color;
 }
 .sheet button[aria-invalid="true"] {
-  background: color-mix(in srgb, var(--tf-color-danger) 9%, transparent);
+  background: color-mix(in srgb, var(--ui-color-danger) 9%, transparent);
 }
 
 .colHead {
@@ -2102,7 +2102,7 @@ button.tile[data-kind="workout"]:hover {
 }
 
 .plugGroup[data-plug-grab]:hover .plug {
-  fill: var(--tf-color-accent);
+  fill: var(--ui-color-accent);
 }
 
 /* The cable being moved stays mounted (it holds the pointer) but is hidden behind the draft cable. */
@@ -2129,7 +2129,7 @@ button.tile[data-kind="workout"]:hover {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -2143,9 +2143,9 @@ button.tile[data-kind="workout"]:hover {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin-left: auto;
-  padding-left: var(--tf-space-2);
+  padding-left: var(--ui-space-2);
 }
 
 .dragModeItem {
@@ -2161,21 +2161,21 @@ button.tile[data-kind="workout"]:hover {
 
 /* "+" tile at the end of a cycle's days: adds one. */
 .tile[data-kind="add"] {
-  border: 1px dashed var(--tf-color-border);
+  border: 1px dashed var(--ui-color-border);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   cursor: pointer;
 }
 
 .tile[data-kind="add"]:hover {
-  border-color: var(--tf-color-border-strong);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-border-strong);
+  color: var(--ui-color-text);
 }
 
 /* A folded workout is only its header: one cell high, a cycle card wide. */
 .card[data-kind="workout"][data-collapsed] .cardHead {
   grid-template-columns: minmax(0, 1fr) auto auto auto;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   border-bottom: 0;
 }
 
@@ -2195,14 +2195,14 @@ button.tile[data-kind="workout"]:hover {
 
 /* Cycle card: the name beside its chip, one quiet line of facts, compact day strip and the workouts by day. */
 .card[data-kind="cycle"] {
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .cycleName {
   min-width: 0;
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2211,35 +2211,35 @@ button.tile[data-kind="workout"]:hover {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px var(--tf-space-2);
-  padding: 0 var(--tf-space-1);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  gap: 2px var(--ui-space-2);
+  padding: 0 var(--ui-space-1);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
 }
 
 .cycleMeta > span + span::before {
   content: "·";
-  margin-right: var(--tf-space-2);
-  color: var(--tf-color-text-disabled);
+  margin-right: var(--ui-space-2);
+  color: var(--ui-color-text-disabled);
 }
 
 .cycleRuns {
-  color: var(--tf-color-info);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-info);
+  font-weight: var(--ui-weight-medium);
 }
 
 .card[data-kind="cycle"] .tiles {
   gap: 2px;
   margin-top: 0;
   padding: 3px;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
   background: rgb(0 0 0 / 0.15);
 }
 
 .card[data-kind="cycle"] .tile {
   height: 22px;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
 }
 
 .card[data-kind="cycle"] .tile[data-kind="rest"] {
@@ -2249,9 +2249,9 @@ button.tile[data-kind="workout"]:hover {
 
 .card[data-kind="cycle"] .tile[data-kind="workout"] {
   border-color: transparent;
-  background: var(--tf-color-info);
-  color: var(--tf-color-bg);
-  font-weight: var(--tf-weight-semibold);
+  background: var(--ui-color-info);
+  color: var(--ui-color-bg);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .card[data-kind="cycle"] .legend {
@@ -2260,7 +2260,7 @@ button.tile[data-kind="workout"]:hover {
 }
 
 .card[data-kind="cycle"] .legend li {
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   height: 18px;
 }
 
@@ -2270,12 +2270,12 @@ button.tile[data-kind="workout"]:hover {
   min-width: 1.25rem;
   height: 1rem;
   padding: 0 3px;
-  border-radius: var(--tf-radius-xs);
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
-  font-size: var(--tf-text-2xs);
+  border-radius: var(--ui-radius-xs);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
+  font-size: var(--ui-text-2xs);
   font-variant-numeric: tabular-nums;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .card[data-kind="cycle"][data-collapsed] .cycleMeta {
@@ -2287,13 +2287,13 @@ button.tile[data-kind="workout"]:hover {
 /* Exercise suggestions while they load: a thin bar running across the top of the list. */
 .suggestLoading {
   position: sticky;
-  top: calc(-1 * var(--tf-space-1));
+  top: calc(-1 * var(--ui-space-1));
   z-index: 1;
   height: 2px;
-  margin: calc(-1 * var(--tf-space-1)) calc(-1 * var(--tf-space-1))
-    var(--tf-space-1);
+  margin: calc(-1 * var(--ui-space-1)) calc(-1 * var(--ui-space-1))
+    var(--ui-space-1);
   overflow: hidden;
-  background: var(--tf-color-accent-soft);
+  background: var(--ui-color-accent-soft);
 }
 
 .suggestLoading > span {
@@ -2301,8 +2301,8 @@ button.tile[data-kind="workout"]:hover {
   width: 40%;
   height: 100%;
   border-radius: 2px;
-  background: var(--tf-color-accent);
-  animation: suggest-loading 1s var(--tf-ease-out, ease-in-out) infinite;
+  background: var(--ui-color-accent);
+  animation: suggest-loading 1s var(--ui-ease-out, ease-in-out) infinite;
 }
 
 @keyframes suggest-loading {
@@ -2353,12 +2353,12 @@ button.tile[data-kind="workout"]:hover {
   margin-left: auto;
   padding: 0 6px 0 4px;
   border: 1px solid rgb(242 169 59 / 0.45);
-  border-radius: var(--tf-radius-full);
-  background: color-mix(in srgb, var(--tf-color-warning) 14%, transparent);
-  color: var(--tf-color-warning);
+  border-radius: var(--ui-radius-full);
+  background: color-mix(in srgb, var(--ui-color-warning) 14%, transparent);
+  color: var(--ui-color-warning);
   font: inherit;
   font-size: 0.625rem;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: help;
@@ -2371,7 +2371,7 @@ button.tile[data-kind="workout"]:hover {
 }
 
 .notConnected[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
@@ -2423,9 +2423,9 @@ button.tile[data-kind="workout"]:hover {
 /* "Minimised" on a block: a quiet tag after its counts. */
 .blockFolded {
   padding: 0 5px;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text-tertiary);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-tertiary);
 }
 
 .card[data-kind="block"] .cardHead .toggle {
@@ -2448,7 +2448,7 @@ button.tile[data-kind="workout"]:hover {
    cables running underneath don't show through them. */
 .sheet .card[data-expanded],
 .sheet .card[data-kind="maxes"]:not([data-collapsed]) {
-  background-color: var(--tf-color-bg-sunken);
+  background-color: var(--ui-color-bg-sunken);
   background-image: linear-gradient(
     to bottom,
     rgb(255 255 255 / 0.045) 1px,
@@ -2471,15 +2471,15 @@ button.tile[data-kind="workout"]:hover {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .reveal {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .reveal svg {

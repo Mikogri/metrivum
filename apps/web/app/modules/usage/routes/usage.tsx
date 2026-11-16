@@ -7,7 +7,7 @@ import {
   LinkButton,
   PageHeader,
   Skeleton,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   QuotaContextField,
   isCap,

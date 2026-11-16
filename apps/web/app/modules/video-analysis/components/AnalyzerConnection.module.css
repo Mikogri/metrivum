@@ -8,31 +8,31 @@
 .status {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2)
-    var(--tf-space-3);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-2)
+    var(--ui-space-3);
 }
 
 .panel[data-tone] {
-  --dot: var(--tf-color-text-tertiary);
+  --dot: var(--ui-color-text-tertiary);
 }
 
 .panel[data-tone="ok"] {
-  --dot: var(--tf-color-success);
+  --dot: var(--ui-color-success);
 }
 .panel[data-tone="warning"] {
-  --dot: var(--tf-color-warning);
+  --dot: var(--ui-color-warning);
 }
 .panel[data-tone="danger"] {
-  --dot: var(--tf-color-danger);
+  --dot: var(--ui-color-danger);
 }
 
 /* A plain status dot in the state's colour. */
 .dot {
   flex: none;
-  width: var(--tf-space-2);
-  height: var(--tf-space-2);
-  border-radius: var(--tf-radius-full);
+  width: var(--ui-space-2);
+  height: var(--ui-space-2);
+  border-radius: var(--ui-radius-full);
   background: var(--dot);
 }
 
@@ -45,27 +45,27 @@
 
 .statusText strong {
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .statusText span {
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .note {
   display: flex;
-  gap: var(--tf-space-1-5);
-  margin: 0 var(--tf-space-3) var(--tf-space-2);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  gap: var(--ui-space-1-5);
+  margin: 0 var(--ui-space-3) var(--ui-space-2);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 .note svg {
@@ -76,10 +76,10 @@
 }
 
 .note[data-tone="warning"] svg {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 .note[data-tone="danger"] svg {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 .note code {
@@ -92,31 +92,31 @@
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  gap: var(--tf-space-1-5);
-  padding: 0 var(--tf-space-3) var(--tf-space-3);
+  gap: var(--ui-space-1-5);
+  padding: 0 var(--ui-space-3) var(--ui-space-3);
 }
 
 .more {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .moreBody {
-  padding: 0 var(--tf-space-3) var(--tf-space-3);
+  padding: 0 var(--ui-space-3) var(--ui-space-3);
 }
 
 /* Two short numbered steps, plain text. */
 .steps {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   margin: 0;
-  padding: 0 var(--tf-space-3) var(--tf-space-3)
-    calc(var(--tf-space-3) + var(--tf-space-4));
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  padding: 0 var(--ui-space-3) var(--ui-space-3)
+    calc(var(--ui-space-3) + var(--ui-space-4));
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 .steps strong {
-  color: var(--tf-color-text-secondary);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text-secondary);
+  font-weight: var(--ui-weight-semibold);
 }

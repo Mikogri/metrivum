@@ -2,17 +2,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-12) var(--tf-space-4);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-12) var(--ui-space-4);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
   /* A short wait then a soft fade and rise, so quick loads do not blink and slow ones ease in. */
-  animation: loading-in 280ms var(--tf-ease-out) 100ms backwards;
+  animation: loading-in 280ms var(--ui-ease-out) 100ms backwards;
 }
 
 .sm {
-  padding: var(--tf-space-6) var(--tf-space-3);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-6) var(--ui-space-3);
+  font-size: var(--ui-text-xs);
 }
 
 /* A slightly heavier stroke than the inline spinner, so it holds an empty area. */

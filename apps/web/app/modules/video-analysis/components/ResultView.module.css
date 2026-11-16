@@ -1,46 +1,46 @@
 .result {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .engine {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .warnings {
   margin: 0;
-  padding-left: var(--tf-space-4);
+  padding-left: var(--ui-space-4);
 }
 
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   align-items: start;
 }
 
 .stack {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .note {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .subTitle {
-  margin-bottom: var(--tf-space-2);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  margin-bottom: var(--ui-space-2);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 @media (max-width: 64rem) {
@@ -52,15 +52,15 @@
 /* Repetitions: a quiet table, numbers aligned right, the rep under the video cursor marked on the left. */
 .metrics {
   overflow-x: auto;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
 }
 
 .metrics table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   font-variant-numeric: tabular-nums;
   text-align: left;
 }
@@ -68,22 +68,22 @@
 .metrics th,
 .metrics td {
   height: 2.25rem;
-  padding: 0 var(--tf-space-3);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  padding: 0 var(--ui-space-3);
+  border-top: 1px solid var(--ui-color-border-subtle);
   white-space: nowrap;
 }
 
 .metrics thead th {
   height: 2rem;
   border-top: 0;
-  background: var(--tf-color-bg-sunken);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  background: var(--ui-color-bg-sunken);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .metrics tbody th {
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .metrics .num {
@@ -91,7 +91,7 @@
 }
 
 .metrics td[data-empty] {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .metrics .pick {
@@ -114,7 +114,7 @@
 }
 
 .repJump:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -123,7 +123,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .pickers > * {
@@ -134,27 +134,27 @@
 .phaseStats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
 }
 
 .phaseStats div {
   display: grid;
   gap: 2px;
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
 }
 
 .phaseStats dt {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .phaseStats dd {
   margin: 0;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
@@ -168,7 +168,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .detail[data-portrait] {
@@ -184,13 +184,13 @@
 
 .sheetSection {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-width: 0;
-  padding: var(--tf-space-4);
+  padding: var(--ui-space-4);
 }
 
 .sheetSection + .sheetSection {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .sheetSection .pickers {
@@ -201,7 +201,7 @@
 .sheetPath {
   grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr);
   align-items: start;
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
 }
 
 .sheetAside {
@@ -218,7 +218,7 @@
 /* Portrait: the frame stays in view while the analysis scrolls beside it. */
 .detail[data-portrait] .videoCol {
   position: sticky;
-  top: var(--tf-space-3);
+  top: var(--ui-space-3);
 }
 
 /* Hiding or showing the video animates with a view transition: the player and the sheet move as their own layers.
@@ -233,8 +233,8 @@
 
 :global(::view-transition-group(analysis-player)),
 :global(::view-transition-group(analysis-sheet)) {
-  animation-duration: var(--tf-duration-base);
-  animation-timing-function: var(--tf-ease-out);
+  animation-duration: var(--ui-duration-base);
+  animation-timing-function: var(--ui-ease-out);
 }
 
 :global(::view-transition-old(analysis-player)),
@@ -275,25 +275,25 @@
 
 /* One quiet line: calibration and quality, then a warning icon whose tooltip lists the details. */
 .metaItem {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
 }
 
 .metaItem b {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .metaItem + .metaItem::before {
   content: "·";
-  margin-right: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
+  margin-right: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
 }
 
 .metaIcons {
   display: inline-flex;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin-left: auto;
 }
 
@@ -303,13 +303,13 @@
   align-items: center;
   gap: 4px;
   height: 1.75rem;
-  padding: 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-2);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   cursor: default;
   outline: none;
 }
@@ -318,9 +318,9 @@
   justify-content: center;
   width: 1.75rem;
   padding: 0;
-  border-color: color-mix(in srgb, var(--tf-color-warning) 35%, transparent);
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  border-color: color-mix(in srgb, var(--ui-color-warning) 35%, transparent);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
   cursor: default;
 }
 
@@ -332,18 +332,18 @@
 
 .infoIcon[data-hovered],
 .infoIcon[data-focus-visible] {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .caution[data-focus-visible],
 .infoIcon[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
 .cautionTip {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   max-width: 22rem;
 }
 
@@ -351,7 +351,7 @@
   display: grid;
   gap: 2px;
   margin: 0;
-  padding-left: var(--tf-space-4);
+  padding-left: var(--ui-space-4);
 }
 
 /* The overlay covers the player's video box; "meet" scaling letterboxes it exactly like the video. */
@@ -411,21 +411,21 @@
 .phaseFilter {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .phaseChip {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   height: 1.75rem;
-  padding: 0 var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
+  padding: 0 var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   cursor: pointer;
   outline: none;
   transition:
@@ -435,24 +435,24 @@
 }
 
 .phaseChip[data-selected] {
-  border-color: var(--tf-color-border-strong);
-  background: var(--tf-color-surface-selected);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-border-strong);
+  background: var(--ui-color-surface-selected);
+  color: var(--ui-color-text);
 }
 
 .phaseChip[data-hovered] {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .phaseChip[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
 .phaseSwatch {
   width: 0.625rem;
   height: 0.625rem;
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: var(--phase-none);
   opacity: 0.35;
 }
@@ -478,12 +478,12 @@
 }
 
 .metrics tbody tr:hover {
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 .metrics tbody tr[data-current] {
-  background: var(--tf-color-surface-selected);
-  box-shadow: inset 2px 0 0 var(--tf-color-text);
+  background: var(--ui-color-surface-selected);
+  box-shadow: inset 2px 0 0 var(--ui-color-text);
 }
 
 /* Unticked reps stay listed (to tick them again) but step back. */
@@ -497,7 +497,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   width: 100%;
 }
 
@@ -506,17 +506,17 @@
   max-width: 5rem;
   height: 4px;
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
 }
 
 .speedBar > span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--tf-color-text-secondary);
+  background: var(--ui-color-text-secondary);
 }
 
 .metrics tbody tr[data-current] .speedBar > span {
-  background: var(--tf-color-text);
+  background: var(--ui-color-text);
 }

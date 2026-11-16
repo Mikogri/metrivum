@@ -2,7 +2,7 @@ import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { MessageCircle } from "lucide-react";
-import { Button } from "@metrivum/ui-web";
+import { Button } from "@portable-ui/react";
 import type { Schema } from "@metrivum/api-client-web";
 import { useAccountContext } from "~/shared/session";
 import { useFeatureAccess } from "~/shared/access";

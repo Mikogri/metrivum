@@ -4,10 +4,10 @@
   place-items: center;
   width: 3rem;
   height: 3rem;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text);
 }
 
 .icon svg {
@@ -19,24 +19,24 @@
 .waiting {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 .hint {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .codeForm {
-  padding-top: var(--tf-space-4);
-  border-top: 1px solid var(--tf-color-border-subtle);
-  animation: code-in 200ms var(--tf-ease-out);
+  padding-top: var(--ui-space-4);
+  border-top: 1px solid var(--ui-color-border-subtle);
+  animation: code-in 200ms var(--ui-ease-out);
 }
 
 @keyframes code-in {

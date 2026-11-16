@@ -9,7 +9,7 @@ import type {
 } from "@metrivum/api-client-web";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { ExerciseTools } from "./ExerciseTools";
-import { ContextMenu } from "@metrivum/ui-web";
+import { ContextMenu } from "@portable-ui/react";
 import {
   rememberPickedExercise,
   useDictionaryLabel,

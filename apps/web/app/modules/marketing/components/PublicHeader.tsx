@@ -8,7 +8,7 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 import { Link as RouterLink, NavLink, useLocation } from "react-router";
-import { Button, IconButton, LinkButton } from "@metrivum/ui-web";
+import { Button, IconButton, LinkButton } from "@portable-ui/react";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { pageFromPathname, publicPath } from "~/shared/i18n/public-routes";
 import { usePublicMessages } from "../messages";

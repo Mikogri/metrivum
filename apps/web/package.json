@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "react-router dev",
     "anatomy:prepare": "python ../../infra/anatomy/prepare.py",
-    "prebuild": "node scripts/prepare-build.mjs",
+    "prebuild": "npm run build --workspace @portable-ui/react && node scripts/prepare-build.mjs",
     "build": "react-router build",
     "preview": "node scripts/serve.mjs",
     "typecheck": "react-router typegen && tsc -p tsconfig.json --noEmit",
     "e2e": "playwright test",
-    "e2e:coaching": "playwright test --config playwright.coaching.config.ts"
+    "e2e:coaching": "playwright test --config playwright.coaching.config.ts",
+    "predev": "npm run build --workspace @portable-ui/react"
   },
   "dependencies": {
     "@internationalized/date": "3.12.4",
@@ -20,7 +21,7 @@
     "@supabase/supabase-js": "2.117.2",
     "@tanstack/react-query": "5.104.1",
     "@metrivum/api-client-web": "0.1.0",
-    "@metrivum/ui-web": "0.1.0",
+    "@portable-ui/react": "0.1.0",
     "isbot": "^5",
     "lucide-react": "1.52.0",
     "react": "19.3.0",
@@ -28,7 +29,10 @@
     "react-dom": "19.3.0",
     "react-router": "8.4.0",
     "three": "0.186.1",
-    "uplot": "1.6.32"
+    "uplot": "1.6.32",
+    "@fontsource-variable/saira": "5.3.0",
+    "@fontsource-variable/orbitron": "5.3.0",
+    "@fontsource-variable/source-code-pro": "5.3.0"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

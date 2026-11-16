@@ -1,20 +1,20 @@
 .form {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .footer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .working {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .error {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }

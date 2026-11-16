@@ -1,4 +1,4 @@
-import { LinkButton } from "@metrivum/ui-web";
+import { LinkButton } from "@portable-ui/react";
 import { usePublicMessages } from "../messages";
 import { usePublicSession } from "../usePublicSession";
 import { RevealHeading } from "./RevealHeading";

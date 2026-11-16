@@ -11,7 +11,7 @@ import {
   Option,
   Select,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   useAccountContext,
   useAccountKey,

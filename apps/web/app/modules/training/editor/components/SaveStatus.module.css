@@ -6,13 +6,13 @@
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   min-width: 5.5rem;
-  height: var(--tf-control-sm);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  height: var(--ui-control-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   white-space: nowrap;
-  transition: color var(--tf-duration-base) ease;
+  transition: color var(--ui-duration-base) ease;
 }
 
 .icon {
@@ -33,26 +33,26 @@
 /* Calm when everything is stored, amber while changes wait, red when they need action. */
 .status[data-status="saved"],
 .status[data-status="clean"] {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .status[data-status="saved"] .icon,
 .status[data-status="clean"] .icon {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .status[data-status="dirty"],
 .status[data-status="offline"] {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 
 .status[data-status="saving"] {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .status[data-status="error"],
 .status[data-status="conflict"] {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 @keyframes spin {
@@ -68,7 +68,7 @@
 }
 
 .status[data-invalid] {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
   min-width: 12rem;
 }
 .status[data-invalid] .icon {
@@ -77,12 +77,12 @@
 
 .tooltip {
   max-width: 28rem;
-  padding: var(--tf-space-3);
+  padding: var(--ui-space-3);
 }
 .issues {
   text-align: left;
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -97,7 +97,7 @@
   cursor: default;
 }
 .trigger[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
 }

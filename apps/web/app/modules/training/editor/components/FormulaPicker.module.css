@@ -1,37 +1,37 @@
 .picker {
   display: grid;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-bg-sunken);
 }
 
 .version,
 .label {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .inputs {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .evaluate {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .result {
-  color: var(--tf-color-accent);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-accent);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .error {
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-xs);
 }

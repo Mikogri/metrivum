@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
-import { Badge, LinkButton, PageHeader } from "@metrivum/ui-web";
+import { Badge, LinkButton, PageHeader } from "@portable-ui/react";
 import { useCoachingQuery, Failure, Loading } from "~/modules/coaching";
 import { useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";

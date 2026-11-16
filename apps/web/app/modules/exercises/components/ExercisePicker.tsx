@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { useState } from "react";
 import { ListBox, ListBoxItem } from "react-aria-components";
 import type { ExerciseListItemDto } from "@metrivum/api-client-web";
-import { Dialog, SearchInput, Spinner } from "@metrivum/ui-web";
+import { Dialog, SearchInput, Spinner } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useDebounced } from "~/shared/lib/useDebounced";
 import { useExerciseList } from "../queries";

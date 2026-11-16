@@ -13,7 +13,7 @@ import {
   SegmentedControl,
   Select,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import styles from "./coaching.module.css";
 
 export type BillingOption = Schema<"BillingOptionSnapshot">;

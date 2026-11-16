@@ -1,7 +1,7 @@
 .section {
   display: grid;
-  gap: var(--tf-space-3);
-  margin-bottom: var(--tf-space-8);
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-8);
 }
 
 .sectionHead {
@@ -9,12 +9,12 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .sectionTitle {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .search {
@@ -24,121 +24,121 @@
 .builtIns {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .builtIn {
   display: grid;
   align-content: start;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   /* No delay or stagger: content shows the moment the page does. */
-  animation: rise 200ms var(--tf-ease-out) both;
+  animation: rise 200ms var(--ui-ease-out) both;
 }
 
 .builtInHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .builtInHead svg {
   width: 1rem;
   height: 1rem;
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .builtInHead h3 {
   flex: 1;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .expression {
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
-  font-family: var(--tf-font-mono);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-bg-sunken);
+  font-family: var(--ui-font-mono);
+  font-size: var(--ui-text-xs);
   overflow-wrap: anywhere;
 }
 
 .muted {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .try {
   display: grid;
-  gap: var(--tf-space-2);
-  padding-top: var(--tf-space-3);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-2);
+  padding-top: var(--ui-space-3);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .tryTitle {
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .tryInputs {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .tryRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .result {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 .result strong {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .error {
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-xs);
 }
 
 .rowIcon {
   width: 1rem;
   height: 1rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .form {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .inputs {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
 }
 
 .legend {
-  padding: 0 var(--tf-space-1);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  padding: 0 var(--ui-space-1);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .inputRow {
   display: grid;
   grid-template-columns: 1fr 9rem auto;
   align-items: end;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .narrow {
@@ -155,7 +155,7 @@
 .nameCell {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2-5);
+  gap: var(--ui-space-2-5);
   min-width: 0;
 }
 
@@ -166,7 +166,7 @@
   flex-shrink: 0;
   width: 1.5rem;
   height: 1.5rem;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
 }
 
 .tableIcon svg,
@@ -176,32 +176,32 @@
 }
 
 .tableIcon[data-tone="blue"] {
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 
 .tableIcon[data-tone="rose"] {
-  background: var(--tf-color-danger-soft);
-  color: var(--tf-color-danger);
+  background: var(--ui-color-danger-soft);
+  color: var(--ui-color-danger);
 }
 
 .formulaIcon {
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 
 .rowActions {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 /* Custom formula cards: compact, the expression is the content. */
 .formulaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -209,31 +209,31 @@
 .formulaCard {
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-2-5);
+  gap: var(--ui-space-2-5);
   min-width: 0;
-  padding: var(--tf-space-3) var(--tf-space-3) var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
-  transition: border-color var(--tf-duration-fast) ease;
+  padding: var(--ui-space-3) var(--ui-space-3) var(--ui-space-2);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
+  transition: border-color var(--ui-duration-fast) ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .formulaCard:hover {
-    border-color: var(--tf-color-border-strong);
+    border-color: var(--ui-color-border-strong);
   }
 }
 .formulaCardHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
 }
 .formulaCardHead h3 {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -246,35 +246,35 @@
 .inputChips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   min-height: 1.375rem;
 }
 .inputChip {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
-  padding: 1px var(--tf-space-2);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-text);
-  font-family: var(--tf-font-mono, monospace);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-1);
+  padding: 1px var(--ui-space-2);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-text);
+  font-family: var(--ui-font-mono, monospace);
+  font-size: var(--ui-text-xs);
 }
 .inputChip small {
-  color: var(--tf-color-text-tertiary);
-  font-family: var(--tf-font-sans);
+  color: var(--ui-color-text-tertiary);
+  font-family: var(--ui-font-sans);
   font-size: 0.625rem;
-  font-weight: var(--tf-weight-medium);
+  font-weight: var(--ui-weight-medium);
   letter-spacing: 0.02em;
   line-height: 1;
 }
 .formulaCardFoot {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin-top: auto;
-  padding-top: var(--tf-space-2);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  padding-top: var(--ui-space-2);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 .spacer {
   flex: 1;

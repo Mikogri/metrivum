@@ -5,49 +5,49 @@
 [data-public-theme="night"] {
   color-scheme: dark;
 
-  --tf-color-bg: #050505;
-  --tf-color-bg-sunken: #030303;
-  --tf-color-surface: #0d0d0d;
-  --tf-color-surface-raised: #141414;
-  --tf-color-surface-overlay: #1a1a1a;
-  --tf-color-field: rgb(255 255 255 / 0.04);
-  --tf-color-field-hover: rgb(255 255 255 / 0.07);
-  --tf-color-surface-hover: rgb(255 255 255 / 0.05);
-  --tf-color-surface-selected: rgb(255 255 255 / 0.08);
+  --ui-color-bg: #050505;
+  --ui-color-bg-sunken: #030303;
+  --ui-color-surface: #0d0d0d;
+  --ui-color-surface-raised: #141414;
+  --ui-color-surface-overlay: #1a1a1a;
+  --ui-color-field: rgb(255 255 255 / 0.04);
+  --ui-color-field-hover: rgb(255 255 255 / 0.07);
+  --ui-color-surface-hover: rgb(255 255 255 / 0.05);
+  --ui-color-surface-selected: rgb(255 255 255 / 0.08);
 
-  --tf-color-border-subtle: rgb(255 255 255 / 0.06);
-  --tf-color-border: rgb(255 255 255 / 0.1);
-  --tf-color-border-strong: rgb(255 255 255 / 0.18);
+  --ui-color-border-subtle: rgb(255 255 255 / 0.06);
+  --ui-color-border: rgb(255 255 255 / 0.1);
+  --ui-color-border-strong: rgb(255 255 255 / 0.18);
 
-  --tf-color-text: #ededec;
-  --tf-color-text-secondary: #8f8f8d;
-  --tf-color-text-tertiary: #626260;
+  --ui-color-text: #ededec;
+  --ui-color-text-secondary: #8f8f8d;
+  --ui-color-text-tertiary: #626260;
 
   /* The main action: dark green glass with a light green edge. */
-  --tf-color-primary: #16301f;
-  --tf-color-primary-hover: #1c3c28;
-  --tf-color-primary-border: rgb(110 231 160 / 0.38);
-  --tf-color-primary-border-hover: rgb(110 231 160 / 0.55);
-  --tf-color-on-primary: #d6f5e2;
-  --tf-color-accent: #6ee7a0;
-  --tf-color-accent-strong: #a7f3c9;
-  --tf-color-accent-soft: rgb(110 231 160 / 0.1);
-  --tf-color-accent-border: rgb(110 231 160 / 0.3);
-  --tf-color-focus-ring: #d4d4d2;
+  --ui-color-primary: #16301f;
+  --ui-color-primary-hover: #1c3c28;
+  --ui-color-primary-border: rgb(110 231 160 / 0.38);
+  --ui-color-primary-border-hover: rgb(110 231 160 / 0.55);
+  --ui-color-on-primary: #d6f5e2;
+  --ui-color-accent: #6ee7a0;
+  --ui-color-accent-strong: #a7f3c9;
+  --ui-color-accent-soft: rgb(110 231 160 / 0.1);
+  --ui-color-accent-border: rgb(110 231 160 / 0.3);
+  --ui-color-focus-ring: #d4d4d2;
 
   /* Glossy panels: a faint light from the top edge over graphite. */
-  --tf-gloss: linear-gradient(
+  --ui-gloss: linear-gradient(
     180deg,
     rgb(255 255 255 / 0.07),
     rgb(255 255 255 / 0.015) 38%,
     transparent 70%
   );
-  --tf-gloss-edge: inset 0 1px 0 rgb(255 255 255 / 0.09);
+  --ui-gloss-edge: inset 0 1px 0 rgb(255 255 255 / 0.09);
 
-  --tf-glass: rgb(18 18 18 / 0.72);
-  --tf-glass-border: rgb(255 255 255 / 0.09);
-  --tf-glass-blur: blur(20px) saturate(120%);
+  --ui-glass: rgb(18 18 18 / 0.72);
+  --ui-glass-border: rgb(255 255 255 / 0.09);
+  --ui-glass-blur: blur(20px) saturate(120%);
   /* Product visuals on the public site use no blue: "info" reads as a quiet neutral here. */
-  --tf-color-info: #c9c7c2;
-  --tf-color-info-soft: rgb(255 255 255 / 0.07);
+  --ui-color-info: #c9c7c2;
+  --ui-color-info-soft: rgb(255 255 255 / 0.07);
 }

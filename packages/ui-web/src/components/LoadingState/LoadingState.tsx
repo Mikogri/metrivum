@@ -1,3 +1,4 @@
+import { useUI } from "../../UIProvider";
 import { cx } from "../../lib/cx";
 import { Spinner } from "../Spinner/Spinner";
 import styles from "./LoadingState.module.css";
@@ -13,10 +14,13 @@ export interface LoadingStateProps {
  * Loading for lists, tables and cards (dynamic content): a spinner with its label, shown immediately. Skeletons are kept for fixed layouts such as settings.
  */
 export function LoadingState({
-  label = "Loading…",
+  label,
   size = "md",
   className,
 }: LoadingStateProps) {
+  const { messages } = useUI();
+  label ??= messages.loading;
+
   return (
     <div
       className={cx(styles.loading, styles[size], className)}

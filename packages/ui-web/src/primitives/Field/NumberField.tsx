@@ -1,3 +1,4 @@
+import { useUI } from "../../UIProvider";
 import {
   useState,
   type ReactNode,
@@ -54,11 +55,15 @@ export function NumberInput({
   unit,
   endSlot,
   showSteppers = false,
-  incrementLabel = "Increase",
-  decrementLabel = "Decrease",
+  incrementLabel,
+  decrementLabel,
   className,
   ...props
 }: NumberFieldProps) {
+  const { messages } = useUI();
+  incrementLabel ??= messages.increase;
+  decrementLabel ??= messages.decrease;
+
   const { locale } = useLocale();
   return (
     <AriaNumberField

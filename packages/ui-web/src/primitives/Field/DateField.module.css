@@ -3,7 +3,7 @@
 }
 
 .group {
-  padding-right: var(--tf-space-1);
+  padding-right: var(--ui-space-1);
   cursor: pointer;
 }
 
@@ -16,23 +16,23 @@
 
 .segment {
   padding: 0 1px;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
   font-variant-numeric: tabular-nums;
   outline: none;
 }
 
 .segment[data-placeholder] {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .segment[data-type="literal"] {
   padding: 0 2px;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .segment[data-focused] {
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text);
 }
 
 /* The calendar button: a quiet glyph that only brightens; no coloured fill. */
@@ -44,13 +44,13 @@
   height: 1.75rem;
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   outline: none;
   transition:
-    color var(--tf-duration-fast) ease,
-    background-color var(--tf-duration-fast) ease;
+    color var(--ui-duration-fast) ease,
+    background-color var(--ui-duration-fast) ease;
 }
 
 .trigger svg {
@@ -61,35 +61,35 @@
 .trigger[data-hovered],
 .trigger[data-pressed],
 .group:hover .trigger {
-  background: color-mix(in srgb, var(--tf-color-text) 12%, transparent);
-  color: var(--tf-color-text);
+  background: color-mix(in srgb, var(--ui-color-text) 12%, transparent);
+  color: var(--ui-color-text);
 }
 
 .trigger[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
 /* Popup calendar, on the same raised surface as menus and selects. */
 .popover {
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface-raised);
-  box-shadow: var(--tf-shadow-menu);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-shadow-menu);
   outline: none;
   transform-origin: top right;
 }
 
 .popover[data-entering] {
-  animation: calendar-in var(--tf-duration-base) var(--tf-ease-out);
+  animation: calendar-in var(--ui-duration-base) var(--ui-ease-out);
 }
 
 .popover[data-exiting] {
-  animation: calendar-out 120ms var(--tf-ease-out) forwards;
+  animation: calendar-out 120ms var(--ui-ease-out) forwards;
 }
 
 .dialog {
-  padding: var(--tf-space-2-5);
+  padding: var(--ui-space-2-5);
   outline: none;
 }
 
@@ -100,15 +100,15 @@
 .header {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  margin-bottom: var(--tf-space-2);
+  gap: var(--ui-space-2);
+  margin-bottom: var(--ui-space-2);
 }
 
 .heading {
   flex: 1;
   margin: 0;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   text-align: center;
 }
 
@@ -119,13 +119,13 @@
   height: 1.5rem;
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   outline: none;
   transition:
-    background-color var(--tf-duration-fast) ease,
-    color var(--tf-duration-fast) ease;
+    background-color var(--ui-duration-fast) ease,
+    color var(--ui-duration-fast) ease;
 }
 
 .nav svg {
@@ -135,13 +135,13 @@
 
 .nav[data-hovered],
 .nav:enabled:hover {
-  background: color-mix(in srgb, var(--tf-color-text) 12%, transparent);
-  color: var(--tf-color-text);
+  background: color-mix(in srgb, var(--ui-color-text) 12%, transparent);
+  color: var(--ui-color-text);
 }
 
 .nav[data-focus-visible],
 .nav:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
 }
 
 .nav[data-disabled],
@@ -155,10 +155,10 @@
 }
 
 .weekday {
-  padding-bottom: var(--tf-space-1);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs, 0.6875rem);
-  font-weight: var(--tf-weight-medium);
+  padding-bottom: var(--ui-space-1);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs, 0.6875rem);
+  font-weight: var(--ui-weight-medium);
   text-align: center;
 }
 
@@ -168,15 +168,15 @@
   width: 1.875rem;
   height: 1.875rem;
   margin: 1px auto;
-  border-radius: var(--tf-radius-md);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xs);
+  border-radius: var(--ui-radius-md);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
   outline: none;
   cursor: pointer;
   transition:
-    background-color var(--tf-duration-fast) ease,
-    color var(--tf-duration-fast) ease;
+    background-color var(--ui-duration-fast) ease,
+    color var(--ui-duration-fast) ease;
 }
 
 .cell[data-outside-month] {
@@ -184,7 +184,7 @@
 }
 
 .cell[data-hovered]:not([data-selected]) {
-  background: color-mix(in srgb, var(--tf-color-text) 14%, transparent);
+  background: color-mix(in srgb, var(--ui-color-text) 14%, transparent);
 }
 
 .cell[data-pressed] {
@@ -193,23 +193,23 @@
 
 /* Today gets a hairline ring; the selected day is a solid light tile, not a coloured one. */
 .cell[data-today] {
-  box-shadow: inset 0 0 0 1px var(--tf-color-border-strong);
+  box-shadow: inset 0 0 0 1px var(--ui-color-border-strong);
 }
 
 .cell[data-selected] {
-  background: var(--tf-color-text);
-  color: var(--tf-color-bg, #0d0d0d);
-  font-weight: var(--tf-weight-semibold);
+  background: var(--ui-color-text);
+  color: var(--ui-color-bg, #0d0d0d);
+  font-weight: var(--ui-weight-semibold);
   box-shadow: none;
 }
 
 .cell[data-disabled],
 .cell[data-unavailable] {
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
 }
 
 .cell[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
@@ -242,78 +242,78 @@
   justify-content: center;
   gap: 0.25rem;
   height: 1.75rem;
-  padding: 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-2);
   border: 0;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   text-transform: capitalize;
   outline: none;
   cursor: pointer;
-  transition: background-color var(--tf-duration-fast) ease;
+  transition: background-color var(--ui-duration-fast) ease;
 }
 
 .headingButton svg {
   width: 0.75rem;
   height: 0.75rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .headingButton:hover {
-  background: color-mix(in srgb, var(--tf-color-text) 10%, transparent);
+  background: color-mix(in srgb, var(--ui-color-text) 10%, transparent);
 }
 
 .headingButton:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
 }
 
 .picker {
-  animation: picker-in 160ms var(--tf-ease-out) both;
+  animation: picker-in 160ms var(--ui-ease-out) both;
 }
 
 /* Years and months: a 3 by 4 grid of equal tiles, the current one solid like a selected day. */
 .choices {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .choice {
   height: 2.25rem;
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
   text-transform: capitalize;
   outline: none;
   cursor: pointer;
   transition:
-    background-color var(--tf-duration-fast) ease,
-    color var(--tf-duration-fast) ease;
+    background-color var(--ui-duration-fast) ease,
+    color var(--ui-duration-fast) ease;
 }
 
 .choice:hover:not([data-current]):not(:disabled) {
-  background: color-mix(in srgb, var(--tf-color-text) 14%, transparent);
+  background: color-mix(in srgb, var(--ui-color-text) 14%, transparent);
 }
 
 .choice[data-current] {
-  background: var(--tf-color-text);
-  color: var(--tf-color-bg, #0d0d0d);
-  font-weight: var(--tf-weight-semibold);
+  background: var(--ui-color-text);
+  color: var(--ui-color-bg, #0d0d0d);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .choice:disabled {
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
   cursor: default;
 }
 
 .choice:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 

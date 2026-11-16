@@ -1,4 +1,4 @@
-import { DecimalInput } from "@metrivum/ui-web";
+import { DecimalInput } from "@portable-ui/react";
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import {
   X,
@@ -16,7 +16,7 @@ import {
   Dialog,
   overlayPosition,
   overlayViewport,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useCellValidation } from "../cell-validation";
 import {
   useEffect,

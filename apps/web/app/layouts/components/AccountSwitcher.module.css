@@ -15,9 +15,9 @@
 }
 
 .trigger[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
 }
 
 .avatar {
@@ -75,7 +75,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .trigger[data-hovered] .chevron {
-    color: var(--tf-color-text);
+    color: var(--ui-color-text);
   }
 }
 
@@ -87,16 +87,16 @@
 }
 
 .profileSection {
-  margin: calc(var(--tf-space-1) * -1) calc(var(--tf-space-1) * -1)
-    var(--tf-space-1);
+  margin: calc(var(--ui-space-1) * -1) calc(var(--ui-space-1) * -1)
+    var(--ui-space-1);
 }
 
 .profile {
   display: grid;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md) var(--tf-radius-md) 0 0;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md) var(--ui-radius-md) 0 0;
   outline: none;
   cursor: pointer;
   transition: background-color 120ms ease;
@@ -104,17 +104,17 @@
 
 .profile[data-focused],
 .profile[data-hovered] {
-  background: var(--tf-color-surface-overlay);
+  background: var(--ui-color-surface-overlay);
 }
 
 .profile[data-focus-visible] {
-  box-shadow: inset 0 0 0 2px var(--tf-color-focus-ring);
+  box-shadow: inset 0 0 0 2px var(--ui-color-focus-ring);
 }
 
 .profileRow {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-width: 0;
 }
 
@@ -128,15 +128,15 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-regular);
+  gap: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-regular);
 }
 
 .progressHead strong {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
@@ -144,21 +144,21 @@
   display: block;
   height: 0.3125rem;
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-overlay);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-overlay);
 }
 
 .progressBar > span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--tf-color-warning);
+  background: var(--ui-color-warning);
   transform-origin: left;
-  transition: transform 400ms var(--tf-ease-out, ease-out);
+  transition: transform 400ms var(--ui-ease-out, ease-out);
 }
 
 .progress[data-complete] .progressBar > span {
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
 }
 
 .profileText {
@@ -175,14 +175,14 @@
 }
 
 .profileText strong {
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .profileText small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .itemAvatar {
@@ -194,7 +194,7 @@
 .accountRow {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
 }
 
@@ -208,5 +208,5 @@
   height: 0.875rem;
   margin-left: auto;
   flex-shrink: 0;
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }

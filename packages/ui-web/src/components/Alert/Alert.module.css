@@ -1,11 +1,11 @@
 .alert {
   display: flex;
   align-items: flex-start;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface-raised);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface-raised);
 }
 
 .icon {
@@ -23,38 +23,38 @@
 }
 
 .title {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .text {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   align-self: center;
 }
 
 .info .icon {
-  color: var(--tf-color-info);
+  color: var(--ui-color-info);
 }
 .success .icon {
-  color: var(--tf-color-success);
+  color: var(--ui-color-success);
 }
 .warning .icon {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 .danger .icon {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 .success {
-  border-color: var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent-border);
 }
 
 .warning {
@@ -62,14 +62,14 @@
 }
 
 .danger {
-  border-color: var(--tf-color-danger-border);
+  border-color: var(--ui-color-danger-border);
   background:
     linear-gradient(
       0deg,
-      var(--tf-color-danger-soft),
-      var(--tf-color-danger-soft)
+      var(--ui-color-danger-soft),
+      var(--ui-color-danger-soft)
     ),
-    var(--tf-color-surface-raised);
+    var(--ui-color-surface-raised);
 }
 
 @media (max-width: 40rem) {
@@ -79,6 +79,6 @@
 
   .actions {
     width: 100%;
-    padding-left: calc(1rem + var(--tf-space-3));
+    padding-left: calc(1rem + var(--ui-space-3));
   }
 }

@@ -17,7 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import type { Schema } from "@metrivum/api-client-web";
-import { Badge, PageHeader } from "@metrivum/ui-web";
+import { Badge, PageHeader } from "@portable-ui/react";
 import {
   Failure,
   Loading,

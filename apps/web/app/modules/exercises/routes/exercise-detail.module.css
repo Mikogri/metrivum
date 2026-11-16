@@ -1,17 +1,17 @@
 .loading {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .alert {
-  margin-bottom: var(--tf-space-4);
+  margin-bottom: var(--ui-space-4);
 }
 
 /* Model on the left, panels on the right; together they fill the window (height from useFitHeight). */
 .layout {
   display: grid;
   grid-template-columns: minmax(20rem, 0.8fr) minmax(0, 1.25fr);
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
   height: var(--fit, auto);
   min-height: 28rem;
 }
@@ -19,7 +19,7 @@
 .anatomy {
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-height: 0;
 }
 
@@ -27,7 +27,7 @@
 .main {
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -45,12 +45,12 @@
 .panelTitle {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  margin: 0 0 var(--tf-space-3);
-  color: var(--tf-color-text-tertiary);
-  font-family: var(--tf-font-label);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-semibold);
+  gap: var(--ui-space-2);
+  margin: 0 0 var(--ui-space-3);
+  color: var(--ui-color-text-tertiary);
+  font-family: var(--ui-font-label);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-semibold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -65,36 +65,36 @@
 }
 
 .panelTitle[data-spaced] {
-  margin-top: var(--tf-space-6);
-  padding-top: var(--tf-space-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  margin-top: var(--ui-space-6);
+  padding-top: var(--ui-space-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .muscles {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .muscleRow {
   display: grid;
   grid-template-columns: 9rem minmax(0, 1fr);
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   align-items: center;
 }
 
 .factLabel {
   display: inline-flex;
   align-items: center;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .kindDot {
   display: inline-block;
   width: 0.5rem;
   height: 0.5rem;
-  margin-right: var(--tf-space-1-5);
-  border-radius: var(--tf-radius-full);
+  margin-right: var(--ui-space-1-5);
+  border-radius: var(--ui-radius-full);
   background: #3ee09a;
 }
 
@@ -105,18 +105,18 @@
 .factRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--tf-space-4);
-  margin: var(--tf-space-5) 0 0;
-  padding-top: var(--tf-space-4);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-4);
+  margin: var(--ui-space-5) 0 0;
+  padding-top: var(--ui-space-4);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .factRow > div {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   align-content: start;
   min-width: 0;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 .factRow dd {
@@ -125,7 +125,7 @@
 
 .steps {
   display: grid;
-  gap: var(--tf-space-2-5);
+  gap: var(--ui-space-2-5);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -134,10 +134,10 @@
 .steps li {
   display: grid;
   grid-template-columns: 1.5rem minmax(0, 1fr);
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   align-items: baseline;
-  color: var(--tf-color-text-secondary);
-  line-height: var(--tf-leading-relaxed);
+  color: var(--ui-color-text-secondary);
+  line-height: var(--ui-leading-relaxed);
 }
 
 .stepNo {
@@ -145,10 +145,10 @@
   place-items: center;
   width: 1.5rem;
   height: 1.5rem;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xs);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -157,73 +157,73 @@
 }
 
 .sectionTitle {
-  margin-bottom: var(--tf-space-2);
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  margin-bottom: var(--ui-space-2);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .prose {
   max-width: 44rem;
-  color: var(--tf-color-text-secondary);
-  line-height: var(--tf-leading-relaxed);
+  color: var(--ui-color-text-secondary);
+  line-height: var(--ui-leading-relaxed);
   white-space: pre-wrap;
 }
 
 .prose[data-empty] {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   font-style: italic;
 }
 
 .muted {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .timeline {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   margin: 0;
-  padding: 0 0 0 var(--tf-space-4);
-  border-left: 1px solid var(--tf-color-border);
+  padding: 0 0 0 var(--ui-space-4);
+  border-left: 1px solid var(--ui-color-border);
   list-style: none;
 }
 
 .timeline li {
   position: relative;
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .timeline li::before {
   content: "";
   position: absolute;
-  left: calc(var(--tf-space-4) * -1 - 4px);
+  left: calc(var(--ui-space-4) * -1 - 4px);
   top: 0.4rem;
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--tf-color-border-strong);
+  background: var(--ui-color-border-strong);
 }
 
 .timeline li:first-child::before {
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
 }
 
 .timelineTitle {
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .timelineBody {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
   white-space: pre-wrap;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .inlineIcon {
@@ -235,7 +235,7 @@
 
 .form {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 @media (max-width: 60rem) {

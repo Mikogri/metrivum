@@ -1,22 +1,22 @@
 .form {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .link {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
 }
 
 .link:hover {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .textButton {
@@ -24,19 +24,19 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--tf-color-border-strong);
+  text-decoration-color: var(--ui-color-border-strong);
 }
 
 .textButton:hover {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .code input {
-  font-size: var(--tf-text-xl);
+  font-size: var(--ui-text-xl);
   letter-spacing: 0.3em;
   font-variant-numeric: tabular-nums;
 }
@@ -44,15 +44,15 @@
 /* Terms acceptance on sign-up: the checkbox with its links, and the error right under it. */
 .terms {
   display: grid;
-  gap: var(--tf-space-1);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-1);
+  font-size: var(--ui-text-sm);
 }
 
 .terms a {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--tf-color-border-strong);
+  text-decoration-color: var(--ui-color-border-strong);
 }
 
 .terms a:hover {
@@ -60,14 +60,14 @@
 }
 
 .fieldError {
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-snug);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-snug);
 }
 
 /* Quiet context under a header or after a form: who is signed in, what to do if something is lost. */
 .note {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
 }

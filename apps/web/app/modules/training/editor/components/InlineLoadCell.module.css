@@ -12,17 +12,17 @@
 .auxiliary,
 .suggestions {
   display: grid;
-  gap: var(--tf-space-2);
-  margin-top: var(--tf-space-1);
-  padding: var(--tf-space-1-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text);
-  box-shadow: var(--tf-shadow-md);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  margin-top: var(--ui-space-1);
+  padding: var(--ui-space-1-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text);
+  box-shadow: var(--ui-shadow-md);
+  font-size: var(--ui-text-sm);
   white-space: normal;
-  animation: pop-in var(--tf-duration-base) var(--tf-ease-out);
+  animation: pop-in var(--ui-duration-base) var(--ui-ease-out);
   transform-origin: top left;
 }
 
@@ -48,22 +48,22 @@
   padding: 0;
   list-style: none;
   scrollbar-width: thin;
-  scrollbar-color: var(--tf-color-border-strong) transparent;
+  scrollbar-color: var(--ui-color-border-strong) transparent;
 }
 
 /* A quiet heading where the kind of entry changes. */
 .group {
   display: block;
-  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-1);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-medium);
+  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-1);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-medium);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .options li:first-child .group {
-  padding-top: var(--tf-space-1);
+  padding-top: var(--ui-space-1);
 }
 
 .options button {
@@ -71,28 +71,28 @@
   align-items: center;
   width: 100%;
   height: 1.875rem;
-  padding: 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-2);
   border: 0;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   font: inherit;
   text-align: left;
   cursor: default;
 }
 
 .options button[data-kind="function"] {
-  font-family: var(--tf-font-mono);
-  font-size: var(--tf-text-xs);
+  font-family: var(--ui-font-mono);
+  font-size: var(--ui-text-xs);
 }
 .options button[aria-selected="true"] {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .empty {
-  padding: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
+  padding: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
 }
 
 /* Keyboard hints at the foot of a popup. */
@@ -100,22 +100,22 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin: 0;
-  padding: var(--tf-space-1-5) var(--tf-space-2) var(--tf-space-0-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  padding: var(--ui-space-1-5) var(--ui-space-2) var(--ui-space-0-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
 }
 
 .keys kbd {
   min-width: 1.125rem;
-  padding: 0 var(--tf-space-1);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-xs);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
-  font-family: var(--tf-font-mono);
+  padding: 0 var(--ui-space-1);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-xs);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
+  font-family: var(--ui-font-mono);
   font-size: 0.625rem;
   line-height: 1rem;
   text-align: center;
@@ -130,43 +130,43 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
-  padding: var(--tf-space-1) var(--tf-space-1-5) 0;
-  font-weight: var(--tf-weight-semibold);
+  padding: var(--ui-space-1) var(--ui-space-1-5) 0;
+  font-weight: var(--ui-weight-semibold);
 }
 
 .heading span {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-regular);
 }
 
 .parameters {
   display: grid;
-  gap: var(--tf-space-2-5);
-  padding: 0 var(--tf-space-1-5);
+  gap: var(--ui-space-2-5);
+  padding: 0 var(--ui-space-1-5);
 }
 .parameters label {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .paramName {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .paramName em {
-  padding: 0 var(--tf-space-1);
-  border-radius: var(--tf-radius-xs);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-tertiary);
-  font-family: var(--tf-font-mono);
+  padding: 0 var(--ui-space-1);
+  border-radius: var(--ui-radius-xs);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-tertiary);
+  font-family: var(--ui-font-mono);
   font-size: 0.625rem;
   font-style: normal;
 }
@@ -175,32 +175,32 @@
 .paramRow {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .parameters input,
 .parameters select {
   width: 100%;
   min-width: 0;
-  height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-field);
-  color: var(--tf-color-text);
+  height: var(--ui-control-sm);
+  padding: 0 var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-field);
+  color: var(--ui-color-text);
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
   outline: none;
-  transition: border-color var(--tf-duration-fast) ease;
+  transition: border-color var(--ui-duration-fast) ease;
 }
 
 .parameters select {
   appearance: none;
-  padding-right: var(--tf-space-6);
+  padding-right: var(--ui-space-6);
   background-image:
-    linear-gradient(45deg, transparent 50%, var(--tf-color-text-tertiary) 50%),
-    linear-gradient(135deg, var(--tf-color-text-tertiary) 50%, transparent 50%);
+    linear-gradient(45deg, transparent 50%, var(--ui-color-text-tertiary) 50%),
+    linear-gradient(135deg, var(--ui-color-text-tertiary) 50%, transparent 50%);
   background-position:
     calc(100% - 12px) 50%,
     calc(100% - 8px) 50%;
@@ -208,14 +208,14 @@
   background-repeat: no-repeat;
 }
 .parameters select option {
-  background: var(--tf-color-surface-overlay);
+  background: var(--ui-color-surface-overlay);
 }
 .parameters input:focus-visible,
 .parameters select:focus-visible {
-  border-color: var(--tf-color-focus-ring);
+  border-color: var(--ui-color-focus-ring);
 }
 .parameters input:disabled {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 /* The live result: a labelled value, accent when it is good, red when it fails. */
@@ -223,48 +223,48 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
-  padding: var(--tf-space-2) var(--tf-space-2);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
+  padding: var(--ui-space-2) var(--ui-space-2);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-bg-sunken);
 }
 
 .result span {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 .result strong {
   overflow-wrap: anywhere;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
   text-align: left;
 }
 .result[data-state="ok"] strong {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 .result[data-state="error"] strong {
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 .result[data-state="pending"] strong {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .problem {
   margin: 0;
-  padding: 0 var(--tf-space-1-5);
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
+  padding: 0 var(--ui-space-1-5);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-xs);
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  padding-top: var(--tf-space-1-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-1-5);
+  padding-top: var(--ui-space-1-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .spacer {
@@ -272,44 +272,44 @@
 }
 
 .actions button {
-  height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-2-5);
+  height: var(--ui-control-sm);
+  padding: 0 var(--ui-space-2-5);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   font: inherit;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
   cursor: pointer;
   transition:
-    background-color var(--tf-duration-fast) ease,
-    color var(--tf-duration-fast) ease,
-    transform var(--tf-duration-press) var(--tf-ease-out);
+    background-color var(--ui-duration-fast) ease,
+    color var(--ui-duration-fast) ease,
+    transform var(--ui-duration-press) var(--ui-ease-out);
 }
 
 .actions button:active {
   transform: scale(0.97);
 }
 .actions button:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 .ghost {
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 .primary {
-  border-color: var(--tf-color-primary-border) !important;
-  background: var(--tf-color-primary);
-  color: var(--tf-color-on-primary);
+  border-color: var(--ui-color-primary-border) !important;
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .ghost:hover {
-    background: var(--tf-color-surface-hover);
-    color: var(--tf-color-text);
+    background: var(--ui-color-surface-hover);
+    color: var(--ui-color-text);
   }
   .primary:hover {
-    background: var(--tf-color-primary-hover);
+    background: var(--ui-color-primary-hover);
   }
 }
 
@@ -321,8 +321,8 @@
   z-index: 1;
   max-width: 16rem;
   overflow: hidden;
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-2xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -337,14 +337,14 @@
   align-items: center;
   gap: 3px;
   height: 1.25rem;
-  padding: 0 var(--tf-space-1-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
+  padding: 0 var(--ui-space-1-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
   font: inherit;
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-medium);
   line-height: 1;
   transform: translateY(-50%);
   cursor: pointer;
@@ -356,14 +356,14 @@
 }
 .more[data-waiting] {
   border-color: rgb(242 169 59 / 0.4);
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .more:hover {
-    border-color: var(--tf-color-border-strong);
-    color: var(--tf-color-text);
+    border-color: var(--ui-color-border-strong);
+    color: var(--ui-color-text);
   }
   .more[data-waiting]:hover {
     color: #ffc56b;
@@ -382,20 +382,20 @@
   height: 1.125rem;
   padding: 0 5px 0 3px;
   border: 1px solid rgb(242 169 59 / 0.45);
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: color-mix(
     in srgb,
-    var(--tf-color-warning) 16%,
-    var(--tf-color-surface)
+    var(--ui-color-warning) 16%,
+    var(--ui-color-surface)
   );
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
   font: inherit;
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-semibold);
   line-height: 1;
   transform: translateY(-50%);
   cursor: pointer;
-  animation: needs-pulse 2.4s var(--tf-ease-in-out) 2;
+  animation: needs-pulse 2.4s var(--ui-ease-in-out) 2;
 }
 
 .needsData svg {
@@ -416,15 +416,15 @@
   .needsData:hover {
     background: color-mix(
       in srgb,
-      var(--tf-color-warning) 26%,
-      var(--tf-color-surface)
+      var(--ui-color-warning) 26%,
+      var(--ui-color-surface)
     );
   }
 }
 
 .needsData:focus-visible,
 .more:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
@@ -432,31 +432,31 @@
 .popupTitle {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   margin-right: auto;
-  padding: 0 var(--tf-space-1);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  padding: 0 var(--ui-space-1);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .popupTitle svg {
   width: 0.875rem;
   height: 0.875rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 /* The formula being edited, as code under the header. */
 .expression {
   display: block;
   overflow: hidden;
-  margin: 0 var(--tf-space-1);
-  padding: var(--tf-space-1-5) var(--tf-space-2);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
-  color: var(--tf-color-text-secondary);
-  font-family: var(--tf-font-mono);
-  font-size: var(--tf-text-xs);
+  margin: 0 var(--ui-space-1);
+  padding: var(--ui-space-1-5) var(--ui-space-2);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-bg-sunken);
+  color: var(--ui-color-text-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -465,12 +465,12 @@
 .status {
   display: flex;
   align-items: flex-start;
-  gap: var(--tf-space-1-5);
-  margin: 0 var(--tf-space-1);
-  padding: var(--tf-space-2);
-  border-radius: var(--tf-radius-md);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-snug);
+  gap: var(--ui-space-1-5);
+  margin: 0 var(--ui-space-1);
+  padding: var(--ui-space-2);
+  border-radius: var(--ui-radius-md);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-snug);
 }
 
 .status svg {
@@ -480,20 +480,20 @@
   margin-top: 1px;
 }
 .status[data-state="waiting"] {
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 .status[data-state="ready"] {
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 
 /* Each input of the formula: name, unit and state on top; source and value side by side below. */
 .source {
-  padding: var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface);
+  padding: var(--ui-space-2);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
 }
 
 .source[data-state="waiting"] {
@@ -502,22 +502,22 @@
 
 .sourceState {
   margin-left: auto;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
   font-style: normal;
-  font-weight: var(--tf-weight-regular);
+  font-weight: var(--ui-weight-regular);
 }
 
 .source[data-state="waiting"] .sourceState {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 .source[data-state="ready"] .sourceState {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 /* In the side panel the inspector is the page itself: no popup frame, roomier spacing. */
 .auxiliary[data-expanded] {
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   margin: 0;
   padding: 0;
   border: 0;
@@ -527,8 +527,8 @@
 }
 
 .auxiliary[data-expanded] .popupHeader {
-  padding-top: var(--tf-space-1);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  padding-top: var(--ui-space-1);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 .auxiliary[data-expanded] .popupHeader .closeOptions {
   display: none;
@@ -540,20 +540,20 @@
   padding-right: 0;
 }
 .auxiliary[data-expanded] .status {
-  padding: var(--tf-space-2-5) var(--tf-space-3);
+  padding: var(--ui-space-2-5) var(--ui-space-3);
 }
 .auxiliary[data-expanded] .source {
-  padding: var(--tf-space-3);
+  padding: var(--ui-space-3);
 }
 .auxiliary[data-expanded] .paramRow {
   grid-template-columns: minmax(0, 1fr) 9rem;
 }
 .auxiliary[data-expanded] .actions {
   position: sticky;
-  bottom: calc(var(--tf-space-5) * -1);
-  margin: 0 calc(var(--tf-space-5) * -1) calc(var(--tf-space-5) * -1);
-  padding: var(--tf-space-3) var(--tf-space-5);
-  background: var(--tf-color-surface);
+  bottom: calc(var(--ui-space-5) * -1);
+  margin: 0 calc(var(--ui-space-5) * -1) calc(var(--ui-space-5) * -1);
+  padding: var(--ui-space-3) var(--ui-space-5);
+  background: var(--ui-color-surface);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -572,7 +572,7 @@
   left: 0.35rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   font-size: 0.75rem;
   pointer-events: none;
   z-index: 1;
@@ -581,10 +581,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 .popupHeader .group {
-  padding: 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-2);
 }
 .closeOptions {
   display: grid;
@@ -594,9 +594,9 @@
   height: 1.5rem;
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   cursor: pointer;
 }
 .closeOptions svg {
@@ -604,21 +604,21 @@
   height: 1rem;
 }
 .closeOptions:hover {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 .closeOptions:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
 .cell[data-invalid] {
-  background: color-mix(in srgb, var(--tf-color-danger) 8%, transparent);
+  background: color-mix(in srgb, var(--ui-color-danger) 8%, transparent);
   box-shadow: none;
 }
 .sourceNote {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   margin: 0;
 }
 
@@ -651,7 +651,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   font: inherit;
   box-shadow: none;
 }
@@ -687,14 +687,14 @@
 
 .loadModes {
   display: flex;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 .loadModes button {
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   padding: 4px 8px;
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
   font: inherit;
   cursor: pointer;
 }
@@ -711,7 +711,7 @@
 .actions button {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 .actions button svg {
   width: 0.875rem;
@@ -752,20 +752,20 @@
   width: 1.125rem;
   height: 1.125rem;
   padding: 0;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
-  font-family: var(--tf-font-sans);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
+  font-family: var(--ui-font-sans);
   font-size: 0.75rem;
   font-style: italic;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
 }
 .more[data-waiting],
 .needsData {
   border-color: rgb(242 169 59 / 0.55);
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 .cell:has(> .needsData) input {
   padding-right: 1.5rem;
@@ -790,9 +790,9 @@
   height: 1rem;
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
   pointer-events: auto;
   cursor: pointer;
   transition:
@@ -800,18 +800,18 @@
     color 140ms ease;
 }
 .formulaButton[data-waiting] {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 .formulaButton:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 @media (hover: hover) and (pointer: fine) {
   .formulaButton:hover {
-    background: var(--tf-color-accent-soft);
+    background: var(--ui-color-accent-soft);
   }
   .formulaButton[data-waiting]:hover {
-    background: var(--tf-color-warning-soft);
+    background: var(--ui-color-warning-soft);
   }
 }
 
@@ -826,5 +826,5 @@
   font-size: 0.75rem;
 }
 .formulaButton[data-open] {
-  background: var(--tf-color-accent-soft);
+  background: var(--ui-color-accent-soft);
 }

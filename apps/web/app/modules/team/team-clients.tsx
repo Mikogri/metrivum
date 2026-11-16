@@ -17,7 +17,7 @@ import {
   Option,
   Pagination,
   Select,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useProfile } from "~/modules/accounts";
 import {
   Failure,

@@ -1,5 +1,5 @@
 import { Keyboard } from "lucide-react";
-import { DialogTrigger, IconButton, Dialog, Kbd } from "@metrivum/ui-web";
+import { DialogTrigger, IconButton, Dialog, Kbd } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./KeyboardHelp.module.css";
 

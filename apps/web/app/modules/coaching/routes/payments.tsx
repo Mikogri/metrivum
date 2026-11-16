@@ -28,7 +28,7 @@ import {
   PageHeader,
   Select,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   LockedReason,
   RequireFeature,

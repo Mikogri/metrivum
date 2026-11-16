@@ -1,6 +1,6 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { CalendarClock } from "lucide-react";
-import { EmptyState } from "@metrivum/ui-web";
+import { EmptyState } from "@portable-ui/react";
 import { daysForMonth } from "./calendar-model";
 import { onDay, type CalendarEntry } from "./CalendarViews";
 import styles from "./calendar.module.css";

@@ -2,25 +2,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-4) 0;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-4) 0;
 }
 
 .pages {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .status {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
 .size {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }

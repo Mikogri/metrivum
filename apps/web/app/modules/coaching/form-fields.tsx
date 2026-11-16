@@ -8,7 +8,7 @@ import {
   Select,
   TextArea,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import type { Schema } from "@metrivum/api-client-web";
 import styles from "./coaching.module.css";
 

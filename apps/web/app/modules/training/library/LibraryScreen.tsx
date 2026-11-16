@@ -33,7 +33,7 @@ import type {
   FolderDto,
   PlanListItem,
 } from "@metrivum/api-client-web";
-import { LinkButton } from "@metrivum/ui-web";
+import { LinkButton } from "@portable-ui/react";
 import {
   Badge,
   Breadcrumbs,
@@ -56,7 +56,7 @@ import {
   Toolbar,
   toast,
   type ContextMenuEntry,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { LockedReason, useFeatures } from "~/shared/access";
 import { formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

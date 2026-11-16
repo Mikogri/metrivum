@@ -7,7 +7,7 @@ import {
   NumberInput,
   TextArea,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { locate, updateNode } from "../model/document";
 import type { EditorApi } from "../useEditor";

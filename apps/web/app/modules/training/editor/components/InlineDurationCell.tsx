@@ -1,7 +1,7 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState, type CSSProperties } from "react";
 import { Sigma } from "lucide-react";
-import { ContextMenu } from "@metrivum/ui-web";
+import { ContextMenu } from "@portable-ui/react";
 import type { FormulaUse, Quantity } from "@metrivum/api-client-web";
 import { formatClock, parseClock } from "../model/workouts";
 import { formulaText } from "../model/inline-formula";

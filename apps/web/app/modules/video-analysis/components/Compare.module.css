@@ -1,13 +1,13 @@
 .compare {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 /* Videos side by side, each with its number (the same number marks its reps in the table). */
 .videos {
   display: grid;
   grid-template-columns: repeat(var(--count, 2), minmax(0, 1fr));
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .videoCard {
@@ -27,11 +27,11 @@
 .videoHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
-  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-2)
-    var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-2)
+    var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 /* The video's number in its chart colour, the same as the badge in the table. */
@@ -41,37 +41,37 @@
   place-items: center;
   width: 1.375rem;
   height: 1.375rem;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   color: #fff;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-bold);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-bold);
   font-variant-numeric: tabular-nums;
 }
 
 .videoName small {
-  margin-left: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-regular);
+  margin-left: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-regular);
 }
 
 .videoName {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .videoTag {
   flex: none;
-  padding: 1px var(--tf-space-1-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  padding: 1px var(--ui-space-1-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
 }
 
 .noVideo {
@@ -81,15 +81,15 @@
   aspect-ratio: var(--frame);
   max-height: var(--player-max-height);
   margin: 0;
-  background: var(--tf-color-bg-sunken);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  background: var(--ui-color-bg-sunken);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 /* Charts: each takes the full width, the bar path keeps its square shape in the middle. */
 .charts {
   display: grid;
-  gap: var(--tf-space-6);
+  gap: var(--ui-space-6);
 }
 
 /* Bar path on the left, each rep's phase times on the right. */
@@ -97,7 +97,7 @@
   display: grid;
   grid-template-columns: minmax(16rem, 28rem) minmax(0, 1fr);
   align-items: start;
-  gap: var(--tf-space-6);
+  gap: var(--ui-space-6);
 }
 
 .path {
@@ -106,19 +106,19 @@
 
 .phaseBars {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-width: 0;
 }
 
 .phaseBars h3 {
   margin: 0;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .phaseRows {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -132,8 +132,8 @@
 .phaseLabel {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-2);
+  font-size: var(--ui-text-xs);
 }
 
 .phaseLabel i {
@@ -144,7 +144,7 @@
 
 .phaseLabel b {
   margin-left: auto;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
@@ -155,7 +155,7 @@
   padding: 2px;
   overflow: hidden;
   border-radius: 5px;
-  background: var(--tf-color-surface-raised);
+  background: var(--ui-color-surface-raised);
   gap: 2px;
 }
 
@@ -168,10 +168,10 @@
   min-width: 0;
   overflow: hidden;
   border-radius: 3px;
-  background: var(--tf-color-text-tertiary);
+  background: var(--ui-color-text-tertiary);
   color: #fff;
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
   text-shadow: 0 1px 1px rgb(0 0 0 / 0.3);
   white-space: nowrap;
@@ -206,7 +206,7 @@
 .phaseKey {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-2) var(--tf-space-4);
+  gap: var(--ui-space-2) var(--ui-space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -215,9 +215,9 @@
 .phaseKey li {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-2xs);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-2xs);
   white-space: nowrap;
 }
 
@@ -239,10 +239,10 @@
 .hint {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .hint svg {
@@ -264,7 +264,7 @@
 /* Dialog: a searchable list with ticks. */
 .dialog {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .options {
@@ -278,29 +278,29 @@
 .option {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2-5);
+  gap: var(--ui-space-2-5);
   width: 100%;
-  padding: var(--tf-space-2) var(--tf-space-2-5);
+  padding: var(--ui-space-2) var(--ui-space-2-5);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: transparent;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
 .option:hover {
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 .option[aria-pressed="true"] {
-  border-color: var(--tf-color-border);
-  background: var(--tf-color-surface-selected);
+  border-color: var(--ui-color-border);
+  background: var(--ui-color-surface-selected);
 }
 
 .option:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: -2px;
 }
 
@@ -310,14 +310,14 @@
   place-items: center;
   width: 1rem;
   height: 1rem;
-  border: 1px solid var(--tf-color-border-strong);
+  border: 1px solid var(--ui-color-border-strong);
   border-radius: 4px;
 }
 
 .option[aria-pressed="true"] .box {
-  border-color: var(--tf-color-text);
-  background: var(--tf-color-text);
-  color: var(--tf-color-bg);
+  border-color: var(--ui-color-text);
+  background: var(--ui-color-text);
+  color: var(--ui-color-bg);
 }
 
 .box svg {
@@ -330,13 +330,13 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .optionMeta {
   flex: none;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }

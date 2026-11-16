@@ -18,7 +18,7 @@ import {
   TextArea,
   TextField,
   TimeField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   MutationError,
   RecipientPicker,

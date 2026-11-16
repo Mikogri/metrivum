@@ -1,6 +1,6 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useLocation, useNavigate } from "react-router";
-import { Tab, TabList, Tabs } from "@metrivum/ui-web";
+import { Tab, TabList, Tabs } from "@portable-ui/react";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import {
   clientSection,

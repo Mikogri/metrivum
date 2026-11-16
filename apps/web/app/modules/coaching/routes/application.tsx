@@ -25,7 +25,7 @@ import {
   PageHeader,
   TextArea,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Facts, Panel, PanelGrid } from "~/shared/ui/Panel";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";

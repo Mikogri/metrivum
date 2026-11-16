@@ -2,12 +2,12 @@
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
   align-items: start;
 }
 .aside {
   display: grid;
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
 }
 @media (max-width: 64rem) {
   .layout {
@@ -23,8 +23,8 @@
   line-height: 1.3;
 }
 .due small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .methods,
@@ -37,12 +37,12 @@
 .method {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding-block: var(--tf-space-2-5);
+  gap: var(--ui-space-3);
+  padding-block: var(--ui-space-2-5);
 }
 .method + .method,
 .renewal + .renewal {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 .methodIcon {
   display: grid;
@@ -50,9 +50,9 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text-secondary);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-secondary);
 }
 .methodIcon svg {
   width: 1rem;
@@ -67,20 +67,20 @@
 .methodText > strong,
 .methodText > a {
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .methodText > small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .renewal {
   display: grid;
-  gap: var(--tf-space-2-5);
-  padding-block: var(--tf-space-3);
+  gap: var(--ui-space-2-5);
+  padding-block: var(--ui-space-3);
 }
 .renewal:first-child {
   padding-top: 0;
@@ -91,7 +91,7 @@
 .renewalHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 .renewal > button {
   justify-self: start;
@@ -101,18 +101,18 @@
 .summary {
   display: grid;
   gap: 2px;
-  padding: var(--tf-space-4);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-bg-sunken);
+  padding: var(--ui-space-4);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-bg-sunken);
 }
 .summaryLabel {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 .summaryAmount {
-  font-size: var(--tf-text-2xl, 1.5rem);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-2xl, 1.5rem);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
@@ -120,43 +120,43 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 .choices {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 .choicesLabel {
-  margin-bottom: var(--tf-space-1);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  margin-bottom: var(--ui-space-1);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 .choice {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
   cursor: pointer;
   outline: none;
   transition:
-    border-color var(--tf-duration-fast) ease,
-    background-color var(--tf-duration-fast) ease;
+    border-color var(--ui-duration-fast) ease,
+    background-color var(--ui-duration-fast) ease;
 }
 .choice[data-hovered] {
-  border-color: var(--tf-color-border-strong);
-  background: color-mix(in srgb, var(--tf-color-text) 5%, transparent);
+  border-color: var(--ui-color-border-strong);
+  background: color-mix(in srgb, var(--ui-color-text) 5%, transparent);
 }
 .choice[data-selected] {
-  border-color: var(--tf-color-text-secondary);
-  background: color-mix(in srgb, var(--tf-color-text) 8%, transparent);
+  border-color: var(--ui-color-text-secondary);
+  background: color-mix(in srgb, var(--ui-color-text) 8%, transparent);
 }
 .choice[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 .choice[data-disabled] {
@@ -169,9 +169,9 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text-secondary);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-secondary);
 }
 .choiceIcon svg {
   width: 1rem;
@@ -183,19 +183,19 @@
   place-items: center;
   width: 1.25rem;
   height: 1.25rem;
-  border: 1.5px solid var(--tf-color-border-strong);
+  border: 1.5px solid var(--ui-color-border-strong);
   border-radius: 50%;
   color: transparent;
   transition:
-    background-color var(--tf-duration-fast) ease,
-    border-color var(--tf-duration-fast) ease;
+    background-color var(--ui-duration-fast) ease,
+    border-color var(--ui-duration-fast) ease;
 }
 .choiceMark svg {
   width: 0.75rem;
   height: 0.75rem;
 }
 .choice[data-selected] .choiceMark {
-  border-color: var(--tf-color-text);
-  background: var(--tf-color-text);
-  color: var(--tf-color-bg, #0d0d0d);
+  border-color: var(--ui-color-text);
+  background: var(--ui-color-text);
+  color: var(--ui-color-bg, #0d0d0d);
 }

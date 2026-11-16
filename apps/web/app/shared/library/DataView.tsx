@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link as RouterLink } from "react-router";
-import { DataTable, type DataTableProps } from "@metrivum/ui-web";
+import { DataTable, type DataTableProps } from "@portable-ui/react";
 import { useLibraryView, type LibraryView } from "./LibraryViewToggle";
 import styles from "./DataView.module.css";
 

@@ -7,7 +7,7 @@ import {
   Skeleton,
   Tooltip,
   TooltipTrigger,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Focusable } from "react-aria-components";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useFeatureAccess, type FeatureAccess } from "./useFeatureAccess";

@@ -38,7 +38,7 @@ import {
   Skeleton,
   TextArea,
   type BadgeTone,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { apiBaseUrl } from "~/shared/http/config";
 import {
   connectionStatus,

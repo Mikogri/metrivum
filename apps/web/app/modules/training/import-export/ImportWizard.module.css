@@ -1,8 +1,8 @@
 .steps {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-4);
-  margin: 0 0 var(--tf-space-5);
+  gap: var(--ui-space-4);
+  margin: 0 0 var(--ui-space-5);
   padding: 0;
   list-style: none;
 }
@@ -10,18 +10,18 @@
 .steps li {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  gap: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .steps li[data-state="current"] {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .steps li[data-state="done"] {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .stepDot {
@@ -29,23 +29,23 @@
   place-items: center;
   width: 1.375rem;
   height: 1.375rem;
-  border: 1px solid var(--tf-color-border-strong);
+  border: 1px solid var(--ui-color-border-strong);
   border-radius: 50%;
-  font-size: var(--tf-text-2xs);
+  font-size: var(--ui-text-2xs);
   transition:
-    background-color var(--tf-duration-base) ease,
-    border-color var(--tf-duration-base) ease;
+    background-color var(--ui-duration-base) ease,
+    border-color var(--ui-duration-base) ease;
 }
 
 .steps li[data-state="current"] .stepDot {
-  border-color: var(--tf-color-accent);
-  color: var(--tf-color-accent);
+  border-color: var(--ui-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .steps li[data-state="done"] .stepDot {
-  border-color: var(--tf-color-accent);
-  background: var(--tf-color-accent);
-  color: var(--tf-color-on-accent);
+  border-color: var(--ui-color-accent);
+  background: var(--ui-color-accent);
+  color: var(--ui-color-on-accent);
 }
 
 .stepDot svg {
@@ -55,27 +55,27 @@
 
 .body {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .muted {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .drop {
   display: grid;
   justify-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-8);
-  border: 1px dashed var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-bg-sunken);
-  transition: border-color var(--tf-duration-fast) ease;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-8);
+  border: 1px dashed var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-bg-sunken);
+  transition: border-color var(--ui-duration-fast) ease;
 }
 
 .drop[data-has-file] {
-  border-color: var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent-border);
 }
 
 .drop > div {
@@ -85,7 +85,7 @@
 .dropIcon {
   width: 1.75rem;
   height: 1.75rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .narrow {
@@ -96,51 +96,51 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .tableWrap {
   max-height: 22rem;
   overflow: auto;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
 }
 
 .table th {
   position: sticky;
   top: 0;
-  padding: var(--tf-space-2) var(--tf-space-3);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-tertiary);
-  font-weight: var(--tf-weight-medium);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-tertiary);
+  font-weight: var(--ui-weight-medium);
   text-align: left;
 }
 
 .table td {
-  padding: var(--tf-space-1-5) var(--tf-space-3);
-  border-top: 1px solid var(--tf-color-border-subtle);
-  color: var(--tf-color-text-secondary);
+  padding: var(--ui-space-1-5) var(--ui-space-3);
+  border-top: 1px solid var(--ui-color-border-subtle);
+  color: var(--ui-color-text-secondary);
   white-space: nowrap;
 }
 
 .table tr[data-kind="exercise"] td {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .match {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .footer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }

@@ -13,24 +13,24 @@
 .head {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-1)
-    var(--tf-space-3);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-1)
+    var(--ui-space-3);
 }
 
 .head h2 {
   flex: 1;
   margin: 0;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .count {
-  padding: 1px var(--tf-space-2);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  padding: 1px var(--ui-space-2);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -38,30 +38,30 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--tf-space-2);
-  margin: 0 var(--tf-space-3) var(--tf-space-2);
-  padding: var(--tf-space-2);
-  border: 1px solid color-mix(in srgb, var(--tf-color-warning) 35%, transparent);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-warning-soft);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-2);
+  margin: 0 var(--ui-space-3) var(--ui-space-2);
+  padding: var(--ui-space-2);
+  border: 1px solid color-mix(in srgb, var(--ui-color-warning) 35%, transparent);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-warning-soft);
+  font-size: var(--ui-text-xs);
 }
 
 .offline > svg {
   width: 0.95rem;
   height: 0.95rem;
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 
 /* Rows are separated by space, not lines. */
 .list {
   display: grid;
   align-content: start;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   flex: 1;
   min-height: 0;
   margin: 0;
-  padding: 0 var(--tf-space-3);
+  padding: 0 var(--ui-space-3);
   overflow-y: auto;
   list-style: none;
   scrollbar-width: thin;
@@ -69,7 +69,7 @@
 
 .empty {
   margin: 0;
-  padding: var(--tf-space-1) var(--tf-space-3) var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-1) var(--ui-space-3) var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }

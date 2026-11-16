@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Skeleton,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useFolderChildren } from "../queries";
 import styles from "./FolderTree.module.css";

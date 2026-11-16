@@ -26,7 +26,7 @@ import {
   Switch,
   Tooltip,
   TooltipTrigger,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { useFitHeight } from "~/shared/lib/useFitHeight";
 import { useDictionaries } from "~/modules/exercises";

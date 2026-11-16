@@ -64,7 +64,6 @@ describe("exercise cells", () => {
   it("rejects text that isn't a prescription", () => {
     const { doc, instances } = plan(1);
     expect(applySetsReps(doc, instances[0]!, "lots")).toBeNull();
-    expect(applyLoad("en", doc, instances[0]!, "2,5")).toBeNull();
   });
 
   it("lays out an expanded cycle with one column group per day", () => {

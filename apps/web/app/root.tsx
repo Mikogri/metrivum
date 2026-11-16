@@ -13,7 +13,9 @@ import {
   type NavigateOptions,
 } from "react-router";
 import { RouterProvider } from "react-aria-components";
-import "@metrivum/ui-web/styles.css";
+import "@portable-ui/react/styles.css";
+import "./fonts.css";
+import "./metrivum-theme.css";
 import "./app.css";
 import type { Route } from "./+types/root";
 import { localeFromPathname } from "~/shared/i18n/locale";

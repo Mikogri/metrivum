@@ -1,0 +1,31 @@
+/* Application-owned brand theme. */
+:root {
+  --ui-color-primary: #235337;
+  --ui-color-primary-hover: #2a6342;
+  --ui-color-primary-border: rgb(62 224 154 / 0.24);
+  --ui-color-primary-border-hover: rgb(62 224 154 / 0.36);
+  --ui-color-on-primary: #ffffff;
+  --ui-color-accent: #3ee09a;
+  --ui-color-accent-strong: #6eeab5;
+  --ui-color-accent-deep: #163a2b;
+  --ui-color-accent-deep-hover: #1c4634;
+  --ui-color-accent-soft: rgb(62 224 154 / 0.12);
+  --ui-color-accent-border: rgb(62 224 154 / 0.34);
+  --ui-color-on-accent: #0a0a0a;
+  --ui-color-accent-text: #2ebc75;
+  --ui-color-focus-ring: #3ee09a;
+  --ui-font-sans:
+    "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --ui-font-display:
+    "Saira Variable", "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --ui-font-brand:
+    "Orbitron Variable", "Geist Variable", ui-sans-serif, sans-serif;
+  --ui-font-label:
+    "Source Code Pro Variable", "Geist Mono Variable", ui-monospace, monospace;
+  --ui-font-mono:
+    "Geist Mono Variable", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --ui-shadow-glow:
+    0 0 0 1px var(--ui-color-accent-border),
+    0 0 32px -4px rgb(62 224 154 / 0.35);
+}

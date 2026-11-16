@@ -1,3 +1,4 @@
+import { useMobileLayout } from "../../lib/useMobileLayout";
 import type { ReactNode } from "react";
 import { Check, ChevronDown, ChevronsUpDown } from "lucide-react";
 import {
@@ -42,8 +43,13 @@ export function Select<T extends object>({
   className,
   ...props
 }: SelectProps<T>) {
+  const phone = useMobileLayout();
   return (
-    <AriaSelect {...props} className={cx(fieldStyles.field, className)}>
+    <AriaSelect
+      data-ui-phone={phone || undefined}
+      {...props}
+      className={cx(fieldStyles.field, className)}
+    >
       <FieldLabel
         label={label}
         isRequired={props.isRequired}
@@ -57,7 +63,11 @@ export function Select<T extends object>({
       </Button>
       <FieldFooter description={description} errorMessage={errorMessage} />
       <Popover width="trigger" asDialog={false} placement="bottom start">
-        <ListBox items={items} className={styles.listbox}>
+        <ListBox
+          data-ui-phone={phone || undefined}
+          items={items}
+          className={styles.listbox}
+        >
           {children}
         </ListBox>
       </Popover>
@@ -93,9 +103,11 @@ export function Combobox<T extends object>({
   menuTrigger = "focus",
   ...props
 }: ComboboxProps<T>) {
+  const phone = useMobileLayout();
   // The list opens as soon as the field is focused (clicked or tabbed into), not only from the arrow button.
   return (
     <AriaComboBox
+      data-ui-phone={phone || undefined}
       {...props}
       menuTrigger={menuTrigger}
       className={cx(fieldStyles.field, className)}
@@ -114,6 +126,7 @@ export function Combobox<T extends object>({
       <FieldFooter description={description} errorMessage={errorMessage} />
       <Popover width={menuWidth} asDialog={false} placement="bottom start">
         <ListBox
+          data-ui-phone={phone || undefined}
           className={styles.listbox}
           renderEmptyState={
             emptyState

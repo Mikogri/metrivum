@@ -14,7 +14,7 @@ import {
   PageHeader,
   Select,
   Toolbar,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { ClientHubActions } from "../hub-actions";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useCoachingQuery, type Page } from "../api";

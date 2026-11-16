@@ -1,3 +1,5 @@
+import { UIProvider } from "@portable-ui/react";
+import { uiPl } from "./ui-messages";
 import { createContext, useContext, type ReactNode } from "react";
 import { I18nProvider } from "react-aria-components";
 import { DEFAULT_LOCALE, intlLocale, type Locale } from "./locale";
@@ -13,7 +15,9 @@ export function LocaleProvider({
 }) {
   return (
     <LocaleContext.Provider value={locale}>
-      <I18nProvider locale={intlLocale(locale)}>{children}</I18nProvider>
+      <UIProvider messages={locale === "pl" ? uiPl : undefined}>
+        <I18nProvider locale={intlLocale(locale)}>{children}</I18nProvider>
+      </UIProvider>
     </LocaleContext.Provider>
   );
 }

@@ -1,17 +1,17 @@
 .flowSection {
   display: grid;
-  gap: var(--tf-space-8);
-  max-width: var(--tf-content-max);
+  gap: var(--ui-space-8);
+  max-width: var(--ui-content-max);
   margin: 0 auto;
-  padding: clamp(var(--tf-space-10), 7vw, var(--tf-space-16)) var(--tf-space-5);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: clamp(var(--ui-space-10), 7vw, var(--ui-space-16)) var(--ui-space-5);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .flow {
   position: relative;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -21,27 +21,27 @@
   position: relative;
   display: grid;
   align-content: start;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
   transition:
     opacity 500ms ease,
-    transform 600ms var(--tf-ease-out),
+    transform 600ms var(--ui-ease-out),
     border-color 600ms ease;
   transition-delay: calc(var(--i) * 120ms);
 }
 
 .flowStep h3 {
-  font-size: var(--tf-text-lg);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-lg);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .flowStep p {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-relaxed);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-relaxed);
 }
 
 /* Connector arrow between steps. */
@@ -49,10 +49,10 @@
   content: "";
   position: absolute;
   top: 2.1rem;
-  right: calc(var(--tf-space-4) * -1);
-  width: var(--tf-space-4);
+  right: calc(var(--ui-space-4) * -1);
+  width: var(--ui-space-4);
   height: 1px;
-  background: var(--tf-color-accent-border);
+  background: var(--ui-color-accent-border);
 }
 
 :global(html[data-motion]) .flow:not([data-inview]) .flowStep {
@@ -61,7 +61,7 @@
 }
 
 .flow[data-inview] .flowStep {
-  border-color: var(--tf-color-border-strong);
+  border-color: var(--ui-color-border-strong);
 }
 
 .flowIndex {
@@ -69,18 +69,18 @@
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
-  margin-bottom: var(--tf-space-2);
+  margin-bottom: var(--ui-space-2);
   border-radius: 50%;
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .demo {
   display: grid;
   justify-items: end;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .demo > :last-child {
@@ -89,7 +89,7 @@
 
 .privacy {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 @media (max-width: 56rem) {

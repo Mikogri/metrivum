@@ -8,7 +8,7 @@ import {
   PageHeader,
   Segment,
   SegmentedControl,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Failure, Loading, useCoachingQuery } from "~/modules/coaching";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { AreaChart, Kpi } from "./charts";

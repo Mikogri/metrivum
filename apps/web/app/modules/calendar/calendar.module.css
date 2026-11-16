@@ -1,22 +1,22 @@
 /* Kind colours come from the status tokens: workouts green, meetings blue, events violet, check-ins amber. */
 [data-kind="Workout"] {
-  --kind: var(--tf-color-success);
-  --kind-soft: var(--tf-color-success-soft);
+  --kind: var(--ui-color-success);
+  --kind-soft: var(--ui-color-success-soft);
 }
 
 [data-kind="Meeting"] {
-  --kind: var(--tf-color-info);
-  --kind-soft: var(--tf-color-info-soft);
+  --kind: var(--ui-color-info);
+  --kind-soft: var(--ui-color-info-soft);
 }
 
 [data-kind="Event"] {
-  --kind: var(--tf-color-violet);
-  --kind-soft: var(--tf-color-violet-soft);
+  --kind: var(--ui-color-violet);
+  --kind-soft: var(--ui-color-violet-soft);
 }
 
 [data-kind="Check-in"] {
-  --kind: var(--tf-color-warning);
-  --kind-soft: var(--tf-color-warning-soft);
+  --kind: var(--ui-color-warning);
+  --kind-soft: var(--ui-color-warning-soft);
 }
 
 /* Calendar beside the selected day's agenda. */
@@ -25,7 +25,7 @@
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20rem;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   align-items: stretch;
 }
 
@@ -36,9 +36,9 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
 }
 
 .agendaList {
@@ -57,8 +57,8 @@
 
 .mobileActions {
   display: grid;
-  gap: var(--tf-space-3);
-  margin-block: var(--tf-space-4);
+  gap: var(--ui-space-3);
+  margin-block: var(--ui-space-4);
 }
 
 .toolbar {
@@ -66,15 +66,15 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .period {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 /* The grid area: dims briefly while a new period or view loads, then the content settles in. */
@@ -84,7 +84,7 @@
   display: flex;
   flex-direction: column;
   transition: opacity 160ms ease;
-  animation: view-in 220ms var(--tf-ease-out);
+  animation: view-in 220ms var(--ui-ease-out);
 }
 
 .views[data-stale] {
@@ -105,10 +105,10 @@
 
 .period h2 {
   min-width: 10.5rem;
-  margin-left: var(--tf-space-1);
-  font-size: var(--tf-text-lg);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-tight);
+  margin-left: var(--ui-space-1);
+  font-size: var(--ui-text-lg);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-tight);
   font-variant-numeric: tabular-nums;
 }
 
@@ -116,28 +116,28 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  padding: var(--tf-space-2) var(--tf-space-4);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-1-5);
+  padding: var(--ui-space-2) var(--ui-space-4);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 /* Filter chips double as the legend. */
 .filter {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   height: 1.625rem;
-  padding: 0 var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
+  padding: 0 var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   transition:
     color 120ms ease,
     border-color 120ms ease,
     background-color 120ms ease,
-    transform 140ms var(--tf-ease-out);
+    transform 140ms var(--ui-ease-out);
 }
 
 .filter::before {
@@ -150,9 +150,9 @@
 }
 
 .filter[aria-pressed="true"] {
-  border-color: var(--tf-color-border-strong);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-border-strong);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text);
 }
 
 .filter[aria-pressed="true"]::before {
@@ -164,14 +164,14 @@
 }
 
 .filter:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 
 .zone {
   margin-left: auto;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 /* Month */
@@ -186,14 +186,14 @@
 }
 
 .weekday {
-  padding: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-align: left;
 }
 
 .monthGrid .weekday {
-  padding-left: var(--tf-space-2-5);
+  padding-left: var(--ui-space-2-5);
 }
 
 .day {
@@ -203,9 +203,9 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: var(--tf-space-1-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
-  border-left: 1px solid var(--tf-color-border-subtle);
+  padding: var(--ui-space-1-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
+  border-left: 1px solid var(--ui-color-border-subtle);
   cursor: default;
   transition: background-color 120ms ease;
 }
@@ -215,16 +215,16 @@
 }
 
 .day[data-muted] {
-  background: var(--tf-color-bg-sunken);
+  background: var(--ui-color-bg-sunken);
 }
 
 .day[data-muted] .dayNumber {
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
 }
 
 .day[data-selected] {
-  background: var(--tf-color-surface-hover);
-  box-shadow: inset 0 0 0 1px var(--tf-color-border-strong);
+  background: var(--ui-color-surface-hover);
+  box-shadow: inset 0 0 0 1px var(--ui-color-border-strong);
 }
 
 .dayNumber {
@@ -234,34 +234,34 @@
   min-width: 1.5rem;
   height: 1.5rem;
   margin-bottom: 2px;
-  padding: 0 var(--tf-space-1);
+  padding: 0 var(--ui-space-1);
   border: 0;
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: transparent;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
 .dayNumber[data-today] {
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
   color: #0c1f16;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .entry {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   width: 100%;
   min-width: 0;
   height: 1.375rem;
-  padding: 0 var(--tf-space-1-5);
+  padding: 0 var(--ui-space-1-5);
   border: 0;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
   background: var(--kind-soft);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-2xs);
   text-align: left;
   box-shadow: inset 2px 0 0 var(--kind);
   transition: filter 120ms ease;
@@ -269,7 +269,7 @@
 
 .entryTime {
   flex-shrink: 0;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -297,22 +297,22 @@
   }
 
   .day:not([data-selected]):hover {
-    background: color-mix(in srgb, var(--tf-color-text) 2.5%, transparent);
+    background: color-mix(in srgb, var(--ui-color-text) 2.5%, transparent);
   }
 }
 
 .more {
   align-self: flex-start;
-  padding: 2px var(--tf-space-1);
+  padding: 2px var(--ui-space-1);
   border: 0;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
   background: none;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
 }
 
 .more:hover {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 /* Year */
@@ -322,14 +322,14 @@
   overflow: auto;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
-  gap: var(--tf-space-6) var(--tf-space-8);
-  padding: var(--tf-space-5);
+  gap: var(--ui-space-6) var(--ui-space-8);
+  padding: var(--ui-space-5);
 }
 
 .yearMonth h3 {
-  margin-bottom: var(--tf-space-2);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  margin-bottom: var(--ui-space-2);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .miniGrid {
@@ -340,7 +340,7 @@
 
 .miniGrid .weekday {
   padding: 2px 0;
-  font-size: var(--tf-text-2xs);
+  font-size: var(--ui-text-2xs);
   text-align: center;
 }
 
@@ -348,32 +348,32 @@
   position: relative;
   height: 1.75rem;
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-2xs);
   font-variant-numeric: tabular-nums;
 }
 
 .miniDay[data-muted] {
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
 }
 
 .miniDay[aria-pressed="true"] {
-  background: var(--tf-color-surface-selected);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-selected);
+  color: var(--ui-color-text);
 }
 
 .miniDay[data-today] {
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
   color: #0c1f16;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .miniDay:not([data-today]):hover {
-    background: var(--tf-color-surface-hover);
-    color: var(--tf-color-text);
+    background: var(--ui-color-surface-hover);
+    color: var(--ui-color-text);
   }
 }
 
@@ -402,8 +402,8 @@
 }
 
 .hours {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -411,7 +411,7 @@
 .hours span {
   display: block;
   height: 3rem;
-  padding-right: var(--tf-space-2);
+  padding-right: var(--ui-space-2);
   transform: translateY(-0.4em);
 }
 
@@ -420,24 +420,24 @@
   top: 0;
   z-index: 3;
   height: 3rem;
-  background: var(--tf-color-surface);
+  background: var(--ui-color-surface);
   transform: none;
 }
 
 .hours .hoursAllDay {
   height: 3.5rem;
-  padding-top: var(--tf-space-2);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding-top: var(--ui-space-2);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
   transform: none;
 }
 
 .weekDay {
   min-width: 0;
-  border-left: 1px solid var(--tf-color-border-subtle);
+  border-left: 1px solid var(--ui-color-border-subtle);
 }
 
 .weekDay[data-selected] {
-  background: color-mix(in srgb, var(--tf-color-text) 2%, transparent);
+  background: color-mix(in srgb, var(--ui-color-text) 2%, transparent);
 }
 
 .weekHeading {
@@ -447,18 +447,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   width: 100%;
   height: 3rem;
   border: 0;
-  border-bottom: 1px solid var(--tf-color-border-subtle);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
 }
 
 .weekHeading[aria-pressed="true"] {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .weekDate {
@@ -466,21 +466,21 @@
   place-items: center;
   min-width: 1.5rem;
   height: 1.5rem;
-  padding: 0 var(--tf-space-1);
-  border-radius: var(--tf-radius-full);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
+  padding: 0 var(--ui-space-1);
+  border-radius: var(--ui-radius-full);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
   font-variant-numeric: tabular-nums;
 }
 
 .weekHeading[aria-pressed="true"] .weekDate {
-  background: var(--tf-color-surface-selected);
+  background: var(--ui-color-surface-selected);
 }
 
 .weekDate[data-today] {
-  background: var(--tf-color-accent) !important;
+  background: var(--ui-color-accent) !important;
   color: #0c1f16;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .allDay {
@@ -490,20 +490,20 @@
   height: 3.5rem;
   overflow: hidden;
   padding: 2px;
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 /* "+N": the all-day items that do not fit; opens the day in the agenda beside the grid. */
 .allDayMore {
   justify-self: start;
   height: 1.375rem;
-  padding: 0 var(--tf-space-1-5);
+  padding: 0 var(--ui-space-1-5);
   border: 0;
-  border-radius: var(--tf-radius-xs);
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-semibold);
+  border-radius: var(--ui-radius-xs);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
   transition:
     background-color 120ms ease,
@@ -511,12 +511,12 @@
 }
 
 .allDayMore:hover {
-  background: var(--tf-color-surface-selected);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-selected);
+  color: var(--ui-color-text);
 }
 
 .allDayMore:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
@@ -525,7 +525,7 @@
   height: calc(24 * 3rem);
   background: repeating-linear-gradient(
     to bottom,
-    var(--tf-color-border-subtle) 0 1px,
+    var(--ui-color-border-subtle) 0 1px,
     transparent 1px 3rem
   );
 }
@@ -539,20 +539,20 @@
   align-content: start;
   gap: 1px;
   overflow: hidden;
-  padding: 3px var(--tf-space-1-5);
+  padding: 3px var(--ui-space-1-5);
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: var(--kind-soft);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-2xs);
   text-align: left;
   box-shadow: inset 2px 0 0 var(--kind);
   transition: filter 120ms ease;
 }
 
 .timeEntry small {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-2xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -566,7 +566,7 @@
 .timeEntry[data-compact] {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   padding-block: 0;
   line-height: 1.2;
 }
@@ -580,26 +580,26 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-4) var(--tf-space-4) var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-4) var(--ui-space-4) var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .agendaHead h2 {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .agendaHead p {
   margin-top: 2px;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .agendaList {
   display: grid;
   margin: 0;
-  padding: var(--tf-space-1);
+  padding: var(--ui-space-1);
   list-style: none;
   align-content: start;
 }
@@ -607,11 +607,11 @@
 .agendaItem {
   display: grid;
   grid-template-columns: 3rem minmax(0, 1fr);
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   width: 100%;
-  padding: var(--tf-space-2-5) var(--tf-space-3);
+  padding: var(--ui-space-2-5) var(--ui-space-3);
   border: 0;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: none;
   color: inherit;
   text-align: left;
@@ -620,13 +620,13 @@
 
 @media (hover: hover) and (pointer: fine) {
   .agendaItem:hover {
-    background: var(--tf-color-surface-hover);
+    background: var(--ui-color-surface-hover);
   }
 }
 
 .agendaTime {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -634,102 +634,102 @@
   display: grid;
   gap: 2px;
   min-width: 0;
-  padding-left: var(--tf-space-2-5);
+  padding-left: var(--ui-space-2-5);
   box-shadow: inset 2px 0 0 var(--kind);
 }
 
 .agendaBody strong {
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .agendaBody span {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .agendaFooter {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3) var(--ui-space-4) var(--ui-space-4);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .calendar button:focus-visible,
 .agenda button:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: -2px;
 }
 
 /* Event editor and details (side panel) */
 .editor {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .editorSection {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .editorSection + .editorSection {
-  padding-top: var(--tf-space-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  padding-top: var(--ui-space-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .editorSection h3 {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--tf-space-3) var(--tf-space-4);
+  gap: var(--ui-space-3) var(--ui-space-4);
   align-items: start;
 }
 
 .columns3 {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   align-items: start;
 }
 
 .error {
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-sm);
 }
 
 .detail {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
 }
 
 .detailTitle {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   justify-items: start;
 }
 
 .detailTitle h2 {
-  font-size: var(--tf-text-xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-tight);
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-tight);
 }
 
 .kind {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
 }
 
 .kind::before {
@@ -742,35 +742,35 @@
 
 .facts {
   display: grid;
-  gap: var(--tf-space-2-5);
+  gap: var(--ui-space-2-5);
   margin: 0;
 }
 
 .fact {
   display: grid;
   grid-template-columns: 1rem minmax(0, 1fr);
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   align-items: start;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 .fact svg {
   width: 1rem;
   height: 1rem;
   margin-top: 0.125rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .fact small {
   display: block;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .description {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
   white-space: pre-wrap;
 }
 
@@ -784,10 +784,10 @@
 .person {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2-5);
-  padding: var(--tf-space-2) 0;
-  border-top: 1px solid var(--tf-color-border-subtle);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2-5);
+  padding: var(--ui-space-2) 0;
+  border-top: 1px solid var(--ui-color-border-subtle);
+  font-size: var(--ui-text-sm);
 }
 
 .person > span:nth-child(2) {
@@ -796,8 +796,8 @@
 }
 
 .muted {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 @media (max-width: 72rem) {
@@ -816,12 +816,12 @@
 
 @media (max-width: 40rem) {
   .toolbar {
-    padding: var(--tf-space-2-5) var(--tf-space-3);
+    padding: var(--ui-space-2-5) var(--ui-space-3);
   }
 
   .period h2 {
     min-width: 0;
-    font-size: var(--tf-text-md);
+    font-size: var(--ui-text-md);
   }
 
   .day {
@@ -851,7 +851,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .toolbar {
-    padding: var(--tf-space-2);
+    padding: var(--ui-space-2);
   }
   .period {
     width: 100%;
@@ -859,7 +859,7 @@
   }
   .period h2 {
     min-width: 0;
-    font-size: var(--tf-text-md);
+    font-size: var(--ui-text-md);
   }
   .period button {
     min-width: 2.75rem;
@@ -884,7 +884,7 @@
 /* Save problems at the end of the editor; empty when there are none. */
 .editorProblem {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 .editorProblem:empty {
   display: none;

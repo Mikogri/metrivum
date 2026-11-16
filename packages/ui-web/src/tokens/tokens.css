@@ -1,183 +1,178 @@
 /*
- * Metrivum web design tokens.
- * Values come from docs/frontend/design-reference.md (derived from the supplied dark inspirations).
+ * Portable UI foundation tokens.
  * Components must use these semantic variables instead of raw values.
  */
-:root {
+:root,
+[data-ui-theme="dark"] {
+  --ui-color-primary: #454545;
+  --ui-color-primary-hover: #555555;
+  --ui-color-primary-border: #777777;
+  --ui-color-primary-border-hover: #999999;
+  --ui-color-on-primary: #ffffff;
+  --ui-color-accent: #c6c6c6;
+  --ui-color-accent-strong: #eeeeee;
+  --ui-color-accent-deep: #333333;
+  --ui-color-accent-deep-hover: #444444;
+  --ui-color-accent-soft: rgb(255 255 255 / 0.12);
+  --ui-color-accent-border: rgb(255 255 255 / 0.34);
+  --ui-color-on-accent: #111111;
+  --ui-color-accent-text: #cccccc;
+  --ui-color-focus-ring: #b6b6b6;
+  --ui-font-sans: system-ui, sans-serif;
+  --ui-font-display: var(--ui-font-sans);
+  --ui-font-brand: var(--ui-font-sans);
+  --ui-font-label: ui-monospace, monospace;
+  --ui-font-mono: ui-monospace, monospace;
+
   color-scheme: dark;
 
   /* Surfaces: neutral greys (equal RGB channels), each step one visible notch lighter. */
-  --tf-color-bg: #141414;
-  --tf-color-bg-sunken: #101010;
-  --tf-color-sidebar: #0e0e0e;
-  --tf-color-surface: #181818;
-  --tf-color-surface-raised: #1d1d1d;
-  --tf-color-surface-overlay: #212121;
+  --ui-color-bg: #141414;
+  --ui-color-bg-sunken: #101010;
+  --ui-color-sidebar: #0e0e0e;
+  --ui-color-surface: #181818;
+  --ui-color-surface-raised: #1d1d1d;
+  --ui-color-surface-overlay: #212121;
   /* Inputs sit a touch lighter than the panel they are on, never darker. */
-  --tf-color-field: rgb(255 255 255 / 0.065);
-  --tf-color-field-hover: rgb(255 255 255 / 0.09);
-  --tf-color-surface-hover: rgb(255 255 255 / 0.05);
-  --tf-color-surface-selected: rgb(60 60 60 / 0.5);
+  --ui-color-field: rgb(255 255 255 / 0.065);
+  --ui-color-field-hover: rgb(255 255 255 / 0.09);
+  --ui-color-surface-hover: rgb(255 255 255 / 0.05);
+  --ui-color-surface-selected: rgb(60 60 60 / 0.5);
 
   /* Borders: translucent white hairlines, so they read the same on every surface. */
-  --tf-color-border-subtle: rgb(255 255 255 / 0.07);
-  --tf-color-border: rgb(255 255 255 / 0.1);
-  --tf-color-border-strong: rgb(255 255 255 / 0.17);
+  --ui-color-border-subtle: rgb(255 255 255 / 0.07);
+  --ui-color-border: rgb(255 255 255 / 0.1);
+  --ui-color-border-strong: rgb(255 255 255 / 0.17);
 
-  /* Text. Tertiary still passes 4.5:1 on --tf-color-bg. */
-  --tf-color-text: #ededed;
-  --tf-color-text-secondary: #a0a0a0;
-  --tf-color-text-tertiary: #8a8a8a;
-  --tf-color-text-disabled: #606060;
-  --tf-color-text-inverse: #0a0a0a;
+  /* Text. Tertiary still passes 4.5:1 on --ui-color-bg. */
+  --ui-color-text: #ededed;
+  --ui-color-text-secondary: #a0a0a0;
+  --ui-color-text-tertiary: #8a8a8a;
+  --ui-color-text-disabled: #606060;
+  --ui-color-text-inverse: #0a0a0a;
 
-  /* Actions: deep green buttons with white text; the bright green is for small details. */
-  --tf-color-primary: #235337;
-  --tf-color-primary-hover: #2a6342;
-  --tf-color-primary-border: rgb(62 224 154 / 0.24);
-  --tf-color-primary-border-hover: rgb(62 224 154 / 0.36);
-  --tf-color-on-primary: #ffffff;
-  --tf-color-accent: #3ee09a;
-  --tf-color-accent-strong: #6eeab5;
-  --tf-color-accent-deep: #163a2b;
-  --tf-color-accent-deep-hover: #1c4634;
-  --tf-color-accent-soft: rgb(62 224 154 / 0.12);
-  --tf-color-accent-border: rgb(62 224 154 / 0.34);
-  --tf-color-on-accent: #0a0a0a;
-  --tf-color-accent-text: #2ebc75;
+  /* Actions: applications may override the neutral palette. */
 
   /* Status (always paired with an icon or text, never colour alone). */
-  --tf-color-success: #3ee09a;
-  --tf-color-success-soft: rgb(62 224 154 / 0.12);
-  --tf-color-warning: #f2a93b;
-  --tf-color-warning-soft: rgb(242 169 59 / 0.12);
-  --tf-color-danger: #f0605d;
-  --tf-color-danger-soft: rgb(240 96 93 / 0.12);
-  --tf-color-danger-border: rgb(240 96 93 / 0.36);
-  --tf-color-info: #79a8ff;
-  --tf-color-info-soft: rgb(121 168 255 / 0.12);
-  --tf-color-violet: #a98bff;
-  --tf-color-violet-soft: rgb(169 139 255 / 0.14);
+  --ui-color-success: #3ee09a;
+  --ui-color-success-soft: rgb(62 224 154 / 0.12);
+  --ui-color-warning: #f2a93b;
+  --ui-color-warning-soft: rgb(242 169 59 / 0.12);
+  --ui-color-danger: #f0605d;
+  --ui-color-danger-soft: rgb(240 96 93 / 0.12);
+  --ui-color-danger-border: rgb(240 96 93 / 0.36);
+  --ui-color-info: #79a8ff;
+  --ui-color-info-soft: rgb(121 168 255 / 0.12);
+  --ui-color-violet: #a98bff;
+  --ui-color-violet-soft: rgb(169 139 255 / 0.14);
 
-  --tf-color-focus-ring: #3ee09a;
-  --tf-color-scrim: rgb(0 0 0 / 0.6);
+  --ui-color-scrim: rgb(0 0 0 / 0.6);
 
   /* Typography */
-  --tf-font-sans:
-    "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", sans-serif;
-  --tf-font-display:
-    "Saira Variable", "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-  --tf-font-brand:
-    "Orbitron Variable", "Geist Variable", ui-sans-serif, sans-serif;
-  --tf-font-label:
-    "Source Code Pro Variable", "Geist Mono Variable", ui-monospace, monospace;
-  --tf-font-mono:
-    "Geist Mono Variable", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
-  --tf-text-2xs: 0.6875rem; /* 11 */
-  --tf-text-xs: 0.75rem; /* 12 */
-  --tf-text-sm: 0.8125rem; /* 13: default app density */
-  --tf-text-md: 0.875rem; /* 14 */
-  --tf-text-lg: 1rem; /* 16: marketing body */
-  --tf-text-xl: 1.125rem; /* 18 */
-  --tf-text-2xl: 1.375rem; /* 22 */
-  --tf-text-3xl: 1.75rem; /* 28 */
-  --tf-text-4xl: clamp(2rem, 1.4rem + 2.4vw, 2.75rem);
-  --tf-text-5xl: clamp(2.5rem, 1.6rem + 4vw, 4.25rem);
-  --tf-text-6xl: clamp(3rem, 1.6rem + 6.2vw, 6rem);
+  --ui-text-2xs: 0.6875rem; /* 11 */
+  --ui-text-xs: 0.75rem; /* 12 */
+  --ui-text-sm: 0.8125rem; /* 13: default app density */
+  --ui-text-md: 0.875rem; /* 14 */
+  --ui-text-lg: 1rem; /* 16: marketing body */
+  --ui-text-xl: 1.125rem; /* 18 */
+  --ui-text-2xl: 1.375rem; /* 22 */
+  --ui-text-3xl: 1.75rem; /* 28 */
+  --ui-text-4xl: clamp(2rem, 1.4rem + 2.4vw, 2.75rem);
+  --ui-text-5xl: clamp(2.5rem, 1.6rem + 4vw, 4.25rem);
+  --ui-text-6xl: clamp(3rem, 1.6rem + 6.2vw, 6rem);
 
-  --tf-leading-tight: 1.08;
-  --tf-leading-snug: 1.3;
-  --tf-leading-normal: 1.5;
-  --tf-leading-relaxed: 1.65;
+  --ui-leading-tight: 1.08;
+  --ui-leading-snug: 1.3;
+  --ui-leading-normal: 1.5;
+  --ui-leading-relaxed: 1.65;
 
-  --tf-weight-regular: 400;
-  --tf-weight-medium: 450;
-  --tf-weight-semibold: 500;
-  --tf-weight-bold: 600; /* special cases only (404 number, file type) */
+  --ui-weight-regular: 400;
+  --ui-weight-medium: 450;
+  --ui-weight-semibold: 500;
+  --ui-weight-bold: 600; /* special cases only (404 number, file type) */
 
-  --tf-tracking-display: -0.025em;
-  --tf-tracking-tight: -0.01em;
+  --ui-tracking-display: -0.025em;
+  --ui-tracking-tight: -0.01em;
 
   /* Spacing (4px grid with 2/6 half steps for dense UI) */
-  --tf-space-0-5: 0.125rem;
-  --tf-space-1: 0.25rem;
-  --tf-space-1-5: 0.375rem;
-  --tf-space-2: 0.5rem;
-  --tf-space-2-5: 0.625rem;
-  --tf-space-3: 0.75rem;
-  --tf-space-4: 1rem;
-  --tf-space-5: 1.25rem;
-  --tf-space-6: 1.5rem;
-  --tf-space-8: 2rem;
-  --tf-space-10: 2.5rem;
-  --tf-space-12: 3rem;
-  --tf-space-16: 4rem;
-  --tf-space-24: 6rem;
-  --tf-space-32: 8rem;
+  --ui-space-0-5: 0.125rem;
+  --ui-space-1: 0.25rem;
+  --ui-space-1-5: 0.375rem;
+  --ui-space-2: 0.5rem;
+  --ui-space-2-5: 0.625rem;
+  --ui-space-3: 0.75rem;
+  --ui-space-4: 1rem;
+  --ui-space-5: 1.25rem;
+  --ui-space-6: 1.5rem;
+  --ui-space-8: 2rem;
+  --ui-space-10: 2.5rem;
+  --ui-space-12: 3rem;
+  --ui-space-16: 4rem;
+  --ui-space-24: 6rem;
+  --ui-space-32: 8rem;
 
   /* Control heights */
-  --tf-control-sm: 1.75rem;
-  --tf-control-md: 2rem;
-  --tf-control-lg: 2.5rem;
+  --ui-control-sm: 1.75rem;
+  --ui-control-md: 2rem;
+  --ui-control-lg: 2.5rem;
 
   /* Radius: controls < cards < overlays */
-  --tf-radius-xs: 3px;
-  --tf-radius-sm: 4px;
-  --tf-radius-md: 5px;
-  --tf-radius-lg: 6px;
-  --tf-radius-xl: 8px;
-  --tf-radius-full: 999px;
+  --ui-radius-xs: 3px;
+  --ui-radius-sm: 4px;
+  --ui-radius-md: 5px;
+  --ui-radius-lg: 6px;
+  --ui-radius-xl: 8px;
+  --ui-radius-full: 999px;
 
   /* Elevation: shadows are dark and paired with a hairline. */
-  --tf-shadow-sm:
+  --ui-shadow-sm:
     0 1px 0 rgb(255 255 255 / 0.03) inset, 0 1px 2px rgb(0 0 0 / 0.4);
-  --tf-shadow-md:
+  --ui-shadow-md:
     0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px -8px rgb(0 0 0 / 0.6);
-  --tf-shadow-lg:
+  --ui-shadow-lg:
     0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 64px -16px rgb(0 0 0 / 0.75);
   /* Menus and popovers: a tight shadow that only darkens the edges. */
-  --tf-shadow-menu: 0 0 0 1px rgb(0 0 0 / 0.2), 0 1px 3px rgb(0 0 0 / 0.3);
-  --tf-shadow-glow:
-    0 0 0 1px var(--tf-color-accent-border),
-    0 0 32px -4px rgb(62 224 154 / 0.35);
+  --ui-shadow-menu: 0 0 0 1px rgb(0 0 0 / 0.2), 0 1px 3px rgb(0 0 0 / 0.3);
+  --ui-shadow-glow:
+    0 0 0 1px var(--ui-color-accent-border),
+    0 0 32px -4px color-mix(in srgb, var(--ui-color-accent) 35%, transparent);
 
   /* Layers */
-  --tf-z-base: 0;
-  --tf-z-sticky: 10;
-  --tf-z-header: 50;
-  --tf-z-popover: 100;
-  --tf-z-modal: 200;
-  --tf-z-toast: 300;
-  --tf-z-tooltip: 400;
+  --ui-z-base: 0;
+  --ui-z-sticky: 10;
+  --ui-z-header: 50;
+  --ui-z-popover: 100;
+  --ui-z-modal: 200;
+  --ui-z-toast: 300;
+  --ui-z-tooltip: 400;
 
   /* Motion (custom curves: built-in easings are too weak) */
-  --tf-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ui-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   /* Content arriving after a load: unhurried, no overshoot. */
-  --tf-ease-settle: cubic-bezier(0.25, 0.8, 0.3, 1);
-  --tf-duration-settle: 560ms;
-  --tf-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --tf-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --tf-ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
-  --tf-duration-press: 140ms;
-  --tf-duration-fast: 160ms;
-  --tf-duration-base: 200ms;
-  --tf-duration-slow: 280ms;
-  --tf-duration-story: 720ms;
+  --ui-ease-settle: cubic-bezier(0.25, 0.8, 0.3, 1);
+  --ui-duration-settle: 560ms;
+  --ui-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ui-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ui-ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ui-duration-press: 140ms;
+  --ui-duration-fast: 160ms;
+  --ui-duration-base: 200ms;
+  --ui-duration-slow: 280ms;
+  --ui-duration-story: 720ms;
 
   /* Layout */
-  --tf-content-max: 75rem;
-  --tf-prose-max: 40rem;
-  --tf-sidebar-width: 15.625rem; /* 250px */
-  --tf-sidebar-rail: 4rem;
-  --tf-header-height: 3.5rem;
-  --tf-appbar-height: 3.25rem;
+  --ui-content-max: 75rem;
+  --ui-prose-max: 40rem;
+  --ui-sidebar-width: 15.625rem; /* 250px */
+  --ui-sidebar-rail: 4rem;
+  --ui-header-height: 3.5rem;
+  --ui-appbar-height: 3.25rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --tf-duration-press: 0ms;
-    --tf-duration-story: 200ms;
+    --ui-duration-press: 0ms;
+    --ui-duration-story: 200ms;
   }
 }

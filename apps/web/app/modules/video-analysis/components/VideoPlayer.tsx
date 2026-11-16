@@ -21,7 +21,7 @@ import {
   type RefObject,
 } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { Button, Tooltip, TooltipTrigger } from "@metrivum/ui-web";
+import { Button, Tooltip, TooltipTrigger } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
 import { useApi } from "~/shared/session/AccountScope";

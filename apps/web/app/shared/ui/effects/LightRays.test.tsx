@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { afterEach, expect, it, vi } from "vitest";
-import * as controls from "@metrivum/ui-web";
+import * as controls from "@portable-ui/react";
 import { LightRays } from "./LightRays";
 
 afterEach(() => vi.restoreAllMocks());

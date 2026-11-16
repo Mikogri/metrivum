@@ -16,7 +16,7 @@ import type {
   Workout,
 } from "@metrivum/api-client-web";
 import { SET_KINDS } from "@metrivum/api-client-web";
-import { Badge, Button, toast } from "@metrivum/ui-web";
+import { Badge, Button, toast } from "@portable-ui/react";
 import {
   ExercisePicker,
   rememberPickedExercise,

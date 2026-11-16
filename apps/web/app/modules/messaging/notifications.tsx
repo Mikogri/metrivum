@@ -42,7 +42,7 @@ import {
   Spinner,
   toast,
   useMobileLayout,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useAccountContext } from "~/shared/session";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { formatRelative } from "~/shared/i18n/format";

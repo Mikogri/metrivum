@@ -1,4 +1,4 @@
-import { Tooltip, TooltipTrigger } from "@metrivum/ui-web";
+import { Tooltip, TooltipTrigger } from "@portable-ui/react";
 import { Button } from "react-aria-components";
 import { IssueList } from "../../components/FormatIssues";
 import { useLocale } from "~/shared/i18n/LocaleContext";

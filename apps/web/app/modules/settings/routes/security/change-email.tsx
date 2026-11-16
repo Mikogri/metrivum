@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link as RouterLink } from "react-router";
-import { Alert, Button, Card, TextField, toast } from "@metrivum/ui-web";
+import { Alert, Button, Card, TextField, toast } from "@portable-ui/react";
 import {
   EMAIL_RESEND_SECONDS,
   SecondFactorForm,

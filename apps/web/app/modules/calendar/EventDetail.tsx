@@ -14,7 +14,7 @@ import {
   DialogFooter,
   LinkButton,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import {

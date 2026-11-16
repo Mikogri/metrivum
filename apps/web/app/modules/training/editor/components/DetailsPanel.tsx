@@ -20,7 +20,7 @@ import {
   Select,
   TextArea,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import {
   changeSetKind,

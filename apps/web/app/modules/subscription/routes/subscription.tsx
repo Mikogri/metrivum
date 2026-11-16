@@ -11,7 +11,7 @@ import {
   Option,
   PageHeader,
   Select,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   Failure,
   Loading,

@@ -1,5 +1,5 @@
 import { Navigate, useNavigate, useSearchParams } from "react-router";
-import { Button } from "@metrivum/ui-web";
+import { Button } from "@portable-ui/react";
 import { AccountGate, useProfile } from "~/modules/accounts";
 import { AuthHeader } from "~/modules/auth";
 import { useT } from "~/shared/i18n/AppLocale";

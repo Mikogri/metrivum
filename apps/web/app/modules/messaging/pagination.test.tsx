@@ -8,7 +8,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { beforeEach, expect, it, vi } from "vitest";
-import type * as UiWeb from "@metrivum/ui-web";
+import type * as UiWeb from "@portable-ui/react";
 import Messages from "./messages";
 
 const state = vi.hoisted(() => ({
@@ -21,7 +21,7 @@ const state = vi.hoisted(() => ({
   total: 40,
   observers: [] as Array<(entries: Array<{ isIntersecting: boolean }>) => void>,
 }));
-vi.mock("@metrivum/ui-web", async (original) => ({
+vi.mock("@portable-ui/react", async (original) => ({
   ...(await original<typeof UiWeb>()),
   useMobileLayout: () => true,
 }));

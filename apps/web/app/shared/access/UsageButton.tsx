@@ -2,7 +2,7 @@ import { ArrowRight, Gauge } from "lucide-react";
 import { useState } from "react";
 import { DialogTrigger } from "react-aria-components";
 import { useNavigate } from "react-router";
-import { Button, IconButton, Popover } from "@metrivum/ui-web";
+import { Button, IconButton, Popover } from "@portable-ui/react";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { formatBytes } from "~/shared/i18n/format";
 import { isCap, useUsage, type UsageItem } from "./usage";

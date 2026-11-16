@@ -2,7 +2,7 @@ import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { CircleAlert, Clock } from "lucide-react";
 import { Button as AriaButton } from "react-aria-components";
-import { Tooltip, TooltipTrigger } from "@metrivum/ui-web";
+import { Tooltip, TooltipTrigger } from "@portable-ui/react";
 import { useAnalyzerJobs } from "../analyzer-jobs";
 import type { AnalyzerJob } from "../local-analysis";
 import { jobStatus } from "../job-status";

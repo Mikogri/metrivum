@@ -9,7 +9,7 @@ import {
   ErrorState,
   PageHeader,
   Skeleton,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { ApiError } from "~/shared/http/errors";
 import { formatDateTime } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

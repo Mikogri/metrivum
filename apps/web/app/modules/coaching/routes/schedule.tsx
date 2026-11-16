@@ -31,7 +31,7 @@ import {
   TextArea,
   TextField,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useDangerConfirm, useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { RequireFeature } from "~/shared/access";
 import { timeZones } from "~/modules/accounts";

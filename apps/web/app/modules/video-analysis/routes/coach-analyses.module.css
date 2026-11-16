@@ -1,6 +1,6 @@
 .list {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -10,16 +10,16 @@
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
   transition: border-color 120ms ease;
 }
 
 .item:hover {
-  border-color: var(--tf-color-border-strong);
+  border-color: var(--ui-color-border-strong);
 }
 
 .icon {
@@ -28,9 +28,9 @@
   place-items: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: var(--tf-radius-md);
-  background: color-mix(in srgb, var(--tf-color-violet) 14%, transparent);
-  color: var(--tf-color-violet);
+  border-radius: var(--ui-radius-md);
+  background: color-mix(in srgb, var(--ui-color-violet) 14%, transparent);
+  color: var(--ui-color-violet);
 }
 
 .icon svg {
@@ -46,8 +46,8 @@
 
 /* The whole card is clickable through the name link. */
 .name {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-semibold);
   text-decoration: none;
 }
 
@@ -63,16 +63,16 @@
 }
 
 .item:has(.name:focus-visible) {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 
 .set {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 .set svg {
@@ -81,6 +81,6 @@
 }
 
 .meta {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }

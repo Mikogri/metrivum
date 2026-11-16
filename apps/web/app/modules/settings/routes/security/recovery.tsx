@@ -1,5 +1,5 @@
 import { KeyRound, LifeBuoy, Mail, Phone, Smartphone } from "lucide-react";
-import { Badge, Card, LinkButton, List, ListRow } from "@metrivum/ui-web";
+import { Badge, Card, LinkButton, List, ListRow } from "@portable-ui/react";
 import { verifiedTotp } from "~/modules/auth";
 import { useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";

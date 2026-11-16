@@ -1,7 +1,7 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
-import { Button, LinkButton } from "@metrivum/ui-web";
+import { Button, LinkButton } from "@portable-ui/react";
 import { Panel } from "~/shared/ui/Panel";
 import { useCoachingQuery } from "./api";
 import { Failure, Loading, StatusBadge } from "./components";

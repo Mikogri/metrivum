@@ -11,7 +11,12 @@ import {
 import { useState } from "react";
 import { useParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
-import { AlertDialog, Button, LinkButton, PageHeader } from "@metrivum/ui-web";
+import {
+  AlertDialog,
+  Button,
+  LinkButton,
+  PageHeader,
+} from "@portable-ui/react";
 import { Facts, Panel, PanelGrid } from "~/shared/ui/Panel";
 import { useProfile } from "~/modules/accounts";
 import { useCoachingMutation, useCoachingQuery } from "../api";

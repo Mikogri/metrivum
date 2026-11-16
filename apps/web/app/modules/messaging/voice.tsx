@@ -1,7 +1,7 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Mic, Pause, Play, Square, Trash2 } from "lucide-react";
-import { IconButton } from "@metrivum/ui-web";
+import { IconButton } from "@portable-ui/react";
 import styles from "./messaging.module.css";
 export function wavFile(buffer: AudioBuffer): File {
   const length = Math.min(buffer.length, Math.floor(buffer.sampleRate * 300));

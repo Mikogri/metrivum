@@ -12,11 +12,11 @@
   height: var(--cell-h);
   padding: 0 8px;
   background: rgb(26 26 26 / 0.92);
-  border-radius: var(--tf-radius-md) var(--tf-radius-md) 0 0;
-  font-size: var(--tf-text-xs);
+  border-radius: var(--ui-radius-md) var(--ui-radius-md) 0 0;
+  font-size: var(--ui-text-xs);
 }
 .content {
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
 }
 .content textarea {
   display: block;
@@ -31,7 +31,7 @@
   font: inherit;
 }
 .content textarea:focus {
-  box-shadow: inset 0 0 0 1px var(--tf-color-border-strong);
+  box-shadow: inset 0 0 0 1px var(--ui-color-border-strong);
 }
 .content footer {
   display: flex;
@@ -40,7 +40,7 @@
   height: var(--cell-h);
   padding: 0 8px;
   gap: 8px;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 .content footer span {
   overflow: hidden;
@@ -58,25 +58,25 @@
 
 .content footer button[data-visibility] {
   padding: 3px 7px;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
 }
 .content footer button[data-visibility="Client"] {
-  background: var(--tf-color-warning-soft, rgb(245 158 11 / 0.15));
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft, rgb(245 158 11 / 0.15));
+  color: var(--ui-color-warning);
 }
 .content footer button[data-visibility="Coach"] {
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 
 .card[data-collapsed] {
   margin: 4px;
-  background: var(--tf-color-surface-raised);
+  background: var(--ui-color-surface-raised);
 }
 .header > span {
   flex: 1;
 }
 
 .card[data-collapsed] .header {
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
 }

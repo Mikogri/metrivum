@@ -13,7 +13,7 @@ import {
   Card,
   IconButton,
   LinkButton,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useAnalyzerJobs } from "../analyzer-jobs";
 import {
   launchLocalAnalyzer,

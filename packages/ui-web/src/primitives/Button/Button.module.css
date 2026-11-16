@@ -3,14 +3,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   flex-shrink: 0;
-  height: var(--tf-control-md);
-  padding: 0 var(--tf-space-3);
+  height: var(--ui-control-md);
+  padding: 0 var(--ui-space-3);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-md);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  border-radius: var(--ui-radius-md);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   line-height: 1;
   white-space: nowrap;
   user-select: none;
@@ -18,12 +18,12 @@
   cursor: pointer;
   outline: none;
   transition:
-    transform var(--tf-duration-press) var(--tf-ease-out),
-    background-color var(--tf-duration-fast) ease,
-    border-color var(--tf-duration-fast) ease,
-    color var(--tf-duration-fast) ease,
-    box-shadow var(--tf-duration-fast) ease,
-    opacity var(--tf-duration-base, 200ms) ease;
+    transform var(--ui-duration-press) var(--ui-ease-out),
+    background-color var(--ui-duration-fast) ease,
+    border-color var(--ui-duration-fast) ease,
+    color var(--ui-duration-fast) ease,
+    box-shadow var(--ui-duration-fast) ease,
+    opacity var(--ui-duration-base, 200ms) ease;
 }
 
 /* Press feedback: the interface heard the click. */
@@ -32,7 +32,7 @@
 }
 
 .button[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 
@@ -51,17 +51,17 @@
 }
 
 .sm {
-  height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-2-5);
-  border-radius: var(--tf-radius-sm);
-  font-size: var(--tf-text-xs);
+  height: var(--ui-control-sm);
+  padding: 0 var(--ui-space-2-5);
+  border-radius: var(--ui-radius-sm);
+  font-size: var(--ui-text-xs);
 }
 
 .lg {
-  height: var(--tf-control-lg);
-  padding: 0 var(--tf-space-4);
-  border-radius: var(--tf-radius-md);
-  font-size: var(--tf-text-md);
+  height: var(--ui-control-lg);
+  padding: 0 var(--ui-space-4);
+  border-radius: var(--ui-radius-md);
+  font-size: var(--ui-text-md);
 }
 
 .content {
@@ -70,8 +70,8 @@
   gap: inherit;
   min-width: 0;
   transition:
-    opacity var(--tf-duration-fast) ease,
-    filter var(--tf-duration-fast) ease;
+    opacity var(--ui-duration-fast) ease,
+    filter var(--ui-duration-fast) ease;
 }
 
 /* Blur bridges the crossfade between label and spinner. */
@@ -105,7 +105,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  animation: spinner-in var(--tf-duration-fast, 150ms) ease both;
+  animation: spinner-in var(--ui-duration-fast, 150ms) ease both;
 }
 
 @keyframes spinner-in {
@@ -123,29 +123,29 @@
 
 /* Variants */
 .primary {
-  border-color: var(--tf-color-primary-border);
-  background: var(--tf-color-primary);
-  color: var(--tf-color-on-primary);
-  font-weight: var(--tf-weight-medium);
+  border-color: var(--ui-color-primary-border);
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+  font-weight: var(--ui-weight-medium);
   letter-spacing: 0.005em;
 }
 
 .accent {
-  background: var(--tf-color-accent-deep);
+  background: var(--ui-color-accent-deep);
   border-color: transparent;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .secondary {
-  background: var(--tf-color-surface-raised);
-  border-color: var(--tf-color-border);
-  color: var(--tf-color-text);
-  box-shadow: var(--tf-shadow-sm);
+  background: var(--ui-color-surface-raised);
+  border-color: var(--ui-color-border);
+  color: var(--ui-color-text);
+  box-shadow: var(--ui-shadow-sm);
 }
 
 .ghost {
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 /* Destructive actions are solid red, so the risky choice is never mistaken for the safe one. */
@@ -157,19 +157,19 @@
 
 /* Confirms something good and final: accepting, approving. Same green as every primary button. */
 .success {
-  border-color: var(--tf-color-primary-border);
-  background: var(--tf-color-primary);
-  color: var(--tf-color-on-primary);
+  border-color: var(--ui-color-primary-border);
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
 }
 
 /* Quiet destructive action: red text that turns into a red surface on hover and press. */
 .danger-ghost {
   background: transparent;
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 .danger-ghost[data-pressed] {
-  border-color: var(--tf-color-danger-border);
+  border-color: var(--ui-color-danger-border);
   background: rgb(240 96 93 / 0.22);
   color: #ff8a86;
 }
@@ -180,29 +180,29 @@
 
 @media (hover: hover) and (pointer: fine) {
   .danger-ghost[data-hovered]:not([data-pressed]) {
-    border-color: var(--tf-color-danger-border);
-    background: var(--tf-color-danger-soft);
+    border-color: var(--ui-color-danger-border);
+    background: var(--ui-color-danger-soft);
     color: #ff7c78;
   }
 
   .primary[data-hovered],
   .success[data-hovered] {
-    border-color: var(--tf-color-primary-border-hover);
-    background: var(--tf-color-primary-hover);
+    border-color: var(--ui-color-primary-border-hover);
+    background: var(--ui-color-primary-hover);
   }
 
   .accent[data-hovered] {
-    background: var(--tf-color-accent-deep-hover);
+    background: var(--ui-color-accent-deep-hover);
   }
 
   .secondary[data-hovered] {
-    background: var(--tf-color-surface-hover);
-    border-color: var(--tf-color-border-strong);
+    background: var(--ui-color-surface-hover);
+    border-color: var(--ui-color-border-strong);
   }
 
   .ghost[data-hovered] {
-    background: var(--tf-color-surface-hover);
-    color: var(--tf-color-text);
+    background: var(--ui-color-surface-hover);
+    color: var(--ui-color-text);
   }
 
   .danger[data-hovered] {

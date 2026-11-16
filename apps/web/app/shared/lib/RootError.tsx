@@ -1,4 +1,4 @@
-import { Button, ErrorState, LinkButton } from "@metrivum/ui-web";
+import { Button, ErrorState, LinkButton } from "@portable-ui/react";
 import { useLocation } from "react-router";
 import { localeFromPathname } from "~/shared/i18n/locale";
 import styles from "./RootError.module.css";

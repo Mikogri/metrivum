@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { toast } from "@metrivum/ui-web";
+import { toast } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { hasUnsavedWork } from "./dirty-guard";
 import { loginPath } from "./returnTo";

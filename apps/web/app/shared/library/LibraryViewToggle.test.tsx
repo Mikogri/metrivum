@@ -3,7 +3,9 @@ import { expect, it, vi } from "vitest";
 import { useLibraryView } from "./LibraryViewToggle";
 
 const viewport = vi.hoisted(() => ({ phone: true }));
-vi.mock("@metrivum/ui-web", () => ({ useMobileLayout: () => viewport.phone }));
+vi.mock("@portable-ui/react", () => ({
+  useMobileLayout: () => viewport.phone,
+}));
 
 it("uses phone cards without losing the desktop list preference on resize", () => {
   const hook = renderHook(() => useLibraryView("list"));

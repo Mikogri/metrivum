@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import { Alert, AlertDialog, toast } from "@metrivum/ui-web";
+import { Alert, AlertDialog, toast } from "@portable-ui/react";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";
 import { newIdempotencyKey } from "~/shared/http/transport";

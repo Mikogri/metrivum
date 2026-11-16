@@ -25,7 +25,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import type { AnalysisTracking } from "@metrivum/api-client-web";
-import { Alert, Button, IconButton } from "@metrivum/ui-web";
+import { Alert, Button, IconButton } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import type { VideoTrim } from "../local-analysis";
 import {

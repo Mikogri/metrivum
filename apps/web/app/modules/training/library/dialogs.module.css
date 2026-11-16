@@ -1,15 +1,15 @@
 .form {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .footer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--tf-space-2);
-  margin-top: var(--tf-space-2);
+  gap: var(--ui-space-2);
+  margin-top: var(--ui-space-2);
 }
 
 .inlineAlert {
-  margin-top: var(--tf-space-3);
+  margin-top: var(--ui-space-3);
 }

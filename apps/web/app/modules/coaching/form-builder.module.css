@@ -2,11 +2,11 @@
 
 .notices {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .notices:not(:empty) {
-  margin-bottom: var(--tf-space-4);
+  margin-bottom: var(--ui-space-4);
 }
 
 /* ---- Workspace frame ---- */
@@ -15,19 +15,19 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-xl);
-  background: var(--tf-color-bg-sunken);
+  border: 1px solid var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-xl);
+  background: var(--ui-color-bg-sunken);
 }
 
 .frameBar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border);
-  background: var(--tf-color-surface);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
 }
 
 .dots {
@@ -39,27 +39,27 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--tf-color-surface-overlay);
-  box-shadow: 0 0 0 1px var(--tf-color-border-strong) inset;
+  background: var(--ui-color-surface-overlay);
+  box-shadow: 0 0 0 1px var(--ui-color-border-strong) inset;
 }
 
 .frameTitle {
   display: grid;
   margin-right: auto;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .frameTitle small {
-  color: var(--tf-color-text-tertiary);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-tertiary);
+  font-weight: var(--ui-weight-regular);
 }
 
 .canvas {
-  padding: var(--tf-space-8) var(--tf-space-5) var(--tf-space-12);
-  background-color: var(--tf-color-bg-sunken);
+  padding: var(--ui-space-8) var(--ui-space-5) var(--ui-space-12);
+  background-color: var(--ui-color-bg-sunken);
   background-image: radial-gradient(
-    var(--tf-color-border-strong) 1px,
+    var(--ui-color-border-strong) 1px,
     transparent 1px
   );
   background-size: 14px 14px;
@@ -69,16 +69,16 @@
 .screen {
   display: grid;
   align-content: start;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   width: 100%;
   max-width: 44rem;
   margin: 0 auto;
-  padding: var(--tf-space-8) var(--tf-space-8) var(--tf-space-6);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-bg);
-  box-shadow: var(--tf-shadow-lg);
-  transition: max-width 320ms var(--tf-ease-out);
+  padding: var(--ui-space-8) var(--ui-space-8) var(--ui-space-6);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-bg);
+  box-shadow: var(--ui-shadow-lg);
+  transition: max-width 320ms var(--ui-ease-out);
 }
 
 .screen[hidden] {
@@ -87,7 +87,7 @@
 
 .screen[data-device="phone"] {
   max-width: 24rem;
-  padding: var(--tf-space-6) var(--tf-space-5);
+  padding: var(--ui-space-6) var(--ui-space-5);
   border-radius: 1.5rem;
 }
 
@@ -96,12 +96,12 @@
 .inlineInput {
   width: 100%;
   min-width: 0;
-  margin: 0 calc(var(--tf-space-2) * -1);
-  padding: var(--tf-space-1) var(--tf-space-2);
+  margin: 0 calc(var(--ui-space-2) * -1);
+  padding: var(--ui-space-1) var(--ui-space-2);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   font: inherit;
   resize: none;
   outline: none;
@@ -111,12 +111,12 @@
 }
 
 .inlineInput::placeholder {
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .inlineInput:hover:not(:disabled) {
-    background: var(--tf-color-surface-hover);
+    background: var(--ui-color-surface-hover);
   }
 }
 
@@ -128,10 +128,10 @@
 }
 
 .nameInput {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-3xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-display);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-3xl);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-display);
   line-height: 1.15;
 }
 
@@ -139,40 +139,40 @@
 .descriptionInput {
   overflow: hidden;
   resize: none;
-  margin-top: calc(var(--tf-space-3) * -1);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-md);
-  line-height: var(--tf-leading-normal);
+  margin-top: calc(var(--ui-space-3) * -1);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-md);
+  line-height: var(--ui-leading-normal);
 }
 
 .sectionInput {
-  font-size: var(--tf-text-lg);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-lg);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .questionInput {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-medium);
 }
 
 .helpInput {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 /* ---- Sections ---- */
 
 .section {
   display: grid;
-  gap: var(--tf-space-2);
-  padding-top: var(--tf-space-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-2);
+  padding-top: var(--ui-space-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .sectionHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .sectionRemove {
@@ -190,11 +190,11 @@
 .block {
   position: relative;
   display: grid;
-  gap: var(--tf-space-1);
-  margin: 0 calc(var(--tf-space-3) * -1);
-  padding: var(--tf-space-3);
+  gap: var(--ui-space-1);
+  margin: 0 calc(var(--ui-space-3) * -1);
+  padding: var(--ui-space-3);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   transition:
     border-color 140ms ease,
     background-color 140ms ease;
@@ -202,36 +202,36 @@
 
 @media (hover: hover) and (pointer: fine) {
   .block:hover:not([data-selected]) {
-    border-color: var(--tf-color-border-subtle);
+    border-color: var(--ui-color-border-subtle);
   }
 }
 
 .block[data-selected] {
-  border-color: var(--tf-color-border-strong);
-  background: var(--tf-color-surface);
+  border-color: var(--ui-color-border-strong);
+  background: var(--ui-color-surface);
 }
 
 /* A bar at the left edge marks the question being edited. */
 .block[data-selected]::before {
   content: "";
   position: absolute;
-  top: var(--tf-space-3);
-  bottom: var(--tf-space-3);
+  top: var(--ui-space-3);
+  bottom: var(--ui-space-3);
   left: -1px;
   width: 2px;
   border-radius: 2px;
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
 }
 
 .blockHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .required {
-  color: var(--tf-color-danger);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-danger);
+  font-weight: var(--ui-weight-semibold);
 }
 
 /* Static stand-ins for the client's answer controls. */
@@ -239,20 +239,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--tf-control-md);
-  margin-top: var(--tf-space-1);
-  padding: 0 var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-field);
-  color: var(--tf-color-text-disabled);
-  font-size: var(--tf-text-sm);
+  height: var(--ui-control-md);
+  margin-top: var(--ui-space-1);
+  padding: 0 var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-field);
+  color: var(--ui-color-text-disabled);
+  font-size: var(--ui-text-sm);
 }
 
 .fake[data-tall] {
   align-items: flex-start;
   height: 5rem;
-  padding-top: var(--tf-space-2);
+  padding-top: var(--ui-space-2);
 }
 
 .fake svg {
@@ -263,8 +263,8 @@
 .pills {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
-  margin-top: var(--tf-space-1);
+  gap: var(--ui-space-1-5);
+  margin-top: var(--ui-space-1);
 }
 
 .pills span {
@@ -272,31 +272,31 @@
   place-items: center;
   min-width: 2.25rem;
   height: 2rem;
-  padding: 0 var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-field);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  padding: 0 var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-field);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
   font-variant-numeric: tabular-nums;
 }
 
 .scale {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .scaleLabels {
   display: flex;
   justify-content: space-between;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .options {
   display: grid;
   gap: 2px;
-  margin: var(--tf-space-1) 0 0;
+  margin: var(--ui-space-1) 0 0;
   padding: 0;
   list-style: none;
 }
@@ -304,19 +304,19 @@
 .options li {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .options .inlineInput {
   margin: 0;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 .mark {
   flex-shrink: 0;
   width: 1rem;
   height: 1rem;
-  border: 1.5px solid var(--tf-color-border-strong);
+  border: 1.5px solid var(--ui-color-border-strong);
   border-radius: 50%;
 }
 
@@ -334,42 +334,42 @@
 }
 
 .addOption {
-  padding: var(--tf-space-1) var(--tf-space-2);
+  padding: var(--ui-space-1) var(--ui-space-2);
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   font: inherit;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   cursor: pointer;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .addOption:hover:not(:disabled) {
-    color: var(--tf-color-text);
+    color: var(--ui-color-text);
   }
 }
 
 /* Settings of the selected question, under its answer. */
 .settings {
   display: grid;
-  gap: var(--tf-space-3);
-  margin-top: var(--tf-space-3);
-  padding-top: var(--tf-space-3);
-  border-top: 1px dashed var(--tf-color-border);
+  gap: var(--ui-space-3);
+  margin-top: var(--ui-space-3);
+  padding-top: var(--ui-space-3);
+  border-top: 1px dashed var(--ui-color-border);
 }
 
 .settingsRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .settingsFoot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .blockActions {
@@ -383,21 +383,21 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  margin-top: var(--tf-space-2);
-  padding: var(--tf-space-3);
-  border: 1px dashed var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-md);
+  gap: var(--ui-space-1-5);
+  margin-top: var(--ui-space-2);
+  padding: var(--ui-space-3);
+  border: 1px dashed var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-md);
 }
 
 .addLabel {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
-  margin-right: var(--tf-space-1);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  gap: var(--ui-space-1);
+  margin-right: var(--ui-space-1);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .addLabel svg {
@@ -407,13 +407,13 @@
 
 .addType {
   height: 1.75rem;
-  padding: 0 var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-secondary);
+  padding: 0 var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-secondary);
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   cursor: pointer;
   transition:
     background-color 120ms ease,
@@ -423,14 +423,14 @@
 
 @media (hover: hover) and (pointer: fine) {
   .addType:hover:not(:disabled) {
-    border-color: var(--tf-color-accent-border);
-    background: var(--tf-color-accent-soft);
-    color: var(--tf-color-accent);
+    border-color: var(--ui-color-accent-border);
+    background: var(--ui-color-accent-soft);
+    color: var(--ui-color-accent);
   }
 }
 
 .addType:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
@@ -447,31 +447,31 @@
 
 .tryHead {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .tryHead h2 {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-3xl);
-  font-weight: var(--tf-weight-semibold);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-3xl);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .tryHead p {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .tryFoot {
   display: flex;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 @media (max-width: 40rem) {
   .canvas {
-    padding: var(--tf-space-4) var(--tf-space-2) var(--tf-space-8);
+    padding: var(--ui-space-4) var(--ui-space-2) var(--ui-space-8);
   }
 
   .screen {
-    padding: var(--tf-space-5) var(--tf-space-4);
+    padding: var(--ui-space-5) var(--ui-space-4);
   }
 }
 
@@ -490,11 +490,11 @@
     min-width: 0;
   }
   .canvas {
-    padding: var(--tf-space-4) var(--tf-space-2) var(--tf-space-8);
+    padding: var(--ui-space-4) var(--ui-space-2) var(--ui-space-8);
   }
   .screen,
   .screen[data-device="phone"] {
-    padding: var(--tf-space-5) var(--tf-space-4);
+    padding: var(--ui-space-5) var(--ui-space-4);
   }
   .frameTitle {
     min-width: 0;

@@ -10,7 +10,7 @@ import {
 import { flushSync } from "react-dom";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Alert, Button } from "@metrivum/ui-web";
+import { Alert, Button } from "@portable-ui/react";
 import { useDiscardConfirm } from "~/shared/lib/useConfirm";
 import { useAccountContext, useAccountKey, useApi } from "./AccountScope";
 import { hasUnsavedWork } from "./dirty-guard";

@@ -18,7 +18,7 @@ import {
   PageBackContext,
   useMobileLayout,
   type PageBack,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { UsageButton, useAccessSnapshot } from "~/shared/access";
 import {
   useWorkspace,

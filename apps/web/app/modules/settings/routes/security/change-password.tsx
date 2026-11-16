@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Button, Card } from "@metrivum/ui-web";
+import { Alert, Button, Card } from "@portable-ui/react";
 import {
   EMAIL_RESEND_SECONDS,
   authErrorText,

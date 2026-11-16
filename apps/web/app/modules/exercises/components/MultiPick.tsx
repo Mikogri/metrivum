@@ -1,7 +1,7 @@
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { Combobox, Option } from "@metrivum/ui-web";
+import { Combobox, Option } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./MultiPick.module.css";
 

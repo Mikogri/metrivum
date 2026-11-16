@@ -8,7 +8,7 @@ import {
   Segment,
   SegmentedControl,
   Select,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { MuscleHeatmap } from "~/modules/anatomy";
 import { useDictionaryLabel, type ExerciseLabel } from "~/modules/exercises";
 import { formatNumber } from "~/shared/i18n/format";

@@ -2,9 +2,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   overflow: hidden;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-xl);
-  background: var(--tf-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-xl);
+  background: var(--ui-color-surface);
 }
 
 .frame {
@@ -12,20 +12,20 @@
   min-height: 18rem;
   background:
     linear-gradient(
-        color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px,
+        color-mix(in srgb, var(--ui-color-text) 3%, transparent) 1px,
         transparent 1px
       )
       0 0 / 100% 2rem,
     linear-gradient(
         90deg,
-        color-mix(in srgb, var(--tf-color-text) 3%, transparent) 1px,
+        color-mix(in srgb, var(--ui-color-text) 3%, transparent) 1px,
         transparent 1px
       )
       0 0 / 2rem 100%,
     radial-gradient(
       ellipse at 50% 30%,
-      var(--tf-color-surface-raised),
-      var(--tf-color-bg-sunken) 70%
+      var(--ui-color-surface-raised),
+      var(--ui-color-bg-sunken) 70%
     );
 }
 
@@ -38,7 +38,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    var(--tf-color-border-strong),
+    var(--ui-color-border-strong),
     transparent
   );
 }
@@ -52,7 +52,7 @@
 
 .pathShadow {
   fill: none;
-  stroke: color-mix(in srgb, var(--tf-color-accent) 15%, transparent);
+  stroke: color-mix(in srgb, var(--ui-color-accent) 15%, transparent);
   stroke-width: 10;
   stroke-linecap: round;
   filter: blur(6px);
@@ -62,7 +62,7 @@
 
 .pathLine {
   fill: none;
-  stroke: var(--tf-color-accent);
+  stroke: var(--ui-color-accent);
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-dasharray: 1;
@@ -71,7 +71,7 @@
 
 /* Bar path draws once the analysis completes. */
 .card[data-completed][data-inview] .pathLine {
-  animation: draw 1800ms var(--tf-ease-in-out) forwards;
+  animation: draw 1800ms var(--ui-ease-in-out) forwards;
 }
 
 .card[data-completed][data-inview] .pathShadow {
@@ -79,8 +79,8 @@
 }
 
 .plate {
-  fill: var(--tf-color-text);
-  stroke: var(--tf-color-bg);
+  fill: var(--ui-color-text);
+  stroke: var(--ui-color-bg);
   stroke-width: 3;
   offset-path: path(
     "M150 40 C 146 80, 138 130, 140 178 C 142 214, 156 222, 160 210 C 166 180, 160 120, 152 40"
@@ -91,7 +91,7 @@
 }
 
 .card[data-completed][data-inview] .plate {
-  animation: ride 1800ms var(--tf-ease-in-out) forwards;
+  animation: ride 1800ms var(--ui-ease-in-out) forwards;
 }
 
 @keyframes draw {
@@ -108,40 +108,40 @@
 
 .pathLabel {
   position: absolute;
-  left: var(--tf-space-3);
-  top: var(--tf-space-3);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  left: var(--ui-space-3);
+  top: var(--ui-space-3);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
 }
 
 .panel {
   display: grid;
   align-content: start;
-  gap: var(--tf-space-4);
-  padding: var(--tf-space-5);
-  border-left: 1px solid var(--tf-color-border);
+  gap: var(--ui-space-4);
+  padding: var(--ui-space-5);
+  border-left: 1px solid var(--ui-color-border);
 }
 
 .statusRow {
   display: flex;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .timeline {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .rep {
   display: grid;
   grid-template-columns: 4rem 1fr;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .repLabel {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -149,10 +149,10 @@
   display: flex;
   height: 0.75rem;
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-hover);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-hover);
   clip-path: inset(0 100% 0 0 round 999px);
-  transition: clip-path 900ms var(--tf-ease-out);
+  transition: clip-path 900ms var(--ui-ease-out);
   transition-delay: calc(var(--i) * 160ms);
 }
 
@@ -162,25 +162,25 @@
 
 .ecc {
   width: calc(var(--w) * 100%);
-  background: var(--tf-color-info);
+  background: var(--ui-color-info);
 }
 
 .con {
   flex: 1;
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
 }
 
 .legend {
   display: flex;
-  gap: var(--tf-space-4);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-4);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .legend span {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .eccSwatch,
@@ -191,11 +191,11 @@
 }
 
 .eccSwatch {
-  background: var(--tf-color-info);
+  background: var(--ui-color-info);
 }
 
 .conSwatch {
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
 }
 
 @media (max-width: 48rem) {
@@ -205,7 +205,7 @@
 
   .panel {
     border-left: 0;
-    border-top: 1px solid var(--tf-color-border);
+    border-top: 1px solid var(--ui-color-border);
   }
 }
 

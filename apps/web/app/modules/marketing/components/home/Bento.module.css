@@ -1,28 +1,28 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .tile {
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-6);
+  gap: var(--ui-space-6);
   min-width: 0;
-  padding: var(--tf-space-6);
+  padding: var(--ui-space-6);
   border-radius: 10px;
-  border: 1px solid var(--tf-glass-border, var(--tf-color-border));
-  background: var(--tf-glass, var(--tf-color-surface));
-  -webkit-backdrop-filter: var(--tf-glass-blur, none);
-  backdrop-filter: var(--tf-glass-blur, none);
+  border: 1px solid var(--ui-glass-border, var(--ui-color-border));
+  background: var(--ui-glass, var(--ui-color-surface));
+  -webkit-backdrop-filter: var(--ui-glass-blur, none);
+  backdrop-filter: var(--ui-glass-blur, none);
   box-shadow:
     0 1px 0 rgb(255 255 255 / 0.06) inset,
     0 30px 60px -30px rgb(0 0 0 / 0.8);
   transition:
     opacity 700ms ease,
-    transform 900ms var(--tf-ease-out),
-    scale 450ms var(--tf-ease-out),
-    box-shadow 450ms var(--tf-ease-out);
+    transform 900ms var(--ui-ease-out),
+    scale 450ms var(--ui-ease-out),
+    box-shadow 450ms var(--ui-ease-out);
   transition-delay: calc(var(--i) * 80ms), calc(var(--i) * 80ms), 0ms, 0ms;
 }
 
@@ -59,22 +59,22 @@
 
 .copy {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   max-width: 34rem;
 }
 
 .copy h3 {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-2xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-display);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-2xl);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-display);
   line-height: 1.1;
 }
 
 .body {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-md);
-  line-height: var(--tf-leading-relaxed);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-md);
+  line-height: var(--ui-leading-relaxed);
 }
 
 .visual {
@@ -92,6 +92,6 @@
 
 @media (max-width: 40rem) {
   .tile {
-    padding: var(--tf-space-5);
+    padding: var(--ui-space-5);
   }
 }

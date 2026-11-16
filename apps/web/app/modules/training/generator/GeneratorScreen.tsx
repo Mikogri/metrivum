@@ -30,7 +30,7 @@ import {
   PageHeader,
   Select,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { privateMeta } from "~/shared/i18n/site";
 import {
   QuotaContextField,

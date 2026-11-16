@@ -12,7 +12,7 @@ import {
   ChipGroup,
   TextArea,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
 import { useAccountContext } from "~/shared/session";

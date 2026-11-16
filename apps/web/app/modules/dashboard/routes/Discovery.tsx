@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Link as RouterLink } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
-import { Badge, Card, LinkButton, Skeleton } from "@metrivum/ui-web";
+import { Badge, Card, LinkButton, Skeleton } from "@portable-ui/react";
 import {
   detailsFromValues,
   profileFieldsKey,

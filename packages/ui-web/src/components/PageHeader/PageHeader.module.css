@@ -1,7 +1,7 @@
 .header {
   display: grid;
-  gap: var(--tf-space-3);
-  padding-bottom: var(--tf-space-5);
+  gap: var(--ui-space-3);
+  padding-bottom: var(--ui-space-5);
 }
 
 .context {
@@ -13,20 +13,20 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 /* Title block; the back arrow is centred on the title and description together (not the meta row). */
 .lead {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   min-width: 0;
 }
 
 .heading {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
 }
 
@@ -37,12 +37,12 @@
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
-  margin-left: calc(var(--tf-space-1) * -1);
+  margin-left: calc(var(--ui-space-1) * -1);
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   cursor: pointer;
   outline: none;
   transition: color 160ms ease;
@@ -51,11 +51,11 @@
 .back svg {
   width: 1.125rem;
   height: 1.125rem;
-  transition: transform 200ms var(--tf-ease-out);
+  transition: transform 200ms var(--ui-ease-out);
 }
 
 .back[data-hovered] {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .back[data-hovered] svg {
@@ -63,7 +63,7 @@
 }
 
 .back[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
@@ -74,22 +74,22 @@
 
 .titles {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   min-width: 0;
   max-width: 48rem;
 }
 
 .title {
-  font-size: var(--tf-text-2xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-tight);
+  font-size: var(--ui-text-2xl);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-tight);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
 .description {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 /* Right-hand side: status badges, then the page actions, all on the title's line. */
@@ -98,7 +98,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   margin-left: auto;
 }
 
@@ -106,22 +106,22 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 /* A hairline between the facts and the buttons, only when there really are buttons after it. */
 .meta:has(+ .actions:not(:empty)) {
-  padding-right: var(--tf-space-3);
-  border-right: 1px solid var(--tf-color-border-subtle);
+  padding-right: var(--ui-space-3);
+  border-right: 1px solid var(--ui-color-border-subtle);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .section {
@@ -129,23 +129,23 @@
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--tf-space-3);
-  margin-bottom: var(--tf-space-3);
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-3);
 }
 
 .sectionTitle {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .sectionDescription {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }

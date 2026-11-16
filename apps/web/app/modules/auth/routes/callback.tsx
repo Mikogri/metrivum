@@ -1,7 +1,7 @@
 import type { EmailOtpType, Session } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import { ErrorState, LinkButton, toast } from "@metrivum/ui-web";
+import { ErrorState, LinkButton, toast } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import {

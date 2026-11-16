@@ -1,6 +1,6 @@
 import { LogOut } from "lucide-react";
 import { useState } from "react";
-import { Avatar, Badge, Button, Dialog } from "@metrivum/ui-web";
+import { Avatar, Badge, Button, Dialog } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useSessionState } from "./SessionProvider";
 import type { SlotId } from "./storage-keys";

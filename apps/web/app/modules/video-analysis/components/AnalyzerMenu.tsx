@@ -10,7 +10,7 @@ import {
   Video,
 } from "lucide-react";
 import { useNavigate } from "react-router";
-import { DialogTrigger, IconButton, Popover } from "@metrivum/ui-web";
+import { DialogTrigger, IconButton, Popover } from "@portable-ui/react";
 import { useFeatureAccess } from "~/shared/access";
 import { formatRelative } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

@@ -13,7 +13,7 @@ import {
 } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "@metrivum/ui-web";
+import { toast } from "@portable-ui/react";
 import { useFeatureAccess } from "~/shared/access";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import {

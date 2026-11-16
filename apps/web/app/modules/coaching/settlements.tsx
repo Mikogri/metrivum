@@ -9,7 +9,7 @@ import {
   Dialog,
   DialogFooter,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Panel } from "~/shared/ui/Panel";
 import { useFeatureAccess } from "~/shared/access";
 import { useCoachingMutation, useCoachingQuery } from "./api";

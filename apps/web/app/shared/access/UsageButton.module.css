@@ -10,48 +10,48 @@
   right: -2px;
   width: 8px;
   height: 8px;
-  border: 1.5px solid var(--tf-color-surface);
+  border: 1.5px solid var(--ui-color-surface);
   border-radius: 50%;
-  background: var(--tf-color-warning);
+  background: var(--ui-color-warning);
 }
 
 .panel {
-  --ring-bg: var(--tf-color-surface-raised);
+  --ring-bg: var(--ui-color-surface-raised);
   width: min(20rem, calc(100vw - 1.5rem));
 }
 
 .panel > [role="dialog"] {
   display: grid;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3);
 }
 
 .head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-2);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  font-size: var(--ui-text-sm);
 }
 
 .head span,
 .muted {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .warning {
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .list {
   display: grid;
-  gap: var(--tf-space-0-5);
+  gap: var(--ui-space-0-5);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -60,36 +60,36 @@
 .row {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-2) var(--tf-space-1);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-2) var(--ui-space-1);
+  font-size: var(--ui-text-sm);
 }
 
 .row + .row {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .name {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .value {
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .value small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-regular);
 }
 
 /* Icons inside the rings stay grey; the ring itself shows the state. */
 .row svg {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }

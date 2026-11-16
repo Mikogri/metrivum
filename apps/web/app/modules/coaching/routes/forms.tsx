@@ -34,7 +34,7 @@ import {
   Select,
   Toolbar,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useAccessSnapshot } from "~/shared/access";

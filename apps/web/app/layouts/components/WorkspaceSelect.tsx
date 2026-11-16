@@ -13,7 +13,7 @@ import {
   Select,
   Text,
 } from "react-aria-components";
-import { Hint } from "@metrivum/ui-web";
+import { Hint } from "@portable-ui/react";
 import { useProfile } from "~/modules/accounts";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import styles from "./WorkspaceSelect.module.css";

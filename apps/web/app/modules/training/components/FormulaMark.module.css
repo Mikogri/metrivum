@@ -4,14 +4,14 @@
   place-items: center;
   width: 1.125rem;
   height: 1.125rem;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
-  font-family: var(--tf-font-sans);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
+  font-family: var(--ui-font-sans);
   font-size: 0.75rem;
   font-style: italic;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   line-height: 1;
 }
 
@@ -19,21 +19,21 @@
   width: 0.9375rem;
   height: 0.9375rem;
   font-size: 0.625rem;
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
 }
 .mark[data-size="lg"] {
   width: 1.75rem;
   height: 1.75rem;
   font-size: 1rem;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
 }
 .mark[data-tone="accent"] {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 .mark[data-tone="waiting"] {
   border-color: rgb(242 169 59 / 0.55);
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }

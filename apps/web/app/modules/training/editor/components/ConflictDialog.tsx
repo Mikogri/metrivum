@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogFooter } from "@metrivum/ui-web";
+import { Button, Dialog, DialogFooter } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 
 /** Shown on 412: the local draft is kept until the user chooses what to do with it. */

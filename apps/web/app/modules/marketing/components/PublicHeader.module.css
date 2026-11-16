@@ -1,9 +1,9 @@
 .header {
   position: sticky;
   top: 0;
-  z-index: var(--tf-z-header);
+  z-index: var(--ui-z-header);
   border-bottom: 1px solid transparent;
-  background: color-mix(in srgb, var(--tf-color-bg) 60%, transparent);
+  background: color-mix(in srgb, var(--ui-color-bg) 60%, transparent);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   backdrop-filter: blur(14px) saturate(140%);
 }
@@ -19,26 +19,26 @@
 
 @keyframes header-solidify {
   to {
-    border-bottom-color: var(--tf-color-border-subtle);
-    background: color-mix(in srgb, var(--tf-color-bg) 72%, transparent);
+    border-bottom-color: var(--ui-color-border-subtle);
+    background: color-mix(in srgb, var(--ui-color-bg) 72%, transparent);
   }
 }
 
 .inner {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-6);
-  max-width: var(--tf-content-max);
-  height: var(--tf-header-height);
+  gap: var(--ui-space-6);
+  max-width: var(--ui-content-max);
+  height: var(--ui-header-height);
   margin: 0 auto;
-  padding: 0 var(--tf-space-5);
+  padding: 0 var(--ui-space-5);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  border-radius: var(--tf-radius-sm);
-  transition: opacity var(--tf-duration-fast) ease;
+  border-radius: var(--ui-radius-sm);
+  transition: opacity var(--ui-duration-fast) ease;
 }
 
 .brand:focus-visible {
@@ -48,82 +48,82 @@
 .nav {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .navLink {
   position: relative;
-  padding: var(--tf-space-1-5) var(--tf-space-2-5);
-  border-radius: var(--tf-radius-md);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  padding: var(--ui-space-1-5) var(--ui-space-2-5);
+  border-radius: var(--ui-radius-md);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   transition:
-    color var(--tf-duration-fast) ease,
-    background-color var(--tf-duration-fast) ease;
+    color var(--ui-duration-fast) ease,
+    background-color var(--ui-duration-fast) ease;
 }
 
 .navLink[aria-current="page"] {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .navLink[aria-current="page"]::after {
   content: "";
   position: absolute;
-  left: var(--tf-space-2-5);
-  right: var(--tf-space-2-5);
+  left: var(--ui-space-2-5);
+  right: var(--ui-space-2-5);
   bottom: -2px;
   height: 1px;
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .navLink:hover {
-    color: var(--tf-color-text);
-    background: var(--tf-color-surface-hover);
+    color: var(--ui-color-text);
+    background: var(--ui-color-surface-hover);
   }
 }
 
 .end {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   margin-left: auto;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .languages {
   display: flex;
   gap: 2px;
   padding: 2px;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
 }
 
 .language {
-  padding: 2px var(--tf-space-1-5);
-  border-radius: var(--tf-radius-sm);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-semibold);
+  padding: 2px var(--ui-space-1-5);
+  border-radius: var(--ui-radius-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-semibold);
   transition:
-    color var(--tf-duration-fast) ease,
-    background-color var(--tf-duration-fast) ease;
+    color var(--ui-duration-fast) ease,
+    background-color var(--ui-duration-fast) ease;
 }
 
 .language[aria-current="true"] {
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .language:hover {
-    color: var(--tf-color-text);
+    color: var(--ui-color-text);
   }
 }
 
@@ -142,7 +142,7 @@
   }
 
   .inner {
-    padding: 0 var(--tf-space-4);
+    padding: 0 var(--ui-space-4);
   }
 }
 
@@ -150,8 +150,8 @@
 .sheetOverlay {
   position: fixed;
   inset: 0;
-  z-index: var(--tf-z-modal);
-  background: var(--tf-color-scrim);
+  z-index: var(--ui-z-modal);
+  background: var(--ui-color-scrim);
   backdrop-filter: blur(4px);
 }
 
@@ -168,24 +168,24 @@
   top: 0;
   left: 0;
   right: 0;
-  border-bottom: 1px solid var(--tf-color-border);
-  border-radius: 0 0 var(--tf-radius-xl) var(--tf-radius-xl);
-  background: var(--tf-color-surface);
-  box-shadow: var(--tf-shadow-lg);
+  border-bottom: 1px solid var(--ui-color-border);
+  border-radius: 0 0 var(--ui-radius-xl) var(--ui-radius-xl);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-lg);
 }
 
 .sheet[data-entering] {
-  animation: sheet-down 320ms var(--tf-ease-drawer);
+  animation: sheet-down 320ms var(--ui-ease-drawer);
 }
 
 .sheet[data-exiting] {
-  animation: sheet-down 200ms var(--tf-ease-out) reverse forwards;
+  animation: sheet-down 200ms var(--ui-ease-out) reverse forwards;
 }
 
 .sheetDialog {
   display: grid;
-  gap: var(--tf-space-4);
-  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-5);
+  gap: var(--ui-space-4);
+  padding: var(--ui-space-3) var(--ui-space-4) var(--ui-space-5);
   outline: none;
 }
 
@@ -193,7 +193,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: calc(var(--tf-header-height) - var(--tf-space-3));
+  height: calc(var(--ui-header-height) - var(--ui-space-3));
 }
 
 .sheetNav {
@@ -201,22 +201,22 @@
 }
 
 .sheetLink {
-  padding: var(--tf-space-3) 0;
-  border-bottom: 1px solid var(--tf-color-border-subtle);
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-xl);
-  font-weight: var(--tf-weight-medium);
-  animation: link-in 360ms var(--tf-ease-out) both;
+  padding: var(--ui-space-3) 0;
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-medium);
+  animation: link-in 360ms var(--ui-ease-out) both;
   animation-delay: calc(80ms + var(--i) * 45ms);
 }
 
 .sheetLink[aria-current="page"] {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .sheetActions {
   display: flex;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .sheetActions > * {

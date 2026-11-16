@@ -7,7 +7,7 @@ import {
 } from "react";
 import { CodeInput } from "./CodeInput";
 import type { Factor, Session } from "@supabase/supabase-js";
-import { Alert, Button, Option, Select } from "@metrivum/ui-web";
+import { Alert, Button, Option, Select } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useSessionManager } from "~/shared/session/SessionProvider";
 import type { SlotId } from "~/shared/session/storage-keys";

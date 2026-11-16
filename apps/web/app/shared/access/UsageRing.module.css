@@ -1,10 +1,10 @@
 /* Circular usage meter: a conic fill in the state colour around an inner disc. */
 .ring {
-  --c: var(--tf-color-accent);
+  --c: var(--ui-color-accent);
   --size: 2.5rem;
   --track: 4px;
   /* The disc inside matches the surface the ring sits on (a popover sets its own). */
-  --ring-bg: var(--tf-color-surface);
+  --ring-bg: var(--ui-color-surface);
   display: grid;
   flex-shrink: 0;
   place-items: center;
@@ -13,7 +13,7 @@
   border-radius: 50%;
   background: conic-gradient(
     var(--c) calc(var(--p, 0) * 360deg),
-    color-mix(in srgb, var(--tf-color-text) 14%, transparent) 0
+    color-mix(in srgb, var(--ui-color-text) 14%, transparent) 0
   );
 }
 
@@ -28,25 +28,25 @@
 }
 
 .ring[data-state="near"] {
-  --c: var(--tf-color-warning);
+  --c: var(--ui-color-warning);
 }
 .ring[data-state="full"] {
-  --c: var(--tf-color-danger);
+  --c: var(--ui-color-danger);
 }
 .ring[data-state="cap"] {
-  --c: var(--tf-color-info);
+  --c: var(--ui-color-info);
 }
 .ring[data-state="unlimited"] {
-  --c: var(--tf-color-violet);
+  --c: var(--ui-color-violet);
 }
 
 /* Neutral: one quiet colour whatever the state (the state is told in words beside it). */
 .ring[data-neutral] {
-  --c: var(--tf-color-text);
+  --c: var(--ui-color-text);
 }
 
 .ring[data-neutral] .inner {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .inner {

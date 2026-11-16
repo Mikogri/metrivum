@@ -6,7 +6,7 @@ import {
   Dialog,
   DialogFooter,
   useMobileLayout,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import styles from "./ResponsiveFilters.module.css";
 
 /** The same controlled fields move into a sheet; their owning route keeps query state. */

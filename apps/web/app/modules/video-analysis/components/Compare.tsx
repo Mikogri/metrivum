@@ -14,7 +14,7 @@ import {
   IconButton,
   SearchInput,
   Skeleton,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { formatNumber, formatRelative } from "~/shared/i18n/format";
 import type { Locale } from "~/shared/i18n/locale";
 import { useLocale } from "~/shared/i18n/LocaleContext";

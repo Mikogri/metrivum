@@ -39,7 +39,7 @@ import {
   TabList,
   Tabs,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { RequireFeature } from "~/shared/access";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";

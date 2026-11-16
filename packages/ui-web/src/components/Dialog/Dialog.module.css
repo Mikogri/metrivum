@@ -1,18 +1,18 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: var(--tf-z-modal);
+  z-index: var(--ui-z-modal);
   display: grid;
   place-items: center;
-  padding: var(--tf-space-4);
-  background: var(--tf-color-scrim);
+  padding: var(--ui-space-4);
+  background: var(--ui-color-scrim);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
 /* The scrim darkens and blurs in; nothing fades, so the modal itself stays fully opaque. */
 .overlay[data-entering] {
-  animation: scrim-in var(--tf-duration-base) ease-out;
+  animation: scrim-in var(--ui-duration-base) ease-out;
 }
 
 .overlay[data-exiting] {
@@ -21,19 +21,19 @@
 
 .modal {
   width: 100%;
-  max-height: calc(100dvh - var(--tf-space-8));
+  max-height: calc(100dvh - var(--ui-space-8));
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-xl);
-  background: var(--tf-color-surface);
-  box-shadow: var(--tf-shadow-lg);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-xl);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-lg);
   outline: none;
   transform-origin: bottom center;
 }
 
 .modal[data-entering] {
-  animation: modal-in 360ms var(--tf-ease-drawer);
+  animation: modal-in 360ms var(--ui-ease-drawer);
 }
 
 .modal[data-exiting] {
@@ -64,30 +64,30 @@
 .header {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-height: 3.5rem;
-  padding: var(--tf-space-3) var(--tf-space-3) var(--tf-space-3)
-    var(--tf-space-5);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: var(--ui-space-3) var(--ui-space-3) var(--ui-space-3)
+    var(--ui-space-5);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .titles {
   flex: 1;
   min-width: 0;
   display: grid;
-  gap: var(--tf-space-0-5);
+  gap: var(--ui-space-0-5);
 }
 
 .title {
-  font-size: var(--tf-text-lg);
-  font-weight: var(--tf-weight-semibold);
-  line-height: var(--tf-leading-snug);
-  letter-spacing: var(--tf-tracking-tight);
+  font-size: var(--ui-text-lg);
+  font-weight: var(--ui-weight-semibold);
+  line-height: var(--ui-leading-snug);
+  letter-spacing: var(--ui-tracking-tight);
 }
 
 .description {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 /* The close control stays still on hover: no background, no pointer change; only the glyph brightens. */
@@ -95,19 +95,19 @@
 .header .close[data-hovered],
 .header .close[data-pressed] {
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   cursor: default;
   transform: none;
 }
 
 .header .close[data-hovered] {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .body {
   min-height: 0;
   overflow: auto;
-  padding: var(--tf-space-5);
+  padding: var(--ui-space-5);
 }
 
 /* Actions hug the right edge with the primary one last, at their natural size. */
@@ -115,14 +115,14 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-4) var(--tf-space-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-4) var(--ui-space-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .inlineFooter {
-  margin: var(--tf-space-2) calc(var(--tf-space-5) * -1)
-    calc(var(--tf-space-5) * -1);
+  margin: var(--ui-space-2) calc(var(--ui-space-5) * -1)
+    calc(var(--ui-space-5) * -1);
 }
 
 .footer > * {
@@ -132,18 +132,18 @@
 .alert {
   display: flex;
   align-items: flex-start;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 /* The warning glows: an outline triangle in a tinted tile, lit by a soft halo of its own colour. */
 .alertIcon {
-  --tone: var(--tf-color-warning);
+  --tone: var(--ui-color-warning);
   display: grid;
   place-items: center;
   flex-shrink: 0;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: color-mix(in srgb, var(--tone) 14%, transparent);
   color: var(--tone);
 }
@@ -154,21 +154,21 @@
 }
 
 .alertIcon[data-tone="danger"] {
-  --tone: var(--tf-color-danger);
+  --tone: var(--ui-color-danger);
 }
 
 .alertIcon[data-tone="success"] {
-  --tone: var(--tf-color-success);
+  --tone: var(--ui-color-success);
 }
 
 .alertText {
   flex: 1;
   min-width: 0;
   display: grid;
-  gap: var(--tf-space-2);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-md);
-  line-height: var(--tf-leading-normal);
+  gap: var(--ui-space-2);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-md);
+  line-height: var(--ui-leading-normal);
 }
 
 @keyframes scrim-in {
@@ -253,7 +253,7 @@
 }
 
 .modal[data-placement="right"][data-entering] {
-  animation: panel-in 220ms var(--tf-ease-drawer);
+  animation: panel-in 220ms var(--ui-ease-drawer);
 }
 
 /* Slides back out to the right edge, a touch slower than a dialog, so the motion reads. */
@@ -301,15 +301,15 @@
 .modal[data-placement="right"] .inlineFooter {
   position: sticky;
   z-index: 3;
-  bottom: calc(var(--tf-space-5) * -1);
+  bottom: calc(var(--ui-space-5) * -1);
   margin-top: auto;
-  background: var(--tf-color-surface);
+  background: var(--ui-color-surface);
 }
 
 /* Side panels get a slightly taller title bar than centred dialogs. */
 .modal[data-placement="right"] .header {
-  padding-top: var(--tf-space-4);
-  padding-bottom: var(--tf-space-4);
+  padding-top: var(--ui-space-4);
+  padding-bottom: var(--ui-space-4);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -319,69 +319,70 @@
 }
 
 /* Every phone overlay shares the same sheet, including desktop side-panel forms. */
-@media (max-width: 767px) {
-  .overlay,
-  .overlay[data-placement="right"] {
-    place-items: end stretch;
-    padding: 0;
-    height: var(--visual-viewport-height, 100dvh);
-  }
-
-  .modal,
-  .modal[data-placement="right"],
-  .modal[data-placement="right"].xl {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    max-height: calc(
-      min(100dvh, var(--visual-viewport-height, 100dvh)) -
-        max(1rem, env(safe-area-inset-top))
-    );
-    border-width: 1px 0 0;
-    border-radius: var(--tf-radius-xl) var(--tf-radius-xl) 0 0;
-    transform-origin: bottom center;
-    overflow: hidden;
-  }
-
-  .modal[data-entering],
-  .modal[data-placement="right"][data-entering] {
-    animation: sheet-in 240ms var(--tf-ease-drawer);
-  }
-
-  .modal[data-exiting],
-  .modal[data-placement="right"][data-exiting] {
-    animation: sheet-out 160ms var(--tf-ease-out) forwards;
-  }
-
-  .header,
-  .modal[data-placement="right"] .header {
-    flex-shrink: 0;
-    padding: var(--tf-space-3)
-      max(var(--tf-space-4), env(safe-area-inset-right)) var(--tf-space-3)
-      max(var(--tf-space-4), env(safe-area-inset-left));
-  }
-
-  .header .close {
-    min-width: 44px;
-    min-height: 44px;
-  }
-  .title,
-  .description {
-    overflow-wrap: anywhere;
-  }
-  .body {
-    overscroll-behavior: contain;
-  }
-  .body:last-child {
-    padding-bottom: max(var(--tf-space-5), env(safe-area-inset-bottom));
-  }
-  .footer {
-    flex-shrink: 0;
-    padding-bottom: max(var(--tf-space-4), env(safe-area-inset-bottom));
-  }
-  .footer > * {
-    min-height: 44px;
-  }
+.overlay:where(:is([data-ui-phone], [data-ui-phone] *)),
+.overlay[data-placement="right"]:where(
+    :is([data-ui-phone], [data-ui-phone] *)
+  ) {
+  place-items: end stretch;
+  padding: 0;
+  height: var(--visual-viewport-height, 100dvh);
+}
+.modal:where(:is([data-ui-phone], [data-ui-phone] *)),
+.modal[data-placement="right"]:where(:is([data-ui-phone], [data-ui-phone] *)),
+.modal[data-placement="right"].xl:where(
+    :is([data-ui-phone], [data-ui-phone] *)
+  ) {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(
+    min(100dvh, var(--visual-viewport-height, 100dvh)) -
+      max(1rem, env(safe-area-inset-top))
+  );
+  border-width: 1px 0 0;
+  border-radius: var(--ui-radius-xl) var(--ui-radius-xl) 0 0;
+  transform-origin: bottom center;
+  overflow: hidden;
+}
+.modal[data-entering]:where(:is([data-ui-phone], [data-ui-phone] *)),
+.modal[data-placement="right"][data-entering]:where(
+    :is([data-ui-phone], [data-ui-phone] *)
+  ) {
+  animation: sheet-in 240ms var(--ui-ease-drawer);
+}
+.modal[data-exiting]:where(:is([data-ui-phone], [data-ui-phone] *)),
+.modal[data-placement="right"][data-exiting]:where(
+    :is([data-ui-phone], [data-ui-phone] *)
+  ) {
+  animation: sheet-out 160ms var(--ui-ease-out) forwards;
+}
+.header:where(:is([data-ui-phone], [data-ui-phone] *)),
+.modal[data-placement="right"]
+  .header:where(:is([data-ui-phone], [data-ui-phone] *)) {
+  flex-shrink: 0;
+  padding: var(--ui-space-3) max(var(--ui-space-4), env(safe-area-inset-right))
+    var(--ui-space-3) max(var(--ui-space-4), env(safe-area-inset-left));
+}
+.header .close:where(:is([data-ui-phone], [data-ui-phone] *)) {
+  min-width: 44px;
+  min-height: 44px;
+}
+.title:where(:is([data-ui-phone], [data-ui-phone] *)),
+.description:where(:is([data-ui-phone], [data-ui-phone] *)) {
+  overflow-wrap: anywhere;
+}
+.body:where(:is([data-ui-phone], [data-ui-phone] *)) {
+  overscroll-behavior: contain;
+}
+.body:last-child:where(:is([data-ui-phone], [data-ui-phone] *)) {
+  padding-bottom: max(var(--ui-space-5), env(safe-area-inset-bottom));
+}
+.footer:where(:is([data-ui-phone], [data-ui-phone] *)) {
+  flex-shrink: 0;
+  padding-bottom: max(var(--ui-space-4), env(safe-area-inset-bottom));
+}
+.footer > *:where(:is([data-ui-phone], [data-ui-phone] *)) {
+  min-height: 44px;
 }
 
 @media (prefers-reduced-motion: reduce) {

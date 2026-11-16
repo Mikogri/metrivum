@@ -10,7 +10,7 @@ import {
   Popover,
   Skeleton,
   useMobileLayout,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useFeatureAccess } from "~/shared/access";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { connectionStatus, useIntegrationQuery, type Connection } from "./api";

@@ -12,8 +12,8 @@
   --on-video: #fff;
   --on-video-shade: rgb(0 0 0 / 0.8);
   overflow: hidden;
-  border: 1px solid var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-lg);
   outline: none;
 }
 
@@ -26,9 +26,9 @@
 .placeholder {
   display: grid;
   place-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-height: 14rem;
-  background: var(--tf-color-bg-sunken);
+  background: var(--ui-color-bg-sunken);
 }
 
 .placeholder[data-framed] {
@@ -39,8 +39,8 @@
 }
 
 .error {
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-xs);
 }
 
 .player {
@@ -95,19 +95,19 @@
 .bar {
   container-type: inline-size;
   display: grid;
-  gap: var(--tf-space-0-5);
-  padding: var(--tf-space-0-5) var(--tf-space-1-5) var(--tf-space-1-5);
-  border-top: 1px solid var(--tf-color-border);
-  background: var(--tf-color-surface);
-  color: var(--bar-text, var(--tf-color-text-secondary));
+  gap: var(--ui-space-0-5);
+  padding: var(--ui-space-0-5) var(--ui-space-1-5) var(--ui-space-1-5);
+  border-top: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  color: var(--bar-text, var(--ui-color-text-secondary));
 }
 
 .scrub {
   position: relative;
   display: grid;
   align-items: center;
-  height: var(--tf-space-5);
-  margin: 0 var(--tf-space-1-5);
+  height: var(--ui-space-5);
+  margin: 0 var(--ui-space-1-5);
   cursor: pointer;
   touch-action: none;
   outline: none;
@@ -115,14 +115,14 @@
 
 .track {
   position: relative;
-  height: var(--tf-space-1);
+  height: var(--ui-space-1);
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: var(
     --bar-track,
-    color-mix(in srgb, var(--tf-color-text) 22%, transparent)
+    color-mix(in srgb, var(--ui-color-text) 22%, transparent)
   );
-  transition: height var(--tf-duration-fast) var(--tf-ease-out);
+  transition: height var(--ui-duration-fast) var(--ui-ease-out);
 }
 
 .scrub[data-disabled] {
@@ -132,7 +132,7 @@
 
 .scrub:hover .track,
 .scrub:focus-visible .track {
-  height: var(--tf-space-1-5);
+  height: var(--ui-space-1-5);
 }
 
 /* Repetitions as stronger spans on the track. */
@@ -142,27 +142,27 @@
   bottom: 0;
   background: var(
     --bar-marker,
-    color-mix(in srgb, var(--tf-color-text) 40%, transparent)
+    color-mix(in srgb, var(--ui-color-text) 40%, transparent)
   );
 }
 
 .played {
   position: absolute;
   inset: 0;
-  background: var(--bar-strong, var(--tf-color-text));
+  background: var(--bar-strong, var(--ui-color-text));
   transform-origin: left;
 }
 
 .handle {
   position: absolute;
   top: 50%;
-  width: var(--tf-space-3);
-  height: var(--tf-space-3);
-  border-radius: var(--tf-radius-full);
-  background: var(--bar-strong, var(--tf-color-text));
-  box-shadow: 0 0 0 2px var(--bar-ring, var(--tf-color-surface));
+  width: var(--ui-space-3);
+  height: var(--ui-space-3);
+  border-radius: var(--ui-radius-full);
+  background: var(--bar-strong, var(--ui-color-text));
+  box-shadow: 0 0 0 2px var(--bar-ring, var(--ui-color-surface));
   transform: translate(-50%, -50%) scale(0);
-  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+  transition: transform var(--ui-duration-fast) var(--ui-ease-out);
   pointer-events: none;
 }
 
@@ -173,7 +173,7 @@
 }
 
 .scrub:focus-visible .handle {
-  box-shadow: 0 0 0 2px var(--tf-color-focus-ring);
+  box-shadow: 0 0 0 2px var(--ui-color-focus-ring);
 }
 
 .row {
@@ -194,21 +194,21 @@
   display: grid;
   flex: none;
   place-items: center;
-  height: var(--tf-control-sm);
+  height: var(--ui-control-sm);
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: none;
   color: inherit;
   cursor: pointer;
   outline: none;
   transition:
-    background-color var(--tf-duration-fast) ease,
-    color var(--tf-duration-fast) ease;
+    background-color var(--ui-duration-fast) ease,
+    color var(--ui-duration-fast) ease;
 }
 
 .control {
-  width: var(--tf-control-sm);
+  width: var(--ui-control-sm);
 }
 
 .control svg {
@@ -217,45 +217,45 @@
 }
 
 .speed {
-  min-width: var(--tf-control-md);
-  padding: 0 var(--tf-space-1-5);
+  min-width: var(--ui-control-md);
+  padding: 0 var(--ui-space-1-5);
   font: inherit;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
   font-variant-numeric: tabular-nums;
 }
 
 .control[data-hovered],
 .speed[data-hovered] {
-  background: var(--bar-hover, var(--tf-color-surface-hover));
-  color: var(--bar-strong, var(--tf-color-text));
+  background: var(--bar-hover, var(--ui-color-surface-hover));
+  color: var(--bar-strong, var(--ui-color-text));
 }
 
 .control[aria-pressed="true"] {
-  color: var(--bar-strong, var(--tf-color-text));
+  color: var(--bar-strong, var(--ui-color-text));
 }
 
 .control[aria-pressed="false"] {
-  color: var(--bar-muted, var(--tf-color-text-tertiary));
+  color: var(--bar-muted, var(--ui-color-text-tertiary));
 }
 
 .control[data-focus-visible],
 .speed[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: -2px;
 }
 
 .clock {
-  margin-left: var(--tf-space-1);
-  color: var(--bar-strong, var(--tf-color-text));
-  font-size: var(--tf-text-xs);
+  margin-left: var(--ui-space-1);
+  color: var(--bar-strong, var(--ui-color-text));
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .total {
   display: none;
-  color: var(--bar-muted, var(--tf-color-text-tertiary));
+  color: var(--bar-muted, var(--ui-color-text-tertiary));
 }
 
 .spacer {
@@ -311,21 +311,21 @@
   right: 0;
   bottom: 0;
   left: 0;
-  padding: var(--tf-space-12)
-    max(var(--tf-space-6), calc((100vw - var(--tf-content-max)) / 2))
-    var(--tf-space-4);
+  padding: var(--ui-space-12)
+    max(var(--ui-space-6), calc((100vw - var(--ui-content-max)) / 2))
+    var(--ui-space-4);
   border: 0;
   background: linear-gradient(to bottom, transparent, var(--on-video-shade));
-  transition: opacity var(--tf-duration-base) ease;
+  transition: opacity var(--ui-duration-base) ease;
 }
 
 .player[data-full] .control,
 .player[data-full] .speed {
-  height: var(--tf-control-lg);
+  height: var(--ui-control-lg);
 }
 
 .player[data-full] .control {
-  width: var(--tf-control-lg);
+  width: var(--ui-control-lg);
 }
 
 .player[data-full] .control svg {
@@ -335,7 +335,7 @@
 
 .player[data-full] .clock,
 .player[data-full] .speed {
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 .player[data-full] .total {

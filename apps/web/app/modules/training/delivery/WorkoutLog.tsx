@@ -1,4 +1,4 @@
-import { DecimalInput } from "@metrivum/ui-web";
+import { DecimalInput } from "@portable-ui/react";
 import { isRecordedSet, recordedSetPredicate } from "./set-results";
 import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
@@ -41,7 +41,7 @@ import {
   TextArea,
   TextField,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -1954,7 +1954,7 @@ const kgLabel = (value: number, digits = 0) =>
 
 /** A colour that moves from red (0%) to green (100%). */
 export const completionColor = (percent: number) =>
-  `color-mix(in oklab, var(--tf-color-success) ${Math.max(0, Math.min(100, percent))}%, var(--tf-color-danger))`;
+  `color-mix(in oklab, var(--ui-color-success) ${Math.max(0, Math.min(100, percent))}%, var(--ui-color-danger))`;
 
 /** Everything measurable about one logged workout: totals, per exercise, and set by set against the plan. */
 function WorkoutAnalysis({

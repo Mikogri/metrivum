@@ -1,5 +1,5 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
-import { InfoTip } from "@metrivum/ui-web";
+import { InfoTip } from "@portable-ui/react";
 import {
   ArrowDownRight,
   ArrowUpRight,

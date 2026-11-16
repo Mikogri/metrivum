@@ -6,8 +6,8 @@
   background:
     radial-gradient(
       ellipse 50% 60% at 85% 0%,
-      color-mix(in srgb, var(--tf-color-accent) 10%, transparent),
+      color-mix(in srgb, var(--ui-color-accent) 10%, transparent),
       transparent 70%
     ),
-    linear-gradient(180deg, var(--tf-color-bg-sunken), var(--tf-color-bg) 90%);
+    linear-gradient(180deg, var(--ui-color-bg-sunken), var(--ui-color-bg) 90%);
 }

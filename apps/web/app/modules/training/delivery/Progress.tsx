@@ -12,7 +12,7 @@ import {
   Option,
   Select,
   Toolbar,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Panel, StatStrip, StatStripSkeleton } from "~/shared/ui/Panel";
 import { PeriodFilter } from "~/shared/ui/PeriodFilter";
 import { useCoachingQuery } from "~/modules/coaching";

@@ -14,7 +14,7 @@ import {
   IconButton,
   LinkButton,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import {
   checkLocalAnalyzer,

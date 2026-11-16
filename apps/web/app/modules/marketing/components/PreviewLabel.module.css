@@ -1,14 +1,14 @@
 .label {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  padding: 2px var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  background: color-mix(in srgb, var(--tf-color-bg) 70%, transparent);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-medium);
+  gap: var(--ui-space-1-5);
+  padding: 2px var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  background: color-mix(in srgb, var(--ui-color-bg) 70%, transparent);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-medium);
   backdrop-filter: blur(6px);
 }
 

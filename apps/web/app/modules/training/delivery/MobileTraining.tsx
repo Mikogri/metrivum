@@ -13,7 +13,7 @@ import {
   Tab,
   TabList,
   Tabs,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   Failure,
   Loading,

@@ -1,28 +1,28 @@
 .selector,
 .card {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 .card h2 {
   margin: 0;
-  font-size: var(--tf-text-lg);
+  font-size: var(--ui-text-lg);
 }
 .hint {
   margin: 0;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 .counts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-4);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-4);
+  font-size: var(--ui-text-sm);
 }
 .chips {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -30,77 +30,77 @@
 .chips li {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 .groups {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 }
 .group {
   margin: 0;
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
   min-width: 0;
 }
 .group legend {
-  padding: 0 var(--tf-space-2);
-  font-weight: var(--tf-weight-semibold);
+  padding: 0 var(--ui-space-2);
+  font-weight: var(--ui-weight-semibold);
 }
 .option {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-2) 0;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) 0;
 }
 
 /* Counters: two small pills; the primary one carries the accent. */
 .counts {
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 .count {
   display: inline-flex;
   align-items: center;
   padding: 0.125rem 0.5rem;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-full);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-full);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 .count strong {
   margin-right: 1px;
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-semibold);
 }
 .count svg {
   width: 0.75rem;
   height: 0.75rem;
   margin-right: 0.3rem;
   fill: currentColor;
-  color: var(--tf-color-violet);
+  color: var(--ui-color-violet);
 }
 .count[data-kind="primary"] {
-  border-color: color-mix(in srgb, var(--tf-color-violet) 35%, transparent);
-  background: var(--tf-color-violet-soft);
+  border-color: color-mix(in srgb, var(--ui-color-violet) 35%, transparent);
+  background: var(--ui-color-violet-soft);
 }
 .count[data-full] {
-  border-color: var(--tf-color-border-strong);
+  border-color: var(--ui-color-border-strong);
 }
 .countHint {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 /* Chosen specializations wrap as small chips. A click on the chip makes it primary or regular; × removes it. */
 .chipList {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5, 0.375rem);
+  gap: var(--ui-space-1-5, 0.375rem);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -110,18 +110,18 @@
   align-items: center;
   height: 1.875rem;
   overflow: hidden;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface);
-  font-size: var(--tf-text-xs);
-  animation: chip-in 180ms var(--tf-ease-out, ease-out) both;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface);
+  font-size: var(--ui-text-xs);
+  animation: chip-in 180ms var(--ui-ease-out, ease-out) both;
   transition:
     border-color 140ms ease,
     background-color 140ms ease;
 }
 .chip[data-primary] {
-  border-color: color-mix(in srgb, var(--tf-color-violet) 55%, transparent);
-  background: var(--tf-color-violet-soft);
+  border-color: color-mix(in srgb, var(--ui-color-violet) 55%, transparent);
+  background: var(--ui-color-violet-soft);
 }
 .chipToggle,
 .chipLabel {
@@ -132,9 +132,9 @@
   padding: 0 0.25rem 0 0.625rem;
   border: 0;
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   font: inherit;
-  font-weight: var(--tf-weight-medium);
+  font-weight: var(--ui-weight-medium);
   white-space: nowrap;
 }
 .chipToggle {
@@ -143,16 +143,16 @@
 .chipToggle svg {
   width: 0.75rem;
   height: 0.75rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   transition:
     color 140ms ease,
     transform 160ms ease;
 }
 .chip[data-primary] .chipToggle {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 .chip[data-primary] .chipToggle svg {
-  color: var(--tf-color-violet);
+  color: var(--ui-color-violet);
   fill: currentColor;
 }
 .chipToggle:hover:not(:disabled) svg {
@@ -170,9 +170,9 @@
 }
 .chipToggle:focus-visible,
 .chipRemove:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: -2px;
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
 }
 .chipRemove {
   display: grid;
@@ -182,7 +182,7 @@
   padding: 0 0.25rem 0 0;
   border: 0;
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   cursor: pointer;
 }
 .chipRemove svg {
@@ -190,7 +190,7 @@
   height: 0.75rem;
 }
 .chipRemove:hover:not(:disabled) {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 @keyframes chip-in {
   from {

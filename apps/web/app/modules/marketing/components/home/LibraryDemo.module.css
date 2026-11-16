@@ -1,53 +1,53 @@
 .card {
   display: grid;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-4);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-xl);
-  background: var(--tf-color-surface);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-4);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-xl);
+  background: var(--ui-color-surface);
 }
 
 .search {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  height: var(--tf-control-lg);
-  padding: 0 var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  height: var(--ui-control-lg);
+  padding: 0 var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-bg-sunken);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 .search svg {
   width: 1rem;
   height: 1rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .filter {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   height: 1.625rem;
-  padding: 0 var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
+  padding: 0 var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
   background: transparent;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   transition:
-    background-color var(--tf-duration-fast) ease,
-    border-color var(--tf-duration-fast) ease,
-    color var(--tf-duration-fast) ease,
-    transform var(--tf-duration-press) var(--tf-ease-out);
+    background-color var(--ui-duration-fast) ease,
+    border-color var(--ui-duration-fast) ease,
+    color var(--ui-duration-fast) ease,
+    transform var(--ui-duration-press) var(--ui-ease-out);
 }
 
 .filter:active {
@@ -60,9 +60,9 @@
 }
 
 .filter[aria-pressed="true"] {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 
 .items {
@@ -73,14 +73,14 @@
 .item {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-2);
-  border-radius: var(--tf-radius-md);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-2);
+  border-radius: var(--ui-radius-md);
   opacity: 0;
   transform: translateY(8px);
   transition:
     opacity 300ms ease,
-    transform 400ms var(--tf-ease-out),
+    transform 400ms var(--ui-ease-out),
     filter 300ms ease;
   transition-delay: calc(var(--i) * 50ms);
 }
@@ -101,12 +101,12 @@
   flex-shrink: 0;
   width: 2.25rem;
   height: 2.25rem;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
   display: grid;
   place-items: center;
-  background: var(--tf-color-surface-selected);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-selected);
+  color: var(--ui-color-text);
 }
 
 .thumb svg {
@@ -121,19 +121,19 @@
 }
 
 .name {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .meta {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .fav {
   width: 0.875rem;
   height: 0.875rem;
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
   fill: currentColor;
 }
 

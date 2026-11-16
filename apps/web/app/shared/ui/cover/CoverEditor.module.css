@@ -1,14 +1,14 @@
 /* Cover editor: background picker on top, then one row per setting in two columns. */
 .editor {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .top {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .picker {
@@ -20,17 +20,17 @@
 }
 
 .count {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
 .params {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
-  gap: var(--tf-space-1) var(--tf-space-5);
+  gap: var(--ui-space-1) var(--ui-space-5);
   max-height: 22rem;
-  padding-right: var(--tf-space-1);
+  padding-right: var(--ui-space-1);
   overflow-y: auto;
 }
 
@@ -38,9 +38,9 @@
   display: grid;
   grid-template-columns: 8.5rem minmax(0, 1fr);
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-height: 2.25rem;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 .param:has(> label:only-child),
@@ -50,40 +50,40 @@
 
 .name {
   overflow: hidden;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .param[data-changed] .name {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-medium);
 }
 
 .row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
 }
 
 .range {
   flex: 1;
   min-width: 5rem;
-  accent-color: var(--tf-color-text);
+  accent-color: var(--ui-color-text);
 }
 
 .number {
   width: 4.75rem;
   height: 1.75rem;
-  padding: 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text);
+  padding: 0 var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text);
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -91,15 +91,15 @@
   width: 2rem;
   height: 1.75rem;
   padding: 0;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-sm);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-sm);
   background: none;
   cursor: pointer;
 }
 
 .hex {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -116,7 +116,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   cursor: pointer;
 }
 
@@ -128,13 +128,13 @@
 .check {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-1);
+  font-size: var(--ui-text-xs);
 }
 
 .number:focus-visible,
 .color:focus-visible,
 .range:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }

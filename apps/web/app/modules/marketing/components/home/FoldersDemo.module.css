@@ -1,24 +1,24 @@
 .card {
   position: relative;
-  padding: var(--tf-space-4) var(--tf-space-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-xl);
-  background: var(--tf-color-surface);
+  padding: var(--ui-space-4) var(--ui-space-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-xl);
+  background: var(--ui-color-surface);
   overflow: hidden;
 }
 
 .tree,
 .children {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin: 0;
 }
 
 .children {
-  margin-top: var(--tf-space-1);
-  margin-left: var(--tf-space-3);
-  padding-left: var(--tf-space-4);
-  border-left: 1px dashed var(--tf-color-border-strong);
+  margin-top: var(--ui-space-1);
+  margin-left: var(--ui-space-3);
+  padding-left: var(--ui-space-4);
+  border-left: 1px dashed var(--ui-color-border-strong);
 }
 
 .folder,
@@ -27,9 +27,9 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  column-gap: var(--tf-space-2);
+  column-gap: var(--ui-space-2);
   min-height: 2.25rem;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 .folder > svg,
@@ -37,7 +37,7 @@
 .template > svg {
   width: 1rem;
   height: 1rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .folder > .children {
@@ -45,53 +45,53 @@
 }
 
 .template > svg {
-  color: var(--tf-color-violet);
+  color: var(--ui-color-violet);
 }
 
 .doc {
-  padding: 0 var(--tf-space-2);
-  margin-left: calc(var(--tf-space-2) * -1);
-  border-radius: var(--tf-radius-md);
+  padding: 0 var(--ui-space-2);
+  margin-left: calc(var(--ui-space-2) * -1);
+  border-radius: var(--ui-radius-md);
   opacity: 0;
   transform: translateY(-6px);
   transition:
     opacity 300ms ease,
-    transform 500ms var(--tf-ease-out),
+    transform 500ms var(--ui-ease-out),
     background-color 600ms ease;
 }
 
 .card[data-copied] .doc {
   opacity: 1;
   transform: none;
-  background: var(--tf-color-accent-soft);
+  background: var(--ui-color-accent-soft);
   transition-delay: 520ms;
 }
 
 .doc > svg {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .badge {
-  padding: 1px var(--tf-space-2);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-accent-deep);
-  color: var(--tf-color-accent);
-  font-size: var(--tf-text-2xs);
+  padding: 1px var(--ui-space-2);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-accent-deep);
+  color: var(--ui-color-accent);
+  font-size: var(--ui-text-2xs);
   white-space: nowrap;
 }
 
 .copy {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   height: 1.625rem;
-  padding: 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xs);
-  transition: transform var(--tf-duration-press) var(--tf-ease-out);
+  padding: 0 var(--ui-space-2);
+  border: 1px solid var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xs);
+  transition: transform var(--ui-duration-press) var(--ui-ease-out);
 }
 
 .copy:active {
@@ -110,13 +110,13 @@
   bottom: 1.6rem;
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-1) var(--tf-space-2);
-  border: 1px solid var(--tf-color-accent-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  box-shadow: var(--tf-shadow-md);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border: 1px solid var(--ui-color-accent-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  box-shadow: var(--ui-shadow-md);
+  font-size: var(--ui-text-sm);
   opacity: 0;
   pointer-events: none;
 }
@@ -124,11 +124,11 @@
 .ghost svg {
   width: 1rem;
   height: 1rem;
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .card[data-copied] .ghost {
-  animation: travel 900ms var(--tf-ease-in-out) both;
+  animation: travel 900ms var(--ui-ease-in-out) both;
 }
 
 @keyframes travel {

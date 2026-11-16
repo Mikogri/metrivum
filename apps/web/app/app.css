@@ -17,8 +17,8 @@ body {
   position: fixed;
   inset: 0;
   display: grid;
-  grid-template-columns: var(--tf-sidebar-width, 15rem) minmax(0, 1fr);
-  background: var(--tf-color-bg);
+  grid-template-columns: var(--ui-sidebar-width, 15rem) minmax(0, 1fr);
+  background: var(--ui-color-bg);
   animation: tf-boot-in 400ms ease 150ms both;
 }
 
@@ -27,8 +27,8 @@ body {
   flex-direction: column;
   gap: 0.875rem;
   padding: 1.125rem 1rem;
-  border-right: 1px solid var(--tf-color-border-subtle);
-  background: var(--tf-color-sidebar, var(--tf-color-bg));
+  border-right: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-sidebar, var(--ui-color-bg));
 }
 
 .tf-boot__main {
@@ -42,7 +42,7 @@ body {
   align-items: center;
   height: 3rem;
   padding: 0 1.25rem;
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .tf-boot__content {
@@ -129,7 +129,7 @@ body {
   min-height: 24.5rem;
   padding: 1.5rem 2rem;
   border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: var(--tf-radius-xl, 16px);
+  border-radius: var(--ui-radius-xl, 16px);
   background: rgb(255 255 255 / 0.03);
 }
 

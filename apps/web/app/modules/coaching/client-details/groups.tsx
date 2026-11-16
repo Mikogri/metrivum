@@ -10,7 +10,7 @@ import {
   LinkButton,
   SearchInput,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Panel } from "~/shared/ui/Panel";
 import {
   groupInvalidation,

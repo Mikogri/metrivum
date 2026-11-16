@@ -1,22 +1,22 @@
 .page,
 .listing {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 /* Pro edge in the page header: one short line, never taller than the header's own buttons. */
 .edge {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   height: 2rem;
-  padding: 0 var(--tf-space-3);
-  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 40%, transparent);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  padding: 0 var(--ui-space-3);
+  border: 1px solid color-mix(in srgb, var(--ui-color-violet) 40%, transparent);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   text-decoration: none;
   white-space: nowrap;
   transition: border-color 160ms ease;
@@ -26,29 +26,29 @@
   flex-shrink: 0;
   width: 0.9375rem;
   height: 0.9375rem;
-  color: var(--tf-color-violet);
+  color: var(--ui-color-violet);
 }
 
 .edgeArrow {
   flex-shrink: 0;
   width: 0.875rem;
   height: 0.875rem;
-  color: var(--tf-color-violet);
+  color: var(--ui-color-violet);
   transition: transform 160ms ease;
 }
 
 .edge[data-on] {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-accent-soft);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-accent-soft);
 }
 
 .edge[data-on] > svg:first-child {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 @media (hover: hover) and (pointer: fine) {
   a.edge:hover {
-    border-color: var(--tf-color-violet);
+    border-color: var(--ui-color-violet);
   }
 
   a.edge:hover .edgeArrow {
@@ -64,8 +64,8 @@
 .summary {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-4) var(--tf-space-5);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-4) var(--ui-space-5);
   cursor: pointer;
   list-style: none;
 }
@@ -80,9 +80,9 @@
   place-items: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 
 .summaryIcon svg {
@@ -98,21 +98,21 @@
 }
 
 .summaryText strong {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .summaryText small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .chevron {
   flex-shrink: 0;
   width: 1rem;
   height: 1rem;
-  color: var(--tf-color-text-tertiary);
-  transition: transform 200ms var(--tf-ease-out, ease-out);
+  color: var(--ui-color-text-tertiary);
+  transition: transform 200ms var(--ui-ease-out, ease-out);
 }
 
 details[open] .chevron {
@@ -120,34 +120,34 @@ details[open] .chevron {
 }
 
 .listingBody {
-  padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  padding: var(--ui-space-4) var(--ui-space-5) var(--ui-space-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .editor {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .fields {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   align-items: start;
 }
 
 .modes {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
   padding: 0;
   border: 0;
 }
 
 .modes legend {
-  margin-bottom: var(--tf-space-2);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  margin-bottom: var(--ui-space-2);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .modeOptions,
@@ -157,18 +157,18 @@ details[open] .chevron {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .notice {
   max-width: 75ch;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 .success {
-  color: var(--tf-color-success-text, var(--tf-color-text));
+  color: var(--ui-color-success-text, var(--ui-color-text));
 }
 
 /* Filters: search across the top, the narrower fields in a row, then the toggle, the count and clearing. */
@@ -177,31 +177,31 @@ details[open] .chevron {
 }
 
 .searchRow {
-  padding: var(--tf-space-4) var(--tf-space-5) 0;
+  padding: var(--ui-space-4) var(--ui-space-5) 0;
 }
 
 .filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   align-items: end;
-  padding: var(--tf-space-4) var(--tf-space-5);
+  padding: var(--ui-space-4) var(--ui-space-5);
 }
 
 .filterFoot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
-  background: var(--tf-color-surface-raised);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-surface-raised);
 }
 
 .count {
   margin-left: auto;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
   font-variant-numeric: tabular-nums;
 }
 
@@ -213,64 +213,64 @@ details[open] .chevron {
 .sectionTitle {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  font-size: var(--tf-text-lg);
-  font-weight: var(--tf-weight-semibold);
+  gap: var(--ui-space-2);
+  font-size: var(--ui-text-lg);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .sectionSub {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .featuredIcon {
   width: 1.125rem;
   height: 1.125rem;
-  color: var(--tf-color-violet);
+  color: var(--ui-color-violet);
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 /* Coach card: who, what they focus on, where and how, the cheapest offer, then the actions at the bottom. */
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-width: 0;
-  padding: var(--tf-space-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  padding: var(--ui-space-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
   transition: border-color 160ms ease;
 }
 
 .card[data-featured] {
-  border-color: color-mix(in srgb, var(--tf-color-violet) 45%, transparent);
+  border-color: color-mix(in srgb, var(--ui-color-violet) 45%, transparent);
   background: color-mix(
     in srgb,
-    var(--tf-color-violet) 5%,
-    var(--tf-color-surface)
+    var(--ui-color-violet) 5%,
+    var(--ui-color-surface)
   );
 }
 
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
-    border-color: var(--tf-color-border-strong);
+    border-color: var(--ui-color-border-strong);
   }
 
   .card[data-featured]:hover {
-    border-color: var(--tf-color-violet);
+    border-color: var(--ui-color-violet);
   }
 }
 
 .person {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .personText {
@@ -280,15 +280,15 @@ details[open] .chevron {
 
 .name {
   overflow: hidden;
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .muted {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .featuredTag {
@@ -298,11 +298,11 @@ details[open] .chevron {
   gap: 0.25rem;
   align-self: flex-start;
   padding: 0.125rem 0.5rem;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-violet);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-violet);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .featuredTag svg {
@@ -313,9 +313,9 @@ details[open] .chevron {
 .bio {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -323,18 +323,18 @@ details[open] .chevron {
 
 .facts {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin: 0;
   padding: 0;
   list-style: none;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 .facts li {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
 }
 
@@ -342,37 +342,37 @@ details[open] .chevron {
   flex-shrink: 0;
   width: 0.875rem;
   height: 0.875rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .offer {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
+  font-size: var(--ui-text-sm);
 }
 
 .offer span {
   overflow: hidden;
   min-width: 0;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .offer strong {
   flex-shrink: 0;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .actions {
   margin-top: auto;
-  padding-top: var(--tf-space-1);
+  padding-top: var(--ui-space-1);
 }
 
 @media (max-width: 40rem) {
@@ -381,7 +381,7 @@ details[open] .chevron {
   .filters,
   .filterFoot,
   .listingBody {
-    padding-inline: var(--tf-space-4);
+    padding-inline: var(--ui-space-4);
   }
 
   .edge {
@@ -390,10 +390,10 @@ details[open] .chevron {
 }
 
 .specializationFilter {
-  padding: var(--tf-space-4);
+  padding: var(--ui-space-4);
 }
 .specializationFilter summary {
   cursor: pointer;
-  font-weight: var(--tf-weight-semibold);
-  margin-bottom: var(--tf-space-3);
+  font-weight: var(--ui-weight-semibold);
+  margin-bottom: var(--ui-space-3);
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ContextMenu } from "@metrivum/ui-web";
+import { ContextMenu } from "@portable-ui/react";
 import styles from "./program-detail.module.css";
 
 export function PlanDescription({

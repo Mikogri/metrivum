@@ -1,10 +1,10 @@
 .group {
   display: grid;
-  border-top: 1px solid var(--tf-color-border);
+  border-top: 1px solid var(--ui-color-border);
 }
 
 .item {
-  border-bottom: 1px solid var(--tf-color-border);
+  border-bottom: 1px solid var(--ui-color-border);
 }
 
 .heading {
@@ -15,55 +15,55 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   width: 100%;
-  padding: var(--tf-space-4) 0;
+  padding: var(--ui-space-4) 0;
   border: 0;
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-lg);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-lg);
+  font-weight: var(--ui-weight-medium);
   text-align: left;
   outline: none;
 }
 
 .trigger[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
 }
 
 .chevron {
   flex-shrink: 0;
   width: 1.125rem;
   height: 1.125rem;
-  color: var(--tf-color-text-tertiary);
-  transition: transform var(--tf-duration-slow) var(--tf-ease-out);
+  color: var(--ui-color-text-tertiary);
+  transition: transform var(--ui-duration-slow) var(--ui-ease-out);
 }
 
 .item[data-expanded] .chevron {
   transform: rotate(180deg);
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 /* React Aria measures the panel and exposes its height for the transition. */
 .panel {
   height: var(--disclosure-panel-height);
   overflow: clip;
-  transition: height var(--tf-duration-slow) var(--tf-ease-out);
+  transition: height var(--ui-duration-slow) var(--ui-ease-out);
 }
 
 .answer {
   max-width: 44rem;
-  padding-bottom: var(--tf-space-4);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-md);
-  line-height: var(--tf-leading-relaxed);
+  padding-bottom: var(--ui-space-4);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-md);
+  line-height: var(--ui-leading-relaxed);
   opacity: 0;
   transform: translateY(-4px);
   transition:
-    opacity var(--tf-duration-slow) ease,
-    transform var(--tf-duration-slow) var(--tf-ease-out);
+    opacity var(--ui-duration-slow) ease,
+    transform var(--ui-duration-slow) var(--ui-ease-out);
 }
 
 .item[data-expanded] .answer {

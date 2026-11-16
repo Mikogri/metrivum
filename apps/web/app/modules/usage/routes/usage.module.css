@@ -1,35 +1,35 @@
 /* Usage: quiet tables in bordered cards, a header row, thin row dividers and a footer with the plan. */
 .page {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 /* The page header brings its own bottom padding; together with the gap it read as a hole above the table. */
 .page > header:first-child {
-  padding-bottom: var(--tf-space-1);
+  padding-bottom: var(--ui-space-1);
 }
 
 .card {
   overflow: hidden;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
 }
 
 .cardHead {
-  padding: var(--tf-space-4) var(--tf-space-5);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: var(--ui-space-4) var(--ui-space-5);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .cardHead h2 {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .cardHead p {
   margin-top: 2px;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .table {
@@ -41,59 +41,59 @@
   display: grid;
   grid-template-columns: minmax(12rem, 1.1fr) minmax(0, 1.6fr) 5rem;
   align-items: center;
-  gap: var(--tf-space-5);
-  padding: 0 var(--tf-space-5);
+  gap: var(--ui-space-5);
+  padding: 0 var(--ui-space-5);
 }
 
 .headRow {
   min-height: 2.5rem;
-  border-bottom: 1px solid var(--tf-color-border-subtle);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .row {
   min-height: 3.5rem;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 /* Tones per kind of limit; nearly full or full overrides them. */
 .row[data-tone="green"] {
-  --tone: var(--tf-color-accent);
-  --tone-soft: var(--tf-color-accent-deep);
+  --tone: var(--ui-color-accent);
+  --tone-soft: var(--ui-color-accent-deep);
 }
 .row[data-tone="violet"] {
-  --tone: var(--tf-color-violet);
-  --tone-soft: var(--tf-color-violet-soft);
+  --tone: var(--ui-color-violet);
+  --tone-soft: var(--ui-color-violet-soft);
 }
 .row[data-tone="blue"] {
-  --tone: var(--tf-color-info);
-  --tone-soft: var(--tf-color-info-soft);
+  --tone: var(--ui-color-info);
+  --tone-soft: var(--ui-color-info-soft);
 }
 .row[data-tone="orange"] {
-  --tone: var(--tf-color-warning);
-  --tone-soft: var(--tf-color-warning-soft);
+  --tone: var(--ui-color-warning);
+  --tone-soft: var(--ui-color-warning-soft);
 }
 .row[data-tone="rose"] {
-  --tone: var(--tf-color-danger);
-  --tone-soft: var(--tf-color-danger-soft);
+  --tone: var(--ui-color-danger);
+  --tone-soft: var(--ui-color-danger-soft);
 }
 
 .row + .row {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .name {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-width: 0;
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-medium);
 }
 
 .icon {
@@ -102,7 +102,7 @@
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: var(--tone-soft);
   color: var(--tone);
 }
@@ -124,21 +124,21 @@
 }
 
 .periodTag {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-regular);
 }
 
 .usage {
   display: grid;
   grid-template-columns: 6.5rem minmax(0, 1fr);
   align-items: center;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .amount {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-medium);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -146,8 +146,8 @@
 .bar {
   height: 0.5rem;
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-overlay);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-overlay);
 }
 
 .bar span {
@@ -156,24 +156,24 @@
   border-radius: inherit;
   background: var(--tone);
   transform-origin: left;
-  transition: transform 500ms var(--tf-ease-out);
+  transition: transform 500ms var(--ui-ease-out);
 }
 
 .row[data-state="near"] {
-  --tone: var(--tf-color-warning);
-  --tone-soft: var(--tf-color-warning-soft);
+  --tone: var(--ui-color-warning);
+  --tone-soft: var(--ui-color-warning-soft);
 }
 .row[data-state="full"] {
-  --tone: var(--tf-color-danger);
-  --tone-soft: var(--tf-color-danger-soft);
+  --tone: var(--ui-color-danger);
+  --tone-soft: var(--ui-color-danger-soft);
 }
 
 .row[data-state="near"] .bar span {
-  background: var(--tf-color-warning);
+  background: var(--ui-color-warning);
 }
 
 .row[data-state="full"] .bar span {
-  background: var(--tf-color-danger);
+  background: var(--ui-color-danger);
 }
 
 .end {
@@ -183,12 +183,12 @@
 
 .percent {
   color: var(--tone);
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
 .loading {
-  padding: var(--tf-space-4);
+  padding: var(--ui-space-4);
 }
 
 .foot {
@@ -196,23 +196,23 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-5);
-  border-top: 1px solid var(--tf-color-border-subtle);
-  background: var(--tf-color-surface-raised);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-5);
+  border-top: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-surface-raised);
 }
 
 .footMain {
   display: grid;
   gap: 2px;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .footMain small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-regular);
 }
 
 @media (max-width: 40rem) {
@@ -228,11 +228,11 @@
   }
 
   .row {
-    padding-block: var(--tf-space-2);
+    padding-block: var(--ui-space-2);
   }
 
   .row > .usage {
-    padding-left: calc(1.75rem + var(--tf-space-3));
+    padding-left: calc(1.75rem + var(--ui-space-3));
     grid-template-columns: auto minmax(0, 1fr);
   }
 

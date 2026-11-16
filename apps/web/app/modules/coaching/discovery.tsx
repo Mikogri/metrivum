@@ -24,7 +24,7 @@ import {
   SearchInput,
   Select,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useProfile } from "~/modules/accounts";
 import { useFeatureAccess } from "~/shared/access";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";

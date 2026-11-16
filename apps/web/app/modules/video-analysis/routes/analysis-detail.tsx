@@ -19,7 +19,7 @@ import {
   TextArea,
   TextField,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { formatDateTime, formatNumber } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";

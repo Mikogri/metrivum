@@ -16,9 +16,9 @@
 .strip {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .day {
@@ -27,11 +27,11 @@
   align-content: start;
   gap: 2px;
   min-width: 0;
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-secondary);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-secondary);
   text-align: left;
   cursor: pointer;
   transition:
@@ -42,35 +42,35 @@
 .day[data-planned]::before {
   content: "";
   position: absolute;
-  top: var(--tf-space-2);
-  right: var(--tf-space-2);
+  top: var(--ui-space-2);
+  right: var(--ui-space-2);
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
 }
 
 .day[aria-selected="true"] {
-  border-color: var(--tf-color-border-strong);
-  background: var(--tf-color-surface-selected);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-border-strong);
+  background: var(--ui-color-surface-selected);
+  color: var(--ui-color-text);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .day:hover:not([aria-selected="true"]) {
-    background: var(--tf-color-surface-raised);
+    background: var(--ui-color-surface-raised);
   }
 }
 
 .day:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
 .dayName {
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   text-transform: capitalize;
 }
 
@@ -81,13 +81,13 @@
 .dayMeta,
 .dayCount {
   overflow: hidden;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .dayCount {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .panel {
@@ -100,42 +100,42 @@
 .panelHeader {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4) 0;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-4) 0;
 }
 
 /* The workout's ⋮ menu sits right before its name. */
 .panelHeader > button:first-child {
-  margin-right: calc(var(--tf-space-2) * -1);
-  margin-left: calc(var(--tf-space-1) * -1);
+  margin-right: calc(var(--ui-space-2) * -1);
+  margin-left: calc(var(--ui-space-1) * -1);
 }
 
 .workoutName {
   width: 18rem;
   max-width: 100%;
-  height: var(--tf-control-md);
+  height: var(--ui-control-md);
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-lg);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-lg);
+  font-weight: var(--ui-weight-medium);
   outline: none;
 }
 
 .workoutTabs {
   display: flex;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .workoutTab {
-  height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-sm);
+  height: var(--ui-control-sm);
+  padding: 0 var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   cursor: pointer;
 }
 
@@ -147,14 +147,14 @@
 }
 
 .workoutTab[draggable="true"] {
-  padding-left: var(--tf-space-1);
+  padding-left: var(--ui-space-1);
   cursor: grab;
 }
 
 .workoutGrip {
   width: 0.75rem;
   height: 0.75rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .workoutTab[data-dragging] {
@@ -173,32 +173,32 @@
   bottom: -2px;
   width: 2px;
   border-radius: 1px;
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
   pointer-events: none;
 }
 
 .workoutTab[data-drop="before"]::after {
-  left: calc(var(--tf-space-1) / -2 - 1px);
+  left: calc(var(--ui-space-1) / -2 - 1px);
 }
 
 .workoutTab[data-drop="after"]::after {
-  right: calc(var(--tf-space-1) / -2 - 1px);
+  right: calc(var(--ui-space-1) / -2 - 1px);
 }
 
 .workoutTab[aria-pressed="true"] {
-  background: var(--tf-color-surface-selected);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-selected);
+  color: var(--ui-color-text);
 }
 
 .editorArea {
   flex: 1;
   min-height: 0;
-  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-6);
+  padding: var(--ui-space-3) var(--ui-space-4) var(--ui-space-6);
   overflow: auto;
 }
 
 .empty {
-  margin: var(--tf-space-6);
+  margin: var(--ui-space-6);
 }
 
 @media (max-width: 80rem) {
@@ -215,7 +215,7 @@
 .cycleBar {
   display: flex;
   align-items: end;
-  padding: var(--tf-space-3) var(--tf-space-3) 0;
+  padding: var(--ui-space-3) var(--ui-space-3) 0;
 }
 
 .blockSelect {
@@ -232,27 +232,27 @@
 
 .note {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   width: min(28rem, 100%);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
 }
 
 .note textarea {
   width: 100%;
-  padding: var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-field);
-  color: var(--tf-color-text);
+  padding: var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-field);
+  color: var(--ui-color-text);
   font: inherit;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   resize: vertical;
   outline: none;
 }
 
 .note textarea:focus {
-  border-color: var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent-border);
 }
 
 /* Day view: the workout on the left, its volume on the right. */
@@ -266,17 +266,17 @@
 .side {
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-height: 0;
-  padding: var(--tf-space-4);
+  padding: var(--ui-space-4);
   overflow-y: auto;
-  border-left: 1px solid var(--tf-color-border-subtle);
-  background: var(--tf-color-bg-sunken);
+  border-left: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-bg-sunken);
 }
 
 .sideTitle {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 @media (max-width: 80rem) {
@@ -293,9 +293,9 @@
     minmax(12rem, 2.4fr) repeat(5, minmax(4.25rem, 1fr))
     minmax(9rem, 2fr) 2.75rem;
   grid-auto-rows: var(--cell-h);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
 }
 
 /* Editable: a narrow first column holds each row's drag handle. */
@@ -308,12 +308,12 @@
 .grip {
   justify-content: center;
   padding: 0;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   cursor: grab;
 }
 
 .grip:hover {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .grip:active {
@@ -331,17 +331,17 @@
 }
 
 .table [role="row"][data-drop="before"] > * {
-  box-shadow: inset 0 2px 0 var(--tf-color-accent);
+  box-shadow: inset 0 2px 0 var(--ui-color-accent);
 }
 
 .table [role="row"][data-drop="after"] > * {
-  box-shadow: inset 0 -2px 0 var(--tf-color-accent);
+  box-shadow: inset 0 -2px 0 var(--ui-color-accent);
 }
 
 /* Light lines between the columns; none after the last one (the row menu), where the table's own border is. */
 .table > *,
 .table [role="row"] > * {
-  border-right: 1px solid var(--tf-color-border-subtle);
+  border-right: 1px solid var(--ui-color-border-subtle);
 }
 
 .table > [role="row"] > :last-child,
@@ -382,14 +382,14 @@
 
 .colResize:hover::after,
 .colResize:active::after {
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
 }
 
 .head {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-medium);
-  border-bottom: 1px solid var(--tf-color-border);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-medium);
+  border-bottom: 1px solid var(--ui-color-border);
 }
 
 .rowMenu {
@@ -402,19 +402,19 @@
   display: grid;
   place-items: center;
   height: 100%;
-  padding: var(--tf-space-6) var(--tf-space-4);
+  padding: var(--ui-space-6) var(--ui-space-4);
 }
 
 .restCard {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--tf-space-3) var(--tf-space-4);
+  gap: var(--ui-space-3) var(--ui-space-4);
   width: min(34rem, 100%);
-  padding: var(--tf-space-5);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  padding: var(--ui-space-5);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
 }
 
 .restIcon {
@@ -423,8 +423,8 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 
 .restIcon svg {
@@ -433,13 +433,13 @@
 }
 
 .restTitle {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .restDay {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-transform: capitalize;
 }
 
@@ -452,7 +452,7 @@
 .headerEnd {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin-left: auto;
 }
 
@@ -467,13 +467,13 @@
 }
 
 .table [class*="cellInput"][aria-invalid] {
-  box-shadow: inset 0 0 0 1px var(--tf-color-danger);
+  box-shadow: inset 0 0 0 1px var(--ui-color-danger);
 }
 
 .table [class*="cell"]:focus,
 .table [class*="cell"]:focus-visible {
   box-shadow: none;
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 /* Read-only (no add row): the last exercise row ends on the table's own border. */
@@ -503,7 +503,7 @@
   }
   .side {
     border-left: 0;
-    border-top: 1px solid var(--tf-color-border-subtle);
+    border-top: 1px solid var(--ui-color-border-subtle);
     overflow: visible;
   }
   .panelHeader,
@@ -561,34 +561,34 @@
 }
 
 .day[data-over] {
-  border-color: var(--tf-color-accent);
-  background: var(--tf-color-accent-soft);
+  border-color: var(--ui-color-accent);
+  background: var(--ui-color-accent-soft);
 }
 
 .strip[data-copying] .day[data-paste] {
   border-style: dashed;
-  border-color: var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent-border);
 }
 
 .strip[data-copying] .day[data-paste]:hover {
   border-style: solid;
-  border-color: var(--tf-color-accent);
-  background: var(--tf-color-accent-soft);
+  border-color: var(--ui-color-accent);
+  background: var(--ui-color-accent-soft);
 }
 
 .dayCopy {
   position: absolute;
-  right: var(--tf-space-1);
-  bottom: var(--tf-space-1);
+  right: var(--ui-space-1);
+  bottom: var(--ui-space-1);
   display: grid;
   place-items: center;
   width: 1.5rem;
   height: 1.5rem;
   padding: 0;
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   opacity: 0;
   cursor: pointer;
   transition:
@@ -607,36 +607,36 @@
 }
 
 .dayCopy:hover {
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text);
 }
 
 .copyHint {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-3);
-  margin: var(--tf-space-3) var(--tf-space-3) 0;
-  padding: var(--tf-space-2-5) var(--tf-space-3) var(--tf-space-2-5)
-    var(--tf-space-4);
-  border: 1px solid var(--tf-color-accent-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-3);
+  margin: var(--ui-space-3) var(--ui-space-3) 0;
+  padding: var(--ui-space-2-5) var(--ui-space-3) var(--ui-space-2-5)
+    var(--ui-space-4);
+  border: 1px solid var(--ui-color-accent-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
 }
 
 .copyCancel {
-  padding: 0 var(--tf-space-2);
+  padding: 0 var(--ui-space-2);
   border: 0;
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   font: inherit;
   cursor: pointer;
 }
 
 .copyCancel:hover {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 /* Plan comments and goals: a row of small cards under the day's table. */
@@ -644,8 +644,8 @@
   display: grid;
   flex: none;
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  gap: var(--tf-space-2);
-  margin: var(--tf-space-4) 0 0;
+  gap: var(--ui-space-2);
+  margin: var(--ui-space-4) 0 0;
   padding: 0;
   list-style: none;
 }
@@ -653,17 +653,17 @@
 .planNote {
   display: flex;
   align-items: flex-start;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-width: 0;
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-left: 3px solid var(--tf-color-info);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-left: 3px solid var(--ui-color-info);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
 }
 
 .planNote[data-kind="Goal"] {
-  border-left-color: var(--tf-color-accent);
+  border-left-color: var(--ui-color-accent);
 }
 
 .planNoteIcon {
@@ -672,14 +672,14 @@
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 
 .planNote[data-kind="Goal"] .planNoteIcon {
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 
 .planNoteIcon svg {
@@ -697,23 +697,23 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  gap: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .planNoteAudience {
   padding: 0 0.375rem;
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface-raised);
-  font-weight: var(--tf-weight-regular);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-surface-raised);
+  font-weight: var(--ui-weight-regular);
 }
 
 .planNoteTitle {
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -721,17 +721,17 @@
 .planNoteBody {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
   white-space: pre-wrap;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .planNoteEmpty {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
   font-style: italic;
 }
 
@@ -741,8 +741,8 @@
   flex-wrap: wrap;
   align-items: end;
   justify-content: space-between;
-  gap: var(--tf-space-2) var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-3) 0;
+  gap: var(--ui-space-2) var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-3) 0;
 }
 
 .repeatSelect {
@@ -756,7 +756,7 @@
 .structureActions {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 /* Editable plan notes: who sees it, the text, and remove. */
@@ -766,40 +766,40 @@
 
 .planNote[data-editable] .planNoteText {
   flex: 1;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .planNoteVisibility {
   padding: 0 0.25rem;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
   font: inherit;
-  font-weight: var(--tf-weight-regular);
+  font-weight: var(--ui-weight-regular);
   cursor: pointer;
 }
 
 .planNoteInput {
   width: 100%;
   min-height: 2.5rem;
-  padding: var(--tf-space-1) var(--tf-space-2);
+  padding: var(--ui-space-1) var(--ui-space-2);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   font: inherit;
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
   resize: vertical;
 }
 
 .planNoteInput:hover {
-  border-color: var(--tf-color-border-subtle);
+  border-color: var(--ui-color-border-subtle);
 }
 
 .planNoteInput:focus {
-  border-color: var(--tf-color-border-strong);
+  border-color: var(--ui-color-border-strong);
   outline: none;
 }
 
@@ -810,15 +810,15 @@
   width: 1.5rem;
   height: 1.5rem;
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   cursor: pointer;
 }
 
 .planNoteRemove:hover {
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-danger);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-danger);
 }
 
 .planNoteRemove svg {
@@ -829,8 +829,8 @@
 /* The block's maxes table under the day, in normal flow instead of a position on the sheet. */
 .maxes {
   display: grid;
-  gap: var(--tf-space-3);
-  margin-top: var(--tf-space-4);
+  gap: var(--ui-space-3);
+  margin-top: var(--ui-space-4);
   max-width: 100%;
   overflow-x: auto;
 }
@@ -840,10 +840,10 @@
   display: grid;
   place-items: center;
   min-height: 3.5rem;
-  border: 1px dashed var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  border: 1px dashed var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   cursor: pointer;
   transition:
     border-color 120ms ease,
@@ -852,9 +852,9 @@
 }
 
 .addDay:hover {
-  border-color: var(--tf-color-border-strong);
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-border-strong);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .addDay svg {
@@ -867,13 +867,13 @@
   display: flex;
   flex-basis: 100%;
   align-items: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 .inactiveNote > span {
@@ -884,5 +884,5 @@
   flex-shrink: 0;
   width: 0.875rem;
   height: 0.875rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }

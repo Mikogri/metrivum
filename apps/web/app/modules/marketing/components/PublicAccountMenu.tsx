@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   forgetSlot,
   storedAccountsHint,

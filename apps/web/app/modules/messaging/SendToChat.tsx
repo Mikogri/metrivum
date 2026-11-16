@@ -1,7 +1,7 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Alert, Button, Option, Select, toast } from "@metrivum/ui-web";
+import { Alert, Button, Option, Select, toast } from "@portable-ui/react";
 import { useFeatureAccess } from "~/shared/access";
 import { useAccountContext } from "~/shared/session";
 import { root, useChatQuery } from "./api";

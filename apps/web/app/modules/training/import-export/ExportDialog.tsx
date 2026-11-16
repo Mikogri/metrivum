@@ -15,7 +15,7 @@ import {
   Spinner,
   toast,
   DialogFooter,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useFeatures } from "~/shared/access";
 import { formatBytes, formatDateTime } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

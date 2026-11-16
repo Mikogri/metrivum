@@ -1,7 +1,7 @@
 .heading {
-  font-family: var(--tf-font-display);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-display);
+  font-family: var(--ui-font-display);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-display);
 }
 
 /* Words stay inline (no mask): each one comes into focus in place, a beat after the previous. */
@@ -13,7 +13,7 @@
 
 .inner {
   display: inline-block;
-  animation: word-focus 700ms var(--tf-ease-out) both;
+  animation: word-focus 700ms var(--ui-ease-out) both;
   animation-delay: calc(var(--delay) + 80ms + var(--i) * 40ms);
 }
 

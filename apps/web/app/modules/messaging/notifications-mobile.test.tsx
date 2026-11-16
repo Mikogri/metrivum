@@ -2,10 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { expect, it, vi } from "vitest";
-import type * as UiWeb from "@metrivum/ui-web";
+import type * as UiWeb from "@portable-ui/react";
 import { NotificationBell } from "./notifications";
 
-vi.mock("@metrivum/ui-web", async (original) => ({
+vi.mock("@portable-ui/react", async (original) => ({
   ...(await original<typeof UiWeb>()),
   useMobileLayout: () => true,
 }));

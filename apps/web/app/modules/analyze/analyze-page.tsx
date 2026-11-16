@@ -25,7 +25,7 @@ import {
   TabList,
   TabPanel,
   Tabs,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { RequireFeature, useFeatureAccess } from "~/shared/access";
 import { BasicAnalyze } from "./basic-analyze";
 import { useAccountContext } from "~/shared/session/AccountScope";

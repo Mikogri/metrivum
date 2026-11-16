@@ -1,32 +1,32 @@
 .menu {
   position: fixed;
-  z-index: var(--tf-z-popover);
+  z-index: var(--ui-z-popover);
   display: grid;
   min-width: 12rem;
   max-width: min(22rem, calc(100vw - 16px));
   max-height: calc(100dvh - 16px);
   overflow: auto;
-  padding: var(--tf-space-1);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  box-shadow: var(--tf-shadow-menu);
+  padding: var(--ui-space-1);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  box-shadow: var(--ui-shadow-menu);
   outline: none;
   transform-origin: top left;
-  animation: menu-in 120ms var(--tf-ease-out);
+  animation: menu-in 120ms var(--ui-ease-out);
 }
 
 .item {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  min-height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-2);
+  gap: var(--ui-space-2);
+  min-height: var(--ui-control-sm);
+  padding: 0 var(--ui-space-2);
   border: 0;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
   text-align: left;
   outline: none;
   cursor: default;
@@ -37,17 +37,17 @@
 
 .item:hover,
 .item:focus-visible {
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 .item[aria-disabled="true"],
 .item:disabled {
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
 }
 
 .phoneActions {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 .phoneActions .item {
   min-height: 48px;
@@ -58,13 +58,13 @@
 }
 
 .item[data-tone="danger"] {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 .item[data-tone="danger"]:hover,
 .item[data-tone="danger"]:focus-visible,
 .item[data-tone="danger"]:focus {
-  background: var(--tf-color-danger-soft);
+  background: var(--ui-color-danger-soft);
 }
 
 .item[data-tone="danger"]:active {
@@ -75,7 +75,7 @@
   display: inline-flex;
   width: 0.9375rem;
   flex-shrink: 0;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .item[data-tone="danger"] .icon {
@@ -95,25 +95,25 @@
 }
 
 .shortcut {
-  color: var(--tf-color-text-tertiary);
-  font-family: var(--tf-font-sans);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-family: var(--ui-font-sans);
+  font-size: var(--ui-text-2xs);
 }
 
 .separator {
   height: 1px;
-  margin: var(--tf-space-1) calc(var(--tf-space-1) * -1);
-  background: var(--tf-color-border-subtle);
+  margin: var(--ui-space-1) calc(var(--ui-space-1) * -1);
+  background: var(--ui-color-border-subtle);
 }
 
 .label {
-  padding: var(--tf-space-1-5) var(--tf-space-2) var(--tf-space-1);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  padding: var(--ui-space-1-5) var(--ui-space-2) var(--ui-space-1);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
 }
 
 .extra {
-  padding: var(--tf-space-1);
+  padding: var(--ui-space-1);
 }
 
 @keyframes menu-in {

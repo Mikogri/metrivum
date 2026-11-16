@@ -1,21 +1,21 @@
 .tooltip {
   max-width: 16rem;
-  padding: var(--tf-space-1-5) var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
+  padding: var(--ui-space-1-5) var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
   /* Frosted: the page shows through, blurred. */
   background: color-mix(
     in srgb,
-    var(--tf-color-surface-overlay) 62%,
+    var(--ui-color-surface-overlay) 62%,
     transparent
   );
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   backdrop-filter: blur(14px) saturate(1.4);
-  box-shadow: var(--tf-shadow-md);
-  font-weight: var(--tf-weight-medium);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-snug);
+  box-shadow: var(--ui-shadow-md);
+  font-weight: var(--ui-weight-medium);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-snug);
   pointer-events: none;
   transform-origin: var(--origin, center);
 }
@@ -34,11 +34,11 @@
 }
 
 .tooltip[data-entering] {
-  animation: tooltip-in var(--tf-duration-base) var(--tf-ease-out);
+  animation: tooltip-in var(--ui-duration-base) var(--ui-ease-out);
 }
 
 .tooltip[data-exiting] {
-  animation: tooltip-in 100ms var(--tf-ease-out) reverse;
+  animation: tooltip-in 100ms var(--ui-ease-out) reverse;
 }
 
 /* A see-through panel has no arrow: it would not match the blurred fill. */
@@ -50,7 +50,7 @@
   (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
 ) {
   .tooltip {
-    background: var(--tf-color-surface-overlay);
+    background: var(--ui-color-surface-overlay);
   }
 }
 

@@ -10,7 +10,7 @@ import {
   TextField,
   toast,
   DialogFooter,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { ApiError } from "~/shared/http/errors";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";

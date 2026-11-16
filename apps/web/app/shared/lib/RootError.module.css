@@ -2,7 +2,7 @@
   display: grid;
   place-items: center;
   min-height: 100dvh;
-  padding: var(--tf-space-6);
+  padding: var(--ui-space-6);
 }
 
 .page > * {

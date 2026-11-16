@@ -36,7 +36,7 @@ import {
   LoadingState,
   Skeleton,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   BodySummary,
   DETAIL_GROUPS,

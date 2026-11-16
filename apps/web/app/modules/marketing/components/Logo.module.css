@@ -3,8 +3,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-semibold);
   line-height: 1;
   white-space: nowrap;
 }

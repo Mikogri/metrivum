@@ -15,7 +15,7 @@ import {
   Option,
   PageHeader,
   Select,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import { profileKey, useProfile } from "~/modules/accounts";
 import { useAccountKey } from "~/shared/session/AccountScope";

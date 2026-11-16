@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate } from "react-router";
-import { Button, Dialog, PageHeader } from "@metrivum/ui-web";
+import { Button, Dialog, PageHeader } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { privateMeta } from "~/shared/i18n/site";
 import {

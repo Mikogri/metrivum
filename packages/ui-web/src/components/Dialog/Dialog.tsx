@@ -1,3 +1,5 @@
+import { useMobileLayout } from "../../lib/useMobileLayout";
+import { useUI } from "../../UIProvider";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 import {
@@ -47,7 +49,7 @@ export function Dialog({
   footer,
   size = "md",
   placement,
-  closeLabel = "Close",
+  closeLabel,
   role = "dialog",
   className,
   isDismissable = true,
@@ -55,6 +57,10 @@ export function Dialog({
   onOpenChange,
   ...overlayProps
 }: DialogProps) {
+  const phone = useMobileLayout();
+  const { messages } = useUI();
+  closeLabel ??= messages.close;
+
   const side =
     placement ?? (size === "lg" || size === "xl" ? "right" : "center");
   // Many dialogs are removed from the page the moment they close, which would cut the exit
@@ -106,6 +112,7 @@ export function Dialog({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       isDismissable={isDismissable}
+      data-ui-phone={phone || undefined}
       className={styles.overlay}
       data-placement={side}
     >

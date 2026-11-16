@@ -1,5 +1,5 @@
 import { Unplug } from "lucide-react";
-import { Tooltip, TooltipTrigger } from "@metrivum/ui-web";
+import { Tooltip, TooltipTrigger } from "@portable-ui/react";
 import { Button as AriaButton } from "react-aria-components";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./SheetCanvas.module.css";

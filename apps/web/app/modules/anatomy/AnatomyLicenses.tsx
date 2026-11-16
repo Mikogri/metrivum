@@ -1,6 +1,6 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
-import { Dialog } from "@metrivum/ui-web";
+import { Dialog } from "@portable-ui/react";
 import type { AnatomyMessages } from "./messages";
 import styles from "./anatomy.module.css";
 

@@ -3,7 +3,7 @@ import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import type { ReactNode } from "react";
 import { CircleAlert, CircleCheck, Clock, LoaderCircle } from "lucide-react";
 import { Button as AriaButton } from "react-aria-components";
-import { Tooltip, TooltipTrigger } from "@metrivum/ui-web";
+import { Tooltip, TooltipTrigger } from "@portable-ui/react";
 import type { SavingState } from "../analyzer-jobs";
 import type { AnalyzerJob } from "../local-analysis";
 import { jobStatus } from "../job-status";

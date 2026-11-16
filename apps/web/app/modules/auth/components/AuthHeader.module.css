@@ -1,50 +1,50 @@
 .header {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .title {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-3xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-display);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-3xl);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-display);
   line-height: 1.1;
 }
 
 .subtitle {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 /* "New to Metrivum? Create an account": one quiet centred line, the link underlined like the form's text links. */
 .footer {
-  padding-top: var(--tf-space-4);
-  border-top: 1px solid var(--tf-color-border-subtle);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  padding-top: var(--ui-space-4);
+  border-top: 1px solid var(--ui-color-border-subtle);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
   text-align: center;
 }
 
 .footer a {
   margin-left: 0.25rem;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--tf-color-border-strong);
+  text-decoration-color: var(--ui-color-border-strong);
   transition:
     color 160ms ease,
     text-decoration-color 160ms ease;
 }
 
 .footer a:hover {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   text-decoration-color: currentColor;
 }
 
 .titleRow {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 /* Back arrow before the title: on hover it steps back a little and brightens, no background. */
@@ -54,16 +54,16 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  margin-left: calc(var(--tf-space-2) * -1);
-  border-radius: var(--tf-radius-sm);
-  color: var(--tf-color-text-tertiary);
+  margin-left: calc(var(--ui-space-2) * -1);
+  border-radius: var(--ui-radius-sm);
+  color: var(--ui-color-text-tertiary);
   transition:
     color 160ms ease,
-    transform 200ms var(--tf-ease-out, ease-out);
+    transform 200ms var(--ui-ease-out, ease-out);
 }
 
 .back:hover {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   transform: translateX(-3px);
 }
 
@@ -85,15 +85,15 @@
 }
 
 .formError {
-  margin-top: calc(var(--tf-space-2) * -1);
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-snug);
+  margin-top: calc(var(--ui-space-2) * -1);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-snug);
 }
 
 .formError a {
   color: inherit;
-  font-weight: var(--tf-weight-medium);
+  font-weight: var(--ui-weight-medium);
   text-decoration: underline;
   text-underline-offset: 2px;
 }

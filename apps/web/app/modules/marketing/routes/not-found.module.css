@@ -2,12 +2,12 @@
   display: grid;
   place-content: center;
   justify-items: center;
-  gap: var(--tf-space-6);
+  gap: var(--ui-space-6);
   min-height: 100dvh;
-  padding: var(--tf-space-6);
+  padding: var(--ui-space-6);
   position: relative;
   isolation: isolate;
-  background: var(--tf-color-bg);
+  background: var(--ui-color-bg);
 }
 
 /* A faint dot grid that fades out from the middle: texture without a coloured glow. */
@@ -35,9 +35,9 @@
 }
 
 .code {
-  font-family: var(--tf-font-display);
+  font-family: var(--ui-font-display);
   font-size: clamp(5rem, 18vw, 10rem);
-  font-weight: var(--tf-weight-bold);
+  font-weight: var(--ui-weight-bold);
   letter-spacing: -0.04em;
   line-height: 0.9;
   /* Solid white at the top, settling into the page below: readable, no colour cast. */
@@ -49,7 +49,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: rise 900ms var(--tf-ease-out) both;
+  animation: rise 900ms var(--ui-ease-out) both;
 }
 
 @keyframes rise {

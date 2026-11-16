@@ -19,7 +19,7 @@ import {
   SearchInput,
   Skeleton,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   LockedArea,
   LockedReason,

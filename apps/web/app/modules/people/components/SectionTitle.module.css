@@ -2,8 +2,8 @@
 .head {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  margin-bottom: var(--tf-space-3);
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-3);
 }
 
 .text {
@@ -14,16 +14,16 @@
 }
 
 .title {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
-  line-height: var(--tf-leading-tight);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
+  line-height: var(--ui-leading-tight);
 }
 
 .sub {
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -33,7 +33,7 @@
   flex-shrink: 0;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 /* Same tones as the dashboard's stat chips. */
@@ -43,7 +43,7 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
 }
 
 .chip[data-size="sm"] {
@@ -57,22 +57,22 @@
 }
 
 .chip[data-tone="green"] {
-  background: var(--tf-color-accent-deep);
-  color: var(--tf-color-accent);
+  background: var(--ui-color-accent-deep);
+  color: var(--ui-color-accent);
 }
 .chip[data-tone="violet"] {
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-violet);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-violet);
 }
 .chip[data-tone="blue"] {
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 .chip[data-tone="orange"] {
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 .chip[data-tone="rose"] {
-  background: var(--tf-color-danger-soft);
-  color: var(--tf-color-danger);
+  background: var(--ui-color-danger-soft);
+  color: var(--ui-color-danger);
 }

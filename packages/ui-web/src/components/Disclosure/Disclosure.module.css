@@ -5,21 +5,21 @@
 .trigger {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   width: 100%;
-  padding: var(--tf-space-2) var(--tf-space-3);
+  padding: var(--ui-space-2) var(--ui-space-3);
   border: 0;
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   text-align: left;
   cursor: pointer;
-  transition: color var(--tf-duration-fast) ease;
+  transition: color var(--ui-duration-fast) ease;
 }
 
 .trigger:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: -2px;
 }
 
@@ -32,8 +32,8 @@
   flex: none;
   width: 0.875rem;
   height: 0.875rem;
-  color: var(--tf-color-text-tertiary);
-  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+  color: var(--ui-color-text-tertiary);
+  transition: transform var(--ui-duration-base) var(--ui-ease-out);
 }
 
 .disclosure[data-expanded] .chevron {
@@ -44,7 +44,7 @@
 .panel {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows var(--tf-duration-base) var(--tf-ease-out);
+  transition: grid-template-rows var(--ui-duration-base) var(--ui-ease-out);
 }
 
 .disclosure[data-expanded] .panel {
@@ -55,7 +55,7 @@
   min-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: opacity var(--tf-duration-base) var(--tf-ease-out);
+  transition: opacity var(--ui-duration-base) var(--ui-ease-out);
 }
 
 .disclosure[data-expanded] .content {
@@ -64,7 +64,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .trigger:hover {
-    color: var(--tf-color-text);
+    color: var(--ui-color-text);
   }
 }
 

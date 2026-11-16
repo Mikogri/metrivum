@@ -1,3 +1,4 @@
+import { useUI } from "../../UIProvider";
 import { Search, X } from "lucide-react";
 import {
   Button,
@@ -22,11 +23,14 @@ export interface SearchInputProps extends Omit<
 
 export function SearchInput({
   placeholder,
-  clearLabel = "Clear search",
+  clearLabel,
   size = "md",
   className,
   ...props
 }: SearchInputProps) {
+  const { messages } = useUI();
+  clearLabel ??= messages.clearSearch;
+
   return (
     <SearchField
       {...props}

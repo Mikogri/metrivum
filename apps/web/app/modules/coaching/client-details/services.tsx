@@ -10,7 +10,7 @@ import {
   Select,
   TextField,
   Toolbar,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import { useFeatureAccess } from "~/shared/access";
 import { pageFromParam } from "~/shared/lib/useUrlState";

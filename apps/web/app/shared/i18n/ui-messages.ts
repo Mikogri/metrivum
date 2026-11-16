@@ -1,0 +1,20 @@
+import type { UIMessages } from "@portable-ui/react";
+export const uiPl: UIMessages = {
+  openCalendar: "Otwórz kalendarz",
+  calendar: "Kalendarz",
+  previousMonth: "Poprzedni miesiąc",
+  chooseYearMonth: "Wybierz rok i miesiąc",
+  nextMonth: "Następny miesiąc",
+  previousYear: "Poprzedni rok",
+  chooseYear: "Wybierz rok",
+  nextYear: "Następny rok",
+  months: "Miesiące",
+  earlierYears: "Wcześniejsze lata",
+  laterYears: "Późniejsze lata",
+  years: "Lata",
+  close: "Zamknij",
+  clearSearch: "Wyczyść wyszukiwanie",
+  increase: "Zwiększ",
+  decrease: "Zmniejsz",
+  loading: "Ładowanie…",
+};

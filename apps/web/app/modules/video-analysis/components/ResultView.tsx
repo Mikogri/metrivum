@@ -7,7 +7,7 @@ import type {
   AnalysisResult,
   TrajectoryPoint,
 } from "@metrivum/api-client-web";
-import { Card, Tooltip, TooltipTrigger } from "@metrivum/ui-web";
+import { Card, Tooltip, TooltipTrigger } from "@portable-ui/react";
 import { RepSelect } from "./RepSelect";
 import { RepTable } from "./RepTable";
 import { useLocale } from "~/shared/i18n/LocaleContext";

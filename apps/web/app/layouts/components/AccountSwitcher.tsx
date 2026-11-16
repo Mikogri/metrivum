@@ -20,7 +20,7 @@ import {
   DropdownMenuSection,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   useAvatarUrl,
   useProfile,

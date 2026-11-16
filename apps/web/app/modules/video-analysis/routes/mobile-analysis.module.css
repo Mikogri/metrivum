@@ -16,8 +16,8 @@
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  background: var(--tf-color-surface);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  background: var(--ui-color-surface);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
   text-align: left;
 }
 .list strong {
@@ -25,7 +25,7 @@
   min-width: 0;
 }
 .list button:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: -2px;
 }
 .pages {
@@ -44,8 +44,8 @@
   flex-wrap: wrap;
 }
 .result dt {
-  font-size: var(--tf-text-xs);
-  color: var(--tf-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  color: var(--ui-color-text-tertiary);
 }
 .result dd {
   margin: 4px 0 0;

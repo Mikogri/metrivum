@@ -1,7 +1,7 @@
 import { Check, Minus, Sparkles, User, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { ToggleButton, ToggleButtonGroup } from "react-aria-components";
-import { Alert, Badge, Segment, SegmentedControl } from "@metrivum/ui-web";
+import { Alert, Badge, Segment, SegmentedControl } from "@portable-ui/react";
 import {
   catalogLimit,
   isTopTier,

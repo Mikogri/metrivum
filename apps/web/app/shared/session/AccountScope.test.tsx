@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { act, render, screen } from "@testing-library/react";
-import { Toaster, toast } from "@metrivum/ui-web";
+import { Toaster, toast } from "@portable-ui/react";
 import {
   QueryClient,
   QueryClientProvider,

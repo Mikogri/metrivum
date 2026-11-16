@@ -4,11 +4,11 @@ type Tone = "green" | "blue" | "violet" | "orange" | "rose" | "neutral";
 
 /** Each offer type has its own colour, the same everywhere it shows. */
 const looks: Record<string, { tone: Tone; color: string }> = {
-  strength: { tone: "rose", color: "var(--tf-color-danger)" },
-  hypertrophy: { tone: "violet", color: "var(--tf-color-violet)" },
-  endurance: { tone: "blue", color: "var(--tf-color-info)" },
-  "general-fitness": { tone: "green", color: "var(--tf-color-accent)" },
-  conditioning: { tone: "orange", color: "var(--tf-color-warning)" },
+  strength: { tone: "rose", color: "var(--ui-color-danger)" },
+  hypertrophy: { tone: "violet", color: "var(--ui-color-violet)" },
+  endurance: { tone: "blue", color: "var(--ui-color-info)" },
+  "general-fitness": { tone: "green", color: "var(--ui-color-accent)" },
+  conditioning: { tone: "orange", color: "var(--ui-color-warning)" },
 };
 
 /** "general-fitness" reads as "General fitness". */
@@ -30,7 +30,7 @@ export function CategoryTag({ category }: { category?: string | null }) {
     <span className={styles.categoryTag}>
       <i
         style={{
-          background: looks[category]?.color ?? "var(--tf-color-text-tertiary)",
+          background: looks[category]?.color ?? "var(--ui-color-text-tertiary)",
         }}
         aria-hidden="true"
       />

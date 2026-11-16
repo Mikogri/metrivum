@@ -74,7 +74,7 @@ import {
   Tooltip,
   TooltipTrigger,
   type ContextMenuEntry,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { useT } from "~/shared/i18n/AppLocale";
@@ -110,7 +110,7 @@ import {
   CELL_H,
   CELL_W,
   CYCLE_COLS,
-  compactAutoLayout,
+  autoLayout,
   cycleRows,
   mergeLayout,
   resolveLayout,
@@ -161,6 +161,11 @@ export interface SheetState {
   expanded: string[];
   /** Workouts folded inside an expanded cycle. */
   collapsedWorkouts: string[];
+  /**
+   * Arranged automatically: positions follow the cards' current sizes, so folded cards sit close together and opening
+   * one moves everything after it (right and down). Moving a card by hand ends it, keeping the cards where they are.
+   */
+  autoArrange?: boolean;
 }
 
 export const emptySheet: SheetState = {
@@ -214,6 +219,7 @@ export function usePersistentSheet(
         collapsedWorkouts: ids(saved.collapsedWorkouts),
         elementWidths: sanitizeElementWidths(saved.elementWidths),
         columnWidths: sanitizeColumnWidths(saved.columnWidths),
+        autoArrange: saved.autoArrange === true,
       };
     } catch {
       return emptySheet;
@@ -237,6 +243,7 @@ export function usePersistentSheet(
             elementWidths: sheet.elementWidths,
             collapsedCards: sheet.collapsedCards,
             hiddenBlocks: sheet.hiddenBlocks,
+            autoArrange: sheet.autoArrange,
           }),
         );
       } catch {
@@ -253,6 +260,7 @@ export function usePersistentSheet(
     sheet.elementWidths,
     sheet.collapsedCards,
     sheet.hiddenBlocks,
+    sheet.autoArrange,
     lifecycle,
   ]);
   return [
@@ -586,10 +594,6 @@ export function SheetCanvas({
       ),
     [doc],
   );
-  const stored = useMemo(
-    () => mergeLayout(sheet.layout, doc),
-    [sheet.layout, doc],
-  );
   const workout = openWorkout ? findWorkout(doc, openWorkout) : null;
 
   useEffect(() => {
@@ -597,10 +601,15 @@ export function SheetCanvas({
   }, [openWorkout, workout]);
 
   const update = (fn: (s: SheetState) => SheetState) => onSheetChange(fn);
+  // Cards where they are now: the stored positions, or the automatic ones while the sheet arranges itself.
+  const current = (s: SheetState) =>
+    s.autoArrange ? { ...layout } : mergeLayout(s.layout, doc);
+  // Placing a card by hand ends automatic arranging; everything else stays where it is drawn.
   const place = (id: string, cell: Cell) =>
     update((s) => ({
       ...s,
-      layout: { ...mergeLayout(s.layout, doc), [id]: cell },
+      layout: { ...current(s), [id]: cell },
+      autoArrange: false,
     }));
 
   // Sizes in cells; expanded cycles take one column group per day.
@@ -747,13 +756,38 @@ export function SheetCanvas({
         : sizes,
     [sizes, hidden],
   );
+  // Arranged automatically: the tree laid out at the sizes cards have now. Cards folded into a put-away block take no
+  // room (they sit at the block's column, ready to fly out of it).
+  const autoSizes = useMemo(
+    () =>
+      hidden.size
+        ? {
+            ...visibleSizes,
+            ...Object.fromEntries(
+              [...hidden].map((id) => [id, { cols: 0, rows: 0 }]),
+            ),
+          }
+        : visibleSizes,
+    [visibleSizes, hidden],
+  );
+  const stored = useMemo(
+    () =>
+      sheet.autoArrange
+        ? autoLayout(doc, autoSizes)
+        : mergeLayout(sheet.layout, doc),
+    [sheet.autoArrange, sheet.layout, doc, autoSizes],
+  );
   // Where cards are drawn: no overlaps; a card that would land on another moves down.
   const layout = useMemo(
     () => ({ ...stored, ...resolveLayout(stored, visibleSizes) }),
     [stored, visibleSizes],
   );
   const arrange = () =>
-    update((s) => ({ ...s, layout: compactAutoLayout(doc, visibleSizes) }));
+    update((s) => ({
+      ...s,
+      layout: autoLayout(doc, autoSizes),
+      autoArrange: true,
+    }));
 
   const targetWidths = useMemo(
     () =>
@@ -1068,7 +1102,8 @@ export function SheetCanvas({
         );
         update((s) => ({
           ...s,
-          layout: { ...mergeLayout(s.layout, doc), ...moves },
+          layout: { ...current(s), ...moves },
+          autoArrange: false,
         }));
       }
     } else if (drag.renameKey) {
@@ -1266,8 +1301,7 @@ export function SheetCanvas({
       t.workoutName(String.fromCharCode(65 + (allWorkouts.length % 26))),
     );
     apply?.((d) => addLooseWorkout(d, workout));
-    if (cell)
-      update((s) => ({ ...s, layout: { ...s.layout, [workout.id]: cell } }));
+    if (cell) place(workout.id, cell);
   };
   const addWorkoutToCycle = (cycleId: string) => {
     const cycle = allCycles.find((c) => c.cycle.id === cycleId)?.cycle;
@@ -1443,8 +1477,7 @@ export function SheetCanvas({
   const addCycleAt = (cell: Cell | null) => {
     const cycle = newCycle(m.editor.cycleName(allCycles.length + 1));
     apply?.((d) => addLooseCycle(d, cycle));
-    if (cell)
-      update((s) => ({ ...s, layout: { ...s.layout, [cycle.id]: cell } }));
+    if (cell) place(cycle.id, cell);
   };
   const onBoardContextMenu = (event: React.MouseEvent) => {
     if ((event.target as HTMLElement).closest("[data-node], [data-edge]"))

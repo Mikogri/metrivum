@@ -1,6 +1,6 @@
 import { Check, Lock, Rocket, Sparkles, X } from "lucide-react";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { IconButton, LinkButton } from "@metrivum/ui-web";
+import { IconButton, LinkButton } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./LockedArea.module.css";
 

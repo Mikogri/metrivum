@@ -1,7 +1,7 @@
 .chart {
   position: relative;
   width: 100%;
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 .chart svg {
   display: block;
@@ -9,17 +9,17 @@
   touch-action: pan-y;
 }
 .empty {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .grid line {
-  stroke: var(--tf-color-border-subtle);
+  stroke: var(--ui-color-border-subtle);
   stroke-dasharray: 3 4;
 }
 .grid text,
 .xLabel {
-  fill: var(--tf-color-text-tertiary);
+  fill: var(--ui-color-text-tertiary);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
@@ -32,16 +32,16 @@
   stroke-linejoin: round;
 }
 .dot {
-  fill: var(--tf-color-surface);
+  fill: var(--ui-color-surface);
   stroke: currentColor;
   stroke-width: 2;
-  transition: r 120ms var(--tf-ease-out);
+  transition: r 120ms var(--ui-ease-out);
 }
 .dot[data-active] {
   fill: currentColor;
 }
 .cursor {
-  stroke: var(--tf-color-border-strong);
+  stroke: var(--ui-color-border-strong);
   stroke-dasharray: 2 3;
 }
 
@@ -50,24 +50,24 @@
   z-index: 1;
   display: grid;
   gap: 1px;
-  padding: var(--tf-space-1-5) var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  box-shadow: var(--tf-shadow-menu);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-1-5) var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-shadow-menu);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xs);
   white-space: nowrap;
   pointer-events: none;
   transform: translate(-50%, calc(-100% - 12px));
 }
 .tooltip strong {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 .tooltip span {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 /* Several lines: the one under the cursor stays, the others step back. */
@@ -78,7 +78,7 @@
   opacity: 0.35;
 }
 .tooltip em {
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   font-style: normal;
-  font-weight: var(--tf-weight-medium);
+  font-weight: var(--ui-weight-medium);
 }

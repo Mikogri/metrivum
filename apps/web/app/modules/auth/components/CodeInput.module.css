@@ -1,26 +1,26 @@
 .field {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .label {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .description {
   margin: 0;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 /* Six boxes side by side; the real input lies over them, invisible, and takes the typing. */
 .boxes {
   position: relative;
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   cursor: text;
 }
 
@@ -29,44 +29,44 @@
   display: grid;
   place-items: center;
   height: 3.25rem;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-field);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-2xl, 1.5rem);
-  font-weight: var(--tf-weight-semibold);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-field);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-2xl, 1.5rem);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
   transition:
     border-color 140ms ease,
     box-shadow 140ms ease,
     background-color 140ms ease,
-    transform 160ms var(--tf-ease-out, ease-out);
+    transform 160ms var(--ui-ease-out, ease-out);
 }
 
 .box[data-filled] {
-  border-color: var(--tf-color-border-strong);
-  animation: digit-in 160ms var(--tf-ease-out, ease-out);
+  border-color: var(--ui-color-border-strong);
+  animation: digit-in 160ms var(--ui-ease-out, ease-out);
 }
 
 .box[data-active] {
-  border-color: var(--tf-color-focus-ring, var(--tf-color-accent));
+  border-color: var(--ui-color-focus-ring, var(--ui-color-accent));
   box-shadow: 0 0 0 3px
     color-mix(
       in srgb,
-      var(--tf-color-focus-ring, var(--tf-color-accent)) 30%,
+      var(--ui-color-focus-ring, var(--ui-color-accent)) 30%,
       transparent
     );
 }
 
 .field[data-invalid] .box {
-  border-color: var(--tf-color-danger);
+  border-color: var(--ui-color-danger);
 }
 
 .caret {
   width: 2px;
   height: 1.5rem;
   border-radius: 1px;
-  background: var(--tf-color-text);
+  background: var(--ui-color-text);
   animation: caret-blink 1s steps(1) infinite;
 }
 
@@ -88,9 +88,9 @@
 
 .error {
   margin: 0;
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-snug);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-snug);
 }
 
 @keyframes digit-in {
@@ -107,11 +107,11 @@
 
 @media (max-width: 360px) {
   .boxes {
-    gap: var(--tf-space-1-5);
+    gap: var(--ui-space-1-5);
   }
   .box {
     height: 2.875rem;
-    font-size: var(--tf-text-xl);
+    font-size: var(--ui-text-xl);
   }
 }
 

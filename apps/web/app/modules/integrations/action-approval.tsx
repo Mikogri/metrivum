@@ -1,7 +1,7 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { Link, useParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, Card, PageHeader, Skeleton } from "@metrivum/ui-web";
+import { Alert, Button, Card, PageHeader, Skeleton } from "@portable-ui/react";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { privateMeta } from "~/shared/i18n/site";
 import {

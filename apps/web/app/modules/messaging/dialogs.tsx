@@ -13,7 +13,7 @@ import {
   Select,
   Spinner,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";

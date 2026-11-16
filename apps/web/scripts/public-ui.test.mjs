@@ -32,7 +32,7 @@ test("production public pages retain their theme, ray geometry and auth card", a
             theme: getComputedStyle(
               document.querySelector('[data-public-theme="night"]'),
             )
-              .getPropertyValue("--tf-glass")
+              .getPropertyValue("--ui-glass")
               .trim(),
             background: card ? getComputedStyle(card).backgroundColor : "",
             overflow: document.documentElement.scrollWidth > innerWidth,

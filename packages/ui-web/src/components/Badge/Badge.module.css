@@ -1,23 +1,23 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   height: 1.375rem;
-  padding: 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  padding: 0 var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
   line-height: 1;
   white-space: nowrap;
 }
 
 .sm {
   height: 1.125rem;
-  padding: 0 var(--tf-space-1-5);
-  font-size: var(--tf-text-2xs);
+  padding: 0 var(--ui-space-1-5);
+  font-size: var(--ui-text-2xs);
 }
 
 .dot {
@@ -38,31 +38,31 @@
 
 .accent,
 .success {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 
 .warning {
   border-color: rgb(242 169 59 / 0.32);
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 
 .danger {
-  border-color: var(--tf-color-danger-border);
-  background: var(--tf-color-danger-soft);
-  color: var(--tf-color-danger);
+  border-color: var(--ui-color-danger-border);
+  background: var(--ui-color-danger-soft);
+  color: var(--ui-color-danger);
 }
 
 .info {
   border-color: rgb(121 168 255 / 0.32);
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 
 .violet {
   border-color: rgb(169 139 255 / 0.32);
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-violet);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-violet);
 }

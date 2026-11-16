@@ -8,7 +8,7 @@ export const meta = ({ location }: { location: { pathname: string } }) =>
 
 import { useLocation, useParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
-import { LinkButton, PageHeader } from "@metrivum/ui-web";
+import { LinkButton, PageHeader } from "@portable-ui/react";
 import { useCoachingQuery, Failure, Loading } from "~/modules/coaching";
 import { usePlan } from "../queries";
 import { EditorWorkspace } from "../editor/EditorWorkspace";

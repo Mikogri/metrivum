@@ -35,7 +35,7 @@ import {
   TextArea,
   TextField,
   Toolbar,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   useAccountContext,
   useAccountKey,

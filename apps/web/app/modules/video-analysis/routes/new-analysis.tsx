@@ -27,7 +27,7 @@ import {
   Switch,
   TextField,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   AccessNotice,
   NEAR_LIMIT,

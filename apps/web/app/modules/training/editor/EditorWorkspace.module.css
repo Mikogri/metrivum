@@ -28,9 +28,9 @@
   z-index: 20;
   display: grid;
   place-items: center;
-  padding: var(--tf-space-4);
-  background: color-mix(in srgb, var(--tf-color-bg) 55%, transparent);
-  animation: lock-in 220ms var(--tf-ease-out, ease-out) both;
+  padding: var(--ui-space-4);
+  background: color-mix(in srgb, var(--ui-color-bg) 55%, transparent);
+  animation: lock-in 220ms var(--ui-ease-out, ease-out) both;
 }
 
 @keyframes lock-in {
@@ -45,9 +45,9 @@
   width: min(100%, 30rem);
   overflow: hidden;
   border: 1px solid
-    color-mix(in srgb, var(--tf-color-violet) 45%, var(--tf-color-border));
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+    color-mix(in srgb, var(--ui-color-violet) 45%, var(--ui-color-border));
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
   box-shadow: 0 30px 80px -24px rgb(0 0 0 / 0.75);
   text-align: center;
 }
@@ -57,35 +57,35 @@
   position: relative;
   display: grid;
   justify-items: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-6, 1.5rem) var(--tf-space-6, 1.5rem) var(--tf-space-5);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-6, 1.5rem) var(--ui-space-6, 1.5rem) var(--ui-space-5);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
   background: color-mix(
     in srgb,
-    var(--tf-color-violet) 10%,
-    var(--tf-color-surface)
+    var(--ui-color-violet) 10%,
+    var(--ui-color-surface)
   );
 }
 
 .lockClose {
   position: absolute;
-  top: var(--tf-space-2);
-  right: var(--tf-space-2);
+  top: var(--ui-space-2);
+  right: var(--ui-space-2);
 }
 
 .lockBadge {
   position: absolute;
-  top: var(--tf-space-3);
-  left: var(--tf-space-3);
+  top: var(--ui-space-3);
+  left: var(--ui-space-3);
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   padding: 0.125rem 0.5rem;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-violet);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-violet);
   color: #fff;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -100,11 +100,11 @@
   place-items: center;
   width: 3.25rem;
   height: 3.25rem;
-  margin-bottom: var(--tf-space-1);
-  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 45%, transparent);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-violet);
+  margin-bottom: var(--ui-space-1);
+  border: 1px solid color-mix(in srgb, var(--ui-color-violet) 45%, transparent);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-violet);
 }
 
 .lockIcon svg {
@@ -113,24 +113,24 @@
 }
 
 .lockTitle {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-2xl);
-  font-weight: var(--tf-weight-semibold);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-2xl);
+  font-weight: var(--ui-weight-semibold);
   line-height: 1.2;
 }
 
 .lockBody {
   max-width: 24rem;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
 }
 
 .lockList {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
-  padding: var(--tf-space-4) var(--tf-space-6, 1.5rem) 0;
+  padding: var(--ui-space-4) var(--ui-space-6, 1.5rem) 0;
   list-style: none;
   text-align: left;
 }
@@ -138,9 +138,9 @@
 .lockList li {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
 }
 
 .lockCheck {
@@ -149,9 +149,9 @@
   place-items: center;
   width: 1.25rem;
   height: 1.25rem;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-violet);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-violet);
 }
 
 .lockCheck svg {
@@ -161,13 +161,13 @@
 
 .lockActions {
   display: grid;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-5) var(--tf-space-6, 1.5rem) var(--tf-space-5);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-5) var(--ui-space-6, 1.5rem) var(--ui-space-5);
 }
 
 .lockNote {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -182,28 +182,28 @@
 .toolbar {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-height: 3.25rem;
   /* Everything on one row; the program name gives way first. */
   flex-wrap: nowrap;
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border);
-  background: var(--tf-color-bg);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border);
+  background: var(--ui-color-bg);
 }
 
 .back {
   display: grid;
   place-items: center;
-  width: var(--tf-control-md);
-  height: var(--tf-control-md);
-  border-radius: var(--tf-radius-md);
-  color: var(--tf-color-text-secondary);
-  transition: background-color var(--tf-duration-fast) ease;
+  width: var(--ui-control-md);
+  height: var(--ui-control-md);
+  border-radius: var(--ui-radius-md);
+  color: var(--ui-color-text-secondary);
+  transition: background-color var(--ui-duration-fast) ease;
 }
 
 .back:hover {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .back svg {
@@ -215,10 +215,10 @@
   display: flex;
   flex: 1 1 0;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   /* Room for a short name, the save state and the format/draft markers; a longer name is cut off. */
   min-width: 13.75rem;
-  margin-left: calc(var(--tf-space-3) * -1 + 2px);
+  margin-left: calc(var(--ui-space-3) * -1 + 2px);
 }
 
 .title {
@@ -229,16 +229,16 @@
   max-width: 28rem;
   /* As wide as the name, so the save state sits right after it. */
   field-sizing: content;
-  height: var(--tf-control-md);
-  padding: 0 var(--tf-space-2);
+  height: var(--ui-control-md);
+  padding: 0 var(--ui-space-2);
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
   outline: none;
-  transition: border-color var(--tf-duration-fast) ease;
+  transition: border-color var(--ui-duration-fast) ease;
 }
 
 /* No frame and no fill on focus: the name reads as a title, only the caret shows it is being edited. */
@@ -246,11 +246,11 @@
 .tools {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .banner {
-  margin: var(--tf-space-2) var(--tf-space-3) 0;
+  margin: var(--ui-space-2) var(--ui-space-3) 0;
 }
 
 .body {
@@ -262,7 +262,7 @@
   .toolbar {
     flex-wrap: wrap;
     height: auto;
-    padding: var(--tf-space-2);
+    padding: var(--ui-space-2);
   }
 
   .tools {
@@ -318,14 +318,14 @@
 
 .formatError {
   padding: 0.25rem 0.75rem;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .planState {
   display: inline-flex;
   margin-left: auto;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   flex: none;
 }

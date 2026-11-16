@@ -40,7 +40,7 @@ import {
   Select,
   Switch,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useCoachingMutation, useCoachingQuery } from "../api";
 import {

@@ -36,7 +36,7 @@ import {
   TextArea,
   TextField,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useUnsavedWorkGuard } from "~/shared/session/dirty-guard";
 import { useCoachingMutation, useCoachingQuery, type Page } from "./api";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";

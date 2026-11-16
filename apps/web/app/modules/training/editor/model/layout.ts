@@ -47,8 +47,6 @@ const GROUP_GAP = 2;
 export function autoLayout(
   doc: TrainingDocument,
   sizes: Record<string, Size> = {},
-  /** Width each card needs when open: a cycle's column is kept that wide, so opening cards never spills into the next. */
-  reserve: (id: string) => number = () => 0,
 ): Layout {
   const { blocks, loose, looseWorkouts } = sheetView(doc);
   const layout: Layout = {};
@@ -74,12 +72,12 @@ export function autoLayout(
       const own = cycleSize(cycle);
       layout[cycle.id] = { col: at, row };
       let workoutRow = row + cyclesHeight + GAP;
-      let width = Math.max(own.cols, reserve(cycle.id));
+      let width = own.cols;
       for (const { workout } of cycleWorkouts(cycle)) {
         const w = workoutSize(workout);
         layout[workout.id] = { col: at, row: workoutRow };
         workoutRow += w.rows + GAP;
-        width = Math.max(width, w.cols, reserve(workout.id));
+        width = Math.max(width, w.cols);
       }
       at += width + GAP;
     }
@@ -117,30 +115,6 @@ export function autoLayout(
     row += size(note.id, { cols: 3, rows: 5 }).rows + GAP;
   }
   return layout;
-}
-
-/**
- * Store compact anchors regardless of what is open; resolveLayout makes room only while expanded, by moving cards down.
- * Rows are packed as if everything were folded, but each cycle's column is as wide as its workouts open: opening a
- * workout then pushes only the workouts under it in the same column, and never lands on the next cycle's column (which
- * would push those workouts down too, into a staircase that mixes the cycles).
- */
-export function compactAutoLayout(
-  doc: TrainingDocument,
-  sizes: Record<string, Size> = {},
-): Layout {
-  const compact = { ...sizes };
-  const open = new Map<string, number>();
-  const { blocks, loose } = sheetView(doc);
-  for (const cycle of [...blocks.flatMap((block) => block.cycles), ...loose]) {
-    compact[cycle.id] = { cols: BLOCK_COLS, rows: 2 };
-    open.set(cycle.id, CYCLE_COLS);
-    for (const { workout } of cycleWorkouts(cycle)) {
-      compact[workout.id] = { cols: CYCLE_COLS, rows: 1 };
-      open.set(workout.id, WORKOUT_COLS);
-    }
-  }
-  return autoLayout(doc, compact, (id) => open.get(id) ?? 0);
 }
 
 /** Width of a workout card in cells. */

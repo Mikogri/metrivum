@@ -2,7 +2,7 @@ import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useEffect, useState } from "react";
 import { ArrowLeft, SendHorizontal } from "lucide-react";
 import { useBlocker } from "react-router";
-import { AlertDialog, Button, IconButton, Spinner } from "@metrivum/ui-web";
+import { AlertDialog, Button, IconButton, Spinner } from "@portable-ui/react";
 import { useAccountContext, useUnsavedWorkGuard } from "~/shared/session";
 import { root, useChatQuery } from "./api";
 import { Failure, useChatAction } from "./messages";

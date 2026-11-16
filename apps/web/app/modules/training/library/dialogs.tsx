@@ -17,7 +17,7 @@ import {
   TextField,
   toast,
   DialogFooter,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";
 import { useT } from "~/shared/i18n/AppLocale";

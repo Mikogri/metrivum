@@ -2,7 +2,7 @@
 .picker {
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-height: 0;
   height: 100%;
 }
@@ -12,19 +12,19 @@
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-2) var(--tf-space-4);
+  gap: var(--ui-space-2) var(--ui-space-4);
 }
 
 .head h3 {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .zoomLevel {
   min-width: 3.25rem;
-  color: var(--tf-color-text-secondary);
-  font-family: var(--tf-font-mono);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
@@ -37,7 +37,7 @@
   place-items: center;
   min-height: 0;
   overflow: hidden;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: #000;
   container-type: size;
 }
@@ -45,7 +45,7 @@
 .stage {
   position: relative;
   transform-origin: 0 0;
-  transition: transform 200ms var(--tf-ease-out);
+  transition: transform 200ms var(--ui-ease-out);
 }
 
 .frame[data-zoomed] .stage {
@@ -72,7 +72,7 @@
 }
 
 .overlay:focus-visible {
-  outline: 2px solid var(--tf-color-accent);
+  outline: 2px solid var(--ui-color-accent);
   outline-offset: -2px;
 }
 
@@ -103,17 +103,17 @@
 }
 
 .status {
-  font-size: var(--tf-text-xs);
-  color: var(--tf-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  color: var(--ui-color-text-secondary);
 }
 
 /* Missing points read as a warning, so the coach sees why the analysis can't start yet. */
 .status[data-missing] {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 
 .status[data-done] {
-  color: var(--tf-color-success);
+  color: var(--ui-color-success);
 }
 
 @media (max-width: 48rem) {
@@ -131,31 +131,31 @@
 /* "Freeze frame": a small glass button on the video, the same size as the marking guide that replaces it. */
 .freezeChip {
   position: absolute;
-  top: var(--tf-space-2);
-  right: var(--tf-space-2);
-  left: var(--tf-space-2);
+  top: var(--ui-space-2);
+  right: var(--ui-space-2);
+  left: var(--ui-space-2);
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   width: fit-content;
-  max-width: calc(100% - 2 * var(--tf-space-2));
+  max-width: calc(100% - 2 * var(--ui-space-2));
   margin: 0 auto;
-  padding: 4px var(--tf-space-2-5) 4px var(--tf-space-2);
+  padding: 4px var(--ui-space-2-5) 4px var(--ui-space-2);
   border: 1px solid rgb(242 169 59 / 0.9);
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: rgb(242 169 59 / 0.82);
   backdrop-filter: blur(10px) saturate(1.3);
   -webkit-backdrop-filter: blur(10px) saturate(1.3);
   box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
   color: #1d1305;
   font: inherit;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
   line-height: 1.3;
   white-space: nowrap;
   cursor: pointer;
-  animation: chip-in 220ms var(--tf-ease-out) both;
+  animation: chip-in 220ms var(--ui-ease-out) both;
   transition:
     background-color 120ms ease,
     border-color 120ms ease;
@@ -180,7 +180,7 @@
 .freezeHint {
   overflow: hidden;
   color: rgb(29 19 5 / 0.7);
-  font-weight: var(--tf-weight-regular);
+  font-weight: var(--ui-weight-regular);
   text-overflow: ellipsis;
 }
 
@@ -194,24 +194,24 @@
 /* While marking: one small, see-through instruction chip on top of the frame, in warning colours. */
 .guide {
   position: absolute;
-  top: var(--tf-space-2);
-  right: var(--tf-space-2);
-  left: var(--tf-space-2);
+  top: var(--ui-space-2);
+  right: var(--ui-space-2);
+  left: var(--ui-space-2);
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   width: fit-content;
   margin: 0 auto;
-  padding: 3px var(--tf-space-2-5) 3px 3px;
+  padding: 3px var(--ui-space-2-5) 3px 3px;
   border: 1px solid rgb(242 169 59 / 0.45);
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: rgb(60 38 6 / 0.55);
   backdrop-filter: blur(10px) saturate(1.4);
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
   color: #ffd99a;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
   line-height: 1.3;
   pointer-events: none;
 }
@@ -222,15 +222,15 @@
   place-items: center;
   width: 1.125rem;
   height: 1.125rem;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-warning);
-  color: var(--tf-color-text-inverse);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-bold);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-warning);
+  color: var(--ui-color-text-inverse);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-bold);
 }
 
 .guide[data-done] {
-  padding-left: var(--tf-space-2);
+  padding-left: var(--ui-space-2);
   border-color: rgb(62 224 143 / 0.45);
   background: rgb(6 40 24 / 0.55);
   color: #b4f5d2;
@@ -285,11 +285,11 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   padding: 3px;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-bg-sunken);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-bg-sunken);
 }
 
 .group {
@@ -301,20 +301,20 @@
 .divider {
   width: 1px;
   height: 1.1rem;
-  margin: 0 var(--tf-space-1);
-  background: var(--tf-color-border);
+  margin: 0 var(--ui-space-1);
+  background: var(--ui-color-border);
 }
 
 /* On the frozen frame: the marking guide and a Cancel next to it. */
 .onVideo {
   position: absolute;
-  top: var(--tf-space-2);
-  right: var(--tf-space-2);
-  left: var(--tf-space-2);
+  top: var(--ui-space-2);
+  right: var(--ui-space-2);
+  left: var(--ui-space-2);
   z-index: 2;
   display: flex;
   justify-content: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   pointer-events: none;
 }
 
@@ -329,16 +329,16 @@
   flex: none;
   align-items: center;
   gap: 4px;
-  padding: 3px var(--tf-space-2-5) 3px var(--tf-space-2);
+  padding: 3px var(--ui-space-2-5) 3px var(--ui-space-2);
   border: 1px solid rgb(255 255 255 / 0.3);
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: rgb(20 20 22 / 0.55);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: #fff;
   font: inherit;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
   line-height: 1.3;
   cursor: pointer;
   pointer-events: auto;
@@ -365,17 +365,17 @@
 /* Trim: a timeline strip, the kept part bright, the cut parts shaded, the playhead in warning colour. */
 .trim {
   display: grid;
-  gap: var(--tf-space-1);
-  padding: var(--tf-space-1-5) var(--tf-space-2) var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-bg-sunken);
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-1-5) var(--ui-space-2) var(--ui-space-2);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-bg-sunken);
 }
 
 .trimHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
 }
 
@@ -383,14 +383,14 @@
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .trim[data-trimmed] .trimLabel {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .trimLabel svg {
@@ -402,24 +402,24 @@
   display: inline-flex;
   flex: 1;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   min-width: 0;
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-family: var(--tf-font-mono);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--ui-text-2xs);
   white-space: nowrap;
 }
 
 .trimTimes > span:not([aria-hidden]) {
   padding: 1px 5px;
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text);
 }
 
 .trimTimes small {
-  margin-left: var(--tf-space-1);
+  margin-left: var(--ui-space-1);
   font-size: inherit;
 }
 
@@ -436,22 +436,22 @@
 .trimTrack {
   position: relative;
   height: 1.75rem;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: repeating-linear-gradient(
     90deg,
-    var(--tf-color-surface-raised) 0 1px,
+    var(--ui-color-surface-raised) 0 1px,
     transparent 1px 10%
   );
-  background-color: var(--tf-color-surface);
+  background-color: var(--ui-color-surface);
 }
 
 .trimRange {
   position: absolute;
   top: 0;
   bottom: 0;
-  border-top: 2px solid var(--tf-color-text-secondary);
-  border-bottom: 2px solid var(--tf-color-text-secondary);
-  background: color-mix(in srgb, var(--tf-color-text) 8%, transparent);
+  border-top: 2px solid var(--ui-color-text-secondary);
+  border-bottom: 2px solid var(--ui-color-text-secondary);
+  background: color-mix(in srgb, var(--ui-color-text) 8%, transparent);
 }
 
 .trimShade {
@@ -468,7 +468,7 @@
   width: 2px;
   margin-left: -1px;
   border-radius: 1px;
-  background: var(--tf-color-warning);
+  background: var(--ui-color-warning);
   box-shadow: 0 0 0 1px rgb(0 0 0 / 0.3);
   pointer-events: none;
 }
@@ -478,7 +478,7 @@
   width: 0.625rem;
   height: 1.75rem;
   border-radius: 4px;
-  background: var(--tf-color-text);
+  background: var(--ui-color-text);
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
   cursor: ew-resize;
 }
@@ -491,32 +491,32 @@
   width: 2px;
   height: 0.75rem;
   border-radius: 1px;
-  background: var(--tf-color-bg);
+  background: var(--ui-color-bg);
   transform: translate(-50%, -50%);
 }
 
 .trimThumb[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
 .trimThumb[data-dragging] {
-  background: var(--tf-color-text-secondary);
+  background: var(--ui-color-text-secondary);
 }
 
 /* Playback under the video: the shared scrub bar, then play and frame steps at the start of the control bar. */
 .playback {
-  padding: 0 var(--tf-space-1);
+  padding: 0 var(--ui-space-1);
 }
 
 .clock {
-  margin-left: var(--tf-space-1);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xs);
+  margin-left: var(--ui-space-1);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .clock span {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }

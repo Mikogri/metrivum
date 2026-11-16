@@ -1,20 +1,20 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: var(--tf-z-modal);
+  z-index: var(--ui-z-modal);
   display: grid;
   justify-items: center;
   align-items: start;
-  padding: 12vh var(--tf-space-4) var(--tf-space-4);
-  background: var(--tf-color-scrim);
+  padding: 12vh var(--ui-space-4) var(--ui-space-4);
+  background: var(--ui-color-scrim);
 }
 
 .modal {
   width: min(36rem, 100%);
-  border: 1px solid var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-xl);
-  background: var(--tf-color-surface);
-  box-shadow: var(--tf-shadow-lg);
+  border: 1px solid var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-xl);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-lg);
   outline: none;
 }
 
@@ -25,15 +25,15 @@
 .inputRow {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border-bottom: 1px solid var(--tf-color-border);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border-bottom: 1px solid var(--ui-color-border);
 }
 
 .inputRow > svg {
   width: 1.125rem;
   height: 1.125rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .input {
@@ -41,40 +41,40 @@
   height: 2rem;
   border: 0;
   background: transparent;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-md);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-md);
   outline: none;
 }
 
 .input::placeholder {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .list {
   max-height: 22rem;
   margin: 0;
-  padding: var(--tf-space-2);
+  padding: var(--ui-space-2);
   overflow-y: auto;
   list-style: none;
 }
 
 .section {
-  padding: var(--tf-space-2) var(--tf-space-2) var(--tf-space-1);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-1);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .item {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-2);
-  border-radius: var(--tf-radius-md);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-2);
+  border-radius: var(--ui-radius-md);
   cursor: pointer;
 }
 
 .item[aria-selected="true"] {
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 .icon {
@@ -82,10 +82,10 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
 }
 
 .icon svg {
@@ -97,8 +97,8 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -108,8 +108,8 @@
   flex-shrink: 0;
   max-width: 40%;
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -121,22 +121,22 @@
 }
 
 .tip {
-  padding: var(--tf-space-1-5) var(--tf-space-4);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-1-5) var(--ui-space-4);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .enter {
   width: 0.875rem;
   height: 0.875rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .empty {
-  padding: var(--tf-space-6);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  padding: var(--ui-space-6);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
   text-align: center;
 }
 
@@ -146,7 +146,7 @@
 
 .overlay[data-animated][data-entering] .modal {
   transform-origin: top center;
-  animation: palette-in 220ms var(--tf-ease-out);
+  animation: palette-in 220ms var(--ui-ease-out);
 }
 
 @keyframes palette-fade {
@@ -171,8 +171,8 @@
 /* On a phone the search sits at the top, full width, with room for the keyboard below. */
 @media (max-width: 40rem) {
   .overlay {
-    padding: max(var(--tf-space-2), env(safe-area-inset-top)) var(--tf-space-2)
-      var(--tf-space-2);
+    padding: max(var(--ui-space-2), env(safe-area-inset-top)) var(--ui-space-2)
+      var(--ui-space-2);
   }
 
   .list {

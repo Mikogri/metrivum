@@ -6,7 +6,7 @@ import {
 import { useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
 import { useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, DataTable, LinkButton } from "@metrivum/ui-web";
+import { Alert, Button, DataTable, LinkButton } from "@portable-ui/react";
 import {
   Failure,
   Loading,

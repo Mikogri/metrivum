@@ -1,53 +1,53 @@
 .card {
   position: relative;
   min-width: 0;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
 }
 
 .raised {
-  background: var(--tf-color-surface-raised);
+  background: var(--ui-color-surface-raised);
 }
 
 .sunken {
-  background: var(--tf-color-bg-sunken);
+  background: var(--ui-color-bg-sunken);
 }
 
 .accent {
-  border-color: var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent-border);
   background:
     linear-gradient(180deg, rgb(62 224 154 / 0.08), transparent 60%),
-    var(--tf-color-surface);
+    var(--ui-color-surface);
 }
 
 .pad-none {
   padding: 0;
 }
 .pad-sm {
-  padding: var(--tf-space-3);
+  padding: var(--ui-space-3);
 }
 .pad-md {
-  padding: var(--tf-space-4);
+  padding: var(--ui-space-4);
 }
 .pad-lg {
-  padding: var(--tf-space-6);
+  padding: var(--ui-space-6);
 }
 
 .interactive {
   transition:
-    border-color var(--tf-duration-fast) ease,
-    background-color var(--tf-duration-fast) ease;
+    border-color var(--ui-duration-fast) ease,
+    background-color var(--ui-duration-fast) ease;
 }
 
 .interactive:has(:focus-visible) {
-  border-color: var(--tf-color-accent-border);
+  border-color: var(--ui-color-accent-border);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .interactive:hover {
-    border-color: var(--tf-color-border-strong);
-    background: var(--tf-color-surface-raised);
+    border-color: var(--ui-color-border-strong);
+    background: var(--ui-color-surface-raised);
   }
 }
 
@@ -55,7 +55,7 @@
   flex-shrink: 0;
   height: 1px;
   width: 100%;
-  background: var(--tf-color-border-subtle);
+  background: var(--ui-color-border-subtle);
 }
 
 .vertical {

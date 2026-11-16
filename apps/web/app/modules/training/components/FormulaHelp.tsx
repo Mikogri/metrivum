@@ -1,5 +1,5 @@
 import { ChevronDown, Info } from "lucide-react";
-import { InfoTip } from "@metrivum/ui-web";
+import { InfoTip } from "@portable-ui/react";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { FORMULA_FUNCTIONS } from "./FormulaExpressionInput";

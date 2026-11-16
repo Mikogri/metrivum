@@ -1,6 +1,6 @@
 import { Folder } from "lucide-react";
 import { useState } from "react";
-import { Button, Dialog } from "@metrivum/ui-web";
+import { Button, Dialog } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { FolderTree } from "./FolderTree";
 import { useFolderLookup } from "./folderLookup";

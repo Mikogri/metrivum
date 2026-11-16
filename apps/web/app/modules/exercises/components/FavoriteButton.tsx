@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
-import { IconButton, toast } from "@metrivum/ui-web";
+import { IconButton, toast } from "@portable-ui/react";
 import { useFeatureAccess } from "~/shared/access";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useErrorToast } from "~/shared/lib/useErrorToast";

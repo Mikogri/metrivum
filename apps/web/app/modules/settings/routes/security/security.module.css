@@ -1,38 +1,38 @@
 /* Security pages: one process per page in a readable column, steps on top, the current state below. */
 .page {
   display: grid;
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
   max-width: 42rem;
 }
 
 .section {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .title {
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .hint {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
 }
 
 .quiet {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 /* Steps: numbered marks joined by a line; done steps get a tick, the current one the accent ring. */
@@ -40,7 +40,7 @@
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -49,20 +49,20 @@
 .steps li {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-snug);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-snug);
 }
 
 .steps li[data-state="current"] {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-medium);
 }
 
 .steps li[data-state="done"] {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .stepMark {
@@ -71,9 +71,9 @@
   place-items: center;
   width: 1.5rem;
   height: 1.5rem;
-  border: 1px solid var(--tf-color-border);
+  border: 1px solid var(--ui-color-border);
   border-radius: 50%;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -83,15 +83,15 @@
 }
 
 .steps li[data-state="current"] .stepMark {
-  border-color: var(--tf-color-accent);
-  box-shadow: 0 0 0 3px var(--tf-color-accent-soft);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-accent);
+  box-shadow: 0 0 0 3px var(--ui-color-accent-soft);
+  color: var(--ui-color-text);
 }
 
 .steps li[data-state="done"] .stepMark {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 
 @media (max-width: 40rem) {
@@ -104,52 +104,52 @@
 .target {
   display: grid;
   gap: 2px;
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
 }
 
 .target small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .target strong {
   overflow-wrap: anywhere;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 /* Authenticator setup: the QR code on a light tile so every app can read it, the key beside it. */
 .qr {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
   align-items: center;
 }
 
 .qr img {
   width: 11rem;
   height: 11rem;
-  padding: var(--tf-space-2);
-  border-radius: var(--tf-radius-md);
+  padding: var(--ui-space-2);
+  border-radius: var(--ui-radius-md);
   background: #fff;
 }
 
 .secret {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .secret code {
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text);
-  font-family: var(--tf-font-mono, ui-monospace, monospace);
-  font-size: var(--tf-text-sm);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text);
+  font-family: var(--ui-font-mono, ui-monospace, monospace);
+  font-size: var(--ui-text-sm);
   letter-spacing: 0.08em;
   overflow-wrap: anywhere;
 }
@@ -164,26 +164,26 @@
 /* Recovery: each way back in as a short titled paragraph. */
 .scenarios {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   margin: 0;
 }
 
 .scenarios div {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .scenarios dt {
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .scenarios dd {
   margin: 0;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
 }
 
 .rowIcon {
@@ -191,9 +191,9 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  color: var(--tf-color-text-secondary);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  color: var(--ui-color-text-secondary);
 }
 
 .rowIcon svg {

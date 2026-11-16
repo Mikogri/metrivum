@@ -14,7 +14,7 @@ import {
   SearchInput,
   Select,
   Toolbar,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { useCoachingQuery, type Page } from "../api";
 import { Failure, ListPagination, Loading, StatusBadge } from "../components";

@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Dialog, Input, Modal, ModalOverlay } from "react-aria-components";
 import { useNavigate } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
-import { Avatar, Kbd, Spinner } from "@metrivum/ui-web";
+import { Avatar, Kbd, Spinner } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";

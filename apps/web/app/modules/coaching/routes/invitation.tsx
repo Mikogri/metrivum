@@ -17,7 +17,7 @@ import {
   Button,
   PageHeader,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import { useFeatureAccess, useFeatureReasonText } from "~/shared/access";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";

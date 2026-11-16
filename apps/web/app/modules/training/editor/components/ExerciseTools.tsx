@@ -14,7 +14,7 @@ import {
   NumberInput,
   Option,
   Select,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import {

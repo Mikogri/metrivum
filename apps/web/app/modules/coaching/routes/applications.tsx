@@ -19,7 +19,7 @@ import {
   SearchInput,
   Select,
   Toolbar,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";
 import { ClientHubActions } from "../hub-actions";
 import { useCoachingQuery, type Page } from "../api";

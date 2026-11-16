@@ -2,7 +2,7 @@ import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Avatar, Checkbox, SearchInput } from "@metrivum/ui-web";
+import { Avatar, Checkbox, SearchInput } from "@portable-ui/react";
 import {
   useCoachingQuery,
   type Group,

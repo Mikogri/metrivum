@@ -8,13 +8,13 @@
 }
 .section {
   padding: 16px;
-  border: 1px solid var(--tf-color-border-subtle);
-  background: var(--tf-color-surface);
-  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-surface);
+  border-radius: var(--ui-radius-lg);
   min-width: 0;
 }
 .section h2 {
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   font-weight: 600;
   margin: 0 0 12px;
 }
@@ -24,7 +24,7 @@
   list-style: none;
 }
 .rows li + li {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 .row {
   display: flex;
@@ -42,23 +42,23 @@
   gap: 5px;
 }
 .row strong {
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   font-weight: 550;
   overflow-wrap: anywhere;
 }
 .row small,
 .muted {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   line-height: 1.5;
 }
 .row:focus-visible,
 .stats a:focus-visible,
 .more:focus-visible,
 .tile:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 3px;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
 }
 .stats {
   display: grid;
@@ -69,22 +69,22 @@
   display: grid;
   gap: 5px;
   padding: 16px;
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
-  font-size: var(--tf-text-xs);
-  color: var(--tf-color-text-secondary);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
+  font-size: var(--ui-text-xs);
+  color: var(--ui-color-text-secondary);
 }
 .stats strong {
   font-size: 1.6rem;
   font-variant-numeric: tabular-nums;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 .more {
   display: inline-flex;
   padding: 10px 0;
   min-height: 44px;
   align-items: center;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 .tiles {
   display: grid;
@@ -98,17 +98,17 @@
   align-items: flex-start;
   gap: 16px;
   padding: 18px;
-  background: var(--tf-color-surface);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  font-size: var(--tf-text-sm);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  font-size: var(--ui-text-sm);
   font-weight: 500;
   text-align: left;
 }
 .tile svg {
   width: 24px;
   height: 24px;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 .tiles > div {
   display: flex;
@@ -125,34 +125,34 @@
   flex-direction: column;
   gap: 14px;
   padding: 16px;
-  background: var(--tf-color-surface);
-  border-radius: var(--tf-radius-lg);
+  background: var(--ui-color-surface);
+  border-radius: var(--ui-radius-lg);
 }
 
 /* More on a desktop: a wider page, the shortcuts in a grid and the account options beside each other. */
 .tile {
   text-decoration: none;
   transition:
-    background-color var(--tf-duration-fast) ease,
-    border-color var(--tf-duration-fast) ease;
+    background-color var(--ui-duration-fast) ease,
+    border-color var(--ui-duration-fast) ease;
 }
 .account .row {
-  border-radius: var(--tf-radius-md);
-  transition: background-color var(--tf-duration-fast) ease;
+  border-radius: var(--ui-radius-md);
+  transition: background-color var(--ui-duration-fast) ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .tile:hover,
   .tiles > div > button:hover {
-    border-color: var(--tf-color-border);
-    background: var(--tf-color-surface-hover);
+    border-color: var(--ui-color-border);
+    background: var(--ui-color-surface-hover);
   }
   .account .row:hover {
-    background: var(--tf-color-surface-hover);
+    background: var(--ui-color-surface-hover);
   }
 }
 @media (min-width: 64rem) {
   .home {
-    max-width: var(--tf-content-max);
+    max-width: var(--ui-content-max);
     width: 100%;
   }
   .tiles {
@@ -162,9 +162,9 @@
   .tiles > div > button {
     flex-direction: row;
     align-items: center;
-    gap: var(--tf-space-3);
+    gap: var(--ui-space-3);
     min-height: 4rem;
-    padding: var(--tf-space-4);
+    padding: var(--ui-space-4);
   }
   .tiles > div > button {
     min-height: 4rem;
@@ -177,12 +177,12 @@
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--tf-space-3);
+    gap: var(--ui-space-3);
   }
   .account .row {
     flex: 1 1 16rem;
     min-height: 3rem;
-    padding: var(--tf-space-2) var(--tf-space-3);
-    border: 1px solid var(--tf-color-border-subtle);
+    padding: var(--ui-space-2) var(--ui-space-3);
+    border: 1px solid var(--ui-color-border-subtle);
   }
 }

@@ -1,5 +1,5 @@
 import { LayoutGrid, Table2 } from "lucide-react";
-import { Segment, SegmentedControl, useMobileLayout } from "@metrivum/ui-web";
+import { Segment, SegmentedControl, useMobileLayout } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./LibraryViewToggle.module.css";
 

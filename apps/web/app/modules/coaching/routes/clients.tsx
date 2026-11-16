@@ -35,7 +35,7 @@ import {
   TextField,
   Toolbar,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useDangerConfirm } from "~/shared/lib/useConfirm";
 import { ClientHubActions } from "../hub-actions";
 import { RequireFeature } from "~/shared/access";

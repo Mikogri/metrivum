@@ -1,5 +1,5 @@
 .toolbar {
-  margin-bottom: var(--tf-space-4);
+  margin-bottom: var(--ui-space-4);
 }
 
 .search {
@@ -14,7 +14,7 @@
 .rowIcon {
   width: 1rem;
   height: 1rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .stale {
@@ -24,7 +24,7 @@
 .nameCell {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2-5);
+  gap: var(--ui-space-2-5);
   min-width: 0;
 }
 
@@ -35,7 +35,7 @@
   flex-shrink: 0;
   width: 1.5rem;
   height: 1.5rem;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
 }
 
 .tableIcon svg,
@@ -45,21 +45,21 @@
 }
 
 .tableIcon[data-tone="blue"] {
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 
 .tableIcon[data-tone="rose"] {
-  background: var(--tf-color-danger-soft);
-  color: var(--tf-color-danger);
+  background: var(--ui-color-danger-soft);
+  color: var(--ui-color-danger);
 }
 
 /* Analysis in progress: a stronger amber tile with a spinning icon. */
 .tableIcon[data-tone="working"] {
-  background: color-mix(in srgb, var(--tf-color-warning) 24%, transparent);
+  background: color-mix(in srgb, var(--ui-color-warning) 24%, transparent);
   box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--tf-color-warning) 45%, transparent);
-  color: var(--tf-color-warning);
+    color-mix(in srgb, var(--ui-color-warning) 45%, transparent);
+  color: var(--ui-color-warning);
 }
 
 .spin {
@@ -82,7 +82,7 @@
 .cardBottom {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin-top: auto;
 }
 
@@ -98,22 +98,22 @@
 }
 
 .formulaIcon {
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 
 .rowActions {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-  gap: var(--tf-space-3);
-  margin: 0 0 var(--tf-space-4);
+  gap: var(--ui-space-3);
+  margin: 0 0 var(--ui-space-4);
   padding: 0;
   list-style: none;
 }
@@ -126,19 +126,19 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
   min-height: 10rem;
-  padding: var(--tf-space-4);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  padding: var(--ui-space-4);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .card:has(a):hover {
-    border-color: var(--tf-color-border);
-    background: var(--tf-color-surface-raised);
+    border-color: var(--ui-color-border);
+    background: var(--ui-color-surface-raised);
   }
 }
 
@@ -146,7 +146,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .cardTop > :last-child {
@@ -157,9 +157,9 @@
 .cardTitle {
   margin: 0;
   overflow-wrap: anywhere;
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-medium);
   text-decoration: none;
 }
 
@@ -167,14 +167,14 @@ a.cardTitle::after {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: var(--tf-radius-lg);
+  border-radius: var(--ui-radius-lg);
 }
 
 a.cardTitle:focus-visible {
   outline: none;
 }
 a.cardTitle:focus-visible::after {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 
@@ -182,9 +182,9 @@ a.cardTitle:focus-visible::after {
   display: -webkit-box;
   overflow: hidden;
   margin: 0;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -194,15 +194,15 @@ a.cardTitle:focus-visible::after {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin-top: auto;
-  padding-top: var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  padding-top: var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .queue {
-  margin-bottom: var(--tf-space-4);
+  margin-bottom: var(--ui-space-4);
 }
 
 .queue:empty {
@@ -212,51 +212,51 @@ a.cardTitle:focus-visible::after {
 /* Shared with you: a short list under your own analyses. */
 .saved {
   display: grid;
-  gap: var(--tf-space-2);
-  margin-top: var(--tf-space-6);
+  gap: var(--ui-space-2);
+  margin-top: var(--ui-space-6);
 }
 
 .savedTitle {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .savedTitle svg {
   width: 1rem;
   height: 1rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .savedList {
   display: grid;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
   list-style: none;
 }
 
 .savedList li {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-2-5) var(--tf-space-3);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-2-5) var(--ui-space-3);
 }
 
 .savedList li + li {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .savedName {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-medium);
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -269,8 +269,8 @@ a.cardTitle:focus-visible::after {
 
 .savedMeta {
   flex: none;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 /* File names are cut with dots; the full name is in the tooltip. */
@@ -278,15 +278,15 @@ a.cardTitle:focus-visible::after {
   display: block;
   max-width: 14rem;
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .jobName {
   overflow: hidden;
-  font-weight: var(--tf-weight-medium);
+  font-weight: var(--ui-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

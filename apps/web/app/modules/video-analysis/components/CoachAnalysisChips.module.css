@@ -1,7 +1,7 @@
 .chips {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .chip {
@@ -10,13 +10,13 @@
   gap: 4px;
   max-width: 16rem;
   height: 1.5rem;
-  padding: 0 var(--tf-space-2);
-  border: 1px solid color-mix(in srgb, var(--tf-color-violet) 40%, transparent);
-  border-radius: var(--tf-radius-full);
-  background: color-mix(in srgb, var(--tf-color-violet) 12%, transparent);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  padding: 0 var(--ui-space-2);
+  border: 1px solid color-mix(in srgb, var(--ui-color-violet) 40%, transparent);
+  border-radius: var(--ui-radius-full);
+  background: color-mix(in srgb, var(--ui-color-violet) 12%, transparent);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
   text-decoration: none;
   white-space: nowrap;
   transition: border-color 120ms ease;
@@ -31,14 +31,14 @@
   flex: none;
   width: 0.8rem;
   height: 0.8rem;
-  color: var(--tf-color-violet);
+  color: var(--ui-color-violet);
 }
 
 .chip:hover {
-  border-color: var(--tf-color-violet);
+  border-color: var(--ui-color-violet);
 }
 
 .chip:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }

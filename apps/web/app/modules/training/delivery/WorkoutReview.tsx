@@ -2,7 +2,7 @@ import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
 import { Activity, Gauge, Moon, PencilLine, Smile, Star } from "lucide-react";
-import { Button, EmptyState, TextArea } from "@metrivum/ui-web";
+import { Button, EmptyState, TextArea } from "@portable-ui/react";
 import {
   Failure,
   Loading,

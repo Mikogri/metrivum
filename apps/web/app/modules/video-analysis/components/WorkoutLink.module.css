@@ -1,12 +1,12 @@
 .link {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .label {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-regular);
 }
 
 .current,
@@ -14,13 +14,13 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2) var(--tf-space-3);
+  gap: var(--ui-space-2) var(--ui-space-3);
 }
 
 .none {
   justify-content: space-between;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
 }
 
 .icon {
@@ -29,9 +29,9 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  color: var(--tf-color-text-secondary);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  color: var(--ui-color-text-secondary);
 }
 
 .icon svg {
@@ -47,36 +47,36 @@
 }
 
 .text strong {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .text span,
 .muted {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .actions {
   display: flex;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 /* The picker: filters on top, then one card per logged workout with its exercises and set chips. */
 .dialog {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .filters {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 10rem);
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .workouts {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -84,17 +84,17 @@
 
 .workout {
   display: grid;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
 }
 
 .workoutHead {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .workoutHead > span {
@@ -104,45 +104,45 @@
 }
 
 .workoutHead strong {
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 .exercise {
   display: grid;
   grid-template-columns: minmax(6rem, 10rem) minmax(0, 1fr);
   align-items: start;
-  gap: var(--tf-space-2);
-  padding-top: var(--tf-space-2);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-2);
+  padding-top: var(--ui-space-2);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .exerciseName {
   padding-top: 5px;
   overflow: hidden;
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
   text-overflow: ellipsis;
 }
 
 .sets {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .set,
 .whole {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   height: 1.75rem;
-  padding: 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  padding: 0 var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   cursor: pointer;
@@ -157,8 +157,8 @@
 }
 
 .set b {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .set[data-skipped] {
@@ -167,21 +167,21 @@
 
 .set:hover,
 .whole:hover {
-  border-color: var(--tf-color-border-strong);
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-border-strong);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .set[aria-pressed="true"],
 .whole[aria-pressed="true"] {
-  border-color: var(--tf-color-text);
-  background: var(--tf-color-surface-selected);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-text);
+  background: var(--ui-color-surface-selected);
+  color: var(--ui-color-text);
 }
 
 .set:focus-visible,
 .whole:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
@@ -195,7 +195,7 @@
 .visibility {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin-top: 2px;
 }
 
@@ -205,11 +205,11 @@
 }
 
 .visibility[data-shared] {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .shareBox {
   align-self: center;
   margin-right: auto;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }

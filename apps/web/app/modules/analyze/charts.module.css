@@ -2,28 +2,28 @@
 .tone,
 .spark,
 .kpi {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 [data-tone="info"] {
-  color: var(--tf-color-info);
+  color: var(--ui-color-info);
 }
 
 [data-tone="violet"] {
-  color: var(--tf-color-violet);
+  color: var(--ui-color-violet);
 }
 
 [data-tone="warning"] {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 
 [data-tone="danger"] {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 [data-tone="neutral"],
 [data-ghost] {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .number {
@@ -36,14 +36,14 @@
   position: relative;
   display: grid;
   align-content: start;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
-  padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-3);
+  padding: var(--ui-space-4) var(--ui-space-5) var(--ui-space-3);
   overflow: hidden;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
-  animation: rise 400ms var(--tf-ease-out) both;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
+  animation: rise 400ms var(--ui-ease-out) both;
   animation-delay: calc(var(--i, 0) * 40ms);
 }
 
@@ -51,7 +51,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .kpiInfo {
@@ -61,47 +61,47 @@
 }
 
 .kpiLabel {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .kpiValue {
-  color: var(--tf-color-text);
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-3xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-display);
+  color: var(--ui-color-text);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-3xl);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-display);
   line-height: 1.05;
 }
 
 .kpiCaption {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .delta {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  padding: 1px var(--tf-space-1-5);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
-  font-weight: var(--tf-weight-medium);
+  padding: 1px var(--ui-space-1-5);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
+  font-weight: var(--ui-weight-medium);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .delta[data-tone="up"] {
-  background: var(--tf-color-success-soft);
-  color: var(--tf-color-success);
+  background: var(--ui-color-success-soft);
+  color: var(--ui-color-success);
 }
 
 .delta[data-tone="down"] {
-  background: var(--tf-color-danger-soft);
-  color: var(--tf-color-danger);
+  background: var(--ui-color-danger-soft);
+  color: var(--ui-color-danger);
 }
 
 .delta svg {
@@ -110,9 +110,9 @@
 }
 
 .spark {
-  width: calc(100% + var(--tf-space-10));
+  width: calc(100% + var(--ui-space-10));
   height: 2.25rem;
-  margin: 0 calc(var(--tf-space-5) * -1) calc(var(--tf-space-3) * -1);
+  margin: 0 calc(var(--ui-space-5) * -1) calc(var(--ui-space-3) * -1);
   overflow: visible;
 }
 
@@ -125,9 +125,9 @@
   stroke: currentColor;
   stroke-width: 1.75;
   stroke-dasharray: 1;
-  animation: draw 700ms var(--tf-ease-out) both;
+  animation: draw 700ms var(--ui-ease-out) both;
   /* New data morphs the line instead of jumping. */
-  transition: d 700ms var(--tf-ease-out);
+  transition: d 700ms var(--ui-ease-out);
   animation-delay: calc(100ms + var(--i, 0) * 40ms);
 }
 
@@ -145,13 +145,13 @@
 }
 
 .grid line {
-  stroke: var(--tf-color-border-subtle);
+  stroke: var(--ui-color-border-subtle);
   stroke-dasharray: 2 4;
 }
 
 .grid text,
 .xLabel {
-  fill: var(--tf-color-text-tertiary);
+  fill: var(--ui-color-text-tertiary);
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
 }
@@ -164,8 +164,8 @@
   stroke-linejoin: round;
   stroke-dasharray: 1;
   /* Draws in once; afterwards new data morphs the same path. */
-  animation: draw 800ms var(--tf-ease-out) both;
-  transition: d 700ms var(--tf-ease-out);
+  animation: draw 800ms var(--ui-ease-out) both;
+  transition: d 700ms var(--ui-ease-out);
 }
 
 [data-ghost] .line {
@@ -177,27 +177,27 @@
 .fill {
   fill: currentColor;
   fill-opacity: 0.08;
-  animation: fill-in 600ms var(--tf-ease-out) 150ms both;
-  transition: d 700ms var(--tf-ease-out);
+  animation: fill-in 600ms var(--ui-ease-out) 150ms both;
+  transition: d 700ms var(--ui-ease-out);
 }
 
 .noData {
   display: grid;
   place-content: center;
   justify-items: center;
-  gap: var(--tf-space-1);
-  padding: var(--tf-space-4);
-  border: 1px dashed var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-md);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-4);
+  border: 1px dashed var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-md);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-align: center;
 }
 
 .noData strong {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .noDataIcon {
@@ -205,10 +205,10 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  margin-bottom: var(--tf-space-1);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text-tertiary);
+  margin-bottom: var(--ui-space-1);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-tertiary);
 }
 
 .noDataIcon svg {
@@ -217,21 +217,21 @@
 }
 
 .ringArt strong[data-empty] {
-  color: var(--tf-color-text-tertiary);
-  font-family: var(--tf-font-sans);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text-tertiary);
+  font-family: var(--ui-font-sans);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .cursor line {
-  stroke: var(--tf-color-border-strong);
+  stroke: var(--ui-color-border-strong);
 }
 
 .cursor circle {
-  fill: var(--tf-color-bg);
+  fill: var(--ui-color-bg);
   stroke: currentColor;
   stroke-width: 2;
-  animation: pop 180ms var(--tf-ease-out);
+  animation: pop 180ms var(--ui-ease-out);
 }
 
 .tooltip {
@@ -241,34 +241,34 @@
   display: grid;
   gap: 3px;
   min-width: 10rem;
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  box-shadow: var(--tf-shadow-menu);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  box-shadow: var(--ui-shadow-menu);
+  font-size: var(--ui-text-xs);
   transform: translateX(-50%);
   pointer-events: none;
-  animation: tip-in 140ms var(--tf-ease-out);
+  animation: tip-in 140ms var(--ui-ease-out);
 }
 
 .tooltip strong {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .tipRow {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  color: var(--tf-color-text-secondary);
+  gap: var(--ui-space-2);
+  color: var(--ui-color-text-secondary);
 }
 
 .tipRow b,
 .legend b,
 .splitLegend b {
   margin-left: auto;
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
@@ -286,7 +286,7 @@
 
 .barsWrap {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .bars {
@@ -294,7 +294,7 @@
   display: flex;
   align-items: flex-end;
   gap: clamp(1px, 0.6%, 6px);
-  border-bottom: 1px solid var(--tf-color-border);
+  border-bottom: 1px solid var(--ui-color-border);
 }
 
 .column {
@@ -307,7 +307,7 @@
 }
 
 .column[data-hover] {
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 .stack {
@@ -318,26 +318,26 @@
   overflow: hidden;
   border-radius: 3px 3px 0 0;
   transform-origin: bottom;
-  animation: grow 500ms var(--tf-ease-out) backwards;
+  animation: grow 500ms var(--ui-ease-out) backwards;
   animation-delay: calc(var(--i) * min(15ms, 250ms / var(--n)));
-  transition: transform 600ms var(--tf-ease-out);
+  transition: transform 600ms var(--ui-ease-out);
 }
 
 .stack span {
   flex-basis: 0;
   min-height: 0;
   background: currentColor;
-  transition: flex-grow 600ms var(--tf-ease-out);
+  transition: flex-grow 600ms var(--ui-ease-out);
 }
 
 .stack span + span {
-  box-shadow: 0 -1px 0 var(--tf-color-surface);
+  box-shadow: 0 -1px 0 var(--ui-color-surface);
 }
 
 .barAxis {
   display: flex;
   justify-content: space-between;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   font-size: 10.5px;
 }
 
@@ -355,29 +355,29 @@
 }
 
 .flowColumn:hover {
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 .gain,
 .loss {
   border-radius: 3px;
-  animation: grow 500ms var(--tf-ease-out) backwards;
+  animation: grow 500ms var(--ui-ease-out) backwards;
   animation-delay: calc(var(--i) * 12ms);
-  transition: transform 600ms var(--tf-ease-out);
+  transition: transform 600ms var(--ui-ease-out);
 }
 
 .gain {
   align-self: end;
   height: 100%;
-  border-bottom: 1px solid var(--tf-color-border);
-  background: var(--tf-color-accent);
+  border-bottom: 1px solid var(--ui-color-border);
+  background: var(--ui-color-accent);
   transform-origin: bottom;
 }
 
 .loss {
   align-self: start;
   height: 100%;
-  background: var(--tf-color-danger);
+  background: var(--ui-color-danger);
   transform-origin: top;
 }
 
@@ -387,7 +387,7 @@
   display: grid;
   grid-template-columns: 9.5rem minmax(0, 1fr);
   align-items: center;
-  gap: var(--tf-space-6);
+  gap: var(--ui-space-6);
 }
 
 .donut {
@@ -404,7 +404,7 @@
 
 .track {
   fill: none;
-  stroke: var(--tf-color-surface-overlay);
+  stroke: var(--ui-color-surface-overlay);
   stroke-width: 12;
 }
 
@@ -413,11 +413,11 @@
   stroke: currentColor;
   stroke-width: 12;
   stroke-linecap: butt;
-  animation: sweep 700ms var(--tf-ease-out) backwards;
+  animation: sweep 700ms var(--ui-ease-out) backwards;
   animation-delay: calc(var(--i) * 60ms);
   transition:
-    stroke-dasharray 700ms var(--tf-ease-out),
-    stroke-dashoffset 700ms var(--tf-ease-out);
+    stroke-dasharray 700ms var(--ui-ease-out),
+    stroke-dashoffset 700ms var(--ui-ease-out);
 }
 
 @keyframes sweep {
@@ -435,19 +435,19 @@
 }
 
 .donutCenter strong {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-lg);
-  font-weight: var(--tf-weight-semibold);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-lg);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .donutCenter span {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
 }
 
 .legend {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -457,9 +457,9 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: var(--tf-space-2);
-  font-size: var(--tf-text-sm);
-  animation: rise 400ms var(--tf-ease-out) both;
+  column-gap: var(--ui-space-2);
+  font-size: var(--ui-text-sm);
+  animation: rise 400ms var(--ui-ease-out) both;
   animation-delay: calc(150ms + var(--i) * 40ms);
 }
 
@@ -471,14 +471,14 @@
 
 .legend small {
   grid-column: 2 / -1;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .ring {
   display: grid;
   justify-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
   text-align: center;
 }
@@ -494,9 +494,9 @@
   inset: 0;
   display: grid;
   place-items: center;
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-xl);
-  font-weight: var(--tf-weight-semibold);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .ringArt .track {
@@ -508,19 +508,19 @@
   stroke: currentColor;
   stroke-width: 8;
   stroke-linecap: round;
-  animation: sweep 750ms var(--tf-ease-out) 80ms backwards;
-  transition: stroke-dasharray 700ms var(--tf-ease-out);
+  animation: sweep 750ms var(--ui-ease-out) 80ms backwards;
+  transition: stroke-dasharray 700ms var(--ui-ease-out);
 }
 
 .ring figcaption {
   display: grid;
   gap: 2px;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 .ring small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 /* ------------------------------------------------------------ funnel, ranking, split */
@@ -528,7 +528,7 @@
 .funnel,
 .rank {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -537,8 +537,8 @@
 .funnel li,
 .rank li {
   display: grid;
-  gap: var(--tf-space-1-5);
-  animation: rise 400ms var(--tf-ease-out) both;
+  gap: var(--ui-space-1-5);
+  animation: rise 400ms var(--ui-ease-out) both;
   animation-delay: calc(var(--i) * 40ms);
 }
 
@@ -546,20 +546,20 @@
 .rankHead {
   display: flex;
   align-items: baseline;
-  gap: var(--tf-space-2);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  font-size: var(--ui-text-sm);
 }
 
 .funnelHead strong {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-lg);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-lg);
 }
 
 .funnelHead small,
 .rank small {
   margin-left: auto;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .rankHead b {
@@ -571,8 +571,8 @@
 .rankTrack {
   height: 0.625rem;
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-overlay);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-overlay);
 }
 
 .rankTrack {
@@ -586,14 +586,14 @@
   border-radius: inherit;
   background: currentColor;
   transform-origin: left;
-  animation: grow-x 600ms var(--tf-ease-out) backwards;
+  animation: grow-x 600ms var(--ui-ease-out) backwards;
   animation-delay: calc(80ms + var(--i) * 40ms);
-  transition: transform 700ms var(--tf-ease-out);
+  transition: transform 700ms var(--ui-ease-out);
 }
 
 .split {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .splitBar {
@@ -604,11 +604,11 @@
 
 .splitBar span {
   flex-basis: 0;
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: currentColor;
   transform-origin: left;
-  animation: grow-x 600ms var(--tf-ease-out) backwards;
-  transition: flex-grow 700ms var(--tf-ease-out);
+  animation: grow-x 600ms var(--ui-ease-out) backwards;
+  transition: flex-grow 700ms var(--ui-ease-out);
 }
 
 .splitBar span + span {
@@ -619,14 +619,14 @@
 .splitLegend {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-2) var(--tf-space-5);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2) var(--ui-space-5);
+  font-size: var(--ui-text-sm);
 }
 
 .splitLegend span {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 /* Stacked: one part per line, value and share on the right, with a hairline between the two. */
@@ -637,18 +637,18 @@
 
 .splitLegend[data-stacked] > span {
   display: flex;
-  padding: var(--tf-space-2) 0;
-  color: var(--tf-color-text-secondary);
+  padding: var(--ui-space-2) 0;
+  color: var(--ui-color-text-secondary);
 }
 
 .splitLegend[data-stacked] > span + span {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .splitLegend em {
   min-width: 2.75rem;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-style: normal;
   font-variant-numeric: tabular-nums;
   text-align: right;

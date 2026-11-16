@@ -4,23 +4,23 @@
   isolation: isolate;
   display: grid;
   justify-items: center;
-  gap: var(--tf-space-8);
-  max-width: var(--tf-content-max);
+  gap: var(--ui-space-8);
+  max-width: var(--ui-content-max);
   margin: 0 auto;
-  padding: clamp(var(--tf-space-16), 10vw, 8rem) var(--tf-space-5)
-    clamp(var(--tf-space-12), 8vw, var(--tf-space-24));
+  padding: clamp(var(--ui-space-16), 10vw, 8rem) var(--ui-space-5)
+    clamp(var(--ui-space-12), 8vw, var(--ui-space-24));
 }
 
 .ladder {
   display: grid;
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
   width: 100%;
   max-width: 84rem;
   text-align: left;
 }
 
 .note {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-align: center;
 }

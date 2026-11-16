@@ -2,14 +2,16 @@
   "name": "@metrivum/ui-catalog",
   "version": "0.1.0",
   "private": true,
-  "description": "Developer-only Storybook for @metrivum/ui-web. Not part of the public site.",
+  "description": "Developer-only Storybook for @portable-ui/react. Not part of the public site.",
   "type": "module",
   "scripts": {
     "storybook": "storybook dev -p 6006 --no-open",
-    "build": "storybook build -o storybook-static"
+    "build": "storybook build -o storybook-static",
+    "prebuild": "npm run build --workspace @portable-ui/react",
+    "predev": "npm run build --workspace @portable-ui/react"
   },
   "dependencies": {
-    "@metrivum/ui-web": "0.1.0",
+    "@portable-ui/react": "0.1.0",
     "lucide-react": "1.52.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"

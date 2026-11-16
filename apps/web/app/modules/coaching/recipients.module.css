@@ -1,17 +1,17 @@
 .picker {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .hint {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -20,13 +20,13 @@
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   height: 1.625rem;
-  padding: 0 var(--tf-space-1) 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
-  font-size: var(--tf-text-xs);
+  padding: 0 var(--ui-space-1) 0 var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
+  font-size: var(--ui-text-xs);
 }
 
 .chip button {
@@ -35,9 +35,9 @@
   width: 1.125rem;
   height: 1.125rem;
   border: 0;
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .chip button svg {
@@ -47,43 +47,43 @@
 
 @media (hover: hover) and (pointer: fine) {
   .chip button:hover {
-    background: var(--tf-color-surface-hover);
-    color: var(--tf-color-text);
+    background: var(--ui-color-surface-hover);
+    color: var(--ui-color-text);
   }
 }
 
 .chip button:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
 }
 
 .list {
   display: grid;
   max-height: 17rem;
   overflow: auto;
-  padding: var(--tf-space-1) var(--tf-space-3) var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
+  padding: var(--ui-space-1) var(--ui-space-3) var(--ui-space-2);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-bg-sunken);
 }
 
 .section {
   position: sticky;
-  top: calc(var(--tf-space-1) * -1);
+  top: calc(var(--ui-space-1) * -1);
   z-index: 1;
-  padding: var(--tf-space-2) 0 var(--tf-space-1);
-  background: var(--tf-color-bg-sunken);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-2) 0 var(--ui-space-1);
+  background: var(--ui-color-bg-sunken);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .option {
-  padding: var(--tf-space-1-5) 0;
+  padding: var(--ui-space-1-5) 0;
 }
 
 .optionBody {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
 }
 
@@ -107,12 +107,12 @@
 }
 
 .meta {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .none {
-  padding: var(--tf-space-1) 0 var(--tf-space-2);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-1) 0 var(--ui-space-2);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }

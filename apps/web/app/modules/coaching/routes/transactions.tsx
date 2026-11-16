@@ -31,7 +31,7 @@ import {
   Tabs,
   TextField,
   Toolbar,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { ResponsiveFilters } from "~/shared/library/ResponsiveFilters";
 import { UserAutocomplete } from "~/modules/accounts";
 import { ApiError } from "~/shared/http/errors";

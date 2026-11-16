@@ -1,30 +1,30 @@
 .field {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .label {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .value {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  height: var(--tf-control-md);
-  padding: 0 var(--tf-space-1) 0 var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-field);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-2);
+  height: var(--ui-control-md);
+  padding: 0 var(--ui-space-1) 0 var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-field);
+  font-size: var(--ui-text-sm);
 }
 
 .value > svg {
   width: 0.9375rem;
   height: 0.9375rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .value > span {

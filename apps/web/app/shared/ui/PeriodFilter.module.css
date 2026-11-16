@@ -2,7 +2,7 @@
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .select {
@@ -14,5 +14,5 @@
 }
 
 .dash {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }

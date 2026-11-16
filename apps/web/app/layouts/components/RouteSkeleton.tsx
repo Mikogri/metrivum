@@ -1,4 +1,4 @@
-import { Skeleton } from "@metrivum/ui-web";
+import { Skeleton } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import styles from "./RouteSkeleton.module.css";
 

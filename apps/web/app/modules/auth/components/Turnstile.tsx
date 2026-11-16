@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Button, Spinner } from "@metrivum/ui-web";
+import { Alert, Button, Spinner } from "@portable-ui/react";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { turnstileConfig } from "../lib/turnstile-config";
 import { turnstileCopy } from "../lib/turnstile-copy";

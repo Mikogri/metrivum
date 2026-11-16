@@ -1,7 +1,7 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Avatar, Combobox, Option, Spinner } from "@metrivum/ui-web";
+import { Avatar, Combobox, Option, Spinner } from "@portable-ui/react";
 import { useAccountKey, useApi } from "~/shared/session";
 
 export type UserSuggestion = {
@@ -116,7 +116,7 @@ export function UserAutocomplete({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "var(--tf-space-2)",
+              gap: "var(--ui-space-2)",
             }}
           >
             <Avatar

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { PageHeader } from "@metrivum/ui-web";
+import { PageHeader } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { useSessionManager } from "~/shared/session/SessionProvider";

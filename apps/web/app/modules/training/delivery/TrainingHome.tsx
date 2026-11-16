@@ -22,7 +22,7 @@ import {
   Select,
   Option,
   useMobileLayout,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useCoachingQuery, type Page } from "~/modules/coaching";
 import { Failure, ListPagination, Loading } from "~/modules/coaching";
 import { AssignmentList, localDate } from "./Assignments";
@@ -183,7 +183,7 @@ export function CompletionCell({ item }: { item: Occurrence }) {
   const percent = completionOf(item);
   if (percent == null) return <span className={styles.completionNone}>—</span>;
   // The colour moves smoothly from red (nothing done) to green (all of it).
-  const color = `color-mix(in oklab, var(--tf-color-success) ${percent}%, var(--tf-color-danger))`;
+  const color = `color-mix(in oklab, var(--ui-color-success) ${percent}%, var(--ui-color-danger))`;
   return (
     <span
       className={styles.completion}

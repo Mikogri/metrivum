@@ -11,7 +11,7 @@ import {
   Option,
   Select,
   TextArea,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useFeatureAccess } from "~/shared/access";
 import { UserAutocomplete, useProfile } from "~/modules/accounts";
 import { useCoachingMutation, useCoachingQuery, type Page } from "./api";

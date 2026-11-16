@@ -2,9 +2,9 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
   list-style: none;
 }
 
@@ -12,23 +12,23 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-height: 3.25rem;
-  padding: var(--tf-space-2) var(--tf-space-4);
-  transition: background-color var(--tf-duration-fast) ease;
+  padding: var(--ui-space-2) var(--ui-space-4);
+  transition: background-color var(--ui-duration-fast) ease;
 }
 
 .row + .row {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .row:has([data-row-link]:focus-visible) {
-  background: var(--tf-color-surface-raised);
+  background: var(--ui-color-surface-raised);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .row:has([data-row-link]):hover {
-    background: var(--tf-color-surface-raised);
+    background: var(--ui-color-surface-raised);
   }
 }
 
@@ -57,16 +57,16 @@
 
 .title {
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .subtitle {
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -74,9 +74,9 @@
 .columns {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-6);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-6);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -85,7 +85,7 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   flex-shrink: 0;
 }
 

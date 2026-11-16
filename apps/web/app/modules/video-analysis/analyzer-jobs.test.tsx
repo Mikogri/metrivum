@@ -36,7 +36,10 @@ const scope = vi.hoisted(() => ({
 vi.mock("~/shared/session/AccountScope", () => ({
   useAccountContext: () => scope,
 }));
-vi.mock("@metrivum/ui-web", () => ({ toast: state.toast }));
+vi.mock("@portable-ui/react", async (original) => ({
+  ...(await original<object>()),
+  toast: state.toast,
+}));
 vi.mock("./save-local-analysis", () => ({
   persistLocalAnalysis: state.persist,
 }));

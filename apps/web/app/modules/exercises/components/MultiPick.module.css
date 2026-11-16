@@ -1,13 +1,13 @@
 .wrap {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   align-content: start;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -18,12 +18,12 @@
   align-items: center;
   gap: 2px;
   height: 1.5rem;
-  padding: 0 2px 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
-  font-size: var(--tf-text-xs);
-  animation: chip-in 180ms var(--tf-ease-out);
+  padding: 0 2px 0 var(--ui-space-2);
+  border: 1px solid var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
+  font-size: var(--ui-text-xs);
+  animation: chip-in 180ms var(--ui-ease-out);
 }
 
 @keyframes chip-in {
@@ -42,14 +42,14 @@
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
   outline: none;
 }
 
 .remove[data-hovered],
 .remove[data-focus-visible] {
-  background: var(--tf-color-surface-hover);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-hover);
+  color: var(--ui-color-text);
 }
 
 .remove svg {
@@ -60,8 +60,8 @@
 .create {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
-  color: var(--tf-color-accent);
+  gap: var(--ui-space-1);
+  color: var(--ui-color-accent);
 }
 
 .create svg {

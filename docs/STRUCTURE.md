@@ -76,3 +76,5 @@ React Bits effects belong to `apps/web/app/shared/ui` (profile covers in `cover/
 Exercise catalogue cross-author editing and the server-managed ExerciseEditor role are described in [exercise editors](features/exercise-editors.md).
 
 Code formatting, pinned tools, VS Code setup and CI checks: [formatting](development/formatting.md).
+
+Portable web UI distribution and theme/copy/breakpoint configuration: [package guide](../packages/ui-web/README.md). Metrivum owns its brand theme and fonts in `apps/web/app`; library CSS variables use the neutral `--ui-` prefix.

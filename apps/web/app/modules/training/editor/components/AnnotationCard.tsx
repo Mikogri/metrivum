@@ -11,7 +11,7 @@ import type {
   PlanAnnotation,
   TrainingDocument,
 } from "@metrivum/api-client-web";
-import { ContextMenu } from "@metrivum/ui-web";
+import { ContextMenu } from "@portable-ui/react";
 import { SheetMenuButton } from "./SheetMenuButton";
 import sheet from "./SheetCanvas.module.css";
 import styles from "./AnnotationCard.module.css";

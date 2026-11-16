@@ -1,30 +1,30 @@
 .figure {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
   margin: 0;
 }
 
 /* Phase colours come from ../phases.css; on charts the line outside repetitions is a little brighter. */
 .figure {
-  --phase-none: var(--tf-color-text-secondary);
+  --phase-none: var(--ui-color-text-secondary);
 }
 
 .head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .title {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .unit {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .chart {
@@ -49,7 +49,7 @@
 }
 
 .chart :global(.u-cursor-x) {
-  border-right: 1px dashed var(--tf-color-border-strong);
+  border-right: 1px dashed var(--ui-color-border-strong);
 }
 
 /* The video's moment on the time charts. */
@@ -59,7 +59,7 @@
   bottom: 0;
   left: 0;
   width: 0;
-  border-left: 1.5px solid var(--tf-color-text);
+  border-left: 1.5px solid var(--ui-color-text);
   pointer-events: none;
 }
 
@@ -70,9 +70,9 @@
   left: -5.5px;
   width: 9px;
   height: 9px;
-  border: 2px solid var(--tf-color-bg);
+  border: 2px solid var(--ui-color-bg);
   border-radius: 50%;
-  background: var(--tf-color-text);
+  background: var(--ui-color-text);
 }
 
 .dot {
@@ -81,10 +81,10 @@
   left: -6px;
   width: 12px;
   height: 12px;
-  border: 2px solid var(--tf-color-bg);
+  border: 2px solid var(--ui-color-bg);
   border-radius: 50%;
-  background: var(--tf-color-text);
-  box-shadow: 0 0 0 1px var(--tf-color-text);
+  background: var(--ui-color-text);
+  box-shadow: 0 0 0 1px var(--ui-color-text);
   pointer-events: none;
 }
 
@@ -94,38 +94,38 @@
   display: grid;
   gap: 2px;
   min-width: 8.5rem;
-  padding: var(--tf-space-1-5) var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  padding: var(--ui-space-1-5) var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
   background: color-mix(
     in srgb,
-    var(--tf-color-surface-raised) 88%,
+    var(--ui-color-surface-raised) 88%,
     transparent
   );
   backdrop-filter: blur(8px);
-  box-shadow: var(--tf-shadow-md, 0 6px 20px rgb(0 0 0 / 0.25));
-  font-size: var(--tf-text-xs);
+  box-shadow: var(--ui-shadow-md, 0 6px 20px rgb(0 0 0 / 0.25));
+  font-size: var(--ui-text-xs);
   white-space: nowrap;
   pointer-events: none;
   transform: translateY(-50%);
 }
 
 .tooltip strong {
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .tipRow {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-secondary);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text-secondary);
 }
 
 .tipRow b {
   margin-left: auto;
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-medium);
   font-variant-numeric: tabular-nums;
 }
 
@@ -153,18 +153,18 @@
 }
 
 .frame {
-  fill: var(--tf-color-bg-sunken);
-  stroke: var(--tf-color-border);
+  fill: var(--ui-color-bg-sunken);
+  stroke: var(--ui-color-border);
 }
 
 .grid {
-  stroke: var(--tf-color-border-subtle);
+  stroke: var(--ui-color-border-subtle);
   stroke-width: 1;
 }
 
 .tickY,
 .tickX {
-  fill: var(--tf-color-text-tertiary);
+  fill: var(--ui-color-text-tertiary);
   font-size: 7px;
   font-variant-numeric: tabular-nums;
 }
@@ -185,7 +185,7 @@
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
   /* A different metric or analysis morphs the trace instead of jumping. */
-  transition: d 500ms var(--tf-ease-out);
+  transition: d 500ms var(--ui-ease-out);
 }
 
 .path {
@@ -195,12 +195,12 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   /* A different metric or analysis morphs the trace instead of jumping. */
-  transition: d 500ms var(--tf-ease-out);
+  transition: d 500ms var(--ui-ease-out);
 }
 
 .dot {
-  fill: var(--tf-color-text);
-  stroke: var(--tf-color-bg);
+  fill: var(--ui-color-text);
+  stroke: var(--ui-color-bg);
   stroke-width: 2;
 }
 
@@ -240,14 +240,14 @@
 }
 
 .cursor {
-  stroke: var(--tf-color-text);
+  stroke: var(--ui-color-text);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
 }
 
 .handle {
-  fill: var(--tf-color-text);
-  stroke: var(--tf-color-bg);
+  fill: var(--ui-color-text);
+  stroke: var(--ui-color-bg);
   stroke-width: 2;
 }
 
@@ -256,13 +256,13 @@
 }
 
 .caption {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .timeline {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -272,13 +272,13 @@
   display: grid;
   grid-template-columns: 3.5rem 1fr 3.5rem;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .repName,
 .duration {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -291,9 +291,9 @@
   display: flex;
   height: 0.375rem;
   border-radius: 999px;
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
   /* Backwards only: a clip-path left in place would also clip the phase tooltips. */
-  animation: reveal 700ms var(--tf-ease-out) backwards;
+  animation: reveal 700ms var(--ui-ease-out) backwards;
   animation-delay: calc(var(--i) * 80ms);
 }
 
@@ -350,12 +350,12 @@
   bottom: calc(100% + 6px);
   left: 50%;
   z-index: 2;
-  padding: 2px var(--tf-space-1-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-sm);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-2xs);
+  padding: 2px var(--ui-space-1-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-2xs);
   white-space: nowrap;
   opacity: 0;
   translate: -50% 2px;
@@ -372,7 +372,7 @@
 }
 
 .timeline li[data-current] .repName {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .timelineCursor {
@@ -382,12 +382,12 @@
   width: 2px;
   margin-left: -1px;
   border-radius: 1px;
-  background: var(--tf-color-text);
+  background: var(--ui-color-text);
   pointer-events: none;
 }
 
 .phase + .phase {
-  box-shadow: inset 1px 0 0 var(--tf-color-bg);
+  box-shadow: inset 1px 0 0 var(--ui-color-bg);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -400,18 +400,18 @@
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1) var(--tf-space-3);
+  gap: var(--ui-space-1) var(--ui-space-3);
   margin: 0;
   padding: 0;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   list-style: none;
 }
 
 .legend li {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   max-width: 16rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -428,7 +428,7 @@
 .title {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .hoverVertical,
@@ -441,19 +441,19 @@
 .hoverVertical {
   top: 0;
   bottom: 0;
-  border-left: 1px dashed var(--tf-color-text-tertiary);
+  border-left: 1px dashed var(--ui-color-text-tertiary);
 }
 .hoverPoint {
   width: 8px;
   height: 8px;
   border: 2px solid;
   border-radius: 50%;
-  background: var(--tf-color-surface);
+  background: var(--ui-color-surface);
   transform: translate(-50%, -50%);
 }
 
 .hoverHorizontal {
   left: 0;
   right: 0;
-  border-top: 1px dashed var(--tf-color-text-tertiary);
+  border-top: 1px dashed var(--ui-color-text-tertiary);
 }

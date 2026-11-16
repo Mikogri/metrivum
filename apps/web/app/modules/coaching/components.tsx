@@ -12,7 +12,7 @@ import {
   LinkButton,
   LoadingState,
   Pagination,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { ApiError } from "~/shared/http";
 import { useCoachingQuery, type Page } from "./api";
 import { useT } from "~/shared/i18n/AppLocale";

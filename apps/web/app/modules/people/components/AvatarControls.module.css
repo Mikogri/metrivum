@@ -7,14 +7,14 @@
   width: 2rem;
   height: 2rem;
   padding: 0;
-  border: 2px solid var(--tf-color-surface);
+  border: 2px solid var(--ui-color-surface);
   border-radius: 50%;
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text);
   cursor: pointer;
   transition:
     background-color 120ms ease,
-    transform 140ms var(--tf-ease-out, ease-out);
+    transform 140ms var(--ui-ease-out, ease-out);
 }
 
 .button[data-place="change"] {
@@ -25,7 +25,7 @@
 .button[data-place="remove"] {
   top: 0;
   right: 0;
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 .button svg {
@@ -52,25 +52,25 @@
 
 .button:focus-within,
 .button:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .button:hover:not([data-busy]):not(:disabled) {
-    background: var(--tf-color-surface-raised, var(--tf-color-surface-overlay));
+    background: var(--ui-color-surface-raised, var(--ui-color-surface-overlay));
   }
 }
 
 .error {
   position: absolute;
-  top: calc(100% + var(--tf-space-1));
+  top: calc(100% + var(--ui-space-1));
   left: 0;
   width: max-content;
   max-width: 16rem;
-  padding: var(--tf-space-1) var(--tf-space-2);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-danger);
-  font-size: var(--tf-text-xs);
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-danger);
+  font-size: var(--ui-text-xs);
 }

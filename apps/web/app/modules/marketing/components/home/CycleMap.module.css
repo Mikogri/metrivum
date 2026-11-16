@@ -1,10 +1,10 @@
 .map {
   display: grid;
-  gap: var(--tf-space-5);
-  padding: var(--tf-space-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-xl);
-  background: var(--tf-color-surface);
+  gap: var(--ui-space-5);
+  padding: var(--ui-space-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-xl);
+  background: var(--ui-color-surface);
 }
 
 .controls {
@@ -12,20 +12,20 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .legend {
   display: flex;
-  gap: var(--tf-space-4);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-4);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .legend span {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .dotOn,
@@ -37,18 +37,18 @@
 }
 
 .dotOn {
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
   box-shadow: 0 0 8px
-    color-mix(in srgb, var(--tf-color-accent) 60%, transparent);
+    color-mix(in srgb, var(--ui-color-accent) 60%, transparent);
 }
 
 .dotOff {
-  background: var(--tf-color-border-strong);
+  background: var(--ui-color-border-strong);
 }
 
 .grid {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   overflow-x: auto;
 }
 
@@ -57,15 +57,15 @@
   display: grid;
   grid-template-columns: 9rem repeat(10, minmax(1.75rem, 1fr));
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .dayNumber {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
   font-variant-numeric: tabular-nums;
   text-align: center;
-  transition: opacity var(--tf-duration-base) ease;
+  transition: opacity var(--ui-duration-base) ease;
 }
 
 .dayNumber[data-hidden] {
@@ -74,8 +74,8 @@
 
 .cycleName {
   overflow: hidden;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -85,11 +85,11 @@
   width: 0.875rem;
   height: 0.875rem;
   border-radius: 50%;
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
   opacity: 0;
   transform: scale(0.4);
   transition:
-    transform 420ms var(--tf-ease-out),
+    transform 420ms var(--ui-ease-out),
     opacity 300ms ease,
     background-color 300ms ease,
     box-shadow 300ms ease;
@@ -105,13 +105,13 @@
 .map[data-inview] .dot[data-exists] {
   opacity: 1;
   transform: scale(1);
-  background: var(--tf-color-border-strong);
+  background: var(--ui-color-border-strong);
 }
 
 .map[data-inview] .dot[data-on] {
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
   box-shadow: 0 0 12px
-    color-mix(in srgb, var(--tf-color-accent) 55%, transparent);
+    color-mix(in srgb, var(--ui-color-accent) 55%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -123,7 +123,7 @@
 
 @media (max-width: 34rem) {
   .map {
-    padding: var(--tf-space-4) var(--tf-space-3);
+    padding: var(--ui-space-4) var(--ui-space-3);
   }
 
   .dayHeader,
@@ -133,7 +133,7 @@
   }
 
   .cycleName {
-    font-size: var(--tf-text-2xs);
+    font-size: var(--ui-text-2xs);
   }
 
   .dot {

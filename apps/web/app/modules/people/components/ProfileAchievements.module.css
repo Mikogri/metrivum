@@ -1,40 +1,40 @@
 /* Achievements: even tiles; reached ones carry the accent, the rest are quiet with a thin progress bar. */
 .card {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .title {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  gap: var(--ui-space-2);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .title svg {
   width: 1rem;
   height: 1rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .count {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -43,33 +43,33 @@
 .tile {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-height: 4rem;
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
 }
 
 .tile[data-done] {
   border-color: color-mix(in srgb, var(--tone) 35%, transparent);
-  background: color-mix(in srgb, var(--tone) 7%, var(--tf-color-surface));
+  background: color-mix(in srgb, var(--tone) 7%, var(--ui-color-surface));
 }
 
 .tile[data-tone="green"] {
-  --tone: var(--tf-color-accent);
+  --tone: var(--ui-color-accent);
 }
 .tile[data-tone="violet"] {
-  --tone: var(--tf-color-violet);
+  --tone: var(--ui-color-violet);
 }
 .tile[data-tone="blue"] {
-  --tone: var(--tf-color-info);
+  --tone: var(--ui-color-info);
 }
 .tile[data-tone="orange"] {
-  --tone: var(--tf-color-warning);
+  --tone: var(--ui-color-warning);
 }
 .tile[data-tone="rose"] {
-  --tone: var(--tf-color-danger);
+  --tone: var(--ui-color-danger);
 }
 
 .icon {
@@ -78,9 +78,9 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-tertiary);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-tertiary);
 }
 
 .icon svg {
@@ -96,26 +96,26 @@
 }
 
 .text strong {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .text > span:not(.progress) {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 .tile:not([data-done]) strong {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .progress {
   height: 3px;
-  margin-top: var(--tf-space-1);
+  margin-top: var(--ui-space-1);
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-overlay);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-overlay);
 }
 
 .progress span {
@@ -128,8 +128,8 @@
 
 .ratio {
   flex-shrink: 0;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   font-variant-numeric: tabular-nums;
 }
 

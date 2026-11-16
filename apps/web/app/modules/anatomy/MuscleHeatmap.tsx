@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { X } from "lucide-react";
-import { IconButton, LoadingState } from "@metrivum/ui-web";
+import { IconButton, LoadingState } from "@portable-ui/react";
 import { useAppLocale } from "~/shared/i18n/AppLocale";
 import { mappingIndex, type Category } from "./model";
 import { anatomyMessages } from "./messages";

@@ -25,7 +25,7 @@ import {
   Skeleton,
   TextArea,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { RequireFeature, useFeatureAccess } from "~/shared/access";
 import { formatDateTime } from "~/shared/i18n/format";
 import { useLocale } from "~/shared/i18n/LocaleContext";

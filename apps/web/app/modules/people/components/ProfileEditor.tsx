@@ -14,7 +14,7 @@ import {
   NumberInput,
   TextArea,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import {
   displayNameValid,
   normalizeDisplayName,

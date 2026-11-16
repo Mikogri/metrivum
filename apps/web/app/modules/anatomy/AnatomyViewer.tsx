@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { Button, LoadingState } from "@metrivum/ui-web";
+import { Button, LoadingState } from "@portable-ui/react";
 import {
   ASSET_BASE,
   structureVisible,

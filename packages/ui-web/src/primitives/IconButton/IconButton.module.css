@@ -2,18 +2,18 @@
   display: inline-grid;
   place-items: center;
   flex-shrink: 0;
-  width: var(--tf-control-md);
-  height: var(--tf-control-md);
+  width: var(--ui-control-md);
+  height: var(--ui-control-md);
   padding: 0;
   border: 1px solid transparent;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   background: transparent;
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   outline: none;
   transition:
-    transform var(--tf-duration-press) var(--tf-ease-out),
-    background-color var(--tf-duration-fast) ease,
-    color var(--tf-duration-fast) ease;
+    transform var(--ui-duration-press) var(--ui-ease-out),
+    background-color var(--ui-duration-fast) ease,
+    color var(--ui-duration-fast) ease;
 }
 
 .iconButton[data-pressed] {
@@ -21,7 +21,7 @@
 }
 
 .iconButton[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 
@@ -31,9 +31,9 @@
 }
 
 .sm {
-  width: var(--tf-control-sm);
-  height: var(--tf-control-sm);
-  border-radius: var(--tf-radius-sm);
+  width: var(--ui-control-sm);
+  height: var(--ui-control-sm);
+  border-radius: var(--ui-radius-sm);
 }
 
 .glyph {
@@ -51,27 +51,27 @@
 }
 
 .secondary {
-  background: var(--tf-color-surface-raised);
-  border-color: var(--tf-color-border);
+  background: var(--ui-color-surface-raised);
+  border-color: var(--ui-color-border);
 }
 
 .danger {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 .danger[data-pressed] {
   background: rgb(240 96 93 / 0.22);
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .iconButton[data-hovered] {
-    background: var(--tf-color-surface-hover);
-    color: var(--tf-color-text);
+    background: var(--ui-color-surface-hover);
+    color: var(--ui-color-text);
   }
 
   .danger[data-hovered] {
-    background: var(--tf-color-danger-soft);
-    color: var(--tf-color-danger);
+    background: var(--ui-color-danger-soft);
+    color: var(--ui-color-danger);
   }
 }

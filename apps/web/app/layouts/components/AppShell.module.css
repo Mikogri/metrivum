@@ -1,5 +1,5 @@
 .shell {
-  --shell-sidebar: var(--tf-sidebar-width);
+  --shell-sidebar: var(--ui-sidebar-width);
   --shell-ease: cubic-bezier(0.32, 0.72, 0, 1);
   display: grid;
   grid-template-columns: var(--shell-sidebar) minmax(0, 1fr);
@@ -8,7 +8,7 @@
   /* The page itself never scrolls: the content area under the app bar does. */
   height: 100dvh;
   overflow: hidden;
-  background: var(--tf-color-bg);
+  background: var(--ui-color-bg);
   transition: grid-template-columns 180ms var(--shell-ease);
 }
 
@@ -28,8 +28,8 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  border-right: 1px solid var(--tf-color-border-subtle);
-  background: var(--tf-color-sidebar);
+  border-right: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-sidebar);
 }
 
 .logo {
@@ -49,14 +49,14 @@
   left: 0.625rem;
   right: 0.625rem;
   bottom: 0;
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
   gap: 0.625rem;
-  border-radius: var(--tf-radius-sm);
+  border-radius: var(--ui-radius-sm);
   white-space: nowrap;
 }
 
@@ -72,11 +72,11 @@
 }
 
 .brandText {
-  font-family: var(--tf-font-brand);
+  font-family: var(--ui-font-brand);
   font-size: 1.0625rem;
   font-weight: 800;
   letter-spacing: 0.02em;
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .brandText,
@@ -93,7 +93,7 @@
   display: block;
   height: 0;
   margin: 0.75rem 1.25rem;
-  border-top: 1px solid var(--tf-color-border);
+  border-top: 1px solid var(--ui-color-border);
   transition:
     border-color 200ms ease,
     margin 180ms var(--shell-ease);
@@ -101,7 +101,7 @@
 
 .shell[data-collapsed] .navGroup + .navGroup .navGroupSeparator {
   margin: 0.75rem 0.875rem;
-  border-top-color: var(--tf-color-border);
+  border-top-color: var(--ui-color-border);
 }
 
 .nav {
@@ -168,10 +168,10 @@
   padding: 0 0.3125rem;
   border-radius: 200px;
   /* Notifications are a soft red: noticeable, never alarming. Solid, so an icon never shows through. */
-  background: color-mix(in srgb, #ec6a5e 20%, var(--tf-color-sidebar));
+  background: color-mix(in srgb, #ec6a5e 20%, var(--ui-color-sidebar));
   color: #ec6a5e;
   font-size: 0.625rem;
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   transition: opacity 200ms ease;
@@ -179,8 +179,8 @@
 
 /* Things waiting in a section: informative, not an alert. */
 .navCount[data-tone="neutral"] {
-  background: color-mix(in srgb, #ffffff 15%, var(--tf-color-sidebar));
-  color: var(--tf-color-text-secondary);
+  background: color-mix(in srgb, #ffffff 15%, var(--ui-color-sidebar));
+  color: var(--ui-color-text-secondary);
 }
 
 /* On the collapsed rail the count sits on the icon's corner, cut out from it by a ring in the sidebar colour. */
@@ -188,26 +188,26 @@
   position: absolute;
   top: 2px;
   right: 1px;
-  box-shadow: 0 0 0 2px var(--tf-color-sidebar);
+  box-shadow: 0 0 0 2px var(--ui-color-sidebar);
 }
 .shell[data-collapsed] .navLink {
   position: relative;
 }
 
 .navLink[aria-current="page"] {
-  background: var(--tf-color-surface-selected);
+  background: var(--ui-color-surface-selected);
   color: #ffffff;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .navLink:hover:not([aria-current="page"]) {
-    background: var(--tf-color-surface-hover);
+    background: var(--ui-color-surface-hover);
     color: rgb(255 255 255 / 0.85);
   }
 }
 
 .navLink:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: -2px;
 }
 
@@ -243,13 +243,13 @@
   content: "";
   position: absolute;
   left: -1px;
-  z-index: calc(var(--tf-z-header) + 1);
+  z-index: calc(var(--ui-z-header) + 1);
   box-sizing: border-box;
   width: calc(var(--corner) + 1px);
   height: calc(var(--corner) + 1px);
-  border: 0 solid var(--tf-color-border-subtle);
+  border: 0 solid var(--ui-color-border-subtle);
   border-left-width: 1px;
-  box-shadow: 0 0 0 var(--corner) var(--tf-color-sidebar);
+  box-shadow: 0 0 0 var(--corner) var(--ui-color-sidebar);
   /* Only the corner's own square shows; the rest of the shadow is cut away. */
   clip-path: inset(0);
   pointer-events: none;
@@ -270,15 +270,15 @@
 .appBar {
   position: relative;
   flex-shrink: 0;
-  z-index: var(--tf-z-header);
+  z-index: var(--ui-z-header);
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  height: var(--tf-appbar-height);
-  padding: 0 clamp(var(--tf-space-3), 2vw, var(--tf-space-6)) 0
-    var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
-  background: var(--tf-color-bg);
+  gap: var(--ui-space-2);
+  height: var(--ui-appbar-height);
+  padding: 0 clamp(var(--ui-space-3), 2vw, var(--ui-space-6)) 0
+    var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-bg);
 }
 
 .desktopOnly,
@@ -292,64 +292,64 @@
 
 .crumbs {
   min-width: 0;
-  padding-left: var(--tf-space-1);
+  padding-left: var(--ui-space-1);
 }
 
 .crumbs ol {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   white-space: nowrap;
 }
 
 .crumbGroup {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .crumbLink {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
   transition: color 120ms ease;
 }
 
 .crumbLink:hover {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .crumbCurrent {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-medium);
 }
 
 .crumbSep {
   width: 0.8125rem;
   height: 0.8125rem;
   flex-shrink: 0;
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
 }
 
 .appBarActions {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin-left: auto;
 }
 
 .search {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   width: clamp(13rem, 23vw, 22rem);
-  height: var(--tf-control-sm);
-  padding: 0 var(--tf-space-1) 0 var(--tf-space-2);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  height: var(--ui-control-sm);
+  padding: 0 var(--ui-space-1) 0 var(--ui-space-2);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-align: left;
   transition:
     border-color 120ms ease,
@@ -371,14 +371,14 @@
 }
 
 .search:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 1px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .search:hover {
-    border-color: var(--tf-color-border-strong);
-    color: var(--tf-color-text-secondary);
+    border-color: var(--ui-color-border-strong);
+    color: var(--ui-color-text-secondary);
   }
 }
 
@@ -397,9 +397,9 @@
 .content {
   max-width: 90rem;
   margin: 0 auto;
-  padding: var(--tf-space-6) clamp(var(--tf-space-4), 2.5vw, var(--tf-space-8))
-    var(--tf-space-16);
-  animation: page-in var(--tf-duration-settle) var(--tf-ease-settle);
+  padding: var(--ui-space-6) clamp(var(--ui-space-4), 2.5vw, var(--ui-space-8))
+    var(--ui-space-16);
+  animation: page-in var(--ui-duration-settle) var(--ui-ease-settle);
 }
 
 @keyframes page-in {
@@ -442,7 +442,7 @@
     flex-direction: column;
     width: 100%;
     min-height: 0;
-    padding-bottom: var(--tf-space-6);
+    padding-bottom: var(--ui-space-6);
   }
 }
 
@@ -451,8 +451,8 @@
 .drawerOverlay {
   position: fixed;
   inset: 0;
-  z-index: var(--tf-z-modal);
-  background: var(--tf-color-scrim);
+  z-index: var(--ui-z-modal);
+  background: var(--ui-color-scrim);
 }
 
 .drawerOverlay[data-entering] {
@@ -468,17 +468,17 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: min(var(--tf-sidebar-width), 86vw);
-  border-right: 1px solid var(--tf-color-border);
-  background: var(--tf-color-sidebar);
+  width: min(var(--ui-sidebar-width), 86vw);
+  border-right: 1px solid var(--ui-color-border);
+  background: var(--ui-color-sidebar);
 }
 
 .drawer[data-entering] {
-  animation: drawer-in 200ms var(--tf-ease-drawer);
+  animation: drawer-in 200ms var(--ui-ease-drawer);
 }
 
 .drawer[data-exiting] {
-  animation: drawer-in 140ms var(--tf-ease-out) reverse forwards;
+  animation: drawer-in 140ms var(--ui-ease-out) reverse forwards;
 }
 
 .drawerDialog {
@@ -489,7 +489,7 @@
 }
 
 .drawerDialog .logo {
-  padding-right: var(--tf-space-3);
+  padding-right: var(--ui-space-3);
 }
 
 @keyframes fade {
@@ -526,7 +526,7 @@
   }
 
   .content {
-    padding-top: var(--tf-space-5);
+    padding-top: var(--ui-space-5);
   }
 }
 
@@ -555,11 +555,11 @@
 
 .mockBanner {
   flex-shrink: 0;
-  padding: var(--tf-space-1-5) var(--tf-space-4);
+  padding: var(--ui-space-1-5) var(--ui-space-4);
   border-bottom: 1px solid rgb(242 169 59 / 0.35);
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
-  font-size: var(--tf-text-xs);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
+  font-size: var(--ui-text-xs);
   text-align: center;
 }
 
@@ -578,7 +578,7 @@
     padding-right: max(12px, env(safe-area-inset-right));
   }
   .phoneBrand {
-    font-family: var(--tf-font-brand);
+    font-family: var(--ui-font-brand);
     font-weight: 800;
     font-size: 1rem;
   }

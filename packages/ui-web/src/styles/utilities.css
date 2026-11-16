@@ -17,16 +17,16 @@
 
 .tf-skip-link {
   position: fixed;
-  top: var(--tf-space-2);
-  left: var(--tf-space-2);
-  z-index: var(--tf-z-tooltip);
-  padding: var(--tf-space-2) var(--tf-space-3);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-primary);
-  color: var(--tf-color-on-primary);
-  font-weight: var(--tf-weight-medium);
+  top: var(--ui-space-2);
+  left: var(--ui-space-2);
+  z-index: var(--ui-z-tooltip);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+  font-weight: var(--ui-weight-medium);
   transform: translateY(-200%);
-  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+  transition: transform var(--ui-duration-fast) var(--ui-ease-out);
 }
 
 .tf-skip-link:focus-visible {

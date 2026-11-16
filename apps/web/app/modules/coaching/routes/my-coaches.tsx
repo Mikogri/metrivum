@@ -15,7 +15,7 @@ import {
   SearchInput,
   Select,
   Toolbar,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useProfile, profileKey } from "~/modules/accounts";
 import { useAccountKey } from "~/shared/session/AccountScope";
 import { pageFromParam, useUrlState } from "~/shared/lib/useUrlState";

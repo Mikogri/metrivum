@@ -19,7 +19,7 @@ import {
   SegmentedControl,
   toast,
   useMobileLayout,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Panel } from "~/shared/ui/Panel";
 import {
   useCoachingMutation,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Minus, Plus, RotateCcw } from "lucide-react";
-import { IconButton } from "@metrivum/ui-web";
+import { IconButton } from "@portable-ui/react";
 import type { AnatomyMessages } from "./messages";
 import type { CameraAction } from "./AnatomyViewer";
 import styles from "./anatomy.module.css";

@@ -1,6 +1,6 @@
 import { KeyRound, LifeBuoy, Mail, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
-import { Alert, Badge, Card, LinkButton } from "@metrivum/ui-web";
+import { Alert, Badge, Card, LinkButton } from "@portable-ui/react";
 import { useProfile } from "~/modules/accounts";
 import { hasPassword, verifiedTotp } from "~/modules/auth";
 import { useT } from "~/shared/i18n/AppLocale";

@@ -13,7 +13,7 @@ import {
   Option,
   Select,
   Switch,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import type { BackgroundParam } from "./backgrounds/catalog";
 import {
   DEFAULT_BACKDROP,

@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import type { ReactNode } from "react";
-import type * as Ui from "@metrivum/ui-web";
+import type * as Ui from "@portable-ui/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import type { ApiRequest } from "~/shared/http/transport";
 import { ApiError } from "~/shared/http/errors";
@@ -19,7 +19,7 @@ vi.mock("~/shared/session/AccountScope", () => ({
   useAccountContext: () => ({ lifecycle: { isCurrent: () => true } }),
 }));
 // The segmented date field does not take typed keys in jsdom; a plain date input stands in for it.
-vi.mock("@metrivum/ui-web", async (original) => ({
+vi.mock("@portable-ui/react", async (original) => ({
   ...(await original<typeof Ui>()),
   DateField: ({
     label,

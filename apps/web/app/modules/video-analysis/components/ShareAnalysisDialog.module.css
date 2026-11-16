@@ -1,13 +1,13 @@
 .body {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .intro {
   margin: 0;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-relaxed);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-relaxed);
 }
 
 .create {
@@ -17,7 +17,7 @@
 .linkRow {
   display: flex;
   align-items: flex-end;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .link {
@@ -26,18 +26,18 @@
 }
 
 .link input {
-  font-family: var(--tf-font-mono);
-  font-size: var(--tf-text-xs);
+  font-family: var(--ui-font-mono);
+  font-size: var(--ui-text-xs);
 }
 
 .divider {
   height: 1px;
-  background: var(--tf-color-border-subtle);
+  background: var(--ui-color-border-subtle);
 }
 
 .footer {
   display: flex;
   justify-content: flex-end;
-  padding-top: var(--tf-space-2);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  padding-top: var(--ui-space-2);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }

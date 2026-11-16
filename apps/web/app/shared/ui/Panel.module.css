@@ -2,18 +2,18 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
 }
 
 .head {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-height: 3.25rem;
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .titles {
@@ -29,9 +29,9 @@
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text-secondary);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-secondary);
 }
 
 .icon svg {
@@ -40,35 +40,35 @@
 }
 
 .icon[data-tone="green"] {
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 .icon[data-tone="blue"] {
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 .icon[data-tone="violet"] {
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-violet);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-violet);
 }
 .icon[data-tone="orange"] {
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 .icon[data-tone="rose"] {
-  background: var(--tf-color-danger-soft);
-  color: var(--tf-color-danger);
+  background: var(--ui-color-danger-soft);
+  color: var(--ui-color-danger);
 }
 
 .title {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   line-height: 1.3;
 }
 
 .description {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .actions {
@@ -77,16 +77,16 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .body {
   display: grid;
   flex: 1;
   align-content: start;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   min-width: 0;
-  padding: var(--tf-space-4);
+  padding: var(--ui-space-4);
 }
 
 .body[data-flush] {
@@ -96,7 +96,7 @@
 /* Tables inside a flush panel lose their own frame: the panel is the frame. */
 .body[data-flush] > div:has(> table) {
   border: 0;
-  border-radius: 0 0 var(--tf-radius-lg) var(--tf-radius-lg);
+  border-radius: 0 0 var(--ui-radius-lg) var(--ui-radius-lg);
   background: transparent;
 }
 
@@ -109,17 +109,17 @@
 
 .facts[data-columns="2"] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: var(--tf-space-6);
+  column-gap: var(--ui-space-6);
 }
 
 .fact {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   min-width: 0;
-  padding: var(--tf-space-2) 0;
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  padding: var(--ui-space-2) 0;
+  border-bottom: 1px solid var(--ui-color-border-subtle);
 }
 
 .facts[data-columns="1"] > .fact:last-child,
@@ -130,21 +130,21 @@
 
 .fact dt {
   flex-shrink: 0;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .fact dd {
   min-width: 0;
   margin: 0;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   text-align: right;
   overflow-wrap: anywhere;
   white-space: pre-line;
 }
 
 .empty {
-  color: var(--tf-color-text-disabled);
+  color: var(--ui-color-text-disabled);
 }
 
 /* ---- Stat strip ---- */
@@ -154,25 +154,25 @@
   grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   margin: 0;
   overflow: hidden;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
 }
 
 .stat {
   display: grid;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   min-width: 0;
-  padding: var(--tf-space-3) var(--tf-space-4);
+  padding: var(--ui-space-3) var(--ui-space-4);
   /* Hairlines on the left and top; the strip clips the outer ones, so wrapped rows stay divided. */
   box-shadow:
-    -1px 0 0 var(--tf-color-border-subtle),
-    0 -1px 0 var(--tf-color-border-subtle);
+    -1px 0 0 var(--ui-color-border-subtle),
+    0 -1px 0 var(--ui-color-border-subtle);
 }
 
 .stat dt {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -180,23 +180,23 @@
 
 .stat dd {
   margin: 0;
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-xl);
-  font-weight: var(--tf-weight-semibold);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 
 .stat[data-tone="accent"] dd {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 .stat[data-tone="warning"] dd {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 
 .stat[data-tone="danger"] dd {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 /* ---- Grid ---- */
@@ -204,7 +204,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   align-items: stretch;
 }
 
@@ -220,6 +220,6 @@
 }
 
 .skeletonLabel {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }

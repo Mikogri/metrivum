@@ -33,7 +33,7 @@
 /* The fibres draw themselves in once when the page opens. */
 .fibres path {
   stroke-dasharray: 1;
-  animation: draw 1800ms var(--tf-ease-out) both;
+  animation: draw 1800ms var(--ui-ease-out) both;
   animation-delay: calc(100ms + var(--i) * 14ms);
 }
 

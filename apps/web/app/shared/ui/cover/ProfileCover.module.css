@@ -3,7 +3,7 @@
   position: relative;
   height: 11rem;
   overflow: hidden;
-  background: var(--tf-color-surface-raised);
+  background: var(--ui-color-surface-raised);
   isolation: isolate;
 }
 
@@ -18,7 +18,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  animation: cover-in 400ms var(--tf-ease-out) both;
+  animation: cover-in 400ms var(--ui-ease-out) both;
 }
 
 @keyframes cover-in {

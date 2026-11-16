@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { expect, it, vi } from "vitest";
-import type * as UiWeb from "@metrivum/ui-web";
+import type * as UiWeb from "@portable-ui/react";
 import { NotificationBell } from "./notifications";
 
 const state = vi.hoisted(() => ({
@@ -10,7 +10,7 @@ const state = vi.hoisted(() => ({
   readAll: vi.fn(),
   update: true,
 }));
-vi.mock("@metrivum/ui-web", async (original) => ({
+vi.mock("@portable-ui/react", async (original) => ({
   ...(await original<typeof UiWeb>()),
   useMobileLayout: () => true,
 }));

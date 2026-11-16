@@ -5,40 +5,40 @@
   /* A soft, wide highlight that eases across, so the sweep reads as a calm glow, not a scanning bar. */
   background: linear-gradient(
     100deg,
-    var(--tf-color-surface-raised) 30%,
+    var(--ui-color-surface-raised) 30%,
     color-mix(
         in srgb,
-        var(--tf-color-surface-hover) 70%,
-        var(--tf-color-surface-raised)
+        var(--ui-color-surface-hover) 70%,
+        var(--ui-color-surface-raised)
       )
       45%,
-    var(--tf-color-surface-hover) 50%,
+    var(--ui-color-surface-hover) 50%,
     color-mix(
         in srgb,
-        var(--tf-color-surface-hover) 70%,
-        var(--tf-color-surface-raised)
+        var(--ui-color-surface-hover) 70%,
+        var(--ui-color-surface-raised)
       )
       55%,
-    var(--tf-color-surface-raised) 70%
+    var(--ui-color-surface-raised) 70%
   );
   background-size: 250% 100%;
   /* Fades in after a short delay, so fast loads never flash a placeholder. */
   animation:
-    skeleton-in 300ms var(--tf-ease-out) 120ms backwards,
+    skeleton-in 300ms var(--ui-ease-out) 120ms backwards,
     shimmer 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .sm {
-  border-radius: var(--tf-radius-xs);
+  border-radius: var(--ui-radius-xs);
 }
 .md {
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
 }
 .lg {
-  border-radius: var(--tf-radius-lg);
+  border-radius: var(--ui-radius-lg);
 }
 .full {
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
 }
 
 @keyframes shimmer {

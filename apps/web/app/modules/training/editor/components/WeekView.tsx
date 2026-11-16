@@ -22,7 +22,7 @@ import {
   Option,
   Select,
   type ContextMenuEntry,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";

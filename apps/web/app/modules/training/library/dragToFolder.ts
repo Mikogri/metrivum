@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { FolderDto } from "@metrivum/api-client-web";
-import { toast } from "@metrivum/ui-web";
+import { toast } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";

@@ -10,7 +10,7 @@ import {
   Switch,
   TextField,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { SendToChat } from "~/modules/messaging";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";

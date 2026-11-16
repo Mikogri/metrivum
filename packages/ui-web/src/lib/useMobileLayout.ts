@@ -1,17 +1,18 @@
-import { useSyncExternalStore } from "react";
-
-const phoneQuery = "(max-width: 767px)";
-
-function subscribe(onChange: () => void) {
-  const media = window.matchMedia(phoneQuery);
-  media.addEventListener("change", onChange);
-  return () => media.removeEventListener("change", onChange);
-}
-
-const getSnapshot = () => window.matchMedia(phoneQuery).matches;
+import { useCallback, useSyncExternalStore } from "react";
+import { useUI } from "../UIProvider";
 const getServerSnapshot = () => false;
-
-/** Keeps the initial server/client render identical; CSS handles the first phone paint. */
+/** Stable hydration; each provider owns its media query, including portal consumers. */
 export function useMobileLayout() {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const { mobileMaxWidth } = useUI();
+  const query = `(max-width: ${mobileMaxWidth}px)`;
+  const subscribe = useCallback(
+    (changed: () => void) => {
+      const media = window.matchMedia(query);
+      media.addEventListener("change", changed);
+      return () => media.removeEventListener("change", changed);
+    },
+    [query],
+  );
+  const snapshot = useCallback(() => window.matchMedia(query).matches, [query]);
+  return useSyncExternalStore(subscribe, snapshot, getServerSnapshot);
 }

@@ -11,7 +11,7 @@ import {
   Select,
   TextArea,
   TextField,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { countryNames, locateMe } from "../lib/location";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import type { AppMessages } from "~/shared/i18n/messages/app.en";

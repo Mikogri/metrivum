@@ -4,8 +4,8 @@
  */
 .page {
   /* Same measure and gutter as the header and footer, so every edge lines up. */
-  --gutter: var(--tf-space-5);
-  --section: clamp(var(--tf-space-16), 11vw, 9rem);
+  --gutter: var(--ui-space-5);
+  --section: clamp(var(--ui-space-16), 11vw, 9rem);
   overflow: clip;
 }
 
@@ -16,7 +16,7 @@
 .steps,
 .faq {
   width: 100%;
-  max-width: var(--tf-content-max);
+  max-width: var(--ui-content-max);
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
@@ -24,13 +24,13 @@
 /* ---- Hero ---- */
 
 .hero {
-  padding-top: clamp(var(--tf-space-12), 9vw, 7rem);
+  padding-top: clamp(var(--ui-space-12), 9vw, 7rem);
 }
 
 .heroCopy {
   display: grid;
-  gap: var(--tf-space-6);
-  animation: rise 700ms var(--tf-ease-out) both;
+  gap: var(--ui-space-6);
+  animation: rise 700ms var(--ui-ease-out) both;
 }
 
 /* A status line above the headline, set in mono like a terminal prompt. */
@@ -38,23 +38,23 @@
   display: inline-flex;
   align-items: center;
   justify-self: start;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-1) var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-gloss), var(--tf-color-surface);
-  box-shadow: var(--tf-gloss-edge);
-  color: var(--tf-color-text-secondary);
-  font-family: var(--tf-font-mono);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-1) var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-gloss), var(--ui-color-surface);
+  box-shadow: var(--ui-gloss-edge);
+  color: var(--ui-color-text-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--ui-text-xs);
 }
 
 .badge span {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--tf-color-accent);
-  box-shadow: 0 0 10px var(--tf-color-accent);
+  background: var(--ui-color-accent);
+  box-shadow: 0 0 10px var(--ui-color-accent);
 }
 
 .heroTitle {
@@ -64,10 +64,10 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  font-family: var(--tf-font-display);
+  font-family: var(--ui-font-display);
   font-size: clamp(2.5rem, 1.3rem + 4.4vw, 4.5rem);
-  font-weight: var(--tf-weight-bold);
-  letter-spacing: var(--tf-tracking-display);
+  font-weight: var(--ui-weight-bold);
+  letter-spacing: var(--ui-tracking-display);
   line-height: 1;
   text-wrap: balance;
 }
@@ -77,53 +77,53 @@
   flex-wrap: wrap;
   align-items: end;
   justify-content: space-between;
-  gap: var(--tf-space-4) var(--tf-space-10);
+  gap: var(--ui-space-4) var(--ui-space-10);
 }
 
 .heroLead {
   max-width: 36rem;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-lg);
-  line-height: var(--tf-leading-relaxed);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-lg);
+  line-height: var(--ui-leading-relaxed);
 }
 
 .heroNote {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-md);
-  transition: color var(--tf-duration-fast) ease;
+  gap: var(--ui-space-2);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-md);
+  transition: color var(--ui-duration-fast) ease;
 }
 
 .heroNote span {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-medium);
 }
 
 .heroNote svg,
 .more svg {
   width: 0.875rem;
   height: 0.875rem;
-  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+  transition: transform var(--ui-duration-base) var(--ui-ease-out);
 }
 
 .heroActions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 /* The product window: framed, lit from above, and fading into the page at the bottom. */
 .heroStage {
   position: relative;
-  margin-top: clamp(var(--tf-space-10), 6vw, var(--tf-space-16));
-  animation: rise 900ms var(--tf-ease-out) 150ms both;
+  margin-top: clamp(var(--ui-space-10), 6vw, var(--ui-space-16));
+  animation: rise 900ms var(--ui-ease-out) 150ms both;
 }
 
 .heroPreview {
   position: absolute;
-  top: calc(var(--tf-space-8) * -1);
+  top: calc(var(--ui-space-8) * -1);
   right: 0;
 }
 
@@ -133,17 +133,17 @@
 }
 
 .heroWindow {
-  padding: var(--tf-space-2) var(--tf-space-2) 0;
-  border: 1px solid var(--tf-color-border);
+  padding: var(--ui-space-2) var(--ui-space-2) 0;
+  border: 1px solid var(--ui-color-border);
   border-bottom: 0;
   border-radius: 16px 16px 0 0;
-  background: var(--tf-gloss), var(--tf-color-surface);
+  background: var(--ui-gloss), var(--ui-color-surface);
   box-shadow:
-    var(--tf-gloss-edge),
+    var(--ui-gloss-edge),
     0 -30px 120px -40px rgb(255 255 255 / 0.12);
   transform: rotateX(16deg) rotateZ(-3deg) translateY(-1rem);
   transform-origin: 50% 0;
-  transition: transform 900ms var(--tf-ease-out);
+  transition: transform 900ms var(--ui-ease-out);
   -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent);
   mask-image: linear-gradient(180deg, #000 58%, transparent);
 }
@@ -165,7 +165,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: calc(var(--tf-z-header) + 1);
+  z-index: calc(var(--ui-z-header) + 1);
   width: 100%;
   height: 52rem;
   pointer-events: none;
@@ -185,29 +185,29 @@
 .facts {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--tf-space-6);
-  margin-top: var(--tf-space-10);
-  padding-block: var(--tf-space-8);
+  gap: var(--ui-space-6);
+  margin-top: var(--ui-space-10);
+  padding-block: var(--ui-space-8);
 }
 
 .facts div {
   display: grid;
   align-content: start;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 .facts dt {
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-tight);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-tight);
 }
 
 .facts dd {
   margin: 0;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-snug);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-snug);
 }
 
 /* ---- Statement and pillars ---- */
@@ -218,91 +218,91 @@
 
 .statementText {
   max-width: 54rem;
-  padding-left: var(--tf-space-6);
-  border-left: 2px solid var(--tf-color-accent);
-  color: var(--tf-color-text-secondary);
+  padding-left: var(--ui-space-6);
+  border-left: 2px solid var(--ui-color-accent);
+  color: var(--ui-color-text-secondary);
   font-size: clamp(1.5rem, 1rem + 1.9vw, 2.5rem);
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   letter-spacing: -0.028em;
   line-height: 1.2;
   text-wrap: pretty;
 }
 
 .statementText strong {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   font-weight: inherit;
 }
 
 .pillars {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: clamp(var(--tf-space-10), 6vw, var(--tf-space-16));
-  border-top: 1px solid var(--tf-color-border-subtle);
+  margin-top: clamp(var(--ui-space-10), 6vw, var(--ui-space-16));
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .pillar {
   display: grid;
   align-content: start;
   justify-items: start;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-5) var(--tf-space-6) 0 0;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-5) var(--ui-space-6) 0 0;
 }
 
 .pillar + .pillar {
-  padding-left: var(--tf-space-6);
-  border-left: 1px solid var(--tf-color-border-subtle);
+  padding-left: var(--ui-space-6);
+  border-left: 1px solid var(--ui-color-border-subtle);
 }
 
 .partIndex {
-  color: var(--tf-color-text-tertiary);
-  font-family: var(--tf-font-mono);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--ui-text-2xs);
   letter-spacing: 0.04em;
 }
 
 .pillar svg {
-  margin: var(--tf-space-5) 0 var(--tf-space-5);
+  margin: var(--ui-space-5) 0 var(--ui-space-5);
 }
 
 .pillar h3,
 .partNote h3,
 .stepList h3 {
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-tight);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-tight);
 }
 
 .pillar p,
 .partBody,
 .stepList p {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-md);
-  line-height: var(--tf-leading-relaxed);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-md);
+  line-height: var(--ui-leading-relaxed);
 }
 
 /* ---- Chapters ---- */
 
 .chapter {
   padding-top: var(--section);
-  scroll-margin-top: var(--tf-header-height);
+  scroll-margin-top: var(--ui-header-height);
 }
 
 .chapterHead {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
-  gap: var(--tf-space-6) var(--tf-space-10);
+  gap: var(--ui-space-6) var(--ui-space-10);
 }
 
 .chapterTitle,
 .stepsTitle {
   max-width: 13ch;
-  color: var(--tf-color-text);
-  font-family: var(--tf-font-display);
+  color: var(--ui-color-text);
+  font-family: var(--ui-font-display);
   font-size: clamp(1.875rem, 1.2rem + 2.2vw, 3rem);
-  font-weight: var(--tf-weight-bold);
-  letter-spacing: var(--tf-tracking-display);
+  font-weight: var(--ui-weight-bold);
+  letter-spacing: var(--ui-tracking-display);
   line-height: 1.04;
   text-wrap: balance;
 }
@@ -310,26 +310,26 @@
 .chapterLead {
   display: grid;
   justify-items: start;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   max-width: 30rem;
-  padding-top: var(--tf-space-2);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-lg);
-  line-height: var(--tf-leading-relaxed);
+  padding-top: var(--ui-space-2);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-lg);
+  line-height: var(--ui-leading-relaxed);
 }
 
 .more {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text);
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-medium);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-medium);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .heroNote:hover {
-    color: var(--tf-color-text);
+    color: var(--ui-color-text);
   }
 
   .heroNote:hover svg,
@@ -342,13 +342,13 @@
   position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--tf-space-4);
-  margin-top: clamp(var(--tf-space-10), 6vw, var(--tf-space-16));
+  gap: var(--ui-space-4);
+  margin-top: clamp(var(--ui-space-10), 6vw, var(--ui-space-16));
 }
 
 .stageLabel {
   position: absolute;
-  top: calc(var(--tf-space-8) * -1);
+  top: calc(var(--ui-space-8) * -1);
   right: 0;
 }
 
@@ -356,7 +356,7 @@
   display: grid;
   grid-template-rows: 1fr auto;
   min-width: 0;
-  border: 1px solid var(--tf-color-border-subtle);
+  border: 1px solid var(--ui-color-border-subtle);
   border-radius: 12px;
   background: linear-gradient(
     180deg,
@@ -374,16 +374,16 @@
   display: grid;
   align-content: center;
   min-width: 0;
-  padding: clamp(var(--tf-space-4), 2.4vw, var(--tf-space-8));
+  padding: clamp(var(--ui-space-4), 2.4vw, var(--ui-space-8));
 }
 
 .partNote {
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
-  gap: var(--tf-space-1) var(--tf-space-2);
-  padding: var(--tf-space-5) clamp(var(--tf-space-4), 2.4vw, var(--tf-space-8))
-    var(--tf-space-6);
-  border-top: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-1) var(--ui-space-2);
+  padding: var(--ui-space-5) clamp(var(--ui-space-4), 2.4vw, var(--ui-space-8))
+    var(--ui-space-6);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .partIndex {
@@ -396,18 +396,18 @@
 }
 
 .partBody strong {
-  color: var(--tf-color-text);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text);
+  font-weight: var(--ui-weight-medium);
 }
 
 .honesty {
   max-width: 44rem;
-  margin-top: var(--tf-space-5);
-  padding-left: var(--tf-space-4);
-  border-left: 1px solid var(--tf-color-border-strong);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-relaxed);
+  margin-top: var(--ui-space-5);
+  padding-left: var(--ui-space-4);
+  border-left: 1px solid var(--ui-color-border-strong);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-relaxed);
 }
 
 /* ---- Steps ---- */
@@ -423,8 +423,8 @@
 .stepList {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--tf-space-4);
-  margin: clamp(var(--tf-space-8), 5vw, var(--tf-space-12)) 0 0;
+  gap: var(--ui-space-4);
+  margin: clamp(var(--ui-space-8), 5vw, var(--ui-space-12)) 0 0;
   padding: 0;
   list-style: none;
 }
@@ -432,9 +432,9 @@
 .stepList li {
   display: grid;
   align-content: start;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-5);
-  border: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-5);
+  border: 1px solid var(--ui-color-border-subtle);
   border-radius: 12px;
   background: linear-gradient(
     180deg,
@@ -444,11 +444,11 @@
 }
 
 .stepIndex {
-  margin-bottom: var(--tf-space-6);
-  color: var(--tf-color-accent);
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-3xl);
-  font-weight: var(--tf-weight-bold);
+  margin-bottom: var(--ui-space-6);
+  color: var(--ui-color-accent);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-3xl);
+  font-weight: var(--ui-weight-bold);
   line-height: 1;
 }
 
@@ -457,8 +457,8 @@
 .faq {
   display: grid;
   grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
-  gap: var(--tf-space-10);
-  padding-block: var(--section) var(--tf-space-8);
+  gap: var(--ui-space-10);
+  padding-block: var(--section) var(--ui-space-8);
 }
 
 @keyframes rise {
@@ -489,12 +489,12 @@
 
   .pillar,
   .pillar + .pillar {
-    padding: var(--tf-space-5) 0 var(--tf-space-6);
+    padding: var(--ui-space-5) 0 var(--ui-space-6);
     border-left: 0;
   }
 
   .pillar + .pillar {
-    border-top: 1px solid var(--tf-color-border-subtle);
+    border-top: 1px solid var(--ui-color-border-subtle);
   }
 }
 

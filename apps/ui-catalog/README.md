@@ -1,6 +1,6 @@
 # Metrivum UI catalog
 
-Developer Storybook for `@metrivum/ui-web`. Runs without a backend; stories use static data only.
+Developer Storybook for `@portable-ui/react`. Runs without a backend; stories use static data only.
 It is not deployed with the public site.
 
 ```bash

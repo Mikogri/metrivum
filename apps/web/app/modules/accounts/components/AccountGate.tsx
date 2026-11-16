@@ -1,7 +1,7 @@
 import { LogIn, RefreshCw } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router";
-import { Button, ErrorState, LinkButton } from "@metrivum/ui-web";
+import { Button, ErrorState, LinkButton } from "@portable-ui/react";
 import { ApiError } from "~/shared/http/errors";
 import { useAppLocale, useT } from "~/shared/i18n/AppLocale";
 import { errorText, traceIdOf } from "~/shared/lib/errorText";

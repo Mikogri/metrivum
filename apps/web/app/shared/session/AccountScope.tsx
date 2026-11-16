@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { clearToasts } from "@metrivum/ui-web";
+import { clearToasts } from "@portable-ui/react";
 import {
   createContext,
   useContext,

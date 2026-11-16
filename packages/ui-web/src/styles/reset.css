@@ -16,11 +16,11 @@ html {
 
 body {
   min-height: 100dvh;
-  background: var(--tf-color-bg);
-  color: var(--tf-color-text);
-  font-family: var(--tf-font-sans);
-  font-size: var(--tf-text-md);
-  line-height: var(--tf-leading-normal);
+  background: var(--ui-color-bg);
+  color: var(--ui-color-text);
+  font-family: var(--ui-font-sans);
+  font-size: var(--ui-text-md);
+  line-height: var(--ui-leading-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01", "cv11";
@@ -80,11 +80,11 @@ ol[role="list"] {
 
 ::selection {
   background: rgb(62 224 154 / 0.3);
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 :focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 

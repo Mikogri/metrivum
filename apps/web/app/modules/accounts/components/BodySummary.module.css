@@ -1,13 +1,13 @@
 /* Body and training summary: key numbers, two panels (training week, recovery), equipment and notes. */
 .summary {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr));
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -15,19 +15,19 @@
 
 .metrics li {
   display: grid;
-  gap: var(--tf-space-1);
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
+  gap: var(--ui-space-1);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
 }
 
 .metricLabel {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .metricLabel svg {
@@ -36,24 +36,24 @@
 }
 
 .metricLabel svg[data-tone="green"] {
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 .metricLabel svg[data-tone="violet"] {
-  color: var(--tf-color-violet);
+  color: var(--ui-color-violet);
 }
 .metricLabel svg[data-tone="blue"] {
-  color: var(--tf-color-info);
+  color: var(--ui-color-info);
 }
 .metricLabel svg[data-tone="orange"] {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 .metricLabel svg[data-tone="rose"] {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 .metricValue {
-  font-size: var(--tf-text-2xl);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-2xl);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
   line-height: 1.1;
@@ -61,52 +61,52 @@
 
 .metricValue small {
   margin-left: 3px;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .panels {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .panel {
   display: grid;
   align-content: start;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-4) var(--ui-space-4);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
 }
 
 .panelTitle {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  gap: var(--ui-space-2);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .line {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .pill {
-  padding: 2px var(--tf-space-2);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  padding: 2px var(--ui-space-2);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -116,41 +116,41 @@
   display: grid;
   place-items: center;
   height: 2rem;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-sm);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
 }
 
 .week li[data-on] {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-accent-deep);
-  color: var(--tf-color-accent);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-accent-deep);
+  color: var(--ui-color-accent);
 }
 
 .meterRow {
   display: grid;
   grid-template-columns: 6rem minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--tf-space-3);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-3);
+  font-size: var(--ui-text-sm);
 }
 
 .meterLabel {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .meterValue {
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .meter {
   height: 0.5rem;
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-overlay);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-overlay);
 }
 
 .meter span {
@@ -158,34 +158,34 @@
   height: 100%;
   border-radius: inherit;
   transform-origin: left;
-  transition: transform 500ms var(--tf-ease-out);
+  transition: transform 500ms var(--ui-ease-out);
 }
 
 .meter[data-tone="green"] span {
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
 }
 .meter[data-tone="violet"] span {
-  background: var(--tf-color-violet);
+  background: var(--ui-color-violet);
 }
 .meter[data-tone="orange"] span {
-  background: var(--tf-color-warning);
+  background: var(--ui-color-warning);
 }
 .meter[data-tone="rose"] span {
-  background: var(--tf-color-danger);
+  background: var(--ui-color-danger);
 }
 
 .equipment {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .caption {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-medium);
+  gap: var(--ui-space-1-5);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-medium);
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
@@ -198,40 +198,40 @@
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .tags li {
-  padding: 3px var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  font-size: var(--tf-text-sm);
+  padding: 3px var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  font-size: var(--ui-text-sm);
 }
 
 .notes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .note {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   margin: 0;
-  padding: var(--tf-space-3) var(--tf-space-4);
+  padding: var(--ui-space-3) var(--ui-space-4);
   border-left: 3px solid var(--tone);
-  border-radius: 0 var(--tf-radius-md) var(--tf-radius-md) 0;
-  background: color-mix(in srgb, var(--tone) 6%, var(--tf-color-surface));
+  border-radius: 0 var(--ui-radius-md) var(--ui-radius-md) 0;
+  background: color-mix(in srgb, var(--tone) 6%, var(--ui-color-surface));
 }
 
 .note[data-tone="orange"] {
-  --tone: var(--tf-color-warning);
+  --tone: var(--ui-color-warning);
 }
 .note[data-tone="green"] {
-  --tone: var(--tf-color-accent);
+  --tone: var(--ui-color-accent);
 }
 
 .note .caption svg {
@@ -239,14 +239,14 @@
 }
 
 .note p {
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-normal);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
   white-space: pre-line;
 }
 
 .empty {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .chip {
@@ -255,7 +255,7 @@
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
 }
 
 .chip svg {
@@ -264,22 +264,22 @@
 }
 
 .chip[data-tone="green"] {
-  background: var(--tf-color-accent-deep);
-  color: var(--tf-color-accent);
+  background: var(--ui-color-accent-deep);
+  color: var(--ui-color-accent);
 }
 .chip[data-tone="violet"] {
-  background: var(--tf-color-violet-soft);
-  color: var(--tf-color-violet);
+  background: var(--ui-color-violet-soft);
+  color: var(--ui-color-violet);
 }
 .chip[data-tone="blue"] {
-  background: var(--tf-color-info-soft);
-  color: var(--tf-color-info);
+  background: var(--ui-color-info-soft);
+  color: var(--ui-color-info);
 }
 .chip[data-tone="orange"] {
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 .chip[data-tone="rose"] {
-  background: var(--tf-color-danger-soft);
-  color: var(--tf-color-danger);
+  background: var(--ui-color-danger-soft);
+  color: var(--ui-color-danger);
 }

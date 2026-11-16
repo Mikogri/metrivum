@@ -5,7 +5,7 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router";
-import { Alert, Button, TextField } from "@metrivum/ui-web";
+import { Alert, Button, TextField } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import {

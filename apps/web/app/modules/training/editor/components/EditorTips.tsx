@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { Button } from "@metrivum/ui-web";
+import { Button } from "@portable-ui/react";
 import { getPerson, personKey, useProfile } from "~/modules/accounts";
 import { useT } from "~/shared/i18n/AppLocale";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";

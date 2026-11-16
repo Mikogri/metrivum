@@ -6,7 +6,7 @@ import {
   IconButton,
   Tooltip as InfoTooltip,
   TooltipTrigger,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { createPortal } from "react-dom";
 import type uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
@@ -147,11 +147,11 @@ function readPalette(element: HTMLElement): Palette {
   const v = (name: string, fallback: string) =>
     css.getPropertyValue(name).trim() || fallback;
   return {
-    text: v("--tf-color-text-tertiary", "#888"),
-    grid: v("--tf-color-border", "rgba(128,128,128,.25)"),
-    axis: v("--tf-color-border-strong", "rgba(128,128,128,.45)"),
-    cursor: v("--tf-color-text", "#fff"),
-    background: v("--tf-color-surface", "#111"),
+    text: v("--ui-color-text-tertiary", "#888"),
+    grid: v("--ui-color-border", "rgba(128,128,128,.25)"),
+    axis: v("--ui-color-border-strong", "rgba(128,128,128,.45)"),
+    cursor: v("--ui-color-text", "#fff"),
+    background: v("--ui-color-surface", "#111"),
     // Defined once in ../phases.css; the fallback only shows if that file failed to load.
     phase: {
       eccentric: v("--phase-eccentric", "gray"),

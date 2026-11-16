@@ -1,4 +1,4 @@
-// Public API of @metrivum/ui-web. Styles are imported explicitly via "@metrivum/ui-web/styles.css".
+// Public API of @portable-ui/react. Styles are imported explicitly via "@portable-ui/react/styles.css".
 // The library knows nothing about endpoints, Supabase, users or feature access.
 
 export { cx } from "./lib/cx";
@@ -189,3 +189,10 @@ export { FileCard, type FileCardProps } from "./components/FileCard/FileCard";
 export { overlayPosition, overlayViewport } from "./lib/overlay-position";
 
 export { DecimalInput } from "./primitives/Field/NumberField";
+
+export {
+  UIProvider,
+  useUI,
+  defaultUIMessages,
+  type UIMessages,
+} from "./UIProvider";

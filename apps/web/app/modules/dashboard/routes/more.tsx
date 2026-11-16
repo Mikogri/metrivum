@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 import { Fragment } from "react";
-import { PageHeader, Segment, SegmentedControl } from "@metrivum/ui-web";
+import { PageHeader, Segment, SegmentedControl } from "@portable-ui/react";
 import { NotificationBell } from "~/modules/messaging";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useT } from "~/shared/i18n/AppLocale";

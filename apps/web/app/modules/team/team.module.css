@@ -1,7 +1,7 @@
 .page,
 .stack {
   display: grid;
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
 }
 
 .grow {
@@ -12,39 +12,39 @@
 }
 
 .strong {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .muted {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 .note {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-sm);
-  line-height: var(--tf-leading-relaxed);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-relaxed);
 }
 
 .sectionTitle {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 /* ---- Invitations to join a Team ---- */
 
 .invites {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .invite {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
 }
 
 .inviteIcon,
@@ -54,9 +54,9 @@
   place-items: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 
 .inviteIcon svg,
@@ -75,12 +75,12 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-4);
-  padding: var(--tf-space-5);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
+  gap: var(--ui-space-4);
+  padding: var(--ui-space-5);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--tf-color-accent) 5%, transparent),
+    color-mix(in srgb, var(--ui-color-accent) 5%, transparent),
     transparent
   );
 }
@@ -91,27 +91,27 @@
   place-items: center;
   width: 3rem;
   height: 3rem;
-  border: 1px solid var(--tf-color-accent-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  border: 1px solid var(--ui-color-accent-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .teamName {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-tight);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-tight);
 }
 
 .badges {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
-  margin: var(--tf-space-1) 0;
+  gap: var(--ui-space-1-5);
+  margin: var(--ui-space-1) 0;
 }
 
 .crown {
@@ -121,21 +121,21 @@
 
 .seats {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   min-width: 11rem;
 }
 
 .seatsValue {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-xl);
-  font-weight: var(--tf-weight-semibold);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .seatsValue small {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-regular);
 }
 
 .meter {
@@ -143,26 +143,26 @@
   height: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: var(--tf-color-surface-hover);
+  background: var(--ui-color-surface-hover);
 }
 
 .meter span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
   transform-origin: left;
-  transition: transform 700ms var(--tf-ease-out);
+  transition: transform 700ms var(--ui-ease-out);
 }
 
 .meter[data-full] span {
-  background: var(--tf-color-warning);
+  background: var(--ui-color-warning);
 }
 
 .body {
   display: grid;
-  gap: var(--tf-space-4);
-  padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-5);
+  gap: var(--ui-space-4);
+  padding: var(--ui-space-4) var(--ui-space-5) var(--ui-space-5);
 }
 
 /* ---- Overview: where Team work lives ---- */
@@ -170,7 +170,7 @@
 .links {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -179,28 +179,28 @@
 .link {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   height: 100%;
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
   color: inherit;
   text-decoration: none;
-  transition: border-color var(--tf-duration-fast) ease;
+  transition: border-color var(--ui-duration-fast) ease;
 }
 
 .linkArrow {
   flex-shrink: 0;
   width: 0.875rem;
   height: 0.875rem;
-  color: var(--tf-color-text-tertiary);
-  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+  color: var(--ui-color-text-tertiary);
+  transition: transform var(--ui-duration-base) var(--ui-ease-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .link:hover {
-    border-color: var(--tf-color-border-strong);
+    border-color: var(--ui-color-border-strong);
   }
 
   .link:hover .linkArrow {
@@ -213,14 +213,14 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
 }
 
 .zone[data-tone="danger"] {
-  border-color: color-mix(in srgb, var(--tf-color-danger) 35%, transparent);
+  border-color: color-mix(in srgb, var(--ui-color-danger) 35%, transparent);
 }
 
 /* ---- Members ---- */
@@ -229,11 +229,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-4);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-raised);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-4);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-raised);
 }
 
 .roleSelect {
@@ -246,14 +246,14 @@
 
 .formNote {
   flex-basis: 100%;
-  color: var(--tf-color-warning);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-warning);
+  font-size: var(--ui-text-xs);
 }
 
 .person {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-2-5);
+  gap: var(--ui-space-2-5);
   min-width: 0;
 }
 
@@ -267,14 +267,14 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
 }
 
 /* Assign a coach in one row: the picker, then the button. */
 .assignForm {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .assignForm .roleSelect {
@@ -285,7 +285,7 @@
 .coachChips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -294,16 +294,16 @@
 .coachChips li {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   max-width: 100%;
   padding: 2px 2px 2px 2px;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-full);
-  font-size: var(--tf-text-xs);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-full);
+  font-size: var(--ui-text-xs);
 }
 
 .coachChips li:not(:has(button)) {
-  padding-right: var(--tf-space-2);
+  padding-right: var(--ui-space-2);
 }
 
 .coachChips li > span:not(:first-child) {
@@ -321,7 +321,7 @@
 .coachChips button {
   width: 1.375rem;
   height: 1.375rem;
-  border-radius: var(--tf-radius-full);
+  border-radius: var(--ui-radius-full);
 }
 
 /* The private-client pages sit on their own row under the picker. */
@@ -335,20 +335,20 @@
   display: grid;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
   list-style: none;
 }
 
 .requestList li {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2-5);
+  gap: var(--ui-space-2-5);
   min-height: 2.75rem;
-  padding: var(--tf-space-1-5) var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-color-border-subtle);
-  font-size: var(--tf-text-sm);
+  padding: var(--ui-space-1-5) var(--ui-space-3);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+  font-size: var(--ui-text-sm);
 }
 
 .requestList li:last-child {
@@ -357,7 +357,7 @@
 
 .settings {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   max-width: 32rem;
 }
 
@@ -388,7 +388,7 @@
   }
   .hero,
   .body {
-    padding: var(--tf-space-4);
+    padding: var(--ui-space-4);
   }
   .links {
     grid-template-columns: minmax(0, 1fr);
@@ -423,7 +423,7 @@
     max-width: 100%;
     min-height: 44px;
     height: auto;
-    padding-block: var(--tf-space-2);
+    padding-block: var(--ui-space-2);
     white-space: normal;
   }
 }

@@ -1,30 +1,30 @@
 .loading {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }
 
 .summary {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--tf-space-6);
-  margin-bottom: var(--tf-space-5);
-  padding: var(--tf-space-4) var(--tf-space-5);
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  gap: var(--ui-space-6);
+  margin-bottom: var(--ui-space-5);
+  padding: var(--ui-space-4) var(--ui-space-5);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
 }
 
 .summaryHead {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 /* Preview, version history and assignments: the same panels, one even gap apart. */
 .panels {
   display: grid;
-  gap: var(--tf-space-5);
+  gap: var(--ui-space-5);
 }
 
 .preview {
@@ -36,20 +36,20 @@
 }
 
 .panelNote {
-  padding: var(--tf-space-4);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  padding: var(--ui-space-4);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 .title {
-  font-size: var(--tf-text-md);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-md);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .muted {
-  margin-bottom: var(--tf-space-4);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  margin-bottom: var(--ui-space-4);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 /* Four counts, each a number over its own label, divided by hairlines. */
@@ -64,19 +64,19 @@
   flex-direction: column-reverse;
   justify-content: center;
   gap: 2px;
-  padding: 0 var(--tf-space-5);
-  border-left: 1px solid var(--tf-color-border-subtle);
+  padding: 0 var(--ui-space-5);
+  border-left: 1px solid var(--ui-color-border-subtle);
 }
 
 .stats dt {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 .stats dd {
   margin: 0;
-  font-size: var(--tf-text-xl);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-semibold);
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
@@ -91,14 +91,14 @@
 .revision {
   display: flex;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-4);
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-4);
   /* No delay or stagger: content shows the moment the page does. */
-  animation: rise 200ms var(--tf-ease-out) both;
+  animation: rise 200ms var(--ui-ease-out) both;
 }
 
 .revision + .revision {
-  border-top: 1px solid var(--tf-color-border-subtle);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .revisionMark {
@@ -107,11 +107,11 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-surface-overlay);
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-semibold);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-overlay);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
@@ -123,22 +123,22 @@
 }
 
 .revisionText strong {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .revisionText span {
   overflow: hidden;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .revisionsLoading {
   display: grid;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-4);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-4);
 }
 
 @keyframes rise {
@@ -151,12 +151,12 @@
 @media (max-width: 64rem) {
   .summary {
     grid-template-columns: 1fr;
-    gap: var(--tf-space-3);
+    gap: var(--ui-space-3);
   }
 
   .stats {
     grid-template-columns: 1fr 1fr;
-    row-gap: var(--tf-space-3);
+    row-gap: var(--ui-space-3);
   }
 
   .stats > div:nth-child(odd) {
@@ -166,7 +166,7 @@
 }
 
 .formatBanner {
-  margin-bottom: var(--tf-space-4);
+  margin-bottom: var(--ui-space-4);
 }
 
 .descriptionPreview {

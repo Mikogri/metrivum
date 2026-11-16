@@ -2,7 +2,7 @@ import { MailCheck } from "lucide-react";
 import { CodeInput } from "../components/CodeInput";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router";
-import { Alert, Button, Spinner, toast } from "@metrivum/ui-web";
+import { Alert, Button, Spinner, toast } from "@portable-ui/react";
 import { useT } from "~/shared/i18n/AppLocale";
 import { sanitizeReturnTo } from "~/shared/session/returnTo";
 import {

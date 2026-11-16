@@ -2,17 +2,17 @@
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .lockedWrap {
   display: inline-flex;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--ui-radius-md);
   cursor: default;
 }
 
 .lockedWrap:focus-visible {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
   outline-offset: 2px;
 }
 
@@ -22,5 +22,5 @@
 
 .pending {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
 }

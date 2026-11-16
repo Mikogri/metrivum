@@ -11,7 +11,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
-import { Alert, Button, PageHeader, TextArea, toast } from "@metrivum/ui-web";
+import { Alert, Button, PageHeader, TextArea, toast } from "@portable-ui/react";
 import { QuickMessage, type QuickTemplate } from "~/modules/messaging";
 import { useProfile } from "~/modules/accounts";
 import { LockedReason, useFeatureAccess } from "~/shared/access";

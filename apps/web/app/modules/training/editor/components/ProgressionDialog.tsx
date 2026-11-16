@@ -10,7 +10,7 @@ import {
   SegmentedControl,
   Select,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useT } from "~/shared/i18n/AppLocale";
 import {
@@ -92,7 +92,7 @@ export function ProgressionDialog({
       {ids.length === 0 ? (
         <Alert tone="info" title={t.empty} />
       ) : (
-        <div style={{ display: "grid", gap: "var(--tf-space-4)" }}>
+        <div style={{ display: "grid", gap: "var(--ui-space-4)" }}>
           <Select
             label={t.exercise}
             selectedKey={exerciseId}
@@ -107,11 +107,11 @@ export function ProgressionDialog({
               </Option>
             ))}
           </Select>
-          <div style={{ display: "grid", gap: "var(--tf-space-1-5)" }}>
+          <div style={{ display: "grid", gap: "var(--ui-space-1-5)" }}>
             <span
               style={{
-                color: "var(--tf-color-text-secondary)",
-                fontSize: "var(--tf-text-sm)",
+                color: "var(--ui-color-text-secondary)",
+                fontSize: "var(--ui-text-sm)",
               }}
             >
               {t.kind}

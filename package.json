@@ -32,7 +32,9 @@
     "format:api": "dotnet csharpier format apps/api backend workers tools tests infra",
     "format:api:check": "dotnet csharpier check apps/api backend workers tools tests infra",
     "format:frontend": "prettier --write \"{apps/web,apps/mobile,apps/ui-catalog,packages,contracts,test}/**/*.{ts,tsx,js,jsx,mjs,cjs,css,scss,less,html,json,jsonc,md,mdx,yml,yaml}\" \"*.{js,mjs,cjs,ts,json}\" \".vscode/*.json\"",
-    "format:frontend:check": "prettier --check \"{apps/web,apps/mobile,apps/ui-catalog,packages,contracts,test}/**/*.{ts,tsx,js,jsx,mjs,cjs,css,scss,less,html,json,jsonc,md,mdx,yml,yaml}\" \"*.{js,mjs,cjs,ts,json}\" \".vscode/*.json\""
+    "format:frontend:check": "prettier --check \"{apps/web,apps/mobile,apps/ui-catalog,packages,contracts,test}/**/*.{ts,tsx,js,jsx,mjs,cjs,css,scss,less,html,json,jsonc,md,mdx,yml,yaml}\" \"*.{js,mjs,cjs,ts,json}\" \".vscode/*.json\"",
+    "pretypecheck": "npm run build --workspace @portable-ui/react",
+    "build:ui": "npm run build --workspace @portable-ui/react"
   },
   "overrides": {
     "braces": "$braces",

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, LinkButton, Skeleton } from "@metrivum/ui-web";
+import { Button, LinkButton, Skeleton } from "@portable-ui/react";
 import type { CatalogPlan } from "~/shared/access/plan-catalog";
 import { useSubscriptionMessages } from "~/shared/i18n/subscription-messages";
 import { apiBaseUrl } from "~/shared/http/config";

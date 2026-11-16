@@ -22,7 +22,7 @@ import {
   TextField,
   toast,
   DialogFooter,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { ExercisePicker, useExerciseNames } from "~/modules/exercises";
 import { useFeatureAccess } from "~/shared/access";
 import { ApiError } from "~/shared/http/errors";

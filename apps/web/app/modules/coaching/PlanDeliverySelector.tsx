@@ -1,7 +1,7 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useEffect, useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
-import { Alert, Option, SearchInput, Select } from "@metrivum/ui-web";
+import { Alert, Option, SearchInput, Select } from "@portable-ui/react";
 import { useCoachingQuery, type Page } from "./api";
 import { Failure, ListPagination } from "./components";
 

@@ -2,10 +2,10 @@
   display: grid;
   grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
   align-items: center;
-  gap: clamp(var(--tf-space-8), 6vw, var(--tf-space-16));
-  max-width: var(--tf-content-max);
+  gap: clamp(var(--ui-space-8), 6vw, var(--ui-space-16));
+  max-width: var(--ui-content-max);
   margin: 0 auto;
-  padding: clamp(var(--tf-space-12), 9vw, var(--tf-space-24)) var(--tf-space-5);
+  padding: clamp(var(--ui-space-12), 9vw, var(--ui-space-24)) var(--ui-space-5);
 }
 
 .section[data-reverse] .copy {
@@ -19,35 +19,35 @@
 .section[data-stacked] .copy {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: end;
-  column-gap: var(--tf-space-12);
+  column-gap: var(--ui-space-12);
   max-width: none;
 }
 
 .copy {
   display: grid;
-  gap: var(--tf-space-4);
+  gap: var(--ui-space-4);
   max-width: 30rem;
 }
 
 .title {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-4xl);
-  font-weight: var(--tf-weight-semibold);
-  letter-spacing: var(--tf-tracking-display);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-4xl);
+  font-weight: var(--ui-weight-semibold);
+  letter-spacing: var(--ui-tracking-display);
   line-height: 1.08;
 }
 
 .body {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-lg);
-  line-height: var(--tf-leading-relaxed);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-lg);
+  line-height: var(--ui-leading-relaxed);
 }
 
 .footer {
   display: grid;
-  gap: var(--tf-space-3);
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-sm);
+  gap: var(--ui-space-3);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-sm);
 }
 
 /* The title rises out of its mask once; the visual carries the section's own motion. */
@@ -58,9 +58,9 @@
 .line {
   display: block;
   transition:
-    transform 700ms var(--tf-ease-out),
+    transform 700ms var(--ui-ease-out),
     opacity 600ms ease,
-    filter 700ms var(--tf-ease-out);
+    filter 700ms var(--ui-ease-out);
 }
 
 .body {

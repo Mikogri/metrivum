@@ -10,7 +10,7 @@
       17rem
     );
   grid-template-areas: "left video right";
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   align-items: stretch;
 }
 
@@ -36,7 +36,7 @@
 .right {
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   height: var(--video-height);
   min-width: 0;
   min-height: 0;
@@ -72,18 +72,18 @@
 
 .card {
   display: grid;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   min-width: 0;
 }
 
 .cardTitle {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .startBar {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 /* The video panel always takes the full height of the screen; the picker grows inside it. */
@@ -91,10 +91,10 @@
   grid-area: video;
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   height: var(--video-height);
   min-height: 30rem;
-  transition: border-color var(--tf-duration-fast) ease;
+  transition: border-color var(--ui-duration-fast) ease;
 }
 
 /* As wide as the video's own proportions allow at full height (plus the header and toolbar around it). */
@@ -118,10 +118,10 @@
   flex: 1;
   place-content: center;
   justify-items: center;
-  gap: var(--tf-space-3);
-  border: 1px dashed var(--tf-color-border-strong);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-bg-sunken);
+  gap: var(--ui-space-3);
+  border: 1px dashed var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-bg-sunken);
   text-align: center;
 }
 
@@ -130,10 +130,10 @@
   place-items: center;
   width: 3rem;
   height: 3rem;
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-tertiary);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-tertiary);
 }
 
 .emptyIcon svg {
@@ -142,12 +142,12 @@
 }
 
 .emptyTitle {
-  font-weight: var(--tf-weight-semibold);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .hint {
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
 }
 
 @media (max-width: 75rem) {
@@ -238,7 +238,7 @@
 /* What is done and what is next, under the name. */
 .checklist {
   display: grid;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -246,44 +246,44 @@
 .checklist li {
   display: grid;
   grid-template-columns: 1.375rem minmax(0, 1fr);
-  column-gap: var(--tf-space-2-5);
+  column-gap: var(--ui-space-2-5);
   align-items: center;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 .checklist li > span {
   display: grid;
   place-items: center;
   width: 1.375rem;
   height: 1.375rem;
-  border: 1px solid var(--tf-color-border);
+  border: 1px solid var(--ui-color-border);
   border-radius: 50%;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
 }
 .checklist li[data-done] > span {
-  border-color: var(--tf-color-accent-border);
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  border-color: var(--ui-color-accent-border);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 .checklist li:not([data-done]) > span {
-  border-color: color-mix(in srgb, var(--tf-color-warning) 50%, transparent);
-  color: var(--tf-color-warning);
+  border-color: color-mix(in srgb, var(--ui-color-warning) 50%, transparent);
+  color: var(--ui-color-warning);
 }
 .checklist li[data-error] > span {
-  border-color: var(--tf-color-danger);
-  color: var(--tf-color-danger);
+  border-color: var(--ui-color-danger);
+  color: var(--ui-color-danger);
 }
 .checklist li[data-error] small {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 .checklist small {
   display: block;
   min-width: 0;
   overflow: hidden;
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
-  font-weight: var(--tf-weight-regular);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
+  font-weight: var(--ui-weight-regular);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -293,76 +293,76 @@
 /* One run, one bar: the estimate moves fast early and slows near the end; stages tick off underneath. */
 .run {
   display: grid;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-color-surface);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-surface);
 }
 
 .runHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
 }
 
 .runLabel {
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-medium);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-medium);
 }
 
 .runPercent {
-  font-family: var(--tf-font-display);
-  font-size: var(--tf-text-xl);
-  font-weight: var(--tf-weight-semibold);
+  font-family: var(--ui-font-display);
+  font-size: var(--ui-text-xl);
+  font-weight: var(--ui-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .runBar {
   height: 6px;
   overflow: hidden;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
 }
 
 .runBar > span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--tf-color-accent);
+  background: var(--ui-color-accent);
   transform-origin: left;
-  transition: transform 300ms var(--tf-ease-out);
+  transition: transform 300ms var(--ui-ease-out);
 }
 
 .run[data-stage="save_failed"] .runBar > span {
-  background: var(--tf-color-warning);
+  background: var(--ui-color-warning);
 }
 
 .runSteps {
   display: flex;
-  gap: var(--tf-space-3);
+  gap: var(--ui-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
 }
 
 .runSteps li {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .runSteps li[data-state="active"] {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
 }
 
 .runSteps li[data-state="done"] {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .runSteps li[data-state="done"]::before {
   content: "✓ ";
-  color: var(--tf-color-accent);
+  color: var(--ui-color-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -374,8 +374,8 @@
 /* Several videos: one chip each, ticked once its two points are marked. */
 .drafts {
   display: flex;
-  gap: var(--tf-space-1-5);
-  padding-bottom: var(--tf-space-1);
+  gap: var(--ui-space-1-5);
+  padding-bottom: var(--ui-space-1);
   overflow-x: auto;
   scrollbar-width: thin;
 }
@@ -386,33 +386,33 @@
   flex: none;
   min-width: 0;
   align-items: center;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   max-width: 13rem;
   height: 2rem;
-  padding: 0 var(--tf-space-2-5) 0 var(--tf-space-1);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface);
-  color: var(--tf-color-text-secondary);
+  padding: 0 var(--ui-space-2-5) 0 var(--ui-space-1);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-secondary);
   font: inherit;
-  font-size: var(--tf-text-xs);
+  font-size: var(--ui-text-xs);
   cursor: pointer;
   transition:
-    border-color var(--tf-duration-fast) ease,
-    color var(--tf-duration-fast) ease;
+    border-color var(--ui-duration-fast) ease,
+    color var(--ui-duration-fast) ease;
 }
 
 .draft:hover:not(:disabled),
 .draftAdd:hover:not(:disabled) {
-  border-color: var(--tf-color-border-strong);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-border-strong);
+  color: var(--ui-color-text);
 }
 
 /* The chosen video: a quiet fill and a slightly stronger border, not a bright outline. */
 .draft[aria-selected="true"] {
-  border-color: var(--tf-color-border-strong);
-  background: var(--tf-color-surface-selected);
-  color: var(--tf-color-text);
+  border-color: var(--ui-color-border-strong);
+  background: var(--ui-color-surface-selected);
+  color: var(--ui-color-text);
 }
 
 .draft:disabled,
@@ -427,15 +427,15 @@
   place-items: center;
   width: 1.375rem;
   height: 1.375rem;
-  border-radius: var(--tf-radius-full);
-  background: var(--tf-color-surface-raised);
-  font-size: var(--tf-text-2xs);
+  border-radius: var(--ui-radius-full);
+  background: var(--ui-color-surface-raised);
+  font-size: var(--ui-text-2xs);
   font-variant-numeric: tabular-nums;
 }
 
 .draft[data-ready] .draftMark {
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 
 .draftMark svg {
@@ -450,7 +450,7 @@
 }
 
 .draftAdd {
-  padding-left: var(--tf-space-2-5);
+  padding-left: var(--ui-space-2-5);
   border-style: dashed;
 }
 
@@ -474,25 +474,25 @@
 
 .draftPercent {
   margin-left: auto;
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-2xs);
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-2xs);
   font-variant-numeric: tabular-nums;
 }
 
 .draft[data-sent] .draftMark {
-  background: var(--tf-color-surface-raised);
-  color: var(--tf-color-text-secondary);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-secondary);
 }
 
 .draft[data-sent="saved"] .draftMark {
-  background: var(--tf-color-accent-soft);
-  color: var(--tf-color-accent);
+  background: var(--ui-color-accent-soft);
+  color: var(--ui-color-accent);
 }
 
 .draft[data-sent="failed"] .draftMark,
 .draft[data-sent="save_failed"] .draftMark {
-  background: var(--tf-color-warning-soft);
-  color: var(--tf-color-warning);
+  background: var(--ui-color-warning-soft);
+  color: var(--ui-color-warning);
 }
 
 .spin {
@@ -514,87 +514,87 @@
 /* A sent video: what the analyzer is doing with it, and how to move on to the next one. */
 .sent {
   display: grid;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-color-bg-sunken);
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-bg-sunken);
 }
 
 .sent[data-state="failed"],
 .sent[data-state="save_failed"] {
-  border-color: color-mix(in srgb, var(--tf-color-warning) 40%, transparent);
+  border-color: color-mix(in srgb, var(--ui-color-warning) 40%, transparent);
 }
 
 .sentHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-width: 0;
 }
 
 .sentHead strong {
   overflow: hidden;
-  font-size: var(--tf-text-sm);
-  font-weight: var(--tf-weight-semibold);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .sentPercent {
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
   font-variant-numeric: tabular-nums;
 }
 
 .sentText {
-  color: var(--tf-color-text-secondary);
-  font-size: var(--tf-text-xs);
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-text-xs);
 }
 
 .sentActions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .cardHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tf-space-2);
+  gap: var(--ui-space-2);
   min-height: 1.75rem;
 }
 
 /* Stabilization: a switch, then one line saying whether it is needed. */
 .stability {
   display: grid;
-  gap: var(--tf-space-1-5);
-  padding: var(--tf-space-2-5);
-  border: 1px solid var(--tf-color-border);
-  border-radius: var(--tf-radius-md);
+  gap: var(--ui-space-1-5);
+  padding: var(--ui-space-2-5);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
 }
 
 .stability[data-state="unstable"] {
-  border-color: color-mix(in srgb, var(--tf-color-warning) 45%, transparent);
-  background: var(--tf-color-warning-soft);
+  border-color: color-mix(in srgb, var(--ui-color-warning) 45%, transparent);
+  background: var(--ui-color-warning-soft);
 }
 
 .stabilityNote,
 .stabilityHint {
   display: flex;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   margin: 0;
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 .stabilityHint {
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }
 
 .stabilityNote {
-  color: var(--tf-color-text-secondary);
+  color: var(--ui-color-text-secondary);
 }
 
 .stabilityNote svg,
@@ -606,33 +606,33 @@
 }
 
 .stabilityNote svg {
-  color: var(--tf-color-warning);
+  color: var(--ui-color-warning);
 }
 
 .hint[data-error] {
-  color: var(--tf-color-danger);
+  color: var(--ui-color-danger);
 }
 
 /* How to mark the points: a short numbered list, folded by default. */
 .howTo {
-  border: 1px solid var(--tf-color-border-subtle);
-  border-radius: var(--tf-radius-md);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-md);
 }
 
 .howToSteps {
   display: grid;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
   margin: 0;
-  padding: 0 var(--tf-space-3) var(--tf-space-3)
-    calc(var(--tf-space-3) + var(--tf-space-4));
-  color: var(--tf-color-text-tertiary);
-  font-size: var(--tf-text-xs);
-  line-height: var(--tf-leading-normal);
+  padding: 0 var(--ui-space-3) var(--ui-space-3)
+    calc(var(--ui-space-3) + var(--ui-space-4));
+  color: var(--ui-color-text-tertiary);
+  font-size: var(--ui-text-xs);
+  line-height: var(--ui-leading-normal);
 }
 
 .howToSteps strong {
-  color: var(--tf-color-text-secondary);
-  font-weight: var(--tf-weight-semibold);
+  color: var(--ui-color-text-secondary);
+  font-weight: var(--ui-weight-semibold);
 }
 
 /* A chosen video with its remove button beside it; the button shows on hover or focus, and on the chosen video. */
@@ -647,14 +647,14 @@
 .draftItem .draft {
   flex: 1;
   max-width: none;
-  padding-right: var(--tf-space-8);
+  padding-right: var(--ui-space-8);
 }
 
 .draftRemove {
   position: absolute;
-  right: var(--tf-space-0-5);
+  right: var(--ui-space-0-5);
   opacity: 0;
-  transition: opacity var(--tf-duration-fast) ease;
+  transition: opacity var(--ui-duration-fast) ease;
 }
 
 .draftItem:hover .draftRemove,
@@ -672,7 +672,7 @@
 /* Add and remove side by side under the list. */
 .draftActions {
   display: flex;
-  gap: var(--tf-space-1-5);
+  gap: var(--ui-space-1-5);
 }
 
 .draftActions .draftAdd {
@@ -686,13 +686,13 @@
 }
 
 .draftAdd[data-tone="danger"]:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--tf-color-danger) 50%, transparent);
-  color: var(--tf-color-danger);
+  border-color: color-mix(in srgb, var(--ui-color-danger) 50%, transparent);
+  color: var(--ui-color-danger);
 }
 
 /* Quota choice, notices and limits above the work area, evenly spaced. */
 .intro {
   display: grid;
-  gap: var(--tf-space-3);
-  margin-bottom: var(--tf-space-4);
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-4);
 }

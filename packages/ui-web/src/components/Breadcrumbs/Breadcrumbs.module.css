@@ -2,16 +2,16 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   padding: 0;
   list-style: none;
-  font-size: var(--tf-text-sm);
+  font-size: var(--ui-text-sm);
 }
 
 .crumb {
   display: inline-flex;
   align-items: center;
-  gap: var(--tf-space-1);
+  gap: var(--ui-space-1);
   min-width: 0;
 }
 
@@ -22,33 +22,33 @@
 .link {
   max-width: 16rem;
   overflow: hidden;
-  padding: 2px var(--tf-space-1);
-  border-radius: var(--tf-radius-xs);
-  color: var(--tf-color-text-secondary);
+  padding: 2px var(--ui-space-1);
+  border-radius: var(--ui-radius-xs);
+  color: var(--ui-color-text-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
   outline: none;
   cursor: pointer;
-  transition: color var(--tf-duration-fast) ease;
+  transition: color var(--ui-duration-fast) ease;
 }
 
 .link[data-current] {
-  color: var(--tf-color-text);
+  color: var(--ui-color-text);
   cursor: default;
 }
 
 .link[data-focus-visible] {
-  outline: 2px solid var(--tf-color-focus-ring);
+  outline: 2px solid var(--ui-color-focus-ring);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .link[data-hovered]:not([data-current]) {
-    color: var(--tf-color-text);
+    color: var(--ui-color-text);
   }
 }
 
 .separator {
   width: 0.875rem;
   height: 0.875rem;
-  color: var(--tf-color-text-tertiary);
+  color: var(--ui-color-text-tertiary);
 }

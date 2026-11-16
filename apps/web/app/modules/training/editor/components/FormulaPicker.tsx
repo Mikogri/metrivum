@@ -7,7 +7,7 @@ import {
   Option,
   Select,
   Spinner,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";

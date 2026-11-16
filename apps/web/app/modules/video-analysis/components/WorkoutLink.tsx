@@ -17,7 +17,7 @@ import {
   Select,
   Skeleton,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { formatDate, formatNumber } from "~/shared/i18n/format";
 import type { Locale } from "~/shared/i18n/locale";
 import { useLocale } from "~/shared/i18n/LocaleContext";

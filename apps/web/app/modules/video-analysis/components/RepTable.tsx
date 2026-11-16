@@ -2,7 +2,7 @@ import { formatInterfaceText } from "~/shared/i18n/interface-format";
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useMemo, useState, type ReactNode } from "react";
 import type { AnalysisRepetition } from "@metrivum/api-client-web";
-import { Checkbox } from "@metrivum/ui-web";
+import { Checkbox } from "@portable-ui/react";
 import { formatNumber } from "~/shared/i18n/format";
 import type { Locale } from "~/shared/i18n/locale";
 import { normalizePhase } from "./charts";

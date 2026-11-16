@@ -7,7 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import type { ExerciseInstance, Workout } from "@metrivum/api-client-web";
-import { ContextMenu } from "@metrivum/ui-web";
+import { ContextMenu } from "@portable-ui/react";
 import type { ExerciseLabel } from "~/modules/exercises";
 import { useT } from "~/shared/i18n/AppLocale";
 import { addExercise, updateNode } from "../model/document";

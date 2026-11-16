@@ -22,7 +22,7 @@ import {
   Option,
   Select,
   toast,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { useAccountContext } from "~/shared/session";
 import { useFeatureAccess } from "~/shared/access";

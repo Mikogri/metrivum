@@ -7,7 +7,7 @@ import {
   DataTable,
   Dialog,
   EmptyState,
-} from "@metrivum/ui-web";
+} from "@portable-ui/react";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import { BodySummary, detailsFromValues } from "~/modules/accounts";
 import { pageFromParam } from "~/shared/lib/useUrlState";
