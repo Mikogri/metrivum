@@ -18,6 +18,7 @@ import {
 import { useAccountKey } from "~/shared/session/AccountScope";
 import styles from "./routes/subscription.module.css";
 import { catalogLimit, type CatalogPlan } from "./catalog";
+import { shownAmount } from "./PlanCards";
 import { useSubscriptionMessages } from "./messages";
 
 export type TeamQuote = Schema<"TeamBillingQuoteDto">;
@@ -44,11 +45,13 @@ function QuoteSummary({ quote }: { quote: TeamQuote }) {
         {m.seats}: {quote.purchasedSeats}
       </p>
       <p>
-        {money(quote.unitPrice, quote.currency)} {m.workspaceMonth}
+        {money(shownAmount(Number(quote.unitPrice)), quote.currency)}{" "}
+        {m.workspaceMonth}
       </p>
       <p>
         <strong>
-          {m.amount}: {money(quote.amountDue, quote.currency)}
+          {m.amount}:{" "}
+          {money(shownAmount(Number(quote.amountDue)), quote.currency)}
         </strong>
       </p>
       <p>{m.policy}</p>
@@ -99,7 +102,8 @@ export function TeamCheckout({
         {m.simulated} {m.tools}
       </p>
       <p>
-        {m.seats}: {seats} · {money(plan.amount!, plan.currency)}{" "}
+        {m.seats}: {seats} ·{" "}
+        {money(shownAmount(Number(plan.amount!)), plan.currency)}{" "}
         {m.workspaceMonth}
       </p>
       <form
@@ -257,7 +261,8 @@ function BillingEditor({
         {billing.status}
       </p>
       <p>
-        {money(billing.unitPrice, billing.currency)} {m.workspaceMonth}
+        {money(shownAmount(Number(billing.unitPrice)), billing.currency)}{" "}
+        {m.workspaceMonth}
       </p>
       <p>
         {m.period}: {new Date(billing.periodStart).toLocaleDateString()} –{" "}

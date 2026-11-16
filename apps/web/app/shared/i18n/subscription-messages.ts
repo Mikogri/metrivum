@@ -81,6 +81,9 @@ const en = {
   month: "per month",
   workspaceMonth: "per workspace / month",
   notConfigured: "Price unavailable",
+  betaTitle: "Free during the beta",
+  betaBody:
+    "Payments aren't real while Metrivum is in beta: no card is charged. Every plan costs 0, and you can switch plans as often as you like without paying.",
   loading: "Loading plans",
   compare: "Plan comparison",
   simulated: "Simulated payment — no real money is charged.",
@@ -252,6 +255,9 @@ const pl: typeof en = {
   month: "miesięcznie",
   workspaceMonth: "za cały workspace / miesiąc",
   notConfigured: "Cena niedostępna",
+  betaTitle: "Za darmo w czasie bety",
+  betaBody:
+    "W czasie bety płatności nie są prawdziwe: żadna karta nie zostanie obciążona. Każdy plan kosztuje 0 i możesz zmieniać plany dowolnie, bez płacenia.",
   loading: "Ładowanie planów",
   compare: "Porównanie planów",
   simulated: "Płatność symulowana — żadne pieniądze nie są pobierane.",

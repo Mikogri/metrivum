@@ -44,6 +44,7 @@ import {
 } from "./catalog";
 import { useSubscriptionMessages } from "./messages";
 import { FEATURES, PlanHighlights, wholeMoney } from "./SubscriptionPanel";
+import { BetaPlansNotice, shownAmount } from "./PlanCards";
 import { TeamCheckout } from "./team-billing";
 import panel from "./SubscriptionPanel.module.css";
 import styles from "./Checkout.module.css";
@@ -214,7 +215,7 @@ function CheckoutBody({
   const from = plans.data.find((item) => item.id === subscription.planId);
   const workspace = isWorkspacePlan(plan);
   const best = isTopTier(plan, plans.data);
-  const price = wholeMoney(Number(plan.amount), plan.currency);
+  const price = wholeMoney(shownAmount(Number(plan.amount)), plan.currency);
   const renews = new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
@@ -322,6 +323,7 @@ function CheckoutBody({
   return (
     <div className={styles.layout}>
       <div className={styles.main}>
+        <BetaPlansNotice />
         <section
           className={styles.hero}
           data-kind={workspace ? "workspace" : "personal"}

@@ -1,7 +1,7 @@
 import { Check, Minus, Sparkles, User, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { ToggleButton, ToggleButtonGroup } from "react-aria-components";
-import { Badge, Segment, SegmentedControl } from "@metrivum/ui-web";
+import { Alert, Badge, Segment, SegmentedControl } from "@metrivum/ui-web";
 import {
   catalogLimit,
   isTopTier,
@@ -20,6 +20,25 @@ import styles from "./SubscriptionPanel.module.css";
 
 /** A yearly price is ten months: two months free. */
 export const YEARLY_MONTHS = 10;
+/**
+ * During the beta every plan costs nothing: payments are simulated, so the prices shown are 0 and plans can be switched
+ * freely. The server keeps the real price list (it still orders the plans); only what people see is zero.
+ */
+export const BETA_FREE_PLANS = true;
+/** The price people see for an amount of the price list. */
+export const shownAmount = (amount: number) => (BETA_FREE_PLANS ? 0 : amount);
+
+/** Says, beside the plans, that payments aren't real during the beta. */
+export function BetaPlansNotice() {
+  const m = useSubscriptionMessages();
+  if (!BETA_FREE_PLANS) return null;
+  return (
+    <Alert tone="info" title={m.betaTitle}>
+      {m.betaBody}
+    </Alert>
+  );
+}
+
 /** Plan prices are whole amounts: no cents on the cards. */
 export const wholeMoney = (amount: number, currency: string) =>
   new Intl.NumberFormat("en", {
@@ -205,8 +224,10 @@ export function PlanCard({
   const workspace = isWorkspacePlan(plan);
   const amount =
     plan.priceConfigured && plan.amount != null
-      ? Number(plan.amount) *
-        (yearly && Number(plan.amount) > 0 ? YEARLY_MONTHS : 1)
+      ? shownAmount(
+          Number(plan.amount) *
+            (yearly && Number(plan.amount) > 0 ? YEARLY_MONTHS : 1),
+        )
       : null;
   const price = amount != null ? wholeMoney(amount, plan.currency) : null;
   const best = isTopTier(plan, plans);

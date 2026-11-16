@@ -5,6 +5,7 @@ import { useSubscriptionMessages } from "~/shared/i18n/subscription-messages";
 import { apiBaseUrl } from "~/shared/http/config";
 import {
   PlanCard,
+  BetaPlansNotice,
   PlanGrid,
   PlanSwitches,
   planKind,
@@ -76,6 +77,7 @@ export function Pricing() {
         </div>
       ) : (
         <div className={styles.ladder} aria-busy={!catalog}>
+          <BetaPlansNotice />
           <PlanSwitches
             kind={kind}
             onKind={setKind}

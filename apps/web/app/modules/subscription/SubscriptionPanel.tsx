@@ -25,6 +25,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { useAccountKey } from "~/shared/session/AccountScope";
 import { isWorkspacePlan, planChangeKind, type CatalogPlan } from "./catalog";
 import {
+  BetaPlansNotice,
   PlanCard,
   PlanGrid,
   PlanSwitches,
@@ -95,6 +96,7 @@ export function Offers({
 
   return (
     <div className={styles.panel}>
+      <BetaPlansNotice />
       <PlanSwitches
         kind={shownKind}
         onKind={setKind}

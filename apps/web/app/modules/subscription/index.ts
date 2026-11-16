@@ -9,6 +9,7 @@ export {
 export { useSubscriptionMessages } from "./messages";
 export {
   PlanCard,
+  BetaPlansNotice,
   PlanGrid,
   PlanSwitches,
   planKind,
