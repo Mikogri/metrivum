@@ -48,12 +48,26 @@ const detail = (id: string) => ({
 let cache: QueryClient;
 beforeEach(() => {
   mocks.view = "cards";
-  mocks.api.mockReset().mockImplementation(async ({ path }: ApiRequest) => {
-    if (path.endsWith("/built-in")) return { data: [] };
-    if (path.endsWith("/formulas"))
-      return { data: { items: formulas, page: 1, pageSize: 20, total: 2 } };
-    return detail(path.split("/").at(-1)!);
-  });
+  mocks.api
+    .mockReset()
+    .mockImplementation(async ({ path, query }: ApiRequest) => {
+      if (path.endsWith("/built-in")) return { data: [] };
+      if (path.endsWith("/formulas"))
+        return {
+          data: {
+            items: query?.includeDefinitions
+              ? formulas.map((f) => ({
+                  ...f,
+                  definition: detail(f.id).data.definition,
+                }))
+              : formulas,
+            page: 1,
+            pageSize: 20,
+            total: 2,
+          },
+        };
+      return detail(path.split("/").at(-1)!);
+    });
   cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 });
 afterEach(() => cache.clear());
@@ -72,23 +86,82 @@ const detailCalls = () =>
 it("reuses each loaded card definition when opening its editor", async () => {
   setup();
   await screen.findAllByText("base * 2");
-  expect(detailCalls()).toHaveLength(2);
+  expect(detailCalls()).toHaveLength(0);
   fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]!);
   await screen.findByDisplayValue("First formula");
+  expect(detailCalls()).toHaveLength(0);
+});
+
+it("falls back to detail requests when an older API omits list definitions", async () => {
+  mocks.api.mockImplementation(async ({ path }: ApiRequest) => {
+    if (path.endsWith("/built-in")) return { data: [] };
+    if (path.endsWith("/formulas"))
+      return { data: { items: formulas, page: 1, pageSize: 20, total: 2 } };
+    return detail(path.split("/").at(-1)!);
+  });
+  setup();
+  await screen.findAllByText("base * 2");
   expect(detailCalls()).toHaveLength(2);
 });
 
-it("invalidates active formula definitions with the formula collection", async () => {
+it("does not start per-card requests when switching from a light list to cards", async () => {
+  mocks.view = "list";
+  const view = setup();
+  await screen.findByText("First formula");
+  expect(detailCalls()).toHaveLength(0);
+  mocks.view = "cards";
+  view.rerender(
+    <QueryClientProvider client={cache}>
+      <FormulasRoute />
+    </QueryClientProvider>,
+  );
+  await screen.findAllByText("base * 2");
+  expect(detailCalls()).toHaveLength(0);
+  const lists = mocks.api.mock.calls.filter(([r]) =>
+    r.path.endsWith("/formulas"),
+  );
+  expect(lists).toHaveLength(2);
+  expect(lists[1]![0].query?.includeDefinitions).toBe(true);
+});
+
+it("refreshes card definitions through the list when the formula collection is invalidated", async () => {
   setup();
   await screen.findAllByText("base * 2");
+  mocks.api.mockImplementation(async ({ path }: ApiRequest) => {
+    if (path.endsWith("/built-in")) return { data: [] };
+    if (path.endsWith("/formulas"))
+      return {
+        data: {
+          items: formulas.map((f) => ({
+            ...f,
+            definition: {
+              ...detail(f.id).data.definition,
+              expression: "base * 3",
+            },
+          })),
+          page: 1,
+          pageSize: 20,
+          total: 2,
+        },
+      };
+    return detail(path.split("/").at(-1)!);
+  });
   await act(() =>
     cache.invalidateQueries({ queryKey: ["0:coach", "training", "formulas"] }),
   );
-  await waitFor(() => expect(detailCalls()).toHaveLength(4));
+  await waitFor(() =>
+    expect(
+      mocks.api.mock.calls.filter(([r]) => r.path.endsWith("/formulas")),
+    ).toHaveLength(2),
+  );
+  await screen.findAllByText("base * 3");
+  expect(detailCalls()).toHaveLength(0);
   expect(
-    detailCalls().every(
-      ([request]: [ApiRequest]) => request.signal instanceof AbortSignal,
-    ),
+    mocks.api.mock.calls
+      .filter(([r]) => r.path.endsWith("/formulas"))
+      .every(
+        ([request]: [ApiRequest]) => request.signal instanceof AbortSignal,
+      ),
   ).toBe(true);
 });
 

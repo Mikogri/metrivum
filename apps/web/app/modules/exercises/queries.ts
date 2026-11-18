@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { useLocale } from "~/shared/i18n/LocaleContext";
 import {
@@ -19,6 +23,19 @@ export const exerciseKeys = {
     [a, "exercises", "tags", search] as const,
   dictionaries: (a: string) => [a, "exercises", "dictionaries"] as const,
 };
+
+export function invalidateFavoriteQueries(
+  cache: QueryClient,
+  account: string,
+  id: string,
+) {
+  return cache.invalidateQueries({
+    queryKey: exerciseKeys.all(account),
+    predicate: ({ queryKey }) =>
+      queryKey[2] === "list" ||
+      (queryKey[2] === "detail" && queryKey[3] === id),
+  });
+}
 
 export function useExerciseList(q: ExerciseSearch, enabled = true) {
   const api = useApi();

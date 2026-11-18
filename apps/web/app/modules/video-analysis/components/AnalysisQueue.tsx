@@ -6,6 +6,7 @@ import {
   RotateCcw,
   SquareTerminal,
   X,
+  Hourglass,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -13,6 +14,7 @@ import {
   Card,
   IconButton,
   LinkButton,
+  EmptyState,
 } from "@portable-ui/react";
 import { useAnalyzerJobs } from "../analyzer-jobs";
 import {
@@ -199,9 +201,11 @@ export function AnalysisQueue({
           ))}
         </ol>
       ) : (
-        <p className={styles.empty}>
-          {uiCopy["ui"]["Nothing in progress yet."]}
-        </p>
+        <EmptyState
+          size="sm"
+          icon={<Hourglass />}
+          title={uiCopy["ui"]["Nothing in progress yet."]}
+        />
       )}
       <AlertDialog
         isOpen={removing !== null}

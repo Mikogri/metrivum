@@ -7,6 +7,92 @@ namespace Metrivum.IntegrationTests;
 public sealed class TrainingHttpTests
 {
     [TrainingPostgresFact]
+    public async Task Formula_list_option_includes_only_current_owned_definitions()
+    {
+        using var factory = new ApiFactory(
+            Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")
+        );
+        using var owner = await Coach(factory);
+        using var other = await Coach(factory);
+        await TestPlans.ActivateProAsync(owner);
+        await TestPlans.ActivateProAsync(other);
+        async Task<Guid> Create(HttpClient client, string name)
+        {
+            var response = await client.PostAsJsonAsync(
+                "/api/v1/training/formulas",
+                new
+                {
+                    name,
+                    definition = new
+                    {
+                        expression = "base * 2",
+                        inputs = new { @base = "Kg" },
+                        outputUnit = "Kg",
+                    },
+                }
+            );
+            response.EnsureSuccessStatusCode();
+            return (await response.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("id")
+                .GetGuid();
+        }
+        var id = await Create(owner, "Owned");
+        var secondId = await Create(owner, "Second");
+        await Create(other, "Foreign");
+        using var update = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/training/formulas/{id}")
+        {
+            Content = JsonContent.Create(
+                new
+                {
+                    name = "Owned",
+                    definition = new
+                    {
+                        expression = "base * 3",
+                        inputs = new { @base = "Kg" },
+                        outputUnit = "Kg",
+                    },
+                }
+            ),
+        };
+        update.Headers.TryAddWithoutValidation("If-Match", "\"1\"");
+        (await owner.SendAsync(update)).EnsureSuccessStatusCode();
+        var light = await owner.GetFromJsonAsync<JsonElement>("/api/v1/training/formulas");
+        Assert.Equal(2, light.GetProperty("items").GetArrayLength());
+        var item = light.GetProperty("items")[0];
+        Assert.False(
+            item.TryGetProperty("definition", out var definition)
+                && definition.ValueKind != JsonValueKind.Null
+        );
+        var full = await owner.GetFromJsonAsync<JsonElement>(
+            "/api/v1/training/formulas?includeDefinitions=true&pageSize=1"
+        );
+        item = Assert.Single(full.GetProperty("items").EnumerateArray());
+        Assert.Equal(id, item.GetProperty("id").GetGuid());
+        Assert.True(item.TryGetProperty("definition", out definition));
+        Assert.Equal("base * 3", definition.GetProperty("expression").GetString());
+        Assert.Equal(2, item.GetProperty("version").GetInt32());
+        Assert.Equal(2, full.GetProperty("total").GetInt32());
+        var next = await owner.GetFromJsonAsync<JsonElement>(
+            "/api/v1/training/formulas?includeDefinitions=true&pageSize=1&page=2"
+        );
+        Assert.Equal(
+            secondId,
+            Assert.Single(next.GetProperty("items").EnumerateArray()).GetProperty("id").GetGuid()
+        );
+        var pinned = await owner.GetFromJsonAsync<JsonElement>(
+            $"/api/v1/training/formulas/{id}?version=1"
+        );
+        Assert.Equal(
+            "base * 2",
+            pinned.GetProperty("definition").GetProperty("expression").GetString()
+        );
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            (await other.GetAsync($"/api/v1/training/formulas/{id}?version=1")).StatusCode
+        );
+    }
+
+    [TrainingPostgresFact]
     public async Task Endpoints_enforce_ownership_etags_and_revision_exports()
     {
         using var factory = new ApiFactory(

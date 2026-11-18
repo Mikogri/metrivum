@@ -6,6 +6,20 @@ The [2026-10-20 read-path follow-up](read-efficiency-and-scaling.md) covers adde
 
 ## Request budgets
 
+### Formula and check-in read consolidation (2026-11-18)
+
+- Formula lists accept optional `includeDefinitions=true`. Card views request the current definitions in the same paginated response; autocomplete and ordinary lists retain the lightweight default. Older APIs remain supported through per-card detail fallback.
+- Formula consumers share account/id/version query keys and fetch that exact version. Card definitions seed the same cache used by editing; inline cells and pickers reuse it. Switching list shape does not reuse lightweight placeholder rows as full cards.
+- Assignment schedule updates aggregate last-issued dates for all locked schedules in one query, preserving the assignment-before-schedule lock order and existing transaction. No matching schedules means no request-date query.
+- Favorite changes invalidate exercise lists and the changed detail only, preserving dictionary, tag and history caches.
+- Applying a plan revision invalidates the Training cache once instead of overlapping parent/child invalidations. Calendar list assembly groups attendees once by event; client roster filtering still happens in SQL before grouping.
+
+Regression coverage checks HTTP ownership and list shape, pinned-version/account cache isolation, request deduplication, old-server fallback and actual PostgreSQL command counts. These are request-count improvements, not measured production latency claims.
+
+The follow-up removed unreferenced former marketing components (`FeatureSection`, `PageFlow`, `Bento`, `HeroBurst`, `Workflow`) and their exclusive styles, plus the unused web `useMediaQuery` hook. Route/import resolution and repository reference searches confirmed no consumers. Legacy compatibility and migration tests remain; the formula refresh test now checks updated card content and list cancellation signals instead of asserting over an empty detail-request collection.
+
+Positive Playwright session fixtures explicitly mark their test email confirmed, matching the current session guard. Missing confirmation previously redirected library-view smoke tests to sign-in rather than exercising their intended screens; production Auth rules are unchanged.
+
 Counts below exclude optional group/offer filter resolution. They are SQL command counts, not HTTP latency benchmarks.
 
 | Existing, onboarded account | Before | After |

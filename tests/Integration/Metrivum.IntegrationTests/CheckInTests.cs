@@ -38,6 +38,88 @@ namespace Metrivum.IntegrationTests;
 public sealed class CheckInTests
 {
     [CatalogPostgresFact]
+    public async Task Assignment_schedule_updates_batch_last_issue_dates()
+    {
+        await using var f = await Fixture.CreateAsync();
+        f.Clock.Set(DateTimeOffset.Parse("2026-10-16T10:00:00Z"));
+        var form = await f.FormAsync();
+        var person = await f.RelationshipAsync();
+        var assignment = await f.AssignmentAsync(person);
+        var scheduleIds = new List<Guid>();
+        for (var i = 0; i < 3; i++)
+        {
+            var schedule = await f.Coach(s =>
+                s.CreateAsync(
+                    f.Schedule(form.Id, [person.Id], []) with
+                    {
+                        TimeZone = "Europe/Warsaw",
+                        Recurrence = new(
+                            RecurrenceKind.AssignedProgramCycle,
+                            1,
+                            new(2026, 10, 16),
+                            new(9, 0),
+                            AssignmentId: assignment.Id,
+                            CycleDays: [1]
+                        ),
+                    },
+                    default
+                )
+            );
+            scheduleIds.Add(schedule.Id);
+        }
+        await f.Coach(s => s.GenerateDueAsync(100, default));
+        var commands = new ScheduleReads();
+        await using var db = new CheckInsDbContext(
+            new DbContextOptionsBuilder<CheckInsDbContext>()
+                .UseNpgsql(Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")!)
+                .AddInterceptors(commands)
+                .Options
+        );
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        var observer = new AssignedProgramScheduleObserver(db, f.Clock);
+        var cycles = new AssignedProgramCycles(
+            assignment.Id,
+            person.Id,
+            "Plan",
+            "UTC",
+            true,
+            [new(Guid.NewGuid(), new(2026, 10, 16), 10), new(Guid.NewGuid(), new(2026, 10, 26), 10)]
+        );
+        await observer.ChangedAsync(f.CoachId, cycles, default);
+        Assert.Equal(1, commands.RequestReads);
+        var schedules = await db
+            .Schedules.AsNoTracking()
+            .Where(x => scheduleIds.Contains(x.Id))
+            .ToArrayAsync();
+        Assert.All(
+            schedules,
+            s => Assert.Equal(DateTimeOffset.Parse("2026-10-26T09:00:00Z"), s.NextAvailableAtUtc)
+        );
+        commands.RequestReads = 0;
+        await observer.ChangedAsync(Guid.NewGuid(), cycles, default);
+        Assert.Equal(0, commands.RequestReads);
+        await transaction.RollbackAsync();
+    }
+
+    private sealed class ScheduleReads
+        : Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor
+    {
+        public int RequestReads;
+
+        public override ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader>> ReaderExecutingAsync(
+            System.Data.Common.DbCommand command,
+            Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData,
+            Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader> result,
+            CancellationToken cancellationToken = default
+        )
+        {
+            if (command.CommandText.Contains("checkins.\"Requests\""))
+                RequestReads++;
+            return ValueTask.FromResult(result);
+        }
+    }
+
+    [CatalogPostgresFact]
     public async Task Mcp_checkins_isolate_two_coaches_of_one_client_and_preview_never_assigns()
     {
         await using var a = await Fixture.CreateAsync();

@@ -26,6 +26,15 @@ public sealed class AssignedProgramScheduleObserver(CheckInsDbContext db, TimePr
                 """
             )
             .ToArrayAsync(ct);
+        if (schedules.Length == 0)
+            return;
+        var ids = schedules.Select(s => s.Id).ToArray();
+        var lastIssues = await db
+            .Requests.AsNoTracking()
+            .Where(r => ids.Contains(r.ScheduleId))
+            .GroupBy(r => r.ScheduleId)
+            .Select(g => new { ScheduleId = g.Key, Latest = g.Max(r => r.AvailableAtUtc) })
+            .ToDictionaryAsync(x => x.ScheduleId, x => x.Latest, ct);
         var zone = CheckInRules.Zone(assignment.TimeZone);
         var today = DateOnly.FromDateTime(
             TimeZoneInfo.ConvertTime(clock.GetUtcNow(), zone).DateTime
@@ -34,13 +43,10 @@ public sealed class AssignedProgramScheduleObserver(CheckInsDbContext db, TimePr
         {
             var recurrence = JsonSerializer.Deserialize<Recurrence>(schedule.RecurrenceJson)!;
             var after = CheckInRules.ToUtc(today, TimeOnly.MinValue, zone).AddTicks(-1);
-            var latest = await db
-                .Requests.Where(r => r.ScheduleId == schedule.Id)
-                .MaxAsync(r => (DateTimeOffset?)r.AvailableAtUtc, ct);
-            if (latest != null)
+            if (lastIssues.TryGetValue(schedule.Id, out var latest))
             {
                 var lastDate = DateOnly.FromDateTime(
-                    TimeZoneInfo.ConvertTime(latest.Value, zone).DateTime
+                    TimeZoneInfo.ConvertTime(latest, zone).DateTime
                 );
                 var end = CheckInRules
                     .ToUtc(lastDate.AddDays(1), TimeOnly.MinValue, zone)

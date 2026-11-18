@@ -907,7 +907,7 @@ export function Integrations() {
             />
           </>
         ) : (
-          <p className={styles.quiet}>{copy.emptyHistory}</p>
+          <EmptyState size="sm" icon={<History />} title={copy.emptyHistory} />
         )}
       </Card>
 

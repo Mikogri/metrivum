@@ -46,7 +46,12 @@ test("pairs local analyzer, preserves completed result on save failure and retri
         access_token: "mock-0",
         refresh_token: "mock-refresh-0",
         expires_at: Math.floor(Date.now() / 1000) + 3600,
-        user: { id, email: "coach@trainflow.test", aud: "authenticated" },
+        user: {
+          id,
+          email: "coach@trainflow.test",
+          email_confirmed_at: "2026-01-01T00:00:00Z",
+          aud: "authenticated",
+        },
       }),
     );
     localStorage.setItem("tf.auth.active-slot", "0");

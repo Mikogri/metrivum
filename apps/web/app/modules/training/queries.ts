@@ -4,6 +4,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import type { Transport } from "~/shared/http/transport";
+import type { FormulaDto } from "@metrivum/api-client-web";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import {
   getFormula,
@@ -29,8 +30,23 @@ export const trainingKeys = {
   folderChildren: (a: string, parentId: string | null) =>
     [a, "training", "folders", parentId ?? "root"] as const,
   formulas: (a: string) => [a, "training", "formulas"] as const,
-  formulaList: (a: string, search: string, page: number, pageSize = 20) =>
-    [a, "training", "formulas", "list", search, page, pageSize] as const,
+  formulaList: (
+    a: string,
+    search: string,
+    page: number,
+    pageSize = 20,
+    includeDefinitions = false,
+  ) =>
+    [
+      a,
+      "training",
+      "formulas",
+      "list",
+      search,
+      page,
+      pageSize,
+      includeDefinitions,
+    ] as const,
   formula: (a: string, id: string, version: number) =>
     [a, "training", "formulas", "detail", id, version] as const,
   builtIns: (a: string) => [a, "training", "formulas", "built-in"] as const,
@@ -39,11 +55,16 @@ export const trainingKeys = {
 export function formulaQueryOptions(
   api: Transport,
   account: string,
-  formula: { id: string; version: number },
+  formula: Pick<FormulaDto, "id" | "version"> | FormulaDto,
 ) {
   return queryOptions({
     queryKey: trainingKeys.formula(account, formula.id, formula.version),
-    queryFn: ({ signal }) => getFormula(api, formula.id, undefined, signal),
+    queryFn: ({ signal }) =>
+      getFormula(api, formula.id, formula.version, signal),
+    initialData:
+      "definition" in formula && formula.definition
+        ? { data: formula, version: formula.version }
+        : undefined,
     staleTime: 5 * 60_000,
   });
 }
@@ -88,14 +109,35 @@ export function useFolderChildren(parentId: string | null, enabled = true) {
   });
 }
 
-export function useFormulaList(search: string, page: number, pageSize = 20) {
+export function useFormulaList(
+  search: string,
+  page: number,
+  pageSize = 20,
+  includeDefinitions = false,
+) {
   const api = useApi();
   const a = useAccountKey();
   return useQuery({
-    queryKey: trainingKeys.formulaList(a, search, page, pageSize),
+    queryKey: trainingKeys.formulaList(
+      a,
+      search,
+      page,
+      pageSize,
+      includeDefinitions,
+    ),
     queryFn: ({ signal }) =>
-      listFormulas(api, search || undefined, page, signal, pageSize),
-    placeholderData: keepPreviousData,
+      listFormulas(
+        api,
+        search || undefined,
+        page,
+        signal,
+        pageSize,
+        includeDefinitions,
+      ),
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey.at(-1) === includeDefinitions
+        ? previous
+        : undefined,
   });
 }
 

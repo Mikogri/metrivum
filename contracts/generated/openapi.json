@@ -3916,6 +3916,13 @@
               ],
               "format": "int32"
             }
+          },
+          {
+            "name": "includeDefinitions",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -24900,6 +24907,16 @@
           },
           "archived": {
             "type": "boolean"
+          },
+          "definition": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FormulaDefinition"
+              }
+            ]
           }
         },
         "additionalProperties": false

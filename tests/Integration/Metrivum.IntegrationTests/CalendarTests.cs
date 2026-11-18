@@ -9,35 +9,107 @@ namespace Metrivum.IntegrationTests;
 public sealed class CalendarTests
 {
     [CatalogPostgresFact]
+    public async Task List_groups_attendees_per_event_and_keeps_client_rosters_private()
+    {
+        using var factory = new ApiFactory(
+            Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")
+        );
+        var coach = await User(factory, "Coach");
+        var first = await User(factory, "Client");
+        var second = await User(factory, "Client");
+        using var coachHttp = coach.Http;
+        using var firstHttp = first.Http;
+        using var secondHttp = second.Http;
+        Guid firstRelationship;
+        Guid secondRelationship;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var activation = scope.ServiceProvider.GetRequiredService<IRelationshipActivation>();
+            firstRelationship = await activation.ActivateDevFixtureAsync(
+                coach.Id,
+                first.Id,
+                default
+            );
+            secondRelationship = await activation.ActivateDevFixtureAsync(
+                coach.Id,
+                second.Id,
+                default
+            );
+        }
+        var expected = new Dictionary<Guid, Guid[]>();
+        foreach (
+            var recipients in new[]
+            {
+                new[] { firstRelationship },
+                new[] { secondRelationship },
+                new[] { firstRelationship, secondRelationship },
+                Array.Empty<Guid>(),
+            }
+        )
+        {
+            using var created = await coach.Http.PostAsJsonAsync(
+                "/api/v1/calendar/events",
+                new
+                {
+                    kind = "Meeting",
+                    title = "Roster test",
+                    timeZone = "UTC",
+                    startsAtUtc = "2026-11-04T12:00:00Z",
+                    endsAtUtc = "2026-11-04T13:00:00Z",
+                    relationshipIds = recipients,
+                    groupIds = Array.Empty<Guid>(),
+                }
+            );
+            created.EnsureSuccessStatusCode();
+            var item = await created.Content.ReadFromJsonAsync<JsonElement>();
+            expected.Add(item.GetProperty("id").GetGuid(), recipients);
+        }
+        const string query =
+            "/api/v1/calendar/events?from=2026-11-04T00:00:00Z&to=2026-11-05T00:00:00Z&timeZone=UTC&pageSize=100&role=";
+        var coachList = await coach.Http.GetFromJsonAsync<JsonElement>(query + "coach");
+        Assert.Equal(4, coachList.GetProperty("total").GetInt32());
+        foreach (var item in coachList.GetProperty("items").EnumerateArray())
+        {
+            Assert.Equal(
+                expected[item.GetProperty("id").GetGuid()].Order(),
+                item.GetProperty("attendees")
+                    .EnumerateArray()
+                    .Select(a => a.GetProperty("relationshipId").GetGuid())
+                    .Order()
+            );
+        }
+        foreach (
+            var (http, relationship) in new[]
+            {
+                (first.Http, firstRelationship),
+                (second.Http, secondRelationship),
+            }
+        )
+        {
+            var clientList = await http.GetFromJsonAsync<JsonElement>(query + "client");
+            Assert.Equal(2, clientList.GetProperty("total").GetInt32());
+            foreach (var item in clientList.GetProperty("items").EnumerateArray())
+            {
+                Assert.Contains(relationship, expected[item.GetProperty("id").GetGuid()]);
+                Assert.Equal("Pending", item.GetProperty("response").GetString());
+                Assert.False(
+                    item.TryGetProperty("attendees", out var roster)
+                        && roster.ValueKind == JsonValueKind.Array
+                        && roster.GetArrayLength() > 0
+                );
+            }
+        }
+    }
+
+    [CatalogPostgresFact]
     public async Task Events_persist_invites_are_private_and_stale_responses_fail()
     {
         using var factory = new ApiFactory(
             Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")
         );
-        async Task<(HttpClient Http, Guid Id)> User(string role)
-        {
-            var id = Guid.NewGuid();
-            var http = factory.CreateClient();
-            http.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(id));
-            var result = await http.PutAsJsonAsync(
-                "/api/v1/me/onboarding",
-                new
-                {
-                    username = "cal" + id.ToString("N")[..18],
-                    displayName = "Calendar test",
-                    birthDate = "1990-01-01",
-                    acceptedTerms = true,
-                    locale = "en",
-                    timeZone = "UTC",
-                    role,
-                }
-            );
-            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-            return (http, id);
-        }
-        var coach = await User("Coach");
-        var client = await User("Client");
-        var stranger = await User("Client");
+        var coach = await User(factory, "Coach");
+        var client = await User(factory, "Client");
+        var stranger = await User(factory, "Client");
         Guid relationship;
         await using (var scope = factory.Services.CreateAsyncScope())
             relationship = await scope
@@ -339,5 +411,27 @@ public sealed class CalendarTests
         ).Content.ReadFromJsonAsync<JsonElement>();
         Assert.False(restored.GetProperty("cancelled").GetBoolean());
         Assert.Equal("Pending", restored.GetProperty("response").GetString());
+    }
+
+    private static async Task<(HttpClient Http, Guid Id)> User(ApiFactory factory, string role)
+    {
+        var id = Guid.NewGuid();
+        var http = factory.CreateClient();
+        http.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(id));
+        var result = await http.PutAsJsonAsync(
+            "/api/v1/me/onboarding",
+            new
+            {
+                username = "cal" + id.ToString("N")[..18],
+                displayName = "Calendar test",
+                birthDate = "1990-01-01",
+                acceptedTerms = true,
+                locale = "en",
+                timeZone = "UTC",
+                role,
+            }
+        );
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        return (http, id);
     }
 }

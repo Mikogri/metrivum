@@ -1,6 +1,7 @@
 import { LightRays } from "~/shared/ui/effects/LightRays";
+import { SpecularEdge } from "~/shared/ui/effects/SpecularEdge";
 import { ArrowRight } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { Link as RouterLink } from "react-router";
 import { LinkButton } from "@portable-ui/react";
 import { localeFromPathname } from "~/shared/i18n/locale";
@@ -111,15 +112,32 @@ export default function Home() {
   const h = m.home;
   const l = h.landing;
 
+  // React Bits "Specular Button" as a light on the main action's own edge: a quiet glint that turns towards the pointer.
+  const specular = (button: ReactElement) => (
+    <SpecularEdge
+      lineColor="#c9f7dc"
+      intensity={0.9}
+      idleIntensity={0.3}
+      thickness={1}
+      glow={0.6}
+      proximity={180}
+    >
+      {button}
+    </SpecularEdge>
+  );
   const actions = hasSession ? (
-    <LinkButton href="/app/dashboard" variant="primary" size="md">
-      {h.hero.openApp}
-    </LinkButton>
+    specular(
+      <LinkButton href="/app/dashboard" variant="primary" size="md">
+        {h.hero.openApp}
+      </LinkButton>,
+    )
   ) : (
     <>
-      <LinkButton href="/auth/register" variant="primary" size="md">
-        {h.hero.primary}
-      </LinkButton>
+      {specular(
+        <LinkButton href="/auth/register" variant="primary" size="md">
+          {h.hero.primary}
+        </LinkButton>,
+      )}
       <LinkButton href="/auth/login" variant="secondary" size="md">
         {h.hero.secondary}
       </LinkButton>

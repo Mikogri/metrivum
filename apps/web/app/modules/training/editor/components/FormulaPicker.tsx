@@ -12,8 +12,11 @@ import { useLocale } from "~/shared/i18n/LocaleContext";
 import { useT } from "~/shared/i18n/AppLocale";
 import { errorText } from "~/shared/lib/errorText";
 import { useApi } from "~/shared/session/AccountScope";
-import { getFormula } from "../../api";
-import { useBuiltInFormulas, useFormulaList } from "../../queries";
+import {
+  formulaQueryOptions,
+  useBuiltInFormulas,
+  useFormulaList,
+} from "../../queries";
 import {
   withClientVariables,
   type InlineFormulaUse,
@@ -58,17 +61,11 @@ export function FormulaPicker({
     ? formatQuantity(locale, evaluation.data.result)
     : null;
   const full = useQuery({
-    queryKey: [
-      account,
-      "training",
-      "formula-definition",
-      value.formulaId,
-      value.version,
-    ],
-    queryFn: ({ signal }) =>
-      getFormula(api, value.formulaId!, value.version, signal),
+    ...formulaQueryOptions(api, account, {
+      id: value.formulaId ?? "",
+      version: value.version,
+    }),
     enabled: Boolean(value.formulaId),
-    staleTime: 300_000,
   });
 
   const selectedKey = value.builtIn

@@ -42,6 +42,7 @@ import {
   Spinner,
   toast,
   useMobileLayout,
+  EmptyState,
 } from "@portable-ui/react";
 import { useAccountContext } from "~/shared/session";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
@@ -320,12 +321,11 @@ export function NotificationBell({
         !notifications.failed &&
         !notifications.items.length &&
         !analyzerUpdate ? (
-          <div className={styles.empty}>
-            <span className={styles.emptyIcon} aria-hidden="true">
-              <BellOff />
-            </span>
-            <p>{uiCopy["ui"]["You're all caught up."]}</p>
-          </div>
+          <EmptyState
+            size="sm"
+            icon={<BellOff />}
+            title={uiCopy["ui"]["You're all caught up."]}
+          />
         ) : null}
         <ul className={styles.list}>
           {analyzerUpdate ? (

@@ -1,4 +1,5 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
+import { History } from "lucide-react";
 import {
   usePaymentActionId,
   usePaymentQuote,
@@ -6,7 +7,13 @@ import {
 import { useState } from "react";
 import type { Schema } from "@metrivum/api-client-web";
 import { useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, DataTable, LinkButton } from "@portable-ui/react";
+import {
+  Alert,
+  Button,
+  DataTable,
+  LinkButton,
+  EmptyState,
+} from "@portable-ui/react";
 import {
   Failure,
   Loading,
@@ -439,7 +446,7 @@ function BillingEditor({
       )}
       <h3>{m.history}</h3>
       {!billing.history.length ? (
-        <p>{m.noHistory}</p>
+        <EmptyState size="sm" icon={<History />} title={m.noHistory} />
       ) : (
         <DataTable
           label={m.history}

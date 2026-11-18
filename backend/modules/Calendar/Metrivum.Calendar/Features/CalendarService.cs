@@ -90,12 +90,13 @@ public sealed class CalendarService(
             rows.Select(e => e.CoachId).Distinct().ToArray(),
             ct
         );
+        var attendeesByEvent = attendees.ToLookup(a => a.EventId);
         return new(
             rows.Select(e =>
                     Dto(
                         e,
                         role,
-                        attendees.Where(a => a.EventId == e.Id).ToArray(),
+                        attendeesByEvent[e.Id].ToArray(),
                         organizers.GetValueOrDefault(e.CoachId)?.DisplayName ?? "Coach"
                     )
                 )

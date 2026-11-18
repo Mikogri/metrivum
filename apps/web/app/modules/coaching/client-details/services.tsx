@@ -1,5 +1,5 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
-import { CreditCard, Receipt } from "lucide-react";
+import { CreditCard, Receipt, Handshake } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import type { Schema } from "@metrivum/api-client-web";
@@ -10,6 +10,7 @@ import {
   Select,
   TextField,
   Toolbar,
+  EmptyState,
 } from "@portable-ui/react";
 import { Facts, Panel } from "~/shared/ui/Panel";
 import { useFeatureAccess } from "~/shared/access";
@@ -45,13 +46,15 @@ export function ClientServices({ relationshipId }: { relationshipId: string }) {
       ) : query.isError ? (
         <Failure error={query.error} retry={() => void query.refetch()} />
       ) : !query.data.items.length ? (
-        <p className={styles.empty}>
-          {
+        <EmptyState
+          size="sm"
+          icon={<Handshake />}
+          title={
             uiCopy["ui"][
               "No active services. Accepted offers appear here with their original terms."
             ]
           }
-        </p>
+        />
       ) : (
         <>
           <ul className={styles.rows}>

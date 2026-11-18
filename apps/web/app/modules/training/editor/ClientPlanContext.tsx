@@ -785,14 +785,15 @@ function ClientMetrics({
           </div>
           {values.isError || values.isPending ? null : !values.data
               ?.exerciseMaxes.length ? (
-            <p className={styles.empty}>
-              <Dumbbell aria-hidden="true" />
-              {
+            <EmptyState
+              size="sm"
+              icon={<Dumbbell />}
+              title={
                 uiCopy["ui"][
                   "No exercise results yet. Add the first one below — formulas that use this client's maxes need it."
                 ]
               }
-            </p>
+            />
           ) : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>

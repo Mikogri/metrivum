@@ -1454,6 +1454,8 @@ export const appPl: AppMessages = {
       noResultsTitle: "Nic nie pasuje",
       noResultsBody: "Spróbuj innej nazwy, folderu lub filtra.",
       archivedEmpty: "Brak zarchiwizowanych elementów.",
+      archivedEmptyBody:
+        "Tu pojawiają się zarchiwizowane programy i szablony. Wyłącz „Pokaż zarchiwizowane”, żeby zobaczyć resztę.",
       count: (n: number) =>
         `${n} ${n === 1 ? "element" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "elementy" : "elementów"}`,
       archivedBadge: "Zarchiwizowany",

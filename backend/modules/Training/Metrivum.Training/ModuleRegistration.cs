@@ -404,9 +404,17 @@ public static class ModuleRegistration
                 string? search,
                 int? page,
                 int? pageSize,
+                bool? includeDefinitions,
                 TrainingService service,
                 CancellationToken ct
-            ) => service.FormulasAsync(search, page ?? 1, pageSize ?? 25, ct)
+            ) =>
+                service.FormulasAsync(
+                    search,
+                    page ?? 1,
+                    pageSize ?? 25,
+                    ct,
+                    includeDefinitions ?? false
+                )
         );
         group.MapGet(
             "/formulas/built-in",

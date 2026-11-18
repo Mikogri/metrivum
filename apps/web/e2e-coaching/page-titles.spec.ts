@@ -12,6 +12,7 @@ test("browser tabs identify the current page", async ({ page }) => {
         user: {
           id: "00000000-0000-4000-8000-000000000000",
           email: "coach@trainflow.test",
+          email_confirmed_at: "2026-01-01T00:00:00Z",
           aud: "authenticated",
         },
       }),

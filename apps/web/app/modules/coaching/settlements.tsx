@@ -1,4 +1,5 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
+import { Receipt } from "lucide-react";
 import { usePaymentActionId } from "~/shared/session/payment-action";
 import { Link } from "react-router";
 import { useState } from "react";
@@ -9,6 +10,7 @@ import {
   Dialog,
   DialogFooter,
   TextField,
+  EmptyState,
 } from "@portable-ui/react";
 import { Panel } from "~/shared/ui/Panel";
 import { useFeatureAccess } from "~/shared/access";
@@ -56,13 +58,15 @@ export function RelationshipBilling({
   ) : query.isError ? (
     <Failure error={query.error} retry={() => void query.refetch()} />
   ) : !query.data.dues.items.length ? (
-    <p className={styles.emptyText}>
-      {
+    <EmptyState
+      size="sm"
+      icon={<Receipt />}
+      title={
         uiCopy["ui"][
           "No payment dues yet. Dues are created when a service begins."
         ]
       }
-    </p>
+    />
   ) : (
     <>
       <section

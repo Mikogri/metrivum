@@ -142,7 +142,7 @@ function Formulas() {
   }, [debounced]);
   const builtIns = useBuiltInFormulas();
   const pageSize = PAGE_SIZE;
-  const list = useFormulaList(state.q, page, pageSize);
+  const list = useFormulaList(state.q, page, pageSize, view === "cards");
   const [editing, setEditing] = useState<FormulaListItem | "new" | null>(null);
   const [trying, setTrying] = useState<{
     id: string;
@@ -444,8 +444,11 @@ function FormulaCard({
   const t = m.training.formulas;
   const api = useApi();
   const a = useAccountKey();
-  const full = useQuery(formulaQueryOptions(api, a, formula));
-  const definition = full.data?.data.definition;
+  const full = useQuery({
+    ...formulaQueryOptions(api, a, formula),
+    enabled: !formula.definition,
+  });
+  const definition = formula.definition ?? full.data?.data.definition;
   return (
     <li className={styles.formulaCard}>
       <header className={styles.formulaCardHead}>

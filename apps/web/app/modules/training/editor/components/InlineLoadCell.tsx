@@ -36,8 +36,12 @@ import { ApiError } from "~/shared/http/errors";
 import { errorText } from "~/shared/lib/errorText";
 import { useAccountContext } from "~/shared/session/AccountScope";
 import { storedFormula } from "../../formula-values";
-import { getFormula } from "../../api";
-import { useBuiltInFormulas, useFormulaList } from "../../queries";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  formulaQueryOptions,
+  useBuiltInFormulas,
+  useFormulaList,
+} from "../../queries";
 import {
   FORMULA_FUNCTIONS,
   functionLabel,
@@ -185,7 +189,8 @@ export function InlineLoadCell({
 }: Props) {
   const m = useT();
   const locale = useLocale();
-  const { api, lifecycle } = useAccountContext();
+  const { api, lifecycle, accountKey } = useAccountContext();
+  const cache = useQueryClient();
   const context = useClientFormulaContext();
   const exerciseReps =
     maxReps ??
@@ -524,7 +529,13 @@ export function InlineLoadCell({
       );
     if (initial === raw && saved?.formulaId) {
       const generation = request.current;
-      void getFormula(api, saved.formulaId, saved.version)
+      void cache
+        .fetchQuery(
+          formulaQueryOptions(api, accountKey, {
+            id: saved.formulaId,
+            version: saved.version,
+          }),
+        )
         .then(({ data }) => {
           if (!lifecycle.isCurrent() || request.current !== generation) return;
           setText(`=${data.name}`);
@@ -816,8 +827,14 @@ export function InlineLoadCell({
       const definition =
         option.kind === "builtIn"
           ? { inputs: option.inputs ?? {} }
-          : (await getFormula(api, option.key.slice(2), option.version)).data
-              .definition;
+          : (
+              await cache.fetchQuery(
+                formulaQueryOptions(api, accountKey, {
+                  id: option.key.slice(2),
+                  version: option.version ?? 1,
+                }),
+              )
+            ).data.definition;
 
       if (!lifecycle.isCurrent() || generation !== request.current) return;
       const inputs = Object.fromEntries(

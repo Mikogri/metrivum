@@ -292,11 +292,17 @@ export async function listFormulas(
   page = 1,
   signal?: AbortSignal,
   pageSize = 20,
+  includeDefinitions = false,
 ) {
   return (
     await api<PagedOfFormulaListItem>({
       path: `${base}/formulas`,
-      query: { search, page, pageSize },
+      query: {
+        search,
+        page,
+        pageSize,
+        includeDefinitions: includeDefinitions || undefined,
+      },
       signal,
     })
   ).data;

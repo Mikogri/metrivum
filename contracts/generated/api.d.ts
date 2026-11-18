@@ -3386,6 +3386,7 @@ export interface paths {
                     search?: string;
                     page?: number | string;
                     pageSize?: number | string;
+                    includeDefinitions?: boolean;
                 };
                 header?: never;
                 path?: never;
@@ -16030,6 +16031,7 @@ export interface components {
             /** Format: int32 */
             version: number | string;
             archived: boolean;
+            definition?: null | components["schemas"]["FormulaDefinition"];
         };
         FormulaRequest: {
             name: string;

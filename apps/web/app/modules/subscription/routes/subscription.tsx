@@ -1,4 +1,5 @@
 import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
+import { History } from "lucide-react";
 import { usePaymentActionId } from "~/shared/session/payment-action";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import {
   Option,
   PageHeader,
   Select,
+  EmptyState,
 } from "@portable-ui/react";
 import {
   Failure,
@@ -393,7 +395,7 @@ export default function SubscriptionRoute() {
             />
           ) : history.data.payments.length === 0 &&
             history.data.changes.length === 0 ? (
-            <p className={styles.empty}>{m.noHistory}</p>
+            <EmptyState size="sm" icon={<History />} title={m.noHistory} />
           ) : (
             <DataTable
               label={m.history}

@@ -1,0 +1,15 @@
+/* Takes exactly the child's size; the light canvas is placed over the child by measurement. */
+.frame {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.light {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  /* The global reset caps media at 100% width; the canvas deliberately overhangs the child by PAD on each side. */
+  max-width: none;
+  pointer-events: none;
+}

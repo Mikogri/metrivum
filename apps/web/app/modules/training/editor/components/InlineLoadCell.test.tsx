@@ -1,6 +1,13 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render as renderComponent,
+  screen,
+  within,
+} from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactElement, ReactNode } from "react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { InlinePrescriptionCell } from "./InlinePrescriptionCell";
 import { InlineLoadCell } from "./InlineLoadCell";
 import { inlineBinding } from "../model/inline-formula";
@@ -9,9 +16,14 @@ const { client, api } = vi.hoisted(() => ({
   api: vi.fn(),
 }));
 vi.mock("~/shared/session/AccountScope", () => ({
-  useAccountContext: () => ({ api, lifecycle: { isCurrent: () => true } }),
+  useAccountContext: () => ({
+    api,
+    accountKey: "test-account",
+    lifecycle: { isCurrent: () => true },
+  }),
 }));
-vi.mock("../../queries", () => ({
+vi.mock("../../queries", async (original) => ({
+  ...(await original<object>()),
   useBuiltInFormulas: () => ({
     data: [
       {
@@ -34,6 +46,23 @@ vi.mock("../../queries", () => ({
     },
   }),
 }));
+
+const caches: QueryClient[] = [];
+afterEach(() => {
+  for (const cache of caches.splice(0)) cache.clear();
+});
+
+function render(element: ReactElement) {
+  const cache = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+  caches.push(cache);
+  return renderComponent(element, {
+    wrapper: ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={cache}>{children}</QueryClientProvider>
+    ),
+  });
+}
 vi.mock("../client-context", () => ({
   useClientFormulaContext: () => ({
     relationshipId: client.relationshipId,
@@ -62,6 +91,52 @@ function openSources() {
 }
 
 describe("inline load cell", () => {
+  it("reuses a pinned definition when editing another cell with the same formula", async () => {
+    api.mockReset().mockResolvedValue({
+      data: {
+        id: "custom-rule",
+        name: "Bench backoff",
+        version: 2,
+        archived: false,
+        definition: { expression: "80", inputs: {}, outputUnit: "Kg" },
+      },
+      version: 2,
+    });
+    const prescription = {
+      loadFormula: {
+        formulaId: "custom-rule",
+        version: 2,
+        builtIn: null,
+        inputs: {},
+      },
+    };
+    render(
+      <>
+        <InlineLoadCell
+          prescription={prescription}
+          onChange={vi.fn()}
+          readOnly={false}
+          label="First load"
+        />
+        <InlineLoadCell
+          prescription={prescription}
+          onChange={vi.fn()}
+          readOnly={false}
+          label="Second load"
+        />
+      </>,
+    );
+    const first = screen.getByRole("combobox", { name: "First load" });
+    fireEvent.focus(first);
+    await vi.waitFor(() => expect(first).toHaveValue("=Bench backoff"));
+    fireEvent.blur(first, { relatedTarget: document.body });
+    const second = screen.getByRole("combobox", { name: "Second load" });
+    fireEvent.focus(second);
+    await vi.waitFor(() => expect(second).toHaveValue("=Bench backoff"));
+    expect(api).toHaveBeenCalledTimes(1);
+    expect(api.mock.calls[0]![0].query.version).toBe(2);
+  });
+
   it("offers AMRAP after a slash in a reps cell, without client body data", async () => {
     const onMaximumChange = vi.fn();
     render(

@@ -7,7 +7,7 @@ import { useT } from "~/shared/i18n/AppLocale";
 import { useErrorToast } from "~/shared/lib/useErrorToast";
 import { useAccountKey, useApi } from "~/shared/session/AccountScope";
 import { setFavorite } from "../api";
-import { exerciseKeys } from "../queries";
+import { invalidateFavoriteQueries } from "../queries";
 import styles from "./FavoriteButton.module.css";
 
 export function FavoriteButton({
@@ -35,7 +35,7 @@ export function FavoriteButton({
   const mutation = useMutation({
     mutationFn: (next: boolean) => setFavorite(api, id, next),
     onSuccess: (_, next) => {
-      void queryClient.invalidateQueries({ queryKey: exerciseKeys.all(a) });
+      void invalidateFavoriteQueries(queryClient, a, id);
       toast({
         tone: "success",
         title: next ? m.exercises.favoriteAdded : m.exercises.favoriteRemoved,

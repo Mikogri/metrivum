@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { Block, TrainingDocument } from "@metrivum/api-client-web";
@@ -121,7 +122,14 @@ describe("block maxes", () => {
         </>
       );
     }
-    render(<Editor />);
+    const cache = new QueryClient({
+      defaultOptions: { queries: { gcTime: 0 } },
+    });
+    render(
+      <QueryClientProvider client={cache}>
+        <Editor />
+      </QueryClientProvider>,
+    );
     fireEvent.click(screen.getByText("Pick bench"));
     for (const [label, value] of [
       ["Max load 1", "100 lb"],

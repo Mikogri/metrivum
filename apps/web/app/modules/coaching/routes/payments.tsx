@@ -13,6 +13,7 @@ import {
   CreditCard,
   Repeat,
   Wallet,
+  ShoppingBag,
 } from "lucide-react";
 import { Label, Radio, RadioGroup } from "react-aria-components";
 import type { Schema } from "@metrivum/api-client-web";
@@ -306,9 +307,11 @@ function Payments() {
                   retry={() => void orders.refetch()}
                 />
               ) : !orders.data.items.length ? (
-                <p className={styles.emptyText}>
-                  {uiCopy["ui"]["No orders yet."]}
-                </p>
+                <EmptyState
+                  size="sm"
+                  icon={<ShoppingBag />}
+                  title={uiCopy["ui"]["No orders yet."]}
+                />
               ) : (
                 <>
                   <DataTable

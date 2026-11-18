@@ -3,7 +3,13 @@ import { useT as useUiCopy } from "~/shared/i18n/AppLocale";
 import { useWorkspace } from "~/shared/session/WorkspaceScope";
 import { Link } from "react-router";
 import { useState } from "react";
-import { Dumbbell, MoreHorizontal, Plus, UserPlus } from "lucide-react";
+import {
+  Dumbbell,
+  MoreHorizontal,
+  Plus,
+  UserPlus,
+  ClipboardList,
+} from "lucide-react";
 import {
   Alert,
   Avatar,
@@ -610,11 +616,15 @@ export function AssignmentList({
       ) : list.isError ? (
         <Failure error={list.error} retry={() => void list.refetch()} />
       ) : !list.data.items.length ? (
-        <p className={styles.panelEmpty}>
-          {coach
-            ? uiCopy["ui"]["No assigned programs yet."]
-            : uiCopy["ui"]["Your coach has not assigned a program yet."]}
-        </p>
+        <EmptyState
+          size="sm"
+          icon={<ClipboardList />}
+          title={
+            coach
+              ? uiCopy["ui"]["No assigned programs yet."]
+              : uiCopy["ui"]["Your coach has not assigned a program yet."]
+          }
+        />
       ) : (
         <>
           {mobile && !coach ? (

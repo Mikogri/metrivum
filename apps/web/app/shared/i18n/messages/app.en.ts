@@ -1430,6 +1430,8 @@ export const appEn = {
       noResultsTitle: "Nothing matches",
       noResultsBody: "Try another name, folder or filter.",
       archivedEmpty: "No archived items here.",
+      archivedEmptyBody:
+        "Archived programs and templates appear here. Turn off Show archived to see the rest.",
       count: (n: number) => `${n} ${n === 1 ? "item" : "items"}`,
       archivedBadge: "Archived",
       templateBadge: "Template",

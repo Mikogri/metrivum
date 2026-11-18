@@ -123,7 +123,6 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
             : "Changes applied",
         description: m["ui"]["Clients assigned to it get this version."],
       });
-      void queryClient.invalidateQueries({ queryKey: trainingKeys.plans(a) });
       void queryClient.invalidateQueries({ queryKey: trainingKeys.all(a) });
     },
     onError: (error) => toast({ tone: "danger", title: errorText(m, error) }),
@@ -675,7 +674,11 @@ export function LibraryScreen({ kind }: { kind: DocumentKind }) {
         description={t.noResultsBody}
       />
     ) : state.archived ? (
-      <EmptyState icon={<Archive />} title={t.archivedEmpty} size="sm" />
+      <EmptyState
+        icon={<Archive />}
+        title={t.archivedEmpty}
+        description={t.archivedEmptyBody}
+      />
     ) : folderId ? (
       <EmptyState
         icon={<Folder />}

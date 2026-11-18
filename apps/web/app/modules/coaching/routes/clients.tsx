@@ -8,6 +8,7 @@ import {
   Plus,
   UserCog,
   UsersRound,
+  SearchX,
 } from "lucide-react";
 import { HubNavigation } from "~/shared/navigation/HubNavigation";
 import { useState } from "react";
@@ -1106,10 +1107,16 @@ function GroupMembersDialog({
             }
           />
         ) : !shown.length ? (
-          <p className={styles.none}>
-            {uiCopy["ui"]["No clients match “"]}
-            {search}”.
-          </p>
+          <EmptyState
+            size="sm"
+            icon={<SearchX />}
+            title={
+              <>
+                {uiCopy["ui"]["No clients match “"]}
+                {search}”.
+              </>
+            }
+          />
         ) : (
           <ul className={styles.membersList}>{shown.map(row)}</ul>
         )}

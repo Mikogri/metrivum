@@ -110,7 +110,13 @@ public sealed record FormulaDto(
     FormulaDefinition Definition
 );
 
-public sealed record FormulaListItem(Guid Id, string Name, int Version, bool Archived);
+public sealed record FormulaListItem(
+    Guid Id,
+    string Name,
+    int Version,
+    bool Archived,
+    FormulaDefinition? Definition = null
+);
 
 /// <summary>Manages training plan drafts, revisions, formulas, imports and client metrics in the Training database.</summary>
 public sealed partial class TrainingService(
@@ -719,7 +725,8 @@ public sealed partial class TrainingService(
         string? search,
         int page,
         int pageSize,
-        CancellationToken ct
+        CancellationToken ct,
+        bool includeDefinitions = false
     )
     {
         var account = await ReadAsync(ct);
@@ -741,7 +748,20 @@ public sealed partial class TrainingService(
                 .ThenBy(x => x.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(x => new FormulaListItem(x.Id, x.Name, x.Version, x.Archived))
+                .Select(x => new FormulaListItem(
+                    x.Id,
+                    x.Name,
+                    x.Version,
+                    x.Archived,
+                    includeDefinitions
+                        ? db
+                            .FormulaVersions.Where(v =>
+                                v.FormulaId == x.Id && v.Version == x.Version
+                            )
+                            .Select(v => v.Definition)
+                            .FirstOrDefault()
+                        : null
+                ))
                 .ToArrayAsync(ct),
             page,
             pageSize,

@@ -17,7 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import type { Schema } from "@metrivum/api-client-web";
-import { Badge, PageHeader } from "@portable-ui/react";
+import { Badge, PageHeader, EmptyState } from "@portable-ui/react";
 import {
   Failure,
   Loading,
@@ -72,7 +72,7 @@ function Panel({
 }
 
 function Empty({ children }: { children: ReactNode }) {
-  return <p className={styles.empty}>{children}</p>;
+  return <EmptyState size="sm" title={children} />;
 }
 
 function Workouts({

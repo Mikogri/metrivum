@@ -115,6 +115,7 @@ async function fixture(page: Page, teamRole: string | null = null) {
           user: {
             id,
             email: "coach@trainflow.test",
+            email_confirmed_at: "2026-01-01T00:00:00Z",
             aud: "authenticated",
           },
         }),

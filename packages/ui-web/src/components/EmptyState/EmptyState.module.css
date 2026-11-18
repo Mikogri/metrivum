@@ -11,10 +11,9 @@
   animation: empty-in 200ms var(--ui-ease-out);
 }
 
+/* Compact (inside panels and dialogs): the same dashed box, icon and text, with less room around them. */
 .sm {
   padding: var(--ui-space-6) var(--ui-space-4);
-  border: 0;
-  background: transparent;
 }
 
 .icon {

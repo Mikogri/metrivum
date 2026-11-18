@@ -133,9 +133,13 @@ export function ClientProfile({
             retry={() => void applications.refetch()}
           />
         ) : !applications.data.items.length ? (
-          <p className={styles.empty}>
-            {uiCopy["ui"]["No application forms linked to this collaboration."]}
-          </p>
+          <EmptyState
+            size="sm"
+            icon={<FileText />}
+            title={
+              uiCopy["ui"]["No application forms linked to this collaboration."]
+            }
+          />
         ) : (
           <>
             <DataTable
