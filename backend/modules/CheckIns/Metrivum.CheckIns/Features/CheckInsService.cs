@@ -26,7 +26,8 @@ public sealed partial class CheckInsService(
     INotificationPublisher notifications,
     ITeamContext? teams = null,
     IAssignedProgramCycles? assignedPrograms = null,
-    IAbuseProtection? abuse = null
+    IAbuseProtection? abuse = null,
+    WorkerWakeup<CheckInsWorker>? wakeup = null
 )
 {
     public async Task<ScheduleDto> CreateAsync(ScheduleRequest request, CancellationToken ct)
@@ -56,6 +57,7 @@ public sealed partial class CheckInsService(
                 db.Schedules.Add(schedule);
                 await AddTargetsAsync(schedule, request, token);
                 await SaveAsync(token);
+                WakeWorkerAfterCommit();
                 return await DtoAsync(schedule, token);
             },
             ct
@@ -148,6 +150,7 @@ public sealed partial class CheckInsService(
                 await AddTargetsAsync(s, request, token);
                 Touch(s);
                 await SaveAsync(token);
+                WakeWorkerAfterCommit();
                 return await DtoAsync(s, token);
             },
             ct
@@ -181,6 +184,7 @@ public sealed partial class CheckInsService(
                 }
                 Touch(s);
                 await SaveAsync(token);
+                WakeWorkerAfterCommit();
                 return await DtoAsync(s, token);
             },
             ct
@@ -403,7 +407,7 @@ public sealed partial class CheckInsService(
             _ => throw ApiException.Invalid("Sort must be due, available, or status."),
         };
         return new(
-            (await ordered.Skip((page - 1) * size).Take(size).ToArrayAsync(ct))
+            (await RequestPreview(ordered.Skip((page - 1) * size).Take(size)).ToArrayAsync(ct))
                 .Select(RequestDto)
                 .ToArray(),
             page,
@@ -434,25 +438,29 @@ public sealed partial class CheckInsService(
                 && x.WorkspaceId == owner.WorkspaceId
             );
         var now = clock.GetUtcNow();
-        var submitted = await q.CountAsync(x => x.Status == RequestStatus.Submitted, ct);
-        var overdue = await q.CountAsync(
-            x => x.Status == RequestStatus.Scheduled && x.DueAtUtc < now,
-            ct
-        );
-        var reviewed = await q.CountAsync(x => x.Status == RequestStatus.Reviewed, ct);
-        var last = await q.Where(x => x.AvailableAtUtc <= now)
-            .OrderByDescending(x => x.AvailableAtUtc)
-            .ThenBy(x => x.Id)
+        var totals = await q.GroupBy(_ => 1)
+            .Select(rows => new
+            {
+                Submitted = rows.Count(x => x.Status == RequestStatus.Submitted),
+                Overdue = rows.Count(x => x.Status == RequestStatus.Scheduled && x.DueAtUtc < now),
+                Reviewed = rows.Count(x => x.Status == RequestStatus.Reviewed),
+                NextDue = rows.Where(x => x.Status == RequestStatus.Scheduled && x.DueAtUtc >= now)
+                    .Min(x => (DateTimeOffset?)x.DueAtUtc),
+            })
+            .SingleOrDefaultAsync(ct);
+        var last = await RequestPreview(
+                q.Where(x => x.AvailableAtUtc <= now)
+                    .OrderByDescending(x => x.AvailableAtUtc)
+                    .ThenBy(x => x.Id)
+            )
             .FirstOrDefaultAsync(ct);
-        var next = await q.Where(x => x.Status == RequestStatus.Scheduled && x.DueAtUtc >= now)
-            .MinAsync(x => (DateTimeOffset?)x.DueAtUtc, ct);
         return new(
-            submitted,
-            overdue,
-            submitted,
-            reviewed,
+            totals?.Submitted ?? 0,
+            totals?.Overdue ?? 0,
+            totals?.Submitted ?? 0,
+            totals?.Reviewed ?? 0,
             last == null ? null : RequestDto(last),
-            next
+            totals?.NextDue
         );
     }
 
@@ -628,6 +636,12 @@ public sealed partial class CheckInsService(
             },
             ct
         );
+    }
+
+    private void WakeWorkerAfterCommit()
+    {
+        if (wakeup is not null)
+            transaction.OnCommitted(wakeup.SignalAsync);
     }
 
     public async Task<int> GenerateDueAsync(int limit, CancellationToken ct)
@@ -1153,6 +1167,30 @@ public sealed partial class CheckInsService(
             s.CreatedAt,
             s.UpdatedAt
         );
+
+    // Read-only projection shared by lists and the latest check-in summary.
+    private IQueryable<CheckInRequest> RequestPreview(IQueryable<CheckInRequest> query) =>
+        query.Select(r => new CheckInRequest
+        {
+            Id = r.Id,
+            ScheduleId = r.ScheduleId,
+            ScheduleName = r.ScheduleName,
+            RelationshipId = r.RelationshipId,
+            FormVersionId = r.FormVersionId,
+            AvailableAtUtc = r.AvailableAtUtc,
+            DueAtUtc = r.DueAtUtc,
+            Status = r.Status,
+            SubmittedAt = r.SubmittedAt,
+            ReviewedAt = r.ReviewedAt,
+            CancelledAt = r.CancelledAt,
+            WasLate = r.WasLate,
+            Version = r.Version,
+            ClientReply = r.ClientReply,
+            ReviewedBy = r.ReviewedBy,
+            AssignmentSource = r.AssignmentSource,
+            CoachId = r.CoachId,
+            AssignmentGroupsJson = r.CoachId == accounts.UserId ? r.AssignmentGroupsJson : null,
+        });
 
     private CheckInRequestDto RequestDto(CheckInRequest r) =>
         new(

@@ -40,6 +40,19 @@ These fixture counts are not production timings or worst-case bounds. Real filte
 - AbortSignals cancel obsolete section requests. Existing account-lifetime cancellation/removal still owns all private cache. No private cache is persisted to disk or shared globally between users.
 - Group mutations invalidate their dependent Analyze filters/sections as well as group/client views, without refetching offers. Other mutation dependencies retain their existing coverage.
 
+## Durable worker wakeups
+
+- Notifications and check-in generation read the next eligible deadline, then wait for that deadline, a local signal, or a one-minute recovery scan. Mobile push deadlines include retries and receipts. Check-in deadlines respect the later of release time and retry time.
+- New notifications and schedule changes signal the local worker only after the database transaction commits. Restart and changes made on another instance are covered by the recovery scan. Existing database locks, eligibility rules and batch limits still govern processing.
+- Idle notification scheduling checks the database once per minute instead of claiming a batch every three seconds. Cross-instance notification delivery can wait until the next recovery scan.
+
+## Transfer reduction (2026-11-25)
+
+- Check-in lists and the client summary select only fields used in their response. PostgreSQL omits private coach notes from both reads and returns assignment-group metadata only to the owning coach. The detail endpoint retains its existing separate access rules.
+- Check-in summaries use two reads of the requests table instead of five, excluding authorization. One query calculates the counts and next due date, and the other selects the latest visible check-in.
+- Shared analysis detail, result and video requests filter metadata by analysis ID in PostgreSQL. Result and video requests reuse the owner from the authorized row. The workout list reuses references to the same execution and set within one request.
+- Resolving a linked set selects only that set and the fields used in the reference. It does not transfer sibling sets or log comments.
+
 ## Transfer reduction (2026-11-01)
 
 - `training/analysis-set-options` accepts optional `includeSets` (default `true`) and `executionId`.

@@ -261,19 +261,25 @@ public sealed partial class TrainingDeliveryService : IAnalysisWorkoutReferences
         CancellationToken ct
     )
     {
-        string? exercise = null;
-        SetExecution? set = null;
+        SetReferenceRow? set = null;
         if (setId is { } id)
         {
-            var match = await db.Set<ExerciseExecution>()
+            set = await db.Set<ExerciseExecution>()
                 .AsNoTracking()
-                .Include(x => x.Sets)
-                .Where(x => x.ExecutionId == row.ExecutionId && x.Sets.Any(s => s.Id == id))
+                .Where(x => x.ExecutionId == row.ExecutionId)
+                .SelectMany(x =>
+                    x.Sets.Where(s => s.Id == id)
+                        .Select(s => new SetReferenceRow(
+                            x.Name,
+                            s.Position,
+                            s.Reps,
+                            s.Load,
+                            s.LoadUnit
+                        ))
+                )
                 .SingleOrDefaultAsync(ct);
-            if (match == null)
+            if (set == null)
                 return null;
-            exercise = match.Name;
-            set = match.Sets.Single(s => s.Id == id);
         }
         var people = await directory.GetAccountsAsync([assignment.ClientId], ct);
         return new AnalysisSetReference(
@@ -284,11 +290,19 @@ public sealed partial class TrainingDeliveryService : IAnalysisWorkoutReferences
             people.TryGetValue(assignment.ClientId, out var person) ? person.DisplayName : "Client",
             row.PerformedDate,
             row.WorkoutName,
-            exercise,
+            set?.ExerciseName,
             set == null ? null : set.Position + 1,
             set?.Reps,
             set?.Load,
             set?.LoadUnit
         );
     }
+
+    private sealed record SetReferenceRow(
+        string ExerciseName,
+        int Position,
+        int? Reps,
+        decimal? Load,
+        string? LoadUnit
+    );
 }

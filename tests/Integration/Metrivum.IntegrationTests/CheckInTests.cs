@@ -5,6 +5,7 @@ using Metrivum.Access.Contracts;
 using Metrivum.Accounts.Contracts;
 using Metrivum.Accounts.Infrastructure;
 using Metrivum.BuildingBlocks;
+using Metrivum.CheckIns;
 using Metrivum.CheckIns.Contracts;
 using Metrivum.CheckIns.Domain;
 using Metrivum.CheckIns.Features;
@@ -37,6 +38,27 @@ namespace Metrivum.IntegrationTests;
 
 public sealed class CheckInTests
 {
+    [CatalogPostgresFact]
+    public async Task Committed_schedule_changes_wake_check_in_worker()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var wakeup = f.Provider.GetRequiredService<WorkerWakeup<CheckInsWorker>>();
+        var form = await f.FormAsync();
+        var person = await f.RelationshipAsync();
+        var schedule = await f.Coach(s =>
+            s.CreateAsync(f.Schedule(form.Id, [person.Id], []), default)
+        );
+        Assert.True(await wakeup.WaitAsync(TimeSpan.FromSeconds(1), default));
+        var paused = await f.Coach(s =>
+            s.ChangeStatusAsync(schedule.Id, ScheduleStatus.Paused, schedule.Version, default)
+        );
+        Assert.True(await wakeup.WaitAsync(TimeSpan.FromSeconds(1), default));
+        await f.Coach(s =>
+            s.ChangeStatusAsync(schedule.Id, ScheduleStatus.Active, paused.Version, default)
+        );
+        Assert.True(await wakeup.WaitAsync(TimeSpan.FromSeconds(1), default));
+    }
+
     [CatalogPostgresFact]
     public async Task Assignment_schedule_updates_batch_last_issue_dates()
     {
@@ -95,7 +117,7 @@ public sealed class CheckInTests
             schedules,
             s => Assert.Equal(DateTimeOffset.Parse("2026-10-26T09:00:00Z"), s.NextAvailableAtUtc)
         );
-        commands.RequestReads = 0;
+        commands.RequestSql.Clear();
         await observer.ChangedAsync(Guid.NewGuid(), cycles, default);
         Assert.Equal(0, commands.RequestReads);
         await transaction.RollbackAsync();
@@ -104,7 +126,8 @@ public sealed class CheckInTests
     private sealed class ScheduleReads
         : Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor
     {
-        public int RequestReads;
+        public List<string> RequestSql { get; } = [];
+        public int RequestReads => RequestSql.Count;
 
         public override ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader>> ReaderExecutingAsync(
             System.Data.Common.DbCommand command,
@@ -114,7 +137,7 @@ public sealed class CheckInTests
         )
         {
             if (command.CommandText.Contains("checkins.\"Requests\""))
-                RequestReads++;
+                RequestSql.Add(command.CommandText);
             return ValueTask.FromResult(result);
         }
     }
@@ -1000,6 +1023,7 @@ public sealed class CheckInTests
                 )
             ).Status
         );
+        f.Reads.RequestSql.Clear();
         var filtered = await f.Coach(s =>
             s.RequestsAsync(
                 1,
@@ -1016,7 +1040,13 @@ public sealed class CheckInTests
         );
         Assert.Equal(1, filtered.Total);
         Assert.Equal(issued.Id, Assert.Single(filtered.Items).Id);
+        Assert.Equal(2, f.Reads.RequestReads);
+        Assert.All(f.Reads.RequestSql, sql => Assert.DoesNotContain("CoachPrivateNotes", sql));
+
+        f.Reads.RequestSql.Clear();
         var summary = await f.Coach(s => s.SummaryAsync(a.Id, default));
+        Assert.Equal(2, f.Reads.RequestReads);
+        Assert.All(f.Reads.RequestSql, sql => Assert.DoesNotContain("CoachPrivateNotes", sql));
         Assert.Equal(0, summary.AwaitingReview);
         Assert.Equal(0, summary.Overdue);
         Assert.NotNull(summary.NextDueAtUtc);
@@ -1771,6 +1801,7 @@ public sealed class CheckInTests
         public Guid CoachId { get; } = Guid.NewGuid();
         public Account Account { get; }
         public Clock Clock { get; } = new();
+        public ScheduleReads Reads { get; } = new();
         public ServiceProvider Provider { get; }
 
         private Fixture(ITeamContext? teams = null)
@@ -1796,6 +1827,10 @@ public sealed class CheckInTests
             services.AddScoped<TrainingService>();
             services.AddScoped<TrainingDeliveryService>();
             services.AddModuleDatabase<CheckInsDbContext>("checkins");
+            services.AddSingleton<WorkerWakeup<CheckInsWorker>>();
+            services.ConfigureDbContext<CheckInsDbContext>(options =>
+                options.AddInterceptors(Reads)
+            );
             services.AddModuleDatabase<NotificationsDbContext>("notifications");
             services.AddScoped<INotificationPublisher, NotificationPublisher>();
             services.AddModuleDatabase<FormsDbContext>("forms");

@@ -8,7 +8,8 @@ namespace Metrivum.Notifications;
 public sealed class NotificationPublisher(
     NotificationsDbContext db,
     ModuleTransaction tx,
-    TimeProvider clock
+    TimeProvider clock,
+    WorkerWakeup<NotificationsWorker>? wakeup = null
 ) : INotificationPublisher
 {
     public Task PublishAsync(NotificationEvent n, CancellationToken ct) =>
@@ -36,7 +37,7 @@ public sealed class NotificationPublisher(
                 var suppressed = !NotificationsService.Enabled(p, n.Category, n.Required);
                 var now = clock.GetUtcNow();
                 // The unique event identity arbitrates retries across API/worker instances in the caller's transaction.
-                await db.Database.ExecuteSqlInterpolatedAsync(
+                var inserted = await db.Database.ExecuteSqlInterpolatedAsync(
                     $"""
                     INSERT INTO notifications."Notifications"
                         ("Id", "RecipientUserId", "EventKey", "Type", "Category", "SourceModule", "SourceId", "DeepLink", "CreatedAt", "AvailableAt", "Required", "Cancelled")
@@ -46,6 +47,8 @@ public sealed class NotificationPublisher(
                     """,
                     token
                 );
+                if (inserted > 0 && !suppressed && wakeup is not null)
+                    tx.OnCommitted(wakeup.SignalAsync);
             },
             ct
         );

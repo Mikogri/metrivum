@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Metrivum.BuildingBlocks;
 using Metrivum.CheckIns.Domain;
 using Metrivum.Training.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -6,8 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Metrivum.CheckIns.Infrastructure;
 
 /// <summary>Updates plan-relative check-in scheduling after Training publishes assignment-cycle changes.</summary>
-public sealed class AssignedProgramScheduleObserver(CheckInsDbContext db, TimeProvider clock)
-    : IAssignedProgramScheduleObserver
+public sealed class AssignedProgramScheduleObserver(
+    CheckInsDbContext db,
+    TimeProvider clock,
+    ModuleTransaction? transaction = null,
+    WorkerWakeup<CheckInsWorker>? wakeup = null
+) : IAssignedProgramScheduleObserver
 {
     public async Task ChangedAsync(
         Guid coachId,
@@ -73,5 +78,7 @@ public sealed class AssignedProgramScheduleObserver(CheckInsDbContext db, TimePr
             schedule.UpdatedAt = clock.GetUtcNow();
         }
         await db.SaveChangesAsync(ct);
+        if (wakeup is not null && transaction is { IsActive: true })
+            transaction.OnCommitted(wakeup.SignalAsync);
     }
 }

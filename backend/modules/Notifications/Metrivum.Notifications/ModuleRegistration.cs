@@ -42,6 +42,7 @@ public static class ModuleRegistration
     )
     {
         services.AddModuleDatabase<NotificationsDbContext>("notifications");
+        services.TryAddSingleton<WorkerWakeup<NotificationsWorker>>();
         services.AddScoped<INotificationPublisher, NotificationPublisher>();
         services.AddScoped<IProgramEndingAlertPreferences, ProgramEndingAlertPreferences>();
         services.TryAddSingleton(TimeProvider.System);

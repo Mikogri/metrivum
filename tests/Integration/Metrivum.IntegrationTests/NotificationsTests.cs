@@ -14,6 +14,45 @@ namespace Metrivum.IntegrationTests;
 public sealed class NotificationsTests
 {
     [CatalogPostgresFact]
+    public async Task Publisher_wakes_worker_only_after_a_new_notification_commits()
+    {
+        using var factory = new ApiFactory(Database);
+        var user = Guid.NewGuid();
+        await Onboard(factory, user);
+        await using var scope = factory.Services.CreateAsyncScope();
+        var services = scope.ServiceProvider;
+        var wakeup = services.GetRequiredService<WorkerWakeup<NotificationsWorker>>();
+        var publisher = services.GetRequiredService<INotificationPublisher>();
+        var tx = services.GetRequiredService<ModuleTransaction>();
+        var notification = new NotificationEvent(
+            user,
+            $"wake:{Guid.NewGuid()}",
+            "CheckInAssigned",
+            "CheckIns",
+            "CheckIns",
+            Guid.NewGuid(),
+            null
+        );
+        Assert.False(await wakeup.WaitAsync(TimeSpan.Zero, default));
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            tx.RunAsync(
+                async ct =>
+                {
+                    await publisher.PublishAsync(notification, ct);
+                    Assert.False(await wakeup.WaitAsync(TimeSpan.Zero, ct));
+                    throw new InvalidOperationException("Roll back notification.");
+                },
+                default
+            )
+        );
+        Assert.False(await wakeup.WaitAsync(TimeSpan.Zero, default));
+        await publisher.PublishAsync(notification, default);
+        Assert.True(await wakeup.WaitAsync(TimeSpan.FromSeconds(1), default));
+        await publisher.PublishAsync(notification, default);
+        Assert.False(await wakeup.WaitAsync(TimeSpan.Zero, default));
+    }
+
+    [CatalogPostgresFact]
     public async Task Single_notification_lookup_is_recipient_scoped_and_hides_cancelled_or_future_rows()
     {
         using var f = new ApiFactory(Database);

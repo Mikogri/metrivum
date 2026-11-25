@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -5,7 +6,12 @@ using Metrivum.Coaching.Contracts;
 using Metrivum.Training.Delivery;
 using Metrivum.Training.Domain;
 using Metrivum.Training.Features;
+using Metrivum.Training.Infrastructure;
 using Metrivum.VideoAnalysis;
+using Metrivum.VideoAnalysis.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Metrivum.IntegrationTests;
@@ -213,14 +219,26 @@ public sealed class MobileWorkoutAnalysisTests
     [CatalogPostgresFact]
     public async Task Coach_links_own_analysis_to_a_clients_logged_set_and_other_coaches_cannot()
     {
-        using var factory = new ApiFactory(
+        using var root = new ApiFactory(
             Environment.GetEnvironmentVariable("TRAINFLOW_TEST_DATABASE")
+        );
+        var reads = new SharedAnalysisReads();
+        using var factory = root.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services =>
+            {
+                services.ConfigureDbContext<TrainingDbContext>(options =>
+                    options.AddInterceptors(reads)
+                );
+                services.ConfigureDbContext<VideoAnalysisDbContext>(options =>
+                    options.AddInterceptors(reads)
+                );
+            })
         );
         var coachId = Guid.NewGuid();
         var owner = Guid.NewGuid();
-        using var coach = await Client(factory, coachId, "Coach");
-        using var client = await Client(factory, owner, "Client");
-        using var stranger = await Client(factory, Guid.NewGuid(), "Coach");
+        using var coach = await Client(root, coachId, "Coach", factory);
+        using var client = await Client(root, owner, "Client", factory);
+        using var stranger = await Client(root, Guid.NewGuid(), "Coach", factory);
         Guid relationship;
         using (var scope = factory.Services.CreateScope())
             relationship = await scope
@@ -512,12 +530,25 @@ public sealed class MobileWorkoutAnalysisTests
         );
         Assert.Equal(analysisId, fromCoach[0].GetProperty("analysis").GetProperty("id").GetGuid());
         Assert.Equal(actualSet, fromCoach[0].GetProperty("set").GetProperty("setId").GetGuid());
+        reads.Sql.Clear();
         await Body(await client.GetAsync($"/api/v1/analyses/from-coach/{analysisId}/result"));
+        var jobs = reads.Sql.Where(sql => sql.Command.Contains("video_analysis.jobs")).ToArray();
+        Assert.Equal(3, jobs.Length);
+        Assert.Contains(
+            analysisId,
+            Assert.Single(jobs, sql => sql.Command.Contains("\"Configuration\"")).Parameters
+        );
+        var loggedSet = Assert.Single(
+            reads.Sql,
+            sql => sql.Command.Contains("training.set_executions")
+        );
+        Assert.DoesNotContain("\"Comment\"", loggedSet.Command);
+        Assert.Contains(actualSet, loggedSet.Parameters);
         Assert.Equal(
             HttpStatusCode.NotFound,
             (await client.GetAsync($"/api/v1/analyses/{analysisId}")).StatusCode
         );
-        using var otherClient = await Client(factory, Guid.NewGuid(), "Client");
+        using var otherClient = await Client(root, Guid.NewGuid(), "Client", factory);
         Assert.Equal(
             HttpStatusCode.NotFound,
             (await otherClient.GetAsync($"/api/v1/analyses/from-coach/{analysisId}")).StatusCode
@@ -700,9 +731,14 @@ public sealed class MobileWorkoutAnalysisTests
         );
     }
 
-    private static async Task<HttpClient> Client(ApiFactory factory, Guid id, string role)
+    private static async Task<HttpClient> Client(
+        ApiFactory factory,
+        Guid id,
+        string role,
+        WebApplicationFactory<Program>? host = null
+    )
     {
-        var http = factory.CreateClient();
+        var http = (host ?? factory).CreateClient();
         http.DefaultRequestHeaders.Authorization = new("Bearer", factory.Token(id));
         await Body(
             await http.PutAsJsonAsync(
@@ -729,5 +765,26 @@ public sealed class MobileWorkoutAnalysisTests
         var body = await response.Content.ReadAsStringAsync();
         Assert.True(response.IsSuccessStatusCode, $"{response.StatusCode}: {body}");
         return JsonSerializer.Deserialize<JsonElement>(body);
+    }
+
+    private sealed class SharedAnalysisReads : DbCommandInterceptor
+    {
+        public List<(string Command, object?[] Parameters)> Sql { get; } = [];
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default
+        )
+        {
+            Sql.Add(
+                (
+                    command.CommandText,
+                    command.Parameters.Cast<DbParameter>().Select(p => p.Value).ToArray()
+                )
+            );
+            return ValueTask.FromResult(result);
+        }
     }
 }

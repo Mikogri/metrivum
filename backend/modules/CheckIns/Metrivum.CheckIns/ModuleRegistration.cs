@@ -8,6 +8,7 @@ using Metrivum.Notifications.Contracts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -29,6 +30,7 @@ public static class ModuleRegistration
             TeamCheckInLifecycle
         >();
         services.AddModuleDatabase<CheckInsDbContext>("checkins");
+        services.TryAddSingleton<WorkerWakeup<CheckInsWorker>>();
         services.AddScoped<CheckInsService>();
         services.AddScoped<
             Metrivum.CheckIns.Contracts.IMcpCheckInOperations,
@@ -294,6 +296,8 @@ public static class ModuleRegistration
 /// <summary>Runs scheduled check ins processing in CheckIns through the owning services.</summary>
 public sealed class CheckInsWorker(
     IServiceScopeFactory scopes,
+    WorkerWakeup<CheckInsWorker> wakeup,
+    TimeProvider clock,
     IConfiguration configuration,
     IHostEnvironment environment,
     ILogger<CheckInsWorker> logger
@@ -308,16 +312,31 @@ public sealed class CheckInsWorker(
             )
         )
             return;
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
-        // Poll only after startup so deployment migration commands can complete without racing this driver.
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+        while (!stoppingToken.IsCancellationRequested)
         {
+            var delay = WorkerWakeup<CheckInsWorker>.RecoveryInterval;
             try
             {
                 await using var scope = scopes.CreateAsyncScope();
-                await scope
-                    .ServiceProvider.GetRequiredService<CheckInsService>()
-                    .GenerateDueAsync(25, stoppingToken);
+                var services = scope.ServiceProvider;
+                var next = await services
+                    .GetRequiredService<CheckInsDbContext>()
+                    .Schedules.Where(s =>
+                        s.Status == ScheduleStatus.Active && s.NextAvailableAtUtc != null
+                    )
+                    .MinAsync(
+                        s =>
+                            s.RetryAtUtc > s.NextAvailableAtUtc
+                                ? s.RetryAtUtc
+                                : s.NextAvailableAtUtc,
+                        stoppingToken
+                    );
+                var now = clock.GetUtcNow();
+                delay = WorkerWakeup<CheckInsWorker>.DelayUntil(next, now);
+                if (next <= now)
+                    await services
+                        .GetRequiredService<CheckInsService>()
+                        .GenerateDueAsync(25, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -325,11 +344,13 @@ public sealed class CheckInsWorker(
             }
             catch (Exception ex)
             {
+                delay = WorkerWakeup<CheckInsWorker>.RecoveryInterval;
                 logger.LogError(
                     ex,
                     "Check-in generation polling failed; persisted schedules will be retried."
                 );
             }
+            await wakeup.WaitAsync(delay, stoppingToken);
         }
     }
 }

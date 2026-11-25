@@ -85,6 +85,13 @@ public sealed class AnalysisWorkoutLinks(
         Guid client,
         Guid? executionId,
         CancellationToken ct
+    ) => (await ReadSharedAsync(client, executionId, null, ct)).Select(x => x.Dto).ToArray();
+
+    private async Task<List<(CoachAnalysisDto Dto, Guid Owner)>> ReadSharedAsync(
+        Guid client,
+        Guid? executionId,
+        Guid? analysisId,
+        CancellationToken ct
     )
     {
         var executions = await workouts.ClientExecutionsAsync(executionId, ct);
@@ -96,6 +103,7 @@ public sealed class AnalysisWorkoutLinks(
                 x.SharedWithClient
                 && x.OwnerId != client
                 && x.Status == "Completed"
+                && (analysisId == null || x.Id == analysisId)
                 && x.WorkoutExecutionId != null
                 && executions.Contains(x.WorkoutExecutionId.Value)
             )
@@ -123,21 +131,35 @@ public sealed class AnalysisWorkoutLinks(
                 SetId = x.SetId,
             })
             .ToListAsync(ct);
-        var shared = new List<CoachAnalysisDto>(jobs.Count);
+        var shared = new List<(CoachAnalysisDto Dto, Guid Owner)>(jobs.Count);
+        var references = new Dictionary<(Guid Execution, Guid? Set), AnalysisSetReference?>();
         foreach (var job in jobs)
-            if (
-                await workouts.DescribeAsync(job.WorkoutExecutionId!.Value, job.SetId, ct)
-                    is { } reference
-                && reference.ClientId == client
-            )
-                shared.Add(new(AnalysisLibrary.Dto(job), reference));
-        return shared.ToArray();
+        {
+            var key = (Execution: job.WorkoutExecutionId!.Value, Set: job.SetId);
+            if (!references.TryGetValue(key, out var reference))
+            {
+                reference = await workouts.DescribeAsync(key.Execution, key.Set, ct);
+                references.Add(key, reference);
+            }
+            if (reference?.ClientId == client)
+                shared.Add((new(AnalysisLibrary.Dto(job), reference), job.OwnerId));
+        }
+        return shared;
     }
 
     public async Task<CoachAnalysisDto> SharedAsync(Guid id, Guid client, CancellationToken ct) =>
-        (
-            await FromCoachAsync(client, (Guid?)await SharedExecutionAsync(id, client, ct), ct)
-        ).SingleOrDefault(x => x.Analysis.Id == id) ?? throw ApiException.NotFound();
+        (await RequireSharedAsync(id, client, ct)).Dto;
+
+    private async Task<(CoachAnalysisDto Dto, Guid Owner)> RequireSharedAsync(
+        Guid id,
+        Guid client,
+        CancellationToken ct
+    )
+    {
+        var execution = await SharedExecutionAsync(id, client, ct);
+        var rows = await ReadSharedAsync(client, execution, id, ct);
+        return rows.Count == 1 ? rows[0] : throw ApiException.NotFound();
+    }
 
     public async Task<AnalysisResult> ResultAsync(
         Guid id,
@@ -147,13 +169,8 @@ public sealed class AnalysisWorkoutLinks(
         CancellationToken ct
     )
     {
-        var shared = await SharedAsync(id, client, ct);
-        var owner = await db
-            .Jobs.AsNoTracking()
-            .Where(x => x.Id == id)
-            .Select(x => x.OwnerId)
-            .SingleAsync(ct);
-        return await library.ResultAsync(shared.Analysis.Id, owner, repetition, maxPoints, ct);
+        var (_, owner) = await RequireSharedAsync(id, client, ct);
+        return await library.ResultAsync(id, owner, repetition, maxPoints, ct);
     }
 
     public async Task<CoachAnalysisVideoUrl> VideoUrlAsync(
@@ -162,14 +179,9 @@ public sealed class AnalysisWorkoutLinks(
         CancellationToken ct
     )
     {
-        var shared = await SharedAsync(id, client, ct);
+        var (shared, owner) = await RequireSharedAsync(id, client, ct);
         if (shared.Analysis.MediaId is not { } mediaId)
             throw ApiException.NotFound();
-        var owner = await db
-            .Jobs.AsNoTracking()
-            .Where(x => x.Id == id)
-            .Select(x => x.OwnerId)
-            .SingleAsync(ct);
         // Downloads count against the viewing client, like a shared link.
         var ticket = await media.ReadUrlForAsync(mediaId, owner, client, ct);
         return new(ticket.Url, ticket.ExpiresAt);

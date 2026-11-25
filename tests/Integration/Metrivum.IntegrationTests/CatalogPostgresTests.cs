@@ -16,7 +16,8 @@ public sealed class CatalogPostgresTests
     {
         using var db = Context();
         var service = Service(db);
-        var tag = await service.CreateTagAsync($"Keyword search {Guid.NewGuid():N}", default);
+        var fixtureId = Guid.NewGuid().ToString("N");
+        var tag = await service.CreateTagAsync($"Keyword search {fixtureId}", default);
         foreach (
             var name in new[]
             {
@@ -26,7 +27,7 @@ public sealed class CatalogPostgresTests
                 "Cable Chest Fly",
             }
         )
-            await service.CreateAsync(new(name, TagIds: [tag.Id]), default);
+            await service.CreateAsync(new($"{name} {fixtureId}", TagIds: [tag.Id]), default);
         foreach (
             var (search, expected) in new[]
             {
@@ -42,7 +43,7 @@ public sealed class CatalogPostgresTests
                 new(Search: search, TagId: tag.Id, PageSize: 1),
                 default
             );
-            Assert.Equal(expected, Assert.Single(page.Items).Name);
+            Assert.Equal($"{expected} {fixtureId}", Assert.Single(page.Items).Name);
             Assert.Equal(1, page.Total);
         }
         Assert.Empty(

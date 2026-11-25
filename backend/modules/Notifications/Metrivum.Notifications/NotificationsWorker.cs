@@ -25,23 +25,44 @@ public sealed class NotificationsHub(IAccountContext accounts) : Hub
 /// <summary>Processes durable notifications in the background and schedules delivery attempts.</summary>
 public sealed class NotificationsWorker(
     IServiceScopeFactory scopes,
+    WorkerWakeup<NotificationsWorker> wakeup,
+    TimeProvider clock,
+    IOptions<ExpoPushOptions> pushOptions,
     ILogger<NotificationsWorker> logger
 ) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(3));
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+        while (!stoppingToken.IsCancellationRequested)
         {
+            var delay = WorkerWakeup<NotificationsWorker>.RecoveryInterval;
             try
             {
-                using var scope = scopes.CreateScope();
-                await scope
-                    .ServiceProvider.GetRequiredService<NotificationsDelivery>()
-                    .DeliverAsync(stoppingToken);
-                await scope
-                    .ServiceProvider.GetRequiredService<MobilePushDelivery>()
-                    .RunAsync(stoppingToken);
+                await using var scope = scopes.CreateAsyncScope();
+                var services = scope.ServiceProvider;
+                var db = services.GetRequiredService<NotificationsDbContext>();
+                var due = db
+                    .Notifications.Where(n => n.DeliveredAt == null && !n.Cancelled)
+                    .OrderBy(n => n.AvailableAt)
+                    .Select(n => n.AvailableAt)
+                    .Take(1);
+                if (pushOptions.Value.Enabled)
+                    due = due.Concat(
+                        db.PushDeliveries.Where(d => d.Status == "Pending" || d.Status == "Receipt")
+                            .OrderBy(d => d.AvailableAt)
+                            .Select(d => d.AvailableAt)
+                            .Take(1)
+                    );
+                var next = await due.MinAsync(n => (DateTimeOffset?)n, stoppingToken);
+                var now = clock.GetUtcNow();
+                delay = WorkerWakeup<NotificationsWorker>.DelayUntil(next, now);
+                if (next <= now)
+                {
+                    await services
+                        .GetRequiredService<NotificationsDelivery>()
+                        .DeliverAsync(stoppingToken);
+                    await services.GetRequiredService<MobilePushDelivery>().RunAsync(stoppingToken);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -49,11 +70,13 @@ public sealed class NotificationsWorker(
             }
             catch (Exception ex)
             {
+                delay = WorkerWakeup<NotificationsWorker>.RecoveryInterval;
                 logger.LogWarning(
                     ex,
                     "Notification delivery will retry; REST remains authoritative"
                 );
             }
+            await wakeup.WaitAsync(delay, stoppingToken);
         }
     }
 }
